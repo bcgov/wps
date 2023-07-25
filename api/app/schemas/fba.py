@@ -8,7 +8,7 @@ class FireCenterStation(BaseModel):
     """ A fire weather station has a code, name and geographical coordinate. """
     code: int
     name: str
-    zone: Optional[str]
+    zone: Optional[str] = None
 
 
 class FireCentre(BaseModel):

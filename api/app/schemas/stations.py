@@ -112,7 +112,7 @@ class WeatherStationGroupMembersResponse(BaseModel):
 class WeatherStationGroup(BaseModel):
     """ A weather station group from WF1"""
     display_label: str
-    group_description: str | None
+    group_description: str | None = None
     group_owner_user_guid: str
     group_owner_user_id: str
     id: str

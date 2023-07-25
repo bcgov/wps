@@ -12,9 +12,9 @@ from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
 
 morecast_v2_post_url = '/api/morecast-v2/forecast'
-morecast_v2_get_url = f'/api/morecast-v2/forecasts/{1}'
+morecast_v2_get_url = '/api/morecast-v2/forecasts/2023-03-15'
 morecast_v2_post_by_date_range_url = "/api/morecast-v2/forecasts/2023-03-15/2023-03-19"
-today = '2022-10-7'
+today = '2022-10-07'
 morecast_v2_post_yesterday_dailies_url = f'/api/morecast-v2/yesterday-dailies/{today}'
 morecast_v2_post_determinates_url = '/api/morecast-v2/determinates/2023-03-15/2023-03-19'
 
@@ -124,7 +124,7 @@ def test_get_yesterday_dailies_authorized(client: TestClient, monkeypatch: pytes
     response = client.post(morecast_v2_post_yesterday_dailies_url, json={"station_codes": requested_station_codes})
     assert response.status_code == 200
 
-    parsed_dailies = [StationDailyFromWF1.parse_obj(raw_daily) for raw_daily in response.json().get('dailies')]
+    parsed_dailies = [StationDailyFromWF1.model_validate(raw_daily) for raw_daily in response.json().get('dailies')]
     assert len(parsed_dailies) == 3
 
     today_date = datetime.strptime(today, '%Y-%m-%d').date()

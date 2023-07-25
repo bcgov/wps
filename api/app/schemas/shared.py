@@ -24,5 +24,5 @@ class FuelType(BaseModel):
     abbrev: str
     fuel_type_code: str
     description: str
-    percentage_conifer: Optional[int]
-    percentage_dead_fir: Optional[int]
+    percentage_conifer: Optional[int] = None
+    percentage_dead_fir: Optional[int] = None
