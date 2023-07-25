@@ -1,11 +1,12 @@
 import {
   createTheme,
   Dialog,
-  IconButton,
   InputAdornment,
   TextField,
   ThemeProvider,
-  StyledEngineProvider
+  StyledEngineProvider,
+  Icon,
+  Button
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import * as materialIcons from '@mui/icons-material'
@@ -92,34 +93,39 @@ const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelecto
     <div>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={dateRangePickerTheme}>
-          <DateRangePickerTextField
-            data-testid="date-range-picker-text-field"
-            size="small"
-            id="outlined-basic"
-            variant="outlined"
-            disabled={true}
-            label={'Set prep period'}
+          <Button
+            sx={{ textTransform: 'capitalize' }}
+            data-testid="date-range-picker-button"
             onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
-            value={
-              isUndefined(dateRange) || isUndefined(dateRange.start_date) || isUndefined(dateRange.end_date)
-                ? ''
-                : `${DateTime.fromISO(dateRange.start_date).toFormat(dateDisplayFormat).trim()} - ${DateTime.fromISO(
-                    dateRange.end_date
-                  )
-                    .toFormat(dateDisplayFormat)
-                    .trim()}
-                        `
-            }
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <IconButton edge="end" size="large">
-                    <materialIcons.DateRange />
-                  </IconButton>
-                </InputAdornment>
-              )
-            }}
-          />
+          >
+            <DateRangePickerTextField
+              data-testid="date-range-picker-text-field"
+              size="small"
+              id="outlined-basic"
+              variant="outlined"
+              disabled={true}
+              label={'Set prep period'}
+              value={
+                isUndefined(dateRange) || isUndefined(dateRange.start_date) || isUndefined(dateRange.end_date)
+                  ? ''
+                  : `${DateTime.fromISO(dateRange.start_date).toFormat(dateDisplayFormat).trim()} - ${DateTime.fromISO(
+                      dateRange.end_date
+                    )
+                      .toFormat(dateDisplayFormat)
+                      .trim()}
+                            `
+              }
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Icon>
+                      <materialIcons.DateRange />
+                    </Icon>
+                  </InputAdornment>
+                )
+              }}
+            />
+          </Button>
         </ThemeProvider>
       </StyledEngineProvider>
       <Dialog open={dateRangePickerOpen} onClose={toggleDateRangePicker}>
