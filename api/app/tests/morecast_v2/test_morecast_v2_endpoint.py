@@ -1,8 +1,6 @@
 from fastapi.testclient import TestClient
-from fastapi import status
 from httpx import AsyncClient
 import pytest
-from unittest.mock import AsyncMock, patch, Mock
 from datetime import datetime
 from aiohttp import ClientSession
 from app.schemas.shared import StationsRequest
