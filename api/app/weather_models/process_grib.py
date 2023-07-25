@@ -304,8 +304,9 @@ class GribFileProcessor():
         raster_band = dataset.GetRasterBand(1)
         # Iterate through stations:
         for (points, values) in self.yield_data_for_stations(raster_band):
-            # Convert wind speed from metres per second to kilometres per hour
-            if grib_info.variable_name.lower().startswith("apcp_sfc"):
+            # Convert wind speed from metres per second to kilometres per hour for Environment Canada
+            # models (NOAA models handled elswhere)
+            if grib_info.variable_name.lower().startswith("wind_agl") or grib_info.variable_name.lower().startswith('wind_tgl'):
                 values = [convert_mps_to_kph(value) for value in values]
             self.store_bounding_values(
                 points, values, prediction_run, grib_info, session)
