@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
+from fastapi import status
 from httpx import AsyncClient
 import pytest
+from unittest.mock import AsyncMock, patch, Mock
 from datetime import datetime
 from aiohttp import ClientSession
 from app.schemas.shared import StationsRequest
@@ -68,6 +70,7 @@ def test_post_forecast_unauthorized(client: TestClient):
     assert response.status_code == 401
 
 
+@pytest.mark.anyio
 def test_post_forecast_authorized(client: TestClient,
                                   monkeypatch: pytest.MonkeyPatch):
     """ Allowed to post station changes with correct role"""
@@ -77,10 +80,15 @@ def test_post_forecast_authorized(client: TestClient,
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
 
-    # Create a mock function
-    def mock_function(): return None
+    async def mock_format_as_wf1_post_forecasts(client_session, forecasts_to_save):
+        return []
 
-    monkeypatch.setattr(app.routers.morecast_v2, 'post_forecasts', mock_function)
+    monkeypatch.setattr(app.routers.morecast_v2, 'format_as_wf1_post_forecasts', mock_format_as_wf1_post_forecasts)
+
+    async def mock_post_forecasts(client_session, token, forecasts):
+        return None
+
+    monkeypatch.setattr(app.routers.morecast_v2, 'post_forecasts', mock_post_forecasts)
 
     response = client.post(morecast_v2_post_url, json=forecast.dict())
     assert response.status_code == 201
