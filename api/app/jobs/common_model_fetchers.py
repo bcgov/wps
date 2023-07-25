@@ -15,7 +15,7 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_weather_station_model_prediction,
                                         delete_model_run_grid_subset_predictions,
                                         delete_weather_station_model_predictions,
-                                        refresh_morecast2_materialized_view,
+                                        refresh_morecast2_materialized_view_precip,
                                         get_previous_prediction_model_run)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, construct_interpolated_noon_prediction
@@ -405,4 +405,4 @@ class ModelValueProcessor:
             self._process_model_run(model_run)
             # Mark the model run as interpolated.
             self._mark_model_run_interpolated(model_run)
-        refresh_morecast2_materialized_view(self.session)
+        refresh_morecast2_materialized_view_precip(self.session)

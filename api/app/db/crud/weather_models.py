@@ -9,7 +9,7 @@ from sqlalchemy.sql import text
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models.weather_models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction, WeatherStationModelPrediction, MoreCast2MaterializedView)
+    ModelRunGridSubsetPrediction, WeatherStationModelPrediction, MoreCast2MaterializedView, MoreCast2PrecipMaterializedView)
 import app.utils.time as time_utils
 
 logger = logging.getLogger(__name__)
@@ -333,6 +333,28 @@ def get_latest_station_prediction_mat_view(session: Session,
     return result
 
 
+def get_latest_station_prediction_from_materialized_view(session: Session,
+                                                         station_codes: List[int],
+                                                         day_start: datetime.datetime,
+                                                         day_end: datetime.datetime):
+    logger.info("Getting data from materialized view.")
+    result = session.query(MoreCast2PrecipMaterializedView.prediction_timestamp,
+                           MoreCast2PrecipMaterializedView.abbreviation,
+                           MoreCast2PrecipMaterializedView.station_code,
+                           MoreCast2PrecipMaterializedView.rh_tgl_2,
+                           MoreCast2PrecipMaterializedView.tmp_tgl_2,
+                           MoreCast2PrecipMaterializedView.bias_adjusted_temperature,
+                           MoreCast2PrecipMaterializedView.bias_adjusted_rh,
+                           MoreCast2PrecipMaterializedView.precip_24h,
+                           MoreCast2PrecipMaterializedView.wdir_tgl_10,
+                           MoreCast2PrecipMaterializedView.wind_tgl_10,
+                           MoreCast2PrecipMaterializedView.update_date).\
+        filter(MoreCast2PrecipMaterializedView.station_code.in_(station_codes),
+               MoreCast2PrecipMaterializedView.prediction_timestamp >= day_start,
+               MoreCast2PrecipMaterializedView.prediction_timestamp <= day_end)
+    return result
+
+
 def get_latest_station_prediction_per_day(session: Session,
                                           station_codes: List[int],
                                           day_start: datetime.datetime,
@@ -476,8 +498,15 @@ def refresh_morecast2_materialized_view(session: Session):
     logger.info(f"Finished mat view refresh with elapsed time: {datetime.datetime.now() - start}")
 
 
+def refresh_morecast2_materialized_view_precip(session: Session):
+    start = datetime.datetime.now()
+    logger.info("Refreshing morecast_2_materialized_view")
+    session.execute(text("REFRESH MATERIALIZED VIEW morecast_2_materialized_view_precip"))
+    logger.info(f"Finished mat view refresh with elapsed time: {datetime.datetime.now() - start}")
+
+
 def get_previous_prediction_model_run(session: Session, prediction_model_run: PredictionModelRunTimestamp):
-    """ Get the prediction model run that ran immediately prior to the prediciontal model run passed as a paraemter. """
+    """ Get the prediction model run that ran immediately prior to the prediction model run passed as a parameter. """
     return session.query(PredictionModelRunTimestamp).\
         filter(PredictionModelRunTimestamp.prediction_model_id == prediction_model_run.prediction_model_id).\
         filter(PredictionModelRunTimestamp.id < prediction_model_run.id).\
