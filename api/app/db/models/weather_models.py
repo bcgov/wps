@@ -214,6 +214,8 @@ class WeatherStationModelPrediction(Base):
     # Date this record was updated.
     update_date = Column(TZTimeStamp, nullable=False,
                          default=time_utils.get_utc_now(), index=True)
+    # Precipitation predicted for the previous 24 hour period based on the current weather model run.
+    precip_24h = Column(Float, nullable=True)
 
     def __str__(self):
         return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2} {self.apcp_sfc_0} '
