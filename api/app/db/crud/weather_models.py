@@ -129,29 +129,21 @@ def get_model_run_predictions_for_grid(session: Session,
                prediction_run.id)
 
 
-def earliest_model_station_prediction(session: Session) -> datetime:
-    """ Get the earliest model station prediction.
-    """
-    return session.query(WeatherStationModelPrediction.prediction_timestamp)\
-        .order_by(WeatherStationModelPrediction.prediction_timestamp)\
-        .limit(1)\
-        .first()
-
-
-def prune_model_station_predictions_between(session: Session, start: datetime, end: datetime) -> datetime:
-    """ Delete model station predictions between start and end dates.
-    """
-    return session.query(WeatherStationModelPrediction)\
-        .filter(WeatherStationModelPrediction.prediction_timestamp.between(start, end))\
-        .delete()
-
-
 def delete_model_run_grid_subset_predictions(session: Session, older_than: datetime):
     """ Delete any grid subset prediction older than a certain date.
     """
     logger.info('Deleting grid subset data older than %s...', older_than)
     session.query(ModelRunGridSubsetPrediction)\
         .filter(ModelRunGridSubsetPrediction.prediction_timestamp < older_than)\
+        .delete()
+
+
+def delete_weather_station_model_predictions(session: Session, older_than: datetime):
+    """ Delete any weather model prediction older than a certain date.
+    """
+    logger.info('Deleting weather station model prediction data older than %s...', older_than)
+    session.query(WeatherStationModelPrediction)\
+        .filter(WeatherStationModelPrediction.prediction_timestamp < older_than)\
         .delete()
 
 

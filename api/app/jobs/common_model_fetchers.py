@@ -14,6 +14,7 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_grids_for_coordinate,
                                         get_weather_station_model_prediction,
                                         delete_model_run_grid_subset_predictions,
+                                        delete_weather_station_model_predictions,
                                         refresh_morecast2_materialized_view)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, construct_interpolated_noon_prediction
@@ -163,6 +164,7 @@ def apply_data_retention_policy():
         # keeping 21 days (3 weeks) of historic data is sufficient.
         oldest_to_keep = time_utils.get_utc_now() - time_utils.data_retention_threshold
         delete_model_run_grid_subset_predictions(session, oldest_to_keep)
+        delete_weather_station_model_predictions(session, oldest_to_keep)
 
 
 class ModelValueProcessor:
