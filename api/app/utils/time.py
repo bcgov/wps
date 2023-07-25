@@ -121,15 +121,3 @@ def get_utc_datetime(input_datetime: datetime):
 
 def get_days_from_range(start_time: datetime, end_time: datetime) -> List[datetime]:
     return [start_time + timedelta(days=x) for x in range((end_time - start_time).days + 1)]
-
-
-def get_model_prune_range(now: datetime, start: datetime, end: datetime):
-    # only allow pruning up until 19 days before today
-    max_end = now - data_retention_threshold
-
-    prune_range = start, start + (max_end - start)
-    if start.date() >= prune_range[1].date():
-        # no range between dates
-        return None, None
-    else:
-        return start, min(end, prune_range[1])
