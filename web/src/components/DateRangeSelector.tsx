@@ -1,4 +1,4 @@
-import { Dialog, IconButton, InputAdornment, TextField } from '@mui/material'
+import { Button, Dialog, IconButton, InputAdornment, TextField } from '@mui/material'
 import * as materialIcons from '@mui/icons-material'
 import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
 import { DateRange } from 'components/dateRangePicker/types'
@@ -26,32 +26,38 @@ const DateRangeSelector = ({ dateRange, dateDisplayFormat, size, label, setDateR
 
   return (
     <React.Fragment>
-      <TextField
-        data-testid="date-range-picker-text-field"
-        sx={{ minWidth: 280 }}
-        size={size}
-        variant="outlined"
-        disabled={true}
-        label={label}
+      <Button
+        sx={{ textTransform: 'capitalize' }}
+        data-testid="date-range-picker-button"
         onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
-        value={
-          isUndefined(dateRange) || isUndefined(dateRange.startDate) || isUndefined(dateRange.endDate)
-            ? ''
-            : `${DateTime.fromJSDate(dateRange.startDate).toFormat(dateDisplayFormat)} - ${DateTime.fromJSDate(
-                dateRange.endDate
-              ).toFormat(dateDisplayFormat)}
+      >
+        <TextField
+          data-testid="date-range-picker-text-field"
+          sx={{ minWidth: 280 }}
+          size={size}
+          variant="outlined"
+          disabled={true}
+          label={label}
+          onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
+          value={
+            isUndefined(dateRange) || isUndefined(dateRange.startDate) || isUndefined(dateRange.endDate)
+              ? ''
+              : `${DateTime.fromJSDate(dateRange.startDate).toFormat(dateDisplayFormat)} - ${DateTime.fromJSDate(
+                  dateRange.endDate
+                ).toFormat(dateDisplayFormat)}
                         `
-        }
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <IconButton edge="end" size="large">
-                <materialIcons.DateRange />
-              </IconButton>
-            </InputAdornment>
-          )
-        }}
-      />
+          }
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <IconButton edge="end" size="large">
+                  <materialIcons.DateRange />
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+        />
+      </Button>
       <Dialog open={dateRangePickerOpen} onClose={toggleDateRangePicker}>
         <DateRangePickerWrapper
           initialDateRange={{ startDate, endDate }}
