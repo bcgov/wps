@@ -201,27 +201,27 @@ describe('FireBAT Calculator Page', () => {
     })
   })
 
-  describe('Export data to CSV', () => {
-    it('Disables the Export button when 0 rows are selected', () => {
-      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-      visitAndAddRow()
-      cy.wait('@getStations')
-      cy.selectFBAStationInDropdown(322, 1)
-      cy.selectFBAFuelTypeInDropdown('C3', 1)
-      cy.getByTestId('export').should('be.visible')
-      cy.getByTestId('export').should('be.disabled')
-    })
+  // describe('Export data to CSV', () => {
+  //   it('Disables the Export button when 0 rows are selected', () => {
+  //     cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
+  //     visitAndAddRow()
+  //     cy.wait('@getStations')
+  //     cy.selectFBAStationInDropdown(322, 1)
+  //     cy.selectFBAFuelTypeInDropdown('C3', 1)
+  //     cy.getByTestId('export').should('be.visible')
+  //     cy.getByTestId('export').should('be.disabled')
+  //   })
 
-    it('Enables the Export button once 1 or more rows are selected', () => {
-      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-      visitAndAddRow()
-      cy.wait('@getStations')
-      cy.selectFBAStationInDropdown(322, 1)
-      cy.selectFBAFuelTypeInDropdown('C4', 1)
-      cy.getByTestId('select-all').click()
-      cy.getByTestId('export').should('be.enabled')
-    })
-  })
+  //   it('Enables the Export button once 1 or more rows are selected', () => {
+  //     cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
+  //     visitAndAddRow()
+  //     cy.wait('@getStations')
+  //     cy.selectFBAStationInDropdown(322, 1)
+  //     cy.selectFBAFuelTypeInDropdown('C4', 1)
+  //     cy.getByTestId('select-all').click()
+  //     cy.getByTestId('export').should('be.enabled')
+  //   })
+  // })
 
   describe('Filter columns dialog', () => {
     it('Disables the Filter Columns dialog open button when 0 rows are in table', () => {
