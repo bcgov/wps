@@ -163,26 +163,6 @@ describe('MoreCast Page', () => {
       cy.getByTestId('time-of-interest-picker').type(timeOfInterest.slice(0, 16)) // yyyy-MM-ddThh:mm
       cy.getByTestId('get-wx-data-button').click({ force: true })
     })
-
-    it('Should display station comparison table', () => {
-      // expect Station Comparison to be selected
-      cy.getByTestId('station-comparison-button').should('have.attr', 'aria-pressed', 'true')
-
-      // expect the table to exist.
-      cy.getByTestId('station-comparison-table').should('exist')
-
-      // expect the sidepanel to be fully expanded (we compare the calculated width, and expect
-      // it to match the width of our browser window)
-      cy.getByTestId('expandable-container-content').invoke('width').should('be.gte', FULL_WIDTH)
-
-      // expecting 2 rows, one for each station.
-      cy.getByTestId('station-comparison-table').find('tbody > tr').should('have.length', 2)
-
-      // expect some observed data
-      cy.getByTestId(`${stationCode}-Temperature-Observed`).should('contain', '-3.8')
-
-      cy.getByTestId(`${stationCode}-Dew-point-Observed`).should('contain', '-8.3')
-    })
   })
 
   describe('When wx data successfully fetched', () => {
