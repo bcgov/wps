@@ -72,7 +72,7 @@ class MoreCastForecastInput(BaseModel):
     rh: int
     precip: float
     wind_speed: float
-    wind_direction: int | None
+    wind_direction: int | None = None
 
 
 class MoreCastForecastRequest(BaseModel):
@@ -142,8 +142,8 @@ class WF1ForecastRecordType(BaseModel):
 class WF1PostForecast(BaseModel):
     """ Used to represent a forecast to be POSTed to WF1 """
     archive: str = 'false'
-    createdBy: Optional[str]
-    id: Optional[str]
+    createdBy: Optional[str] = None
+    id: Optional[str] = None
     station: str  # station URL
     stationId: str  # station UUID
     weatherTimestamp: int  # UTC timestamp in millis
@@ -151,5 +151,5 @@ class WF1PostForecast(BaseModel):
     relativeHumidity: float
     precipitation: float
     windSpeed: float
-    windDirection: Optional[float]
+    windDirection: Optional[float] = None
     recordType: WF1ForecastRecordType

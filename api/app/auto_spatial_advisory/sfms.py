@@ -81,7 +81,7 @@ def get_sfms_file_message(filename: str, meta_data: dict) -> SFMSFile:
                     run_type=run_type,
                     last_modified=meta_data.get('last_modified'),
                     create_time=meta_data.get('create_time'),
-                    run_date=issue_date,
+                    run_date=issue_date.date(),
                     for_date=date(year=int(for_date[0:4]),
                                   month=int(for_date[4:6]),
                                   day=int(for_date[6:8])))
