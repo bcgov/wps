@@ -1,13 +1,17 @@
 """ Unit testing for WFWX API code """
 import asyncio
+from unittest.mock import patch, AsyncMock
 import pytest
+from fastapi import HTTPException
 from pytest_mock import MockFixture
+
 from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
                                              BuildQueryAllHourliesByRange,
                                              BuildQueryDailiesByStationCode,
                                              BuildQueryStationGroups)
 from app.wildfire_one.wfwx_api import (WFWXWeatherStation,
                                        get_wfwx_stations_from_station_codes)
+from app.wildfire_one.wfwx_post_api import post_forecasts
 
 
 def test_build_all_hourlies_query():
@@ -110,3 +114,12 @@ def test_get_ids_from_station_codes(mock_responses):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(run_test())
+
+
+@pytest.mark.anyio
+@patch('app.wildfire_one.wfwx_post_api.ClientSession')
+async def test_wf1_post_failure(mock_client):
+    """ Verifies that posting to WF1 raises an exception upon failure """
+    mock_client.post.return_value.__aenter__.return_value = AsyncMock(status=400)
+    with pytest.raises(HTTPException):
+        await post_forecasts(mock_client, 'token', [])
