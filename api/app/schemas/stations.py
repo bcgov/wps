@@ -28,20 +28,20 @@ class WeatherStationProperties(BaseModel):
     """ Non-geometrical weather station properties """
     code: int
     name: str
-    ecodivision_name: str = None
-    core_season: Season = None
+    ecodivision_name: Optional[str] = None
+    core_season: Optional[Season] = None
 
 
 class WeatherVariables(BaseModel):
     """ Weather variables """
-    temperature: float = None
-    relative_humidity: float = None
+    temperature: Optional[float] = None
+    relative_humidity: Optional[float] = None
 
 
 class DetailedWeatherStationProperties(WeatherStationProperties):
     """ Detailed, non-geometrical weather station properties """
-    observations: WeatherVariables = None
-    forecasts: WeatherVariables = None
+    observations: Optional[WeatherVariables] = None
+    forecasts: Optional[WeatherVariables] = None
 
 
 class WeatherStationGeometry(BaseModel):
@@ -71,8 +71,8 @@ class WeatherStation(BaseModel):
     name: str
     lat: float
     long: float
-    ecodivision_name: str = None
-    core_season: Season = None
+    ecodivision_name: Optional[str] = None
+    core_season: Optional[Season] = None
     elevation: Optional[int] = None
     wfwx_station_uuid: Optional[str] = None
 
@@ -112,7 +112,7 @@ class WeatherStationGroupMembersResponse(BaseModel):
 class WeatherStationGroup(BaseModel):
     """ A weather station group from WF1"""
     display_label: str
-    group_description: str | None
+    group_description: Optional[str] = None
     group_owner_user_guid: str
     group_owner_user_id: str
     id: str

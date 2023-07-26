@@ -81,8 +81,8 @@
                 "fire_type": "SUR",
                 "error": true,
                 "error_message": null,
-                "date": "2020-05-23T20:00:00+00:00",
-                "last_updated": "2020-05-23T00:00:00+00:00"
+                "date": "2020-05-23T20:00:00Z",
+                "last_updated": "2020-05-23T00:00:00Z"
               },
               "valid": true
             },
@@ -112,8 +112,8 @@
                 "fire_type": null,
                 "error": true,
                 "error_message": null,
-                "date": "2020-05-23T20:00:00+00:00",
-                "last_updated": "2020-05-23T00:00:00+00:00"
+                "date": "2020-05-23T20:00:00Z",
+                "last_updated": "2020-05-23T00:00:00Z"
               },
               "valid": false
             }
@@ -212,8 +212,8 @@
                 "fire_type": "SUR",
                 "error": true,
                 "error_message": null,
-                "date": "2020-05-23T20:00:00+00:00",
-                "last_updated": "2020-05-23T00:00:00+00:00"
+                "date": "2020-05-23T20:00:00Z",
+                "last_updated": "2020-05-23T00:00:00Z"
               },
               "valid": true
             }

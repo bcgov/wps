@@ -157,8 +157,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:20:33.927000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:20:33.927000Z"
                             },
                             "valid": true
                         },
@@ -188,8 +188,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:10:22.880000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:10:22.880000Z"
                             },
                             "valid": true
                         },
@@ -219,8 +219,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:45:13.804000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:45:13.804000Z"
                             },
                             "valid": true
                         },
@@ -250,8 +250,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:20:11.533000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:20:11.533000Z"
                             },
                             "valid": true
                         },
@@ -281,8 +281,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:05:07.935000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:05:07.935000Z"
                             },
                             "valid": true
                         }
@@ -323,8 +323,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:20:34.767000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:20:34.767000Z"
                             },
                             "valid": true
                         },
@@ -354,8 +354,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:10:19.113000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:10:19.113000Z"
                             },
                             "valid": true
                         },
@@ -385,8 +385,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:45:19.191000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:45:19.191000Z"
                             },
                             "valid": true
                         },
@@ -416,8 +416,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:20:13.186000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:20:13.186000Z"
                             },
                             "valid": true
                         },
@@ -447,8 +447,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T21:05:15.124000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T21:05:15.124000Z"
                             },
                             "valid": true
                         }
@@ -489,8 +489,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:20:50.492000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:20:50.492000Z"
                             },
                             "valid": true
                         },
@@ -520,8 +520,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:10:29.854000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:10:29.854000Z"
                             },
                             "valid": true
                         },
@@ -551,8 +551,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:30:23.770000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:30:23.770000Z"
                             },
                             "valid": true
                         },
@@ -582,8 +582,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:20:15.617000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:20:15.617000Z"
                             },
                             "valid": true
                         },
@@ -613,8 +613,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:05:10.255000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:05:10.255000Z"
                             },
                             "valid": true
                         }
@@ -663,8 +663,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:30:48.638000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:30:48.638000Z"
                             },
                             "valid": true
                         },
@@ -694,8 +694,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:45:10.201000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:45:10.201000Z"
                             },
                             "valid": true
                         },
@@ -725,8 +725,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:10:31.025000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:10:31.025000Z"
                             },
                             "valid": true
                         },
@@ -756,8 +756,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:20:04.164000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:20:04.164000Z"
                             },
                             "valid": true
                         },
@@ -787,8 +787,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:30:20.150000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:30:20.150000Z"
                             },
                             "valid": true
                         },
@@ -818,8 +818,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:20:27.374000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:20:27.374000Z"
                             },
                             "valid": true
                         }
@@ -860,8 +860,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:45:18.096000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:45:18.096000Z"
                             },
                             "valid": true
                         },
@@ -891,8 +891,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:45:14.999000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:45:14.999000Z"
                             },
                             "valid": true
                         },
@@ -922,8 +922,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:10:28.114000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:10:28.114000Z"
                             },
                             "valid": true
                         },
@@ -953,8 +953,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:20:04.637000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:20:04.637000Z"
                             },
                             "valid": true
                         },
@@ -984,8 +984,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:45:15.917000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:45:15.917000Z"
                             },
                             "valid": true
                         },
@@ -1015,8 +1015,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:20:28.531000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:20:28.531000Z"
                             },
                             "valid": true
                         }
@@ -1057,8 +1057,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:30:22.688000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:30:22.688000Z"
                             },
                             "valid": true
                         },
@@ -1088,8 +1088,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:30:17.636000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:30:17.636000Z"
                             },
                             "valid": true
                         },
@@ -1119,8 +1119,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:10:41.565000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:10:41.565000Z"
                             },
                             "valid": true
                         },
@@ -1150,8 +1150,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:20:06.228000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:20:06.228000Z"
                             },
                             "valid": true
                         },
@@ -1181,8 +1181,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:30:19.226000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:30:19.226000Z"
                             },
                             "valid": true
                         },
@@ -1212,8 +1212,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:20:38.343000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:20:38.343000Z"
                             },
                             "valid": true
                         }
@@ -1262,8 +1262,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:20:28.661000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:20:28.661000Z"
                             },
                             "valid": true
                         },
@@ -1293,8 +1293,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:05:05.068000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:05:05.068000Z"
                             },
                             "valid": true
                         }
@@ -1335,8 +1335,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:30:16.426000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:30:16.426000Z"
                             },
                             "valid": true
                         },
@@ -1366,8 +1366,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:05:05.168000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:05:05.168000Z"
                             },
                             "valid": true
                         }
@@ -1408,8 +1408,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:20:40.586000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:20:40.586000Z"
                             },
                             "valid": true
                         },
@@ -1439,8 +1439,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:05:06.561000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:05:06.561000Z"
                             },
                             "valid": true
                         }
@@ -1489,8 +1489,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:20:18.231000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:20:18.231000Z"
                             },
                             "valid": true
                         },
@@ -1520,8 +1520,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T21:20:37.100000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T21:20:37.100000Z"
                             },
                             "valid": true
                         },
@@ -1551,8 +1551,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:20:33.448000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:20:33.448000Z"
                             },
                             "valid": true
                         },
@@ -1582,8 +1582,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:20:12.078000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:20:12.078000Z"
                             },
                             "valid": true
                         },
@@ -1613,8 +1613,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:20:08.508000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:20:08.508000Z"
                             },
                             "valid": true
                         }
@@ -1655,8 +1655,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T21:20:20.039000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T21:20:20.039000Z"
                             },
                             "valid": true
                         },
@@ -1686,8 +1686,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:20:32.746000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:20:32.746000Z"
                             },
                             "valid": true
                         },
@@ -1717,8 +1717,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:20:34.155000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:20:34.155000Z"
                             },
                             "valid": true
                         },
@@ -1748,8 +1748,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T21:20:13.326000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T21:20:13.326000Z"
                             },
                             "valid": true
                         },
@@ -1779,8 +1779,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:20:09.975000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:20:09.975000Z"
                             },
                             "valid": true
                         }
@@ -1821,8 +1821,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:20:24.659000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:20:24.659000Z"
                             },
                             "valid": true
                         },
@@ -1852,8 +1852,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:20:47.234000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:20:47.234000Z"
                             },
                             "valid": true
                         },
@@ -1883,8 +1883,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:20:49.428000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:20:49.428000Z"
                             },
                             "valid": true
                         },
@@ -1914,8 +1914,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:20:16.527000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:20:16.527000Z"
                             },
                             "valid": true
                         },
@@ -1945,8 +1945,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:20:12.076000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:20:12.076000Z"
                             },
                             "valid": true
                         }
@@ -1995,8 +1995,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:30:05.957000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:30:05.957000Z"
                             },
                             "valid": true
                         },
@@ -2026,8 +2026,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:30:24.995000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:30:24.995000Z"
                             },
                             "valid": true
                         },
@@ -2057,8 +2057,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-01T20:00:00+00:00",
-                                "last_updated": "2022-07-01T20:20:27.087000+00:00"
+                                "date": "2022-07-01T20:00:00Z",
+                                "last_updated": "2022-07-01T20:20:27.087000Z"
                             },
                             "valid": true
                         }
@@ -2099,8 +2099,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:30:06.914000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:30:06.914000Z"
                             },
                             "valid": true
                         },
@@ -2130,8 +2130,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:30:23.397000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:30:23.397000Z"
                             },
                             "valid": true
                         },
@@ -2161,8 +2161,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-02T20:00:00+00:00",
-                                "last_updated": "2022-07-02T20:20:45.655000+00:00"
+                                "date": "2022-07-02T20:00:00Z",
+                                "last_updated": "2022-07-02T20:20:45.655000Z"
                             },
                             "valid": true
                         }
@@ -2203,8 +2203,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:30:06.074000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:30:06.074000Z"
                             },
                             "valid": true
                         },
@@ -2234,8 +2234,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:20:50.171000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:20:50.171000Z"
                             },
                             "valid": true
                         },
@@ -2265,8 +2265,8 @@
                                 "fire_type": "SUR",
                                 "error": true,
                                 "error_message": null,
-                                "date": "2022-07-03T20:00:00+00:00",
-                                "last_updated": "2022-07-03T20:20:37.963000+00:00"
+                                "date": "2022-07-03T20:00:00Z",
+                                "last_updated": "2022-07-03T20:20:37.963000Z"
                             },
                             "valid": true
                         }
