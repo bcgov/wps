@@ -282,12 +282,12 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     if (isForecastValid(visibleRows) && !isUndefined(wf1Token)) {
       const rowsToSave: MoreCast2ForecastRow[] = getRowsToSave(visibleRows)
       const result = await submitMoreCastForecastRecords(wf1Token, rowsToSave)
-      if (result) {
+      if (result.success) {
         setSnackbarMessage(FORECAST_SAVED_MESSAGE)
         setSnackbarSeverity('success')
         setSnackbarOpen(true)
       } else {
-        setSnackbarMessage(FORECAST_ERROR_MESSAGE)
+        setSnackbarMessage(result.errorMessage ?? FORECAST_ERROR_MESSAGE)
         setSnackbarSeverity('error')
         setSnackbarOpen(true)
       }

@@ -185,7 +185,7 @@ export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[
 export async function submitMoreCastForecastRecords(
   token: string,
   forecasts: MoreCast2ForecastRow[]
-): Promise<boolean> {
+): Promise<{ success: boolean; errorMessage?: string }> {
   const forecastRecords = marshalMoreCast2ForecastRecords(forecasts)
   const url = `/morecast-v2/forecast`
   try {
@@ -193,11 +193,11 @@ export async function submitMoreCastForecastRecords(
       token,
       forecasts: forecastRecords
     })
-    return status === 201
+    return { success: status === 201 }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error(error.message || error)
-    return false
+    console.error(error.response.data.detail || error)
+    return { success: false, errorMessage: error.response.data.detail }
   }
 }
 
