@@ -14,7 +14,7 @@ import { createDateInterval, rowIDHasher } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
-import { groupBy, isEqual, isNumber, isUndefined } from 'lodash'
+import { groupBy, isEqual, isNull, isNumber, isUndefined } from 'lodash'
 import { StationGroupMember } from 'api/stationAPI'
 
 interface State {
@@ -385,9 +385,10 @@ const createStationCodeToWeatherIndeterminateGroups = (
 }
 
 const createUtcTimeStampToWeatherIndeterminateGroups = (items: WeatherIndeterminate[], dateInterval: string[]) => {
-  const grouped = groupBy(items, 'utc_timestamp')
+  const grouped = groupBy(items, item => DateTime.fromISO(item.utc_timestamp).toISODate())
   for (const date of dateInterval) {
-    if (isUndefined(grouped[date])) {
+    const isoDate = DateTime.fromISO(date).toISODate()
+    if (isNull(isoDate) || isUndefined(grouped[isoDate])) {
       grouped[date] = []
     }
   }
