@@ -14,7 +14,7 @@ import { createDateInterval, rowIDHasher } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
-import { groupBy, isNumber, isUndefined } from 'lodash'
+import { groupBy, isEqual, isNumber, isUndefined } from 'lodash'
 import { StationGroupMember } from 'api/stationAPI'
 
 interface State {
@@ -308,7 +308,7 @@ export const fillMissingWeatherIndeterminates = (
     // We expect one actual per date in our date interval
     if (values.length < dateInterval.length) {
       for (const date of dateInterval) {
-        if (!values.some(value => value.utc_timestamp === date)) {
+        if (!values.some(value => isEqual(DateTime.fromISO(value.utc_timestamp), DateTime.fromISO(date)))) {
           const missing = createEmptyWeatherIndeterminate(stationCode, stationName, date, determinate)
           weatherIndeterminates.push(missing)
         }
