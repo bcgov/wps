@@ -6,7 +6,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 55.212330039107385,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": 3.0658010331275007,
             "station_code": 209,
             "update_date": "2020-12-02T16:42:42.094969+00:00",
@@ -23,7 +23,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T12:00:00Z",
             "id": 1122,
             "interpolated": true,
             "prediction_model_id": 2
@@ -47,7 +47,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 63.21979914498195,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": 3.4671916105085008,
             "station_code": 209,
             "update_date": "2020-12-02T22:35:00.682004+00:00",
@@ -64,7 +64,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T18:00:00Z",
             "id": 1156,
             "interpolated": true,
             "prediction_model_id": 2
@@ -88,7 +88,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 63.882641527675815,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": 2.0141004379335694,
             "station_code": 209,
             "update_date": "2020-12-05T22:33:43.080741+00:00",
@@ -105,7 +105,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T18:00:00Z",
             "id": 1186,
             "interpolated": true,
             "prediction_model_id": 2
@@ -129,7 +129,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 59.646447913701344,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": 2.053970967924737,
             "station_code": 209,
             "update_date": "2020-12-02T16:42:42.100695+00:00",
@@ -146,7 +146,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T12:00:00Z",
             "id": 1122,
             "interpolated": true,
             "prediction_model_id": 2
@@ -170,7 +170,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 68.26301624227315,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": 2.1783420922520986,
             "station_code": 209,
             "update_date": "2020-12-02T22:35:00.684878+00:00",
@@ -187,7 +187,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T18:00:00Z",
             "id": 1156,
             "interpolated": true,
             "prediction_model_id": 2
@@ -211,7 +211,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 67.00862899209554,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": 1.6681578071864474,
             "station_code": 209,
             "update_date": "2020-12-06T04:31:30.382077+00:00",
@@ -228,7 +228,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-06T00:00:00Z",
             "id": 1189,
             "interpolated": true,
             "prediction_model_id": 2
@@ -252,7 +252,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 72.12945294240866,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": 1.177556174305745,
             "station_code": 209,
             "update_date": "2020-12-02T22:35:00.687497+00:00",
@@ -269,7 +269,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T18:00:00Z",
             "id": 1156,
             "interpolated": true,
             "prediction_model_id": 2
@@ -293,7 +293,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 67.36016456548099,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": 1.305725490101475,
             "station_code": 209,
             "update_date": "2020-12-03T04:34:02.088134+00:00",
@@ -310,7 +310,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T00:00:00Z",
             "id": 1159,
             "interpolated": true,
             "prediction_model_id": 2
@@ -334,7 +334,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 72.49934699039281,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": 0.07471583590026168,
             "station_code": 209,
             "update_date": "2020-12-06T04:31:30.384240+00:00",
@@ -351,7 +351,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-06T00:00:00Z",
             "id": 1189,
             "interpolated": true,
             "prediction_model_id": 2
@@ -375,7 +375,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 73.75159140298763,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": 0.7254722221697208,
             "station_code": 209,
             "update_date": "2020-12-02T22:35:00.689981+00:00",
@@ -392,7 +392,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T18:00:00Z",
             "id": 1156,
             "interpolated": true,
             "prediction_model_id": 2
@@ -416,7 +416,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 71.49862877151685,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": 0.5533913629281273,
             "station_code": 209,
             "update_date": "2020-12-03T04:34:02.090286+00:00",
@@ -433,7 +433,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T00:00:00Z",
             "id": 1159,
             "interpolated": true,
             "prediction_model_id": 2
@@ -457,7 +457,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 77.43790291312693,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -1.0105668132041616,
             "station_code": 209,
             "update_date": "2020-12-06T04:31:30.386145+00:00",
@@ -474,7 +474,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-06T00:00:00Z",
             "id": 1189,
             "interpolated": true,
             "prediction_model_id": 2
@@ -498,7 +498,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 74.5018028448487,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": 0.46955691253333254,
             "station_code": 209,
             "update_date": "2020-12-02T22:35:00.692618+00:00",
@@ -515,7 +515,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T18:00:00Z",
             "id": 1156,
             "interpolated": true,
             "prediction_model_id": 2
@@ -539,7 +539,7 @@
          "data": {
             "apcp_sfc_0": 1.3248090621874073,
             "rh_tgl_2": 91.84106061601119,
-            "prediction_timestamp": "2020-12-14T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-14T04:00:00Z",
             "tmp_tgl_2": -7.760299302168213,
             "station_code": 209,
             "update_date": "2020-12-10T22:07:06.711842+00:00",
@@ -556,7 +556,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-10T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-10T18:00:00Z",
             "id": 1267,
             "interpolated": true,
             "prediction_model_id": 2
@@ -580,7 +580,7 @@
          "data": {
             "apcp_sfc_0": 1.3836414185984702,
             "rh_tgl_2": 91.92265273636473,
-            "prediction_timestamp": "2020-12-14T05:00:00+00:00",
+            "prediction_timestamp": "2020-12-14T05:00:00Z",
             "tmp_tgl_2": -7.80942687087406,
             "station_code": 209,
             "update_date": "2020-12-10T22:07:06.715398+00:00",
@@ -597,7 +597,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-10T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-10T18:00:00Z",
             "id": 1267,
             "interpolated": true,
             "prediction_model_id": 2
@@ -621,7 +621,7 @@
          "data": {
             "apcp_sfc_0": 1.4411338668828917,
             "rh_tgl_2": 91.94796811560866,
-            "prediction_timestamp": "2020-12-14T06:00:00+00:00",
+            "prediction_timestamp": "2020-12-14T06:00:00Z",
             "tmp_tgl_2": -7.838255771418401,
             "station_code": 209,
             "update_date": "2020-12-10T22:07:06.719002+00:00",
@@ -638,7 +638,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-10T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-10T18:00:00Z",
             "id": 1267,
             "interpolated": true,
             "prediction_model_id": 2
@@ -662,7 +662,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 82.5809606127404,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -3.9941144253835694,
             "station_code": 838,
             "update_date": "2020-12-02T16:42:38.320078+00:00",
@@ -679,7 +679,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T12:00:00Z",
             "id": 1122,
             "interpolated": true,
             "prediction_model_id": 2
@@ -703,7 +703,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 84.51270598537684,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -4.279174715328102,
             "station_code": 838,
             "update_date": "2020-12-02T22:34:58.489361+00:00",
@@ -720,7 +720,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T18:00:00Z",
             "id": 1156,
             "interpolated": true,
             "prediction_model_id": 2
@@ -744,7 +744,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 81.67307407631063,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -3.7266084638524895,
             "station_code": 838,
             "update_date": "2020-12-03T04:33:59.758885+00:00",
@@ -761,7 +761,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T00:00:00Z",
             "id": 1159,
             "interpolated": true,
             "prediction_model_id": 2
@@ -785,7 +785,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 85.67704752190137,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -4.0721210771420955,
             "station_code": 838,
             "update_date": "2020-12-03T10:33:25.096087+00:00",
@@ -802,7 +802,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T06:00:00Z",
             "id": 1161,
             "interpolated": true,
             "prediction_model_id": 2
@@ -826,7 +826,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 85.58633008504147,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -4.119676949562752,
             "station_code": 838,
             "update_date": "2020-12-03T16:37:51.343426+00:00",
@@ -843,7 +843,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T12:00:00Z",
             "id": 1164,
             "interpolated": true,
             "prediction_model_id": 2
@@ -867,7 +867,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.08086593780251,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -4.139144165485955,
             "station_code": 838,
             "update_date": "2020-12-03T22:33:39.548610+00:00",
@@ -884,7 +884,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T18:00:00Z",
             "id": 1166,
             "interpolated": true,
             "prediction_model_id": 2
@@ -908,7 +908,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 84.93928061443748,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -3.7050418213184377,
             "station_code": 838,
             "update_date": "2020-12-04T04:32:20.632091+00:00",
@@ -925,7 +925,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T00:00:00Z",
             "id": 1169,
             "interpolated": true,
             "prediction_model_id": 2
@@ -949,7 +949,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 84.47639388482406,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -3.6335219469980444,
             "station_code": 838,
             "update_date": "2020-12-04T10:31:14.131409+00:00",
@@ -966,7 +966,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T06:00:00Z",
             "id": 1171,
             "interpolated": true,
             "prediction_model_id": 2
@@ -990,7 +990,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 84.08855972957392,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -3.517316817055658,
             "station_code": 838,
             "update_date": "2020-12-04T16:32:30.549039+00:00",
@@ -1007,7 +1007,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T12:00:00Z",
             "id": 1174,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1031,7 +1031,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 83.95092793236049,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -3.6408046137370285,
             "station_code": 838,
             "update_date": "2020-12-04T22:33:57.328214+00:00",
@@ -1048,7 +1048,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T18:00:00Z",
             "id": 1176,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1072,7 +1072,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 85.43793286579009,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -3.6380536810534423,
             "station_code": 838,
             "update_date": "2020-12-05T04:36:53.478596+00:00",
@@ -1089,7 +1089,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T00:00:00Z",
             "id": 1179,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1113,7 +1113,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 85.03224569431298,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -3.4098054895286336,
             "station_code": 838,
             "update_date": "2020-12-05T10:32:23.496940+00:00",
@@ -1130,7 +1130,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T06:00:00Z",
             "id": 1181,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1154,7 +1154,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.83298597893813,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -3.184990660608833,
             "station_code": 838,
             "update_date": "2020-12-05T16:35:11.029154+00:00",
@@ -1171,7 +1171,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T12:00:00Z",
             "id": 1184,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1195,7 +1195,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.57561989188325,
-            "prediction_timestamp": "2020-12-05T23:00:00+00:00",
+            "prediction_timestamp": "2020-12-05T23:00:00Z",
             "tmp_tgl_2": -2.7990873231683557,
             "station_code": 838,
             "update_date": "2020-12-05T22:33:40.710923+00:00",
@@ -1212,7 +1212,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T18:00:00Z",
             "id": 1186,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1236,7 +1236,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.06927654441094,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -6.6923246028597765,
             "station_code": 838,
             "update_date": "2020-12-02T16:42:38.366244+00:00",
@@ -1253,7 +1253,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T12:00:00Z",
             "id": 1122,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1277,7 +1277,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.48945278694426,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -6.686904023364121,
             "station_code": 838,
             "update_date": "2020-12-02T22:34:58.491995+00:00",
@@ -1294,7 +1294,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T18:00:00Z",
             "id": 1156,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1318,7 +1318,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.33077952693097,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -6.218446915024489,
             "station_code": 838,
             "update_date": "2020-12-03T04:33:59.761407+00:00",
@@ -1335,7 +1335,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T00:00:00Z",
             "id": 1159,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1359,7 +1359,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 90.93204987455103,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -6.862035205853372,
             "station_code": 838,
             "update_date": "2020-12-03T10:33:25.099253+00:00",
@@ -1376,7 +1376,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T06:00:00Z",
             "id": 1161,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1400,7 +1400,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 90.69501519535254,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -6.766452945404618,
             "station_code": 838,
             "update_date": "2020-12-03T16:37:51.346985+00:00",
@@ -1417,7 +1417,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T12:00:00Z",
             "id": 1164,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1441,7 +1441,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 90.9395223370187,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -6.847857770763365,
             "station_code": 838,
             "update_date": "2020-12-03T22:33:39.551414+00:00",
@@ -1458,7 +1458,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T18:00:00Z",
             "id": 1166,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1482,7 +1482,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 90.34542304605625,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -6.364612856206351,
             "station_code": 838,
             "update_date": "2020-12-04T04:32:20.634273+00:00",
@@ -1499,7 +1499,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T00:00:00Z",
             "id": 1169,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1523,7 +1523,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 90.56180718180983,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -6.296895721066634,
             "station_code": 838,
             "update_date": "2020-12-04T10:31:14.133038+00:00",
@@ -1540,7 +1540,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T06:00:00Z",
             "id": 1171,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1564,7 +1564,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 91.38466580187182,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -6.178707159955184,
             "station_code": 838,
             "update_date": "2020-12-04T16:32:30.550726+00:00",
@@ -1581,7 +1581,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T12:00:00Z",
             "id": 1174,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1605,7 +1605,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 91.32217745563815,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -6.18238546725389,
             "station_code": 838,
             "update_date": "2020-12-04T22:33:57.330903+00:00",
@@ -1622,7 +1622,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T18:00:00Z",
             "id": 1176,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1646,7 +1646,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 91.78468786542429,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -6.2784612188941304,
             "station_code": 838,
             "update_date": "2020-12-05T04:36:53.482366+00:00",
@@ -1663,7 +1663,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T00:00:00Z",
             "id": 1179,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1687,7 +1687,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 90.84484328809091,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -6.098757370421887,
             "station_code": 838,
             "update_date": "2020-12-05T10:32:23.498737+00:00",
@@ -1704,7 +1704,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T06:00:00Z",
             "id": 1181,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1728,7 +1728,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 91.24532841439124,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -5.816356987165585,
             "station_code": 838,
             "update_date": "2020-12-05T16:35:11.033950+00:00",
@@ -1745,7 +1745,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T12:00:00Z",
             "id": 1184,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1769,7 +1769,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 92.68461453334807,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -5.514138209433876,
             "station_code": 838,
             "update_date": "2020-12-05T22:33:40.713316+00:00",
@@ -1786,7 +1786,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T18:00:00Z",
             "id": 1186,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1810,7 +1810,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.3389262363934,
-            "prediction_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T00:00:00Z",
             "tmp_tgl_2": -4.3463707881417815,
             "station_code": 838,
             "update_date": "2020-12-06T04:31:28.696577+00:00",
@@ -1827,7 +1827,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-06T00:00:00Z",
             "id": 1189,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1851,7 +1851,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.80387717452767,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -8.322520377874325,
             "station_code": 838,
             "update_date": "2020-12-02T22:34:58.494763+00:00",
@@ -1868,7 +1868,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T18:00:00Z",
             "id": 1156,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1892,7 +1892,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 87.6713450821964,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -7.864418164267934,
             "station_code": 838,
             "update_date": "2020-12-03T04:33:59.764401+00:00",
@@ -1909,7 +1909,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T00:00:00Z",
             "id": 1159,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1933,7 +1933,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.16831912698635,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -8.482694364000027,
             "station_code": 838,
             "update_date": "2020-12-03T10:33:25.102539+00:00",
@@ -1950,7 +1950,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T06:00:00Z",
             "id": 1161,
             "interpolated": true,
             "prediction_model_id": 2
@@ -1974,7 +1974,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.20767970332732,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -8.35110589848631,
             "station_code": 838,
             "update_date": "2020-12-03T16:37:51.398409+00:00",
@@ -1991,7 +1991,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T12:00:00Z",
             "id": 1164,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2015,7 +2015,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.6495330759038,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -8.413060495882883,
             "station_code": 838,
             "update_date": "2020-12-03T22:33:39.553977+00:00",
@@ -2032,7 +2032,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T18:00:00Z",
             "id": 1166,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2056,7 +2056,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.36775894943975,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -8.056914702155058,
             "station_code": 838,
             "update_date": "2020-12-04T04:32:20.637236+00:00",
@@ -2073,7 +2073,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T00:00:00Z",
             "id": 1169,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2097,7 +2097,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.87713173326443,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -8.009458977916356,
             "station_code": 838,
             "update_date": "2020-12-04T10:31:14.134679+00:00",
@@ -2114,7 +2114,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T06:00:00Z",
             "id": 1171,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2138,7 +2138,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 90.22423360790506,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -7.892760206233959,
             "station_code": 838,
             "update_date": "2020-12-04T16:32:30.552381+00:00",
@@ -2155,7 +2155,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T12:00:00Z",
             "id": 1174,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2179,7 +2179,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.99802356992707,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -7.886756523283984,
             "station_code": 838,
             "update_date": "2020-12-04T22:33:57.333564+00:00",
@@ -2196,7 +2196,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T18:00:00Z",
             "id": 1176,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2220,7 +2220,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.97233405586333,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -7.912414682354664,
             "station_code": 838,
             "update_date": "2020-12-05T04:36:53.536672+00:00",
@@ -2237,7 +2237,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T00:00:00Z",
             "id": 1179,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2261,7 +2261,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.57936742871226,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -7.742881406478169,
             "station_code": 838,
             "update_date": "2020-12-05T10:32:23.547394+00:00",
@@ -2278,7 +2278,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T06:00:00Z",
             "id": 1181,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2302,7 +2302,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 90.06725387588682,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -7.457312455479275,
             "station_code": 838,
             "update_date": "2020-12-05T16:35:11.038576+00:00",
@@ -2319,7 +2319,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T12:00:00Z",
             "id": 1184,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2343,7 +2343,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 90.98990855372179,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -7.182993120121592,
             "station_code": 838,
             "update_date": "2020-12-05T22:33:40.716010+00:00",
@@ -2360,7 +2360,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T18:00:00Z",
             "id": 1186,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2384,7 +2384,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 90.52438425174846,
-            "prediction_timestamp": "2020-12-06T01:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T01:00:00Z",
             "tmp_tgl_2": -7.545182324685943,
             "station_code": 838,
             "update_date": "2020-12-06T04:31:28.698564+00:00",
@@ -2401,7 +2401,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-06T00:00:00Z",
             "id": 1189,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2425,7 +2425,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 83.99340031833412,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -9.276862373779808,
             "station_code": 838,
             "update_date": "2020-12-02T22:34:58.497514+00:00",
@@ -2442,7 +2442,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T18:00:00Z",
             "id": 1156,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2466,7 +2466,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 84.99722189393009,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -8.69743333305653,
             "station_code": 838,
             "update_date": "2020-12-03T04:33:59.767819+00:00",
@@ -2483,7 +2483,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T00:00:00Z",
             "id": 1159,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2507,7 +2507,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 87.13726025219906,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -9.278739310383564,
             "station_code": 838,
             "update_date": "2020-12-03T10:33:25.155877+00:00",
@@ -2524,7 +2524,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T06:00:00Z",
             "id": 1161,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2548,7 +2548,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.99864845057137,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -9.071538455015045,
             "station_code": 838,
             "update_date": "2020-12-03T16:37:51.405116+00:00",
@@ -2565,7 +2565,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T12:00:00Z",
             "id": 1164,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2589,7 +2589,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 87.75620594528338,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -9.209577711298204,
             "station_code": 838,
             "update_date": "2020-12-03T22:33:39.556289+00:00",
@@ -2606,7 +2606,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T18:00:00Z",
             "id": 1166,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2630,7 +2630,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 87.6864034639419,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -8.938926892571555,
             "station_code": 838,
             "update_date": "2020-12-04T04:32:20.640111+00:00",
@@ -2647,7 +2647,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T00:00:00Z",
             "id": 1169,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2671,7 +2671,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 88.2123355751279,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -8.88176778425038,
             "station_code": 838,
             "update_date": "2020-12-04T10:31:14.136282+00:00",
@@ -2688,7 +2688,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T06:00:00Z",
             "id": 1171,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2712,7 +2712,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 88.68413238009187,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -8.784726447874263,
             "station_code": 838,
             "update_date": "2020-12-04T16:32:30.554058+00:00",
@@ -2729,7 +2729,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T12:00:00Z",
             "id": 1174,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2753,7 +2753,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 88.5872532046182,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -8.83814971387346,
             "station_code": 838,
             "update_date": "2020-12-04T22:33:57.336093+00:00",
@@ -2770,7 +2770,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T18:00:00Z",
             "id": 1176,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2794,7 +2794,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 88.50861066545147,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -8.846261471283526,
             "station_code": 838,
             "update_date": "2020-12-05T04:36:53.541684+00:00",
@@ -2811,7 +2811,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T00:00:00Z",
             "id": 1179,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2835,7 +2835,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 88.07272821124293,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -8.67031703161775,
             "station_code": 838,
             "update_date": "2020-12-05T10:32:23.550490+00:00",
@@ -2852,7 +2852,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T06:00:00Z",
             "id": 1181,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2876,7 +2876,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 88.58696726377674,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -8.417260053645679,
             "station_code": 838,
             "update_date": "2020-12-05T16:35:11.043102+00:00",
@@ -2893,7 +2893,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T12:00:00Z",
             "id": 1184,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2917,7 +2917,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 89.13206299931258,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -8.07270787379795,
             "station_code": 838,
             "update_date": "2020-12-05T22:33:40.718665+00:00",
@@ -2934,7 +2934,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T18:00:00Z",
             "id": 1186,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2958,7 +2958,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 88.89403652147428,
-            "prediction_timestamp": "2020-12-06T02:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T02:00:00Z",
             "tmp_tgl_2": -8.336601104122389,
             "station_code": 838,
             "update_date": "2020-12-06T04:31:28.700196+00:00",
@@ -2975,7 +2975,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-06T00:00:00Z",
             "id": 1189,
             "interpolated": true,
             "prediction_model_id": 2
@@ -2999,7 +2999,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 82.35904082808176,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -9.788254053330808,
             "station_code": 838,
             "update_date": "2020-12-02T22:34:58.500443+00:00",
@@ -3016,7 +3016,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T18:00:00Z",
             "id": 1156,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3040,7 +3040,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 83.11540864603928,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -9.141258511184766,
             "station_code": 838,
             "update_date": "2020-12-03T04:33:59.771529+00:00",
@@ -3057,7 +3057,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T00:00:00Z",
             "id": 1159,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3081,7 +3081,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 85.55244661091379,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -9.727460007130693,
             "station_code": 838,
             "update_date": "2020-12-03T10:33:25.161208+00:00",
@@ -3098,7 +3098,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T06:00:00Z",
             "id": 1161,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3122,7 +3122,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 84.84058346931185,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -9.511503029270273,
             "station_code": 838,
             "update_date": "2020-12-03T16:37:51.410926+00:00",
@@ -3139,7 +3139,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T12:00:00Z",
             "id": 1164,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3163,7 +3163,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.36185313891357,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -9.717428074946845,
             "station_code": 838,
             "update_date": "2020-12-03T22:33:39.558639+00:00",
@@ -3180,7 +3180,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T18:00:00Z",
             "id": 1166,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3204,7 +3204,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 85.98148642444198,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -9.386462102027295,
             "station_code": 838,
             "update_date": "2020-12-04T04:32:20.642502+00:00",
@@ -3221,7 +3221,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T00:00:00Z",
             "id": 1169,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3245,7 +3245,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.6716868412462,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -9.422407075390604,
             "station_code": 838,
             "update_date": "2020-12-04T10:31:14.138010+00:00",
@@ -3262,7 +3262,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T06:00:00Z",
             "id": 1171,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3286,7 +3286,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 87.30055480844369,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -9.331846046226596,
             "station_code": 838,
             "update_date": "2020-12-04T16:32:30.555721+00:00",
@@ -3303,7 +3303,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T12:00:00Z",
             "id": 1174,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3327,7 +3327,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 87.41922499827848,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -9.440783696067722,
             "station_code": 838,
             "update_date": "2020-12-04T22:33:57.338687+00:00",
@@ -3344,7 +3344,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T18:00:00Z",
             "id": 1176,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3368,7 +3368,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 87.27222256424673,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -9.437261668835314,
             "station_code": 838,
             "update_date": "2020-12-05T04:36:53.545735+00:00",
@@ -3385,7 +3385,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T00:00:00Z",
             "id": 1179,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3409,7 +3409,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.88489744409955,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -9.292584568870067,
             "station_code": 838,
             "update_date": "2020-12-05T10:32:23.552511+00:00",
@@ -3426,7 +3426,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T06:00:00Z",
             "id": 1181,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3450,7 +3450,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 87.54987677804462,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -9.019546495209186,
             "station_code": 838,
             "update_date": "2020-12-05T16:35:11.047686+00:00",
@@ -3467,7 +3467,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T12:00:00Z",
             "id": 1184,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3491,7 +3491,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 87.82164669385102,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -8.586397403626933,
             "station_code": 838,
             "update_date": "2020-12-05T22:33:40.721127+00:00",
@@ -3508,7 +3508,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T18:00:00Z",
             "id": 1186,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3532,7 +3532,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 87.2652777308226,
-            "prediction_timestamp": "2020-12-06T03:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T03:00:00Z",
             "tmp_tgl_2": -8.828912820782016,
             "station_code": 838,
             "update_date": "2020-12-06T04:31:28.701817+00:00",
@@ -3549,7 +3549,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-06T00:00:00Z",
             "id": 1189,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3573,7 +3573,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 81.11171608329722,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -10.066897328001692,
             "station_code": 838,
             "update_date": "2020-12-02T22:34:58.503152+00:00",
@@ -3590,7 +3590,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T18:00:00Z",
             "id": 1156,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3614,7 +3614,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 82.04573834603576,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -9.50796508622335,
             "station_code": 838,
             "update_date": "2020-12-03T04:33:59.774988+00:00",
@@ -3631,7 +3631,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T00:00:00Z",
             "id": 1159,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3655,7 +3655,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 84.39337581664876,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -10.057540228524754,
             "station_code": 838,
             "update_date": "2020-12-03T10:33:25.163815+00:00",
@@ -3672,7 +3672,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T06:00:00Z",
             "id": 1161,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3696,7 +3696,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 83.4383438106867,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -9.826187563706805,
             "station_code": 838,
             "update_date": "2020-12-03T16:37:51.414585+00:00",
@@ -3713,7 +3713,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T12:00:00Z",
             "id": 1164,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3737,7 +3737,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 85.06686126473203,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -10.041018522036287,
             "station_code": 838,
             "update_date": "2020-12-03T22:33:39.561027+00:00",
@@ -3754,7 +3754,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T18:00:00Z",
             "id": 1166,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3778,7 +3778,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 84.6440455900673,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -9.742268359293039,
             "station_code": 838,
             "update_date": "2020-12-04T04:32:20.644781+00:00",
@@ -3795,7 +3795,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T00:00:00Z",
             "id": 1169,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3819,7 +3819,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 84.94371359268652,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -9.75961223639169,
             "station_code": 838,
             "update_date": "2020-12-04T10:31:14.139944+00:00",
@@ -3836,7 +3836,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T06:00:00Z",
             "id": 1171,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3860,7 +3860,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.0232672018433,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -9.767206631131819,
             "station_code": 838,
             "update_date": "2020-12-04T16:32:30.557375+00:00",
@@ -3877,7 +3877,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T12:00:00Z",
             "id": 1174,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3901,7 +3901,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.24029911427593,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -9.794564207267975,
             "station_code": 838,
             "update_date": "2020-12-04T22:33:57.341293+00:00",
@@ -3918,7 +3918,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-04T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-04T18:00:00Z",
             "id": 1176,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3942,7 +3942,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.0689218874625,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -9.81219629324482,
             "station_code": 838,
             "update_date": "2020-12-05T04:36:53.549871+00:00",
@@ -3959,7 +3959,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T00:00:00Z",
             "id": 1179,
             "interpolated": true,
             "prediction_model_id": 2
@@ -3983,7 +3983,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 85.58720982235252,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -9.698908366179976,
             "station_code": 838,
             "update_date": "2020-12-05T10:32:23.554308+00:00",
@@ -4000,7 +4000,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T06:00:00Z",
             "id": 1181,
             "interpolated": true,
             "prediction_model_id": 2
@@ -4024,7 +4024,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.41281403861585,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -9.396130460304182,
             "station_code": 838,
             "update_date": "2020-12-05T16:35:11.052144+00:00",
@@ -4041,7 +4041,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T12:00:00Z",
             "id": 1184,
             "interpolated": true,
             "prediction_model_id": 2
@@ -4065,7 +4065,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 86.63575312109485,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -8.873537919201691,
             "station_code": 838,
             "update_date": "2020-12-05T22:33:40.773177+00:00",
@@ -4082,7 +4082,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-05T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-05T18:00:00Z",
             "id": 1186,
             "interpolated": true,
             "prediction_model_id": 2
@@ -4106,7 +4106,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 85.90155392223477,
-            "prediction_timestamp": "2020-12-06T04:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T04:00:00Z",
             "tmp_tgl_2": -9.078782656675974,
             "station_code": 838,
             "update_date": "2020-12-06T04:31:28.703423+00:00",
@@ -4123,7 +4123,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-06T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-06T00:00:00Z",
             "id": 1189,
             "interpolated": true,
             "prediction_model_id": 2
@@ -4147,7 +4147,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 79.67439400222436,
-            "prediction_timestamp": "2020-12-06T05:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T05:00:00Z",
             "tmp_tgl_2": -10.145859598017939,
             "station_code": 838,
             "update_date": "2020-12-02T22:34:58.553031+00:00",
@@ -4164,7 +4164,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-02T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-02T18:00:00Z",
             "id": 1156,
             "interpolated": true,
             "prediction_model_id": 2
@@ -4188,7 +4188,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 81.44225054606807,
-            "prediction_timestamp": "2020-12-06T05:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T05:00:00Z",
             "tmp_tgl_2": -9.841751323857213,
             "station_code": 838,
             "update_date": "2020-12-03T04:33:59.777508+00:00",
@@ -4205,7 +4205,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T00:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T00:00:00Z",
             "id": 1159,
             "interpolated": true,
             "prediction_model_id": 2
@@ -4229,7 +4229,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 83.46423623056717,
-            "prediction_timestamp": "2020-12-06T05:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T05:00:00Z",
             "tmp_tgl_2": -10.320874556145554,
             "station_code": 838,
             "update_date": "2020-12-03T10:33:25.166456+00:00",
@@ -4246,7 +4246,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T06:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T06:00:00Z",
             "id": 1161,
             "interpolated": true,
             "prediction_model_id": 2
@@ -4270,7 +4270,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 82.85419192996997,
-            "prediction_timestamp": "2020-12-06T05:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T05:00:00Z",
             "tmp_tgl_2": -10.091350198238583,
             "station_code": 838,
             "update_date": "2020-12-03T16:37:51.418471+00:00",
@@ -4287,7 +4287,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T12:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T12:00:00Z",
             "id": 1164,
             "interpolated": true,
             "prediction_model_id": 2
@@ -4311,7 +4311,7 @@
          "data": {
             "apcp_sfc_0": null,
             "rh_tgl_2": 84.21596704417422,
-            "prediction_timestamp": "2020-12-06T05:00:00+00:00",
+            "prediction_timestamp": "2020-12-06T05:00:00Z",
             "tmp_tgl_2": -10.191092295279292,
             "station_code": 838,
             "update_date": "2020-12-03T22:33:39.563604+00:00",
@@ -4328,7 +4328,7 @@
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
-            "prediction_run_timestamp": "2020-12-03T18:00:00+00:00",
+            "prediction_run_timestamp": "2020-12-03T18:00:00Z",
             "id": 1166,
             "interpolated": true,
             "prediction_model_id": 2
