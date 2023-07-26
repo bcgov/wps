@@ -165,8 +165,9 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   })
 
   return (
-    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader
+        ref={navRef}
         isBeta={true}
         spacing={1}
         title={FIRE_BEHAVIOUR_ADVISORY_NAME}
@@ -221,16 +222,15 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       </Container>
       <Container sx={{ display: 'flex', flex: 1 }} disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
-          <Grid item>
+          <Grid sx={{ overflowY: 'auto' }} ref={sidePanelRef} item>
             <ZoneSummaryPanel
-              ref={sidePanelRef}
               selectedFireZone={selectedFireZone}
               fuelTypeInfo={hfiThresholdsFuelTypes}
               hfiElevationInfo={fireZoneElevationInfo}
               fireZoneAreas={fireZoneAreas}
             />
           </Grid>
-          <Grid sx={{ display: 'flex', flex: 1 }} item>
+          <Grid sx={{ display: 'flex', flex: 1 }} ref={mapRef} item>
             <FBAMap
               forDate={dateOfInterest}
               runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
