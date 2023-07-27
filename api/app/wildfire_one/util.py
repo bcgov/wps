@@ -14,11 +14,10 @@ def is_station_valid(station) -> bool:
     # There are two reason we continue to filter here
     # 1. So we don't need to update our fixtures (bad reason)
     # 2. This way we don't have to trust wf1 (also a bad reason)
-    if not station.get('stationStatus', {}).get('id') in ('ACTIVE', 'TEST', 'PROJECT'):
+    if station.get("stationStatus", {}).get("id") not in ("ACTIVE", "TEST", "PROJECT"):
         return False
     if station['latitude'] is None or station['longitude'] is None:
         # We can't use a station if it doesn't have a latitude and longitude.
-        # pylint: disable=fixme
         # TODO : Decide if a station is valid if we can't determine its ecodivision and/or core fire season
         return False
     return True

@@ -8,7 +8,6 @@ from app.db.models.observations import HourlyActual
 from app.tests.jobs.job_fixtures import mock_wfwx_stations, mock_wfwx_response
 from app.utils.time import get_utc_now
 from app.jobs import hourly_actuals
-from app.schemas.observations import WeatherReading
 from app.wildfire_one import wfwx_api
 
 
@@ -27,7 +26,7 @@ def mock_hourly_actuals(mocker: MockerFixture):
                  return_value=iter(wfwx_hourlies))
 
 
-def test_hourly_actuals_job(monkeypatch, mocker: MockerFixture, mock_hourly_actuals):  # pylint: disable=unused-argument
+def test_hourly_actuals_job(monkeypatch, mocker: MockerFixture, mock_hourly_actuals):
     """ Very simple test that checks that:
     - the bot exits with a success code
     - the expected number of records are saved.
@@ -49,7 +48,7 @@ def test_hourly_actuals_job(monkeypatch, mocker: MockerFixture, mock_hourly_actu
 
 def test_hourly_actuals_job_fail(mocker: MockerFixture,
                                  monkeypatch,
-                                 mock_requests_session):  # pylint: disable=unused-argument
+                                 mock_requests_session):
     """
     Test that when the bot fails, a message is sent to rocket-chat, and our exit code is 1.
     """

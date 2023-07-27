@@ -41,8 +41,8 @@ class StationSourceEnum(enum.Enum):
     UNSPECIFIED = 'unspecified'
     # Use wildfire one as source, filtering on active stations:
     WILDFIRE_ONE = 'wildfire_one'
-    # Use local storage as source
-    LOCAL_STORAGE = 'local_storage'
+    # Use static file as source for testing purposes:
+    TEST = 'test'
 
 
 def _get_stations_local() -> List[WeatherStation]:
@@ -178,9 +178,9 @@ async def get_stations_asynchronously():
         return await get_station_data(session, header)
 
 
-def get_stations_synchronously() -> List[WeatherStation]:
+def get_stations_synchronously(station_source: StationSourceEnum) -> List[WeatherStation]:
     """ Get list of stations - in a synchronous/blocking call.
     """
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    return loop.run_until_complete(get_stations_from_source(StationSourceEnum.LOCAL_STORAGE))
+    return loop.run_until_complete(get_stations_from_source(station_source))

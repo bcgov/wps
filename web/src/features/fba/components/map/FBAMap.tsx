@@ -12,7 +12,7 @@ import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations } from 'app/rootReducer'
-import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
+import { source as baseMapSource, COG_TILE_SIZE, SFMS_MAX_ZOOM } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter, FireZone, FireZoneArea } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
@@ -32,17 +32,15 @@ import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildHFICql } from 'features/fba/cqlBuilder'
 import { isUndefined, cloneDeep } from 'lodash'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
+import { Box } from '@mui/material'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
 const TILE_SERVER_URL = 'https://wps-prod-tileserv.apps.silver.devops.gov.bc.ca'
-export const SFMS_MAX_ZOOM = 8 // The SFMS data is so coarse, there's not much point in zooming in further
-export const COG_TILE_SIZE = [512, 512] // COG tiffs are 512x512 pixels - reading larger chunks should in theory be faster?
 
 export interface FBAMapProps {
   testId?: string
-  className: string
   selectedFireCenter: FireCenter | undefined
   selectedFireZone: FireZone | undefined
   forDate: DateTime
@@ -228,9 +226,6 @@ const FBAMap = (props: FBAMapProps) => {
                   extent: extent,
                   featureProjection: projection
                 })
-                if (features.length > 0) {
-                  props.setIssueDate(DateTime.fromSQL(features[0].getProperties()['run_date'], { zone: 'utc' }))
-                }
                 tile.setFeatures(features)
               })
             })
@@ -316,7 +311,7 @@ const FBAMap = (props: FBAMapProps) => {
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
-        <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
+        <Box ref={mapRef} data-testid="fba-map" sx={{ display: 'flex', flex: 1 }}></Box>
         <LoadingBackdrop isLoadingWithoutError={hfiTilesLoading} />
       </MapContext.Provider>
     </ErrorBoundary>

@@ -45,8 +45,6 @@ class DiurnalFFMCLookupTable():
                                           '../data/diurnal_ffmc_lookups/afternoon_overnight.csv')
         with open(afternoon_filename, 'rb') as afternoon_file:
             afternoon_df = pd.read_csv(afternoon_file)
-        # Pylint thinks that afternoon_df's type is TextFileReader. It isn't - it's a pandas dataframe.
-        # pylint: disable=no-member
         afternoon_df.columns = afternoon_df.columns.astype(int)
         afternoon_df.set_index(17, inplace=True)
 
@@ -58,8 +56,7 @@ class DiurnalFFMCLookupTable():
         df_col_labels = morning_df.columns.values
         hour_lookup_keys = ['']
         rh_lookup_keys = ['']
-        # Pylint says that df_col_labels is not an iterable. Pylint wrong.
-        # pylint: disable=not-an-iterable
+
         for level_1, level_2 in df_col_labels:
             if 'Unnamed' in str(level_2):
                 continue
@@ -68,8 +65,6 @@ class DiurnalFFMCLookupTable():
                 hour_lookup_keys += 3 * [hour]
             rh_lookup_keys += [level_2]
 
-        # Pylint thinks that morning_df's type is TextFileReader. It isn't - it's a pandas dataframe.
-        # pylint: disable=no-member
         morning_df.set_index(prev_days_daily_ffmc_keys, inplace=True)
         header = pd.MultiIndex.from_tuples(list(zip(hour_lookup_keys, rh_lookup_keys)), names=['hour', 'RH'])
         morning_df.columns = header
@@ -157,7 +152,6 @@ def get_afternoon_overnight_diurnal_ffmc(hour_of_interest: int, daily_ffmc: floa
     1300 and 0700 the next morning. Otherwise, must use different function.
     """
 
-    # pylint: disable=protected-access, no-member
     afternoon_df = DiurnalFFMCLookupTable.instance().afternoon_df
 
     # find index (solar noon FFMC) of afternoon_df that is nearest to solar_noon_ffmc value
@@ -174,7 +168,6 @@ def get_morning_diurnal_ffmc(hour_of_interest: int, prev_day_daily_ffmc: float, 
     """ Returns the diurnal FFMC (an approximation) estimated for the given hour_of_interest,
     based on the estimated RH value for the hour_of_interest.
     """
-    # pylint: disable=protected-access, no-member
     morning_df = DiurnalFFMCLookupTable.instance().morning_df
 
     # find index (previous day's daily FFMC) of morning_df that is nearest to prev_day_daily_ffmc
@@ -253,7 +246,7 @@ def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critica
     return clock_time
 
 
-def get_critical_hours(  # pylint: disable=too-many-arguments
+def get_critical_hours(
         target_hfi: int, fuel_type: FuelTypeEnum, percentage_conifer: float,
         percentage_dead_balsam_fir: float, bui: float,
         grass_cure: float, crown_base_height: float,
@@ -358,22 +351,21 @@ def calculate_intensity_group(hfi: float) -> int:
     return 5
 
 
-def calculate_fire_behaviour_prediction_using_cffdrs(  # pylint: disable=too-many-arguments
+def calculate_fire_behaviour_prediction_using_cffdrs(
         latitude: float,
         longitude: float,
         elevation: float,
         fuel_type: FuelTypeEnum,
         bui: float,
         ffmc: float,
-        cc: float,  # pylint: disable=invalid-name
-        pc: float,  # pylint: disable=invalid-name
+        cc: float,
+        pc: float,
         wind_speed: float,
         isi: float,
         pdf: float,
         cbh: float,
         cfl: float):
     """ Calculates fire behaviour prediction using CFFDRS. """
-    # pylint: disable=too-many-locals
     # Set default values in case the calculation fails (likely due to missing data)
     fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, get_julian_date_now())
     sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
@@ -433,7 +425,7 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
                                                   ffmc: float,
                                                   bui: float,
                                                   wind_speed: float,
-                                                  cc: float,  # pylint: disable=invalid-name
+                                                  cc: float,
                                                   cbh: float,
                                                   cfl: float):
     """ Calculates fire behaviour prediction using C7B. """
@@ -470,14 +462,16 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
     return fire_behaviour_prediction
 
 
-def calculate_fire_behaviour_prediction(latitude: float,  # pylint: disable=too-many-arguments
+def calculate_fire_behaviour_prediction(latitude: float,
                                         longitude: float, elevation: float,
                                         fuel_type: FuelTypeEnum,
                                         bui: float, ffmc: float, wind_speed: float,
-                                        cc: float,  # pylint: disable=invalid-name
-                                        pc: float,  # pylint: disable=invalid-name
+                                        cc: float,
+                                        pc: float,
                                         isi: float, pdf: float, cbh: float, cfl: float):
     """ Calculate the fire behaviour prediction. """
+    if wind_speed is None:
+        raise FireBehaviourPredictionInputError('Wind speed must be specified')
     if bui is None:
         raise FireBehaviourPredictionInputError('BUI is required')
     if ffmc is None:

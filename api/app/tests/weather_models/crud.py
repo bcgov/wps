@@ -1,11 +1,11 @@
 """ Some crud responses used to mock our calls to app.db.crud
 """
 from datetime import datetime
-from app.db.models import ModelRunGridSubsetPrediction
+from app.db.models.weather_models import ModelRunGridSubsetPrediction
 from app.db.models.observations import HourlyActual
 
 
-def get_actuals_left_outer_join_with_predictions(*args):  # pylint: disable=unused-argument
+def get_actuals_left_outer_join_with_predictions(*args):
     """ Fixed response as replacement for app.db.crud.observations.get_actuals_left_outer_join_with_predictions
     """
     result = [

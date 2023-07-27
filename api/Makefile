@@ -17,7 +17,7 @@ define build-static
 endef
 
 define run-env-canada-model
-	POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.weather_models.env_canada ${1}
+	POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.jobs.env_canada ${1}
 endef
 
 define run-env-canada
@@ -74,12 +74,12 @@ test-coverage:
 
 lint:
 	# Run lint.
-	$(POETRY_RUN) pylint --rcfile=.pylintrc app/*.py app/**/*.py;
+	$(POETRY_RUN) ruff app/*.py app/**/*.py;
 
 run-with-tests:
 	# Run the application in the virtual environment (after linting and testing).
 	# Not failing on lint or test - just output so developer knows.
-	-poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
+	-poetry run ruff app/*.py app/**/*.py;
 	-poetry run python -m pytest -x -n 3 app;
 	${call run-api,$(POETRY_RUN)}
 
@@ -114,6 +114,8 @@ run-all-jobs:
 c-haines:
 	$(POETRY_RUN) python -m app.c_haines.worker
 
+model-pruner:
+	$(POETRY_RUN) python -m app.jobs.model_data_pruner
 
 fetch-database-partial:
 	$(POETRY_RUN) python scripts/copy_db_from_pod_to_local.py

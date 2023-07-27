@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
+import { styled } from '@mui/material/styles'
 import { Dialog, DialogContent, IconButton, Paper, Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
@@ -13,6 +12,16 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import StationListAdmin from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 import { getSelectedFuelType } from 'features/hfiCalculator/util'
+
+const PREFIX = 'ManageStationsModal'
+
+const CloseIconButton = styled(IconButton, {
+  name: `${PREFIX}-closeIconButton`
+})({
+  padding: 5,
+  position: 'absolute',
+  right: '0px'
+})
 
 export interface BasicPlanningArea {
   id: number
@@ -44,33 +53,12 @@ export interface AddStationModalProps {
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const useStyles = makeStyles(() => ({
-  modalWindow: {
-    maxWidth: 'xl'
-  },
-  closeIcon: {
-    padding: 5,
-    position: 'absolute',
-    right: '0px'
-  },
-  title: {
-    textAlign: 'center'
-  },
-  actionButton: {
-    minWidth: 100,
-    margin: theme.spacing(1),
-    float: 'right'
-  }
-}))
-
 export const ManageStationsModal = ({
   modalOpen,
   setModalOpen,
   planningAreas,
   planningAreaStationInfo
 }: AddStationModalProps): JSX.Element => {
-  const classes = useStyles()
-
   const dispatch: AppDispatch = useDispatch()
 
   const { fuelTypes, selectedFireCentre, stationsUpdatedError } = useSelector(selectHFICalculatorState)
@@ -117,12 +105,12 @@ export const ManageStationsModal = ({
   }
 
   return (
-    <React.Fragment>
+    <div>
       <Dialog fullWidth maxWidth="md" open={modalOpen} onClose={handleClose} data-testid="manage-stations-modal">
         <Paper>
-          <IconButton className={classes.closeIcon} onClick={handleClose}>
+          <CloseIconButton onClick={handleClose}>
             <ClearIcon />
-          </IconButton>
+          </CloseIconButton>
           <DialogContent>
             <Typography variant="h5" align="center">
               Manage Default Weather Stations
@@ -147,7 +135,7 @@ export const ManageStationsModal = ({
           )}
         </Paper>
       </Dialog>
-    </React.Fragment>
+    </div>
   )
 }
 

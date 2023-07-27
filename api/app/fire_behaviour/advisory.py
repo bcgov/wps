@@ -10,10 +10,10 @@ from app.schemas.fba_calc import CriticalHoursHFI
 from app.utils.time import get_hour_20_from_date, get_julian_date
 
 
-class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attributes
+class FBACalculatorWeatherStation():
     """ Inputs for Fire Behaviour Advisory Calculator """
 
-    def __init__(self,  # pylint: disable=too-many-arguments, too-many-locals
+    def __init__(self,
                  elevation: int, fuel_type: FuelTypeEnum,
                  time_of_interest: date, percentage_conifer: float,
                  percentage_dead_balsam_fir: float, grass_cure: float,
@@ -57,10 +57,10 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
             status {self.status}"
 
 
-class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
+class FireBehaviourAdvisory():
     """ Class containing the results of the fire behaviour advisory calculation. """
 
-    def __init__(self,  # pylint: disable=too-many-arguments
+    def __init__(self,
                  hfi: float, ros: float, fire_type: FireTypeEnum, cfb: float, flame_length: float,
                  sixty_minute_fire_size: float, thirty_minute_fire_size: float,
                  critical_hours_hfi_4000: Optional[CriticalHoursHFI],
@@ -90,7 +90,6 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
 def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> FireBehaviourAdvisory:
     """ Transform from the raw daily json object returned by wf1, to our fba_calc.StationResponse object.
     """
-    # pylint: disable=too-many-locals
     # time of interest will be the same for all stations.
     time_of_interest = get_hour_20_from_date(station.time_of_interest)
 

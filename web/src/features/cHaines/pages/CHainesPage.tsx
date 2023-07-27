@@ -1,11 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react'
+import { styled } from '@mui/material/styles'
 import ReactDOMServer from 'react-dom/server'
 import { selectCHainesModelRuns } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { tiledMapLayer } from 'esri-leaflet'
-import makeStyles from '@mui/styles/makeStyles'
 import { FeatureCollection } from 'geojson'
 import {
   fetchModelRuns,
@@ -14,7 +14,7 @@ import {
   updateSelectedPrediction,
   fetchCHainesGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
-import { Container, GeneralHeader, PageTitle } from 'components'
+import { Container, GeneralHeader } from 'components'
 import { formatDatetimeInPST } from 'utils/date'
 import { logError } from 'utils/error'
 import {
@@ -25,50 +25,67 @@ import {
   getCHainesModelKMLURI
 } from 'api/cHainesAPI'
 import { AppDispatch } from 'app/store'
+import { C_HAINES_DOC_TITLE, C_HAINES_NAME } from 'utils/constants'
 
-const useStyles = makeStyles({
-  map: {
+const PREFIX = 'CHainesPage'
+
+const classes = {
+  map: `${PREFIX}-map`,
+  legend: `${PREFIX}-legend`,
+  description: `${PREFIX}-description`,
+  loading: `${PREFIX}-loading`,
+  label: `${PREFIX}-label`,
+  extreme: `${PREFIX}-extreme`,
+  high: `${PREFIX}-high`,
+  moderate: `${PREFIX}-moderate`,
+  controls: `${PREFIX}-controls`,
+  kml_links: `${PREFIX}-kml_links`,
+  animateButton: `${PREFIX}-animateButton`
+}
+
+const Root = styled('main')({
+  [`& .${classes.map}`]: {
     height: '640px'
   },
-  legend: {
+  [`& .${classes.legend}`]: {
     display: 'flex',
     backgroundColor: 'white'
   },
-  description: {
+  [`& .${classes.description}`]: {
     paddingLeft: 10,
     paddingRight: 10
   },
-  loading: {
+  [`& .${classes.loading}`]: {
     backgroundColor: 'white',
     opacity: 0.8,
     width: '100%'
   },
-  label: {
+  [`& .${classes.label}`]: {
     backgroundColor: 'white',
     opacity: 0.8
   },
-  extreme: {
+  [`& .${classes.extreme}`]: {
     backgroundColor: '#ff0000',
     width: 30,
     height: 30
   },
-  high: {
+  [`& .${classes.high}`]: {
     backgroundColor: '#FFA500',
     width: 30,
     height: 30
   },
-  moderate: {
+  [`& .${classes.moderate}`]: {
     backgroundColor: '#ffff00',
     width: 30,
     height: 30
   },
-  controls: {
+  [`& .${classes.controls}`]: {
     display: 'flex'
   },
-  kml_links: {
+  [`& .${classes.kml_links}`]: {
     marginLeft: '10px'
   },
-  animateButton: {
+  [`& .${classes.animateButton}`]: {
     width: '70px'
   }
 })
@@ -76,7 +93,6 @@ const useStyles = makeStyles({
 // interface CHainesPageProps
 
 const CHainesPage = () => {
-  const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const mapRef = useRef<L.Map | null>(null)
   const layersRef = useRef<Record<string, L.GeoJSON>>({})
@@ -509,11 +525,14 @@ const CHainesPage = () => {
     selected_model_run_timestamp
   )}-${encodeURIComponent(selected_prediction_timestamp)}.kml`
 
+  useEffect(() => {
+    document.title = C_HAINES_DOC_TITLE
+  }, [])
+
   return (
-    <main>
-      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="C-Haines" />
-      <PageTitle maxWidth={false} title="C-Haines - Alpha (Experimental)" />
-      <Container maxWidth="xl">
+    <Root>
+      <GeneralHeader isBeta={false} spacing={1} title={C_HAINES_NAME} productName={C_HAINES_NAME} />
+      <Container sx={{ paddingTop: '1em' }} maxWidth="xl">
         <div id="map-with-selectable-wx-stations" className={classes.map} />
         <div className={classes.controls}>
           <div>
@@ -639,7 +658,7 @@ const CHainesPage = () => {
           </div>
         </div>
       </Container>
-    </main>
+    </Root>
   )
 }
 

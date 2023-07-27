@@ -8,7 +8,8 @@ let ENV = {
   KC_REALM: import.meta.env.VITE_KEYCLOAK_REALM as string,
   KC_CLIENT: import.meta.env.VITE_KEYCLOAK_CLIENT as string,
   MS_TEAMS_SPRINT_REVIEW_URL: import.meta.env.VITE_MS_TEAMS_SPRINT_REVIEW_URL as string,
-  MIRO_SPRINT_REVIEW_BOARD_URL: import.meta.env.VITE_MIRO_SPRINT_REVIEW_BOARD_URL as string
+  MIRO_SPRINT_REVIEW_BOARD_URL: import.meta.env.VITE_MIRO_SPRINT_REVIEW_BOARD_URL as string,
+  WF1_AUTH_URL: process.env.VITE_WF1_AUTH_URL as string
 }
 
 // If the app is built using 'npm run build'
@@ -20,6 +21,7 @@ if (import.meta.env.NODE_ENV === 'production') {
     RASTER_SERVER_BASE_URL: window.env.RASTER_SERVER_BASE_URL ?? `${window.location.protocol}//${window.location.host}`,
     HIDE_DISCLAIMER: undefined,
     SM_LOGOUT_URL: window.env.VITE_SM_LOGOUT_URL,
+    WF1_AUTH_URL: window.env.VITE_WF1_AUTH_URL,
     TEST_AUTH: undefined,
     KC_AUTH_URL: window.env.VITE_KEYCLOAK_AUTH_URL,
     KC_REALM: window.env.VITE_KEYCLOAK_REALM,
@@ -39,5 +41,6 @@ export const {
   TEST_AUTH,
   SM_LOGOUT_URL,
   MS_TEAMS_SPRINT_REVIEW_URL,
-  MIRO_SPRINT_REVIEW_BOARD_URL
+  MIRO_SPRINT_REVIEW_BOARD_URL,
+  WF1_AUTH_URL
 } = ENV

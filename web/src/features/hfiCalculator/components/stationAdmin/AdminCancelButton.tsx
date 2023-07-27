@@ -1,26 +1,30 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { Button } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 
-export interface AdminCancelButtonProps {
-  testId?: string
-  handleCancel: () => void
+const PREFIX = 'AdminCancelButton'
+
+const classes = {
+  actionButton: `${PREFIX}-actionButton`
 }
 
-const useStyles = makeStyles(() => ({
-  actionButton: {
+const StyledButton = styled(Button)(() => ({
+  [`&.${classes.actionButton}`]: {
     minWidth: 100,
     margin: theme.spacing(1),
     float: 'right'
   }
 }))
 
-const AdminCancelButton = ({ handleCancel }: AdminCancelButtonProps) => {
-  const classes = useStyles()
+export interface AdminCancelButtonProps {
+  testId?: string
+  handleCancel: () => void
+}
 
+const AdminCancelButton = ({ handleCancel }: AdminCancelButtonProps) => {
   return (
-    <Button
+    <StyledButton
       data-testid={'cancel-new-station-button'}
       variant="outlined"
       color="primary"
@@ -28,7 +32,7 @@ const AdminCancelButton = ({ handleCancel }: AdminCancelButtonProps) => {
       onClick={handleCancel}
     >
       Cancel
-    </Button>
+    </StyledButton>
   )
 }
 

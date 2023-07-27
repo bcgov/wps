@@ -9,8 +9,6 @@ from alembic import op
 import sqlalchemy as sa
 import geoalchemy2
 from sqlalchemy.orm.session import Session
-import asyncio
-from shapely import wkb
 from app.auto_spatial_advisory.calculate_combustible_land_area import calculate_combustible_area_by_fire_zone, get_fuel_types_from_object_store
 
 

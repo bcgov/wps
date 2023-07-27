@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { difference, filter, findIndex, isEmpty, isEqual, isUndefined } from 'lodash'
-import { FormControl, TableBody, TableCell, TableRow } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { TableBody, TableCell, TableRow } from '@mui/material'
 import GetAppIcon from '@mui/icons-material/GetApp'
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
 import { CsvBuilder } from 'filefy'
@@ -37,10 +36,11 @@ import FBATableHead from 'features/fbaCalculator/components/FBATableHead'
 import FireTable from 'components/FireTable'
 import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
 import FilterColumnsModal from 'components/FilterColumnsModal'
-import { formControlStyles } from 'app/theme'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
+import { StyledFormControl } from 'components/StyledFormControl'
+import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -59,28 +59,6 @@ export interface FBAInputRow {
   grassCure: number | undefined
   windSpeed: number | undefined
 }
-
-const useStyles = makeStyles(() => ({
-  ...formControlStyles,
-  weatherStation: {
-    minWidth: 220
-  },
-  fuelType: {
-    minWidth: 220
-  },
-  grassCure: {
-    width: 80
-  },
-  adjustedValueCell: {
-    fontWeight: 'bold',
-    color: '#460270'
-  },
-  dataRow: {
-    height: '40px',
-    paddingLeft: '8px',
-    paddingRight: '8px'
-  }
-}))
 
 export type ColumnLabel =
   | 'Zone'
@@ -140,7 +118,6 @@ const tableColumnLabels: ColumnLabel[] = [
 ]
 
 const FBATable = (props: FBATableProps) => {
-  const classes = useStyles()
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch: AppDispatch = useDispatch()
@@ -370,12 +347,11 @@ const FBATable = (props: FBATableProps) => {
 
   const getWeatherStationCell = (row: FBATableRow) => {
     return (
-      <StickyCell left={50} zIndexOffset={1} backgroundColor="#FFFFFF" testId={'stickyCell-fba'}>
+      <StickyCell left={50} zIndexOffset={1} backgroundColor="#FFFFFF">
         <WeatherStationCell
           stationOptions={stationMenuOptions}
           inputRows={rows}
           updateRow={updateRow}
-          classNameMap={classes}
           value={row.weatherStation}
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
           rowId={row.id}
@@ -391,7 +367,6 @@ const FBATable = (props: FBATableProps) => {
           fuelTypeOptions={fuelTypeMenuOptions}
           inputRows={rows}
           updateRow={updateRow}
-          classNameMap={classes}
           value={row.fuelType}
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
           rowId={row.id}
@@ -402,16 +377,15 @@ const FBATable = (props: FBATableProps) => {
 
   const getGrassCureCell = (row: FBATableRow) => {
     return (
-      <TableCell className={classes.dataRow}>
+      <DataTableCell>
         <GrassCureCell
           inputRows={rows}
           updateRow={updateRow}
-          classNameMap={classes}
           value={row.grassCure}
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
           rowId={row.id}
         />
-      </TableCell>
+      </DataTableCell>
     )
   }
 
@@ -425,7 +399,7 @@ const FBATable = (props: FBATableProps) => {
 
   const getWindSpeedCell = (row: FBATableRow) => {
     return (
-      <TableCell className={classes.dataRow}>
+      <DataTableCell>
         <WindSpeedCell
           inputRows={rows}
           updateRow={updateRow}
@@ -434,7 +408,7 @@ const FBATable = (props: FBATableProps) => {
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row) && !isWindSpeedInvalid(row.windSpeed)}
           rowId={row.id}
         />
-      </TableCell>
+      </DataTableCell>
     )
   }
 
@@ -558,15 +532,15 @@ const FBATable = (props: FBATableProps) => {
       {stationsError ||
         (fbaResultsError && <ErrorAlert stationsError={stationsError} fbaResultsError={fbaResultsError} />)}
       <ErrorBoundary>
-        <FormControl className={classes.formControl}>
+        <StyledFormControl>
           <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
-        </FormControl>
-        <FormControl className={classes.formControl}>
+        </StyledFormControl>
+        <StyledFormControl>
           <Button data-testid="add-row" variant="contained" color="primary" spinnercolor="white" onClick={addStation}>
             Add Row
           </Button>
-        </FormControl>
-        <FormControl className={classes.formControl}>
+        </StyledFormControl>
+        <StyledFormControl>
           <Button
             data-testid="remove-rows"
             disabled={rows.length === 0}
@@ -577,14 +551,14 @@ const FBATable = (props: FBATableProps) => {
           >
             Remove Row(s)
           </Button>
-        </FormControl>
-        <FormControl className={classes.formControl}>
+        </StyledFormControl>
+        <StyledFormControl>
           <Button data-testid="export" disabled={selected.length === 0} onClick={exportSelectedRows}>
             <GetAppIcon />
             Export Selection
           </Button>
-        </FormControl>
-        <FormControl className={classes.formControl}>
+        </StyledFormControl>
+        <StyledFormControl>
           <Button
             data-testid="filter-columns-btn"
             disabled={fireBehaviourResultStations.length === 0}
@@ -593,7 +567,7 @@ const FBATable = (props: FBATableProps) => {
             <ViewColumnOutlinedIcon />
             Columns
           </Button>
-        </FormControl>
+        </StyledFormControl>
 
         <FilterColumnsModal
           modalOpen={modalOpen}
@@ -602,13 +576,7 @@ const FBATable = (props: FBATableProps) => {
           parentCallback={filterColumnsCallback}
         />
 
-        <FireTable
-          ariaLabel="Fire Behaviour Analysis table"
-          maxHeight={props.maxHeight ? props.maxHeight : 600}
-          minHeight={props.minHeight ? props.minHeight : 300}
-          maxWidth={props.maxWidth}
-          data-testId={props.testId}
-        >
+        <FireTable ariaLabel="Fire Behaviour Analysis table" data-testId={props.testId}>
           <FBATableHead
             toggleSorting={toggleSorting}
             order={order}

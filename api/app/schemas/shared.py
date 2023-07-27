@@ -13,11 +13,16 @@ class WeatherDataRequest(BaseModel):
     time_of_interest: datetime = time_utils.get_utc_now()
 
 
+class StationsRequest(BaseModel):
+    """ A request for data related to a set of weather stations. """
+    stations: List[int]
+
+
 class FuelType(BaseModel):
     """ Fuel type assigned to a station. """
     id: int
     abbrev: str
     fuel_type_code: str
     description: str
-    percentage_conifer: Optional[int]
-    percentage_dead_fir: Optional[int]
+    percentage_conifer: Optional[int] = None
+    percentage_dead_fir: Optional[int] = None

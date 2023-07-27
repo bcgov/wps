@@ -4,7 +4,6 @@ import logging
 from typing import Generator, AsyncGenerator
 from contextlib import contextmanager, asynccontextmanager
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from .. import config
@@ -19,16 +18,12 @@ postgres_read_host = config.get('POSTGRES_READ_HOST', 'localhost')
 postgres_port = config.get('POSTGRES_PORT', '5432')
 postgres_database = config.get('POSTGRES_DATABASE', 'wps')
 
-# pylint: disable=line-too-long
 DB_WRITE_STRING = f'postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
 
-# pylint: disable=line-too-long
 DB_READ_STRING = f'postgresql://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}'
 
-# pylint: disable=line-too-long
 ASYNC_DB_READ_STRING = f'postgresql+asyncpg://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}'
 
-# pylint: disable=line-too-long
 ASYNC_DB_WRITE_STRING = f'postgresql+asyncpg://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
 
 # connect to database - defaulting to always use utc timezone
@@ -68,9 +63,6 @@ _async_read_sessionmaker = sessionmaker(
     autocommit=False, autoflush=False, bind=_async_read_engine, class_=AsyncSession)
 _async_write_sessionmaker = sessionmaker(
     autocommit=False, autoflush=False, bind=_async_write_engine, class_=AsyncSession)
-
-# constructing a base class for declarative class definitions
-Base = declarative_base()
 
 
 def _get_write_session() -> Session:

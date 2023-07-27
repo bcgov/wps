@@ -13,7 +13,6 @@ Create Date: 2022-06-20 10:36:49.172370
 
 """
 from alembic import op
-import sqlalchemy as sa
 
 from app.utils.time import get_utc_now
 

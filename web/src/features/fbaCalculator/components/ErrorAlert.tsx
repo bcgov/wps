@@ -1,23 +1,8 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
-import createStyles from '@mui/styles/createStyles'
 import Alert from '@mui/material/Alert'
 import IconButton from '@mui/material/IconButton'
 import Collapse from '@mui/material/Collapse'
 import CloseIcon from '@mui/icons-material/Close'
-import { theme } from 'app/theme'
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    root: {
-      width: '100%',
-      '& > * + *': {
-        marginTop: theme.spacing(2)
-      },
-      marginBottom: theme.spacing(2)
-    }
-  })
-)
 
 export interface ErrorAlertProps {
   stationsError: string | null
@@ -25,11 +10,10 @@ export interface ErrorAlertProps {
 }
 
 const ErrorAlert = (props: ErrorAlertProps) => {
-  const classes = useStyles()
   const [open, setOpen] = React.useState(true)
 
   return (
-    <div className={classes.root}>
+    <div>
       <Collapse in={open}>
         <Alert
           severity="error"

@@ -10,7 +10,7 @@ from scipy.interpolate import griddata
 import numpy as np
 from sqlalchemy.orm import Session
 from app.weather_models import SCALAR_MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
-from app.db.models import (
+from app.db.models.weather_models import (
     PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction)
 from app.db.models.observations import HourlyActual
 from app.db.crud.observations import get_actuals_left_outer_join_with_predictions
@@ -74,7 +74,7 @@ class Samples:
         """ Return a numpy array of the observed values """
         return np.array(self._y[hour])
 
-    def add_sample(self,  # pylint: disable=too-many-arguments
+    def add_sample(self,
                    points: List,
                    target_point: List,
                    model_values: List,
@@ -106,10 +106,10 @@ class SampleCollection:
         self.relative_humidity = Samples()
 
 
-class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
+class StationMachineLearning:
     """ Wrap away machine learning in an easy to use class. """
 
-    def __init__(self,  # pylint: disable=too-many-arguments
+    def __init__(self,
                  session: Session,
                  model: PredictionModel,
                  grid: PredictionModelGridSubset,

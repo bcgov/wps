@@ -7,46 +7,21 @@ import datetime
 from datetime import datetime
 import pytest
 import requests
-from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
+from sqlalchemy.orm import Session
 from shapely import wkt
+from app.jobs import env_canada
+from app.jobs import common_model_fetchers
 import app.utils.time as time_utils
-from app.schemas.stations import WeatherStation, Season
-from app.weather_models import env_canada, machine_learning
+from app.weather_models import machine_learning
 import app.db.crud.weather_models
-from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           ModelRunGridSubsetPrediction, PredictionModelGridSubset)
+from app.stations import StationSourceEnum
+from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
+                                          ModelRunGridSubsetPrediction, PredictionModelGridSubset)
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
-
+from app.tests.weather_models.test_models_common import (MockResponse, mock_get_processed_file_count, mock_get_stations)
 
 logger = logging.getLogger(__name__)
-
-
-class MockResponse:
-    """ Mocked out request.Response object """
-
-    def __init__(self, status_code, content=None):
-        self.status_code = status_code
-        self.content = content
-
-
-@pytest.fixture()
-def mock_get_stations(monkeypatch):
-    """ Mocked out listing of weather stations """
-    def mock_get(*args):
-        return [WeatherStation(
-            code=123, name='Test', lat=50.7, long=-120.425, ecodivision_name='Test',
-            core_season=Season(
-                start_month=5, start_day=1, end_month=9, end_day=21)), ]
-    monkeypatch.setattr(env_canada, 'get_stations_synchronously', mock_get)
-
-
-@pytest.fixture()
-def mock_get_processed_file_count(monkeypatch):
-    """ Mocked out get processed file count """
-    def mock_get_count(*args):
-        return 162
-    monkeypatch.setattr(env_canada, 'get_processed_file_count', mock_get_count)
 
 
 @pytest.fixture()
@@ -93,7 +68,7 @@ def mock_get_model_run_predictions_for_grid(monkeypatch):
         ]
         return result
     monkeypatch.setattr(
-        env_canada, 'get_model_run_predictions_for_grid', mock_get)
+        common_model_fetchers, 'get_model_run_predictions_for_grid', mock_get)
 
 
 @pytest.fixture()
@@ -136,10 +111,10 @@ def mock_database(monkeypatch):
     def mock_get_prediction_run(*args, **kwargs):
         return gdps_prediction_model_run
 
-    monkeypatch.setattr(env_canada, 'get_prediction_model_run_timestamp_records',
+    monkeypatch.setattr(common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_gdps_prediction_model_run_timestamp_records)
-    monkeypatch.setattr(env_canada, 'get_processed_file_record', mock_get_processed_file_record)
-    monkeypatch.setattr(env_canada, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
+    monkeypatch.setattr(common_model_fetchers, 'get_processed_file_record', mock_get_processed_file_record)
+    monkeypatch.setattr(common_model_fetchers, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
     monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
@@ -174,18 +149,28 @@ def test_get_gdps_download_urls():
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
+@pytest.fixture()
+def mock_get_processed_file_count(monkeypatch):
+    monkeypatch.setattr(app.db.crud.weather_models, 'get_processed_file_count', mock_get_processed_file_count)
+
+
+@pytest.fixture()
+def mock_get_stations_synchronously(monkeypatch):
+    monkeypatch.setattr(common_model_fetchers, 'get_stations_synchronously', mock_get_stations)
+
+
 @pytest.mark.usefixtures('mock_get_processed_file_record')
 def test_process_gdps(mock_download,
                       mock_database,
-                      mock_get_processed_file_count,
                       mock_get_model_run_predictions_for_grid,
                       mock_get_actuals_left_outer_join_with_predictions,
-                      mock_get_stations):
+                      mock_get_stations_synchronously,
+                      mock_get_processed_file_count):
     """ run main method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
     sys.argv = ["argv", "GDPS"]
-    assert env_canada.process_models() == 1
+    assert env_canada.process_models(StationSourceEnum.TEST) == 1
 
 
 def test_for_zero_day_bug(monkeypatch):

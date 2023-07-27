@@ -11,26 +11,29 @@ from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.db.crud.hfi_calc import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
 from app.db.models.forecasts import NoonForecast
+from app.schemas.morecast_v2 import StationDailyFromWF1
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.fba import FireCentre
 from app.schemas.stations import (WeatherStation,
                                   WeatherVariables)
-from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_mapper, parse_noon_forecast,
-                                             parse_station,
-                                             parse_hourly_actual,
-                                             station_list_mapper,
-                                             wfwx_station_list_mapper)
+from app.wildfire_one.schema_parsers import (WF1RecordTypeEnum, WFWXWeatherStation, fire_center_mapper, parse_noon_forecast,
+                                             parse_station, parse_hourly_actual, station_list_mapper,
+                                             unique_weather_stations_mapper, weather_indeterminate_list_mapper,
+                                             weather_station_group_mapper, wfwx_station_list_mapper,
+                                             dailies_list_mapper)
 from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
                                              BuildQueryStations,
                                              BuildQueryAllHourliesByRange,
                                              BuildQueryByStationCode,
-                                             BuildQueryDailiesByStationCode)
+                                             BuildQueryDailiesByStationCode,
+                                             BuildQueryStationGroups)
 from app.wildfire_one.util import is_station_valid
 from app.wildfire_one.wildfire_fetchers import (fetch_access_token,
                                                 fetch_detailed_geojson_stations,
                                                 fetch_paged_response_generator,
                                                 fetch_hourlies,
-                                                fetch_raw_dailies_for_all_stations)
+                                                fetch_raw_dailies_for_all_stations,
+                                                fetch_stations_by_group_id)
 
 
 logger = logging.getLogger(__name__)
@@ -262,6 +265,36 @@ async def get_hourly_actuals_all_stations(
     return hourly_actuals
 
 
+async def get_daily_actuals_for_stations_between_dates(
+        session: ClientSession,
+        header: dict,
+        start_datetime: datetime,
+        end_datetime: datetime,
+        stations: List[WeatherStation]):
+    """ Get the daily actuals for each station.
+    """
+
+    wfwx_station_ids = [station.wfwx_station_uuid for station in stations]
+
+    start_timestamp = math.floor(start_datetime.timestamp() * 1000)
+    end_timestamp = math.floor(end_datetime.timestamp() * 1000)
+
+    cache_expiry_seconds: Final = int(config.get('REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY', 300))
+    use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
+
+    # Iterate through "raw" hourlies data.
+    dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailiesByStationCode(
+        start_timestamp, end_timestamp, wfwx_station_ids), 'dailies',
+        use_cache=use_cache,
+        cache_expiry_seconds=cache_expiry_seconds)
+
+    dailies = []
+    async for daily in dailies_iterator:
+        dailies.append(daily)
+
+    return dailies
+
+
 async def get_wfwx_stations_from_station_codes(
         session: ClientSession,
         header,
@@ -305,16 +338,21 @@ async def get_raw_dailies_in_range_generator(session: ClientSession,
             end_timestamp, wfwx_station_ids), 'dailies', True, 60)
 
 
-async def get_dailies(
+async def get_dailies_generator(
         session: ClientSession,
         header: dict,
         wfwx_stations: List[WFWXWeatherStation],
-        time_of_interest: datetime) -> List[dict]:
+        time_of_interest: datetime,
+        end_time_of_interest: Optional[datetime]) -> List[dict]:
     """ Get the daily actuals/forecasts for the given station ids. """
     # build a list of wfwx station id's
     wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
 
-    timestamp_of_interset = math.floor(time_of_interest.timestamp() * 1000)
+    timestamp_of_interest = math.floor(time_of_interest.timestamp() * 1000)
+    if end_time_of_interest is not None:
+        end_timestamp_of_interest = math.floor(end_time_of_interest.timestamp() * 1000)
+    else:
+        end_timestamp_of_interest = timestamp_of_interest
 
     # for local dev, we can use redis to reduce load in prod, and generally just makes development faster.
     # for production, it's more tricky - we don't want to put too much load on the wf1 api, but we don't
@@ -323,7 +361,7 @@ async def get_dailies(
     use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
 
     dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailiesByStationCode(
-        timestamp_of_interset, timestamp_of_interset, wfwx_station_ids), 'dailies',
+        timestamp_of_interest, end_timestamp_of_interest, wfwx_station_ids), 'dailies',
         use_cache=use_cache,
         cache_expiry_seconds=cache_expiry_seconds)
 
@@ -334,3 +372,78 @@ async def get_fire_centers(session: ClientSession, header: dict,) -> List[FireCe
     """ Get the fire centers from WFWX. """
     wfwx_fire_centers = await get_station_data(session, header, mapper=fire_center_mapper)
     return list(wfwx_fire_centers.values())
+
+
+async def get_dailies_for_stations_and_date(session: ClientSession,
+                                            header: dict,
+                                            start_time_of_interest: datetime,
+                                            end_time_of_interest: datetime,
+                                            unique_station_codes: List[int],
+                                            mapper=dailies_list_mapper):
+    # get station information from the wfwx api
+    wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
+    # get the dailies for all the stations
+    raw_dailies = await get_dailies_generator(session, header, wfwx_stations, start_time_of_interest, end_time_of_interest)
+
+    yesterday_dailies = await mapper(raw_dailies, WF1RecordTypeEnum.ACTUAL)
+
+    return yesterday_dailies
+
+
+async def get_forecasts_for_stations_by_date_range(session: ClientSession,
+                                                   header: dict,
+                                                   start_time_of_interest: datetime,
+                                                   end_time_of_interest: datetime,
+                                                   unique_station_codes: List[int],
+                                                   mapper=dailies_list_mapper) -> List[StationDailyFromWF1]:
+    # get station information from the wfwx api
+    wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
+    # get the daily forecasts for all the stations in the date range
+    raw_dailies = await get_dailies_generator(session, header, wfwx_stations, start_time_of_interest, end_time_of_interest)
+
+    forecast_dailies = await mapper(raw_dailies, WF1RecordTypeEnum.FORECAST)
+
+    return forecast_dailies
+
+
+async def get_daily_determinates_for_stations_and_date(session: ClientSession,
+                                                       header: dict,
+                                                       start_time_of_interest: datetime,
+                                                       end_time_of_interest: datetime,
+                                                       unique_station_codes: List[int],
+                                                       mapper=weather_indeterminate_list_mapper):
+    # get station information from the wfwx api
+    wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
+    # get the dailies for all the stations
+    raw_dailies = await get_dailies_generator(session, header, wfwx_stations, start_time_of_interest, end_time_of_interest)
+
+    weather_determinates_actuals, weather_determinates_forecasts = await mapper(raw_dailies)
+
+    return weather_determinates_actuals, weather_determinates_forecasts
+
+
+async def get_station_groups(mapper=weather_station_group_mapper):
+    """ Get the station groups created by all users from Wild Fire One internal API. """
+    async with ClientSession() as session:
+        header = await get_auth_header(session)
+        all_station_groups = fetch_paged_response_generator(session,
+                                                            header,
+                                                            BuildQueryStationGroups(),
+                                                            'stationGroups',
+                                                            use_cache=False)
+        # Map list of stations into desired shape
+        mapped_station_groups = await mapper(all_station_groups)
+        logger.debug('total station groups: %d', len(mapped_station_groups))
+        return mapped_station_groups
+
+
+async def get_stations_by_group_ids(group_ids: List[str], mapper=unique_weather_stations_mapper):
+    """ Get all the stations in the specified group from the Wild Fire One internal API. """
+    stations_in_groups = []
+    async with ClientSession() as session:
+        headers = await get_auth_header(session)
+        for group_id in group_ids:
+            stations = await fetch_stations_by_group_id(session, headers, group_id)
+            stations_in_group = mapper(stations)
+            stations_in_groups.extend(stations_in_group)
+        return stations_in_groups

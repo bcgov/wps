@@ -9,7 +9,7 @@ from sqlalchemy.types import TypeDecorator
 logger = logging.getLogger(__name__)
 
 
-class TZTimeStamp(TypeDecorator):  # pylint: disable=abstract-method
+class TZTimeStamp(TypeDecorator):
     """ TimeStamp type that ensures that timezones are always specified.
     If the timezone isn't specified, you aren't guaranteed that you're going to get consistent times. """
     impl = TIMESTAMP(timezone=True)

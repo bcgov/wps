@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { PercentileHeader, PageTitle, Container, ErrorBoundary } from 'components'
+import { Container, GeneralHeader, ErrorBoundary } from 'components'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
 import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
@@ -13,6 +13,7 @@ import { TimeRangeSlider, yearWhenTheCalculationIsDone } from 'features/percenti
 import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 import { getStations, StationSource } from 'api/stationAPI'
 import { AppDispatch } from 'app/store'
+import { PERCENTILE_CALC_DOC_TITLE, PERCENTILE_CALC_NAME } from 'utils/constants'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
@@ -31,7 +32,7 @@ const PercentileCalculatorPage = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchWxStations(getStations, StationSource.local_storage))
+    dispatch(fetchWxStations(getStations, StationSource.unspecified))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -57,11 +58,14 @@ const PercentileCalculatorPage = () => {
 
   const shouldCalcBtnDisabled = stationCodes.length === 0
 
+  useEffect(() => {
+    document.title = PERCENTILE_CALC_DOC_TITLE
+  }, [])
+
   return (
     <main data-testid="percentile-calculator-page">
-      <PercentileHeader title="Predictive Services Unit" productName="Percentile Calculator" />
-      <PageTitle title="Percentile Calculator" />
-      <Container>
+      <GeneralHeader isBeta={false} spacing={1} title={PERCENTILE_CALC_NAME} productName={PERCENTILE_CALC_NAME} />
+      <Container sx={{ paddingTop: '0.5em' }}>
         <WxStationDropdown stationCodes={stationCodes} onChange={setStationCodes} />
 
         <TimeRangeSlider timeRange={timeRange} onYearRangeChange={setTimeRange} />

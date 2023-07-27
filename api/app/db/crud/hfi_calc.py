@@ -1,6 +1,7 @@
 """ CRUD operations relating to HFI Calculator
 """
-from typing import List, Optional
+from typing import List
+from sqlalchemy.engine import Row
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, insert, update
@@ -21,7 +22,7 @@ def get_fire_weather_stations(session: Session) -> CursorResult:
         .filter(PlanningWeatherStation.is_deleted == False)
 
 
-def get_all_stations(session: Session) -> CursorResult:
+def get_all_stations(session: Session) -> List[Row]:
     """ Get all known planning weather stations """
     return session.query(PlanningWeatherStation.station_code).all()
 
@@ -33,7 +34,10 @@ def get_fire_centre_station_codes() -> List[int]:
     with get_read_session_scope() as session:
         station_query = get_all_stations(session)
         for station in station_query:
-            station_codes.append(int(station['station_code']))
+            if isinstance(station, dict):
+                station_codes.append(int(station['station_code']))
+            else:
+                station_codes.append(int(station._mapping['station_code']))
 
     return station_codes
 

@@ -1,6 +1,5 @@
 """ Code relating to processing HFI data related to elevation
 """
-# pylint: skip-file
 import logging
 from datetime import date, datetime
 from time import perf_counter

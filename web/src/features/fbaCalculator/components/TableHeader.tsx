@@ -1,5 +1,11 @@
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import React, { useState, MouseEvent } from 'react'
+
+const PREFIX = 'TableHeader'
+
+const classes = {
+  header: `${PREFIX}-header`
+}
 
 interface TableHeaderProps {
   text: string
@@ -12,8 +18,9 @@ const TableHeader = (props: TableHeaderProps) => {
   if (!props.largerMaxWidth) {
     maxWidth = '80px'
   }
-  const useStyles = makeStyles({
-    header: {
+
+  const Root = styled('div')({
+    [`&.${classes.header}`]: {
       overflow: 'hidden',
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
@@ -80,9 +87,8 @@ const TableHeader = (props: TableHeaderProps) => {
     }
   }
 
-  const classes = useStyles()
   return (
-    <div
+    <Root
       className={classes.header}
       onMouseOver={hover}
       {...(props.testId ? { 'data-testid': `header-${props.testId}` } : {})}
@@ -91,7 +97,7 @@ const TableHeader = (props: TableHeaderProps) => {
       <span style={{ left: left }} {...(props.testId ? { 'data-testid': `tooltip-${props.testId}` } : {})}>
         {props.text}
       </span>
-    </div>
+    </Root>
   )
 }
 

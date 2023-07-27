@@ -9,6 +9,7 @@ import tempfile
 import numpy as np
 from osgeo import gdal
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import text
 from app import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType
@@ -52,7 +53,7 @@ async def process_elevation(source_path: str, run_type: RunType, run_datetime: d
     perf_end = perf_counter()
     delta = perf_end - perf_start
     logger.info('%f delta count before and after processing elevation stats', delta)
-    global DEM_GDAL_SOURCE  # pylint: disable=global-statement
+    global DEM_GDAL_SOURCE
     DEM_GDAL_SOURCE = None
 
 
@@ -67,7 +68,7 @@ async def prepare_dem():
         mem_path = '/vsimem/dem.tif'
         data = await dem['Body'].read()
         gdal.FileFromMemBuffer(mem_path, data)
-        global DEM_GDAL_SOURCE  # pylint: disable=global-statement
+        global DEM_GDAL_SOURCE
         DEM_GDAL_SOURCE = gdal.Open(mem_path, gdal.GA_ReadOnly)
         gdal.Unlink(mem_path)
 
@@ -184,7 +185,7 @@ async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, ru
     :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
     """
     async with get_async_write_session_scope() as session:
-        stmt = 'SELECT id, source_identifier FROM advisory_shapes;'
+        stmt = text('SELECT id, source_identifier FROM advisory_shapes;')
         result = await session.execute(stmt)
         rows = result.all()
         for row in rows:

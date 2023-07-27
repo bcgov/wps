@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
@@ -24,36 +24,50 @@ import {
   getCellClassNameAndTestId
 } from 'utils/table'
 
-const useStyles = makeStyles({
-  display: {
+const PREFIX = 'SortableTableByDatetime'
+
+const classes = {
+  display: `${PREFIX}-display`,
+  paper: `${PREFIX}-paper`,
+  tableContainer: `${PREFIX}-tableContainer`,
+  maxTemperature: `${PREFIX}-maxTemperature`,
+  minTemperature: `${PREFIX}-minTemperature`,
+  minRH: `${PREFIX}-minRH`,
+  maxPrecipitation: `${PREFIX}-maxPrecipitation`,
+  maxWindSpeed: `${PREFIX}-maxWindSpeed`,
+  directionOfMaxWindSpeed: `${PREFIX}-directionOfMaxWindSpeed`
+}
+
+const Root = styled('div')({
+  [`&.${classes.display}`]: {
     paddingBottom: 12,
 
     '& .MuiTableCell-sizeSmall': {
       padding: '3px 6px 3px 2px'
     }
   },
-  paper: {
+  [`& .${classes.paper}`]: {
     width: '100%'
   },
-  tableContainer: {
+  [`& .${classes.tableContainer}`]: {
     maxHeight: 280
   },
-  maxTemperature: {
+  [`& .${classes.maxTemperature}`]: {
     background: '#ffb3b3'
   },
-  minTemperature: {
+  [`& .${classes.minTemperature}`]: {
     background: '#84b8e7'
   },
-  minRH: {
+  [`& .${classes.minRH}`]: {
     background: '#f2994a'
   },
-  maxPrecipitation: {
+  [`& .${classes.maxPrecipitation}`]: {
     fontWeight: 'bold',
     borderColor: 'rgba(0, 0, 0, 0.87)',
     borderStyle: 'solid',
     borderWidth: '1px'
   },
-  maxWindSpeed: {
+  [`& .${classes.maxWindSpeed}`]: {
     fontWeight: 'bold',
     borderColor: 'rgba(0, 0, 0, 0.87)',
     borderStyle: 'solid',
@@ -62,7 +76,7 @@ const useStyles = makeStyles({
     borderRightWidth: '1px',
     borderLeftWidth: '0px'
   },
-  directionOfMaxWindSpeed: {
+  [`& .${classes.directionOfMaxWindSpeed}`]: {
     fontWeight: 'bold',
     borderColor: 'rgba(0, 0, 0, 0.87)',
     borderStyle: 'solid',
@@ -107,7 +121,6 @@ interface Props<R> {
 }
 
 function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
-  const classes = useStyles()
   const [order, setOrder] = useState<Order>('desc')
 
   if (!props.rows || props.rows.length === 0) {
@@ -123,7 +136,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const rowIds: RowIdsOfMinMaxValues = getMinMaxValuesRowIds(rowsSortedByDatetime, minMaxValuesToHighlight)
 
   return (
-    <div className={classes.display} data-testid={props.testId}>
+    <Root className={classes.display} data-testid={props.testId}>
       <Accordion defaultExpanded>
         <AccordionSummary data-testid={`${props.testId}-accordion`} expandIcon={<ExpandMoreIcon />}>
           <Typography component="div" variant="subtitle2">
@@ -188,7 +201,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
           </Paper>
         </AccordionDetails>
       </Accordion>
-    </div>
+    </Root>
   )
 }
 

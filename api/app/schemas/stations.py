@@ -4,6 +4,18 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
+class FireZone(BaseModel):
+    id: int
+    display_label: str
+    fire_centre: str
+
+
+class StationFireCentre(BaseModel):
+    """ The fire centre associated with a station """
+    id: int
+    display_label: str
+
+
 class Season(BaseModel):
     """ A fire season consists of a start date (month and day) and an end date (month and day). """
     start_month: int
@@ -16,20 +28,20 @@ class WeatherStationProperties(BaseModel):
     """ Non-geometrical weather station properties """
     code: int
     name: str
-    ecodivision_name: str = None
-    core_season: Season = None
+    ecodivision_name: Optional[str] = None
+    core_season: Optional[Season] = None
 
 
 class WeatherVariables(BaseModel):
     """ Weather variables """
-    temperature: float = None
-    relative_humidity: float = None
+    temperature: Optional[float] = None
+    relative_humidity: Optional[float] = None
 
 
 class DetailedWeatherStationProperties(WeatherStationProperties):
     """ Detailed, non-geometrical weather station properties """
-    observations: WeatherVariables = None
-    forecasts: WeatherVariables = None
+    observations: Optional[WeatherVariables] = None
+    forecasts: Optional[WeatherVariables] = None
 
 
 class WeatherStationGeometry(BaseModel):
@@ -59,8 +71,8 @@ class WeatherStation(BaseModel):
     name: str
     lat: float
     long: float
-    ecodivision_name: str = None
-    core_season: Season = None
+    ecodivision_name: Optional[str] = None
+    core_season: Optional[Season] = None
     elevation: Optional[int] = None
     wfwx_station_uuid: Optional[str] = None
 
@@ -80,3 +92,37 @@ class DetailedWeatherStationsResponse(BaseModel):
 class StationCodeList(BaseModel):
     """ List of station codes. """
     stations: List[int]
+
+
+class WeatherStationGroupMember(BaseModel):
+    """ Description of a station in a group"""
+    id: str
+    display_label: str
+    fire_centre: StationFireCentre
+    fire_zone: Optional[FireZone] = None
+    station_code: int
+    station_status: str
+
+
+class WeatherStationGroupMembersResponse(BaseModel):
+    """ Response to a request for the stations in a group """
+    stations: List[WeatherStationGroupMember]
+
+
+class WeatherStationGroup(BaseModel):
+    """ A weather station group from WF1"""
+    display_label: str
+    group_description: Optional[str] = None
+    group_owner_user_guid: str
+    group_owner_user_id: str
+    id: str
+
+
+class WeatherStationGroupsResponse(BaseModel):
+    """ Response to a request for all WFWX groups"""
+    groups: List[WeatherStationGroup]
+
+
+class WeatherStationGroupsMemberRequest(BaseModel):
+    """ Request for all station members of all groups by group ids"""
+    group_ids: List[str]

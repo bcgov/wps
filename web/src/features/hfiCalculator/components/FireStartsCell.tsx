@@ -1,6 +1,6 @@
-import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { fireTableStyles, BACKGROUND_COLOR } from 'app/theme'
+import { styled } from '@mui/material'
+import { BACKGROUND_COLOR } from 'app/theme'
+import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import { FireStartRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import React from 'react'
 
@@ -10,20 +10,15 @@ export interface FireStartsCellProps {
   areaName: string
 }
 
-const useStyles = makeStyles({
-  ...fireTableStyles,
-  fireStarts: {
-    ...fireTableStyles.calculatedPlanningCell,
-    ...BACKGROUND_COLOR
-  }
+const StyledFireStartsCell = styled(CalculatedPlanningCell)({
+  ...BACKGROUND_COLOR
 })
 
 const FireStartsCell = (props: FireStartsCellProps) => {
-  const classes = useStyles()
   return (
-    <TableCell className={classes.fireStarts} data-testid={`fire-starts-${props.areaName}`}>
+    <StyledFireStartsCell data-testid={`fire-starts-${props.areaName}`}>
       {props.fireStarts ? props.fireStarts.label : ''}
-    </TableCell>
+    </StyledFireStartsCell>
   )
 }
 
