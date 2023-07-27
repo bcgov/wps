@@ -1,12 +1,17 @@
 import * as React from 'react'
 import { addMonths, isSameDay, isWithinInterval, isAfter, isBefore, addYears } from 'date-fns'
-import { DateRange, NavigationAction, DefinedRange } from './types'
+import { NavigationAction, DefinedRange } from './types'
 import { getValidatedMonths, parseOptionalDate } from './utils'
 
 import Menu from './Menu'
 import { DateTime } from 'luxon'
 
 type Marker = symbol
+
+interface DateRange {
+  startDate?: Date
+  endDate?: Date
+}
 
 export const MARKERS: { [key: string]: Marker } = {
   FIRST_MONTH: Symbol('firstMonth'),

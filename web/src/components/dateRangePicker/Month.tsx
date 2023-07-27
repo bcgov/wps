@@ -10,11 +10,16 @@ import {
   inDateRange,
   isRangeSameDay
 } from 'components/dateRangePicker/utils'
-import { NavigationAction, DateRange } from 'components/dateRangePicker/types'
+import { NavigationAction } from 'components/dateRangePicker/types'
 import Header from 'components/dateRangePicker/Header'
 import Day from 'components/dateRangePicker/Day'
 
 const PREFIX = 'Month'
+
+interface DateRange {
+  startDate?: Date
+  endDate?: Date
+}
 
 const classes = {
   root: `${PREFIX}-root`,

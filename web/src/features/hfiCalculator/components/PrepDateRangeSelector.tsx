@@ -15,7 +15,12 @@ import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
-import { DateRange } from 'components/dateRangePicker/types'
+
+interface DateRange {
+  startDate?: Date
+  endDate?: Date
+}
+
 const PREFIX = 'PrepDateRangeSelector'
 
 const DateRangePickerTextField = styled(TextField, {

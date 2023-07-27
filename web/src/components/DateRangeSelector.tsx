@@ -1,10 +1,14 @@
 import { Button, Dialog, IconButton, InputAdornment, TextField } from '@mui/material'
 import * as materialIcons from '@mui/icons-material'
 import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
-import { DateRange } from 'components/dateRangePicker/types'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
+
+interface DateRange {
+  startDate?: Date
+  endDate?: Date
+}
 
 export interface DateRangeSelectorProps {
   dateRange?: DateRange

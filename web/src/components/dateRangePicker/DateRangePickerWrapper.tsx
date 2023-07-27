@@ -1,8 +1,12 @@
 import * as React from 'react'
 
-import { DateRange } from './types'
 import { DateTime } from 'luxon'
 import DateRangePicker from 'components/dateRangePicker/DateRangePicker'
+
+interface DateRange {
+  startDate?: Date
+  endDate?: Date
+}
 
 export interface DateRangePickerWrapperProps {
   open: boolean

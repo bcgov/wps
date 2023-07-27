@@ -30,7 +30,6 @@ import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHe
 import { isNull, isUndefined } from 'lodash'
 import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
-import { DateRange } from 'components/dateRangePicker/types'
 import { AppDispatch } from 'app/store'
 import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
 import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin/ManageStationsButton'
@@ -39,6 +38,11 @@ import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHead
 import { HFI_CALC_DOC_TITLE, HFI_CALC_NAME } from 'utils/constants'
 import { theme } from 'app/theme'
 import { StyledFormControl } from 'components/StyledFormControl'
+
+interface DateRange {
+  startDate?: Date
+  endDate?: Date
+}
 
 export const HFIPageContainer = styled(Container)({
   display: 'flex',
