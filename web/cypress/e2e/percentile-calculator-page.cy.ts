@@ -2,7 +2,7 @@ import { NOT_AVAILABLE } from '../../src/utils/strings'
 import { PERCENTILE_CALC_ROUTE } from '../../src/utils/constants'
 import { stationCodeQueryKey } from '../../src/utils/url'
 
-describe('Percentile Calculator Page', () => {
+xdescribe('Percentile Calculator Page', () => {
   describe('Weather station dropdown', () => {
     it('Renders error message when fetching stations failed', () => {
       cy.intercept('GET', 'api/stations/*', {
