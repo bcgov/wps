@@ -7,36 +7,24 @@ import { ElevationInfoByThreshold, FireZone, FireZoneArea, FireZoneThresholdFuel
 import ElevationInfoViz from 'features/fba/components/viz/ElevationInfoViz'
 import FuelTypesBreakdown from 'features/fba/components/viz/FuelTypesBreakdown'
 
-const PREFIX = 'ZoneSummaryPanel'
+const SidePanelGrid = styled(Grid)({
+  minWidth: 400,
+  overflowY: 'auto',
+  maxHeight: '100%',
+  padding: 0
+})
 
-const classes = {
-  wrapper: `${PREFIX}-wrapper`,
-  header: `${PREFIX}-header`,
-  zoneName: `${PREFIX}-zoneName`,
-  centreName: `${PREFIX}-centreName`
-}
+const ZoneNameTyp = styled(Typography)({
+  fontSize: '2rem',
+  textAlign: 'center',
+  variant: 'h2'
+})
 
-const StyledGrid = styled(Grid)({
-  [`& .${classes.wrapper}`]: {
-    minWidth: 400,
-    overflowY: 'auto',
-    maxHeight: '100vh',
-    padding: 0
-  },
-  [`& .${classes.header}`]: {
-    margin: 10
-  },
-  [`& .${classes.zoneName}`]: {
-    fontSize: '2rem',
-    textAlign: 'center',
-    variant: 'h2'
-  },
-  [`& .${classes.centreName}`]: {
-    fontSize: '1rem',
-    textAlign: 'center',
-    variant: 'h6',
-    paddingBottom: '2rem'
-  }
+const CentreNameTyp = styled(Typography)({
+  fontSize: '1rem',
+  textAlign: 'center',
+  variant: 'h6',
+  paddingBottom: '2rem'
 })
 
 interface Props {
@@ -53,11 +41,11 @@ const ZoneSummaryPanel = React.forwardRef((props: Props, ref: React.ForwardedRef
     return <div></div>
   } else {
     return (
-      <StyledGrid ref={ref} className={classes.wrapper} sx={{ overflowY: 'auto', maxHeight: '100%' }}>
+      <SidePanelGrid ref={ref}>
         <Grid container alignItems={'center'} direction={'column'}>
           <Grid item>
-            <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
-            <Typography className={classes.centreName}>{props.selectedFireZone.mof_fire_centre_name}</Typography>
+            <ZoneNameTyp>{props.selectedFireZone.mof_fire_zone_name}</ZoneNameTyp>
+            <CentreNameTyp>{props.selectedFireZone.mof_fire_centre_name}</CentreNameTyp>
           </Grid>
           <Grid item>
             <CombustibleAreaViz
@@ -73,7 +61,7 @@ const ZoneSummaryPanel = React.forwardRef((props: Props, ref: React.ForwardedRef
             <ElevationInfoViz selectedFireZone={props.selectedFireZone} hfiElevationInfo={props.hfiElevationInfo} />
           </Grid>
         </Grid>
-      </StyledGrid>
+      </SidePanelGrid>
     )
   }
 })
