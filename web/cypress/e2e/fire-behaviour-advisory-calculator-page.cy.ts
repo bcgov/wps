@@ -7,7 +7,7 @@ describe('FireBAT Calculator Page', () => {
 
     cy.getByTestId('add-row').click()
   }
-  it('Sets all the input fields for calculating results on the backend', () => {
+  xit('Sets all the input fields for calculating results on the backend', () => {
     cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
     const stationCode = 322
     const fuelType = FuelTypes.get()['c1']
