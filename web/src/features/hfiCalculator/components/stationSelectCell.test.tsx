@@ -45,7 +45,7 @@ describe('StationSelectCell', () => {
   })
 
   it('should be disabled when station is selected and not change checked value when clicked', async () => {
-    const toggleSelectedStationMock = jest.fn()
+    const toggleSelectedStationMock = vi.fn()
     render(
       <Table>
         <TableBody>

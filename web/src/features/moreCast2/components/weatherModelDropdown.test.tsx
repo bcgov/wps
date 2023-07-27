@@ -6,7 +6,7 @@ import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDrop
 
 describe('WeatherModelDropdown', () => {
   it('should call selected model handler when new model selected', async () => {
-    const handleSelectedModelTypeMock = jest.fn()
+    const handleSelectedModelTypeMock = vi.fn()
 
     const { getByTestId } = render(
       <WeatherModelDropdown
