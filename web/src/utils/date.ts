@@ -1,13 +1,9 @@
-import { DateTime, Interval } from 'luxon'
+import { DateTime } from 'luxon'
 
 import { PST_ISO_TIMEZONE, PST_UTC_OFFSET } from './constants'
+import { isNull } from 'lodash'
 
 const UTC_NOON_HOUR = Math.abs(PST_UTC_OFFSET) + 12
-
-export const toISO = (dtDateTime: DateTime): string => {
-  // Use for consistent ISO formatting.
-  return dtDateTime.toISO({ suppressMilliseconds: true, includeOffset: true })
-}
 
 export const isNoonInPST = (dt: string): boolean => DateTime.fromISO(dt).setZone('UTC').hour === UTC_NOON_HOUR
 
@@ -47,33 +43,15 @@ export const formatDateInUTC00Suffix = (dtISO: string): string => {
   dtJS.setMinutes(0)
   dtJS.setSeconds(0)
   dtJS.setMilliseconds(0)
-  const isoNoon = toISO(DateTime.fromJSDate(dtJS).setZone('UTC'))
-  return isoNoon.substring(0, isoNoon.length - 1) + '+00:00'
+  const isoNoon = DateTime.fromJSDate(dtJS).setZone('UTC').toISO({ suppressMilliseconds: true, includeOffset: true })
+  return isoNoon?.substring(0, isoNoon.length - 1) + '+00:00'
 }
 
 export const pstFormatter = (fromDate: DateTime): string => {
-  return DateTime.fromObject(
+  const pstFormattedDate = DateTime.fromObject(
     { year: fromDate.year, month: fromDate.month, day: fromDate.day },
     { zone: `UTC${PST_UTC_OFFSET}` }
   ).toISO()
-}
 
-export const getDaysBetween = (startDate: string, endDate: string): DateTime[] => {
-  const start = DateTime.fromISO(startDate)
-  const end = DateTime.fromISO(endDate)
-  const interval = Interval.fromDateTimes(start, end)
-
-  if (interval.length('days') === 0) {
-    return [start]
-  }
-
-  const dates = []
-
-  let cursor = interval.start.startOf('day')
-  while (cursor < interval.end) {
-    dates.push(cursor)
-    cursor = cursor.plus({ days: 1 })
-  }
-
-  return dates
+  return !isNull(pstFormattedDate) ? pstFormattedDate : ''
 }

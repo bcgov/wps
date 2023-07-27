@@ -38,7 +38,6 @@ def calculate_c_haines_index(t700: float, t850: float, d850: float) -> float:
     float
         The Continous Haines Index.
     """
-    # pylint: disable=invalid-name
 
     # NOTE: Variables names chosen to conform with those from original source material
     # (https://www.cawcr.gov.au/technical-reports/CTR_020.pdf) in section 3.2.
@@ -102,7 +101,7 @@ class BoundingBoxChecker():
         self.transform: Affine = transform
         self.raster_to_geo_transformer = raster_to_geo_transformer
 
-    @lru_cache(maxsize=None)  # pylint: disable=cache-max-size-none
+    @lru_cache(maxsize=None)
     def is_inside(self, raster_x, raster_y):
         """ Check if raster coordinate is inside the geographic bounding box """
         # Calculate lat/long and check bounds.

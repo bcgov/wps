@@ -1,12 +1,18 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { Button } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+const PREFIX = 'PercentileActionButtons'
 
-const useStyles = makeStyles({
-  root: {
+const classes = {
+  root: `${PREFIX}-root`,
+  calculateBtn: `${PREFIX}-calculateBtn`
+}
+
+const Root = styled('div')({
+  [`&.${classes.root}`]: {
     marginTop: 15
   },
-  calculateBtn: {
+  [`& .${classes.calculateBtn}`]: {
     marginLeft: 15
   }
 })
@@ -22,10 +28,8 @@ export const PercentileActionButtons: React.FunctionComponent<Props> = ({
   onCalculateClick,
   onResetClick
 }: Props) => {
-  const classes = useStyles()
-
   return (
-    <div className={classes.root}>
+    <Root className={classes.root}>
       <Button
         variant="contained"
         onClick={onResetClick}
@@ -46,6 +50,6 @@ export const PercentileActionButtons: React.FunctionComponent<Props> = ({
       >
         Calculate
       </Button>
-    </div>
+    </Root>
   )
 }

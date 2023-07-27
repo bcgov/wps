@@ -14,7 +14,7 @@ from app.fire_behaviour import cffdrs
 from app.utils.time import get_hour_20_from_date
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import (get_auth_header,
-                                       get_dailies,
+                                       get_dailies_generator,
                                        get_wfwx_stations_from_station_codes)
 from app.fire_behaviour.prediction import build_hourly_rh_dict
 
@@ -27,7 +27,7 @@ router = APIRouter(
 logger = logging.getLogger(__name__)
 
 
-def prepare_response(  # pylint: disable=too-many-locals
+def prepare_response(
         requested_station: StationRequest,
         wfwx_station: WFWXWeatherStation,
         fba_station: FBACalculatorWeatherStation,
@@ -46,7 +46,7 @@ def prepare_response(  # pylint: disable=too-many-locals
         'windSpeed', None)
     status = fba_station.status
     temp = raw_daily.get('temperature', None)
-    rh = raw_daily.get('relativeHumidity', None)  # pylint: disable=invalid-name
+    rh = raw_daily.get('relativeHumidity', None)
     wind_direction = raw_daily.get('windDirection', None)
     precipitation = raw_daily.get('precipitation', None)
     drought_code = raw_daily.get('droughtCode', None)
@@ -96,7 +96,6 @@ async def process_request(
 ) -> StationResponse:
     """ Process a valid request """
 
-    # pylint: disable=too-many-locals
     raw_daily = dailies_by_station_id[wfwx_station.wfwx_id]
     raw_observations = hourly_observations_by_station_id[wfwx_station.code]
     yesterday = yesterday_dailies_by_station_id[wfwx_station.wfwx_id]
@@ -188,7 +187,7 @@ def process_request_without_observation(requested_station: StationRequest,
 
 
 @router.post('/stations', response_model=StationsListResponse)
-async def get_stations_data(  # pylint:disable=too-many-locals
+async def get_stations_data(
         request: StationListRequest,
         _=Depends(authentication_required)
 ):
@@ -209,13 +208,13 @@ async def get_stations_data(  # pylint:disable=too-many-locals
             # get station information from the wfwx api
             wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
             # get the dailies for all the stations
-            dailies = await get_dailies(session, header, wfwx_stations, time_of_interest)
+            dailies = await get_dailies_generator(session, header, wfwx_stations, time_of_interest, time_of_interest)
             # turn it into a dictionary so we can easily get at data using a station id
             dailies_by_station_id = {raw_daily.get('stationId'): raw_daily async for raw_daily in dailies}
             # must retrieve the previous day's observed/forecasted FFMC value from WFWX
             prev_day = time_of_interest - timedelta(days=1)
             # get the "daily" data for the station for the previous day
-            yesterday_response = await get_dailies(session, header, wfwx_stations, prev_day)
+            yesterday_response = await get_dailies_generator(session, header, wfwx_stations, prev_day, prev_day)
             # turn it into a dictionary so we can easily get at data
             yesterday_dailies_by_station_id = {raw_daily.get('stationId'):
                                                raw_daily async for raw_daily in yesterday_response}
@@ -248,10 +247,10 @@ async def get_stations_data(  # pylint:disable=too-many-locals
                         wfwx_station,
                         requested_station,
                         time_of_interest)
-                except Exception as exception:  # pylint: disable=broad-except
+                except Exception as exception:
                     # If something goes wrong processing the request, then we return this station
                     # with an error response.
-                    logger.error('request object: %s', request.__str__())  # pylint: disable=unnecessary-dunder-call
+                    logger.error('request object: %s', request.__str__())
                     logger.critical(exception, exc_info=True)
                     station_response = process_request_without_observation(
                         requested_station, wfwx_station, request.date, 'ERROR')
@@ -266,6 +265,6 @@ async def get_stations_data(  # pylint:disable=too-many-locals
 
         return StationsListResponse(date=request.date, stations=stations_response)
     except Exception as exception:
-        logger.error('request object: %s', request.__str__())  # pylint: disable=unnecessary-dunder-call
+        logger.error('request object: %s', request.__str__())
         logger.critical(exception, exc_info=True)
         raise

@@ -39,11 +39,14 @@ PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_tileserv.sh prod ${
 echo Provision NATS
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_nats.sh prod ${RUN_TYPE}
 echo Deploy API
-MODULE_NAME=api GUNICORN_WORKERS=8 CPU_REQUEST=100m CPU_LIMIT=500m MEMORY_REQUEST=3Gi MEMORY_LIMIT=6Gi REPLICAS=3 PROJ_TARGET=${PROJ_TARGET} VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca bash $(dirname ${0})/oc_deploy.sh prod ${RUN_TYPE}
+MODULE_NAME=api GUNICORN_WORKERS=8 CPU_REQUEST=100m CPU_LIMIT=500m MEMORY_REQUEST=3Gi MEMORY_LIMIT=6Gi REPLICAS=3 PROJ_TARGET=${PROJ_TARGET} VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca USE_WFWX="True" bash $(dirname ${0})/oc_deploy.sh prod ${RUN_TYPE}
 echo Env Canada Subscriber
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_gdps_cronjob.sh prod ${RUN_TYPE}
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_hrdps_cronjob.sh prod ${RUN_TYPE} 
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_rdps_cronjob.sh prod ${RUN_TYPE}
+echo NOAA Subscriber
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_gfs_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_nam_cronjob.sh prod ${RUN_TYPE}
 echo C-Haines
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_c_haines_cronjob.sh prod ${RUN_TYPE}
 echo BC FireWeather cronjobs
@@ -53,4 +56,4 @@ PROJ_TARGET=${PROJ_TARGET} SCHEDULE="15 * * * *" bash $(dirname ${0})/oc_provisi
 echo Configure backups
 PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=1000m CPU_LIMIT=2000m bash $(dirname ${0})/oc_provision_backup_s3_postgres_cronjob.sh prod ${RUN_TYPE}
 echo Configure
-PROJ_TARGET=${PROJ_TARGET} CERTBOT_STAGING=false DRYRUN=false DEBUG=true bash $(dirname ${0})/oc_provision_certbot_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} CERTBOT_STAGING=false DRYRUN=false bash $(dirname ${0})/oc_provision_certbot_cronjob.sh

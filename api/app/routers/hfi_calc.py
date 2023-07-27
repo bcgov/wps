@@ -7,14 +7,12 @@ from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, HTTPException, Response, Depends, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from pydantic.error_wrappers import ValidationError
 from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
                                        get_cached_hydrated_fire_centres,
                                        put_cached_hydrated_fire_centres)
 from app.hfi.hfi_admin import get_unique_planning_area_ids, update_stations
-from app.hfi.hfi_request import update_result_request
 from app.utils.time import get_pst_now, get_utc_now
-from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
+from app.hfi.hfi_calc import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
 from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
@@ -39,7 +37,6 @@ from app.schemas.shared import (FuelType)
 from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
-                                  get_planning_weather_stations,
                                   get_latest_hfi_ready_records, get_stations_for_affected_planning_areas,
                                   get_stations_for_removal,
                                   store_hfi_request,
@@ -70,7 +67,6 @@ def get_prepared_request(
 
     TODO: give this function a better name.
     """
-    # pylint: disable=too-many-locals
     fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
     if date_range:
         stored_request = get_most_recent_updated_hfi_request(session,
@@ -80,17 +76,18 @@ def get_prepared_request(
     else:
         # No date range specified!
         stored_request = get_most_recent_updated_hfi_request_for_current_date(session, fire_centre_id)
-    request_loaded = False
-    if stored_request:
-        try:
-            latest_stations = get_planning_weather_stations(session, fire_centre_id)
-            result_request = update_result_request(
-                HFIResultRequest.parse_obj(json.loads(stored_request.request)),
-                latest_stations)
-            request_loaded = True
-        except ValidationError as validation_error:
-            # This can happen when we change the schema! It's rare - but it happens.
-            logger.error(validation_error)
+    request_loaded = True if stored_request else False
+
+    if request_loaded:
+        # There is a stored request - need to parse it from HFIRequest (database model)
+        # into HFIResultRequest
+        date_range = DateRange(start_date=stored_request.prep_start_day, end_date=stored_request.prep_end_day)
+        request = json.loads(stored_request.request)
+        result_request = HFIResultRequest(
+            date_range=date_range,
+            selected_fire_center_id=stored_request.fire_centre_id,
+            planning_area_station_info=request['planning_area_station_info'],
+            planning_area_fire_starts=request['planning_area_fire_starts'])
 
     if not request_loaded:
         # No stored request, so we need to create one.
@@ -467,7 +464,7 @@ async def admin_update_stations(request: HFIAdminStationUpdateRequest,
         except IntegrityError as exception:
             logger.info(exception, exc_info=exception)
             db_session.rollback()
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,  # pylint: disable=raise-missing-from
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="Station already exists in planning area")
 
 
@@ -483,12 +480,14 @@ async def get_pdf(
     logger.info('/hfi-calc/fire_centre/%s/%s/%s/pdf', fire_centre_id, start_date, end_date)
 
     with get_read_session_scope() as session:
-        (request,
-         _,
-         fire_centre_fire_start_ranges) = get_prepared_request(session,
-                                                               fire_centre_id,
-                                                               DateRange(start_date=start_date,
-                                                                         end_date=end_date))
+        if start_date and end_date:
+            date_range = DateRange(start_date=start_date, end_date=end_date)
+        else:
+            date_range = None
+
+        request, _, fire_centre_fire_start_ranges = get_prepared_request(session,
+                                                                         fire_centre_id,
+                                                                         date_range)
 
         # Get the response.
         request_response = await calculate_and_create_response(

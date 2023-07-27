@@ -16,7 +16,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 async def permissive_oauth2_scheme(request: Request):
     """ Returns parsed auth token if authorized, None otherwise. """
     try:
-        return await oauth2_scheme.__call__(request)  # pylint: disable=unnecessary-dunder-call
+        return await oauth2_scheme.__call__(request)
     except HTTPException as exception:
         logger.error('Could not validate the credential %s', exception)
         return None
@@ -92,3 +92,8 @@ async def auth_with_set_fuel_type_role_required(token=Depends(authentication_req
 async def auth_with_set_ready_state_required(token=Depends(authentication_required)):
     """ Only return requests that have set ready state permission """
     return await check_token_for_role('hfi_set_ready_state', token)
+
+
+async def auth_with_forecaster_role_required(token=Depends(authentication_required)):
+    """ Only return requests that have forecaster permission """
+    return await check_token_for_role('morecast2_write_forecast', token)

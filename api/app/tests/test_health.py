@@ -25,7 +25,6 @@ def test_health_ok():
 def test_health_fail(monkeypatch):
     """ Test the health endpoint, given that pods aren't up """
 
-    # pylint: disable=unused-argument
     def mock_requests_fail_condition(*args, **kwargs):
         """ Mock request response """
         fixture_path = ('fixtures/console.pathfinder.gov.bc.ca:8443/apis/'

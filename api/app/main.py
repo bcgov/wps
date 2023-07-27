@@ -15,8 +15,8 @@ from app import config
 from app import health
 from app import hourlies
 from app.rocketchat_notifications import send_rocketchat_notification
-from app.routers import (fba, forecasts, fwi_calc, weather_models, c_haines, stations, hfi_calc,
-                         fba_calc, sfms)
+from app.routers import (fba, forecasts, weather_models, c_haines, stations, hfi_calc,
+                         fba_calc, sfms, morecast_v2)
 from app.fire_behaviour.cffdrs import CFFDRS
 
 
@@ -108,8 +108,8 @@ api.include_router(stations.router, tags=["Stations"])
 api.include_router(hfi_calc.router, tags=["HFI"])
 api.include_router(fba_calc.router, tags=["FBA Calc"])
 api.include_router(fba.router, tags=["Auto Spatial Advisory"])
-api.include_router(fwi_calc.router, tags=["FWI"])
 api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
+api.include_router(morecast_v2.router, tags=["Morecast v2"])
 
 
 @api.get('/ready')
@@ -130,7 +130,7 @@ async def get_health():
 
         # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
         cffdrs_start = perf_counter()
-        CFFDRS.instance()  # pylint: disable=no-member
+        CFFDRS.instance()
         cffdrs_end = perf_counter()
         delta = cffdrs_end - cffdrs_start
         # Any delta below 100 milliseconds is just noise in the logs.

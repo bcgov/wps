@@ -69,7 +69,7 @@ def get_surrounding_grid(grib_file, raster_coordinate):
     """ get grid surrounding given coordinate """
     # Get the band with data.
     raster_band = grib_file['dataset'].GetRasterBand(1)
-    x, y = raster_coordinate  # pylint: disable=invalid-name
+    x, y = raster_coordinate
     # Get the surrounding grid.
     surrounding_grid = process_grib.get_surrounding_grid(raster_band, x, y)
     grib_file['points'] = surrounding_grid[0]

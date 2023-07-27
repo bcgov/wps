@@ -31,7 +31,6 @@ class MockJWTDecode:
 class MockClientSession:
     """ Stubbed asyncronous context manager. """
 
-    # pylint: disable=redefined-outer-name
     def __init__(self, json=None, text=None):
         """ Initialize client response """
         self._json = json
@@ -50,7 +49,6 @@ class MockClientSession:
 class MockResponse:
     """ Stubbed response object. """
 
-    # pylint: disable=redefined-outer-name
     def __init__(self, text: str = None, json: dict = None, status_code=200, content=None):
         """ Initialize client response """
 
@@ -68,7 +66,6 @@ class MockAsyncResponse:
     """ Stubbed async response object.
     """
 
-    # pylint: disable=redefined-outer-name
     def __init__(self, text: str = None, json: dict = None, status_code=200):
         """ Initialize client response """
         self._text = text
@@ -89,7 +86,6 @@ class MockAsyncResponse:
 
 class DefaultMockAioSession:
     """ Mock aiobotocore.session.AioSession """
-    # pylint: disable=unused-argument
 
     @asynccontextmanager
     async def create_client(self, *args, **kwargs):
@@ -100,8 +96,6 @@ class DefaultMockAioSession:
 class DefaultMockAioBaseClient:
     """ Stubbed AioBaseClient object
     """
-    # It's a stubbed object, so we don't care about pylint warnings:
-    # pylint: disable=unused-argument, missing-function-docstring, too-many-arguments
 
     def __init__(self, *args, **kwargs):
         """ you can set the values below for some default behaviour """
@@ -174,7 +168,7 @@ def _get_fixture_response(fixture):
         return MockResponse(text=data.decode(), content=data)
 
 
-def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:  # pylint: disable=unused-argument
+def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:
     """ Return a mocked request response """
     # Get the file location of the fixture
     fixture_finder = FixtureFinder()
@@ -183,7 +177,6 @@ def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:  # py
     return _get_fixture_response(filename)
 
 
-# pylint: disable=redefined-outer-name, unused-argument
 def default_mock_requests_post(url, data=None, json=None, params=None, **kwargs) -> MockResponse:
     """ Return a mocked request response """
     # Get the file location of the fixture
@@ -191,21 +184,16 @@ def default_mock_requests_post(url, data=None, json=None, params=None, **kwargs)
     filename = fixture_finder.get_fixture_path(url, 'post', params, data)
     # Construct the response
     return _get_fixture_response(filename)
-# pylint: enable=redefined-outer-name
 
 
-# pylint: disable=redefined-outer-name
 def default_mock_requests_session_get(self, url, **kwargs) -> MockResponse:
     """ Return a mocked request response from a request.Session object """
     return default_mock_requests_get(url, **kwargs)
-# pylint: enable=redefined-outer-name
 
 
-# pylint: disable=redefined-outer-name
 def default_mock_requests_session_post(self, url, data=None, json=None, **kwargs) -> MockResponse:
     """ Return a mocked request response from a request.Session object """
     return default_mock_requests_post(url, data, json, **kwargs)
-# pylint: enable=redefined-outer-name
 
 
 def str2float(value: str):

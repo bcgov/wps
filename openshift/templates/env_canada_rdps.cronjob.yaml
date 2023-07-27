@@ -76,7 +76,7 @@ objects:
                       "run",
                       "python",
                       "-m",
-                      "app.weather_models.env_canada",
+                      "app.jobs.env_canada",
                       "RDPS",
                     ]
                   env:

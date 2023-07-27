@@ -1,16 +1,22 @@
 import { TextField, Tooltip } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { createTheme, ThemeProvider, Theme, StyledEngineProvider } from '@mui/material/styles'
+import { createTheme, ThemeProvider, StyledEngineProvider, styled } from '@mui/material/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
 
-declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends Theme {}
+const PREFIX = 'WindSpeedCell'
+
+const classes = {
+  windSpeed: `${PREFIX}-windSpeed`
 }
+
+const StyledStyledEngineProvider = styled(StyledEngineProvider)({
+  [`& .${classes.windSpeed}`]: {
+    width: 80
+  }
+})
 
 export interface WindSpeedCellProps {
   inputRows: FBATableRow[]
@@ -20,12 +26,6 @@ export interface WindSpeedCellProps {
   disabled: boolean
   rowId: number
 }
-
-const useStyles = makeStyles({
-  windSpeed: {
-    width: 80
-  }
-})
 
 const adjustedTheme = createTheme({
   components: {
@@ -41,7 +41,6 @@ const adjustedTheme = createTheme({
 })
 
 const WindSpeedCell = (props: WindSpeedCellProps) => {
-  const classes = useStyles()
   const value = props.inputValue ? props.inputValue : props.calculatedValue
   const [windSpeedValue, setWindSpeedValue] = useState(value)
   useEffect(() => {
@@ -103,9 +102,9 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   )
 
   return props.inputValue && !hasError ? (
-    <StyledEngineProvider injectFirst>
+    <StyledStyledEngineProvider injectFirst>
       <ThemeProvider theme={adjustedTheme}>{buildTextField()}</ThemeProvider>
-    </StyledEngineProvider>
+    </StyledStyledEngineProvider>
   ) : (
     buildTextField()
   )

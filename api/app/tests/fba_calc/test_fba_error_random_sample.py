@@ -59,7 +59,6 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
     random.seed(seed)
     results = []
     for index in range(num_iterations):
-        # pylint: disable=invalid-name
         elevation = random.randint(0, 4019)
         latitude = random.uniform(45, 60)
         longitude = random.uniform(-118, -136)

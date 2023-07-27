@@ -11,7 +11,7 @@ from app import config
 jnius_config.set_classpath(config.get('CLASSPATH'))
 
 
-def _python_date_to_java_calendar(value: datetime, Calendar, TimeZone):  # pylint: disable=invalid-name
+def _python_date_to_java_calendar(value: datetime, Calendar, TimeZone):
     """ Take a python datetime object and return a java Calendar object """
     java_data = Calendar.getInstance(TimeZone.getTimeZone(value.tzinfo.tzname(value)))
     # java has 0 based months, python 1 based
@@ -19,7 +19,7 @@ def _python_date_to_java_calendar(value: datetime, Calendar, TimeZone):  # pylin
     return java_data
 
 
-def _java_calendar_to_python_date(calendar, Calendar):  # pylint: disable=invalid-name
+def _java_calendar_to_python_date(calendar, Calendar):
     """ Take a java Calendar object and return a python datetime object"""
     tz_offset = timedelta(seconds=calendar.getTimeZone().getRawOffset())
     return datetime(calendar.get(Calendar.YEAR),
@@ -31,12 +31,11 @@ def _java_calendar_to_python_date(calendar, Calendar):  # pylint: disable=invali
                     tzinfo=timezone(tz_offset))
 
 
-class FWICalculations:  # pylint: disable=missing-class-docstring, too-many-instance-attributes
+class FWICalculations:
     """ Duplicate of Java class ca.cwfgm.fwi.FWICalculations for results """
 
-    def __init__(self):   # pylint: disable=too-many-statements
+    def __init__(self):
         """ Init variables """
-        # pylint: disable=invalid-name
         self.ystrdyFFMC: Optional[float] = None
         self.ystrdyDMC: Optional[float] = None
         self.ystrdyDC: Optional[float] = None
@@ -66,7 +65,7 @@ class FWICalculations:  # pylint: disable=missing-class-docstring, too-many-inst
         self.m_init_timezone_code: Optional[str] = None
 
 
-def FWICalculateDailyStatisticsCOM(longitude: float,  # pylint: disable=invalid-name, too-many-arguments
+def FWICalculateDailyStatisticsCOM(longitude: float,
                                    latitude: float,
                                    yesterday_ffmc: float,
                                    yesterday_dmc: float,
@@ -88,13 +87,12 @@ def FWICalculateDailyStatisticsCOM(longitude: float,  # pylint: disable=invalid-
     ca.cwfgm.fwi.FWICalculations. Then call FWICalculateDailyStatisticsCOM on instance, and
     copy results into response object.
     """
-    # pylint: disable=too-many-locals
     # we have to do a late import, otherwise we get a segmentation fault.
-    import jnius  # pylint: disable=import-outside-toplevel
+    import jnius
     try:
-        Calendar = jnius.autoclass('java.util.Calendar')  # pylint: disable=invalid-name
-        TimeZone = jnius.autoclass('java.util.TimeZone')  # pylint: disable=invalid-name
-        FWICalculationsClass = jnius.autoclass('ca.cwfgm.fwi.FWICalculations')  # pylint: disable=invalid-name
+        Calendar = jnius.autoclass('java.util.Calendar')
+        TimeZone = jnius.autoclass('java.util.TimeZone')
+        FWICalculationsClass = jnius.autoclass('ca.cwfgm.fwi.FWICalculations')
 
         fwi = FWICalculationsClass()
         fwi.setLatitude(latitude)
@@ -133,10 +131,10 @@ def FWICalculateDailyStatisticsCOM(longitude: float,  # pylint: disable=invalid-
         # Each time you create a native thread in Python and use Pyjnius, any call to Pyjnius
         # methods will force attachment of the native thread to the current JVM. But you must
         # detach it before leaving the thread, and Pyjnius cannot do it for you.
-        jnius.detach()  # pylint: disable=no-member
+        jnius.detach()
 
 
-class FBPCalculations:  # pylint: disable=missing-class-docstring, too-many-instance-attributes
+class FBPCalculations:
     """ Duplicate of Java class ca.cwfgm.fbp.FBPCalculations
 
     public double ros_t;
@@ -196,9 +194,8 @@ class FBPCalculations:  # pylint: disable=missing-class-docstring, too-many-inst
     public boolean cfbPossible = true;
     """
 
-    def __init__(self):  # pylint: disable=too-many-statements
+    def __init__(self):
         """ Init variables """
-        # pylint: disable=invalid-name
         self.ros_t: Optional[float] = None
         self.ros_eq: Optional[float] = None
         self.fros: Optional[float] = None
@@ -384,7 +381,6 @@ def _fbp_fuel_type_map(fuel_type: str):
     raise UnmappedFuelType(fuel_type)
 
 
-# pylint: disable=invalid-name, too-many-arguments
 def FBPCalculateStatisticsCOM(elevation: float,
                               latitude: float,
                               longitude: float,
@@ -413,13 +409,12 @@ def FBPCalculateStatisticsCOM(elevation: float,
         public void FBPCalculateStatisticsCOM()
     }
     """
-    # pylint: disable=too-many-locals
     # we have to do a late import, otherwise we get a segmentation fault.
-    import jnius  # pylint: disable=import-outside-toplevel
+    import jnius
     try:
-        Calendar = jnius.autoclass('java.util.Calendar')  # pylint: disable=invalid-name
-        TimeZone = jnius.autoclass('java.util.TimeZone')  # pylint: disable=invalid-name
-        FBPCalculationsClass = jnius.autoclass('ca.cwfgm.fbp.FBPCalculations')  # pylint: disable=invalid-name
+        Calendar = jnius.autoclass('java.util.Calendar')
+        TimeZone = jnius.autoclass('java.util.TimeZone')
+        FBPCalculationsClass = jnius.autoclass('ca.cwfgm.fbp.FBPCalculations')
 
         if percentage_dead_balsam_fir is None:
             percentage_dead_balsam_fir = 0.0
@@ -472,17 +467,17 @@ def FBPCalculateStatisticsCOM(elevation: float,
         # Each time you create a native thread in Python and use Pyjnius, any call to Pyjnius
         # methods will force attachment of the native thread to the current JVM. But you must
         # detach it before leaving the thread, and Pyjnius cannot do it for you.
-        jnius.detach()  # pylint: disable=no-member
+        jnius.detach()
 
 
-def hourlyFFMCLawson(prevFFMC: float,  # pylint: disable=invalid-name
+def hourlyFFMCLawson(prevFFMC: float,
                      currFFMC: float,
                      rh: float,
                      seconds_into_day: int) -> float:
     """ Ok - great - but what does this even do? """
-    import jnius  # pylint: disable=import-outside-toplevel
+    import jnius
     try:
-        CwfgmFwi = jnius.autoclass('ca.cwfgm.fwi.CwfgmFwi')  # pylint: disable=invalid-name
+        CwfgmFwi = jnius.autoclass('ca.cwfgm.fwi.CwfgmFwi')
         return CwfgmFwi.hourlyFFMCLawson(prevFFMC, currFFMC, rh, seconds_into_day)
     finally:
-        jnius.detach()  # pylint: disable=no-member
+        jnius.detach()

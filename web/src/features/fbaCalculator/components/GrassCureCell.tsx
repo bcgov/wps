@@ -1,5 +1,4 @@
 import { TextField, Tooltip } from '@mui/material'
-import { ClassNameMap } from '@mui/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
@@ -9,7 +8,6 @@ import React, { ChangeEvent, useEffect, useState } from 'react'
 export interface GrassCureCellProps {
   inputRows: FBATableRow[]
   updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
-  classNameMap: ClassNameMap<'grassCure'>
   value: number | undefined
   disabled: boolean
   rowId: number
@@ -56,10 +54,10 @@ const GrassCureProps = (props: GrassCureCellProps) => {
   return (
     <Tooltip title="Cannot exceed 100" aria-label="cannot-exceed-100">
       <TextField
+        sx={{ width: 80 }}
         data-testid={`grassCureInput-fba-${props.rowId}`}
         type="number"
         inputMode="numeric"
-        className={props.classNameMap.grassCure}
         size="small"
         variant="outlined"
         inputProps={{ min: 0, max: 100 }}

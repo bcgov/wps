@@ -206,8 +206,9 @@ def save_features_to_table(ids, url, session, geom_type, table_schema, labels_ta
             elif isinstance(geom, MultiPolygon):
                 # We can't update the labels for each polygon, we don't have an id
                 # for it. So we have to drop them all.
-                session.execute(labels_table_schema.delete(
-                    labels_table_schema.c.feature_id == feature['id']))
+                session.query(labels_table_schema)\
+                    .filter(labels_table_schema.c.feature_id == feature['id'])\
+                    .delete()
                 for polygon in geom.geoms:
                     save_feature('POINT', polygon.centroid, srid,
                                  feature, session, labels_table_schema, allow_update=False)

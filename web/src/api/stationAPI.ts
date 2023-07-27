@@ -1,5 +1,6 @@
 import axios from 'api/axios'
 import { FireSeason } from 'api/percentileAPI'
+import { sortBy } from 'lodash'
 
 export interface Station {
   code: number
@@ -54,9 +55,43 @@ export interface DetailedStationsResponse {
   features: DetailedGeoJsonStation[]
 }
 
+export interface StationGroup {
+  display_label: string
+  group_description: string | null
+  group_owner_user_guid: string
+  group_owner_user_id: string
+  id: string
+}
+export interface StationGroupsResponse {
+  groups: StationGroup[]
+}
+
+export interface FireZone {
+  id: string
+  display_label: string
+  fire_centre: string
+}
+
+export interface StationFireCentre {
+  id: string
+  display_label: string
+}
+
+export interface StationGroupMember {
+  id: string
+  display_label: string
+  fire_centre: StationFireCentre
+  fire_zone: FireZone
+  station_code: number
+  station_status: string
+}
+
+export interface StationGroupMembersResponse {
+  stations: StationGroupMember[]
+}
+
 export enum StationSource {
   unspecified = 'unspecified',
-  local_storage = 'local_storage',
   wildfire_one = 'wildfire_one'
 }
 
@@ -81,4 +116,20 @@ export async function getDetailedStations(
   })
 
   return data.features
+}
+
+export async function getStationGroups(): Promise<StationGroup[]> {
+  const groupUrl = `${url}groups`
+  const { data } = await axios.get<StationGroupsResponse>(groupUrl)
+
+  return data.groups
+}
+
+export async function getStationGroupsMembers(groupIds: string[]): Promise<StationGroupMember[]> {
+  const groupUrl = `${url}groups/members`
+  const { data } = await axios.post<StationGroupMembersResponse>(groupUrl, {
+    group_ids: groupIds
+  })
+
+  return sortBy(data.stations, station => station.display_label)
 }

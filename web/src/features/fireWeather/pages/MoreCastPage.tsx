@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
+import { styled } from '@mui/material/styles'
 import { useDispatch } from 'react-redux'
 import { useLocation } from 'react-router-dom'
-import makeStyles from '@mui/styles/makeStyles'
 
 import { GeneralHeader } from 'components'
 import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
@@ -23,7 +23,7 @@ import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMe
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
-import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
+import { MORECAST_DOC_TITLE, MORE_CAST_NAME, PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
 import StationAccuracyForDate from 'features/fireWeather/components/StationAccuracyForDate'
 import AccuracyVariablePicker, {
@@ -31,13 +31,24 @@ import AccuracyVariablePicker, {
 } from 'features/fireWeather/components/AccuracyVariablePicker'
 import { AppDispatch } from 'app/store'
 
-const useStyles = makeStyles(theme => ({
-  main: {
+const PREFIX = 'MoreCastPage'
+
+const classes = {
+  main: `${PREFIX}-main`,
+  nav: `${PREFIX}-nav`,
+  content: `${PREFIX}-content`,
+  map: `${PREFIX}-map`,
+  legend: `${PREFIX}-legend`
+}
+
+const Root = styled('main')(({ theme }) => ({
+  [`&.${classes.main}`]: {
     display: 'flex',
     flexDirection: 'column',
     height: '100vh'
   },
-  nav: {
+
+  [`& .${classes.nav}`]: {
     background: theme.palette.primary.light,
     color: theme.palette.primary.contrastText,
     minHeight: 60,
@@ -47,19 +58,22 @@ const useStyles = makeStyles(theme => ({
     paddingLeft: 25,
     paddingRight: 25
   },
-  content: {
+
+  [`& .${classes.content}`]: {
     flexGrow: 1,
     display: 'flex',
     overflowY: 'auto'
   },
-  map: {
-    order: 1,
+
+  [`& .${classes.map}`]: {
+    order: 0,
     flexGrow: 1,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center'
   },
-  legend: {
+
+  [`& .${classes.legend}`]: {
     display: 'flex',
     alignItems: 'flex-end',
     backgroundColor: theme.palette.primary.light
@@ -71,7 +85,6 @@ const calculateSidePanelWidth = (codesFromQuery: number[]) => {
 }
 
 const MoreCastPage = () => {
-  const classes = useStyles()
   const location = useLocation()
 
   // We base our station & toi list entirely from the URL.
@@ -151,9 +164,13 @@ const MoreCastPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location])
 
+  useEffect(() => {
+    document.title = MORECAST_DOC_TITLE
+  }, [])
+
   return (
-    <main className={classes.main}>
-      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="MoreCast" />
+    <Root className={classes.main}>
+      <GeneralHeader isBeta={true} spacing={1} title={MORE_CAST_NAME} productName={MORE_CAST_NAME} />
       <div className={classes.nav}>
         <WxDataForm
           stationCodesQuery={codesFromQuery}
@@ -162,16 +179,18 @@ const MoreCastPage = () => {
         />
       </div>
       <div className={classes.content}>
-        <div className={classes.map}>
-          <WeatherMap
-            redrawFlag={getRedrawCommand()}
-            isCollapsed={sidePanelWidth === FULL_WIDTH}
-            toiFromQuery={toiFromQuery}
-            center={mapCenter}
-            setMapCenter={setNewMapCenter}
-            selectedWxVariable={selectedAccuracyWxVariable}
-          />
-        </div>
+        {sidePanelWidth < FULL_WIDTH && (
+          <div className={classes.map}>
+            <WeatherMap
+              redrawFlag={getRedrawCommand()}
+              isCollapsed={sidePanelWidth === FULL_WIDTH}
+              toiFromQuery={toiFromQuery}
+              center={mapCenter}
+              setMapCenter={setNewMapCenter}
+              selectedWxVariable={selectedAccuracyWxVariable}
+            />
+          </div>
+        )}
         <ExpandableContainer
           open={showSidePanel}
           close={closeSidePanel}
@@ -200,7 +219,7 @@ const MoreCastPage = () => {
           <StationAccuracyForDate toiFromQuery={toiFromQuery} />
         </div>
       )}
-    </main>
+    </Root>
   )
 }
 

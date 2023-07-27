@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "engines": {
     "node": ">=16.13.1",
-    "npm": "~9.4.0"
+    "npm": "~9.8.0"
   },
   "license": "Apache-2.0",
   "licenses": [
@@ -16,25 +16,22 @@
     "@emotion/react": "^11.8.2",
     "@emotion/styled": "^11.8.1",
     "@mui/icons-material": "^5.5.1",
-    "@mui/lab": "^5.0.0-alpha.75",
-    "@mui/material": "^5.5.3",
-    "@mui/styles": "^5.5.3",
-    "@mui/x-date-pickers": "^5.0.13",
+    "@mui/material": "5.14.1",
+    "@mui/x-data-grid": "^6.0.0",
+    "@mui/x-date-pickers": "^6.0.0",
     "@reduxjs/toolkit": "^1.8.0",
     "@types/esri-leaflet": "^2.1.6",
     "@types/leaflet": "^1.7.0",
     "@types/lodash": "^4.14.173",
-    "@types/luxon": "^3.0.0",
-    "@types/ol": "^6.4.2",
-    "@types/react": "18.0.27",
+    "@types/luxon": "^3.0.2",
+    "@types/react": "18.2.15",
     "@types/react-dom": "^17.0.3",
     "@types/react-plotly.js": "^2.2.4",
     "@types/react-router-dom": "^5.3.0",
     "@types/webpack-env": "^1.15.1",
-    "@typescript-eslint/eslint-plugin": "^5.17.0",
-    "@typescript-eslint/parser": "^5.17.0",
-    "axios": "^0.21.1",
-    "clsx": "^1.1.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "axios": "1.4.0",
     "date-fns": "^2.28.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
@@ -42,10 +39,11 @@
     "esri-leaflet": "3.0.10",
     "filefy": "^0.1.11",
     "jwt-decode": "^3.1.2",
-    "keycloak-js": "^20.0.0",
+    "keycloak-js": "^22.0.0",
     "leaflet": "^1.7.1",
     "lodash": "^4.17.21",
-    "luxon": "^3.0.0",
+    "luxon": "^3.0.2",
+    "match-sorter": "^6.3.1",
     "ol": "^7.0.0",
     "plotly.js": "^2.5.1",
     "prettier": "^2.4.1",
@@ -55,7 +53,7 @@
     "react-redux": "^8.0.0",
     "react-router-dom": "^6.0.0",
     "recharts": "^2.1.8",
-    "typescript": "^4.4"
+    "typescript": "^5.0.0"
   },
   "scripts": {
     "start": "vite",
@@ -87,7 +85,6 @@
     "@cypress/code-coverage": "^3.10.0",
     "@cypress/instrument-cra": "^1.4.0",
     "@cypress/vite-dev-server": "^3.3.1",
-    "@testing-library/dom": "^8.13.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.0",
     "@testing-library/user-event": "^14.1.1",
@@ -104,11 +101,12 @@
     "jsdom": "^20.0.3",
     "react-scripts": "^5.0.1",
     "sinon": "^15.0.1",
-    "start-server-and-test": "^1.15.2",
     "vite": "4",
     "vite-plugin-istanbul": "^3.0.4",
     "vite-tsconfig-paths": "3.5.1",
-    "vitest": "^0.26.3"
+    "vitest": "^0.26.3",
+    "start-server-and-test": "^2.0.0",
+    "ts-sinon": "^2.0.2"
   },
   "jest": {
     "collectCoverageFrom": [

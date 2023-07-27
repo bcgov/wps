@@ -1,12 +1,12 @@
 import { TableCell } from '@mui/material'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
+import { UnSelectedTableCell } from 'features/hfiCalculator/components/StyledTableComponents'
 import { isUndefined } from 'lodash'
 import React from 'react'
 
 export interface StatusCellProps {
   daily: StationDaily | undefined
-  className: string | undefined
   isRowSelected: boolean
 }
 
@@ -16,8 +16,9 @@ const noForecastElement = <div>{noForecastText}</div>
 const observationValidCommentElement = (daily: StationDaily) => <div>{daily.observation_valid_comment}</div>
 
 const StatusCell = (props: StatusCellProps) => {
+  const TableCellComponent = props.isRowSelected ? TableCell : UnSelectedTableCell
   if (!props.isRowSelected) {
-    return <TableCell data-testid={'status-cell'} className={props.className} />
+    return <TableCellComponent data-testid={'status-cell'} />
   }
   if (isUndefined(props.daily)) {
     return (
@@ -43,11 +44,7 @@ const StatusCell = (props: StatusCellProps) => {
       </TableCell>
     )
   }
-  return (
-    <TableCell data-testid={'status-cell'} className={props.className}>
-      {props.daily.status}
-    </TableCell>
-  )
+  return <TableCellComponent data-testid={'status-cell'}>{props.daily.status}</TableCellComponent>
 }
 
 export default React.memo(StatusCell)

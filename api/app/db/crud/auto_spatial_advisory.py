@@ -3,7 +3,7 @@ from enum import Enum
 import logging
 from time import perf_counter
 from typing import List
-from sqlalchemy import select, func
+from sqlalchemy import select, func, cast, String
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
@@ -139,7 +139,7 @@ async def get_high_hfi_fuel_types_for_zone(session: AsyncSession,
                   func.sum(FuelType.geom.ST_Intersection(ClassifiedHfi.geom.ST_Intersection(Shape.geom)).ST_Area()).label('area'))\
         .join_from(ClassifiedHfi, Shape, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
         .join_from(ClassifiedHfi, FuelType, ClassifiedHfi.geom.ST_Intersects(FuelType.geom))\
-        .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date,
+        .where(ClassifiedHfi.run_type == run_type.value, ClassifiedHfi.for_date == for_date,
                ClassifiedHfi.run_datetime == run_datetime, Shape.source_identifier == str(zone_id))\
         .group_by(Shape.source_identifier)\
         .group_by(FuelType.fuel_type_id)\
@@ -171,7 +171,7 @@ async def get_fuel_types_with_high_hfi(session: AsyncSession,
                   func.sum(FuelType.geom.ST_Intersection(ClassifiedHfi.geom.ST_Intersection(Shape.geom)).ST_Area()).label('area'))\
         .join_from(ClassifiedHfi, Shape, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
         .join_from(ClassifiedHfi, FuelType, ClassifiedHfi.geom.ST_Intersects(FuelType.geom))\
-        .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date, ClassifiedHfi.run_datetime == run_datetime)\
+        .where(ClassifiedHfi.run_type == run_type.value, ClassifiedHfi.for_date == for_date, ClassifiedHfi.run_datetime == run_datetime)\
         .group_by(Shape.source_identifier)\
         .group_by(FuelType.fuel_type_id)\
         .group_by(ClassifiedHfi.threshold)\
@@ -196,7 +196,7 @@ async def get_hfi_area(session: AsyncSession,
                   HighHfiArea.advisory_shape_id, HighHfiArea.threshold, HighHfiArea.area.label('hfi_area'))\
         .join(HighHfiArea, HighHfiArea.advisory_shape_id == Shape.id)\
         .join(RunParameters, RunParameters.id == HighHfiArea.run_parameters)\
-        .where(RunParameters.run_type == run_type.value,
+        .where(cast(RunParameters.run_type, String) == run_type.value,
                RunParameters.for_date == for_date,
                RunParameters.run_datetime == run_datetime)
     result = await session.execute(stmt)
@@ -209,7 +209,7 @@ async def get_run_datetimes(session: AsyncSession, run_type: RunTypeEnum, for_da
     in descending order (most recent is first)
     """
     stmt = select(ClassifiedHfi.run_datetime)\
-        .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date)\
+        .where(ClassifiedHfi.run_type == run_type.value, ClassifiedHfi.for_date == for_date)\
         .distinct()\
         .order_by(ClassifiedHfi.run_datetime.desc())
     result = await session.execute(stmt)
@@ -228,7 +228,7 @@ async def get_high_hfi_area(session: AsyncSession,
                   HighHfiArea.area,
                   HighHfiArea.threshold)\
         .join(RunParameters)\
-        .where(RunParameters.run_type == run_type,
+        .where(cast(RunParameters.run_type, String) == run_type.value,
                RunParameters.for_date == for_date,
                RunParameters.run_datetime == run_datetime)
     result = await session.execute(stmt)
@@ -269,11 +269,11 @@ async def calculate_high_hfi_areas(session: AsyncSession, run_type: RunType, run
 
 
 async def get_run_parameters_id(session: AsyncSession,
-                                run_type: RunTypeEnum,
+                                run_type: RunType,
                                 run_datetime: datetime,
                                 for_date: date) -> List[Row]:
     stmt = select(RunParameters.id)\
-        .where(RunParameters.run_type == run_type.value,
+        .where(cast(RunParameters.run_type, String) == run_type.value,
                RunParameters.run_datetime == run_datetime,
                RunParameters.for_date == for_date)
     result = await session.execute(stmt)
@@ -295,7 +295,7 @@ async def save_advisory_elevation_stats(session: AsyncSession, advisory_elevatio
 
 async def get_zonal_elevation_stats(session: AsyncSession,
                                     fire_zone_id: int,
-                                    run_type: RunTypeEnum,
+                                    run_type: RunType,
                                     run_datetime: datetime,
                                     for_date: date) -> List[Row]:
     run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)

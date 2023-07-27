@@ -11,11 +11,11 @@ from app.hfi.hfi_calc import (calculate_hfi_results,
                               validate_date_range,
                               validate_station_daily)
 import app.db.models.hfi_calc as hfi_calc_models
-from app.schemas.hfi_calc import (DateRange,
+from app.schemas.hfi_calc import (DailyResult, DateRange,
                                   FireCentre,
                                   FireStartRange,
                                   InvalidDateRangeError,
-                                  PlanningArea,
+                                  PlanningArea, PlanningAreaResult,
                                   StationDaily, StationInfo,
                                   WeatherStation,
                                   WeatherStationProperties,
@@ -75,17 +75,26 @@ def test_no_dailies_handled():
                                    raw_dailies=[],
                                    num_prep_days=5,
                                    planning_area_station_info=planning_area_station_info,
-                                   area_station_map={},
-                                   start_date=datetime.now())
+                                   start_date=datetime.now().date())
 
-    assert result == []
+    assert result == [PlanningAreaResult(planning_area_id=1, all_dailies_valid=True, highest_daily_intensity_group=None, mean_prep_level=None, daily_results=[
+        DailyResult(date=datetime.now().date(), dailies=[], fire_starts=fire_start_ranges[0],
+                    mean_intensity_group=None, prep_level=None),
+        DailyResult(date=datetime.now().date() + timedelta(days=1), dailies=[],
+                    fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
+        DailyResult(date=datetime.now().date() + timedelta(days=2), dailies=[],
+                    fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
+        DailyResult(date=datetime.now().date() + timedelta(days=3), dailies=[],
+                    fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
+        DailyResult(date=datetime.now().date() + timedelta(days=4), dailies=[],
+                    fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
+    ])]
 
 
 def test_requested_fire_starts_unaltered(mocker: MockerFixture):
     """ Fire starts from user request remain unchanged """
 
-    start_date = datetime.now()
-    station = hfi_calc_models.PlanningWeatherStation(id=1, planning_area_id=1, station_code=1)
+    start_date = datetime.now().date()
     fuel_type_lookup = {
         1: hfi_calc_models.FuelType(
             id=1, abbrev='C1', description='C1', fuel_type_code='C1',
@@ -110,7 +119,6 @@ def test_requested_fire_starts_unaltered(mocker: MockerFixture):
                                        raw_daily],
                                    num_prep_days=5,
                                    planning_area_station_info=planning_area_station_info,
-                                   area_station_map={kamloops_fc.planning_areas[0].id: [station]},
                                    start_date=start_date)
     assert result[0].daily_results[0].fire_starts == fire_start_ranges[-1]
 
@@ -135,7 +143,7 @@ def test_calculate_mean_intensity_basic():
 def test_calculate_mean_intensity_empty():
     """ Calculates mean intensity with empty list """
     result = calculate_mean_intensity([], 0)
-    assert result == None
+    assert result is None
 
 
 def test_calculate_mean_intensity_round_down():
@@ -190,7 +198,7 @@ def test_max_mean_intensity_basic():
 def test_max_mean_intensity_empty():
     """ Calculates max mean intensity with empty list """
     result = calculate_max_intensity_group([])
-    assert result == None
+    assert result is None
 
 
 def test_max_mean_intensity_with_none():
@@ -201,7 +209,7 @@ def test_max_mean_intensity_with_none():
 
 def test_calculate_prep_level_empty():
     """ Calculates prep level of empty case """
-    assert calculate_prep_level(None, FireStartRange(id=1, label='blah'), None) == None
+    assert calculate_prep_level(None, FireStartRange(id=1, label="blah"), None) is None
 
 
 def test_valid_daily():
@@ -217,7 +225,7 @@ def test_valid_daily():
         intensity_group=1
     )
     result = validate_station_daily(daily)
-    assert result.valid == True
+    assert result.valid is True
 
 
 def test_valid_daily():
@@ -236,7 +244,7 @@ def test_valid_daily():
         daily = StationDaily(**base_daily.__dict__)
         setattr(daily, field, None)
         result = validate_station_daily(daily)
-        assert result.valid == False
+        assert result.valid is False
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
@@ -271,7 +279,7 @@ def test_valid_date_range_none():
 
 def test_valid_date_range_7_days():
     """ 7 day range is acceptable (start inclusive, end exclusive) """
-    start_date = get_pst_now()
+    start_date = get_pst_now().date()
     end_date = start_date + timedelta(days=7)
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
     assert result.start_date.isoformat() == '2020-05-21'
@@ -280,7 +288,7 @@ def test_valid_date_range_7_days():
 
 def test_valid_date_range_over_7_days():
     """ Over 7 days is clamped to 5 days (start inclusive, end exclusive) """
-    start_date = get_pst_now()
+    start_date = get_pst_now().date()
     end_date = start_date + timedelta(days=8)
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
     assert result.start_date.isoformat() == '2020-05-21'
@@ -289,7 +297,7 @@ def test_valid_date_range_over_7_days():
 
 def test_valid_date_range_over_at_least_one_day():
     """ 1 day range is acceptable (start inclusive, end exclusive) """
-    start_date = get_pst_now()
+    start_date = get_pst_now().date()
     end_date = start_date
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
     assert result.start_date.isoformat() == '2020-05-21'
@@ -298,7 +306,7 @@ def test_valid_date_range_over_at_least_one_day():
 
 def test_valid_date_range_default_for_end_date_before():
     """ If end date is before start date, set it to same day as start date (start inclusive, end exclusive) """
-    start_date = get_pst_now()
+    start_date = get_pst_now().date()
     end_date = start_date - timedelta(days=1)
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
     assert result.start_date.isoformat() == '2020-05-21'

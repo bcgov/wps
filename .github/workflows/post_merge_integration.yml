@@ -71,7 +71,7 @@ jobs:
         # We can however place it ahead of the R installs.
         working-directory: ./api
         run: |
-          poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
+          poetry run ruff app/*.py app/**/*.py
 
   test-api:
     name: Python - Test with coverage

@@ -24,7 +24,7 @@ const prepCycleIteration = (dateRange: PrepDateRange) => {
   const startDate = dateRange.start_date ? dateRange.start_date : ''
   range(numPrepDays).forEach(i => {
     const cell = getByTestId(`day-${i}`)
-    expect(cell.className).toMatch(/makeStyles-dayHeader-/)
+    expect(cell.className).toMatch(/dayHeader/)
     expect(cell.innerHTML).toEqual(
       DateTime.fromISO(startDate).plus({ days: i }).toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })
     )

@@ -8,7 +8,7 @@ import { TEST_AUTH, KC_AUTH_URL, KC_REALM, SM_LOGOUT_URL, KC_CLIENT } from 'util
 import { ROLES } from 'features/auth/roles'
 import { getKeycloakInstance, kcInitOptions } from 'features/auth/keycloak'
 
-interface State {
+export interface AuthState {
   authenticating: boolean
   isAuthenticated: boolean
   tokenRefreshed: boolean
@@ -19,7 +19,7 @@ interface State {
   error: string | null
 }
 
-export const initialState: State = {
+export const initialState: AuthState = {
   authenticating: false,
   isAuthenticated: false,
   tokenRefreshed: false,
@@ -34,11 +34,11 @@ const authSlice = createSlice({
   name: 'authentication',
   initialState,
   reducers: {
-    authenticateStart(state: State) {
+    authenticateStart(state: AuthState) {
       state.authenticating = true
     },
     authenticateFinished(
-      state: State,
+      state: AuthState,
       action: PayloadAction<{
         isAuthenticated: boolean
         token: string | undefined
@@ -52,14 +52,14 @@ const authSlice = createSlice({
       state.roles = decodeRoles(action.payload.token)
       state.idir = decodeIdir(action.payload.token)
     },
-    authenticateError(state: State, action: PayloadAction<string>) {
+    authenticateError(state: AuthState, action: PayloadAction<string>) {
       state.authenticating = false
       state.isAuthenticated = false
       state.error = action.payload
       state.roles = []
     },
     refreshTokenFinished(
-      state: State,
+      state: AuthState,
       action: PayloadAction<{
         tokenRefreshed: boolean
         token: string | undefined
@@ -72,14 +72,14 @@ const authSlice = createSlice({
       state.roles = decodeRoles(action.payload.token)
       state.idir = decodeIdir(action.payload.token)
     },
-    signoutFinished(state: State) {
+    signoutFinished(state: AuthState) {
       state.authenticating = false
       state.isAuthenticated = false
       state.token = undefined
       state.idToken = undefined
       state.roles = []
     },
-    signoutError(state: State, action: PayloadAction<string>) {
+    signoutError(state: AuthState, action: PayloadAction<string>) {
       state.authenticating = false
       state.isAuthenticated = false
       state.error = action.payload

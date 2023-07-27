@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { DateTime } from 'luxon'
 
 import { GeoJsonStation } from 'api/stationAPI'
@@ -15,8 +15,14 @@ import { formatDatetimeInPST } from 'utils/date'
 import { RedrawCommand } from 'features/map/Map'
 import { SelectChangeEvent } from '@mui/material/Select'
 
-const useStyles = makeStyles({
-  display: {
+const PREFIX = 'WxDataGraph'
+
+const classes = {
+  display: `${PREFIX}-display`
+}
+
+const Root = styled('div')({
+  [`&.${classes.display}`]: {
     paddingTop: 8
   }
 })
@@ -50,8 +56,6 @@ const WxDataGraph = ({
   gdpsModels = [],
   gdpsSummaries = []
 }: Props) => {
-  const classes = useStyles()
-
   const hasObservations = observations.length !== 0
   const hasModels = gdpsModels.length !== 0
   const hasForecasts = noonForecasts.length !== 0
@@ -97,7 +101,7 @@ const WxDataGraph = ({
   }
 
   return (
-    <div className={classes.display}>
+    <Root className={classes.display}>
       <WxDataGraphToggles
         toggleValues={toggleValues}
         setToggleValues={setToggleValues}
@@ -154,7 +158,7 @@ const WxDataGraph = ({
         gdpsModels={gdpsModels}
         rdpsModels={rdpsModels}
       />
-    </div>
+    </Root>
   )
 }
 

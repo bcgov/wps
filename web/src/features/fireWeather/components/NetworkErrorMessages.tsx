@@ -1,6 +1,6 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { useSelector } from 'react-redux'
-import makeStyles from '@mui/styles/makeStyles'
 
 import { ErrorMessage } from 'components'
 import {
@@ -15,14 +15,19 @@ import {
   selectRegionalModelSummaries
 } from 'app/rootReducer'
 
-const useStyles = makeStyles({
-  root: {
+const PREFIX = 'NetworkErrorMessages'
+
+const classes = {
+  root: `${PREFIX}-root`
+}
+
+const Root = styled('div')({
+  [`&.${classes.root}`]: {
     paddingTop: 12
   }
 })
 
 const NetworkErrorMessages = () => {
-  const classes = useStyles()
   const { error: errFetchingObservations } = useSelector(selectObservations)
   const { error: errFetchingModels } = useSelector(selectModels)
   const { error: errFetchingModelSummaries } = useSelector(selectModelSummaries)
@@ -34,7 +39,7 @@ const NetworkErrorMessages = () => {
   const { error: errFetchingRegionalModelSummaries } = useSelector(selectRegionalModelSummaries)
 
   return (
-    <div className={classes.root}>
+    <Root className={classes.root}>
       {errFetchingObservations && (
         <ErrorMessage error={errFetchingObservations} context="while fetching hourly observations" marginTop={5} />
       )}
@@ -72,7 +77,7 @@ const NetworkErrorMessages = () => {
       {errFetchingRegionalModelSummaries && (
         <ErrorMessage error={errFetchingRegionalModelSummaries} context="while fetching RDPS summaries" marginTop={5} />
       )}
-    </div>
+    </Root>
   )
 }
 

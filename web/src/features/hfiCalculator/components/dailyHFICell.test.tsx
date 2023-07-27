@@ -10,7 +10,7 @@ describe('DailyHFICell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <DailyHFICell value={undefined} error={true} testid={'hfi-cell-error'} className={undefined} />
+              <DailyHFICell value={undefined} error={true} testid={'hfi-cell-error'} isRowSelected={true} />
             </TableRow>
           </TableBody>
         </Table>
@@ -28,7 +28,7 @@ describe('DailyHFICell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <DailyHFICell value={undefined} error={false} testid={'hfi-cell'} className={undefined} />
+              <DailyHFICell value={undefined} error={false} testid={'hfi-cell'} isRowSelected={true} />
             </TableRow>
           </TableBody>
         </Table>
@@ -37,6 +37,6 @@ describe('DailyHFICell', () => {
 
     const cell = getByTestId('hfi-cell')
     expect(cell).toBeDefined()
-    expect(cell.className).toMatch(/makeStyles-dataRow-/)
+    expect(cell.className).toMatch(/HFICell-dataRow/)
   })
 })

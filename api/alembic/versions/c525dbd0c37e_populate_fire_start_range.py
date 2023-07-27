@@ -7,7 +7,7 @@ Create Date: 2022-03-15 17:54:47.364533
 """
 from alembic import op
 from sqlalchemy.sql import table, column
-from sqlalchemy import String, Integer
+from sqlalchemy import String, Integer, text
 
 
 # revision identifiers, used by Alembic.
@@ -77,7 +77,7 @@ def upgrade():
     # Link fire start ranges to each fire centre.
     fire_centre_ranges = []
     conn = op.get_bind()
-    res = conn.execute('SELECT id, name FROM fire_centres')
+    res = conn.execute(text('SELECT id, name FROM fire_centres'))
     results = res.fetchall()
 
     id_count = 1

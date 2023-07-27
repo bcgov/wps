@@ -1,32 +1,45 @@
+import React, { useEffect } from 'react'
+import { styled } from '@mui/material/styles'
 import { Paper } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { Container, GeneralHeader } from 'components'
-import React from 'react'
 import FBATable from 'features/fbaCalculator/components/FBATable'
+import { FIREBAT_DOC_TITLE } from 'utils/constants'
 
-export const FireBehaviourCalculator: React.FunctionComponent = () => {
-  const useStyles = makeStyles(theme => ({
-    disclaimer: {
-      borderLeft: '6px solid #FCBA19',
-      padding: '10px',
-      marginBottom: theme.spacing(8),
-      marginTop: '24px'
-    },
-    content: {
-      display: 'flex',
-      flexDirection: 'row'
-    }
-  }))
+const PREFIX = 'FireBehaviourCalculator'
 
-  const classes = useStyles()
+const classes = {
+  disclaimer: `${PREFIX}-disclaimer`,
+  content: `${PREFIX}-content`
+}
+
+const Root = styled('main')(({ theme }) => ({
+  [`& .${classes.disclaimer}`]: {
+    borderLeft: '6px solid #FCBA19',
+    padding: '10px',
+    marginBottom: theme.spacing(8),
+    marginTop: '24px'
+  },
+
+  [`& .${classes.content}`]: {
+    display: 'flex',
+    flexDirection: 'row'
+  }
+}))
+
+const FireBehaviourCalculator: React.FunctionComponent = () => {
+  useEffect(() => {
+    document.title = FIREBAT_DOC_TITLE
+  }, [])
+
   return (
-    <main>
-      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="Predictive Services Unit" />
-      <Container maxWidth={'xl'}>
-        <h1>
-          {/* (🔥🦇) */}
-          Fire Behaviour Advisory Tool
-        </h1>
+    <Root>
+      <GeneralHeader
+        isBeta={false}
+        spacing={1}
+        title="Fire Behaviour Advisory Tool"
+        productName="Fire Behaviour Advisory Tool"
+      />
+      <Container sx={{ paddingTop: '0.5em' }} maxWidth={'xl'}>
         <FBATable />
         <Paper className={classes.disclaimer}>
           <div>
@@ -56,6 +69,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           </div>
         </Paper>
       </Container>
-    </main>
+    </Root>
   )
 }
+export default FireBehaviourCalculator

@@ -15,7 +15,6 @@ configure_logging()
 @pytest.fixture()
 def mock_download(monkeypatch):
     """ fixture for env_canada.download """
-    # pylint: disable=unused-argument
     def mock_requests_get(*args, **kwargs):
         """ mock env_canada download method """
         dirname = os.path.dirname(os.path.realpath(__file__))
@@ -38,13 +37,11 @@ def mock_s3_client(monkeypatch):
     """ mock s3 client """
     async def mock_object_exists_v2(target_path: str):
         """ mock object exists """
-        return not (target_path in ('c-haines-polygons/kml/GDPS/2020/5/21/0/2020-05-21T00:00:00.kml',
-                                    'c-haines-polygons/json/GDPS/2021/5/21/0/2021-05-21T00:00:00.json'))
+        return target_path not in ("c-haines-polygons/kml/GDPS/2020/5/21/0/2020-05-21T00:00:00.kml", "c-haines-polygons/json/GDPS/2021/5/21/0/2021-05-21T00:00:00.json")
 
     async def mock_object_exists(client: AioBaseClient, bucket: str, target_path: str):
         """ mock object exists """
-        return not (target_path in ('c-haines-polygons/kml/GDPS/2020/5/21/0/2020-05-21T00:00:00.kml',
-                                    'c-haines-polygons/json/GDPS/2021/5/21/0/2021-05-21T00:00:00.json'))
+        return target_path not in ("c-haines-polygons/kml/GDPS/2020/5/21/0/2020-05-21T00:00:00.kml", "c-haines-polygons/json/GDPS/2021/5/21/0/2021-05-21T00:00:00.json")
 
     monkeypatch.setattr(app.c_haines.severity_index, 'object_exists_v2', mock_object_exists_v2)
     monkeypatch.setattr(app.c_haines.severity_index, 'object_exists', mock_object_exists)
@@ -62,5 +59,5 @@ def test_c_haines_worker():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(app.c_haines.worker.main())
-    except Exception as exception:  # pylint: disable=broad-except
+    except Exception as exception:
         pytest.fail(exception)

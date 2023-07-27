@@ -1,8 +1,8 @@
 """ Util & common files for tests
 """
 from typing import IO, Any, Callable, Optional, Tuple
+from dateutil import parser
 import os
-import sys
 import datetime
 import json
 import importlib
@@ -112,7 +112,7 @@ def de_serialize_record(record):
         # Handle the special case, where the type is timestamp, converting the string to the
         # correct data type.
         if isinstance(getattr(class_, key).type, TZTimeStamp):
-            record_data[key] = datetime.datetime.fromisoformat(value)
+            record_data[key] = parser.isoparse(value)
         else:
             record_data[key] = value
     return class_(**record_data)

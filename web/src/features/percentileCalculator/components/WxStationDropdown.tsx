@@ -1,8 +1,8 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { useSelector } from 'react-redux'
 import Autocomplete from '@mui/material/Autocomplete'
 import { TextField, Link } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import LaunchIcon from '@mui/icons-material/Launch'
 
 import { selectPercentileStations } from 'app/rootReducer'
@@ -11,22 +11,32 @@ import { ErrorMessage } from 'components/ErrorMessage'
 import { getSelectedStationOptions, Option } from 'utils/dropdown'
 import { GeoJsonStation } from 'api/stationAPI'
 
-const useStyles = makeStyles({
-  root: {
+const PREFIX = 'WxStationDropdown'
+
+const classes = {
+  root: `${PREFIX}-root`,
+  wrapper: `${PREFIX}-wrapper`,
+  mapLink: `${PREFIX}-mapLink`,
+  mapLabel: `${PREFIX}-mapLabel`
+}
+
+const Root = styled('div')({
+  [`& .${classes.root}`]: {
     width: '100%'
   },
-  wrapper: {
+  [`& .${classes.wrapper}`]: {
     display: 'flex',
     alignItems: 'flex-start',
     minWidth: 300
   },
-  mapLink: {
+  [`& .${classes.mapLink}`]: {
     marginBottom: 8
   },
-  mapLabel: {
+  [`& .${classes.mapLabel}`]: {
     display: 'flex'
   }
 })
+
 interface Props {
   className?: string
   stationCodes: number[]
@@ -35,7 +45,6 @@ interface Props {
 }
 
 const WxStationDropdown = (props: Props) => {
-  const classes = useStyles()
   const {
     loading: fetchingStations,
     stations,
@@ -52,7 +61,7 @@ const WxStationDropdown = (props: Props) => {
   }))
 
   return (
-    <div className={props.className}>
+    <Root className={props.className}>
       <div className={classes.wrapper}>
         <Link
           className={classes.mapLink}
@@ -105,7 +114,7 @@ const WxStationDropdown = (props: Props) => {
       {!errorFetchingStations && isThereUnknownCode && (
         <ErrorMessage error="Unknown station code(s)" message="Unknown weather station code(s) detected." />
       )}
-    </div>
+    </Root>
   )
 }
 

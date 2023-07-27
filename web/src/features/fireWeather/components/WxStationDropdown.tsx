@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react'
+import { styled } from '@mui/material/styles'
 import { useSelector, useDispatch } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import Autocomplete from '@mui/material/Autocomplete'
 import { TextField } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getStationCodesFromUrl } from 'utils/url'
@@ -11,11 +11,18 @@ import { getSelectedStationOptions } from 'utils/dropdown'
 import { GeoJsonStation } from 'api/stationAPI'
 import { selectStations } from 'features/stations/slices/stationsSlice'
 
-const useStyles = makeStyles({
-  autocomplete: {
+const PREFIX = 'WxStationDropdown'
+
+const classes = {
+  autocomplete: `${PREFIX}-autocomplete`,
+  wrapper: `${PREFIX}-wrapper`
+}
+
+const Root = styled('div')({
+  [`& .${classes.autocomplete}`]: {
     width: '100%'
   },
-  wrapper: {
+  [`& .${classes.wrapper}`]: {
     display: 'flex',
     alignItems: 'flex-start',
     minWidth: 300
@@ -37,7 +44,6 @@ const WxStationDropdown = (props: Props) => {
   const location = useLocation()
   const { selectedStationsByCode } = useSelector(selectFireWeatherStations)
 
-  const classes = useStyles()
   const {
     loading: fetchingStations,
     stations,
@@ -63,7 +69,7 @@ const WxStationDropdown = (props: Props) => {
   }, [dispatch, location])
 
   return (
-    <div className={props.className}>
+    <Root className={props.className}>
       <div className={classes.wrapper}>
         <Autocomplete
           id="weather-station-dropdown"
@@ -90,7 +96,7 @@ const WxStationDropdown = (props: Props) => {
           )}
         />
       </div>
-    </div>
+    </Root>
   )
 }
 

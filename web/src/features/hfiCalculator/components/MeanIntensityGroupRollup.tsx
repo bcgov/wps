@@ -1,13 +1,12 @@
 import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { isUndefined, isNull } from 'lodash'
 import React from 'react'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
-import { fireTableStyles } from 'app/theme'
 import { StationDaily, PlanningArea, FuelType } from 'api/hfiCalculatorAPI'
 import { getSelectedFuelType } from 'features/hfiCalculator/util'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
@@ -16,12 +15,6 @@ export interface MeanIntensityGroupRollupProps {
   planningAreaStationInfo: { [key: number]: StationInfo[] }
   fuelTypes: FuelType[]
 }
-
-const useStyles = makeStyles({
-  intensityGroup: {
-    ...fireTableStyles.calculatedPlanningCell
-  }
-})
 
 const grassCureToolTipFirstLine = 'Grass Cure % not defined in WFWX for one or more stations.'
 const genericErrorToolTipFirstLine = 'Incomplete weather data in WFWX for one or more stations.'
@@ -42,8 +35,6 @@ const genericErrorToolTipElement = (
 )
 
 const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
-  const classes = useStyles()
-
   const grassCureError = props.dailies.reduce((prev, stationDaily) => {
     const selectedFuelType = getSelectedFuelType(
       props.planningAreaStationInfo,
@@ -89,9 +80,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
     )
   }
   return (
-    <TableCell className={classes.intensityGroup} data-testid={`zone-${props.area.id}-mean-intensity`}>
-      {validatedMig}
-    </TableCell>
+    <CalculatedPlanningCell data-testid={`zone-${props.area.id}-mean-intensity`}>{validatedMig}</CalculatedPlanningCell>
   )
 }
 

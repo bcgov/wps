@@ -317,5 +317,5 @@ def then_expected_response(response, expected_response):
         assert response['response'].json() == expected_response['data']
     else:
         # We don't always check the response, when it's a redirect we don't bother.
-        if not expected_response['data'] is None:
+        if expected_response["data"] is not None:
             assert response['response'].text == expected_response['data']

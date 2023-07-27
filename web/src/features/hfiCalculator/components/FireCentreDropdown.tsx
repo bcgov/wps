@@ -1,19 +1,28 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import Autocomplete from '@mui/material/Autocomplete'
 import { TextField } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { FireCentre } from 'api/hfiCalculatorAPI'
 import { isNull } from 'lodash'
 
-const useStyles = makeStyles({
-  autocomplete: {
+const PREFIX = 'FireCentreDropdown'
+
+const classes = {
+  autocomplete: `${PREFIX}-autocomplete`,
+  wrapper: `${PREFIX}-wrapper`,
+  fireCentreTextField: `${PREFIX}-fireCentreTextField`,
+  fireCentreTextFieldInput: `${PREFIX}-fireCentreTextFieldInput`
+}
+
+const Root = styled('div')({
+  [`& .${classes.autocomplete}`]: {
     width: '100%',
     color: 'white'
   },
-  wrapper: {
+  [`& .${classes.wrapper}`]: {
     minWidth: 300
   },
-  fireCentreTextField: {
+  [`& .${classes.fireCentreTextField}`]: {
     color: 'white',
     '& .MuiAutocomplete-clearIndicator': {
       color: 'white'
@@ -40,7 +49,7 @@ const useStyles = makeStyles({
       }
     }
   },
-  fireCentreTextFieldInput: {
+  [`& .${classes.fireCentreTextFieldInput}`]: {
     color: 'white'
   }
 })
@@ -57,14 +66,12 @@ interface Props {
 }
 
 const FireCentreDropdown = (props: Props) => {
-  const classes = useStyles()
-
   const allFireCentreOptions: Option[] = props.fireCentres.map((centre: FireCentre) => ({
     name: centre.name
   }))
 
   return (
-    <div className={props.className}>
+    <Root className={props.className}>
       <div className={classes.wrapper}>
         <Autocomplete
           id="fire-centre-dropdown"
@@ -96,7 +103,7 @@ const FireCentreDropdown = (props: Props) => {
           )}
         />
       </div>
-    </div>
+    </Root>
   )
 }
 

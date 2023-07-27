@@ -11,14 +11,13 @@ from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
 import app.utils.time as time_utils
 import app.weather_models.process_grib
-import app.weather_models.env_canada
+import app.jobs.env_canada
+import app.jobs.common_model_fetchers
 import app.db.crud.weather_models
-from app.db.models import (PredictionModel, ProcessedModelRunUrl,
-                           PredictionModelRunTimestamp, PredictionModelGridSubset)
-# pylint: disable=unused-import
-from app.tests.weather_models.test_env_canada_gdps import (MockResponse, mock_get_stations,
-                                                           mock_get_model_run_predictions_for_grid,
-                                                           mock_get_actuals_left_outer_join_with_predictions)
+from app.stations import StationSourceEnum
+from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
+                                          PredictionModelRunTimestamp, PredictionModelGridSubset)
+from app.tests.weather_models.test_env_canada_gdps import (MockResponse)
 
 logger = logging.getLogger(__name__)
 
@@ -61,10 +60,10 @@ def mock_database(monkeypatch):
         return rdps_prediction_model_run
 
     monkeypatch.setattr(app.weather_models.process_grib, 'get_prediction_model', mock_get_prediction_model)
-    monkeypatch.setattr(app.weather_models.env_canada, 'get_prediction_model_run_timestamp_records',
+    monkeypatch.setattr(app.jobs.common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_rdps_prediction_model_run_timestamp_records)
-    monkeypatch.setattr(app.weather_models.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
-    monkeypatch.setattr(app.weather_models.env_canada, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
+    monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
+    monkeypatch.setattr(app.jobs.common_model_fetchers, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
     monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
@@ -80,7 +79,7 @@ def mock_get_processed_file_record(monkeypatch):
         called = True
         return None
 
-    monkeypatch.setattr(app.weather_models.env_canada, 'get_processed_file_record', get_processed_file_record)
+    monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', get_processed_file_record)
 
 
 @pytest.fixture()
@@ -109,21 +108,16 @@ def mock_download_fail(monkeypatch):
 def test_get_rdps_download_urls():
     """ test to see if get_download_urls methods give the correct number of urls """
     # -1 because 000 hour has no APCP_SFC_0
-    total_num_of_urls = 85 * len(app.weather_models.env_canada.GRIB_LAYERS) - 1
-    assert len(list(app.weather_models.env_canada.get_regional_model_run_download_urls(
+    total_num_of_urls = 85 * len(app.jobs.env_canada.GRIB_LAYERS) - 1
+    assert len(list(app.jobs.env_canada.get_regional_model_run_download_urls(
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
 @pytest.mark.usefixtures('mock_get_processed_file_record')
 def test_process_rdps(mock_download,
-                      mock_database,
-                      mock_get_model_run_predictions_for_grid,
-                      mock_get_actuals_left_outer_join_with_predictions,
-                      mock_get_stations):
+                      mock_database):
     """ run main method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
     sys.argv = ["argv", "RDPS"]
-    assert app.weather_models.env_canada.process_models() == 1
-
-# pylint: enable=unused-import
+    assert app.jobs.env_canada.process_models(StationSourceEnum.TEST) == 1

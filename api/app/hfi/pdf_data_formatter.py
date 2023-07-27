@@ -140,8 +140,13 @@ def get_merged_station_data(
     Returns all the weather station and daily data we have for a station
     """
     all_station_pdf_data: List[StationPDFData] = []
+    # We do a null check here because station_dict is built from
+    # stations we retrieve from WF1, while the dailies come from the HFI request
+    # which can have an different set of stations
     for daily in dailies:
-        station_data = station_dict[daily.code]
+        station_data = station_dict.get(daily.code, None)
+        if station_data is None:
+            continue
         daily_dict = daily.dict()
         daily_dict.update(station_data)
         station_info: StationInfo = next(

@@ -5,6 +5,7 @@ import percentilesReducer from 'features/percentileCalculator/slices/percentiles
 import cHainesModelRunReducer from 'features/cHaines/slices/cHainesModelRunsSlice'
 import cHainesPredictionReducer from 'features/cHaines/slices/cHainesPredictionsSlice'
 import authReducer from 'features/auth/slices/authenticationSlice'
+import wf1AuthReducer from 'features/auth/slices/wf1AuthenticationSlice'
 import modelsReducer from 'features/fireWeather/slices/modelsSlice'
 import observationsReducer from 'features/fireWeather/slices/observationsSlice'
 import forecastsReducer from 'features/fireWeather/slices/forecastsSlice'
@@ -18,12 +19,16 @@ import hfiCalculatorDailiesReducer, { HFICalculatorState } from 'features/hfiCal
 import hfiStationsReducer from 'features/hfiCalculator/slices/stationsSlice'
 import hfiReadyReducer, { HFIReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 import fbaCalculatorSlice from 'features/fbaCalculator/slices/fbaCalculatorSlice'
-import fireCentersSlice from 'features/fbaCalculator/slices/fireCentersSlice'
+import fireCentersSlice from 'commonSlices/fireCentersSlice'
 import fireZoneAreasSlice from 'features/fba/slices/fireZoneAreasSlice'
 import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
 import hfiFuelTypesSlice from 'features/fba/slices/hfiFuelTypesSlice'
 import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
+import stationGroupsSlice from 'commonSlices/stationGroupsSlice'
+import selectedStationGroupsMembersSlice from 'commonSlices/selectedStationGroupMembers'
+import dataSlice from 'features/moreCast2/slices/dataSlice'
+import selectedStationsSlice from 'features/moreCast2/slices/selectedStationsSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -32,6 +37,7 @@ const rootReducer = combineReducers({
   cHainesModelRuns: cHainesModelRunReducer,
   cHainesPredictions: cHainesPredictionReducer,
   authentication: authReducer,
+  wf1Authentication: wf1AuthReducer,
   observations: observationsReducer,
   models: modelsReducer,
   modelSummaries: modelSummariesReducer,
@@ -50,7 +56,11 @@ const rootReducer = combineReducers({
   runDates: runDatesSlice,
   valueAtCoordinate: valueAtCoordinateSlice,
   hfiFuelTypes: hfiFuelTypesSlice,
-  fireZoneElevationInfo: fireZoneElevationInfoSlice
+  fireZoneElevationInfo: fireZoneElevationInfoSlice,
+  stationGroups: stationGroupsSlice,
+  stationGroupsMembers: selectedStationGroupsMembersSlice,
+  weatherIndeterminates: dataSlice,
+  selectedStations: selectedStationsSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -66,6 +76,7 @@ export const selectPercentiles = (state: RootState) => state.percentiles
 export const selectCHainesModelRuns = (state: RootState) => state.cHainesModelRuns
 export const selectChainesPredictions = (state: RootState) => state.cHainesPredictions
 export const selectAuthentication = (state: RootState) => state.authentication
+export const selectWf1Authentication = (state: RootState) => state.wf1Authentication
 export const selectToken = (state: RootState) => state.authentication.token
 export const selectModels = (state: RootState) => state.models
 export const selectObservations = (state: RootState) => state.observations
@@ -102,3 +113,6 @@ export const selectHFIStationsLoading = (state: RootState): boolean => state.hfi
 export const selectHFIReadyState = (state: RootState): HFIReadyState => state.hfiReady
 export const selectFireBehaviourStationsLoading = (state: RootState): boolean => state.fbaCalculatorResults.loading
 export const selectFireCentersLoading = (state: RootState): boolean => state.fireCenters.loading
+export const selectStationGroupsLoading = (state: RootState): boolean => state.stationGroups.loading
+export const selectStationGroups = (state: RootState) => state.stationGroups
+export const selectStationGroupsMembers = (state: RootState) => state.stationGroupsMembers

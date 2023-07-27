@@ -11,12 +11,14 @@ terms of local time. Local time is confusing in BC, and especially so in wildfir
 - Until we stop changing time zones, PDT is used in summer, PST is used in winter.
 """
 from datetime import datetime, timezone, timedelta, date
-from typing import Final
+from typing import Final, List
 import pytz
 
 
 PST_UTC_OFFSET: Final[int] = -8
 PDT_UTC_OFFSET: Final[int] = -7
+vancouver_tz = pytz.timezone("America/Vancouver")
+data_retention_threshold = timedelta(days=21)
 
 
 def _get_pst_tz() -> timezone:
@@ -115,3 +117,7 @@ def get_utc_datetime(input_datetime: datetime):
                                                   microsecond=input_datetime.microsecond))\
         .astimezone(pytz.timezone("UTC"))
     return utc_datetime
+
+
+def get_days_from_range(start_time: datetime, end_time: datetime) -> List[datetime]:
+    return [start_time + timedelta(days=x) for x in range((end_time - start_time).days + 1)]

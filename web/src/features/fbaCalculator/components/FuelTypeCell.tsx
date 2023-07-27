@@ -1,5 +1,4 @@
 import { TextField, Autocomplete } from '@mui/material'
-import { ClassNameMap } from '@mui/styles'
 import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
@@ -11,7 +10,6 @@ interface FuelTypeCellProps {
   fuelTypeOptions: GridMenuOption[]
   inputRows: FBATableRow[]
   updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
-  classNameMap: ClassNameMap<'fuelType'>
   value: GridMenuOption | null
   disabled: boolean
   rowId: number
@@ -41,11 +39,11 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
   }
   return (
     <Autocomplete
+      sx={{ minWidth: 220 }}
       data-testid={`fuel-type-dropdown-fba-${props.rowId}`}
       autoHighlight={true}
       autoSelect={true}
       options={props.fuelTypeOptions}
-      className={props.classNameMap.fuelType}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
       renderInput={params => (

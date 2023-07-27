@@ -1,11 +1,14 @@
 """ Parsers that extract fields from WFWX API responses and build ours"""
 
 import math
+import enum
 import logging
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
-from app.schemas.stations import WeatherStation
+from app.schemas.morecast_v2 import MoreCastForecastOutput, StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate
+from app.schemas.stations import (WeatherStationGroup, WeatherStation,
+                                  WeatherStationGroupMember, FireZone, StationFireCentre)
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
@@ -18,10 +21,16 @@ from app.schemas.fba import FireCentre, FireCenterStation
 logger = logging.getLogger(__name__)
 
 
+class WF1RecordTypeEnum(enum.Enum):
+    ACTUAL = 'ACTUAL'
+    FORECAST = 'FORECAST'
+    MANUAL = 'MANUAL'
+
+
 class WFWXWeatherStation():
     """ A WFWX station includes a code and WFWX API specific id """
 
-    def __init__(self,  # pylint: disable=too-many-arguments
+    def __init__(self,
                  wfwx_id: str, code: int, latitude: float, longitude: float, elevation: int,
                  name: str, zone_code: Optional[str]):
         self.wfwx_id = wfwx_id
@@ -45,6 +54,58 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
                                            lat=raw_station['latitude'],
                                            long=raw_station['longitude']))
     return stations
+
+
+async def dailies_list_mapper(raw_dailies: Generator[dict, None, None], record_type: WF1RecordTypeEnum):
+    """ Maps raw dailies for list of StationDailyFromWF1 objects """
+    wf1_dailies: List[StationDailyFromWF1] = []
+    async for raw_daily in raw_dailies:
+        if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == record_type.value:
+            wf1_dailies.append(StationDailyFromWF1(
+                created_by=raw_daily.get('createdBy'),
+                forecast_id=raw_daily.get('id'),
+                station_code=raw_daily.get('stationData').get('stationCode'),
+                station_name=raw_daily.get('stationData').get('displayLabel'),
+                utcTimestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),
+                temperature=raw_daily.get('temperature'),
+                relative_humidity=raw_daily.get('relativeHumidity'),
+                precipitation=raw_daily.get('precipitation'),
+                wind_direction=raw_daily.get('windDirection'),
+                wind_speed=raw_daily.get('windSpeed')
+            ))
+    return wf1_dailies
+
+
+async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, None]):
+    """ Maps raw dailies to weather indeterminate list"""
+    observed_dailies = []
+    forecasts = []
+    async for raw_daily in raw_dailies:
+        if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') in [WF1RecordTypeEnum.ACTUAL.value, WF1RecordTypeEnum.MANUAL.value]:
+            observed_dailies.append(WeatherIndeterminate(
+                station_code=raw_daily.get('stationData').get('stationCode'),
+                station_name=raw_daily.get('stationData').get('displayLabel'),
+                determinate=WeatherDeterminate.ACTUAL,
+                utc_timestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),
+                temperature=raw_daily.get('temperature'),
+                relative_humidity=raw_daily.get('relativeHumidity'),
+                precipitation=raw_daily.get('precipitation'),
+                wind_direction=raw_daily.get('windDirection'),
+                wind_speed=raw_daily.get('windSpeed')
+            ))
+        elif is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == WF1RecordTypeEnum.FORECAST.value:
+            forecasts.append(WeatherIndeterminate(
+                station_code=raw_daily.get('stationData').get('stationCode'),
+                station_name=raw_daily.get('stationData').get('displayLabel'),
+                determinate=WeatherDeterminate.FORECAST,
+                utc_timestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),
+                temperature=raw_daily.get('temperature'),
+                relative_humidity=raw_daily.get('relativeHumidity'),
+                precipitation=raw_daily.get('precipitation'),
+                wind_direction=raw_daily.get('windDirection'),
+                wind_speed=raw_daily.get('windSpeed')
+            ))
+    return observed_dailies, forecasts
 
 
 async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) -> List[WFWXWeatherStation]:
@@ -82,7 +143,7 @@ async def fire_center_mapper(raw_stations: Generator[dict, None, None]):
             fire_center = fire_centers.get(fire_center_id, None)
             if fire_center is None:
                 fire_centers[fire_center_id] = FireCentre(
-                    id=raw_fire_center['id'], name=raw_fire_center['displayLabel'], stations=[station])
+                    id=str(raw_fire_center['id']), name=raw_fire_center['displayLabel'], stations=[station])
             else:
                 fire_center.stations.append(station)
     return fire_centers
@@ -107,7 +168,6 @@ def construct_zone_code(station: any):
 def parse_station(station, eco_division: EcodivisionSeasons) -> WeatherStation:
     """ Transform from the json object returned by wf1, to our station object.
     """
-    # pylint: disable=no-member
     core_seasons = eco_division.get_core_seasons()
     ecodiv_name = eco_division.get_ecodivision_name(station['stationCode'],
                                                     station['latitude'],
@@ -224,3 +284,75 @@ def parse_hourly_actual(station_code: int, hourly):
     # don't write the HourlyActual to our database if every value is invalid. If even one
     # weather variable observed is valid, write the HourlyActual to DB.
     return None if is_obs_invalid else hourly_actual
+
+
+async def weather_station_group_mapper(raw_station_groups_by_owner: Generator[dict, None, None]) -> List[WeatherStationGroup]:
+    """ Maps raw weather station groups to WeatherStationGroup"""
+    weather_station_groups = []
+    async for raw_group in raw_station_groups_by_owner:
+        weather_station_groups.append(WeatherStationGroup(
+            display_label=raw_group['displayLabel'],
+            group_description=raw_group['groupDescription'],
+            group_owner_user_guid=raw_group['groupOwnerUserGuid'],
+            group_owner_user_id=raw_group['groupOwnerUserId'],
+            id=raw_group['id']))
+
+    return weather_station_groups
+
+
+def weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
+    mapped_stations = []
+    for item in stations:
+        station = item['station']
+        fire_zone = FireZone(id=station['zone']['id'], display_label=station['zone']['displayLabel'],
+                             fire_centre=station['zone']['fireCentre']) if station['zone'] is not None else None
+        weather_station = WeatherStationGroupMember(
+            id=station['id'],
+            display_label=station['displayLabel'],
+            fire_centre=StationFireCentre(id=station['fireCentre']['id'],
+                                          display_label=station['fireCentre']['displayLabel']),
+            fire_zone=fire_zone,
+            station_code=station['stationCode'],
+            station_status=station['stationStatus']['id']
+        )
+        mapped_stations.append(weather_station)
+
+    return mapped_stations
+
+
+def unique_weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
+    all_stations = weather_stations_mapper(stations)
+    unique_stations = []
+    stations_added = set()
+
+    for station in all_stations:
+        if station.station_code not in stations_added:
+            unique_stations.append(station)
+            stations_added.add(station.station_code)
+
+    return unique_stations
+
+
+def transform_morecastforecastoutput_to_weatherindeterminate(forecast_outputs: List[MoreCastForecastOutput],
+                                                             wfwx_stations: List[WFWXWeatherStation]
+                                                             ) -> List[WeatherIndeterminate]:
+    """ Helper function to convert list of MoreCastForecastOutput objects (taken from our database)
+    into list of WeatherIndeterminate objects to match the structure of the forecasts pulled from WFWX.
+    wfwx_stations list (station data from WFWX) is used to populate station_name data.
+    """
+    weather_indeterminates: List[WeatherIndeterminate] = []
+    for output in forecast_outputs:
+        station = next(s for s in wfwx_stations if s.code == output.station_code)
+
+        weather_indeterminates.append(WeatherIndeterminate(
+            station_code=output.station_code,
+            station_name=station.name if station else '',
+            utc_timestamp=output.for_date,
+            determinate=WeatherDeterminate.FORECAST,
+            temperature=output.temp,
+            relative_humidity=output.rh,
+            precipitation=output.precip,
+            wind_direction=output.wind_direction,
+            wind_speed=output.wind_speed
+        ))
+    return weather_indeterminates

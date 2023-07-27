@@ -103,5 +103,5 @@ def assert_response(response, codes: List):
     if len(result['summaries']) == 1:
         summary = result['summaries'][0]
         assert summary['station']['code'] == codes[0]
-        assert summary['values'] == [{'datetime': weather_date.isoformat(), 'tmp_min': tmp_min,
+        assert summary['values'] == [{'datetime': weather_date.isoformat().replace("+00:00", "Z"), 'tmp_min': tmp_min,
                                       'tmp_max': tmp_max, 'rh_min': rh_min, 'rh_max': rh_max}]

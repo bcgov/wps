@@ -37,7 +37,7 @@ class FileLikeObject(io.IOBase):
     def read(self, size: int = -1):
         return self.file.read(size)
 
-    def write(self, b: bytes):  # pylint: disable=invalid-name
+    def write(self, b: bytes):
         return self.file.write(b)
 
     def seek(self, offset: int, whence: int = io.SEEK_SET):
@@ -99,7 +99,7 @@ async def upload(file: UploadFile,
             logger.info("HFI file: %s, putting processing message on queue", file.filename)
             message = get_sfms_file_message(file.filename, meta_data)
             background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
-    except Exception as exception:  # pylint: disable=broad-except
+    except Exception as exception:
         logger.error(exception, exc_info=True)
         # Regardless of what happens with putting a message on the queue, we return 200 to the
         # caller. The caller doesn't care that we failed to put a message on the queue. That's
@@ -163,14 +163,14 @@ def add_msg_to_queue(file: UploadFile, key: str, forecast_or_actual: str, meta_d
             for_date = get_date_part(file.filename)
             message = SFMSFile(key=key,
                                run_type=forecast_or_actual,
-                               last_modified=meta_data.get('last_modified'),
-                               create_time=meta_data.get('create_time'),
+                               last_modified=datetime.fromisoformat(meta_data.get('last_modified')),
+                               create_time=datetime.fromisoformat(meta_data.get('create_time')),
                                run_date=issue_date,
                                for_date=date(year=int(for_date[0:4]),
                                              month=int(for_date[4:6]),
                                              day=int(for_date[6:8])))
             background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
-    except Exception as exception:  # pylint: disable=broad-except
+    except Exception as exception:
         logger.error(exception, exc_info=True)
         # Regardless of what happens with putting a message on the queue, we return 200 to the
         # caller. The caller doesn't care that we failed to put a message on the queue. That's

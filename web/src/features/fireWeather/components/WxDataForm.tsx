@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { styled } from '@mui/material/styles'
 import { useSelector } from 'react-redux'
-import makeStyles from '@mui/styles/makeStyles'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
@@ -10,8 +10,16 @@ import WxStationDropdown from 'features/fireWeather/components/WxStationDropdown
 import { selectStations } from 'features/stations/slices/stationsSlice'
 import { selectWxDataLoading, selectFireWeatherStationsLoading, selectFireWeatherStations } from 'app/rootReducer'
 
-const useStyles = makeStyles({
-  form: {
+const PREFIX = 'WxDataForm'
+
+const classes = {
+  form: `${PREFIX}-form`,
+  stationDropdown: `${PREFIX}-stationDropdown`,
+  timeOfInterest: `${PREFIX}-timeOfInterest`
+}
+
+const Root = styled('form')({
+  [`&.${classes.form}`]: {
     display: 'flex',
     alignItems: 'center',
     flexWrap: 'wrap',
@@ -24,10 +32,10 @@ const useStyles = makeStyles({
       background: '#f0f0f0'
     }
   },
-  stationDropdown: {
+  [`& .${classes.stationDropdown}`]: {
     marginRight: 16
   },
-  timeOfInterest: {
+  [`& .${classes.timeOfInterest}`]: {
     marginRight: 16
   }
 })
@@ -40,7 +48,6 @@ interface Props {
 }
 
 const WxDataForm = ({ stationCodesQuery, toiFromQuery, setSidePanelState }: Props) => {
-  const classes = useStyles()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -75,7 +82,7 @@ const WxDataForm = ({ stationCodesQuery, toiFromQuery, setSidePanelState }: Prop
   }
 
   return (
-    <form className={classes.form} noValidate>
+    <Root className={classes.form} noValidate>
       <WxStationDropdown className={classes.stationDropdown} stationCodes={selectedStationsByCode} />
       <TimeOfInterestPicker
         className={classes.timeOfInterest}
@@ -86,7 +93,7 @@ const WxDataForm = ({ stationCodesQuery, toiFromQuery, setSidePanelState }: Prop
         onBtnClick={handleSubmit}
         selector={hasSelectedCodes ? selectWxDataLoading : selectFireWeatherStationsLoading}
       />
-    </form>
+    </Root>
   )
 }
 
