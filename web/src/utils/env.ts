@@ -9,7 +9,7 @@ let ENV = {
   KC_CLIENT: import.meta.env.VITE_KEYCLOAK_CLIENT as string,
   MS_TEAMS_SPRINT_REVIEW_URL: import.meta.env.VITE_MS_TEAMS_SPRINT_REVIEW_URL as string,
   MIRO_SPRINT_REVIEW_BOARD_URL: import.meta.env.VITE_MIRO_SPRINT_REVIEW_BOARD_URL as string,
-  WF1_AUTH_URL: process.env.VITE_WF1_AUTH_URL as string
+  WF1_AUTH_URL: import.meta.env.VITE_WF1_AUTH_URL as string
 }
 
 // If the app is built using 'npm run build'
