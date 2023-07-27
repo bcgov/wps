@@ -14,13 +14,13 @@ const SidePanelGrid = styled(Grid)({
   padding: 0
 })
 
-const ZoneNameTyp = styled(Typography)({
+const ZoneName = styled(Typography)({
   fontSize: '2rem',
   textAlign: 'center',
   variant: 'h2'
 })
 
-const CentreNameTyp = styled(Typography)({
+const CentreName = styled(Typography)({
   fontSize: '1rem',
   textAlign: 'center',
   variant: 'h6',
@@ -44,8 +44,8 @@ const ZoneSummaryPanel = React.forwardRef((props: Props, ref: React.ForwardedRef
       <SidePanelGrid ref={ref}>
         <Grid container alignItems={'center'} direction={'column'}>
           <Grid item>
-            <ZoneNameTyp>{props.selectedFireZone.mof_fire_zone_name}</ZoneNameTyp>
-            <CentreNameTyp>{props.selectedFireZone.mof_fire_centre_name}</CentreNameTyp>
+            <ZoneName>{props.selectedFireZone.mof_fire_zone_name}</ZoneName>
+            <CentreName>{props.selectedFireZone.mof_fire_centre_name}</CentreName>
           </Grid>
           <Grid item>
             <CombustibleAreaViz
