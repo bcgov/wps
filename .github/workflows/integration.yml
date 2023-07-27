@@ -214,7 +214,7 @@ jobs:
         with:
           start: export $(cat .env.cypress | xargs) && react-scripts --max_old_space_size=4096 -r @cypress/instrument-cra start
           browser: chrome
-        working-directory: ./web
+          working-directory: ./web
       - name: Unit tests (web)
         working-directory: ./web
         run: yarn run coverage:ci
