@@ -28,7 +28,7 @@ class FireZoneArea(BaseModel):
     """ A zone is a grouping of planning areas within a fire centre. """
     mof_fire_zone_id: int
     threshold: int
-    combustible_area: int
+    combustible_area: float
     elevated_hfi_area: float
     elevated_hfi_percentage: float
 
