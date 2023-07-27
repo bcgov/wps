@@ -211,7 +211,10 @@ jobs:
       # It seems unnecessary at the moment because tests pass anyway
       - name: Cypress tests with coverage (web)
         working-directory: ./web
-        run: yarn run cypress:ci
+        uses: cypress-io/github-action@v5
+        with:
+          start: export $(cat .env.cypress | xargs) && react-scripts --max_old_space_size=4096 -r @cypress/instrument-cra start
+          browser: chrome
       - name: Unit tests (web)
         working-directory: ./web
         run: yarn run coverage:ci
