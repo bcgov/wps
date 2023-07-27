@@ -48,7 +48,7 @@ describe('moreCast2API', () => {
     expect(res[1].wind_direction).toEqual(0)
   })
   it('should call submit endpoint for forecast submission', async () => {
-    axios.post = jest.fn().mockResolvedValue({ status: 201 })
+    axios.post = vi.fn().mockResolvedValue({ status: 201 })
     const res = await submitMoreCastForecastRecords('testToken', [
       buildMorecast2Forecast('1', 1, 'one', DateTime.fromObject({ year: 2021, month: 1, day: 1 })),
       buildMorecast2Forecast('2', 2, 'two', DateTime.fromObject({ year: 2021, month: 1, day: 1 }))
@@ -111,7 +111,7 @@ describe('moreCast2API', () => {
         ]
       }
     }
-    axios.post = jest.fn().mockResolvedValue(response)
+    axios.post = vi.fn().mockResolvedValue(response)
     const res = await fetchWeatherIndeterminates(
       [1, 2, 3],
       DateTime.fromObject({ year: 1970, month: 1, day: 1 }),

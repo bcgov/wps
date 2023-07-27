@@ -16,8 +16,8 @@ describe('ApplyToColumnMenu', () => {
     new GridComponentRenderer()
   )
   it('should not render the menu when no context from a click exists', async () => {
-    const mockUpdateColumnWithModel = jest.fn()
-    const mockHandleClose = jest.fn()
+    const mockUpdateColumnWithModel = vi.fn()
+    const mockHandleClose = vi.fn()
 
     const { queryByText } = render(
       <ApplyToColumnMenu
@@ -32,8 +32,8 @@ describe('ApplyToColumnMenu', () => {
   })
 
   it('should render the menu when context from a click exists', async () => {
-    const mockUpdateColumnWithModel = jest.fn()
-    const mockHandleClose = jest.fn()
+    const mockUpdateColumnWithModel = vi.fn()
+    const mockHandleClose = vi.fn()
     const colDef = colDefBuilder.generateForecastColDef()
     expect(colDef).not.toBeNull()
 
@@ -53,8 +53,8 @@ describe('ApplyToColumnMenu', () => {
     const colDef = colDefBuilder.generateForecastColDef()
 
     it('should apply the model to the supplied column definition', async () => {
-      const mockUpdateColumnWithModel = jest.fn()
-      const mockHandleClose = jest.fn()
+      const mockUpdateColumnWithModel = vi.fn()
+      const mockHandleClose = vi.fn()
 
       const { getByTestId } = render(
         <ApplyToColumnMenu

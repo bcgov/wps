@@ -73,7 +73,7 @@ describe('Menu', () => {
     /** no op */
   })
 
-  const toggleMock = jest.fn((): void => {
+  const toggleMock = vi.fn((): void => {
     /** no op */
   })
 

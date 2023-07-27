@@ -17,7 +17,7 @@ describe('StationGroupsDropdown', () => {
   ]
 
   it('should render with the default value', async () => {
-    const setSelectedStationGroup = jest.fn()
+    const setSelectedStationGroup = vi.fn()
     const { getByTestId } = render(
       <StationGroupDropdown
         idir={idir}
@@ -33,7 +33,7 @@ describe('StationGroupsDropdown', () => {
     await waitFor(() => expect(setSelectedStationGroup).toBeCalledTimes(0))
   })
   it('should change value on change and call parent callback', async () => {
-    const setSelectedStationGroup = jest.fn()
+    const setSelectedStationGroup = vi.fn()
     const { getByTestId } = render(
       <StationGroupDropdown
         idir={idir}
@@ -56,7 +56,7 @@ describe('StationGroupsDropdown', () => {
     await waitFor(() => expect(setSelectedStationGroup).toBeCalledWith(stationGroups[0]))
   })
   it('should show all groups', async () => {
-    const setSelectedStationGroup = jest.fn()
+    const setSelectedStationGroup = vi.fn()
     const { getByTestId, findAllByRole } = render(
       <StationGroupDropdown
         idir={idir}
