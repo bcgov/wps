@@ -222,7 +222,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       </Container>
       <Container sx={{ display: 'flex', flex: 1 }} disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
-          <Grid sx={{ overflowY: 'auto' }} ref={sidePanelRef} item>
+          <Grid ref={sidePanelRef} item>
             <ZoneSummaryPanel
               selectedFireZone={selectedFireZone}
               fuelTypeInfo={hfiThresholdsFuelTypes}

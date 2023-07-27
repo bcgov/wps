@@ -53,7 +53,7 @@ const ZoneSummaryPanel = React.forwardRef((props: Props, ref: React.ForwardedRef
     return <div></div>
   } else {
     return (
-      <StyledGrid ref={ref} className={`${classes.wrapper}`}>
+      <StyledGrid ref={ref} className={classes.wrapper} sx={{ overflowY: 'auto', maxHeight: '100%' }}>
         <Grid container alignItems={'center'} direction={'column'}>
           <Grid item>
             <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
