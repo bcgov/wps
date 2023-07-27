@@ -4,11 +4,16 @@ import { Paper, Grid, Typography, Divider, Button } from '@mui/material'
 import { format, differenceInCalendarMonths } from 'date-fns'
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt'
 import { MARKERS } from 'components/dateRangePicker/DateRangePicker'
-import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/types'
+import { NavigationAction, Setter } from 'components/dateRangePicker/types'
 import Month from 'components/dateRangePicker/Month'
 import { theme } from 'app/theme'
 
 const PREFIX = 'Menu'
+
+interface DateRange {
+  startDate?: Date
+  endDate?: Date
+}
 
 const classes = {
   header: `${PREFIX}-header`,

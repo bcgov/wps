@@ -8,13 +8,17 @@ import { AppDispatch } from 'app/store'
 import { GeneralHeader } from 'components'
 import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
 import StationPanel from 'features/moreCast2/components/StationPanel'
-import { DateRange } from 'components/dateRangePicker/types'
 import { fetchStationGroups } from 'commonSlices/stationGroupsSlice'
 import { StationGroup } from 'api/stationAPI'
 import { fetchStationGroupsMembers } from 'commonSlices/selectedStationGroupMembers'
 import { getWeatherIndeterminates, selectAllMoreCast2Rows } from 'features/moreCast2/slices/dataSlice'
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 import { selectedStationsChanged } from 'features/moreCast2/slices/selectedStationsSlice'
+
+interface DateRange {
+  startDate?: Date
+  endDate?: Date
+}
 
 export const Root = styled('div')({
   display: 'flex',

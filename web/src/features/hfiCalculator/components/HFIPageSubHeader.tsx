@@ -7,12 +7,16 @@ import AboutDataModal from 'features/hfiCalculator/components/AboutDataModal'
 import { HelpOutlineOutlined } from '@mui/icons-material'
 import { theme } from 'app/theme'
 import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { DateRange } from 'components/dateRangePicker/types'
 import PrepDateRangeSelector from 'features/hfiCalculator/components/PrepDateRangeSelector'
 import LoggedInStatus from 'features/hfiCalculator/components/stationAdmin/LoggedInStatus'
 import { selectAuthentication } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
 import SignoutButton from 'features/auth/components/SignoutButton'
+
+interface DateRange {
+  startDate?: Date
+  endDate?: Date
+}
 
 const PREFIX = 'HFIPageSubHeader'
 

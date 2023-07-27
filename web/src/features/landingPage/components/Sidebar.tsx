@@ -152,7 +152,7 @@ export const Sidebar: React.FunctionComponent = () => {
               href={MS_TEAMS_SPRINT_REVIEW_URL}
               target="_blank"
             >
-              <SvgIcon component={MsTeamsIcon} fontSize="large" viewBox="0 0 2228.833 2073.333" />
+              <SvgIcon fontSize="large" viewBox="0 0 2228.833 2073.333" />
               <CollabItemTitle>Teams Meetings</CollabItemTitle>
               <CollabItemContent>Join our sprint reviews or watch the recordings</CollabItemContent>
             </Button>
@@ -162,7 +162,7 @@ export const Sidebar: React.FunctionComponent = () => {
             href={MIRO_SPRINT_REVIEW_BOARD_URL}
             target="_blank"
           >
-            <SvgIcon component={MiroIcon} fontSize="large" viewBox="0 0 48 48" />
+            <SvgIcon fontSize="large" viewBox="0 0 48 48" />
             <CollabItemTitle>Miro Board</CollabItemTitle>
             <CollabItemContent>Checkout our Miro board to see the latest from our sprint reviews</CollabItemContent>
           </Button>
@@ -178,7 +178,7 @@ export const Sidebar: React.FunctionComponent = () => {
           <Tooltip arrow placement="right" title="Wednesdays at 1:00 PM on non-pay weeks">
             <ListItemButton component={'a'} href={MS_TEAMS_SPRINT_REVIEW_URL} target="_blank">
               <SidebarListItemIcon>
-                <SvgIcon component={MsTeamsIcon} viewBox="0 0 2228.833 2073.333" />
+                <SvgIcon viewBox="0 0 2228.833 2073.333" />
               </SidebarListItemIcon>
               <ListItemText primary="Join Our Sprint Reviews" />
             </ListItemButton>
@@ -187,7 +187,7 @@ export const Sidebar: React.FunctionComponent = () => {
         <ListItem disablePadding>
           <ListItemButton sx={{ minWidth: '36px' }} component={'a'} href={MIRO_SPRINT_REVIEW_BOARD_URL} target="_blank">
             <SidebarListItemIcon>
-              <SvgIcon component={MiroIcon} viewBox="0 0 48 48" />
+              <SvgIcon viewBox="0 0 48 48" />
             </SidebarListItemIcon>
             <ListItemText primary="Miro Board" />
           </ListItemButton>

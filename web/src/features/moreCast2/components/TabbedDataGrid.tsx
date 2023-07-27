@@ -15,10 +15,14 @@ import { groupBy, isEqual, isUndefined } from 'lodash'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
 import { ROLES } from 'features/auth/roles'
 import { selectAuthentication, selectWf1Authentication } from 'app/rootReducer'
-import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
+
+interface DateRange {
+  startDate?: Date
+  endDate?: Date
+}
 
 export const Root = styled('div')({
   display: 'flex',

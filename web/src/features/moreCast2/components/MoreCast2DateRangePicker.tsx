@@ -1,9 +1,13 @@
 import { createTheme, ThemeProvider, StyledEngineProvider, Box } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { DateRange } from 'components/dateRangePicker/types'
 import { DateTime } from 'luxon'
 import React from 'react'
 import DateRangeSelector from 'components/DateRangeSelector'
+
+interface DateRange {
+  startDate?: Date
+  endDate?: Date
+}
 
 const PREFIX = 'MoreCast2DateRangePicker'
 
