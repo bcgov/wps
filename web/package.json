@@ -56,14 +56,14 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "start": "vite",
+    "start": "vite --host",
     "build": "tsc && vite build",
     "test": "vitest",
     "serve": "vite build && vite preview",
     "coverage": "vitest run --coverage",
     "coverage:ci": "CI=true vitest run --coverage",
     "cy:run": "cypress run --browser chrome",
-    "cypress:ci": "start-server-and-test serve http-get://localhost:3030 cy:run",
+    "cypress:ci": "start-server-and-test start http-get://localhost:3030 cy:run",
     "lint": "eslint './src/**/*.{ts,tsx}'",
     "lint:fix": "eslint --fix './src/**/*.{ts,tsx}'",
     "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md)\"",
