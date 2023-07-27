@@ -212,7 +212,7 @@ jobs:
       - name: Cypress tests with coverage (web)
         uses: cypress-io/github-action@v5
         with:
-          start: export $(cat .env.cypress | xargs) && react-scripts --max_old_space_size=4096 -r @cypress/instrument-cra start
+          start: yarn start:cypress
           browser: chrome
           working-directory: ./web
       - name: Unit tests (web)
