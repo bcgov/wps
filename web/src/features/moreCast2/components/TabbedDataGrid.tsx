@@ -31,19 +31,6 @@ export const SaveButton = styled(SaveForecastButton)(({ theme }) => ({
   right: theme.spacing(2)
 }))
 
-// const Root = styled('div')(({ theme }) => ({
-//   [`& .${classes.root}`]: {
-//     display: 'flex',
-//     flexGrow: 1,
-//     flexDirection: 'column'
-//   },
-
-//   [`& .${classes.saveButton}`]: {
-//     position: 'absolute',
-//     right: theme.spacing(2)
-//   }
-// }))
-
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved and sent to Wildfire One.'
 const FORECAST_WARN_MESSAGE = 'Forecast not submitted. A forecast can only contain N/A values for the Wind Direction.'

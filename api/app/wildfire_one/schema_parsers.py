@@ -143,7 +143,7 @@ async def fire_center_mapper(raw_stations: Generator[dict, None, None]):
             fire_center = fire_centers.get(fire_center_id, None)
             if fire_center is None:
                 fire_centers[fire_center_id] = FireCentre(
-                    id=raw_fire_center['id'], name=raw_fire_center['displayLabel'], stations=[station])
+                    id=str(raw_fire_center['id']), name=raw_fire_center['displayLabel'], stations=[station])
             else:
                 fire_center.stations.append(station)
     return fire_centers
