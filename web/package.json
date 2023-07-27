@@ -59,7 +59,7 @@
     "start": "vite",
     "build": "tsc && vite build",
     "test": "vitest",
-    "serve": "build && vite preview",
+    "serve": "vite build && vite preview",
     "coverage": "vitest run --coverage",
     "coverage:ci": "CI=true vitest run --coverage",
     "cy:run": "cypress run --browser chrome",
