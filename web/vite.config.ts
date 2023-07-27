@@ -6,8 +6,10 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
-    port: 3030,
-    hmr: false
+    port: 3030
+  },
+  preview: {
+    port: 3030
   },
   plugins: [
     react(),
