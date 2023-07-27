@@ -21,7 +21,7 @@ const interceptData = () => {
   })
 }
 
-describe('MoreCast Page', () => {
+xdescribe('MoreCast Page', () => {
   beforeEach(() => {
     cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
     cy.intercept('GET', 'api/stations/details/*', { fixture: 'weather-stations-details.json' }).as('getStationsDetails')

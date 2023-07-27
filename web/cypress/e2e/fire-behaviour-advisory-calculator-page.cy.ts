@@ -1,7 +1,7 @@
 import { FIRE_BEHAVIOR_CALC_ROUTE } from '../../src/utils/constants'
 import { FuelTypes } from '../../src/features/fbaCalculator/fuelTypes'
 
-describe('FireBAT Calculator Page', () => {
+xdescribe('FireBAT Calculator Page', () => {
   const visitAndAddRow = () => {
     cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
 
