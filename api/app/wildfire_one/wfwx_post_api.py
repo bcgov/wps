@@ -23,7 +23,8 @@ async def post_forecasts(session: ClientSession,
 
     async with session.post(WF1_FORECAST_POST_URL, json=forecasts_json, headers=headers) as response:
         response_json = await response.json()
-        if response.status != status.HTTP_201_CREATED:
+        if response.status == status.HTTP_201_CREATED or response.status == status.HTTP_200_OK:
+            logger.info('submitted forecasts to wf1 %s.', response_json)
+        else:
             logger.error(f'error submitting forecasts to wf1 {response_json}')
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Error submitting forecast(s) to WF1')
-        logger.info('submitted forecasts to wf1 %s.', response_json)
