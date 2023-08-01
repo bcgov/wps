@@ -69,7 +69,7 @@ class MoreCastForecastInput(BaseModel):
     station_code: int
     for_date: int
     temp: float
-    rh: int
+    rh: float
     precip: float
     wind_speed: float
     wind_direction: int | None = None
