@@ -2,7 +2,6 @@ import * as ol from 'ol'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as olpmtiles from 'ol-pmtiles'
-import * as pmtiles from 'pmtiles'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
 import { fromLonLat } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
@@ -42,8 +41,6 @@ export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
 const TILE_SERVER_URL = 'https://wps-prod-tileserv.apps.silver.devops.gov.bc.ca'
-
-pmtiles.PMTiles
 
 export interface FBAMapProps {
   testId?: string
@@ -129,6 +126,7 @@ const FBAMap = (props: FBAMapProps) => {
   )
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
   const fireCentreLabelVTL = new VectorTileLayer({
+    declutter: true,
     source: fireCentreLabelVectorSource,
     style: fireCentreLabelStyler,
     zIndex: 100,
@@ -137,6 +135,7 @@ const FBAMap = (props: FBAMapProps) => {
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
   const [fireZoneLabelVTL] = useState(
     new VectorTileLayer({
+      declutter: true,
       source: fireZoneLabelVectorSource,
       style: fireZoneLabelStyler(props.selectedFireZone),
       zIndex: 99,
@@ -147,17 +146,6 @@ const FBAMap = (props: FBAMapProps) => {
 
   useEffect(() => {
     if (map) {
-      const layer = map
-        .getLayers()
-        .getArray()
-        .find(l => l.getProperties()?.name === 'fireZoneVector')
-      if (layer) {
-        map.removeLayer(layer)
-      }
-      map.addLayer(fireCentreVTL)
-      map.addLayer(fireZoneVTL)
-      map.addLayer(fireZoneLabelVTL)
-      map.addLayer(fireCentreLabelVTL)
       map.on('click', event => {
         fireZoneVTL.getFeatures(event.pixel).then(features => {
           if (!features.length) {
@@ -272,7 +260,11 @@ const FBAMap = (props: FBAMapProps) => {
       layers: [
         new Tile({
           source: baseMapSource
-        })
+        }),
+        fireCentreVTL,
+        fireZoneVTL,
+        fireCentreLabelVTL,
+        fireZoneLabelVTL
       ],
       overlays: [],
       controls: defaultControls().extend([
