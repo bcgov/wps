@@ -43,7 +43,7 @@ export const fireZoneStyler = (
   selectedFireZone: FireZone | undefined
 ) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const mof_fire_zone_id = feature.get('mof_fire_zone_id')
+    const mof_fire_zone_id = feature.get('MOF_FIRE_ZONE_ID')
     const fireZoneAreaByThreshold = fireZoneAreas.filter(f => f.mof_fire_zone_id === mof_fire_zone_id)
     const selected =
       selectedFireZone?.mof_fire_zone_id && selectedFireZone.mof_fire_zone_id === mof_fire_zone_id ? true : false

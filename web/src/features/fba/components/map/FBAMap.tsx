@@ -173,10 +173,10 @@ const FBAMap = (props: FBAMapProps) => {
             map.getView().fit(zoneExtent)
           }
           const fireZone: FireZone = {
-            mof_fire_zone_id: feature.get('mof_fire_zone_id'),
-            mof_fire_zone_name: feature.get('mof_fire_zone_name'),
-            mof_fire_centre_name: feature.get('mof_fire_centre_name'),
-            area_sqm: feature.get('feature_area_sqm')
+            mof_fire_zone_id: feature.get('MOF_FIRE_ZONE_ID'),
+            mof_fire_zone_name: feature.get('MOF_FIRE_ZONE_NAME'),
+            mof_fire_centre_name: feature.get('MOF_FIRE_CENTRE_NAME'),
+            area_sqm: feature.get('FEATURE_AREA_SQM')
           }
           props.setSelectedFireZone(fireZone)
         })
