@@ -1,4 +1,8 @@
 import * as ol from 'ol'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import * as olpmtiles from 'ol-pmtiles'
+import * as pmtiles from 'pmtiles'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
 import { fromLonLat } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
@@ -38,6 +42,8 @@ export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
 const TILE_SERVER_URL = 'https://wps-prod-tileserv.apps.silver.devops.gov.bc.ca'
+
+pmtiles.PMTiles
 
 export interface FBAMapProps {
   testId?: string
@@ -89,18 +95,32 @@ const FBAMap = (props: FBAMapProps) => {
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
 
-  const fireZoneVectorSource = new VectorTileSource({
-    attributions: ['BC Wildfire Service'],
-    format: new MVT(),
-    url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
+  const fireCentreVectorSource = new olpmtiles.PMTilesVectorSource({
+    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/fire_centres.pmtiles',
+    attributions: ['© Land Information New Zealand']
+  })
+  const fireZoneVectorSource = new olpmtiles.PMTilesVectorSource({
+    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_ZONES_SP.pmtiles',
+    attributions: ['© Land Information New Zealand']
   })
   const fireZoneLabelVectorSource = new VectorTileSource({
     attributions: ['BC Wildfire Service'],
     format: new MVT(),
     url: `${TILE_SERVER_URL}/public.fire_zones_labels/{z}/{x}/{y}.pbf`
   })
-  const [hfiTilesLoading, setHFITilesLoading] = useState(false)
+  const fireCentreLabelVectorSource = new VectorTileSource({
+    attributions: ['BC Wildfire Service'],
+    format: new MVT(),
+    url: `${TILE_SERVER_URL}/public.fire_centres_labels/{z}/{x}/{y}.pbf`
+  })
 
+  const [fireCentreVTL] = useState(
+    new VectorTileLayer({
+      source: fireCentreVectorSource,
+      style: fireCentreStyler,
+      zIndex: 50
+    })
+  )
   const [fireZoneVTL] = useState(
     new VectorTileLayer({
       source: fireZoneVectorSource,
@@ -109,7 +129,13 @@ const FBAMap = (props: FBAMapProps) => {
       properties: { name: 'fireZoneVector' }
     })
   )
-
+  // Seperate layer for polygons and for labels, to avoid duplicate labels.
+  const fireCentreLabelVTL = new VectorTileLayer({
+    source: fireCentreLabelVectorSource,
+    style: fireCentreLabelStyler,
+    zIndex: 100,
+    maxZoom: 6
+  })
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
   const [fireZoneLabelVTL] = useState(
     new VectorTileLayer({
@@ -119,6 +145,7 @@ const FBAMap = (props: FBAMapProps) => {
       minZoom: 6
     })
   )
+  const [hfiTilesLoading, setHFITilesLoading] = useState(false)
 
   useEffect(() => {
     if (map) {
@@ -129,8 +156,10 @@ const FBAMap = (props: FBAMapProps) => {
       if (layer) {
         map.removeLayer(layer)
       }
+      map.addLayer(fireCentreVTL)
       map.addLayer(fireZoneVTL)
       map.addLayer(fireZoneLabelVTL)
+      map.addLayer(fireCentreLabelVTL)
       map.on('click', event => {
         fireZoneVTL.getFeatures(event.pixel).then(features => {
           if (!features.length) {
@@ -156,28 +185,6 @@ const FBAMap = (props: FBAMapProps) => {
       })
     }
   }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fireCentreVTL = new VectorTileLayer({
-    source: new VectorTileSource({
-      attributions: ['BC Wildfire Service'],
-      format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.fire_centres/{z}/{x}/{y}.pbf`
-    }),
-    style: fireCentreStyler,
-    zIndex: 50
-  })
-
-  // Seperate layer for polygons and for labels, to avoid duplicate labels.
-  const fireCentreLabelVTL = new VectorTileLayer({
-    source: new VectorTileSource({
-      attributions: ['BC Wildfire Service'],
-      format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.fire_centres_labels/{z}/{x}/{y}.pbf`
-    }),
-    style: fireCentreLabelStyler,
-    zIndex: 100,
-    maxZoom: 6
-  })
 
   useEffect(() => {
     if (!map) return
@@ -267,9 +274,7 @@ const FBAMap = (props: FBAMapProps) => {
       layers: [
         new Tile({
           source: baseMapSource
-        }),
-        fireCentreVTL,
-        fireCentreLabelVTL
+        })
       ],
       overlays: [],
       controls: defaultControls().extend([
