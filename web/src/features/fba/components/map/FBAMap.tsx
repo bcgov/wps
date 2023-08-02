@@ -103,15 +103,13 @@ const FBAMap = (props: FBAMapProps) => {
     url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_ZONES_SP.pmtiles',
     attributions: ['© Land Information New Zealand']
   })
-  const fireZoneLabelVectorSource = new VectorTileSource({
-    attributions: ['BC Wildfire Service'],
-    format: new MVT(),
-    url: `${TILE_SERVER_URL}/public.fire_zones_labels/{z}/{x}/{y}.pbf`
+  const fireCentreLabelVectorSource = new olpmtiles.PMTilesVectorSource({
+    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/fireCentreLabels.pmtiles',
+    attributions: ['© Land Information New Zealand']
   })
-  const fireCentreLabelVectorSource = new VectorTileSource({
-    attributions: ['BC Wildfire Service'],
-    format: new MVT(),
-    url: `${TILE_SERVER_URL}/public.fire_centres_labels/{z}/{x}/{y}.pbf`
+  const fireZoneLabelVectorSource = new olpmtiles.PMTilesVectorSource({
+    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/fireZoneLabels.pmtiles',
+    attributions: ['© Land Information New Zealand']
   })
 
   const [fireCentreVTL] = useState(
