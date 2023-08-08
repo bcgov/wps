@@ -30,13 +30,12 @@ import {
 import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
 import { LayerControl } from 'features/fba/components/map/layerControl'
-import { RASTER_SERVER_BASE_URL } from 'utils/env'
+import { PMTILES_BUCKET, RASTER_SERVER_BASE_URL } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildHFICql } from 'features/fba/cqlBuilder'
 import { isUndefined, cloneDeep } from 'lodash'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 import { Box } from '@mui/material'
-import { PMTILES_BUCKET } from 'utils/env'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
