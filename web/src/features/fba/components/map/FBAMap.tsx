@@ -122,12 +122,14 @@ const FBAMap = (props: FBAMapProps) => {
     })
   )
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
-  const fireCentreLabelVTL = new VectorTileLayer({
-    source: fireCentreLabelVectorSource,
-    style: fireCentreLabelStyler,
-    zIndex: 100,
-    maxZoom: 6
-  })
+  const [fireCentreLabelVTL] = useState(
+    new VectorTileLayer({
+      source: fireCentreLabelVectorSource,
+      style: fireCentreLabelStyler,
+      zIndex: 100,
+      maxZoom: 6
+    })
+  )
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
   const [fireZoneLabelVTL] = useState(
     new VectorTileLayer({
