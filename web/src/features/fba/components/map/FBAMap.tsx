@@ -36,6 +36,7 @@ import { buildHFICql } from 'features/fba/cqlBuilder'
 import { isUndefined, cloneDeep } from 'lodash'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 import { Box } from '@mui/material'
+import { PMTILES_BUCKET } from 'utils/env'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -93,16 +94,16 @@ const FBAMap = (props: FBAMapProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null)
 
   const fireCentreVectorSource = new olpmtiles.PMTilesVectorSource({
-    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/fire_centres.pmtiles'
+    url: `${PMTILES_BUCKET}fireCentres.pmtiles`
   })
   const fireZoneVectorSource = new olpmtiles.PMTilesVectorSource({
-    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_ZONES_SP.pmtiles'
+    url: `${PMTILES_BUCKET}fireZones.pmtiles`
   })
   const fireCentreLabelVectorSource = new olpmtiles.PMTilesVectorSource({
-    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/fireCentreLabels.pmtiles'
+    url: `${PMTILES_BUCKET}fireCentreLabels.pmtiles`
   })
   const fireZoneLabelVectorSource = new olpmtiles.PMTilesVectorSource({
-    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/fireZoneLabels.pmtiles'
+    url: `${PMTILES_BUCKET}fireZoneLabels.pmtiles`
   })
 
   const [fireCentreVTL] = useState(
