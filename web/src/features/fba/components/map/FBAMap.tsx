@@ -93,20 +93,16 @@ const FBAMap = (props: FBAMapProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null)
 
   const fireCentreVectorSource = new olpmtiles.PMTilesVectorSource({
-    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/fire_centres.pmtiles',
-    attributions: ['© Land Information New Zealand']
+    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/fire_centres.pmtiles'
   })
   const fireZoneVectorSource = new olpmtiles.PMTilesVectorSource({
-    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_ZONES_SP.pmtiles',
-    attributions: ['© Land Information New Zealand']
+    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_ZONES_SP.pmtiles'
   })
   const fireCentreLabelVectorSource = new olpmtiles.PMTilesVectorSource({
-    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/fireCentreLabels.pmtiles',
-    attributions: ['© Land Information New Zealand']
+    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/fireCentreLabels.pmtiles'
   })
   const fireZoneLabelVectorSource = new olpmtiles.PMTilesVectorSource({
-    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/fireZoneLabels.pmtiles',
-    attributions: ['© Land Information New Zealand']
+    url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/pmtiles/fireZoneLabels.pmtiles'
   })
 
   const [fireCentreVTL] = useState(
@@ -126,7 +122,6 @@ const FBAMap = (props: FBAMapProps) => {
   )
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
   const fireCentreLabelVTL = new VectorTileLayer({
-    declutter: true,
     source: fireCentreLabelVectorSource,
     style: fireCentreLabelStyler,
     zIndex: 100,
