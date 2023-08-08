@@ -117,8 +117,5 @@
       "src/serviceWorker.ts",
       "src/app/store.ts"
     ]
-  },
-  "resolutions": {
-    "pmtiles": "2.7.2"
   }
 }
