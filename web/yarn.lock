@@ -1923,21 +1923,21 @@
   resolved "https://registry.yarnpkg.com/@mapbox/whoots-js/-/whoots-js-3.1.0.tgz#497c67a1cef50d1a2459ba60f315e448d2ad87fe"
   integrity sha512-Es6WcD0nO5l+2BOQS4uLfNPYQaNDfbot3X1XUoloz+x0mPDS3eeORZJl06HXjwBG1fOGwCRnzK88LMdxKRrd6Q==
 
-"@mui/base@5.0.0-beta.8":
-  version "5.0.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@mui/base/-/base-5.0.0-beta.8.tgz#a0a9531ae9147be92d17e4f0e3b9accc57916841"
-  integrity sha512-b4vVjMZx5KzzEMf4arXKoeV5ZegAMOoPwoy1vfUBwhvXc2QtaaAyBp50U7OA2L06Leubc1A+lEp3eqwZoFn87g==
+"@mui/base@5.0.0-beta.10":
+  version "5.0.0-beta.10"
+  resolved "https://registry.yarnpkg.com/@mui/base/-/base-5.0.0-beta.10.tgz#b9a2de21c7de45aa4275c7ecf5aa803ecc236ba6"
+  integrity sha512-moTAhGwFfQffj7hsu61FnqcGqVcd53A1CrOhnskM9TF0Uh2rnLDMCuar4JRUWWpaJofAfQEbQBBFPadFQLI4PA==
   dependencies:
     "@babel/runtime" "^7.22.6"
     "@emotion/is-prop-valid" "^1.2.1"
     "@mui/types" "^7.2.4"
-    "@mui/utils" "^5.14.1"
+    "@mui/utils" "^5.14.4"
     "@popperjs/core" "^2.11.8"
-    clsx "^1.2.1"
+    clsx "^2.0.0"
     prop-types "^15.8.1"
     react-is "^18.2.0"
 
-"@mui/core-downloads-tracker@^5.14.2":
+"@mui/core-downloads-tracker@^5.14.4":
   version "5.14.4"
   resolved "https://registry.yarnpkg.com/@mui/core-downloads-tracker/-/core-downloads-tracker-5.14.4.tgz#a517265647ee9660170107d68905db5e400576c5"
   integrity sha512-pW2XghSi3hpYKX57Wu0SCWMTSpzvXZmmucj3TcOJWaCiFt4xr05w2gcwBZi36dAp9uvd9//9N51qbblmnD+GPg==
@@ -1949,19 +1949,19 @@
   dependencies:
     "@babel/runtime" "^7.22.6"
 
-"@mui/material@5.14.2":
-  version "5.14.2"
-  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.14.2.tgz#13b113489a61021145d62e0383912ca487a46375"
-  integrity sha512-TgNR4/YRL11RifsnMWNhITNCkGJYVz20SCvVJBBoU5Y/KhUNSSJxjDpEB8VrnY+sUsV0NigLCkHZJglfsiS3Pw==
+"@mui/material@5.14.4":
+  version "5.14.4"
+  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.14.4.tgz#9d4d1834a929a4acc59e550e34ca64c0fd60b3a6"
+  integrity sha512-2XUV3KyRC07BQPPzEgd+ss3x/ezXtHeKtOGCMCNmx3MauZojPYUpSwFkE0fYgYCD9dMQMVG4DY/VF38P0KShsg==
   dependencies:
     "@babel/runtime" "^7.22.6"
-    "@mui/base" "5.0.0-beta.8"
-    "@mui/core-downloads-tracker" "^5.14.2"
-    "@mui/system" "^5.14.1"
+    "@mui/base" "5.0.0-beta.10"
+    "@mui/core-downloads-tracker" "^5.14.4"
+    "@mui/system" "^5.14.4"
     "@mui/types" "^7.2.4"
-    "@mui/utils" "^5.14.1"
+    "@mui/utils" "^5.14.4"
     "@types/react-transition-group" "^4.4.6"
-    clsx "^1.2.1"
+    clsx "^2.0.0"
     csstype "^3.1.2"
     prop-types "^15.8.1"
     react-is "^18.2.0"
@@ -1986,7 +1986,7 @@
     csstype "^3.1.2"
     prop-types "^15.8.1"
 
-"@mui/system@^5.14.1":
+"@mui/system@^5.14.4":
   version "5.14.4"
   resolved "https://registry.yarnpkg.com/@mui/system/-/system-5.14.4.tgz#306a2fdd41ab6f4912ea689316f834db8461bb86"
   integrity sha512-oPgfWS97QNfHcDBapdkZIs4G5i85BJt69Hp6wbXF6s7vi3Evcmhdk8AbCRW6n0sX4vTj8oe0mh0RIm1G2A1KDA==
@@ -2781,9 +2781,9 @@
   integrity sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw==
 
 "@types/node@*":
-  version "20.4.9"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.4.9.tgz#c7164e0f8d3f12dfae336af0b1f7fdec8c6b204f"
-  integrity sha512-8e2HYcg7ohnTUbHk8focoklEQYvemQmu9M/f43DZVx43kHn0tE3BY/6gSDxS7k0SprtS0NHvj+L80cGLnoOUcQ==
+  version "20.4.8"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.4.8.tgz#b5dda19adaa473a9bf0ab5cbd8f30ec7d43f5c85"
+  integrity sha512-0mHckf6D2DiIAzh8fM8f3HQCvMKDpK94YQ0DSVkfWTG9BZleYIWudw9cJxX8oCk9bM+vAkDyujDV6dmKHbvQpg==
 
 "@types/node@^14.6.1":
   version "14.18.54"
@@ -2791,9 +2791,9 @@
   integrity sha512-uq7O52wvo2Lggsx1x21tKZgqkJpvwCseBBPtX/nKQfpVlEsLOb11zZ1CRsWUKvJF0+lzuA9jwvA7Pr2Wt7i3xw==
 
 "@types/node@^16.18.39":
-  version "16.18.40"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.18.40.tgz#968d64746d20cac747a18ca982c0f1fe518c031c"
-  integrity sha512-+yno3ItTEwGxXiS/75Q/aHaa5srkpnJaH+kdkTVJ3DtJEwv92itpKbxU+FjPoh2m/5G9zmUQfrL4A4C13c+iGA==
+  version "16.18.39"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.18.39.tgz#aa39a1a87a40ef6098ee69689a1acb0c1b034832"
+  integrity sha512-8q9ZexmdYYyc5/cfujaXb4YOucpQxAV4RMG0himLyDUOEr8Mr79VrqsFI+cQ2M2h89YIuy95lbxuYjxT4Hk4kQ==
 
 "@types/parse-json@^4.0.0":
   version "4.0.0"
@@ -2876,19 +2876,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*":
+"@types/react@*", "@types/react@18.2.19":
   version "18.2.19"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.19.tgz#f77cb2c8307368e624d464a25b9675fa35f95a8b"
   integrity sha512-e2S8wmY1ePfM517PqCG80CcE48Xs5k0pwJzuDZsfE8IZRRBfOMCF+XqnFxu6mWtyivum1MQm4aco+WIt6Coimw==
-  dependencies:
-    "@types/prop-types" "*"
-    "@types/scheduler" "*"
-    csstype "^3.0.2"
-
-"@types/react@18.2.17":
-  version "18.2.17"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.17.tgz#baa565b17ddb649c2dac85b5eaf9e9a1fe0f3b4e"
-  integrity sha512-u+e7OlgPPh+aryjOm5UJMX32OvB2E3QASOAqVMY6Ahs90djagxwv2ya0IctglNbNTexC12qCSMZG47KPfy1hAA==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -6196,10 +6187,10 @@ esrecurse@^4.3.0:
   dependencies:
     estraverse "^5.2.0"
 
-esri-leaflet@3.0.10:
-  version "3.0.10"
-  resolved "https://registry.yarnpkg.com/esri-leaflet/-/esri-leaflet-3.0.10.tgz#49c6445c41e1d21ddc8dcb86686850924d40bcb3"
-  integrity sha512-2ma+mMHrJA7oqJFHZDLZrCAMkaXTdFFJRsJqlsh3Z2G+nXKj2SrlzJ2YmN5qgnI9y/X5AkcSfxViBoQTX9rcSw==
+esri-leaflet@3.0.11:
+  version "3.0.11"
+  resolved "https://registry.yarnpkg.com/esri-leaflet/-/esri-leaflet-3.0.11.tgz#fb2e5c3ce9dc84c1c0bd7edef6e1d9b6574e57ac"
+  integrity sha512-hsemz0DutCLoCEhLUxrWeMsAxzdBQRura0hyboOjvPLWtW4C89DI1RG1xd/Qj/WGdj4a6BsDTnJ6yJ9qGgHMuQ==
   dependencies:
     "@terraformer/arcgis" "^2.1.0"
     tiny-binary-search "^1.0.3"
@@ -10964,9 +10955,9 @@ recharts-scale@^0.4.4:
     decimal.js-light "^2.4.1"
 
 recharts@^2.1.8:
-  version "2.7.3"
-  resolved "https://registry.yarnpkg.com/recharts/-/recharts-2.7.3.tgz#ca15789f94495d56a484ff6c0d9c7f665af0472d"
-  integrity sha512-cKoO9jUZRQavn06H6Ih2EcG82zUNdQH3OEGWVCmluSDyp3d7fIpDAsbMTd8hE8+T+MD8P76iicv/J4pJspDP7A==
+  version "2.7.2"
+  resolved "https://registry.yarnpkg.com/recharts/-/recharts-2.7.2.tgz#6d813681910ad33a4bbf3bdd06c6f64f20b39319"
+  integrity sha512-HMKRBkGoOXHW+7JcRa6+MukPSifNtJlqbc+JreGVNA407VLE/vOP+8n3YYjprDVVIF9E2ZgwWnL3D7K/LUFzBg==
   dependencies:
     classnames "^2.2.5"
     eventemitter3 "^4.0.1"
