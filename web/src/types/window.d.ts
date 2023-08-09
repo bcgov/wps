@@ -10,6 +10,7 @@ interface Window {
     RASTER_SERVER_BASE_URL: string | undefined
     REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL: string
     REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL: string
+    REACT_APP_PMTILES_BUCKET: string
   }
   Cypress: {} | undefined
 }
