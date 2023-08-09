@@ -15,5 +15,6 @@ const config = {
   API_BASE_URL: 'http://localhost:8080/api',
   RASTER_SERVER_BASE_URL: 'https://wps-dev-raster-tileserver.apps.silver.devops.gov.bc.ca/v0.0.1',
   REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL: 'http://localhost:3000',
-  REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL: 'http://localhost:3000'
+  REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL: 'http://localhost:3000',
+  REACT_APP_PMTILES_BUCKET: 'https://My_S3_Bucket'
 }

@@ -45,6 +45,7 @@
     "luxon": "^3.0.2",
     "match-sorter": "^6.3.1",
     "ol": "^7.0.0",
+    "ol-pmtiles": "^0.1.0",
     "plotly.js": "^2.5.1",
     "prettier": "^2.4.1",
     "react": "^17.0.2",
@@ -56,10 +57,10 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "start": "CI=true react-scripts start",
-    "start:cypress": "export $(cat .env.cypress | xargs) && react-scripts --max_old_space_size=4096 -r @cypress/instrument-cra start",
-    "build": "GENERATE_SOURCEMAP=false react-scripts --max_old_space_size=2048 build",
-    "test": "react-scripts test --transformIgnorePatterns \"node_modules/(?!ol)/\"",
+    "start": "CI=true craco start",
+    "start:cypress": "export $(cat .env.cypress | xargs) && craco --max_old_space_size=4096 -r @cypress/instrument-cra start",
+    "build": "GENERATE_SOURCEMAP=false craco --max_old_space_size=2048 build",
+    "test": "craco test --transformIgnorePatterns \"node_modules/(?!ol)/\"",
     "test:ci": "CI=true npm test",
     "coverage": "npm test -- --coverage --watchAll=false",
     "coverage:ci": "CI=true REACT_APP_KEYCLOAK_CLIENT=wps-web npm test -- --coverage --watchAll=false",
@@ -86,6 +87,7 @@
     ]
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "@cypress/code-coverage": "^3.10.0",
     "@cypress/instrument-cra": "^1.4.0",
     "@testing-library/jest-dom": "^5.14.1",
