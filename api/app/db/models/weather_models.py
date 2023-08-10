@@ -202,8 +202,6 @@ class WeatherStationModelPrediction(Base):
     bias_adjusted_rh = Column(Float, nullable=True)
     # Accumulated precipitation over calendar day measured in UTC (units kg.m^-2)
     apcp_sfc_0 = Column(Float, nullable=True)
-    # Accumulated precipitation adjusted for bias
-    bias_adjusted_apcp = Column(Float, nullable=True)
     # Change in accumulated precipitation between current and previous prediction_timestamp
     delta_precip = Column(Float, nullable=True)
     # Wind direction 10m above ground.
@@ -224,7 +222,7 @@ class WeatherStationModelPrediction(Base):
     def __str__(self):
         return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2} {self.bias_adjusted_temperature} '
                 '{self.rh_tgl_2} {self.bias_adjusted_rh} {self.wdir_tgl_10} {self.bias_adjusted_wdir} {self.wind_tgl_10} '
-                '{self.bias_adjusted_wind_speed} {self.apcp_sfc_0} {self.delta_precip} {self.bias_adjusted_apcp}').format(self=self)
+                '{self.bias_adjusted_wind_speed} {self.apcp_sfc_0} {self.delta_precip}').format(self=self)
 
 
 class MoreCast2MaterializedView(Base):
