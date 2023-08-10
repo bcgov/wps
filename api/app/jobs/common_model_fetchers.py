@@ -293,11 +293,6 @@ class ModelValueProcessor:
             station_prediction.wind_tgl_10,
             station_prediction.prediction_timestamp
         )
-        # Predict the precipitation
-        station_prediction.bias_adjusted_apcp = machine.predict_precipitation(
-            station_prediction.apcp_sfc_0,
-            station_prediction.prediction_timestamp
-        )
         # Predict the wind direction
         station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(
             station_prediction.wdir_tgl_10,

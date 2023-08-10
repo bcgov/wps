@@ -19,7 +19,7 @@ from app.db.crud.observations import get_actuals_left_outer_join_with_prediction
 logger = getLogger(__name__)
 
 # Corresponding key values on HourlyActual and SampleCollection
-SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity', 'wind_speed', 'precipitation', 'wind_direction')
+SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity', 'wind_speed', 'wind_direction')
 # Number of days of historical actual data to learn from when training model
 MAX_DAYS_TO_LEARN = 19
 
@@ -40,13 +40,12 @@ class RegressionModels:
     """
 
     keys = ('temperature_wrapper', 'relative_humidity_wrapper',
-            'wind_speed_wrapper', 'precipitation_wrapper', 'wind_direction_wrapper')
+            'wind_speed_wrapper', 'wind_direction_wrapper')
 
     def __init__(self):
         self.temperature_wrapper = LinearRegressionWrapper()
         self.relative_humidity_wrapper = LinearRegressionWrapper()
         self.wind_speed_wrapper = LinearRegressionWrapper()
-        self.precipitation_wrapper = LinearRegressionWrapper()
         self.wind_direction_wrapper = LinearRegressionWrapper()
 
 
@@ -112,7 +111,6 @@ class SampleCollection:
         self.relative_humidity = Samples()
         self.wind_speed = Samples()
         self.wind_direction = Samples()
-        self.precipitation = Samples()
 
 
 class StationMachineLearning:
@@ -277,17 +275,4 @@ class StationMachineLearning:
                 0]
             # a valid wind direction value is between 0 and 360. If the returned value is outside these bounds, correct it
             return predicted_wind_dir % 360
-        return None
-
-    def predict_precipitation(self, model_precip: float, timestamp: datetime):
-        """ Predict the bias-adjusted precipitation for a given point in time, given a corresponding model precipitation.
-        : param model_precip: Precipitation as provided by the model
-        : param timestamp: Datetime value for the predicted value
-        : return: The bias-adjusted precipitation as predicted by the linear regression model.
-        """
-        hour = timestamp.hour
-        if self.regression_models[hour].precipitation_wrapper.good_model and model_precip is not None:
-            predicted_precip = self.regression_models[hour].precipitation_wrapper.model.predict([[model_precip]])[0]
-            # in the real world precip can't be negative. Sometimes linear regression returns negative value, so assume 0
-            return max(0, predicted_precip)
         return None
