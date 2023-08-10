@@ -155,7 +155,7 @@ class StationMachineLearning:
             model_value = getattr(prediction, model_key)
             if model_value is not None:
                 actual_value = getattr(actual, sample_key)
-                if np.isnan(actual_value):
+                if actual_value is None or np.isnan(actual_value):
                     # If for whatever reason we don't have an actual value, we skip this one.
                     logger.warning('no actual value for %s', sample_key)
                     continue
