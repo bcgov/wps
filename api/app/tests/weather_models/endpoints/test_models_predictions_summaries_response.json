@@ -23,7 +23,7 @@
       },
       "values": [
         {
-          "datetime": "2020-07-22T18:00:00+00:00",
+          "datetime": "2020-07-22T18:00:00Z",
           "tmp_tgl_2_5th": 5.5,
           "tmp_tgl_2_90th": 14.0,
           "tmp_tgl_2_median": 10.0,
@@ -32,7 +32,7 @@
           "rh_tgl_2_median": 40.0
         },
         {
-          "datetime": "2020-07-22T19:00:00+00:00",
+          "datetime": "2020-07-22T19:00:00Z",
           "tmp_tgl_2_5th": 9.0,
           "tmp_tgl_2_90th": 9.0,
           "tmp_tgl_2_median": 9.0,
@@ -41,7 +41,7 @@
           "rh_tgl_2_median": 20.0
         },
         {
-          "datetime": "2020-07-22T20:00:00+00:00",
+          "datetime": "2020-07-22T20:00:00Z",
           "tmp_tgl_2_5th": 9.1,
           "tmp_tgl_2_90th": 10.8,
           "tmp_tgl_2_median": 10.0,

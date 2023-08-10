@@ -81,8 +81,8 @@ class DailyResult(BaseModel):
     date: date
     dailies: List[ValidatedStationDaily]
     fire_starts: FireStartRange
-    mean_intensity_group: Optional[float]
-    prep_level: Optional[float]
+    mean_intensity_group: Optional[float] = None
+    prep_level: Optional[float] = None
 
 
 class PlanningAreaResult(BaseModel):
@@ -92,8 +92,8 @@ class PlanningAreaResult(BaseModel):
     """
     planning_area_id: int
     all_dailies_valid: bool
-    highest_daily_intensity_group: Optional[float]
-    mean_prep_level: Optional[float]
+    highest_daily_intensity_group: Optional[float] = None
+    mean_prep_level: Optional[float] = None
     daily_results: List[DailyResult]
 
 
@@ -108,7 +108,7 @@ class WeatherStation(BaseModel):
     """ A fire weather station has a code, planning area, and other properties specific to the station. """
     code: int
     station_props: WeatherStationProperties
-    order_of_appearance_in_planning_area_list: Optional[int]
+    order_of_appearance_in_planning_area_list: Optional[int] = None
 
 
 class PlanningArea(BaseModel):
@@ -116,7 +116,7 @@ class PlanningArea(BaseModel):
     zone within a fire centre. """
     id: int
     name: str
-    order_of_appearance_in_list: Optional[int]
+    order_of_appearance_in_list: Optional[int] = None
     stations: List[WeatherStation]
 
 
@@ -234,8 +234,8 @@ class PrepTablePlanningAreaPDFData(BaseModel):
     """ Data needed for prep cycle PDF sheet """
     planning_area_name: str
     order: int
-    highest_daily_intensity_group: Optional[float]
-    mean_prep_level: Optional[float]
+    highest_daily_intensity_group: Optional[float] = None
+    mean_prep_level: Optional[float] = None
     mean_intensity_groups: List[Optional[float]]
     fire_starts_labels: List[str]
     prep_levels: List[Optional[int]]
@@ -247,8 +247,8 @@ class DailyTablePlanningAreaPDFData(BaseModel):
     """ Data needed for daily PDF sheet """
     planning_area_name: str
     order: int
-    mean_intensity_group: Optional[float]
-    prep_level: Optional[float]
+    mean_intensity_group: Optional[float] = None
+    prep_level: Optional[float] = None
     fire_starts: str
     date: str
     # Every station daily in the above planning area for the specific day

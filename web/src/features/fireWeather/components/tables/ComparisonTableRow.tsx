@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import TableCell from '@mui/material/TableCell'
 import TableRow from '@mui/material/TableRow'
 import ToolTip from '@mui/material/Tooltip'
@@ -16,6 +16,60 @@ import {
   formatDewPoint as formatDewPointValue
 } from 'utils/format'
 import { AccumulatedPrecipitation } from 'utils/table'
+
+const PREFIX = 'ComparisonTableRow'
+
+const classes = {
+  paper: `${PREFIX}-paper`,
+  lightColumnHeader: `${PREFIX}-lightColumnHeader`,
+  darkColumnHeader: `${PREFIX}-darkColumnHeader`,
+  darkColumn: `${PREFIX}-darkColumn`,
+  lightColumn: `${PREFIX}-lightColumn`,
+  windSpeedValue: `${PREFIX}-windSpeedValue`,
+  relativeHumidityValue: `${PREFIX}-relativeHumidityValue`,
+  windDirectionValue: `${PREFIX}-windDirectionValue`,
+  precipitationValue: `${PREFIX}-precipitationValue`
+}
+
+const StyledTableRow = styled(TableRow)({
+  [`& .${classes.paper}`]: {
+    width: '100%'
+  },
+  [`& .${classes.lightColumnHeader}`]: {
+    textAlign: 'center',
+    padding: '2px',
+    minWidth: '60px'
+  },
+  [`& .${classes.darkColumnHeader}`]: {
+    backgroundColor: 'rgb(240, 240, 240)',
+    textAlign: 'center',
+    padding: '2px',
+    minWidth: '60px'
+  },
+  [`& .${classes.darkColumn}`]: {
+    backgroundColor: '#fafafa',
+    padding: '2px',
+    paddingRight: '6px',
+    textAlign: 'right'
+  },
+  [`& .${classes.lightColumn}`]: {
+    textAlign: 'right',
+    padding: '2px',
+    paddingRight: '6px'
+  },
+  [`& .${classes.windSpeedValue}`]: {
+    whiteSpace: 'nowrap'
+  },
+  [`& .${classes.relativeHumidityValue}`]: {
+    whiteSpace: 'nowrap'
+  },
+  [`& .${classes.windDirectionValue}`]: {
+    whiteSpace: 'nowrap'
+  },
+  [`& .${classes.precipitationValue}`]: {
+    whiteSpace: 'nowrap'
+  }
+})
 
 export type DataSource = 'Observed' | 'Forecast' | 'HRDPS' | 'RDPS' | 'GDPS'
 
@@ -50,46 +104,6 @@ interface Props {
   testId?: string
   testIdRowNumber?: number
 }
-
-const useStyles = makeStyles({
-  paper: {
-    width: '100%'
-  },
-  lightColumnHeader: {
-    textAlign: 'center',
-    padding: '2px',
-    minWidth: '60px'
-  },
-  darkColumnHeader: {
-    backgroundColor: 'rgb(240, 240, 240)',
-    textAlign: 'center',
-    padding: '2px',
-    minWidth: '60px'
-  },
-  darkColumn: {
-    backgroundColor: '#fafafa',
-    padding: '2px',
-    paddingRight: '6px',
-    textAlign: 'right'
-  },
-  lightColumn: {
-    textAlign: 'right',
-    padding: '2px',
-    paddingRight: '6px'
-  },
-  windSpeedValue: {
-    whiteSpace: 'nowrap'
-  },
-  relativeHumidityValue: {
-    whiteSpace: 'nowrap'
-  },
-  windDirectionValue: {
-    whiteSpace: 'nowrap'
-  },
-  precipitationValue: {
-    whiteSpace: 'nowrap'
-  }
-})
 
 const formatWindSpeedForecast = (source: NoonForecastValue | undefined, valueClassName: string[]): ReactElement => {
   return <div className={valueClassName[0]}>{formatForecastWindSpeedValue(source?.wind_speed)}</div>
@@ -178,8 +192,6 @@ const formatAccumulatedPrecipitation = (
 }
 
 const ComparisonTableRow = (props: Props) => {
-  const classes = useStyles()
-
   const formattingMap: Record<WeatherVariable, Record<DataSource, CellFormattingInfo>> = {
     Temperature: {
       Observed: { formatFn: formatTemperature, data: props.observation, styling: [] },
@@ -306,7 +318,7 @@ const ComparisonTableRow = (props: Props) => {
   }
 
   return (
-    <TableRow data-testid={`${props.testId}-${props.testIdRowNumber}`}>
+    <StyledTableRow data-testid={`${props.testId}-${props.testIdRowNumber}`}>
       {props.index}
       {props.headers.map((variable: WeatherVariable, idx: number) => {
         const colStyle = idx % 2 === 0 ? classes.darkColumn : classes.lightColumn
@@ -329,7 +341,7 @@ const ComparisonTableRow = (props: Props) => {
           }
         })
       })}
-    </TableRow>
+    </StyledTableRow>
   )
 }
 

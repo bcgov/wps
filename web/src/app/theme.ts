@@ -1,5 +1,4 @@
 import { createTheme } from '@mui/material/styles'
-import createStyles from '@mui/styles/createStyles'
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
@@ -92,62 +91,3 @@ export const PLANNING_AREA = {
   height: 45
 }
 export const UNSELECTED_STATION_COLOR = 'rgba(0,0,0,0.54)'
-export const fireTableStyles = createStyles({
-  defaultBackground: BACKGROUND_COLOR,
-  planningArea: { ...BACKGROUND_COLOR, ...PLANNING_AREA },
-  planningAreaBorder: {
-    borderTop: '2px solid #003366',
-    padding: 0
-  },
-  unselectedStation: { color: UNSELECTED_STATION_COLOR },
-  controls: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'baseline'
-  },
-  fireCentre: {
-    height: 45,
-    fontSize: 16,
-    fontWeight: 'bold',
-    backgroundColor: '#dbd9d9'
-  },
-  stationLocation: {
-    minWidth: 180
-  },
-  stationCellPlainStyling: {
-    backgroundColor: '#ffffff'
-  },
-  sectionSeparatorBorder: {
-    borderLeft: '1px solid #C4C4C4'
-  },
-  calculatedPlanningCell: {
-    ...PLANNING_AREA,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  spaceHeader: {
-    border: 'none'
-  },
-  nonstickyHeaderCell: {
-    zIndex: 11 + theme.zIndex.appBar
-  },
-  rightBorder: {
-    borderRight: '1px solid #c4c4c4'
-  },
-  noBottomBorder: {
-    borderBottom: 'none'
-  },
-  leftBorder: {
-    borderLeft: '1px solid #C4C4C4'
-  },
-  tableColumnHeader: {
-    fontWeight: 'bold'
-  }
-})
-
-export const formControlStyles = createStyles({
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 210
-  }
-})

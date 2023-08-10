@@ -12,9 +12,9 @@ from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
 
 morecast_v2_post_url = '/api/morecast-v2/forecast'
-morecast_v2_get_url = f'/api/morecast-v2/forecasts/{1}'
+morecast_v2_get_url = '/api/morecast-v2/forecasts/2023-03-15'
 morecast_v2_post_by_date_range_url = "/api/morecast-v2/forecasts/2023-03-15/2023-03-19"
-today = '2022-10-7'
+today = '2022-10-07'
 morecast_v2_post_yesterday_dailies_url = f'/api/morecast-v2/yesterday-dailies/{today}'
 morecast_v2_post_determinates_url = '/api/morecast-v2/determinates/2023-03-15/2023-03-19'
 
@@ -22,7 +22,7 @@ morecast_v2_post_determinates_url = '/api/morecast-v2/determinates/2023-03-15/20
 decode_fn = "jwt.decode"
 
 forecast = MoreCastForecastRequest(token="testToken", forecasts=[MoreCastForecastInput(
-    station_code=1, for_date=1, temp=10.0, rh=40, precip=70.2, wind_speed=20.3, wind_direction=40)])
+    station_code=1, for_date=1, temp=10.0, rh=40.1, precip=70.2, wind_speed=20.3, wind_direction=40)])
 
 stations = StationsRequest(stations=[1, 2])
 
@@ -68,6 +68,7 @@ def test_post_forecast_unauthorized(client: TestClient):
     assert response.status_code == 401
 
 
+@pytest.mark.anyio
 def test_post_forecast_authorized(client: TestClient,
                                   monkeypatch: pytest.MonkeyPatch):
     """ Allowed to post station changes with correct role"""
@@ -77,10 +78,15 @@ def test_post_forecast_authorized(client: TestClient,
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
 
-    # Create a mock function
-    def mock_function(): return None
+    async def mock_format_as_wf1_post_forecasts(client_session, forecasts_to_save):
+        return []
 
-    monkeypatch.setattr(app.routers.morecast_v2, 'post_forecasts', mock_function)
+    monkeypatch.setattr(app.routers.morecast_v2, 'format_as_wf1_post_forecasts', mock_format_as_wf1_post_forecasts)
+
+    async def mock_post_forecasts(client_session, token, forecasts):
+        return None
+
+    monkeypatch.setattr(app.routers.morecast_v2, 'post_forecasts', mock_post_forecasts)
 
     response = client.post(morecast_v2_post_url, json=forecast.dict())
     assert response.status_code == 201
@@ -124,7 +130,7 @@ def test_get_yesterday_dailies_authorized(client: TestClient, monkeypatch: pytes
     response = client.post(morecast_v2_post_yesterday_dailies_url, json={"station_codes": requested_station_codes})
     assert response.status_code == 200
 
-    parsed_dailies = [StationDailyFromWF1.parse_obj(raw_daily) for raw_daily in response.json().get('dailies')]
+    parsed_dailies = [StationDailyFromWF1.model_validate(raw_daily) for raw_daily in response.json().get('dailies')]
     assert len(parsed_dailies) == 3
 
     today_date = datetime.strptime(today, '%Y-%m-%d').date()

@@ -1,36 +1,50 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { CircularProgress } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { selectFireWeatherStationsLoading } from 'app/rootReducer'
 
-const useStyles = makeStyles(theme => ({
-  root: {
+const PREFIX = 'StationAccuracyForDate'
+
+const classes = {
+  root: `${PREFIX}-root`,
+  title: `${PREFIX}-title`,
+  time: `${PREFIX}-time`,
+  rowContainer: `${PREFIX}-rowContainer`,
+  spinner: `${PREFIX}-spinner`
+}
+
+const Root = styled('div')(({ theme }) => ({
+  [`&.${classes.root}`]: {
     display: 'flex',
     height: '70px',
     flexDirection: 'column',
     padding: '5px'
   },
-  title: {
+
+  [`& .${classes.title}`]: {
     fontSize: '0.875rem',
     height: '20px',
     width: '205px',
     color: 'white'
   },
-  time: {
+
+  [`& .${classes.time}`]: {
     fontSize: '0.875rem',
     height: '20px',
     width: '205px',
     color: 'white',
     textAlign: 'center'
   },
-  rowContainer: {
+
+  [`& .${classes.rowContainer}`]: {
     display: 'flex',
     flexDirection: 'row',
     width: '300px',
     justifyContent: 'flex-start'
   },
-  spinner: {
+
+  [`& .${classes.spinner}`]: {
     color: theme.palette.primary.light
   }
 }))
@@ -40,11 +54,10 @@ interface Props {
 }
 
 const StationAccuracyForDate = (props: Props) => {
-  const classes = useStyles()
   const isLoading = useSelector(selectFireWeatherStationsLoading)
 
   return (
-    <div className={classes.root}>
+    <Root className={classes.root}>
       {isLoading ? (
         <CircularProgress />
       ) : (
@@ -57,7 +70,7 @@ const StationAccuracyForDate = (props: Props) => {
           </div>
         </div>
       )}
-    </div>
+    </Root>
   )
 }
 

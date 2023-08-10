@@ -1,6 +1,20 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { theme } from 'app/theme'
+
+const PREFIX = 'ErrorMessage'
+
+const classes = {
+  root: `${PREFIX}-root`
+}
+
+const Root = styled('div')(() => ({
+  [`&.${classes.root}`]: {
+    color: theme.palette.error.main,
+    marginTop: (props: Props) => props.marginTop,
+    marginBottom: (props: Props) => props.marginBottom
+  }
+}))
 
 interface Props {
   error: string
@@ -9,14 +23,6 @@ interface Props {
   marginTop?: number
   marginBottom?: number
 }
-
-const useStyles = makeStyles(() => ({
-  root: {
-    color: theme.palette.error.main,
-    marginTop: (props: Props) => props.marginTop,
-    marginBottom: (props: Props) => props.marginBottom
-  }
-}))
 
 const getMessage = ({ message, context }: Props) => {
   if (message) {
@@ -31,12 +37,11 @@ const getMessage = ({ message, context }: Props) => {
 }
 
 export const ErrorMessage: React.FunctionComponent<Props> = (props: Props) => {
-  const classes = useStyles(props)
   const message = getMessage(props)
 
   return (
-    <div className={classes.root} data-testid="error-message">
+    <Root className={classes.root} data-testid="error-message">
       {message}
-    </div>
+    </Root>
   )
 }

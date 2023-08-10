@@ -1,11 +1,10 @@
-import { Checkbox, TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { Checkbox, TableCell, styled } from '@mui/material'
 import { WeatherStation } from 'api/hfiCalculatorAPI'
-import { fireTableStyles } from 'app/theme'
+import { UNSELECTED_STATION_COLOR } from 'app/theme'
 import React from 'react'
 
 export interface StationSelectCellProps {
-  className: string | undefined
+  isRowSelected: boolean
   station: WeatherStation
   planningAreaId: number
   selectStationEnabled: boolean
@@ -13,21 +12,23 @@ export interface StationSelectCellProps {
   toggleSelectedStation: (planningAreaId: number, code: number) => void
 }
 
-const useStyles = makeStyles({
-  ...fireTableStyles
-})
+const NoBottomBorderTableCell = styled(TableCell, {
+  shouldForwardProp: prop => prop !== 'isRowSelected'
+})((props: Pick<StationSelectCellProps, 'isRowSelected'>) => ({
+  borderBottom: 'none',
+  color: !props.isRowSelected ? UNSELECTED_STATION_COLOR : undefined
+}))
 
 const StationSelectCell = ({
-  className,
+  isRowSelected,
   station,
   planningAreaId,
   selectStationEnabled,
   stationCodeInSelected,
   toggleSelectedStation
 }: StationSelectCellProps) => {
-  const classes = useStyles()
   return (
-    <TableCell className={`${className} ${classes.noBottomBorder}`}>
+    <NoBottomBorderTableCell isRowSelected={isRowSelected}>
       <Checkbox
         disabled={!selectStationEnabled}
         checked={stationCodeInSelected(planningAreaId, station.code)}
@@ -35,7 +36,7 @@ const StationSelectCell = ({
         data-testid={`select-station-${station.code}`}
         color="primary"
       ></Checkbox>
-    </TableCell>
+    </NoBottomBorderTableCell>
   )
 }
 

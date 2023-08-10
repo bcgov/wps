@@ -48,3 +48,15 @@ def test_calculate_wind_direction_from_uv():
         calculated_wind_direction = process_grib.calculate_wind_dir_from_u_v(
             test_case['u_float'], test_case['v_float'])
         assert round(calculated_wind_direction, 0) == test_case['expected_wind_direction']
+
+
+def test_convert_mps_to_kph():
+    metres_per_second_speed = 1
+    kilometres_per_hour_speed = process_grib.convert_mps_to_kph(metres_per_second_speed)
+    assert kilometres_per_hour_speed == 3.6  # 1m/s * 3600 sec/hour / 1000m/km
+
+
+def test_convert_mps_to_kph_zero_wind_speed():
+    metres_per_second_speed = 0
+    kilometres_per_hour_speed = process_grib.convert_mps_to_kph(metres_per_second_speed)
+    assert kilometres_per_hour_speed == 0

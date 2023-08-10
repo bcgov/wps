@@ -6,8 +6,8 @@ from app import config
 from aiohttp import ClientSession
 from collections import defaultdict
 
-from app.utils.time import get_days_from_range, vancouver_tz
-from typing import List, Optional, Tuple
+from app.utils.time import vancouver_tz
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.db.crud.morecast_v2 import get_forecasts_in_range
 from app.db.models.morecast_v2 import MorecastForecastRecord
@@ -87,23 +87,21 @@ async def format_as_wf1_post_forecasts(session: ClientSession, forecast_records:
     return wf1_post_forecasts
 
 
-def wf1_forecast_diff(start_date_of_interest: datetime, end_date_of_interest: datetime, wf1_forecasts: List[WeatherIndeterminate]) -> Tuple[datetime, datetime] | None:
-    # WFWX will only return forecasts for dates in the future. To display historic forecasts, will need to pull
-    # forecast data from our own DB.
-    # compare start_date - end_date range to the dates we have forecasts from WFWX for. Pull forecasts for
-    # the missing dates from our database
-    all_dates_in_range = get_days_from_range(start_date_of_interest, end_date_of_interest)
-    wf1_forecast_dates = [forecast.utc_timestamp for forecast in wf1_forecasts]
-    missing_dates: List[datetime] = []
-    for forecast_date in all_dates_in_range:
-        if forecast_date not in wf1_forecast_dates:
-            missing_dates.append(forecast_date)
+def actual_exists(forecast: WeatherIndeterminate, actuals: List[WeatherIndeterminate]):
+    """ Returns True if the actuals contain a WeatherIndeterminate with station_code and utc_timestamp that
+    matches those of the forecast; otherwise, returns False."""
+    station_code_matches = [actual for actual in actuals if actual.station_code ==
+                            forecast.station_code]
+    utc_timestamp_matches = [station_code_match for station_code_match in station_code_matches
+                             if station_code_match.utc_timestamp == forecast.utc_timestamp]
+    return len(utc_timestamp_matches) > 0
 
-    if len(missing_dates) == 0:
-        return None, None
 
-    if len(missing_dates) == 1:
-        return missing_dates[0], missing_dates[0]
-
-    missing_dates.sort()
-    return missing_dates[0], missing_dates[-1]
+def filter_for_api_forecasts(forecasts: List[WeatherIndeterminate], actuals: List[WeatherIndeterminate]):
+    """ Returns a list of forecasts where each forecast has a corresponding WeatherIndeterminate in the
+    actuals with a matching station_code and utc_timestamp."""
+    filtered_forecasts = []
+    for forecast in forecasts:
+        if actual_exists(forecast, actuals):
+            filtered_forecasts.append(forecast)
+    return filtered_forecasts

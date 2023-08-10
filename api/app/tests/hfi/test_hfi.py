@@ -75,18 +75,18 @@ def test_no_dailies_handled():
                                    raw_dailies=[],
                                    num_prep_days=5,
                                    planning_area_station_info=planning_area_station_info,
-                                   start_date=datetime.now())
+                                   start_date=datetime.now().date())
 
     assert result == [PlanningAreaResult(planning_area_id=1, all_dailies_valid=True, highest_daily_intensity_group=None, mean_prep_level=None, daily_results=[
-        DailyResult(date=datetime.now(), dailies=[], fire_starts=fire_start_ranges[0],
+        DailyResult(date=datetime.now().date(), dailies=[], fire_starts=fire_start_ranges[0],
                     mean_intensity_group=None, prep_level=None),
-        DailyResult(date=datetime.now() + timedelta(days=1), dailies=[],
+        DailyResult(date=datetime.now().date() + timedelta(days=1), dailies=[],
                     fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
-        DailyResult(date=datetime.now() + timedelta(days=2), dailies=[],
+        DailyResult(date=datetime.now().date() + timedelta(days=2), dailies=[],
                     fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
-        DailyResult(date=datetime.now() + timedelta(days=3), dailies=[],
+        DailyResult(date=datetime.now().date() + timedelta(days=3), dailies=[],
                     fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
-        DailyResult(date=datetime.now() + timedelta(days=4), dailies=[],
+        DailyResult(date=datetime.now().date() + timedelta(days=4), dailies=[],
                     fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
     ])]
 
@@ -94,7 +94,7 @@ def test_no_dailies_handled():
 def test_requested_fire_starts_unaltered(mocker: MockerFixture):
     """ Fire starts from user request remain unchanged """
 
-    start_date = datetime.now()
+    start_date = datetime.now().date()
     fuel_type_lookup = {
         1: hfi_calc_models.FuelType(
             id=1, abbrev='C1', description='C1', fuel_type_code='C1',
@@ -279,7 +279,7 @@ def test_valid_date_range_none():
 
 def test_valid_date_range_7_days():
     """ 7 day range is acceptable (start inclusive, end exclusive) """
-    start_date = get_pst_now()
+    start_date = get_pst_now().date()
     end_date = start_date + timedelta(days=7)
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
     assert result.start_date.isoformat() == '2020-05-21'
@@ -288,7 +288,7 @@ def test_valid_date_range_7_days():
 
 def test_valid_date_range_over_7_days():
     """ Over 7 days is clamped to 5 days (start inclusive, end exclusive) """
-    start_date = get_pst_now()
+    start_date = get_pst_now().date()
     end_date = start_date + timedelta(days=8)
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
     assert result.start_date.isoformat() == '2020-05-21'
@@ -297,7 +297,7 @@ def test_valid_date_range_over_7_days():
 
 def test_valid_date_range_over_at_least_one_day():
     """ 1 day range is acceptable (start inclusive, end exclusive) """
-    start_date = get_pst_now()
+    start_date = get_pst_now().date()
     end_date = start_date
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
     assert result.start_date.isoformat() == '2020-05-21'
@@ -306,7 +306,7 @@ def test_valid_date_range_over_at_least_one_day():
 
 def test_valid_date_range_default_for_end_date_before():
     """ If end date is before start date, set it to same day as start date (start inclusive, end exclusive) """
-    start_date = get_pst_now()
+    start_date = get_pst_now().date()
     end_date = start_date - timedelta(days=1)
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
     assert result.start_date.isoformat() == '2020-05-21'

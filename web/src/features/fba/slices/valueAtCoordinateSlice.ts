@@ -105,7 +105,7 @@ const fbpValueEncoder = (value: number): string => {
 export const fetchValuesAtCoordinate =
   (latitude: number, longitude: number, date: DateTime): AppThunk =>
   async dispatch => {
-    const isoDate = date.toISODate().replaceAll('-', '')
+    const isoDate = date.toISODate()?.replaceAll('-', '')
     try {
       dispatch(getValueAtCoordinateStart())
       const actions = [

@@ -6,7 +6,7 @@ export interface DailyHFICellProps {
   testid: string | undefined
   value: string | undefined
   error: boolean
-  className: string | undefined
+  isRowSelected: boolean
 }
 
 export const DailyHFICell = (props: DailyHFICellProps) => {

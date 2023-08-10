@@ -1,5 +1,4 @@
 import os
-import datetime
 from typing import List
 import logging
 import requests
@@ -14,7 +13,9 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_model_run_predictions_for_grid,
                                         get_grids_for_coordinate,
                                         get_weather_station_model_prediction,
-                                        delete_model_run_grid_subset_predictions)
+                                        delete_model_run_grid_subset_predictions,
+                                        delete_weather_station_model_predictions,
+                                        refresh_morecast2_materialized_view)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
@@ -161,8 +162,9 @@ def apply_data_retention_policy():
         # machine learning, but unfortunately takes a lot of space.
         # Currently we're using 19 days of data for machine learning, so
         # keeping 21 days (3 weeks) of historic data is sufficient.
-        oldest_to_keep = time_utils.get_utc_now() - datetime.timedelta(days=21)
+        oldest_to_keep = time_utils.get_utc_now() - time_utils.data_retention_threshold
         delete_model_run_grid_subset_predictions(session, oldest_to_keep)
+        delete_weather_station_model_predictions(session, oldest_to_keep)
 
 
 class ModelValueProcessor:
@@ -394,3 +396,4 @@ class ModelValueProcessor:
             self._process_model_run(model_run)
             # Mark the model run as interpolated.
             self._mark_model_run_interpolated(model_run)
+        refresh_morecast2_materialized_view(self.session)

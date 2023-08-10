@@ -55,7 +55,7 @@ objects:
         app: ${APP_NAME}-${SUFFIX}
       name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
     spec:
-      completionDeadlineSeconds: 1200 # 20 minutes
+      completionDeadlineSeconds: 1800 # 30 minutes
       runPolicy: SerialLatestOnly
       output:
         to:

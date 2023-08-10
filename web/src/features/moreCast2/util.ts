@@ -57,7 +57,7 @@ export const createDateInterval = (fromDate: DateTime, toDate: DateTime) => {
   const interval = Interval.fromDateTimes(fromDate, toDate.plus({ days: 1 }))
   const dateTimeArray = interval.splitBy({ day: 1 }).map(d => d.start)
   const dates = dateTimeArray.map(date => {
-    return `${date.toISODate()}T20:00:00+00:00`
+    return `${date?.toISODate()}T20:00:00+00:00`
   })
   return dates
 }
