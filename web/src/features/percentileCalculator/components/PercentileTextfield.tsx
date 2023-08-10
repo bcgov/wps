@@ -1,19 +1,22 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { TextField } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+const PREFIX = 'PercentileTextfield'
 
-const useStyles = makeStyles({
-  root: {
+const classes = {
+  root: `${PREFIX}-root`
+}
+
+const StyledTextField = styled(TextField)({
+  [`& .${classes.root}`]: {
     marginTop: 15,
     width: 300
   }
 })
 
 export const PercentileTextfield: React.FunctionComponent = () => {
-  const classes = useStyles()
-
   return (
-    <TextField
+    <StyledTextField
       id="percentile-textfield"
       className={classes.root}
       data-testid="percentile-textfield"

@@ -53,7 +53,7 @@ describe('moreCast2API', () => {
       buildMorecast2Forecast('1', 1, 'one', DateTime.fromObject({ year: 2021, month: 1, day: 1 })),
       buildMorecast2Forecast('2', 2, 'two', DateTime.fromObject({ year: 2021, month: 1, day: 1 }))
     ])
-    expect(res).toBe(true)
+    expect(res).toEqual({ success: true })
   })
   it('should fetch weather indeterminates with no stations requested', async () => {
     const res = await fetchWeatherIndeterminates(
@@ -126,7 +126,7 @@ describe('moreCast2API', () => {
           station_code: 2,
           station_name: 'two',
           determinate: WeatherDeterminate.FORECAST,
-          for_date: 0,
+          for_date: DateTime.fromObject({ year: 1970, month: 1, day: 1 }).toMillis(),
           temp: 2,
           rh: 2,
           precip: 2,

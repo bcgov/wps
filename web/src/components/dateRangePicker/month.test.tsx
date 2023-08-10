@@ -102,7 +102,7 @@ describe('Month', () => {
     )
     const startDay = getByTestId(`day-${startDate.toISOString().split('T')[0]}`)
 
-    expect(startDay.className).toMatch(/makeStyles-buttonContainer-/)
+    expect(startDay.className).toMatch(/Day-buttonContainer/)
     const startDayButton = within(startDay).getByRole('button') as HTMLInputElement
 
     startDayButton.focus()

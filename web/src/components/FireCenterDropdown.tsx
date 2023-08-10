@@ -22,7 +22,7 @@ const FireCenterDropdown = (props: FireCenterDropdownProps) => {
       data-testid={`fire-center-dropdown`}
       options={props.fireCenterOptions}
       getOptionLabel={option => option?.name}
-      renderInput={params => <TextField {...params} label="Select Fire Center" variant="outlined" />}
+      renderInput={params => <TextField {...params} label="Select Fire Centre" variant="outlined" />}
       onChange={changeHandler}
       value={props.selectedFireCenter || null}
     />

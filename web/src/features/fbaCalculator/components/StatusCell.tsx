@@ -1,29 +1,34 @@
 import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { isUndefined } from 'lodash'
 import React from 'react'
 
-interface StatusCellProps {
-  value: string | undefined
+const PREFIX = 'StatusCell'
+
+const classes = {
+  dataRow: `${PREFIX}-dataRow`,
+  adjustedValueCell: `${PREFIX}-adjustedValueCell`
 }
 
-const useStyles = makeStyles({
-  dataRow: {
+const StyledTableCell = styled(TableCell)({
+  [`& .${classes.dataRow}`]: {
     height: '40px',
     paddingLeft: '8px',
     paddingRight: '8px'
   },
-  adjustedValueCell: {
+  [`& .${classes.adjustedValueCell}`]: {
     fontWeight: 'bold',
     color: '#460270'
   }
 })
 
-const StatusCell = (props: StatusCellProps) => {
-  const classes = useStyles()
+interface StatusCellProps {
+  value: string | undefined
+}
 
+const StatusCell = (props: StatusCellProps) => {
   return (
-    <TableCell
+    <StyledTableCell
       className={
         !isUndefined(props.value) && props.value.toLowerCase() === 'adjusted'
           ? classes.adjustedValueCell
@@ -31,7 +36,7 @@ const StatusCell = (props: StatusCellProps) => {
       }
     >
       {props.value}
-    </TableCell>
+    </StyledTableCell>
   )
 }
 

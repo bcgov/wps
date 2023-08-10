@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 class WF1RecordTypeEnum(enum.Enum):
     ACTUAL = 'ACTUAL'
     FORECAST = 'FORECAST'
+    MANUAL = 'MANUAL'
 
 
 class WFWXWeatherStation():
@@ -80,7 +81,7 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
     observed_dailies = []
     forecasts = []
     async for raw_daily in raw_dailies:
-        if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == "ACTUAL":
+        if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') in [WF1RecordTypeEnum.ACTUAL.value, WF1RecordTypeEnum.MANUAL.value]:
             observed_dailies.append(WeatherIndeterminate(
                 station_code=raw_daily.get('stationData').get('stationCode'),
                 station_name=raw_daily.get('stationData').get('displayLabel'),
@@ -92,7 +93,7 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
                 wind_direction=raw_daily.get('windDirection'),
                 wind_speed=raw_daily.get('windSpeed')
             ))
-        elif is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == "FORECAST":
+        elif is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == WF1RecordTypeEnum.FORECAST.value:
             forecasts.append(WeatherIndeterminate(
                 station_code=raw_daily.get('stationData').get('stationCode'),
                 station_name=raw_daily.get('stationData').get('displayLabel'),
@@ -142,7 +143,7 @@ async def fire_center_mapper(raw_stations: Generator[dict, None, None]):
             fire_center = fire_centers.get(fire_center_id, None)
             if fire_center is None:
                 fire_centers[fire_center_id] = FireCentre(
-                    id=raw_fire_center['id'], name=raw_fire_center['displayLabel'], stations=[station])
+                    id=str(raw_fire_center['id']), name=raw_fire_center['displayLabel'], stations=[station])
             else:
                 fire_center.stations.append(station)
     return fire_centers

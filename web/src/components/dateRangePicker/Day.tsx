@@ -1,40 +1,62 @@
 import * as React from 'react'
+import { styled } from '@mui/material/styles'
 import { IconButton, Typography } from '@mui/material'
 import { theme } from 'app/theme'
-import makeStyles from '@mui/styles/makeStyles'
 import { combineCSSClassNames } from 'components/dateRangePicker/utils'
 
-const useStyles = makeStyles(() => ({
-  leftBorderRadius: {
+const PREFIX = 'Day'
+
+const classes = {
+  leftBorderRadius: `${PREFIX}-leftBorderRadius`,
+  rightBorderRadius: `${PREFIX}-rightBorderRadius`,
+  buttonContainer: `${PREFIX}-buttonContainer`,
+  button: `${PREFIX}-button`,
+  buttonText: `${PREFIX}-buttonText`,
+  outlined: `${PREFIX}-outlined`,
+  filled: `${PREFIX}-filled`,
+  highlighted: `${PREFIX}-highlighted`,
+  contrast: `${PREFIX}-contrast`
+}
+
+const Root = styled('div')(() => ({
+  [`& .${classes.leftBorderRadius}`]: {
     borderRadius: '50% 0 0 50%'
   },
-  rightBorderRadius: {
+
+  [`& .${classes.rightBorderRadius}`]: {
     borderRadius: '0 50% 50% 0'
   },
-  buttonContainer: {
+
+  [`&.${classes.buttonContainer}`]: {
     display: 'flex'
   },
-  button: {
+
+  [`& .${classes.button}`]: {
     height: 36,
     width: 36,
     padding: 0
   },
-  buttonText: {
+
+  [`& .${classes.buttonText}`]: {
     lineHeight: 1.6
   },
-  outlined: {
+
+  [`& .${classes.outlined}`]: {
     border: `1px solid ${theme.palette.primary.dark}`
   },
-  filled: {
+
+  [`& .${classes.filled}`]: {
     '&:hover': {
       backgroundColor: theme.palette.primary.dark
     },
     backgroundColor: theme.palette.primary.dark
   },
-  highlighted: {
+
+  [`& .${classes.highlighted}`]: {
     backgroundColor: theme.palette.action.hover
   },
-  contrast: {
+
+  [`& .${classes.contrast}`]: {
     color: theme.palette.primary.contrastText
   }
 }))
@@ -64,10 +86,8 @@ const Day: React.FunctionComponent<DayProps> = ({
   onHover,
   value
 }: DayProps) => {
-  const classes = useStyles()
-
   return (
-    <div
+    <Root
       data-testid={testId}
       className={combineCSSClassNames(
         classes.buttonContainer,
@@ -95,7 +115,7 @@ const Day: React.FunctionComponent<DayProps> = ({
           {value}
         </Typography>
       </IconButton>
-    </div>
+    </Root>
   )
 }
 

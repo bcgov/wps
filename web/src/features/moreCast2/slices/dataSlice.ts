@@ -14,7 +14,7 @@ import { createDateInterval, rowIDHasher } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
-import { groupBy, isNumber, isUndefined } from 'lodash'
+import { groupBy, isEqual, isNull, isNumber, isUndefined } from 'lodash'
 import { StationGroupMember } from 'api/stationAPI'
 
 interface State {
@@ -308,7 +308,7 @@ export const fillMissingWeatherIndeterminates = (
     // We expect one actual per date in our date interval
     if (values.length < dateInterval.length) {
       for (const date of dateInterval) {
-        if (!values.some(value => value.utc_timestamp === date)) {
+        if (!values.some(value => isEqual(DateTime.fromISO(value.utc_timestamp), DateTime.fromISO(date)))) {
           const missing = createEmptyWeatherIndeterminate(stationCode, stationName, date, determinate)
           weatherIndeterminates.push(missing)
         }
@@ -385,9 +385,10 @@ const createStationCodeToWeatherIndeterminateGroups = (
 }
 
 const createUtcTimeStampToWeatherIndeterminateGroups = (items: WeatherIndeterminate[], dateInterval: string[]) => {
-  const grouped = groupBy(items, 'utc_timestamp')
+  const grouped = groupBy(items, item => DateTime.fromISO(item.utc_timestamp).toISODate())
   for (const date of dateInterval) {
-    if (isUndefined(grouped[date])) {
+    const isoDate = DateTime.fromISO(date).toISODate()
+    if (isNull(isoDate) || isUndefined(grouped[isoDate])) {
       grouped[date] = []
     }
   }
@@ -408,7 +409,7 @@ export const selectAllMoreCast2Rows = createSelector([selectWeatherIndeterminate
     weatherIndeterminates.forecasts,
     weatherIndeterminates.predictions
   )
-  const sortedRows = sortRowsByStationName(rows)
+  const sortedRows = sortRowsByStationNameAndDate(rows)
   return sortedRows
 })
 
@@ -428,26 +429,36 @@ export const selectForecastMoreCast2Rows = createSelector([selectAllMoreCast2Row
 
 export const selectWeatherIndeterminatesLoading = (state: RootState) => state.weatherIndeterminates.loading
 
-function sortRowsByStationName(rows: MoreCast2Row[]) {
-  const groupedRows = groupRowsByStationName(rows)
-  const keys = Object.keys(groupedRows)
+// Comparator function for use in sorting Luxon DateTime objects with JavaScript Array.prototype.sort
+function compareDateTime(a: DateTime, b: DateTime) {
+  if (a < b) {
+    return -1
+  } else if (a > b) {
+    return 1
+  } else {
+    return 0
+  }
+}
+
+function sortRowsByStationNameAndDate(rows: MoreCast2Row[]) {
+  // Group the rows by station name to start
+  const groupedRows = groupBy(rows, 'stationName')
+  // Now sort the rows by 'forDate' within each group
+  const groupedSorted: { [key: string]: MoreCast2Row[] } = {}
+  for (const [key, value] of Object.entries(groupedRows)) {
+    groupedSorted[key] = value.sort((a, b) => compareDateTime(a.forDate, b.forDate))
+  }
+
+  // Finally, sort the keys of the groups alphabetically and then build up a new
+  // array of rows which will be sorted first by station name and then by the forDate
+  const keys = Object.keys(groupedSorted)
   keys.sort()
   let sortedRows: MoreCast2Row[] = []
   for (const key of keys) {
-    const rowsForKey = groupedRows[key]
+    const rowsForKey = groupedSorted[key]
     sortedRows = [...sortedRows, ...rowsForKey]
   }
   return sortedRows
-}
-
-function groupRowsByStationName(rows: MoreCast2Row[]) {
-  return rows.reduce((acc: { [key: string]: MoreCast2Row[] }, item: MoreCast2Row) => {
-    const group = item.stationName
-    acc[group] = acc[group] || []
-    acc[group].push(item)
-
-    return acc
-  }, {})
 }
 
 /**

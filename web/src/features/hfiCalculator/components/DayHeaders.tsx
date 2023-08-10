@@ -1,7 +1,11 @@
-import { Table, TableBody, TableCell, TableRow } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { fireTableStyles } from 'app/theme'
-import StickyCell from 'components/StickyCell'
+import { Table, TableBody, TableCell, TableRow, styled } from '@mui/material'
+import {
+  NoBottomBorderCell,
+  SpaceHeaderTableCell,
+  StickyCellNoBottomBorder,
+  StickyCellRightBorderOnly,
+  TableCellLeftBorder
+} from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { calculateNumPrepDays } from 'features/hfiCalculator/util'
 import { isUndefined, range } from 'lodash'
@@ -13,16 +17,18 @@ export interface DayHeadersProps {
   dateRange?: PrepDateRange
 }
 
-const useStyles = makeStyles({
-  ...fireTableStyles,
-  dayHeader: {
-    position: 'sticky',
-    zIndex: 3,
-    padding: 0,
-    borderBottom: 'none',
-    textAlign: 'center'
-  }
-})
+const DayHeader = styled(TableCell, {
+  shouldForwardProp: prop => prop !== 'showBorder',
+  name: 'dayHeader'
+})<{ showBorder: boolean }>(({ showBorder }) => ({
+  position: 'sticky',
+  zIndex: 3,
+  padding: 0,
+  borderBottom: 'none',
+  textAlign: 'center',
+  borderLeft: showBorder ? '1px solid #c4c4c4' : undefined
+}))
+
 const DayHeaders = (props: DayHeadersProps) => {
   const start =
     isUndefined(props.dateRange) || isUndefined(props.dateRange.start_date)
@@ -30,45 +36,34 @@ const DayHeaders = (props: DayHeadersProps) => {
       : DateTime.fromISO(props.dateRange.start_date)
   const numPrepDays = calculateNumPrepDays(props.dateRange)
 
-  const classes = useStyles()
   return (
     <React.Fragment>
       {/* Non-day specific headers */}
-      <StickyCell left={0} zIndexOffset={11} colSpan={2} className={classes.noBottomBorder}>
+      <StickyCellNoBottomBorder left={0} zIndexOffset={11} colSpan={2}>
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell className={`${classes.spaceHeader} ${classes.noBottomBorder}`}></TableCell>
+              <SpaceHeaderTableCell></SpaceHeaderTableCell>
             </TableRow>
           </TableBody>
         </Table>
-      </StickyCell>
-      <TableCell className={classes.spaceHeader}></TableCell>
-      <StickyCell
-        left={227}
-        colSpan={2}
-        zIndexOffset={11}
-        className={`${classes.rightBorder} ${classes.noBottomBorder}`}
-      >
+      </StickyCellNoBottomBorder>
+      <SpaceHeaderTableCell></SpaceHeaderTableCell>
+      <StickyCellRightBorderOnly left={227} colSpan={2} zIndexOffset={11}>
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell className={classes.noBottomBorder}></TableCell>
+              <NoBottomBorderCell></NoBottomBorderCell>
             </TableRow>
           </TableBody>
         </Table>
-      </StickyCell>
+      </StickyCellRightBorderOnly>
       {range(numPrepDays).map(i => (
-        <TableCell
-          data-testid={`day-${i}`}
-          colSpan={5}
-          className={`${classes.dayHeader} ${i > 0 ? classes.leftBorder : undefined}`}
-          key={i}
-        >
+        <DayHeader data-testid={`day-${i}`} colSpan={5} showBorder={i > 0} key={i}>
           {start.plus({ days: i }).toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })}
-        </TableCell>
+        </DayHeader>
       ))}
-      <TableCell className={`${classes.leftBorder} ${classes.noBottomBorder}`}></TableCell>
+      <TableCellLeftBorder />
     </React.Fragment>
   )
 }

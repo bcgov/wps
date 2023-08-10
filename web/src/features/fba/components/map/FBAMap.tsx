@@ -1,4 +1,7 @@
 import * as ol from 'ol'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import * as olpmtiles from 'ol-pmtiles'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
 import { fromLonLat } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
@@ -12,7 +15,7 @@ import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations } from 'app/rootReducer'
-import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
+import { source as baseMapSource, COG_TILE_SIZE, SFMS_MAX_ZOOM } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter, FireZone, FireZoneArea } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
@@ -27,22 +30,20 @@ import {
 import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
 import { LayerControl } from 'features/fba/components/map/layerControl'
-import { RASTER_SERVER_BASE_URL } from 'utils/env'
+import { PMTILES_BUCKET, RASTER_SERVER_BASE_URL } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildHFICql } from 'features/fba/cqlBuilder'
 import { isUndefined, cloneDeep } from 'lodash'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
+import { Box } from '@mui/material'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
 const TILE_SERVER_URL = 'https://wps-prod-tileserv.apps.silver.devops.gov.bc.ca'
-export const SFMS_MAX_ZOOM = 8 // The SFMS data is so coarse, there's not much point in zooming in further
-export const COG_TILE_SIZE = [512, 512] // COG tiffs are 512x512 pixels - reading larger chunks should in theory be faster?
 
 export interface FBAMapProps {
   testId?: string
-  className: string
   selectedFireCenter: FireCenter | undefined
   selectedFireZone: FireZone | undefined
   forDate: DateTime
@@ -91,18 +92,26 @@ const FBAMap = (props: FBAMapProps) => {
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
 
-  const fireZoneVectorSource = new VectorTileSource({
-    attributions: ['BC Wildfire Service'],
-    format: new MVT(),
-    url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
+  const fireCentreVectorSource = new olpmtiles.PMTilesVectorSource({
+    url: `${PMTILES_BUCKET}fireCentres.pmtiles`
   })
-  const fireZoneLabelVectorSource = new VectorTileSource({
-    attributions: ['BC Wildfire Service'],
-    format: new MVT(),
-    url: `${TILE_SERVER_URL}/public.fire_zones_labels/{z}/{x}/{y}.pbf`
+  const fireZoneVectorSource = new olpmtiles.PMTilesVectorSource({
+    url: `${PMTILES_BUCKET}fireZones.pmtiles`
   })
-  const [hfiTilesLoading, setHFITilesLoading] = useState(false)
+  const fireCentreLabelVectorSource = new olpmtiles.PMTilesVectorSource({
+    url: `${PMTILES_BUCKET}fireCentreLabels.pmtiles`
+  })
+  const fireZoneLabelVectorSource = new olpmtiles.PMTilesVectorSource({
+    url: `${PMTILES_BUCKET}fireZoneLabels.pmtiles`
+  })
 
+  const [fireCentreVTL] = useState(
+    new VectorTileLayer({
+      source: fireCentreVectorSource,
+      style: fireCentreStyler,
+      zIndex: 50
+    })
+  )
   const [fireZoneVTL] = useState(
     new VectorTileLayer({
       source: fireZoneVectorSource,
@@ -111,28 +120,29 @@ const FBAMap = (props: FBAMapProps) => {
       properties: { name: 'fireZoneVector' }
     })
   )
-
+  // Seperate layer for polygons and for labels, to avoid duplicate labels.
+  const [fireCentreLabelVTL] = useState(
+    new VectorTileLayer({
+      source: fireCentreLabelVectorSource,
+      style: fireCentreLabelStyler,
+      zIndex: 100,
+      maxZoom: 6
+    })
+  )
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
   const [fireZoneLabelVTL] = useState(
     new VectorTileLayer({
+      declutter: true,
       source: fireZoneLabelVectorSource,
       style: fireZoneLabelStyler(props.selectedFireZone),
       zIndex: 99,
       minZoom: 6
     })
   )
+  const [hfiTilesLoading, setHFITilesLoading] = useState(false)
 
   useEffect(() => {
     if (map) {
-      const layer = map
-        .getLayers()
-        .getArray()
-        .find(l => l.getProperties()?.name === 'fireZoneVector')
-      if (layer) {
-        map.removeLayer(layer)
-      }
-      map.addLayer(fireZoneVTL)
-      map.addLayer(fireZoneLabelVTL)
       map.on('click', event => {
         fireZoneVTL.getFeatures(event.pixel).then(features => {
           if (!features.length) {
@@ -148,38 +158,16 @@ const FBAMap = (props: FBAMapProps) => {
             map.getView().fit(zoneExtent)
           }
           const fireZone: FireZone = {
-            mof_fire_zone_id: feature.get('mof_fire_zone_id'),
-            mof_fire_zone_name: feature.get('mof_fire_zone_name'),
-            mof_fire_centre_name: feature.get('mof_fire_centre_name'),
-            area_sqm: feature.get('feature_area_sqm')
+            mof_fire_zone_id: feature.get('MOF_FIRE_ZONE_ID'),
+            mof_fire_zone_name: feature.get('MOF_FIRE_ZONE_NAME'),
+            mof_fire_centre_name: feature.get('MOF_FIRE_CENTRE_NAME'),
+            area_sqm: feature.get('FEATURE_AREA_SQM')
           }
           props.setSelectedFireZone(fireZone)
         })
       })
     }
   }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fireCentreVTL = new VectorTileLayer({
-    source: new VectorTileSource({
-      attributions: ['BC Wildfire Service'],
-      format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.fire_centres/{z}/{x}/{y}.pbf`
-    }),
-    style: fireCentreStyler,
-    zIndex: 50
-  })
-
-  // Seperate layer for polygons and for labels, to avoid duplicate labels.
-  const fireCentreLabelVTL = new VectorTileLayer({
-    source: new VectorTileSource({
-      attributions: ['BC Wildfire Service'],
-      format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.fire_centres_labels/{z}/{x}/{y}.pbf`
-    }),
-    style: fireCentreLabelStyler,
-    zIndex: 100,
-    maxZoom: 6
-  })
 
   useEffect(() => {
     if (!map) return
@@ -271,7 +259,9 @@ const FBAMap = (props: FBAMapProps) => {
           source: baseMapSource
         }),
         fireCentreVTL,
-        fireCentreLabelVTL
+        fireZoneVTL,
+        fireCentreLabelVTL,
+        fireZoneLabelVTL
       ],
       overlays: [],
       controls: defaultControls().extend([
@@ -313,7 +303,7 @@ const FBAMap = (props: FBAMapProps) => {
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
-        <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
+        <Box ref={mapRef} data-testid="fba-map" sx={{ display: 'flex', flex: 1 }}></Box>
         <LoadingBackdrop isLoadingWithoutError={hfiTilesLoading} />
       </MapContext.Provider>
     </ErrorBoundary>

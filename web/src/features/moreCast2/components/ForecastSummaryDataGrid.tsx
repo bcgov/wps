@@ -1,11 +1,24 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
+
+const PREFIX = 'ForecastSummaryDataGrid'
+
+const classes = {
+  root: `${PREFIX}-root`
+}
+
+const Root = styled('div')({
+  [`&.${classes.root}`]: {
+    display: 'flex',
+    flexGrow: 1
+  }
+})
 
 interface ForecastSummaryDataGridProps {
   loading: boolean
@@ -20,13 +33,6 @@ interface ForecastSummaryDataGridProps {
   handleClose: () => void
 }
 
-const useStyles = makeStyles({
-  root: {
-    display: 'flex',
-    flexGrow: 1
-  }
-})
-
 const ForecastSummaryDataGrid = ({
   loading,
   rows,
@@ -36,10 +42,8 @@ const ForecastSummaryDataGrid = ({
   handleColumnHeaderClick,
   handleClose
 }: ForecastSummaryDataGridProps) => {
-  const classes = useStyles()
-
   return (
-    <div className={classes.root} data-testid={`morecast2-data-grid`}>
+    <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
         components={{
           LoadingOverlay: LinearProgress
@@ -61,7 +65,7 @@ const ForecastSummaryDataGrid = ({
         handleClose={handleClose}
         updateColumnWithModel={updateColumnWithModel}
       />
-    </div>
+    </Root>
   )
 }
 

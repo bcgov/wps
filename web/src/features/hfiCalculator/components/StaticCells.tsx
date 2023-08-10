@@ -4,6 +4,7 @@ import HFICell from 'components/HFICell'
 import EmptyStaticCells from 'features/hfiCalculator/components/EmptyStaticCells'
 import HighestDailyFIGCell from 'features/hfiCalculator/components/HighestDailyFIGCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
+import { StationPlainStylingCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { isNull, isUndefined, range } from 'lodash'
@@ -13,7 +14,6 @@ export interface StaticCellsProps {
   numPrepDays: number
   dailies: StationDaily[] | undefined
   station: WeatherStation
-  classNameForRow: string | undefined
   isRowSelected: boolean
   selectedFuelType: FuelType | undefined
 }
@@ -39,20 +39,16 @@ export const StaticCells = ({
   numPrepDays,
   dailies,
   station,
-  classNameForRow,
   isRowSelected,
   selectedFuelType
 }: StaticCellsProps): ReactElement => {
+  const TableCellComponent = isRowSelected ? TableCell : StationPlainStylingCell
+
   const staticCells = range(numPrepDays).map(dailyIndex => {
     const daily = dailies ? dailies[dailyIndex] : undefined
     const error = isError(daily, selectedFuelType)
     return isUndefined(daily) ? (
-      <EmptyStaticCells
-        key={`empty-${station.code}-${dailyIndex}`}
-        rowId={dailyIndex}
-        isRowSelected={isRowSelected}
-        classNameForRow={classNameForRow}
-      />
+      <EmptyStaticCells key={`empty-${station.code}-${dailyIndex}`} rowId={dailyIndex} isRowSelected={isRowSelected} />
     ) : (
       <React.Fragment key={`${station.code}-${daily.date}-${dailyIndex}`}>
         <WeeklyROSCell
@@ -70,9 +66,9 @@ export const StaticCells = ({
           selected={isRowSelected}
         ></IntensityGroupCell>
         {/* Fire Starts */}
-        <TableCell data-testid={`${daily.code}-fire-starts`} className={classNameForRow}></TableCell>
+        <TableCellComponent data-testid={`${daily.code}-fire-starts`} />
         {/* Prep Level */}
-        <TableCell data-testid={`${daily.code}-prep-level`} className={classNameForRow}></TableCell>
+        <TableCellComponent data-testid={`${daily.code}-prep-level`} />
       </React.Fragment>
     )
   })
@@ -81,7 +77,7 @@ export const StaticCells = ({
       {staticCells}
       <HighestDailyFIGCell isRowSelected={isRowSelected} />
       {/* Calc. Prep */}
-      <TableCell data-testid={`calc-prep`} className={classNameForRow}></TableCell>
+      <TableCellComponent data-testid={`calc-prep`} />
     </React.Fragment>
   )
 }

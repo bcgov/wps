@@ -163,8 +163,8 @@ def add_msg_to_queue(file: UploadFile, key: str, forecast_or_actual: str, meta_d
             for_date = get_date_part(file.filename)
             message = SFMSFile(key=key,
                                run_type=forecast_or_actual,
-                               last_modified=meta_data.get('last_modified'),
-                               create_time=meta_data.get('create_time'),
+                               last_modified=datetime.fromisoformat(meta_data.get('last_modified')),
+                               create_time=datetime.fromisoformat(meta_data.get('create_time')),
                                run_date=issue_date,
                                for_date=date(year=int(for_date[0:4]),
                                              month=int(for_date[4:6]),

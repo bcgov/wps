@@ -1,8 +1,20 @@
 import { TextField, Autocomplete } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { FireStartRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isEqual, isNull } from 'lodash'
 import React from 'react'
+
+const PREFIX = 'FireStartsDropdown'
+
+const classes = {
+  dropdownClass: `${PREFIX}-dropdownClass`
+}
+
+const StyledTextField = styled(TextField)({
+  [`& .${classes.dropdownClass}`]: {
+    width: '96px'
+  }
+})
 
 export interface FireStartsDropdownProps {
   fireStarts: FireStartRange | undefined
@@ -13,12 +25,6 @@ export interface FireStartsDropdownProps {
   setFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStartRange) => void
 }
 
-const useStyles = makeStyles({
-  dropdownClass: {
-    width: '96px'
-  }
-})
-
 const FireStartsDropdown = ({
   fireStarts,
   fireStartRanges,
@@ -27,7 +33,6 @@ const FireStartsDropdown = ({
   fireStartsEnabled,
   setFireStarts
 }: FireStartsDropdownProps) => {
-  const classes = useStyles()
   return (
     <Autocomplete
       data-testid={`fire-starts-dropdown`}
@@ -39,7 +44,7 @@ const FireStartsDropdown = ({
       options={fireStartRanges}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
-      renderInput={params => <TextField {...params} variant="outlined" />}
+      renderInput={params => <StyledTextField {...params} variant="outlined" />}
       value={fireStarts ? fireStarts : fireStartRanges[0]}
       onChange={(_, value) => {
         if (!isNull(value)) {

@@ -1,4 +1,4 @@
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { ToggleButtonGroup, ToggleButton } from '@mui/material'
 import { isNull, isUndefined, range } from 'lodash'
 import { theme } from 'app/theme'
@@ -8,29 +8,30 @@ import { useDispatch } from 'react-redux'
 import { PrepDateRange, setSelectedPrepDate } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
 
+const PREFIX = 'ViewSwitcherToggles'
+
+const ViewSwitcherToggleGroup = styled(ToggleButtonGroup, {
+  name: `${PREFIX}-toggleGroup`
+})({
+  '& .MuiToggleButton-root': {
+    height: 56,
+    lineHeight: '16px',
+    color: theme.palette.primary.main
+  },
+  '& .MuiToggleButton-root.Mui-selected': {
+    backgroundColor: theme.palette.primary.main,
+    color: 'white',
+    fontWeight: 'bold'
+  }
+})
+
 export interface ViewSwitcherTogglesProps {
   dateRange?: PrepDateRange
   selectedPrepDate: string
   testId?: string
 }
 
-const useStyles = makeStyles(() => ({
-  toggleGroup: {
-    '& .MuiToggleButton-root': {
-      height: 56,
-      lineHeight: '16px',
-      color: theme.palette.primary.main
-    },
-    '& .MuiToggleButton-root.Mui-selected': {
-      backgroundColor: theme.palette.primary.main,
-      color: 'white',
-      fontWeight: 'bold'
-    }
-  }
-}))
-
 const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
-  const classes = useStyles()
   const dispatch = useDispatch()
 
   const handleToggle = (_: React.MouseEvent<HTMLElement, MouseEvent>, prepDate: string) => {
@@ -64,14 +65,13 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
   }
 
   return (
-    <React.Fragment>
+    <div>
       <div data-testid={props.testId}>
-        <ToggleButtonGroup
+        <ViewSwitcherToggleGroup
           exclusive
           onChange={handleToggle}
           aria-label="view toggles"
           value={formatDateString(props.selectedPrepDate)}
-          className={classes.toggleGroup}
         >
           <ToggleButton data-testid="prep-period-toggle" value={''} aria-label="prep toggle">
             Prep Period
@@ -99,9 +99,9 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
               </ToggleButton>
             )
           })}
-        </ToggleButtonGroup>
+        </ViewSwitcherToggleGroup>
       </div>
-    </React.Fragment>
+    </div>
   )
 }
 

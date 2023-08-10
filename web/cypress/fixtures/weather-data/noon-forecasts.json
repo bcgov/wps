@@ -4,7 +4,7 @@
       "station_code": 328,
       "values": [
         {
-          "datetime": "2021-01-21T20:00:00+00:00",
+          "datetime": "2021-01-21T20:00:00Z",
           "temp_valid": true,
           "temperature": 16,
           "rh_valid": true,
@@ -25,7 +25,7 @@
           "created_at": "2020-10-15T23:30:24.434970+00:00"
         },
         {
-          "datetime": "2021-01-21T20:00:00+00:00",
+          "datetime": "2021-01-21T20:00:00Z",
           "temp_valid": true,
           "temperature": 16,
           "rh_valid": true,
@@ -46,7 +46,7 @@
           "created_at": "2020-10-15T15:31:10.500193+00:00"
         },
         {
-          "datetime": "2021-01-22T20:00:00+00:00",
+          "datetime": "2021-01-22T20:00:00Z",
           "temp_valid": true,
           "temperature": 12,
           "rh_valid": true,
@@ -67,7 +67,7 @@
           "created_at": "2021-01-21T23:30:18.468227+00:00"
         },
         {
-          "datetime": "2021-01-22T20:00:00+00:00",
+          "datetime": "2021-01-22T20:00:00Z",
           "temp_valid": true,
           "temperature": 12,
           "rh_valid": true,
@@ -88,7 +88,7 @@
           "created_at": "2020-10-15T23:30:24.434970+00:00"
         },
         {
-          "datetime": "2021-01-22T20:00:00+00:00",
+          "datetime": "2021-01-22T20:00:00Z",
           "temp_valid": true,
           "temperature": 12,
           "rh_valid": true,
@@ -109,7 +109,7 @@
           "created_at": "2020-10-15T15:31:10.500193+00:00"
         },
         {
-          "datetime": "2021-01-23T20:00:00+00:00",
+          "datetime": "2021-01-23T20:00:00Z",
           "temp_valid": true,
           "temperature": 14,
           "rh_valid": true,
@@ -130,7 +130,7 @@
           "created_at": "2021-01-22T23:30:26.253129+00:00"
         },
         {
-          "datetime": "2021-01-23T20:00:00+00:00",
+          "datetime": "2021-01-23T20:00:00Z",
           "temp_valid": true,
           "temperature": 14,
           "rh_valid": true,
@@ -151,7 +151,7 @@
           "created_at": "2021-01-21T23:30:18.468227+00:00"
         },
         {
-          "datetime": "2021-01-23T20:00:00+00:00",
+          "datetime": "2021-01-23T20:00:00Z",
           "temp_valid": true,
           "temperature": 14,
           "rh_valid": true,
@@ -172,7 +172,7 @@
           "created_at": "2020-10-15T23:30:24.434970+00:00"
         },
         {
-          "datetime": "2021-01-23T20:00:00+00:00",
+          "datetime": "2021-01-23T20:00:00Z",
           "temp_valid": true,
           "temperature": 14,
           "rh_valid": true,
@@ -193,7 +193,7 @@
           "created_at": "2020-10-15T15:31:10.500193+00:00"
         },
         {
-          "datetime": "2021-01-24T20:00:00+00:00",
+          "datetime": "2021-01-24T20:00:00Z",
           "temp_valid": true,
           "temperature": 10,
           "rh_valid": true,
@@ -214,7 +214,7 @@
           "created_at": "2021-01-24T15:30:15.838648+00:00"
         },
         {
-          "datetime": "2021-01-25T20:00:00+00:00",
+          "datetime": "2021-01-25T20:00:00Z",
           "temp_valid": true,
           "temperature": 9,
           "rh_valid": true,
@@ -235,7 +235,7 @@
           "created_at": "2021-01-24T23:30:26.847967+00:00"
         },
         {
-          "datetime": "2021-01-25T20:00:00+00:00",
+          "datetime": "2021-01-25T20:00:00Z",
           "temp_valid": true,
           "temperature": 9,
           "rh_valid": true,
@@ -256,7 +256,7 @@
           "created_at": "2021-01-24T15:30:15.838648+00:00"
         },
         {
-          "datetime": "2021-01-26T20:00:00+00:00",
+          "datetime": "2021-01-26T20:00:00Z",
           "temp_valid": true,
           "temperature": 4,
           "rh_valid": true,
@@ -277,7 +277,7 @@
           "created_at": "2021-01-25T23:32:06.024435+00:00"
         },
         {
-          "datetime": "2021-01-26T20:00:00+00:00",
+          "datetime": "2021-01-26T20:00:00Z",
           "temp_valid": true,
           "temperature": 4,
           "rh_valid": true,
@@ -298,7 +298,7 @@
           "created_at": "2021-01-24T23:30:26.847967+00:00"
         },
         {
-          "datetime": "2021-01-26T20:00:00+00:00",
+          "datetime": "2021-01-26T20:00:00Z",
           "temp_valid": true,
           "temperature": 4,
           "rh_valid": true,

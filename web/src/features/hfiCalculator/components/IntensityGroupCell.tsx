@@ -1,7 +1,18 @@
 import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { fireTableStyles } from 'app/theme'
+import { styled } from '@mui/material/styles'
+import { UNSELECTED_STATION_COLOR } from 'app/theme'
 import React from 'react'
+
+export const SelectedIntensityGroupCell = styled(TableCell, { name: 'intensityGroupCell' })({
+  width: 30,
+  textAlign: 'center'
+})
+
+export const UnSelectedIntensityGroupCell = styled(TableCell)({
+  color: UNSELECTED_STATION_COLOR,
+  width: 30,
+  textAlign: 'center'
+})
 
 export interface IntensityGroupCellProps {
   testid: string | undefined
@@ -10,30 +21,13 @@ export interface IntensityGroupCellProps {
   selected: boolean
 }
 
-const useStyles = makeStyles({
-  intensityGroupCell: {
-    width: 30,
-    textAlign: 'center'
-  },
-  unselectedStation: {
-    ...fireTableStyles.unselectedStation,
-    width: 30,
-    textAlign: 'center'
-  }
-})
-
 const IntensityGroupCell = (props: IntensityGroupCellProps) => {
-  const classes = useStyles()
-
-  return (
-    <TableCell
-      className={`${
-        !props.selected && !props.error && props.value ? classes.unselectedStation : classes.intensityGroupCell
-      }`}
-      data-testid={props.testid}
-    >
+  return !props.selected && !props.error && props.value ? (
+    <UnSelectedIntensityGroupCell data-testid={props.testid}>
       {props.error ? '' : props.value}
-    </TableCell>
+    </UnSelectedIntensityGroupCell>
+  ) : (
+    <SelectedIntensityGroupCell data-testid={props.testid}>{props.error ? '' : props.value}</SelectedIntensityGroupCell>
   )
 }
 
