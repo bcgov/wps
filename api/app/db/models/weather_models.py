@@ -235,6 +235,8 @@ class MoreCast2MaterializedView(Base):
     apcp_sfc_0 = Column(Float, nullable=False)
     bias_adjusted_rh = Column(Float, nullable=False)
     bias_adjusted_temperature = Column(Float, nullable=False)
+    bias_adjusted_wind_speed = Column(Float, nullable=False)
+    bias_adjusted_wdir = Column(Float, nullable=False)
     prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
     station_code = Column(Integer, nullable=True, index=True)
     rh_tgl_2 = Column(Float, nullable=False)
