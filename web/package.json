@@ -20,7 +20,7 @@
     "@mui/x-data-grid": "^6.0.0",
     "@mui/x-date-pickers": "^6.0.0",
     "@reduxjs/toolkit": "^1.8.0",
-    "@types/esri-leaflet": "^2.1.6",
+    "@types/esri-leaflet": "^3.0.0",
     "@types/leaflet": "^1.7.0",
     "@types/lodash": "^4.14.173",
     "@types/luxon": "^3.0.2",
