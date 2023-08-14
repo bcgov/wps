@@ -2613,10 +2613,10 @@
     "@types/estree" "*"
     "@types/json-schema" "*"
 
-"@types/esri-leaflet@^2.1.6":
-  version "2.1.10"
-  resolved "https://registry.yarnpkg.com/@types/esri-leaflet/-/esri-leaflet-2.1.10.tgz#b2787965d1d6f37932b5dc9f4ab8839e1ffb33d0"
-  integrity sha512-plrvZvzWfjL7yT7OR2WAxuzgLcesKGcO+wbnFc9BO0UKB99OT6itqLXk+W0OS35q8bbpSKjPLycm6JU9LqU/KQ==
+"@types/esri-leaflet@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/esri-leaflet/-/esri-leaflet-3.0.0.tgz#3bc22e7e95933f3db499ef75f383f7529d468618"
+  integrity sha512-hFD7vWPZ1EXjTjzyxC/FjBfwhXpB79hbI04s+JGtsNPMZi3smogXgVS+VVRatZPPqYwApXt0vsgaKE2SxFqa4A==
   dependencies:
     "@types/leaflet" "*"
 
