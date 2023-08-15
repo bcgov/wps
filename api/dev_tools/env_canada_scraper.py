@@ -29,10 +29,7 @@ def download_gdps_grib_files():
         hhh = format(h, '03d')
         gdps_base_url = f'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{RUN}/{hhh}/'
         gdps_fname = f'CMC_glb_{GRIB_LAYER}_latlon.15x.15_{get_date()}{RUN}_P{hhh}.grib2'
-        # https: // dd.weather.gc.ca / model_gem_global / 15km / grib2 / lat_lon / 00 / 003 / CMC_glb_APCP_SFC_0_latlon.15x.15_2023081500_P003.grib2
-        # https: // dd.weather.gc.ca / model_gem_global / 15km / grib2 / lat_lon / 00 / 000 / CMC_glb_APCP_SFC_0_latlon.15x.15_2023081400_P000.grib2
         gdps_grib_url = f'{gdps_base_url}{gdps_fname}'
-        print(f'URL: {gdps_grib_url}')
         with requests.get(gdps_grib_url, stream=True) as r:
             with open(f'{gdps_fname}', 'wb') as f:
                 shutil.copyfileobj(r.raw, f)
