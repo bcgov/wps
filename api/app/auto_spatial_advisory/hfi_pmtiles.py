@@ -1,6 +1,4 @@
-from app.auto_spatial_advisory.polygonize import polygonize_in_memory
 from osgeo import gdal, ogr
-from tempfile import TemporaryDirectory
 import os
 import subprocess
 
