@@ -23,7 +23,8 @@ def tippecanoe_wrapper(geojson_filepath: str, output_pmtiles_filepath: str, min_
         '--projection=EPSG:4326',
         f'--output={output_pmtiles_filepath}',
         f'{geojson_filepath}',
-        '--force'
+        '--force',
+        '--quiet'
     ], check=True
     )
 
@@ -51,7 +52,7 @@ def write_hfi_geojson(hfi_polygons: ogr.Layer, output_dir: str) -> str:
     # tippecanoe recommends the input geojson be in EPSG:4326 [https://github.com/felt/tippecanoe#projection-of-input]
     # We also don't need hfi values below 1 (currently we don't even show values below 4000)
     gdal.VectorTranslate(destNameOrDestDS=temp_geojson, srcDS=temp_gpkg,
-                         format='GeoJSON', dstSRS='EPSG:4326', reproject=True, where='hfi > 4000')
+                         format='GeoJSON', dstSRS='EPSG:4326', reproject=True)
 
     del temp_gpkg
 
