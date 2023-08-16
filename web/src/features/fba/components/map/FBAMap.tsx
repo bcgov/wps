@@ -32,7 +32,7 @@ import { DateTime } from 'luxon'
 import { LayerControl } from 'features/fba/components/map/layerControl'
 import { PMTILES_BUCKET, RASTER_SERVER_BASE_URL } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
-import { buildHFICql } from 'features/fba/cqlBuilder'
+import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
 import { isUndefined, cloneDeep } from 'lodash'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 import { Box } from '@mui/material'
@@ -88,7 +88,7 @@ const removeLayerByName = (map: ol.Map, layerName: string) => {
 
 const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
-  const [showHighHFI, setShowHighHFI] = useState(true)
+  const [showHighHFI, setShowHighHFI] = useState(false)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
 
@@ -201,43 +201,20 @@ const FBAMap = (props: FBAMapProps) => {
     const layerName = 'hfiVector'
     removeLayerByName(map, layerName)
     if (showHighHFI) {
-      const source = new VectorTileSource({
-        attributions: ['BC Wildfire Service'],
-        format: new MVT(),
-        url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?${buildHFICql(props.forDate, props.runType)}`,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        tileLoadFunction: function (tile: any, url) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tile.setLoader(function (extent: any, _resolution: any, projection: any) {
-            fetch(url).then(function (response) {
-              response.arrayBuffer().then(function (data) {
-                const format = tile.getFormat()
-                const features = format.readFeatures(data, {
-                  extent: extent,
-                  featureProjection: projection
-                })
-                tile.setFeatures(features)
-              })
-            })
-          })
-        }
+      const hfiGeojsonSource = new olpmtiles.PMTilesVectorSource({
+        url: buildPMTilesURL(props.forDate, props.runType, props.runDate)
       })
-      source.on('tileloadstart', function () {
-        setHFITilesLoading(true)
-      })
-      source.on(['tileloadend', 'tileloaderror'], function () {
-        setHFITilesLoading(false)
-      })
+
       const latestHFILayer = new VectorTileLayer({
-        source,
+        source: hfiGeojsonSource,
         style: hfiStyler,
         zIndex: 100,
-        minZoom: 6,
+        minZoom: 4,
         properties: { name: layerName }
       })
       map.addLayer(latestHFILayer)
     }
-  }, [props.forDate, showHighHFI, props.setIssueDate, props.runType]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [props.forDate, showHighHFI, props.setIssueDate, props.runType, props.runDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
