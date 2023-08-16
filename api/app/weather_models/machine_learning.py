@@ -19,7 +19,9 @@ from app.db.crud.observations import get_actuals_left_outer_join_with_prediction
 logger = getLogger(__name__)
 
 # Corresponding key values on HourlyActual and SampleCollection
-SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity')
+SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity', 'wind_speed', 'wind_direction')
+# Number of days of historical actual data to learn from when training model
+MAX_DAYS_TO_LEARN = 19
 
 
 class LinearRegressionWrapper:
@@ -37,11 +39,14 @@ class RegressionModels:
     For each different reading, we have a seperate LinearRegression model.
     """
 
-    keys = ('temperature_wrapper', 'relative_humidity_wrapper')
+    keys = ('temperature_wrapper', 'relative_humidity_wrapper',
+            'wind_speed_wrapper', 'wind_direction_wrapper')
 
     def __init__(self):
         self.temperature_wrapper = LinearRegressionWrapper()
         self.relative_humidity_wrapper = LinearRegressionWrapper()
+        self.wind_speed_wrapper = LinearRegressionWrapper()
+        self.wind_direction_wrapper = LinearRegressionWrapper()
 
 
 class Samples:
@@ -104,6 +109,8 @@ class SampleCollection:
     def __init__(self):
         self.temperature = Samples()
         self.relative_humidity = Samples()
+        self.wind_speed = Samples()
+        self.wind_direction = Samples()
 
 
 class StationMachineLearning:
@@ -137,19 +144,18 @@ class StationMachineLearning:
         # Maximum number of days to try to learn from. Experimentation has shown that
         # about two weeks worth of data starts giving fairly good results compared to human forecasters.
         # NOTE: This could be an environment variable.
-        self.max_days_to_learn = 19
+        self.max_days_to_learn = MAX_DAYS_TO_LEARN
 
     def _add_sample_to_collection(self,
                                   prediction: ModelRunGridSubsetPrediction,
                                   actual: HourlyActual,
                                   sample_collection: SampleCollection):
         """ Take the provided prediction and observed value, adding them to the collection of samples """
-        # TODO: add precip and wind speed/direction to SAMPLE_VALUE_KEYS
         for model_key, sample_key in zip(SCALAR_MODEL_VALUE_KEYS, SAMPLE_VALUE_KEYS):
             model_value = getattr(prediction, model_key)
             if model_value is not None:
                 actual_value = getattr(actual, sample_key)
-                if np.isnan(actual_value):
+                if actual_value is None or np.isnan(actual_value):
                     # If for whatever reason we don't have an actual value, we skip this one.
                     logger.warning('no actual value for %s', sample_key)
                     continue
@@ -215,7 +221,7 @@ class StationMachineLearning:
                 # how much sample data we actually had etc., and then not mark the model as being "good".
                 regression_model.good_model = True
 
-    def predict_temperature(self, model_temperature, timestamp):
+    def predict_temperature(self, model_temperature: float, timestamp: datetime):
         """ Predict the bias adjusted temperature for a given point in time, given a corresponding model
         temperature.
         : param model_temperature: Temperature as provided by the model
@@ -238,5 +244,35 @@ class StationMachineLearning:
         """
         hour = timestamp.hour
         if self.regression_models[hour].relative_humidity_wrapper.good_model and model_rh is not None:
-            return self.regression_models[hour].relative_humidity_wrapper.model.predict([[model_rh]])[0]
+            predicted_rh = self.regression_models[hour].relative_humidity_wrapper.model.predict([[model_rh]])[0]
+            # in the real world the RH value can't be negative. Sometimes linear regression returns negative value, so assume 0
+            return max(0, predicted_rh)
+        return None
+
+    def predict_wind_speed(self, model_wind_speed: float, timestamp: datetime):
+        """ Predict the bias-adjusted wind speed for a given point in time, given a corresponding model wind speed.
+        : param model_wind_speed: Wind speed as provided by the model
+        : param timestamp: Datetime value for the predicted value
+        : return: The bias adjusted wind speed as predicted by the linear regression model.
+        """
+        hour = timestamp.hour
+        if self.regression_models[hour].wind_speed_wrapper.good_model and model_wind_speed is not None:
+            predicted_wind_speed = self.regression_models[hour].wind_speed_wrapper.model.predict([[model_wind_speed]])[
+                0]
+            # in the real world the wind speed can't be negative. Sometimes linear regression returns negative value, so assume 0
+            return max(0, predicted_wind_speed)
+        return None
+
+    def predict_wind_direction(self, model_wind_dir: int, timestamp: datetime):
+        """ Predict the bias-adjusted wind direction for a given point in time, given a corresponding model wind direction.
+        : param model_wind_dir: Wind direction as provided by the model
+        : param timestamp: Datetime value for the predicted value
+        : return: The bias-adjusted wind direction as predicted by the linear regression model.
+        """
+        hour = timestamp.hour
+        if self.regression_models[hour].wind_direction_wrapper.good_model and model_wind_dir is not None:
+            predicted_wind_dir = self.regression_models[hour].wind_direction_wrapper.model.predict([[model_wind_dir]])[
+                0]
+            # a valid wind direction value is between 0 and 360. If the returned value is outside these bounds, correct it
+            return predicted_wind_dir % 360
         return None

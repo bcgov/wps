@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 # Key values on ModelRunGridSubsetPrediction.
 # Wind direction (wdir_tgl_10_b) is handled slightly differently, so not included here.
-SCALAR_MODEL_VALUE_KEYS = ('tmp_tgl_2', 'rh_tgl_2', 'apcp_sfc_0', 'wind_tgl_10')
+SCALAR_MODEL_VALUE_KEYS = ('tmp_tgl_2', 'rh_tgl_2', 'wind_tgl_10', 'apcp_sfc_0')
 
 
 class ModelEnum(str, Enum):
