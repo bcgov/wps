@@ -156,10 +156,13 @@ const hfiColors = [new Fill({ color: 'rgba(255, 0, 0, 0.4)' }), new Fill({ color
 const hfiStyle = new Style({})
 
 export const hfiStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-  if (feature.get('hfi') === '4000 < hfi < 10000') {
+  const hfi = feature.get('hfi')
+  if (hfi === 1) {
     hfiStyle.setFill(new Fill({ color: 'rgba(255, 128, 0, 0.4)' }))
-  } else if (feature.get('hfi') === 'hfi >= 10000') {
+  } else if (hfi === 2) {
     hfiStyle.setFill(new Fill({ color: 'rgba(255, 0, 0, 0.4)' }))
+  } else {
+    hfiStyle.setFill(new Fill({ color: 'rgba(0, 0, 0, 0)' }))
   }
   return hfiStyle
 }
