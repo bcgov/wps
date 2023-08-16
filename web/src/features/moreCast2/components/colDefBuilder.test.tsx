@@ -155,7 +155,12 @@ describe('ColDefBuilder', () => {
         })
       ).toEqual(<TextField disabled={false} label={ModelChoice.GDPS} size="small" value={1} />)
       expect(forecastColDef.valueFormatter({ value: 1.11 })).toEqual('1.1')
-      expect(forecastColDef.valueGetter({ row: {}, value: { choice: ModelChoice.GDPS, value: 1.11 } })).toEqual('1.1')
+      expect(
+        forecastColDef.valueGetter({
+          row: { testField: { choice: ModelChoice.GDPS, value: 1 } },
+          value: { choice: ModelChoice.GDPS, value: 1.11 }
+        })
+      ).toEqual('1.1')
       expect(
         forecastColDef.valueSetter({ row: { testField: { choice: ModelChoice.GDPS, value: 1 } }, value: 2 })
       ).toEqual({ testField: { choice: ModelChoice.MANUAL, value: 2 } })
