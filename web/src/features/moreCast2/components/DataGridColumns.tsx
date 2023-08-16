@@ -95,15 +95,9 @@ export const columnGroupingModel: GridColumnGroupingModel = [
 // and visibility of our weather parameter tabs
 function columnGroupingModelChildGenerator(weatherParam: string) {
   // For a given weather model, there are tabs present in the datagrid for each WeatherDetermiante except
-  // WeatherDeterminate.NULL. Additioanlly, bias adjusted predictions only exist for temp and rh.
+  // WeatherDeterminate.NULL
   let determinates: WeatherDeterminate[] = []
-  if (weatherParam === 'temp' || weatherParam === 'rh') {
-    determinates = WeatherDeterminateChoices.filter(choice => choice !== WeatherDeterminate.NULL)
-  } else {
-    determinates = WeatherDeterminateChoices.filter(
-      choice => choice !== WeatherDeterminate.NULL && !choice.endsWith('BIAS')
-    )
-  }
+  determinates = WeatherDeterminateChoices.filter(choice => choice !== WeatherDeterminate.NULL)
   const children = determinates.map(determinate => {
     return {
       field: `${weatherParam}${determinate}`
