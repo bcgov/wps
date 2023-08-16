@@ -57,3 +57,19 @@ def write_hfi_geojson(hfi_polygons: ogr.Layer, output_dir: str) -> str:
     del temp_gpkg
 
     return temp_geojson
+
+
+def get_pmtiles_filepath(filename: str) -> str:
+    """
+    Get the file path for both reading and writing the pmtiles from/to the object store.
+    Example: {bucket}/psu/pmtiles/hfi/2022-10-12/2022-10-12_actual_run-2022-10-12_hfi.pmtiles
+
+    :param filename: {for_date}_{run_type.value}_run-{run_date}_hfi.pmtiles'
+    :type filename: str
+    :return: s3 bucket path for pmtiles file
+    :rtype: str
+    """
+    for_date = filename.split('_')[0]
+    pmtiles_filepath = os.path.join('psu', 'pmtiles', 'hfi', for_date, filename)
+
+    return pmtiles_filepath
