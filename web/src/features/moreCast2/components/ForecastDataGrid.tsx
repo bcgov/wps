@@ -71,8 +71,8 @@ const ForecastDataGrid = ({
         onColumnVisibilityModelChange={newModel => setColumnVisibilityModel(newModel)}
         columnGroupingModel={columnGroupingModel}
         experimentalFeatures={{ columnGrouping: true }}
-        components={{
-          LoadingOverlay: LinearProgress
+        slots={{
+          loadingOverlay: LinearProgress
         }}
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellDoubleClick={onCellDoubleClickHandler}
