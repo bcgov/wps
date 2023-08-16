@@ -97,9 +97,13 @@ describe('GridComponentRenderer', () => {
   })
 
   it('should return an existent prediction item value correctly', () => {
-    const itemValue = gridComponentRenderer.predictionItemValueGetter(
-      { value: { choice: ModelChoice.GDPS, value: 1.11 } },
-      1
+    const itemValue = gridComponentRenderer.valueGetter(
+      {
+        row: { testField: { choice: ModelChoice.GDPS, value: 1.11 } },
+        value: { choice: ModelChoice.GDPS, value: 1.11 }
+      },
+      1,
+      'testField'
     )
     expect(itemValue).toEqual('1.1')
   })
