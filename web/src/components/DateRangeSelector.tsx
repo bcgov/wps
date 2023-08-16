@@ -1,4 +1,4 @@
-import { Button, Dialog, IconButton, InputAdornment, TextField } from '@mui/material'
+import { Button, Dialog, Icon, InputAdornment, TextField } from '@mui/material'
 import * as materialIcons from '@mui/icons-material'
 import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
 import { DateRange } from 'components/dateRangePicker/types'
@@ -50,9 +50,9 @@ const DateRangeSelector = ({ dateRange, dateDisplayFormat, size, label, setDateR
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <IconButton edge="end" size="large">
+                <Icon>
                   <materialIcons.DateRange />
-                </IconButton>
+                </Icon>
               </InputAdornment>
             )
           }}
