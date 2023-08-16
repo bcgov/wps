@@ -21,9 +21,15 @@ from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.polygonize import polygonize_in_memory
 from app.auto_spatial_advisory.run_type import RunType
 from app.geospatial import NAD83_BC_ALBERS
+from app.auto_spatial_advisory.hfi_pmtiles import write_hfi_geojson, tippecanoe_wrapper, get_pmtiles_filepath
+from app.utils.s3 import get_client
 
 
 logger = logging.getLogger(__name__)
+
+HFI_PMTILES_PERMISSIONS = 'public-read'
+HFI_PMTILES_MIN_ZOOM = 4
+HFI_PMTILES_MAX_ZOOM = 11
 
 
 class UnknownHFiClassification(Exception):
@@ -138,6 +144,25 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(key, temp_filename)
         with polygonize_in_memory(temp_filename) as layer:
+
+            # We need a geojson file to pass to tippecanoe
+            temp_geojson = write_hfi_geojson(layer, temp_dir)
+
+            pmtiles_filename = f'{for_date}_{run_type.value}_run-{run_date}_hfi.pmtiles'
+            temp_pmtiles_filepath = os.path.join(temp_dir, pmtiles_filename)
+            logger.info(f'Writing pmtiles -- {pmtiles_filename}')
+            tippecanoe_wrapper(temp_geojson, temp_pmtiles_filepath,
+                               min_zoom=HFI_PMTILES_MIN_ZOOM, max_zoom=HFI_PMTILES_MAX_ZOOM)
+
+            async with get_client() as (client, bucket):
+                key = get_pmtiles_filepath(pmtiles_filename)
+                logger.info(f'Uploading file {pmtiles_filename} to {key}')
+
+                await client.put_object(Bucket=bucket,
+                                        Key=key,
+                                        ACL=HFI_PMTILES_PERMISSIONS,  # We need these to be accessible to everyone
+                                        Body=open(temp_pmtiles_filepath, 'rb'))
+                logger.info('Done uploading file')
 
             spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
             target_srs = osr.SpatialReference()
