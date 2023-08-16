@@ -8,7 +8,7 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { ModelChoice } from 'api/moreCast2API'
-import { createWeatherModelLabel } from 'features/moreCast2/util'
+import { createLabel } from 'features/moreCast2/util'
 
 const NOT_AVAILABLE = 'N/A'
 
@@ -34,19 +34,40 @@ export class GridComponentRenderer {
     <TextField disabled={true} size="small" value={params.formattedValue}></TextField>
   )
 
-  public renderForecastCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>, field: string) => {
-    // The value of field will be precipForecast, rhForecast, tempForecast, etc.
-    // We need the prefix to help us grab the correct 'actual' field (eg. tempACTUAL, precipACTUAL, etc.)
+  public getActualField = (field: string) => {
     const index = field.indexOf('Forecast')
     const prefix = field.slice(0, index)
     const actualField = `${prefix}Actual`
+    return actualField
+  }
 
-    const disabled = !isNaN(params.row[actualField])
+  public valueGetter = (params: Pick<GridValueGetterParams, 'row' | 'value'>, precision: number, field: string) => {
+    const actualField = this.getActualField(field)
+    const actual = params.row[actualField]
+
+    if (!isNaN(actual)) {
+      return Number(actual).toFixed(precision)
+    }
+
+    const value = params?.value?.value
+
+    if (isNaN(value)) {
+      return 'NaN'
+    }
+    return Number(value).toFixed(precision)
+  }
+
+  public renderForecastCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>, field: string) => {
+    // The value of field will be precipForecast, rhForecast, tempForecast, etc.
+    // We need the prefix to help us grab the correct 'actual' field (eg. tempACTUAL, precipACTUAL, etc.)
+    const actualField = this.getActualField(field)
+
+    const isActual = !isNaN(params.row[actualField])
     return (
       <TextField
-        disabled={disabled}
+        disabled={isActual}
         size="small"
-        label={createWeatherModelLabel(params.row[field].choice)}
+        label={createLabel(isActual, params.row[field].choice)}
         value={params.formattedValue}
       ></TextField>
     )
@@ -80,13 +101,5 @@ export class GridComponentRenderer {
 
   public cellValueGetter = (params: Pick<GridValueGetterParams, 'value'>, precision: number) => {
     return isNaN(params?.value) ? 'NaN' : params.value.toFixed(precision)
-  }
-
-  public predictionItemValueGetter = (params: Pick<GridValueGetterParams, 'value'>, precision: number) => {
-    const value = params?.value?.value
-    if (isNaN(value)) {
-      return 'NaN'
-    }
-    return Number(value).toFixed(precision)
   }
 }

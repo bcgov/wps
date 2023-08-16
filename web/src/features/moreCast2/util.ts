@@ -71,3 +71,11 @@ export const createWeatherModelLabel = (label: string) => {
 
   return label === ModelChoice.NULL ? '' : label
 }
+
+export const createLabel = (isActual: boolean, label: string) => {
+  if (isActual) {
+    return ModelChoice.ACTUAL
+  }
+
+  return createWeatherModelLabel(label)
+}
