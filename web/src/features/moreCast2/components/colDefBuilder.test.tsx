@@ -187,7 +187,7 @@ describe('ColDefBuilder', () => {
       expect(colDefBuilder.valueFormatterWith({ value: 1.11 }, 1)).toEqual('1.1')
       expect(colDefBuilder.valueGetterWith({ value: 1.11 }, 1)).toEqual('1.1')
       expect(
-        colDefBuilder.predictionitemValueGetterWith(
+        colDefBuilder.valueGetter(
           {
             row: { testField: { choice: ModelChoice.GDPS, value: 1.11 } },
             value: { choice: ModelChoice.GDPS, value: 1.11 }

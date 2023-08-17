@@ -14,7 +14,6 @@ export const DEFAULT_FORECAST_COLUMN_WIDTH = 120
 
 // Defines the order in which weather models display in the datagrid.
 export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
-  WeatherDeterminate.ACTUAL,
   WeatherDeterminate.HRDPS,
   WeatherDeterminate.HRDPS_BIAS,
   WeatherDeterminate.RDPS,
@@ -131,11 +130,8 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     this.gridComponentRenderer.predictionItemValueFormatter(params, precision)
   public valueGetterWith = (params: Pick<GridValueGetterParams, 'value'>, precision: number) =>
     this.gridComponentRenderer.cellValueGetter(params, precision)
-  public predictionitemValueGetterWith = (
-    params: Pick<GridValueGetterParams, 'row' | 'value'>,
-    field: string,
-    precision: number
-  ) => this.gridComponentRenderer.valueGetter(params, precision, field)
+  public valueGetter = (params: Pick<GridValueGetterParams, 'row' | 'value'>, field: string, precision: number) =>
+    this.gridComponentRenderer.valueGetter(params, precision, field)
   public valueSetterWith = (params: Pick<GridValueSetterParams, 'row' | 'value'>, field: string, precision: number) =>
     this.gridComponentRenderer.predictionItemValueSetter(params, field, precision)
 }
