@@ -41,7 +41,11 @@ export class GridComponentRenderer {
     return actualField
   }
 
-  public valueGetter = (params: Pick<GridValueGetterParams, 'row' | 'value'>, precision: number, field: string) => {
+  public valueGetter = (
+    params: Pick<GridValueGetterParams, 'row' | 'value'>,
+    precision: number,
+    field: string
+  ): string => {
     const actualField = this.getActualField(field)
     const actual = params.row[actualField]
 
