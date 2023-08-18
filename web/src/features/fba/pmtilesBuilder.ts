@@ -10,7 +10,7 @@ import { PMTILES_BUCKET } from 'utils/env'
  * @returns a URL to the PMTiles stored in our s3 bucket
  */
 export const buildPMTilesURL = (for_date: DateTime, run_type: RunType, run_date: DateTime): string => {
-  const PMTilesURL = `${PMTILES_BUCKET}hfi/${run_date.toISODate()}/${for_date.toISODate()}_${run_type.toLowerCase()}_run-${run_date.toISODate()}_hfi.pmtiles`
+  const PMTilesURL = `${PMTILES_BUCKET}hfi/${for_date.toISODate()}/${for_date.toISODate()}_${run_type.toLowerCase()}_run-${run_date.toISODate()}_hfi.pmtiles`
 
   return PMTilesURL
 }
