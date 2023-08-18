@@ -41,6 +41,8 @@ def write_hfi_geojson(hfi_polygons: ogr.Layer, output_dir: str) -> str:
     :rtype: str
     """
     # We can't use an in-memory layer for translating, so we'll create a temp layer
+    # Using a geopackage since it supports all projections and doesn't limit field name lengths.
+    # This matters because the hfi data is distributed in an odd projection that doesn't have an EPSG code
     temp_gpkg = os.path.join(output_dir, 'temp_hfi_polys.gpkg')
     driver = ogr.GetDriverByName('GPKG')
     temp_data_source = driver.CreateDataSource(temp_gpkg)
