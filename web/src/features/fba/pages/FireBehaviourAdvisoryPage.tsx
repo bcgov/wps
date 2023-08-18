@@ -239,7 +239,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               selectedFireZone={selectedFireZone}
               selectedFireCenter={fireCenter}
               advisoryThreshold={advisoryThreshold}
-              setIssueDate={setIssueDate}
               setSelectedFireZone={setSelectedFireZone}
               fireZoneAreas={fireZoneAreas}
             />

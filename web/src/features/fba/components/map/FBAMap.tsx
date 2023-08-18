@@ -44,7 +44,6 @@ export interface FBAMapProps {
   selectedFireZone: FireZone | undefined
   forDate: DateTime
   runDate: DateTime
-  setIssueDate: React.Dispatch<React.SetStateAction<DateTime | null>>
   setSelectedFireZone: React.Dispatch<React.SetStateAction<FireZone | undefined>>
   fireZoneAreas: FireZoneArea[]
   runType: RunType
