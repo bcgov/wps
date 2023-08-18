@@ -7,6 +7,8 @@ import { fromLonLat } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import XYZ from 'ol/source/XYZ'
+import VectorTileSource from 'ol/source/VectorTile'
+import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { useSelector } from 'react-redux'
@@ -32,11 +34,13 @@ import { PMTILES_BUCKET, RASTER_SERVER_BASE_URL } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
 import { isUndefined, cloneDeep } from 'lodash'
+import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 import { Box } from '@mui/material'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
+const TILE_SERVER_URL = 'https://wps-prod-tileserv.apps.silver.devops.gov.bc.ca'
 
 export interface FBAMapProps {
   testId?: string
@@ -135,6 +139,7 @@ const FBAMap = (props: FBAMapProps) => {
       minZoom: 6
     })
   )
+  const [hfiTilesLoading, setHFITilesLoading] = useState(false)
 
   useEffect(() => {
     if (map) {
@@ -197,7 +202,7 @@ const FBAMap = (props: FBAMapProps) => {
     removeLayerByName(map, layerName)
     if (showHighHFI) {
       const hfiGeojsonSource = new olpmtiles.PMTilesVectorSource({
-        url: buildPMTilesURL(props.runType, props.runDate)
+        url: buildPMTilesURL(props.forDate, props.runType, props.runDate)
       })
 
       const latestHFILayer = new VectorTileLayer({
@@ -209,7 +214,7 @@ const FBAMap = (props: FBAMapProps) => {
       })
       map.addLayer(latestHFILayer)
     }
-  }, [showHighHFI, props.runType, props.runDate.toISO()]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [props.forDate, showHighHFI, props.setIssueDate, props.runType, props.runDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -276,6 +281,7 @@ const FBAMap = (props: FBAMapProps) => {
     <ErrorBoundary>
       <MapContext.Provider value={map}>
         <Box ref={mapRef} data-testid="fba-map" sx={{ display: 'flex', flex: 1 }}></Box>
+        <LoadingBackdrop isLoadingWithoutError={hfiTilesLoading} />
       </MapContext.Provider>
     </ErrorBoundary>
   )

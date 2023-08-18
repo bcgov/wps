@@ -9,8 +9,8 @@ import { PMTILES_BUCKET } from 'utils/env'
  * @param run_date The date of the run to process. (when was the hfi file created?)
  * @returns a URL to the PMTiles stored in our s3 bucket
  */
-export const buildPMTilesURL = (run_type: RunType, run_date: DateTime): string => {
-  const PMTilesURL = `${PMTILES_BUCKET}hfi/${run_date.toISODate()}/${run_date.toISODate()}_${run_type.toLowerCase()}_run-${run_date.toISODate()}_hfi.pmtiles`
+export const buildPMTilesURL = (for_date: DateTime, run_type: RunType, run_date: DateTime): string => {
+  const PMTilesURL = `${PMTILES_BUCKET}hfi/${run_date.toISODate()}/${for_date.toISODate()}_${run_type.toLowerCase()}_run-${run_date.toISODate()}_hfi.pmtiles`
 
   return PMTilesURL
 }
