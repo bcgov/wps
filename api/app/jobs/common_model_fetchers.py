@@ -288,6 +288,17 @@ class ModelValueProcessor:
         # Predict the rh
         station_prediction.bias_adjusted_rh = machine.predict_rh(
             station_prediction.rh_tgl_2, station_prediction.prediction_timestamp)
+        # Predict the wind speed
+        station_prediction.bias_adjusted_wind_speed = machine.predict_wind_speed(
+            station_prediction.wind_tgl_10,
+            station_prediction.prediction_timestamp
+        )
+        # Predict the wind direction
+        station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(
+            station_prediction.wdir_tgl_10,
+            station_prediction.prediction_timestamp
+        )
+
         # Update the update time (this might be an update)
         station_prediction.update_date = time_utils.get_utc_now()
         # Add this prediction to the session (we'll commit it later.)

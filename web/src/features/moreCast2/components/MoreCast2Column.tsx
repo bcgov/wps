@@ -218,7 +218,7 @@ export class WindSpeedForecastField implements ColDefGenerator, ForecastColDefGe
   }
 
   public generateColDefs = (headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(headerName, false)
+    return this.colDefBuilder.generateColDefs(headerName, true)
   }
 
   public static getInstance(): WindSpeedForecastField {
