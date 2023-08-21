@@ -148,14 +148,14 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
             # We need a geojson file to pass to tippecanoe
             temp_geojson = write_hfi_geojson(layer, temp_dir)
 
-            pmtiles_filename = f'{for_date}_{run_type.value}_run-{run_date}_hfi.pmtiles'
+            pmtiles_filename = f'hfi{for_date.strftime("%Y%m%d")}.pmtiles'
             temp_pmtiles_filepath = os.path.join(temp_dir, pmtiles_filename)
             logger.info(f'Writing pmtiles -- {pmtiles_filename}')
             tippecanoe_wrapper(temp_geojson, temp_pmtiles_filepath,
                                min_zoom=HFI_PMTILES_MIN_ZOOM, max_zoom=HFI_PMTILES_MAX_ZOOM)
 
             async with get_client() as (client, bucket):
-                key = get_pmtiles_filepath(pmtiles_filename)
+                key = get_pmtiles_filepath(run_date, run_type, pmtiles_filename)
                 logger.info(f'Uploading file {pmtiles_filename} to {key}')
 
                 await client.put_object(Bucket=bucket,
