@@ -34,7 +34,7 @@ GFS_000_HOURS_RASTER_BANDS = {
 GFS_003_HOURS_RASTER_BANDS = {
     'tmp_tgl_2': 2,
     'rh_tgl_2': 3,
-    'apcp_sfc_0': 6,
+    'apcp_sfc_0': 7,
     'u_comp_wind_10m': 4,
     'v_comp_wind_10m': 5
 }
