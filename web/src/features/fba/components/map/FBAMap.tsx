@@ -31,7 +31,7 @@ import { LayerControl } from 'features/fba/components/map/layerControl'
 import { PMTILES_BUCKET, RASTER_SERVER_BASE_URL } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
-import { isUndefined, cloneDeep } from 'lodash'
+import { isUndefined, cloneDeep, isNull } from 'lodash'
 import { Box } from '@mui/material'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
@@ -194,7 +194,7 @@ const FBAMap = (props: FBAMapProps) => {
     if (!map) return
     const layerName = 'hfiVector'
     removeLayerByName(map, layerName)
-    if (showHighHFI) {
+    if (showHighHFI && !isNull(props.runDate.toISODate())) {
       const hfiGeojsonSource = new olpmtiles.PMTilesVectorSource({
         url: buildPMTilesURL(props.forDate, props.runType, props.runDate)
       })
@@ -208,7 +208,7 @@ const FBAMap = (props: FBAMapProps) => {
       })
       map.addLayer(latestHFILayer)
     }
-  }, [showHighHFI, props.runType, props.runDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showHighHFI, props.runDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
