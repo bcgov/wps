@@ -126,7 +126,8 @@ def get_model_run_predictions_for_grid(session: Session,
     return session.query(ModelRunGridSubsetPrediction).\
         filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid.id).\
         filter(ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id ==
-               prediction_run.id)
+               prediction_run.id).\
+        order_by(ModelRunGridSubsetPrediction.prediction_timestamp)
 
 
 def delete_model_run_grid_subset_predictions(session: Session, older_than: datetime):
@@ -474,7 +475,7 @@ def get_prediction_model_run_timestamp_records(
     if complete is not None:
         query = query.filter(PredictionModelRunTimestamp.complete == complete)
     query = query.order_by(
-        PredictionModelRunTimestamp.prediction_run_timestamp.desc())
+        PredictionModelRunTimestamp.prediction_run_timestamp)
     return query
 
 
