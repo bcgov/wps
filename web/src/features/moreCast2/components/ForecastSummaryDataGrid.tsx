@@ -45,8 +45,8 @@ const ForecastSummaryDataGrid = ({
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
-        components={{
-          LoadingOverlay: LinearProgress
+        slots={{
+          loadingOverlay: LinearProgress
         }}
         initialState={{
           sorting: {
