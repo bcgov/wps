@@ -314,9 +314,10 @@ class ModelValueProcessor:
         previous_prediction_from_same_model_run = get_weather_station_model_prediction(self.session, station.code,
                                                                                        model_run.id, start_prediction_timestamp)
         # If a prediction from 24 hours ago from the same model run exists, return the difference in cumulative precipitation
-        # between now and then as our total for the past 24 hours.
+        # between now and then as our total for the past 24 hours. We can end up with very very small negative numbers due
+        # to floating point math, so return absolute value to avoid displaying -0.0.
         if previous_prediction_from_same_model_run is not None:
-            return station_prediction.apcp_sfc_0 - previous_prediction_from_same_model_run.apcp_sfc_0
+            return abs(station_prediction.apcp_sfc_0 - previous_prediction_from_same_model_run.apcp_sfc_0)
         # We're within 24 hours of the start of a model run, retrieve the precip_24h for the previous
         # model run if it exists, else return None
         # First, find the previous prediction model run so we can query using its id
