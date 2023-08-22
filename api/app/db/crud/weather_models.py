@@ -126,7 +126,8 @@ def get_model_run_predictions_for_grid(session: Session,
     return session.query(ModelRunGridSubsetPrediction).\
         filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid.id).\
         filter(ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id ==
-               prediction_run.id)
+               prediction_run.id).\
+        order_by(ModelRunGridSubsetPrediction.prediction_timestamp)
 
 
 def delete_model_run_grid_subset_predictions(session: Session, older_than: datetime):
@@ -325,7 +326,7 @@ def get_latest_station_prediction_mat_view(session: Session,
                            MoreCast2MaterializedView.bias_adjusted_rh,
                            MoreCast2MaterializedView.bias_adjusted_wind_speed,
                            MoreCast2MaterializedView.bias_adjusted_wdir,
-                           MoreCast2MaterializedView.apcp_sfc_0,
+                           MoreCast2MaterializedView.precip_24h,
                            MoreCast2MaterializedView.wdir_tgl_10,
                            MoreCast2MaterializedView.wind_tgl_10,
                            MoreCast2MaterializedView.update_date).\
@@ -453,8 +454,7 @@ def get_prediction_model_run_timestamp_records(
             PredictionModelRunTimestamp.interpolated == interpolated)
     if complete is not None:
         query = query.filter(PredictionModelRunTimestamp.complete == complete)
-    query = query.order_by(
-        PredictionModelRunTimestamp.prediction_run_timestamp.desc())
+    query = query.order_by(PredictionModelRunTimestamp.prediction_run_timestamp)
     return query
 
 
@@ -476,3 +476,12 @@ def refresh_morecast2_materialized_view(session: Session):
     logger.info("Refreshing morecast_2_materialized_view")
     session.execute(text("REFRESH MATERIALIZED VIEW morecast_2_materialized_view"))
     logger.info(f"Finished mat view refresh with elapsed time: {datetime.datetime.now() - start}")
+
+
+def get_previous_prediction_model_run(session: Session, prediction_model_run: PredictionModelRunTimestamp):
+    """ Get the prediction model run that ran immediately prior to the prediction model run passed as a parameter. """
+    return session.query(PredictionModelRunTimestamp).\
+        filter(PredictionModelRunTimestamp.prediction_model_id == prediction_model_run.prediction_model_id).\
+        filter(PredictionModelRunTimestamp.id < prediction_model_run.id).\
+        order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).\
+        first()

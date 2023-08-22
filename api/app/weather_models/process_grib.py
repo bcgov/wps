@@ -34,9 +34,10 @@ GFS_000_HOURS_RASTER_BANDS = {
 GFS_003_HOURS_RASTER_BANDS = {
     'tmp_tgl_2': 2,
     'rh_tgl_2': 3,
-    'apcp_sfc_0': 6,
     'u_comp_wind_10m': 4,
-    'v_comp_wind_10m': 5
+    'v_comp_wind_10m': 5,
+    'apcp_sfc_0': 6,
+    'cumulative_apcp_sfc_0': 7
 }
 
 
@@ -332,6 +333,10 @@ class GribFileProcessor():
             u_wind_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get('u_comp_wind_10m'))
             v_wind_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get('v_comp_wind_10m'))
             precip_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get('apcp_sfc_0'))
+
+        # The GFS grib file has an extra band that contains cumulative precipitation
+        if grib_info.model_enum == ModelEnum.GFS:
+            precip_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get('cumulative_apcp_sfc_0'))
 
         return (tmp_raster_band, rh_raster_band, u_wind_raster_band, v_wind_raster_band, precip_raster_band)
 

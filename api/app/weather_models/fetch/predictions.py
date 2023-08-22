@@ -15,7 +15,7 @@ from app.schemas.weather_models import (WeatherStationModelPredictionValues, Wea
                                         ModelRunPredictions,
                                         WeatherStationModelRunsPredictions)
 from app.db.models.weather_models import WeatherStationModelPrediction
-from app.db.crud.weather_models import (get_latest_station_model_prediction_per_day, get_latest_station_prediction_per_day, get_station_model_predictions,
+from app.db.crud.weather_models import (get_latest_station_model_prediction_per_day, get_station_model_predictions,
                                         get_station_model_prediction_from_previous_model_run, get_latest_station_prediction_mat_view)
 import app.stations
 from app.utils.time import get_days_from_range

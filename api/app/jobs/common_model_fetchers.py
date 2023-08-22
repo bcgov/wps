@@ -3,8 +3,8 @@ from typing import List
 import logging
 import requests
 import numpy
+from datetime import timedelta
 from pyproj import Geod
-from scipy.interpolate import griddata
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
 from app.db.crud.weather_models import (get_processed_file_record,
@@ -15,7 +15,8 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_weather_station_model_prediction,
                                         delete_model_run_grid_subset_predictions,
                                         delete_weather_station_model_predictions,
-                                        refresh_morecast2_materialized_view)
+                                        refresh_morecast2_materialized_view,
+                                        get_previous_prediction_model_run)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
@@ -245,41 +246,40 @@ class ModelValueProcessor:
         # 2020 Dec 15, Sybrand: Encountered situation where tmp_tgl_2 was None, add this workaround for it.
         # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
         # tmp_tgl_2 layer failed to download and process, while other layers did.
-        if prediction.tmp_tgl_2 is None:
-            logger.warning('tmp_tgl_2 is None for ModelRunGridSubsetPrediction.id == %s', prediction.id)
+        if prediction.tmp_tgl_2 is None or len(prediction.tmp_tgl_2) == 0:
+            logger.warning('tmp_tgl_2 is None or empty for ModelRunGridSubsetPrediction.id == %s', prediction.id)
         else:
-            station_prediction.tmp_tgl_2 = griddata(
-                points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
+            station_prediction.tmp_tgl_2 = prediction.tmp_tgl_2[0]
 
         # 2020 Dec 10, Sybrand: Encountered situation where rh_tgl_2 was None, add this workaround for it.
         # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
         # rh_tgl_2 layer failed to download and process, while other layers did.
-        if prediction.rh_tgl_2 is None:
+        if prediction.rh_tgl_2 is None or len(prediction.rh_tgl_2) == 0:
             # This is unexpected, so we log it.
-            logger.warning('rh_tgl_2 is None for ModelRunGridSubsetPrediction.id == %s', prediction.id)
+            logger.warning('rh_tgl_2 is None or empty for ModelRunGridSubsetPrediction.id == %s', prediction.id)
             station_prediction.rh_tgl_2 = None
         else:
-            station_prediction.rh_tgl_2 = griddata(
-                points, prediction.rh_tgl_2, coordinate, method='linear')[0]
+            station_prediction.rh_tgl_2 = prediction.rh_tgl_2[0]
         # Check that apcp_sfc_0 is None, since accumulated precipitation
         # does not exist for 00 hour.
         if prediction.apcp_sfc_0 is None:
             station_prediction.apcp_sfc_0 = 0.0
         else:
-            station_prediction.apcp_sfc_0 = griddata(
-                points, prediction.apcp_sfc_0, coordinate, method='linear')[0]
+            station_prediction.apcp_sfc_0 = prediction.apcp_sfc_0[0]
         # Calculate the delta_precipitation based on station's previous prediction_timestamp
         # for the same model run
         self.session.flush()
+        station_prediction.precip_24h = self._calculate_past_24_hour_precip(
+            station, model_run, prediction, station_prediction)
         station_prediction.delta_precip = self._calculate_delta_precip(
             station, model_run, prediction, station_prediction)
 
         # Get the closest wind speed
         if prediction.wind_tgl_10 is not None:
-            station_prediction.wind_tgl_10 = prediction.wind_tgl_10[get_closest_index(coordinate, points)]
+            station_prediction.wind_tgl_10 = prediction.wind_tgl_10[0]
         # Get the closest wind direcion
         if prediction.wdir_tgl_10 is not None:
-            station_prediction.wdir_tgl_10 = prediction.wdir_tgl_10[get_closest_index(coordinate, points)]
+            station_prediction.wdir_tgl_10 = prediction.wdir_tgl_10[0]
 
         # Predict the temperature
         station_prediction.bias_adjusted_temperature = machine.predict_temperature(
@@ -303,6 +303,31 @@ class ModelValueProcessor:
         station_prediction.update_date = time_utils.get_utc_now()
         # Add this prediction to the session (we'll commit it later.)
         self.session.add(station_prediction)
+
+    def _calculate_past_24_hour_precip(self, station: WeatherStation, model_run: PredictionModelRunTimestamp,
+                                       prediction: ModelRunGridSubsetPrediction, station_prediction: WeatherStationModelPrediction):
+        """ Calculate the predicted precipitation over the previous 24 hours within the specified model run.
+        If the model run does not contain a prediction timestamp for 24 hours prior to the current prediction,
+        return the predicted precipitation from the previous run of the same model for the same time frame. """
+        start_prediction_timestamp = prediction.prediction_timestamp - timedelta(days=1)
+        # Check if a prediction exists for this model run 24 hours in the past
+        previous_prediction_from_same_model_run = get_weather_station_model_prediction(self.session, station.code,
+                                                                                       model_run.id, start_prediction_timestamp)
+        # If a prediction from 24 hours ago from the same model run exists, return the difference in cumulative precipitation
+        # between now and then as our total for the past 24 hours.
+        if previous_prediction_from_same_model_run is not None:
+            return station_prediction.apcp_sfc_0 - previous_prediction_from_same_model_run.apcp_sfc_0
+        # We're within 24 hours of the start of a model run, retrieve the precip_24h for the previous
+        # model run if it exists, else return None
+        # First, find the previous prediction model run so we can query using its id
+        previous_model_run = get_previous_prediction_model_run(self.session, model_run)
+        if previous_model_run is not None:
+            # Try looking up a precip_24h from the previous model run.
+            previous_prediction_from_previous_model_run = get_weather_station_model_prediction(
+                self.session, station.code, previous_model_run.id, prediction.prediction_timestamp)
+            if previous_prediction_from_previous_model_run is not None:
+                return previous_prediction_from_previous_model_run.precip_24h
+        return None
 
     def _calculate_delta_precip(self, station, model_run, prediction, station_prediction):
         """ Calculate the station_prediction's delta_precip based on the previous precip
