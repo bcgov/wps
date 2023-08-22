@@ -195,9 +195,11 @@ const FBAMap = (props: FBAMapProps) => {
     const layerName = 'hfiVector'
     removeLayerByName(map, layerName)
     if (showHighHFI && !isNull(mostRecentRunDate)) {
-      const modelRunDate = props.runType === RunType.FORECAST ? DateTime.fromISO(mostRecentRunDate) : props.forDate
+      // The runDate for forecasts is the mostRecentRunDate. For Actuals, our API expects the runDate to be
+      // the same as the forDate.
+      const runDate = props.runType === RunType.FORECAST ? DateTime.fromISO(mostRecentRunDate) : props.forDate
       const hfiGeojsonSource = new olpmtiles.PMTilesVectorSource({
-        url: buildPMTilesURL(props.forDate, props.runType, modelRunDate)
+        url: buildPMTilesURL(props.forDate, props.runType, runDate)
       })
 
       const latestHFILayer = new VectorTileLayer({
