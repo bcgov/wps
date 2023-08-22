@@ -20,3 +20,17 @@ class MorecastForecastRecord(Base):
     create_user = Column(String, nullable=False)
     update_timestamp = Column(TZTimeStamp, nullable=False, index=True)
     update_user = Column(String, nullable=False)
+
+
+class MorecastGrassCuring(Base):
+    """ Grass curing record for a station within Morecast v2 """
+    __tablename__ = 'morecast_grass_curing'
+
+    id = Column(Integer, Sequence('morecast_grass_curing_id_seq'),
+                primary_key=True, nullable=False, index=True)
+    station_code = Column(Integer, nullable=False, index=True)
+    grass_curing = Column(Float, nullable=False, index=True)
+    create_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    create_user = Column(String, nullable=False)
+    update_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    update_user = Column(String, nullable=False)
