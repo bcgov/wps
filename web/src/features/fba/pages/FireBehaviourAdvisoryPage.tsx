@@ -230,7 +230,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid sx={{ display: 'flex', flex: 1 }} ref={mapRef} item>
             <FBAMap
               forDate={dateOfInterest}
-              runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
               runType={runType}
               selectedFireZone={selectedFireZone}
               selectedFireCenter={fireCenter}

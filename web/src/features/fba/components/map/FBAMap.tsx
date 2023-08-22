@@ -12,7 +12,7 @@ import GeoJSON from 'ol/format/GeoJSON'
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'components'
-import { selectFireWeatherStations } from 'app/rootReducer'
+import { selectFireWeatherStations, selectRunDates } from 'app/rootReducer'
 import { source as baseMapSource, COG_TILE_SIZE, SFMS_MAX_ZOOM } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter, FireZone, FireZoneArea } from 'api/fbaAPI'
@@ -43,7 +43,6 @@ export interface FBAMapProps {
   selectedFireCenter: FireCenter | undefined
   selectedFireZone: FireZone | undefined
   forDate: DateTime
-  runDate: DateTime
   setSelectedFireZone: React.Dispatch<React.SetStateAction<FireZone | undefined>>
   fireZoneAreas: FireZoneArea[]
   runType: RunType
@@ -83,9 +82,10 @@ const removeLayerByName = (map: ol.Map, layerName: string) => {
 
 const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
-  const [showHighHFI, setShowHighHFI] = useState(false)
+  const [showHighHFI, setShowHighHFI] = useState(true)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
+  const { mostRecentRunDate } = useSelector(selectRunDates)
 
   const fireCentreVectorSource = new olpmtiles.PMTilesVectorSource({
     url: `${PMTILES_BUCKET}fireCentres.pmtiles`
@@ -194,9 +194,12 @@ const FBAMap = (props: FBAMapProps) => {
     if (!map) return
     const layerName = 'hfiVector'
     removeLayerByName(map, layerName)
-    if (showHighHFI && !isNull(props.runDate.toISODate())) {
+    if (showHighHFI && !isNull(mostRecentRunDate)) {
+      // The runDate for forecasts is the mostRecentRunDate. For Actuals, our API expects the runDate to be
+      // the same as the forDate.
+      const runDate = props.runType === RunType.FORECAST ? DateTime.fromISO(mostRecentRunDate) : props.forDate
       const hfiGeojsonSource = new olpmtiles.PMTilesVectorSource({
-        url: buildPMTilesURL(props.forDate, props.runType, props.runDate)
+        url: buildPMTilesURL(props.forDate, props.runType, runDate)
       })
 
       const latestHFILayer = new VectorTileLayer({
@@ -208,7 +211,7 @@ const FBAMap = (props: FBAMapProps) => {
       })
       map.addLayer(latestHFILayer)
     }
-  }, [showHighHFI, props.runDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showHighHFI, mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
