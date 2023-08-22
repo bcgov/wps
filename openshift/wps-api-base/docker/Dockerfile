@@ -23,7 +23,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # - gdal (for geospatial)
 # - R (for cffdrs)
 # - xfonts-75dpi, xfonts-base (for wkhtmltopdf)
-RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base xfonts-base xfonts-75dpi curl
+RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base xfonts-base xfonts-75dpi curl git build-essential libsqlite3-dev zlib1g-dev
 
 RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
 RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
@@ -36,6 +36,9 @@ RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.
 # Enable for mac M1
 # RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_arm64.deb
 RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+
+# Install tippecanoe for pmtiles
+RUN git clone https://github.com/felt/tippecanoe.git --branch 2.29.0 && cd tippecanoe && make -j && make install && cd ..
 
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"

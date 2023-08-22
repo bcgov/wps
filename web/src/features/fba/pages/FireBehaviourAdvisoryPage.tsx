@@ -53,7 +53,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
-  const [issueDate, setIssueDate] = useState<DateTime | null>(null)
   const [selectedFireZone, setSelectedFireZone] = useState<FireZone | undefined>(undefined)
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
@@ -125,9 +124,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(mostRecentRunDate) && !isNull(doiISODate) && !isUndefined(mostRecentRunDate)) {
       dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), doiISODate))
-      setIssueDate(DateTime.fromISO(mostRecentRunDate))
-    } else {
-      setIssueDate(null)
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -195,7 +191,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 <ForecastActualDropdownFormControl>
                   <AdvisoryMetadata
                     forDate={dateOfInterest}
-                    issueDate={issueDate}
+                    issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
                     runType={runType.toString()}
                     setRunType={setRunType}
                   />
@@ -234,12 +230,10 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid sx={{ display: 'flex', flex: 1 }} ref={mapRef} item>
             <FBAMap
               forDate={dateOfInterest}
-              runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
               runType={runType}
               selectedFireZone={selectedFireZone}
               selectedFireCenter={fireCenter}
               advisoryThreshold={advisoryThreshold}
-              setIssueDate={setIssueDate}
               setSelectedFireZone={setSelectedFireZone}
               fireZoneAreas={fireZoneAreas}
             />

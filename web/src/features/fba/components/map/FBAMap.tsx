@@ -7,14 +7,12 @@ import { fromLonLat } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import XYZ from 'ol/source/XYZ'
-import VectorTileSource from 'ol/source/VectorTile'
-import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'components'
-import { selectFireWeatherStations } from 'app/rootReducer'
+import { selectFireWeatherStations, selectRunDates } from 'app/rootReducer'
 import { source as baseMapSource, COG_TILE_SIZE, SFMS_MAX_ZOOM } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter, FireZone, FireZoneArea } from 'api/fbaAPI'
@@ -32,23 +30,19 @@ import { DateTime } from 'luxon'
 import { LayerControl } from 'features/fba/components/map/layerControl'
 import { PMTILES_BUCKET, RASTER_SERVER_BASE_URL } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
-import { buildHFICql } from 'features/fba/cqlBuilder'
-import { isUndefined, cloneDeep } from 'lodash'
-import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
+import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
+import { isUndefined, cloneDeep, isNull } from 'lodash'
 import { Box } from '@mui/material'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
-const TILE_SERVER_URL = 'https://wps-prod-tileserv.apps.silver.devops.gov.bc.ca'
 
 export interface FBAMapProps {
   testId?: string
   selectedFireCenter: FireCenter | undefined
   selectedFireZone: FireZone | undefined
   forDate: DateTime
-  runDate: DateTime
-  setIssueDate: React.Dispatch<React.SetStateAction<DateTime | null>>
   setSelectedFireZone: React.Dispatch<React.SetStateAction<FireZone | undefined>>
   fireZoneAreas: FireZoneArea[]
   runType: RunType
@@ -91,6 +85,7 @@ const FBAMap = (props: FBAMapProps) => {
   const [showHighHFI, setShowHighHFI] = useState(true)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
+  const { mostRecentRunDate } = useSelector(selectRunDates)
 
   const fireCentreVectorSource = new olpmtiles.PMTilesVectorSource({
     url: `${PMTILES_BUCKET}fireCentres.pmtiles`
@@ -139,7 +134,6 @@ const FBAMap = (props: FBAMapProps) => {
       minZoom: 6
     })
   )
-  const [hfiTilesLoading, setHFITilesLoading] = useState(false)
 
   useEffect(() => {
     if (map) {
@@ -200,44 +194,24 @@ const FBAMap = (props: FBAMapProps) => {
     if (!map) return
     const layerName = 'hfiVector'
     removeLayerByName(map, layerName)
-    if (showHighHFI) {
-      const source = new VectorTileSource({
-        attributions: ['BC Wildfire Service'],
-        format: new MVT(),
-        url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?${buildHFICql(props.forDate, props.runType)}`,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        tileLoadFunction: function (tile: any, url) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tile.setLoader(function (extent: any, _resolution: any, projection: any) {
-            fetch(url).then(function (response) {
-              response.arrayBuffer().then(function (data) {
-                const format = tile.getFormat()
-                const features = format.readFeatures(data, {
-                  extent: extent,
-                  featureProjection: projection
-                })
-                tile.setFeatures(features)
-              })
-            })
-          })
-        }
+    if (showHighHFI && !isNull(mostRecentRunDate)) {
+      // The runDate for forecasts is the mostRecentRunDate. For Actuals, our API expects the runDate to be
+      // the same as the forDate.
+      const runDate = props.runType === RunType.FORECAST ? DateTime.fromISO(mostRecentRunDate) : props.forDate
+      const hfiGeojsonSource = new olpmtiles.PMTilesVectorSource({
+        url: buildPMTilesURL(props.forDate, props.runType, runDate)
       })
-      source.on('tileloadstart', function () {
-        setHFITilesLoading(true)
-      })
-      source.on(['tileloadend', 'tileloaderror'], function () {
-        setHFITilesLoading(false)
-      })
+
       const latestHFILayer = new VectorTileLayer({
-        source,
+        source: hfiGeojsonSource,
         style: hfiStyler,
         zIndex: 100,
-        minZoom: 6,
+        minZoom: 4,
         properties: { name: layerName }
       })
       map.addLayer(latestHFILayer)
     }
-  }, [props.forDate, showHighHFI, props.setIssueDate, props.runType]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showHighHFI, mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -304,7 +278,6 @@ const FBAMap = (props: FBAMapProps) => {
     <ErrorBoundary>
       <MapContext.Provider value={map}>
         <Box ref={mapRef} data-testid="fba-map" sx={{ display: 'flex', flex: 1 }}></Box>
-        <LoadingBackdrop isLoadingWithoutError={hfiTilesLoading} />
       </MapContext.Provider>
     </ErrorBoundary>
   )
