@@ -482,6 +482,6 @@ def get_previous_prediction_model_run(session: Session, prediction_model_run: Pr
     """ Get the prediction model run that ran immediately prior to the prediction model run passed as a parameter. """
     return session.query(PredictionModelRunTimestamp).\
         filter(PredictionModelRunTimestamp.prediction_model_id == prediction_model_run.prediction_model_id).\
-        filter(PredictionModelRunTimestamp.id < prediction_model_run.id).\
+        filter(PredictionModelRunTimestamp.prediction_run_timestamp < prediction_model_run.prediction_run_timestamp).\
         order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).\
         first()
