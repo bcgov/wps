@@ -17,7 +17,7 @@ ADD tileserv .
 # they speed up python.
 RUN chmod a+w $(find ~ -type d)
 
-RUN poetry install --without dev
+RUN poetry install
 
 RUN poetry run alembic --version
 
