@@ -75,9 +75,15 @@ class MoreCastForecastInput(BaseModel):
     wind_direction: int | None = None
 
 
+class MoreCastGrassCuring(BaseModel):
+    station_code: int
+    grass_curing: float
+
+
 class MoreCastForecastRequest(BaseModel):
     """ Incoming daily forecasts to be saved """
     token: str  # WF1 token
+    grass_curings: List[MoreCastGrassCuring]
     forecasts: List[MoreCastForecastInput]
 
 
