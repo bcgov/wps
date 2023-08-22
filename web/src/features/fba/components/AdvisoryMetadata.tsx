@@ -34,7 +34,9 @@ const AdvisoryMetadata = ({ runType, setRunType, forDate, issueDate }: AdvisoryM
             renderInput={params => <TextField {...params} label="Forecast or Actual" />}
           />{' '}
           <Typography variant="subtitle2">is for {forDate.toISODate()}</Typography>
-          <Typography variant="subtitle2">issued on {!isNull(issueDate) ? issueDate.toISO() : ''}</Typography>
+          <Typography variant="subtitle2">
+            issued on {!isNull(issueDate) ? issueDate.toISO({ includeOffset: false }) : ''}
+          </Typography>
         </Grid>
       </Grid>
     </Box>

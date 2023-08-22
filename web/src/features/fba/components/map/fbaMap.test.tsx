@@ -24,7 +24,6 @@ describe('FBAMap', () => {
       <Provider store={store}>
         <FBAMap
           forDate={DateTime.fromISO('2016-05-25')}
-          runDate={DateTime.fromISO('2016-05-25')}
           advisoryThreshold={0}
           selectedFireCenter={undefined}
           selectedFireZone={undefined}
