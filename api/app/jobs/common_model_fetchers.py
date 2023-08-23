@@ -360,9 +360,9 @@ class ModelValueProcessor:
                         and prediction.prediction_timestamp.hour == 21):
                     noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
                     self._process_prediction(
-                        noon_prediction, station, model_run, points, coordinate, machine)
+                        noon_prediction, station, model_run, machine)
                 self._process_prediction(
-                    prediction, station, model_run, points, coordinate, machine)
+                    prediction, station, model_run, machine)
                 prev_prediction = prediction
 
     def _mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
