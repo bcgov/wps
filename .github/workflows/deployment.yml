@@ -187,28 +187,28 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} apply
+  # TODO: Delete once pmtiles has run for some time
+  # deploy-tileserv:
+  #   name: Deploy tileserv to Dev
+  #   if: github.triggering_actor != 'renovate'
+  #   runs-on: ubuntu-22.04
+  #   # We need
+  #   # - the image to be built before we can deploy.
+  #   needs: [build-tileserv-image]
+  #   steps:
+  #     - name: Set Variables
+  #       shell: bash
+  #       run: |
+  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-  deploy-tileserv:
-    name: Deploy tileserv to Dev
-    if: github.triggering_actor != 'renovate'
-    runs-on: ubuntu-22.04
-    # We need
-    # - the image to be built before we can deploy.
-    needs: [build-tileserv-image]
-    steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Tileserv
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_tileserv.sh ${SUFFIX} apply
+  #     - name: Tileserv
+  #       shell: bash
+  #       run: |
+  #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+  #         PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_tileserv.sh ${SUFFIX} apply
 
   deploy-dev-queue:
     name: Deploy Message Queue to Dev
@@ -217,7 +217,7 @@ jobs:
     # We need
     # - the image to be built before we can deploy.
     # - we need the tileserv database up so we can write to it
-    needs: [build-api-image, deploy-tileserv, configure-nats-server-name]
+    needs: [build-api-image, configure-nats-server-name]
     steps:
       - name: Set Variables
         shell: bash
