@@ -71,8 +71,8 @@ def list_cluster_members(project: str, pod: str) -> None:
 def list_databases(project: str, pod: str) -> None:
     """ List databases on pod """
     print("fetching list of databases...")
-    result = subprocess.run([*oc_rsh(project, pod), 'psql', '-c', '\\l'],
-                            stdout=subprocess.PIPE, check=True, text=True)
+    result = subprocess.run([*oc_rsh(project, pod), 'psql'], input='\\l',
+                            stdout=subprocess.PIPE, check=True, text=True, timeout=20)
     print(result.stdout)
 
 
