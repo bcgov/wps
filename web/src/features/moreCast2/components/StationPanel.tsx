@@ -87,7 +87,7 @@ const StationPanel = (props: StationPanelProps) => {
       newSelectedStations.push(station)
     }
     dispatch(selectedStationsChanged(newSelectedStations))
-    setSelectAll(newSelectedStations.length > 0)
+    setSelectAll(newSelectedStations.length === stationGroupMembers.length)
   }
 
   const handleSelectAll = () => {
