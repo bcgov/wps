@@ -123,7 +123,7 @@ const StationPanel = (props: StationPanelProps) => {
             {selectedStationGroup && (
               <Grid container alignItems="center">
                 <Grid item>
-                  <Checkbox checked={selectAll} onChange={handleSelectAll} />
+                  <Checkbox checked={selectAll} onChange={handleSelectAll} indeterminate={selectAll} />
                 </Grid>
                 <Grid item>
                   <Typography>{selectAll ? 'Clear selection' : 'Select all'}</Typography>
