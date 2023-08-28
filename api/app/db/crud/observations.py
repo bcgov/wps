@@ -64,7 +64,7 @@ def save_hourly_actual(session: Session, hourly_actual: HourlyActual):
 def get_accumulated_precipitation(session: Session, station_code: int, start_datetime: datetime, end_datetime: datetime):
     """ Get the accumulated precipitation for a station by datetime range. """
     stmt = select(func.sum(HourlyActual.precipitation))\
-        .where(HourlyActual.station_code == station_code, HourlyActual.weather_date >= start_datetime, HourlyActual.weather_date <= end_datetime)
+        .where(HourlyActual.station_code == station_code, HourlyActual.weather_date > start_datetime, HourlyActual.weather_date <= end_datetime)
     result = session.scalars(stmt).first()
     if result is None:
         return 0
