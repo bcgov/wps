@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { styled } from '@mui/material/styles'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -76,6 +76,7 @@ const StationPanel = (props: StationPanelProps) => {
 
   const dispatch: AppDispatch = useDispatch()
   const selectedStations = useSelector(selectSelectedStations)
+  const [selectAll, setSelectAll] = useState(false)
 
   const handleStationClick = (station: StationGroupMember) => {
     const newSelectedStations = selectedStations.map(station => station)
@@ -86,7 +87,18 @@ const StationPanel = (props: StationPanelProps) => {
       newSelectedStations.push(station)
     }
     dispatch(selectedStationsChanged(newSelectedStations))
+    setSelectAll(newSelectedStations.length === stationGroupMembers.length)
   }
+
+  const handleSelectAll = () => {
+    const updatedSelectedStations = selectAll ? [] : [...stationGroupMembers]
+    setSelectAll(prevSelectAll => !prevSelectAll)
+    dispatch(selectedStationsChanged(updatedSelectedStations))
+  }
+
+  useEffect(() => {
+    setSelectAll(false)
+  }, [selectedStationGroup])
 
   return (
     <Root className={classes.root} data-testid={`morecast2-station-panel`}>
@@ -108,6 +120,16 @@ const StationPanel = (props: StationPanelProps) => {
             </Grid>
           </Grid>
           <div className={classes.stationContainer}>
+            {selectedStationGroup && (
+              <Grid container alignItems="center">
+                <Grid item>
+                  <Checkbox checked={selectAll} onChange={handleSelectAll} indeterminate={selectAll} />
+                </Grid>
+                <Grid item>
+                  <Typography>{selectAll ? 'Clear selection' : 'Select all'}</Typography>
+                </Grid>
+              </Grid>
+            )}
             <List data-testid={'station-items'} dense={true}>
               {stationGroupMembers.map(station => {
                 return (
