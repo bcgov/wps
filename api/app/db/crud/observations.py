@@ -2,7 +2,8 @@
 """
 import datetime
 from typing import List
-from sqlalchemy import and_
+from sqlalchemy import and_, select
+from sqlalchemy.sql import func
 from sqlalchemy.orm import Session
 from app.db.models.weather_models import ModelRunGridSubsetPrediction, PredictionModelRunTimestamp
 from app.db.models.observations import HourlyActual
@@ -58,3 +59,13 @@ def save_hourly_actual(session: Session, hourly_actual: HourlyActual):
     """ Abstraction for writing HourlyActual to database. """
     session.add(hourly_actual)
     session.commit()
+
+
+def get_accumulated_precipitation(session: Session, station_code: int, start_datetime: datetime, end_datetime: datetime):
+    """ Get the accumulated precipitation for a station by datetime range. """
+    stmt = select(func.sum(HourlyActual.precipitation))\
+        .where(HourlyActual.station_code == station_code, HourlyActual.weather_date >= start_datetime, HourlyActual.weather_date <= end_datetime)
+    result = session.scalars(stmt).first()
+    if result is None:
+        return 0
+    return result

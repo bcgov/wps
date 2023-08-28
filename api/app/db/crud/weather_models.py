@@ -476,12 +476,3 @@ def refresh_morecast2_materialized_view(session: Session):
     logger.info("Refreshing morecast_2_materialized_view")
     session.execute(text("REFRESH MATERIALIZED VIEW morecast_2_materialized_view"))
     logger.info(f"Finished mat view refresh with elapsed time: {datetime.datetime.now() - start}")
-
-
-def get_previous_prediction_model_run(session: Session, prediction_model_run: PredictionModelRunTimestamp):
-    """ Get the prediction model run that ran immediately prior to the prediction model run passed as a parameter. """
-    return session.query(PredictionModelRunTimestamp).\
-        filter(PredictionModelRunTimestamp.prediction_model_id == prediction_model_run.prediction_model_id).\
-        filter(PredictionModelRunTimestamp.prediction_run_timestamp < prediction_model_run.prediction_run_timestamp).\
-        order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).\
-        first()

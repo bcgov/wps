@@ -3,7 +3,7 @@ from typing import List
 import logging
 import requests
 import numpy
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from pyproj import Geod
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
@@ -15,8 +15,7 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_weather_station_model_prediction,
                                         delete_model_run_grid_subset_predictions,
                                         delete_weather_station_model_predictions,
-                                        refresh_morecast2_materialized_view,
-                                        get_previous_prediction_model_run)
+                                        refresh_morecast2_materialized_view)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
@@ -27,6 +26,7 @@ from app.stations import get_stations_synchronously, StationSourceEnum
 from app.db.models.weather_models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
                                           WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
+from app.db.crud.observations import get_accumulated_precipitation
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -287,17 +287,18 @@ class ModelValueProcessor:
         # to floating point math, so return absolute value to avoid displaying -0.0.
         if previous_prediction_from_same_model_run is not None:
             return abs(station_prediction.apcp_sfc_0 - previous_prediction_from_same_model_run.apcp_sfc_0)
-        # We're within 24 hours of the start of a model run, retrieve the precip_24h for the previous
-        # model run if it exists, else return None
-        # First, find the previous prediction model run so we can query using its id
-        previous_model_run = get_previous_prediction_model_run(self.session, model_run)
-        if previous_model_run is not None:
-            # Try looking up a precip_24h from the previous model run.
-            previous_prediction_from_previous_model_run = get_weather_station_model_prediction(
-                self.session, station.code, previous_model_run.id, prediction.prediction_timestamp)
-            if previous_prediction_from_previous_model_run is not None:
-                return previous_prediction_from_previous_model_run.precip_24h
-        return None
+
+        # We're within 24 hours of the start of a model run so we don't have cumulative precipitation for a full 24h.
+        # We use actual precipitation from our API hourly_actuals table to make up the missing hours.
+        prediction_timestamp = station_prediction.prediction_timestamp
+        # Create new datetime with time of 00:00 hours as the end time.
+        end_prediction_timestamp = datetime(year=prediction_timestamp.year,
+                                            month=prediction_timestamp.month,
+                                            day=prediction_timestamp.day,
+                                            tzinfo=timezone.utc)
+        actual_precip = get_accumulated_precipitation(
+            self.session, station.code, start_prediction_timestamp, end_prediction_timestamp)
+        return actual_precip + station_prediction.apcp_sfc_0
 
     def _calculate_delta_precip(self, station, model_run, prediction, station_prediction):
         """ Calculate the station_prediction's delta_precip based on the previous precip
