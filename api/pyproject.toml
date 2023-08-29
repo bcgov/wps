@@ -6,7 +6,7 @@ authors = ["Sybrand Strauss <sybrand.strauss@gov.bc.ca>"]
 
 [tool.poetry.dependencies]
 python = ">=3.10.4,<3.11"
-fastapi = "^0"
+fastapi = "0.101.1"
 pydantic = "2.2.1"
 requests = "^2"
 aiodns = "^3"
