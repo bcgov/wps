@@ -145,12 +145,12 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" USE_WFWX="True" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
-      ### TODO: re-enable once crunchy is deployed: https://app.zenhub.com/workspaces/bcws---agile-psu-5e321393e038fba5bbe203b8/issues/gh/bcgov/wps/2340
-      # - name: Hourly actuals cronjob
-      #   shell: bash
-      #   run: |
-      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-      #     bash openshift/scripts/oc_provision_wfwx_hourly_actuals_cronjob.sh ${SUFFIX} apply
+      ## TODO: re-enable once crunchy is deployed: https://app.zenhub.com/workspaces/bcws---agile-psu-5e321393e038fba5bbe203b8/issues/gh/bcgov/wps/2340
+      - name: Hourly actuals cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          bash openshift/scripts/oc_provision_wfwx_hourly_actuals_cronjob.sh ${SUFFIX} apply
 
       # - name: Noon forecasts cronjob
       #   shell: bash
@@ -158,17 +158,17 @@ jobs:
       #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
       #     bash openshift/scripts/oc_provision_wfwx_noon_forecasts_cronjob.sh ${SUFFIX} apply
 
-      # - name: Environment Canada GDPS cronjob
-      #   shell: bash
-      #   run: |
-      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-      #     PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
+      - name: Environment Canada GDPS cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
 
-      # - name: Environment Canada HRDPS cronjob
-      #   shell: bash
-      #   run: |
-      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-      #     PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
+      - name: Environment Canada HRDPS cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
 
       # - name: Environment Canada RDPS cronjob
       #   shell: bash

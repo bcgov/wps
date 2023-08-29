@@ -126,7 +126,8 @@ def get_model_run_predictions_for_grid(session: Session,
     return session.query(ModelRunGridSubsetPrediction).\
         filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid.id).\
         filter(ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id ==
-               prediction_run.id)
+               prediction_run.id).\
+        order_by(ModelRunGridSubsetPrediction.prediction_timestamp)
 
 
 def delete_model_run_grid_subset_predictions(session: Session, older_than: datetime):
@@ -325,7 +326,7 @@ def get_latest_station_prediction_mat_view(session: Session,
                            MoreCast2MaterializedView.bias_adjusted_rh,
                            MoreCast2MaterializedView.bias_adjusted_wind_speed,
                            MoreCast2MaterializedView.bias_adjusted_wdir,
-                           MoreCast2MaterializedView.apcp_sfc_0,
+                           MoreCast2MaterializedView.precip_24h,
                            MoreCast2MaterializedView.wdir_tgl_10,
                            MoreCast2MaterializedView.wind_tgl_10,
                            MoreCast2MaterializedView.update_date).\
@@ -453,8 +454,7 @@ def get_prediction_model_run_timestamp_records(
             PredictionModelRunTimestamp.interpolated == interpolated)
     if complete is not None:
         query = query.filter(PredictionModelRunTimestamp.complete == complete)
-    query = query.order_by(
-        PredictionModelRunTimestamp.prediction_run_timestamp.desc())
+    query = query.order_by(PredictionModelRunTimestamp.prediction_run_timestamp)
     return query
 
 

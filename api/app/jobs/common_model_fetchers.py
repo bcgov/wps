@@ -3,8 +3,8 @@ from typing import List
 import logging
 import requests
 import numpy
+from datetime import datetime, timedelta, timezone
 from pyproj import Geod
-from scipy.interpolate import griddata
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
 from app.db.crud.weather_models import (get_processed_file_record,
@@ -26,6 +26,7 @@ from app.stations import get_stations_synchronously, StationSourceEnum
 from app.db.models.weather_models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
                                           WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
+from app.db.crud.observations import get_accumulated_precipitation
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -198,39 +199,8 @@ class ModelValueProcessor:
                             prediction: ModelRunGridSubsetPrediction,
                             station: WeatherStation,
                             model_run: PredictionModelRunTimestamp,
-                            points: List,
-                            coordinate: List,
                             machine: StationMachineLearning):
-        """ NOTE: Re. using griddata to interpolate:
-
-        We're interpolating using degrees, as such we're introducing a slight
-        innacuracy since degrees != distance. (i.e. This distance between two
-        points at the bottom of a grid, isn't the same as the distance at the
-        top.)
-
-        It would be more accurate to interpolate towards the point of interest
-        based on the distance of that point from the grid points.
-
-        One could:
-        a) convert all points from degrees to meters in UTM,
-           and then interpolate - that should be slightly more accurate, e.g.:
-        ```
-        def transform(long, lat):
-            # Transform NAD83 long and lat into UTM meters.
-            zone = math.floor((long + 180) / 6) + 1
-            utmProjection = "+proj=utm +zone={zone} +ellps=GRS80 +datum=NAD83 +units=m +no_defs".format(
-                zone=zone)
-            proj = Proj(utmProjection)
-            return proj(long, lat)
-        ```
-        b) use something else fancy like inverse distance weighting.
-
-        HOWEVER, the accuracy we gain is very little, it's adding an error of less than
-        100 meters on the global model. (Which typically results in the 3rd decimal value
-        of the interpolated value differing.)
-
-        More accuracy can be gained by taking into account altitude differences between
-        points and adjusting accordingly.
+        """ Create a WeatherStationModelPrediction from the ModelRunGridSubsetPrediction data.
         """
         # If there's already a prediction, we want to update it
         station_prediction = get_weather_station_model_prediction(
@@ -245,41 +215,40 @@ class ModelValueProcessor:
         # 2020 Dec 15, Sybrand: Encountered situation where tmp_tgl_2 was None, add this workaround for it.
         # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
         # tmp_tgl_2 layer failed to download and process, while other layers did.
-        if prediction.tmp_tgl_2 is None:
-            logger.warning('tmp_tgl_2 is None for ModelRunGridSubsetPrediction.id == %s', prediction.id)
+        if prediction.tmp_tgl_2 is None or len(prediction.tmp_tgl_2) == 0:
+            logger.warning('tmp_tgl_2 is None or empty for ModelRunGridSubsetPrediction.id == %s', prediction.id)
         else:
-            station_prediction.tmp_tgl_2 = griddata(
-                points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
+            station_prediction.tmp_tgl_2 = prediction.tmp_tgl_2[0]
 
         # 2020 Dec 10, Sybrand: Encountered situation where rh_tgl_2 was None, add this workaround for it.
         # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
         # rh_tgl_2 layer failed to download and process, while other layers did.
-        if prediction.rh_tgl_2 is None:
+        if prediction.rh_tgl_2 is None or len(prediction.rh_tgl_2) == 0:
             # This is unexpected, so we log it.
-            logger.warning('rh_tgl_2 is None for ModelRunGridSubsetPrediction.id == %s', prediction.id)
+            logger.warning('rh_tgl_2 is None or empty for ModelRunGridSubsetPrediction.id == %s', prediction.id)
             station_prediction.rh_tgl_2 = None
         else:
-            station_prediction.rh_tgl_2 = griddata(
-                points, prediction.rh_tgl_2, coordinate, method='linear')[0]
+            station_prediction.rh_tgl_2 = prediction.rh_tgl_2[0]
         # Check that apcp_sfc_0 is None, since accumulated precipitation
         # does not exist for 00 hour.
         if prediction.apcp_sfc_0 is None:
             station_prediction.apcp_sfc_0 = 0.0
         else:
-            station_prediction.apcp_sfc_0 = griddata(
-                points, prediction.apcp_sfc_0, coordinate, method='linear')[0]
+            station_prediction.apcp_sfc_0 = prediction.apcp_sfc_0[0]
         # Calculate the delta_precipitation based on station's previous prediction_timestamp
         # for the same model run
         self.session.flush()
+        station_prediction.precip_24h = self._calculate_past_24_hour_precip(
+            station, model_run, prediction, station_prediction)
         station_prediction.delta_precip = self._calculate_delta_precip(
             station, model_run, prediction, station_prediction)
 
         # Get the closest wind speed
         if prediction.wind_tgl_10 is not None:
-            station_prediction.wind_tgl_10 = prediction.wind_tgl_10[get_closest_index(coordinate, points)]
+            station_prediction.wind_tgl_10 = prediction.wind_tgl_10[0]
         # Get the closest wind direcion
         if prediction.wdir_tgl_10 is not None:
-            station_prediction.wdir_tgl_10 = prediction.wdir_tgl_10[get_closest_index(coordinate, points)]
+            station_prediction.wdir_tgl_10 = prediction.wdir_tgl_10[0]
 
         # Predict the temperature
         station_prediction.bias_adjusted_temperature = machine.predict_temperature(
@@ -303,6 +272,33 @@ class ModelValueProcessor:
         station_prediction.update_date = time_utils.get_utc_now()
         # Add this prediction to the session (we'll commit it later.)
         self.session.add(station_prediction)
+
+    def _calculate_past_24_hour_precip(self, station: WeatherStation, model_run: PredictionModelRunTimestamp,
+                                       prediction: ModelRunGridSubsetPrediction, station_prediction: WeatherStationModelPrediction):
+        """ Calculate the predicted precipitation over the previous 24 hours within the specified model run.
+        If the model run does not contain a prediction timestamp for 24 hours prior to the current prediction,
+        return the predicted precipitation from the previous run of the same model for the same time frame. """
+        start_prediction_timestamp = prediction.prediction_timestamp - timedelta(days=1)
+        # Check if a prediction exists for this model run 24 hours in the past
+        previous_prediction_from_same_model_run = get_weather_station_model_prediction(self.session, station.code,
+                                                                                       model_run.id, start_prediction_timestamp)
+        # If a prediction from 24 hours ago from the same model run exists, return the difference in cumulative precipitation
+        # between now and then as our total for the past 24 hours. We can end up with very very small negative numbers due
+        # to floating point math, so return absolute value to avoid displaying -0.0.
+        if previous_prediction_from_same_model_run is not None:
+            return abs(station_prediction.apcp_sfc_0 - previous_prediction_from_same_model_run.apcp_sfc_0)
+
+        # We're within 24 hours of the start of a model run so we don't have cumulative precipitation for a full 24h.
+        # We use actual precipitation from our API hourly_actuals table to make up the missing hours.
+        prediction_timestamp = station_prediction.prediction_timestamp
+        # Create new datetime with time of 00:00 hours as the end time.
+        end_prediction_timestamp = datetime(year=prediction_timestamp.year,
+                                            month=prediction_timestamp.month,
+                                            day=prediction_timestamp.day,
+                                            tzinfo=timezone.utc)
+        actual_precip = get_accumulated_precipitation(
+            self.session, station.code, start_prediction_timestamp, end_prediction_timestamp)
+        return actual_precip + station_prediction.apcp_sfc_0
 
     def _calculate_delta_precip(self, station, model_run, prediction, station_prediction):
         """ Calculate the station_prediction's delta_precip based on the previous precip
@@ -365,9 +361,9 @@ class ModelValueProcessor:
                         and prediction.prediction_timestamp.hour == 21):
                     noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
                     self._process_prediction(
-                        noon_prediction, station, model_run, points, coordinate, machine)
+                        noon_prediction, station, model_run, machine)
                 self._process_prediction(
-                    prediction, station, model_run, points, coordinate, machine)
+                    prediction, station, model_run, machine)
                 prev_prediction = prediction
 
     def _mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
