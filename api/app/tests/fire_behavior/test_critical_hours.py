@@ -40,4 +40,5 @@ def test_critical_hours_4000_manual_different_cfb():
 
 
 def test_overnight_diurnal():
-    get_afternoon_overnight_diurnal_ffmc()
+    result = get_afternoon_overnight_diurnal_ffmc(hour_of_interest=13, daily_ffmc=55)
+    assert result == 51.5

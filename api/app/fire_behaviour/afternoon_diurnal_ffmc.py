@@ -681,7 +681,7 @@ class AfternoonDiurnalFFMCLookupTable():
 
         if lookup_ffmc in range(0, 55):
             return self.afternoon_lookup.loc[(50, hour)]['predicted_ffmc']
-        elif lookup_ffmc in range(56, 65):
+        elif lookup_ffmc in range(55, 65):
             return self.afternoon_lookup.loc[(60, hour)]['predicted_ffmc']
         elif lookup_ffmc in range(65, 71):
             return self.afternoon_lookup.loc[(70, hour)]['predicted_ffmc']

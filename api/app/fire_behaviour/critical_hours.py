@@ -118,17 +118,7 @@ def get_afternoon_overnight_diurnal_ffmc(hour_of_interest: int, daily_ffmc: floa
     Hour_of_interest should be expressed in PDT time zone, and can only be between the hours
     1300 and 0700 the next morning. Otherwise, must use different function.
     """
-
-    afternoon_df = AfternoonDiurnalFFMCLookupTable.instance().afternoon_df
-
-    # find index (solar noon FFMC) of afternoon_df that is nearest to solar_noon_ffmc value
-    row = afternoon_df.iloc[abs((afternoon_df.index - daily_ffmc)).argsort()[:1]]
-    if hour_of_interest >= 23.5:
-        hour_of_interest = hour_of_interest - 24.0
-    # determine minimum absolute value difference between hour_of_interest and column labels
-    min_abs_diff = abs(row.columns - hour_of_interest).sort_values()[0]
-    row_index = row.columns.get_loc(min_abs_diff + hour_of_interest)
-    return row.iloc[:, row_index].values[0]
+    return AfternoonDiurnalFFMCLookupTable.instance().get(daily_ffmc, hour_of_interest)
 
 
 def get_morning_diurnal_ffmc(hour_of_interest: int, prev_day_daily_ffmc: float, hourly_rh: float):
