@@ -6,8 +6,7 @@ authors = ["Sybrand Strauss <sybrand.strauss@gov.bc.ca>"]
 
 [tool.poetry.dependencies]
 python = ">=3.10.4,<3.11"
-fastapi = "0.101.1"
-pydantic = "2.2.1"
+fastapi = "^0"
 requests = "^2"
 aiodns = "^3"
 aiohttp = "^3"
@@ -58,7 +57,7 @@ rope = "^1"
 jsonpickle = "^3.0.0"
 pytest-watch = "^4.2.0"
 pytest-testmon = "^2.0.0"
-ruff = "^0.0.286"
+ruff = "^0.0.285"
 
 [build-system]
 requires = ["poetry>=1.1.11"]
