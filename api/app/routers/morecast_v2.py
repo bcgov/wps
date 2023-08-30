@@ -1,5 +1,6 @@
 """ Routes for Morecast v2 """
 import logging
+import math
 from aiohttp.client import ClientSession
 from app.morecast_v2.forecasts import format_as_wf1_post_forecasts
 from app.utils.time import vancouver_tz
@@ -214,7 +215,25 @@ async def get_determinates_for_date_range(start_date: date,
 
         wf1_forecasts.extend(transformed_forceasts_to_add)
 
+        check_for_nan(wf1_actuals, "actuals")
+        check_for_nan(wf1_forecasts, "forecasts")
+        check_for_nan(predictions, "predictions")
+
     return IndeterminateDailiesResponse(
         actuals=wf1_actuals,
         predictions=predictions,
         forecasts=wf1_forecasts)
+
+
+def check_for_nan(items, type):
+    for item in items:
+        if math.isnan(item.precipitation):
+            logger.error(f"{type} has a nan in precipitation")
+        if math.isnan(item.relative_humidity):
+            logger.error(f"{type} has a nan in relative_humidity")
+        if math.isnan(item.temperature):
+            logger.error(f"{type} has a nan in temperature")
+        if math.isnan(item.wind_direction):
+            logger.error(f"{type} has a nan in wind_direction")
+        if math.isnan(item.wind_speed):
+            logger.error(f"{type} has a nan in wind_speed")
