@@ -84,11 +84,11 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
         station_code = raw_daily.get('stationData').get('stationCode')
         station_name = raw_daily.get('stationData').get('displayLabel')
         utc_timestamp = datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc)
-        precip = raw_daily.get('precipitation') or 0
-        rh = raw_daily.get('relativeHumidity') or 0
-        temp = raw_daily.get('temperature') or 0
-        wind_spd = raw_daily.get('windSpeed') or 0
-        wind_dir = raw_daily.get('windDirection') or 0
+        precip = raw_daily.get('precipitation') if raw_daily.get('precipitation') is not None else 0
+        rh = raw_daily.get('relativeHumidity') if raw_daily.get('relativeHumidity') is not None else 0
+        temp = raw_daily.get('temperature') if raw_daily.get('temperature') is not None else 0
+        wind_spd = raw_daily.get('windSpeed') if raw_daily.get('windSpeed') is not None else 0
+        wind_dir = raw_daily.get('windDirection') if raw_daily.get('windDirection') is not None else 0
 
         if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') in [WF1RecordTypeEnum.ACTUAL.value, WF1RecordTypeEnum.MANUAL.value]:
             observed_dailies.append(WeatherIndeterminate(
