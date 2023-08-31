@@ -7,7 +7,6 @@ from time import perf_counter
 from urllib.request import Request
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import ORJSONResponse
 from starlette.applications import Starlette
 from app import schemas, configure_logging
 from app.percentile import get_precalculated_percentiles
@@ -65,8 +64,7 @@ API_INFO = '''
 api = FastAPI(
     title="Predictive Services API",
     description=API_INFO,
-    version="0.0.0",
-    default_response_class=ORJSONResponse
+    version="0.0.0"
 )
 
 # This is our base starlette app - it doesn't do much except glue together
