@@ -18,6 +18,7 @@ from app.rocketchat_notifications import send_rocketchat_notification
 from app.routers import (fba, forecasts, weather_models, c_haines, stations, hfi_calc,
                          fba_calc, sfms, morecast_v2)
 from app.fire_behaviour.cffdrs import CFFDRS
+from app.orjson_response import ORJSONResponse
 
 
 configure_logging()
@@ -64,7 +65,8 @@ API_INFO = '''
 api = FastAPI(
     title="Predictive Services API",
     description=API_INFO,
-    version="0.0.0"
+    version="0.0.0",
+    default_response_class=ORJSONResponse
 )
 
 # This is our base starlette app - it doesn't do much except glue together
