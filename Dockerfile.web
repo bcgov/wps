@@ -9,14 +9,14 @@ ARG NODE_OPTIONS="--v8-pool-size=4"
 # Pull from local registry - we can't pull from docker due to limits.
 # see https://catalog.redhat.com/software/containers/ubi8/nodejs-14/5ed7887dd70cc50e69c2fabb for
 # details
-FROM registry.access.redhat.com/ubi8/nodejs-18 as static
+FROM registry.access.redhat.com/ubi8/nodejs-16 as static
 
 # Switch to root user for package installs
 USER 0
 
 ADD web .
 # NOTE: Can't use "--production=true", build will fail.
-RUN npm install -g npm@latest && npm install -g yarn@latest && yarn install --frozen-lockfile
+RUN npm install -g npm@8.19.4 && npm install -g yarn@latest && yarn install --frozen-lockfile
 RUN yarn run build
 
 # Switch back to default user
