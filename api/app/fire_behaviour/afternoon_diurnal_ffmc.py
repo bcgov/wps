@@ -9,9 +9,11 @@ logger = logging.getLogger(__name__)
 
 @Singleton
 class AfternoonDiurnalFFMCLookupTable():
-    """ Singleton that loads diurnal FFMC lookup tables from Red Book once, for reuse.
-    afternoon_overnight.csv is Table 4.1 from Red Book, 3rd ed., 2018;
-    morning.csv is Table 4.2 from Red Book, 3rd ed., 2018.
+    """ Dataframe singleton of a diurnal FFMC lookup tables from 
+    Diurnal Variation in the Fine Fuel Moisture Code: Tables and Computer Source Code
+    Lawson et al, 1996.
+
+    FFMC values are indexed by a tuple of (noon LST FFMC, LST hour).
     """
 
     def __init__(self):
