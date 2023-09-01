@@ -16,7 +16,7 @@ USER 0
 
 ADD web .
 # NOTE: Can't use "--production=true", build will fail.
-RUN npm install -g npm@latest && npm install -g yarn@latest && yarn install --frozen-lockfile
+RUN npm install -g npm@8.19.4 && npm install -g yarn@latest && yarn install --frozen-lockfile
 RUN yarn run build
 
 # Switch back to default user
