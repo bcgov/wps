@@ -81,29 +81,38 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
     observed_dailies = []
     forecasts = []
     async for raw_daily in raw_dailies:
+        station_code = raw_daily.get('stationData').get('stationCode')
+        station_name = raw_daily.get('stationData').get('displayLabel')
+        utc_timestamp = datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc)
+        precip = raw_daily.get('precipitation')
+        rh = raw_daily.get('relativeHumidity')
+        temp = raw_daily.get('temperature')
+        wind_spd = raw_daily.get('windSpeed')
+        wind_dir = raw_daily.get('windDirection')
+
         if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') in [WF1RecordTypeEnum.ACTUAL.value, WF1RecordTypeEnum.MANUAL.value]:
             observed_dailies.append(WeatherIndeterminate(
-                station_code=raw_daily.get('stationData').get('stationCode'),
-                station_name=raw_daily.get('stationData').get('displayLabel'),
+                station_code=station_code,
+                station_name=station_name,
                 determinate=WeatherDeterminate.ACTUAL,
-                utc_timestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),
-                temperature=raw_daily.get('temperature'),
-                relative_humidity=raw_daily.get('relativeHumidity'),
-                precipitation=raw_daily.get('precipitation'),
-                wind_direction=raw_daily.get('windDirection'),
-                wind_speed=raw_daily.get('windSpeed')
+                utc_timestamp=utc_timestamp,
+                temperature=temp,
+                relative_humidity=rh,
+                precipitation=precip,
+                wind_direction=wind_dir,
+                wind_speed=wind_spd
             ))
         elif is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == WF1RecordTypeEnum.FORECAST.value:
             forecasts.append(WeatherIndeterminate(
-                station_code=raw_daily.get('stationData').get('stationCode'),
-                station_name=raw_daily.get('stationData').get('displayLabel'),
+                station_code=station_code,
+                station_name=station_name,
                 determinate=WeatherDeterminate.FORECAST,
-                utc_timestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),
-                temperature=raw_daily.get('temperature'),
-                relative_humidity=raw_daily.get('relativeHumidity'),
-                precipitation=raw_daily.get('precipitation'),
-                wind_direction=raw_daily.get('windDirection'),
-                wind_speed=raw_daily.get('windSpeed')
+                utc_timestamp=utc_timestamp,
+                temperature=temp,
+                relative_humidity=rh,
+                precipitation=precip,
+                wind_direction=wind_dir,
+                wind_speed=wind_spd
             ))
     return observed_dailies, forecasts
 
