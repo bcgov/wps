@@ -1,5 +1,6 @@
 import logging
 from app.fire_behaviour.afternoon_diurnal_ffmc import AfternoonDiurnalFFMCLookupTable
+from app.fire_behaviour.c7b import rate_of_spread
 from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.fba_calc import CriticalHoursHFI
 from app.fire_behaviour import cffdrs
@@ -19,7 +20,7 @@ def get_critical_hours(
     hfi_target value. Critical hours are calculated by determining diurnally-adjusted FFMC values
     that cause HFI >= target_hfi.
     """
-    critical_ffmc, resulting_hfi = cffdrs.get_ffmc_for_target_hfi(
+    critical_ffmc, resulting_hfi = get_ffmc_for_target_hfi(
         fuel_type, percentage_conifer, percentage_dead_balsam_fir, bui, wind_speed,
         grass_cure, crown_base_height, daily_ffmc, fmc, cfb, cfl, target_hfi)
     logger.debug('Critical FFMC %s, resulting HFI %s; target HFI %s', critical_ffmc,
@@ -49,6 +50,60 @@ def get_critical_hours(
         critical_ffmc, daily_ffmc, critical_hours_start)
 
     return CriticalHoursHFI(start=critical_hours_start, end=critical_hours_end)
+
+
+def get_ffmc_for_target_hfi(
+        fuel_type: FuelTypeEnum,
+        percentage_conifer: float,
+        percentage_dead_balsam_fir: float,
+        bui: float,
+        wind_speed: float,
+        grass_cure: int,
+        crown_base_height: float,
+        ffmc: float, fmc: float, cfb: float, cfl: float, target_hfi: float):
+    """ Returns a floating point value for minimum FFMC required (holding all other values constant)
+        before HFI reaches the target_hfi (in kW/m).
+        """
+    # start off using the actual FFMC value
+    experimental_ffmc = ffmc
+    experimental_sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
+    experimental_isi = cffdrs.initial_spread_index(experimental_ffmc, wind_speed)
+    experimental_ros = cffdrs.rate_of_spread(fuel_type, experimental_isi, bui, fmc, experimental_sfc,
+                                             percentage_conifer,
+                                             grass_cure, percentage_dead_balsam_fir, crown_base_height)
+    experimental_hfi = cffdrs.head_fire_intensity(fuel_type,
+                                                  percentage_conifer,
+                                                  percentage_dead_balsam_fir,
+                                                  experimental_ros, cfb,
+                                                  cfl, experimental_sfc)
+    error_hfi = (target_hfi - experimental_hfi) / target_hfi
+
+   # FFMC has upper bound 101
+   # exit condition 1: FFMC of 101 still causes HFI < target_hfi
+   # exit condition 2: FFMC of 0 still causes HFI > target_hfi
+   # exit condition 3: relative error within 1%
+
+    while abs(error_hfi) > 0.01:
+        if experimental_ffmc >= 100.9 and experimental_hfi < target_hfi:
+            break
+        if experimental_ffmc <= 0.1:
+            break
+        if error_hfi > 0:  # if the error value is a positive number, make experimental FFMC value bigger
+            experimental_ffmc = min(101, experimental_ffmc + ((101 - experimental_ffmc) / 2))
+        else:  # if the error value is a negative number, need to make experimental FFMC value smaller
+            experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc) / 2))
+        experimental_isi = cffdrs.initial_spread_index(experimental_ffmc, wind_speed)
+        experimental_sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
+        experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc,
+                                          experimental_sfc, percentage_conifer,
+                                          grass_cure, percentage_dead_balsam_fir, crown_base_height)
+        experimental_hfi = cffdrs.head_fire_intensity(fuel_type,
+                                                      percentage_conifer,
+                                                      percentage_dead_balsam_fir, experimental_ros,
+                                                      cfb, cfl, experimental_sfc)
+        error_hfi = (target_hfi - experimental_hfi) / target_hfi
+
+    return (experimental_ffmc, experimental_hfi)
 
 
 def get_critical_hours_start(critical_ffmc: float, daily_ffmc: float,
