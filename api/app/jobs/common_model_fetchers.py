@@ -172,13 +172,16 @@ class ModelValueProcessor:
     """ Iterate through model runs that have completed, and calculate the interpolated weather predictions.
     """
 
+    # The NAM reports cumulative precipitation in three hour intervals.
+    NAM_ACCUMULATION_INTERVAL = 3
+
     def __init__(self, session, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
         """ Prepare variables we're going to use throughout """
         self.session = session
         self.stations = get_stations_synchronously(station_source)
         self.station_count = len(self.stations)
 
-    def _process_model_run(self, model_run: PredictionModelRunTimestamp):
+    def _process_model_run(self, model_run: PredictionModelRunTimestamp, model_type: ModelEnum):
         """ Interpolate predictions in the provided model run for all stations. """
         logger.info('Interpolating values for model run: %s', model_run)
         # Iterate through stations.
@@ -188,7 +191,7 @@ class ModelValueProcessor:
                         index, self.station_count,
                         station.code, station.name)
             # Process this model run for station.
-            self._process_model_run_for_station(model_run, station)
+            self._process_model_run_for_station(model_run, station, model_type)
         # Commit all the weather station model predictions (it's fast if we line them all up and commit
         # them in one go.)
         logger.info('commit to database...')
@@ -320,7 +323,8 @@ class ModelValueProcessor:
 
     def _process_model_run_for_station(self,
                                        model_run: PredictionModelRunTimestamp,
-                                       station: WeatherStation):
+                                       station: WeatherStation,
+                                       model_type: ModelEnum):
         """ Process the model run for the provided station.
         """
         # Extract the coordinate.
@@ -353,9 +357,18 @@ class ModelValueProcessor:
             query = get_model_run_predictions_for_grid(
                 self.session, model_run, grid)
 
+            cumulative_precip = [0.0, 0.0, 0.0, 0.0]
             # Iterate through all the predictions.
             prev_prediction = None
             for prediction in query:
+                if model_type == ModelEnum.NAM:
+                    # Add up the cumulative precipitation over the course of the model run
+                    if prediction.apcp_sfc_0 is None:
+                        prediction.apcp_sfc_0 = [0.0, 0.0, 0.0, 0.0]
+                    temp_precip = numpy.add(cumulative_precip, prediction.apcp_sfc_0)
+                    if prediction.prediction_timestamp.hour % self.NAM_ACCUMULATION_INTERVAL == 0:
+                        cumulative_precip = temp_precip
+                    prediction.apcp_sfc_0 = temp_precip
                 if (prev_prediction is not None
                         and prev_prediction.prediction_timestamp.hour == 18
                         and prediction.prediction_timestamp.hour == 21):
@@ -384,7 +397,7 @@ class ModelValueProcessor:
             logger.info('model %s', model)
             logger.info('model_run %s', model_run)
             # Process the model run.
-            self._process_model_run(model_run)
+            self._process_model_run(model_run, model_type)
             # Mark the model run as interpolated.
             self._mark_model_run_interpolated(model_run)
         refresh_morecast2_materialized_view(self.session)
