@@ -37,7 +37,7 @@ GFS_BASE_URL = f"https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_{GFS_GRID}.pl?"
 
 
 # ------- NAM static variables ----------- #
-NAM_BASE_URL = 'https://nomads.ncep.noaa.gov/cgi-bin/filter_nam_na.pl?'
+NAM_BASE_URL = 'https://nomads.ncep.noaa.gov/cgi-bin/filter_nam.pl?'
 # -------------------------------------- #
 
 
@@ -90,7 +90,13 @@ def get_noaa_subregion_filter_str() -> str:
 
 
 def get_nam_model_run_download_urls(download_date: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
-    """ Yield URLs to download NAM North America model runs """
+    """ Yield URLs to download NAM North America model runs.  """
+    # The NAM does not accumulate precipitation throughout the model run; rather, for simplicity sake, they
+    # accumulate precipitation at 3 hour intervals. base_accumulation_hours are the three hour intervals that all
+    # four model runs have in common. The accumulation_hours are the additional three hour intervals we need to process
+    # for each model run in order to calculate a running total of cumulative precipitation throughout the course of a
+    # model run. There is some overlap between base_accumulation_hours and before_noon/after_noon, so we create a set
+    # which is converted back to a list.
     # for model_cycle 00:
     # for first day, need hour 20:00 UTC (13:00 PST)
     # Day 2: need hours 42 and 45 to interpolate for hour 44 (13:00 PST)
@@ -110,24 +116,29 @@ def get_nam_model_run_download_urls(download_date: datetime.datetime, model_cycl
     # for first day, need hour 2 (18 + 2 = 20:00 UTC)
     # for second day, need hour 26 (18 + (26-24) = 20:00 UTC)
     # Day 3: need hours 48 and 51 to interpolate for hour 50 (13:00 PST)
+    base_accumulation_hours = [hour for hour in range(0, 67, 3)]
     if model_cycle == '00':
+        accumulation_hours = base_accumulation_hours
         noon = [20]
         before_noon = [42, 66]
         after_noon = [45, 69]
     elif model_cycle == '06':
+        accumulation_hours = base_accumulation_hours
         noon = [14]
         before_noon = [36, 60]
         after_noon = [39, 63]
     elif model_cycle == '12':
+        accumulation_hours = base_accumulation_hours + [66, 69, 72, 75]
         noon = [8, 32]
-        before_noon = [54]
-        after_noon = [57]
+        before_noon = [54, 78]
+        after_noon = [57, 81]
     elif model_cycle == '18':
+        accumulation_hours = base_accumulation_hours + [66, 69]
         noon = [2, 26]
-        before_noon = [48]
-        after_noon = [51]
+        before_noon = [48, 72]
+        after_noon = [51, 75]
 
-    all_hours = noon + before_noon + after_noon
+    all_hours = list(set(accumulation_hours + noon + before_noon + after_noon))
     # sort list purely for human convenience when debugging. Functionally it doesn't matter
     all_hours.sort()
 
@@ -138,7 +149,7 @@ def get_nam_model_run_download_urls(download_date: datetime.datetime, model_cycl
 
     for fcst_hour in all_hours:
         hh = format(fcst_hour, '02d')
-        filter_str = f'dir=%2Fnam.{year_mo_date}&file=nam.t{model_cycle}z.awip32{hh}.tm00.grib2&'
+        filter_str = f'dir=%2Fnam.{year_mo_date}&file=nam.t{model_cycle}z.awphys{hh}.tm00.grib2&'
         wx_vars_filter_str = get_noaa_wx_variables_filter_str()
         levels_filter_str = get_noaa_levels_filter_str()
         subregion_filter_str = get_noaa_subregion_filter_str()
