@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 
 @Singleton
 class AfternoonDiurnalFFMCLookupTable():
-    """ Dataframe singleton of a diurnal FFMC lookup tables from 
+    """ Dataframe singleton of the standard diurnal FFMC lookup table (Table 1) from 
     Diurnal Variation in the Fine Fuel Moisture Code: Tables and Computer Source Code
-    Lawson et al, 1996.
+    Lawson et al, 1996 (https://www.for.gov.bc.ca/hfd/pubs/docs/frr/Frr245.htm).
 
     FFMC values are indexed by a tuple of (noon LST FFMC, LST hour).
     """
