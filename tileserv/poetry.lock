@@ -156,13 +156,13 @@ frozenlist = ">=1.1.0"
 
 [[package]]
 name = "alembic"
-version = "1.11.3"
+version = "1.12.0"
 description = "A database migration tool for SQLAlchemy."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "alembic-1.11.3-py3-none-any.whl", hash = "sha256:d6c96c2482740592777c400550a523bc7a9aada4e210cae2e733354ddae6f6f8"},
-    {file = "alembic-1.11.3.tar.gz", hash = "sha256:3db4ce81a9072e1b5aa44c2d202add24553182672a12daf21608d6f62a8f9cf9"},
+    {file = "alembic-1.12.0-py3-none-any.whl", hash = "sha256:03226222f1cf943deee6c85d9464261a6c710cd19b4fe867a3ad1f25afda610f"},
+    {file = "alembic-1.12.0.tar.gz", hash = "sha256:8e7645c32e4f200675e69f0745415335eb59a3663f5feb487abfa0b30c45888b"},
 ]
 
 [package.dependencies]
@@ -223,13 +223,13 @@ crt = ["awscrt (==0.16.26)"]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.31.35"
+version = "1.31.41"
 description = "Type annotations and code completion for botocore"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "botocore_stubs-1.31.35-py3-none-any.whl", hash = "sha256:19cf4813f717ebf112eeb8908c61385bce44163d5e827cc3debe5a6b63f4ef04"},
-    {file = "botocore_stubs-1.31.35.tar.gz", hash = "sha256:96858fb8bcf1f4413629b1f9484588e5d6bf3f9c20a37b2e760edf94f4b64c00"},
+    {file = "botocore_stubs-1.31.41-py3-none-any.whl", hash = "sha256:f28c63e1d3673f87e9b4131794f7fbc4e936cdc2a6c367efabf0149667d9a48a"},
+    {file = "botocore_stubs-1.31.41.tar.gz", hash = "sha256:8738438ba52a6d97b3f5491290b72f5165d8be10d2e8f50a473081bb1eb1447a"},
 ]
 
 [package.dependencies]
@@ -892,13 +892,13 @@ files = [
 
 [[package]]
 name = "pytest"
-version = "7.4.0"
+version = "7.4.1"
 description = "pytest: simple powerful testing with Python"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pytest-7.4.0-py3-none-any.whl", hash = "sha256:78bf16451a2eb8c7a2ea98e32dc119fd2aa758f1d5d66dbf0a59d69a3969df32"},
-    {file = "pytest-7.4.0.tar.gz", hash = "sha256:b4bf8c45bd59934ed84001ad51e11b4ee40d40a1229d2c79f9c592b0a3f6bd8a"},
+    {file = "pytest-7.4.1-py3-none-any.whl", hash = "sha256:460c9a59b14e27c602eb5ece2e47bec99dc5fc5f6513cf924a7d03a578991b1f"},
+    {file = "pytest-7.4.1.tar.gz", hash = "sha256:2f2301e797521b23e4d2585a0a3d7b5e50fdddaaf7e7d6773ea26ddb17c213ab"},
 ]
 
 [package.dependencies]
@@ -1504,13 +1504,13 @@ files = [
 
 [[package]]
 name = "types-awscrt"
-version = "0.19.0"
+version = "0.19.1"
 description = "Type annotations and code completion for awscrt"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "types_awscrt-0.19.0-py3-none-any.whl", hash = "sha256:0e31d7ba44e1898af37d224b94d28ffaef19baf89bb18ea2599de9ac0910a07f"},
-    {file = "types_awscrt-0.19.0.tar.gz", hash = "sha256:eaef60422cf716b4ae216f164b74d679c82b0d9c53db380a37deb29ae5579b1b"},
+    {file = "types_awscrt-0.19.1-py3-none-any.whl", hash = "sha256:68fffeb75396e9e7614cd930b2d52295f680230774750907bcafb56f11514043"},
+    {file = "types_awscrt-0.19.1.tar.gz", hash = "sha256:61833aa140e724a9098025610f4b8cde3dcf65b842631d7447378f9f5db4e1fd"},
 ]
 
 [[package]]
