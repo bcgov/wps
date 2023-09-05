@@ -91,52 +91,32 @@ def get_noaa_subregion_filter_str() -> str:
 
 def get_nam_model_run_download_urls(download_date: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
     """ Yield URLs to download NAM North America model runs.  """
-    # The NAM does not accumulate precipitation throughout the model run; rather, for simplicity sake, they
-    # accumulate precipitation at 3 hour intervals. base_accumulation_hours are the three hour intervals that all
-    # four model runs have in common. The accumulation_hours are the additional three hour intervals we need to process
-    # for each model run in order to calculate a running total of cumulative precipitation throughout the course of a
-    # model run. There is some overlap between base_accumulation_hours and before_noon/after_noon, so we create a set
-    # which is converted back to a list.
-    # for model_cycle 00:
-    # for first day, need hour 20:00 UTC (13:00 PST)
-    # Day 2: need hours 42 and 45 to interpolate for hour 44 (13:00 PST)
-    # Day 3: need hours 66 and 69 to interpolate for hour 68 (13:00 PST)
-    #
-    # for model_cycle 06:
-    # for first day, need hour 14 (14+6 = 20:00 UTC)
-    # Day 2: need hours 36 and 39 to interpolate for hour 38 (13:00 PST)
-    # Day 3: need hours 60 and 63 to interpolate for hour 62 (13:00 PST)
-    #
-    # for model_cycle 12:
-    # for first day, need hour 8 (12+8 = 20:00 UTC)
-    # for second day, need hour 32 (12 + (32-24) = 20:00 UTC)
-    # Day 3: need hours 54 and 57 to interpolate for hour 56 (13:00 PST)
-    #
-    # for model_cycle 18:
-    # for first day, need hour 2 (18 + 2 = 20:00 UTC)
-    # for second day, need hour 26 (18 + (26-24) = 20:00 UTC)
-    # Day 3: need hours 48 and 51 to interpolate for hour 50 (13:00 PST)
-    base_accumulation_hours = [hour for hour in range(0, 67, 3)]
+    # The NAM does not accumulate precipitation throughout the model run. The 00 and 12 hour model runs acculmulate
+    # precip at 12 hour intervals and the 06 and 18 hour model runs accumulate precip at 3 hour intervals.
+    # The accumulation_hours represent the hours needed in order to calculate accumulated precipitation for the model
+    # run. The noon variables contain a list of 20:00 UTC time for which a prediction exits for the NAM. The before_noon
+    # and after_noon variables contain lists of 18:00 UTC times and 21:00 UTC times needed for interpolating to 20:00
+    # UTC as exact 20:00 UTC predictions do not exist beyond hour 36 of the model run.
     if model_cycle == '00':
-        accumulation_hours = base_accumulation_hours
+        accumulation_hours = [hour for hour in range(0, 61, 12)]
         noon = [20]
-        before_noon = [42, 66]
-        after_noon = [45, 69]
+        before_noon = [18, 42, 66]
+        after_noon = [21, 45, 69]
     elif model_cycle == '06':
-        accumulation_hours = base_accumulation_hours
+        accumulation_hours = [hour for hour in range(0, 67, 3)]
         noon = [14]
-        before_noon = [36, 60]
-        after_noon = [39, 63]
+        before_noon = [12, 36, 60]
+        after_noon = [15, 39, 63]
     elif model_cycle == '12':
-        accumulation_hours = base_accumulation_hours + [66, 69, 72, 75]
+        accumulation_hours = [hour for hour in range(0, 73, 12)]
         noon = [8, 32]
-        before_noon = [54, 78]
-        after_noon = [57, 81]
+        before_noon = [6, 30, 54, 78]
+        after_noon = [9, 33, 57, 81]
     elif model_cycle == '18':
-        accumulation_hours = base_accumulation_hours + [66, 69]
+        accumulation_hours = [hour for hour in range(0, 70, 3)]
         noon = [2, 26]
-        before_noon = [48, 72]
-        after_noon = [51, 75]
+        before_noon = [0, 24, 48, 72]
+        after_noon = [3, 27, 51, 75]
 
     all_hours = list(set(accumulation_hours + noon + before_noon + after_noon))
     # sort list purely for human convenience when debugging. Functionally it doesn't matter
