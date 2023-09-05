@@ -360,13 +360,18 @@ class ModelValueProcessor:
             cumulative_precip = [0.0, 0.0, 0.0, 0.0]
             # Iterate through all the predictions.
             prev_prediction = None
+
+            # 00 and 12 hour model runs accumulate precipitation in 12 hour intervals, 06 and 18 hour accumlate in
+            # 3 hour intervals
+            model_run_hour = model_run.prediction_run_timestamp.hour
+            nam_accumulation_interval = 3 if model_run_hour == 6 or model_run_hour == 18 else 12
             for prediction in query:
                 if model_type == ModelEnum.NAM:
                     # Add up the cumulative precipitation over the course of the model run
                     if prediction.apcp_sfc_0 is None:
                         prediction.apcp_sfc_0 = [0.0, 0.0, 0.0, 0.0]
                     temp_precip = numpy.add(cumulative_precip, prediction.apcp_sfc_0)
-                    if prediction.prediction_timestamp.hour % self.NAM_ACCUMULATION_INTERVAL == 0:
+                    if prediction.prediction_timestamp.hour % nam_accumulation_interval == 0:
                         cumulative_precip = temp_precip
                     prediction.apcp_sfc_0 = temp_precip
                 if (prev_prediction is not None
