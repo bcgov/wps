@@ -6,6 +6,7 @@ from app.utils.time import vancouver_tz
 from typing import List
 from datetime import date, datetime, time, timedelta, timezone
 from fastapi import APIRouter, Response, Depends, status, HTTPException
+from fastapi.responses import ORJSONResponse
 from app.auth import (auth_with_forecaster_role_required,
                       audit,
                       authentication_required)
@@ -165,7 +166,8 @@ async def get_observed_dailies(start_date: date, end_date: date, request: Observ
 
 
 @router.post('/determinates/{start_date}/{end_date}',
-             response_model=IndeterminateDailiesResponse)
+             response_model=IndeterminateDailiesResponse,
+             response_class=ORJSONResponse)
 async def get_determinates_for_date_range(start_date: date,
                                           end_date: date,
                                           request: StationsRequest):

@@ -27,4 +27,4 @@ const CriticalHoursCell = (props: CriticalHoursCellProps) => {
   )
 }
 
-export default React.memo(CriticalHoursCell)
+export default CriticalHoursCell

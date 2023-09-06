@@ -218,6 +218,8 @@ class WeatherStationModelPrediction(Base):
     # Date this record was updated.
     update_date = Column(TZTimeStamp, nullable=False,
                          default=time_utils.get_utc_now(), index=True)
+    # Precipitation predicted for the previous 24 hour period.
+    precip_24h = Column(Float, nullable=True)
 
     def __str__(self):
         return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2} {self.bias_adjusted_temperature} '
@@ -237,6 +239,7 @@ class MoreCast2MaterializedView(Base):
     bias_adjusted_temperature = Column(Float, nullable=False)
     bias_adjusted_wind_speed = Column(Float, nullable=False)
     bias_adjusted_wdir = Column(Float, nullable=False)
+    precip_24h = Column(Float, nullable=False)
     prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
     station_code = Column(Integer, nullable=True, index=True)
     rh_tgl_2 = Column(Float, nullable=False)
