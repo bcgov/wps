@@ -682,6 +682,296 @@ class YesterdayDiurnalFFMCLookupTable():
                                  between=Comparator(fn=between_33_and_52_rh, result=89.7),
                                  above=84.9)),
 
+            # 91 range
+            (91, 6, RHRangeFFMC(below=Comparator(fn=below_68_rh, result=80.0),
+                                between=Comparator(fn=between_68_and_87_rh, result=75.9),
+                                above=73.8)),
+
+            (91, 7, RHRangeFFMC(below=Comparator(fn=below_58_rh, result=81.4),
+                                between=Comparator(fn=between_58_and_77_rh, result=78.2),
+                                above=75.3)),
+
+            (91, 8, RHRangeFFMC(below=Comparator(fn=below_48_rh, result=82.8),
+                                between=Comparator(fn=between_48_and_67_rh, result=80.5),
+                                above=76.8)),
+
+            (91, 9, RHRangeFFMC(below=Comparator(fn=below_43_rh, result=85.7),
+                                between=Comparator(fn=between_43_and_62_rh, result=83.4),
+                                above=79.2)),
+
+            (91, 10, RHRangeFFMC(below=Comparator(fn=below_38_rh, result=88.7),
+                                 between=Comparator(fn=between_38_and_57_rh, result=86.5),
+                                 above=81.7)),
+
+            (91, 11, RHRangeFFMC(below=Comparator(fn=below_35_dot_5_rh, result=91.1),
+                                 between=Comparator(fn=between_35_and_54_rh, result=88.9),
+                                 above=84.0)),
+
+            (91, 12, RHRangeFFMC(below=Comparator(fn=below_33_rh, result=92.1),
+                                 between=Comparator(fn=between_33_and_52_rh, result=90.0),
+                                 above=85.2)),
+
+            # 92 range
+            (92, 6, RHRangeFFMC(below=Comparator(fn=below_68_rh, result=81.3),
+                                between=Comparator(fn=between_68_and_87_rh, result=77.1),
+                                above=75.0)),
+
+            (92, 7, RHRangeFFMC(below=Comparator(fn=below_58_rh, result=82.6),
+                                between=Comparator(fn=between_58_and_77_rh, result=79.3),
+                                above=76.5)),
+
+            (92, 8, RHRangeFFMC(below=Comparator(fn=below_48_rh, result=83.9),
+                                between=Comparator(fn=between_48_and_67_rh, result=81.7),
+                                above=78.1)),
+
+            (92, 9, RHRangeFFMC(below=Comparator(fn=below_43_rh, result=86.7),
+                                between=Comparator(fn=between_43_and_62_rh, result=84.5),
+                                above=80.3)),
+
+            (92, 10, RHRangeFFMC(below=Comparator(fn=below_38_rh, result=89.7),
+                                 between=Comparator(fn=between_38_and_57_rh, result=87.5),
+                                 above=82.6)),
+
+            (92, 11, RHRangeFFMC(below=Comparator(fn=below_35_dot_5_rh, result=91.6),
+                                 between=Comparator(fn=between_35_and_54_rh, result=89.4),
+                                 above=84.6)),
+
+            (92, 12, RHRangeFFMC(below=Comparator(fn=below_33_rh, result=92.4),
+                                 between=Comparator(fn=between_33_and_52_rh, result=90.3),
+                                 above=85.5)),
+
+            # 93 range
+            (93, 6, RHRangeFFMC(below=Comparator(fn=below_68_rh, result=82.7),
+                                between=Comparator(fn=between_68_and_87_rh, result=78.3),
+                                above=76.2)),
+
+            (93, 7, RHRangeFFMC(below=Comparator(fn=below_58_rh, result=83.9),
+                                between=Comparator(fn=between_58_and_77_rh, result=80.5),
+                                above=77.8)),
+
+            (93, 8, RHRangeFFMC(below=Comparator(fn=below_48_rh, result=85.1),
+                                between=Comparator(fn=between_48_and_67_rh, result=82.9),
+                                above=79.4)),
+
+            (93, 9, RHRangeFFMC(below=Comparator(fn=below_43_rh, result=87.8),
+                                between=Comparator(fn=between_43_and_62_rh, result=85.7),
+                                above=81.5)),
+
+            (93, 10, RHRangeFFMC(below=Comparator(fn=below_38_rh, result=90.6),
+                                 between=Comparator(fn=between_38_and_57_rh, result=88.5),
+                                 above=83.6)),
+
+            (93, 11, RHRangeFFMC(below=Comparator(fn=below_35_dot_5_rh, result=92.1),
+                                 between=Comparator(fn=between_35_and_54_rh, result=90.0),
+                                 above=85.1)),
+
+            (93, 12, RHRangeFFMC(below=Comparator(fn=below_33_rh, result=92.7),
+                                 between=Comparator(fn=between_33_and_52_rh, result=90.7),
+                                 above=85.8)),
+
+            # 94 range
+            (94, 6, RHRangeFFMC(below=Comparator(fn=below_68_rh, result=84.1),
+                                between=Comparator(fn=between_68_and_87_rh, result=79.5),
+                                above=77.4)),
+
+            (94, 7, RHRangeFFMC(below=Comparator(fn=below_58_rh, result=85.2),
+                                between=Comparator(fn=between_58_and_77_rh, result=81.8),
+                                above=79.1)),
+
+            (94, 8, RHRangeFFMC(below=Comparator(fn=below_48_rh, result=86.3),
+                                between=Comparator(fn=between_48_and_67_rh, result=84.1),
+                                above=80.8)),
+
+            (94, 9, RHRangeFFMC(below=Comparator(fn=below_43_rh, result=89.0),
+                                between=Comparator(fn=between_43_and_62_rh, result=86.8),
+                                above=82.7)),
+
+            (94, 10, RHRangeFFMC(below=Comparator(fn=below_38_rh, result=91.7),
+                                 between=Comparator(fn=between_38_and_57_rh, result=89.6),
+                                 above=84.7)),
+
+            (94, 11, RHRangeFFMC(below=Comparator(fn=below_35_dot_5_rh, result=92.6),
+                                 between=Comparator(fn=between_35_and_54_rh, result=90.6),
+                                 above=85.6)),
+
+            (94, 12, RHRangeFFMC(below=Comparator(fn=below_33_rh, result=93.0),
+                                 between=Comparator(fn=between_33_and_52_rh, result=91.0),
+                                 above=86.1)),
+
+            # 95 range
+            (95, 6, RHRangeFFMC(below=Comparator(fn=below_68_rh, result=85.7),
+                                between=Comparator(fn=between_68_and_87_rh, result=80.8),
+                                above=78.7)),
+
+            (95, 7, RHRangeFFMC(below=Comparator(fn=below_58_rh, result=86.6),
+                                between=Comparator(fn=between_58_and_77_rh, result=83.1),
+                                above=80.5)),
+
+            (95, 8, RHRangeFFMC(below=Comparator(fn=below_48_rh, result=87.7),
+                                between=Comparator(fn=between_48_and_67_rh, result=85.4),
+                                above=82.3)),
+
+            (95, 9, RHRangeFFMC(below=Comparator(fn=below_43_rh, result=90.1),
+                                between=Comparator(fn=between_43_and_62_rh, result=88.0),
+                                above=84.0)),
+
+            (95, 10, RHRangeFFMC(below=Comparator(fn=below_38_rh, result=92.7),
+                                 between=Comparator(fn=between_38_and_57_rh, result=90.8),
+                                 above=85.8)),
+
+            (95, 11, RHRangeFFMC(below=Comparator(fn=below_35_dot_5_rh, result=93.1),
+                                 between=Comparator(fn=between_35_and_54_rh, result=91.2),
+                                 above=86.2)),
+
+            (95, 12, RHRangeFFMC(below=Comparator(fn=below_33_rh, result=93.3),
+                                 between=Comparator(fn=between_33_and_52_rh, result=91.4),
+                                 above=86.4)),
+
+            # 96 range
+            (96, 6, RHRangeFFMC(below=Comparator(fn=below_68_rh, result=87.2),
+                                between=Comparator(fn=between_68_and_87_rh, result=82.2),
+                                above=80.0)),
+
+            (96, 7, RHRangeFFMC(below=Comparator(fn=below_58_rh, result=88.1),
+                                between=Comparator(fn=between_58_and_77_rh, result=84.4),
+                                above=81.9)),
+
+            (96, 8, RHRangeFFMC(below=Comparator(fn=below_48_rh, result=89.0),
+                                between=Comparator(fn=between_48_and_67_rh, result=86.6),
+                                above=83.8)),
+
+            (96, 9, RHRangeFFMC(below=Comparator(fn=below_43_rh, result=91.4),
+                                between=Comparator(fn=between_43_and_62_rh, result=89.2),
+                                above=85.3)),
+
+            (96, 10, RHRangeFFMC(below=Comparator(fn=below_38_rh, result=93.8),
+                                 between=Comparator(fn=between_38_and_57_rh, result=91.9),
+                                 above=86.9)),
+
+            (96, 11, RHRangeFFMC(below=Comparator(fn=below_35_dot_5_rh, result=93.8),
+                                 between=Comparator(fn=between_35_and_54_rh, result=91.9),
+                                 above=86.9)),
+
+            (96, 12, RHRangeFFMC(below=Comparator(fn=below_33_rh, result=93.8),
+                                 between=Comparator(fn=between_33_and_52_rh, result=91.9),
+                                 above=86.9)),
+
+            # 97 range
+            (97, 6, RHRangeFFMC(below=Comparator(fn=below_68_rh, result=88.8),
+                                between=Comparator(fn=between_68_and_87_rh, result=83.6),
+                                above=81.4)),
+
+            (97, 7, RHRangeFFMC(below=Comparator(fn=below_58_rh, result=89.6),
+                                between=Comparator(fn=between_58_and_77_rh, result=85.7),
+                                above=83.3)),
+
+            (97, 8, RHRangeFFMC(below=Comparator(fn=below_48_rh, result=90.4),
+                                between=Comparator(fn=between_48_and_67_rh, result=87.9),
+                                above=85.3)),
+
+            (97, 9, RHRangeFFMC(below=Comparator(fn=below_43_rh, result=92.6),
+                                between=Comparator(fn=between_43_and_62_rh, result=90.5),
+                                above=86.7)),
+
+            (97, 10, RHRangeFFMC(below=Comparator(fn=below_38_rh, result=94.9),
+                                 between=Comparator(fn=between_38_and_57_rh, result=93.1),
+                                 above=88.0)),
+
+            (97, 11, RHRangeFFMC(below=Comparator(fn=below_35_dot_5_rh, result=94.9),
+                                 between=Comparator(fn=between_35_and_54_rh, result=93.1),
+                                 above=88.0)),
+
+            (97, 12, RHRangeFFMC(below=Comparator(fn=below_33_rh, result=94.9),
+                                 between=Comparator(fn=between_33_and_52_rh, result=93.1),
+                                 above=88.0)),
+
+            # 98 range
+            (98, 6, RHRangeFFMC(below=Comparator(fn=below_68_rh, result=90.4),
+                                between=Comparator(fn=between_68_and_87_rh, result=85.0),
+                                above=82.7)),
+
+            (98, 7, RHRangeFFMC(below=Comparator(fn=below_58_rh, result=91.1),
+                                between=Comparator(fn=between_58_and_77_rh, result=87.0),
+                                above=84.8)),
+
+            (98, 8, RHRangeFFMC(below=Comparator(fn=below_48_rh, result=91.9),
+                                between=Comparator(fn=between_48_and_67_rh, result=89.1),
+                                above=86.9)),
+
+            (98, 9, RHRangeFFMC(below=Comparator(fn=below_43_rh, result=93.9),
+                                between=Comparator(fn=between_43_and_62_rh, result=91.7),
+                                above=88.1)),
+
+            (98, 10, RHRangeFFMC(below=Comparator(fn=below_38_rh, result=96.0),
+                                 between=Comparator(fn=between_38_and_57_rh, result=94.3),
+                                 above=89.3)),
+
+            (98, 11, RHRangeFFMC(below=Comparator(fn=below_35_dot_5_rh, result=96.0),
+                                 between=Comparator(fn=between_35_and_54_rh, result=94.3),
+                                 above=89.3)),
+
+            (98, 12, RHRangeFFMC(below=Comparator(fn=below_33_rh, result=96.0),
+                                 between=Comparator(fn=between_33_and_52_rh, result=94.3),
+                                 above=89.3)),
+
+            # 99 range
+            (99, 6, RHRangeFFMC(below=Comparator(fn=below_68_rh, result=91.9),
+                                between=Comparator(fn=between_68_and_87_rh, result=86.5),
+                                above=84.1)),
+
+            (99, 7, RHRangeFFMC(below=Comparator(fn=below_58_rh, result=92.6),
+                                between=Comparator(fn=between_58_and_77_rh, result=88.3),
+                                above=86.2)),
+
+            (99, 8, RHRangeFFMC(below=Comparator(fn=below_48_rh, result=93.3),
+                                between=Comparator(fn=between_48_and_67_rh, result=90.2),
+                                above=88.4)),
+
+            (99, 9, RHRangeFFMC(below=Comparator(fn=below_43_rh, result=95.2),
+                                between=Comparator(fn=between_43_and_62_rh, result=92.8),
+                                above=89.5)),
+
+            (99, 10, RHRangeFFMC(below=Comparator(fn=below_38_rh, result=97.1),
+                                 between=Comparator(fn=between_38_and_57_rh, result=95.5),
+                                 above=90.5)),
+
+            (99, 11, RHRangeFFMC(below=Comparator(fn=below_35_dot_5_rh, result=97.1),
+                                 between=Comparator(fn=between_35_and_54_rh, result=95.5),
+                                 above=90.5)),
+
+            (99, 12, RHRangeFFMC(below=Comparator(fn=below_33_rh, result=97.1),
+                                 between=Comparator(fn=between_33_and_52_rh, result=95.5),
+                                 above=90.5)),
+
+            # 100 range
+            (100, 6, RHRangeFFMC(below=Comparator(fn=below_68_rh, result=93.2),
+                                 between=Comparator(fn=between_68_and_87_rh, result=88.0),
+                                 above=85.4)),
+
+            (100, 7, RHRangeFFMC(below=Comparator(fn=below_58_rh, result=93.9),
+                                 between=Comparator(fn=between_58_and_77_rh, result=89.5),
+                                 above=87.6)),
+
+            (100, 8, RHRangeFFMC(below=Comparator(fn=below_48_rh, result=94.6),
+                                 between=Comparator(fn=between_48_and_67_rh, result=91.2),
+                                 above=89.8)),
+
+            (100, 9, RHRangeFFMC(below=Comparator(fn=below_43_rh, result=96.3),
+                                 between=Comparator(fn=between_43_and_62_rh, result=93.8),
+                                 above=90.8)),
+
+            (100, 10, RHRangeFFMC(below=Comparator(fn=below_38_rh, result=97.9),
+                                  between=Comparator(fn=between_38_and_57_rh, result=96.7),
+                                  above=91.8)),
+
+            (100, 11, RHRangeFFMC(below=Comparator(fn=below_35_dot_5_rh, result=97.9),
+                                  between=Comparator(fn=between_35_and_54_rh, result=96.7),
+                                  above=91.8)),
+
+            (100, 12, RHRangeFFMC(below=Comparator(fn=below_33_rh, result=97.9),
+                                  between=Comparator(fn=between_33_and_52_rh, result=96.7),
+                                  above=91.8)),
+
         ]
 
         column_names = ['ffmc', 'hour', 'predicted_ffmc_range']
