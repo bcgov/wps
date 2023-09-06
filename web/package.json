@@ -44,7 +44,7 @@
     "lodash": "^4.17.21",
     "luxon": "^3.0.2",
     "match-sorter": "^6.3.1",
-    "ol": "^7.0.0",
+    "ol": "^8.0.0",
     "ol-pmtiles": "^0.2.0",
     "plotly.js": "^2.5.1",
     "prettier": "^2.4.1",
