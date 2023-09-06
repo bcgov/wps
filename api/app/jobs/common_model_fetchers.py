@@ -172,9 +172,6 @@ class ModelValueProcessor:
     """ Iterate through model runs that have completed, and calculate the interpolated weather predictions.
     """
 
-    # The NAM reports cumulative precipitation in three hour intervals.
-    NAM_ACCUMULATION_INTERVAL = 3
-
     def __init__(self, session, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
         """ Prepare variables we're going to use throughout """
         self.session = session
@@ -372,6 +369,7 @@ class ModelValueProcessor:
                         prediction.apcp_sfc_0 = [0.0, 0.0, 0.0, 0.0]
                     temp_precip = numpy.add(cumulative_precip, prediction.apcp_sfc_0)
                     if prediction.prediction_timestamp.hour % nam_accumulation_interval == 0:
+                        # If we're on an 'accumulation interval', update the cumulative precip
                         cumulative_precip = temp_precip
                     prediction.apcp_sfc_0 = temp_precip
                 if (prev_prediction is not None

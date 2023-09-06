@@ -80,7 +80,7 @@ Bottom latitude: 48
 
 #### GFS
 
-We fetch GFS model data on a 0.25&deg; scale (roughly equivalent to 24km at the centre of BC). 
+We fetch GFS model data on a 0.25&deg; scale (roughly equivalent to 24km at the centre of BC).
 
 ##### Model Run Cycles
 
@@ -103,28 +103,28 @@ NAM model data is published on a Polar Stereographic projection at a 32km resolu
 
 ##### Model Run Cycles
 
-The NAM model makes predictions for every hour for the first 36 hours, and then on a 3-hourly schedule to 84 hours [https://mag.ncep.noaa.gov/model-guidance-model-parameter.php?group=Model%20Guidance&model=NAM&area=NAMER&ps=area#]. As with the GFS model, we sometimes need to fetch data for 2 different hour offsets and then perform linear interpolation in order to have a weather prediction for 12:00 PST. The file naming convention that NAM uses indicates the model runtime as hours in UTC, and indexes that hour as 00. All subsequent hours in the model run are referenced as offsets of the 00 hour index. This means that for the 00:00 UTC model cycle, 20:00 UTC (or 12:00 PST) is referenced as hour 20; but for the 12:00 UTC model cycle, 20:00 UTC is referenced as hour 8 (20:00 - 12:00). Therefore, to fetch the noon PST data we need, the NAM cronjob pulls the following model hours:
+The NAM model makes predictions for every hour for the first 36 hours, and then on a 3-hourly schedule to 84 hours [https://mag.ncep.noaa.gov/model-guidance-model-parameter.php?group=Model%20Guidance&model=NAM&area=NAMER&ps=area#]. As with the GFS model, we sometimes need to fetch data for 2 different hour offsets and then perform linear interpolation in order to have a weather prediction for 12:00 PST. The file naming convention that NAM uses indicates the model runtime as hours in UTC, and indexes that hour as 00. All subsequent hours in the model run are referenced as offsets of the 00 hour index. This means that for the 00:00 UTC model cycle, 20:00 UTC (or 12:00 PST) is referenced as hour 20; but for the 12:00 UTC model cycle, 20:00 UTC is referenced as hour 8 (20:00 - 12:00). Therefore, to fetch the noon PST data we need, the NAM cronjob pulls the following model hours. noon hours are equivalent to 20:00 UTC. before_noon hours are 18:00 UTC and used for linear interpolation along with after_noon hours which are 21:00 UTC. Accumulation hours represent the prediction hours required in oorder to calcaulte accumulative precipitation throughout the model run.
 
 - For the 00:00 UTC model run time:
-  - Accumulation hours: 12, 24, 36, 48, 60
-  - Day 0: hour 20 (20:00 UTC = 12:00 PST)
-  - Day 1: hours 42 and 45, to interpolate for hour 44 (20:00 UTC)
-  - Day 2: hours 66 and 69, to interpolate for hour 68 (20:00 UTC)
+  - accumulation_hours = 0, 12, 24, 36, 48, 60
+  - noon = 20
+  - before_noon = 18, 42, 66
+  - after_noon = 21, 45, 69
 - For the 06:00 UTC model run time:
-  - Accumulation hours: 6, 12, 18, 24, 30, 36, 42, 48, 60
-  - Day 0: hour 14 (6+14 = 20:00 UTC)
-  - Day 1: hours 36 and 39, to interpolate for hour 38 (38-24=14 hours, 14+06:00 = 20:00 UTC of the next day)
-  - Day 2: hours 60 and 63, to interpolate for hour 62 (20:00 UTC of 2 days later)
+  - accumulation_hours = 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66
+  - noon = 14
+  - before_noon = 12, 36, 60
+  - after_noon = 15, 39, 63
 - For the 12:00 UTC model run time:
-  - Accumulation hours: 12, 24, 36, 48, 60, 72
-  - Day 0: hour 8 (12+8 = 20:00 UTC)
-  - Day 1: hour 32 (12+32-24 = 20:00 UTC of the next day)
-  - Day 2: hours 54 and 57, to interpolate for hour 56 (56-48 hours = 8 hours, 8+12:00 = 20:00 UTC of 2 days later)
+  - accumulation_hours = 0, 12, 24, 36, 48, 60, 72
+  - noon = 8, 32
+  - before_noon = 6, 30, 54, 78
+  - after_noon = 9, 33, 57, 81
 - For the 18:00 UTC model run time:
-  - Accumulation hours: 6, 12, 18, 24, 30, 36, 42, 48, 60, 66, 72
-  - Day 0: hour 2 (18+2 = 20:00 UTC)
-  - Day 1: hour 26 (18+26-24 = 20:00 UTC of the next day)
-  - Day 2: hours 48 and 51, to interpolate for hour 50 (50-48 hours = 2 hours, 2 + 18:00 = 20:00 UTC of 2 days later)
+  - accumulation_hours = 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72, 75
+  - noon = [2, 26]
+  - before_noon = [0, 24, 48, 72]
+  - after_noon = [3, 27, 51, 75]
 
 Note that the accumulation hours are required in order for us to calculate the cumulative precipitation across the model run which is needed when we subsequently calculate cumulative 24 hour precipitation.
 
@@ -132,7 +132,7 @@ Note that the accumulation hours are required in order for us to calculate the c
 
 To be consistent with the weather variables that we pull from the Environment Canada models, for GFS we use comparable weather variables. There is a slight exception for wind direction and speed: Env Canada models output the separate U and V components for wind, but they also output the calculated wind speed and direction using those U, V components. NOAA only outputs the U,V components for wind - we must do the wind direction and wind speed calculations ourselves. The NOAA grib files for GFS contain two layers related to cumulative precipitation. Both layers are named 'apcp_sfc_0' but accumulate precipitation differently. Raster band 6 accumulates precip in 3 hour increments for odd hours and six hour increments for even hours, but we actually ignore this band. We use band 7 which accumulats precipitation across the model run.
 
-The NAM grib file does not contain a band for cumulative precipitation since the start of the model. This requires us to use band 6 which accumulates precipitation slightly differently for model run hours 00 and 12 versus 06 and 18. The 00 and 12 hour model runs contain cumulative precipitation in 12 hour cycles. 
+The NAM grib file does not contain a band for cumulative precipitation since the start of the model. This requires us to use band 6 which accumulates precipitation slightly differently for model run hours 00 and 12 versus 06 and 18. The 00 and 12 hour model runs contain cumulative precipitation in 12 hour cycles.
 
 For the 00 and 12 hour model runs:
 
@@ -157,7 +157,7 @@ For the 00 and 12 hour model runs:
 | 51 | 48 - 51 |
 | ... | ... - ... |
 
-For the 06 and 18 hour model runs:
+For the 06 and 18 hour model runs precipitation accumlates in 3 hour intervals:
 
 | Hour from start | Cumulative precip hours |
 | --------------- | ----------------------- |
@@ -166,20 +166,20 @@ For the 06 and 18 hour model runs:
 | 3 | 0 - 3 |
 | 4 | 3 - 4 |
 | 5 | 3 - 5 |
-| 6 | 0 - 6 |
+| 6 | 3 - 6 |
 | 7 | 6 - 7 |
 | 8 | 6 - 8 |
 | 9 | 6 - 9 |
 | 10 | 9 - 10 |
 | 11 | 9 - 11 |
-| 12 | 6 - 12 |
+| 12 | 9 - 12 |
 | 13 | 12 - 13 |
 | ... | ... - ... |
-| 36 | 30 - 36 |
-| 39 |  36 - 39 |
-| 42 | 36 - 42 |
+| 36 | 33 - 36 |
+| 39 | 36 - 39 |
+| 42 | 39 - 42 |
 | 45 | 42 - 45 |
-| 48 | 42 - 48 |
+| 48 | 45 - 48 |
 | ... | ... - ... |
 
 
