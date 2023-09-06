@@ -203,7 +203,7 @@ def parse_gfs_url_for_timestamps(url: str):
 
 def parse_nam_url_for_timestamps(url: str):
     """ Interpret the model_run_timestamp and prediction_timestamp from a NAM model's URL """
-    # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_nam_na.pl?dir=%2Fnam.20230414&file=nam.t00z.awip3220.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
+    # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_nam_na.pl?dir=%2Fnam.20230414&file=nam.t00z.awphys20.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
     query = urlsplit(url).query
     params = parse_qs(query)
     model_run_date = params['dir'][0].split('.')[1]
