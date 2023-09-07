@@ -12,7 +12,6 @@ You will need an environment file. See: `.env.example`. Contact current maintain
   - then activate the virtual environment with `poetry shell`
   - then run:
     - python -m pip install gdal==$(gdal-config --version)
-    - pip install greenlet
   - Follow [vsc setup steps](../setup/VSC.md)
 - Manual (linux): See [manual setup](../docs/MANUAL_SETUP.md).
   Note: you may want to alias `python3` as `python` in your profile
@@ -42,4 +41,21 @@ Or run continuously with pytest-testmon and pytest-watch (`ptw --runner "pytest 
 
 ```bash
 make test-watch
+```
+
+### Troubleshooting
+
+**Poetry can't install rpy2**
+Error: `ld: library not found for -lpcre2-8`
+
+pcre2 should be installed after running [mac.sh](../setup/mac.sh). This can be verified by running
+
+```bash
+brew list pcre2
+```
+
+This issue can be resolved by running the following command before `poetry_setup.sh`: (adjust path as necessary)
+
+```bash
+export LIBRARY_PATH="/opt/homebrew/Cellar/pcre2/10.42/lib/:$LIBRARY_PATH"
 ```
