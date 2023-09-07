@@ -1273,19 +1273,6 @@ files = [
 ]
 
 [[package]]
-name = "gdal"
-version = "3.7.1.1"
-description = "GDAL: Geospatial Data Abstraction Library"
-optional = false
-python-versions = ">=3.6.0"
-files = [
-    {file = "GDAL-3.7.1.1.tar.gz", hash = "sha256:d16c6dab28eda6c4b1a571e6dc3e3b0fd824a0a6c1cc1947fc7dcb580c9999de"},
-]
-
-[package.extras]
-numpy = ["numpy (>1.0.0)"]
-
-[[package]]
 name = "geoalchemy2"
 version = "0.14.1"
 description = "Using SQLAlchemy with Spatial Databases"
@@ -5139,4 +5126,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10.4,<3.11"
-content-hash = "5b558d5556febd8b40cdabec9f3adf1e957850d47d0481511d050ed570664ae5"
+content-hash = "68d09c22907b4b147fd546b6ed8371f03c9eb2e8769bc87a88d4899b58f577fa"
