@@ -10,9 +10,6 @@ You will need an environment file. See: `.env.example`. Contact current maintain
   - then add run `eval "$(pyenv init -)"` in your current shell and add it to your `rc` file
   - then run `poetry_setup.sh`
   - then activate the virtual environment with `poetry shell`
-  - then run:
-    - python -m pip install gdal==$(gdal-config --version)
-    - pip install greenlet
   - Follow [vsc setup steps](../setup/VSC.md)
 - Manual (linux): See [manual setup](../docs/MANUAL_SETUP.md).
   Note: you may want to alias `python3` as `python` in your profile
