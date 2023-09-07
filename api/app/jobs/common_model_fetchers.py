@@ -168,6 +168,20 @@ def apply_data_retention_policy():
         delete_weather_station_model_predictions(session, oldest_to_keep)
 
 
+def accumulate_nam_precipitation(nam_cumulative_precip: list[float], prediction: ModelRunGridSubsetPrediction, model_run_hour: int):
+    """ Calculate overall cumulative precip and cumulative precip for the current prediction. """
+    # 00 and 12 hour model runs accumulate precipitation in 12 hour intervals, 06 and 18 hour accumulate in
+    # 3 hour intervals
+    nam_accumulation_interval = 3 if model_run_hour == 6 or model_run_hour == 18 else 12
+    cumulative_precip = nam_cumulative_precip
+    prediction_precip = prediction.apcp_sfc_0 or [0.0, 0.0, 0.0, 0.0]
+    current_precip = numpy.add(nam_cumulative_precip, prediction_precip)
+    if prediction.prediction_timestamp.hour % nam_accumulation_interval == 0:
+        # If we're on an 'accumulation interval', update the cumulative precip
+        cumulative_precip = current_precip
+    return (cumulative_precip, current_precip)
+
+
 class ModelValueProcessor:
     """ Iterate through model runs that have completed, and calculate the interpolated weather predictions.
     """
@@ -354,24 +368,15 @@ class ModelValueProcessor:
             query = get_model_run_predictions_for_grid(
                 self.session, model_run, grid)
 
-            cumulative_precip = [0.0, 0.0, 0.0, 0.0]
+            nam_cumulative_precip = [0.0, 0.0, 0.0, 0.0]
             # Iterate through all the predictions.
             prev_prediction = None
 
-            # 00 and 12 hour model runs accumulate precipitation in 12 hour intervals, 06 and 18 hour accumlate in
-            # 3 hour intervals
-            model_run_hour = model_run.prediction_run_timestamp.hour
-            nam_accumulation_interval = 3 if model_run_hour == 6 or model_run_hour == 18 else 12
             for prediction in query:
+                # NAM model requires manual calculation of cumulative precip
                 if model_type == ModelEnum.NAM:
-                    # Add up the cumulative precipitation over the course of the model run
-                    if prediction.apcp_sfc_0 is None:
-                        prediction.apcp_sfc_0 = [0.0, 0.0, 0.0, 0.0]
-                    temp_precip = numpy.add(cumulative_precip, prediction.apcp_sfc_0)
-                    if prediction.prediction_timestamp.hour % nam_accumulation_interval == 0:
-                        # If we're on an 'accumulation interval', update the cumulative precip
-                        cumulative_precip = temp_precip
-                    prediction.apcp_sfc_0 = temp_precip
+                    nam_cumulative_precip, prediction.apcp_sfc_0 = accumulate_nam_precipitation(
+                        nam_cumulative_precip, prediction, model_run.prediction_run_timestamp.hour)
                 if (prev_prediction is not None
                         and prev_prediction.prediction_timestamp.hour == 18
                         and prediction.prediction_timestamp.hour == 21):
