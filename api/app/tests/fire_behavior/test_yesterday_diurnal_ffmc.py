@@ -268,3 +268,13 @@ def test_75_ffmc_range(input_ffmc, hour, rh, expected_ffmc):
 def test_99_100_ffmc_range(input_ffmc, hour, rh, expected_ffmc):
     result = YesterdayDiurnalFFMCLookupTable.instance().get(input_ffmc, hour, rh)
     assert result == expected_ffmc
+
+
+def test_over_100_ffmc_clamps_to_100_early():
+    result = YesterdayDiurnalFFMCLookupTable.instance().get(101, 7, 67)
+    assert result == 93.2
+
+
+def test_over_100_ffmc_clamps_to_100_late():
+    result = YesterdayDiurnalFFMCLookupTable.instance().get(101, 13, 53)
+    assert result == 91.8
