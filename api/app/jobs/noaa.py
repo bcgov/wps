@@ -37,7 +37,7 @@ GFS_BASE_URL = f"https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_{GFS_GRID}.pl?"
 
 
 # ------- NAM static variables ----------- #
-NAM_BASE_URL = 'https://nomads.ncep.noaa.gov/cgi-bin/filter_nam_na.pl?'
+NAM_BASE_URL = 'https://nomads.ncep.noaa.gov/cgi-bin/filter_nam.pl?'
 # -------------------------------------- #
 
 
@@ -90,44 +90,35 @@ def get_noaa_subregion_filter_str() -> str:
 
 
 def get_nam_model_run_download_urls(download_date: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
-    """ Yield URLs to download NAM North America model runs """
-    # for model_cycle 00:
-    # for first day, need hour 20:00 UTC (13:00 PST)
-    # Day 2: need hours 42 and 45 to interpolate for hour 44 (13:00 PST)
-    # Day 3: need hours 66 and 69 to interpolate for hour 68 (13:00 PST)
-    #
-    # for model_cycle 06:
-    # for first day, need hour 14 (14+6 = 20:00 UTC)
-    # Day 2: need hours 36 and 39 to interpolate for hour 38 (13:00 PST)
-    # Day 3: need hours 60 and 63 to interpolate for hour 62 (13:00 PST)
-    #
-    # for model_cycle 12:
-    # for first day, need hour 8 (12+8 = 20:00 UTC)
-    # for second day, need hour 32 (12 + (32-24) = 20:00 UTC)
-    # Day 3: need hours 54 and 57 to interpolate for hour 56 (13:00 PST)
-    #
-    # for model_cycle 18:
-    # for first day, need hour 2 (18 + 2 = 20:00 UTC)
-    # for second day, need hour 26 (18 + (26-24) = 20:00 UTC)
-    # Day 3: need hours 48 and 51 to interpolate for hour 50 (13:00 PST)
+    """ Yield URLs to download NAM North America model runs.  """
+    # The NAM does not accumulate precipitation throughout the model run. The 00 and 12 hour model runs acculmulate
+    # precip at 12 hour intervals and the 06 and 18 hour model runs accumulate precip at 3 hour intervals.
+    # The accumulation_hours represent the hours needed in order to calculate accumulated precipitation for the model
+    # run. The noon variables contain a list of 20:00 UTC time for which a prediction exits for the NAM. The before_noon
+    # and after_noon variables contain lists of 18:00 UTC times and 21:00 UTC times needed for interpolating to 20:00
+    # UTC as exact 20:00 UTC predictions do not exist beyond hour 36 of the model run.
     if model_cycle == '00':
+        accumulation_hours = [hour for hour in range(0, 61, 12)]
         noon = [20]
-        before_noon = [42, 66]
-        after_noon = [45, 69]
+        before_noon = [18, 42, 66]
+        after_noon = [21, 45, 69]
     elif model_cycle == '06':
+        accumulation_hours = [hour for hour in range(0, 67, 3)]
         noon = [14]
-        before_noon = [36, 60]
-        after_noon = [39, 63]
+        before_noon = [12, 36, 60]
+        after_noon = [15, 39, 63]
     elif model_cycle == '12':
+        accumulation_hours = [hour for hour in range(0, 73, 12)]
         noon = [8, 32]
-        before_noon = [54]
-        after_noon = [57]
+        before_noon = [6, 30, 54, 78]
+        after_noon = [9, 33, 57, 81]
     elif model_cycle == '18':
+        accumulation_hours = [hour for hour in range(0, 70, 3)]
         noon = [2, 26]
-        before_noon = [48]
-        after_noon = [51]
+        before_noon = [0, 24, 48, 72]
+        after_noon = [3, 27, 51, 75]
 
-    all_hours = noon + before_noon + after_noon
+    all_hours = list(set(accumulation_hours + noon + before_noon + after_noon))
     # sort list purely for human convenience when debugging. Functionally it doesn't matter
     all_hours.sort()
 
@@ -138,7 +129,7 @@ def get_nam_model_run_download_urls(download_date: datetime.datetime, model_cycl
 
     for fcst_hour in all_hours:
         hh = format(fcst_hour, '02d')
-        filter_str = f'dir=%2Fnam.{year_mo_date}&file=nam.t{model_cycle}z.awip32{hh}.tm00.grib2&'
+        filter_str = f'dir=%2Fnam.{year_mo_date}&file=nam.t{model_cycle}z.awphys{hh}.tm00.grib2&'
         wx_vars_filter_str = get_noaa_wx_variables_filter_str()
         levels_filter_str = get_noaa_levels_filter_str()
         subregion_filter_str = get_noaa_subregion_filter_str()
@@ -212,7 +203,7 @@ def parse_gfs_url_for_timestamps(url: str):
 
 def parse_nam_url_for_timestamps(url: str):
     """ Interpret the model_run_timestamp and prediction_timestamp from a NAM model's URL """
-    # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_nam_na.pl?dir=%2Fnam.20230414&file=nam.t00z.awip3220.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
+    # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_nam_na.pl?dir=%2Fnam.20230414&file=nam.t00z.awphys20.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
     query = urlsplit(url).query
     params = parse_qs(query)
     model_run_date = params['dir'][0].split('.')[1]
