@@ -1,3 +1,4 @@
+import pytest
 from app.fire_behaviour.fuel_types import FuelTypeEnum
 from app.fire_behaviour.critical_hours import (get_afternoon_overnight_diurnal_ffmc,
                                                get_morning_diurnal_ffmc,
@@ -158,3 +159,137 @@ def test_get_ffmc_for_target_hfi():
 
     assert hfi_10000 > hfi_4000
     assert ffmc_10000 > ffmc_4000
+
+
+@pytest.mark.parametrize(
+    "daily_ffmc, prev_daily_ffmc, last_observed_morning_rh_values, expected_start, expected_end",
+    [
+        # high daily ffmc, high previous daily ffmc, mid range rh values
+        (90, 90, {7.0: 54.0, 8.0: 47.0, 9.0: 46.0, 10.0: 45.0, 11.0: 44.0, 12.0: 38.0}, 11.00, 22.00),
+        # high daily ffmc, high previous daily ffmc, high range rh values
+        (90, 90, {7.0: 88.0, 8.0: 88.0, 9.0: 88.0, 10.0: 88.0, 11.0: 88.0, 12.0: 88.0}, 12.00, 22.00),
+
+        # higher daily ffmc, higher previous daily ffmc, mid range rh values
+        (92, 92, {7.0: 54.0, 8.0: 47.0, 9.0: 46.0, 10.0: 45.0, 11.0: 44.0, 12.0: 38.0}, 9.00, 0.00),
+        # higher daily ffmc, higher previous daily ffmc, high range rh values
+        (92, 92, {7.0: 88.0, 8.0: 88.0, 9.0: 88.0, 10.0: 88.0, 11.0: 88.0, 12.0: 88.0}, 12.00, 0.00),
+
+    ],
+)
+def test_critical_hours_4000_high_ffmc(daily_ffmc, prev_daily_ffmc, last_observed_morning_rh_values, expected_start, expected_end):
+    crit_hours_4000 = get_critical_hours(target_hfi=4000,
+                                         fuel_type=FuelTypeEnum.C2,
+                                         percentage_conifer=100,
+                                         percentage_dead_balsam_fir=None,
+                                         bui=148.558,
+                                         grass_cure=None,
+                                         crown_base_height=3.0,
+                                         daily_ffmc=daily_ffmc,
+                                         fmc=120,
+                                         cfb=0.9615453070844759,
+                                         cfl=0.8,
+                                         wind_speed=10.3,
+                                         prev_daily_ffmc=prev_daily_ffmc,
+                                         last_observed_morning_rh_values=last_observed_morning_rh_values)
+    assert crit_hours_4000.start == expected_start
+    assert crit_hours_4000.end == expected_end
+
+
+@pytest.mark.parametrize(
+    "daily_ffmc, prev_daily_ffmc, last_observed_morning_rh_values, expected_start, expected_end",
+    [
+        # high daily ffmc, high previous daily ffmc, mid range rh values
+        (90, 90, {7.0: 54.0, 8.0: 47.0, 9.0: 46.0, 10.0: 45.0, 11.0: 44.0, 12.0: 38.0}, 14.00, 19.00),
+        # high daily ffmc, high previous daily ffmc, high range rh values
+        (90, 90, {7.0: 88.0, 8.0: 88.0, 9.0: 88.0, 10.0: 88.0, 11.0: 88.0, 12.0: 88.0}, 14.00, 19.00),
+
+        # higher daily ffmc, higher previous daily ffmc, mid range rh values
+        (92, 92, {7.0: 54.0, 8.0: 47.0, 9.0: 46.0, 10.0: 45.0, 11.0: 44.0, 12.0: 38.0}, 12.00, 21.00),
+        # higher daily ffmc, higher previous daily ffmc, high range rh values
+        (92, 92, {7.0: 88.0, 8.0: 88.0, 9.0: 88.0, 10.0: 88.0, 11.0: 88.0, 12.0: 88.0}, 13.00, 21.00),
+
+    ],
+)
+def test_critical_hours_10000_high_ffmc(daily_ffmc, prev_daily_ffmc, last_observed_morning_rh_values, expected_start, expected_end):
+    crit_hours_4000 = get_critical_hours(target_hfi=10000,
+                                         fuel_type=FuelTypeEnum.C2,
+                                         percentage_conifer=100,
+                                         percentage_dead_balsam_fir=None,
+                                         bui=148.558,
+                                         grass_cure=None,
+                                         crown_base_height=3.0,
+                                         daily_ffmc=daily_ffmc,
+                                         fmc=120,
+                                         cfb=0.9615453070844759,
+                                         cfl=0.8,
+                                         wind_speed=10.3,
+                                         prev_daily_ffmc=prev_daily_ffmc,
+                                         last_observed_morning_rh_values=last_observed_morning_rh_values)
+    assert crit_hours_4000.start == expected_start
+    assert crit_hours_4000.end == expected_end
+
+
+@pytest.mark.parametrize(
+    "daily_ffmc, prev_daily_ffmc, last_observed_morning_rh_values",
+    [
+        # low daily ffmc, low previous daily ffmc, mid range rh values
+        (50, 50, {7.0: 54.0, 8.0: 47.0, 9.0: 46.0, 10.0: 45.0, 11.0: 44.0, 12.0: 38.0}),
+        # low daily ffmc, low previous daily ffmc, high range rh values
+        (50, 50, {7.0: 88.0, 8.0: 88.0, 9.0: 88.0, 10.0: 88.0, 11.0: 88.0, 12.0: 88.0}),
+
+        # higher daily ffmc, higher previous daily ffmc, mid range rh values
+        (30, 30, {7.0: 54.0, 8.0: 47.0, 9.0: 46.0, 10.0: 45.0, 11.0: 44.0, 12.0: 38.0}),
+        # higher daily ffmc, higher previous daily ffmc, high range rh values
+        (30, 30, {7.0: 88.0, 8.0: 88.0, 9.0: 88.0, 10.0: 88.0, 11.0: 88.0, 12.0: 88.0}),
+
+    ],
+)
+def test_critical_hours_4000_low_ffmc(daily_ffmc, prev_daily_ffmc, last_observed_morning_rh_values):
+    crit_hours_4000 = get_critical_hours(target_hfi=4000,
+                                         fuel_type=FuelTypeEnum.C2,
+                                         percentage_conifer=100,
+                                         percentage_dead_balsam_fir=None,
+                                         bui=148.558,
+                                         grass_cure=None,
+                                         crown_base_height=3.0,
+                                         daily_ffmc=daily_ffmc,
+                                         fmc=120,
+                                         cfb=0.9615453070844759,
+                                         cfl=0.8,
+                                         wind_speed=10.3,
+                                         prev_daily_ffmc=prev_daily_ffmc,
+                                         last_observed_morning_rh_values=last_observed_morning_rh_values)
+    assert crit_hours_4000 is None
+
+
+@pytest.mark.parametrize(
+    "daily_ffmc, prev_daily_ffmc, last_observed_morning_rh_values",
+    [
+        # low daily ffmc, low previous daily ffmc, mid range rh values
+        (50, 50, {7.0: 54.0, 8.0: 47.0, 9.0: 46.0, 10.0: 45.0, 11.0: 44.0, 12.0: 38.0}),
+        # low daily ffmc, low previous daily ffmc, high range rh values
+        (50, 50, {7.0: 88.0, 8.0: 88.0, 9.0: 88.0, 10.0: 88.0, 11.0: 88.0, 12.0: 88.0}),
+
+        # higher daily ffmc, higher previous daily ffmc, mid range rh values
+        (30, 30, {7.0: 54.0, 8.0: 47.0, 9.0: 46.0, 10.0: 45.0, 11.0: 44.0, 12.0: 38.0}),
+        # higher daily ffmc, higher previous daily ffmc, high range rh values
+        (30, 30, {7.0: 88.0, 8.0: 88.0, 9.0: 88.0, 10.0: 88.0, 11.0: 88.0, 12.0: 88.0}),
+
+    ],
+)
+def test_critical_hours_10000_low_ffmc(daily_ffmc, prev_daily_ffmc, last_observed_morning_rh_values):
+    crit_hours_4000 = get_critical_hours(target_hfi=10000,
+                                         fuel_type=FuelTypeEnum.C2,
+                                         percentage_conifer=100,
+                                         percentage_dead_balsam_fir=None,
+                                         bui=148.558,
+                                         grass_cure=None,
+                                         crown_base_height=3.0,
+                                         daily_ffmc=daily_ffmc,
+                                         fmc=120,
+                                         cfb=0.9615453070844759,
+                                         cfl=0.8,
+                                         wind_speed=10.3,
+                                         prev_daily_ffmc=prev_daily_ffmc,
+                                         last_observed_morning_rh_values=last_observed_morning_rh_values)
+    assert crit_hours_4000 is None
