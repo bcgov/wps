@@ -1,6 +1,7 @@
 import logging
 from app.fire_behaviour.afternoon_diurnal_ffmc import AfternoonDiurnalFFMCLookupTable
 from app.fire_behaviour.c7b import rate_of_spread
+from app.fire_behaviour.yesterday_diurnal_ffmc import YesterdayDiurnalFFMCLookupTable
 from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.fba_calc import CriticalHoursHFI
 from app.fire_behaviour import cffdrs
@@ -180,18 +181,4 @@ def get_morning_diurnal_ffmc(hour_of_interest: int, prev_day_daily_ffmc: float, 
     """ Returns the diurnal FFMC (an approximation) estimated for the given hour_of_interest,
     based on the estimated RH value for the hour_of_interest.
     """
-    morning_df = AfternoonDiurnalFFMCLookupTable.instance().morning_df
-
-    # find index (previous day's daily FFMC) of morning_df that is nearest to prev_day_daily_ffmc
-    row = morning_df.iloc[abs((morning_df.index - prev_day_daily_ffmc)).argsort()[:1]]
-
-    # the RH column labels are strings expressing ranges. Must extract lower and upper bounds
-    for range_rh_value in row[hour_of_interest].columns:
-        bounds = str(range_rh_value).split('-')
-        lower_bound = int(bounds[0])
-        upper_bound = int(bounds[1])
-        if lower_bound <= hourly_rh <= upper_bound:
-            return row[hour_of_interest][range_rh_value].values[0]
-
-    # we should never actually reach this return statement
-    return None
+    return YesterdayDiurnalFFMCLookupTable.instance().get(prev_day_daily_ffmc, hour_of_interest, hourly_rh)

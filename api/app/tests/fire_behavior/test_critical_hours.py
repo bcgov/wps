@@ -1,5 +1,5 @@
 from app.fire_behaviour.fuel_types import FuelTypeEnum
-from app.fire_behaviour.critical_hours import get_afternoon_overnight_diurnal_ffmc, get_critical_hours
+from app.fire_behaviour.critical_hours import get_afternoon_overnight_diurnal_ffmc, get_morning_diurnal_ffmc, get_critical_hours
 from app.schemas.fba_calc import CriticalHoursHFI
 
 
@@ -41,4 +41,9 @@ def test_critical_hours_4000_manual_different_cfb():
 
 def test_overnight_diurnal():
     result = get_afternoon_overnight_diurnal_ffmc(hour_of_interest=13, daily_ffmc=55)
-    assert result == 51.5
+    assert result == 48.2
+
+
+def test_morning_diurnal():
+    result = get_morning_diurnal_ffmc(hour_of_interest=7, prev_day_daily_ffmc=55, hourly_rh=67)
+    assert result == 56.9
