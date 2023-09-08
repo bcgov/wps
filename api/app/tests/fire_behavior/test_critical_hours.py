@@ -1,5 +1,8 @@
 from app.fire_behaviour.fuel_types import FuelTypeEnum
-from app.fire_behaviour.critical_hours import get_afternoon_overnight_diurnal_ffmc, get_morning_diurnal_ffmc, get_critical_hours
+from app.fire_behaviour.critical_hours import (get_afternoon_overnight_diurnal_ffmc,
+                                               get_morning_diurnal_ffmc,
+                                               get_critical_hours,
+                                               get_ffmc_for_target_hfi)
 from app.schemas.fba_calc import CriticalHoursHFI
 
 
@@ -47,3 +50,35 @@ def test_overnight_diurnal():
 def test_morning_diurnal():
     result = get_morning_diurnal_ffmc(hour_of_interest=7, prev_day_daily_ffmc=55, hourly_rh=67)
     assert result == 56.9
+
+
+def test_get_ffmc_for_target_hfi():
+    " Smoke test to make sure 10000 target hfi produces larger outputs than the 4000 target hfi"
+    (ffmc_4000, hfi_4000) = get_ffmc_for_target_hfi(fuel_type=FuelTypeEnum.C2,
+                                                    percentage_conifer=50,
+                                                    percentage_dead_balsam_fir=0,
+                                                    bui=65,
+                                                    wind_speed=15,
+                                                    grass_cure=0,
+                                                    crown_base_height=3,
+                                                    ffmc=50,
+                                                    fmc=97,
+                                                    cfb=50,
+                                                    cfl=10,
+                                                    target_hfi=4000)
+
+    (ffmc_10000, hfi_10000) = get_ffmc_for_target_hfi(fuel_type=FuelTypeEnum.C2,
+                                                      percentage_conifer=50,
+                                                      percentage_dead_balsam_fir=0,
+                                                      bui=65,
+                                                      wind_speed=15,
+                                                      grass_cure=0,
+                                                      crown_base_height=3,
+                                                      ffmc=50,
+                                                      fmc=97,
+                                                      cfb=50,
+                                                      cfl=10,
+                                                      target_hfi=10000)
+
+    assert hfi_10000 > hfi_4000
+    assert ffmc_10000 > ffmc_4000
