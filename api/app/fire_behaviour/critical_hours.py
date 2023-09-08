@@ -1,6 +1,5 @@
 import logging
 from app.fire_behaviour.afternoon_diurnal_ffmc import AfternoonDiurnalFFMCLookupTable
-from app.fire_behaviour.c7b import rate_of_spread
 from app.fire_behaviour.yesterday_diurnal_ffmc import YesterdayDiurnalFFMCLookupTable
 from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.fba_calc import CriticalHoursHFI
@@ -95,9 +94,9 @@ def get_ffmc_for_target_hfi(
             experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc) / 2))
         experimental_isi = cffdrs.initial_spread_index(experimental_ffmc, wind_speed)
         experimental_sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
-        experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc,
-                                          experimental_sfc, percentage_conifer,
-                                          grass_cure, percentage_dead_balsam_fir, crown_base_height)
+        experimental_ros = cffdrs.rate_of_spread(fuel_type, experimental_isi, bui, fmc,
+                                                 experimental_sfc, percentage_conifer,
+                                                 grass_cure, percentage_dead_balsam_fir, crown_base_height)
         experimental_hfi = cffdrs.head_fire_intensity(fuel_type,
                                                       percentage_conifer,
                                                       percentage_dead_balsam_fir, experimental_ros,
