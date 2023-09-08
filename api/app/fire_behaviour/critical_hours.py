@@ -157,9 +157,10 @@ def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critica
     else:
         clock_time = critical_hour_start + 1.0    # increase time in increments of 1 hours
 
+    total_hours = clock_time
     while get_afternoon_overnight_diurnal_ffmc(clock_time, solar_noon_ffmc) >= critical_ffmc:
-        clock_time += 1.0
-        if clock_time >= 32:  # break if clock_time is now 08:00 of the next day
+        clock_time = (clock_time + 1) % 24
+        if total_hours >= 32:  # break if clock_time is now 08:00 of the next day
             break
     # subtract the hour that caused FFMC to drop below critical_ffmc
     clock_time -= 1.0
