@@ -83,6 +83,7 @@ def get_ffmc_for_target_hfi(
    # exit condition 2: FFMC of 0 still causes HFI > target_hfi
    # exit condition 3: relative error within 1%
 
+    # TODO(conbrad): improve efficiency by reimplementing with a binary search or Newtons' method
     while abs(error_hfi) > 0.01:
         if experimental_ffmc >= 100.9 and experimental_hfi < target_hfi:
             break
