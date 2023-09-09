@@ -17,7 +17,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Clean up - dev (OCP4)
         shell: bash
@@ -48,7 +48,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Clean up dev database
         shell: bash
