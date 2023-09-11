@@ -13,7 +13,7 @@ jobs:
         python-version: [3.10.4]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install ubuntu pre-requisites (api)
         # The python gdal and R component relies on libgdal-dev being installed.
         run: |
@@ -82,7 +82,7 @@ jobs:
         R: ["4.1.2"]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
@@ -183,7 +183,7 @@ jobs:
         node-version: [16.x]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
@@ -231,7 +231,7 @@ jobs:
     steps:
       # we need to checkout, so that we have codecov.yml
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v3
       - name: Upload test coverage to Codecov
@@ -250,7 +250,7 @@ jobs:
         python-version: [3.6.15]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
