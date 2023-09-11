@@ -7,9 +7,8 @@ from typing import List
 import logging
 import pandas as pd
 from app.fire_behaviour.fuel_types import is_grass_fuel_type
-from app.schemas.fba_calc import FuelTypeEnum
+from app.schemas.fba_calc import CriticalHoursHFI, FuelTypeEnum
 from app.schemas.observations import WeatherReading
-from app.schemas.fba_calc import CriticalHoursHFI
 from app.utils.singleton import Singleton
 from app.fire_behaviour import cffdrs, c7b
 from app.utils.time import convert_utc_to_pdt, get_julian_date_now
