@@ -4,8 +4,9 @@ from datetime import date
 from typing import Optional
 from app.fire_behaviour import cffdrs
 from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
+from app.fire_behaviour.critical_hours import get_critical_hours
 from app.fire_behaviour.prediction import (
-    FireTypeEnum, calculate_cfb, get_approx_flame_length, get_critical_hours, get_fire_size, get_fire_type)
+    FireTypeEnum, calculate_cfb, get_approx_flame_length, get_fire_size, get_fire_type)
 from app.schemas.fba_calc import CriticalHoursHFI
 from app.utils.time import get_hour_20_from_date, get_julian_date
 
