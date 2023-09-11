@@ -25,7 +25,7 @@ jobs:
             // find an open PR (potentially problematic if you have multiple PR's on the same hash open!)
             const pr = pulls.data.find( ({state}) => state === 'open')
             core.exportVariable('SUFFIX', `pr-${pr.number}`);
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Provision to production
         run: |
           echo Login
