@@ -59,7 +59,7 @@ def test_critical_hours_4000_high_rh():
                                          wind_speed=10.3,
                                          prev_daily_ffmc=94.561,
                                          last_observed_morning_rh_values={7.0: 88.0, 8.0: 88.0, 9.0: 88.0, 10.0: 88.0, 11.0: 88.0, 12.0: 88.0})
-    assert crit_hours_4000 == CriticalHoursHFI(start=10.00, end=1.00)
+    assert crit_hours_4000 == CriticalHoursHFI(start=10.00, end=15.00)
 
 
 def test_critical_hours_10000_high_rh():
