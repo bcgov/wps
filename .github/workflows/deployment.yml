@@ -16,7 +16,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Deploy PostGIS instance
         shell: bash
@@ -35,7 +35,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Postgres Backup Cronjob
         shell: bash
@@ -56,7 +56,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build wps-web Image
         shell: bash
@@ -74,7 +74,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build wps-api Image
         shell: bash
@@ -92,7 +92,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build wps-tileserv Image
         shell: bash
@@ -110,7 +110,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure
         shell: bash
@@ -137,7 +137,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Deploy API to Dev
         shell: bash
@@ -225,7 +225,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: NATS Message Queue
         shell: bash
@@ -264,7 +264,7 @@ jobs:
         run: echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: C-Haines Cronjob
         shell: bash
@@ -282,7 +282,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Deploy PostGIS instance
         shell: bash
@@ -302,7 +302,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Deploy API to Test
         shell: bash
@@ -328,7 +328,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure
         shell: bash
