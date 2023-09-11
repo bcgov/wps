@@ -90,11 +90,11 @@
             "thirty_minute_fire_size": 4.291025064445609,
             "critical_hours_hfi_4000": {
                 "start": 12.0,
-                "end": 22.0
+                "end": 15.0
             },
             "critical_hours_hfi_10000": {
                 "start": 14.0,
-                "end": 19.0
+                "end": 16.0
             }
         }
     ]
