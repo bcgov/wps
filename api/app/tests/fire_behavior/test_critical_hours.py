@@ -165,9 +165,9 @@ def test_get_ffmc_for_target_hfi():
     "daily_ffmc, prev_daily_ffmc, last_observed_morning_rh_values, expected_start, expected_end",
     [
         # high daily ffmc, high previous daily ffmc, mid range rh values
-        (90, 90, {7.0: 54.0, 8.0: 47.0, 9.0: 46.0, 10.0: 45.0, 11.0: 44.0, 12.0: 38.0}, 11.00, 22.00),
+        (90, 90, {7.0: 54.0, 8.0: 47.0, 9.0: 46.0, 10.0: 45.0, 11.0: 44.0, 12.0: 38.0}, 11.00, 15.00),
         # high daily ffmc, high previous daily ffmc, high range rh values
-        (90, 90, {7.0: 88.0, 8.0: 88.0, 9.0: 88.0, 10.0: 88.0, 11.0: 88.0, 12.0: 88.0}, 12.00, 22.00),
+        (90, 90, {7.0: 88.0, 8.0: 88.0, 9.0: 88.0, 10.0: 88.0, 11.0: 88.0, 12.0: 88.0}, 12.00, 15.00),
 
         # higher daily ffmc, higher previous daily ffmc, mid range rh values
         (92, 92, {7.0: 54.0, 8.0: 47.0, 9.0: 46.0, 10.0: 45.0, 11.0: 44.0, 12.0: 38.0}, 9.00, 0.00),
