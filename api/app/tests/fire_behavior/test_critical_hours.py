@@ -1,6 +1,6 @@
 import pytest
 from app.fire_behaviour.fuel_types import FuelTypeEnum
-from app.fire_behaviour.critical_hours import (get_afternoon_overnight_diurnal_ffmc,
+from app.fire_behaviour.critical_hours import (get_afternoon_overnight_diurnal_ffmc, get_critical_hours_end,
                                                get_morning_diurnal_ffmc,
                                                get_critical_hours,
                                                get_ffmc_for_target_hfi)
@@ -293,3 +293,9 @@ def test_critical_hours_10000_low_ffmc(daily_ffmc, prev_daily_ffmc, last_observe
                                          prev_daily_ffmc=prev_daily_ffmc,
                                          last_observed_morning_rh_values=last_observed_morning_rh_values)
     assert crit_hours_4000 is None
+
+
+def test_critical_hours_end_exceeds_day_in_total_hours():
+    get_critical_hours_end(critical_ffmc=74.51679687499995,
+                           solar_noon_ffmc=94.8,
+                           critical_hour_start=7.0)
