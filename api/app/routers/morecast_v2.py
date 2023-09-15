@@ -29,7 +29,7 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_for_stations_and_date,
                                        get_daily_determinates_for_stations_and_date, get_wfwx_stations_from_station_codes)
 from app.wildfire_one.wfwx_post_api import post_forecasts
-
+from app.fire_behaviour import cffdrs
 
 logger = logging.getLogger(__name__)
 
@@ -215,6 +215,10 @@ async def get_determinates_for_date_range(start_date: date,
         transformed_forceasts_to_add = filter_for_api_forecasts(transformed_forecasts, wf1_actuals)
 
         wf1_forecasts.extend(transformed_forceasts_to_add)
+        # for actual in wf1_actuals:
+        #     ffmc = cffdrs.fine_fuel_moisture_code(None, actual.temperature, actual.relative_humidity,
+        #                                           actual.precipitation, actual.wind_speed)
+        #     logger.info(ffmc)
 
     return IndeterminateDailiesResponse(
         actuals=wf1_actuals,

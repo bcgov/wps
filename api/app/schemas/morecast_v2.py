@@ -126,6 +126,13 @@ class WeatherIndeterminate(BaseModel):
     precipitation: Optional[float] = None
     wind_direction: Optional[float] = None
     wind_speed: Optional[float] = None
+    fine_fuel_moisture_code: Optional[float] = None
+    duff_moisture_code: Optional[float] = None
+    drought_code: Optional[float] = None
+    initial_spread_index: Optional[float] = None
+    build_up_index: Optional[float] = None
+    fire_weather_index: Optional[float] = None
+    danger_region: Optional[int] = None
 
 
 class IndeterminateDailiesResponse(BaseModel):

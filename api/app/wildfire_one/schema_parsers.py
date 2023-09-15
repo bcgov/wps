@@ -89,6 +89,13 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
         temp = raw_daily.get('temperature')
         wind_spd = raw_daily.get('windSpeed')
         wind_dir = raw_daily.get('windDirection')
+        ffmc = raw_daily.get('fineFuelMoistureCode')
+        dmc = raw_daily.get('duffMoistureCode')
+        dc = raw_daily.get('droughtCode')
+        isi = raw_daily.get('initialSpreadIndex')
+        bui = raw_daily.get('buildUpIndex')
+        fwi = raw_daily.get('fireWeatherIndex')
+        dgr = raw_daily.get('stationData').get('weatherZone').get('dangerRegion')
 
         if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') in [WF1RecordTypeEnum.ACTUAL.value, WF1RecordTypeEnum.MANUAL.value]:
             observed_dailies.append(WeatherIndeterminate(
@@ -100,7 +107,14 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
                 relative_humidity=rh,
                 precipitation=precip,
                 wind_direction=wind_dir,
-                wind_speed=wind_spd
+                wind_speed=wind_spd,
+                fine_fuel_moisture_code=ffmc,
+                duff_moisture_code=dmc,
+                drought_code=dc,
+                initial_spread_index=isi,
+                build_up_index=bui,
+                fire_weather_index=fwi,
+                danger_region=dgr
             ))
         elif is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == WF1RecordTypeEnum.FORECAST.value:
             forecasts.append(WeatherIndeterminate(
