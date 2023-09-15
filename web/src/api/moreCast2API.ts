@@ -128,6 +128,13 @@ export interface WeatherIndeterminate {
   temperature: number | null
   wind_direction: number | null
   wind_speed: number | null
+  fine_fuel_moisture_code: number | null
+  duff_moisture_code: number | null
+  drought_code: number | null
+  initial_spread_index: number | null
+  build_up_index: number | null
+  fire_weather_index: number | null
+  danger_region: number | null
 }
 
 export interface WeatherIndeterminatePayload {

@@ -279,6 +279,265 @@ export class PrecipForecastField implements ColDefGenerator, ForecastColDefGener
   }
 }
 
+export class ffmcField implements ColDefGenerator, ForecastColDefGenerator {
+  private static instance: ffmcField
+
+  static readonly field = 'ffmc'
+  static readonly headerName = 'FFMC'
+  static readonly type = 'number'
+  static readonly precision = 2
+  private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
+
+  public generateForecastColDef = (headerName?: string) => {
+    return this.colDefBuilder.generateForecastColDef(headerName)
+  }
+  public generateColDef = () => {
+    return this.colDefBuilder.generateColDefWith(ffmcField.field, ffmcField.headerName, ffmcField.precision)
+  }
+
+  public generateColDefs = (headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(headerName, false)
+  }
+
+  public static getInstance(): ffmcField {
+    if (!ffmcField.instance) {
+      ffmcField.instance = new ffmcField(
+        new ColumnDefBuilder(
+          ffmcField.field,
+          ffmcField.headerName,
+          ffmcField.type,
+          ffmcField.precision,
+          new GridComponentRenderer()
+        )
+      )
+    }
+
+    return ffmcField.instance
+  }
+}
+
+export class dmcField implements ColDefGenerator, ForecastColDefGenerator {
+  private static instance: dmcField
+
+  static readonly field = 'dmc'
+  static readonly headerName = 'DMC'
+  static readonly type = 'number'
+  static readonly precision = 0
+  private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
+
+  public generateForecastColDef = (headerName?: string) => {
+    return this.colDefBuilder.generateForecastColDef(headerName)
+  }
+  public generateColDef = () => {
+    return this.colDefBuilder.generateColDefWith(dmcField.field, dmcField.headerName, dmcField.precision)
+  }
+
+  public generateColDefs = (headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(headerName, false)
+  }
+
+  public static getInstance(): dmcField {
+    if (!dmcField.instance) {
+      dmcField.instance = new dmcField(
+        new ColumnDefBuilder(
+          dmcField.field,
+          dmcField.headerName,
+          dmcField.type,
+          dmcField.precision,
+          new GridComponentRenderer()
+        )
+      )
+    }
+
+    return dmcField.instance
+  }
+}
+
+export class dcField implements ColDefGenerator, ForecastColDefGenerator {
+  private static instance: dcField
+
+  static readonly field = 'dc'
+  static readonly headerName = 'DC'
+  static readonly type = 'number'
+  static readonly precision = 0
+  private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
+
+  public generateForecastColDef = (headerName?: string) => {
+    return this.colDefBuilder.generateForecastColDef(headerName)
+  }
+  public generateColDef = () => {
+    return this.colDefBuilder.generateColDefWith(dcField.field, dcField.headerName, dcField.precision)
+  }
+
+  public generateColDefs = (headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(headerName, false)
+  }
+
+  public static getInstance(): dcField {
+    if (!dcField.instance) {
+      dcField.instance = new dcField(
+        new ColumnDefBuilder(
+          dcField.field,
+          dcField.headerName,
+          dcField.type,
+          dcField.precision,
+          new GridComponentRenderer()
+        )
+      )
+    }
+
+    return dcField.instance
+  }
+}
+
+export class isiField implements ColDefGenerator, ForecastColDefGenerator {
+  private static instance: isiField
+
+  static readonly field = 'isi'
+  static readonly headerName = 'ISI'
+  static readonly type = 'number'
+  static readonly precision = 1
+  private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
+
+  public generateForecastColDef = (headerName?: string) => {
+    return this.colDefBuilder.generateForecastColDef(headerName)
+  }
+  public generateColDef = () => {
+    return this.colDefBuilder.generateColDefWith(isiField.field, isiField.headerName, isiField.precision)
+  }
+
+  public generateColDefs = (headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(headerName, false)
+  }
+
+  public static getInstance(): isiField {
+    if (!isiField.instance) {
+      isiField.instance = new isiField(
+        new ColumnDefBuilder(
+          isiField.field,
+          isiField.headerName,
+          isiField.type,
+          isiField.precision,
+          new GridComponentRenderer()
+        )
+      )
+    }
+
+    return isiField.instance
+  }
+}
+
+export class buiField implements ColDefGenerator, ForecastColDefGenerator {
+  private static instance: buiField
+
+  static readonly field = 'bui'
+  static readonly headerName = 'BUI'
+  static readonly type = 'number'
+  static readonly precision = 0
+  private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
+
+  public generateForecastColDef = (headerName?: string) => {
+    return this.colDefBuilder.generateForecastColDef(headerName)
+  }
+  public generateColDef = () => {
+    return this.colDefBuilder.generateColDefWith(buiField.field, buiField.headerName, buiField.precision)
+  }
+
+  public generateColDefs = (headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(headerName, false)
+  }
+
+  public static getInstance(): buiField {
+    if (!buiField.instance) {
+      buiField.instance = new buiField(
+        new ColumnDefBuilder(
+          buiField.field,
+          buiField.headerName,
+          buiField.type,
+          buiField.precision,
+          new GridComponentRenderer()
+        )
+      )
+    }
+
+    return buiField.instance
+  }
+}
+
+export class fwiField implements ColDefGenerator, ForecastColDefGenerator {
+  private static instance: fwiField
+
+  static readonly field = 'fwi'
+  static readonly headerName = 'FWI'
+  static readonly type = 'number'
+  static readonly precision = 0
+  private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
+
+  public generateForecastColDef = (headerName?: string) => {
+    return this.colDefBuilder.generateForecastColDef(headerName)
+  }
+  public generateColDef = () => {
+    return this.colDefBuilder.generateColDefWith(fwiField.field, fwiField.headerName, fwiField.precision)
+  }
+
+  public generateColDefs = (headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(headerName, false)
+  }
+
+  public static getInstance(): fwiField {
+    if (!fwiField.instance) {
+      fwiField.instance = new fwiField(
+        new ColumnDefBuilder(
+          fwiField.field,
+          fwiField.headerName,
+          fwiField.type,
+          fwiField.precision,
+          new GridComponentRenderer()
+        )
+      )
+    }
+
+    return fwiField.instance
+  }
+}
+
+export class dgrField implements ColDefGenerator, ForecastColDefGenerator {
+  private static instance: dgrField
+
+  static readonly field = 'dgr'
+  static readonly headerName = 'DGR'
+  static readonly type = 'number'
+  static readonly precision = 0
+  private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
+
+  public generateForecastColDef = (headerName?: string) => {
+    return this.colDefBuilder.generateForecastColDef(headerName)
+  }
+  public generateColDef = () => {
+    return this.colDefBuilder.generateColDefWith(dgrField.field, dgrField.headerName, dgrField.precision)
+  }
+
+  public generateColDefs = (headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(headerName, false)
+  }
+
+  public static getInstance(): dgrField {
+    if (!dgrField.instance) {
+      dgrField.instance = new dgrField(
+        new ColumnDefBuilder(
+          dgrField.field,
+          dgrField.headerName,
+          dgrField.type,
+          dgrField.precision,
+          new GridComponentRenderer()
+        )
+      )
+    }
+
+    return dgrField.instance
+  }
+}
+
 export const MORECAST2_STATION_DATE_FIELDS: ColDefGenerator[] = [
   StationForecastField.getInstance(),
   DateForecastField.getInstance()
@@ -300,4 +559,14 @@ export const MORECAST2_FORECAST_FIELDS: ForecastColDefGenerator[] = [
   WindDirForecastField.getInstance(),
   WindSpeedForecastField.getInstance(),
   PrecipForecastField.getInstance()
+]
+
+export const MORECAST2_INDICES_FIELDS: ColDefGenerator[] = [
+  buiField.getInstance(),
+  isiField.getInstance(),
+  fwiField.getInstance(),
+  ffmcField.getInstance(),
+  dmcField.getInstance(),
+  dcField.getInstance(),
+  dgrField.getInstance()
 ]
