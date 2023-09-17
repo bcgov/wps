@@ -5,7 +5,7 @@ description = ""
 authors = ["Sybrand Strauss <sybrand.strauss@gov.bc.ca>"]
 
 [tool.poetry.dependencies]
-python = "2.7.18"
+python = "3.11.5"
 
 [tool.poetry.dev-dependencies]
 
