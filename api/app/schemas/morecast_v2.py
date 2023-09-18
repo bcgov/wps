@@ -132,7 +132,7 @@ class WeatherIndeterminate(BaseModel):
     initial_spread_index: Optional[float] = None
     build_up_index: Optional[float] = None
     fire_weather_index: Optional[float] = None
-    danger_region: Optional[int] = None
+    danger_rating: Optional[int] = None
 
 
 class IndeterminateDailiesResponse(BaseModel):

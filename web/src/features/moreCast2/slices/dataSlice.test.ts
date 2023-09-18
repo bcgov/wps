@@ -63,7 +63,7 @@ const weatherIndeterminateGenerator = (
     initial_spread_index: ISI,
     build_up_index: BUI,
     fire_weather_index: FWI,
-    danger_region: DGR
+    danger_rating: DGR
   }
 }
 
@@ -115,7 +115,7 @@ describe('dataSlice', () => {
           initial_spread_index: 9.5,
           build_up_index: 110,
           fire_weather_index: 25,
-          danger_region: 5
+          danger_rating: 5
         }
       ]
       const forecasts: [] = []
@@ -137,7 +137,7 @@ describe('dataSlice', () => {
           initial_spread_index: 9.5,
           build_up_index: 110,
           fire_weather_index: 25,
-          danger_region: 5
+          danger_rating: 5
         }
       ]
       const payload: WeatherIndeterminatePayload = {

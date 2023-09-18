@@ -30,6 +30,7 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_daily_determinates_for_stations_and_date, get_wfwx_stations_from_station_codes)
 from app.wildfire_one.wfwx_post_api import post_forecasts
 
+
 logger = logging.getLogger(__name__)
 
 no_cache = "max-age=0"  # don't let the browser cache this

@@ -148,7 +148,7 @@ export const createMoreCast2Rows = (
           row.isi = getNumberOrNaN(value.initial_spread_index)
           row.bui = getNumberOrNaN(value.build_up_index)
           row.fwi = getNumberOrNaN(value.fire_weather_index)
-          row.dgr = getNumberOrNaN(value.danger_region)
+          row.dgr = getNumberOrNaN(value.danger_rating)
           break
         case WeatherDeterminate.FORECAST:
         case WeatherDeterminate.NULL:
@@ -614,6 +614,6 @@ const createEmptyWeatherIndeterminate = (
     initial_spread_index: null,
     build_up_index: null,
     fire_weather_index: null,
-    danger_region: null
+    danger_rating: null
   }
 }

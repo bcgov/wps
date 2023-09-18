@@ -134,7 +134,7 @@ export interface WeatherIndeterminate {
   initial_spread_index: number | null
   build_up_index: number | null
   fire_weather_index: number | null
-  danger_region: number | null
+  danger_rating: number | null
 }
 
 export interface WeatherIndeterminatePayload {
