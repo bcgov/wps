@@ -107,11 +107,11 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
   }
 }
 
-export const TempForecastField = new IndeterminateField('temp', 'Temp', 'number', 1, true)
-export const RHForecastField = new IndeterminateField('rh', 'RH', 'number', 0, true)
-export const WindDirForecastField = new IndeterminateField('windDirection', 'Wind Dir', 'number', 0, false)
-export const WindSpeedForecastField = new IndeterminateField('windSpeed', 'Wind Speed', 'number', 1, true)
-export const PrecipForecastField = new IndeterminateField('precip', 'Precip', 'number', 1, false)
+export const tempForecastField = new IndeterminateField('temp', 'Temp', 'number', 1, true)
+export const rhForecastField = new IndeterminateField('rh', 'RH', 'number', 0, true)
+export const windDirForecastField = new IndeterminateField('windDirection', 'Wind Dir', 'number', 0, false)
+export const windSpeedForecastField = new IndeterminateField('windSpeed', 'Wind Speed', 'number', 1, true)
+export const precipForecastField = new IndeterminateField('precip', 'Precip', 'number', 1, false)
 export const buiField = new IndeterminateField('bui', 'BUI', 'number', 0, false)
 export const isiField = new IndeterminateField('isi', 'ISI', 'number', 1, false)
 export const fwiField = new IndeterminateField('fwi', 'FWI', 'number', 0, false)
@@ -128,22 +128,22 @@ export const MORECAST2_STATION_DATE_FIELDS: ColDefGenerator[] = [
 export const MORECAST2_FIELDS: ColDefGenerator[] = [
   StationForecastField.getInstance(),
   DateForecastField.getInstance(),
-  TempForecastField,
-  RHForecastField,
-  WindDirForecastField,
-  WindSpeedForecastField,
-  PrecipForecastField
+  tempForecastField,
+  rhForecastField,
+  windDirForecastField,
+  windSpeedForecastField,
+  precipForecastField
 ]
 
 export const MORECAST2_FORECAST_FIELDS: ForecastColDefGenerator[] = [
-  TempForecastField,
-  RHForecastField,
-  WindDirForecastField,
-  WindSpeedForecastField,
-  PrecipForecastField
+  tempForecastField,
+  rhForecastField,
+  windDirForecastField,
+  windSpeedForecastField,
+  precipForecastField
 ]
 
-export const MORECAST2_INDICES_FIELDS: ColDefGenerator[] = [
+export const MORECAST2_INDEX_FIELDS: ColDefGenerator[] = [
   buiField,
   isiField,
   fwiField,

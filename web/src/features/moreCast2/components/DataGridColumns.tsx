@@ -3,7 +3,7 @@ import { WeatherDeterminate, WeatherDeterminateChoices } from 'api/moreCast2API'
 import {
   MORECAST2_FIELDS,
   MORECAST2_FORECAST_FIELDS,
-  MORECAST2_INDICES_FIELDS,
+  MORECAST2_INDEX_FIELDS,
   MORECAST2_STATION_DATE_FIELDS
 } from 'features/moreCast2/components/MoreCast2Column'
 
@@ -55,7 +55,7 @@ export class DataGridColumns {
   public static getSummaryColumns(): GridColDef[] {
     return MORECAST2_STATION_DATE_FIELDS.map(field => field.generateColDef()).concat(
       MORECAST2_FORECAST_FIELDS.map(forecastField => forecastField.generateForecastColDef()).concat(
-        MORECAST2_INDICES_FIELDS.map(field => field.generateColDef())
+        MORECAST2_INDEX_FIELDS.map(field => field.generateColDef())
       )
     )
   }
