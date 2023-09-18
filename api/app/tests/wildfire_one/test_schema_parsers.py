@@ -138,12 +138,6 @@ async def async_observed_dailies(record_type: str):
             "stationStatus": {
                 "id": "ACTIVE",
             },
-            "weatherZone": {
-                "id": 1,
-                "displayLabel": "Zone 1",
-                "dangerRegion": 1,
-                "displayOrder": 1
-            },
         },
         "recordType": {
             "id": record_type
@@ -160,7 +154,7 @@ async def async_observed_dailies(record_type: str):
         "initialSpreadIndex": 1,
         "buildUpIndex": 1,
         "fireWeatherIndex": 1,
-
+        "dangerForest": 1
     }
 
 
