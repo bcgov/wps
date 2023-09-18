@@ -3,11 +3,11 @@ import { DEFAULT_COLUMN_WIDTH } from 'features/moreCast2/components/ColumnDefBui
 import {
   StationForecastField,
   DateForecastField,
-  TempForecastField,
-  RHForecastField,
-  WindDirForecastField,
-  WindSpeedForecastField,
-  PrecipForecastField
+  tempForecastField,
+  rhForecastField,
+  windDirForecastField,
+  windSpeedForecastField,
+  precipForecastField
 } from 'features/moreCast2/components/MoreCast2Column'
 import { DateTime } from 'luxon'
 
@@ -53,16 +53,16 @@ describe('MoreCast2Column', () => {
   })
   describe('TempForecastField', () => {
     it('should have the desired configuration', () => {
-      const instance = TempForecastField.getInstance()
-      expect(TempForecastField.precision).toEqual(1)
+      const instance = tempForecastField
+      expect(tempForecastField.precision).toEqual(1)
       expect(JSON.stringify(instance.generateColDef())).toEqual(
         JSON.stringify({
-          field: TempForecastField.field,
+          field: tempForecastField.field,
           disableColumnMenu: true,
           disableReorder: true,
-          headerName: TempForecastField.headerName,
+          headerName: tempForecastField.headerName,
           sortable: false,
-          type: TempForecastField.type,
+          type: tempForecastField.type,
           width: DEFAULT_COLUMN_WIDTH
         })
       )
@@ -70,16 +70,16 @@ describe('MoreCast2Column', () => {
   })
   describe('RHForecastField', () => {
     it('should have the desired configuration', () => {
-      const instance = RHForecastField.getInstance()
-      expect(RHForecastField.precision).toEqual(0)
+      const instance = rhForecastField
+      expect(rhForecastField.precision).toEqual(0)
       expect(JSON.stringify(instance.generateColDef())).toEqual(
         JSON.stringify({
-          field: RHForecastField.field,
+          field: rhForecastField.field,
           disableColumnMenu: true,
           disableReorder: true,
-          headerName: RHForecastField.headerName,
+          headerName: rhForecastField.headerName,
           sortable: false,
-          type: RHForecastField.type,
+          type: rhForecastField.type,
           width: DEFAULT_COLUMN_WIDTH
         })
       )
@@ -87,16 +87,16 @@ describe('MoreCast2Column', () => {
   })
   describe('WindDirForecastField', () => {
     it('should have the desired configuration', () => {
-      const instance = WindDirForecastField.getInstance()
-      expect(WindDirForecastField.precision).toEqual(0)
+      const instance = windDirForecastField
+      expect(windDirForecastField.precision).toEqual(0)
       expect(JSON.stringify(instance.generateColDef())).toEqual(
         JSON.stringify({
-          field: WindDirForecastField.field,
+          field: windDirForecastField.field,
           disableColumnMenu: true,
           disableReorder: true,
-          headerName: WindDirForecastField.headerName,
+          headerName: windDirForecastField.headerName,
           sortable: false,
-          type: WindDirForecastField.type,
+          type: windDirForecastField.type,
           width: DEFAULT_COLUMN_WIDTH
         })
       )
@@ -104,16 +104,16 @@ describe('MoreCast2Column', () => {
   })
   describe('WindSpeedForecastField', () => {
     it('should have the desired configuration', () => {
-      const instance = WindSpeedForecastField.getInstance()
-      expect(WindSpeedForecastField.precision).toEqual(1)
+      const instance = windSpeedForecastField
+      expect(windSpeedForecastField.precision).toEqual(1)
       expect(JSON.stringify(instance.generateColDef())).toEqual(
         JSON.stringify({
-          field: WindSpeedForecastField.field,
+          field: windSpeedForecastField.field,
           disableColumnMenu: true,
           disableReorder: true,
-          headerName: WindSpeedForecastField.headerName,
+          headerName: windSpeedForecastField.headerName,
           sortable: false,
-          type: WindSpeedForecastField.type,
+          type: windSpeedForecastField.type,
           width: DEFAULT_COLUMN_WIDTH
         })
       )
@@ -121,16 +121,16 @@ describe('MoreCast2Column', () => {
   })
   describe('PrecipForecastField', () => {
     it('should have the desired configuration', () => {
-      const instance = PrecipForecastField.getInstance()
-      expect(PrecipForecastField.precision).toEqual(1)
+      const instance = precipForecastField
+      expect(precipForecastField.precision).toEqual(1)
       expect(JSON.stringify(instance.generateColDef())).toEqual(
         JSON.stringify({
-          field: PrecipForecastField.field,
+          field: precipForecastField.field,
           disableColumnMenu: true,
           disableReorder: true,
-          headerName: PrecipForecastField.headerName,
+          headerName: precipForecastField.headerName,
           sortable: false,
-          type: PrecipForecastField.type,
+          type: precipForecastField.type,
           width: DEFAULT_COLUMN_WIDTH
         })
       )

@@ -24,6 +24,13 @@ const RH = 75
 const TEMP = 10
 const WIND_DIRECTION = 180
 const WIND_SPEED = 5
+const FFMC = 10.1
+const DMC = 10
+const DC = 500
+const ISI = 10.5
+const BUI = 110
+const FWI = 50
+const DGR = 5
 
 const modelDeterminates = WeatherDeterminateChoices.filter(
   determinate =>
@@ -49,7 +56,14 @@ const weatherIndeterminateGenerator = (
     relative_humidity: RH,
     temperature: TEMP,
     wind_direction: WIND_DIRECTION,
-    wind_speed: WIND_SPEED
+    wind_speed: WIND_SPEED,
+    fine_fuel_moisture_code: FFMC,
+    duff_moisture_code: DMC,
+    drought_code: DC,
+    initial_spread_index: ISI,
+    build_up_index: BUI,
+    fire_weather_index: FWI,
+    danger_rating: DGR
   }
 }
 
@@ -94,7 +108,14 @@ describe('dataSlice', () => {
           relative_humidity: 55,
           temperature: 12,
           wind_direction: 180,
-          wind_speed: 5.3
+          wind_speed: 5.3,
+          fine_fuel_moisture_code: 89.5,
+          duff_moisture_code: 55,
+          drought_code: 500,
+          initial_spread_index: 9.5,
+          build_up_index: 110,
+          fire_weather_index: 25,
+          danger_rating: 5
         }
       ]
       const forecasts: [] = []
@@ -109,7 +130,14 @@ describe('dataSlice', () => {
           relative_humidity: 75,
           temperature: 5,
           wind_direction: 65,
-          wind_speed: 10.7
+          wind_speed: 10.7,
+          fine_fuel_moisture_code: 89.5,
+          duff_moisture_code: 55,
+          drought_code: 500,
+          initial_spread_index: 9.5,
+          build_up_index: 110,
+          fire_weather_index: 25,
+          danger_rating: 5
         }
       ]
       const payload: WeatherIndeterminatePayload = {

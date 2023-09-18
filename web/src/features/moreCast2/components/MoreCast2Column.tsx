@@ -75,209 +75,50 @@ export class DateForecastField implements ColDefGenerator {
   }
 }
 
-export class TempForecastField implements ColDefGenerator, ForecastColDefGenerator {
-  private static instance: TempForecastField
+export class IndeterminateField implements ColDefGenerator, ForecastColDefGenerator {
+  private colDefBuilder: ColumnDefBuilder
 
-  static readonly field = 'temp'
-  static readonly headerName = 'Temp'
-  static readonly type = 'number'
-  static readonly precision = 1
-  private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
-  public generateForecastColDef = (headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(headerName)
-  }
-  public generateColDef = () => {
-    return this.colDefBuilder.generateColDefWith(
-      TempForecastField.field,
-      TempForecastField.headerName,
-      TempForecastField.precision
+  constructor(
+    readonly field: string,
+    readonly headerName: string,
+    readonly type: 'string' | 'number',
+    readonly precision: number,
+    readonly includeBias: boolean
+  ) {
+    this.colDefBuilder = new ColumnDefBuilder(
+      this.field,
+      this.headerName,
+      this.type,
+      this.precision,
+      new GridComponentRenderer()
     )
   }
 
-  public generateColDefs = (headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(headerName, true)
-  }
-
-  public static getInstance(): TempForecastField {
-    if (!TempForecastField.instance) {
-      TempForecastField.instance = new TempForecastField(
-        new ColumnDefBuilder(
-          TempForecastField.field,
-          TempForecastField.headerName,
-          TempForecastField.type,
-          TempForecastField.precision,
-          new GridComponentRenderer()
-        )
-      )
-    }
-
-    return TempForecastField.instance
-  }
-}
-
-export class RHForecastField implements ColDefGenerator, ForecastColDefGenerator {
-  private static instance: RHForecastField
-
-  static readonly field = 'rh'
-  static readonly headerName = 'RH'
-  static readonly type = 'number'
-  static readonly precision = 0
-  private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
-
   public generateForecastColDef = (headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(headerName)
+    return this.colDefBuilder.generateForecastColDef(headerName ?? this.headerName)
   }
+
   public generateColDef = () => {
-    return this.colDefBuilder.generateColDefWith(
-      RHForecastField.field,
-      RHForecastField.headerName,
-      RHForecastField.precision
-    )
+    return this.colDefBuilder.generateColDefWith(this.field, this.headerName, this.precision)
   }
 
   public generateColDefs = (headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(headerName, true)
-  }
-
-  public static getInstance(): RHForecastField {
-    if (!RHForecastField.instance) {
-      RHForecastField.instance = new RHForecastField(
-        new ColumnDefBuilder(
-          RHForecastField.field,
-          RHForecastField.headerName,
-          RHForecastField.type,
-          RHForecastField.precision,
-          new GridComponentRenderer()
-        )
-      )
-    }
-
-    return RHForecastField.instance
+    return this.colDefBuilder.generateColDefs(headerName ?? this.headerName, this.includeBias)
   }
 }
 
-export class WindDirForecastField implements ColDefGenerator, ForecastColDefGenerator {
-  private static instance: WindDirForecastField
-
-  static readonly field = 'windDirection'
-  static readonly headerName = 'Wind Dir'
-  static readonly type = 'number'
-  static readonly precision = 0
-  private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
-
-  public generateForecastColDef = (headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(headerName)
-  }
-  public generateColDef = () => {
-    return this.colDefBuilder.generateColDefWith(
-      WindDirForecastField.field,
-      WindDirForecastField.headerName,
-      WindDirForecastField.precision
-    )
-  }
-
-  public generateColDefs = (headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(headerName, false)
-  }
-
-  public static getInstance(): WindDirForecastField {
-    if (!WindDirForecastField.instance) {
-      WindDirForecastField.instance = new WindDirForecastField(
-        new ColumnDefBuilder(
-          WindDirForecastField.field,
-          WindDirForecastField.headerName,
-          WindDirForecastField.type,
-          WindDirForecastField.precision,
-          new GridComponentRenderer()
-        )
-      )
-    }
-
-    return WindDirForecastField.instance
-  }
-}
-
-export class WindSpeedForecastField implements ColDefGenerator, ForecastColDefGenerator {
-  private static instance: WindSpeedForecastField
-
-  static readonly field = 'windSpeed'
-  static readonly headerName = 'Wind Speed'
-  static readonly type = 'number'
-  static readonly precision = 1
-  private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
-
-  public generateForecastColDef = (headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(headerName)
-  }
-  public generateColDef = () => {
-    return this.colDefBuilder.generateColDefWith(
-      WindSpeedForecastField.field,
-      WindSpeedForecastField.headerName,
-      WindSpeedForecastField.precision
-    )
-  }
-
-  public generateColDefs = (headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(headerName, true)
-  }
-
-  public static getInstance(): WindSpeedForecastField {
-    if (!WindSpeedForecastField.instance) {
-      WindSpeedForecastField.instance = new WindSpeedForecastField(
-        new ColumnDefBuilder(
-          WindSpeedForecastField.field,
-          WindSpeedForecastField.headerName,
-          WindSpeedForecastField.type,
-          WindSpeedForecastField.precision,
-          new GridComponentRenderer()
-        )
-      )
-    }
-
-    return WindSpeedForecastField.instance
-  }
-}
-
-export class PrecipForecastField implements ColDefGenerator, ForecastColDefGenerator {
-  private static instance: PrecipForecastField
-
-  static readonly field = 'precip'
-  static readonly headerName = 'Precip'
-  static readonly type = 'number'
-  static readonly precision = 1
-  private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
-
-  public generateForecastColDef = (headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(headerName)
-  }
-  public generateColDef = () => {
-    return this.colDefBuilder.generateColDefWith(
-      PrecipForecastField.field,
-      PrecipForecastField.headerName,
-      PrecipForecastField.precision
-    )
-  }
-
-  public generateColDefs = (headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(headerName, false)
-  }
-
-  public static getInstance(): PrecipForecastField {
-    if (!PrecipForecastField.instance) {
-      PrecipForecastField.instance = new PrecipForecastField(
-        new ColumnDefBuilder(
-          PrecipForecastField.field,
-          PrecipForecastField.headerName,
-          PrecipForecastField.type,
-          PrecipForecastField.precision,
-          new GridComponentRenderer()
-        )
-      )
-    }
-
-    return PrecipForecastField.instance
-  }
-}
+export const tempForecastField = new IndeterminateField('temp', 'Temp', 'number', 1, true)
+export const rhForecastField = new IndeterminateField('rh', 'RH', 'number', 0, true)
+export const windDirForecastField = new IndeterminateField('windDirection', 'Wind Dir', 'number', 0, false)
+export const windSpeedForecastField = new IndeterminateField('windSpeed', 'Wind Speed', 'number', 1, true)
+export const precipForecastField = new IndeterminateField('precip', 'Precip', 'number', 1, false)
+export const buiField = new IndeterminateField('bui', 'BUI', 'number', 0, false)
+export const isiField = new IndeterminateField('isi', 'ISI', 'number', 1, false)
+export const fwiField = new IndeterminateField('fwi', 'FWI', 'number', 0, false)
+export const ffmcField = new IndeterminateField('ffmc', 'FFMC', 'number', 1, false)
+export const dmcField = new IndeterminateField('dmc', 'DMC', 'number', 0, false)
+export const dcField = new IndeterminateField('dc', 'DC', 'number', 0, false)
+export const dgrField = new IndeterminateField('dgr', 'DGR', 'number', 0, false)
 
 export const MORECAST2_STATION_DATE_FIELDS: ColDefGenerator[] = [
   StationForecastField.getInstance(),
@@ -287,17 +128,27 @@ export const MORECAST2_STATION_DATE_FIELDS: ColDefGenerator[] = [
 export const MORECAST2_FIELDS: ColDefGenerator[] = [
   StationForecastField.getInstance(),
   DateForecastField.getInstance(),
-  TempForecastField.getInstance(),
-  RHForecastField.getInstance(),
-  WindDirForecastField.getInstance(),
-  WindSpeedForecastField.getInstance(),
-  PrecipForecastField.getInstance()
+  tempForecastField,
+  rhForecastField,
+  windDirForecastField,
+  windSpeedForecastField,
+  precipForecastField
 ]
 
 export const MORECAST2_FORECAST_FIELDS: ForecastColDefGenerator[] = [
-  TempForecastField.getInstance(),
-  RHForecastField.getInstance(),
-  WindDirForecastField.getInstance(),
-  WindSpeedForecastField.getInstance(),
-  PrecipForecastField.getInstance()
+  tempForecastField,
+  rhForecastField,
+  windDirForecastField,
+  windSpeedForecastField,
+  precipForecastField
+]
+
+export const MORECAST2_INDEX_FIELDS: ColDefGenerator[] = [
+  buiField,
+  isiField,
+  fwiField,
+  ffmcField,
+  dmcField,
+  dcField,
+  dgrField
 ]
