@@ -142,6 +142,13 @@ export const createMoreCast2Rows = (
           row.tempActual = getNumberOrNaN(value.temperature)
           row.windDirectionActual = getNumberOrNaN(value.wind_direction)
           row.windSpeedActual = getNumberOrNaN(value.wind_speed)
+          row.ffmc = getNumberOrNaN(value.fine_fuel_moisture_code)
+          row.dmc = getNumberOrNaN(value.duff_moisture_code)
+          row.dc = getNumberOrNaN(value.drought_code)
+          row.isi = getNumberOrNaN(value.initial_spread_index)
+          row.bui = getNumberOrNaN(value.build_up_index)
+          row.fwi = getNumberOrNaN(value.fire_weather_index)
+          row.dgr = getNumberOrNaN(value.danger_rating)
           break
         case WeatherDeterminate.FORECAST:
         case WeatherDeterminate.NULL:
@@ -304,7 +311,7 @@ export const fillMissingWeatherIndeterminates = (
   const weatherIndeterminates: WeatherIndeterminate[] = [...items]
   for (const [key, values] of Object.entries(groupedByStationCode)) {
     const stationCode = parseInt(key)
-    const stationName = stationMap.get(stationCode) || ''
+    const stationName = stationMap.get(stationCode) ?? ''
     // We expect one actual per date in our date interval
     if (values.length < dateInterval.length) {
       for (const date of dateInterval) {
@@ -347,7 +354,7 @@ export const fillMissingPredictions = (
   const allPredictions = [...items]
   for (const [stationCodeAsString, weatherIndeterminatesByStationCode] of Object.entries(groupedByStationCode)) {
     const stationCode = parseInt(stationCodeAsString)
-    const stationName = stationMap.get(stationCode) || ''
+    const stationName = stationMap.get(stationCode) ?? ''
     const groupedByUtcTimestamp = createUtcTimeStampToWeatherIndeterminateGroups(
       weatherIndeterminatesByStationCode,
       dateInterval
@@ -495,6 +502,15 @@ const createEmptyMoreCast2Row = (
     windDirectionActual: NaN,
     windSpeedActual: NaN,
 
+    // Indices
+    ffmc: NaN,
+    dmc: NaN,
+    dc: NaN,
+    isi: NaN,
+    bui: NaN,
+    fwi: NaN,
+    dgr: NaN,
+
     // GDPS model predictions
     precipGDPS: NaN,
     rhGDPS: NaN,
@@ -591,6 +607,13 @@ const createEmptyWeatherIndeterminate = (
     relative_humidity: null,
     temperature: null,
     wind_direction: null,
-    wind_speed: null
+    wind_speed: null,
+    fine_fuel_moisture_code: null,
+    duff_moisture_code: null,
+    drought_code: null,
+    initial_spread_index: null,
+    build_up_index: null,
+    fire_weather_index: null,
+    danger_rating: null
   }
 }
