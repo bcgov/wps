@@ -8,14 +8,14 @@ import {
   ORDERED_COLUMN_HEADERS
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
-import { TempForecastField } from 'features/moreCast2/components/MoreCast2Column'
+import { tempForecastField } from 'features/moreCast2/components/MoreCast2Column'
 
 describe('ColDefBuilder', () => {
   const colDefBuilder = new ColumnDefBuilder(
-    TempForecastField.field,
-    TempForecastField.headerName,
-    TempForecastField.type,
-    TempForecastField.precision,
+    tempForecastField.field,
+    tempForecastField.headerName,
+    tempForecastField.type,
+    tempForecastField.precision,
     new GridComponentRenderer()
   )
 
@@ -44,11 +44,11 @@ describe('ColDefBuilder', () => {
 
       const expected = [
         JSON.stringify({
-          field: `${TempForecastField.field}${WeatherDeterminate.FORECAST}`,
+          field: `${tempForecastField.field}${WeatherDeterminate.FORECAST}`,
           disableColumnMenu: true,
           disableReorder: true,
           editable: true,
-          headerName: TempForecastField.headerName,
+          headerName: tempForecastField.headerName,
           sortable: false,
           type: 'number',
           width: DEFAULT_FORECAST_COLUMN_WIDTH
@@ -56,7 +56,7 @@ describe('ColDefBuilder', () => {
       ].concat(
         ORDERED_COLUMN_HEADERS.map(determinate =>
           JSON.stringify({
-            field: `${TempForecastField.field}${determinate}`,
+            field: `${tempForecastField.field}${determinate}`,
             disableColumnMenu: true,
             disableReorder: true,
             headerName: determinate,
@@ -98,13 +98,13 @@ describe('ColDefBuilder', () => {
 
       expect(JSON.stringify(forecastColDef)).toEqual(
         JSON.stringify({
-          field: `${TempForecastField.field}${WeatherDeterminate.FORECAST}`,
+          field: `${tempForecastField.field}${WeatherDeterminate.FORECAST}`,
           disableColumnMenu: true,
           disableReorder: true,
           editable: true,
-          headerName: TempForecastField.headerName,
+          headerName: tempForecastField.headerName,
           sortable: false,
-          type: TempForecastField.type,
+          type: tempForecastField.type,
           width: DEFAULT_FORECAST_COLUMN_WIDTH
         })
       )
@@ -117,13 +117,13 @@ describe('ColDefBuilder', () => {
 
       expect(JSON.stringify(forecastColDef)).toEqual(
         JSON.stringify({
-          field: `${TempForecastField.field}${WeatherDeterminate.FORECAST}`,
+          field: `${tempForecastField.field}${WeatherDeterminate.FORECAST}`,
           disableColumnMenu: true,
           disableReorder: true,
           editable: true,
           headerName: header,
           sortable: false,
-          type: TempForecastField.type,
+          type: tempForecastField.type,
           width: DEFAULT_FORECAST_COLUMN_WIDTH
         })
       )
