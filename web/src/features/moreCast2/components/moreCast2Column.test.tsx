@@ -53,7 +53,7 @@ describe('MoreCast2Column', () => {
   })
   describe('TempForecastField', () => {
     it('should have the desired configuration', () => {
-      const instance = TempForecastField.getInstance()
+      const instance = TempForecastField
       expect(TempForecastField.precision).toEqual(1)
       expect(JSON.stringify(instance.generateColDef())).toEqual(
         JSON.stringify({
@@ -70,7 +70,7 @@ describe('MoreCast2Column', () => {
   })
   describe('RHForecastField', () => {
     it('should have the desired configuration', () => {
-      const instance = RHForecastField.getInstance()
+      const instance = RHForecastField
       expect(RHForecastField.precision).toEqual(0)
       expect(JSON.stringify(instance.generateColDef())).toEqual(
         JSON.stringify({
@@ -87,7 +87,7 @@ describe('MoreCast2Column', () => {
   })
   describe('WindDirForecastField', () => {
     it('should have the desired configuration', () => {
-      const instance = WindDirForecastField.getInstance()
+      const instance = WindDirForecastField
       expect(WindDirForecastField.precision).toEqual(0)
       expect(JSON.stringify(instance.generateColDef())).toEqual(
         JSON.stringify({
@@ -104,7 +104,7 @@ describe('MoreCast2Column', () => {
   })
   describe('WindSpeedForecastField', () => {
     it('should have the desired configuration', () => {
-      const instance = WindSpeedForecastField.getInstance()
+      const instance = WindSpeedForecastField
       expect(WindSpeedForecastField.precision).toEqual(1)
       expect(JSON.stringify(instance.generateColDef())).toEqual(
         JSON.stringify({
@@ -121,7 +121,7 @@ describe('MoreCast2Column', () => {
   })
   describe('PrecipForecastField', () => {
     it('should have the desired configuration', () => {
-      const instance = PrecipForecastField.getInstance()
+      const instance = PrecipForecastField
       expect(PrecipForecastField.precision).toEqual(1)
       expect(JSON.stringify(instance.generateColDef())).toEqual(
         JSON.stringify({

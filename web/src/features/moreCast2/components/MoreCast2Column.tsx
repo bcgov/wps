@@ -107,18 +107,18 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
   }
 }
 
-const TempForecastField = new IndeterminateField('temp', 'Temp', 'number', 1, true)
-const RHForecastField = new IndeterminateField('rh', 'RH', 'number', 0, true)
-const WindDirForecastField = new IndeterminateField('windDirection', 'Wind Dir', 'number', 0, false)
-const WindSpeedForecastField = new IndeterminateField('windSpeed', 'Wind Speed', 'number', 1, true)
-const PrecipForecastField = new IndeterminateField('precip', 'Precip', 'number', 1, false)
-const buiField = new IndeterminateField('bui', 'BUI', 'number', 0, false)
-const isiField = new IndeterminateField('isi', 'ISI', 'number', 1, false)
-const fwiField = new IndeterminateField('fwi', 'FWI', 'number', 0, false)
-const ffmcField = new IndeterminateField('ffmc', 'FFMC', 'number', 1, false)
-const dmcField = new IndeterminateField('dmc', 'DMC', 'number', 0, false)
-const dcField = new IndeterminateField('dc', 'DC', 'number', 0, false)
-const dgrField = new IndeterminateField('dgr', 'DGR', 'number', 0, false)
+export const TempForecastField = new IndeterminateField('temp', 'Temp', 'number', 1, true)
+export const RHForecastField = new IndeterminateField('rh', 'RH', 'number', 0, true)
+export const WindDirForecastField = new IndeterminateField('windDirection', 'Wind Dir', 'number', 0, false)
+export const WindSpeedForecastField = new IndeterminateField('windSpeed', 'Wind Speed', 'number', 1, true)
+export const PrecipForecastField = new IndeterminateField('precip', 'Precip', 'number', 1, false)
+export const buiField = new IndeterminateField('bui', 'BUI', 'number', 0, false)
+export const isiField = new IndeterminateField('isi', 'ISI', 'number', 1, false)
+export const fwiField = new IndeterminateField('fwi', 'FWI', 'number', 0, false)
+export const ffmcField = new IndeterminateField('ffmc', 'FFMC', 'number', 1, false)
+export const dmcField = new IndeterminateField('dmc', 'DMC', 'number', 0, false)
+export const dcField = new IndeterminateField('dc', 'DC', 'number', 0, false)
+export const dgrField = new IndeterminateField('dgr', 'DGR', 'number', 0, false)
 
 export const MORECAST2_STATION_DATE_FIELDS: ColDefGenerator[] = [
   StationForecastField.getInstance(),
