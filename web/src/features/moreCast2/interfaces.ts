@@ -27,6 +27,15 @@ export interface BaseRow {
 }
 
 export interface MoreCast2Row extends BaseRow {
+  // Fire weather indices
+  ffmc: number
+  dmc: number
+  dc: number
+  isi: number
+  bui: number
+  fwi: number
+  dgr: number
+
   // Forecast properties
   precipForecast?: PredictionItem
   rhForecast?: PredictionItem

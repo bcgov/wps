@@ -4,15 +4,15 @@ import { DEFAULT_MODEL_TYPE } from 'api/moreCast2API'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { ColumnDefBuilder } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
-import { TempForecastField } from 'features/moreCast2/components/MoreCast2Column'
+import { tempForecastField } from 'features/moreCast2/components/MoreCast2Column'
 import React from 'react'
 
 describe('ApplyToColumnMenu', () => {
   const colDefBuilder = new ColumnDefBuilder(
-    TempForecastField.field,
-    TempForecastField.headerName,
-    TempForecastField.type,
-    TempForecastField.precision,
+    tempForecastField.field,
+    tempForecastField.headerName,
+    tempForecastField.type,
+    tempForecastField.precision,
     new GridComponentRenderer()
   )
   it('should not render the menu when no context from a click exists', async () => {

@@ -137,7 +137,7 @@ async def async_observed_dailies(record_type: str):
             "longitude": 1,
             "stationStatus": {
                 "id": "ACTIVE",
-            }
+            },
         },
         "recordType": {
             "id": record_type
@@ -147,7 +147,14 @@ async def async_observed_dailies(record_type: str):
         "relativeHumidity": 1,
         "precipitation": 1,
         "windDirection": 1,
-        "windSpeed": 1
+        "windSpeed": 1,
+        "fineFuelMoistureCode": 1,
+        "duffMoistureCode": 1,
+        "droughtCode": 1,
+        "initialSpreadIndex": 1,
+        "buildUpIndex": 1,
+        "fireWeatherIndex": 1,
+        "dangerForest": 1
     }
 
 
