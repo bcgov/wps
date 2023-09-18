@@ -95,7 +95,7 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
   }
 
   public generateForecastColDef = (headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(headerName || this.headerName)
+    return this.colDefBuilder.generateForecastColDef(headerName ?? this.headerName)
   }
 
   public generateColDef = () => {
@@ -103,7 +103,7 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
   }
 
   public generateColDefs = (headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(headerName || this.headerName, this.includeBias)
+    return this.colDefBuilder.generateColDefs(headerName ?? this.headerName, this.includeBias)
   }
 }
 
