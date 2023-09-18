@@ -81,24 +81,24 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
           GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=api bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+  # TODO: Delete once pmtiles has run for some time
+  # build-tileserv-image:
+  #   name: Build tileserv Image
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - name: Set Variables
+  #       shell: bash
+  #       run: |
+  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-  build-tileserv-image:
-    name: Build tileserv Image
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build wps-tileserv Image
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-            GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=tileserv DOCKER_FILE=Dockerfile.tileserv PATH_BC=openshift/templates/tileserv/tileserv_build.yaml bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+  #     - name: Build wps-tileserv Image
+  #       shell: bash
+  #       run: |
+  #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+  #           GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=tileserv DOCKER_FILE=Dockerfile.tileserv PATH_BC=openshift/templates/tileserv/tileserv_build.yaml bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   configure-nats-server-name:
     name: Configure nats server name
