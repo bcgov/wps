@@ -144,11 +144,11 @@ export const MORECAST2_FORECAST_FIELDS: ForecastColDefGenerator[] = [
 ]
 
 export const MORECAST2_INDEX_FIELDS: ColDefGenerator[] = [
-  buiField,
-  isiField,
-  fwiField,
   ffmcField,
   dmcField,
   dcField,
+  isiField,
+  buiField,
+  fwiField,
   dgrField
 ]
