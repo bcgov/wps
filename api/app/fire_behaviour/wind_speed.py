@@ -10,7 +10,7 @@ If user has not specified wind speed, use the values retrieved from WFWX, always
 
 def calculate_wind_speed_result(requested_station: StationRequest, yesterday: dict, raw_daily: dict) -> WindResult:
     # extract variable from wf1 that we need to calculate the fire behaviour advisory.
-    bui = cffdrs.bui_calc(raw_daily.get('duffMoistureCode'), raw_daily.get('droughtCode'))
+    bui = round(cffdrs.bui_calc(raw_daily.get('duffMoistureCode', None), raw_daily.get('droughtCode', None)), 3)
     temperature = raw_daily.get('temperature', None)
     relative_humidity = raw_daily.get('relativeHumidity', None)
     precipitation = raw_daily.get('precipitation', None)
