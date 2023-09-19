@@ -75,6 +75,7 @@ class StationsListResponse(BaseModel):
 
 class WindResult(BaseModel):
     ffmc: float
+    bui: float
     isi: float
     wind_speed: float
     fwi: float

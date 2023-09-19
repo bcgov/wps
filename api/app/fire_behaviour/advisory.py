@@ -93,25 +93,25 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
     # time of interest will be the same for all stations.
     time_of_interest = get_hour_20_from_date(station.time_of_interest)
 
-    fmc = cffdrs.foliar_moisture_content(station.lat, station.long, station.elevation,
-                                         get_julian_date(time_of_interest))
-    sfc = cffdrs.surface_fuel_consumption(station.fuel_type, station.bui,
-                                          station.ffmc, station.percentage_conifer)
-    lb_ratio = cffdrs.length_to_breadth_ratio(station.fuel_type, station.wind_speed)
-    ros = cffdrs.rate_of_spread(station.fuel_type, isi=station.isi, bui=station.bui, fmc=fmc, sfc=sfc,
-                                pc=station.percentage_conifer,
-                                cc=station.grass_cure,
-                                pdf=station.percentage_dead_balsam_fir,
-                                cbh=station.crown_base_height)
-    cfb = calculate_cfb(station.fuel_type, fmc, sfc, ros, station.crown_base_height)
+    fmc = round(cffdrs.foliar_moisture_content(station.lat, station.long, station.elevation,
+                                               get_julian_date(time_of_interest)), 3)
+    sfc = round(cffdrs.surface_fuel_consumption(station.fuel_type, station.bui,
+                                                station.ffmc, station.percentage_conifer), 3)
+    lb_ratio = round(cffdrs.length_to_breadth_ratio(station.fuel_type, station.wind_speed), 3)
+    ros = round(cffdrs.rate_of_spread(station.fuel_type, isi=station.isi, bui=station.bui, fmc=fmc, sfc=sfc,
+                                      pc=station.percentage_conifer,
+                                      cc=station.grass_cure,
+                                      pdf=station.percentage_dead_balsam_fir,
+                                      cbh=station.crown_base_height), 3)
+    cfb = round(calculate_cfb(station.fuel_type, fmc, sfc, ros, station.crown_base_height), 3)
 
     # Calculate rate of spread assuming 60 minutes since ignition.
-    ros_t = cffdrs.rate_of_spread_t(
+    ros_t = round(cffdrs.rate_of_spread_t(
         fuel_type=station.fuel_type,
         ros_eq=ros,
         minutes_since_ignition=60,
-        cfb=cfb)
-    cfb_t = calculate_cfb(station.fuel_type, fmc, sfc, ros_t, station.crown_base_height)
+        cfb=cfb), 3)
+    cfb_t = round(calculate_cfb(station.fuel_type, fmc, sfc, ros_t, station.crown_base_height), 3)
 
     # Get the default crown fuel load, if none specified.
     if station.crown_fuel_load is None:
@@ -119,14 +119,14 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
     else:
         cfl = station.crown_fuel_load
 
-    hfi = cffdrs.head_fire_intensity(fuel_type=station.fuel_type,
-                                     percentage_conifer=station.percentage_conifer,
-                                     percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
-                                     ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
-    hfi_t = cffdrs.head_fire_intensity(fuel_type=station.fuel_type,
-                                       percentage_conifer=station.percentage_conifer,
-                                       percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
-                                       ros=ros_t, cfb=cfb_t, cfl=cfl, sfc=sfc)
+    hfi = round(cffdrs.head_fire_intensity(fuel_type=station.fuel_type,
+                                           percentage_conifer=station.percentage_conifer,
+                                           percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
+                                           ros=ros, cfb=cfb, cfl=cfl, sfc=sfc), 3)
+    hfi_t = round(cffdrs.head_fire_intensity(fuel_type=station.fuel_type,
+                                             percentage_conifer=station.percentage_conifer,
+                                             percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
+                                             ros=ros_t, cfb=cfb_t, cfl=cfl, sfc=sfc), 3)
     critical_hours_4000 = get_critical_hours(4000, station.fuel_type, station.percentage_conifer,
                                              station.percentage_dead_balsam_fir, station.bui,
                                              station.grass_cure,
@@ -141,7 +141,7 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
                                               station.last_observed_morning_rh_values)
 
     fire_type = get_fire_type(fuel_type=station.fuel_type, crown_fraction_burned=cfb)
-    flame_length = get_approx_flame_length(hfi)
+    flame_length = round(get_approx_flame_length(hfi), 3)
 
     wsv = cffdrs.calculate_wind_speed(fuel_type=station.fuel_type, ffmc=station.ffmc,
                                       bui=station.bui, ws=station.wind_speed,
@@ -160,9 +160,9 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
                                       pdf=station.percentage_dead_balsam_fir,
                                       cbh=station.crown_base_height)
 
-    sixty_minute_fire_size = get_fire_size(station.fuel_type, ros, bros, 60, cfb, lb_ratio)
-    sixty_minute_fire_size_t = get_fire_size(station.fuel_type, ros_t, bros, 60, cfb_t, lb_ratio)
-    thirty_minute_fire_size = get_fire_size(station.fuel_type, ros, bros, 30, cfb, lb_ratio)
+    sixty_minute_fire_size = round(get_fire_size(station.fuel_type, ros, bros, 60, cfb, lb_ratio), 3)
+    sixty_minute_fire_size_t = round(get_fire_size(station.fuel_type, ros_t, bros, 60, cfb_t, lb_ratio), 3)
+    thirty_minute_fire_size = round(get_fire_size(station.fuel_type, ros, bros, 30, cfb, lb_ratio), 3)
 
     return FireBehaviourAdvisory(
         hfi=hfi, ros=ros, fire_type=fire_type, cfb=cfb, flame_length=flame_length,

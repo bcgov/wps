@@ -102,7 +102,6 @@ async def process_request(
     last_observed_morning_rh_values = build_hourly_rh_dict(raw_observations.values)
 
     # extract variable from wf1 that we need to calculate the fire behaviour advisory.
-    bui = raw_daily.get('buildUpIndex', None)
     temperature = raw_daily.get('temperature', None)
     relative_humidity = raw_daily.get('relativeHumidity', None)
     precipitation = raw_daily.get('precipitation', None)
@@ -124,7 +123,7 @@ async def process_request(
         crown_fuel_load=requested_station.crown_fuel_load,
         lat=wfwx_station.lat,
         long=wfwx_station.long,
-        bui=bui,
+        bui=wind_result.bui,
         ffmc=wind_result.ffmc,
         isi=wind_result.isi,
         fwi=wind_result.fwi,
