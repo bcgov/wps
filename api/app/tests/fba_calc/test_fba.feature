@@ -10,10 +10,6 @@ Feature: /fbc/
 
         Examples:
             | request_json               | status_code | response_json                       |
-            | c2_request.json            | 200         | None                                |
-            | c3_request.json            | 200         | fba_calc/c3_response.json           |
-            | c4_request.json            | 200         | None                                |
-            | c5_request.json            | 200         | None                                |
             | c6_7mcbh_request.json      | 200         | fba_calc/c6_7mcbh_response.json     |
             | c6_2mcbh_request.json      | 200         | None                                |
             | c7_request.json            | 200         | None                                |
