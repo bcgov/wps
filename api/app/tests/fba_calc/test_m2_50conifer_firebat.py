@@ -21,7 +21,7 @@ async def async_client():
 
 @pytest.mark.anyio
 @pytest.mark.usefixtures('mock_jwt_decode')
-async def test_m1_50conifer_request_response(anyio_backend, async_client: AsyncClient, monkeypatch: pytest.MonkeyPatch):
+async def test_m2_50conifer_request_response(anyio_backend, async_client: AsyncClient, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
 
     response = await async_client.post(firebat_url, json={
@@ -30,7 +30,7 @@ async def test_m1_50conifer_request_response(anyio_backend, async_client: AsyncC
             {
                 "id": 0,
                 "station_code": 230,
-                "fuel_type": "M1",
+                "fuel_type": "M2",
                 "crown_base_height": 6,
                 "percentage_conifer": 50
             }
@@ -47,7 +47,7 @@ async def test_m1_50conifer_request_response(anyio_backend, async_client: AsyncC
                 "station_name": "HORSEFLY",
                 "zone_code": "C3",
                 "elevation": 701,
-                "fuel_type": "M1",
+                "fuel_type": "M2",
                 "status": "ACTUAL",
                 "temp": 25.2,
                 "rh": 31.0,
@@ -61,16 +61,16 @@ async def test_m1_50conifer_request_response(anyio_backend, async_client: AsyncC
                 "build_up_index": 117.899,
                 "duff_moisture_code": 103.923,
                 "fire_weather_index": 27.915,
-                "head_fire_intensity": 4925.464,
-                "rate_of_spread": 6.123,
+                "head_fire_intensity": 4270.718,
+                "rate_of_spread": 5.396,
                 "fire_type": "IC",
-                "percentage_crown_fraction_burned": 0.406,
-                "flame_length": 4.052,
-                "sixty_minute_fire_size": 4.628,
-                "thirty_minute_fire_size": 0.549,
+                "percentage_crown_fraction_burned": 0.298,
+                "flame_length": 3.773,
+                "sixty_minute_fire_size": 2.957,
+                "thirty_minute_fire_size": 0.325,
                 "critical_hours_hfi_4000": {
-                    "start": 15.0,
-                    "end": 19.0
+                    "start": 16.0,
+                    "end": 18.0
                 },
                 "critical_hours_hfi_10000": None
             }
