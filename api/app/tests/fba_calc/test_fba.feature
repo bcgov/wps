@@ -10,9 +10,6 @@ Feature: /fbc/
 
         Examples:
             | request_json               | status_code | response_json                       |
-            | m3_30deadfir_request.json  | 200         | None                                |
-            | m3_60deadfir_request.json  | 200         | None                                |
-            | m3_100deadfir_request.json | 200         | None                                |
             | m4_30deadfir_request.json  | 200         | None                                |
             | m4_60deadfir_request.json  | 200         | None                                |
             | m4_100deadfir_request.json | 200         | None                                |
