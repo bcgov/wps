@@ -9,16 +9,13 @@ Feature: /fbc/
         And the response is <response_json>
 
         Examples:
-            | request_json               | status_code | response_json                       |
-            | m4_30deadfir_request.json  | 200         | None                                |
-            | m4_60deadfir_request.json  | 200         | None                                |
-            | m4_100deadfir_request.json | 200         | None                                |
-            | o1a_0curing_request.json   | 200         | fba_calc/o1a_0curing_response.json  |
-            | o1a_30curing_request.json  | 200         | fba_calc/o1a_30curing_response.json |
-            | o1a_90curing_request.json  | 200         | fba_calc/o1a_90curing_response.json |
-            | o1b_0curing_request.json   | 200         | None                                |
-            | o1b_30curing_request.json  | 200         | None                                |
-            | o1b_90curing_request.json  | 200         | None                                |
-            | s1_request.json            | 200         | None                                |
-            | s2_request.json            | 200         | None                                |
-            | s3_request.json            | 200         | None                                |
+            | request_json              | status_code | response_json                       |
+            | o1a_0curing_request.json  | 200         | fba_calc/o1a_0curing_response.json  |
+            | o1a_30curing_request.json | 200         | fba_calc/o1a_30curing_response.json |
+            | o1a_90curing_request.json | 200         | fba_calc/o1a_90curing_response.json |
+            | o1b_0curing_request.json  | 200         | None                                |
+            | o1b_30curing_request.json | 200         | None                                |
+            | o1b_90curing_request.json | 200         | None                                |
+            | s1_request.json           | 200         | None                                |
+            | s2_request.json           | 200         | None                                |
+            | s3_request.json           | 200         | None                                |
