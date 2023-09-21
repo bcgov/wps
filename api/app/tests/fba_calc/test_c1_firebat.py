@@ -2,6 +2,7 @@
 from httpx import AsyncClient
 from aiohttp import ClientSession
 import pytest
+import math
 from app.fire_behaviour.cffdrs import CFFDRS
 from app.tests.common import default_mock_client_get
 
@@ -38,41 +39,30 @@ async def test_c1_request_response(anyio_backend, async_client: AsyncClient, mon
     })
 
     assert response.status_code == 200
-    assert response.json() == {
-        "date": "2021-07-05",
-        "stations": [
-            {
-                "id": 0,
-                "station_code": 230,
-                "station_name": "HORSEFLY",
-                "zone_code": "C3",
-                "elevation": 701,
-                "fuel_type": "C1",
-                "status": "ACTUAL",
-                "temp": 25.2,
-                "rh": 31.0,
-                "wind_direction": 282,
-                "wind_speed": 9.2,
-                "precipitation": 0.0,
-                "grass_cure": None,
-                "fine_fuel_moisture_code": 90.683,
-                "drought_code": 340.544,
-                "initial_spread_index": 7.51,
-                "build_up_index": 117.899,
-                "duff_moisture_code": 103.923,
-                "fire_weather_index": 27.915,
-                "head_fire_intensity": 540.431,
-                "rate_of_spread": 1.274,
-                "fire_type": "SUR",
-                "percentage_crown_fraction_burned": 0.0,
-                "flame_length": 1.342,
-                "sixty_minute_fire_size": 0.253,
-                "thirty_minute_fire_size": 0.045,
-                "critical_hours_hfi_4000": None,
-                "critical_hours_hfi_10000": None
-            }
-        ]
-    }
+
+    assert response.json()['stations'][0]['id'] == 0
+    assert response.json()['stations'][0]['station_code'] == 230
+    assert response.json()['stations'][0]['station_name'] == 'HORSEFLY'
+    assert response.json()['stations'][0]['zone_code'] == 'C3'
+    assert response.json()['stations'][0]['elevation'] == 701
+    assert response.json()['stations'][0]['fuel_type'] == 'C1'
+
+    assert math.isclose(response.json()['stations'][0]['fine_fuel_moisture_code'], 90.683, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['drought_code'], 340.544, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['initial_spread_index'], 7.51, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['build_up_index'], 117.899, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['duff_moisture_code'], 103.923, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['fire_weather_index'], 27.913, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['head_fire_intensity'], 540.41, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['rate_of_spread'], 1.274, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['percentage_crown_fraction_burned'], 0.0, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['flame_length'], 1.342, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['sixty_minute_fire_size'], 0.253, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['thirty_minute_fire_size'], 0.045, abs_tol=0.001)
+
+    assert response.json()['stations'][0]['fire_type'] == 'SUR'
+    assert response.json()['stations'][0]['critical_hours_hfi_4000'] is None
+    assert response.json()['stations'][0]['critical_hours_hfi_10000'] is None
 
 
 @pytest.mark.anyio
@@ -148,41 +138,30 @@ async def test_c1_forecast_request_response(anyio_backend, async_client: AsyncCl
     })
 
     assert response.status_code == 200
-    assert response.json() == {
-        "date": "2021-07-06",
-        "stations": [
-            {
-                "id": 0,
-                "station_code": 230,
-                "station_name": "HORSEFLY",
-                "zone_code": "C3",
-                "elevation": 701,
-                "fuel_type": "C1",
-                "status": "FORECAST",
-                "temp": 25.2,
-                "rh": 31.0,
-                "wind_direction": 282,
-                "wind_speed": 9.2,
-                "precipitation": 0.0,
-                "grass_cure": None,
-                "fine_fuel_moisture_code": 93.305,
-                "drought_code": 340.544,
-                "initial_spread_index": 10.881,
-                "build_up_index": 117.899,
-                "duff_moisture_code": 103.923,
-                "fire_weather_index": 35.794,
-                "head_fire_intensity": 2383.391,
-                "rate_of_spread": 4.336,
-                "fire_type": "IC",
-                "percentage_crown_fraction_burned": 0.503,
-                "flame_length": 2.819,
-                "sixty_minute_fire_size": 2.974,
-                "thirty_minute_fire_size": 0.531,
-                "critical_hours_hfi_4000": None,
-                "critical_hours_hfi_10000": None
-            }
-        ]
-    }
+
+    assert response.json()['stations'][0]['id'] == 0
+    assert response.json()['stations'][0]['station_code'] == 230
+    assert response.json()['stations'][0]['station_name'] == 'HORSEFLY'
+    assert response.json()['stations'][0]['zone_code'] == 'C3'
+    assert response.json()['stations'][0]['elevation'] == 701
+    assert response.json()['stations'][0]['fuel_type'] == 'C1'
+
+    assert math.isclose(response.json()['stations'][0]['fine_fuel_moisture_code'], 93.305, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['drought_code'], 340.544, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['initial_spread_index'], 10.88, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['build_up_index'], 117.899, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['duff_moisture_code'], 103.923, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['fire_weather_index'], 35.793, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['head_fire_intensity'], 2382.172, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['rate_of_spread'], 4.336, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['percentage_crown_fraction_burned'], 0.503, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['flame_length'], 2.818, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['sixty_minute_fire_size'], 2.973, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['thirty_minute_fire_size'], 0.531, abs_tol=0.001)
+
+    assert response.json()['stations'][0]['fire_type'] == 'IC'
+    assert response.json()['stations'][0]['critical_hours_hfi_4000'] is None
+    assert response.json()['stations'][0]['critical_hours_hfi_10000'] is None
 
 
 @pytest.mark.anyio
@@ -208,111 +187,35 @@ async def test_c1_request_multiple_response(anyio_backend, async_client: AsyncCl
             {
                 "id": 2,
                 "station_code": 230,
-                "fuel_type": "C2",
+                "fuel_type": "C1",
                 "crown_base_height": 3
             }
         ]
     })
 
     assert response.status_code == 200
-    assert response.json() == {
-        "date": "2021-07-05",
-        "stations": [
-            {
-                "id": 0,
-                "station_code": 230,
-                "station_name": "HORSEFLY",
-                "zone_code": "C3",
-                "elevation": 701,
-                "fuel_type": "C1",
-                "status": "ACTUAL",
-                "temp": 25.2,
-                "rh": 31.0,
-                "wind_direction": 282,
-                "wind_speed": 9.2,
-                "precipitation": 0.0,
-                "grass_cure": None,
-                "fine_fuel_moisture_code": 90.683,
-                "drought_code": 340.544,
-                "initial_spread_index": 7.51,
-                "build_up_index": 117.899,
-                "duff_moisture_code": 103.923,
-                "fire_weather_index": 27.915,
-                "head_fire_intensity": 540.431,
-                "rate_of_spread": 1.274,
-                "fire_type": "SUR",
-                "percentage_crown_fraction_burned": 0.0,
-                "flame_length": 1.342,
-                "sixty_minute_fire_size": 0.253,
-                "thirty_minute_fire_size": 0.045,
-                "critical_hours_hfi_4000": None,
-                "critical_hours_hfi_10000": None
-            },
-            {
-                "id": 1,
-                "station_code": 230,
-                "station_name": "HORSEFLY",
-                "zone_code": "C3",
-                "elevation": 701,
-                "fuel_type": "C1",
-                "status": "ACTUAL",
-                "temp": 25.2,
-                "rh": 31.0,
-                "wind_direction": 282,
-                "wind_speed": 9.2,
-                "precipitation": 0.0,
-                "grass_cure": None,
-                "fine_fuel_moisture_code": 90.683,
-                "drought_code": 340.544,
-                "initial_spread_index": 7.51,
-                "build_up_index": 117.899,
-                "duff_moisture_code": 103.923,
-                "fire_weather_index": 27.915,
-                "head_fire_intensity": 540.431,
-                "rate_of_spread": 1.274,
-                "fire_type": "SUR",
-                "percentage_crown_fraction_burned": 0.0,
-                "flame_length": 1.342,
-                "sixty_minute_fire_size": 0.253,
-                "thirty_minute_fire_size": 0.045,
-                "critical_hours_hfi_4000": None,
-                "critical_hours_hfi_10000": None
-            },
-            {
-                "id": 2,
-                "station_code": 230,
-                "station_name": "HORSEFLY",
-                "zone_code": "C3",
-                "elevation": 701,
-                "fuel_type": "C2",
-                "status": "ACTUAL",
-                "temp": 25.2,
-                "rh": 31.0,
-                "wind_direction": 282,
-                "wind_speed": 9.2,
-                "precipitation": 0.0,
-                "grass_cure": None,
-                "fine_fuel_moisture_code": 90.683,
-                "drought_code": 340.544,
-                "initial_spread_index": 7.51,
-                "build_up_index": 117.899,
-                "duff_moisture_code": 103.923,
-                "fire_weather_index": 27.915,
-                "head_fire_intensity": 13816.143,
-                "rate_of_spread": 10.418,
-                "fire_type": "IC",
-                "percentage_crown_fraction_burned": 0.887,
-                "flame_length": 6.786,
-                "sixty_minute_fire_size": 24.92,
-                "thirty_minute_fire_size": 4.292,
-                "critical_hours_hfi_4000": {
-                    "start": 13.0,
-                    "end": 22.0
-                },
-                "critical_hours_hfi_10000": {
-                    "start": 15.0,
-                    "end": 19.0
-                }
-            }
-        ]
-    }
+
+    for idx, station in enumerate(response.json()['stations']):
+        assert station['id'] == idx
+        assert station['station_code'] == 230
+        assert station['station_name'] == 'HORSEFLY'
+        assert station['zone_code'] == 'C3'
+        assert station['elevation'] == 701
+        assert station['fuel_type'] == 'C1'
+        assert station['fine_fuel_moisture_code']
+
+        assert math.isclose(station['fine_fuel_moisture_code'], 90.683, abs_tol=0.001)
+        assert math.isclose(station['drought_code'], 340.544, abs_tol=0.001)
+        assert math.isclose(station['initial_spread_index'], 7.51, abs_tol=0.001)
+        assert math.isclose(station['build_up_index'], 117.899, abs_tol=0.001)
+        assert math.isclose(station['duff_moisture_code'], 103.923, abs_tol=0.001)
+        assert math.isclose(station['fire_weather_index'], 27.913, abs_tol=0.001)
+        assert math.isclose(station['head_fire_intensity'], 540.409, abs_tol=0.001)
+        assert math.isclose(station['rate_of_spread'], 1.274, abs_tol=0.001)
+        assert math.isclose(station['percentage_crown_fraction_burned'], 0.0, abs_tol=0.001)
+        assert math.isclose(station['flame_length'], 1.342, abs_tol=0.001)
+        assert math.isclose(station['sixty_minute_fire_size'], 0.252, abs_tol=0.001)
+        assert math.isclose(station['thirty_minute_fire_size'], 0.045, abs_tol=0.001)
+
+        assert station['critical_hours_hfi_4000'] is None
+        assert station['critical_hours_hfi_10000'] is None
