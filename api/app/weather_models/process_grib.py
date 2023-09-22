@@ -169,12 +169,16 @@ class GribFileProcessor():
     """ Instances of this object can be used to process and ingest a grib file.
     """
 
-    def __init__(self, station_source: StationSourceEnum):
+    def __init__(self,
+                 station_source: StationSourceEnum,
+                 padf_transform=None,
+                 raster_to_geo_transformer=None,
+                 geo_to_raster_transformer=None):
         # Get list of stations we're interested in, and store it so that we only call it once.
         self.stations = get_stations_synchronously(station_source)
-        self.padf_transform = None
-        self.raster_to_geo_transformer = None
-        self.geo_to_raster_transformer = None
+        self.padf_transform = padf_transform
+        self.raster_to_geo_transformer = raster_to_geo_transformer
+        self.geo_to_raster_transformer = geo_to_raster_transformer
         self.prediction_model: PredictionModel = None
 
     def yield_data_for_stations(self, raster_band: gdal.Dataset):
@@ -188,13 +192,12 @@ class GribFileProcessor():
                 longitude, latitude, self.padf_transform, self.geo_to_raster_transformer)
 
             if 0 <= x_coordinate < raster_band.XSize and 0 <= y_coordinate < raster_band.YSize:
-                points, values = get_surrounding_grid(
-                    raster_band, x_coordinate, y_coordinate)
+                value = raster_band.ReadAsArray(x_coordinate, y_coordinate, 1, 1)[0, 0]
             else:
                 logger.warning('coordinate not in raster - %s', station)
                 continue
 
-            yield (points, values)
+            yield value
 
     def yield_uv_wind_data_for_stations(self, u_raster_band: gdal.Dataset, v_raster_band: gdal.Dataset, variable: str):
         """ Given a list of stations and 2 gdal datasets (one for u-component of wind, one for v-component
