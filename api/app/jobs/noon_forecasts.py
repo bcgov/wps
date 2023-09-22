@@ -51,7 +51,8 @@ def main():
         logger.debug('Retrieving noon forecasts...')
         bot = NoonForecastJob()
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         loop.run_until_complete(bot.run_wfwx())
 
         # Exit with 0 - success.
