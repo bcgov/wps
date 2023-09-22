@@ -52,6 +52,8 @@ def mock_wfwx_stations():
     station_2 = WFWXWeatherStation(latitude=1, longitude=1, elevation=1,
                                    wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c65', code=2,
                                    name='blah', zone_code='T1')
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
     future_wfwx_stations = asyncio.Future()
     future_wfwx_stations.set_result([station_1, station_2])
