@@ -1,6 +1,7 @@
+import math
 from app.fire_behaviour.fuel_types import FuelTypeEnum
 from app.fire_behaviour.wind_speed import calculate_wind_speed_result
-from app.schemas.fba_calc import StationRequest, WindResult
+from app.schemas.fba_calc import StationRequest
 
 
 def test_wind_speed_result_no_wind_speed():
@@ -16,10 +17,9 @@ def test_wind_speed_result_no_wind_speed():
                    'windSpeed': 1,
                    'recordType': {'id': 'ACTUAL'}}
     )
-    assert wind_speed_result == WindResult(
-        bui=0.606,
-        ffmc=26.765,
-        isi=0.001,
-        wind_speed=1.0,
-        fwi=0.0,
-        status='ACTUAL')
+    assert math.isclose(wind_speed_result.bui, 0.606, abs_tol=0.001)
+    assert math.isclose(wind_speed_result.ffmc, 26.765, abs_tol=0.001)
+    assert math.isclose(wind_speed_result.isi, 0.001, abs_tol=0.001)
+    assert math.isclose(wind_speed_result.wind_speed, 1.0, abs_tol=0.001)
+    assert math.isclose(wind_speed_result.fwi, 0.0, abs_tol=0.001)
+    assert wind_speed_result.status == 'ACTUAL'
