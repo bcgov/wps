@@ -53,6 +53,6 @@ def mock_wfwx_stations():
                                    wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c65', code=2,
                                    name='blah', zone_code='T1')
 
-    future_wfwx_stations = asyncio.Future(loop=asyncio.get_event_loop())
+    future_wfwx_stations = asyncio.Future()
     future_wfwx_stations.set_result([station_1, station_2])
     return future_wfwx_stations

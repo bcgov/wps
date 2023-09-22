@@ -1,4 +1,5 @@
 """ Unit tests for the fireweather noon forecats job """
+import asyncio
 import os
 import logging
 import pytest
@@ -13,6 +14,8 @@ logger = logging.getLogger(__name__)
 @pytest.fixture()
 def mock_noon_forecasts(mocker: MockerFixture):
     """ Mocks out noon forecasts as async result """
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     wfwx_hourlies = mock_wfwx_response()
     future_wfwx_stations = mock_wfwx_stations()
 
