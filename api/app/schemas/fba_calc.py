@@ -71,3 +71,12 @@ class StationsListResponse(BaseModel):
     """ Response for all weather stations, in a list """
     date: date
     stations: List[StationResponse]
+
+
+class WindResult(BaseModel):
+    ffmc: float
+    bui: float
+    isi: float
+    wind_speed: float
+    fwi: float
+    status: str

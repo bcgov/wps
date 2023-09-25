@@ -7,10 +7,10 @@ from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
 from app.fire_behaviour.advisory import (FBACalculatorWeatherStation, FireBehaviourAdvisory,
                                          calculate_fire_behaviour_advisory)
+from app.fire_behaviour.wind_speed import calculate_wind_speed_result
 from app.hourlies import get_hourly_readings_in_time_interval
 from app.schemas.fba_calc import (StationListRequest, StationRequest,
                                   StationsListResponse, StationResponse)
-from app.fire_behaviour import cffdrs
 from app.utils.time import get_hour_20_from_date
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import (get_auth_header,
@@ -102,33 +102,11 @@ async def process_request(
     last_observed_morning_rh_values = build_hourly_rh_dict(raw_observations.values)
 
     # extract variable from wf1 that we need to calculate the fire behaviour advisory.
-    bui = raw_daily.get('buildUpIndex', None)
     temperature = raw_daily.get('temperature', None)
     relative_humidity = raw_daily.get('relativeHumidity', None)
     precipitation = raw_daily.get('precipitation', None)
     wind_direction = raw_daily.get('windDirection', None)
-    # if user has not specified wind speed as part of StationRequest, use the
-    # values retrieved from WFWX in raw_daily
-    if requested_station.wind_speed is None:
-        ffmc = raw_daily.get('fineFuelMoistureCode', None)
-        isi = raw_daily.get('initialSpreadIndex', None)
-        wind_speed = raw_daily.get('windSpeed', None)
-        fwi = raw_daily.get('fireWeatherIndex', None)
-        status = raw_daily.get('recordType').get('id')
-    # if user has specified wind speed as part of StationRequest, will need to
-    # re-calculate FFMC & ISI with modified value of wind speed
-    else:
-        wind_speed = requested_station.wind_speed
-        status = 'ADJUSTED'
-
-        ffmc = cffdrs.fine_fuel_moisture_code(
-            yesterday.get('fineFuelMoistureCode', None),
-            temperature,
-            relative_humidity,
-            precipitation,
-            wind_speed)
-        isi = cffdrs.initial_spread_index(ffmc, wind_speed)
-        fwi = cffdrs.fire_weather_index(isi, bui)
+    wind_result = calculate_wind_speed_result(requested_station, yesterday, raw_daily)
 
     # Prepare the inputs for the fire behaviour advisory calculation.
     # This is a combination of inputs from the front end, information about the station from wf1
@@ -136,7 +114,7 @@ async def process_request(
     fba_station = FBACalculatorWeatherStation(
         elevation=wfwx_station.elevation,
         fuel_type=requested_station.fuel_type,
-        status=status,
+        status=wind_result.status,
         time_of_interest=time_of_interest,
         percentage_conifer=requested_station.percentage_conifer,
         percentage_dead_balsam_fir=requested_station.percentage_dead_balsam_fir,
@@ -145,12 +123,12 @@ async def process_request(
         crown_fuel_load=requested_station.crown_fuel_load,
         lat=wfwx_station.lat,
         long=wfwx_station.long,
-        bui=bui,
-        ffmc=ffmc,
-        isi=isi,
-        fwi=fwi,
+        bui=wind_result.bui,
+        ffmc=wind_result.ffmc,
+        isi=wind_result.isi,
+        fwi=wind_result.fwi,
         prev_day_daily_ffmc=yesterday.get('fineFuelMoistureCode', None),
-        wind_speed=wind_speed,
+        wind_speed=wind_result.wind_speed,
         wind_direction=wind_direction,
         temperature=temperature,
         relative_humidity=relative_humidity,
