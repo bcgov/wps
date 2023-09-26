@@ -165,6 +165,36 @@ class ModelRunGridSubsetPrediction(Base):
                 'wind_tgl_10={self.wind_tgl_10}').format(self=self)
 
 
+class ModelRunPrediction(Base):
+    """ The prediction for a particular model.
+    Each value is a numeric value that corresponds to the lat lon from the model raster """
+    __tablename__ = 'model_run_predictions'
+    __table_args__ = (
+        UniqueConstraint('prediction_model_run_timestamp_id', 'prediction_timestamp'),
+        {'comment': 'The prediction values of a particular model run.'}
+    )
+
+    id = Column(Integer, Sequence('model_run_predictions_id_seq'),
+                primary_key=True, nullable=False, index=True)
+    # Which model run does this forecacst apply to? E.g. The GDPS 15x.15 run from 2020 07 07 12h00.
+    prediction_model_run_timestamp_id = Column(Integer, ForeignKey(
+        'prediction_model_run_timestamps.id'), nullable=False, index=True)
+    prediction_model_run_timestamp = relationship(
+        "PredictionModelRunTimestamp", foreign_keys=[prediction_model_run_timestamp_id])
+    # The date and time to which the prediction applies.
+    prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    # Temperature 2m above model layer.
+    tmp_tgl_2 = Column(Float, nullable=True)
+    # Relative humidity 2m above model layer.
+    rh_tgl_2 = Column(Float, nullable=True)
+    # Accumulated precipitation (units kg.m^-2)
+    apcp_sfc_0 = Column(Float, nullable=True)
+    # Wind direction 10m above ground.
+    wdir_tgl_10 = Column(Float, nullable=True)
+    # Wind speed 10m above ground.
+    wind_tgl_10 = Column(Float, nullable=True)
+
+
 class WeatherStationModelPrediction(Base):
     """ The model prediction for a particular weather station.
     Based on values from ModelRunGridSubsetPrediction, but captures linear interpolations based on weather
