@@ -25,6 +25,12 @@
       "groupSlug": "npm all-minor-patch"
     },
     {
+      "matchPackageNames": [
+        "python"
+      ],
+      "allowedVersions": "<=3.10"
+    },
+    {
       "matchManagers": [
         "poetry"
       ],
