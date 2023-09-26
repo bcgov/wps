@@ -223,13 +223,13 @@ crt = ["awscrt (==0.16.26)"]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.31.49"
+version = "1.31.54"
 description = "Type annotations and code completion for botocore"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "botocore_stubs-1.31.49-py3-none-any.whl", hash = "sha256:4807bbb65680ff4546d60a76879d83af6d314d0952413d347a8c784eef37c482"},
-    {file = "botocore_stubs-1.31.49.tar.gz", hash = "sha256:2e005b032feeba93f74511027338a6266b4d7f582e31a56a67ac728a3b5f5b83"},
+    {file = "botocore_stubs-1.31.54-py3-none-any.whl", hash = "sha256:6e3e015ba4d2172c6a9bd5ff5131c39c995991559a567dce6c8534884f83ded1"},
+    {file = "botocore_stubs-1.31.54.tar.gz", hash = "sha256:96223fdf87a68037dd1ed366ffe28b5b744aca495a365f4535e2179c9a88455c"},
 ]
 
 [package.dependencies]
@@ -1525,13 +1525,13 @@ files = [
 
 [[package]]
 name = "typing-extensions"
-version = "4.7.1"
-description = "Backported and Experimental Type Hints for Python 3.7+"
+version = "4.8.0"
+description = "Backported and Experimental Type Hints for Python 3.8+"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "typing_extensions-4.7.1-py3-none-any.whl", hash = "sha256:440d5dd3af93b060174bf433bccd69b0babc3b15b1a8dca43789fd7f61514b36"},
-    {file = "typing_extensions-4.7.1.tar.gz", hash = "sha256:b75ddc264f0ba5615db7ba217daeb99701ad295353c45f9e95963337ceeeffb2"},
+    {file = "typing_extensions-4.8.0-py3-none-any.whl", hash = "sha256:8f92fc8806f9a6b641eaa5318da32b44d401efaac0f6678c9bc448ba3605faa0"},
+    {file = "typing_extensions-4.8.0.tar.gz", hash = "sha256:df8e4339e9cb77357558cbdbceca33c303714cf861d1eef15e1070055ae8b7ef"},
 ]
 
 [[package]]
