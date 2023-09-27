@@ -27,12 +27,12 @@ import {
 } from 'features/fba/components/map/featureStylers'
 import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
-import { LayerControl } from 'features/fba/components/map/layerControl'
 import { PMTILES_BUCKET, RASTER_SERVER_BASE_URL } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
 import { isUndefined, cloneDeep, isNull } from 'lodash'
 import { Box } from '@mui/material'
+import Legend from 'features/fba/components/map/Legend'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -82,7 +82,8 @@ const removeLayerByName = (map: ol.Map, layerName: string) => {
 
 const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
-  const [showHighHFI, setShowHighHFI] = useState(true)
+  const [showZoneStatus, setShowZoneStatus] = useState(true)
+  const [hfiChecked, setHFIChecked] = React.useState(false)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const { mostRecentRunDate } = useSelector(selectRunDates)
@@ -100,6 +101,27 @@ const FBAMap = (props: FBAMapProps) => {
     url: `${PMTILES_BUCKET}fireZoneLabels.pmtiles`
   })
 
+  const handleToggleLayer = (layerName: string, isVisible: boolean) => {
+    if (map) {
+      const layer = map
+        .getLayers()
+        .getArray()
+        .find(l => l.getProperties()?.name === layerName)
+
+      if (layerName === 'fireZoneVector') {
+        setShowZoneStatus(isVisible)
+        fireZoneVTL.setStyle(
+          fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone, isVisible)
+        )
+      } else if (layer) {
+        layer.setVisible(isVisible)
+        if (layerName === 'hfiVector') {
+          setHFIChecked(isVisible)
+        }
+      }
+    }
+  }
+
   const [fireCentreVTL] = useState(
     new VectorTileLayer({
       source: fireCentreVectorSource,
@@ -110,7 +132,12 @@ const FBAMap = (props: FBAMapProps) => {
   const [fireZoneVTL] = useState(
     new VectorTileLayer({
       source: fireZoneVectorSource,
-      style: fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone),
+      style: fireZoneStyler(
+        cloneDeep(props.fireZoneAreas),
+        props.advisoryThreshold,
+        props.selectedFireZone,
+        showZoneStatus
+      ),
       zIndex: 49,
       properties: { name: 'fireZoneVector' }
     })
@@ -182,7 +209,7 @@ const FBAMap = (props: FBAMapProps) => {
     if (!map) return
 
     fireZoneVTL.setStyle(
-      fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone)
+      fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone, showZoneStatus)
     )
     fireZoneLabelVTL.setStyle(fireZoneLabelStyler(props.selectedFireZone))
     fireZoneVTL.changed()
@@ -194,24 +221,25 @@ const FBAMap = (props: FBAMapProps) => {
     if (!map) return
     const layerName = 'hfiVector'
     removeLayerByName(map, layerName)
-    if (showHighHFI && !isNull(mostRecentRunDate)) {
+    if (!isNull(mostRecentRunDate)) {
       // The runDate for forecasts is the mostRecentRunDate. For Actuals, our API expects the runDate to be
       // the same as the forDate.
       const runDate = props.runType === RunType.FORECAST ? DateTime.fromISO(mostRecentRunDate) : props.forDate
-      const hfiGeojsonSource = new olpmtiles.PMTilesVectorSource({
+      const hfiSource = new olpmtiles.PMTilesVectorSource({
         url: buildPMTilesURL(props.forDate, props.runType, runDate)
       })
 
       const latestHFILayer = new VectorTileLayer({
-        source: hfiGeojsonSource,
+        source: hfiSource,
         style: hfiStyler,
         zIndex: 100,
         minZoom: 4,
-        properties: { name: layerName }
+        properties: { name: layerName },
+        visible: hfiChecked
       })
       map.addLayer(latestHFILayer)
     }
-  }, [showHighHFI, mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -239,8 +267,8 @@ const FBAMap = (props: FBAMapProps) => {
       ],
       overlays: [],
       controls: defaultControls().extend([
-        new FullScreen(),
-        LayerControl.buildLayerCheckbox('High HFI', setShowHighHFI, showHighHFI)
+        new FullScreen()
+        // LayerControl.buildLayerCheckbox('High HFI', setShowHighHFI, showHighHFI)
       ])
     })
     mapObject.setTarget(mapRef.current)
@@ -277,7 +305,20 @@ const FBAMap = (props: FBAMapProps) => {
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
-        <Box ref={mapRef} data-testid="fba-map" sx={{ display: 'flex', flex: 1 }}></Box>
+        <Box
+          ref={mapRef}
+          data-testid="fba-map"
+          sx={{
+            flex: 1,
+            flexDirection: 'column',
+            position: 'relative',
+            justifyContent: 'flex-end'
+          }}
+        >
+          <Box sx={{ position: 'absolute', zIndex: '1', bottom: '1rem' }}>
+            <Legend onToggleLayer={handleToggleLayer} />
+          </Box>
+        </Box>
       </MapContext.Provider>
     </ErrorBoundary>
   )
