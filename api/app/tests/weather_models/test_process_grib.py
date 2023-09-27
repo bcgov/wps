@@ -80,7 +80,7 @@ def test_read_single_raster_value():
                                                geo_to_raster_transformer)
 
     raster_band = dataset.GetRasterBand(1)
-    value = next(processor.yield_data_for_stations(raster_band))
+    value = next(processor.yield_value_for_stations(raster_band))
 
     assert math.isclose(value, 55.976, abs_tol=0.001)
 
