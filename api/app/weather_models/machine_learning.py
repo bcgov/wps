@@ -11,7 +11,7 @@ import numpy as np
 from sqlalchemy.orm import Session
 from app.weather_models import SCALAR_MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
 from app.db.models.weather_models import (
-    PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction)
+    PredictionModel, PredictionModelGridSubset, ModelRunPrediction)
 from app.db.models.observations import HourlyActual
 from app.db.crud.observations import get_actuals_left_outer_join_with_predictions
 
@@ -147,7 +147,7 @@ class StationMachineLearning:
         self.max_days_to_learn = MAX_DAYS_TO_LEARN
 
     def _add_sample_to_collection(self,
-                                  prediction: ModelRunGridSubsetPrediction,
+                                  prediction: ModelRunPrediction,
                                   actual: HourlyActual,
                                   sample_collection: SampleCollection):
         """ Take the provided prediction and observed value, adding them to the collection of samples """
@@ -179,7 +179,7 @@ class StationMachineLearning:
         # Query actuals, with prediction left outer joined (so if there isn't a prediction, you'll
         # get an actual, but prediction will be None)
         query = get_actuals_left_outer_join_with_predictions(
-            self.session, self.model.id, self.grid.id, self.station_code, start_date, self.max_learn_date)
+            self.session, self.model.id, self.station_code, start_date, self.max_learn_date)
         # We need to keep track of previous so that we can do interpolation for the global model.
         prev_actual = None
         prev_prediction = None

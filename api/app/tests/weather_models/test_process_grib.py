@@ -85,4 +85,3 @@ def test_read_single_raster_value():
     assert math.isclose(value, 55.976, abs_tol=0.001)
 
     del dataset
-    dataset = None
