@@ -309,13 +309,12 @@ const FBAMap = (props: FBAMapProps) => {
           ref={mapRef}
           data-testid="fba-map"
           sx={{
+            display: 'flex',
             flex: 1,
-            flexDirection: 'column',
-            position: 'relative',
-            justifyContent: 'flex-end'
+            position: 'relative'
           }}
         >
-          <Box sx={{ position: 'absolute', zIndex: '1', bottom: '1rem' }}>
+          <Box sx={{ position: 'absolute', zIndex: '1', bottom: '0.5rem' }}>
             <Legend onToggleLayer={handleToggleLayer} />
           </Box>
         </Box>

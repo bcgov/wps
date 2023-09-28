@@ -51,7 +51,7 @@ const LegendGrid = styled(Grid)({
   backgroundColor: '#fffafa',
   paddingRight: '0.5rem',
   paddingLeft: '0.5rem',
-  marginLeft: '1rem',
+  marginLeft: '0.5rem',
   border: '2px solid black'
 })
 
@@ -84,7 +84,7 @@ const Legend = ({ onToggleLayer }: LegendProps) => {
 
   return (
     <LegendGrid>
-      <Typography variant="body1" gutterBottom sx={{ textAlign: 'center' }}>
+      <Typography align="center" gutterBottom>
         BC Fire Advisory Legend
       </Typography>
       <LegendItem
