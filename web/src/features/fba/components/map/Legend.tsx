@@ -8,6 +8,17 @@ import {
   HFI_WARNING
 } from 'features/fba/components/map/featureStylers'
 
+const LegendGrid = styled(Grid)({
+  display: 'flex',
+  flexDirection: 'column',
+  width: 'fit-content',
+  backgroundColor: '#fffafa',
+  paddingRight: '0.5rem',
+  paddingLeft: '0.5rem',
+  marginLeft: '0.5rem',
+  border: '2px solid black'
+})
+
 interface SubItem {
   label: string
   symbol: string
@@ -44,17 +55,6 @@ const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subIt
   </div>
 )
 
-const LegendGrid = styled(Grid)({
-  display: 'flex',
-  flexDirection: 'column',
-  width: 'fit-content',
-  backgroundColor: '#fffafa',
-  paddingRight: '0.5rem',
-  paddingLeft: '0.5rem',
-  marginLeft: '0.5rem',
-  border: '2px solid black'
-})
-
 interface LegendProps {
   onToggleLayer: (layerName: string, isVisible: boolean) => void
 }
@@ -84,7 +84,7 @@ const Legend = ({ onToggleLayer }: LegendProps) => {
 
   return (
     <LegendGrid>
-      <Typography align="center" gutterBottom>
+      <Typography align="center" variant="body2" gutterBottom sx={{ fontWeight: 'bold' }}>
         BC Fire Advisory Legend
       </Typography>
       <LegendItem
