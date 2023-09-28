@@ -69,14 +69,13 @@ interface LegendProps {
 }
 
 const Legend = ({ onToggleLayer, showZoneStatus, setShowZoneStatus, showHFI, setShowHFI }: LegendProps) => {
-  const handleFireZoneLayerChange = () => {
-    setShowZoneStatus(!showZoneStatus)
-    onToggleLayer('fireZoneVector', !showZoneStatus)
-  }
-
-  const handleHFILayerChange = () => {
-    setShowHFI(!showHFI)
-    onToggleLayer('hfiVector', !showHFI)
+  const handleLayerChange = (
+    layerName: string,
+    isVisible: boolean,
+    setShowLayer: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    setShowLayer(!isVisible)
+    onToggleLayer(layerName, !isVisible)
   }
 
   const zoneStatusSubItems: SubItem[] = [
@@ -96,13 +95,13 @@ const Legend = ({ onToggleLayer, showZoneStatus, setShowZoneStatus, showHFI, set
       <LegendItem
         label="Zone Status"
         checked={showZoneStatus}
-        onChange={handleFireZoneLayerChange}
+        onChange={() => handleLayerChange('fireZoneVector', showZoneStatus, setShowZoneStatus)}
         subItems={zoneStatusSubItems}
       />
       <LegendItem
         label="HFI Potential (kW/h)"
         checked={showHFI}
-        onChange={handleHFILayerChange}
+        onChange={() => handleLayerChange('hfiVector', showHFI, setShowHFI)}
         subItems={hfiSubItems}
       />
     </LegendGrid>
