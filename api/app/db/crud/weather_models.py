@@ -9,7 +9,7 @@ from sqlalchemy.sql import text
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models.weather_models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction, WeatherStationModelPrediction, MoreCast2MaterializedView)
+    ModelRunPrediction, WeatherStationModelPrediction, MoreCast2MaterializedView)
 import app.utils.time as time_utils
 
 logger = logging.getLogger(__name__)
@@ -118,25 +118,14 @@ def get_grids_for_coordinate(session: Session,
     return query
 
 
-def get_model_run_predictions_for_grid(session: Session,
-                                       prediction_run: PredictionModelRunTimestamp,
-                                       grid: PredictionModelGridSubset) -> List:
-    """ Get all the predictions for a provided model run and grid. """
-    logger.info("Getting model predictions for grid %s", grid)
-    return session.query(ModelRunGridSubsetPrediction).\
-        filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid.id).\
-        filter(ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id ==
+def get_model_run_predictions(session: Session,
+                              prediction_run: PredictionModelRunTimestamp) -> List:
+    """ Get all the predictions for a provided model run """
+    logger.info("Getting model predictions for grid %s", prediction_run)
+    return session.query(ModelRunPrediction).\
+        filter(ModelRunPrediction.prediction_model_run_timestamp_id ==
                prediction_run.id).\
-        order_by(ModelRunGridSubsetPrediction.prediction_timestamp)
-
-
-def delete_model_run_grid_subset_predictions(session: Session, older_than: datetime):
-    """ Delete any grid subset prediction older than a certain date.
-    """
-    logger.info('Deleting grid subset data older than %s...', older_than)
-    session.query(ModelRunGridSubsetPrediction)\
-        .filter(ModelRunGridSubsetPrediction.prediction_timestamp < older_than)\
-        .delete()
+        order_by(ModelRunPrediction.prediction_timestamp)
 
 
 def delete_weather_station_model_predictions(session: Session, older_than: datetime):
@@ -146,56 +135,6 @@ def delete_weather_station_model_predictions(session: Session, older_than: datet
     session.query(WeatherStationModelPrediction)\
         .filter(WeatherStationModelPrediction.prediction_timestamp < older_than)\
         .delete()
-
-
-def get_model_run_predictions(
-        session: Session,
-        prediction_run: PredictionModelRunTimestamp,
-        coordinates) -> List:
-    """
-    Get the predictions for a particular model run, for a specified geographical coordinate.
-
-    Returns a PredictionModelGridSubset with joined Prediction and PredictionValueType."""
-    # condition for query: are coordinates within the saved grids
-    geom_or = _construct_grid_filter(coordinates)
-
-    # We are only interested in predictions from now onwards
-    now = time_utils.get_utc_now()
-
-    # Build up the query:
-    query = session.query(PredictionModelGridSubset, ModelRunGridSubsetPrediction).\
-        filter(geom_or).\
-        filter(ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id == prediction_run.id).\
-        filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == PredictionModelGridSubset.id).\
-        filter(ModelRunGridSubsetPrediction.prediction_timestamp >= now).\
-        order_by(PredictionModelGridSubset.id,
-                 ModelRunGridSubsetPrediction.prediction_timestamp.asc())
-    return query
-
-
-def get_predictions_from_coordinates(session: Session, coordinates: List, model: str) -> List:
-    """ Get the predictions for a particular model, at a specified geographical coordinate. """
-    # condition for query: are coordinates within the saved grids
-    geom_or = _construct_grid_filter(coordinates)
-
-    # We are only interested in the last 5 days.
-    now = time_utils.get_utc_now()
-    back_5_days = now - datetime.timedelta(days=5)
-
-    # Build the query:
-    query = session.query(PredictionModelGridSubset,
-                          ModelRunGridSubsetPrediction,
-                          PredictionModel).\
-        filter(geom_or).\
-        filter(ModelRunGridSubsetPrediction.prediction_timestamp >= back_5_days,
-               ModelRunGridSubsetPrediction.prediction_timestamp <= now).\
-        filter(PredictionModelGridSubset.id ==
-               ModelRunGridSubsetPrediction.prediction_model_grid_subset_id).\
-        filter(PredictionModelGridSubset.prediction_model_id == PredictionModel.id,
-               PredictionModel.abbreviation == model).\
-        order_by(PredictionModelGridSubset.id,
-                 ModelRunGridSubsetPrediction.prediction_timestamp.asc())
-    return query
 
 
 def get_station_model_predictions_order_by_prediction_timestamp(

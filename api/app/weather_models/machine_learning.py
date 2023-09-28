@@ -6,12 +6,10 @@ from collections import defaultdict
 from typing import List
 from logging import getLogger
 from sklearn.linear_model import LinearRegression
-from scipy.interpolate import griddata
 import numpy as np
 from sqlalchemy.orm import Session
 from app.weather_models import SCALAR_MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
-from app.db.models.weather_models import (
-    PredictionModel, PredictionModelGridSubset, ModelRunPrediction)
+from app.db.models.weather_models import (PredictionModel, ModelRunPrediction)
 from app.db.models.observations import HourlyActual
 from app.db.crud.observations import get_actuals_left_outer_join_with_predictions
 
@@ -80,26 +78,18 @@ class Samples:
         return np.array(self._y[hour])
 
     def add_sample(self,
-                   points: List,
-                   target_point: List,
-                   model_values: List,
+                   model_value: float,
                    actual_value: float,
                    timestamp: datetime,
                    model_key: str,
                    sample_key: str):
         """ Add a sample, interpolating the model values spatially """
-        # Interpolate spatially, to get close to our actual position:
-        try:
-            interpolated_value = griddata(
-                points, model_values, target_point, method='linear')
-        except:
-            # Additional logging to assist with finding errors:
-            logger.error('for %s->%s griddata failed with points: %s, model_values %s, target_point: %s',
-                         model_key, sample_key, points, model_values, target_point)
-            raise
+        # Additional logging to assist with finding errors:
+        logger.info('adding sample for %s->%s with: model_values %s, actual_value: %s',
+                    model_key, sample_key, model_value, actual_value)
         # Add to the data we're going to learn from:
         # Using two variables, the interpolated temperature value, and the hour of the day.
-        self.append_x(interpolated_value[0], timestamp)
+        self.append_x(model_value, timestamp)
         self.append_y(actual_value, timestamp)
 
 
@@ -119,8 +109,6 @@ class StationMachineLearning:
     def __init__(self,
                  session: Session,
                  model: PredictionModel,
-                 grid: PredictionModelGridSubset,
-                 points: List,
                  target_coordinate: List[float],
                  station_code: int,
                  max_learn_date: datetime):
@@ -135,8 +123,6 @@ class StationMachineLearning:
         """
         self.session = session
         self.model = model
-        self.grid = grid
-        self.points = points
         self.target_coordinate = target_coordinate
         self.station_code = station_code
         self.regression_models = defaultdict(RegressionModels)
@@ -160,8 +146,7 @@ class StationMachineLearning:
                     logger.warning('no actual value for %s', sample_key)
                     continue
                 sample_value = getattr(sample_collection, sample_key)
-                sample_value.add_sample(self.points, self.target_coordinate, model_value,
-                                        actual_value, actual.weather_date, model_key, sample_key)
+                sample_value.add_sample(model_value, actual_value, actual.weather_date, model_key, sample_key)
             else:
                 # Sometimes, for reasons that probably need investigation, model values
                 # are None.

@@ -10,10 +10,9 @@ from sqlalchemy.orm import Session
 from app.db.crud.weather_models import (get_processed_file_record,
                                         get_processed_file_count,
                                         get_prediction_model_run_timestamp_records,
-                                        get_model_run_predictions_for_grid,
+                                        get_model_run_predictions,
                                         get_grids_for_coordinate,
                                         get_weather_station_model_prediction,
-                                        delete_model_run_grid_subset_predictions,
                                         delete_weather_station_model_predictions,
                                         refresh_morecast2_materialized_view)
 from app.weather_models.machine_learning import StationMachineLearning
@@ -24,7 +23,7 @@ import app.utils.time as time_utils
 from app.utils.redis import create_redis
 from app.stations import get_stations_synchronously, StationSourceEnum
 from app.db.models.weather_models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                                          WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
+                                          WeatherStationModelPrediction, ModelRunPrediction)
 import app.db.database
 from app.db.crud.observations import get_accumulated_precipitation
 
@@ -164,17 +163,16 @@ def apply_data_retention_policy():
         # Currently we're using 19 days of data for machine learning, so
         # keeping 21 days (3 weeks) of historic data is sufficient.
         oldest_to_keep = time_utils.get_utc_now() - time_utils.data_retention_threshold
-        delete_model_run_grid_subset_predictions(session, oldest_to_keep)
         delete_weather_station_model_predictions(session, oldest_to_keep)
 
 
-def accumulate_nam_precipitation(nam_cumulative_precip: list[float], prediction: ModelRunGridSubsetPrediction, model_run_hour: int):
+def accumulate_nam_precipitation(nam_cumulative_precip: float, prediction: ModelRunPrediction, model_run_hour: int):
     """ Calculate overall cumulative precip and cumulative precip for the current prediction. """
     # 00 and 12 hour model runs accumulate precipitation in 12 hour intervals, 06 and 18 hour accumulate in
     # 3 hour intervals
     nam_accumulation_interval = 3 if model_run_hour == 6 or model_run_hour == 18 else 12
     cumulative_precip = nam_cumulative_precip
-    prediction_precip = prediction.apcp_sfc_0 or [0.0, 0.0, 0.0, 0.0]
+    prediction_precip = prediction.apcp_sfc_0 or 0.0
     current_precip = numpy.add(nam_cumulative_precip, prediction_precip)
     if prediction.prediction_timestamp.hour % nam_accumulation_interval == 0:
         # If we're on an 'accumulation interval', update the cumulative precip
@@ -210,7 +208,7 @@ class ModelValueProcessor:
         logger.info('done commit.')
 
     def _process_prediction(self,
-                            prediction: ModelRunGridSubsetPrediction,
+                            prediction: ModelRunPrediction,
                             station: WeatherStation,
                             model_run: PredictionModelRunTimestamp,
                             machine: StationMachineLearning):
@@ -229,26 +227,26 @@ class ModelValueProcessor:
         # 2020 Dec 15, Sybrand: Encountered situation where tmp_tgl_2 was None, add this workaround for it.
         # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
         # tmp_tgl_2 layer failed to download and process, while other layers did.
-        if prediction.tmp_tgl_2 is None or len(prediction.tmp_tgl_2) == 0:
+        if prediction.tmp_tgl_2 is None:
             logger.warning('tmp_tgl_2 is None or empty for ModelRunGridSubsetPrediction.id == %s', prediction.id)
         else:
-            station_prediction.tmp_tgl_2 = prediction.tmp_tgl_2[0]
+            station_prediction.tmp_tgl_2 = prediction.tmp_tgl_2
 
         # 2020 Dec 10, Sybrand: Encountered situation where rh_tgl_2 was None, add this workaround for it.
         # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
         # rh_tgl_2 layer failed to download and process, while other layers did.
-        if prediction.rh_tgl_2 is None or len(prediction.rh_tgl_2) == 0:
+        if prediction.rh_tgl_2 is None:
             # This is unexpected, so we log it.
-            logger.warning('rh_tgl_2 is None or empty for ModelRunGridSubsetPrediction.id == %s', prediction.id)
+            logger.warning('rh_tgl_2 is None for ModelRunGridSubsetPrediction.id == %s', prediction.id)
             station_prediction.rh_tgl_2 = None
         else:
-            station_prediction.rh_tgl_2 = prediction.rh_tgl_2[0]
+            station_prediction.rh_tgl_2 = prediction.rh_tgl_2
         # Check that apcp_sfc_0 is None, since accumulated precipitation
         # does not exist for 00 hour.
         if prediction.apcp_sfc_0 is None:
             station_prediction.apcp_sfc_0 = 0.0
         else:
-            station_prediction.apcp_sfc_0 = prediction.apcp_sfc_0[0]
+            station_prediction.apcp_sfc_0 = prediction.apcp_sfc_0
         # Calculate the delta_precipitation based on station's previous prediction_timestamp
         # for the same model run
         self.session.flush()
@@ -288,7 +286,7 @@ class ModelValueProcessor:
         self.session.add(station_prediction)
 
     def _calculate_past_24_hour_precip(self, station: WeatherStation, model_run: PredictionModelRunTimestamp,
-                                       prediction: ModelRunGridSubsetPrediction, station_prediction: WeatherStationModelPrediction):
+                                       prediction: ModelRunPrediction, station_prediction: WeatherStationModelPrediction):
         """ Calculate the predicted precipitation over the previous 24 hours within the specified model run.
         If the model run does not contain a prediction timestamp for 24 hours prior to the current prediction,
         return the predicted precipitation from the previous run of the same model for the same time frame. """
@@ -343,49 +341,35 @@ class ModelValueProcessor:
         # Lookup the grid our weather station is in.
         logger.info("Getting grid for coordinate %s and model %s",
                     coordinate, model_run.prediction_model)
-        # There should never be more than one grid per model - but it can happen.
-        # TODO: Re-factor away the need for the grid table entirely.
-        grid_query = get_grids_for_coordinate(
-            self.session, model_run.prediction_model, coordinate)
+        machine = StationMachineLearning(
+            session=self.session,
+            model=model_run.prediction_model,
+            target_coordinate=coordinate,
+            station_code=station.code,
+            max_learn_date=model_run.prediction_run_timestamp)
+        machine.learn()
 
-        for grid in grid_query:
-            # Convert the grid database object to a polygon object.
-            poly = to_shape(grid.geom)
-            # Extract the vertices of the polygon.
-            points = list(poly.exterior.coords)[:-1]
+        # Get all the predictions associated to this particular model run.
+        query = get_model_run_predictions(self.session, model_run)
 
-            machine = StationMachineLearning(
-                session=self.session,
-                model=model_run.prediction_model,
-                grid=grid,
-                points=points,
-                target_coordinate=coordinate,
-                station_code=station.code,
-                max_learn_date=model_run.prediction_run_timestamp)
-            machine.learn()
+        nam_cumulative_precip = 0.0
+        # Iterate through all the predictions.
+        prev_prediction = None
 
-            # Get all the predictions associated to this particular model run, in the grid.
-            query = get_model_run_predictions_for_grid(
-                self.session, model_run, grid)
-
-            nam_cumulative_precip = [0.0, 0.0, 0.0, 0.0]
-            # Iterate through all the predictions.
-            prev_prediction = None
-
-            for prediction in query:
-                # NAM model requires manual calculation of cumulative precip
-                if model_type == ModelEnum.NAM:
-                    nam_cumulative_precip, prediction.apcp_sfc_0 = accumulate_nam_precipitation(
-                        nam_cumulative_precip, prediction, model_run.prediction_run_timestamp.hour)
-                if (prev_prediction is not None
-                        and prev_prediction.prediction_timestamp.hour == 18
-                        and prediction.prediction_timestamp.hour == 21):
-                    noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
-                    self._process_prediction(
-                        noon_prediction, station, model_run, machine)
+        for prediction in query:
+            # NAM model requires manual calculation of cumulative precip
+            if model_type == ModelEnum.NAM:
+                nam_cumulative_precip, prediction.apcp_sfc_0 = accumulate_nam_precipitation(
+                    nam_cumulative_precip, prediction, model_run.prediction_run_timestamp.hour)
+            if (prev_prediction is not None
+                    and prev_prediction.prediction_timestamp.hour == 18
+                    and prediction.prediction_timestamp.hour == 21):
+                noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
                 self._process_prediction(
-                    prediction, station, model_run, machine)
-                prev_prediction = prediction
+                    noon_prediction, station, model_run, machine)
+            self._process_prediction(
+                prediction, station, model_run, machine)
+            prev_prediction = prediction
 
     def _mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
         """ Having completely processed a model run, we can mark it has having been interpolated.
