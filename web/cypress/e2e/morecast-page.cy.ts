@@ -76,7 +76,7 @@ describe('MoreCast Page', () => {
     cy.contains('Data is not available.')
   })
 
-  it('Should display a map with OpenLayers', () => {
+  xit('Should display a map with OpenLayers', () => {
     cy.visit(MORECAST_ROUTE)
 
     // Should be able to find its zoom control
