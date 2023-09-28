@@ -210,7 +210,7 @@ class ModelValueProcessor:
                             station: WeatherStation,
                             model_run: PredictionModelRunTimestamp,
                             machine: StationMachineLearning):
-        """ Create a WeatherStationModelPrediction from the ModelRunGridSubsetPrediction data.
+        """ Create a WeatherStationModelPrediction from the ModelRunPrediction data.
         """
         # If there's already a prediction, we want to update it
         station_prediction = get_weather_station_model_prediction(
@@ -226,7 +226,7 @@ class ModelValueProcessor:
         # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
         # tmp_tgl_2 layer failed to download and process, while other layers did.
         if prediction.tmp_tgl_2 is None:
-            logger.warning('tmp_tgl_2 is None or empty for ModelRunGridSubsetPrediction.id == %s', prediction.id)
+            logger.warning('tmp_tgl_2 is None for ModelRunPrediction.id == %s', prediction.id)
         else:
             station_prediction.tmp_tgl_2 = prediction.tmp_tgl_2
 
@@ -235,7 +235,7 @@ class ModelValueProcessor:
         # rh_tgl_2 layer failed to download and process, while other layers did.
         if prediction.rh_tgl_2 is None:
             # This is unexpected, so we log it.
-            logger.warning('rh_tgl_2 is None for ModelRunGridSubsetPrediction.id == %s', prediction.id)
+            logger.warning('rh_tgl_2 is None for ModelRunPrediction.id == %s', prediction.id)
             station_prediction.rh_tgl_2 = None
         else:
             station_prediction.rh_tgl_2 = prediction.rh_tgl_2
@@ -255,10 +255,10 @@ class ModelValueProcessor:
 
         # Get the closest wind speed
         if prediction.wind_tgl_10 is not None:
-            station_prediction.wind_tgl_10 = prediction.wind_tgl_10[0]
+            station_prediction.wind_tgl_10 = prediction.wind_tgl_10
         # Get the closest wind direcion
         if prediction.wdir_tgl_10 is not None:
-            station_prediction.wdir_tgl_10 = prediction.wdir_tgl_10[0]
+            station_prediction.wdir_tgl_10 = prediction.wdir_tgl_10
 
         # Predict the temperature
         station_prediction.bias_adjusted_temperature = machine.predict_temperature(
