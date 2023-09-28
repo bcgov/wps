@@ -19,6 +19,11 @@ const LegendGrid = styled(Grid)({
   border: '2px solid black'
 })
 
+const LegendSymbol = styled(Icon)({
+  width: '2.5rem',
+  height: '1rem'
+})
+
 interface SubItem {
   label: string
   symbol: string
@@ -45,7 +50,7 @@ const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subIt
         {subItems.map(subItem => (
           <ListItem disablePadding key={subItem.label}>
             <ListItemIcon>
-              <Icon sx={{ backgroundColor: subItem.symbol, width: '2.5rem', height: '1rem' }} />
+              <LegendSymbol sx={{ backgroundColor: subItem.symbol }} />
             </ListItemIcon>
             <ListItemText>{subItem.label}</ListItemText>
           </ListItem>
