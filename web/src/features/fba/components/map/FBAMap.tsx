@@ -6,14 +6,13 @@ import { defaults as defaultControls, FullScreen } from 'ol/control'
 import { fromLonLat } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
-import XYZ from 'ol/source/XYZ'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectRunDates } from 'app/rootReducer'
-import { source as baseMapSource, COG_TILE_SIZE, SFMS_MAX_ZOOM } from 'features/fireWeather/components/maps/constants'
+import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter, FireZone, FireZoneArea } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
@@ -27,7 +26,7 @@ import {
 } from 'features/fba/components/map/featureStylers'
 import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
-import { PMTILES_BUCKET, RASTER_SERVER_BASE_URL } from 'utils/env'
+import { PMTILES_BUCKET } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
 import { isUndefined, cloneDeep, isNull } from 'lodash'
@@ -47,27 +46,6 @@ export interface FBAMapProps {
   fireZoneAreas: FireZoneArea[]
   runType: RunType
   advisoryThreshold: number
-}
-
-export const hfiSourceFactory = (url: string) => {
-  return new XYZ({
-    url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=${url}&source=hfi`,
-    interpolate: false,
-    tileSize: COG_TILE_SIZE,
-    maxZoom: SFMS_MAX_ZOOM
-  })
-}
-
-export const ftlSourceFactory = (filter: string) => {
-  return new XYZ({
-    url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/ftl/ftl_2018_cloudoptimized.tif&source=ftl&filter=${filter}`,
-    interpolate: true,
-    tileSize: COG_TILE_SIZE
-  })
-}
-
-export const hfiTileFactory = (url: string, layerName: string) => {
-  return new Tile({ source: hfiSourceFactory(url), properties: { name: layerName } })
 }
 
 const removeLayerByName = (map: ol.Map, layerName: string) => {
