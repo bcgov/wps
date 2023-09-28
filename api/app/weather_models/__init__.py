@@ -37,14 +37,14 @@ class ProjectionEnum(str, Enum):
 
 
 def interpolate_between_two_points(
-        x1: int, x2: int, y1: float, y2: float, xn: int):
+        x1: int, x2: int, y1: float, y2: float, xn: int) -> float:
     """ Interpolate values between two points in time.
     :param x1: X coordinate of the 1st value.
     :param x2: X coordinate of the 2nd value.
-    :param y1: List of values at the 1st timestamp.
-    :param y2: List of values at the 2nd timestamp.
+    :param y1: value at the 1st timestamp.
+    :param y2: value at the 2nd timestamp.
     :param xn: The c coordinate we want values for.
-    :return: Interpolated values.
+    :return: Interpolated value.
 
     """
     # Prepare x-axis (time).
@@ -55,7 +55,7 @@ def interpolate_between_two_points(
     # Create interpolation function.
     function = interp1d(x_axis, y_axis, kind='linear')
     # Use iterpolation function to derive values at the time of interest.
-    return function(xn)
+    return function(xn).item()
 
 
 def interpolate_bearing(time_a: datetime, time_b: datetime, target_time: datetime,
@@ -129,6 +129,7 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction,
             continue
 
         value = interpolate_between_two_points(timestamp_a, timestamp_b, value_a, value_b, noon_timestamp)
+        assert isinstance(value, float)
         setattr(noon_prediction, key, value)
     if noon_prediction.apcp_sfc_0 is None or prediction_a.apcp_sfc_0 is None:
         noon_prediction.delta_precip = None
