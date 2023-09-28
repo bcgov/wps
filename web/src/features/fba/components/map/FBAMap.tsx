@@ -83,7 +83,7 @@ const removeLayerByName = (map: ol.Map, layerName: string) => {
 const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const [showZoneStatus, setShowZoneStatus] = useState(true)
-  const [hfiChecked, setHFIChecked] = React.useState(false)
+  const [showHFI, setShowHFI] = React.useState(false)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const { mostRecentRunDate } = useSelector(selectRunDates)
@@ -109,15 +109,11 @@ const FBAMap = (props: FBAMapProps) => {
         .find(l => l.getProperties()?.name === layerName)
 
       if (layerName === 'fireZoneVector') {
-        setShowZoneStatus(isVisible)
         fireZoneVTL.setStyle(
           fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone, isVisible)
         )
       } else if (layer) {
         layer.setVisible(isVisible)
-        if (layerName === 'hfiVector') {
-          setHFIChecked(isVisible)
-        }
       }
     }
   }
@@ -235,7 +231,7 @@ const FBAMap = (props: FBAMapProps) => {
         zIndex: 100,
         minZoom: 4,
         properties: { name: layerName },
-        visible: hfiChecked
+        visible: showHFI
       })
       map.addLayer(latestHFILayer)
     }
@@ -266,10 +262,7 @@ const FBAMap = (props: FBAMapProps) => {
         fireZoneLabelVTL
       ],
       overlays: [],
-      controls: defaultControls().extend([
-        new FullScreen()
-        // LayerControl.buildLayerCheckbox('High HFI', setShowHighHFI, showHighHFI)
-      ])
+      controls: defaultControls().extend([new FullScreen()])
     })
     mapObject.setTarget(mapRef.current)
 
@@ -315,7 +308,13 @@ const FBAMap = (props: FBAMapProps) => {
           }}
         >
           <Box sx={{ position: 'absolute', zIndex: '1', bottom: '0.5rem' }}>
-            <Legend onToggleLayer={handleToggleLayer} />
+            <Legend
+              onToggleLayer={handleToggleLayer}
+              showZoneStatus={showZoneStatus}
+              setShowZoneStatus={setShowZoneStatus}
+              showHFI={showHFI}
+              setShowHFI={setShowHFI}
+            />
           </Box>
         </Box>
       </MapContext.Provider>

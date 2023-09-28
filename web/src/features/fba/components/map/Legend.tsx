@@ -57,20 +57,21 @@ const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subIt
 
 interface LegendProps {
   onToggleLayer: (layerName: string, isVisible: boolean) => void
+  showZoneStatus: boolean
+  setShowZoneStatus: React.Dispatch<React.SetStateAction<boolean>>
+  showHFI: boolean
+  setShowHFI: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const Legend = ({ onToggleLayer }: LegendProps) => {
-  const [zoneStatusChecked, setZoneStatusChecked] = React.useState(true)
-  const [hfiChecked, setHFIChecked] = React.useState(false)
-
+const Legend = ({ onToggleLayer, showZoneStatus, setShowZoneStatus, showHFI, setShowHFI }: LegendProps) => {
   const handleFireZoneLayerChange = () => {
-    setZoneStatusChecked(!zoneStatusChecked)
-    onToggleLayer('fireZoneVector', !zoneStatusChecked)
+    setShowZoneStatus(!showZoneStatus)
+    onToggleLayer('fireZoneVector', !showZoneStatus)
   }
 
   const handleHFILayerChange = () => {
-    setHFIChecked(!hfiChecked)
-    onToggleLayer('hfiVector', !hfiChecked)
+    setShowHFI(!showHFI)
+    onToggleLayer('hfiVector', !showHFI)
   }
 
   const zoneStatusSubItems: SubItem[] = [
@@ -89,13 +90,13 @@ const Legend = ({ onToggleLayer }: LegendProps) => {
       </Typography>
       <LegendItem
         label="Zone Status"
-        checked={zoneStatusChecked}
+        checked={showZoneStatus}
         onChange={handleFireZoneLayerChange}
         subItems={zoneStatusSubItems}
       />
       <LegendItem
         label="HFI Potential (kW/h)"
-        checked={hfiChecked}
+        checked={showHFI}
         onChange={handleHFILayerChange}
         subItems={hfiSubItems}
       />
