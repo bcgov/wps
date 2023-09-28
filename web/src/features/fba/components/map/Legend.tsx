@@ -1,9 +1,16 @@
 import React from 'react'
-import { Grid, Typography, Checkbox, List, ListItem, ListItemText } from '@mui/material'
+import { Grid, Typography, Checkbox, List, ListItem, ListItemText, ListItemIcon, Icon } from '@mui/material'
 import { styled } from '@mui/material/styles'
+import {
+  ADVISORY_ORANGE_FILL,
+  ADVISORY_RED_FILL,
+  HFI_ADVISORY,
+  HFI_WARNING
+} from 'features/fba/components/map/featureStylers'
 
 interface SubItem {
   label: string
+  symbol: string
 }
 interface LegendItemProps {
   label: string
@@ -23,9 +30,12 @@ const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subIt
       </Grid>
     </Grid>
     {subItems && (
-      <List dense={true} sx={{ marginLeft: '5rem', marginTop: '-1rem' }}>
+      <List dense={true} sx={{ marginLeft: '2.5rem', marginTop: '-1rem' }}>
         {subItems.map(subItem => (
           <ListItem disablePadding key={subItem.label}>
+            <ListItemIcon>
+              <Icon sx={{ backgroundColor: subItem.symbol, width: '2.5rem', height: '1rem' }} />
+            </ListItemIcon>
             <ListItemText>{subItem.label}</ListItemText>
           </ListItem>
         ))}
@@ -61,8 +71,14 @@ const Legend = ({ onToggleLayer }: LegendProps) => {
     onToggleLayer('hfiVector', !hfiChecked)
   }
 
-  const zoneStatusSubItems: SubItem[] = [{ label: 'Advisory' }, { label: 'Warning' }]
-  const hfiSubItems: SubItem[] = [{ label: '4,000 to 9,999' }, { label: '≥10,000' }]
+  const zoneStatusSubItems: SubItem[] = [
+    { label: 'Advisory', symbol: ADVISORY_ORANGE_FILL },
+    { label: 'Warning', symbol: ADVISORY_RED_FILL }
+  ]
+  const hfiSubItems: SubItem[] = [
+    { label: '4,000 to 9,999', symbol: HFI_ADVISORY },
+    { label: '≥10,000', symbol: HFI_WARNING }
+  ]
 
   return (
     <LegendGrid>
