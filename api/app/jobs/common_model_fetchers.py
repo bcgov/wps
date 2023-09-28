@@ -5,13 +5,11 @@ import requests
 import numpy
 from datetime import datetime, timedelta, timezone
 from pyproj import Geod
-from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
 from app.db.crud.weather_models import (get_processed_file_record,
                                         get_processed_file_count,
                                         get_prediction_model_run_timestamp_records,
                                         get_model_run_predictions,
-                                        get_grids_for_coordinate,
                                         get_weather_station_model_prediction,
                                         delete_weather_station_model_predictions,
                                         refresh_morecast2_materialized_view)
