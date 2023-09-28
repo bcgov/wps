@@ -49,8 +49,10 @@ const LegendGrid = styled(Grid)({
   flexDirection: 'column',
   width: 'fit-content',
   backgroundColor: '#fffafa',
-  paddingRight: '1rem',
-  marginLeft: '1rem'
+  paddingRight: '0.5rem',
+  paddingLeft: '0.5rem',
+  marginLeft: '1rem',
+  border: '2px solid black'
 })
 
 interface LegendProps {
@@ -82,6 +84,9 @@ const Legend = ({ onToggleLayer }: LegendProps) => {
 
   return (
     <LegendGrid>
+      <Typography variant="body1" gutterBottom sx={{ textAlign: 'center' }}>
+        BC Fire Advisory Legend
+      </Typography>
       <LegendItem
         label="Zone Status"
         checked={zoneStatusChecked}
