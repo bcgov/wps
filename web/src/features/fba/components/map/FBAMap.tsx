@@ -235,7 +235,7 @@ const FBAMap = (props: FBAMapProps) => {
       })
       map.addLayer(latestHFILayer)
     }
-  }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showHFI, mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
