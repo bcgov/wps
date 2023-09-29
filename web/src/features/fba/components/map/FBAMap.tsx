@@ -46,6 +46,8 @@ export interface FBAMapProps {
   fireZoneAreas: FireZoneArea[]
   runType: RunType
   advisoryThreshold: number
+  showSummaryPanel: boolean
+  setShowSummaryPanel: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const removeLayerByName = (map: ol.Map, layerName: string) => {
@@ -158,11 +160,20 @@ const FBAMap = (props: FBAMapProps) => {
             mof_fire_centre_name: feature.get('MOF_FIRE_CENTRE_NAME'),
             area_sqm: feature.get('FEATURE_AREA_SQM')
           }
+          props.setShowSummaryPanel(true)
           props.setSelectedFireZone(fireZone)
         })
       })
     }
   }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!map) return
+
+    if (!props.showSummaryPanel) {
+      props.setSelectedFireZone(undefined)
+    }
+  }, [props.showSummaryPanel]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!map) return
