@@ -32,6 +32,10 @@ describe('FBAMap', () => {
           setSelectedFireZone={function (): void {
             throw new Error('Function not implemented.')
           }}
+          showSummaryPanel={true}
+          setShowSummaryPanel={function (): void {
+            throw new Error('Function not implemented.')
+          }}
         />
       </Provider>
     )
