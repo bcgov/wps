@@ -60,7 +60,9 @@ export const fireZoneStyler = (
         color: strokeValue,
         width: selected ? 8 : 1
       }),
-      fill: showZoneStatus ? getAdvisoryColors(advisoryThreshold, fireZoneAreaByThreshold) : undefined
+      fill: showZoneStatus
+        ? getAdvisoryColors(advisoryThreshold, fireZoneAreaByThreshold)
+        : new Fill({ color: EMPTY_FILL })
     })
   }
   return a
