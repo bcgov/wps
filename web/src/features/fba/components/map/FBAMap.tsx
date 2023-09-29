@@ -152,7 +152,7 @@ const FBAMap = (props: FBAMapProps) => {
           }
           const zoneExtent = feature.getGeometry()?.getExtent()
           if (!isUndefined(zoneExtent)) {
-            map.getView().fit(zoneExtent)
+            map.getView().fit(zoneExtent, { duration: 400, padding: [50, 50, 50, 50], maxZoom: 7.4 })
           }
           const fireZone: FireZone = {
             mof_fire_zone_id: feature.get('MOF_FIRE_ZONE_ID'),
