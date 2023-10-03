@@ -13,8 +13,6 @@ const LegendGrid = styled(Grid)({
   flexDirection: 'column',
   width: 'fit-content',
   backgroundColor: '#fffafa',
-  paddingRight: '0.5rem',
-  paddingLeft: '0.5rem',
   marginLeft: '0.5rem',
   border: '2px solid black'
 })
@@ -22,6 +20,13 @@ const LegendGrid = styled(Grid)({
 const LegendSymbol = styled(Icon)({
   width: '2.5rem',
   height: '1rem'
+})
+
+const LegendTitle = styled(Typography)({
+  fontVariant: 'h1',
+  fontSize: '1.2rem',
+  fontWeight: 'bold',
+  margin: '0.8rem 0.6rem'
 })
 
 interface SubItem {
@@ -37,16 +42,18 @@ interface LegendItemProps {
 
 const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subItems }) => (
   <div>
-    <Grid container alignItems={'center'}>
+    <Grid container alignItems={'center'} paddingLeft={'0.5rem'}>
       <Grid item>
         <Checkbox checked={checked} onChange={onChange} />
       </Grid>
       <Grid item>
-        <Typography variant="body2">{label}</Typography>
+        <Typography variant="h2" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
+          {label}
+        </Typography>
       </Grid>
     </Grid>
     {subItems && (
-      <List dense={true} sx={{ marginLeft: '2.5rem', marginTop: '-1rem' }}>
+      <List dense={true} sx={{ marginLeft: '3rem', marginTop: '-1rem' }}>
         {subItems.map(subItem => (
           <ListItem disablePadding key={subItem.label}>
             <ListItemIcon>
@@ -89,9 +96,9 @@ const Legend = ({ onToggleLayer, showZoneStatus, setShowZoneStatus, showHFI, set
 
   return (
     <LegendGrid>
-      <Typography align="center" variant="body2" gutterBottom sx={{ fontWeight: 'bold' }}>
+      <LegendTitle align="center" gutterBottom>
         BC Fire Advisory Legend
-      </Typography>
+      </LegendTitle>
       <LegendItem
         label="Zone Status"
         checked={showZoneStatus}
