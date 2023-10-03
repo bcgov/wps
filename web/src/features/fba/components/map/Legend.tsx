@@ -42,28 +42,30 @@ interface LegendItemProps {
 
 const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subItems }) => (
   <div>
-    <Grid container alignItems={'center'} paddingLeft={'1rem'}>
-      <Grid item>
-        <Checkbox checked={checked} onChange={onChange} />
+    <Grid>
+      <Grid container alignItems={'center'}>
+        <Grid item>
+          <Checkbox checked={checked} onChange={onChange} />
+        </Grid>
+        <Grid item>
+          <Typography variant="h2" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
+            {label}
+          </Typography>
+        </Grid>
       </Grid>
-      <Grid item>
-        <Typography variant="h2" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
-          {label}
-        </Typography>
-      </Grid>
+      {subItems && (
+        <List dense={true} sx={{ marginLeft: '2.5rem', marginTop: '-1rem' }}>
+          {subItems.map(subItem => (
+            <ListItem disablePadding key={subItem.label}>
+              <ListItemIcon>
+                <LegendSymbol sx={{ backgroundColor: subItem.symbol }} />
+              </ListItemIcon>
+              <ListItemText>{subItem.label}</ListItemText>
+            </ListItem>
+          ))}
+        </List>
+      )}
     </Grid>
-    {subItems && (
-      <List dense={true} sx={{ marginLeft: '3.5rem', marginTop: '-1rem' }}>
-        {subItems.map(subItem => (
-          <ListItem disablePadding key={subItem.label}>
-            <ListItemIcon>
-              <LegendSymbol sx={{ backgroundColor: subItem.symbol }} />
-            </ListItemIcon>
-            <ListItemText>{subItem.label}</ListItemText>
-          </ListItem>
-        ))}
-      </List>
-    )}
   </div>
 )
 
@@ -95,9 +97,9 @@ const Legend = ({ onToggleLayer, showZoneStatus, setShowZoneStatus, showHFI, set
   ]
 
   return (
-    <LegendGrid>
+    <LegendGrid padding={'0 0.5rem'}>
       <LegendTitle align="center" gutterBottom>
-        BC Fire Advisory Legend
+        BC Fire Advisories
       </LegendTitle>
       <LegendItem
         label="Zone Status"
