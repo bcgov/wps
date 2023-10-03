@@ -42,7 +42,7 @@ interface LegendItemProps {
 
 const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subItems }) => (
   <div>
-    <Grid container alignItems={'center'} paddingLeft={'0.5rem'}>
+    <Grid container alignItems={'center'} paddingLeft={'1rem'}>
       <Grid item>
         <Checkbox checked={checked} onChange={onChange} />
       </Grid>
@@ -53,7 +53,7 @@ const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subIt
       </Grid>
     </Grid>
     {subItems && (
-      <List dense={true} sx={{ marginLeft: '3rem', marginTop: '-1rem' }}>
+      <List dense={true} sx={{ marginLeft: '3.5rem', marginTop: '-1rem' }}>
         {subItems.map(subItem => (
           <ListItem disablePadding key={subItem.label}>
             <ListItemIcon>
