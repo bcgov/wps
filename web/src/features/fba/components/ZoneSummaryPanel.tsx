@@ -10,7 +10,7 @@ import CloseIcon from '@mui/icons-material/Close'
 
 const SidePanelGrid = styled(Grid)({
   minWidth: 400,
-  overflowY: 'auto',
+  overflowY: 'scroll',
   maxHeight: '100%',
   padding: 0
 })
