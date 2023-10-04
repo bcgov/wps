@@ -19,11 +19,11 @@ describe('Legend', () => {
     const legendComponent = getByTestId('asa-map-legend')
     await waitFor(() => expect(legendComponent).toBeInTheDocument())
 
-    const zoneStatus = getByTestId('Zone Status-checkbox')
+    const zoneStatus = getByTestId('zone-checkbox')
     const zoneStatusCheckbox = within(zoneStatus).getByRole('checkbox')
     await waitFor(() => expect(zoneStatusCheckbox).toBeChecked())
 
-    const hfi = getByTestId('HFI Potential (kW/h)-checkbox')
+    const hfi = getByTestId('hfi-checkbox')
     const hfiCheckbox = within(hfi).getByRole('checkbox')
     await waitFor(() => expect(hfiCheckbox).not.toBeChecked())
   })

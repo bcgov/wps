@@ -45,7 +45,11 @@ const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subIt
     <Grid>
       <Grid container alignItems={'center'}>
         <Grid item>
-          <Checkbox data-testid={`${label}-checkbox`} checked={checked} onChange={onChange} />
+          <Checkbox
+            data-testid={`${label.toLowerCase().split(' ')[0]}-checkbox`}
+            checked={checked}
+            onChange={onChange}
+          />
         </Grid>
         <Grid item>
           <Typography variant="h2" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
