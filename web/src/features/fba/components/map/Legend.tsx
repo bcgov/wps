@@ -45,7 +45,7 @@ const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subIt
     <Grid>
       <Grid container alignItems={'center'}>
         <Grid item>
-          <Checkbox checked={checked} onChange={onChange} />
+          <Checkbox data-testid={`${label}-checkbox`} checked={checked} onChange={onChange} />
         </Grid>
         <Grid item>
           <Typography variant="h2" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
@@ -97,7 +97,7 @@ const Legend = ({ onToggleLayer, showZoneStatus, setShowZoneStatus, showHFI, set
   ]
 
   return (
-    <LegendGrid padding={'0 0.5rem'}>
+    <LegendGrid padding={'0 0.5rem'} data-testid={`asa-map-legend`}>
       <LegendTitle align="center" gutterBottom>
         BC Fire Advisories
       </LegendTitle>
