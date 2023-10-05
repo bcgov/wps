@@ -1,11 +1,10 @@
 """ Code common to app.weather_models.fetch """
 from datetime import datetime
 from enum import Enum
-from typing import List
 import logging
 from scipy.interpolate import interp1d
 
-from app.db.models.weather_models import ModelRunGridSubsetPrediction
+from app.db.models.weather_models import ModelRunPrediction
 
 logger = logging.getLogger(__name__)
 
@@ -38,30 +37,25 @@ class ProjectionEnum(str, Enum):
 
 
 def interpolate_between_two_points(
-        x1: int, x2: int, y1: List[float], y2: List[float], xn: int):
+        x1: int, x2: int, y1: float, y2: float, xn: int) -> float:
     """ Interpolate values between two points in time.
     :param x1: X coordinate of the 1st value.
     :param x2: X coordinate of the 2nd value.
-    :param y1: List of values at the 1st timestamp.
-    :param y2: List of values at the 2nd timestamp.
+    :param y1: value at the 1st timestamp.
+    :param y2: value at the 2nd timestamp.
     :param xn: The c coordinate we want values for.
-    :return: Interpolated values.
+    :return: Interpolated value.
 
     """
     # Prepare x-axis (time).
     x_axis = [x1, x2]
     # Prepare y-axis (values).
-    y_axis = [
-        [y1[0], y2[0]],
-        [y1[1], y2[1]],
-        [y1[2], y2[2]],
-        [y1[3], y2[3]]
-    ]
+    y_axis = [y1, y2]
 
     # Create interpolation function.
     function = interp1d(x_axis, y_axis, kind='linear')
     # Use iterpolation function to derive values at the time of interest.
-    return function(xn)
+    return function(xn).item()
 
 
 def interpolate_bearing(time_a: datetime, time_b: datetime, target_time: datetime,
@@ -99,31 +93,27 @@ def interpolate_bearing(time_a: datetime, time_b: datetime, target_time: datetim
     return interpolated_value
 
 
-def interpolate_wind_direction(prediction_a: ModelRunGridSubsetPrediction,
-                               prediction_b: ModelRunGridSubsetPrediction,
+def interpolate_wind_direction(prediction_a: ModelRunPrediction,
+                               prediction_b: ModelRunPrediction,
                                target_timestamp: datetime):
     """ Interpolate wind direction  """
     if prediction_a.wdir_tgl_10 is None or prediction_b.wdir_tgl_10 is None:
         # There's nothing to interpolate!
         return None
-    result = []
-    for wdir_tgl_10_a, wdir_tgl_10_b in zip(prediction_a.wdir_tgl_10, prediction_b.wdir_tgl_10):
 
-        interpolated_wdir = interpolate_bearing(prediction_a.prediction_timestamp,
-                                                prediction_b.prediction_timestamp, target_timestamp,
-                                                wdir_tgl_10_a, wdir_tgl_10_b)
+    interpolated_wdir = interpolate_bearing(prediction_a.prediction_timestamp,
+                                            prediction_b.prediction_timestamp, target_timestamp,
+                                            prediction_a.wdir_tgl_10, prediction_b.wdir_tgl_10)
 
-        result.append(interpolated_wdir)
-
-    return result
+    return interpolated_wdir
 
 
-def construct_interpolated_noon_prediction(prediction_a: ModelRunGridSubsetPrediction,
-                                           prediction_b: ModelRunGridSubsetPrediction):
+def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction,
+                                           prediction_b: ModelRunPrediction):
     """ Construct a noon prediction by interpolating.
     """
     # create a noon prediction. (using utc hour 20, as that is solar noon in B.C.)
-    noon_prediction = ModelRunGridSubsetPrediction()
+    noon_prediction = ModelRunPrediction()
     noon_prediction.prediction_timestamp = prediction_a.prediction_timestamp.replace(
         hour=20)
     # throw timestamps into their own variables.
@@ -139,6 +129,7 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunGridSubsetPredi
             continue
 
         value = interpolate_between_two_points(timestamp_a, timestamp_b, value_a, value_b, noon_timestamp)
+        assert isinstance(value, float)
         setattr(noon_prediction, key, value)
     if noon_prediction.apcp_sfc_0 is None or prediction_a.apcp_sfc_0 is None:
         noon_prediction.delta_precip = None
