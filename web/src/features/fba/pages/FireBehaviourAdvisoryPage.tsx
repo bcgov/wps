@@ -60,6 +60,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
+  const [showSummaryPanel, setShowSummaryPanel] = useState(true)
   const { mostRecentRunDate } = useSelector(selectRunDates)
   const { fireZoneAreas } = useSelector(selectFireZoneAreas)
 
@@ -225,6 +226,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               fuelTypeInfo={hfiThresholdsFuelTypes}
               hfiElevationInfo={fireZoneElevationInfo}
               fireZoneAreas={fireZoneAreas}
+              showSummaryPanel={showSummaryPanel}
+              setShowSummaryPanel={setShowSummaryPanel}
             />
           </Grid>
           <Grid sx={{ display: 'flex', flex: 1 }} ref={mapRef} item>
@@ -236,6 +239,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               advisoryThreshold={advisoryThreshold}
               setSelectedFireZone={setSelectedFireZone}
               fireZoneAreas={fireZoneAreas}
+              showSummaryPanel={showSummaryPanel}
+              setShowSummaryPanel={setShowSummaryPanel}
             />
           </Grid>
         </Grid>
