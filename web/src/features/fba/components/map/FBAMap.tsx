@@ -6,14 +6,13 @@ import { defaults as defaultControls, FullScreen } from 'ol/control'
 import { fromLonLat } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
-import XYZ from 'ol/source/XYZ'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectRunDates } from 'app/rootReducer'
-import { source as baseMapSource, COG_TILE_SIZE, SFMS_MAX_ZOOM } from 'features/fireWeather/components/maps/constants'
+import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter, FireZone, FireZoneArea } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
@@ -27,12 +26,12 @@ import {
 } from 'features/fba/components/map/featureStylers'
 import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
-import { LayerControl } from 'features/fba/components/map/layerControl'
-import { PMTILES_BUCKET, RASTER_SERVER_BASE_URL } from 'utils/env'
+import { PMTILES_BUCKET } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
 import { isUndefined, cloneDeep, isNull } from 'lodash'
 import { Box } from '@mui/material'
+import Legend from 'features/fba/components/map/Legend'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -47,27 +46,8 @@ export interface FBAMapProps {
   fireZoneAreas: FireZoneArea[]
   runType: RunType
   advisoryThreshold: number
-}
-
-export const hfiSourceFactory = (url: string) => {
-  return new XYZ({
-    url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=${url}&source=hfi`,
-    interpolate: false,
-    tileSize: COG_TILE_SIZE,
-    maxZoom: SFMS_MAX_ZOOM
-  })
-}
-
-export const ftlSourceFactory = (filter: string) => {
-  return new XYZ({
-    url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/ftl/ftl_2018_cloudoptimized.tif&source=ftl&filter=${filter}`,
-    interpolate: true,
-    tileSize: COG_TILE_SIZE
-  })
-}
-
-export const hfiTileFactory = (url: string, layerName: string) => {
-  return new Tile({ source: hfiSourceFactory(url), properties: { name: layerName } })
+  showSummaryPanel: boolean
+  setShowSummaryPanel: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const removeLayerByName = (map: ol.Map, layerName: string) => {
@@ -82,7 +62,8 @@ const removeLayerByName = (map: ol.Map, layerName: string) => {
 
 const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
-  const [showHighHFI, setShowHighHFI] = useState(true)
+  const [showZoneStatus, setShowZoneStatus] = useState(true)
+  const [showHFI, setShowHFI] = React.useState(false)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const { mostRecentRunDate } = useSelector(selectRunDates)
@@ -100,6 +81,23 @@ const FBAMap = (props: FBAMapProps) => {
     url: `${PMTILES_BUCKET}fireZoneLabels.pmtiles`
   })
 
+  const handleToggleLayer = (layerName: string, isVisible: boolean) => {
+    if (map) {
+      const layer = map
+        .getLayers()
+        .getArray()
+        .find(l => l.getProperties()?.name === layerName)
+
+      if (layerName === 'fireZoneVector') {
+        fireZoneVTL.setStyle(
+          fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone, isVisible)
+        )
+      } else if (layer) {
+        layer.setVisible(isVisible)
+      }
+    }
+  }
+
   const [fireCentreVTL] = useState(
     new VectorTileLayer({
       source: fireCentreVectorSource,
@@ -110,7 +108,12 @@ const FBAMap = (props: FBAMapProps) => {
   const [fireZoneVTL] = useState(
     new VectorTileLayer({
       source: fireZoneVectorSource,
-      style: fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone),
+      style: fireZoneStyler(
+        cloneDeep(props.fireZoneAreas),
+        props.advisoryThreshold,
+        props.selectedFireZone,
+        showZoneStatus
+      ),
       zIndex: 49,
       properties: { name: 'fireZoneVector' }
     })
@@ -149,7 +152,7 @@ const FBAMap = (props: FBAMapProps) => {
           }
           const zoneExtent = feature.getGeometry()?.getExtent()
           if (!isUndefined(zoneExtent)) {
-            map.getView().fit(zoneExtent)
+            map.getView().fit(zoneExtent, { duration: 400, padding: [50, 50, 50, 50], maxZoom: 7.4 })
           }
           const fireZone: FireZone = {
             mof_fire_zone_id: feature.get('MOF_FIRE_ZONE_ID'),
@@ -157,11 +160,20 @@ const FBAMap = (props: FBAMapProps) => {
             mof_fire_centre_name: feature.get('MOF_FIRE_CENTRE_NAME'),
             area_sqm: feature.get('FEATURE_AREA_SQM')
           }
+          props.setShowSummaryPanel(true)
           props.setSelectedFireZone(fireZone)
         })
       })
     }
   }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!map) return
+
+    if (!props.showSummaryPanel) {
+      props.setSelectedFireZone(undefined)
+    }
+  }, [props.showSummaryPanel]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!map) return
@@ -182,7 +194,7 @@ const FBAMap = (props: FBAMapProps) => {
     if (!map) return
 
     fireZoneVTL.setStyle(
-      fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone)
+      fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone, showZoneStatus)
     )
     fireZoneLabelVTL.setStyle(fireZoneLabelStyler(props.selectedFireZone))
     fireZoneVTL.changed()
@@ -194,24 +206,25 @@ const FBAMap = (props: FBAMapProps) => {
     if (!map) return
     const layerName = 'hfiVector'
     removeLayerByName(map, layerName)
-    if (showHighHFI && !isNull(mostRecentRunDate)) {
+    if (!isNull(mostRecentRunDate)) {
       // The runDate for forecasts is the mostRecentRunDate. For Actuals, our API expects the runDate to be
       // the same as the forDate.
       const runDate = props.runType === RunType.FORECAST ? DateTime.fromISO(mostRecentRunDate) : props.forDate
-      const hfiGeojsonSource = new olpmtiles.PMTilesVectorSource({
+      const hfiSource = new olpmtiles.PMTilesVectorSource({
         url: buildPMTilesURL(props.forDate, props.runType, runDate)
       })
 
       const latestHFILayer = new VectorTileLayer({
-        source: hfiGeojsonSource,
+        source: hfiSource,
         style: hfiStyler,
         zIndex: 100,
         minZoom: 4,
-        properties: { name: layerName }
+        properties: { name: layerName },
+        visible: showHFI
       })
       map.addLayer(latestHFILayer)
     }
-  }, [showHighHFI, mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showHFI, mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -238,10 +251,7 @@ const FBAMap = (props: FBAMapProps) => {
         fireZoneLabelVTL
       ],
       overlays: [],
-      controls: defaultControls().extend([
-        new FullScreen(),
-        LayerControl.buildLayerCheckbox('High HFI', setShowHighHFI, showHighHFI)
-      ])
+      controls: defaultControls().extend([new FullScreen()])
     })
     mapObject.setTarget(mapRef.current)
 
@@ -277,7 +287,25 @@ const FBAMap = (props: FBAMapProps) => {
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
-        <Box ref={mapRef} data-testid="fba-map" sx={{ display: 'flex', flex: 1 }}></Box>
+        <Box
+          ref={mapRef}
+          data-testid="fba-map"
+          sx={{
+            display: 'flex',
+            flex: 1,
+            position: 'relative'
+          }}
+        >
+          <Box sx={{ position: 'absolute', zIndex: '1', bottom: '0.5rem' }}>
+            <Legend
+              onToggleLayer={handleToggleLayer}
+              showZoneStatus={showZoneStatus}
+              setShowZoneStatus={setShowZoneStatus}
+              showHFI={showHFI}
+              setShowHFI={setShowHFI}
+            />
+          </Box>
+        </Box>
       </MapContext.Provider>
     </ErrorBoundary>
   )

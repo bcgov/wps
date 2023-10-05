@@ -8,8 +8,11 @@ import { range, startCase, lowerCase, isUndefined } from 'lodash'
 import { FireZone, FireZoneArea } from 'api/fbaAPI'
 
 const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
-const ADVISORY_ORANGE_FILL = 'rgba(255, 147, 38, 0.4)'
-const ADVISORY_RED_FILL = 'rgba(128, 0, 0, 0.4)'
+export const ADVISORY_ORANGE_FILL = 'rgba(255, 147, 38, 0.4)'
+export const ADVISORY_RED_FILL = 'rgba(128, 0, 0, 0.4)'
+
+export const HFI_ADVISORY = 'rgba(255, 128, 0, 0.4)'
+export const HFI_WARNING = 'rgba(255, 0, 0, 0.4)'
 
 const fireCentreTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
   const text = feature.get('mof_fire_centre_name').replace(' Fire Centre', '\nFire Centre')
@@ -40,13 +43,13 @@ export const fireCentreStyler = (): Style => {
 export const fireZoneStyler = (
   fireZoneAreas: FireZoneArea[],
   advisoryThreshold: number,
-  selectedFireZone: FireZone | undefined
+  selectedFireZone: FireZone | undefined,
+  showZoneStatus: boolean
 ) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const mof_fire_zone_id = feature.get('MOF_FIRE_ZONE_ID')
     const fireZoneAreaByThreshold = fireZoneAreas.filter(f => f.mof_fire_zone_id === mof_fire_zone_id)
-    const selected =
-      selectedFireZone?.mof_fire_zone_id && selectedFireZone.mof_fire_zone_id === mof_fire_zone_id ? true : false
+    const selected = !!(selectedFireZone?.mof_fire_zone_id && selectedFireZone.mof_fire_zone_id === mof_fire_zone_id)
     let strokeValue = 'black'
     if (selected) {
       strokeValue = 'green'
@@ -57,7 +60,9 @@ export const fireZoneStyler = (
         color: strokeValue,
         width: selected ? 8 : 1
       }),
-      fill: getAdvisoryColors(advisoryThreshold, fireZoneAreaByThreshold)
+      fill: showZoneStatus
+        ? getAdvisoryColors(advisoryThreshold, fireZoneAreaByThreshold)
+        : new Fill({ color: EMPTY_FILL })
     })
   }
   return a
@@ -158,11 +163,11 @@ const hfiStyle = new Style({})
 export const hfiStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
   const hfi = feature.get('hfi')
   if (hfi === 1) {
-    hfiStyle.setFill(new Fill({ color: 'rgba(255, 128, 0, 0.4)' }))
+    hfiStyle.setFill(new Fill({ color: HFI_ADVISORY }))
   } else if (hfi === 2) {
-    hfiStyle.setFill(new Fill({ color: 'rgba(255, 0, 0, 0.4)' }))
+    hfiStyle.setFill(new Fill({ color: HFI_WARNING }))
   } else {
-    hfiStyle.setFill(new Fill({ color: 'rgba(0, 0, 0, 0)' }))
+    hfiStyle.setFill(new Fill({ color: EMPTY_FILL }))
   }
   return hfiStyle
 }
