@@ -5,7 +5,7 @@ from typing import List
 from sqlalchemy import and_, select
 from sqlalchemy.sql import func
 from sqlalchemy.orm import Session
-from app.db.models.weather_models import ModelRunGridSubsetPrediction, PredictionModelRunTimestamp
+from app.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
 from app.db.models.observations import HourlyActual
 
 
@@ -31,19 +31,18 @@ def get_hourly_actuals(
 
 
 def get_actuals_left_outer_join_with_predictions(
-        session: Session, model_id: int, grid_id: int, station_code: int,
+        session: Session, model_id: int, station_code: int,
         start_date: datetime, end_date: datetime):
     """
     NOTE: Can improve this query by only returning the most recent prediction, maybe using nested
     queries. It works for now - but things could be faster.
     """
-    return session.query(HourlyActual, ModelRunGridSubsetPrediction)\
-        .outerjoin(ModelRunGridSubsetPrediction,
-                   and_(ModelRunGridSubsetPrediction.prediction_timestamp == HourlyActual.weather_date,
-                        ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid_id))\
+    return session.query(HourlyActual, ModelRunPrediction)\
+        .outerjoin(ModelRunPrediction,
+                   and_(ModelRunPrediction.prediction_timestamp == HourlyActual.weather_date))\
         .outerjoin(PredictionModelRunTimestamp,
                    and_(PredictionModelRunTimestamp.id ==
-                        ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id,
+                        ModelRunPrediction.prediction_model_run_timestamp_id,
                         PredictionModelRunTimestamp.prediction_model_id == model_id))\
         .filter(HourlyActual.station_code == station_code)\
         .filter(HourlyActual.weather_date >= start_date)\

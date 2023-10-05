@@ -7,7 +7,6 @@ import datetime
 from datetime import datetime
 import pytest
 import requests
-from geoalchemy2.shape import from_shape
 from sqlalchemy.orm import Session
 from shapely import wkt
 from app.jobs import env_canada
@@ -16,8 +15,8 @@ import app.utils.time as time_utils
 from app.weather_models import machine_learning
 import app.db.crud.weather_models
 from app.stations import StationSourceEnum
-from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                                          ModelRunGridSubsetPrediction, PredictionModelGridSubset)
+from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
+                                          PredictionModelRunTimestamp)
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 from app.tests.weather_models.test_models_common import (MockResponse, mock_get_processed_file_count, mock_get_stations)
 
@@ -37,38 +36,6 @@ def mock_get_processed_file_record(monkeypatch):
         return None
 
     monkeypatch.setattr(env_canada, 'get_processed_file_record', get_processed_file_record)
-
-
-@pytest.fixture()
-def mock_get_model_run_predictions_for_grid(monkeypatch):
-    """ Mock out call to DB returning predictions """
-    def mock_get(*args):
-        result = [
-            ModelRunGridSubsetPrediction(
-                tmp_tgl_2=[2, 3, 4, 5],
-                rh_tgl_2=[10, 20, 30, 40],
-                apcp_sfc_0=[2, 4, 3, 6],
-                wdir_tgl_10=[10, 20, 30, 40],
-                wind_tgl_10=[1, 2, 3, 4],
-                prediction_timestamp=datetime(2020, 10, 10, 18)),
-            ModelRunGridSubsetPrediction(
-                tmp_tgl_2=[1, 2, 3, 4],
-                rh_tgl_2=[20, 30, 40, 50],
-                apcp_sfc_0=[3, 6, 3, 4],
-                wdir_tgl_10=[280, 290, 300, 310],
-                wind_tgl_10=[5, 6, 7, 8],
-                prediction_timestamp=datetime(2020, 10, 10, 21)),
-            ModelRunGridSubsetPrediction(
-                tmp_tgl_2=[1, 2, 3, 4],
-                rh_tgl_2=None,
-                apcp_sfc_0=[3, 6, 3, 4],
-                wdir_tgl_10=[20, 30, 40, 50],
-                wind_tgl_10=[4, 3, 2, 1],
-                prediction_timestamp=datetime(2020, 10, 10, 21))
-        ]
-        return result
-    monkeypatch.setattr(
-        common_model_fetchers, 'get_model_run_predictions_for_grid', mock_get)
 
 
 @pytest.fixture()
@@ -104,17 +71,12 @@ def mock_database(monkeypatch):
             return gdps_processed_model_run
         return None
 
-    def mock_get_grids_for_coordinate(session, prediction_model, coordinate):
-        return [PredictionModelGridSubset(
-            id=1, prediction_model_id=gdps_prediction_model.id, geom=from_shape(shape)), ]
-
     def mock_get_prediction_run(*args, **kwargs):
         return gdps_prediction_model_run
 
     monkeypatch.setattr(common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_gdps_prediction_model_run_timestamp_records)
     monkeypatch.setattr(common_model_fetchers, 'get_processed_file_record', mock_get_processed_file_record)
-    monkeypatch.setattr(common_model_fetchers, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
     monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
@@ -162,7 +124,6 @@ def mock_get_stations_synchronously(monkeypatch):
 @pytest.mark.usefixtures('mock_get_processed_file_record')
 def test_process_gdps(mock_download,
                       mock_database,
-                      mock_get_model_run_predictions_for_grid,
                       mock_get_actuals_left_outer_join_with_predictions,
                       mock_get_stations_synchronously,
                       mock_get_processed_file_count):

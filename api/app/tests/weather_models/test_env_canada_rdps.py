@@ -8,7 +8,6 @@ import requests
 from typing import Optional
 from shapely import wkt
 from sqlalchemy.orm import Session
-from geoalchemy2.shape import from_shape
 import app.utils.time as time_utils
 import app.weather_models.process_grib
 import app.jobs.env_canada
@@ -16,7 +15,7 @@ import app.jobs.common_model_fetchers
 import app.db.crud.weather_models
 from app.stations import StationSourceEnum
 from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
-                                          PredictionModelRunTimestamp, PredictionModelGridSubset)
+                                          PredictionModelRunTimestamp)
 from app.tests.weather_models.test_env_canada_gdps import (MockResponse)
 
 logger = logging.getLogger(__name__)
@@ -52,10 +51,6 @@ def mock_database(monkeypatch):
             return rdps_processed_model_run
         return None
 
-    def mock_get_grids_for_coordinate(session, prediction_model, coordinate):
-        return [PredictionModelGridSubset(
-            id=1, prediction_model_id=rdps_prediction_model.id, geom=from_shape(shape)), ]
-
     def mock_get_prediction_run(*args, **kwargs):
         return rdps_prediction_model_run
 
@@ -63,7 +58,6 @@ def mock_database(monkeypatch):
     monkeypatch.setattr(app.jobs.common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_rdps_prediction_model_run_timestamp_records)
     monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
-    monkeypatch.setattr(app.jobs.common_model_fetchers, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
     monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
