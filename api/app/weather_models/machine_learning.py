@@ -12,12 +12,14 @@ from app.weather_models import SCALAR_MODEL_VALUE_KEYS, construct_interpolated_n
 from app.db.models.weather_models import (PredictionModel, ModelRunPrediction)
 from app.db.models.observations import HourlyActual
 from app.db.crud.observations import get_actuals_left_outer_join_with_predictions
+from app.weather_models.regression_model import RegressionModelsV2
+from app.weather_models.sample import Samples
 
 
 logger = getLogger(__name__)
 
 # Corresponding key values on HourlyActual and SampleCollection
-SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity', 'wind_speed', 'wind_direction')
+SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity', 'wind_speed')
 # Number of days of historical actual data to learn from when training model
 MAX_DAYS_TO_LEARN = 19
 
@@ -38,59 +40,12 @@ class RegressionModels:
     """
 
     keys = ('temperature_wrapper', 'relative_humidity_wrapper',
-            'wind_speed_wrapper', 'wind_direction_wrapper')
+            'wind_speed_wrapper')
 
     def __init__(self):
         self.temperature_wrapper = LinearRegressionWrapper()
         self.relative_humidity_wrapper = LinearRegressionWrapper()
         self.wind_speed_wrapper = LinearRegressionWrapper()
-        self.wind_direction_wrapper = LinearRegressionWrapper()
-
-
-class Samples:
-    """ Class for storing samples in buckets of hours.
-    e.g. a temperature sample consists of an x axis (predicted values) and a y axis (observed values) put
-    together in hour buckets.
-    """
-
-    def __init__(self):
-        self._x = defaultdict(list)
-        self._y = defaultdict(list)
-
-    def hours(self):
-        """ Return all the hours used to bucket samples together. """
-        return self._x.keys()
-
-    def append_x(self, value, timestamp: datetime):
-        """ Append another predicted value. """
-        self._x[timestamp.hour].append(value)
-
-    def append_y(self, value, timestamp: datetime):
-        """ Append another observered values. """
-        self._y[timestamp.hour].append(value)
-
-    def np_x(self, hour):
-        """ Return numpy array of the predicted values, reshaped appropriately. """
-        return np.array(self._x[hour]).reshape((-1, 1))
-
-    def np_y(self, hour):
-        """ Return a numpy array of the observed values """
-        return np.array(self._y[hour])
-
-    def add_sample(self,
-                   model_value: float,
-                   actual_value: float,
-                   timestamp: datetime,
-                   model_key: str,
-                   sample_key: str):
-        """ Add a sample, interpolating the model values spatially """
-        # Additional logging to assist with finding errors:
-        logger.info('adding sample for %s->%s with: model_values %s, actual_value: %s',
-                    model_key, sample_key, model_value, actual_value)
-        # Add to the data we're going to learn from:
-        # Using two variables, the interpolated temperature value, and the hour of the day.
-        self.append_x(model_value, timestamp)
-        self.append_y(actual_value, timestamp)
 
 
 class SampleCollection:
@@ -100,7 +55,6 @@ class SampleCollection:
         self.temperature = Samples()
         self.relative_humidity = Samples()
         self.wind_speed = Samples()
-        self.wind_direction = Samples()
 
 
 class StationMachineLearning:
@@ -126,6 +80,7 @@ class StationMachineLearning:
         self.target_coordinate = target_coordinate
         self.station_code = station_code
         self.regression_models = defaultdict(RegressionModels)
+        self.regression_models_v2 = RegressionModelsV2()
         self.max_learn_date = max_learn_date
         # Maximum number of days to try to learn from. Experimentation has shown that
         # about two weeks worth of data starts giving fairly good results compared to human forecasters.
@@ -152,12 +107,9 @@ class StationMachineLearning:
                 # are None.
                 logger.warning('no model value for %s->%s', model_key, sample_key)
 
-    def _collect_data(self):
+    def _collect_data(self, start_date: datetime):
         """ Collect data to use for machine learning.
         """
-        # Calculate the date to start learning from.
-        start_date = self.max_learn_date - \
-            timedelta(days=self.max_days_to_learn)
         # Create a convenient structure to store samples in.
         sample_collection = SampleCollection()
 
@@ -177,7 +129,8 @@ class StationMachineLearning:
                         and prev_prediction.prediction_timestamp.hour == 18):
                     # If there's a gap in the data (like with the GLOBAL model) - then make up
                     # a noon prediction using interpolation, and add it as a sample.
-                    noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
+                    noon_prediction = construct_interpolated_noon_prediction(
+                        prev_prediction, prediction, SCALAR_MODEL_VALUE_KEYS)
                     self._add_sample_to_collection(
                         noon_prediction, prev_actual, sample_collection)
 
@@ -190,8 +143,12 @@ class StationMachineLearning:
     def learn(self):
         """ Collect data and perform linear regression.
         """
+        # Calculate the date to start learning from.
+        start_date = self.max_learn_date - \
+            timedelta(days=self.max_days_to_learn)
+
         # collect data
-        data = self._collect_data()
+        data = self._collect_data(start_date)
 
         # iterate through the data, creating a regression model for each variable
         # and each hour.
@@ -205,6 +162,12 @@ class StationMachineLearning:
                 # NOTE: We could get fancy here, and evaluate how good the regression actually worked,
                 # how much sample data we actually had etc., and then not mark the model as being "good".
                 regression_model.good_model = True
+
+        # wdir specific using new structure for regression handling
+        query = get_actuals_left_outer_join_with_predictions(
+            self.session, self.model.id, self.station_code, start_date, self.max_learn_date)
+        self.regression_models_v2.collect_data(query)
+        self.regression_models_v2.train()
 
     def predict_temperature(self, model_temperature: float, timestamp: datetime):
         """ Predict the bias adjusted temperature for a given point in time, given a corresponding model
@@ -255,9 +218,7 @@ class StationMachineLearning:
         : return: The bias-adjusted wind direction as predicted by the linear regression model.
         """
         hour = timestamp.hour
-        if self.regression_models[hour].wind_direction_wrapper.good_model and model_wind_dir is not None:
-            predicted_wind_dir = self.regression_models[hour].wind_direction_wrapper.model.predict([[model_wind_dir]])[
-                0]
-            # a valid wind direction value is between 0 and 360. If the returned value is outside these bounds, correct it
-            return predicted_wind_dir % 360
-        return None
+        predicted_wind_dir = self.regression_models_v2._models[0].predict(hour, model_wind_dir)
+        if predicted_wind_dir is None:
+            return None
+        return predicted_wind_dir % 360
