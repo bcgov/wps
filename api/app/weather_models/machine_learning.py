@@ -218,7 +218,7 @@ class StationMachineLearning:
         : return: The bias-adjusted wind direction as predicted by the linear regression model.
         """
         hour = timestamp.hour
-        predicted_wind_dir = self.regression_models_v2._models[0].predict(hour, model_wind_dir)
+        predicted_wind_dir = self.regression_models_v2._models[0].predict(hour, [model_wind_dir])
         if predicted_wind_dir is None:
             return None
         return predicted_wind_dir % 360

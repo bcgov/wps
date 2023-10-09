@@ -32,7 +32,7 @@ class RegressionModelProto(Protocol):
     def train(self): raise NotImplementedError
 
     @abstractmethod
-    def predict(self, hour: int, model_wind_dir: int): raise NotImplementedError
+    def predict(self, hour: int, model_wind_dir: List[int]): raise NotImplementedError
 
 
 class RegressionModel(RegressionModelProto):
@@ -53,7 +53,7 @@ class RegressionModel(RegressionModelProto):
     def get_model_at_hour(self, hour: int):
         return self._models[hour]
 
-    def predict(self, hour: int, model_wind_dir: int):
+    def predict(self, hour: int, model_wind_dir: List[int]):
         try:
             self._models[hour].predict(model_wind_dir)
         except NotFittedError as e:
