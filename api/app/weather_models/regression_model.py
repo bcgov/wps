@@ -92,7 +92,6 @@ class RegressionModelsV2:
 
     def __init__(self):
         self._model_keys: List[str] = list(model_2_actual_keys.keys())
-        self._model_2_actual_keys.keys()
         self._models: List[RegressionModelProto] = [
             RegressionModel(model_key=self._model_keys[0])
         ]
