@@ -56,9 +56,7 @@ class RegressionModel(RegressionModelProto):
     def predict(self, hour: int, model_wind_dir: List[List[int]]):
         try:
             self._models[hour].predict(model_wind_dir)
-        except NotFittedError as e:
-            logger.error('model %s not fitted when trying to predict for hour %s, error: %s',
-                         self._key, hour, e, exc_info=True)
+        except NotFittedError as _:
             return None
 
     def add_sample(self,
