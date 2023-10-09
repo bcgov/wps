@@ -2,7 +2,7 @@ import logging
 import numpy as np
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
-from typing import List, Protocol
+from typing import Dict, List, Protocol
 from collections import defaultdict
 from abc import abstractmethod
 from app.db.models.observations import HourlyActual
@@ -11,6 +11,11 @@ from app.weather_models import construct_interpolated_noon_prediction
 from app.weather_models.sample import Samples
 
 logger = logging.getLogger(__name__)
+
+# maps weather orm model keys to actual weather orm model keys
+model_2_actual_keys: Dict[str, str] = {
+    "wdir_tgl_10": "wind_direction"
+}
 
 
 class RegressionModelProto(Protocol):
@@ -62,7 +67,7 @@ class RegressionModel(RegressionModelProto):
         """ Add a sample, interpolating the model values spatially """
 
         model_value = getattr(prediction, self._key)
-        actual_value = getattr(actual, self._key)
+        actual_value = getattr(actual, model_2_actual_keys[self._key])
 
         logger.info('adding sample for %s->%s with: model_values %s, actual_value: %s',
                     self._key, self._key, model_value, actual_value)
@@ -71,7 +76,8 @@ class RegressionModel(RegressionModelProto):
             actual_value = getattr(actual, self._key)
             if actual_value is None or np.isnan(actual_value):
                 # If for whatever reason we don't have an actual value, we skip this one.
-                logger.warning('no actual value for %s', self._key)
+                logger.warning('no actual value for model key: %s, actual key: %s',
+                               self._key, model_2_actual_keys[self._key])
 
             # Add to the data we're going to learn from:
             # Using two variables, the interpolated temperature value, and the hour of the day.
@@ -81,12 +87,12 @@ class RegressionModel(RegressionModelProto):
 
 class RegressionModelsV2:
     """ Class for storing regression models.
-    For each different reading, we have a seperate LinearRegression model.
+    TODO: migrate other models to this once wind direction is verified
     """
 
     def __init__(self):
-        # TODO: migrate other models to this once wind direction is verified
-        self._model_keys = ['wdir_tgl_10']
+        self._model_keys: List[str] = list(model_2_actual_keys.keys())
+        self._model_2_actual_keys.keys()
         self._models: List[RegressionModelProto] = [
             RegressionModel(model_key=self._model_keys[0])
         ]
