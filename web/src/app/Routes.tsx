@@ -17,7 +17,7 @@ import {
   LANDING_PAGE_ROUTE,
   MORE_CAST_2_ROUTE
 } from 'utils/constants'
-import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
+import { NoMatchPage } from 'features/moreCast2/pages/NoMatchPage'
 const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/FireBehaviourCalculatorPage'))
 const FireBehaviourAdvisoryPage = lazy(() => import('features/fba/pages/FireBehaviourAdvisoryPage'))
 const LandingPage = lazy(() => import('features/landingPage/pages/LandingPage'))
