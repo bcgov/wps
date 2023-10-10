@@ -174,7 +174,9 @@ def accumulate_nam_precipitation(nam_cumulative_precip: list[float], prediction:
     # 3 hour intervals
     nam_accumulation_interval = 3 if model_run_hour == 6 or model_run_hour == 18 else 12
     cumulative_precip = nam_cumulative_precip
-    prediction_precip = prediction.apcp_sfc_0 or [0.0, 0.0, 0.0, 0.0]
+    prediction_precip = prediction.apcp_sfc_0
+    if prediction_precip is None:
+        prediction_precip = numpy.array([0., 0.0, 0.0, 0.0])
     current_precip = numpy.add(nam_cumulative_precip, prediction_precip)
     if prediction.prediction_timestamp.hour % nam_accumulation_interval == 0:
         # If we're on an 'accumulation interval', update the cumulative precip
@@ -189,7 +191,9 @@ class ModelValueProcessor:
     def __init__(self, session, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
         """ Prepare variables we're going to use throughout """
         self.session = session
-        self.stations = get_stations_synchronously(station_source)
+        stations = get_stations_synchronously(station_source)
+        self.stations = list(station for station in stations if station.code == 427)
+        # self.stations = get_stations_synchronously(station_source)
         self.station_count = len(self.stations)
 
     def _process_model_run(self, model_run: PredictionModelRunTimestamp, model_type: ModelEnum):
@@ -249,13 +253,14 @@ class ModelValueProcessor:
             station_prediction.apcp_sfc_0 = 0.0
         else:
             station_prediction.apcp_sfc_0 = prediction.apcp_sfc_0[0]
-        # Calculate the delta_precipitation based on station's previous prediction_timestamp
+        # Calculate the delta_precipitation and 24 hour precip based on station's previous prediction_timestamp
         # for the same model run
         self.session.flush()
         station_prediction.precip_24h = self._calculate_past_24_hour_precip(
             station, model_run, prediction, station_prediction)
         station_prediction.delta_precip = self._calculate_delta_precip(
             station, model_run, prediction, station_prediction)
+        self.session.flush()
 
         # Get the closest wind speed
         if prediction.wind_tgl_10 is not None:
@@ -281,6 +286,11 @@ class ModelValueProcessor:
             station_prediction.wdir_tgl_10,
             station_prediction.prediction_timestamp
         )
+        # Predict the 24 hour precipitation
+        station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(
+            station_prediction.precip_24h,
+            station_prediction.prediction_timestamp
+        )
 
         # Update the update time (this might be an update)
         station_prediction.update_date = time_utils.get_utc_now()
@@ -290,8 +300,9 @@ class ModelValueProcessor:
     def _calculate_past_24_hour_precip(self, station: WeatherStation, model_run: PredictionModelRunTimestamp,
                                        prediction: ModelRunGridSubsetPrediction, station_prediction: WeatherStationModelPrediction):
         """ Calculate the predicted precipitation over the previous 24 hours within the specified model run.
-        If the model run does not contain a prediction timestamp for 24 hours prior to the current prediction,
-        return the predicted precipitation from the previous run of the same model for the same time frame. """
+        If the model run does not contain a prediction timestamp for 24 hours prior to the current prediction, sum the
+        precipitation accumulated so far in the model run with actuals reported from the weather station to arrive at a
+        hybrid prediction that spans a full 24 hour interval. """
         start_prediction_timestamp = prediction.prediction_timestamp - timedelta(days=1)
         # Check if a prediction exists for this model run 24 hours in the past
         previous_prediction_from_same_model_run = get_weather_station_model_prediction(self.session, station.code,
@@ -312,7 +323,40 @@ class ModelValueProcessor:
                                             tzinfo=timezone.utc)
         actual_precip = get_accumulated_precipitation(
             self.session, station.code, start_prediction_timestamp, end_prediction_timestamp)
+        actual_precip = actual_precip or 0.0
         return actual_precip + station_prediction.apcp_sfc_0
+
+    def _calculate_bias_adjusted_past_24_hour_precip(self, station: WeatherStation, model_run: PredictionModelRunTimestamp,
+                                                     prediction: ModelRunGridSubsetPrediction, station_prediction: WeatherStationModelPrediction):
+        """ Calculate the bias adjusted predicted precipitation over the previous 24 hours within the specified
+        model run. If the model run does not contain a prediction timestamp for 24 hours prior to the current
+        prediction, sum the bias adjusted precipitation accumulated so far in the model run with actuals reported from
+        the weather station to arrive at a hybrid bias adjusted prediction that spans a full 24 hour interval. """
+        start_prediction_timestamp = prediction.prediction_timestamp - timedelta(days=1)
+        # Check if a prediction exists for this model run 24 hours in the past
+        previous_prediction_from_same_model_run = get_weather_station_model_prediction(self.session, station.code,
+                                                                                       model_run.id, start_prediction_timestamp)
+        # If a prediction from 24 hours ago from the same model run exists, return the difference in bias adjted
+        # cumulative precipitation between now and then as our total for the past 24 hours. We can end up with very
+        # very small negative numbers due to floating point math, so return absolute value to avoid displaying -0.0.
+        if previous_prediction_from_same_model_run is not None:
+            return abs(station_prediction.bias_adjusted_apcp_sfc_0 - previous_prediction_from_same_model_run.bias_adjusted_apcp_sfc_0)
+
+        # We're within 24 hours of the start of a model run so we don't have bias adjusted cumulative precipitation for
+        # a full 24h. We use actual precipitation from our API hourly_actuals table to make up the missing hours.
+        prediction_timestamp = station_prediction.prediction_timestamp
+        # Create new datetime with time of 00:00 hours as the end time.
+        end_prediction_timestamp = datetime(year=prediction_timestamp.year,
+                                            month=prediction_timestamp.month,
+                                            day=prediction_timestamp.day,
+                                            tzinfo=timezone.utc)
+        actual_precip = get_accumulated_precipitation(
+            self.session, station.code, start_prediction_timestamp, end_prediction_timestamp)
+        actual_precip = actual_precip or 0.0
+        if station_prediction.bias_adjusted_apcp_sfc_0 is None:
+            station_prediction.bias_adjusted_apcp_sfc_0 = 0.0
+
+        return actual_precip + station_prediction.bias_adjusted_apcp_sfc_0
 
     def _calculate_delta_precip(self, station, model_run, prediction, station_prediction):
         """ Calculate the station_prediction's delta_precip based on the previous precip
@@ -362,7 +406,8 @@ class ModelValueProcessor:
                 target_coordinate=coordinate,
                 station_code=station.code,
                 max_learn_date=model_run.prediction_run_timestamp)
-            machine.learn()
+            machine.learn_all()
+            machine.learn_precip()
 
             # Get all the predictions associated to this particular model run, in the grid.
             query = get_model_run_predictions_for_grid(

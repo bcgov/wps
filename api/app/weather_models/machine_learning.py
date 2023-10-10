@@ -13,7 +13,8 @@ from app.weather_models import SCALAR_MODEL_VALUE_KEYS, construct_interpolated_n
 from app.db.models.weather_models import (
     PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction)
 from app.db.models.observations import HourlyActual
-from app.db.crud.observations import get_actuals_left_outer_join_with_predictions
+from app.db.crud.observations import (get_actuals_left_outer_join_with_predictions,
+                                      get_actuals_left_outer_join_with_precip_24h_predictions)
 
 
 logger = getLogger(__name__)
@@ -21,7 +22,7 @@ logger = getLogger(__name__)
 # Corresponding key values on HourlyActual and SampleCollection
 SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity', 'wind_speed', 'wind_direction')
 # Number of days of historical actual data to learn from when training model
-MAX_DAYS_TO_LEARN = 19
+MAX_DAYS_TO_LEARN = 14
 
 
 class LinearRegressionWrapper:
@@ -47,6 +48,7 @@ class RegressionModels:
         self.relative_humidity_wrapper = LinearRegressionWrapper()
         self.wind_speed_wrapper = LinearRegressionWrapper()
         self.wind_direction_wrapper = LinearRegressionWrapper()
+        self.precipitation_wrapper = LinearRegressionWrapper()
 
 
 class Samples:
@@ -92,15 +94,26 @@ class Samples:
         try:
             interpolated_value = griddata(
                 points, model_values, target_point, method='linear')
-        except:
+        except Exception as e:
             # Additional logging to assist with finding errors:
             logger.error('for %s->%s griddata failed with points: %s, model_values %s, target_point: %s',
                          model_key, sample_key, points, model_values, target_point)
             raise
         # Add to the data we're going to learn from:
-        # Using two variables, the interpolated temperature value, and the hour of the day.
+        # Using two variables, the interpolated weathger variable value, and the hour of the day.
         self.append_x(interpolated_value[0], timestamp)
         self.append_y(actual_value, timestamp)
+
+
+class PrecipitationSamples(Samples):
+    def add_precipitation_sample(self,
+                                 prediction: List,
+                                 actual: float,
+                                 timestamp: datetime):
+        # Add to the data we're going to learn from:
+        # Using two variables, the interpolated weathger variable value, and the hour of the day.
+        self.append_x(prediction, timestamp)
+        self.append_y(actual, timestamp)
 
 
 class SampleCollection:
@@ -111,6 +124,7 @@ class SampleCollection:
         self.relative_humidity = Samples()
         self.wind_speed = Samples()
         self.wind_direction = Samples()
+        self.precipitation = PrecipitationSamples()
 
 
 class StationMachineLearning:
@@ -146,6 +160,10 @@ class StationMachineLearning:
         # NOTE: This could be an environment variable.
         self.max_days_to_learn = MAX_DAYS_TO_LEARN
 
+    # def _add_precip_sample_to_collection(self, actual: float, predicted: float, prediction_timestamp: datetime, sample_collection: SampleCollection):
+    #     precipitation_samples = sample_collection.precipitation
+    #     precipitation_samples.add_sample(self.points, self.target_coordinate, predicted, actual, prediction_timestamp)
+
     def _add_sample_to_collection(self,
                                   prediction: ModelRunGridSubsetPrediction,
                                   actual: HourlyActual,
@@ -167,15 +185,33 @@ class StationMachineLearning:
                 # are None.
                 logger.warning('no model value for %s->%s', model_key, sample_key)
 
+    def _collect_precipitation_data(self):
+        """ Collect 24 hour precipitation data to use for machine learning.
+        """
+        # Calculate the date to start learning from.
+        start_date = self.max_learn_date - \
+            timedelta(days=self.max_days_to_learn)
+        # Create a convenient place to store samples in.
+        precipitation_samples = PrecipitationSamples()
+        # Query actuals, with prediction left outer joined (so if there isn't a prediction, you'll
+        # get an actual, but prediction will be None). We join hourly_actuals table with the
+        # weather_station_model_predictions table in order to get precip_24h values.
+        query = get_actuals_left_outer_join_with_precip_24h_predictions(
+            self.session, self.model.id, self.station_code, start_date, self.max_learn_date)
+        # We need to keep track of previous so that we can do interpolation for the global model.3
+        for station_code, actual_precip, predicted_precip, prediction_model_run_timestamp_id, prediction_timestamp in query:
+            if actual_precip is not None and predicted_precip is not None:
+                precipitation_samples.add_precipitation_sample(
+                    predicted_precip, actual_precip, prediction_timestamp)
+
     def _collect_data(self):
-        """ Collect data to use for machine learning.
+        """ Collect data to use for machine learning. Include temp, rh and wind speed.
         """
         # Calculate the date to start learning from.
         start_date = self.max_learn_date - \
             timedelta(days=self.max_days_to_learn)
         # Create a convenient structure to store samples in.
         sample_collection = SampleCollection()
-
         # Query actuals, with prediction left outer joined (so if there isn't a prediction, you'll
         # get an actual, but prediction will be None)
         query = get_actuals_left_outer_join_with_predictions(
@@ -202,6 +238,10 @@ class StationMachineLearning:
             prev_actual = actual
         return sample_collection
 
+    def learn_all(self):
+        self.learn()
+        self._learn_precip()
+
     def learn(self):
         """ Collect data and perform linear regression.
         """
@@ -220,6 +260,17 @@ class StationMachineLearning:
                 # NOTE: We could get fancy here, and evaluate how good the regression actually worked,
                 # how much sample data we actually had etc., and then not mark the model as being "good".
                 regression_model.good_model = True
+
+    def _learn_precip(self):
+        """ Collect 24 hour precip data and perform linear regression.
+        """
+        precipitation_samples = self._collect_precipitation_data()
+        for hour in precipitation_samples.hours():
+            regression_model = self.regression_models[hour].precipitation_wrapper
+            regression_model.model.fit(precipitation_samples.np_x(hour), precipitation_samples.np_y(hour))
+            regression_model.good_model = True
+
+        print("Learning")
 
     def predict_temperature(self, model_temperature: float, timestamp: datetime):
         """ Predict the bias adjusted temperature for a given point in time, given a corresponding model
@@ -275,4 +326,20 @@ class StationMachineLearning:
                 0]
             # a valid wind direction value is between 0 and 360. If the returned value is outside these bounds, correct it
             return predicted_wind_dir % 360
+        return None
+
+    def predict_precipitation(self, model_precipitation: float, timestamp: datetime):
+        """ Predict the 24 hour precipitation for a given point in time, given a
+        corresponding model precipitation.
+        : param model_precipitation: Precipitation as provided by the model
+        : param timestamp: Datetime value for the predicted value.
+        : return: The bias adjusted 24 hour precipitation as predicted by the linear regression model.
+        """
+        if model_precipitation is None:
+            logger.warning('model precipitation for %s was None', timestamp)
+            return None
+        hour = timestamp.hour
+        if self.regression_models[hour].precipitation_wrapper.good_model:
+            rain = self.regression_models[hour].precipitation_wrapper.model.predict([[model_precipitation]])
+            return rain[0]
         return None

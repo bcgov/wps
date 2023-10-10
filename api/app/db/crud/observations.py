@@ -4,8 +4,9 @@ import datetime
 from typing import List
 from sqlalchemy import and_, select
 from sqlalchemy.sql import func
-from sqlalchemy.orm import Session
-from app.db.models.weather_models import ModelRunGridSubsetPrediction, PredictionModelRunTimestamp
+from sqlalchemy.orm import Load, Session
+from app.db.models.weather_models import (ModelRunGridSubsetPrediction, PredictionModelRunTimestamp,
+                                          MoreCast2MaterializedView)
 from app.db.models.observations import HourlyActual
 
 
@@ -52,7 +53,67 @@ def get_actuals_left_outer_join_with_predictions(
         .filter(HourlyActual.weather_date <= end_date)\
         .order_by(HourlyActual.station_code)\
         .order_by(HourlyActual.weather_date)\
+        .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())\
+
+
+
+def get_actuals_left_outer_join_with_precip_24h_predictions(session: Session, model_id: int, station_code: int,
+                                                            start_date: datetime, end_date: datetime):
+    return session.query(HourlyActual.station_code,
+                         HourlyActual.precipitation,
+                         MoreCast2MaterializedView.precip_24h,
+                         MoreCast2MaterializedView.prediction_model_run_timestamp_id,
+                         MoreCast2MaterializedView.prediction_timestamp)\
+        .outerjoin(MoreCast2MaterializedView, and_(HourlyActual.station_code == MoreCast2MaterializedView.station_code,
+                                                   HourlyActual.weather_date == MoreCast2MaterializedView.prediction_timestamp))\
+        .outerjoin(PredictionModelRunTimestamp, PredictionModelRunTimestamp.id == MoreCast2MaterializedView.prediction_model_run_timestamp_id)\
+        .filter(HourlyActual.station_code == station_code)\
+        .filter(HourlyActual.weather_date >= start_date)\
+        .filter(HourlyActual.weather_date <= end_date)\
+        .filter(PredictionModelRunTimestamp.prediction_model_id == model_id)\
+        .order_by(HourlyActual.weather_date)\
         .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
+
+
+def get_actuals_left_outer_join_with_precip_24h_predictions_old(session: Session, model_id: int, station_code: int,
+                                                                start_date: datetime, end_date: datetime):
+    return session.query(HourlyActual.station_code,
+                         HourlyActual.precipitation,
+                         MoreCast2MaterializedView.precip_24h,
+                         MoreCast2MaterializedView.prediction_model_run_timestamp_id,
+                         MoreCast2MaterializedView.prediction_timestamp)\
+        .outerjoin(MoreCast2MaterializedView,
+                   and_(MoreCast2MaterializedView.prediction_timestamp == HourlyActual.weather_date,
+                        MoreCast2MaterializedView.station_code == HourlyActual.station_code))\
+        .filter(HourlyActual.station_code == station_code)\
+        .filter(HourlyActual.precip_valid == True)\
+        .filter(HourlyActual.weather_date >= start_date)\
+        .filter(HourlyActual.weather_date <= end_date)\
+        .filter(MoreCast2MaterializedView.prediction_model_run_timestamp_id == model_id)\
+        .order_by(HourlyActual.weather_date)\
+        .count()
+
+
+# def get_actuals_left_outer_join_with_precip_24h_predictions(session: Session, model_id: int, station_code: int,
+#                                                             start_date: datetime, end_date: datetime):
+#     return session.query(HourlyActual.station_code,
+#                          HourlyActual.precipitation,
+#                          MoreCast2MaterializedView.precip_24h,
+#                          MoreCast2MaterializedView.prediction_model_run_timestamp_id,
+#                          MoreCast2MaterializedView.prediction_timestamp)\
+#         .outerjoin(MoreCast2MaterializedView,
+#                    and_(MoreCast2MaterializedView.prediction_timestamp == HourlyActual.weather_date,
+#                         MoreCast2MaterializedView.station_code == HourlyActual.station_code))\
+#         .outerjoin(PredictionModelRunTimestamp,
+#                    and_(PredictionModelRunTimestamp.id == model_id,
+#                         PredictionModelRunTimestamp.id ==
+#                         MoreCast2MaterializedView.prediction_model_run_timestamp_id))\
+#         .filter(HourlyActual.station_code == station_code)\
+#         .filter(HourlyActual.precip_valid == True)\
+#         .filter(HourlyActual.weather_date >= start_date)\
+#         .filter(HourlyActual.weather_date <= end_date)\
+#         .order_by(HourlyActual.weather_date)\
+#         .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
 
 
 def save_hourly_actual(session: Session, hourly_actual: HourlyActual):
