@@ -10,7 +10,7 @@ import WeatherStationCell from 'features/fbaCalculator/components/WeatherStation
 import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
 import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
 import WindSpeedCell from 'features/fbaCalculator/components/WindSpeedCell'
-import { Order } from 'utils/table'
+import { Order } from 'utils/constants'
 import { FBATableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
 import { selectFireWeatherStations, selectFireBehaviourCalcResult } from 'app/rootReducer'

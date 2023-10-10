@@ -17,8 +17,6 @@ export const PST_UTC_OFFSET = -8
 export const PST_ISO_TIMEZONE = 'T00:00-08:00'
 
 export const PERCENTILE_CALC_ROUTE = '/percentile-calculator'
-export const FIRE_WEATHER_ROUTE = '/fire-weather'
-export const MORECAST_ROUTE = '/morecast'
 export const HFI_CALC_ROUTE = '/hfi-calculator'
 export const C_HAINES_ROUTE = '/c-haines'
 export const FBP_GO_ROUTE = 'https://sybrand.github.io/'
@@ -40,12 +38,12 @@ export const FBP_GO_NAME = 'FBP Go'
 export const FIRE_BEHAVIOUR_ADVISORY_NAME = 'Auto Spatial Advisory'
 export const FIRE_BEHAVIOUR_CALC_NAME = 'FireBat'
 export const HFI_CALC_NAME = 'HFI Calculator'
-export const MORE_CAST_NAME = 'MoreCast'
 export const MORE_CAST_2_NAME = 'MoreCast 2.0'
 export const PERCENTILE_CALC_NAME = 'Percentile Calculator'
 
 // UI constants
 export const HEADER_HEIGHT = 56
+export type Order = 'asc' | 'desc'
 
 // Document titles
 export const LANDING_PAGE_DOC_TITLE = 'Decision Support Tools | BCWS PSU'
@@ -53,6 +51,5 @@ export const ASA_DOC_TITLE = 'Automated Spatial Advisory | BCWS PSU'
 export const C_HAINES_DOC_TITLE = 'C-Haines | BCWS PSU'
 export const FIREBAT_DOC_TITLE = 'FireBat | BCWS PSU'
 export const HFI_CALC_DOC_TITLE = 'HFI Calculator | BCWS PSU'
-export const MORECAST_DOC_TITLE = 'MoreCast | BCWS PSU'
 export const MORE_CAST_2_DOC_TITLE = 'MoreCast 2.0 | BCWS PSU'
 export const PERCENTILE_CALC_DOC_TITLE = 'Percentile Calculator | BCWS PSU'

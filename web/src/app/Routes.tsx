@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 
 import { HIDE_DISCLAIMER } from 'utils/env'
 import AuthWrapper from 'features/auth/components/AuthWrapper'
@@ -10,8 +10,6 @@ const HfiCalculatorPage = lazy(() => import('features/hfiCalculator/pages/HfiCal
 const CHainesPage = lazy(() => import('features/cHaines/pages/CHainesPage'))
 import {
   PERCENTILE_CALC_ROUTE,
-  FIRE_WEATHER_ROUTE,
-  MORECAST_ROUTE,
   HFI_CALC_ROUTE,
   C_HAINES_ROUTE,
   FIRE_BEHAVIOR_CALC_ROUTE,
@@ -19,7 +17,6 @@ import {
   LANDING_PAGE_ROUTE,
   MORE_CAST_2_ROUTE
 } from 'utils/constants'
-const MoreCastPage = lazy(() => import('features/fireWeather/pages/MoreCastPage'))
 import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
 const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/FireBehaviourCalculatorPage'))
 const FireBehaviourAdvisoryPage = lazy(() => import('features/fba/pages/FireBehaviourAdvisoryPage'))
@@ -39,15 +36,6 @@ const WPSRoutes: React.FunctionComponent = () => {
           <Route
             path={PERCENTILE_CALC_ROUTE}
             element={<PercentileCalculatorPageWithDisclaimer showDisclaimer={shouldShowDisclaimer} />}
-          />
-          <Route path={FIRE_WEATHER_ROUTE} element={<Navigate to={MORECAST_ROUTE} />} />
-          <Route
-            path={MORECAST_ROUTE}
-            element={
-              <AuthWrapper>
-                <MoreCastPage />
-              </AuthWrapper>
-            }
           />
           <Route
             path={HFI_CALC_ROUTE}
