@@ -34,4 +34,4 @@ coverage:
         paths:
           - web/src
         # web isn't quite amazing yet - would be nice to push it up to 80%
-        threshold: 5%
+        target: 75%
