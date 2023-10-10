@@ -259,7 +259,7 @@ export class PrecipForecastField implements ColDefGenerator, ForecastColDefGener
   }
 
   public generateColDefs = (headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(headerName, false)
+    return this.colDefBuilder.generateColDefs(headerName, true)
   }
 
   public static getInstance(): PrecipForecastField {

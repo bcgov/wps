@@ -171,7 +171,9 @@ class GribFileProcessor():
 
     def __init__(self, station_source: StationSourceEnum):
         # Get list of stations we're interested in, and store it so that we only call it once.
-        self.stations = get_stations_synchronously(station_source)
+        stations = get_stations_synchronously(station_source)
+        self.stations = list(station for station in stations if station.code == 427)
+        # self.stations = get_stations_synchronously(station_source)
         self.padf_transform = None
         self.raster_to_geo_transformer = None
         self.geo_to_raster_transformer = None
