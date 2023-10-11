@@ -76,6 +76,7 @@ class RegressionModel(RegressionModelProto):
                 # If for whatever reason we don't have an actual value, we skip this one.
                 logger.warning('no actual value for model key: %s, actual key: %s',
                                self._key, model_2_actual_keys[self._key])
+                return
 
             # Add to the data we're going to learn from:
             # Using two variables, the interpolated temperature value, and the hour of the day.
