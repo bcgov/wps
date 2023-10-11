@@ -19,8 +19,6 @@ import {
   FIRE_BEHAVIOR_CALC_ROUTE,
   HFI_CALC_NAME,
   HFI_CALC_ROUTE,
-  MORE_CAST_NAME,
-  MORECAST_ROUTE,
   PERCENTILE_CALC_NAME,
   PERCENTILE_CALC_ROUTE,
   MORE_CAST_2_NAME,
@@ -88,19 +86,6 @@ export const hfiCalcInfo: ToolInfo = {
   isBeta: false
 }
 
-export const moreCastInfo: ToolInfo = {
-  name: MORE_CAST_NAME,
-  route: MORECAST_ROUTE,
-  description: (
-    <Typography>
-      A system that uses weather station observations to skill score temperature and relative humidity values forecasted
-      by three numerical weather models.
-    </Typography>
-  ),
-  icon: <AirOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: true
-}
-
 export const moreCast2Info: ToolInfo = {
   name: MORE_CAST_2_NAME,
   route: MORE_CAST_2_ROUTE,
@@ -155,7 +140,6 @@ export const fbpGoInfo: ToolInfo = {
 export const toolInfos = [
   moreCast2Info,
   fireBehaviourAdvisoryInfo,
-  moreCastInfo,
   cHainesInfo,
   fireBehaviourCalcInfo,
   hfiCalcInfo,
