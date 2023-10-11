@@ -1,5 +1,5 @@
 import logging
-import numpy as np
+import math
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
 from typing import Dict, List, Protocol
@@ -72,8 +72,7 @@ class RegressionModel(RegressionModelProto):
                     self._key, self._key, model_value, actual_value)
 
         if model_value is not None:
-            actual_value = getattr(actual, model_2_actual_keys[self._key])
-            if actual_value is None or np.isnan(actual_value):
+            if actual_value is None or math.isnan(actual_value):
                 # If for whatever reason we don't have an actual value, we skip this one.
                 logger.warning('no actual value for model key: %s, actual key: %s',
                                self._key, model_2_actual_keys[self._key])
