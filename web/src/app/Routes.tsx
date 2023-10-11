@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 
 import { HIDE_DISCLAIMER } from 'utils/env'
 import AuthWrapper from 'features/auth/components/AuthWrapper'
@@ -11,13 +11,14 @@ const CHainesPage = lazy(() => import('features/cHaines/pages/CHainesPage'))
 import {
   PERCENTILE_CALC_ROUTE,
   HFI_CALC_ROUTE,
+  MORECAST_ROUTE,
   C_HAINES_ROUTE,
   FIRE_BEHAVIOR_CALC_ROUTE,
   FIRE_BEHAVIOUR_ADVISORY_ROUTE,
   LANDING_PAGE_ROUTE,
   MORE_CAST_2_ROUTE
 } from 'utils/constants'
-import { NoMatchPage } from 'features/moreCast2/pages/NoMatchPage'
+import { NoMatchPage } from 'features/NoMatchPage'
 const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/FireBehaviourCalculatorPage'))
 const FireBehaviourAdvisoryPage = lazy(() => import('features/fba/pages/FireBehaviourAdvisoryPage'))
 const LandingPage = lazy(() => import('features/landingPage/pages/LandingPage'))
@@ -46,7 +47,6 @@ const WPSRoutes: React.FunctionComponent = () => {
             }
           />
           <Route path={C_HAINES_ROUTE} element={<CHainesPage />} />
-
           <Route
             path={FIRE_BEHAVIOR_CALC_ROUTE}
             element={
@@ -63,6 +63,7 @@ const WPSRoutes: React.FunctionComponent = () => {
               </AuthWrapper>
             }
           />
+          <Route path={MORECAST_ROUTE} element={<Navigate to={MORE_CAST_2_ROUTE} />} />
           <Route
             path={MORE_CAST_2_ROUTE}
             element={

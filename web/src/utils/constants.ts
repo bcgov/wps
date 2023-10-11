@@ -17,6 +17,7 @@ export const PST_UTC_OFFSET = -8
 export const PST_ISO_TIMEZONE = 'T00:00-08:00'
 
 export const PERCENTILE_CALC_ROUTE = '/percentile-calculator'
+export const MORECAST_ROUTE = '/morecast'
 export const HFI_CALC_ROUTE = '/hfi-calculator'
 export const C_HAINES_ROUTE = '/c-haines'
 export const FBP_GO_ROUTE = 'https://sybrand.github.io/'
