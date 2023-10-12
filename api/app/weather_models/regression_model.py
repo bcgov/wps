@@ -57,7 +57,7 @@ class RegressionModel(RegressionModelProto):
         try:
             prediction = self._models[hour].predict(model_wind_dir)
             logger.info("Predicted wind dir for model: %s, hour: %s, prediction: %s", self._key, hour, prediction)
-            return prediction
+            return prediction[0]
         except NotFittedError as _:
             return None
 
