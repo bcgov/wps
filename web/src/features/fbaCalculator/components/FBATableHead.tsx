@@ -7,7 +7,7 @@ import StickyCell from 'components/StickyCell'
 import { FBATableRow, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { isUndefined } from 'lodash'
 import React from 'react'
-import { Order } from 'utils/table'
+import { Order } from 'utils/constants'
 import { ColumnLabel } from 'features/fbaCalculator/components/FBATable'
 
 const PREFIX = 'FBATableHead'

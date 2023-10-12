@@ -6,15 +6,6 @@ import cHainesModelRunReducer from 'features/cHaines/slices/cHainesModelRunsSlic
 import cHainesPredictionReducer from 'features/cHaines/slices/cHainesPredictionsSlice'
 import authReducer from 'features/auth/slices/authenticationSlice'
 import wf1AuthReducer from 'features/auth/slices/wf1AuthenticationSlice'
-import modelsReducer from 'features/fireWeather/slices/modelsSlice'
-import observationsReducer from 'features/fireWeather/slices/observationsSlice'
-import forecastsReducer from 'features/fireWeather/slices/forecastsSlice'
-import modelSummariesReducer from 'features/fireWeather/slices/modelSummariesSlice'
-import forecastSummariesReducer from 'features/fireWeather/slices/forecastSummariesSlice'
-import highResModelsReducer from 'features/fireWeather/slices/highResModelsSlice'
-import highResModelSummariesReducer from 'features/fireWeather/slices/highResModelSummariesSlice'
-import regionalModelsReducer from 'features/fireWeather/slices/regionalModelsSlice'
-import regionalModelSummariesReducer from 'features/fireWeather/slices/regionalModelSummariesSlice'
 import hfiCalculatorDailiesReducer, { HFICalculatorState } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import hfiStationsReducer from 'features/hfiCalculator/slices/stationsSlice'
 import hfiReadyReducer, { HFIReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
@@ -38,15 +29,6 @@ const rootReducer = combineReducers({
   cHainesPredictions: cHainesPredictionReducer,
   authentication: authReducer,
   wf1Authentication: wf1AuthReducer,
-  observations: observationsReducer,
-  models: modelsReducer,
-  modelSummaries: modelSummariesReducer,
-  forecasts: forecastsReducer,
-  forecastSummaries: forecastSummariesReducer,
-  highResModels: highResModelsReducer,
-  highResModelSummaries: highResModelSummariesReducer,
-  regionalModels: regionalModelsReducer,
-  regionalModelSummaries: regionalModelSummariesReducer,
   hfiCalculatorDailies: hfiCalculatorDailiesReducer,
   hfiStations: hfiStationsReducer,
   hfiReady: hfiReadyReducer,
@@ -78,16 +60,7 @@ export const selectChainesPredictions = (state: RootState) => state.cHainesPredi
 export const selectAuthentication = (state: RootState) => state.authentication
 export const selectWf1Authentication = (state: RootState) => state.wf1Authentication
 export const selectToken = (state: RootState) => state.authentication.token
-export const selectModels = (state: RootState) => state.models
-export const selectObservations = (state: RootState) => state.observations
-export const selectForecasts = (state: RootState) => state.forecasts
-export const selectModelSummaries = (state: RootState) => state.modelSummaries
-export const selectForecastSummaries = (state: RootState) => state.forecastSummaries
 export const selectFireBehaviourCalcResult = (state: RootState) => state.fbaCalculatorResults
-export const selectHighResModels = (state: RootState) => state.highResModels
-export const selectHighResModelSummaries = (state: RootState) => state.highResModelSummaries
-export const selectRegionalModels = (state: RootState) => state.regionalModels
-export const selectRegionalModelSummaries = (state: RootState) => state.regionalModelSummaries
 export const selectHFIStations = (state: RootState) => state.hfiStations
 export const selectFireCenters = (state: RootState) => state.fireCenters
 export const selectFireZoneAreas = (state: RootState) => state.fireZoneAreas
@@ -96,17 +69,6 @@ export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordi
 export const selectHFIFuelTypes = (state: RootState) => state.hfiFuelTypes
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
 
-export const selectWxDataLoading = (state: RootState): boolean =>
-  state.observations.loading ||
-  state.models.loading ||
-  state.modelSummaries.loading ||
-  state.forecasts.loading ||
-  state.forecastSummaries.loading ||
-  state.highResModels.loading ||
-  state.highResModelSummaries.loading ||
-  state.regionalModels.loading ||
-  state.regionalModelSummaries.loading
-export const selectFireWeatherStationsLoading = (state: RootState): boolean => state.fireWeatherStations.loading
 export const selectHFIDailiesLoading = (state: RootState): boolean => state.hfiCalculatorDailies.fireCentresLoading
 export const selectHFICalculatorState = (state: RootState): HFICalculatorState => state.hfiCalculatorDailies
 export const selectHFIStationsLoading = (state: RootState): boolean => state.hfiStations.loading
