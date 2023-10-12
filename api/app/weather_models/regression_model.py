@@ -55,8 +55,9 @@ class RegressionModel(RegressionModelProto):
 
     def predict(self, hour: int, model_wind_dir: List[List[int]]):
         try:
-            self._models[hour].predict(model_wind_dir)
-            logger.info("Predicted wind dir for model: %s, hour: %s", self._key, hour)
+            prediction = self._models[hour].predict(model_wind_dir)
+            logger.info("Predicted wind dir for model: %s, hour: %s, prediction: %s", self._key, hour, prediction)
+            return prediction
         except NotFittedError as _:
             return None
 
