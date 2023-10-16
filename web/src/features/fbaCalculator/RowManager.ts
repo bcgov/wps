@@ -4,7 +4,7 @@ import { formatCrownFractionBurned } from 'features/fbaCalculator/components/Cro
 import { formatCriticalHoursAsString } from 'features/fbaCalculator/components/CriticalHoursCell'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import _, { isNull, isUndefined, merge } from 'lodash'
-import { Order } from 'utils/table'
+import { Order } from 'utils/constants'
 export enum SortByColumn {
   Zone,
   Station,

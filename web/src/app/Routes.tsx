@@ -10,17 +10,15 @@ const HfiCalculatorPage = lazy(() => import('features/hfiCalculator/pages/HfiCal
 const CHainesPage = lazy(() => import('features/cHaines/pages/CHainesPage'))
 import {
   PERCENTILE_CALC_ROUTE,
-  FIRE_WEATHER_ROUTE,
-  MORECAST_ROUTE,
   HFI_CALC_ROUTE,
+  MORECAST_ROUTE,
   C_HAINES_ROUTE,
   FIRE_BEHAVIOR_CALC_ROUTE,
   FIRE_BEHAVIOUR_ADVISORY_ROUTE,
   LANDING_PAGE_ROUTE,
   MORE_CAST_2_ROUTE
 } from 'utils/constants'
-const MoreCastPage = lazy(() => import('features/fireWeather/pages/MoreCastPage'))
-import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
+import { NoMatchPage } from 'features/NoMatchPage'
 const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/FireBehaviourCalculatorPage'))
 const FireBehaviourAdvisoryPage = lazy(() => import('features/fba/pages/FireBehaviourAdvisoryPage'))
 const LandingPage = lazy(() => import('features/landingPage/pages/LandingPage'))
@@ -40,15 +38,6 @@ const WPSRoutes: React.FunctionComponent = () => {
             path={PERCENTILE_CALC_ROUTE}
             element={<PercentileCalculatorPageWithDisclaimer showDisclaimer={shouldShowDisclaimer} />}
           />
-          <Route path={FIRE_WEATHER_ROUTE} element={<Navigate to={MORECAST_ROUTE} />} />
-          <Route
-            path={MORECAST_ROUTE}
-            element={
-              <AuthWrapper>
-                <MoreCastPage />
-              </AuthWrapper>
-            }
-          />
           <Route
             path={HFI_CALC_ROUTE}
             element={
@@ -58,7 +47,6 @@ const WPSRoutes: React.FunctionComponent = () => {
             }
           />
           <Route path={C_HAINES_ROUTE} element={<CHainesPage />} />
-
           <Route
             path={FIRE_BEHAVIOR_CALC_ROUTE}
             element={
@@ -75,6 +63,7 @@ const WPSRoutes: React.FunctionComponent = () => {
               </AuthWrapper>
             }
           />
+          <Route path={MORECAST_ROUTE} element={<Navigate to={MORE_CAST_2_ROUTE} />} />
           <Route
             path={MORE_CAST_2_ROUTE}
             element={
