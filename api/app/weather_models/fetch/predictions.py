@@ -164,7 +164,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
                     temperature=bias_adjusted_temp,
                     relative_humidity=bias_adjusted_rh,
                     wind_speed=bias_adjusted_wind_speed,
-                    wind_dir=bias_adjusted_wdir
+                    wind_direction=bias_adjusted_wdir
                 ))
     return post_process_fetched_predictions(results)
 
