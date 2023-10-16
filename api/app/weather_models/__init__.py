@@ -109,7 +109,8 @@ def interpolate_wind_direction(prediction_a: ModelRunPrediction,
 
 
 def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction,
-                                           prediction_b: ModelRunPrediction):
+                                           prediction_b: ModelRunPrediction,
+                                           model_keys):
     """ Construct a noon prediction by interpolating.
     """
     # create a noon prediction. (using utc hour 20, as that is solar noon in B.C.)
@@ -121,7 +122,7 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction,
     timestamp_b = prediction_b.prediction_timestamp.timestamp()
     noon_timestamp = noon_prediction.prediction_timestamp.timestamp()
     # calculate interpolated values.
-    for key in SCALAR_MODEL_VALUE_KEYS:
+    for key in model_keys:
         value_a = getattr(prediction_a, key)
         value_b = getattr(prediction_b, key)
         if value_a is None or value_b is None:

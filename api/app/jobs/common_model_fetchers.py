@@ -14,7 +14,7 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         delete_weather_station_model_predictions,
                                         refresh_morecast2_materialized_view)
 from app.weather_models.machine_learning import StationMachineLearning
-from app.weather_models import ModelEnum, construct_interpolated_noon_prediction
+from app.weather_models import SCALAR_MODEL_VALUE_KEYS, ModelEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
 from app import config, configure_logging
 import app.utils.time as time_utils
@@ -362,7 +362,8 @@ class ModelValueProcessor:
             if (prev_prediction is not None
                     and prev_prediction.prediction_timestamp.hour == 18
                     and prediction.prediction_timestamp.hour == 21):
-                noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
+                noon_prediction = construct_interpolated_noon_prediction(
+                    prev_prediction, prediction, SCALAR_MODEL_VALUE_KEYS)
                 self._process_prediction(
                     noon_prediction, station, model_run, machine)
             self._process_prediction(
