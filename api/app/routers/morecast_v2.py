@@ -29,6 +29,7 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_for_stations_and_date,
                                        get_daily_determinates_for_stations_and_date, get_wfwx_stations_from_station_codes)
 from app.wildfire_one.wfwx_post_api import post_forecasts
+from app.morecast_v2.forecasts import get_forecasted_fwi_values
 
 
 logger = logging.getLogger(__name__)
@@ -191,6 +192,8 @@ async def get_determinates_for_date_range(start_date: date,
                                                                                         start_date_of_interest,
                                                                                         end_date_of_interest,
                                                                                         unique_station_codes)
+
+        wf1_forecasts = get_forecasted_fwi_values(wf1_actuals, wf1_forecasts)
         # Find the min and max dates for actuals from wf1. These define the range of dates for which
         # we need to retrieve forecasts from our API database. Note that not all stations report actuals
         # at the same time, so every station won't necessarily have an actual for each date in the range.

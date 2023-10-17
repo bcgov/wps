@@ -1,5 +1,5 @@
 
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from urllib.parse import urljoin
 from app import config
 
@@ -14,6 +14,7 @@ from app.db.models.morecast_v2 import MorecastForecastRecord
 from app.schemas.morecast_v2 import MoreCastForecastOutput, StationDailyFromWF1, WF1ForecastRecordType, WF1PostForecast, WeatherIndeterminate
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import get_auth_header, get_forecasts_for_stations_by_date_range, get_wfwx_stations_from_station_codes
+from app.fire_behaviour import cffdrs
 
 
 def get_forecasts(db_session: Session, start_time: datetime, end_time: datetime, station_codes: List[int]) -> List[MoreCastForecastOutput]:
@@ -105,3 +106,87 @@ def filter_for_api_forecasts(forecasts: List[WeatherIndeterminate], actuals: Lis
         if actual_exists(forecast, actuals):
             filtered_forecasts.append(forecast)
     return filtered_forecasts
+
+
+def get_forecasted_fwi_values(actuals: List[WeatherIndeterminate], forecasts: List[WeatherIndeterminate]) -> List[WeatherIndeterminate]:
+    """
+    Fills forecasts with Fire Weather Index System values by calculating based off previous actuals and subsequent forecasts.
+
+    :param actuals: List of actual weather values
+    :type actuals: List[WeatherIndeterminate]
+    :param forecasts: List of existing forecasted values
+    :type forecasts: List[WeatherIndeterminate]
+    :return: Updated and filled forecasts
+    :rtype: List[WeatherIndeterminate]
+    """
+    actuals_dict = defaultdict(dict)
+    for actual in actuals:
+        actuals_dict[actual.station_code][actual.utc_timestamp.date()] = actual
+
+    previous_indeterminate = None
+    for idx, forecast in enumerate(forecasts):
+        if previous_indeterminate and previous_indeterminate.station_code == forecast.station_code:
+            updated_forecast = calculate_fwi_indices(previous_indeterminate, forecast)
+            forecasts[idx] = updated_forecast
+        else:
+            last_actual = actuals_dict[forecast.station_code][forecast.utc_timestamp.date() - timedelta(days=1)]
+            updated_forecast = calculate_fwi_indices(last_actual, forecast)
+            forecasts[idx] = updated_forecast
+        previous_indeterminate = forecast
+
+    return forecasts
+
+
+def calculate_fwi_indices(yesterday: WeatherIndeterminate, today: WeatherIndeterminate) -> WeatherIndeterminate:
+    """
+    Uses CFFDRS library to calculate Fire Weather Index System values 
+
+    :param yesterday: The WeatherIndeterminate from the day before the date to calculate
+    :type yesterday: WeatherIndeterminate
+    :param today: The WeatherIndeterminate from the date to calculate
+    :type today: WeatherIndeterminate
+    :return: Updated WeatherIndeterminate
+    :rtype: WeatherIndeterminate
+    """
+
+    # weather params for calculation date
+    month_to_calculate_for = int(today.utc_timestamp.strftime('%m'))
+    latitude = today.latitude
+    temp = today.temperature
+    rh = today.relative_humidity
+    precip = today.precipitation
+    wind_spd = today.wind_speed
+
+    if yesterday.fine_fuel_moisture_code:
+        today.fine_fuel_moisture_code = cffdrs.fine_fuel_moisture_code(ffmc=yesterday.fine_fuel_moisture_code,
+                                                                       temperature=temp,
+                                                                       relative_humidity=rh,
+                                                                       precipitation=precip,
+                                                                       wind_speed=wind_spd)
+    if yesterday.duff_moisture_code:
+        today.duff_moisture_code = cffdrs.duff_moisture_code(dmc=yesterday.duff_moisture_code,
+                                                             temperature=temp,
+                                                             relative_humidity=rh,
+                                                             precipitation=precip,
+                                                             latitude=latitude,
+                                                             month=month_to_calculate_for,
+                                                             latitude_adjust=True
+                                                             )
+    if yesterday.drought_code:
+        today.drought_code = cffdrs.drought_code(dc=yesterday.drought_code,
+                                                 temperature=temp,
+                                                 relative_humidity=rh,
+                                                 precipitation=precip,
+                                                 latitude=latitude,
+                                                 month=month_to_calculate_for,
+                                                 latitude_adjust=True
+                                                 )
+    if today.fine_fuel_moisture_code:
+        today.initial_spread_index = cffdrs.initial_spread_index(ffmc=today.fine_fuel_moisture_code,
+                                                                 wind_speed=today.wind_speed)
+    if today.duff_moisture_code and today.drought_code:
+        today.build_up_index = cffdrs.bui_calc(dmc=today.duff_moisture_code, dc=today.drought_code)
+    if today.initial_spread_index and today.build_up_index:
+        today.fire_weather_index = cffdrs.fire_weather_index(isi=today.initial_spread_index, bui=today.build_up_index)
+
+    return today
