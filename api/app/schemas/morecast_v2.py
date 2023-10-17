@@ -119,6 +119,8 @@ class WeatherIndeterminate(BaseModel):
     """ Used to represent a predicted or actual value """
     station_code: int
     station_name: str
+    latitude: float
+    longitude: float
     determinate: WeatherDeterminate
     utc_timestamp: datetime
     temperature: Optional[float] = None
