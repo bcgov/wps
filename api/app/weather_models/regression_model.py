@@ -48,10 +48,6 @@ class RegressionModel(RegressionModelProto):
     def train(self):
         for hour in self._samples.hours():
             self._models[hour].fit(self._samples.np_x(hour), self._samples.np_y(hour))
-            self._is_fitted = True
-
-    def get_model_at_hour(self, hour: int):
-        return self._models[hour]
 
     def predict(self, hour: int, model_wind_dir: List[List[int]]):
         try:
