@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # maps weather orm model keys to actual weather orm model keys
 model_2_actual_keys: Dict[str, str] = {
-    "wdir_tgl_10": "wind_direction"
+    ModelRunPrediction.wdir_tgl_10.name: HourlyActual.wind_direction.name
 }
 
 
@@ -93,7 +93,7 @@ class RegressionModelsV2:
     def __init__(self):
         self._model_keys: List[str] = list(model_2_actual_keys.keys())
         self._models: List[RegressionModelProto] = [
-            RegressionModel(model_key=self._model_keys[0])
+            RegressionModel(model_key=ModelRunPrediction.wdir_tgl_10.name)
         ]
 
     def add_samples(self, prediction: ModelRunPrediction, actual: HourlyActual):
