@@ -1,6 +1,7 @@
 import { defineConfig } from 'cypress'
 
 export default defineConfig({
+  defaultCommandTimeout: 10000,
   screenshotOnRunFailure: false,
   video: false,
   e2e: {
@@ -9,6 +10,6 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       return require('./cypress/plugins/index.js')(on, config)
     },
-    baseUrl: 'http://localhost:3030',
-  },
+    baseUrl: 'http://localhost:3030'
+  }
 })
