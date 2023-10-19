@@ -142,13 +142,13 @@ export const createMoreCast2Rows = (
           row.tempActual = getNumberOrNaN(value.temperature)
           row.windDirectionActual = getNumberOrNaN(value.wind_direction)
           row.windSpeedActual = getNumberOrNaN(value.wind_speed)
-          row.ffmc = getNumberOrNaN(value.fine_fuel_moisture_code)
-          row.dmc = getNumberOrNaN(value.duff_moisture_code)
-          row.dc = getNumberOrNaN(value.drought_code)
-          row.isi = getNumberOrNaN(value.initial_spread_index)
-          row.bui = getNumberOrNaN(value.build_up_index)
-          row.fwi = getNumberOrNaN(value.fire_weather_index)
-          row.dgr = getNumberOrNaN(value.danger_rating)
+          row.ffmcCalcActual = getNumberOrNaN(value.fine_fuel_moisture_code)
+          row.dmcCalcActual = getNumberOrNaN(value.duff_moisture_code)
+          row.dcCalcActual = getNumberOrNaN(value.drought_code)
+          row.isiCalcActual = getNumberOrNaN(value.initial_spread_index)
+          row.buiCalcActual = getNumberOrNaN(value.build_up_index)
+          row.fwiCalcActual = getNumberOrNaN(value.fire_weather_index)
+          row.dgrCalcActual = getNumberOrNaN(value.danger_rating)
           break
         case WeatherDeterminate.FORECAST:
         case WeatherDeterminate.NULL:
@@ -171,6 +171,30 @@ export const createMoreCast2Rows = (
           row.windSpeedForecast = {
             choice: forecastOrNull(value.determinate),
             value: getNumberOrNaN(value.wind_speed)
+          }
+          row.ffmcCalcForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.fine_fuel_moisture_code)
+          }
+          row.dmcCalcForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.duff_moisture_code)
+          }
+          row.dcCalcForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.drought_code)
+          }
+          row.isiCalcForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.initial_spread_index)
+          }
+          row.buiCalcForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.build_up_index)
+          }
+          row.fwiCalcForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.fire_weather_index)
           }
           break
         case WeatherDeterminate.GDPS:
@@ -503,13 +527,13 @@ const createEmptyMoreCast2Row = (
     windSpeedActual: NaN,
 
     // Indices
-    ffmc: NaN,
-    dmc: NaN,
-    dc: NaN,
-    isi: NaN,
-    bui: NaN,
-    fwi: NaN,
-    dgr: NaN,
+    ffmcCalcActual: NaN,
+    dmcCalcActual: NaN,
+    dcCalcActual: NaN,
+    isiCalcActual: NaN,
+    buiCalcActual: NaN,
+    fwiCalcActual: NaN,
+    dgrCalcActual: NaN,
 
     // GDPS model predictions
     precipGDPS: NaN,

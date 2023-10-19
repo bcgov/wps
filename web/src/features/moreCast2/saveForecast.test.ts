@@ -59,13 +59,13 @@ const baseRow = {
   windSpeedNAM_BIAS: 0,
   windSpeedRDPS: 0,
   windSpeedRDPS_BIAS: 0,
-  ffmc: 0,
-  dmc: 0,
-  dc: 0,
-  isi: 0,
-  bui: 0,
-  fwi: 0,
-  dgr: 0
+  ffmcCalcActual: 0,
+  dmcCalcActual: 0,
+  dcCalcActual: 0,
+  isiCalcActual: 0,
+  buiCalcActual: 0,
+  fwiCalcActual: 0,
+  dgrCalcActual: 0
 }
 
 const baseRowWithActuals = {

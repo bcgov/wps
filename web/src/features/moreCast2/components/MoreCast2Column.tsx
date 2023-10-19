@@ -112,13 +112,13 @@ export const rhForecastField = new IndeterminateField('rh', 'RH', 'number', 0, t
 export const windDirForecastField = new IndeterminateField('windDirection', 'Wind Dir', 'number', 0, true)
 export const windSpeedForecastField = new IndeterminateField('windSpeed', 'Wind Speed', 'number', 1, true)
 export const precipForecastField = new IndeterminateField('precip', 'Precip', 'number', 1, false)
-export const buiField = new IndeterminateField('bui', 'BUI', 'number', 0, false)
-export const isiField = new IndeterminateField('isi', 'ISI', 'number', 1, false)
-export const fwiField = new IndeterminateField('fwi', 'FWI', 'number', 0, false)
-export const ffmcField = new IndeterminateField('ffmc', 'FFMC', 'number', 1, false)
-export const dmcField = new IndeterminateField('dmc', 'DMC', 'number', 0, false)
-export const dcField = new IndeterminateField('dc', 'DC', 'number', 0, false)
-export const dgrField = new IndeterminateField('dgr', 'DGR', 'number', 0, false)
+export const buiField = new IndeterminateField('buiCalc', 'BUI', 'number', 0, false)
+export const isiField = new IndeterminateField('isiCalc', 'ISI', 'number', 1, false)
+export const fwiField = new IndeterminateField('fwiCalc', 'FWI', 'number', 0, false)
+export const ffmcField = new IndeterminateField('ffmcCalc', 'FFMC', 'number', 1, false)
+export const dmcField = new IndeterminateField('dmcCalc', 'DMC', 'number', 0, false)
+export const dcField = new IndeterminateField('dcCalc', 'DC', 'number', 0, false)
+export const dgrField = new IndeterminateField('dgrCalc', 'DGR', 'number', 0, false)
 
 export const MORECAST2_STATION_DATE_FIELDS: ColDefGenerator[] = [
   StationForecastField.getInstance(),
@@ -143,7 +143,7 @@ export const MORECAST2_FORECAST_FIELDS: ForecastColDefGenerator[] = [
   precipForecastField
 ]
 
-export const MORECAST2_INDEX_FIELDS: ColDefGenerator[] = [
+export const MORECAST2_INDEX_FIELDS: ForecastColDefGenerator[] = [
   ffmcField,
   dmcField,
   dcField,

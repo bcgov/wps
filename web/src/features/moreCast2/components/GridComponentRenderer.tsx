@@ -35,9 +35,7 @@ export class GridComponentRenderer {
   )
 
   public getActualField = (field: string) => {
-    const index = field.indexOf('Forecast')
-    const prefix = field.slice(0, index)
-    const actualField = `${prefix}Actual`
+    const actualField = field.replace('Forecast', 'Actual')
     return actualField
   }
 
@@ -66,12 +64,14 @@ export class GridComponentRenderer {
     // We need the prefix to help us grab the correct 'actual' field (eg. tempACTUAL, precipACTUAL, etc.)
     const actualField = this.getActualField(field)
 
+    const isCalcField = field.includes('Calc')
+
     const isActual = !isNaN(params.row[actualField])
     return (
       <TextField
-        disabled={isActual}
+        disabled={isActual || isCalcField}
         size="small"
-        label={createLabel(isActual, params.row[field].choice)}
+        label={isCalcField ? '' : createLabel(isActual, params.row[field].choice)}
         value={params.formattedValue}
       ></TextField>
     )
