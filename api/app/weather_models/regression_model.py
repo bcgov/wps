@@ -35,13 +35,11 @@ class RegressionModelProto(Protocol):
     def predict(self, hour: int, model_wind_dir: List[List[int]]): raise NotImplementedError
 
 
-class RegressionModel(RegressionModelProto):
-    """ 
-    Default class to manage a regression dataset
-    """
+class LinearModel():
+    _models: defaultdict[int, LinearRegression]
+    _samples: Samples
 
-    def __init__(self, model_key: str):
-        self._key = model_key
+    def __init__(self):
         self._models = defaultdict(LinearRegression)
         self._samples = Samples()
 
@@ -57,10 +55,26 @@ class RegressionModel(RegressionModelProto):
         except NotFittedError as _:
             return None
 
+
+class RegressionModel(RegressionModelProto):
+    """ 
+    Default class to manage a regression dataset
+    """
+
+    def __init__(self, model_key: str):
+        self._key = model_key
+        self._linear_model = LinearModel()
+
+    def train(self):
+        return self._linear_model.train()
+
+    def predict(self, hour: int, model_wind_dir: List[List[int]]):
+        return self._linear_model.predict(hour, model_wind_dir)
+
     def add_sample(self,
                    prediction: ModelRunPrediction,
                    actual: HourlyActual):
-        """ Add a sample, interpolating the model values spatially """
+        """ Add a sample, with prediction as an x value, actual as a y value """
 
         model_value = getattr(prediction, self._key)
         actual_value = getattr(actual, model_2_actual_keys[self._key])
