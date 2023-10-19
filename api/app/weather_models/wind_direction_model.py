@@ -63,5 +63,5 @@ class WindDirectionModel(RegressionModelProto):
             actual_u_v = compute_u_v(actual.wind_speed, actual.wind_direction)
             # Add to the data we're going to learn from:
             # Using two variables, the interpolated temperature value, and the hour of the day.
-            self._samples.append_x(prediction_u_v, actual.weather_date)
-            self._samples.append_y(actual_u_v, actual.weather_date)
+            self._linear_model.append_x(prediction_u_v, actual.weather_date)
+            self._linear_model.append_y(actual_u_v, actual.weather_date)

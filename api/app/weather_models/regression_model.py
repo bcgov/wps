@@ -1,5 +1,6 @@
 import logging
 import math
+from datetime import datetime
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
 from typing import Dict, List, Protocol
@@ -42,6 +43,12 @@ class LinearModel():
     def __init__(self):
         self._models = defaultdict(LinearRegression)
         self._samples = Samples()
+
+    def append_x(self, value, timestamp: datetime):
+        self._samples.append_x(value, timestamp)
+
+    def append_y(self, value, timestamp: datetime):
+        self._samples.append_y(value, timestamp)
 
     def train(self):
         for hour in self._samples.hours():
@@ -91,8 +98,8 @@ class RegressionModel(RegressionModelProto):
 
             # Add to the data we're going to learn from:
             # Using two variables, the interpolated temperature value, and the hour of the day.
-            self._samples.append_x(model_value, actual.weather_date)
-            self._samples.append_y(actual_value, actual.weather_date)
+            self._linear_model.append_x(model_value, actual.weather_date)
+            self._linear_model.append_y(actual_value, actual.weather_date)
 
 
 class RegressionModelsV2:
