@@ -1,6 +1,7 @@
 """ Module for calculating the bias for a weather station use basic Machine Learning through Linear
 Regression.
 """
+import math
 from datetime import datetime, timedelta
 from collections import defaultdict
 from typing import List
@@ -12,8 +13,9 @@ from app.weather_models import SCALAR_MODEL_VALUE_KEYS, construct_interpolated_n
 from app.db.models.weather_models import (PredictionModel, ModelRunPrediction)
 from app.db.models.observations import HourlyActual
 from app.db.crud.observations import get_actuals_left_outer_join_with_predictions
-from app.weather_models.regression_model import RegressionModelsV2
+from app.weather_models.weather_models import RegressionModelsV2
 from app.weather_models.sample import Samples
+from app.weather_models.wind_direction_model import compute_u_v
 
 
 logger = getLogger(__name__)
@@ -211,14 +213,23 @@ class StationMachineLearning:
             return max(0, predicted_wind_speed)
         return None
 
-    def predict_wind_direction(self, model_wind_dir: int, timestamp: datetime):
+    def predict_wind_direction(self, model_wind_speed: float, model_wind_dir: int, timestamp: datetime):
         """ Predict the bias-adjusted wind direction for a given point in time, given a corresponding model wind direction.
         : param model_wind_dir: Wind direction as provided by the model
         : param timestamp: Datetime value for the predicted value
         : return: The bias-adjusted wind direction as predicted by the linear regression model.
         """
         hour = timestamp.hour
-        predicted_wind_dir = self.regression_models_v2._models[0].predict(hour, [[model_wind_dir]])
+        u_v = compute_u_v(model_wind_speed, model_wind_dir)
+        predicted_wind_dir = self.regression_models_v2._models[0].predict(hour, [u_v])
         if predicted_wind_dir is None:
             return None
-        return predicted_wind_dir % 360
+
+        assert len(predicted_wind_dir) == 2
+        prediction_wind_dir_rad = math.atan2(u_v[1], u_v[0])
+        predicted_wind_dir_deg = math.degrees(prediction_wind_dir_rad)
+
+        if predicted_wind_dir_deg < 0:
+            predicted_wind_dir_deg += 360
+
+        return predicted_wind_dir_deg

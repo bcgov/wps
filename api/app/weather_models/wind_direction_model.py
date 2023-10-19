@@ -3,7 +3,8 @@ import math
 from typing import List, Optional
 from app.db.models.observations import HourlyActual
 from app.db.models.weather_models import ModelRunPrediction
-from app.weather_models.regression_model import LinearModel, RegressionModelProto
+from app.weather_models.linear_model import LinearModel
+from app.weather_models.regression_model import RegressionModelProto
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +51,15 @@ class WindDirectionModel(RegressionModelProto):
         """
         Decompose into u, v components, then add that to data sample
         """
-        logger.info('adding sample for %s->%s with: model_values %s, actual_value: %s',
-                    self._key, self._key, prediction.wdir_tgl_10, actual.wind_direction)
+        logger.info('adding sample for wind direction with: model_values %s, actual_value: %s',
+                    prediction.wdir_tgl_10, actual.wind_direction)
 
-        if prediction.wdir_tgl_10 is not None:
-            if actual.wind_direction is None or math.isnan(actual.wind_direction):
+        if prediction.wdir_tgl_10 is not None and prediction.wind_tgl_10 is not None:
+            if (actual.wind_direction is None or math.isnan(actual.wind_direction)) and \
+                    (actual.wind_speed is None or math.isnan(actual.wind_speed)):
                 # If for whatever reason we don't have an actual value, we skip this one.
-                logger.warning('no actual value for wind direction')
+                logger.warning('no actual value for wind direction: %s, or wind speed: %s',
+                               actual.wind_direction, actual.wind_speed)
                 return
 
             prediction_u_v = compute_u_v(prediction.wind_tgl_10, prediction.wdir_tgl_10)
