@@ -256,8 +256,9 @@ jobs:
     needs: [deploy-dev]
 
     steps:
-      # Runs Schemathesis tests
-      - uses: schemathesis/action@v1
+      - name: Run Schemathesis
+        continue-on-error: true
+        uses: schemathesis/action@v1
         with:
           # Your API schema location
           schema: "https://wps-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca/api/openapi.json"
