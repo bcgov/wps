@@ -1,10 +1,11 @@
 import logging
 import math
-from typing import List, Optional
+from typing import List
 from app.db.models.observations import HourlyActual
 from app.db.models.weather_models import ModelRunPrediction
 from app.weather_models.linear_model import LinearModel
 from app.weather_models.regression_model import RegressionModelProto
+from app.weather_models.wind_direction_utils import compute_u_v
 
 logger = logging.getLogger(__name__)
 
@@ -16,17 +17,6 @@ def radians2degrees(radians):
         degrees += 360.0
 
     return degrees
-
-
-def compute_u_v(wind_speed: float, wind_direction_degrees: int) -> Optional[List[float]]:
-    if wind_speed is None or wind_direction_degrees is None:
-        return None
-
-    wind_direction_radians = math.radians(wind_direction_degrees)
-
-    u = wind_speed * math.sin(wind_direction_radians)
-    v = wind_speed * math.cos(wind_direction_radians)
-    return [u, v]
 
 
 def any_none_or_nan(prediction: ModelRunPrediction, actual: HourlyActual):

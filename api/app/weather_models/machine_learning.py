@@ -1,7 +1,6 @@
 """ Module for calculating the bias for a weather station use basic Machine Learning through Linear
 Regression.
 """
-import math
 from datetime import datetime, timedelta
 from collections import defaultdict
 from typing import List
@@ -15,7 +14,8 @@ from app.db.models.observations import HourlyActual
 from app.db.crud.observations import get_actuals_left_outer_join_with_predictions
 from app.weather_models.weather_models import RegressionModelsV2
 from app.weather_models.sample import Samples
-from app.weather_models.wind_direction_model import compute_u_v, radians2degrees
+from app.weather_models.wind_direction_model import compute_u_v
+from app.weather_models.wind_direction_utils import calculate_wind_dir_from_u_v
 
 
 logger = getLogger(__name__)
@@ -227,6 +227,5 @@ class StationMachineLearning:
             return None
 
         assert len(predicted_wind_dir) == 2
-        prediction_wind_dir_rad = math.atan2(u_v[1], u_v[0])
-        predicted_wind_dir_deg = radians2degrees(prediction_wind_dir_rad)
+        predicted_wind_dir_deg = calculate_wind_dir_from_u_v(u_v[0], u_v[1])
         return predicted_wind_dir_deg
