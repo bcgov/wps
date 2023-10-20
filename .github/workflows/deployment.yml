@@ -250,8 +250,6 @@ jobs:
           cmd_options: "-I"
 
   run-schemathesis:
-    ## "wps-${SUFFIX}.apps.silver.devops.gov.bc.ca"
-    # wps-pr-3166.apps.silver.devops.gov.bc.ca
     name: Schemathesis Fuzzing
     if: github.triggering_actor != 'renovate'
     runs-on: ubuntu-22.04
@@ -262,7 +260,8 @@ jobs:
       - uses: schemathesis/action@v1
         with:
           # Your API schema location
-          schema: "wps-${SUFFIX}.apps.silver.devops.gov.bc.ca/api/openapi.json"
+          schema: "https://wps-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca/api/openapi.json"
+          args: "--experimental=openapi-3.1"
           # Set your token from secrets
           token: ${{ secrets.SCHEMATHESIS_TOKEN }}
 
