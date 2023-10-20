@@ -74,5 +74,4 @@ class WindDirectionModel(RegressionModelProto):
         assert len(actual_u_v) == 2
         # Add to the data we're going to learn from:
         # Using two variables, the interpolated temperature value, and the hour of the day.
-        self._linear_model.append_x(prediction_u_v, actual.weather_date)
-        self._linear_model.append_y(actual_u_v, actual.weather_date)
+        self._linear_model.append_x_y(prediction_u_v, actual_u_v, actual.weather_date)

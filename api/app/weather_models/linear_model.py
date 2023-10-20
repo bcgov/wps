@@ -17,6 +17,10 @@ class LinearModel():
         self._models = defaultdict(LinearRegression)
         self._samples = Samples()
 
+    def append_x_y(self, prediction_value: List[float], actual_value: List[float], timestamp: datetime):
+        self._samples.append_x(prediction_value, timestamp)
+        self._samples.append_y(actual_value, timestamp)
+
     def append_x(self, value, timestamp: datetime):
         self._samples.append_x(value, timestamp)
 
