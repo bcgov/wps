@@ -25,7 +25,10 @@ class LinearModel():
 
     def train(self):
         for hour in self._samples.hours():
-            self._models[hour].fit(self._samples.np_x(hour), self._samples.np_y(hour))
+            try:
+                self._models[hour].fit(self._samples.np_x(hour), self._samples.np_y(hour))
+            except ValueError as e:
+                logger.info(e)
 
     def predict(self, hour: int, model_wind_dir: List[List[int]]):
         try:
