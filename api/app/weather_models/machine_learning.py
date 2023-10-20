@@ -222,6 +222,7 @@ class StationMachineLearning:
         hour = timestamp.hour
         u_v = compute_u_v(model_wind_speed, model_wind_dir)
         predicted_wind_dir = self.regression_models_v2._models[0].predict(hour, [u_v])
+        logger.info("Predicted wind direction: %s for value: %s at hour: %s", predicted_wind_dir, model_wind_dir, hour)
         if predicted_wind_dir is None or u_v is None:
             return None
 
