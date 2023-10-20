@@ -10,15 +10,6 @@ from app.weather_models.wind_direction_utils import compute_u_v
 logger = logging.getLogger(__name__)
 
 
-def radians2degrees(radians):
-    degrees = math.degrees(radians)
-
-    if degrees < 0:
-        degrees += 360.0
-
-    return degrees
-
-
 def any_none_or_nan(prediction: ModelRunPrediction, actual: HourlyActual):
     return prediction.wdir_tgl_10 is None or math.isnan(prediction.wdir_tgl_10) or\
         prediction.wind_tgl_10 is None or math.isnan(prediction.wind_tgl_10) or\
@@ -33,8 +24,8 @@ class WindDirectionModel(RegressionModelProto):
     for more background information.
     """
 
-    def __init__(self):
-        self._linear_model = LinearModel()
+    def __init__(self, linear_model: LinearModel):
+        self._linear_model = linear_model
 
     def train(self):
         return self._linear_model.train()
