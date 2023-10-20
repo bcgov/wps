@@ -15,7 +15,7 @@ from app.db.models.observations import HourlyActual
 from app.db.crud.observations import get_actuals_left_outer_join_with_predictions
 from app.weather_models.weather_models import RegressionModelsV2
 from app.weather_models.sample import Samples
-from app.weather_models.wind_direction_model import compute_u_v
+from app.weather_models.wind_direction_model import compute_u_v, radians2degrees
 
 
 logger = getLogger(__name__)
@@ -228,9 +228,5 @@ class StationMachineLearning:
 
         assert len(predicted_wind_dir) == 2
         prediction_wind_dir_rad = math.atan2(u_v[1], u_v[0])
-        predicted_wind_dir_deg = math.degrees(prediction_wind_dir_rad)
-
-        if predicted_wind_dir_deg < 0:
-            predicted_wind_dir_deg += 360
-
+        predicted_wind_dir_deg = radians2degrees(prediction_wind_dir_rad)
         return predicted_wind_dir_deg
