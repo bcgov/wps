@@ -6,6 +6,7 @@ from app.weather_models import construct_interpolated_noon_prediction
 from app.weather_models.linear_model import LinearModel
 from app.weather_models.regression_model import RegressionModelProto, model_2_actual_keys
 from app.weather_models.wind_direction_model import WindDirectionModel
+from app.weather_models.wind_direction_sample import WindDirectionSamples
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class RegressionModelsV2:
     def __init__(self):
         self._model_keys: List[str] = list(model_2_actual_keys.keys())
         self._models: List[RegressionModelProto] = [
-            WindDirectionModel(linear_model=LinearModel())
+            WindDirectionModel(linear_model=LinearModel(samples=WindDirectionSamples()))
         ]
 
     def add_samples(self, prediction: ModelRunPrediction, actual: HourlyActual):

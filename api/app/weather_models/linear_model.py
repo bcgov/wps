@@ -4,18 +4,18 @@ from typing import List
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
 from collections import defaultdict
-from app.weather_models.sample import Samples
+from app.weather_models.sample import SamplesProto
 
 logger = logging.getLogger(__name__)
 
 
 class LinearModel():
     _models: defaultdict[int, LinearRegression]
-    _samples: Samples
+    _samples: SamplesProto
 
-    def __init__(self):
+    def __init__(self, samples: SamplesProto):
         self._models = defaultdict(LinearRegression)
-        self._samples = Samples()
+        self._samples = samples
 
     def append_x_y(self, prediction_value: List[float], actual_value: List[float], timestamp: datetime):
         self._samples.append_x(prediction_value, timestamp)
@@ -35,10 +35,10 @@ class LinearModel():
                 logger.error("Error trying to fit data for model at hour: %s, dumping samples, x: %s, y: %s",
                              hour, self._samples.np_x(hour), self._samples.np_y(hour), exc_info=True)
 
-    def predict(self, hour: int, model_wind_dir: List[List[int]]):
+    def predict(self, hour: int, model_value: List[List[int]]):
         try:
-            prediction = self._models[hour].predict(model_wind_dir)
-            logger.info("Predicted wind dir for model: %s, hour: %s, prediction: %s", self._key, hour, prediction)
+            prediction = self._models[hour].predict(model_value)
+            logger.info("Predicted value for model, hour: %s, prediction: %s", hour, prediction)
             return prediction[0]
         except NotFittedError as _:
             return None
