@@ -39,9 +39,9 @@ class RegressionModel(RegressionModelProto):
     Default class to manage a regression dataset
     """
 
-    def __init__(self, model_key: str):
+    def __init__(self, model_key: str, linear_model: LinearModel):
         self._key = model_key
-        self._linear_model = LinearModel()
+        self._linear_model = linear_model
 
     def train(self):
         return self._linear_model.train()

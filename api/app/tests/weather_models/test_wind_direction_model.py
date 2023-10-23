@@ -7,6 +7,7 @@ from app.db.models.observations import HourlyActual
 from app.db.models.weather_models import ModelRunPrediction
 from app.weather_models.linear_model import LinearModel
 from app.weather_models.wind_direction_model import WindDirectionModel
+from app.weather_models.wind_direction_sample import WindDirectionSamples
 
 
 @pytest.mark.parametrize(
@@ -73,7 +74,7 @@ from app.weather_models.wind_direction_model import WindDirectionModel
     ],
 )
 def test_wind_direction_model_sample_calls(mocker: MockerFixture, actual, prediction, call_count):
-    mock_linear_model = LinearModel()
+    mock_linear_model = LinearModel(samples=WindDirectionSamples())
     append_x_y_mock = mocker.patch.object(mock_linear_model, "append_x_y")
     wind_dir_model = WindDirectionModel(linear_model=mock_linear_model)
 
@@ -83,7 +84,7 @@ def test_wind_direction_model_sample_calls(mocker: MockerFixture, actual, predic
 
 
 def test_wind_direction_model_train(mocker: MockerFixture):
-    mock_linear_model = LinearModel()
+    mock_linear_model = LinearModel(samples=WindDirectionSamples())
     append_x_y_mock = mocker.patch.object(mock_linear_model, "train")
     wind_dir_model = WindDirectionModel(linear_model=mock_linear_model)
 
@@ -93,7 +94,7 @@ def test_wind_direction_model_train(mocker: MockerFixture):
 
 
 def test_wind_direction_model_predict(mocker: MockerFixture):
-    mock_linear_model = LinearModel()
+    mock_linear_model = LinearModel(samples=WindDirectionSamples())
     append_x_y_mock = mocker.patch.object(mock_linear_model, "predict")
     wind_dir_model = WindDirectionModel(linear_model=mock_linear_model)
 
