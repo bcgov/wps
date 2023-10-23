@@ -187,6 +187,7 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} apply
+
   # TODO: Delete once pmtiles has run for some time
   # deploy-tileserv:
   #   name: Deploy tileserv to Dev
@@ -247,6 +248,23 @@ jobs:
           rules_file_name: ".zap/rules.tsv"
           # Do not return failure on warnings - TODO: this has to be resolved!
           cmd_options: "-I"
+
+  run-schemathesis:
+    name: Schemathesis Fuzzing
+    if: github.triggering_actor != 'renovate'
+    runs-on: ubuntu-22.04
+    needs: [deploy-dev]
+
+    steps:
+      - name: Run Schemathesis
+        continue-on-error: true
+        uses: schemathesis/action@v1
+        with:
+          # Your API schema location
+          schema: "https://wps-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca/api/openapi.json"
+          args: "--experimental=openapi-3.1"
+          # Set your token from secrets
+          token: ${{ secrets.SCHEMATHESIS_TOKEN }}
 
   deploy-c-haines:
     name: Deploy c-haines cronjob
