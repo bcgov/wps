@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 # maps weather orm model keys to actual weather orm model keys
 model_2_actual_keys: Dict[str, str] = {
+    ModelRunPrediction.tmp_tgl_2.name: HourlyActual.temperature.name,  # Not used yet, just for tests
     ModelRunPrediction.wdir_tgl_10.name: HourlyActual.wind_direction.name
 }
 
@@ -69,5 +70,4 @@ class RegressionModel(RegressionModelProto):
 
             # Add to the data we're going to learn from:
             # Using two variables, the interpolated temperature value, and the hour of the day.
-            self._linear_model.append_x(model_value, actual.weather_date)
-            self._linear_model.append_y(actual_value, actual.weather_date)
+            self._linear_model.append_x_y(model_value, actual_value, actual.weather_date)
