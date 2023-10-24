@@ -1,7 +1,7 @@
 """ Module for calculating the bias for a weather station use basic Machine Learning through Linear
 Regression.
 """
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from collections import defaultdict
 from typing import List
 from logging import getLogger
@@ -11,8 +11,9 @@ from sqlalchemy.orm import Session
 from app.weather_models import SCALAR_MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
 from app.db.models.weather_models import (PredictionModel, ModelRunPrediction)
 from app.db.models.observations import HourlyActual
-from app.db.crud.observations import get_actuals_left_outer_join_with_predictions
+from app.db.crud.observations import get_accumulated_precip_by_24h_interval, get_actuals_left_outer_join_with_predictions, get_predicted_daily_precip
 from app.weather_models.regression_model import RegressionModelsV2
+from app.weather_models.precip_regression_model import PrecipRegressionModel
 from app.weather_models.sample import Samples
 
 
@@ -69,8 +70,6 @@ class StationMachineLearning:
         """
         : param session: Database session.
         : param model: Prediction model, e.g. GDPS
-        : param grid: Grid in which the station is contained.
-        : param points: Grid represented as points.
         : param target_coordinate: Coordinate we're interested in .
         : param station_code: Code of the weather station.
         : param max_learn_date: Maximum date up to which to learn.
@@ -81,6 +80,7 @@ class StationMachineLearning:
         self.station_code = station_code
         self.regression_models = defaultdict(RegressionModels)
         self.regression_models_v2 = RegressionModelsV2()
+        self.precip_regression_model = PrecipRegressionModel()
         self.max_learn_date = max_learn_date
         # Maximum number of days to try to learn from. Experimentation has shown that
         # about two weeks worth of data starts giving fairly good results compared to human forecasters.
@@ -106,6 +106,23 @@ class StationMachineLearning:
                 # Sometimes, for reasons that probably need investigation, model values
                 # are None.
                 logger.warning('no model value for %s->%s', model_key, sample_key)
+
+    def _collect_precip_data(self, start_date: datetime):
+        """Collect 24h precipitation data, actuals and model predictions, to use for machine learning
+        """
+        # Precip is based on 24 hour periods at 20:00 hours UTC. Use the start_date
+        # parameter to calculate a start_datetime for the same date but at 20:00 UTC.
+        start_datetime = datetime(start_date.year, start_date.month, start_date.day, 20, tzinfo=timezone.utc)
+        # The end datetime is yesterday at 20:00 UTC.
+        end_date = date.today() - timedelta(days=-1)
+        end_datetime = datetime(end_date.year, end_date.month, end_date.day, 20, tzinfo=timezone.utc)
+        # Get the actual precip values
+        actual_daily_precip = get_accumulated_precip_by_24h_interval(
+            self.session, self.station_code, start_datetime, end_datetime)
+        # Get the model predicted values
+        predicted_daily_precip = get_predicted_daily_precip(
+            self.session, self.model, self.station_code, start_datetime, end_datetime)
+        self.precip_regression_model.add_samples(actual_daily_precip, predicted_daily_precip)
 
     def _collect_data(self, start_date: datetime):
         """ Collect data to use for machine learning.
@@ -149,6 +166,8 @@ class StationMachineLearning:
 
         # collect data
         data = self._collect_data(start_date)
+        self._collect_precip_data(start_date)
+        self.precip_regression_model.train()
 
         # iterate through the data, creating a regression model for each variable
         # and each hour.
@@ -222,3 +241,19 @@ class StationMachineLearning:
         if predicted_wind_dir is None:
             return None
         return predicted_wind_dir % 360
+
+    def predict_precipitation(self, model_precipitation: float, timestamp: datetime):
+        """ Predict the 24 hour precipitation for a given point in time, given a
+        corresponding model precipitation.
+        : param model_precipitation: Precipitation as provided by the model
+        : param timestamp: Datetime value for the predicted value.
+        : return: The bias adjusted 24 hour precipitation as predicted by the linear regression model.
+        """
+        if model_precipitation is None:
+            logger.warning('model precipitation for %s was None', timestamp)
+            return None
+        hour = timestamp.hour
+        predicted_precip_24h = self.precip_regression_model.predict(hour, [[model_precipitation]])
+        if predicted_precip_24h is None:
+            return None
+        return max(0, predicted_precip_24h)
