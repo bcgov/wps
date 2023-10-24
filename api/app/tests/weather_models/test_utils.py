@@ -1,9 +1,18 @@
 from app.weather_models.utils import construct_dictionary_from_list_by_property
 
 
-object_1 = {"id": 1, "name": "foo"}
-object_2 = {"id": 2, "name": "bar"}
-object_3 = {"id": 3, "name": "foo"}
+class TestObject:
+    id: int
+    name: str
+
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+
+
+object_1 = TestObject(1, "foo")
+object_2 = TestObject(2, "bar")
+object_3 = TestObject(3, "foo")
 
 object_list = [object_1, object_2, object_3]
 
