@@ -6,9 +6,7 @@ from botocore.session import get_session
 
 def get_zone_units_geojson():
     """
-    Fetches a dem from S3 storage, opens it with gdal and assigns it to a global variable
-    for use in other functions. This is a little clunky, but we only want to grab the dem from
-    object storage once because it is a slow process.
+    Fetches fire zone units geojson from S3 storage.
     """
 
     server = config.get('OBJECT_STORE_SERVER')
