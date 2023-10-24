@@ -5,7 +5,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
 from typing import List
 from collections import defaultdict
-from app.weather_models import construct_dictionary_from_list_by_property
+from app.weather_models.utils import construct_dictionary_from_list_by_property
 from app.weather_models.sample import Samples
 
 logger = logging.getLogger(__name__)
