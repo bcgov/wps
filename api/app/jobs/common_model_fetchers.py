@@ -245,13 +245,14 @@ class ModelValueProcessor:
             station_prediction.apcp_sfc_0 = 0.0
         else:
             station_prediction.apcp_sfc_0 = prediction.apcp_sfc_0
-        # Calculate the delta_precipitation based on station's previous prediction_timestamp
+        # Calculate the delta_precipitation and 24 hour precip based on station's previous prediction_timestamp
         # for the same model run
         self.session.flush()
         station_prediction.precip_24h = self._calculate_past_24_hour_precip(
             station, model_run, prediction, station_prediction)
         station_prediction.delta_precip = self._calculate_delta_precip(
             station, model_run, prediction, station_prediction)
+        self.session.flush()
 
         # Get the closest wind speed
         if prediction.wind_tgl_10 is not None:
@@ -275,6 +276,11 @@ class ModelValueProcessor:
         # Predict the wind direction
         station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(
             station_prediction.wdir_tgl_10,
+            station_prediction.prediction_timestamp
+        )
+        # Predict the 24 hour precipitation
+        station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(
+            station_prediction.precip_24h,
             station_prediction.prediction_timestamp
         )
 
