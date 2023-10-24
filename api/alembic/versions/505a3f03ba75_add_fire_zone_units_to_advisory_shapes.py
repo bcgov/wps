@@ -48,7 +48,6 @@ def upgrade():
         geometry = feature.get('geometry', {})
         geom = from_geojson(json.dumps(geometry))
 
-        print(geom.geom_type)
         insert_statement = insert(shape_table).values(
             source_identifier=object_id,
             shape_type=shape_type_id,
