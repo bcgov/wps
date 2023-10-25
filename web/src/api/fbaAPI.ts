@@ -90,7 +90,7 @@ export async function getFireZoneAreas(
   run_datetime: string,
   for_date: string
 ): Promise<ZoneAreaListResponse> {
-  const url = `/fba/fire-zone-areas/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
+  const url = `/fba/fire-shape-areas/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
   const { data } = await axios.get(url, {})
   return data
 }
