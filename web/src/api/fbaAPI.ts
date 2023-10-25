@@ -14,8 +14,8 @@ export interface FireCenter {
   stations: FireCenterStation[]
 }
 
-export interface FireZone {
-  mof_fire_zone_id: number
+export interface FireShape {
+  fire_shape_id: number
   mof_fire_zone_name: string
   mof_fire_centre_name?: string
   area_sqm?: number
@@ -31,8 +31,8 @@ export interface FireZoneThresholdFuelTypeArea {
   area: number
 }
 
-export interface FireZoneArea {
-  mof_fire_zone_id: number
+export interface FireShapeArea {
+  fire_shape_id: number
   threshold: number
   combustible_area: number
   elevated_hfi_area: number
@@ -57,7 +57,7 @@ export interface FireZoneElevationInfoResponse {
 }
 
 export interface ZoneAreaListResponse {
-  zones: FireZoneArea[]
+  zones: FireShapeArea[]
 }
 
 export interface HfiThresholdFuelTypeArea {

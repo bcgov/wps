@@ -14,8 +14,8 @@ from app.db.crud.auto_spatial_advisory import (get_all_sfms_fuel_types,
                                                get_run_datetimes,
                                                get_zonal_elevation_stats)
 from app.db.models.auto_spatial_advisory import RunTypeEnum
-from app.schemas.fba import (ClassifiedHfiThresholdFuelTypeArea, FireCenterListResponse, FireZoneAreaListResponse,
-                             FireZoneArea, FireZoneElevationStats, FireZoneElevationStatsByThreshold,
+from app.schemas.fba import (ClassifiedHfiThresholdFuelTypeArea, FireCenterListResponse, FireShapeAreaListResponse,
+                             FireShapeArea, FireZoneElevationStats, FireZoneElevationStatsByThreshold,
                              FireZoneElevationStatsListResponse, SFMSFuelType, HfiThreshold)
 from app.auth import authentication_required, audit
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
@@ -39,10 +39,10 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
     return FireCenterListResponse(fire_centers=fire_centers)
 
 
-@router.get('/fire-zone-areas/{run_type}/{run_datetime}/{for_date}',
-            response_model=FireZoneAreaListResponse)
-async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
-    """ Return area of each zone, and percentage of area of zone with high hfi. """
+@router.get('/fire-shape-areas/{run_type}/{run_datetime}/{for_date}',
+            response_model=FireShapeAreaListResponse)
+async def get_shapes(run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
+    """ Return area of each zone unit shape, and percentage of area of zone unit shape with high hfi. """
     async with get_async_read_session_scope() as session:
         zones = []
 
@@ -55,13 +55,13 @@ async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _
         for row in rows:
             combustible_area = row.combustible_area  # type: ignore
             hfi_area = row.hfi_area  # type: ignore
-            zones.append(FireZoneArea(
-                mof_fire_zone_id=row.source_identifier,  # type: ignore
+            zones.append(FireShapeArea(
+                fire_shape_id=row.source_identifier,  # type: ignore
                 threshold=row.threshold,  # type: ignore
                 combustible_area=row.combustible_area,  # type: ignore
                 elevated_hfi_area=row.hfi_area,  # type: ignore
                 elevated_hfi_percentage=hfi_area / combustible_area * 100))
-        return FireZoneAreaListResponse(zones=zones)
+        return FireShapeAreaListResponse(zones=zones)
 
 
 @router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}/{zone_id}',

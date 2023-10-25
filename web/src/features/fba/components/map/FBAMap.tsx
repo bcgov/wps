@@ -14,13 +14,13 @@ import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectRunDates } from 'app/rootReducer'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
-import { FireCenter, FireZone, FireZoneArea } from 'api/fbaAPI'
+import { FireCenter, FireShape, FireShapeArea } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
 import {
   fireCentreStyler,
   fireCentreLabelStyler,
   fireZoneStyler,
-  fireZoneLabelStyler,
+  fireShapeLabelStyler,
   stationStyler,
   hfiStyler
 } from 'features/fba/components/map/featureStylers'
@@ -40,10 +40,10 @@ const zoom = 6
 export interface FBAMapProps {
   testId?: string
   selectedFireCenter: FireCenter | undefined
-  selectedFireZone: FireZone | undefined
+  selectedFireZone: FireShape | undefined
   forDate: DateTime
-  setSelectedFireZone: React.Dispatch<React.SetStateAction<FireZone | undefined>>
-  fireZoneAreas: FireZoneArea[]
+  setSelectedFireZone: React.Dispatch<React.SetStateAction<FireShape | undefined>>
+  fireZoneAreas: FireShapeArea[]
   runType: RunType
   advisoryThreshold: number
   showSummaryPanel: boolean
@@ -72,13 +72,13 @@ const FBAMap = (props: FBAMapProps) => {
     url: `${PMTILES_BUCKET}fireCentres.pmtiles`
   })
   const fireZoneVectorSource = new olpmtiles.PMTilesVectorSource({
-    url: `${PMTILES_BUCKET}fireZones.pmtiles`
+    url: `${PMTILES_BUCKET}fireZoneUnits.pmtiles`
   })
   const fireCentreLabelVectorSource = new olpmtiles.PMTilesVectorSource({
     url: `${PMTILES_BUCKET}fireCentreLabels.pmtiles`
   })
   const fireZoneLabelVectorSource = new olpmtiles.PMTilesVectorSource({
-    url: `${PMTILES_BUCKET}fireZoneLabels.pmtiles`
+    url: `${PMTILES_BUCKET}fireZoneUnitLabels.pmtiles`
   })
 
   const handleToggleLayer = (layerName: string, isVisible: boolean) => {
@@ -132,7 +132,7 @@ const FBAMap = (props: FBAMapProps) => {
     new VectorTileLayer({
       declutter: true,
       source: fireZoneLabelVectorSource,
-      style: fireZoneLabelStyler(props.selectedFireZone),
+      style: fireShapeLabelStyler(props.selectedFireZone),
       zIndex: 99,
       minZoom: 6
     })
@@ -154,11 +154,11 @@ const FBAMap = (props: FBAMapProps) => {
           if (!isUndefined(zoneExtent)) {
             map.getView().fit(zoneExtent, { duration: 400, padding: [50, 50, 50, 50], maxZoom: 7.4 })
           }
-          const fireZone: FireZone = {
-            mof_fire_zone_id: feature.get('MOF_FIRE_ZONE_ID'),
-            mof_fire_zone_name: feature.get('MOF_FIRE_ZONE_NAME'),
-            mof_fire_centre_name: feature.get('MOF_FIRE_CENTRE_NAME'),
-            area_sqm: feature.get('FEATURE_AREA_SQM')
+          const fireZone: FireShape = {
+            fire_shape_id: feature.getProperties().OBJECTID,
+            mof_fire_zone_name: feature.getProperties().OBJECTID.FIRE_ZONE,
+            mof_fire_centre_name: feature.getProperties().FIRE_CENTR,
+            area_sqm: feature.getProperties().Shape_Area
           }
           props.setShowSummaryPanel(true)
           props.setSelectedFireZone(fireZone)
@@ -196,7 +196,7 @@ const FBAMap = (props: FBAMapProps) => {
     fireZoneVTL.setStyle(
       fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone, showZoneStatus)
     )
-    fireZoneLabelVTL.setStyle(fireZoneLabelStyler(props.selectedFireZone))
+    fireZoneLabelVTL.setStyle(fireShapeLabelStyler(props.selectedFireZone))
     fireZoneVTL.changed()
     fireZoneLabelVTL.changed()
     // eslint-disable-next-line react-hooks/exhaustive-deps

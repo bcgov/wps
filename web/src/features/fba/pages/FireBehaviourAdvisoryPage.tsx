@@ -16,7 +16,7 @@ import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
-import { FireCenter, FireZone } from 'api/fbaAPI'
+import { FireCenter, FireShape } from 'api/fbaAPI'
 import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME, PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
@@ -53,7 +53,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
-  const [selectedFireZone, setSelectedFireZone] = useState<FireZone | undefined>(undefined)
+  const [selectedFireZone, setSelectedFireZone] = useState<FireShape | undefined>(undefined)
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
@@ -114,9 +114,9 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       !isUndefined(mostRecentRunDate) &&
       !isUndefined(selectedFireZone)
     ) {
-      dispatch(fetchHighHFIFuels(runType, doiISODate, mostRecentRunDate.toString(), selectedFireZone.mof_fire_zone_id))
+      dispatch(fetchHighHFIFuels(runType, doiISODate, mostRecentRunDate.toString(), selectedFireZone.fire_shape_id))
       dispatch(
-        fetchfireZoneElevationInfo(selectedFireZone.mof_fire_zone_id, runType, doiISODate, mostRecentRunDate.toString())
+        fetchfireZoneElevationInfo(selectedFireZone.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
       )
     }
   }, [mostRecentRunDate, selectedFireZone]) // eslint-disable-line react-hooks/exhaustive-deps

@@ -24,30 +24,30 @@ class FireCenterListResponse(BaseModel):
     fire_centers: List[FireCentre]
 
 
-class FireZoneArea(BaseModel):
+class FireShapeArea(BaseModel):
     """ A zone is a grouping of planning areas within a fire centre. """
-    mof_fire_zone_id: int
+    fire_shape_id: int
     threshold: int
     combustible_area: float
     elevated_hfi_area: float
     elevated_hfi_percentage: float
 
 
-class FireZoneAreaListResponse(BaseModel):
+class FireShapeAreaListResponse(BaseModel):
     """ Response for all planning areas, in a list """
-    zones: List[FireZoneArea]
+    zones: List[FireShapeArea]
 
 
-class FireZoneHighHfiAreas(BaseModel):
+class FireShapeHighHfiAreas(BaseModel):
     """ A fire zone and the area exceeding HFI thresholds. """
-    mof_fire_zone_id: int
+    fire_shape_id: int
     advisory_area: float
     warn_area: float
 
 
-class FireZoneHighHfiAreasListResponse(BaseModel):
+class FireShapeHighHfiAreasListResponse(BaseModel):
     """ Response for all fire zones and their areas exceeding high HFI thresholds. """
-    zones: List[FireZoneHighHfiAreas]
+    zones: List[FireShapeHighHfiAreas]
 
 
 class HfiThresholdAreaByFuelType(BaseModel):

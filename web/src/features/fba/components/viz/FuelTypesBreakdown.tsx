@@ -2,7 +2,7 @@ import React from 'react'
 import { styled } from '@mui/material/styles'
 import { Typography } from '@mui/material'
 import { isUndefined } from 'lodash'
-import { FireZone, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
+import { FireShape, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import { PieChart, Pie, ResponsiveContainer, Cell } from 'recharts'
 
 const PREFIX = 'FuelTypesBreakdown'
@@ -25,7 +25,7 @@ const PieChartHeader = styled(Typography, {
 
 interface Props {
   className?: string
-  selectedFireZone: FireZone | undefined
+  selectedFireZone: FireShape | undefined
   fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
 }
 
@@ -90,12 +90,12 @@ const FuelTypesBreakdown = (props: Props) => {
     )
   }
 
-  if (isUndefined(props.selectedFireZone) || isUndefined(props.fuelTypeInfo[props.selectedFireZone.mof_fire_zone_id])) {
+  if (isUndefined(props.selectedFireZone) || isUndefined(props.fuelTypeInfo[props.selectedFireZone.fire_shape_id])) {
     return <div></div>
   } else {
     const advisories: FuelTypeDataForPieChart[] = []
     const warnings: FuelTypeDataForPieChart[] = []
-    props.fuelTypeInfo[props.selectedFireZone?.mof_fire_zone_id].forEach(record => {
+    props.fuelTypeInfo[props.selectedFireZone?.fire_shape_id].forEach(record => {
       if (record.threshold.id === 1) {
         advisories.push({ area: record.area, fuel_type_code: record.fuel_type.fuel_type_code })
       } else if (record.threshold.id === 2) {

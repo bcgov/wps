@@ -2,13 +2,13 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FireZoneArea, ZoneAreaListResponse, getFireZoneAreas } from 'api/fbaAPI'
+import { FireShapeArea, ZoneAreaListResponse, getFireZoneAreas } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 interface State {
   loading: boolean
   error: string | null
-  fireZoneAreas: FireZoneArea[]
+  fireZoneAreas: FireShapeArea[]
 }
 
 const initialState: State = {

@@ -8,7 +8,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import { isUndefined } from 'lodash'
-import { ElevationInfoByThreshold, FireZone } from 'api/fbaAPI'
+import { ElevationInfoByThreshold, FireShape } from 'api/fbaAPI'
 
 const PREFIX = 'ElevationInfoViz'
 
@@ -30,7 +30,7 @@ const Root = styled('div')({
 
 interface Props {
   className?: string
-  selectedFireZone: FireZone | undefined
+  selectedFireZone: FireShape | undefined
   hfiElevationInfo: ElevationInfoByThreshold[]
 }
 
