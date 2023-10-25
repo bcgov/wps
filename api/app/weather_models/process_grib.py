@@ -196,7 +196,7 @@ class GribFileProcessor():
                 logger.warning('coordinate not in raster - %s', station)
                 continue
 
-            yield value
+            yield (station, value)
 
     def yield_uv_wind_data_for_stations(self, u_raster_band: gdal.Dataset, v_raster_band: gdal.Dataset, variable: str):
         """ Given a list of stations and 2 gdal datasets (one for u-component of wind, one for v-component
@@ -216,11 +216,11 @@ class GribFileProcessor():
                 v_value = v_raster_band.ReadAsArray(x_coordinate, y_coordinate, 1, 1)[0, 0]
 
                 if variable == 'wdir_tgl_10':
-                    yield calculate_wind_dir_from_u_v(u_value, v_value)
+                    yield (station, calculate_wind_dir_from_u_v(u_value, v_value))
                 elif variable == 'wind_tgl_10':
                     metres_per_second_speed = calculate_wind_speed_from_u_v(u_value, v_value)
                     kilometres_per_hour_speed = convert_mps_to_kph(metres_per_second_speed)
-                    yield kilometres_per_hour_speed
+                    yield (station, kilometres_per_hour_speed)
             else:
                 logger.warning('coordinate not in u/v wind rasters - %s', station)
 
@@ -265,6 +265,7 @@ class GribFileProcessor():
         return variable_name
 
     def store_prediction_value(self,
+                               station_code: int,
                                value: float,
                                preduction_model_run: PredictionModelRunTimestamp,
                                grib_info: ModelRunInfo,
@@ -272,15 +273,18 @@ class GribFileProcessor():
         """ Store the values around the area of interest.
         """
         # Load the record if it exists.
-        prediction = session.query(ModelRunPrediction).\
-            filter(
-                ModelRunPrediction.prediction_model_run_timestamp_id == preduction_model_run.id).\
-            filter(ModelRunPrediction.prediction_timestamp == grib_info.prediction_timestamp).first()
+        prediction = session.query(ModelRunPrediction)\
+            .filter(
+                ModelRunPrediction.prediction_model_run_timestamp_id == preduction_model_run.id)\
+            .filter(ModelRunPrediction.prediction_timestamp == grib_info.prediction_timestamp)\
+            .filter(ModelRunPrediction.station_code == station_code)\
+            .first()
         if not prediction:
             # Record doesn't exist, so we create it.
             prediction = ModelRunPrediction()
             prediction.prediction_model_run_timestamp_id = preduction_model_run.id
             prediction.prediction_timestamp = grib_info.prediction_timestamp
+            prediction.station_code = station_code
 
         variable_name = self.get_variable_name(grib_info)
         setattr(prediction, variable_name, value)
@@ -292,13 +296,13 @@ class GribFileProcessor():
         # for GDPS, RDPS, HRDPS models, always only ever 1 raster band in the dataset
         raster_band = dataset.GetRasterBand(1)
         # Iterate through stations:
-        for value in self.yield_value_for_stations(raster_band):
+        for station, value in self.yield_value_for_stations(raster_band):
             # Convert wind speed from metres per second to kilometres per hour for Environment Canada
             # models (NOAA models handled elswhere)
             if grib_info.variable_name.lower().startswith("wind_agl") or grib_info.variable_name.lower().startswith('wind_tgl'):
                 value = convert_mps_to_kph(value)
 
-            self.store_prediction_value(value, prediction_run, grib_info, session)
+            self.store_prediction_value(station.code, value, prediction_run, grib_info, session)
 
     def get_raster_bands(self, dataset, grib_info: ModelRunInfo):
         """ Returns raster bands of dataset for temperature, RH, U/V wind components, and 
@@ -333,22 +337,22 @@ class GribFileProcessor():
         tmp_raster_band, rh_raster_band, u_wind_raster_band, v_wind_raster_band, precip_raster_band = self.get_raster_bands(
             dataset, grib_info)
 
-        for tmp_value in self.yield_value_for_stations(tmp_raster_band):
+        for station, tmp_value in self.yield_value_for_stations(tmp_raster_band):
             grib_info.variable_name = 'tmp_tgl_2'
-            self.store_prediction_value(tmp_value, prediction_run, grib_info, session)
-        for rh_value in self.yield_value_for_stations(rh_raster_band):
+            self.store_prediction_value(station.code, tmp_value, prediction_run, grib_info, session)
+        for station, rh_value in self.yield_value_for_stations(rh_raster_band):
             grib_info.variable_name = 'rh_tgl_2'
-            self.store_prediction_value(rh_value, prediction_run, grib_info, session)
+            self.store_prediction_value(station.code, rh_value, prediction_run, grib_info, session)
         if precip_raster_band:
-            for apcp_value in self.yield_value_for_stations(precip_raster_band):
+            for station, apcp_value in self.yield_value_for_stations(precip_raster_band):
                 grib_info.variable_name = 'apcp_sfc_0'
-                self.store_prediction_value(apcp_value, prediction_run, grib_info, session)
-        for wdir_value in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, 'wdir_tgl_10'):
+                self.store_prediction_value(station.code, apcp_value, prediction_run, grib_info, session)
+        for station, wdir_value in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, 'wdir_tgl_10'):
             grib_info.variable_name = 'wdir_tgl_10'
-            self.store_prediction_value(wdir_value, prediction_run, grib_info, session)
-        for wind_value in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, 'wind_tgl_10'):
+            self.store_prediction_value(station.code, wdir_value, prediction_run, grib_info, session)
+        for station, wind_value in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, 'wind_tgl_10'):
             grib_info.variable_name = 'wind_tgl_10'
-            self.store_prediction_value(wind_value, prediction_run, grib_info, session)
+            self.store_prediction_value(station.code, wind_value, prediction_run, grib_info, session)
 
     def process_grib_file(self, filename, grib_info: ModelRunInfo, session: Session):
         """ Process a grib file, extracting and storing relevant information. """

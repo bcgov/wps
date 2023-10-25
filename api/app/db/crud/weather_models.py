@@ -62,14 +62,15 @@ def get_or_create_prediction_run(session, prediction_model: PredictionModel,
     return prediction_run
 
 
-def get_model_run_predictions(session: Session,
+def get_model_run_predictions_for_station(session: Session, station_code: int,
                               prediction_run: PredictionModelRunTimestamp) -> List:
     """ Get all the predictions for a provided model run """
     logger.info("Getting model predictions for grid %s", prediction_run)
-    return session.query(ModelRunPrediction).\
-        filter(ModelRunPrediction.prediction_model_run_timestamp_id ==
-               prediction_run.id).\
-        order_by(ModelRunPrediction.prediction_timestamp)
+    return session.query(ModelRunPrediction)\
+        .filter(ModelRunPrediction.prediction_model_run_timestamp_id ==
+               prediction_run.id)\
+        .filter(ModelRunPrediction.station_code == station_code)\
+        .order_by(ModelRunPrediction.prediction_timestamp)
 
 
 def delete_weather_station_model_predictions(session: Session, older_than: datetime):
