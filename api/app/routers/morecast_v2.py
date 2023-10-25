@@ -20,7 +20,8 @@ from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MorecastForecastResponse,
                                      ObservedDailiesForStations,
                                      StationDailiesResponse,
-                                     WeatherIndeterminate)
+                                     WeatherIndeterminate,
+                                     SimulateIndeterminateIndices)
 from app.schemas.shared import StationsRequest
 from app.wildfire_one.schema_parsers import transform_morecastforecastoutput_to_weatherindeterminate
 from app.utils.time import get_hour_20_from_date, get_utc_now
@@ -30,6 +31,7 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_daily_determinates_for_stations_and_date, get_wfwx_stations_from_station_codes)
 from app.wildfire_one.wfwx_post_api import post_forecasts
 from app.morecast_v2.forecasts import get_forecasted_fwi_values
+from app.fire_behaviour import cffdrs
 
 
 logger = logging.getLogger(__name__)
@@ -223,3 +225,49 @@ async def get_determinates_for_date_range(start_date: date,
         actuals=wf1_actuals,
         predictions=predictions,
         forecasts=wf1_forecasts)
+
+
+@router.post('/simulate-indices/', response_model=SimulateIndeterminateIndices)
+async def calculate_forecasted_indices(simulate_records: SimulateIndeterminateIndices):
+    indeterminates = simulate_records.simulate_records
+    logger.info(
+        f'/simulate-indices/ - simulating forecast records for {indeterminates[0].station_name}')
+
+    yesterday_record = indeterminates[0]
+    indeterminates_to_simulate = indeterminates[1:]
+    for record in indeterminates_to_simulate:
+        # weather params for calculation date
+        month_to_calculate_for = int(record.utc_timestamp.strftime('%m'))
+        latitude = record.latitude
+        temp = record.temperature
+        rh = record.relative_humidity
+        precip = record.precipitation
+        wind_speed = record.wind_speed
+        record.fine_fuel_moisture_code = cffdrs.fine_fuel_moisture_code(ffmc=yesterday_record.fine_fuel_moisture_code,
+                                                                        temperature=temp,
+                                                                        relative_humidity=rh,
+                                                                        precipitation=precip,
+                                                                        wind_speed=wind_speed)
+        record.duff_moisture_code = cffdrs.duff_moisture_code(dmc=yesterday_record.duff_moisture_code,
+                                                              temperature=temp,
+                                                              relative_humidity=rh,
+                                                              precipitation=precip,
+                                                              latitude=latitude,
+                                                              month=month_to_calculate_for,
+                                                              latitude_adjust=True
+                                                              )
+        record.drought_code = cffdrs.drought_code(dc=yesterday_record.drought_code,
+                                                  temperature=temp,
+                                                  relative_humidity=rh,
+                                                  precipitation=precip,
+                                                  latitude=latitude,
+                                                  month=month_to_calculate_for,
+                                                  latitude_adjust=True
+                                                  )
+        record.initial_spread_index = cffdrs.initial_spread_index(ffmc=record.fine_fuel_moisture_code,
+                                                                  wind_speed=record.wind_speed)
+        record.build_up_index = cffdrs.bui_calc(dmc=record.duff_moisture_code, dc=record.drought_code)
+        record.fire_weather_index = cffdrs.fire_weather_index(
+            isi=record.initial_spread_index, bui=record.build_up_index)
+        yesterday_record = record
+    return SimulateIndeterminateIndices(simulate_records=indeterminates_to_simulate)
