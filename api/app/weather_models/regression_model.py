@@ -68,6 +68,4 @@ class RegressionModel(RegressionModelProto):
                                self._key, model_2_actual_keys[self._key])
                 return
 
-            # Add to the data we're going to learn from:
-            # Using two variables, the interpolated temperature value, and the hour of the day.
             self._linear_model.append_x_y(model_value, actual_value, actual.weather_date)

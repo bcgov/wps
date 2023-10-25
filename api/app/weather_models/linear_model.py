@@ -4,16 +4,16 @@ from typing import List
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
 from collections import defaultdict
-from app.weather_models.sample import SamplesProto
+from app.weather_models.sample import Samples
 
 logger = logging.getLogger(__name__)
 
 
 class LinearModel():
     _models: defaultdict[int, LinearRegression]
-    _samples: SamplesProto
+    _samples: Samples
 
-    def __init__(self, samples: SamplesProto):
+    def __init__(self, samples: Samples):
         self._models = defaultdict(LinearRegression)
         self._samples = samples
 

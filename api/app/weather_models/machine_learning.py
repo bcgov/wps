@@ -215,6 +215,7 @@ class StationMachineLearning:
 
     def predict_wind_direction(self, model_wind_speed: float, model_wind_dir: int, timestamp: datetime):
         """ Predict the bias-adjusted wind direction for a given point in time, given a corresponding model wind direction.
+        : param model_wind_speed: Wind speed as provided by the model
         : param model_wind_dir: Wind direction as provided by the model
         : param timestamp: Datetime value for the predicted value
         : return: The bias-adjusted wind direction as predicted by the linear regression model.

@@ -49,11 +49,11 @@ class Samples(SamplesProto):
         self._y[timestamp.hour].append(value)
 
     def np_x(self, hour):
-        """ Return numpy array of the predicted values, reshaped appropriately. """
-        return np.array(self._x[hour]).reshape((-1, 1))
+        """ Return numpy array of the predicted values. """
+        return np.array(self._x[hour])
 
     def np_y(self, hour):
-        """ Return a numpy array of the observed values """
+        """ Return a numpy array of the observed values. """
         return np.array(self._y[hour])
 
     def add_sample(self,
