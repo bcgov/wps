@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.db.crud.weather_models import (get_processed_file_record,
                                         get_processed_file_count,
                                         get_prediction_model_run_timestamp_records,
-                                        get_model_run_predictions,
+                                        get_model_run_predictions_for_station,
                                         get_weather_station_model_prediction,
                                         delete_weather_station_model_predictions,
                                         refresh_morecast2_materialized_view)
@@ -349,7 +349,7 @@ class ModelValueProcessor:
         machine.learn()
 
         # Get all the predictions associated to this particular model run.
-        query = get_model_run_predictions(self.session, model_run)
+        query = get_model_run_predictions_for_station(self.session, station.code, model_run)
 
         nam_cumulative_precip = 0.0
         # Iterate through all the predictions.
