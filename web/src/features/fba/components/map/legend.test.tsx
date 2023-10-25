@@ -11,7 +11,7 @@ describe('Legend', () => {
     const { getByTestId } = render(
       <Legend
         onToggleLayer={onToggleLayer}
-        setShowZoneStatus={setShowZoneStatus}
+        setShowShapeStatus={setShowZoneStatus}
         setShowHFI={setShowHFI}
         showHFI={false}
         showZoneStatus={true}
@@ -38,7 +38,7 @@ describe('Legend', () => {
     const { getByTestId } = render(
       <Legend
         onToggleLayer={onToggleLayer}
-        setShowZoneStatus={setShowZoneStatus}
+        setShowShapeStatus={setShowZoneStatus}
         setShowHFI={setShowHFI}
         showHFI={false}
         showZoneStatus={true}

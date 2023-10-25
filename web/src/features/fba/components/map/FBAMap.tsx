@@ -19,7 +19,7 @@ import { extentsMap } from 'features/fba/fireCentreExtents'
 import {
   fireCentreStyler,
   fireCentreLabelStyler,
-  fireZoneStyler,
+  fireShapeStyler,
   fireShapeLabelStyler,
   stationStyler,
   hfiStyler
@@ -40,10 +40,10 @@ const zoom = 6
 export interface FBAMapProps {
   testId?: string
   selectedFireCenter: FireCenter | undefined
-  selectedFireZone: FireShape | undefined
+  selectedFireShape: FireShape | undefined
   forDate: DateTime
-  setSelectedFireZone: React.Dispatch<React.SetStateAction<FireShape | undefined>>
-  fireZoneAreas: FireShapeArea[]
+  setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
+  fireShapeAreas: FireShapeArea[]
   runType: RunType
   advisoryThreshold: number
   showSummaryPanel: boolean
@@ -62,7 +62,7 @@ const removeLayerByName = (map: ol.Map, layerName: string) => {
 
 const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
-  const [showZoneStatus, setShowZoneStatus] = useState(true)
+  const [showShapeStatus, setShowShapeStatus] = useState(true)
   const [showHFI, setShowHFI] = React.useState(false)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -71,13 +71,13 @@ const FBAMap = (props: FBAMapProps) => {
   const fireCentreVectorSource = new olpmtiles.PMTilesVectorSource({
     url: `${PMTILES_BUCKET}fireCentres.pmtiles`
   })
-  const fireZoneVectorSource = new olpmtiles.PMTilesVectorSource({
+  const fireShapeVectorSource = new olpmtiles.PMTilesVectorSource({
     url: `${PMTILES_BUCKET}fireZoneUnits.pmtiles`
   })
   const fireCentreLabelVectorSource = new olpmtiles.PMTilesVectorSource({
     url: `${PMTILES_BUCKET}fireCentreLabels.pmtiles`
   })
-  const fireZoneLabelVectorSource = new olpmtiles.PMTilesVectorSource({
+  const fireShapeLabelVectorSource = new olpmtiles.PMTilesVectorSource({
     url: `${PMTILES_BUCKET}fireZoneUnitLabels.pmtiles`
   })
 
@@ -88,9 +88,9 @@ const FBAMap = (props: FBAMapProps) => {
         .getArray()
         .find(l => l.getProperties()?.name === layerName)
 
-      if (layerName === 'fireZoneVector') {
-        fireZoneVTL.setStyle(
-          fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone, isVisible)
+      if (layerName === 'fireShapeVector') {
+        fireShapeVTL.setStyle(
+          fireShapeStyler(cloneDeep(props.fireShapeAreas), props.advisoryThreshold, props.selectedFireShape, isVisible)
         )
       } else if (layer) {
         layer.setVisible(isVisible)
@@ -105,17 +105,17 @@ const FBAMap = (props: FBAMapProps) => {
       zIndex: 50
     })
   )
-  const [fireZoneVTL] = useState(
+  const [fireShapeVTL] = useState(
     new VectorTileLayer({
-      source: fireZoneVectorSource,
-      style: fireZoneStyler(
-        cloneDeep(props.fireZoneAreas),
+      source: fireShapeVectorSource,
+      style: fireShapeStyler(
+        cloneDeep(props.fireShapeAreas),
         props.advisoryThreshold,
-        props.selectedFireZone,
-        showZoneStatus
+        props.selectedFireShape,
+        showShapeStatus
       ),
       zIndex: 49,
-      properties: { name: 'fireZoneVector' }
+      properties: { name: 'fireShapeVector' }
     })
   )
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
@@ -128,11 +128,11 @@ const FBAMap = (props: FBAMapProps) => {
     })
   )
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
-  const [fireZoneLabelVTL] = useState(
+  const [fireShapeLabelVTL] = useState(
     new VectorTileLayer({
       declutter: true,
-      source: fireZoneLabelVectorSource,
-      style: fireShapeLabelStyler(props.selectedFireZone),
+      source: fireShapeLabelVectorSource,
+      style: fireShapeLabelStyler(props.selectedFireShape),
       zIndex: 99,
       minZoom: 6
     })
@@ -141,9 +141,9 @@ const FBAMap = (props: FBAMapProps) => {
   useEffect(() => {
     if (map) {
       map.on('click', event => {
-        fireZoneVTL.getFeatures(event.pixel).then(features => {
+        fireShapeVTL.getFeatures(event.pixel).then(features => {
           if (!features.length) {
-            props.setSelectedFireZone(undefined)
+            props.setSelectedFireShape(undefined)
             return
           }
           const feature = features[0]
@@ -161,7 +161,7 @@ const FBAMap = (props: FBAMapProps) => {
             area_sqm: feature.getProperties().Shape_Area
           }
           props.setShowSummaryPanel(true)
-          props.setSelectedFireZone(fireZone)
+          props.setSelectedFireShape(fireZone)
         })
       })
     }
@@ -171,7 +171,7 @@ const FBAMap = (props: FBAMapProps) => {
     if (!map) return
 
     if (!props.showSummaryPanel) {
-      props.setSelectedFireZone(undefined)
+      props.setSelectedFireShape(undefined)
     }
   }, [props.showSummaryPanel]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -193,14 +193,19 @@ const FBAMap = (props: FBAMapProps) => {
   useEffect(() => {
     if (!map) return
 
-    fireZoneVTL.setStyle(
-      fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone, showZoneStatus)
+    fireShapeVTL.setStyle(
+      fireShapeStyler(
+        cloneDeep(props.fireShapeAreas),
+        props.advisoryThreshold,
+        props.selectedFireShape,
+        showShapeStatus
+      )
     )
-    fireZoneLabelVTL.setStyle(fireShapeLabelStyler(props.selectedFireZone))
-    fireZoneVTL.changed()
-    fireZoneLabelVTL.changed()
+    fireShapeLabelVTL.setStyle(fireShapeLabelStyler(props.selectedFireShape))
+    fireShapeVTL.changed()
+    fireShapeLabelVTL.changed()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedFireZone, props.fireZoneAreas, props.advisoryThreshold])
+  }, [props.selectedFireShape, props.fireShapeAreas, props.advisoryThreshold])
 
   useEffect(() => {
     if (!map) return
@@ -246,9 +251,9 @@ const FBAMap = (props: FBAMapProps) => {
           source: baseMapSource
         }),
         fireCentreVTL,
-        fireZoneVTL,
+        fireShapeVTL,
         fireCentreLabelVTL,
-        fireZoneLabelVTL
+        fireShapeLabelVTL
       ],
       overlays: [],
       controls: defaultControls().extend([new FullScreen()])
@@ -299,8 +304,8 @@ const FBAMap = (props: FBAMapProps) => {
           <Box sx={{ position: 'absolute', zIndex: '1', bottom: '0.5rem' }}>
             <Legend
               onToggleLayer={handleToggleLayer}
-              showZoneStatus={showZoneStatus}
-              setShowZoneStatus={setShowZoneStatus}
+              showZoneStatus={showShapeStatus}
+              setShowShapeStatus={setShowShapeStatus}
               showHFI={showHFI}
               setShowHFI={setShowHFI}
             />

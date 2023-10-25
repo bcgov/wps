@@ -9,7 +9,7 @@ import {
   selectFireCenters,
   selectHFIFuelTypes,
   selectRunDates,
-  selectFireZoneAreas
+  selectFireShapeAreas
 } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
@@ -25,7 +25,7 @@ import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
-import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
+import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
 import { StyledFormControl } from 'components/StyledFormControl'
@@ -62,7 +62,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [runType, setRunType] = useState(RunType.FORECAST)
   const [showSummaryPanel, setShowSummaryPanel] = useState(true)
   const { mostRecentRunDate } = useSelector(selectRunDates)
-  const { fireZoneAreas } = useSelector(selectFireZoneAreas)
+  const { fireShapeAreas } = useSelector(selectFireShapeAreas)
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -124,7 +124,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(mostRecentRunDate) && !isNull(doiISODate) && !isUndefined(mostRecentRunDate)) {
-      dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), doiISODate))
+      dispatch(fetchFireShapeAreas(runType, mostRecentRunDate.toString(), doiISODate))
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -225,7 +225,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               selectedFireZone={selectedFireZone}
               fuelTypeInfo={hfiThresholdsFuelTypes}
               hfiElevationInfo={fireZoneElevationInfo}
-              fireZoneAreas={fireZoneAreas}
+              fireZoneAreas={fireShapeAreas}
               showSummaryPanel={showSummaryPanel}
               setShowSummaryPanel={setShowSummaryPanel}
             />
@@ -234,11 +234,11 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             <FBAMap
               forDate={dateOfInterest}
               runType={runType}
-              selectedFireZone={selectedFireZone}
+              selectedFireShape={selectedFireZone}
               selectedFireCenter={fireCenter}
               advisoryThreshold={advisoryThreshold}
-              setSelectedFireZone={setSelectedFireZone}
-              fireZoneAreas={fireZoneAreas}
+              setSelectedFireShape={setSelectedFireZone}
+              fireShapeAreas={fireShapeAreas}
               showSummaryPanel={showSummaryPanel}
               setShowSummaryPanel={setShowSummaryPanel}
             />

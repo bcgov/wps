@@ -35,7 +35,7 @@ class FireShapeArea(BaseModel):
 
 class FireShapeAreaListResponse(BaseModel):
     """ Response for all planning areas, in a list """
-    zones: List[FireShapeArea]
+    shapes: List[FireShapeArea]
 
 
 class FireShapeHighHfiAreas(BaseModel):

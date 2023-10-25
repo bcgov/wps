@@ -26,10 +26,10 @@ describe('FBAMap', () => {
           forDate={DateTime.fromISO('2016-05-25')}
           advisoryThreshold={0}
           selectedFireCenter={undefined}
-          selectedFireZone={undefined}
-          fireZoneAreas={[]}
+          selectedFireShape={undefined}
+          fireShapeAreas={[]}
           runType={RunType.FORECAST}
-          setSelectedFireZone={function (): void {
+          setSelectedFireShape={function (): void {
             throw new Error('Function not implemented.')
           }}
           showSummaryPanel={true}

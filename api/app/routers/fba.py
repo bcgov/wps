@@ -44,7 +44,7 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
 async def get_shapes(run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
     """ Return area of each zone unit shape, and percentage of area of zone unit shape with high hfi. """
     async with get_async_read_session_scope() as session:
-        zones = []
+        shapes = []
 
         rows = await get_hfi_area(session,
                                   RunTypeEnum(run_type.value),
@@ -55,13 +55,13 @@ async def get_shapes(run_type: RunType, run_datetime: datetime, for_date: date, 
         for row in rows:
             combustible_area = row.combustible_area  # type: ignore
             hfi_area = row.hfi_area  # type: ignore
-            zones.append(FireShapeArea(
+            shapes.append(FireShapeArea(
                 fire_shape_id=row.source_identifier,  # type: ignore
                 threshold=row.threshold,  # type: ignore
                 combustible_area=row.combustible_area,  # type: ignore
                 elevated_hfi_area=row.hfi_area,  # type: ignore
                 elevated_hfi_percentage=hfi_area / combustible_area * 100))
-        return FireShapeAreaListResponse(zones=zones)
+        return FireShapeAreaListResponse(shapes=shapes)
 
 
 @router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}/{zone_id}',

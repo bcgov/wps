@@ -40,16 +40,16 @@ export const fireCentreStyler = (): Style => {
   })
 }
 
-export const fireZoneStyler = (
-  fireZoneAreas: FireShapeArea[],
+export const fireShapeStyler = (
+  fireShapeAreas: FireShapeArea[],
   advisoryThreshold: number,
-  selectedFireZone: FireShape | undefined,
+  selectedFireShape: FireShape | undefined,
   showZoneStatus: boolean
 ) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fire_shape_id = feature.getProperties().OBJECTID
-    const fireZoneAreaByThreshold = fireZoneAreas.filter(f => f.fire_shape_id === fire_shape_id)
-    const selected = !!(selectedFireZone?.fire_shape_id && selectedFireZone.fire_shape_id === fire_shape_id)
+    const fireShapes = fireShapeAreas.filter(f => f.fire_shape_id === fire_shape_id)
+    const selected = !!(selectedFireShape?.fire_shape_id && selectedFireShape.fire_shape_id === fire_shape_id)
     let strokeValue = 'black'
     if (selected) {
       strokeValue = 'green'
@@ -60,22 +60,20 @@ export const fireZoneStyler = (
         color: strokeValue,
         width: selected ? 8 : 1
       }),
-      fill: showZoneStatus
-        ? getAdvisoryColors(advisoryThreshold, fireZoneAreaByThreshold)
-        : new Fill({ color: EMPTY_FILL })
+      fill: showZoneStatus ? getAdvisoryColors(advisoryThreshold, fireShapes) : new Fill({ color: EMPTY_FILL })
     })
   }
   return a
 }
 
-export const getAdvisoryColors = (advisoryThreshold: number, fireZoneArea?: FireShapeArea[]) => {
+export const getAdvisoryColors = (advisoryThreshold: number, fireShapeArea?: FireShapeArea[]) => {
   let fill = new Fill({ color: EMPTY_FILL })
-  if (isUndefined(fireZoneArea) || fireZoneArea.length === 0) {
+  if (isUndefined(fireShapeArea) || fireShapeArea.length === 0) {
     return fill
   }
 
-  const advisoryThresholdArea = fireZoneArea.find(area => area.threshold == 1)
-  const warningThresholdArea = fireZoneArea.find(area => area.threshold == 2)
+  const advisoryThresholdArea = fireShapeArea.find(area => area.threshold == 1)
+  const warningThresholdArea = fireShapeArea.find(area => area.threshold == 2)
   const advisoryPercentage = advisoryThresholdArea?.elevated_hfi_percentage ?? 0
   const warningPercentage = warningThresholdArea?.elevated_hfi_percentage ?? 0
 

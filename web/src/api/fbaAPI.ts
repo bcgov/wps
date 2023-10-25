@@ -56,8 +56,8 @@ export interface FireZoneElevationInfoResponse {
   hfi_elevation_info: ElevationInfoByThreshold[]
 }
 
-export interface ZoneAreaListResponse {
-  zones: FireShapeArea[]
+export interface FireShapeAreaListResponse {
+  shapes: FireShapeArea[]
 }
 
 export interface HfiThresholdFuelTypeArea {
@@ -85,11 +85,11 @@ export async function getFBAFireCenters(): Promise<FBAResponse> {
   return data
 }
 
-export async function getFireZoneAreas(
+export async function getFireShapeAreas(
   run_type: RunType,
   run_datetime: string,
   for_date: string
-): Promise<ZoneAreaListResponse> {
+): Promise<FireShapeAreaListResponse> {
   const url = `/fba/fire-shape-areas/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
   const { data } = await axios.get(url, {})
   return data
