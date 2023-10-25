@@ -1,7 +1,8 @@
 import axios from 'api/axios'
 import { isEqual } from 'lodash'
 import { DateTime } from 'luxon'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
+import { isForecastRowPredicate } from 'features/moreCast2/saveForecasts'
 
 export enum ModelChoice {
   ACTUAL = 'ACTUAL',
@@ -121,6 +122,8 @@ export interface WeatherIndeterminate {
   id: string
   station_code: number
   station_name: string
+  latitude: number
+  longitude: number
   determinate: WeatherDeterminateType
   utc_timestamp: string
   precipitation: number | null
@@ -147,6 +150,10 @@ export interface WeatherIndeterminateResponse {
   actuals: WeatherIndeterminate[]
   forecasts: WeatherIndeterminate[]
   predictions: WeatherIndeterminate[]
+}
+
+export interface UpdatedWeatherIndeterminateResponse {
+  simulatedForecasts: WeatherIndeterminate[]
 }
 
 export const ModelOptions: ModelType[] = ModelChoices.filter(choice => !isEqual(choice, ModelChoice.MANUAL))
@@ -231,4 +238,45 @@ export async function fetchWeatherIndeterminates(
   }
 
   return payload
+}
+
+export async function fetchCalculatedIndices(
+  recordsToSimulate: MoreCast2Row[]
+): Promise<UpdatedWeatherIndeterminateResponse> {
+  const url = 'morecast-v2/simulate-indices/'
+  const determinatesToSimulate = mapMoreCast2RowsToIndeterminates(recordsToSimulate)
+  const { data } = await axios.post<WeatherIndeterminate[]>(url, {
+    simulate_records: determinatesToSimulate
+  })
+  const response: UpdatedWeatherIndeterminateResponse = { simulatedForecasts: data }
+
+  return response
+}
+
+export const mapMoreCast2RowsToIndeterminates = (rows: MoreCast2Row[]): WeatherIndeterminate[] => {
+  const mappedIndeterminates = rows.map(r => {
+    const isForecast = isForecastRowPredicate(r)
+    return {
+      id: r.id,
+      station_code: r.stationCode,
+      station_name: r.stationName,
+      determinate: isForecast ? WeatherDeterminate.FORECAST : WeatherDeterminate.ACTUAL,
+      latitude: r.latitude,
+      longitude: r.longitude,
+      utc_timestamp: r.forDate.toString(),
+      precipitation: isForecast ? r.precipForecast!.value : r.precipActual,
+      relative_humidity: isForecast ? r.rhForecast!.value : r.rhActual,
+      temperature: isForecast ? r.tempForecast!.value : r.tempActual,
+      wind_direction: isForecast ? r.windDirectionForecast!.value : r.windDirectionActual,
+      wind_speed: isForecast ? r.windSpeedForecast!.value : r.windSpeedActual,
+      fine_fuel_moisture_code: isForecast ? r.ffmcCalcForecast!.value : r.ffmcCalcActual,
+      duff_moisture_code: isForecast ? r.dmcCalcForecast!.value : r.dmcCalcActual,
+      drought_code: isForecast ? r.dcCalcForecast!.value : r.dcCalcActual,
+      initial_spread_index: isForecast ? r.isiCalcForecast!.value : r.isiCalcActual,
+      build_up_index: isForecast ? r.buiCalcForecast!.value : r.buiCalcActual,
+      fire_weather_index: isForecast ? r.fwiCalcForecast!.value : r.fwiCalcActual,
+      danger_rating: isForecast ? null : r.rhActual
+    }
+  })
+  return mappedIndeterminates
 }

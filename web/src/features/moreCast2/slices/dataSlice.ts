@@ -131,7 +131,9 @@ export const createMoreCast2Rows = (
       firstItem.id,
       firstItem.station_code,
       firstItem.station_name,
-      DateTime.fromISO(firstItem.utc_timestamp)
+      DateTime.fromISO(firstItem.utc_timestamp),
+      firstItem.latitude,
+      firstItem.longitude
     )
 
     for (const value of values) {
@@ -336,11 +338,20 @@ export const fillMissingWeatherIndeterminates = (
   for (const [key, values] of Object.entries(groupedByStationCode)) {
     const stationCode = parseInt(key)
     const stationName = stationMap.get(stationCode) ?? ''
+    const latitude = values[0]?.latitude ?? 0
+    const longitude = values[0]?.longitude ?? 0
     // We expect one actual per date in our date interval
     if (values.length < dateInterval.length) {
       for (const date of dateInterval) {
         if (!values.some(value => isEqual(DateTime.fromISO(value.utc_timestamp), DateTime.fromISO(date)))) {
-          const missing = createEmptyWeatherIndeterminate(stationCode, stationName, date, determinate)
+          const missing = createEmptyWeatherIndeterminate(
+            stationCode,
+            stationName,
+            date,
+            determinate,
+            latitude,
+            longitude
+          )
           weatherIndeterminates.push(missing)
         }
       }
@@ -379,6 +390,8 @@ export const fillMissingPredictions = (
   for (const [stationCodeAsString, weatherIndeterminatesByStationCode] of Object.entries(groupedByStationCode)) {
     const stationCode = parseInt(stationCodeAsString)
     const stationName = stationMap.get(stationCode) ?? ''
+    const latitude = weatherIndeterminatesByStationCode[0]?.latitude ?? 0
+    const longitude = weatherIndeterminatesByStationCode[0]?.longitude ?? 0
     const groupedByUtcTimestamp = createUtcTimeStampToWeatherIndeterminateGroups(
       weatherIndeterminatesByStationCode,
       dateInterval
@@ -392,7 +405,9 @@ export const fillMissingPredictions = (
             stationCode,
             stationName,
             utcTimestamp,
-            determinate
+            determinate,
+            latitude,
+            longitude
           )
           allPredictions.push(missingDeterminate)
         }
@@ -513,13 +528,17 @@ const createEmptyMoreCast2Row = (
   id: string,
   stationCode: number,
   stationName: string,
-  forDate: DateTime
+  forDate: DateTime,
+  latitude: number,
+  longitude: number
 ): MoreCast2Row => {
   return {
     id,
     stationCode,
     stationName,
     forDate,
+    latitude,
+    longitude,
     precipActual: NaN,
     rhActual: NaN,
     tempActual: NaN,
@@ -619,12 +638,16 @@ const createEmptyWeatherIndeterminate = (
   station_code: number,
   station_name: string,
   utc_timestamp: string,
-  determinate: WeatherDeterminateType
+  determinate: WeatherDeterminateType,
+  latitude: number,
+  longitude: number
 ): WeatherIndeterminate => {
   return {
     id: '',
     station_code,
     station_name,
+    latitude,
+    longitude,
     determinate,
     utc_timestamp,
     precipitation: null,

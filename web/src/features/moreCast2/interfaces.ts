@@ -24,6 +24,8 @@ export interface BaseRow {
   stationCode: number
   stationName: string
   forDate: DateTime
+  latitude: number
+  longitude: number
 }
 
 export interface MoreCast2Row extends BaseRow {
