@@ -21,7 +21,8 @@ from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      ObservedDailiesForStations,
                                      StationDailiesResponse,
                                      WeatherIndeterminate,
-                                     SimulateIndeterminateIndices)
+                                     SimulateIndeterminateIndices,
+                                     SimulatedWeatherIndeterminateResponse)
 from app.schemas.shared import StationsRequest
 from app.wildfire_one.schema_parsers import transform_morecastforecastoutput_to_weatherindeterminate
 from app.utils.time import get_hour_20_from_date, get_utc_now
@@ -227,7 +228,7 @@ async def get_determinates_for_date_range(start_date: date,
         forecasts=wf1_forecasts)
 
 
-@router.post('/simulate-indices/', response_model=SimulateIndeterminateIndices)
+@router.post('/simulate-indices/', response_model=SimulatedWeatherIndeterminateResponse)
 async def calculate_forecasted_indices(simulate_records: SimulateIndeterminateIndices):
     indeterminates = simulate_records.simulate_records
     logger.info(
@@ -270,4 +271,4 @@ async def calculate_forecasted_indices(simulate_records: SimulateIndeterminateIn
         record.fire_weather_index = cffdrs.fire_weather_index(
             isi=record.initial_spread_index, bui=record.build_up_index)
         yesterday_record = record
-    return SimulateIndeterminateIndices(simulate_records=indeterminates_to_simulate)
+    return (SimulatedWeatherIndeterminateResponse(simulatedForecasts=indeterminates_to_simulate))

@@ -1,11 +1,17 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
-import { ModelChoice, ModelType } from 'api/moreCast2API'
+import { DataGrid, GridColDef, GridEventListener, GridCellEditStopParams } from '@mui/x-data-grid'
+import { ModelChoice, ModelType, fetchCalculatedIndices } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
+import { isNaN } from 'lodash'
+import { rowIDHasher } from 'features/moreCast2/util'
+import { validForecastPredicate } from 'features/moreCast2/saveForecasts'
+import { updateWeatherIndeterminates } from 'features/moreCast2/slices/dataSlice'
+import { AppDispatch } from 'app/store'
+import { useDispatch } from 'react-redux'
 
 const PREFIX = 'ForecastSummaryDataGrid'
 
@@ -33,6 +39,17 @@ interface ForecastSummaryDataGridProps {
   handleClose: () => void
 }
 
+const getYesterdayRowID = (todayRow: MoreCast2Row): string => {
+  const yesterdayDate = todayRow.forDate.minus({ days: 1 })
+  const yesterdayID = rowIDHasher(todayRow.stationCode, yesterdayDate)
+
+  return yesterdayID
+}
+
+const isActualOrValidForecastPredicate = (row: MoreCast2Row) =>
+  validForecastPredicate(row) ||
+  (!isNaN(row.precipActual) && !isNaN(row.rhActual) && !isNaN(row.tempActual) && !isNaN(row.windSpeedActual))
+
 const ForecastSummaryDataGrid = ({
   loading,
   rows,
@@ -42,6 +59,27 @@ const ForecastSummaryDataGrid = ({
   handleColumnHeaderClick,
   handleClose
 }: ForecastSummaryDataGridProps) => {
+  const dispatch: AppDispatch = useDispatch()
+  const handleCellEditStop = async (params: GridCellEditStopParams) => {
+    const editedRow = params.row
+
+    const mustBeFilled = [
+      editedRow.tempForecast?.value,
+      editedRow.rhForecast?.value,
+      editedRow.windSpeedForecast?.value,
+      editedRow.precipForecast?.value
+    ]
+    for (const value of mustBeFilled) {
+      if (isNaN(value)) {
+        return editedRow
+      }
+    }
+    const idBeforeEditedRow = getYesterdayRowID(editedRow)
+    const rowsForUpdate = rows.filter(row => row.id >= idBeforeEditedRow).filter(isActualOrValidForecastPredicate)
+    const data = await fetchCalculatedIndices(rowsForUpdate)
+    dispatch(updateWeatherIndeterminates(data))
+  }
+
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
@@ -58,6 +96,7 @@ const ForecastSummaryDataGrid = ({
         columns={DataGridColumns.getSummaryColumns()}
         rows={rows}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
+        onCellEditStop={handleCellEditStop}
       />
       <ApplyToColumnMenu
         colDef={clickedColDef}

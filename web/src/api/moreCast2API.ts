@@ -245,12 +245,11 @@ export async function fetchCalculatedIndices(
 ): Promise<UpdatedWeatherIndeterminateResponse> {
   const url = 'morecast-v2/simulate-indices/'
   const determinatesToSimulate = mapMoreCast2RowsToIndeterminates(recordsToSimulate)
-  const { data } = await axios.post<WeatherIndeterminate[]>(url, {
+  const { data } = await axios.post<UpdatedWeatherIndeterminateResponse>(url, {
     simulate_records: determinatesToSimulate
   })
-  const response: UpdatedWeatherIndeterminateResponse = { simulatedForecasts: data }
 
-  return response
+  return data
 }
 
 export const mapMoreCast2RowsToIndeterminates = (rows: MoreCast2Row[]): WeatherIndeterminate[] => {

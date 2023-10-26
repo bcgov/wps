@@ -7,7 +7,8 @@ import {
   WeatherIndeterminatePayload,
   WeatherDeterminate,
   WeatherDeterminateChoices,
-  WeatherDeterminateType
+  WeatherDeterminateType,
+  UpdatedWeatherIndeterminateResponse
 } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
 import { createDateInterval, rowIDHasher } from 'features/moreCast2/util'
@@ -54,12 +55,24 @@ const dataSlice = createSlice({
       state.forecasts = action.payload.forecasts
       state.predictions = action.payload.predictions
       state.loading = false
+    },
+    updateWeatherIndeterminates(state: State, action: PayloadAction<UpdatedWeatherIndeterminateResponse>) {
+      const updatedForecasts = addUniqueIds(action.payload.simulatedForecasts)
+
+      state.forecasts = state.forecasts.map(forecast => {
+        const updatedForecast = updatedForecasts.find(item => item.id === forecast.id)
+        return updatedForecast ? updatedForecast : forecast
+      })
     }
   }
 })
 
-export const { getWeatherIndeterminatesStart, getWeatherIndeterminatesFailed, getWeatherIndeterminatesSuccess } =
-  dataSlice.actions
+export const {
+  getWeatherIndeterminatesStart,
+  getWeatherIndeterminatesFailed,
+  getWeatherIndeterminatesSuccess,
+  updateWeatherIndeterminates
+} = dataSlice.actions
 
 export default dataSlice.reducer
 
@@ -302,7 +315,7 @@ const forecastOrNull = (determinate: WeatherDeterminateType): ModelChoice.FORECA
  * @returns Returns an array of WeatherIndeterminates where each item has an ID derived
  * from its station_code and utc_timestamp.
  */
-const addUniqueIds = (items: WeatherIndeterminate[]) => {
+export const addUniqueIds = (items: WeatherIndeterminate[]) => {
   return items.map(item => ({
     ...item,
     id: rowIDHasher(item.station_code, DateTime.fromISO(item.utc_timestamp))

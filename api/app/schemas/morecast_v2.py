@@ -147,6 +147,10 @@ class SimulateIndeterminateIndices(BaseModel):
     simulate_records: List[WeatherIndeterminate]
 
 
+class SimulatedWeatherIndeterminateResponse(BaseModel):
+    simulatedForecasts: List[WeatherIndeterminate]
+
+
 class WF1ForecastRecordType(BaseModel):
     id: str = "FORECAST"
     displayLabel: str = "Forecast"
