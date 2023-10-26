@@ -29,8 +29,10 @@ def test_bias_adjustment_with_samples(mock_get_actuals_left_outer_join_with_pred
 
     temp_result = machine_learner.predict_temperature(20, predict_date_with_samples)
     rh_result = machine_learner.predict_rh(50, predict_date_with_samples)
+    wdir_result = machine_learner.predict_wind_direction(10, 120, predict_date_with_samples)
     assert temp_result == 30
     assert rh_result == 100
+    assert wdir_result == 120
 
 
 def test_bias_adjustment_without_samples(mock_get_actuals_left_outer_join_with_predictions):
@@ -49,5 +51,7 @@ def test_bias_adjustment_without_samples(mock_get_actuals_left_outer_join_with_p
 
     temp_result = machine_learner.predict_temperature(20, predict_date_without_samples)
     rh_result = machine_learner.predict_rh(50, predict_date_without_samples)
+    wdir_result = machine_learner.predict_wind_direction(10, 290, predict_date_without_samples)
     assert temp_result is None
     assert rh_result is None
+    assert wdir_result is None

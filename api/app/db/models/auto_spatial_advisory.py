@@ -15,6 +15,7 @@ class ShapeTypeEnum(enum.Enum):
     "Incident"/"Fire", "Custom" etc. etc. """
     fire_centre = 1
     fire_zone = 2
+    fire_zone_unit = 3
 
 
 class RunTypeEnum(enum.Enum):
