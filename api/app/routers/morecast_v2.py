@@ -230,6 +230,9 @@ async def get_determinates_for_date_range(start_date: date,
 
 @router.post('/simulate-indices/', response_model=SimulatedWeatherIndeterminateResponse)
 async def calculate_forecasted_indices(simulate_records: SimulateIndeterminateIndices):
+    """ 
+    Returns forecasts with all Fire Weather Index System values calculated using the CFFDRS R library
+    """
     indeterminates = simulate_records.simulate_records
     logger.info(
         f'/simulate-indices/ - simulating forecast records for {indeterminates[0].station_name}')
