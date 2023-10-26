@@ -80,6 +80,15 @@ def delete_weather_station_model_predictions(session: Session, older_than: datet
     session.query(WeatherStationModelPrediction)\
         .filter(WeatherStationModelPrediction.prediction_timestamp < older_than)\
         .delete()
+    
+
+def delete_model_run_predictions(session: Session, older_than: datetime):
+    """ Delete any model run prediction older than a certain date.
+    """
+    logger.info('Deleting model_run_prediction data older than %s...', older_than)
+    session.query(ModelRunPrediction)\
+        .filter(ModelRunPrediction.prediction_timestamp < older_than)\
+        .delete()
 
 
 def get_station_model_predictions_order_by_prediction_timestamp(
