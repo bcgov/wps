@@ -19,6 +19,8 @@ const FROM_DATE_STRING = '2023-04-27T20:00:00+00:00'
 const TO_DATE_STRING = '2023-04-28T20:00:00+00:00'
 const FROM_DATE_TIME = DateTime.fromISO(FROM_DATE_STRING)
 const TO_DATE_TIME = DateTime.fromISO(TO_DATE_STRING)
+const LAT = 1.1
+const LONG = 2.2
 const PRECIP = 1
 const RH = 75
 const TEMP = 10
@@ -52,6 +54,8 @@ const weatherIndeterminateGenerator = (
     station_name,
     determinate,
     utc_timestamp,
+    latitude: LAT,
+    longitude: LONG,
     precipitation: precipValue ?? PRECIP,
     relative_humidity: RH,
     temperature: TEMP,
@@ -104,6 +108,8 @@ describe('dataSlice', () => {
           station_name: 'station',
           determinate: WeatherDeterminate.ACTUAL,
           utc_timestamp: '2023-04-21',
+          latitude: 1.1,
+          longitude: 2.2,
           precipitation: 0.5,
           relative_humidity: 55,
           temperature: 12,
@@ -126,6 +132,8 @@ describe('dataSlice', () => {
           station_name: 'prediction station',
           determinate: WeatherDeterminate.GDPS,
           utc_timestamp: '2023-04-22',
+          latitude: 1.1,
+          longitude: 2.2,
           precipitation: 1.5,
           relative_humidity: 75,
           temperature: 5,

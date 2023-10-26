@@ -83,12 +83,16 @@ const buildCompleteForecast = (
   id: string,
   forDate: DateTime,
   stationCode: number,
-  stationName: string
+  stationName: string,
+  latitude: number,
+  longitude: number
 ): MoreCast2Row => ({
   id,
   forDate,
   stationCode,
   stationName,
+  latitude,
+  longitude,
   ...baseRow,
   precipForecast: { choice: ModelChoice.GDPS, value: 0 },
   rhForecast: { choice: ModelChoice.GDPS, value: 0 },
@@ -101,12 +105,16 @@ const buildForecastMissingWindDirection = (
   id: string,
   forDate: DateTime,
   stationCode: number,
-  stationName: string
+  stationName: string,
+  latitude: number,
+  longitude: number
 ): MoreCast2Row => ({
   id,
   forDate,
   stationCode,
   stationName,
+  latitude,
+  longitude,
   ...baseRow,
   precipForecast: { choice: ModelChoice.GDPS, value: 0 },
   rhForecast: { choice: ModelChoice.GDPS, value: 0 },
@@ -119,20 +127,33 @@ const buildInvalidForecast = (
   id: string,
   forDate: DateTime,
   stationCode: number,
-  stationName: string
+  stationName: string,
+  latitude: number,
+  longitude: number
 ): MoreCast2Row => ({
   id,
   forDate,
   stationCode,
   stationName,
+  latitude,
+  longitude,
   ...baseRow
 })
 
-const buildNAForecast = (id: string, forDate: DateTime, stationCode: number, stationName: string): MoreCast2Row => ({
+const buildNAForecast = (
+  id: string,
+  forDate: DateTime,
+  stationCode: number,
+  stationName: string,
+  latitude: number,
+  longitude: number
+): MoreCast2Row => ({
   id,
   forDate,
   stationCode,
   stationName,
+  latitude,
+  longitude,
   ...baseRow,
   precipForecast: { choice: ModelChoice.NULL, value: NaN },
   rhForecast: { choice: ModelChoice.NULL, value: NaN },
@@ -145,12 +166,16 @@ const buildForecastWithActuals = (
   id: string,
   forDate: DateTime,
   stationCode: number,
-  stationName: string
+  stationName: string,
+  latitude: number,
+  longitude: number
 ): MoreCast2Row => ({
   id,
   forDate,
   stationCode,
   stationName,
+  latitude,
+  longitude,
   ...baseRowWithActuals,
   precipForecast: { choice: ModelChoice.GDPS, value: 0 },
   rhForecast: { choice: ModelChoice.GDPS, value: 0 },
@@ -164,16 +189,16 @@ describe('saveForecasts', () => {
     it('should return true if all forecasts fields are set', () => {
       expect(
         isForecastValid([
-          buildCompleteForecast('1', mockForDate, 1, 'one'),
-          buildCompleteForecast('2', mockForDate, 2, 'two')
+          buildCompleteForecast('1', mockForDate, 1, 'one', 1, 1),
+          buildCompleteForecast('2', mockForDate, 2, 'two', 2, 2)
         ])
       ).toBe(true)
     })
     it('should return true if all forecasts fields are set except windDirectionForecast', () => {
       expect(
         isForecastValid([
-          buildForecastMissingWindDirection('1', mockForDate, 1, 'one'),
-          buildForecastMissingWindDirection('2', mockForDate, 2, 'two')
+          buildForecastMissingWindDirection('1', mockForDate, 1, 'one', 1, 1),
+          buildForecastMissingWindDirection('2', mockForDate, 2, 'two', 2, 2)
         ])
       ).toBe(true)
     })
@@ -181,47 +206,47 @@ describe('saveForecasts', () => {
     it('should return false if any forecasts have missing forecast fields', () => {
       expect(
         isForecastValid([
-          buildCompleteForecast('1', mockForDate, 1, 'one'),
-          buildInvalidForecast('2', mockForDate, 2, 'two')
+          buildCompleteForecast('1', mockForDate, 1, 'one', 1, 1),
+          buildInvalidForecast('2', mockForDate, 2, 'two', 2, 2)
         ])
       ).toBe(false)
     })
 
     it('should return false if any forecasts have missing forecast fields set other than windDirectionForecast', () => {
-      expect(isForecastValid([buildNAForecast('1', mockForDate, 2, 'one')])).toBe(false)
+      expect(isForecastValid([buildNAForecast('1', mockForDate, 2, 'one', 1, 1)])).toBe(false)
     })
   })
   describe('validForecastPredicate', () => {
     it('should return false for a forecast with missing forecast fields', () => {
-      expect(validForecastPredicate(buildInvalidForecast('1', mockForDate, 1, 'one'))).toBe(false)
+      expect(validForecastPredicate(buildInvalidForecast('1', mockForDate, 1, 'one', 1, 1))).toBe(false)
     })
     it('should return false for a forecast with forecasts but N/A values', () => {
-      expect(validForecastPredicate(buildNAForecast('1', mockForDate, 1, 'one'))).toBe(false)
+      expect(validForecastPredicate(buildNAForecast('1', mockForDate, 1, 'one', 1, 1))).toBe(false)
     })
   })
   describe('getRowsToSave', () => {
     it('should filter out invalid forecasts', () => {
       const res = getRowsToSave([
-        buildCompleteForecast('1', mockForDate, 1, 'one'),
-        buildInvalidForecast('2', mockForDate, 2, 'two')
+        buildCompleteForecast('1', mockForDate, 1, 'one', 1, 1),
+        buildInvalidForecast('2', mockForDate, 2, 'two', 2, 2)
       ])
       expect(res).toHaveLength(1)
       expect(res[0].id).toBe('1')
     })
     it('should filter out N/A forecasts', () => {
       const res = getRowsToSave([
-        buildCompleteForecast('1', mockForDate, 1, 'one'),
-        buildNAForecast('2', mockForDate, 2, 'two')
+        buildCompleteForecast('1', mockForDate, 1, 'one', 1, 1),
+        buildNAForecast('2', mockForDate, 2, 'two', 2, 2)
       ])
       expect(res).toHaveLength(1)
       expect(res[0].id).toBe('1')
     })
     it('should filter out rows with actuals', () => {
-      const forecastWithActual = buildCompleteForecast('2', mockForDate, 2, 'two')
+      const forecastWithActual = buildCompleteForecast('2', mockForDate, 2, 'two', 2, 2)
       forecastWithActual.precipActual = 1
       const res = getRowsToSave([
-        buildCompleteForecast('1', mockForDate, 1, 'one'),
-        buildForecastWithActuals('2', mockForDate, 2, 'two')
+        buildCompleteForecast('1', mockForDate, 1, 'one', 1, 1),
+        buildForecastWithActuals('2', mockForDate, 2, 'two', 2, 2)
       ])
       expect(res).toHaveLength(1)
       expect(res[0].id).toBe('1')
