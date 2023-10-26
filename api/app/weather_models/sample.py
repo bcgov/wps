@@ -1,12 +1,32 @@
 import logging
 import numpy as np
+from typing import Protocol
+from abc import abstractmethod
 from datetime import datetime
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
 
-class Samples:
+class SamplesProto(Protocol):
+
+    @abstractmethod
+    def hours(self): raise NotImplementedError
+
+    @abstractmethod
+    def append_x(self, value, timestamp: datetime): raise NotImplementedError
+
+    @abstractmethod
+    def append_y(self, value, timestamp: datetime): raise NotImplementedError
+
+    @abstractmethod
+    def np_x(self, hour): raise NotImplementedError
+
+    @abstractmethod
+    def np_y(self, hour): raise NotImplementedError
+
+
+class Samples(SamplesProto):
     """ Class for storing samples in buckets of hours.
     e.g. a temperature sample consists of an x axis (predicted values) and a y axis (observed values) put
     together in hour buckets.
@@ -29,11 +49,11 @@ class Samples:
         self._y[timestamp.hour].append(value)
 
     def np_x(self, hour):
-        """ Return numpy array of the predicted values, reshaped appropriately. """
-        return np.array(self._x[hour]).reshape((-1, 1))
+        """ Return numpy array of the predicted values. """
+        return np.array(self._x[hour])
 
     def np_y(self, hour):
-        """ Return a numpy array of the observed values """
+        """ Return a numpy array of the observed values. """
         return np.array(self._y[hour])
 
     def add_sample(self,

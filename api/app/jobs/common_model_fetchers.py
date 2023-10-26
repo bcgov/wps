@@ -274,6 +274,7 @@ class ModelValueProcessor:
         )
         # Predict the wind direction
         station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(
+            station_prediction.wind_tgl_10,
             station_prediction.wdir_tgl_10,
             station_prediction.prediction_timestamp
         )
