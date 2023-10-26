@@ -20,6 +20,7 @@ from app.db.models.weather_models import (
 from app.db.crud.weather_models import (
     get_prediction_model, get_or_create_prediction_run)
 from app.weather_models import ModelEnum, ProjectionEnum
+from app.weather_models.wind_direction_utils import calculate_wind_dir_from_u_v, calculate_wind_speed_from_u_v
 
 
 logger = logging.getLogger(__name__)
@@ -130,32 +131,6 @@ def get_transformer(crs_from, crs_to):
     """ Get an appropriate transformer - it's super important that always_xy=True
     is specified, otherwise the order in the CRS definition is honoured. """
     return Transformer.from_crs(crs_from, crs_to, always_xy=True)
-
-
-def calculate_wind_speed_from_u_v(u: float, v: float):
-    """ Return calculated wind speed in metres per second from u and v components using formula
-    wind_speed = sqrt(u^2 + v^2)
-
-    What the heck is going on here?! See
-    http://colaweb.gmu.edu/dev/clim301/lectures/wind/wind-uv
-    """
-    return math.sqrt(math.pow(u, 2) + math.pow(v, 2))
-
-
-def calculate_wind_dir_from_u_v(u: float, v: float):
-    """ Return calculated wind direction from u and v components using formula
-    wind_direction = arctan(u, v) * 180/pi (in degrees)
-
-    What the heck is going on here?! See
-    http://colaweb.gmu.edu/dev/clim301/lectures/wind/wind-uv
-    """
-    calc = math.atan2(u, v) * 180 / math.pi
-    # convert to meteorological convention of direction wind is coming from rather than
-    # direction wind is going to
-    calc += 180
-    # must convert from trig coordinates to cardinal coordinates
-    calc = 90 - calc
-    return calc if calc > 0 else 360 + calc
 
 
 def convert_mps_to_kph(value: float):
