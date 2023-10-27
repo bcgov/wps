@@ -1,7 +1,7 @@
 """Add station_code to ModelRunPrediction
 
 Revision ID: 5b745fe0bd7a
-Revises: 2442f07d975c
+Revises: 505a3f03ba75
 Create Date: 2023-10-25 11:34:45.429269
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '5b745fe0bd7a'
-down_revision = '2442f07d975c'
+down_revision = '505a3f03ba75'
 branch_labels = None
 depends_on = None
 
