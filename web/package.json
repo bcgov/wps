@@ -38,7 +38,7 @@
     "eslint-plugin-react": "^7.29.4",
     "esri-leaflet": "3.0.11",
     "filefy": "^0.1.11",
-    "jwt-decode": "^3.1.2",
+    "jwt-decode": "^4.0.0",
     "keycloak-js": "^22.0.0",
     "leaflet": "^1.7.1",
     "lodash": "^4.17.21",
