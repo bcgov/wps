@@ -1,14 +1,19 @@
 import { AlertColor, List, Stack } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { GridCellParams, GridColDef, GridColumnVisibilityModel, GridEventListener } from '@mui/x-data-grid'
-import { ModelChoice, ModelType, submitMoreCastForecastRecords } from 'api/moreCast2API'
+import { ModelChoice, ModelType, fetchCalculatedIndices, submitMoreCastForecastRecords } from 'api/moreCast2API'
 import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
-import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
+import ForecastSummaryDataGrid, { validActualPredicate } from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
-import { selectWeatherIndeterminatesLoading } from 'features/moreCast2/slices/dataSlice'
+import {
+  selectUserEditedRows,
+  selectWeatherIndeterminatesLoading,
+  storeUserEditedRows,
+  updateWeatherIndeterminates
+} from 'features/moreCast2/slices/dataSlice'
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 import { groupBy, isEqual, isUndefined } from 'lodash'
@@ -17,8 +22,15 @@ import { ROLES } from 'features/auth/roles'
 import { selectAuthentication, selectWf1Authentication } from 'app/rootReducer'
 import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
-import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
+import {
+  isForecastRowPredicate,
+  getRowsToSave,
+  isForecastValid,
+  validForecastPredicate
+} from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
+import { AppDispatch } from 'app/store'
+import { deepClone } from '@mui/x-data-grid/utils/utils'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -43,10 +55,12 @@ interface TabbedDataGridProps {
 }
 
 const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProps) => {
+  const dispatch: AppDispatch = useDispatch()
   const selectedStations = useSelector(selectSelectedStations)
   const loading = useSelector(selectWeatherIndeterminatesLoading)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { wf1Token } = useSelector(selectWf1Authentication)
+  const userEditedRows = useSelector(selectUserEditedRows)
 
   // A copy of the sortedMoreCast2Rows as local state
   const [allRows, setAllRows] = useState<MoreCast2Row[]>(morecast2Rows)
@@ -91,6 +105,11 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   useEffect(() => {
     setAllRows([...morecast2Rows])
   }, [morecast2Rows])
+
+  useEffect(() => {
+    const labelledRows = mapForecastChoiceLabels(morecast2Rows, deepClone(userEditedRows))
+    setAllRows(labelledRows)
+  }, [userEditedRows, morecast2Rows])
 
   useEffect(() => {
     const newVisibleRows: MoreCast2Row[] = []
@@ -179,6 +198,34 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
 
   const [clickedColDef, setClickedColDef] = useState<GridColDef | null>(null)
 
+  const filterRowsForSimulation = (rows: MoreCast2Row[]): MoreCast2Row[] => {
+    const forecasts = rows.filter(validForecastPredicate)
+    const actuals = rows.filter(validActualPredicate)
+    const mostRecentActual = actuals.pop()
+
+    return mostRecentActual ? [mostRecentActual, ...forecasts] : rows
+  }
+
+  const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: MoreCast2Row[]): MoreCast2Row[] => {
+    const storedRowChoicesMap = new Map<string, MoreCast2Row>()
+
+    for (const row of storedRows) {
+      storedRowChoicesMap.set(row.id, row)
+    }
+
+    for (const row of newRows) {
+      const matchingRow = storedRowChoicesMap.get(row.id)
+      if (matchingRow) {
+        row.precipForecast = matchingRow.precipForecast
+        row.tempForecast = matchingRow.tempForecast
+        row.rhForecast = matchingRow.rhForecast
+        row.windDirectionForecast = matchingRow.windDirectionForecast
+        row.windSpeedForecast = matchingRow.windSpeedForecast
+      }
+    }
+    return newRows
+  }
+
   // Updates forecast field for a given weather parameter (temp, rh, precip, etc...) based on the
   // model/source selected in the column header menu
   const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
@@ -196,7 +243,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
 
   // Persistence forecasting. Get the most recent actual and persist it through the rest of the
   // days in this forecast period.
-  const updateColumnFromLastActual = (forecastField: keyof MoreCast2Row, actualField: keyof MoreCast2Row) => {
+  const updateColumnFromLastActual = async (forecastField: keyof MoreCast2Row, actualField: keyof MoreCast2Row) => {
     const newRows = [...visibleRows]
     // Group our visible rows by station code and work on each group sepearately
     const groupedByStationCode = groupBy(newRows, 'stationCode')
@@ -219,10 +266,14 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         predictionItem.value = mostRecentValue as number
       })
     }
+    const rowsForSimulation = filterRowsForSimulation(newRows)
+    const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
+    dispatch(storeUserEditedRows(newRows))
+    dispatch(updateWeatherIndeterminates(simulatedForecasts))
     setVisibleRows(newRows)
   }
 
-  const updateColumnFromModel = (
+  const updateColumnFromModel = async (
     modelType: ModelType,
     forecastField: keyof MoreCast2Row,
     actualField: keyof MoreCast2Row,
@@ -240,6 +291,10 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         predictionItem.value = (row[sourceKey] as number) ?? NaN
       }
     }
+    const rowsForSimulation = filterRowsForSimulation(newRows)
+    const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
+    dispatch(storeUserEditedRows(newRows))
+    dispatch(updateWeatherIndeterminates(simulatedForecasts))
     setVisibleRows(newRows)
   }
 

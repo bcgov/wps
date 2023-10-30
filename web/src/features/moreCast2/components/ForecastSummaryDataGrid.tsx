@@ -9,7 +9,7 @@ import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import { isNaN } from 'lodash'
 import { rowIDHasher } from 'features/moreCast2/util'
 import { validForecastPredicate } from 'features/moreCast2/saveForecasts'
-import { updateWeatherIndeterminates } from 'features/moreCast2/slices/dataSlice'
+import { updateWeatherIndeterminates, storeUserEditedRows } from 'features/moreCast2/slices/dataSlice'
 import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
 
@@ -46,9 +46,11 @@ const getYesterdayRowID = (todayRow: MoreCast2Row): string => {
   return yesterdayID
 }
 
-const isActualOrValidForecastPredicate = (row: MoreCast2Row) =>
-  validForecastPredicate(row) ||
-  (!isNaN(row.precipActual) && !isNaN(row.rhActual) && !isNaN(row.tempActual) && !isNaN(row.windSpeedActual))
+export const validActualPredicate = (row: MoreCast2Row) =>
+  !isNaN(row.precipActual) && !isNaN(row.rhActual) && !isNaN(row.tempActual) && !isNaN(row.windSpeedActual)
+
+export const isActualOrValidForecastPredicate = (row: MoreCast2Row) =>
+  validForecastPredicate(row) || validActualPredicate(row)
 
 const ForecastSummaryDataGrid = ({
   loading,
@@ -62,6 +64,7 @@ const ForecastSummaryDataGrid = ({
   const dispatch: AppDispatch = useDispatch()
   const handleCellEditStop = async (params: GridCellEditStopParams) => {
     const editedRow = params.row
+    dispatch(storeUserEditedRows([editedRow]))
 
     const mustBeFilled = [
       editedRow.tempForecast?.value,
@@ -75,9 +78,9 @@ const ForecastSummaryDataGrid = ({
       }
     }
     const idBeforeEditedRow = getYesterdayRowID(editedRow)
-    const rowsForUpdate = rows.filter(row => row.id >= idBeforeEditedRow).filter(isActualOrValidForecastPredicate)
-    const data = await fetchCalculatedIndices(rowsForUpdate)
-    dispatch(updateWeatherIndeterminates(data))
+    const rowsForSimulation = rows.filter(row => row.id >= idBeforeEditedRow).filter(isActualOrValidForecastPredicate)
+    const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
+    dispatch(updateWeatherIndeterminates(simulatedForecasts))
   }
 
   return (

@@ -24,6 +24,7 @@ interface State {
   actuals: WeatherIndeterminate[]
   forecasts: WeatherIndeterminate[]
   predictions: WeatherIndeterminate[]
+  userEditedRows: MoreCast2Row[]
 }
 
 export const initialState: State = {
@@ -31,7 +32,8 @@ export const initialState: State = {
   error: null,
   actuals: [],
   forecasts: [],
-  predictions: []
+  predictions: [],
+  userEditedRows: []
 }
 
 const dataSlice = createSlice({
@@ -43,6 +45,7 @@ const dataSlice = createSlice({
       state.actuals = []
       state.forecasts = []
       state.predictions = []
+      state.userEditedRows = []
       state.loading = true
     },
     getWeatherIndeterminatesFailed(state: State, action: PayloadAction<string>) {
@@ -61,8 +64,21 @@ const dataSlice = createSlice({
 
       state.forecasts = state.forecasts.map(forecast => {
         const updatedForecast = updatedForecasts.find(item => item.id === forecast.id)
-        return updatedForecast ? updatedForecast : forecast
+        return updatedForecast || forecast
       })
+    },
+    storeUserEditedRows(state: State, action: PayloadAction<MoreCast2Row[]>) {
+      const storedRows = [...state.userEditedRows]
+
+      for (const row of action.payload) {
+        const existingIndex = storedRows.findIndex(storedRow => storedRow.id === row.id)
+        if (existingIndex !== -1) {
+          storedRows[existingIndex] = row
+        } else {
+          storedRows.push(row)
+        }
+      }
+      state.userEditedRows = storedRows
     }
   }
 })
@@ -71,7 +87,8 @@ export const {
   getWeatherIndeterminatesStart,
   getWeatherIndeterminatesFailed,
   getWeatherIndeterminatesSuccess,
-  updateWeatherIndeterminates
+  updateWeatherIndeterminates,
+  storeUserEditedRows
 } = dataSlice.actions
 
 export default dataSlice.reducer
@@ -470,6 +487,11 @@ export const selectAllMoreCast2Rows = createSelector([selectWeatherIndeterminate
   )
   const sortedRows = sortRowsByStationNameAndDate(rows)
   return sortedRows
+})
+
+export const selectUserEditedRows = createSelector([selectWeatherIndeterminates], weatherIndeterminates => {
+  const rows = weatherIndeterminates.userEditedRows
+  return rows
 })
 
 export const selectForecastMoreCast2Rows = createSelector([selectAllMoreCast2Rows], allMorecast2Rows =>
