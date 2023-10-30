@@ -8,7 +8,8 @@ import {
   WeatherDeterminate,
   WeatherDeterminateChoices,
   WeatherDeterminateType,
-  UpdatedWeatherIndeterminateResponse
+  UpdatedWeatherIndeterminateResponse,
+  fetchCalculatedIndices
 } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
 import { createDateInterval, rowIDHasher } from 'features/moreCast2/util'
@@ -59,13 +60,16 @@ const dataSlice = createSlice({
       state.predictions = action.payload.predictions
       state.loading = false
     },
-    updateWeatherIndeterminates(state: State, action: PayloadAction<UpdatedWeatherIndeterminateResponse>) {
+    simulateWeatherIndeterminatesSuccess(state: State, action: PayloadAction<UpdatedWeatherIndeterminateResponse>) {
       const updatedForecasts = addUniqueIds(action.payload.simulatedForecasts)
 
       state.forecasts = state.forecasts.map(forecast => {
         const updatedForecast = updatedForecasts.find(item => item.id === forecast.id)
         return updatedForecast || forecast
       })
+    },
+    simulateWeatherIndeterminatesFailed(state: State, action: PayloadAction<string>) {
+      state.error = action.payload
     },
     storeUserEditedRows(state: State, action: PayloadAction<MoreCast2Row[]>) {
       const storedRows = [...state.userEditedRows]
@@ -87,7 +91,8 @@ export const {
   getWeatherIndeterminatesStart,
   getWeatherIndeterminatesFailed,
   getWeatherIndeterminatesSuccess,
-  updateWeatherIndeterminates,
+  simulateWeatherIndeterminatesSuccess,
+  simulateWeatherIndeterminatesFailed,
   storeUserEditedRows
 } = dataSlice.actions
 
@@ -99,7 +104,7 @@ export default dataSlice.reducer
  * @param stations The list of stations to retreive data for.
  * @param fromDate The start date from which to retrieve data from (inclusive).
  * @param toDate The end date from which to retrieve data from (inclusive).
- * @returns An array or WeatherIndeterminates.
+ * @returns An array of WeatherIndeterminates.
  */
 export const getWeatherIndeterminates =
   (stations: StationGroupMember[], fromDate: DateTime, toDate: DateTime): AppThunk =>
@@ -137,6 +142,25 @@ export const getWeatherIndeterminates =
       dispatch(getWeatherIndeterminatesSuccess(payload))
     } catch (err) {
       dispatch(getWeatherIndeterminatesFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
+/**
+ * Use the morecast2API to get simulated Fire Weather Index value from the backend.
+ * Results are stored the Redux store.
+ * @param rowsForSimulation List of MoreCast2Row's to simulate. The first row in the array must contain
+ * valid values for all Fire Weather Indices.
+ * @returns Array of MoreCast2Rows
+ */
+export const getSimulatedIndices =
+  (rowsForSimulation: MoreCast2Row[]): AppThunk =>
+  async dispatch => {
+    try {
+      const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
+      dispatch(simulateWeatherIndeterminatesSuccess(simulatedForecasts))
+    } catch (err) {
+      dispatch(simulateWeatherIndeterminatesFailed((err as Error).toString()))
       logError(err)
     }
   }

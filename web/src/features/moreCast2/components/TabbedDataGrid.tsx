@@ -1,16 +1,16 @@
 import { AlertColor, List, Stack } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { GridCellParams, GridColDef, GridColumnVisibilityModel, GridEventListener } from '@mui/x-data-grid'
-import { ModelChoice, ModelType, fetchCalculatedIndices, submitMoreCastForecastRecords } from 'api/moreCast2API'
+import { ModelChoice, ModelType, submitMoreCastForecastRecords } from 'api/moreCast2API'
 import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid, { validActualPredicate } from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
 import {
+  getSimulatedIndices,
   selectUserEditedRows,
   selectWeatherIndeterminatesLoading,
-  storeUserEditedRows,
-  updateWeatherIndeterminates
+  storeUserEditedRows
 } from 'features/moreCast2/slices/dataSlice'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -267,9 +267,8 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       })
     }
     const rowsForSimulation = filterRowsForSimulation(newRows)
-    const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
     dispatch(storeUserEditedRows(newRows))
-    dispatch(updateWeatherIndeterminates(simulatedForecasts))
+    dispatch(getSimulatedIndices(rowsForSimulation))
     setVisibleRows(newRows)
   }
 
@@ -292,9 +291,8 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       }
     }
     const rowsForSimulation = filterRowsForSimulation(newRows)
-    const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
     dispatch(storeUserEditedRows(newRows))
-    dispatch(updateWeatherIndeterminates(simulatedForecasts))
+    dispatch(getSimulatedIndices(rowsForSimulation))
     setVisibleRows(newRows)
   }
 

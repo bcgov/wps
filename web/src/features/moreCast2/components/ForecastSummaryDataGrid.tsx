@@ -1,7 +1,7 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
 import { DataGrid, GridColDef, GridEventListener, GridCellEditStopParams } from '@mui/x-data-grid'
-import { ModelChoice, ModelType, fetchCalculatedIndices } from 'api/moreCast2API'
+import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
@@ -9,7 +9,7 @@ import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import { isNaN } from 'lodash'
 import { rowIDHasher } from 'features/moreCast2/util'
 import { validForecastPredicate } from 'features/moreCast2/saveForecasts'
-import { updateWeatherIndeterminates, storeUserEditedRows } from 'features/moreCast2/slices/dataSlice'
+import { storeUserEditedRows, getSimulatedIndices } from 'features/moreCast2/slices/dataSlice'
 import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
 
@@ -79,8 +79,7 @@ const ForecastSummaryDataGrid = ({
     }
     const idBeforeEditedRow = getYesterdayRowID(editedRow)
     const rowsForSimulation = rows.filter(row => row.id >= idBeforeEditedRow).filter(isActualOrValidForecastPredicate)
-    const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
-    dispatch(updateWeatherIndeterminates(simulatedForecasts))
+    dispatch(getSimulatedIndices(rowsForSimulation))
   }
 
   return (
