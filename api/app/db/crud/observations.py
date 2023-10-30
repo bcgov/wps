@@ -39,7 +39,8 @@ def get_actuals_left_outer_join_with_predictions(
     """
     return session.query(HourlyActual, ModelRunPrediction)\
         .outerjoin(ModelRunPrediction,
-                   and_(ModelRunPrediction.prediction_timestamp == HourlyActual.weather_date))\
+                   and_(ModelRunPrediction.prediction_timestamp == HourlyActual.weather_date,
+                        ModelRunPrediction.station_code == station_code))\
         .outerjoin(PredictionModelRunTimestamp,
                    and_(PredictionModelRunTimestamp.id ==
                         ModelRunPrediction.prediction_model_run_timestamp_id,
