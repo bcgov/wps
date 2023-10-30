@@ -170,7 +170,7 @@ class ModelRunPrediction(Base):
     Each value is a numeric value that corresponds to the lat lon from the model raster """
     __tablename__ = 'model_run_predictions'
     __table_args__ = (
-        UniqueConstraint('prediction_model_run_timestamp_id', 'prediction_timestamp'),
+        UniqueConstraint('prediction_model_run_timestamp_id', 'prediction_timestamp', 'station_code'),
         {'comment': 'The prediction values of a particular model run.'}
     )
 
@@ -183,6 +183,8 @@ class ModelRunPrediction(Base):
         "PredictionModelRunTimestamp", foreign_keys=[prediction_model_run_timestamp_id])
     # The date and time to which the prediction applies.
     prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    # The station code representing the location (aka weather station).
+    station_code = Column(Integer, nullable=True)
     # Temperature 2m above model layer.
     tmp_tgl_2 = Column(Float, nullable=True)
     # Relative humidity 2m above model layer.
