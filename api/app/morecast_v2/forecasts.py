@@ -7,11 +7,11 @@ from aiohttp import ClientSession
 from collections import defaultdict
 
 from app.utils.time import vancouver_tz
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 from app.db.crud.morecast_v2 import get_forecasts_in_range
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.schemas.morecast_v2 import MoreCastForecastOutput, StationDailyFromWF1, WF1ForecastRecordType, WF1PostForecast, WeatherIndeterminate
+from app.schemas.morecast_v2 import MoreCastForecastOutput, StationDailyFromWF1, WF1ForecastRecordType, WF1PostForecast, WeatherIndeterminate, WeatherDeterminate
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import get_auth_header, get_forecasts_for_stations_by_date_range, get_wfwx_stations_from_station_codes
 from app.fire_behaviour import cffdrs
@@ -108,36 +108,39 @@ def filter_for_api_forecasts(forecasts: List[WeatherIndeterminate], actuals: Lis
     return filtered_forecasts
 
 
-def get_forecasted_fwi_values(actuals: List[WeatherIndeterminate], forecasts: List[WeatherIndeterminate]) -> List[WeatherIndeterminate]:
+def get_fwi_values(actuals: List[WeatherIndeterminate], forecasts: List[WeatherIndeterminate]) -> Tuple[List[WeatherIndeterminate], List[WeatherIndeterminate]]:
     """
-    Fills forecasts with Fire Weather Index System values by calculating based off previous actuals and subsequent forecasts.
+    Calculates actuals and forecasts with Fire Weather Index System values by calculating based off previous actuals and subsequent forecasts.
 
     :param actuals: List of actual weather values
     :type actuals: List[WeatherIndeterminate]
     :param forecasts: List of existing forecasted values
     :type forecasts: List[WeatherIndeterminate]
-    :return: Updated and filled forecasts
-    :rtype: List[WeatherIndeterminate]
+    :return: Actuals and forecasts with calculated fire weather index values
+    :rtype: Tuple[List[WeatherIndeterminate], List[WeatherIndeterminate]
     """
-    actuals_dict = defaultdict(dict)
-    for actual in actuals:
-        actuals_dict[actual.station_code][actual.utc_timestamp.date()] = actual
+    all_indeterminates = actuals + forecasts
+    indeterminates_dict = defaultdict(dict)
 
-    previous_indeterminate = None
-    for idx, forecast in enumerate(forecasts):
-        if previous_indeterminate and previous_indeterminate.station_code == forecast.station_code:
-            updated_forecast = calculate_fwi_indices(previous_indeterminate, forecast)
-            forecasts[idx] = updated_forecast
-        else:
-            last_actual = actuals_dict[forecast.station_code][forecast.utc_timestamp.date() - timedelta(days=1)]
-            updated_forecast = calculate_fwi_indices(last_actual, forecast)
-            forecasts[idx] = updated_forecast
-        previous_indeterminate = forecast
+    # Shape indeterminates into nested dicts for quick and easy look ups by station code and date
+    for indeterminate in all_indeterminates:
+        indeterminates_dict[indeterminate.station_code][indeterminate.utc_timestamp.date()] = indeterminate
 
-    return forecasts
+    for idx, indeterminate in enumerate(all_indeterminates):
+        last_indeterminate = indeterminates_dict[indeterminate.station_code].get(
+            indeterminate.utc_timestamp.date() - timedelta(days=1), None)
+        if last_indeterminate:
+            updated_forecast = calculate_fwi_values(last_indeterminate, indeterminate)
+            all_indeterminates[idx] = updated_forecast
+
+    forecasts = [indeterminate for indeterminate in all_indeterminates if indeterminate.determinate ==
+                 WeatherDeterminate.FORECAST]
+    actuals = [indeterminate for indeterminate in all_indeterminates if indeterminate.determinate == WeatherDeterminate.ACTUAL]
+
+    return actuals, forecasts
 
 
-def calculate_fwi_indices(yesterday: WeatherIndeterminate, today: WeatherIndeterminate) -> WeatherIndeterminate:
+def calculate_fwi_values(yesterday: WeatherIndeterminate, today: WeatherIndeterminate) -> WeatherIndeterminate:
     """
     Uses CFFDRS library to calculate Fire Weather Index System values 
 

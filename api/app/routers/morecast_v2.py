@@ -13,7 +13,7 @@ from app.auth import (auth_with_forecaster_role_required,
 from app.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_for_date, save_all_forecasts
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.morecast_v2.forecasts import filter_for_api_forecasts, get_forecasts
+from app.morecast_v2.forecasts import filter_for_api_forecasts, get_forecasts, calculate_fwi_values, get_fwi_values
 from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MoreCastForecastOutput,
                                      MoreCastForecastRequest,
@@ -31,8 +31,6 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_for_stations_and_date,
                                        get_daily_determinates_for_stations_and_date, get_wfwx_stations_from_station_codes)
 from app.wildfire_one.wfwx_post_api import post_forecasts
-from app.morecast_v2.forecasts import get_forecasted_fwi_values
-from app.fire_behaviour import cffdrs
 
 
 logger = logging.getLogger(__name__)
@@ -196,7 +194,7 @@ async def get_determinates_for_date_range(start_date: date,
                                                                                         end_date_of_interest,
                                                                                         unique_station_codes)
 
-        wf1_forecasts = get_forecasted_fwi_values(wf1_actuals, wf1_forecasts)
+        wf1_actuals, wf1_forecasts = get_fwi_values(wf1_actuals, wf1_forecasts)
         # Find the min and max dates for actuals from wf1. These define the range of dates for which
         # we need to retrieve forecasts from our API database. Note that not all stations report actuals
         # at the same time, so every station won't necessarily have an actual for each date in the range.
@@ -239,39 +237,8 @@ async def calculate_forecasted_indices(simulate_records: SimulateIndeterminateIn
 
     yesterday_record = indeterminates[0]
     indeterminates_to_simulate = indeterminates[1:]
-    for record in indeterminates_to_simulate:
-        # weather params for calculation date
-        month_to_calculate_for = int(record.utc_timestamp.strftime('%m'))
-        latitude = record.latitude
-        temp = record.temperature
-        rh = record.relative_humidity
-        precip = record.precipitation
-        wind_speed = record.wind_speed
-        record.fine_fuel_moisture_code = cffdrs.fine_fuel_moisture_code(ffmc=yesterday_record.fine_fuel_moisture_code,
-                                                                        temperature=temp,
-                                                                        relative_humidity=rh,
-                                                                        precipitation=precip,
-                                                                        wind_speed=wind_speed)
-        record.duff_moisture_code = cffdrs.duff_moisture_code(dmc=yesterday_record.duff_moisture_code,
-                                                              temperature=temp,
-                                                              relative_humidity=rh,
-                                                              precipitation=precip,
-                                                              latitude=latitude,
-                                                              month=month_to_calculate_for,
-                                                              latitude_adjust=True
-                                                              )
-        record.drought_code = cffdrs.drought_code(dc=yesterday_record.drought_code,
-                                                  temperature=temp,
-                                                  relative_humidity=rh,
-                                                  precipitation=precip,
-                                                  latitude=latitude,
-                                                  month=month_to_calculate_for,
-                                                  latitude_adjust=True
-                                                  )
-        record.initial_spread_index = cffdrs.initial_spread_index(ffmc=record.fine_fuel_moisture_code,
-                                                                  wind_speed=record.wind_speed)
-        record.build_up_index = cffdrs.bui_calc(dmc=record.duff_moisture_code, dc=record.drought_code)
-        record.fire_weather_index = cffdrs.fire_weather_index(
-            isi=record.initial_spread_index, bui=record.build_up_index)
-        yesterday_record = record
+    for idx, record in enumerate(indeterminates_to_simulate):
+        calculated_record = calculate_fwi_values(yesterday_record, record)
+        indeterminates_to_simulate[idx] = calculated_record
+        yesterday_record = calculated_record
     return (SimulatedWeatherIndeterminateResponse(simulatedForecasts=indeterminates_to_simulate))
