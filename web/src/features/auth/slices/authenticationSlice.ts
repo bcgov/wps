@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
-import * as jwtDecode from 'jwt-decode'
+import { jwtDecode } from 'jwt-decode'
 import { logError } from 'utils/error'
 import { isUndefined } from 'lodash'
 import { TEST_AUTH, KC_AUTH_URL, KC_REALM, SM_LOGOUT_URL, KC_CLIENT } from 'utils/env'
@@ -109,7 +109,7 @@ export const decodeRoles = (token: string | undefined) => {
     return Object.values(ROLES.HFI)
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const decodedToken: any = jwtDecode.default(token)
+  const decodedToken: any = jwtDecode(token)
   try {
     if (!isUndefined(decodedToken.client_roles)) {
       return decodedToken.client_roles
@@ -129,7 +129,7 @@ export const decodeIdir = (token: string | undefined) => {
     return 'test@idir'
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const decodedToken: any = jwtDecode.default(token)
+  const decodedToken: any = jwtDecode(token)
   try {
     return decodedToken.idir_username
   } catch (e) {
