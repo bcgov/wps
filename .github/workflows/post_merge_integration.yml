@@ -175,7 +175,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        node-version: [19.x]
+        node-version: [18.x]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
