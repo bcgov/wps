@@ -2,8 +2,10 @@ from datetime import datetime
 from typing import Optional
 from unittest.mock import Mock, patch
 import pytest
+from math import isclose
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.morecast_v2.forecasts import actual_exists, construct_wf1_forecast, construct_wf1_forecasts, filter_for_api_forecasts, get_forecasts
+from app.morecast_v2.forecasts import (actual_exists, construct_wf1_forecast,
+                                       construct_wf1_forecasts, filter_for_api_forecasts, get_forecasts, get_fwi_values)
 from app.schemas.morecast_v2 import (StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate,
                                      WF1ForecastRecordType, WF1PostForecast)
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
@@ -39,6 +41,44 @@ morecast_record_2 = MorecastForecastRecord(id=2,
                                            create_user='test2',
                                            update_timestamp=end_time,
                                            update_user='test2')
+
+weather_indeterminate_1 = WeatherIndeterminate(station_code=123,
+                                               station_name="TEST_STATION",
+                                               determinate=WeatherDeterminate.ACTUAL,
+                                               utc_timestamp=start_time,
+                                               latitude=51.507,
+                                               longitude=-121.162,
+                                               temperature=4.1,
+                                               relative_humidity=34.0,
+                                               precipitation=0.0,
+                                               wind_direction=184.0,
+                                               wind_speed=8.9,
+                                               fine_fuel_moisture_code=62,
+                                               duff_moisture_code=27,
+                                               drought_code=487,
+                                               initial_spread_index=4,
+                                               build_up_index=52,
+                                               fire_weather_index=14,
+                                               danger_rating=2)
+
+weather_indeterminate_2 = WeatherIndeterminate(station_code=123,
+                                               station_name="TEST_STATION",
+                                               determinate=WeatherDeterminate.FORECAST,
+                                               utc_timestamp=end_time,
+                                               latitude=51.507,
+                                               longitude=-121.162,
+                                               temperature=6.3,
+                                               relative_humidity=35.0,
+                                               precipitation=0.0,
+                                               wind_direction=176.0,
+                                               wind_speed=8.9,
+                                               fine_fuel_moisture_code=None,
+                                               duff_moisture_code=None,
+                                               drought_code=None,
+                                               initial_spread_index=None,
+                                               build_up_index=None,
+                                               fire_weather_index=None,
+                                               danger_rating=None)
 
 wfwx_weather_stations = [
     WFWXWeatherStation(
@@ -87,9 +127,25 @@ def assert_wf1_forecast(result: WF1PostForecast,
     assert result.recordType == WF1ForecastRecordType()
 
 
+def test_get_fwi_values():
+    actuals, forecasts = get_fwi_values([weather_indeterminate_1], [weather_indeterminate_2])
+    assert len(forecasts) == 1
+    assert len(actuals) == 1
+    assert isclose(forecasts[0].fine_fuel_moisture_code, 76.59454201861331)
+    assert isclose(forecasts[0].duff_moisture_code, 27.5921591)
+    assert isclose(forecasts[0].drought_code, 487.838)
+    assert isclose(forecasts[0].initial_spread_index, 1.3234484847240926)
+    assert isclose(forecasts[0].build_up_index, 48.347912947622426)
+    assert isclose(forecasts[0].fire_weather_index, 3.841725745428403)
+
+
 @patch('app.morecast_v2.forecasts.get_forecasts_in_range', return_value=[])
 def test_get_forecasts_empty(_):
     result = get_forecasts(Mock(), start_time, end_time, [])
+    assert len(result) == 0
+    result = get_forecasts(Mock(), None, end_time, [])
+    assert len(result) == 0
+    result = get_forecasts(Mock(), start_time, None, [])
     assert len(result) == 0
 
 
