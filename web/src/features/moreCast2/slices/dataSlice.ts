@@ -65,7 +65,7 @@ const dataSlice = createSlice({
 
       state.forecasts = state.forecasts.map(forecast => {
         const updatedForecast = updatedForecasts.find(item => item.id === forecast.id)
-        return updatedForecast || forecast
+        return updatedForecast ?? forecast
       })
     },
     simulateWeatherIndeterminatesFailed(state: State, action: PayloadAction<string>) {
