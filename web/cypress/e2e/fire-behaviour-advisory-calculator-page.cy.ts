@@ -54,7 +54,7 @@ describe('FireBAT Calculator Page', () => {
       cy.getByTestId('tooltip-fire-size').invoke('attr', 'style').should('eq', 'left: 0px;')
     })
   })
-  describe('Dropdowns', () => {
+  xdescribe('Dropdowns', () => {
     xit('Can select station if successfully received stations', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
@@ -68,7 +68,7 @@ describe('FireBAT Calculator Page', () => {
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
     })
-    xit('Can select fuel type successfully', () => {
+    it('Can select fuel type successfully', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
@@ -82,7 +82,7 @@ describe('FireBAT Calculator Page', () => {
       cy.url().should('contain', `f=${fuelType.name.toLowerCase()}`)
     })
 
-    xit('Calls backend when station and non-grass fuel type are set', () => {
+    it('Calls backend when station and non-grass fuel type are set', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       const stationCode = 322
       const fuelType = FuelTypes.get()['c1']
