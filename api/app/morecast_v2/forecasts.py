@@ -17,7 +17,10 @@ from app.wildfire_one.wfwx_api import get_auth_header, get_forecasts_for_station
 from app.fire_behaviour import cffdrs
 
 
-def get_forecasts(db_session: Session, start_time: datetime, end_time: datetime, station_codes: List[int]) -> List[MoreCastForecastOutput]:
+def get_forecasts(db_session: Session, start_time: Optional[datetime], end_time: Optional[datetime], station_codes: List[int]) -> List[MoreCastForecastOutput]:
+    if start_time is None or end_time is None:
+        return []
+
     result = get_forecasts_in_range(db_session, start_time, end_time, station_codes)
 
     forecasts: List[WeatherIndeterminate] = [MoreCastForecastOutput(station_code=forecast.station_code,

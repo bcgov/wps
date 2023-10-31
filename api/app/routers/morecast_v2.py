@@ -205,8 +205,8 @@ async def get_determinates_for_date_range(start_date: date,
         # we need to retrieve forecasts from our API database. Note that not all stations report actuals
         # at the same time, so every station won't necessarily have an actual for each date in the range.
         wf1_actuals_dates = [actual.utc_timestamp for actual in wf1_actuals]
-        min_wf1_actuals_date = min(wf1_actuals_dates)
-        max_wf1_actuals_date = max(wf1_actuals_dates)
+        min_wf1_actuals_date = min(wf1_actuals_dates, default=None)
+        max_wf1_actuals_date = max(wf1_actuals_dates, default=None)
 
     with get_read_session_scope() as db_session:
         forecasts_from_db: List[MoreCastForecastOutput] = get_forecasts(
