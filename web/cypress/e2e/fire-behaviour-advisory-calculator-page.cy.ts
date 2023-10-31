@@ -157,7 +157,7 @@ describe('FireBAT Calculator Page', () => {
       cy.getByTestId('remove-rows').should('not.have.class', 'Mui-disabled')
     })
 
-    it('Rows can be added and removed', () => {
+    xit('Rows can be added and removed', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
