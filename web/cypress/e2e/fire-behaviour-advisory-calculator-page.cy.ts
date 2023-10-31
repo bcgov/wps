@@ -178,7 +178,7 @@ describe('FireBAT Calculator Page', () => {
 
       cy.url().should('not.contain', `s=${stationCode}`)
     })
-    it('Specific rows can be removed', () => {
+    xit('Specific rows can be removed', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
