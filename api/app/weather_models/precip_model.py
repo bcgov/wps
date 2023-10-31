@@ -1,7 +1,5 @@
 import logging
-import math
 from datetime import datetime
-from typing import List
 from app.weather_models.linear_model import LinearModel
 from app.weather_models.regression_model import RegressionModelBase
 
