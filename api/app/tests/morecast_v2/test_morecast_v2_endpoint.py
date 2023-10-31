@@ -6,10 +6,9 @@ from aiohttp import ClientSession
 from app.schemas.shared import StationsRequest
 from app.tests.common import default_mock_client_get
 from app.schemas.morecast_v2 import (MoreCastForecastInput,
-                                     MoreCastForecastRequest, StationDailyFromWF1, WeatherDeterminate)
+                                     MoreCastForecastRequest, StationDailyFromWF1)
 import app.routers.morecast_v2
 from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
-from app.tests.morecast_v2.test_forecasts import weather_indeterminate_1, weather_indeterminate_2
 
 
 morecast_v2_post_url = '/api/morecast-v2/forecast'
