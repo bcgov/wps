@@ -11,8 +11,12 @@ import dataSliceReducer, {
   initialState,
   getWeatherIndeterminatesFailed,
   getWeatherIndeterminatesStart,
-  getWeatherIndeterminatesSuccess
+  getWeatherIndeterminatesSuccess,
+  simulateWeatherIndeterminatesSuccess,
+  simulateWeatherIndeterminatesFailed,
+  storeUserEditedRows
 } from 'features/moreCast2/slices/dataSlice'
+import { rowIDHasher } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 
 const FROM_DATE_STRING = '2023-04-27T20:00:00+00:00'
@@ -49,7 +53,7 @@ const weatherIndeterminateGenerator = (
   precipValue?: number
 ) => {
   return {
-    id: `${station_code}${utc_timestamp}`,
+    id: rowIDHasher(station_code, DateTime.fromISO(utc_timestamp)),
     station_code,
     station_name,
     determinate,
@@ -162,6 +166,83 @@ describe('dataSlice', () => {
     })
     it('should set a value for error state when getWeatherIndeterminatesFailed is called', () => {
       expect(dataSliceReducer(initialState, getWeatherIndeterminatesFailed(dummyError)).error).not.toBeNull()
+    })
+
+    it('should handle missing forcasts for calculated indices update', () => {
+      expect(
+        dataSliceReducer(
+          initialState,
+          simulateWeatherIndeterminatesSuccess({
+            simulatedForecasts: []
+          })
+        ).forecasts
+      ).toEqual([])
+    })
+
+    it('should only overwrite updated forecasts', () => {
+      const weatherIndeterminate1 = weatherIndeterminateGenerator(
+        1,
+        'test1',
+        WeatherDeterminate.FORECAST,
+        FROM_DATE_STRING
+      )
+
+      const weatherIndeterminate2 = weatherIndeterminateGenerator(
+        2,
+        'test',
+        WeatherDeterminate.FORECAST,
+        TO_DATE_STRING
+      )
+
+      const updatedWeatherIndeterminate2 = {
+        ...weatherIndeterminate2,
+        fine_fuel_moisture_code: 1,
+        duff_moisture_code: 1,
+        drought_code: 1,
+        initial_spread_index: 1,
+        build_up_index: 1,
+        fire_weather_index: 1,
+        danger_rating: 1
+      }
+
+      expect(
+        dataSliceReducer(
+          { ...initialState, forecasts: [weatherIndeterminate1, weatherIndeterminate2] },
+          simulateWeatherIndeterminatesSuccess({
+            simulatedForecasts: [updatedWeatherIndeterminate2]
+          })
+        ).forecasts
+      ).toEqual([weatherIndeterminate1, updatedWeatherIndeterminate2])
+    })
+    it('should set a value for error state when simulateWeatherIndeterminatesFailed is called', () => {
+      expect(dataSliceReducer(initialState, simulateWeatherIndeterminatesFailed(dummyError)).error).not.toBeNull()
+    })
+    it('should store the edited rows', () => {
+      const rows = createMoreCast2Rows(
+        [],
+        [weatherIndeterminateGenerator(1, 'test1', WeatherDeterminate.FORECAST, FROM_DATE_STRING)],
+        []
+      )
+      expect(dataSliceReducer(initialState, storeUserEditedRows(rows)).userEditedRows).toEqual(rows)
+    })
+
+    it('should updated the edited rows', () => {
+      const forecast = weatherIndeterminateGenerator(1, 'test1', WeatherDeterminate.FORECAST, FROM_DATE_STRING)
+      const rows = createMoreCast2Rows([], [forecast], [])
+      expect(dataSliceReducer(initialState, storeUserEditedRows(rows)).userEditedRows).toEqual(rows)
+
+      const updatedForecast = {
+        ...forecast,
+        fine_fuel_moisture_code: 1,
+        duff_moisture_code: 1,
+        drought_code: 1,
+        initial_spread_index: 1,
+        build_up_index: 1,
+        fire_weather_index: 1,
+        danger_rating: 1
+      }
+      const updatedRows = createMoreCast2Rows([], [updatedForecast], [])
+      expect(dataSliceReducer(initialState, storeUserEditedRows(updatedRows)).userEditedRows).toEqual(updatedRows)
     })
   })
   describe('fillMissingWeatherIndeterminates', () => {
