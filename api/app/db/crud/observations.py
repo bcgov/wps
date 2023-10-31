@@ -78,8 +78,34 @@ def get_accumulated_precip_by_24h_interval(session: Session, station_code: int, 
     :param station_code: The numeric code identifying the weather station of interest.
     :param start_datetime: The earliest date and time of interest.
     :param end_datetime: The latest date and time of interest.
+    
+    Note: I couldn't construct this query in SQLAlchemy, hence the need for the 'text' based query.
+
+    generate_series(\'{}\', \'{}\', '24 hours'::interval)
+
+    This gives us a one column table of dates separated by 24 hours between the start and end dates. For example, if start and end dates are 2023-10-31 20:00:00 to 2023-11-03 20:00:00 we would have a table like:
+
+    day
+    2023-10-31 20:00:00
+    2023-11-01 20:00:00
+    2023-11-02 20:00:00
+    2023-11-03 20:00:00
+
+    We then join the HourlyActuals table so that we can sum hourly precip in a 24 hour period. The join is based on the weather_date field in the HourlyActuals table being in a 24 hour range using this odd looking syntax:
+
+    weather_date <@ tstzrange(day, day + '24 hours', '(]')
+
+    Using 2023-10-31 20:00:00 as an example, rows with the following dates would match. The (] syntax means the lower bound is excluded but the upper bound is included.
+
+    2023-10-31 21:00:00
+    2023-10-31 22:00:00
+    2023-10-31 23:00:00
+    2023-11-01 00:00:00
+    2023-11-01 01:00:00
+    ....
+    2023-11-01 19:00:00
+    2023-11-01 20:00:00    
     """
-    # Note: I couldn't construct this query in SQLAlchemy, hence the need for the 'text' based query.
     stmt = """
         SELECT day, station_code, sum(precipitation) actual_precip_24h
         FROM
@@ -87,7 +113,7 @@ def get_accumulated_precip_by_24h_interval(session: Session, station_code: int, 
         LEFT JOIN
             hourly_actuals
         ON 
-            weather_date <@ tstzrange(day, day + '24 hours', '(]')
+            weather_date <@ tstzrange(day, day - '24 hours', '(]')
         WHERE
             station_code = {}
         GROUP BY
