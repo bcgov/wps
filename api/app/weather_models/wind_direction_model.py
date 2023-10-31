@@ -1,10 +1,9 @@
 import logging
 import math
-from typing import List
 from app.db.models.observations import HourlyActual
 from app.db.models.weather_models import ModelRunPrediction
 from app.weather_models.linear_model import LinearModel
-from app.weather_models.regression_model import RegressionModelProto
+from app.weather_models.regression_model import RegressionModelBase
 from app.weather_models.wind_direction_utils import compute_u_v
 
 logger = logging.getLogger(__name__)
@@ -17,7 +16,7 @@ def any_none_or_nan(prediction: ModelRunPrediction, actual: HourlyActual):
         actual.wind_speed is None or math.isnan(actual.wind_speed)
 
 
-class WindDirectionModel(RegressionModelProto):
+class WindDirectionModel(RegressionModelBase):
     """
     Wind direction regression model that decomposes degree direction into
     the u, v vectors that make it up. See: http://colaweb.gmu.edu/dev/clim301/lectures/wind/wind-uv
@@ -26,12 +25,6 @@ class WindDirectionModel(RegressionModelProto):
 
     def __init__(self, linear_model: LinearModel):
         self._linear_model = linear_model
-
-    def train(self):
-        return self._linear_model.train()
-
-    def predict(self, hour: int, model_wind_dir: List[List[int]]):
-        return self._linear_model.predict(hour, model_wind_dir)
 
     def add_sample(self,
                    prediction: ModelRunPrediction,

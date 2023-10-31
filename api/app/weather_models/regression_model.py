@@ -24,18 +24,25 @@ class RegressionModelProto(Protocol):
     _samples: Samples
 
     @abstractmethod
-    def add_sample(self,
-                   prediction: ModelRunPrediction,
-                   actual: HourlyActual): raise NotImplementedError
-
-    @abstractmethod
     def train(self): raise NotImplementedError
 
     @abstractmethod
     def predict(self, hour: int, model_wind_dir: List[List[int]]): raise NotImplementedError
 
 
-class RegressionModel(RegressionModelProto):
+class RegressionModelBase(RegressionModelProto):
+    """
+    Base class for all weather model regression models.
+    """
+    
+    def train(self):
+        return self._linear_model.train()
+
+    def predict(self, hour: int, value: List[List[int]]):
+        return self._linear_model.predict(hour, value)
+
+
+class RegressionModel(RegressionModelBase):
     """ 
     Default class to manage a regression dataset
     """
@@ -43,12 +50,6 @@ class RegressionModel(RegressionModelProto):
     def __init__(self, model_key: str, linear_model: LinearModel):
         self._key = model_key
         self._linear_model = linear_model
-
-    def train(self):
-        return self._linear_model.train()
-
-    def predict(self, hour: int, model_wind_dir: List[List[int]]):
-        return self._linear_model.predict(hour, model_wind_dir)
 
     def add_sample(self,
                    prediction: ModelRunPrediction,

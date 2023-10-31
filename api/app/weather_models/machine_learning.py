@@ -14,8 +14,6 @@ from app.db.models.observations import HourlyActual
 from app.db.crud.observations import (get_accumulated_precip_by_24h_interval,
                                       get_actuals_left_outer_join_with_predictions,
                                       get_predicted_daily_precip)
-from app.weather_models.linear_model import LinearModel
-from app.weather_models.precip_model import PrecipModel
 from app.weather_models.sample import Samples
 from app.weather_models.weather_models import RegressionModelsV2
 from app.weather_models.wind_direction_model import compute_u_v
@@ -85,12 +83,12 @@ class StationMachineLearning:
         self.station_code = station_code
         self.regression_models = defaultdict(RegressionModels)
         self.regression_models_v2 = RegressionModelsV2()
-        self.precip_regression_model = PrecipModel(linear_model=LinearModel(samples=Samples()))
         self.max_learn_date = max_learn_date
         # Maximum number of days to try to learn from. Experimentation has shown that
         # about two weeks worth of data starts giving fairly good results compared to human forecasters.
         # NOTE: This could be an environment variable.
         self.max_days_to_learn = MAX_DAYS_TO_LEARN
+
 
     def _add_sample_to_collection(self,
                                   prediction: ModelRunPrediction,
@@ -144,14 +142,17 @@ class StationMachineLearning:
                 prev_prediction = prediction
             prev_actual = actual
         return sample_collection
-
+    
     def learn(self):
+        # Calculate the date to start learning from.
+        start_date =  self.max_learn_date - \
+            timedelta(days=self.max_days_to_learn)
+        self.learn_models(start_date)
+        self.learn_precip_model(start_date)
+
+    def learn_models(self, start_date: datetime):
         """ Collect data and perform linear regression.
         """
-        # Calculate the date to start learning from.
-        start_date = self.max_learn_date - \
-            timedelta(days=self.max_days_to_learn)
-
         # collect data
         data = self._collect_data(start_date)
 
@@ -173,7 +174,10 @@ class StationMachineLearning:
             self.session, self.model.id, self.station_code, start_date, self.max_learn_date)
         self.regression_models_v2.collect_data(query)
         self.regression_models_v2.train()
-
+        
+    def learn_precip_model(self, start_date):
+        """ Collect precip data and perform linear regression.
+        """
         # Precip is based on 24 hour periods at 20:00 hours UTC. Use the start_date
         # parameter to calculate a start_datetime for the same date but at 20:00 UTC.
         start_datetime = datetime(start_date.year, start_date.month, start_date.day, 20, tzinfo=timezone.utc)
@@ -186,8 +190,8 @@ class StationMachineLearning:
         # Get the model predicted values
         predicted_daily_precip = get_predicted_daily_precip(
             self.session, self.model, self.station_code, start_datetime, end_datetime)
-        self.precip_regression_model.add_samples(actual_daily_precip, predicted_daily_precip)
-        self.precip_regression_model.train()
+        self.regression_models_v2.add_precip_samples(actual_daily_precip, predicted_daily_precip)
+        self.regression_models_v2.train_precip()
 
     def predict_temperature(self, model_temperature: float, timestamp: datetime):
         """ Predict the bias adjusted temperature for a given point in time, given a corresponding model
@@ -260,7 +264,7 @@ class StationMachineLearning:
             logger.warning('model precipitation for %s was None', timestamp)
             return None
         hour = timestamp.hour
-        predicted_precip_24h = self.precip_regression_model.predict(hour, [[model_precipitation]])
+        predicted_precip_24h = self.regression_models_v2._precip_model.predict(hour, [[model_precipitation]])
         if predicted_precip_24h is None or len(predicted_precip_24h) == 0:
             return None
         return max(0, predicted_precip_24h[0])
