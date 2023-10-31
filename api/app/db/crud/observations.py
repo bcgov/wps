@@ -90,7 +90,7 @@ def get_accumulated_precip_by_24h_interval(session: Session, station_code: int, 
     2023-11-01 20:00:00
     2023-11-02 20:00:00
     2023-11-03 20:00:00
-
+    
     We then join the HourlyActuals table so that we can sum hourly precip in a 24 hour period. The join is based on the weather_date field in the HourlyActuals table being in a 24 hour range using this odd looking syntax:
 
     weather_date <@ tstzrange(day, day + '24 hours', '(]')
@@ -113,7 +113,7 @@ def get_accumulated_precip_by_24h_interval(session: Session, station_code: int, 
         LEFT JOIN
             hourly_actuals
         ON 
-            weather_date <@ tstzrange(day, day - '24 hours', '(]')
+            weather_date <@ tstzrange(day - INTERVAL '24 hours', day, '(]')
         WHERE
             station_code = {}
         GROUP BY

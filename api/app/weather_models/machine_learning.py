@@ -89,7 +89,6 @@ class StationMachineLearning:
         # NOTE: This could be an environment variable.
         self.max_days_to_learn = MAX_DAYS_TO_LEARN
 
-
     def _add_sample_to_collection(self,
                                   prediction: ModelRunPrediction,
                                   actual: HourlyActual,
@@ -142,15 +141,8 @@ class StationMachineLearning:
                 prev_prediction = prediction
             prev_actual = actual
         return sample_collection
-    
-    def learn(self):
-        # Calculate the date to start learning from.
-        start_date =  self.max_learn_date - \
-            timedelta(days=self.max_days_to_learn)
-        self.learn_models(start_date)
-        self.learn_precip_model(start_date)
 
-    def learn_models(self, start_date: datetime):
+    def _learn_models(self, start_date: datetime):
         """ Collect data and perform linear regression.
         """
         # collect data
@@ -175,7 +167,7 @@ class StationMachineLearning:
         self.regression_models_v2.collect_data(query)
         self.regression_models_v2.train()
         
-    def learn_precip_model(self, start_date):
+    def _learn_precip_model(self, start_date):
         """ Collect precip data and perform linear regression.
         """
         # Precip is based on 24 hour periods at 20:00 hours UTC. Use the start_date
@@ -192,6 +184,13 @@ class StationMachineLearning:
             self.session, self.model, self.station_code, start_datetime, end_datetime)
         self.regression_models_v2.add_precip_samples(actual_daily_precip, predicted_daily_precip)
         self.regression_models_v2.train_precip()
+
+    def learn(self):
+        # Calculate the date to start learning from.
+        start_date = self.max_learn_date - \
+            timedelta(days=self.max_days_to_learn)
+        self._learn_models(start_date)
+        self._learn_precip_model(start_date) 
 
     def predict_temperature(self, model_temperature: float, timestamp: datetime):
         """ Predict the bias adjusted temperature for a given point in time, given a corresponding model
