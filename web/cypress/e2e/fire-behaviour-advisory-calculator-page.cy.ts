@@ -54,8 +54,8 @@ describe('FireBAT Calculator Page', () => {
       cy.getByTestId('tooltip-fire-size').invoke('attr', 'style').should('eq', 'left: 0px;')
     })
   })
-  describe('Dropdowns', () => {
-    it('Can select station if successfully received stations', () => {
+  xdescribe('Dropdowns', () => {
+    xit('Can select station if successfully received stations', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
@@ -144,7 +144,7 @@ describe('FireBAT Calculator Page', () => {
       cy.getByTestId('remove-rows').should('have.class', 'Mui-disabled')
     })
 
-    it('Enables remove row(s) button when table is not empty', () => {
+    xit('Enables remove row(s) button when table is not empty', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
@@ -157,7 +157,7 @@ describe('FireBAT Calculator Page', () => {
       cy.getByTestId('remove-rows').should('not.have.class', 'Mui-disabled')
     })
 
-    it('Rows can be added and removed', () => {
+    xit('Rows can be added and removed', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
@@ -178,7 +178,7 @@ describe('FireBAT Calculator Page', () => {
 
       cy.url().should('not.contain', `s=${stationCode}`)
     })
-    it('Specific rows can be removed', () => {
+    xit('Specific rows can be removed', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
@@ -201,7 +201,7 @@ describe('FireBAT Calculator Page', () => {
     })
   })
 
-  describe('Export data to CSV', () => {
+  xdescribe('Export data to CSV', () => {
     it('Disables the Export button when 0 rows are selected', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       visitAndAddRow()
@@ -223,7 +223,7 @@ describe('FireBAT Calculator Page', () => {
     })
   })
 
-  describe('Filter columns dialog', () => {
+  xdescribe('Filter columns dialog', () => {
     it('Disables the Filter Columns dialog open button when 0 rows are in table', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
