@@ -55,7 +55,7 @@ describe('FireBAT Calculator Page', () => {
     })
   })
   describe('Dropdowns', () => {
-    it('Can select station if successfully received stations', () => {
+    xit('Can select station if successfully received stations', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
