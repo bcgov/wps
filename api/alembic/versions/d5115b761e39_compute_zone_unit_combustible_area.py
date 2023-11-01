@@ -13,7 +13,7 @@ from app.auto_spatial_advisory.calculate_combustible_land_area import calculate_
 
 # revision identifiers, used by Alembic.
 revision = 'd5115b761e39'
-down_revision = '5b745fe0bd7a'
+down_revision = 'f2e027a47a3f'
 branch_labels = None
 depends_on = None
 
