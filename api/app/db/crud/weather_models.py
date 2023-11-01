@@ -220,6 +220,7 @@ def get_latest_station_prediction_mat_view(session: Session,
                            MoreCast2MaterializedView.bias_adjusted_wind_speed,
                            MoreCast2MaterializedView.bias_adjusted_wdir,
                            MoreCast2MaterializedView.precip_24h,
+                           MoreCast2MaterializedView.bias_adjusted_precip_24h,
                            MoreCast2MaterializedView.wdir_tgl_10,
                            MoreCast2MaterializedView.wind_tgl_10,
                            MoreCast2MaterializedView.update_date).\

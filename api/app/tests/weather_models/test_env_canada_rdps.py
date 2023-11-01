@@ -6,7 +6,6 @@ import logging
 import pytest
 import requests
 from typing import Optional
-from shapely import wkt
 from sqlalchemy.orm import Session
 import app.utils.time as time_utils
 import app.weather_models.process_grib
@@ -24,10 +23,6 @@ logger = logging.getLogger(__name__)
 @pytest.fixture()
 def mock_database(monkeypatch):
     """ Mocked out database queries """
-    geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
-            " -120.525 50.62500000000001, -120.525 50.77500000000001))")
-    shape = wkt.loads(geom)
-
     rdps_url = ('https://dd.weather.gc.ca/model_gem_regional/10km/grib2/00/034/'
                 'CMC_reg_RH_TGL_2_ps10km_2020052100_P034.grib2')
     rdps_processed_model_run = ProcessedModelRunUrl(url=rdps_url)
