@@ -14,7 +14,7 @@ describe('Legend', () => {
         setShowShapeStatus={setShowZoneStatus}
         setShowHFI={setShowHFI}
         showHFI={false}
-        showZoneStatus={true}
+        showShapeStatus={true}
       />
     )
     const legendComponent = getByTestId('asa-map-legend')
@@ -41,7 +41,7 @@ describe('Legend', () => {
         setShowShapeStatus={setShowZoneStatus}
         setShowHFI={setShowHFI}
         showHFI={false}
-        showZoneStatus={true}
+        showShapeStatus={true}
       />
     )
 

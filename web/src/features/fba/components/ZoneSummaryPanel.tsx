@@ -32,7 +32,7 @@ interface Props {
   selectedFireZone: FireShape | undefined
   fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
   hfiElevationInfo: ElevationInfoByThreshold[]
-  fireZoneAreas: FireShapeArea[]
+  fireShapeAreas: FireShapeArea[]
   showSummaryPanel: boolean
   setShowSummaryPanel: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -63,7 +63,7 @@ const ZoneSummaryPanel = React.forwardRef((props: Props, ref: React.ForwardedRef
           </Grid>
           <Grid item>
             <CombustibleAreaViz
-              fireZoneAreas={props.fireZoneAreas.filter(
+              fireZoneAreas={props.fireShapeAreas.filter(
                 area => area.fire_shape_id == props.selectedFireZone?.fire_shape_id
               )}
             />

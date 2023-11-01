@@ -304,7 +304,7 @@ const FBAMap = (props: FBAMapProps) => {
           <Box sx={{ position: 'absolute', zIndex: '1', bottom: '0.5rem' }}>
             <Legend
               onToggleLayer={handleToggleLayer}
-              showZoneStatus={showShapeStatus}
+              showShapeStatus={showShapeStatus}
               setShowShapeStatus={setShowShapeStatus}
               showHFI={showHFI}
               setShowHFI={setShowHFI}

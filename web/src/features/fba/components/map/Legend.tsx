@@ -75,13 +75,13 @@ const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subIt
 
 interface LegendProps {
   onToggleLayer: (layerName: string, isVisible: boolean) => void
-  showZoneStatus: boolean
+  showShapeStatus: boolean
   setShowShapeStatus: React.Dispatch<React.SetStateAction<boolean>>
   showHFI: boolean
   setShowHFI: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const Legend = ({ onToggleLayer, showZoneStatus, setShowShapeStatus, showHFI, setShowHFI }: LegendProps) => {
+const Legend = ({ onToggleLayer, showShapeStatus, setShowShapeStatus, showHFI, setShowHFI }: LegendProps) => {
   const handleLayerChange = (
     layerName: string,
     isVisible: boolean,
@@ -106,9 +106,9 @@ const Legend = ({ onToggleLayer, showZoneStatus, setShowShapeStatus, showHFI, se
         BC Fire Advisories
       </LegendTitle>
       <LegendItem
-        label="Zone Status"
-        checked={showZoneStatus}
-        onChange={() => handleLayerChange('fireShapeVector', showZoneStatus, setShowShapeStatus)}
+        label="Zone Unit Status"
+        checked={showShapeStatus}
+        onChange={() => handleLayerChange('fireShapeVector', showShapeStatus, setShowShapeStatus)}
         subItems={zoneStatusSubItems}
       />
       <LegendItem

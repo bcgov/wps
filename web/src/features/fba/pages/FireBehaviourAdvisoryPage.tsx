@@ -225,7 +225,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               selectedFireZone={selectedFireZone}
               fuelTypeInfo={hfiThresholdsFuelTypes}
               hfiElevationInfo={fireZoneElevationInfo}
-              fireZoneAreas={fireShapeAreas}
+              fireShapeAreas={fireShapeAreas}
               showSummaryPanel={showSummaryPanel}
               setShowSummaryPanel={setShowSummaryPanel}
             />
