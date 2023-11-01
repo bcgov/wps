@@ -1,5 +1,5 @@
 from typing import List
-from app.schemas.morecast_v2 import StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate
+from app.schemas.morecast_v2 import StationDailyFromWF1, WeatherDeterminate
 from app.wildfire_one.schema_parsers import (WF1RecordTypeEnum, parse_noon_forecast,
                                              parse_hourly_actual,
                                              unique_weather_stations_mapper, weather_indeterminate_list_mapper,

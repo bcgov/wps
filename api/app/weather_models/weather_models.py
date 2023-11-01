@@ -1,11 +1,14 @@
 import logging
+import math
 from typing import List
 from app.db.models.observations import HourlyActual
 from app.db.models.weather_models import ModelRunPrediction
 from app.weather_models import construct_interpolated_noon_prediction
 from app.weather_models.linear_model import LinearModel
+from app.weather_models.precip_model import PrecipModel
 from app.weather_models.regression_model import RegressionModelProto, model_2_actual_keys
 from app.weather_models.sample import Samples
+from app.weather_models.utils import construct_dictionary_from_list_by_property
 from app.weather_models.wind_direction_model import WindDirectionModel
 
 logger = logging.getLogger(__name__)
@@ -21,10 +24,24 @@ class RegressionModelsV2:
         self._models: List[RegressionModelProto] = [
             WindDirectionModel(linear_model=LinearModel(samples=Samples()))
         ]
+        self._precip_model: RegressionModelProto = PrecipModel(linear_model=LinearModel(samples=Samples()))
 
     def add_samples(self, prediction: ModelRunPrediction, actual: HourlyActual):
         for model in self._models:
             model.add_sample(prediction, actual)
+
+    def add_precip_samples(self, actual_values, predicted_values):
+        predicted_values_dict = construct_dictionary_from_list_by_property(predicted_values, "prediction_timestamp")
+        for actual in actual_values:
+            daily_actual = actual.actual_precip_24h
+            timestamp = actual.day
+            daily_predicted_list = predicted_values_dict.get(timestamp)
+            if daily_predicted_list is None:
+                continue
+            for daily_predicted in daily_predicted_list:
+                precip_24h = daily_predicted.precip_24h
+                if daily_actual is not None and not math.isnan(daily_actual) and precip_24h is not None and not math.isnan(precip_24h):
+                    self._precip_model.add_sample(daily_actual, daily_predicted.precip_24h, timestamp)
 
     def collect_data(self, query):
         # We need to keep track of previous so that we can do interpolation for the global model.
@@ -52,3 +69,6 @@ class RegressionModelsV2:
         # and each hour.
         for model in self._models:
             model.train()
+
+    def train_precip(self):
+        self._precip_model.train()

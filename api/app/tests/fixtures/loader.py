@@ -92,7 +92,7 @@ class FixtureFinder():
         if params:
             filename = filename + '_'
             for key, value in params.items():
-                if type(value) == str:
+                if type(value) == str:  # noqa: E721
                     value = value.replace(' ', '_')
                 filename = '{}_{}_{}'.format(filename, key, value)
         filename = filename[:200] + '.json'
@@ -110,7 +110,7 @@ class FixtureFinder():
         lookup = nested_defaultdict(lookup)
         fixture = lookup[url][verb][str(params)][str(data)]
 
-        if type(fixture) is not str:
+        if type(fixture) is not str:  # noqa: E721
             if config.get('AUTO_MAKE_FIXTURES'):
                 logger.warning('inserting fixture into lookup')
                 lookup[url][verb][str(params)][str(data)] = self.guess_filename(url, params)

@@ -8,7 +8,6 @@ from datetime import datetime
 import pytest
 import requests
 from sqlalchemy.orm import Session
-from shapely import wkt
 from app.jobs import env_canada
 from app.jobs import common_model_fetchers
 import app.utils.time as time_utils
@@ -48,9 +47,6 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
 @pytest.fixture()
 def mock_database(monkeypatch):
     """ Mocked out database queries """
-    geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
-            " -120.525 50.62500000000001, -120.525 50.77500000000001))")
-    shape = wkt.loads(geom)
     gdps_url = ('https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/000/'
                 'CMC_glb_TMP_TGL_2_latlon.15x.15_2020052100_P000.grib2')
     gdps_processed_model_run = ProcessedModelRunUrl(url=gdps_url)
