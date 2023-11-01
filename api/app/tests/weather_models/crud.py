@@ -1,8 +1,17 @@
 """ Some crud responses used to mock our calls to app.db.crud
 """
 from datetime import datetime
-from app.db.models.weather_models import ModelRunPrediction
+from app.db.models.weather_models import ModelRunPrediction, WeatherStationModelPrediction
 from app.db.models.observations import HourlyActual
+
+
+class MockActualPrecip:
+    day: datetime
+    actual_precip_24h: float
+
+    def __init__(self, day, actual_precip_24h):
+        self.day=day
+        self.actual_precip_24h=actual_precip_24h
 
 
 def get_actuals_left_outer_join_with_predictions(*args):
@@ -89,3 +98,33 @@ def get_actuals_left_outer_join_with_predictions(*args):
             prediction_timestamp=datetime(2020, 10, 11, 21))]
     ]
     return result
+
+def get_accumulated_precip_by_24h_interval(*args):
+    """ Fixed response as replacement for app.db.crud.observations.get_accumulated_precip_by_24h_interval
+    """
+    return [
+        MockActualPrecip(
+            day=datetime(2023,10,10,20,0,0),
+            actual_precip_24h=3
+
+        ),
+        MockActualPrecip(
+            day=datetime(2023,10,11,20,0,0),
+            actual_precip_24h=3
+        )
+    ]
+
+
+def get_predicted_daily_precip(*args):
+    return [
+        WeatherStationModelPrediction(
+            bias_adjusted_precip_24h=None,
+            precip_24h=3,
+            prediction_timestamp=datetime(2023,10,10,20,0,0)
+        ),
+        WeatherStationModelPrediction(
+            bias_adjusted_precip_24h=None,
+            precip_24h=3,
+            prediction_timestamp=datetime(2023,10,11,20,0,0)
+        )
+    ]
