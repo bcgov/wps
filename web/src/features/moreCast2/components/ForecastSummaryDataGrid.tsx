@@ -71,14 +71,13 @@ const ForecastSummaryDataGrid = ({
       newRow.windSpeedForecast?.value,
       newRow.precipForecast?.value
     ]
-    for (const value of mustBeFilled) {
-      if (isNaN(value)) {
-        return newRow
-      }
+    const isValidForecast = mustBeFilled.every(value => !isNaN(value))
+
+    if (isValidForecast) {
+      const idBeforeEditedRow = getYesterdayRowID(newRow)
+      const rowsForSimulation = rows.filter(row => row.id >= idBeforeEditedRow).filter(isActualOrValidForecastPredicate)
+      dispatch(getSimulatedIndices(rowsForSimulation))
     }
-    const idBeforeEditedRow = getYesterdayRowID(newRow)
-    const rowsForSimulation = rows.filter(row => row.id >= idBeforeEditedRow).filter(isActualOrValidForecastPredicate)
-    dispatch(getSimulatedIndices(rowsForSimulation))
 
     return newRow
   }
