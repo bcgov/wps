@@ -1,6 +1,6 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { DataGrid, GridColDef, GridEventListener, GridCellEditStopParams } from '@mui/x-data-grid'
+import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
@@ -62,24 +62,25 @@ const ForecastSummaryDataGrid = ({
   handleClose
 }: ForecastSummaryDataGridProps) => {
   const dispatch: AppDispatch = useDispatch()
-  const handleCellEditStop = async (params: GridCellEditStopParams) => {
-    const editedRow = params.row
-    dispatch(storeUserEditedRows([editedRow]))
+  const processRowUpdate = async (newRow: MoreCast2Row) => {
+    dispatch(storeUserEditedRows([newRow]))
 
     const mustBeFilled = [
-      editedRow.tempForecast?.value,
-      editedRow.rhForecast?.value,
-      editedRow.windSpeedForecast?.value,
-      editedRow.precipForecast?.value
+      newRow.tempForecast?.value,
+      newRow.rhForecast?.value,
+      newRow.windSpeedForecast?.value,
+      newRow.precipForecast?.value
     ]
     for (const value of mustBeFilled) {
       if (isNaN(value)) {
-        return editedRow
+        return newRow
       }
     }
-    const idBeforeEditedRow = getYesterdayRowID(editedRow)
+    const idBeforeEditedRow = getYesterdayRowID(newRow)
     const rowsForSimulation = rows.filter(row => row.id >= idBeforeEditedRow).filter(isActualOrValidForecastPredicate)
     dispatch(getSimulatedIndices(rowsForSimulation))
+
+    return newRow
   }
 
   return (
@@ -98,7 +99,7 @@ const ForecastSummaryDataGrid = ({
         columns={DataGridColumns.getSummaryColumns()}
         rows={rows}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
-        onCellEditStop={handleCellEditStop}
+        processRowUpdate={processRowUpdate}
       />
       <ApplyToColumnMenu
         colDef={clickedColDef}
