@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
 get_fire_centres_url = '/api/fba/fire-centers'
-get_fire_zone_areas_url = '/api/fba/fire-zone-areas/forecast/2022-09-27/2022-09-27'
+get_fire_zone_areas_url = '/api/fba/fire-shape-areas/forecast/2022-09-27/2022-09-27'
 decode_fn = "jwt.decode"
 
 

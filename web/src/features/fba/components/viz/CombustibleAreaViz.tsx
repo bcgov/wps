@@ -1,6 +1,6 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { FireZoneArea } from 'api/fbaAPI'
+import { FireShapeArea } from 'api/fbaAPI'
 import { BarChart, CartesianGrid, XAxis, YAxis, Bar, Tooltip, ResponsiveContainer } from 'recharts'
 import { Typography } from '@mui/material'
 const PREFIX = 'CombustibleAreaViz'
@@ -15,7 +15,7 @@ const StyledTypography = styled(Typography, {
 
 export interface AdvisoryMetadataProps {
   testId?: string
-  fireZoneAreas: FireZoneArea[]
+  fireZoneAreas: FireShapeArea[]
 }
 
 const CombustibleAreaViz = ({ fireZoneAreas }: AdvisoryMetadataProps) => {
