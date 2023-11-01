@@ -156,7 +156,7 @@ const FBAMap = (props: FBAMapProps) => {
           }
           const fireZone: FireShape = {
             fire_shape_id: feature.getProperties().OBJECTID,
-            mof_fire_zone_name: feature.getProperties().OBJECTID.FIRE_ZONE,
+            mof_fire_zone_name: feature.getProperties().FIRE_ZONE,
             mof_fire_centre_name: feature.getProperties().FIRE_CENTR,
             area_sqm: feature.getProperties().Shape_Area
           }

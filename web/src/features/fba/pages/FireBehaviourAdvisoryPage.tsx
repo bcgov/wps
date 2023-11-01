@@ -53,7 +53,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
-  const [selectedFireZone, setSelectedFireZone] = useState<FireShape | undefined>(undefined)
+  const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
@@ -112,14 +112,14 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       !isNull(mostRecentRunDate) &&
       !isNull(doiISODate) &&
       !isUndefined(mostRecentRunDate) &&
-      !isUndefined(selectedFireZone)
+      !isUndefined(selectedFireShape)
     ) {
-      dispatch(fetchHighHFIFuels(runType, doiISODate, mostRecentRunDate.toString(), selectedFireZone.fire_shape_id))
+      dispatch(fetchHighHFIFuels(runType, doiISODate, mostRecentRunDate.toString(), selectedFireShape.fire_shape_id))
       dispatch(
-        fetchfireZoneElevationInfo(selectedFireZone.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
+        fetchfireZoneElevationInfo(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
       )
     }
-  }, [mostRecentRunDate, selectedFireZone]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mostRecentRunDate, selectedFireShape]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
@@ -222,7 +222,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid item>
             <ZoneSummaryPanel
               ref={sidePanelRef}
-              selectedFireZone={selectedFireZone}
+              selectedFireZone={selectedFireShape}
               fuelTypeInfo={hfiThresholdsFuelTypes}
               hfiElevationInfo={fireZoneElevationInfo}
               fireShapeAreas={fireShapeAreas}
@@ -234,10 +234,10 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             <FBAMap
               forDate={dateOfInterest}
               runType={runType}
-              selectedFireShape={selectedFireZone}
+              selectedFireShape={selectedFireShape}
               selectedFireCenter={fireCenter}
               advisoryThreshold={advisoryThreshold}
-              setSelectedFireShape={setSelectedFireZone}
+              setSelectedFireShape={setSelectedFireShape}
               fireShapeAreas={fireShapeAreas}
               showSummaryPanel={showSummaryPanel}
               setShowSummaryPanel={setShowSummaryPanel}
