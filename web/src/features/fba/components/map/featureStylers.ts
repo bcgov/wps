@@ -5,7 +5,7 @@ import CircleStyle from 'ol/style/Circle'
 import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
 import { range, startCase, lowerCase, isUndefined } from 'lodash'
-import { FireZone, FireZoneArea } from 'api/fbaAPI'
+import { FireShape, FireShapeArea } from 'api/fbaAPI'
 
 const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
 export const ADVISORY_ORANGE_FILL = 'rgba(255, 147, 38, 0.4)'
@@ -40,16 +40,16 @@ export const fireCentreStyler = (): Style => {
   })
 }
 
-export const fireZoneStyler = (
-  fireZoneAreas: FireZoneArea[],
+export const fireShapeStyler = (
+  fireShapeAreas: FireShapeArea[],
   advisoryThreshold: number,
-  selectedFireZone: FireZone | undefined,
+  selectedFireShape: FireShape | undefined,
   showZoneStatus: boolean
 ) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const mof_fire_zone_id = feature.get('MOF_FIRE_ZONE_ID')
-    const fireZoneAreaByThreshold = fireZoneAreas.filter(f => f.mof_fire_zone_id === mof_fire_zone_id)
-    const selected = !!(selectedFireZone?.mof_fire_zone_id && selectedFireZone.mof_fire_zone_id === mof_fire_zone_id)
+    const fire_shape_id = feature.getProperties().OBJECTID
+    const fireShapes = fireShapeAreas.filter(f => f.fire_shape_id === fire_shape_id)
+    const selected = !!(selectedFireShape?.fire_shape_id && selectedFireShape.fire_shape_id === fire_shape_id)
     let strokeValue = 'black'
     if (selected) {
       strokeValue = 'green'
@@ -60,22 +60,20 @@ export const fireZoneStyler = (
         color: strokeValue,
         width: selected ? 8 : 1
       }),
-      fill: showZoneStatus
-        ? getAdvisoryColors(advisoryThreshold, fireZoneAreaByThreshold)
-        : new Fill({ color: EMPTY_FILL })
+      fill: showZoneStatus ? getAdvisoryColors(advisoryThreshold, fireShapes) : new Fill({ color: EMPTY_FILL })
     })
   }
   return a
 }
 
-export const getAdvisoryColors = (advisoryThreshold: number, fireZoneArea?: FireZoneArea[]) => {
+export const getAdvisoryColors = (advisoryThreshold: number, fireShapeArea?: FireShapeArea[]) => {
   let fill = new Fill({ color: EMPTY_FILL })
-  if (isUndefined(fireZoneArea) || fireZoneArea.length === 0) {
+  if (isUndefined(fireShapeArea) || fireShapeArea.length === 0) {
     return fill
   }
 
-  const advisoryThresholdArea = fireZoneArea.find(area => area.threshold == 1)
-  const warningThresholdArea = fireZoneArea.find(area => area.threshold == 2)
+  const advisoryThresholdArea = fireShapeArea.find(area => area.threshold == 1)
+  const warningThresholdArea = fireShapeArea.find(area => area.threshold == 2)
   const advisoryPercentage = advisoryThresholdArea?.elevated_hfi_percentage ?? 0
   const warningPercentage = warningThresholdArea?.elevated_hfi_percentage ?? 0
 
@@ -92,12 +90,12 @@ export const getAdvisoryColors = (advisoryThreshold: number, fireZoneArea?: Fire
   return fill
 }
 
-export const fireZoneLabelStyler = (selectedFireZone: FireZone | undefined) => {
+export const fireShapeLabelStyler = (selectedFireShape: FireShape | undefined) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const text = feature.get('mof_fire_zone_name').replace(' Fire Zone', '\nFire Zone')
-    const feature_mof_fire_zone_id = feature.get('mof_fire_zone_id')
+    const text = feature.getProperties().FIRE_ZONE.replace(' Fire Zone', '\nFire Zone')
+    const feature_fire_shape_id = feature.getProperties().OBJECTID
     const selected =
-      !isUndefined(selectedFireZone) && feature_mof_fire_zone_id === selectedFireZone.mof_fire_zone_id ? true : false
+      !isUndefined(selectedFireShape) && feature_fire_shape_id === selectedFireShape.fire_shape_id ? true : false
     return new Style({
       text: new Text({
         overflow: true,

@@ -2,63 +2,63 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FireZoneArea, ZoneAreaListResponse, getFireZoneAreas } from 'api/fbaAPI'
+import { FireShapeArea, FireShapeAreaListResponse, getFireShapeAreas } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 interface State {
   loading: boolean
   error: string | null
-  fireZoneAreas: FireZoneArea[]
+  fireShapeAreas: FireShapeArea[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  fireZoneAreas: []
+  fireShapeAreas: []
 }
 
-const fireZoneAreasSlice = createSlice({
-  name: 'fireZoneAreas',
+const fireShapeAreasSlice = createSlice({
+  name: 'fireShapeAreas',
   initialState,
   reducers: {
-    getFireZoneAreasStart(state: State) {
+    getFireShapeAreasStart(state: State) {
       state.error = null
       state.loading = true
-      state.fireZoneAreas = []
+      state.fireShapeAreas = []
     },
-    getFireZoneAreasFailed(state: State, action: PayloadAction<string>) {
+    getFireShapeAreasFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getFireZoneAreasSuccess(state: State, action: PayloadAction<ZoneAreaListResponse>) {
+    getFireShapeAreasSuccess(state: State, action: PayloadAction<FireShapeAreaListResponse>) {
       state.error = null
-      state.fireZoneAreas = action.payload.zones
+      state.fireShapeAreas = action.payload.shapes
       state.loading = false
     }
   }
 })
 
-export const { getFireZoneAreasStart, getFireZoneAreasFailed, getFireZoneAreasSuccess } = fireZoneAreasSlice.actions
+export const { getFireShapeAreasStart, getFireShapeAreasFailed, getFireShapeAreasSuccess } = fireShapeAreasSlice.actions
 
-export default fireZoneAreasSlice.reducer
+export default fireShapeAreasSlice.reducer
 
-export const fetchFireZoneAreas =
+export const fetchFireShapeAreas =
   (runType: RunType, run_datetime: string, for_date: string): AppThunk =>
   async dispatch => {
     if (run_datetime != undefined && run_datetime !== ``) {
       try {
-        dispatch(getFireZoneAreasStart())
-        const fireZoneAreas = await getFireZoneAreas(runType, run_datetime, for_date)
-        dispatch(getFireZoneAreasSuccess(fireZoneAreas))
+        dispatch(getFireShapeAreasStart())
+        const fireShapeAreas = await getFireShapeAreas(runType, run_datetime, for_date)
+        dispatch(getFireShapeAreasSuccess(fireShapeAreas))
       } catch (err) {
-        dispatch(getFireZoneAreasFailed((err as Error).toString()))
+        dispatch(getFireShapeAreasFailed((err as Error).toString()))
         logError(err)
       }
     } else {
       try {
-        dispatch(getFireZoneAreasFailed('run_datetime cannot be undefined!'))
+        dispatch(getFireShapeAreasFailed('run_datetime cannot be undefined!'))
       } catch (err) {
-        dispatch(getFireZoneAreasFailed((err as Error).toString()))
+        dispatch(getFireShapeAreasFailed((err as Error).toString()))
         logError(err)
       }
     }

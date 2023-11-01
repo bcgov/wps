@@ -3,7 +3,7 @@ import { styled } from '@mui/material/styles'
 import CombustibleAreaViz from 'features/fba/components/viz/CombustibleAreaViz'
 import { Grid, IconButton, Typography } from '@mui/material'
 import { isUndefined } from 'lodash'
-import { ElevationInfoByThreshold, FireZone, FireZoneArea, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
+import { ElevationInfoByThreshold, FireShape, FireShapeArea, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import ElevationInfoViz from 'features/fba/components/viz/ElevationInfoViz'
 import FuelTypesBreakdown from 'features/fba/components/viz/FuelTypesBreakdown'
 import CloseIcon from '@mui/icons-material/Close'
@@ -29,10 +29,10 @@ const CentreName = styled(Typography)({
 })
 
 interface Props {
-  selectedFireZone: FireZone | undefined
+  selectedFireZone: FireShape | undefined
   fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
   hfiElevationInfo: ElevationInfoByThreshold[]
-  fireZoneAreas: FireZoneArea[]
+  fireShapeAreas: FireShapeArea[]
   showSummaryPanel: boolean
   setShowSummaryPanel: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -63,8 +63,8 @@ const ZoneSummaryPanel = React.forwardRef((props: Props, ref: React.ForwardedRef
           </Grid>
           <Grid item>
             <CombustibleAreaViz
-              fireZoneAreas={props.fireZoneAreas.filter(
-                area => area.mof_fire_zone_id == props.selectedFireZone?.mof_fire_zone_id
+              fireZoneAreas={props.fireShapeAreas.filter(
+                area => area.fire_shape_id == props.selectedFireZone?.fire_shape_id
               )}
             />
           </Grid>
