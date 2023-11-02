@@ -1,0 +1,49 @@
+---
+data_management_roles:
+  data_custodian: N/A
+  data_steward: N/A
+  product_owner: Neal McLoughlin
+product_external_dependencies:
+  identity_authorization:
+    - BCGov-SSO-Keycloak
+  notification_standard: []
+  other_dependencies: Wildfire One (Vivid Solutions)
+product_information:
+  api_specifications:
+    - https://psu.nrs.gov.bc.ca/api/docs
+  ministry:
+    - Water, Land and Resource Stewardship
+  product_acronym: WPS
+  product_description: >-
+    Predictive data tools to support decision making in prevention,
+    preparedness, response and recovery for BC Wildfire.
+  product_name: Wildfire Predictive Services
+  product_status: active
+  product_urls:
+    - https://psu.nrs.gov.bc.ca/
+  program_area: NRIDS
+product_technology_information:
+  backend_frameworks:
+    - name: FastAPI
+      version: 0.104.0
+  backend_languages_version:
+    - name: Python
+      version: '3.10'
+  ci_cd_tools:
+    - GitHub-Actions
+  data_storage_platforms:
+    - Object-Storage
+    - Postgresql
+    - Redis
+    - Postgis
+  frontend_frameworks:
+    - name: React
+      version: '17'
+  frontend_languages:
+    - name: TypeScript
+      version: 5.2.2
+  hosting_platforms:
+    - Private-Cloud-Openshift
+  spatial_mapping_technologies:
+    - Openlayers
+version: 1
