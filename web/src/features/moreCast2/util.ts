@@ -1,7 +1,8 @@
 import { DateTime, Interval } from 'luxon'
 import { ModelChoice, MoreCast2ForecastRecord } from 'api/moreCast2API'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { StationGroupMember } from 'api/stationAPI'
+import { isUndefined } from 'lodash'
 
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
@@ -79,3 +80,27 @@ export const createLabel = (isActual: boolean, label: string) => {
 
   return createWeatherModelLabel(label)
 }
+
+export const getYesterdayRowID = (todayRow: MoreCast2Row): string => {
+  const yesterdayDate = todayRow.forDate.minus({ days: 1 })
+  const yesterdayID = rowIDHasher(todayRow.stationCode, yesterdayDate)
+
+  return yesterdayID
+}
+
+export const validActualOrForecastPredicate = (row: MoreCast2Row) =>
+  validForecastPredicate(row) || validActualPredicate(row)
+
+export const validActualPredicate = (row: MoreCast2Row) =>
+  !isNaN(row.precipActual) && !isNaN(row.rhActual) && !isNaN(row.tempActual) && !isNaN(row.windSpeedActual)
+
+// A valid forecast row has values for precipForecast, rhForecast, tempForecast and windSpeedForecast
+export const validForecastPredicate = (row: MoreCast2Row) =>
+  !isUndefined(row.precipForecast) &&
+  !isNaN(row.precipForecast.value) &&
+  !isUndefined(row.rhForecast) &&
+  !isNaN(row.rhForecast.value) &&
+  !isUndefined(row.tempForecast) &&
+  !isNaN(row.tempForecast.value) &&
+  !isUndefined(row.windSpeedForecast) &&
+  !isNaN(row.windSpeedForecast.value)

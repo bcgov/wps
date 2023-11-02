@@ -6,12 +6,10 @@ import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
-import { isNaN } from 'lodash'
-import { rowIDHasher } from 'features/moreCast2/util'
-import { validForecastPredicate } from 'features/moreCast2/saveForecasts'
 import { storeUserEditedRows, getSimulatedIndices } from 'features/moreCast2/slices/dataSlice'
 import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
+import { validActualOrForecastPredicate, validForecastPredicate } from 'features/moreCast2/util'
 
 const PREFIX = 'ForecastSummaryDataGrid'
 
@@ -39,19 +37,6 @@ interface ForecastSummaryDataGridProps {
   handleClose: () => void
 }
 
-const getYesterdayRowID = (todayRow: MoreCast2Row): string => {
-  const yesterdayDate = todayRow.forDate.minus({ days: 1 })
-  const yesterdayID = rowIDHasher(todayRow.stationCode, yesterdayDate)
-
-  return yesterdayID
-}
-
-export const validActualPredicate = (row: MoreCast2Row) =>
-  !isNaN(row.precipActual) && !isNaN(row.rhActual) && !isNaN(row.tempActual) && !isNaN(row.windSpeedActual)
-
-export const isActualOrValidForecastPredicate = (row: MoreCast2Row) =>
-  validForecastPredicate(row) || validActualPredicate(row)
-
 const ForecastSummaryDataGrid = ({
   loading,
   rows,
@@ -62,24 +47,24 @@ const ForecastSummaryDataGrid = ({
   handleClose
 }: ForecastSummaryDataGridProps) => {
   const dispatch: AppDispatch = useDispatch()
-  const processRowUpdate = async (newRow: MoreCast2Row) => {
-    dispatch(storeUserEditedRows([newRow]))
+  const processRowUpdate = async (editedRow: MoreCast2Row) => {
+    dispatch(storeUserEditedRows([editedRow]))
 
-    const mustBeFilled = [
-      newRow.tempForecast?.value,
-      newRow.rhForecast?.value,
-      newRow.windSpeedForecast?.value,
-      newRow.precipForecast?.value
-    ]
-    const isValidForecast = mustBeFilled.every(value => !isNaN(value))
+    if (validForecastPredicate(editedRow)) {
+      const validRowsForStation = rows.filter(
+        row => row.stationCode === editedRow.stationCode && validActualOrForecastPredicate(row)
+      )
 
-    if (isValidForecast) {
-      const idBeforeEditedRow = getYesterdayRowID(newRow)
-      const rowsForSimulation = rows.filter(row => row.id >= idBeforeEditedRow).filter(isActualOrValidForecastPredicate)
-      dispatch(getSimulatedIndices(rowsForSimulation))
+      const yesterday = editedRow.forDate.minus({ days: 1 })
+      const yesterdayRow = validRowsForStation.find(row => row.forDate.toISODate() === yesterday.toISODate())
+
+      if (yesterdayRow) {
+        const rowsForSimulation = validRowsForStation.filter(row => row.forDate >= yesterday)
+        dispatch(getSimulatedIndices(rowsForSimulation))
+      }
     }
 
-    return newRow
+    return editedRow
   }
 
   return (

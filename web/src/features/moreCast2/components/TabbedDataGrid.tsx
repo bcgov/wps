@@ -4,7 +4,7 @@ import { GridCellParams, GridColDef, GridColumnVisibilityModel, GridEventListene
 import { ModelChoice, ModelType, submitMoreCastForecastRecords } from 'api/moreCast2API'
 import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
-import ForecastSummaryDataGrid, { validActualPredicate } from 'features/moreCast2/components/ForecastSummaryDataGrid'
+import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
 import {
   getSimulatedIndices,
@@ -22,15 +22,11 @@ import { ROLES } from 'features/auth/roles'
 import { selectAuthentication, selectWf1Authentication } from 'app/rootReducer'
 import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
-import {
-  isForecastRowPredicate,
-  getRowsToSave,
-  isForecastValid,
-  validForecastPredicate
-} from 'features/moreCast2/saveForecasts'
+import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
+import { validActualPredicate, validForecastPredicate } from 'features/moreCast2/util'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -198,12 +194,21 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
 
   const [clickedColDef, setClickedColDef] = useState<GridColDef | null>(null)
 
-  const filterRowsForSimulation = (rows: MoreCast2Row[]): MoreCast2Row[] => {
+  const filterRowsForSimulation = (rows: MoreCast2Row[]): MoreCast2Row[] | undefined => {
     const forecasts = rows.filter(validForecastPredicate)
     const actuals = rows.filter(validActualPredicate)
-    const mostRecentActual = actuals.pop()
+    const mostRecentActualMap = new Map<number, MoreCast2Row>()
 
-    return mostRecentActual ? [mostRecentActual, ...forecasts] : rows
+    for (const row of actuals) {
+      const recentActual = mostRecentActualMap.get(row.stationCode)
+      if (!recentActual || recentActual.forDate < row.forDate) {
+        mostRecentActualMap.set(row.stationCode, row)
+      }
+    }
+    const mostRecentActuals = Array.from(mostRecentActualMap.values())
+    const rowsForSimulation = [...mostRecentActuals, ...forecasts]
+
+    return forecasts.length > 0 ? rowsForSimulation : undefined
   }
 
   const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: MoreCast2Row[]): MoreCast2Row[] => {
@@ -267,8 +272,11 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       })
     }
     const rowsForSimulation = filterRowsForSimulation(newRows)
+    if (rowsForSimulation) {
+      dispatch(getSimulatedIndices(rowsForSimulation))
+    }
+
     dispatch(storeUserEditedRows(newRows))
-    dispatch(getSimulatedIndices(rowsForSimulation))
     setVisibleRows(newRows)
   }
 
@@ -291,8 +299,11 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       }
     }
     const rowsForSimulation = filterRowsForSimulation(newRows)
+    if (rowsForSimulation) {
+      dispatch(getSimulatedIndices(rowsForSimulation))
+    }
+
     dispatch(storeUserEditedRows(newRows))
-    dispatch(getSimulatedIndices(rowsForSimulation))
     setVisibleRows(newRows)
   }
 

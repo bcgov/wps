@@ -21,6 +21,7 @@ from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      ObservedDailiesForStations,
                                      StationDailiesResponse,
                                      WeatherIndeterminate,
+                                     WeatherDeterminate,
                                      SimulateIndeterminateIndices,
                                      SimulatedWeatherIndeterminateResponse)
 from app.schemas.shared import StationsRequest
@@ -239,12 +240,11 @@ async def calculate_forecasted_indices(simulate_records: SimulateIndeterminateIn
     """
     indeterminates = simulate_records.simulate_records
     logger.info(
-        f'/simulate-indices/ - simulating forecast records for {indeterminates[0].station_name}')
+        f'/simulate-indices/ - simulating forecast records for stations: {set(indeterminate.station_name for indeterminate in indeterminates)}')
 
-    yesterday_record = indeterminates[0]
-    indeterminates_to_simulate = indeterminates[1:]
-    for idx, record in enumerate(indeterminates_to_simulate):
-        calculated_record = calculate_fwi_values(yesterday_record, record)
-        indeterminates_to_simulate[idx] = calculated_record
-        yesterday_record = calculated_record
-    return (SimulatedWeatherIndeterminateResponse(simulatedForecasts=indeterminates_to_simulate))
+    forecasts = [indeterminate for indeterminate in indeterminates if indeterminate.determinate ==
+                 WeatherDeterminate.FORECAST]
+    actuals = [indeterminate for indeterminate in indeterminates if indeterminate.determinate == WeatherDeterminate.ACTUAL]
+
+    _, forecasts = get_fwi_values(actuals, forecasts)
+    return (SimulatedWeatherIndeterminateResponse(simulatedForecasts=forecasts))

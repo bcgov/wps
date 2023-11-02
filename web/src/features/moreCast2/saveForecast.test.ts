@@ -1,6 +1,7 @@
 import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
-import { getRowsToSave, isForecastValid, validForecastPredicate } from 'features/moreCast2/saveForecasts'
+import { getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
+import { validForecastPredicate } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 
 const baseRow = {

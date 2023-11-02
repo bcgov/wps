@@ -1,6 +1,6 @@
 import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
-import { isUndefined } from 'lodash'
+import { validForecastPredicate } from 'features/moreCast2/util'
 
 // Forecast rows contain all NaN values in their 'actual' fields
 export const isForecastRowPredicate = (row: MoreCast2Row) =>
@@ -9,17 +9,6 @@ export const isForecastRowPredicate = (row: MoreCast2Row) =>
   isNaN(row.tempActual) &&
   isNaN(row.windDirectionActual) &&
   isNaN(row.windSpeedActual)
-
-// A valid forecast row has values for precipForecast, rhForecast, tempForecast and windSpeedForecast
-export const validForecastPredicate = (row: MoreCast2Row) =>
-  !isUndefined(row.precipForecast) &&
-  !isNaN(row.precipForecast.value) &&
-  !isUndefined(row.rhForecast) &&
-  !isNaN(row.rhForecast.value) &&
-  !isUndefined(row.tempForecast) &&
-  !isNaN(row.tempForecast.value) &&
-  !isUndefined(row.windSpeedForecast) &&
-  !isNaN(row.windSpeedForecast.value)
 
 export const getForecastRows = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   return rows ? rows.filter(isForecastRowPredicate) : []
