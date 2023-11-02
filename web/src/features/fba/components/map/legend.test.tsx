@@ -11,10 +11,10 @@ describe('Legend', () => {
     const { getByTestId } = render(
       <Legend
         onToggleLayer={onToggleLayer}
-        setShowZoneStatus={setShowZoneStatus}
+        setShowShapeStatus={setShowZoneStatus}
         setShowHFI={setShowHFI}
         showHFI={false}
-        showZoneStatus={true}
+        showShapeStatus={true}
       />
     )
     const legendComponent = getByTestId('asa-map-legend')
@@ -38,10 +38,10 @@ describe('Legend', () => {
     const { getByTestId } = render(
       <Legend
         onToggleLayer={onToggleLayer}
-        setShowZoneStatus={setShowZoneStatus}
+        setShowShapeStatus={setShowZoneStatus}
         setShowHFI={setShowHFI}
         showHFI={false}
-        showZoneStatus={true}
+        showShapeStatus={true}
       />
     )
 

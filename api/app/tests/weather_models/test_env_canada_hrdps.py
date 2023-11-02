@@ -6,7 +6,6 @@ import logging
 from typing import Optional
 import pytest
 import requests
-import shapely
 import datetime
 from sqlalchemy.orm import Session
 from pytest_mock import MockerFixture
@@ -29,10 +28,6 @@ logger = logging.getLogger(__name__)
 @pytest.fixture()
 def mock_database(monkeypatch):
     """ Mocked out database queries """
-    geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
-            " -120.525 50.62500000000001, -120.525 50.77500000000001))")
-    shape = shapely.wkt.loads(geom)
-
     hrdps_url = 'https://dd.weather.gc.ca/model_hrdps/continental/2.5km/' \
         '00/001/20200521T00Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT001H.grib2'
     hrdps_processed_model_run = ProcessedModelRunUrl(url=hrdps_url)

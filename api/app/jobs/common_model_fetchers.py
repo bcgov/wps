@@ -9,10 +9,11 @@ from sqlalchemy.orm import Session
 from app.db.crud.weather_models import (get_processed_file_record,
                                         get_processed_file_count,
                                         get_prediction_model_run_timestamp_records,
-                                        get_model_run_predictions,
+                                        get_model_run_predictions_for_station,
                                         get_weather_station_model_prediction,
                                         delete_weather_station_model_predictions,
-                                        refresh_morecast2_materialized_view)
+                                        refresh_morecast2_materialized_view,
+                                        delete_model_run_predictions)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import SCALAR_MODEL_VALUE_KEYS, ModelEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
@@ -162,6 +163,7 @@ def apply_data_retention_policy():
         # keeping 21 days (3 weeks) of historic data is sufficient.
         oldest_to_keep = time_utils.get_utc_now() - time_utils.data_retention_threshold
         delete_weather_station_model_predictions(session, oldest_to_keep)
+        delete_model_run_predictions(session, oldest_to_keep)
 
 
 def accumulate_nam_precipitation(nam_cumulative_precip: float, prediction: ModelRunPrediction, model_run_hour: int):
@@ -245,7 +247,7 @@ class ModelValueProcessor:
             station_prediction.apcp_sfc_0 = 0.0
         else:
             station_prediction.apcp_sfc_0 = prediction.apcp_sfc_0
-        # Calculate the delta_precipitation based on station's previous prediction_timestamp
+        # Calculate the delta_precipitation and 24 hour precip based on station's previous prediction_timestamp
         # for the same model run
         self.session.flush()
         station_prediction.precip_24h = self._calculate_past_24_hour_precip(
@@ -276,6 +278,11 @@ class ModelValueProcessor:
         station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(
             station_prediction.wind_tgl_10,
             station_prediction.wdir_tgl_10,
+            station_prediction.prediction_timestamp
+        )
+        # Predict the 24 hour precipitation
+        station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(
+            station_prediction.precip_24h,
             station_prediction.prediction_timestamp
         )
 
@@ -349,7 +356,7 @@ class ModelValueProcessor:
         machine.learn()
 
         # Get all the predictions associated to this particular model run.
-        query = get_model_run_predictions(self.session, model_run)
+        query = get_model_run_predictions_for_station(self.session, station.code, model_run)
 
         nam_cumulative_precip = 0.0
         # Iterate through all the predictions.

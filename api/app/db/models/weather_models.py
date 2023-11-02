@@ -170,7 +170,7 @@ class ModelRunPrediction(Base):
     Each value is a numeric value that corresponds to the lat lon from the model raster """
     __tablename__ = 'model_run_predictions'
     __table_args__ = (
-        UniqueConstraint('prediction_model_run_timestamp_id', 'prediction_timestamp'),
+        UniqueConstraint('prediction_model_run_timestamp_id', 'prediction_timestamp', 'station_code'),
         {'comment': 'The prediction values of a particular model run.'}
     )
 
@@ -183,6 +183,8 @@ class ModelRunPrediction(Base):
         "PredictionModelRunTimestamp", foreign_keys=[prediction_model_run_timestamp_id])
     # The date and time to which the prediction applies.
     prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    # The station code representing the location (aka weather station).
+    station_code = Column(Integer, nullable=True)
     # Temperature 2m above model layer.
     tmp_tgl_2 = Column(Float, nullable=True)
     # Relative humidity 2m above model layer.
@@ -250,11 +252,13 @@ class WeatherStationModelPrediction(Base):
                          default=time_utils.get_utc_now(), index=True)
     # Precipitation predicted for the previous 24 hour period.
     precip_24h = Column(Float, nullable=True)
+    # Precipitation predicted for the previous 24 hour period adjusted for bias.
+    bias_adjusted_precip_24h = Column(Float, nullable=True)
 
     def __str__(self):
         return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2} {self.bias_adjusted_temperature} '
                 '{self.rh_tgl_2} {self.bias_adjusted_rh} {self.wdir_tgl_10} {self.bias_adjusted_wdir} {self.wind_tgl_10} '
-                '{self.bias_adjusted_wind_speed} {self.apcp_sfc_0} {self.delta_precip}').format(self=self)
+                '{self.bias_adjusted_wind_speed} {self.apcp_sfc_0} {self.delta_precip} {self.bias_adjusted_precip_24h}').format(self=self)
 
 
 class MoreCast2MaterializedView(Base):
@@ -265,6 +269,7 @@ class MoreCast2MaterializedView(Base):
                 primary_key=True, nullable=False, index=True)
     abbreviation = Column(String, nullable=False)
     apcp_sfc_0 = Column(Float, nullable=False)
+    bias_adjusted_precip_24h = Column(Float, nullable=False)
     bias_adjusted_rh = Column(Float, nullable=False)
     bias_adjusted_temperature = Column(Float, nullable=False)
     bias_adjusted_wind_speed = Column(Float, nullable=False)
