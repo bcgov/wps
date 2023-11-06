@@ -81,13 +81,6 @@ export const createLabel = (isActual: boolean, label: string) => {
   return createWeatherModelLabel(label)
 }
 
-export const getYesterdayRowID = (todayRow: MoreCast2Row): string => {
-  const yesterdayDate = todayRow.forDate.minus({ days: 1 })
-  const yesterdayID = rowIDHasher(todayRow.stationCode, yesterdayDate)
-
-  return yesterdayID
-}
-
 export const validActualOrForecastPredicate = (row: MoreCast2Row) =>
   validForecastPredicate(row) || validActualPredicate(row)
 

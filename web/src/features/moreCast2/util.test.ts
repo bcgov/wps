@@ -1,6 +1,14 @@
 import { DateTime } from 'luxon'
 import { ModelChoice } from 'api/moreCast2API'
-import { createDateInterval, createWeatherModelLabel, parseForecastsHelper, rowIDHasher } from 'features/moreCast2/util'
+import { createEmptyMoreCast2Row } from 'features/moreCast2/slices/dataSlice'
+import {
+  createDateInterval,
+  createWeatherModelLabel,
+  parseForecastsHelper,
+  rowIDHasher,
+  validActualPredicate,
+  validForecastPredicate
+} from 'features/moreCast2/util'
 
 const TEST_DATE = '2023-02-16T20:00:00+00:00'
 const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
@@ -150,5 +158,37 @@ describe('createWeatherModelLabel', () => {
   it('should format bias adjusted model label', () => {
     const result = createWeatherModelLabel(ModelChoice.GDPS_BIAS)
     expect(result).toBe('GDPS bias')
+  })
+})
+describe('validActualPredicate', () => {
+  const row = createEmptyMoreCast2Row('id', 123, 'testStation', DateTime.fromISO('2023-05-25T09:08:34.123'), 56, -123)
+  it('should return true if a row contains valid Actual values', () => {
+    row.precipActual = 1
+    row.tempActual = 1
+    row.rhActual = 1
+    row.windSpeedActual = 1
+    const result = validActualPredicate(row)
+    expect(result).toBe(true)
+  })
+  it('should return false if a row does not contain valid Actual values', () => {
+    row.precipActual = NaN
+    const result = validActualPredicate(row)
+    expect(result).toBe(false)
+  })
+})
+describe('validForecastPredicate', () => {
+  const row = createEmptyMoreCast2Row('id', 123, 'testStation', DateTime.fromISO('2023-05-25T09:08:34.123'), 56, -123)
+  it('should return true if a row contains valid Forecast values', () => {
+    row.precipForecast = { choice: 'FORECAST', value: 2 }
+    row.tempForecast = { choice: 'FORECAST', value: 2 }
+    row.rhForecast = { choice: 'FORECAST', value: 2 }
+    row.windSpeedForecast = { choice: 'FORECAST', value: 2 }
+    const result = validForecastPredicate(row)
+    expect(result).toBe(true)
+  })
+  it('should return false if a row does not contain valid Forecast values', () => {
+    row.precipForecast = undefined
+    const result = validForecastPredicate(row)
+    expect(result).toBe(false)
   })
 })

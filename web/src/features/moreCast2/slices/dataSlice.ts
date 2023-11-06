@@ -583,7 +583,7 @@ const getNumberOrNaN = (value: number | null) => {
  * @param forDate The date the row is for.
  * @returns
  */
-const createEmptyMoreCast2Row = (
+export const createEmptyMoreCast2Row = (
   id: string,
   stationCode: number,
   stationName: string,
