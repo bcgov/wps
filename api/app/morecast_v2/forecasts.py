@@ -164,13 +164,13 @@ def calculate_fwi_values(yesterday: WeatherIndeterminate, today: WeatherIndeterm
     precip = today.precipitation
     wind_spd = today.wind_speed
 
-    if yesterday.fine_fuel_moisture_code:
+    if yesterday.fine_fuel_moisture_code is not None:
         today.fine_fuel_moisture_code = cffdrs.fine_fuel_moisture_code(ffmc=yesterday.fine_fuel_moisture_code,
                                                                        temperature=temp,
                                                                        relative_humidity=rh,
                                                                        precipitation=precip,
                                                                        wind_speed=wind_spd)
-    if yesterday.duff_moisture_code:
+    if yesterday.duff_moisture_code is not None:
         today.duff_moisture_code = cffdrs.duff_moisture_code(dmc=yesterday.duff_moisture_code,
                                                              temperature=temp,
                                                              relative_humidity=rh,
@@ -179,7 +179,7 @@ def calculate_fwi_values(yesterday: WeatherIndeterminate, today: WeatherIndeterm
                                                              month=month_to_calculate_for,
                                                              latitude_adjust=True
                                                              )
-    if yesterday.drought_code:
+    if yesterday.drought_code is not None:
         today.drought_code = cffdrs.drought_code(dc=yesterday.drought_code,
                                                  temperature=temp,
                                                  relative_humidity=rh,
@@ -188,12 +188,12 @@ def calculate_fwi_values(yesterday: WeatherIndeterminate, today: WeatherIndeterm
                                                  month=month_to_calculate_for,
                                                  latitude_adjust=True
                                                  )
-    if today.fine_fuel_moisture_code:
+    if today.fine_fuel_moisture_code is not None:
         today.initial_spread_index = cffdrs.initial_spread_index(ffmc=today.fine_fuel_moisture_code,
                                                                  wind_speed=today.wind_speed)
-    if today.duff_moisture_code and today.drought_code:
+    if today.duff_moisture_code is not None and today.drought_code is not None:
         today.build_up_index = cffdrs.bui_calc(dmc=today.duff_moisture_code, dc=today.drought_code)
-    if today.initial_spread_index and today.build_up_index:
+    if today.initial_spread_index is not None and today.build_up_index is not None:
         today.fire_weather_index = cffdrs.fire_weather_index(isi=today.initial_spread_index, bui=today.build_up_index)
 
     return today
