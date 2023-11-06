@@ -37,6 +37,25 @@ interface ForecastSummaryDataGridProps {
   handleClose: () => void
 }
 
+export const filterRowsForSimulationFromEdited = (
+  editedRow: MoreCast2Row,
+  allRows: MoreCast2Row[]
+): MoreCast2Row[] | undefined => {
+  if (validForecastPredicate(editedRow)) {
+    const validRowsForStation = allRows.filter(
+      row => row.stationCode === editedRow.stationCode && validActualOrForecastPredicate(row)
+    )
+
+    const yesterday = editedRow.forDate.minus({ days: 1 })
+    const yesterdayRow = validRowsForStation.find(row => row.forDate.toISODate() === yesterday.toISODate())
+
+    if (yesterdayRow) {
+      const rowsForSimulation = validRowsForStation.filter(row => row.forDate >= yesterday)
+      return rowsForSimulation
+    } else return undefined
+  }
+}
+
 const ForecastSummaryDataGrid = ({
   loading,
   rows,
@@ -50,18 +69,9 @@ const ForecastSummaryDataGrid = ({
   const processRowUpdate = async (editedRow: MoreCast2Row) => {
     dispatch(storeUserEditedRows([editedRow]))
 
-    if (validForecastPredicate(editedRow)) {
-      const validRowsForStation = rows.filter(
-        row => row.stationCode === editedRow.stationCode && validActualOrForecastPredicate(row)
-      )
-
-      const yesterday = editedRow.forDate.minus({ days: 1 })
-      const yesterdayRow = validRowsForStation.find(row => row.forDate.toISODate() === yesterday.toISODate())
-
-      if (yesterdayRow) {
-        const rowsForSimulation = validRowsForStation.filter(row => row.forDate >= yesterday)
-        dispatch(getSimulatedIndices(rowsForSimulation))
-      }
+    const rowsForSimulation = filterRowsForSimulationFromEdited(editedRow, rows)
+    if (rowsForSimulation) {
+      dispatch(getSimulatedIndices(rowsForSimulation))
     }
 
     return editedRow
