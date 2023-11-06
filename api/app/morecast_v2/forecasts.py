@@ -136,11 +136,12 @@ def get_fwi_values(actuals: List[WeatherIndeterminate], forecasts: List[WeatherI
             updated_forecast = calculate_fwi_values(last_indeterminate, indeterminate)
             all_indeterminates[idx] = updated_forecast
 
-    forecasts = [indeterminate for indeterminate in all_indeterminates if indeterminate.determinate ==
-                 WeatherDeterminate.FORECAST]
-    actuals = [indeterminate for indeterminate in all_indeterminates if indeterminate.determinate == WeatherDeterminate.ACTUAL]
+    updated_forecasts = [indeterminate for indeterminate in all_indeterminates if indeterminate.determinate ==
+                         WeatherDeterminate.FORECAST]
+    updated_actuals = [
+        indeterminate for indeterminate in all_indeterminates if indeterminate.determinate == WeatherDeterminate.ACTUAL]
 
-    return actuals, forecasts
+    return updated_actuals, updated_forecasts
 
 
 def calculate_fwi_values(yesterday: WeatherIndeterminate, today: WeatherIndeterminate) -> WeatherIndeterminate:
