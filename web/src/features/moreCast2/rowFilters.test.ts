@@ -66,10 +66,10 @@ describe('filterRowsForSimulationFromEdited', () => {
   it('should not contain invalid forecasts', () => {
     expect(filteredRows).not.toContain(forecast1C)
   })
-  it('should not contain unecessary actuals', () => {
+  it('should not contain unnecessary actuals', () => {
     expect(filteredRows).not.toContain(actual1B)
   })
-  it('should not contain rows from otehr stations', () => {
+  it('should not contain rows from other stations', () => {
     expect(filteredRows).not.toContain(forecast2A)
     expect(filteredRows).not.toContain(forecast2B)
     expect(filteredRows).not.toContain(actual2A)
