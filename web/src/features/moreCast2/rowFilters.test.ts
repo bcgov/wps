@@ -64,8 +64,8 @@ describe('filterRowsForSimulationFromEdited', () => {
     expect(filteredRows).toEqual(expect.arrayContaining([actual1A, forecast1A, forecast1B]))
   })
   it('should not include invalid rows, rows from other stations, or unnecessary rows for calculations', () => {
-    expect(filteredRows).not.toEqual(
-      expect.arrayContaining([actual1B, forecast1C, actual2A, forecast2A, actual2B, forecast2B, forecast2C])
+    expect(filteredRows).toEqual(
+      expect.not.arrayContaining([actual1B, forecast1C, actual2A, forecast2A, actual2B, forecast2B, forecast2C])
     )
   })
 })
@@ -77,7 +77,18 @@ describe('filterAllVisibleRowsForSimulation', () => {
     )
   })
   it('should not contain invalid forecasts', () => {
-    expect(filteredRows).not.toContain(forecast2D)
+    expect(filteredRows).toEqual(
+      expect.not.arrayContaining([
+        actual1B,
+        forecast1C,
+        actual2A,
+        forecast2A,
+        actual2B,
+        forecast2B,
+        forecast2C,
+        forecast2D
+      ])
+    )
   })
   it('should not contain unnecessary actuals', () => {
     expect(filteredRows).not.toContain(actual2B)
