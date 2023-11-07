@@ -26,7 +26,7 @@ import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
-import { validActualPredicate, validForecastPredicate } from 'features/moreCast2/util'
+import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -194,23 +194,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
 
   const [clickedColDef, setClickedColDef] = useState<GridColDef | null>(null)
 
-  const filterRowsForSimulation = (rows: MoreCast2Row[]): MoreCast2Row[] | undefined => {
-    const forecasts = rows.filter(validForecastPredicate)
-    const actuals = rows.filter(validActualPredicate)
-    const mostRecentActualMap = new Map<number, MoreCast2Row>()
-
-    for (const row of actuals) {
-      const recentActual = mostRecentActualMap.get(row.stationCode)
-      if (!recentActual || recentActual.forDate < row.forDate) {
-        mostRecentActualMap.set(row.stationCode, row)
-      }
-    }
-    const mostRecentActuals = Array.from(mostRecentActualMap.values())
-    const rowsForSimulation = [...mostRecentActuals, ...forecasts]
-
-    return forecasts.length > 0 ? rowsForSimulation : undefined
-  }
-
   const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: MoreCast2Row[]): MoreCast2Row[] => {
     const storedRowChoicesMap = new Map<string, MoreCast2Row>()
 
@@ -271,7 +254,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         predictionItem.value = mostRecentValue as number
       })
     }
-    const rowsForSimulation = filterRowsForSimulation(newRows)
+    const rowsForSimulation = filterAllVisibleRowsForSimulation(newRows)
     if (rowsForSimulation) {
       dispatch(getSimulatedIndices(rowsForSimulation))
     }
@@ -298,7 +281,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         predictionItem.value = (row[sourceKey] as number) ?? NaN
       }
     }
-    const rowsForSimulation = filterRowsForSimulation(newRows)
+    const rowsForSimulation = filterAllVisibleRowsForSimulation(newRows)
     if (rowsForSimulation) {
       dispatch(getSimulatedIndices(rowsForSimulation))
     }
