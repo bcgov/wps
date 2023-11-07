@@ -63,10 +63,16 @@ describe('filterRowsForSimulationFromEdited', () => {
   it('should filter for valid rows before and after the edited row', () => {
     expect(filteredRows).toEqual(expect.arrayContaining([actual1A, forecast1A, forecast1B]))
   })
-  it('should not include invalid rows, rows from other stations, or unnecessary rows for calculations', () => {
-    expect(filteredRows).toEqual(
-      expect.not.arrayContaining([actual1B, forecast1C, actual2A, forecast2A, actual2B, forecast2B, forecast2C])
-    )
+  it('should not contain invalid forecasts', () => {
+    expect(filteredRows).not.toContain(forecast1C)
+  })
+  it('should not contain unecessary actuals', () => {
+    expect(filteredRows).not.toContain(actual1B)
+  })
+  it('should not contain rows from otehr stations', () => {
+    expect(filteredRows).not.toContain(forecast2A)
+    expect(filteredRows).not.toContain(forecast2B)
+    expect(filteredRows).not.toContain(actual2A)
   })
 })
 describe('filterAllVisibleRowsForSimulation', () => {
@@ -77,18 +83,9 @@ describe('filterAllVisibleRowsForSimulation', () => {
     )
   })
   it('should not contain invalid forecasts', () => {
-    expect(filteredRows).toEqual(
-      expect.not.arrayContaining([
-        actual1B,
-        forecast1C,
-        actual2A,
-        forecast2A,
-        actual2B,
-        forecast2B,
-        forecast2C,
-        forecast2D
-      ])
-    )
+    expect(filteredRows).not.toContain(forecast1C)
+    expect(filteredRows).not.toContain(forecast2C)
+    expect(filteredRows).not.toContain(forecast2D)
   })
   it('should not contain unnecessary actuals', () => {
     expect(filteredRows).not.toContain(actual2B)
