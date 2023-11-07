@@ -44,10 +44,18 @@ def test_time_range_end_before_start():
     days = get_days_from_range(oct_10_2022, oct_1_2022)
     assert (len(days) == 0)
 
-def test_time_range_across_time_change():
+def test_time_range_across_time_change_november():
     "Time change should not impact range."
     vancouver_tz = pytz.timezone("America/Vancouver")
     nov_1_2023 = vancouver_tz.localize(datetime(year=2023, month=11, day=1, hour=0, minute=0, second=0))
     nov_6_2023 = vancouver_tz.localize(datetime(year=2023, month=11, day=6, hour=23, minute=59, second=59))
     days = get_days_from_range(nov_1_2023, nov_6_2023)
     assert (len(days) == 6)
+
+def test_time_range_across_time_change_march():
+    "Time change should not impact range."
+    vancouver_tz = pytz.timezone("America/Vancouver")
+    march_6_2024 = vancouver_tz.localize(datetime(year=2024, month=3, day=6, hour=0, minute=0, second=0))
+    march_12_2024 = vancouver_tz.localize(datetime(year=2024, month=3, day=12, hour=23, minute=59, second=59))
+    days = get_days_from_range(march_6_2024, march_12_2024)
+    assert (len(days) == 7)
