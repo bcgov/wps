@@ -42,29 +42,24 @@ const FuelTypesBreakdown = (props: Props) => {
     cx,
     cy,
     midAngle,
-    innerRadius,
     outerRadius,
     percent,
-    fuel_type_code,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    area,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    index
+    fuel_type_code
   }: {
     cx: number
     cy: number
     midAngle: number
-    innerRadius: number
     outerRadius: number
     percent: number
     fuel_type_code: string
-    area: number
-    index: number
   }) => {
-    const radius = 25 + innerRadius + (outerRadius - innerRadius)
-    const x = cx + radius * Math.cos(-midAngle * RADIAN)
-    const y = cy + radius * Math.sin(-midAngle * RADIAN)
+    // Labels are positioned at the outer edge of the pie + the length of label lines (20px) +
+    // an arbitrary buffer/whitespace of 5px
+    const labelRadius = outerRadius + 25
+    const x = cx + labelRadius * Math.cos(-midAngle * RADIAN)
+    const y = cy + labelRadius * Math.sin(-midAngle * RADIAN)
 
+    // Only label pie slices that contribute >= 2%
     if (percent * 100 < 2) {
       return
     }
