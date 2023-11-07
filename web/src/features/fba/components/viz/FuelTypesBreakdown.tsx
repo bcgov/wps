@@ -4,6 +4,7 @@ import { Typography } from '@mui/material'
 import { isUndefined } from 'lodash'
 import { FireShape, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import { PieChart, Pie, ResponsiveContainer, Cell } from 'recharts'
+import { getColorByFuelTypeCode } from 'features/fba/components/viz/color'
 
 const PREFIX = 'FuelTypesBreakdown'
 
@@ -35,50 +36,30 @@ interface FuelTypeDataForPieChart {
 }
 
 const RADIAN = Math.PI / 180
-const COLOURS = [
-  '#2191FB',
-  '#FCB1A6',
-  '#B33951',
-  '#CCF5AC',
-  '#8CDEDC',
-  '#9DACFF',
-  '#4F7CAC',
-  '#FFA62B',
-  '#C09BD8',
-  '#EBC3DB',
-  '#D19C1D',
-  '#FFC0BE',
-  '#ED7D3A'
-]
 
 const FuelTypesBreakdown = (props: Props) => {
   const renderCustomizedLabel = ({
     cx,
     cy,
     midAngle,
-    innerRadius,
     outerRadius,
     percent,
-    fuel_type_code,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    area,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    index
+    fuel_type_code
   }: {
     cx: number
     cy: number
     midAngle: number
-    innerRadius: number
     outerRadius: number
     percent: number
     fuel_type_code: string
-    area: number
-    index: number
   }) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5
-    const x = cx + radius * Math.cos(-midAngle * RADIAN)
-    const y = cy + radius * Math.sin(-midAngle * RADIAN)
+    // Labels are positioned at the outer edge of the pie + the length of label lines (20px) +
+    // an arbitrary buffer/whitespace of 5px
+    const labelRadius = outerRadius + 25
+    const x = cx + labelRadius * Math.cos(-midAngle * RADIAN)
+    const y = cy + labelRadius * Math.sin(-midAngle * RADIAN)
 
+    // Only label pie slices that contribute >= 2%
     if (percent * 100 < 2) {
       return
     }
@@ -88,6 +69,22 @@ const FuelTypesBreakdown = (props: Props) => {
         {`${fuel_type_code} (${(percent * 100).toFixed(0)}%)`}
       </text>
     )
+  }
+
+  const renderLabelLine = ({
+    percent,
+    points,
+    stroke
+  }: {
+    percent: number
+    points: { x: number; y: number }[]
+    stroke: string
+  }) => {
+    if (!points || points.length < 2 || percent * 100 < 2) {
+      return <></>
+    }
+
+    return <path d={`M${points[0].x},${points[0].y}L${points[1].x},${points[1].y}`} stroke={stroke} strokeWidth={1.5} />
   }
 
   if (isUndefined(props.selectedFireZone) || isUndefined(props.fuelTypeInfo[props.selectedFireZone.fire_shape_id])) {
@@ -116,11 +113,11 @@ const FuelTypesBreakdown = (props: Props) => {
               cy="50%"
               outerRadius={80}
               fill="#8884d8"
-              labelLine={false}
+              labelLine={renderLabelLine}
               label={renderCustomizedLabel}
             >
-              {advisories.map((entry, index) => (
-                <Cell key={`cell-${entry.fuel_type_code}`} fill={COLOURS[index % COLOURS.length]} />
+              {advisories.map(entry => (
+                <Cell key={`cell-${entry.fuel_type_code}`} fill={getColorByFuelTypeCode(entry.fuel_type_code)} />
               ))}
             </Pie>
           </PieChart>
@@ -135,11 +132,11 @@ const FuelTypesBreakdown = (props: Props) => {
               cx="50%"
               cy="50%"
               outerRadius={80}
-              labelLine={false}
+              labelLine={renderLabelLine}
               label={renderCustomizedLabel}
             >
-              {warnings.map((entry, index) => (
-                <Cell key={`cell-${entry.fuel_type_code}`} fill={COLOURS[index % COLOURS.length]} />
+              {warnings.map(entry => (
+                <Cell key={`cell-${entry.fuel_type_code}`} fill={getColorByFuelTypeCode(entry.fuel_type_code)} />
               ))}
             </Pie>
           </PieChart>
