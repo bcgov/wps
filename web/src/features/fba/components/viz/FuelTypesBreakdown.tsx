@@ -84,15 +84,7 @@ const FuelTypesBreakdown = (props: Props) => {
       return <></>
     }
 
-    return (
-      <path
-        d={`M${points[0].x},${points[0].y}L${points[1].x},${points[1].y}`}
-        className="customized-label-line"
-        fill="None"
-        stroke={stroke}
-        strokeWidth={1.5}
-      />
-    )
+    return <path d={`M${points[0].x},${points[0].y}L${points[1].x},${points[1].y}`} stroke={stroke} strokeWidth={1.5} />
   }
 
   if (isUndefined(props.selectedFireZone) || isUndefined(props.fuelTypeInfo[props.selectedFireZone.fire_shape_id])) {
