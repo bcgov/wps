@@ -27,6 +27,7 @@ import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2Dat
 import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
+import { mapForecastChoiceLabels } from 'features/moreCast2/util'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -193,26 +194,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   /********** End useEffects for managing visibility of column groups *************/
 
   const [clickedColDef, setClickedColDef] = useState<GridColDef | null>(null)
-
-  const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: MoreCast2Row[]): MoreCast2Row[] => {
-    const storedRowChoicesMap = new Map<string, MoreCast2Row>()
-
-    for (const row of storedRows) {
-      storedRowChoicesMap.set(row.id, row)
-    }
-
-    for (const row of newRows) {
-      const matchingRow = storedRowChoicesMap.get(row.id)
-      if (matchingRow) {
-        row.precipForecast = matchingRow.precipForecast
-        row.tempForecast = matchingRow.tempForecast
-        row.rhForecast = matchingRow.rhForecast
-        row.windDirectionForecast = matchingRow.windDirectionForecast
-        row.windSpeedForecast = matchingRow.windSpeedForecast
-      }
-    }
-    return newRows
-  }
 
   // Updates forecast field for a given weather parameter (temp, rh, precip, etc...) based on the
   // model/source selected in the column header menu

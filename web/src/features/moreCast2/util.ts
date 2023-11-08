@@ -97,3 +97,23 @@ export const validForecastPredicate = (row: MoreCast2Row) =>
   !isNaN(row.tempForecast.value) &&
   !isUndefined(row.windSpeedForecast) &&
   !isNaN(row.windSpeedForecast.value)
+
+export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: MoreCast2Row[]): MoreCast2Row[] => {
+  const storedRowChoicesMap = new Map<string, MoreCast2Row>()
+
+  for (const row of storedRows) {
+    storedRowChoicesMap.set(row.id, row)
+  }
+
+  for (const row of newRows) {
+    const matchingRow = storedRowChoicesMap.get(row.id)
+    if (matchingRow) {
+      row.precipForecast = matchingRow.precipForecast
+      row.tempForecast = matchingRow.tempForecast
+      row.rhForecast = matchingRow.rhForecast
+      row.windDirectionForecast = matchingRow.windDirectionForecast
+      row.windSpeedForecast = matchingRow.windSpeedForecast
+    }
+  }
+  return newRows
+}

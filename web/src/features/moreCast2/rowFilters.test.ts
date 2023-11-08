@@ -2,15 +2,23 @@ import { DateTime } from 'luxon'
 import { createEmptyMoreCast2Row } from 'features/moreCast2/slices/dataSlice'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { filterRowsForSimulationFromEdited, filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
+import { ModelType } from 'api/moreCast2API'
+import { rowIDHasher } from 'features/moreCast2/util'
 
 const TEST_DATE = DateTime.fromISO('2023-02-16T20:00:00+00:00')
 
-const buildValidForecastRow = (stationCode: number, forDate: DateTime): MoreCast2Row => {
-  const forecastRow = createEmptyMoreCast2Row('id', stationCode, 'stationName', forDate, 1, 2)
-  forecastRow.precipForecast = { choice: 'FORECAST', value: 2 }
-  forecastRow.tempForecast = { choice: 'FORECAST', value: 2 }
-  forecastRow.rhForecast = { choice: 'FORECAST', value: 2 }
-  forecastRow.windSpeedForecast = { choice: 'FORECAST', value: 2 }
+export const buildValidForecastRow = (
+  stationCode: number,
+  forDate: DateTime,
+  choice: ModelType = 'FORECAST'
+): MoreCast2Row => {
+  const id = rowIDHasher(stationCode, forDate)
+  const forecastRow = createEmptyMoreCast2Row(id, stationCode, 'stationName', forDate, 1, 2)
+  forecastRow.precipForecast = { choice: choice, value: 2 }
+  forecastRow.tempForecast = { choice: choice, value: 2 }
+  forecastRow.rhForecast = { choice: choice, value: 2 }
+  forecastRow.windSpeedForecast = { choice: choice, value: 2 }
+  forecastRow.id = id
 
   return forecastRow
 }
