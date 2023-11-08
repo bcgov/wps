@@ -68,7 +68,7 @@ const rows = [
 
 describe('filterRowsForSimulationFromEdited', () => {
   const filteredRows = filterRowsForSimulationFromEdited(forecast1A, rows)
-  it('should filter for valid rows before and after the edited row', () => {
+  it('should filter for valid rows before and after the edited row ', () => {
     expect(filteredRows).toEqual(expect.arrayContaining([actual1A, forecast1A, forecast1B]))
   })
   it('should not contain invalid forecasts', () => {
@@ -81,6 +81,11 @@ describe('filterRowsForSimulationFromEdited', () => {
     expect(filteredRows).not.toContain(forecast2A)
     expect(filteredRows).not.toContain(forecast2B)
     expect(filteredRows).not.toContain(actual2A)
+  })
+  it('should return undefined if yesterday does not contain a valid row', () => {
+    actual1A.precipActual = NaN
+    const filteredRows = filterRowsForSimulationFromEdited(forecast1A, rows)
+    expect(filteredRows).toBe(undefined)
   })
 })
 describe('filterAllVisibleRowsForSimulation', () => {
@@ -98,5 +103,10 @@ describe('filterAllVisibleRowsForSimulation', () => {
   it('should not contain unnecessary actuals', () => {
     expect(filteredRows).not.toContain(actual2B)
     expect(filteredRows).not.toContain(actual1B)
+  })
+  it('should return undefined if there are no valid forecasts', () => {
+    const rows = [actual1A, forecast1C, forecast2C, forecast2D]
+    const filteredRows = filterAllVisibleRowsForSimulation(rows)
+    expect(filteredRows).toBe(undefined)
   })
 })
