@@ -247,4 +247,4 @@ async def calculate_forecasted_indices(simulate_records: SimulateIndeterminateIn
     actuals = [indeterminate for indeterminate in indeterminates if indeterminate.determinate == WeatherDeterminate.ACTUAL]
 
     _, forecasts = get_fwi_values(actuals, forecasts)
-    return (SimulatedWeatherIndeterminateResponse(simulatedForecasts=forecasts))
+    return (SimulatedWeatherIndeterminateResponse(simulated_forecasts=forecasts))

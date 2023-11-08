@@ -61,7 +61,7 @@ const dataSlice = createSlice({
       state.loading = false
     },
     simulateWeatherIndeterminatesSuccess(state: State, action: PayloadAction<UpdatedWeatherIndeterminateResponse>) {
-      const updatedForecasts = addUniqueIds(action.payload.simulatedForecasts)
+      const updatedForecasts = addUniqueIds(action.payload.simulated_forecasts)
 
       state.forecasts = state.forecasts.map(forecast => {
         const updatedForecast = updatedForecasts.find(item => item.id === forecast.id)

@@ -173,7 +173,7 @@ describe('dataSlice', () => {
         dataSliceReducer(
           initialState,
           simulateWeatherIndeterminatesSuccess({
-            simulatedForecasts: []
+            simulated_forecasts: []
           })
         ).forecasts
       ).toEqual([])
@@ -209,7 +209,7 @@ describe('dataSlice', () => {
         dataSliceReducer(
           { ...initialState, forecasts: [weatherIndeterminate1, weatherIndeterminate2] },
           simulateWeatherIndeterminatesSuccess({
-            simulatedForecasts: [updatedWeatherIndeterminate2]
+            simulated_forecasts: [updatedWeatherIndeterminate2]
           })
         ).forecasts
       ).toEqual([weatherIndeterminate1, updatedWeatherIndeterminate2])

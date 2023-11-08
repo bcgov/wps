@@ -153,7 +153,7 @@ export interface WeatherIndeterminateResponse {
 }
 
 export interface UpdatedWeatherIndeterminateResponse {
-  simulatedForecasts: WeatherIndeterminate[]
+  simulated_forecasts: WeatherIndeterminate[]
 }
 
 export const ModelOptions: ModelType[] = ModelChoices.filter(choice => !isEqual(choice, ModelChoice.MANUAL))
