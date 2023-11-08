@@ -36,6 +36,7 @@ export const filterRowsForSimulationFromEdited = (
     if (yesterdayRow) {
       const rowsForSimulation = validRowsForStation.filter(row => row.forDate >= yesterday)
       return rowsForSimulation
-    } else return undefined
+    }
   }
+  return undefined
 }

@@ -212,7 +212,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
 
   // Persistence forecasting. Get the most recent actual and persist it through the rest of the
   // days in this forecast period.
-  const updateColumnFromLastActual = async (forecastField: keyof MoreCast2Row, actualField: keyof MoreCast2Row) => {
+  const updateColumnFromLastActual = (forecastField: keyof MoreCast2Row, actualField: keyof MoreCast2Row) => {
     const newRows = [...visibleRows]
     // Group our visible rows by station code and work on each group sepearately
     const groupedByStationCode = groupBy(newRows, 'stationCode')
@@ -244,7 +244,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     setVisibleRows(newRows)
   }
 
-  const updateColumnFromModel = async (
+  const updateColumnFromModel = (
     modelType: ModelType,
     forecastField: keyof MoreCast2Row,
     actualField: keyof MoreCast2Row,

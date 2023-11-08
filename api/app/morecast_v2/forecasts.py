@@ -132,7 +132,7 @@ def get_fwi_values(actuals: List[WeatherIndeterminate], forecasts: List[WeatherI
     for idx, indeterminate in enumerate(all_indeterminates):
         last_indeterminate = indeterminates_dict[indeterminate.station_code].get(
             indeterminate.utc_timestamp.date() - timedelta(days=1), None)
-        if last_indeterminate:
+        if last_indeterminate is not None:
             updated_forecast = calculate_fwi_values(last_indeterminate, indeterminate)
             all_indeterminates[idx] = updated_forecast
 

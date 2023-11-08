@@ -148,7 +148,7 @@ export const getWeatherIndeterminates =
 
 /**
  * Use the morecast2API to get simulated Fire Weather Index value from the backend.
- * Results are stored the Redux store.
+ * Results are stored in the Redux store.
  * @param rowsForSimulation List of MoreCast2Row's to simulate. The first row in the array must contain
  * valid values for all Fire Weather Indices.
  * @returns Array of MoreCast2Rows
