@@ -100,10 +100,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   }
 
   useEffect(() => {
-    setAllRows([...morecast2Rows])
-  }, [morecast2Rows])
-
-  useEffect(() => {
     const labelledRows = mapForecastChoiceLabels(morecast2Rows, deepClone(userEditedRows))
     setAllRows(labelledRows)
   }, [userEditedRows, morecast2Rows])

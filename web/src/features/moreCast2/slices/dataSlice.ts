@@ -392,8 +392,8 @@ export const fillMissingWeatherIndeterminates = (
   for (const [key, values] of Object.entries(groupedByStationCode)) {
     const stationCode = parseInt(key)
     const stationName = stationMap.get(stationCode) ?? ''
-    const latitude = values[0]?.latitude ?? 0
-    const longitude = values[0]?.longitude ?? 0
+    const latitude = values[0]?.latitude
+    const longitude = values[0]?.longitude
     // We expect one actual per date in our date interval
     if (values.length < dateInterval.length) {
       for (const date of dateInterval) {
