@@ -27,7 +27,9 @@ describe('FireBAT Calculator Page', () => {
 
     visitAndAddRow()
 
-    cy.wait('@getStations')
+    cy.wait('@getStations').then(interception => {
+      expect(interception.response.body.type).to.equal('FeatureCollection')
+    })
 
     cy.setFBAGrassCurePercentage(grassCure, 1)
 
@@ -60,7 +62,9 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait(['@getStations'])
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
 
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
