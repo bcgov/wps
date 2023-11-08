@@ -77,7 +77,9 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations', { responseTimeout: 15000 })
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
 
       const fuelType = FuelTypes.get()['c1']
       cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
@@ -102,7 +104,9 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
 
       cy.selectFBAStationInDropdown(stationCode, 1)
 
@@ -121,7 +125,9 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
 
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
@@ -148,12 +154,14 @@ describe('FireBAT Calculator Page', () => {
       cy.getByTestId('remove-rows').should('have.class', 'Mui-disabled')
     })
 
-    xit('Enables remove row(s) button when table is not empty', () => {
+    it('Enables remove row(s) button when table is not empty', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
 
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
@@ -161,12 +169,14 @@ describe('FireBAT Calculator Page', () => {
       cy.getByTestId('remove-rows').should('not.have.class', 'Mui-disabled')
     })
 
-    xit('Rows can be added and removed', () => {
+    it('Rows can be added and removed', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
 
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
@@ -182,12 +192,14 @@ describe('FireBAT Calculator Page', () => {
 
       cy.url().should('not.contain', `s=${stationCode}`)
     })
-    xit('Specific rows can be removed', () => {
+    it('Specific rows can be removed', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
 
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
@@ -205,11 +217,13 @@ describe('FireBAT Calculator Page', () => {
     })
   })
 
-  xdescribe('Export data to CSV', () => {
+  describe('Export data to CSV', () => {
     it('Disables the Export button when 0 rows are selected', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       visitAndAddRow()
-      cy.wait('@getStations')
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
       cy.selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C3', 1)
       cy.getByTestId('export').should('be.visible')
@@ -219,7 +233,9 @@ describe('FireBAT Calculator Page', () => {
     it('Enables the Export button once 1 or more rows are selected', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       visitAndAddRow()
-      cy.wait('@getStations')
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
       cy.selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C4', 1)
       cy.getByTestId('select-all').click()
@@ -227,7 +243,7 @@ describe('FireBAT Calculator Page', () => {
     })
   })
 
-  xdescribe('Filter columns dialog', () => {
+  describe('Filter columns dialog', () => {
     it('Disables the Filter Columns dialog open button when 0 rows are in table', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
@@ -242,7 +258,9 @@ describe('FireBAT Calculator Page', () => {
       }).as('calculateResults')
 
       visitAndAddRow()
-      cy.wait('@getStations')
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
       cy.selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C4', 1)
 
@@ -258,7 +276,9 @@ describe('FireBAT Calculator Page', () => {
       }).as('calculateResults')
 
       visitAndAddRow()
-      cy.wait('@getStations')
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
 
       cy.selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C4', 1)
