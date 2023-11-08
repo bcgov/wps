@@ -46,7 +46,7 @@ class Shape(Base):
         {'comment': 'Record identifying some area of interest with respect to advisories'}
     )
 
-    id = Column(Integer, ondelete='CASCADE', primary_key=True)
+    id = Column(Integer, primary_key=True)
     # An area is uniquely identified, e.g. a zone has a number, so does a fire.
     source_identifier = Column(String, nullable=False, index=True)
     shape_type = Column(Integer, ForeignKey('advisory_shape_types.id'), nullable=False, index=True)
