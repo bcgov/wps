@@ -54,13 +54,13 @@ describe('FireBAT Calculator Page', () => {
       cy.getByTestId('tooltip-fire-size').invoke('attr', 'style').should('eq', 'left: 0px;')
     })
   })
-  xdescribe('Dropdowns', () => {
-    xit('Can select station if successfully received stations', () => {
+  describe('Dropdowns', () => {
+    it('Can select station if successfully received stations', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
+      cy.wait(['@getStations'])
 
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
@@ -73,7 +73,7 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
+      cy.wait('@getStations', { responseTimeout: 15000 })
 
       const fuelType = FuelTypes.get()['c1']
       cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
