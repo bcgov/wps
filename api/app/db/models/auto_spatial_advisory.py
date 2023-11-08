@@ -46,7 +46,7 @@ class Shape(Base):
         {'comment': 'Record identifying some area of interest with respect to advisories'}
     )
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, ondelete='CASCADE', primary_key=True)
     # An area is uniquely identified, e.g. a zone has a number, so does a fire.
     source_identifier = Column(String, nullable=False, index=True)
     shape_type = Column(Integer, ForeignKey('advisory_shape_types.id'), nullable=False, index=True)
@@ -133,7 +133,7 @@ class HighHfiArea(Base):
          }
     )
     id = Column(Integer, primary_key=True, index=True)
-    advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), ondelete='CASCADE', nullable=False)
+    advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False)
     threshold = Column(Integer, ForeignKey(ADVISORY_HFI_CLASSIFICATION_THRESHOLD_ID), nullable=False)
     run_parameters = Column(Integer, ForeignKey('run_parameters.id'), nullable=False, index=True)
     area = Column(Float, nullable=False)
