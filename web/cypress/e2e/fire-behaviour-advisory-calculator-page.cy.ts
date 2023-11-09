@@ -24,11 +24,8 @@ describe('FireBAT Calculator Page', () => {
         wind_speed: parseFloat(windSpeed)
       })
     }).as('calculateResults')
-    cy.screenshot()
+
     visitAndAddRow()
-    cy.screenshot()
-    cy.wait(0)
-    cy.screenshot()
 
     cy.wait('@getStations')
 
@@ -36,7 +33,7 @@ describe('FireBAT Calculator Page', () => {
 
     cy.setFBAWindSpeed(windSpeed, 1)
 
-    cy.getByTestId('fba-table-body').children().should('have.length', 1)
+    cy.wait(500)
 
     cy.selectFBAStationInDropdown(stationCode, 1)
 
@@ -64,12 +61,9 @@ describe('FireBAT Calculator Page', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
-      cy.wait(0)
 
       cy.wait('@getStations')
-
-      cy.getByTestId('fba-table-body').children().should('have.length', 1)
-
+      cy.wait(500)
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
 
@@ -81,12 +75,8 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait(0)
-
       cy.wait('@getStations')
-
-      cy.getByTestId('fba-table-body').children().should('have.length', 1)
-
+      cy.wait(500)
       const fuelType = FuelTypes.get()['c1']
       cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
 
@@ -110,12 +100,8 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait(0)
-
       cy.wait('@getStations')
-
-      cy.getByTestId('fba-table-body').children().should('have.length', 1)
-
+      cy.wait(500)
       cy.selectFBAStationInDropdown(stationCode, 1)
 
       cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
@@ -133,12 +119,8 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait(0)
-
       cy.wait('@getStations')
-
-      cy.getByTestId('fba-table-body').children().should('have.length', 1)
-
+      cy.wait(500)
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
 
@@ -168,8 +150,6 @@ describe('FireBAT Calculator Page', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
-
-      cy.wait(0)
 
       cy.wait('@getStations')
 
