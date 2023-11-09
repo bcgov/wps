@@ -24,9 +24,11 @@ describe('FireBAT Calculator Page', () => {
         wind_speed: parseFloat(windSpeed)
       })
     }).as('calculateResults')
-
+    cy.screenshot()
     visitAndAddRow()
+    cy.screenshot()
     cy.wait(0)
+    cy.screenshot()
 
     cy.wait('@getStations')
 
