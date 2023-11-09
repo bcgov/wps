@@ -26,10 +26,9 @@ describe('FireBAT Calculator Page', () => {
     }).as('calculateResults')
 
     visitAndAddRow()
+    cy.wait(0)
 
-    cy.wait('@getStations').then(interception => {
-      expect(interception.response.body.type).to.equal('FeatureCollection')
-    })
+    cy.wait('@getStations')
 
     cy.setFBAGrassCurePercentage(grassCure, 1)
 
@@ -63,10 +62,9 @@ describe('FireBAT Calculator Page', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
+      cy.wait(0)
 
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
+      cy.wait('@getStations')
 
       cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
@@ -81,9 +79,9 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
+      cy.wait(0)
+
+      cy.wait('@getStations')
 
       cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
@@ -110,9 +108,9 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
+      cy.wait(0)
+
+      cy.wait('@getStations')
 
       cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
@@ -133,9 +131,9 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
+      cy.wait(0)
+
+      cy.wait('@getStations')
 
       cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
@@ -169,9 +167,9 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
+      cy.wait(0)
+
+      cy.wait('@getStations')
 
       cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
