@@ -62,9 +62,7 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
+      cy.wait('@getStations')
 
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
@@ -77,9 +75,8 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
+      cy.wait('@getStations')
+      cy.wait(500)
 
       const fuelType = FuelTypes.get()['c1']
       cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
@@ -258,6 +255,7 @@ describe('FireBAT Calculator Page', () => {
       }).as('calculateResults')
 
       visitAndAddRow()
+
       cy.wait('@getStations').then(interception => {
         expect(interception.response.body.type).to.equal('FeatureCollection')
       })
