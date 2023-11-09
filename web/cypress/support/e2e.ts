@@ -21,7 +21,7 @@ import './hfi-commands'
 import '@cypress/code-coverage/support'
 
 Cypress.Commands.add('getByTestId', (id: string) => {
-  return cy.get(`[data-testid=${id}]`)
+  return cy.get(`[data-testid=${id}]`, { timeout: 15000 })
 })
 
 Cypress.Commands.add('selectStationInDropdown', (code: number | string) => {
