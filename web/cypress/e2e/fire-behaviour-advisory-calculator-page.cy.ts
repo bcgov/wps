@@ -27,12 +27,15 @@ describe('FireBAT Calculator Page', () => {
 
     visitAndAddRow()
 
-    cy.wait('@getStations')
-    cy.wait(1)
+    cy.wait('@getStations').then(interception => {
+      expect(interception.response.body.type).to.equal('FeatureCollection')
+    })
 
     cy.setFBAGrassCurePercentage(grassCure, 1)
 
     cy.setFBAWindSpeed(windSpeed, 1)
+
+    cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
     cy.selectFBAStationInDropdown(stationCode, 1)
 
@@ -61,8 +64,9 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
-      cy.wait(1)
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
 
       cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
@@ -77,8 +81,11 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
-      cy.wait(1)
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
+
+      cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
       const fuelType = FuelTypes.get()['c1']
       cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
@@ -103,8 +110,11 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
-      cy.wait(1)
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
+
+      cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
       cy.selectFBAStationInDropdown(stationCode, 1)
 
@@ -123,8 +133,11 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
-      cy.wait(1)
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
+
+      cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
@@ -156,8 +169,11 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
-      cy.wait(1)
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
+
+      cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
@@ -170,8 +186,11 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
-      cy.wait(1)
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
+
+      cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
@@ -192,8 +211,11 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
-      cy.wait(1)
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
+
+      cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
       const stationCode = 322
       cy.selectFBAStationInDropdown(stationCode, 1)
@@ -215,8 +237,10 @@ describe('FireBAT Calculator Page', () => {
     it('Disables the Export button when 0 rows are selected', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       visitAndAddRow()
-      cy.wait('@getStations')
-      cy.wait(1)
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
+      cy.getByTestId('fba-table-body').children().should('have.length', 1)
       cy.selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C3', 1)
       cy.getByTestId('export').should('be.visible')
@@ -226,8 +250,10 @@ describe('FireBAT Calculator Page', () => {
     it('Enables the Export button once 1 or more rows are selected', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       visitAndAddRow()
-      cy.wait('@getStations')
-      cy.wait(1)
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
+      cy.getByTestId('fba-table-body').children().should('have.length', 1)
       cy.selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C4', 1)
       cy.getByTestId('select-all').click()
@@ -251,8 +277,10 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
-      cy.wait(1)
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
+      cy.getByTestId('fba-table-body').children().should('have.length', 1)
       cy.selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C4', 1)
 
@@ -268,9 +296,10 @@ describe('FireBAT Calculator Page', () => {
       }).as('calculateResults')
 
       visitAndAddRow()
-      cy.wait('@getStations')
-      cy.wait(1)
-
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
+      cy.getByTestId('fba-table-body').children().should('have.length', 1)
       cy.selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C4', 1)
 
