@@ -62,7 +62,9 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
 
       cy.getByTestId('fba-table-body').children().should('have.length', 1)
 
@@ -77,9 +79,9 @@ describe('FireBAT Calculator Page', () => {
 
       visitAndAddRow()
 
-      cy.wait('@getStations')
-
-      cy.getByTestId('fba-table-body').children().should('have.length', 1)
+      cy.wait('@getStations').then(interception => {
+        expect(interception.response.body.type).to.equal('FeatureCollection')
+      })
 
       const fuelType = FuelTypes.get()['c1']
       cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
