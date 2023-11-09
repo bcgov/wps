@@ -4,11 +4,13 @@
 
 import logging
 from datetime import date, datetime
+from sqlalchemy.future import select
+from sqlalchemy import cast, String
 from time import perf_counter
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.database import get_async_write_session_scope
-from app.db.models.auto_spatial_advisory import HighHfiArea
+from app.db.models.auto_spatial_advisory import ClassifiedHfi, HighHfiArea, RunParameters
 from app.db.crud.auto_spatial_advisory import get_run_parameters_id, calculate_high_hfi_areas, save_high_hfi_area
 
 
@@ -30,19 +32,29 @@ async def process_high_hfi_area(run_type: RunType, run_datetime: datetime, for_d
     :param run_date: The date of the run to process. (when was the hfi file created?)
     :param for_date: The date of the hfi to process. (when is the hfi for?)
     """
-
-    # TODO: check for already processed high HFI data based on run parameters
     logger.info('Processing high HFI area %s for run date: %s, for date: %s', run_type, run_datetime, for_date)
     perf_start = perf_counter()
 
     async with get_async_write_session_scope() as session:
         run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
-        logger.info('Getting high HFI area per zone...')
-        high_hfi_areas = await calculate_high_hfi_areas(session, run_type, run_datetime, for_date)
 
-        logger.info('Writing high HFI areas...')
-        for row in high_hfi_areas:
-            await write_high_hfi_area(session, row, run_parameters_id)
+        stmt = select(ClassifiedHfi)\
+            .where(
+                cast(RunParameters.run_type, String) == run_type.value,
+                RunParameters.for_date == for_date,
+                RunParameters.run_datetime == run_datetime)
+        
+        exists = (await session.execute(stmt)).scalars().first() is not None
+
+        if (exists):
+            logger.info('Getting high HFI area per zone...')
+            high_hfi_areas = await calculate_high_hfi_areas(session, run_type, run_datetime, for_date)
+
+            logger.info('Writing high HFI areas...')
+            for row in high_hfi_areas:
+                await write_high_hfi_area(session, row, run_parameters_id)
+        else:
+            logger.info("High hfi area already computed")
 
     perf_end = perf_counter()
     delta = perf_end - perf_start
