@@ -11,13 +11,12 @@ from osgeo import gdal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
 from sqlalchemy.future import select
-from sqlalchemy import cast, String
 from app import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
-from app.db.models.auto_spatial_advisory import AdvisoryElevationStats, RunParameters
+from app.db.models.auto_spatial_advisory import AdvisoryElevationStats
 from app.utils.s3 import get_client
 
 
@@ -42,10 +41,7 @@ async def process_elevation(source_path: str, run_type: RunType, run_datetime: d
         run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
         stmt = select(AdvisoryElevationStats)\
-            .where(
-                cast(RunParameters.run_type, String) == run_type.value,
-                RunParameters.for_date == for_date,
-                RunParameters.run_datetime == run_datetime)
+            .where(AdvisoryElevationStats == run_parameters_id)
         
         exists = (await session.execute(stmt)).scalars().first() is not None
         if (not exists):

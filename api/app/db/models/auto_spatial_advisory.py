@@ -151,13 +151,13 @@ class HighHfiArea(Base):
 
 class AdvisoryElevationStats(Base):
     """ 
-    Summary statistics about the elevation of area with high hfi (4k-10k and >10k) per firezone
+    Summary statistics about the elevation of area with high hfi (4k-10k and >10k) per fire shape
     based on the set run_type, for_date and run_datetime.
     """
     __tablename__ = 'advisory_elevation_stats'
     __table_args__ = (
         {
-            'comment': 'Elevation stats per fire zone by advisory threshold'
+            'comment': 'Elevation stats per fire shape by advisory threshold'
         }
     )
     id = Column(Integer, primary_key=True, index=True)
@@ -169,3 +169,23 @@ class AdvisoryElevationStats(Base):
     median = Column(Float, nullable=False)
     quartile_75 = Column(Float, nullable=False)
     maximum = Column(Float, nullable=False)
+
+
+class AdvisoryFuelStats(Base):
+    """ 
+    Summary statistics about the fuel type of area with high hfi (4k-10k and >10k) per fire shape
+    based on the set run_type, for_date and run_datetime.
+    """
+    __tablename__ = 'advisory_fuel_stats'
+    __table_args__ = (
+        UniqueConstraint('advisory_shape_id', 'threshold', 'run_parameters', 'fuel_type'),
+        {
+            'comment': 'Fuel type stats per fire shape by advisory threshold'
+        }
+    )
+    id = Column(Integer, primary_key=True, index=True)
+    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
+    threshold = Column(Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False)
+    run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
+    fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
+    area = Column(Float, nullable=False)

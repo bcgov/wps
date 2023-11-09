@@ -10,7 +10,7 @@ from time import perf_counter
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.database import get_async_write_session_scope
-from app.db.models.auto_spatial_advisory import ClassifiedHfi, HighHfiArea, RunParameters
+from app.db.models.auto_spatial_advisory import ClassifiedHfi, HighHfiArea
 from app.db.crud.auto_spatial_advisory import get_run_parameters_id, calculate_high_hfi_areas, save_high_hfi_area
 
 
@@ -40,9 +40,9 @@ async def process_high_hfi_area(run_type: RunType, run_datetime: datetime, for_d
 
         stmt = select(ClassifiedHfi)\
             .where(
-                cast(RunParameters.run_type, String) == run_type.value,
-                RunParameters.for_date == for_date,
-                RunParameters.run_datetime == run_datetime)
+                cast(ClassifiedHfi.run_type, String) == run_type.value,
+                ClassifiedHfi.for_date == for_date,
+                ClassifiedHfi.run_datetime == run_datetime)
         
         exists = (await session.execute(stmt)).scalars().first() is not None
 
@@ -54,7 +54,7 @@ async def process_high_hfi_area(run_type: RunType, run_datetime: datetime, for_d
             for row in high_hfi_areas:
                 await write_high_hfi_area(session, row, run_parameters_id)
         else:
-            logger.info("High hfi area already computed")
+            logger.info("High hfi area already processed")
 
     perf_end = perf_counter()
     delta = perf_end - perf_start

@@ -10,7 +10,7 @@ from app.db.database import get_async_read_session_scope
 from app.db.crud.auto_spatial_advisory import (get_all_sfms_fuel_types,
                                                get_all_hfi_thresholds,
                                                get_hfi_area,
-                                               get_high_hfi_fuel_types_for_zone,
+                                               get_high_hfi_fuel_types_for_shape,
                                                get_run_datetimes,
                                                get_zonal_elevation_stats)
 from app.db.models.auto_spatial_advisory import RunTypeEnum
@@ -82,11 +82,11 @@ async def get_hfi_fuels_data_for_fire_zone(run_type: RunType,
         fuel_types = await get_all_sfms_fuel_types(session)
 
         # get HFI/fuels data for specific zone
-        hfi_fuel_type_ids_for_zone = await get_high_hfi_fuel_types_for_zone(session,
+        hfi_fuel_type_ids_for_zone = await get_high_hfi_fuel_types_for_shape(session,
                                                                             run_type=RunTypeEnum(run_type.value),
                                                                             for_date=for_date,
                                                                             run_datetime=run_datetime,
-                                                                            zone_id=zone_id)
+                                                                            shape_id=zone_id)
         data = []
 
         for record in hfi_fuel_type_ids_for_zone:
