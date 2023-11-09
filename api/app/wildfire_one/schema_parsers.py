@@ -83,6 +83,8 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
     async for raw_daily in raw_dailies:
         station_code = raw_daily.get('stationData').get('stationCode')
         station_name = raw_daily.get('stationData').get('displayLabel')
+        latitude = raw_daily.get('stationData').get('latitude')
+        longitude = raw_daily.get('stationData').get('longitude')
         utc_timestamp = datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc)
         precip = raw_daily.get('precipitation')
         rh = raw_daily.get('relativeHumidity')
@@ -101,6 +103,8 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
             observed_dailies.append(WeatherIndeterminate(
                 station_code=station_code,
                 station_name=station_name,
+                latitude=latitude,
+                longitude=longitude,
                 determinate=WeatherDeterminate.ACTUAL,
                 utc_timestamp=utc_timestamp,
                 temperature=temp,
@@ -120,6 +124,8 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
             forecasts.append(WeatherIndeterminate(
                 station_code=station_code,
                 station_name=station_name,
+                latitude=latitude,
+                longitude=longitude,
                 determinate=WeatherDeterminate.FORECAST,
                 utc_timestamp=utc_timestamp,
                 temperature=temp,
