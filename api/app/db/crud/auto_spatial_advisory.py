@@ -9,8 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.models.auto_spatial_advisory import (
-    Shape, ClassifiedHfi, HfiClassificationThreshold, SFMSFuelType, RunTypeEnum,
-    FuelType, HighHfiArea, RunParameters, AdvisoryElevationStats)
+    AdvisoryFuelStats, Shape, ClassifiedHfi, HfiClassificationThreshold, SFMSFuelType, RunTypeEnum,
+    FuelType, HighHfiArea, RunParameters, AdvisoryElevationStats, ShapeType)
 
 logger = logging.getLogger(__name__)
 
@@ -37,13 +37,16 @@ async def save_fuel_type(session: AsyncSession, fuel_type: FuelType):
     session.add(fuel_type)
 
 
-async def get_hfi(session: AsyncSession, run_type: RunTypeEnum, run_date: datetime, for_date: date):
-    stmt = select(ClassifiedHfi).where(
-        ClassifiedHfi.run_type == run_type,
-        ClassifiedHfi.for_date == for_date,
-        ClassifiedHfi.run_datetime == run_date)
-    result = await session.execute(stmt)
-    return result.scalars()
+async def get_fire_zone_unit_shape_type_id(session: AsyncSession):
+    statement = select(ShapeType).where(ShapeType.name == 'fire_zone_unit')
+    result = await session.execute(statement)
+    return result.scalars().first().id
+
+
+async def get_fire_zone_units(session: AsyncSession, fire_zone_type_id: int):
+    statement = select(Shape).where(Shape.shape_type == fire_zone_type_id)
+    result = await session.execute(statement)
+    return result.all()
 
 
 async def get_combustible_area(session: AsyncSession):
@@ -121,18 +124,18 @@ async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
     return fuel_types
 
 
-async def get_high_hfi_fuel_types_for_zone(session: AsyncSession,
+async def get_high_hfi_fuel_types_for_shape(session: AsyncSession,
                                            run_type: RunTypeEnum,
                                            run_datetime: datetime,
                                            for_date: date,
-                                           zone_id: int) -> List[Row]:
+                                           shape_id: int) -> List[Row]:
     """
     Union of fuel types by fuel_type_id (1 multipolygon for each fuel type)
     Intersected with union of ClassifiedHfi for given run_type, run_datetime, and for_date
         for both 4K-10K and 10K+ HFI values
     Intersected with fire zone geom for a specific fire zone identified by ID
     """
-    logger.info('starting fuel types/high hfi/zone intersection query for fire zone %s', str(zone_id))
+    logger.info('starting fuel types/high hfi/zone intersection query for fire zone %s', str(shape_id))
     perf_start = perf_counter()
 
     stmt = select(Shape.source_identifier, FuelType.fuel_type_id, ClassifiedHfi.threshold,
@@ -140,7 +143,7 @@ async def get_high_hfi_fuel_types_for_zone(session: AsyncSession,
         .join_from(ClassifiedHfi, Shape, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
         .join_from(ClassifiedHfi, FuelType, ClassifiedHfi.geom.ST_Intersects(FuelType.geom))\
         .where(ClassifiedHfi.run_type == run_type.value, ClassifiedHfi.for_date == for_date,
-               ClassifiedHfi.run_datetime == run_datetime, Shape.source_identifier == str(zone_id))\
+               ClassifiedHfi.run_datetime == run_datetime, Shape.source_identifier == str(shape_id))\
         .group_by(Shape.source_identifier)\
         .group_by(FuelType.fuel_type_id)\
         .group_by(ClassifiedHfi.threshold)\
@@ -154,15 +157,14 @@ async def get_high_hfi_fuel_types_for_zone(session: AsyncSession,
     return result.all()
 
 
-async def get_fuel_types_with_high_hfi(session: AsyncSession,
-                                       run_type: RunTypeEnum,
-                                       run_datetime: datetime,
-                                       for_date: date) -> List[Row]:
+async def get_high_hfi_fuel_types(session: AsyncSession,
+                                           run_type: RunTypeEnum,
+                                           run_datetime: datetime,
+                                           for_date: date) -> List[Row]:
     """
-    Union of fuel types by fuel_type_id (1 multipolygon for each type of fuel)
-    Intersect with union of ClassifiedHfi for given run_type, run_datetime, and for_date
+    Union of fuel types by fuel_type_id (1 multipolygon for each fuel type)
+    Intersected with union of ClassifiedHfi for given run_type, run_datetime, and for_date
         for both 4K-10K and 10K+ HFI values
-    Intersection with fire zone geom
     """
     logger.info('starting fuel types/high hfi/zone intersection query')
     perf_start = perf_counter()
@@ -171,21 +173,20 @@ async def get_fuel_types_with_high_hfi(session: AsyncSession,
                   func.sum(FuelType.geom.ST_Intersection(ClassifiedHfi.geom.ST_Intersection(Shape.geom)).ST_Area()).label('area'))\
         .join_from(ClassifiedHfi, Shape, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
         .join_from(ClassifiedHfi, FuelType, ClassifiedHfi.geom.ST_Intersects(FuelType.geom))\
-        .where(ClassifiedHfi.run_type == run_type.value, ClassifiedHfi.for_date == for_date, ClassifiedHfi.run_datetime == run_datetime)\
+        .where(ClassifiedHfi.run_type == run_type.value, ClassifiedHfi.for_date == for_date,
+               ClassifiedHfi.run_datetime == run_datetime)\
         .group_by(Shape.source_identifier)\
         .group_by(FuelType.fuel_type_id)\
         .group_by(ClassifiedHfi.threshold)\
-        .order_by(Shape.source_identifier)\
         .order_by(FuelType.fuel_type_id)\
         .order_by(ClassifiedHfi.threshold)
 
+    logger.info(str(stmt))
     result = await session.execute(stmt)
-
     perf_end = perf_counter()
     delta = perf_end - perf_start
     logger.info('%f delta count before and after fuel types/high hfi/zone intersection query', delta)
     return result.all()
-
 
 async def get_hfi_area(session: AsyncSession,
                        run_type: RunTypeEnum,
@@ -238,6 +239,9 @@ async def get_high_hfi_area(session: AsyncSession,
 async def save_high_hfi_area(session: AsyncSession, high_hfi_area: HighHfiArea):
     session.add(high_hfi_area)
 
+
+async def save_advisory_fuel_stats(session: AsyncSession, advisory_fuel_stats: List[AdvisoryFuelStats]):
+    session.add_all(advisory_fuel_stats)
 
 async def calculate_high_hfi_areas(session: AsyncSession, run_type: RunType, run_datetime: datetime,
                                    for_date: date) -> List[Row]:
