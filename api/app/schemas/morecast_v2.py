@@ -121,6 +121,8 @@ class WeatherIndeterminate(BaseModel):
     station_name: str
     determinate: WeatherDeterminate
     utc_timestamp: datetime
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     temperature: Optional[float] = None
     relative_humidity: Optional[float] = None
     precipitation: Optional[float] = None
@@ -139,6 +141,14 @@ class IndeterminateDailiesResponse(BaseModel):
     actuals: List[WeatherIndeterminate]
     predictions: List[WeatherIndeterminate]
     forecasts: List[WeatherIndeterminate]
+
+
+class SimulateIndeterminateIndices(BaseModel):
+    simulate_records: List[WeatherIndeterminate]
+
+
+class SimulatedWeatherIndeterminateResponse(BaseModel):
+    simulated_forecasts: List[WeatherIndeterminate]
 
 
 class WF1ForecastRecordType(BaseModel):

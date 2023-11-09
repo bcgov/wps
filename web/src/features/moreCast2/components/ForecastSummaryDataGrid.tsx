@@ -6,6 +6,10 @@ import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
+import { storeUserEditedRows, getSimulatedIndices } from 'features/moreCast2/slices/dataSlice'
+import { AppDispatch } from 'app/store'
+import { useDispatch } from 'react-redux'
+import { filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
 
 const PREFIX = 'ForecastSummaryDataGrid'
 
@@ -42,6 +46,18 @@ const ForecastSummaryDataGrid = ({
   handleColumnHeaderClick,
   handleClose
 }: ForecastSummaryDataGridProps) => {
+  const dispatch: AppDispatch = useDispatch()
+  const processRowUpdate = async (editedRow: MoreCast2Row) => {
+    dispatch(storeUserEditedRows([editedRow]))
+
+    const rowsForSimulation = filterRowsForSimulationFromEdited(editedRow, rows)
+    if (rowsForSimulation) {
+      dispatch(getSimulatedIndices(rowsForSimulation))
+    }
+
+    return editedRow
+  }
+
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
@@ -58,6 +74,7 @@ const ForecastSummaryDataGrid = ({
         columns={DataGridColumns.getSummaryColumns()}
         rows={rows}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
+        processRowUpdate={processRowUpdate}
       />
       <ApplyToColumnMenu
         colDef={clickedColDef}

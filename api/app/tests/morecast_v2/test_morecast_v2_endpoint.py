@@ -17,6 +17,7 @@ morecast_v2_post_by_date_range_url = "/api/morecast-v2/forecasts/2023-03-15/2023
 today = '2022-10-07'
 morecast_v2_post_yesterday_dailies_url = f'/api/morecast-v2/yesterday-dailies/{today}'
 morecast_v2_post_determinates_url = '/api/morecast-v2/determinates/2023-03-15/2023-03-19'
+morecast_v2_post_simulate_url = 'api/morecast-v2/simulate-indices/'
 
 
 decode_fn = "jwt.decode"
@@ -157,4 +158,59 @@ async def test_get_determinates_authorized(anyio_backend, async_client: AsyncCli
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
 
     response = await async_client.post(morecast_v2_post_determinates_url, json={"stations": [209, 211, 302]})
+    assert response.status_code == 200
+
+
+def test_simulate_indeterminates_unauthorized(client: TestClient):
+    response = client.post(morecast_v2_post_simulate_url, json=[])
+    assert response.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_simulate_indeterminates_authorized(anyio_backend, async_client: AsyncClient, monkeypatch: pytest.MonkeyPatch):
+    def mock_admin_role_function(*_, **__):
+        return MockJWTDecodeWithRole('morecast2_write_forecast')
+
+    monkeypatch.setattr(decode_fn, mock_admin_role_function)
+
+    simulate_records = [
+        {"station_code": 1203,
+         "station_name": "DARKWOODS",
+         "determinate": "Actual",
+         "utc_timestamp": "2023-10-30T20:00:00Z",
+         "latitude": 49.3576111,
+         "longitude": -116.95025,
+         "temperature": -0.8,
+         "relative_humidity": 65.0,
+         "precipitation": 0.8,
+         "wind_direction": 201.0,
+         "wind_speed": 6.7,
+         "fine_fuel_moisture_code": 72.26436115751054,
+         "duff_moisture_code": 4.5262768,
+         "drought_code": 293.47,
+         "initial_spread_index": 0.9472828989641714,
+         "build_up_index": 8.716462008301884,
+         "fire_weather_index": 0.5312701384624857,
+         "danger_rating": 1},
+        {"station_code": 1203,
+            "station_name": "DARKWOODS",
+            "determinate": "Actual",
+            "utc_timestamp": "2023-10-31T20:00:00Z",
+            "latitude": 49.3576111,
+            "longitude": -116.95025,
+            "temperature": 3.6,
+            "relative_humidity": 47.0,
+            "precipitation": 0.0,
+            "wind_direction": 214.0,
+            "wind_speed": 8.2,
+            "fine_fuel_moisture_code": 78.95635139203418,
+            "duff_moisture_code": 4.90371312,
+            "drought_code": 294.822,
+            "initial_spread_index": 1.5488967924410735,
+            "build_up_index": 9.41589468613904,
+            "fire_weather_index": 0.9046887731834204,
+            "danger_rating": 1}
+    ]
+
+    response = await async_client.post(morecast_v2_post_simulate_url, json={"simulate_records": simulate_records})
     assert response.status_code == 200

@@ -6,9 +6,14 @@ import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/compone
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
-import { selectWeatherIndeterminatesLoading } from 'features/moreCast2/slices/dataSlice'
+import {
+  getSimulatedIndices,
+  selectUserEditedRows,
+  selectWeatherIndeterminatesLoading,
+  storeUserEditedRows
+} from 'features/moreCast2/slices/dataSlice'
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 import { groupBy, isEqual, isUndefined } from 'lodash'
@@ -19,6 +24,10 @@ import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
+import { AppDispatch } from 'app/store'
+import { deepClone } from '@mui/x-data-grid/utils/utils'
+import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
+import { mapForecastChoiceLabels } from 'features/moreCast2/util'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -43,10 +52,12 @@ interface TabbedDataGridProps {
 }
 
 const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProps) => {
+  const dispatch: AppDispatch = useDispatch()
   const selectedStations = useSelector(selectSelectedStations)
   const loading = useSelector(selectWeatherIndeterminatesLoading)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { wf1Token } = useSelector(selectWf1Authentication)
+  const userEditedRows = useSelector(selectUserEditedRows)
 
   // A copy of the sortedMoreCast2Rows as local state
   const [allRows, setAllRows] = useState<MoreCast2Row[]>(morecast2Rows)
@@ -74,7 +85,11 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   } | null>(null)
 
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
-    if (!isEqual(params.colDef.field, 'stationName') && !isEqual(params.colDef.field, 'forDate')) {
+    if (
+      !isEqual(params.colDef.field, 'stationName') &&
+      !isEqual(params.colDef.field, 'forDate') &&
+      !params.colDef.field.includes('Calc')
+    ) {
       setClickedColDef(params.colDef)
       setContextMenu(contextMenu === null ? { mouseX: event.clientX, mouseY: event.clientY } : null)
     }
@@ -85,8 +100,9 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   }
 
   useEffect(() => {
-    setAllRows([...morecast2Rows])
-  }, [morecast2Rows])
+    const labelledRows = mapForecastChoiceLabels(morecast2Rows, deepClone(userEditedRows))
+    setAllRows(labelledRows)
+  }, [userEditedRows, morecast2Rows])
 
   useEffect(() => {
     const newVisibleRows: MoreCast2Row[] = []
@@ -215,6 +231,12 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         predictionItem.value = mostRecentValue as number
       })
     }
+    const rowsForSimulation = filterAllVisibleRowsForSimulation(newRows)
+    if (rowsForSimulation) {
+      dispatch(getSimulatedIndices(rowsForSimulation))
+    }
+
+    dispatch(storeUserEditedRows(newRows))
     setVisibleRows(newRows)
   }
 
@@ -236,6 +258,12 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         predictionItem.value = (row[sourceKey] as number) ?? NaN
       }
     }
+    const rowsForSimulation = filterAllVisibleRowsForSimulation(newRows)
+    if (rowsForSimulation) {
+      dispatch(getSimulatedIndices(rowsForSimulation))
+    }
+
+    dispatch(storeUserEditedRows(newRows))
     setVisibleRows(newRows)
   }
 

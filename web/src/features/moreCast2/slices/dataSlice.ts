@@ -7,7 +7,9 @@ import {
   WeatherIndeterminatePayload,
   WeatherDeterminate,
   WeatherDeterminateChoices,
-  WeatherDeterminateType
+  WeatherDeterminateType,
+  UpdatedWeatherIndeterminateResponse,
+  fetchCalculatedIndices
 } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
 import { createDateInterval, rowIDHasher } from 'features/moreCast2/util'
@@ -23,6 +25,7 @@ interface State {
   actuals: WeatherIndeterminate[]
   forecasts: WeatherIndeterminate[]
   predictions: WeatherIndeterminate[]
+  userEditedRows: MoreCast2Row[]
 }
 
 export const initialState: State = {
@@ -30,7 +33,8 @@ export const initialState: State = {
   error: null,
   actuals: [],
   forecasts: [],
-  predictions: []
+  predictions: [],
+  userEditedRows: []
 }
 
 const dataSlice = createSlice({
@@ -42,6 +46,7 @@ const dataSlice = createSlice({
       state.actuals = []
       state.forecasts = []
       state.predictions = []
+      state.userEditedRows = []
       state.loading = true
     },
     getWeatherIndeterminatesFailed(state: State, action: PayloadAction<string>) {
@@ -54,12 +59,42 @@ const dataSlice = createSlice({
       state.forecasts = action.payload.forecasts
       state.predictions = action.payload.predictions
       state.loading = false
+    },
+    simulateWeatherIndeterminatesSuccess(state: State, action: PayloadAction<UpdatedWeatherIndeterminateResponse>) {
+      const updatedForecasts = addUniqueIds(action.payload.simulated_forecasts)
+
+      state.forecasts = state.forecasts.map(forecast => {
+        const updatedForecast = updatedForecasts.find(item => item.id === forecast.id)
+        return updatedForecast ?? forecast
+      })
+    },
+    simulateWeatherIndeterminatesFailed(state: State, action: PayloadAction<string>) {
+      state.error = action.payload
+    },
+    storeUserEditedRows(state: State, action: PayloadAction<MoreCast2Row[]>) {
+      const storedRows = [...state.userEditedRows]
+
+      for (const row of action.payload) {
+        const existingIndex = storedRows.findIndex(storedRow => storedRow.id === row.id)
+        if (existingIndex !== -1) {
+          storedRows[existingIndex] = row
+        } else {
+          storedRows.push(row)
+        }
+      }
+      state.userEditedRows = storedRows
     }
   }
 })
 
-export const { getWeatherIndeterminatesStart, getWeatherIndeterminatesFailed, getWeatherIndeterminatesSuccess } =
-  dataSlice.actions
+export const {
+  getWeatherIndeterminatesStart,
+  getWeatherIndeterminatesFailed,
+  getWeatherIndeterminatesSuccess,
+  simulateWeatherIndeterminatesSuccess,
+  simulateWeatherIndeterminatesFailed,
+  storeUserEditedRows
+} = dataSlice.actions
 
 export default dataSlice.reducer
 
@@ -69,7 +104,7 @@ export default dataSlice.reducer
  * @param stations The list of stations to retreive data for.
  * @param fromDate The start date from which to retrieve data from (inclusive).
  * @param toDate The end date from which to retrieve data from (inclusive).
- * @returns An array or WeatherIndeterminates.
+ * @returns An array of WeatherIndeterminates.
  */
 export const getWeatherIndeterminates =
   (stations: StationGroupMember[], fromDate: DateTime, toDate: DateTime): AppThunk =>
@@ -111,6 +146,25 @@ export const getWeatherIndeterminates =
     }
   }
 
+/**
+ * Use the morecast2API to get simulated Fire Weather Index value from the backend.
+ * Results are stored in the Redux store.
+ * @param rowsForSimulation List of MoreCast2Row's to simulate. The first row in the array must contain
+ * valid values for all Fire Weather Indices.
+ * @returns Array of MoreCast2Rows
+ */
+export const getSimulatedIndices =
+  (rowsForSimulation: MoreCast2Row[]): AppThunk =>
+  async dispatch => {
+    try {
+      const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
+      dispatch(simulateWeatherIndeterminatesSuccess(simulatedForecasts))
+    } catch (err) {
+      dispatch(simulateWeatherIndeterminatesFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
 export const createMoreCast2Rows = (
   actuals: WeatherIndeterminate[],
   forecasts: WeatherIndeterminate[],
@@ -131,7 +185,9 @@ export const createMoreCast2Rows = (
       firstItem.id,
       firstItem.station_code,
       firstItem.station_name,
-      DateTime.fromISO(firstItem.utc_timestamp)
+      DateTime.fromISO(firstItem.utc_timestamp),
+      firstItem.latitude,
+      firstItem.longitude
     )
 
     for (const value of values) {
@@ -142,13 +198,13 @@ export const createMoreCast2Rows = (
           row.tempActual = getNumberOrNaN(value.temperature)
           row.windDirectionActual = getNumberOrNaN(value.wind_direction)
           row.windSpeedActual = getNumberOrNaN(value.wind_speed)
-          row.ffmc = getNumberOrNaN(value.fine_fuel_moisture_code)
-          row.dmc = getNumberOrNaN(value.duff_moisture_code)
-          row.dc = getNumberOrNaN(value.drought_code)
-          row.isi = getNumberOrNaN(value.initial_spread_index)
-          row.bui = getNumberOrNaN(value.build_up_index)
-          row.fwi = getNumberOrNaN(value.fire_weather_index)
-          row.dgr = getNumberOrNaN(value.danger_rating)
+          row.ffmcCalcActual = getNumberOrNaN(value.fine_fuel_moisture_code)
+          row.dmcCalcActual = getNumberOrNaN(value.duff_moisture_code)
+          row.dcCalcActual = getNumberOrNaN(value.drought_code)
+          row.isiCalcActual = getNumberOrNaN(value.initial_spread_index)
+          row.buiCalcActual = getNumberOrNaN(value.build_up_index)
+          row.fwiCalcActual = getNumberOrNaN(value.fire_weather_index)
+          row.dgrCalcActual = getNumberOrNaN(value.danger_rating)
           break
         case WeatherDeterminate.FORECAST:
         case WeatherDeterminate.NULL:
@@ -171,6 +227,30 @@ export const createMoreCast2Rows = (
           row.windSpeedForecast = {
             choice: forecastOrNull(value.determinate),
             value: getNumberOrNaN(value.wind_speed)
+          }
+          row.ffmcCalcForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.fine_fuel_moisture_code)
+          }
+          row.dmcCalcForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.duff_moisture_code)
+          }
+          row.dcCalcForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.drought_code)
+          }
+          row.isiCalcForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.initial_spread_index)
+          }
+          row.buiCalcForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.build_up_index)
+          }
+          row.fwiCalcForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.fire_weather_index)
           }
           break
         case WeatherDeterminate.GDPS:
@@ -276,7 +356,7 @@ const forecastOrNull = (determinate: WeatherDeterminateType): ModelChoice.FORECA
  * @returns Returns an array of WeatherIndeterminates where each item has an ID derived
  * from its station_code and utc_timestamp.
  */
-const addUniqueIds = (items: WeatherIndeterminate[]) => {
+export const addUniqueIds = (items: WeatherIndeterminate[]) => {
   return items.map(item => ({
     ...item,
     id: rowIDHasher(item.station_code, DateTime.fromISO(item.utc_timestamp))
@@ -312,11 +392,20 @@ export const fillMissingWeatherIndeterminates = (
   for (const [key, values] of Object.entries(groupedByStationCode)) {
     const stationCode = parseInt(key)
     const stationName = stationMap.get(stationCode) ?? ''
+    const latitude = values[0]?.latitude
+    const longitude = values[0]?.longitude
     // We expect one actual per date in our date interval
     if (values.length < dateInterval.length) {
       for (const date of dateInterval) {
         if (!values.some(value => isEqual(DateTime.fromISO(value.utc_timestamp), DateTime.fromISO(date)))) {
-          const missing = createEmptyWeatherIndeterminate(stationCode, stationName, date, determinate)
+          const missing = createEmptyWeatherIndeterminate(
+            stationCode,
+            stationName,
+            date,
+            determinate,
+            latitude,
+            longitude
+          )
           weatherIndeterminates.push(missing)
         }
       }
@@ -355,6 +444,8 @@ export const fillMissingPredictions = (
   for (const [stationCodeAsString, weatherIndeterminatesByStationCode] of Object.entries(groupedByStationCode)) {
     const stationCode = parseInt(stationCodeAsString)
     const stationName = stationMap.get(stationCode) ?? ''
+    const latitude = weatherIndeterminatesByStationCode[0]?.latitude ?? 0
+    const longitude = weatherIndeterminatesByStationCode[0]?.longitude ?? 0
     const groupedByUtcTimestamp = createUtcTimeStampToWeatherIndeterminateGroups(
       weatherIndeterminatesByStationCode,
       dateInterval
@@ -368,7 +459,9 @@ export const fillMissingPredictions = (
             stationCode,
             stationName,
             utcTimestamp,
-            determinate
+            determinate,
+            latitude,
+            longitude
           )
           allPredictions.push(missingDeterminate)
         }
@@ -418,6 +511,11 @@ export const selectAllMoreCast2Rows = createSelector([selectWeatherIndeterminate
   )
   const sortedRows = sortRowsByStationNameAndDate(rows)
   return sortedRows
+})
+
+export const selectUserEditedRows = createSelector([selectWeatherIndeterminates], weatherIndeterminates => {
+  const rows = weatherIndeterminates.userEditedRows
+  return rows
 })
 
 export const selectForecastMoreCast2Rows = createSelector([selectAllMoreCast2Rows], allMorecast2Rows =>
@@ -485,17 +583,21 @@ const getNumberOrNaN = (value: number | null) => {
  * @param forDate The date the row is for.
  * @returns
  */
-const createEmptyMoreCast2Row = (
+export const createEmptyMoreCast2Row = (
   id: string,
   stationCode: number,
   stationName: string,
-  forDate: DateTime
+  forDate: DateTime,
+  latitude: number,
+  longitude: number
 ): MoreCast2Row => {
   return {
     id,
     stationCode,
     stationName,
     forDate,
+    latitude,
+    longitude,
     precipActual: NaN,
     rhActual: NaN,
     tempActual: NaN,
@@ -503,13 +605,13 @@ const createEmptyMoreCast2Row = (
     windSpeedActual: NaN,
 
     // Indices
-    ffmc: NaN,
-    dmc: NaN,
-    dc: NaN,
-    isi: NaN,
-    bui: NaN,
-    fwi: NaN,
-    dgr: NaN,
+    ffmcCalcActual: NaN,
+    dmcCalcActual: NaN,
+    dcCalcActual: NaN,
+    isiCalcActual: NaN,
+    buiCalcActual: NaN,
+    fwiCalcActual: NaN,
+    dgrCalcActual: NaN,
 
     // GDPS model predictions
     precipGDPS: NaN,
@@ -595,12 +697,16 @@ const createEmptyWeatherIndeterminate = (
   station_code: number,
   station_name: string,
   utc_timestamp: string,
-  determinate: WeatherDeterminateType
+  determinate: WeatherDeterminateType,
+  latitude: number,
+  longitude: number
 ): WeatherIndeterminate => {
   return {
     id: '',
     station_code,
     station_name,
+    latitude,
+    longitude,
     determinate,
     utc_timestamp,
     precipitation: null,
