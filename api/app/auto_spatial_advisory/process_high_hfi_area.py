@@ -46,7 +46,7 @@ async def process_high_hfi_area(run_type: RunType, run_datetime: datetime, for_d
         
         exists = (await session.execute(stmt)).scalars().first() is not None
 
-        if (exists):
+        if (not exists):
             logger.info('Getting high HFI area per zone...')
             high_hfi_areas = await calculate_high_hfi_areas(session, run_type, run_datetime, for_date)
 
