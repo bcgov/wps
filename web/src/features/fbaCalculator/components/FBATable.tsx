@@ -156,7 +156,7 @@ const FBATable = (props: FBATableProps) => {
         label: `${station.properties.name} (${station.properties.code})`
       }))
       setStationMenuOptions(stationOptions)
-      const stationCodeMap = new Map(stationMenuOptions.map(station => [station.value, station.label]))
+      const stationCodeMap = new Map(stationOptions.map(station => [station.value, station.label]))
 
       const sortedRows = RowManager.sortRows(
         sortByColumn,
