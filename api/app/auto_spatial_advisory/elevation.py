@@ -48,7 +48,7 @@ async def process_elevation(source_path: str, run_type: RunType, run_datetime: d
                 RunParameters.run_datetime == run_datetime)
         
         exists = (await session.execute(stmt)).scalars().first() is not None
-        if (exists):
+        if (not exists):
             # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
             # it's S3 virtual file system driver to read the file.
             # https://gdal.org/user/virtual_file_systems.html
