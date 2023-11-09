@@ -13,14 +13,17 @@ from app.auth import (auth_with_forecaster_role_required,
 from app.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_for_date, save_all_forecasts
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.morecast_v2.forecasts import filter_for_api_forecasts, get_forecasts
+from app.morecast_v2.forecasts import filter_for_api_forecasts, get_forecasts, get_fwi_values
 from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MoreCastForecastOutput,
                                      MoreCastForecastRequest,
                                      MorecastForecastResponse,
                                      ObservedDailiesForStations,
                                      StationDailiesResponse,
-                                     WeatherIndeterminate)
+                                     WeatherIndeterminate,
+                                     WeatherDeterminate,
+                                     SimulateIndeterminateIndices,
+                                     SimulatedWeatherIndeterminateResponse)
 from app.schemas.shared import StationsRequest
 from app.wildfire_one.schema_parsers import transform_morecastforecastoutput_to_weatherindeterminate
 from app.utils.time import get_hour_20_from_date, get_utc_now
@@ -182,21 +185,29 @@ async def get_determinates_for_date_range(start_date: date,
     end_time = vancouver_tz.localize(datetime.combine(end_date, time.max))
     start_date_of_interest = get_hour_20_from_date(start_date)
     end_date_of_interest = get_hour_20_from_date(end_date)
+    start_date_for_fwi_calc = start_date_of_interest - timedelta(days=1)
 
     async with ClientSession() as session:
         header = await get_auth_header(session)
         # get station information from the wfwx api
         wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
         wf1_actuals, wf1_forecasts = await get_daily_determinates_for_stations_and_date(session, header,
-                                                                                        start_date_of_interest,
+                                                                                        start_date_for_fwi_calc,
                                                                                         end_date_of_interest,
                                                                                         unique_station_codes)
+
+        wf1_actuals, wf1_forecasts = get_fwi_values(wf1_actuals, wf1_forecasts)
+
+        # drop the days before the date of interest that were needed to calculate fwi values
+        wf1_actuals = [actual for actual in wf1_actuals if actual.utc_timestamp >= start_date_of_interest]
+        wf1_forecasts = [forecast for forecast in wf1_forecasts if forecast.utc_timestamp >= start_date_of_interest]
+
         # Find the min and max dates for actuals from wf1. These define the range of dates for which
         # we need to retrieve forecasts from our API database. Note that not all stations report actuals
         # at the same time, so every station won't necessarily have an actual for each date in the range.
         wf1_actuals_dates = [actual.utc_timestamp for actual in wf1_actuals]
-        min_wf1_actuals_date = min(wf1_actuals_dates)
-        max_wf1_actuals_date = max(wf1_actuals_dates)
+        min_wf1_actuals_date = min(wf1_actuals_dates, default=None)
+        max_wf1_actuals_date = max(wf1_actuals_dates, default=None)
 
     with get_read_session_scope() as db_session:
         forecasts_from_db: List[MoreCastForecastOutput] = get_forecasts(
@@ -220,3 +231,20 @@ async def get_determinates_for_date_range(start_date: date,
         actuals=wf1_actuals,
         predictions=predictions,
         forecasts=wf1_forecasts)
+
+
+@router.post('/simulate-indices/', response_model=SimulatedWeatherIndeterminateResponse)
+async def calculate_forecasted_indices(simulate_records: SimulateIndeterminateIndices):
+    """ 
+    Returns forecasts with all Fire Weather Index System values calculated using the CFFDRS R library
+    """
+    indeterminates = simulate_records.simulate_records
+    logger.info(
+        f'/simulate-indices/ - simulating forecast records for stations: {set(indeterminate.station_name for indeterminate in indeterminates)}')
+
+    forecasts = [indeterminate for indeterminate in indeterminates if indeterminate.determinate ==
+                 WeatherDeterminate.FORECAST]
+    actuals = [indeterminate for indeterminate in indeterminates if indeterminate.determinate == WeatherDeterminate.ACTUAL]
+
+    _, forecasts = get_fwi_values(actuals, forecasts)
+    return (SimulatedWeatherIndeterminateResponse(simulated_forecasts=forecasts))
