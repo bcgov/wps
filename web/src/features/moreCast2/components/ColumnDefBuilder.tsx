@@ -49,11 +49,13 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
   }
 
   public generateForecastColDef = (headerName?: string) => {
+    const isCalcField = this.field.includes('Calc')
+
     return this.generateForecastColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
       headerName ? headerName : this.headerName,
       this.precision,
-      DEFAULT_FORECAST_COLUMN_WIDTH
+      isCalcField ? DEFAULT_COLUMN_WIDTH : DEFAULT_FORECAST_COLUMN_WIDTH
     )
   }
 
@@ -101,6 +103,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
   }
 
   public generateForecastColDefWith = (field: string, headerName: string, precision: number, width?: number) => {
+    const isCalcField = field.includes('Calc')
     return {
       field: field,
       disableColumnMenu: true,
@@ -111,7 +114,9 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       type: 'number',
       width: width || 120,
       renderHeader: (params: GridColumnHeaderParams) => {
-        return this.gridComponentRenderer.renderForecastHeaderWith(params)
+        return isCalcField
+          ? this.gridComponentRenderer.renderHeaderWith(params)
+          : this.gridComponentRenderer.renderForecastHeaderWith(params)
       },
       renderCell: (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>) => {
         return this.gridComponentRenderer.renderForecastCellWith(params, field)

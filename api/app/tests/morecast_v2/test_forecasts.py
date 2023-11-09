@@ -2,8 +2,10 @@ from datetime import datetime
 from typing import Optional
 from unittest.mock import Mock, patch
 import pytest
+from math import isclose
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.morecast_v2.forecasts import actual_exists, construct_wf1_forecast, construct_wf1_forecasts, filter_for_api_forecasts, get_forecasts
+from app.morecast_v2.forecasts import (actual_exists, construct_wf1_forecast,
+                                       construct_wf1_forecasts, filter_for_api_forecasts, get_forecasts, get_fwi_values)
 from app.schemas.morecast_v2 import (StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate,
                                      WF1ForecastRecordType, WF1PostForecast)
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
@@ -39,6 +41,82 @@ morecast_record_2 = MorecastForecastRecord(id=2,
                                            create_user='test2',
                                            update_timestamp=end_time,
                                            update_user='test2')
+
+actual_indeterminate_1 = WeatherIndeterminate(station_code=123,
+                                              station_name="TEST_STATION",
+                                              determinate=WeatherDeterminate.ACTUAL,
+                                              utc_timestamp=start_time,
+                                              latitude=51.507,
+                                              longitude=-121.162,
+                                              temperature=4.1,
+                                              relative_humidity=34.0,
+                                              precipitation=0.0,
+                                              wind_direction=184.0,
+                                              wind_speed=8.9,
+                                              fine_fuel_moisture_code=62,
+                                              duff_moisture_code=27,
+                                              drought_code=487,
+                                              initial_spread_index=4,
+                                              build_up_index=52,
+                                              fire_weather_index=14,
+                                              danger_rating=2)
+
+forecast_indeterminate_1 = WeatherIndeterminate(station_code=123,
+                                                station_name="TEST_STATION",
+                                                determinate=WeatherDeterminate.FORECAST,
+                                                utc_timestamp=end_time,
+                                                latitude=51.507,
+                                                longitude=-121.162,
+                                                temperature=6.3,
+                                                relative_humidity=35.0,
+                                                precipitation=0.0,
+                                                wind_direction=176.0,
+                                                wind_speed=8.9,
+                                                fine_fuel_moisture_code=None,
+                                                duff_moisture_code=None,
+                                                drought_code=None,
+                                                initial_spread_index=None,
+                                                build_up_index=None,
+                                                fire_weather_index=None,
+                                                danger_rating=None)
+
+actual_indeterminate_2 = WeatherIndeterminate(station_code=321,
+                                              station_name="TEST_STATION2",
+                                              determinate=WeatherDeterminate.ACTUAL,
+                                              utc_timestamp=start_time,
+                                              latitude=49.4358,
+                                              longitude=-116.7464,
+                                              temperature=28.3,
+                                              relative_humidity=34.0,
+                                              precipitation=0.0,
+                                              wind_direction=180.0,
+                                              wind_speed=5.6,
+                                              fine_fuel_moisture_code=91,
+                                              duff_moisture_code=91,
+                                              drought_code=560,
+                                              initial_spread_index=7,
+                                              build_up_index=130,
+                                              fire_weather_index=28,
+                                              danger_rating=3)
+
+forecast_indeterminate_2 = WeatherIndeterminate(station_code=321,
+                                                station_name="TEST_STATION2",
+                                                determinate=WeatherDeterminate.FORECAST,
+                                                utc_timestamp=end_time,
+                                                latitude=49.4358,
+                                                longitude=-116.7464,
+                                                temperature=27.0,
+                                                relative_humidity=50.0,
+                                                precipitation=1.0,
+                                                wind_direction=176.0,
+                                                wind_speed=12,
+                                                fine_fuel_moisture_code=None,
+                                                duff_moisture_code=None,
+                                                drought_code=None,
+                                                initial_spread_index=None,
+                                                build_up_index=None,
+                                                fire_weather_index=None,
+                                                danger_rating=None)
 
 wfwx_weather_stations = [
     WFWXWeatherStation(
@@ -87,9 +165,34 @@ def assert_wf1_forecast(result: WF1PostForecast,
     assert result.recordType == WF1ForecastRecordType()
 
 
+def test_get_fwi_values():
+    actuals, forecasts = get_fwi_values([actual_indeterminate_1, actual_indeterminate_2], [
+                                        forecast_indeterminate_1, forecast_indeterminate_2])
+    assert len(forecasts) == 2
+    assert len(actuals) == 2
+    # The below values were calculated using the CFFDRS library and the values from the test indeterminates as input
+    assert isclose(forecasts[0].fine_fuel_moisture_code, 76.59454201861331)
+    assert isclose(forecasts[0].duff_moisture_code, 27.5921591)
+    assert isclose(forecasts[0].drought_code, 487.838)
+    assert isclose(forecasts[0].initial_spread_index, 1.3234484847240926)
+    assert isclose(forecasts[0].build_up_index, 48.347912947622426)
+    assert isclose(forecasts[0].fire_weather_index, 3.841725745428403)
+
+    assert isclose(forecasts[1].fine_fuel_moisture_code, 87.00116939852603)
+    assert isclose(forecasts[1].duff_moisture_code, 92.7296955)
+    assert isclose(forecasts[1].drought_code, 564.564)
+    assert isclose(forecasts[1].initial_spread_index, 5.1025731818740345)
+    assert isclose(forecasts[1].build_up_index, 131.47318170452328)
+    assert isclose(forecasts[1].fire_weather_index, 22.263212983628037)
+
+
 @patch('app.morecast_v2.forecasts.get_forecasts_in_range', return_value=[])
 def test_get_forecasts_empty(_):
     result = get_forecasts(Mock(), start_time, end_time, [])
+    assert len(result) == 0
+    result = get_forecasts(Mock(), None, end_time, [])
+    assert len(result) == 0
+    result = get_forecasts(Mock(), start_time, None, [])
     assert len(result) == 0
 
 
