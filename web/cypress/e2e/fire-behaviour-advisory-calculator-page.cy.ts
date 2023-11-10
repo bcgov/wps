@@ -7,6 +7,11 @@ describe('FireBAT Calculator Page', () => {
 
     cy.getByTestId('add-row').click()
   }
+  const selectFBAStationInDropdown = (code: number | string, rowId: number) => {
+    cy.getByTestId(`weather-station-dropdown-fba-${rowId}`).find('input').type(String(code))
+    cy.getByTestId(`weather-station-dropdown-fba-${rowId}`).find('input').type('{downarrow}')
+    cy.getByTestId(`weather-station-dropdown-fba-${rowId}`).find('input').type('{enter}')
+  }
   it('Sets all the input fields for calculating results on the backend', () => {
     cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
     const stationCode = 322
@@ -29,7 +34,7 @@ describe('FireBAT Calculator Page', () => {
     cy.setFBAGrassCurePercentage(grassCure, 1)
     cy.setFBAWindSpeed(windSpeed, 1)
     cy.wait(500)
-    cy.selectFBAStationInDropdown(stationCode, 1)
+    selectFBAStationInDropdown(stationCode, 1)
     cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
     cy.wait('@calculateResults')
     cy.rowCountShouldBe(1)
@@ -54,7 +59,7 @@ describe('FireBAT Calculator Page', () => {
       cy.wait('@getStations')
       const stationCode = 322
       cy.wait(500)
-      cy.selectFBAStationInDropdown(stationCode, 1)
+      selectFBAStationInDropdown(stationCode, 1)
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
     })
@@ -87,7 +92,7 @@ describe('FireBAT Calculator Page', () => {
       visitAndAddRow()
       cy.wait('@getStations')
       cy.wait(500)
-      cy.selectFBAStationInDropdown(stationCode, 1)
+      selectFBAStationInDropdown(stationCode, 1)
       cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}&f=${fuelType.name.toLowerCase()}`)
@@ -102,7 +107,7 @@ describe('FireBAT Calculator Page', () => {
       cy.wait('@getStations')
       const stationCode = 322
       cy.wait(500)
-      cy.selectFBAStationInDropdown(stationCode, 1)
+      selectFBAStationInDropdown(stationCode, 1)
       cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['o1a'].friendlyName, 1)
       cy.getByTestId(`fuel-type-dropdown-fba-1`).find('input').clear()
       cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['o1b'].friendlyName, 1)
@@ -129,7 +134,7 @@ describe('FireBAT Calculator Page', () => {
       cy.wait('@getStations')
       const stationCode = 322
       cy.wait(500)
-      cy.selectFBAStationInDropdown(stationCode, 1)
+      selectFBAStationInDropdown(stationCode, 1)
       cy.getByTestId('remove-rows').should('not.have.class', 'Mui-disabled')
     })
     it('Rows can be added and removed', () => {
@@ -140,7 +145,7 @@ describe('FireBAT Calculator Page', () => {
       })
       const stationCode = 322
       cy.wait(500)
-      cy.selectFBAStationInDropdown(stationCode, 1)
+      selectFBAStationInDropdown(stationCode, 1)
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
       cy.getByTestId('select-all').click()
@@ -154,7 +159,7 @@ describe('FireBAT Calculator Page', () => {
       cy.wait('@getStations')
       const stationCode = 322
       cy.wait(500)
-      cy.selectFBAStationInDropdown(stationCode, 1)
+      selectFBAStationInDropdown(stationCode, 1)
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
       cy.setSelectedRow()
@@ -170,7 +175,7 @@ describe('FireBAT Calculator Page', () => {
       visitAndAddRow()
       cy.wait('@getStations')
       cy.wait(500)
-      cy.selectFBAStationInDropdown(322, 1)
+      selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C3', 1)
       cy.getByTestId('export').should('be.visible')
       cy.getByTestId('export').should('be.disabled')
@@ -181,7 +186,7 @@ describe('FireBAT Calculator Page', () => {
       visitAndAddRow()
       cy.wait('@getStations')
       cy.wait(500)
-      cy.selectFBAStationInDropdown(322, 1)
+      selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C4', 1)
       cy.getByTestId('select-all').click()
       cy.getByTestId('export').should('be.enabled')
@@ -203,7 +208,7 @@ describe('FireBAT Calculator Page', () => {
       visitAndAddRow()
       cy.wait('@getStations')
       cy.wait(500)
-      cy.selectFBAStationInDropdown(322, 1)
+      selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C4', 1)
       cy.wait('@calculateResults')
       cy.getByTestId('filter-columns-btn').should('be.enabled')
@@ -217,12 +222,12 @@ describe('FireBAT Calculator Page', () => {
       visitAndAddRow()
       cy.wait('@getStations')
       cy.wait(500)
-      cy.selectFBAStationInDropdown(322, 1)
+      selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C4', 1)
 
       cy.getByTestId('add-row').click()
       cy.wait(500)
-      cy.selectFBAStationInDropdown(209, 2)
+      selectFBAStationInDropdown(209, 2)
       cy.selectFBAFuelTypeInDropdown('C1', 2)
 
       cy.wait('@calculateResults')
