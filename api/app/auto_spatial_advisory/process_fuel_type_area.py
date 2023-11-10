@@ -4,28 +4,18 @@
 import logging
 from datetime import date, datetime
 from time import perf_counter
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.database import get_async_write_session_scope
-from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, HighHfiArea
+from app.db.models.auto_spatial_advisory import AdvisoryFuelStats
 from app.db.crud.auto_spatial_advisory import (get_all_hfi_thresholds, 
                                                get_all_sfms_fuel_types, 
                                                get_high_hfi_fuel_types, 
                                                get_run_parameters_id, 
-                                               save_advisory_fuel_stats, 
-                                               save_high_hfi_area)
+                                               save_advisory_fuel_stats)
 
 
 logger = logging.getLogger(__name__)
-
-
-async def write_high_hfi_area(session: AsyncSession, row: any, run_parameters_id: int):
-    high_hfi_area = HighHfiArea(advisory_shape_id=row.shape_id,
-                                run_parameters=run_parameters_id,
-                                area=row.area,
-                                threshold=row.threshold)
-    await save_high_hfi_area(session, high_hfi_area)
 
 
 async def process_fuel_type_area(run_type: RunType, run_datetime: datetime, for_date: date):
