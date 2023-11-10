@@ -15,6 +15,7 @@ from app.auto_spatial_advisory.nats_config import server, stream_name, sfms_file
 from app.auto_spatial_advisory.process_elevation_hfi import process_hfi_elevation
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
 from app.auto_spatial_advisory.process_high_hfi_area import process_high_hfi_area
+from app.auto_spatial_advisory.process_fuel_type_area import process_fuel_type_area
 from app.nats_publish import publish
 from app import configure_logging
 from app.utils.time import get_utc_datetime
@@ -80,6 +81,7 @@ async def run():
                 await process_hfi(run_type, run_date, run_datetime, for_date)
                 await process_hfi_elevation(run_type, run_date, run_datetime, for_date)
                 await process_high_hfi_area(run_type, run_datetime, for_date)
+                await process_fuel_type_area(run_type, run_datetime, for_date)
             except Exception as e:
                 logger.error("Error processing HFI message: %s, adding back to queue", msg.data, exc_info=e)
                 background_tasks = BackgroundTasks()
