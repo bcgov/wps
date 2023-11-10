@@ -5,12 +5,11 @@
 import logging
 from datetime import date, datetime
 from sqlalchemy.future import select
-from sqlalchemy import cast, String
 from time import perf_counter
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.database import get_async_write_session_scope
-from app.db.models.auto_spatial_advisory import ClassifiedHfi, HighHfiArea
+from app.db.models.auto_spatial_advisory import HighHfiArea
 from app.db.crud.auto_spatial_advisory import get_run_parameters_id, calculate_high_hfi_areas, save_high_hfi_area
 
 
@@ -38,11 +37,8 @@ async def process_high_hfi_area(run_type: RunType, run_datetime: datetime, for_d
     async with get_async_write_session_scope() as session:
         run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
-        stmt = select(ClassifiedHfi)\
-            .where(
-                cast(ClassifiedHfi.run_type, String) == run_type.value,
-                ClassifiedHfi.for_date == for_date,
-                ClassifiedHfi.run_datetime == run_datetime)
+        stmt = select(HighHfiArea)\
+            .where(HighHfiArea.run_parameters == run_parameters_id)
         
         exists = (await session.execute(stmt)).scalars().first() is not None
 
