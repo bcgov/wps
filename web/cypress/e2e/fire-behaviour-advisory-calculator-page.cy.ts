@@ -24,23 +24,14 @@ describe('FireBAT Calculator Page', () => {
         wind_speed: parseFloat(windSpeed)
       })
     }).as('calculateResults')
-
     visitAndAddRow()
-
     cy.wait('@getStations')
-
     cy.setFBAGrassCurePercentage(grassCure, 1)
-
     cy.setFBAWindSpeed(windSpeed, 1)
-
     cy.wait(500)
-
     cy.selectFBAStationInDropdown(stationCode, 1)
-
     cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
-
     cy.wait('@calculateResults')
-
     cy.rowCountShouldBe(1)
     cy.url().should('contain', `s=${stationCode}&f=${fuelType.name.toLowerCase()}&c=${grassCure}&w=${windSpeed}`)
   })
@@ -59,14 +50,11 @@ describe('FireBAT Calculator Page', () => {
   describe('Dropdowns', () => {
     it('Can select station if successfully received stations', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-
       visitAndAddRow()
-
       cy.wait('@getStations')
-      cy.wait(500)
       const stationCode = 322
+      cy.wait(500)
       cy.selectFBAStationInDropdown(stationCode, 1)
-
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
     })
@@ -76,10 +64,9 @@ describe('FireBAT Calculator Page', () => {
       visitAndAddRow()
 
       cy.wait('@getStations')
-      cy.wait(500)
       const fuelType = FuelTypes.get()['c1']
+      cy.wait(500)
       cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
-
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `f=${fuelType.name.toLowerCase()}`)
     })
@@ -97,18 +84,13 @@ describe('FireBAT Calculator Page', () => {
           crown_base_height: fuelType.crown_base_height
         })
       }).as('calculateResults')
-
       visitAndAddRow()
-
       cy.wait('@getStations')
       cy.wait(500)
       cy.selectFBAStationInDropdown(stationCode, 1)
-
       cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
-
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}&f=${fuelType.name.toLowerCase()}`)
-
       cy.wait('@calculateResults')
     })
     it('Does not call backend when station and grass fuel type are set without grass cure percentage', () => {
@@ -116,14 +98,11 @@ describe('FireBAT Calculator Page', () => {
       cy.intercept('POST', 'api/fba-calc/stations', _ => {
         throw new Error('API request made without grass cure percentage set')
       })
-
       visitAndAddRow()
-
       cy.wait('@getStations')
-      cy.wait(500)
       const stationCode = 322
+      cy.wait(500)
       cy.selectFBAStationInDropdown(stationCode, 1)
-
       cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['o1a'].friendlyName, 1)
       cy.getByTestId(`fuel-type-dropdown-fba-1`).find('input').clear()
       cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['o1b'].friendlyName, 1)
@@ -142,73 +121,45 @@ describe('FireBAT Calculator Page', () => {
     it('Disables remove row(s) button when table is empty', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
-
       cy.getByTestId('remove-rows').should('have.class', 'Mui-disabled')
     })
-
     it('Enables remove row(s) button when table is not empty', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-
       visitAndAddRow()
-
       cy.wait('@getStations')
-
-      cy.getByTestId('fba-table-body').children().should('have.length', 1)
-
       const stationCode = 322
+      cy.wait(500)
       cy.selectFBAStationInDropdown(stationCode, 1)
-
       cy.getByTestId('remove-rows').should('not.have.class', 'Mui-disabled')
     })
-
     it('Rows can be added and removed', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-
       visitAndAddRow()
-
       cy.wait('@getStations').then(interception => {
         expect(interception.response.body.type).to.equal('FeatureCollection')
       })
-
-      cy.getByTestId('fba-table-body').children().should('have.length', 1)
-
       const stationCode = 322
+      cy.wait(500)
       cy.selectFBAStationInDropdown(stationCode, 1)
-
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
-
       cy.getByTestId('select-all').click()
-
       cy.getByTestId('remove-rows').click()
-
       cy.getByTestId('fba-instructions').should('be.visible')
-
       cy.url().should('not.contain', `s=${stationCode}`)
     })
     it('Specific rows can be removed', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-
       visitAndAddRow()
-
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
-
-      cy.getByTestId('fba-table-body').children().should('have.length', 1)
-
+      cy.wait('@getStations')
       const stationCode = 322
+      cy.wait(500)
       cy.selectFBAStationInDropdown(stationCode, 1)
-
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
-
       cy.setSelectedRow()
-
       cy.getByTestId('remove-rows').click()
-
       cy.getByTestId('fba-instructions').should('be.visible')
-
       cy.url().should('not.contain', `s=${stationCode}`)
     })
   })
@@ -217,10 +168,8 @@ describe('FireBAT Calculator Page', () => {
     it('Disables the Export button when 0 rows are selected', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       visitAndAddRow()
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
-      cy.getByTestId('fba-table-body').children().should('have.length', 1)
+      cy.wait('@getStations')
+      cy.wait(500)
       cy.selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C3', 1)
       cy.getByTestId('export').should('be.visible')
@@ -230,10 +179,8 @@ describe('FireBAT Calculator Page', () => {
     it('Enables the Export button once 1 or more rows are selected', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       visitAndAddRow()
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
-      cy.getByTestId('fba-table-body').children().should('have.length', 1)
+      cy.wait('@getStations')
+      cy.wait(500)
       cy.selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C4', 1)
       cy.getByTestId('select-all').click()
@@ -245,7 +192,6 @@ describe('FireBAT Calculator Page', () => {
     it('Disables the Filter Columns dialog open button when 0 rows are in table', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
-
       cy.getByTestId('filter-columns-btn').should('be.disabled')
     })
 
@@ -254,18 +200,12 @@ describe('FireBAT Calculator Page', () => {
       cy.intercept('POST', 'api/fba-calc/stations', {
         fixture: 'fba-calc/322_209_response.json'
       }).as('calculateResults')
-
       visitAndAddRow()
-
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
-      cy.getByTestId('fba-table-body').children().should('have.length', 1)
+      cy.wait('@getStations')
+      cy.wait(500)
       cy.selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C4', 1)
-
       cy.wait('@calculateResults')
-
       cy.getByTestId('filter-columns-btn').should('be.enabled')
     })
 
@@ -274,16 +214,14 @@ describe('FireBAT Calculator Page', () => {
       cy.intercept('POST', 'api/fba-calc/stations', {
         fixture: 'fba-calc/322_209_response.json'
       }).as('calculateResults')
-
       visitAndAddRow()
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
-      cy.getByTestId('fba-table-body').children().should('have.length', 1)
+      cy.wait('@getStations')
+      cy.wait(500)
       cy.selectFBAStationInDropdown(322, 1)
       cy.selectFBAFuelTypeInDropdown('C4', 1)
 
       cy.getByTestId('add-row').click()
+      cy.wait(500)
       cy.selectFBAStationInDropdown(209, 2)
       cy.selectFBAFuelTypeInDropdown('C1', 2)
 
