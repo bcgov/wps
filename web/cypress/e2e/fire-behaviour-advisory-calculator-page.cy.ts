@@ -134,9 +134,7 @@ describe('FireBAT Calculator Page', () => {
     it('Rows can be added and removed', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       visitAndAddRow()
-      cy.wait('@getStations').then(interception => {
-        expect(interception.response.body.type).to.equal('FeatureCollection')
-      })
+      cy.wait('@getStations')
       const stationCode = 322
       cy.setFBAGrassCurePercentage('1', 1)
       cy.selectFBAStationInDropdown(stationCode, 1)

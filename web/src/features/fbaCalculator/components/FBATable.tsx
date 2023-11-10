@@ -134,29 +134,26 @@ const FBATable = (props: FBATableProps) => {
   const { fireBehaviourResultStations, loading, error: fbaResultsError } = useSelector(selectFireBehaviourCalcResult)
   const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(fireBehaviourResultStations)
   const [visibleColumns, setVisibleColumns] = useState<ColumnLabel[]>(tableColumnLabels)
-  const [stationMenuOptions, setStationMenuOptions] = useState<GridMenuOption[]>([])
-  const [fuelTypeMenuOptions, setFuelTypeMenuOptions] = useState<GridMenuOption[]>([])
 
   const rowsFromQuery = getRowsFromUrlParams(location.search)
 
+  const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(station => ({
+    value: String(station.properties.code),
+    label: `${station.properties.name} (${station.properties.code})`
+  }))
+
+  const fuelTypeMenuOptions: GridMenuOption[] = Object.entries(FuelTypes.get()).map(([key, value]) => ({
+    value: key,
+    label: value.friendlyName
+  }))
+
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-    setFuelTypeMenuOptions(
-      Object.entries(FuelTypes.get()).map(([key, value]) => ({
-        value: key,
-        label: value.friendlyName
-      }))
-    )
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (stations.length > 0) {
-      const stationOptions = (stations as GeoJsonStation[]).map(station => ({
-        value: String(station.properties.code),
-        label: `${station.properties.name} (${station.properties.code})`
-      }))
-      setStationMenuOptions(stationOptions)
-      const stationCodeMap = new Map(stationOptions.map(station => [station.value, station.label]))
+      const stationCodeMap = new Map(stationMenuOptions.map(station => [station.value, station.label]))
 
       const sortedRows = RowManager.sortRows(
         sortByColumn,
