@@ -550,7 +550,73 @@ def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: 
     raise CFFDRSException("Failed to calculate ffmc")
 
 
-def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False):
+def duff_moisture_code(dmc: float, temperature: float, relative_humidity: float,
+                       precipitation: float, latitude: float = 55, month: int = 7,
+                       latitude_adjust: bool = True):
+    """
+    Computes Duff Moisture Code (DMC) by delegating to the cffdrs R package.
+
+    R function signature: 
+    function (dmc_yda, temp, rh, prec, lat, mon, lat.adjust = TRUE)
+
+    :param dmc: The Duff Moisture Code (unitless) of the previous day
+    :type dmc: float
+    :param temperature: Temperature (centigrade)
+    :type temperature: float
+    :param relative_humidity: Relative humidity (%)
+    :type relative_humidity: float
+    :param precipitation: 24-hour rainfall (mm)
+    :type precipitation: float
+    :param latitude: Latitude (decimal degrees), defaults to 55
+    :type latitude: float
+    :param month: Month of the year (1-12), defaults to 7 (July)
+    :type month: int, optional
+    :param latitude_adjust: Options for whether day length adjustments should be applied to 
+    the calculation, defaults to True
+    :type latitude_adjust: bool, optional
+    """
+    if dmc is None:
+        dmc = NULL
+    result = CFFDRS.instance().cffdrs._dmcCalc(dmc, temperature, relative_humidity, precipitation,
+                                               latitude, month, latitude_adjust)
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate dmc")
+
+
+def drought_code(dc: float, temperature: float, relative_humidity: float, precipitation: float,
+                 latitude: float = 55, month: int = 7, latitude_adjust: bool = True) -> None:
+    """
+    Computes Drought Code (DC) by delegating to the cffdrs R package.
+
+    :param dc: The Drought Code (unitless) of the previous day
+    :type dc: float
+    :param temperature: Temperature (centigrade)
+    :type temperature: float
+    :param relative_humidity: Relative humidity (%)
+    :type relative_humidity: float
+    :param precipitation: 24-hour rainfall (mm)
+    :type precipitation: float
+    :param latitude: Latitude (decimal degrees), defaults to 55
+    :type latitude: float
+    :param month: Month of the year (1-12), defaults to 7 (July)
+    :type month: int, optional
+    :param latitude_adjust: Options for whether day length adjustments should be applied to 
+    the calculation, defaults to True
+    :type latitude_adjust: bool, optional
+    :raises CFFDRSException:
+    :return: None
+    """
+    if dc is None:
+        dc = NULL
+    result = CFFDRS.instance().cffdrs._dcCalc(dc, temperature, relative_humidity, precipitation,
+                                              latitude, month, latitude_adjust)
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate dmc")
+
+
+def initial_spread_index(ffmc: float, wind_speed: float, fbp_mod: bool = False):
     """ Computes Initial Spread Index (ISI) by delegating to cffdrs R package.
     This is necessary when recalculating ROS/HFI for modified FFMC values. Otherwise,
     should be using the ISI value retrieved from WFWX.
@@ -565,7 +631,7 @@ def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False):
     """
     if ffmc is None:
         ffmc = NULL
-    result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed, fbpMod=fbpMod)
+    result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed, fbpMod=fbp_mod)
     if isinstance(result[0], float):
         return result[0]
     raise CFFDRSException("Failed to calculate ISI")

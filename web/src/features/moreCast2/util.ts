@@ -1,7 +1,8 @@
 import { DateTime, Interval } from 'luxon'
 import { ModelChoice, MoreCast2ForecastRecord } from 'api/moreCast2API'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { StationGroupMember } from 'api/stationAPI'
+import { isUndefined } from 'lodash'
 
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
@@ -78,4 +79,41 @@ export const createLabel = (isActual: boolean, label: string) => {
   }
 
   return createWeatherModelLabel(label)
+}
+
+export const validActualOrForecastPredicate = (row: MoreCast2Row) =>
+  validForecastPredicate(row) || validActualPredicate(row)
+
+export const validActualPredicate = (row: MoreCast2Row) =>
+  !isNaN(row.precipActual) && !isNaN(row.rhActual) && !isNaN(row.tempActual) && !isNaN(row.windSpeedActual)
+
+// A valid forecast row has values for precipForecast, rhForecast, tempForecast and windSpeedForecast
+export const validForecastPredicate = (row: MoreCast2Row) =>
+  !isUndefined(row.precipForecast) &&
+  !isNaN(row.precipForecast.value) &&
+  !isUndefined(row.rhForecast) &&
+  !isNaN(row.rhForecast.value) &&
+  !isUndefined(row.tempForecast) &&
+  !isNaN(row.tempForecast.value) &&
+  !isUndefined(row.windSpeedForecast) &&
+  !isNaN(row.windSpeedForecast.value)
+
+export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: MoreCast2Row[]): MoreCast2Row[] => {
+  const storedRowChoicesMap = new Map<string, MoreCast2Row>()
+
+  for (const row of storedRows) {
+    storedRowChoicesMap.set(row.id, row)
+  }
+
+  for (const row of newRows) {
+    const matchingRow = storedRowChoicesMap.get(row.id)
+    if (matchingRow) {
+      row.precipForecast = matchingRow.precipForecast
+      row.tempForecast = matchingRow.tempForecast
+      row.rhForecast = matchingRow.rhForecast
+      row.windDirectionForecast = matchingRow.windDirectionForecast
+      row.windSpeedForecast = matchingRow.windSpeedForecast
+    }
+  }
+  return newRows
 }

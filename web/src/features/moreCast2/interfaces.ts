@@ -24,17 +24,26 @@ export interface BaseRow {
   stationCode: number
   stationName: string
   forDate: DateTime
+  latitude: number
+  longitude: number
 }
 
 export interface MoreCast2Row extends BaseRow {
   // Fire weather indices
-  ffmc: number
-  dmc: number
-  dc: number
-  isi: number
-  bui: number
-  fwi: number
-  dgr: number
+  ffmcCalcActual: number
+  dmcCalcActual: number
+  dcCalcActual: number
+  isiCalcActual: number
+  buiCalcActual: number
+  fwiCalcActual: number
+  dgrCalcActual: number
+  ffmcCalcForecast?: PredictionItem
+  dmcCalcForecast?: PredictionItem
+  dcCalcForecast?: PredictionItem
+  isiCalcForecast?: PredictionItem
+  buiCalcForecast?: PredictionItem
+  fwiCalcForecast?: PredictionItem
+  dgrCalcForecast?: PredictionItem
 
   // Forecast properties
   precipForecast?: PredictionItem
