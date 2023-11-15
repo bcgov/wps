@@ -26,7 +26,7 @@ COPY init_postgis /usr/share/scripts/patroni/
 RUN cat /usr/share/scripts/patroni/init_postgis >> /usr/share/scripts/patroni/post_init.sh
 RUN rm /usr/share/scripts/patroni/init_postgis
 
-RUN chmod a+rwx /etc/pgbackrest
+RUN mkdir -p /etc/pgbackrest && chmod a+rwx /etc/pgbackrest
 
 # Switch back to default user
 USER 1001
