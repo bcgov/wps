@@ -67,7 +67,7 @@ objects:
         type: Git
       strategy:
         dockerStrategy:
-          buildArgs:
+          env:
             - name: "OBJECT_STORE_SERVER"
               value: "${OBJECT_STORE_SERVER}"
             - name: "OBJECT_STORE_BUCKET"

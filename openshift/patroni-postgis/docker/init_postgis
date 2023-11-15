@@ -4,7 +4,7 @@ if [[ (! -z "$APP_USER") &&  (! -z "$APP_PASSWORD") && (! -z "$APP_DATABASE")]];
     psql "$1" -w -c "\c ${APP_DATABASE}" -c "CREATE EXTENSION IF NOT EXISTS postgis;"
 fi
 
-cat <<EOF | sudo tee /etc/pgbackrest.conf
+cat <<EOF | tee /etc/pgbackrest.conf
 [global]
 repo1-type=s3
 repo1-storage-verify-tls=n

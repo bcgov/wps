@@ -2,12 +2,6 @@
 # For details, see: https://github.com/bcgov/patroni-postgres-container/
 FROM image-registry.openshift-image-registry.svc:5000/bcgov/patroni-postgres:12.4-latest
 
-# The below must be supplied for a build
-ARG OBJECT_STORE_SERVER=server
-ARG OBJECT_STORE_BUCKET=bucket
-ARG OBJECT_STORE_USER_ID=uid
-ARG OBJECT_STORE_SECRET=sec
-
 ENV POSTGIS_MAJOR 3
 ENV POSTGIS_VERSION 3.3.4+dfsg-1.pgdg100+1
 
