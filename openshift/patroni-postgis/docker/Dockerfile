@@ -48,7 +48,6 @@ RUN mkdir -p /home/pgbackrest \
     process-max=2 \
     \
     [demo-cluster-1] \
-    pg1-path=/home/postgres/pgdata/pgroot/data \
     pg1-port=5432 \
     pg1-user=postgres" >> /home/pgbackrest/pgbackrest.conf
 
