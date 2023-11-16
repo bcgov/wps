@@ -27,7 +27,8 @@ RUN cat /usr/share/scripts/patroni/init_postgis >> /usr/share/scripts/patroni/po
 RUN rm /usr/share/scripts/patroni/init_postgis
 
 # configure pgbackrest
-RUN echo "[global] \
+RUN touch /home/pgbackrest/pgbackrest.conf \
+    && echo "[global] \
     repo1-type=s3 \
     repo1-storage-verify-tls=n \
     repo1-s3-endpoint=$OBJECT_STORE_SERVER \
@@ -48,8 +49,8 @@ RUN echo "[global] \
     [demo-cluster-1] \
     pg1-path=/home/postgres/pgdata/pgroot/data \
     pg1-port=5432 \
-    pg1-user=postgres" >> /etc/pgbackrest.conf
-
+    pg1-user=postgres" >> /home/pgbackrest/pgbackrest.conf \
+    && pgbackrest --config=/home/pgbackrest/pgbackrest.conf
 
 # Switch back to default user
 USER 1001
