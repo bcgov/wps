@@ -50,8 +50,7 @@ RUN mkdir -p /home/pgbackrest \
     [demo-cluster-1] \
     pg1-path=/home/postgres/pgdata/pgroot/data \
     pg1-port=5432 \
-    pg1-user=postgres" >> /home/pgbackrest/pgbackrest.conf \
-    && pgbackrest --config=/home/pgbackrest/pgbackrest.conf
+    pg1-user=postgres" >> /home/pgbackrest/pgbackrest.conf
 
 # Switch back to default user
 USER 1001
