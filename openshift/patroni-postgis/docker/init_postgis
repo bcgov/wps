@@ -5,3 +5,4 @@ if [[ (! -z "$APP_USER") &&  (! -z "$APP_PASSWORD") && (! -z "$APP_DATABASE")]];
 fi
 
 pgbackrest --config=/home/pgbackrest/pgbackrest.conf
+pgbackrest --pg1-path=/home/postgres/pgdata/pgroot/data
