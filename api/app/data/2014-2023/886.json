@@ -1,0 +1,30 @@
+{
+    "ffmc": 95.1132,
+    "isi": 16.6709,
+    "bui": 106.0547,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 886,
+        "name": "GOATHAVEN",
+        "lat": 49.6673,
+        "long": -115.2144444,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "ffmc": 91.9161,
+    "isi": 8.3879,
+    "bui": 84.6692,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 169,
+        "name": "UPPER FULTON",
+        "lat": 55.03395,
+        "long": -126.799667,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

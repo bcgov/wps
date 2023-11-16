@@ -1,0 +1,30 @@
+{
+    "ffmc": 94.3317,
+    "isi": 14.398,
+    "bui": 116.721,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 791,
+        "name": "CHERRY LAKE",
+        "lat": 49.1877778,
+        "long": -115.5416667,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

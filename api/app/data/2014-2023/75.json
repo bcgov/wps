@@ -1,0 +1,30 @@
+{
+    "ffmc": 93.6947,
+    "isi": 10.302,
+    "bui": 112.6374,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 75,
+        "name": "TOBA CAMP",
+        "lat": 50.571,
+        "long": -124.0771667,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

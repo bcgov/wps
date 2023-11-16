@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.7205,
+    "isi": 10.1356,
+    "bui": 82.5052,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 255,
+        "name": "LIKELY RS",
+        "lat": 52.615,
+        "long": -121.5133333,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

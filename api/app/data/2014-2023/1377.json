@@ -1,0 +1,24 @@
+{
+    "ffmc": 91.5358,
+    "isi": 9.0604,
+    "bui": 93.5426,
+    "years": [
+        2019,
+        2020,
+        2021,
+        2023
+    ],
+    "station": {
+        "code": 1377,
+        "name": "FORRESTKERR",
+        "lat": 56.7116389,
+        "long": -130.6783611,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

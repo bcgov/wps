@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.7826,
+    "isi": 9.7018,
+    "bui": 121.1451,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 838,
+        "name": "AKOKLI CREEK",
+        "lat": 49.4358,
+        "long": -116.7464,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

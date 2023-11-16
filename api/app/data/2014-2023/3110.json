@@ -1,0 +1,19 @@
+{
+    "ffmc": null,
+    "isi": null,
+    "bui": null,
+    "years": [],
+    "station": {
+        "code": 3110,
+        "name": "SPARWOOD",
+        "lat": 49.816667,
+        "long": -114.866667,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

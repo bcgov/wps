@@ -1,0 +1,21 @@
+{
+    "ffmc": 95.1895,
+    "isi": 12.1465,
+    "bui": 146.0393,
+    "years": [
+        2021
+    ],
+    "station": {
+        "code": 1260,
+        "name": "REDSTREAK",
+        "lat": 50.622876,
+        "long": -116.062786,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

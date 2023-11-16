@@ -1,0 +1,30 @@
+{
+    "ffmc": 93.393,
+    "isi": 12.2696,
+    "bui": 85.026,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 244,
+        "name": "WINDY MOUNTAIN",
+        "lat": 51.67,
+        "long": -120.65,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

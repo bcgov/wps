@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.2017,
+    "isi": 12.1843,
+    "bui": 98.0599,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 1144,
+        "name": "FORD MOUNTAIN",
+        "lat": 49.1040278,
+        "long": -121.6375278,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

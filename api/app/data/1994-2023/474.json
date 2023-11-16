@@ -1,0 +1,19 @@
+{
+    "ffmc": null,
+    "isi": null,
+    "bui": null,
+    "years": [],
+    "station": {
+        "code": 474,
+        "name": "FROTH-WIND",
+        "lat": 52.0105,
+        "long": -119.255017,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "ffmc": 93.6678,
+    "isi": 13.3492,
+    "bui": 160.8584,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 283,
+        "name": "BRENDA MINES",
+        "lat": 49.868417,
+        "long": -119.992517,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "ffmc": 93.7435,
+    "isi": 14.0218,
+    "bui": 107.1651,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 306,
+        "name": "FRENCH BAR",
+        "lat": 51.1774667,
+        "long": -122.2489333,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

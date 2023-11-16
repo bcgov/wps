@@ -1,0 +1,30 @@
+{
+    "ffmc": 91.7633,
+    "isi": 8.5691,
+    "bui": 104.1833,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 21,
+        "name": "WOSS CAMP",
+        "lat": 50.2131167,
+        "long": -126.60705,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

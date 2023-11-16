@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.1362,
+    "isi": 8.9844,
+    "bui": 74.7721,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 264,
+        "name": "PRAIRIE CREEK",
+        "lat": 52.3916667,
+        "long": -120.985,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

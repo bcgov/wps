@@ -1,0 +1,21 @@
+{
+    "ffmc": 94.8495,
+    "isi": 15.3335,
+    "bui": 115.3464,
+    "years": [
+        2023
+    ],
+    "station": {
+        "code": 2512,
+        "name": "RAFT",
+        "lat": 51.765,
+        "long": -119.6751,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

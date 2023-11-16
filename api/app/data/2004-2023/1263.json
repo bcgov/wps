@@ -1,0 +1,25 @@
+{
+    "ffmc": 94.4679,
+    "isi": 11.5186,
+    "bui": 82.389,
+    "years": [
+        2017,
+        2018,
+        2019,
+        2020,
+        2021
+    ],
+    "station": {
+        "code": 1263,
+        "name": "FIDELITY",
+        "lat": 51.234386,
+        "long": -117.681042,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

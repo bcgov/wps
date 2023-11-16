@@ -1,0 +1,21 @@
+{
+    "ffmc": 94.1334,
+    "isi": 10.239,
+    "bui": 77.815,
+    "years": [
+        2017
+    ],
+    "station": {
+        "code": 1262,
+        "name": "CARIBOU CORNER",
+        "lat": 51.025349,
+        "long": -118.15138,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

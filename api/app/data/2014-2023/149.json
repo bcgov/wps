@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.926,
+    "isi": 10.5202,
+    "bui": 85.6622,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 149,
+        "name": "BEAR LAKE",
+        "lat": 54.482433,
+        "long": -122.682917,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

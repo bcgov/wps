@@ -1,0 +1,24 @@
+{
+    "ffmc": 93.7521,
+    "isi": 11.5888,
+    "bui": 137.7982,
+    "years": [
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 1392,
+        "name": "MCNULTY EXT",
+        "lat": 49.5556944,
+        "long": -120.1732222,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

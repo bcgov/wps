@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.8238,
+    "isi": 13.1682,
+    "bui": 84.2205,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 127,
+        "name": "TUMBLER HUB",
+        "lat": 55.02736,
+        "long": -120.93405,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

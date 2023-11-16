@@ -1,0 +1,23 @@
+{
+    "ffmc": 91.0694,
+    "isi": 19.685,
+    "bui": 116.5744,
+    "years": [
+        2015,
+        2016,
+        2017
+    ],
+    "station": {
+        "code": 964,
+        "name": "HAINES JUNCTION FIRE yfs",
+        "lat": 60.77295,
+        "long": -137.576167,
+        "ecodivision_name": null,
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

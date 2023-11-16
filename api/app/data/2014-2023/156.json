@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.4754,
+    "isi": 10.751,
+    "bui": 71.2252,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 156,
+        "name": "SUSTUT",
+        "lat": 56.32873,
+        "long": -127.03425,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

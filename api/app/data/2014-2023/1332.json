@@ -1,0 +1,26 @@
+{
+    "ffmc": 94.6716,
+    "isi": 12.994,
+    "bui": 156.973,
+    "years": [
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 1332,
+        "name": "GRIZZLY EXT",
+        "lat": 49.27,
+        "long": -119.2202778,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

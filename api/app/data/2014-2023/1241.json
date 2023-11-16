@@ -1,0 +1,26 @@
+{
+    "ffmc": 94.9172,
+    "isi": 10.165,
+    "bui": 90.095,
+    "years": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021
+    ],
+    "station": {
+        "code": 1241,
+        "name": "VERMILLION CROSSING",
+        "lat": 51.023362,
+        "long": -115.978919,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

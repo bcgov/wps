@@ -1,0 +1,26 @@
+{
+    "ffmc": 94.6634,
+    "isi": 10.341,
+    "bui": 98.8374,
+    "years": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021
+    ],
+    "station": {
+        "code": 1242,
+        "name": "MCLEOD MEADOWS",
+        "lat": 50.76911,
+        "long": -115.95081,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

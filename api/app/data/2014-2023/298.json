@@ -1,0 +1,30 @@
+{
+    "ffmc": 94.5865,
+    "isi": 12.3882,
+    "bui": 229.0523,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 298,
+        "name": "FINTRY",
+        "lat": 50.2066667,
+        "long": -119.48,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "ffmc": 91.4035,
+    "isi": 6.5485,
+    "bui": 130.46,
+    "years": [
+        2023
+    ],
+    "station": {
+        "code": 2850,
+        "name": "FALL RIVER QD8",
+        "lat": 55.747217,
+        "long": -125.5661,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

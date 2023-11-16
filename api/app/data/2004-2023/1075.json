@@ -1,0 +1,34 @@
+{
+    "ffmc": 95.531,
+    "isi": 16.0087,
+    "bui": 158.5726,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 1075,
+        "name": "KOOCANUSA",
+        "lat": 49.0469444,
+        "long": -115.2252778,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

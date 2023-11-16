@@ -1,0 +1,21 @@
+{
+    "ffmc": 93.302,
+    "isi": 13.1474,
+    "bui": 79.1894,
+    "years": [
+        2023
+    ],
+    "station": {
+        "code": 2450,
+        "name": "BIGATTINI",
+        "lat": 49.4539,
+        "long": -115.9872,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "ffmc": 90.4029,
+    "isi": 6.0808,
+    "bui": 89.574,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 1066,
+        "name": "TS MCNABB",
+        "lat": 49.5855,
+        "long": -123.3872167,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

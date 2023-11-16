@@ -1,0 +1,30 @@
+{
+    "ffmc": 93.373,
+    "isi": 13.6888,
+    "bui": 138.3412,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 326,
+        "name": "PASKA LAKE",
+        "lat": 50.504,
+        "long": -120.674,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "ffmc": 92.8442,
+    "isi": 11.6604,
+    "bui": 101.5026,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 121,
+        "name": "PADDY",
+        "lat": 57.78181,
+        "long": -120.2368,
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

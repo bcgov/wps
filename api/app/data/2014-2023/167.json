@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.3684,
+    "isi": 9.7381,
+    "bui": 89.9176,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 167,
+        "name": "AUGIER LAKE",
+        "lat": 54.361883,
+        "long": -125.52535,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

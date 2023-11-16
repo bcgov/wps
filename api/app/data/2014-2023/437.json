@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.4889,
+    "isi": 13.6522,
+    "bui": 77.0161,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 437,
+        "name": "NOEL",
+        "lat": 55.29576,
+        "long": -120.48606,
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

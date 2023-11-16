@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.9622,
+    "isi": 11.5959,
+    "bui": 128.0857,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 1024,
+        "name": "SKOONKA",
+        "lat": 50.4386944,
+        "long": -121.5515,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

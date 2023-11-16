@@ -1,0 +1,22 @@
+{
+    "ffmc": 94.381,
+    "isi": 14.2974,
+    "bui": 145.1748,
+    "years": [
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 2170,
+        "name": "INKANEEP 2 EXT",
+        "lat": 49.116667,
+        "long": -119.3,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

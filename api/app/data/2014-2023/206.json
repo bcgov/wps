@@ -1,0 +1,30 @@
+{
+    "ffmc": 93.5071,
+    "isi": 12.0187,
+    "bui": 106.2854,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 206,
+        "name": "TAUTRI",
+        "lat": 52.5422222,
+        "long": -123.35,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

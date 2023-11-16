@@ -1,0 +1,27 @@
+{
+    "ffmc": 91.5996,
+    "isi": 7.8302,
+    "bui": 106.0998,
+    "years": [
+        2015,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 554,
+        "name": "CAPILANO GVRD",
+        "lat": 49.44,
+        "long": -123.097,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

@@ -1,0 +1,25 @@
+{
+    "ffmc": 85.715,
+    "isi": 3.7748,
+    "bui": 19.0906,
+    "years": [
+        2016,
+        2018,
+        2019,
+        2020,
+        2021
+    ],
+    "station": {
+        "code": 1199,
+        "name": "CLAYTON FALLS",
+        "lat": 52.279882,
+        "long": -126.890192,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "ffmc": 94.8228,
+    "isi": 11.8573,
+    "bui": 122.1368,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 388,
+        "name": "KETTLE 2",
+        "lat": 49.9599833,
+        "long": -118.6260333,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

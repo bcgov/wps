@@ -1,0 +1,30 @@
+{
+    "ffmc": 96.5699,
+    "isi": 16.8982,
+    "bui": 257.5568,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 394,
+        "name": "ROCK CREEK",
+        "lat": 49.052,
+        "long": -118.9366667,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

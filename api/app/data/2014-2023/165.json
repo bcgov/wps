@@ -1,0 +1,30 @@
+{
+    "ffmc": 93.5966,
+    "isi": 10.9578,
+    "bui": 109.4164,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 165,
+        "name": "MOOSE LAKE",
+        "lat": 53.07146,
+        "long": -125.41215,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

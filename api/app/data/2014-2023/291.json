@@ -1,0 +1,30 @@
+{
+    "ffmc": 93.4312,
+    "isi": 10.907,
+    "bui": 142.5498,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 291,
+        "name": "GLIMPSE",
+        "lat": 50.27045,
+        "long": -120.2883,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

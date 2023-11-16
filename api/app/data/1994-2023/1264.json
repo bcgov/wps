@@ -1,0 +1,22 @@
+{
+    "ffmc": 95.6162,
+    "isi": 13.1634,
+    "bui": 116.7679,
+    "years": [
+        2017,
+        2023
+    ],
+    "station": {
+        "code": 1264,
+        "name": "LOWER BEAVER",
+        "lat": 51.414879,
+        "long": -117.474091,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.239,
+    "isi": 9.073,
+    "bui": 55.6804,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 250,
+        "name": "HARBOUR LAKE",
+        "lat": 51.522667,
+        "long": -119.11335,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

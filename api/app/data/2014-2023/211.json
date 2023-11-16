@@ -1,0 +1,30 @@
+{
+    "ffmc": 93.7302,
+    "isi": 11.934,
+    "bui": 101.86,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 211,
+        "name": "NAZKO",
+        "lat": 52.9575,
+        "long": -123.5958,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "ffmc": 94.9458,
+    "isi": 15.0695,
+    "bui": 199.8879,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 334,
+        "name": "MCCUDDY",
+        "lat": 49.1483333,
+        "long": -119.415,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

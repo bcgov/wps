@@ -1,0 +1,30 @@
+{
+    "ffmc": 94.3025,
+    "isi": 14.7732,
+    "bui": 157.924,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 331,
+        "name": "ASHNOLA",
+        "lat": 49.13905,
+        "long": -120.1844,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

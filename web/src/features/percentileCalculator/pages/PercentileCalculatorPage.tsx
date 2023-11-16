@@ -27,8 +27,8 @@ const PercentileCalculatorPage = () => {
   const [stationCodes, setStationCodes] = useState<number[]>(codesFromQuery)
   const [timeRange, setTimeRange] = useState<number>(defaultTimeRange)
   const yearRange = {
-    start: yearWhenTheCalculationIsDone - timeRange,
-    end: yearWhenTheCalculationIsDone - 1
+    start: yearWhenTheCalculationIsDone - (timeRange - 1),
+    end: yearWhenTheCalculationIsDone
   }
 
   useEffect(() => {

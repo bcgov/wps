@@ -1,0 +1,30 @@
+{
+    "ffmc": 91.492,
+    "isi": 8.1764,
+    "bui": 100.5718,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 253,
+        "name": "CAHILTY",
+        "lat": 50.887883,
+        "long": -119.838317,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

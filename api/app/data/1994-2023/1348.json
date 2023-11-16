@@ -1,0 +1,21 @@
+{
+    "ffmc": 85.1498,
+    "isi": 2.3912,
+    "bui": 17.021,
+    "years": [
+        2020
+    ],
+    "station": {
+        "code": 1348,
+        "name": "KLINAKLINI",
+        "lat": 51.38002,
+        "long": -125.76953,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

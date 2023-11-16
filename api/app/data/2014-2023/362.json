@@ -1,0 +1,30 @@
+{
+    "ffmc": 93.977,
+    "isi": 12.0668,
+    "bui": 107.9684,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 362,
+        "name": "MABEL LAKE 2",
+        "lat": 50.3516667,
+        "long": -118.7733333,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

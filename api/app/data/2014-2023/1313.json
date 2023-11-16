@@ -1,0 +1,22 @@
+{
+    "ffmc": 90.3469,
+    "isi": 5.2208,
+    "bui": 33.659,
+    "years": [
+        2018,
+        2022
+    ],
+    "station": {
+        "code": 1313,
+        "name": "TETRAHEDRON",
+        "lat": 49.597854,
+        "long": -123.605129,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

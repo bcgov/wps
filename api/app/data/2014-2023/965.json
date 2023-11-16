@@ -1,0 +1,23 @@
+{
+    "ffmc": 91.745,
+    "isi": 10.8902,
+    "bui": 102.7704,
+    "years": [
+        2015,
+        2016,
+        2017
+    ],
+    "station": {
+        "code": 965,
+        "name": "IRON CREEK YFS",
+        "lat": 60.006933,
+        "long": -127.9276,
+        "ecodivision_name": null,
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

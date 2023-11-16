@@ -1,0 +1,30 @@
+{
+    "ffmc": 93.8074,
+    "isi": 11.3661,
+    "bui": 97.6612,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 873,
+        "name": "CRAWFORD",
+        "lat": 50.765,
+        "long": -117.9577778,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

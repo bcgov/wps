@@ -1,0 +1,23 @@
+{
+    "ffmc": 94.462,
+    "isi": 9.6328,
+    "bui": 92.504,
+    "years": [
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": 1240,
+        "name": "BOULDER CREEK",
+        "lat": 51.366431,
+        "long": -116.526437,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

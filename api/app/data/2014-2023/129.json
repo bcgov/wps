@@ -1,0 +1,30 @@
+{
+    "ffmc": 91.6416,
+    "isi": 8.6808,
+    "bui": 77.7889,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 129,
+        "name": "PINK MOUNTAIN",
+        "lat": 57.0875278,
+        "long": -122.5909722,
+        "ecodivision_name": "SUB-ARCTIC",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
+    }
+}

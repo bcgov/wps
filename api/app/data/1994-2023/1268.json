@@ -1,0 +1,27 @@
+{
+    "ffmc": 93.9701,
+    "isi": 13.2621,
+    "bui": 102.7446,
+    "years": [
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 1268,
+        "name": "VALEMOUNT AIRPORT",
+        "lat": 52.8597222,
+        "long": -119.3386111,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

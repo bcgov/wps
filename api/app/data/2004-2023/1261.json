@@ -1,0 +1,21 @@
+{
+    "ffmc": 94.7809,
+    "isi": 11.194,
+    "bui": 159.1092,
+    "years": [
+        2017
+    ],
+    "station": {
+        "code": 1261,
+        "name": "ONE MILE",
+        "lat": 51.022039,
+        "long": -118.207238,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

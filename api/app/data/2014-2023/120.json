@@ -1,0 +1,29 @@
+{
+    "ffmc": 92.666,
+    "isi": 12.0458,
+    "bui": 62.9188,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2023
+    ],
+    "station": {
+        "code": 120,
+        "name": "SILVER",
+        "lat": 57.373983,
+        "long": -121.407383,
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

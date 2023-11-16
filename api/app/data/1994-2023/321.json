@@ -1,0 +1,25 @@
+{
+    "ffmc": 89.6,
+    "isi": 5.67,
+    "bui": 55.04,
+    "years": [
+        1995,
+        1996,
+        1997,
+        1998,
+        1999
+    ],
+    "station": {
+        "code": 321,
+        "name": "GREENSTONE HUB",
+        "lat": 50.611267,
+        "long": -120.64155,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

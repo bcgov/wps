@@ -1,0 +1,24 @@
+{
+    "ffmc": 88.865,
+    "isi": 5.5792,
+    "bui": 88.7198,
+    "years": [
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 1383,
+        "name": "CHEF CREEK TEST",
+        "lat": 49.4038889,
+        "long": -124.7580556,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

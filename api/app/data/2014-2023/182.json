@@ -1,0 +1,30 @@
+{
+    "ffmc": 91.582,
+    "isi": 8.443,
+    "bui": 76.28,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 182,
+        "name": "GANOKWA",
+        "lat": 54.801233,
+        "long": -126.9483167,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

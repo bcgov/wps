@@ -1,0 +1,23 @@
+{
+    "ffmc": 93.9936,
+    "isi": 14.4004,
+    "bui": 86.1766,
+    "years": [
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": 1239,
+        "name": "SASKATCHEWAN CROSSING",
+        "lat": 51.968036,
+        "long": -116.714822,
+        "ecodivision_name": null,
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

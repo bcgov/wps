@@ -1,0 +1,21 @@
+{
+    "ffmc": 86.126,
+    "isi": 3.269,
+    "bui": null,
+    "years": [
+        2023
+    ],
+    "station": {
+        "code": 1911,
+        "name": "QD REXIN",
+        "lat": 49.07197,
+        "long": -118.975474,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

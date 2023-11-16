@@ -1,0 +1,33 @@
+{
+    "ffmc": 90.194,
+    "isi": 5.966,
+    "bui": 101.818,
+    "years": [
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 1093,
+        "name": "QUINSAM BASE FWX",
+        "lat": 50.0266,
+        "long": -125.2929,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

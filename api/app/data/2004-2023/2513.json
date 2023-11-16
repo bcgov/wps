@@ -1,0 +1,21 @@
+{
+    "ffmc": 94.6104,
+    "isi": 10.3357,
+    "bui": 136.0867,
+    "years": [
+        2023
+    ],
+    "station": {
+        "code": 2513,
+        "name": "NORTH ADAMS",
+        "lat": 51.3967,
+        "long": -119.4675,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

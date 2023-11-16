@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.386,
+    "isi": 13.3456,
+    "bui": 82.8128,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 222,
+        "name": "GASPARD",
+        "lat": 51.4516667,
+        "long": -122.6616667,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

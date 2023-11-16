@@ -1,0 +1,29 @@
+{
+    "ffmc": 89.1154,
+    "isi": 6.42,
+    "bui": 69.0016,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 956,
+        "name": "TS EFFINGHAM",
+        "lat": 49.17,
+        "long": -125.2825,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

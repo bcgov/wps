@@ -1,0 +1,25 @@
+{
+    "ffmc": 89.385,
+    "isi": 4.8514,
+    "bui": 49.4133,
+    "years": [
+        2016,
+        2017,
+        2018,
+        2020,
+        2021
+    ],
+    "station": {
+        "code": 1221,
+        "name": "MOUNT CAYLEY",
+        "lat": 50.0708,
+        "long": -123.2771,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

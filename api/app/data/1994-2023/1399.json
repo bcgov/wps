@@ -1,0 +1,23 @@
+{
+    "ffmc": 95.3522,
+    "isi": 29.3564,
+    "bui": 227.7522,
+    "years": [
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 1399,
+        "name": "MERRITT 2 HUB",
+        "lat": 50.1213889,
+        "long": -120.7441667,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

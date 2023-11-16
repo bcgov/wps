@@ -1,0 +1,22 @@
+{
+    "ffmc": 93.7894,
+    "isi": 14.6894,
+    "bui": 74.7774,
+    "years": [
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 1790,
+        "name": "CARIBOO CREEK",
+        "lat": 51.17534,
+        "long": -117.175674,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

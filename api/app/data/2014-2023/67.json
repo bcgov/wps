@@ -1,0 +1,30 @@
+{
+    "ffmc": 91.3322,
+    "isi": 8.7609,
+    "bui": 106.4629,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 67,
+        "name": "HAIG CAMP",
+        "lat": 49.3806,
+        "long": -121.5259667,
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

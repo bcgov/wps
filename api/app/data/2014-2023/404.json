@@ -1,0 +1,30 @@
+{
+    "ffmc": 94.5785,
+    "isi": 13.2822,
+    "bui": 117.9904,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 404,
+        "name": "SMALLWOOD",
+        "lat": 49.4966667,
+        "long": -117.4475,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

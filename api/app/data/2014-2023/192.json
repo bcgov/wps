@@ -1,0 +1,30 @@
+{
+    "ffmc": 92.24,
+    "isi": 8.809,
+    "bui": 62.593,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+    ],
+    "station": {
+        "code": 192,
+        "name": "MCGREGOR 2",
+        "lat": 53.9288889,
+        "long": -120.6356944,
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}
