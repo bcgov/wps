@@ -48,7 +48,7 @@ RUN mkdir -p /home/pgbackrest/log \
     process-max=2 \n \
     \n \
     [demo-cluster-1] \n \
-    pg1-port=5432 \n \" >> /home/pgbackrest/pgbackrest.conf
+    pg1-port=5432 \n" >> /home/pgbackrest/pgbackrest.conf
 
 # Switch back to default user
 USER 1001
