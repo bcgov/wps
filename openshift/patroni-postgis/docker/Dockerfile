@@ -27,7 +27,7 @@ RUN cat /usr/share/scripts/patroni/init_postgis >> /usr/share/scripts/patroni/po
 RUN rm /usr/share/scripts/patroni/init_postgis
 
 # configure pgbackrest
-RUN mkdir -p /home/pgbackrest \
+RUN mkdir -p /home/pgbackrest/log \
     && touch /home/pgbackrest/pgbackrest.conf \
     && echo "[global] \n \
     repo1-type=s3 \n \
@@ -48,8 +48,7 @@ RUN mkdir -p /home/pgbackrest \
     process-max=2 \n \
     \n \
     [demo-cluster-1] \n \
-    pg1-port=5432 \n \
-    pg1-user=postgres \n" >> /home/pgbackrest/pgbackrest.conf
+    pg1-port=5432 \n \" >> /home/pgbackrest/pgbackrest.conf
 
 # Switch back to default user
 USER 1001
