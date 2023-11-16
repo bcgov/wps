@@ -27,6 +27,21 @@ RUN cat /usr/share/scripts/patroni/init_postgis >> /usr/share/scripts/patroni/po
 RUN rm /usr/share/scripts/patroni/init_postgis
 
 RUN mkdir -p /etc/pgbackrest && chmod a+rwx /etc/pgbackrest
+RUN pgbackrest --stanza=demo-cluster-1 \
+    --repo-s3-endpoint=$OBJECT_STORE_SERVER \
+    --repo1-s3-key=$OBJECT_STORE_USER_ID \
+    --repo1-s3-key-secret=$OBJECT_STORE_SECRET \
+    --repo1-s3-bucket=$OBJECT_STORE_BUCKET \
+    --repo1-s3-region=$eu-west-3 \
+    --type=s3 backup \
+    --pg1-path=/home/postgres/pgdata/pgroot/data \
+    --pg1-port=5432 \
+    --pg1-user=postgres \
+    --repo1-path=/repo1 \
+    --repo1-retention-full=3 \
+    --process-max=2 \
+    --delta=y
+
 
 # Switch back to default user
 USER 1001

@@ -3,28 +3,3 @@ if [[ (! -z "$APP_USER") &&  (! -z "$APP_PASSWORD") && (! -z "$APP_DATABASE")]];
     echo "Loading PostGIS extensions into $APP_DATABASE"
     psql "$1" -w -c "\c ${APP_DATABASE}" -c "CREATE EXTENSION IF NOT EXISTS postgis;"
 fi
-
-cat <<EOF | tee /etc/pgbackrest.conf
-[global]
-repo1-type=s3
-repo1-storage-verify-tls=n
-repo1-s3-endpoint=${OBJECT_STORE_SERVER}
-repo1-s3-uri-style=path
-repo1-s3-bucket=${OBJECT_STORE_BUCKET}
-repo1-s3-key=${OBJECT_STORE_USER_ID}
-repo1-s3-key-secret=${OBJECT_STORE_SECRET}
-repo1-s3-region=eu-west-3
-
-repo1-path=/repo1
-repo1-retention-full=3
-start-fast=y
-log-level-console=info
-log-level-file=debug
-delta=y
-process-max=2
-
-[demo-cluster-1]
-pg1-path=/var/lib/postgresql/data
-pg1-port=5432
-pg1-user=postgres
-EOF
