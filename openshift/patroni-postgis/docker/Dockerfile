@@ -26,21 +26,30 @@ COPY init_postgis /usr/share/scripts/patroni/
 RUN cat /usr/share/scripts/patroni/init_postgis >> /usr/share/scripts/patroni/post_init.sh
 RUN rm /usr/share/scripts/patroni/init_postgis
 
-RUN mkdir -p /etc/pgbackrest && chmod a+rwx /etc/pgbackrest
-RUN pgbackrest --stanza=demo-cluster-1 \
-    --repo-s3-endpoint=$OBJECT_STORE_SERVER \
-    --repo1-s3-key=$OBJECT_STORE_USER_ID \
-    --repo1-s3-key-secret=$OBJECT_STORE_SECRET \
-    --repo1-s3-bucket=$OBJECT_STORE_BUCKET \
-    --repo1-s3-region=$eu-west-3 \
-    --type=s3 backup \
-    --pg1-path=/home/postgres/pgdata/pgroot/data \
-    --pg1-port=5432 \
-    --pg1-user=postgres \
-    --repo1-path=/repo1 \
-    --repo1-retention-full=3 \
-    --process-max=2 \
-    --delta=y
+RUN cat <<EOF | tee /etc/pgbackrest.conf
+[global]
+repo1-type=s3
+repo1-storage-verify-tls=n
+repo1-s3-endpoint=$OBJECT_STORE_SERVER
+repo1-s3-uri-style=path
+repo1-s3-bucket=$OBJECT_STORE_BUCKET
+repo1-s3-key=$OBJECT_STORE_USER_ID
+repo1-s3-key-secret=$OBJECT_STORE_SECRET
+repo1-s3-region=eu-west-3
+
+repo1-path=/repo1
+repo1-retention-full=3
+start-fast=y
+log-level-console=info
+log-level-file=debug
+delta=y
+process-max=2
+
+[demo-cluster-1]
+pg1-path=/home/postgres/pgdata/pgroot/data 
+pg1-port=5432
+pg1-user=postgres
+EOF
 
 
 # Switch back to default user
