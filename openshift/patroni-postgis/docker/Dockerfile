@@ -29,27 +29,27 @@ RUN rm /usr/share/scripts/patroni/init_postgis
 # configure pgbackrest
 RUN mkdir -p /home/pgbackrest \
     && touch /home/pgbackrest/pgbackrest.conf \
-    && echo "[global] \
-    repo1-type=s3 \
-    repo1-storage-verify-tls=n \
-    repo1-s3-endpoint=$OBJECT_STORE_SERVER \
-    repo1-s3-uri-style=path \
-    repo1-s3-bucket=$OBJECT_STORE_BUCKET \
-    repo1-s3-key=$OBJECT_STORE_USER_ID \
-    repo1-s3-key-secret=$OBJECT_STORE_SECRET \
-    repo1-s3-region=eu-west-3 \
-    \
-    repo1-path=/repo1 \
-    repo1-retention-full=3 \
-    start-fast=y \
-    log-level-console=info \
-    log-level-file=debug \
-    delta=y \
-    process-max=2 \
-    \
-    [demo-cluster-1] \
-    pg1-port=5432 \
-    pg1-user=postgres" >> /home/pgbackrest/pgbackrest.conf
+    && echo -e "[global] \n \
+    repo1-type=s3 \n \
+    repo1-storage-verify-tls=n \n \
+    repo1-s3-endpoint=$OBJECT_STORE_SERVER \n\
+    repo1-s3-uri-style=path \n\
+    repo1-s3-bucket=$OBJECT_STORE_BUCKET \n\
+    repo1-s3-key=$OBJECT_STORE_USER_ID \n \
+    repo1-s3-key-secret=$OBJECT_STORE_SECRET \n \
+    repo1-s3-region=eu-west-3 \n \
+    \n \
+    repo1-path=/repo1 \n \
+    repo1-retention-full=3 \n \
+    start-fast=y \n \
+    log-level-console=info \n \
+    log-level-file=debug \n \
+    delta=y \n \
+    process-max=2 \n \
+    \n \
+    [demo-cluster-1] \n \
+    pg1-port=5432 \n \
+    pg1-user=postgres \n" >> /home/pgbackrest/pgbackrest.conf
 
 # Switch back to default user
 USER 1001
