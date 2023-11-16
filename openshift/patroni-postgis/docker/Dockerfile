@@ -27,7 +27,8 @@ RUN cat /usr/share/scripts/patroni/init_postgis >> /usr/share/scripts/patroni/po
 RUN rm /usr/share/scripts/patroni/init_postgis
 
 # configure pgbackrest
-RUN touch /home/pgbackrest/pgbackrest.conf \
+RUN mkdir -p /home/pgbackrest \
+    && touch /home/pgbackrest/pgbackrest.conf \
     && echo "[global] \
     repo1-type=s3 \
     repo1-storage-verify-tls=n \
