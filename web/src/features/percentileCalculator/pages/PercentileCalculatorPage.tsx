@@ -79,7 +79,7 @@ const PercentileCalculatorPage = () => {
         />
 
         <ErrorBoundary>
-          <PercentileResults />
+          <PercentileResults timeRange={timeRange} />
         </ErrorBoundary>
       </Container>
     </main>

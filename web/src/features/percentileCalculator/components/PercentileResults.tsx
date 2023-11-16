@@ -19,6 +19,7 @@ const classes = {
 
 interface PercentileResultsProps {
   result: PercentilesResponse
+  timeRange: number
 }
 
 export const PercentileResults = React.memo(function _(props: PercentileResultsProps) {
@@ -26,7 +27,7 @@ export const PercentileResults = React.memo(function _(props: PercentileResultsP
   const stationResults = Object.entries(props.result.stations).map(([stationCode, stationResponse]) => {
     return (
       <GridItem key={stationCode} md lg>
-        <PercentileStationResultTable stationResponse={stationResponse} />
+        <PercentileStationResultTable stationResponse={stationResponse} timeRange={props.timeRange} />
       </GridItem>
     )
   })
@@ -59,7 +60,7 @@ const StyledResultTableContainer = styled('div')({
   marginTop: 15
 })
 
-const PercentileResultsWrapper: React.FC = () => {
+const PercentileResultsWrapper: React.FC<{ timeRange: number }> = props => {
   const { result, error } = useSelector(selectPercentiles)
 
   if (error) {
@@ -68,7 +69,7 @@ const PercentileResultsWrapper: React.FC = () => {
 
   if (!result) return null
 
-  return <PercentileResults result={result} />
+  return <PercentileResults result={result} timeRange={props.timeRange} />
 }
 
 export default PercentileResultsWrapper
