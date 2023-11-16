@@ -29,7 +29,7 @@ RUN rm /usr/share/scripts/patroni/init_postgis
 # configure pgbackrest
 RUN mkdir -p /home/pgbackrest \
     && touch /home/pgbackrest/pgbackrest.conf \
-    && echo -e "[global] \n \
+    && echo "[global] \n \
     repo1-type=s3 \n \
     repo1-storage-verify-tls=n \n \
     repo1-s3-endpoint=$OBJECT_STORE_SERVER \n\
