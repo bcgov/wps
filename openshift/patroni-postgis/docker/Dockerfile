@@ -73,5 +73,3 @@ RUN rm /usr/share/scripts/patroni/init_postgis
 
 USER postgres
 WORKDIR /home/postgres
-
-CMD ["/run/start_sshd.sh"]
