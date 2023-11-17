@@ -31,16 +31,16 @@ RUN mkdir -p -m 777 /var/log/pgbackrest \
 
 
 EXPOSE 5432 8008 2222
-ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 EDITOR=/usr/bin/editor
-ENV HOME=/home/postgres
-ENV SSHD_CONF_DIR=/home/postgres/ssh_config_template
-ENV START_SSHD=false
+# ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 EDITOR=/usr/bin/editor
+# ENV HOME=/home/postgres
+# ENV SSHD_CONF_DIR=/home/postgres/ssh_config_template
+# ENV START_SSHD=false
 
-ADD start_sshd.sh /run/
+# ADD start_sshd.sh /run/
 
-COPY ssh /ssh_conf_template
-ADD ssh/ssh_config /etc/ssh/ssh_config
-RUN chmod 777 /ssh_conf_template
+# COPY ssh /ssh_conf_template
+# ADD ssh/ssh_config /etc/ssh/ssh_config
+# RUN chmod 777 /ssh_conf_template
 
 RUN echo \ 
     "[global] \n \
