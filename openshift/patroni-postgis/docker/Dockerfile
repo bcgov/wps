@@ -55,7 +55,7 @@ RUN echo \
     [demo-cluster-1] \n \
     pg1-path=/home/postgres/pgdata/pgroot/data \
     pg1-port=5432 \n \
-    pg1-user=$APP_USER" >> /etc/pgbackrest/pgbackrest.conf
+    pg1-user=postgres" >> /etc/pgbackrest/pgbackrest.conf
 
 # Add the POSTGIS command to the end of the post_init script.
 COPY init_postgis /usr/share/scripts/patroni/
