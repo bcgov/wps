@@ -29,10 +29,6 @@ RUN mkdir -p -m 777 /var/log/pgbackrest \
     && chmod 777 /etc/pgbackrest/pgbackrest.conf \
     && chown postgres:postgres /etc/pgbackrest/pgbackrest.conf
 
-
-# configure pgbackrest
-RUN mkdir -p /home/pgbackrest/log \
-    && touch /home/pgbackrest/pgbackrest.conf
 RUN echo \ 
     "[global] \n \
     repo1-type=s3 \n \
