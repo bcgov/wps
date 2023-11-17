@@ -26,7 +26,7 @@ RUN mkdir -p -m 777 /var/log/pgbackrest \
     && mkdir -p /etc/pgbackrest \
     && mkdir -p /etc/pgbackrest/conf.d \
     && touch /etc/pgbackrest/pgbackrest.conf \
-    && chmod 640 /etc/pgbackrest/pgbackrest.conf \
+    && chmod 777 /etc/pgbackrest/pgbackrest.conf \
     && chown postgres:postgres /etc/pgbackrest/pgbackrest.conf
 
 
