@@ -13,7 +13,7 @@ PERCENTILE = 0.9
 NUMBER_OF_DECIMAL_POINT = 5  # for FWI values
 
 # this is the path to the parent folder containing years of BCWS historical data in csv format
-BASE = Path(R'/Users/breedwar/Downloads/BCWS_datamart_historical_wx_obs')
+BASE = Path(R'/path/to/csv/parent/BCWS_datamart_historical_wx_obs')
 
 def main():
     """ The main entrypoint for pre-generating json daily summaries. """
