@@ -7,7 +7,7 @@ import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Point
 from pathlib import Path
-from scripts.calculate_percentile_offline import load_all_csv_to_dataframe
+from typing import Generator
 
 ECODIVISIONS = R'app/data/ERC_ECODIV_polygon/ERC_ECODIV_polygon.shp'
 CORE_SEASONS = R'app/data/ecodivisions_core_seasons.json'
@@ -70,6 +70,22 @@ def export_stations_to_json(weather_stations: list, output_path: str):
     with open(output_path, 'w') as json_file:
         # Dump json with an indent making it more human-readable.
         json.dump({'weather_stations': weather_stations}, json_file, indent=2)
+
+def load_all_csv_to_dataframe(all_csv: Generator, filter_dailies:bool = False) -> pd.DataFrame:
+    dfs = []
+
+    for csv in all_csv:
+        df = pd.read_csv(csv)
+
+        if filter_dailies:
+            # DATE_TIME is provided in PST (GMT-8) and does not recognize DST. 
+            # Daily records will therefor always show up as “YYYYMMDD12”
+            df = df[df['DATE_TIME'].astype(str).str.endswith('12')]
+        dfs.append(df)
+
+    all_dailies_df = pd.concat(dfs, ignore_index=True)
+
+    return all_dailies_df
 
 def generate_station_json(input_path: str) -> str:
     base_path = Path(input_path)

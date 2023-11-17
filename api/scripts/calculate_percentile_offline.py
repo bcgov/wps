@@ -3,8 +3,7 @@ import os
 import json
 import pandas as pd
 from pathlib import Path
-from scripts.station_csv_to_json import generate_station_json
-from typing import Generator
+from scripts.station_csv_to_json import generate_station_json, load_all_csv_to_dataframe
 
 
 RECENT_YEAR = 2023  # the most recent year that has the core fire season recorded
@@ -14,7 +13,7 @@ PERCENTILE = 0.9
 NUMBER_OF_DECIMAL_POINT = 5  # for FWI values
 
 # this is the path to the parent folder containing years of BCWS historical data in csv format
-BASE = Path(R'/path/to/csv/parent/BCWS_datamart_historical_wx_obs')
+BASE = Path(R'/Users/breedwar/Downloads/BCWS_datamart_historical_wx_obs')
 
 def main():
     """ The main entrypoint for pre-generating json daily summaries. """
@@ -157,23 +156,6 @@ def get_years_for_valid_fwi_values(df: pd.DataFrame) -> list:
     data_years.sort()
 
     return data_years
-
-
-def load_all_csv_to_dataframe(all_csv: Generator, filter_dailies:bool = False) -> pd.DataFrame:
-    dfs = []
-
-    for csv in all_csv:
-        df = pd.read_csv(csv)
-
-        if filter_dailies:
-            # DATE_TIME is provided in PST (GMT-8) and does not recognize DST. 
-            # Daily records will therefor always show up as “YYYYMMDD12”
-            df = df[df['DATE_TIME'].astype(str).str.endswith('12')]
-        dfs.append(df)
-
-    all_dailies_df = pd.concat(dfs, ignore_index=True)
-
-    return all_dailies_df
 
 if __name__ == '__main__':
     main()
