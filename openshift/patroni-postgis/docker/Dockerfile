@@ -41,8 +41,6 @@ ADD start_sshd.sh /run/
 COPY ssh /ssh_conf_template
 ADD ssh/ssh_config /etc/ssh/ssh_config
 RUN chmod 777 /ssh_conf_template
-USER postgres
-WORKDIR /home/postgres
 
 RUN echo \ 
     "[global] \n \
@@ -72,5 +70,8 @@ RUN echo \
 COPY init_postgis /usr/share/scripts/patroni/
 RUN cat /usr/share/scripts/patroni/init_postgis >> /usr/share/scripts/patroni/post_init.sh
 RUN rm /usr/share/scripts/patroni/init_postgis
+
+USER postgres
+WORKDIR /home/postgres
 
 ENTRYPOINT ["/run/start_sshd.sh"]
