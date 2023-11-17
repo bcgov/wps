@@ -3,7 +3,8 @@ import os
 import json
 import pandas as pd
 from pathlib import Path
-from scripts.station_csv_to_json import load_all_csv_to_dataframe
+from scripts.station_csv_to_json import generate_station_json
+from typing import Generator
 
 
 RECENT_YEAR = 2023  # the most recent year that has the core fire season recorded
@@ -12,17 +13,20 @@ RANGES = [(RECENT_YEAR - 29, RECENT_YEAR), (RECENT_YEAR - 19, RECENT_YEAR),
 PERCENTILE = 0.9
 NUMBER_OF_DECIMAL_POINT = 5  # for FWI values
 
-BASE = Path(R'/path/to/parent/BCWS_datamart_historical_wx_obs')
+# this is the path to the parent folder containing years of BCWS historical data in csv format
+BASE = Path(R'/path/to/csv/parent/BCWS_datamart_historical_wx_obs')
 
 def main():
     """ The main entrypoint for pre-generating json daily summaries. """
+    station_json = generate_station_json(BASE)
+    
     wx_obs_csv_list = BASE.rglob('*OBS.csv')
     df = load_all_csv_to_dataframe(wx_obs_csv_list, filter_dailies=True)
 
     print('Split dates into multiple columns...')
     split_dates_into_multiple_cols(df)
 
-    stations = get_stations()
+    stations = get_stations(station_json)
 
     for start_year, end_year in RANGES:
         year_range = list(range(start_year, end_year + 1))
@@ -59,7 +63,7 @@ def main():
 
         print('--- Done creating data under {} folder ---'.format(folder_name))
 
-def create_null_summary(station, year_range):
+def create_null_summary(station, year_range: list):
     """ Create an empty summary """
     return {
         'ffmc': None,
@@ -79,19 +83,19 @@ def dump_summary_in_json(folder_name: str, station_code: int, summary: dict):
 
 def get_output_foldername(start_year: int, end_year: int) -> str:
     """ Create an output folder and return its name """
-    folder_name = "api/app/data/{}-{}".format(start_year, end_year)
+    folder_name = "app/data/{}-{}".format(start_year, end_year)
     if not os.path.exists(folder_name):
         os.mkdir(folder_name)
     return folder_name
 
 
-def get_stations() -> list:
+def get_stations(station_json_path: str) -> list:
     """ Load stations from json """
-    with open('api/app/data/weather_stations.json') as file_handle:
+    with open(station_json_path) as file_handle:
         return json.load(file_handle)['weather_stations']
 
 
-def get_core_fire_season(station) -> dict:
+def get_core_fire_season(station: dict) -> dict:
     """ Read the core fire season and return them in dict """
     return {
         'start_month': int(station['core_season']['start_month']),
@@ -101,7 +105,7 @@ def get_core_fire_season(station) -> dict:
     }
 
 
-def split_dates_into_multiple_cols(df):
+def split_dates_into_multiple_cols(df: pd.DataFrame):
     """ Turn weather_date into datetime type then create 3 columns, year, month, and day """
     df['DATE_TIME'] = df['DATE_TIME'].apply(str)
     df['year'] = df['DATE_TIME'].apply(lambda x: int(x[:4]))
@@ -109,12 +113,12 @@ def split_dates_into_multiple_cols(df):
     df['day'] = df['DATE_TIME'].apply(lambda x: int(x[6:]))
 
 
-def grab_data_in_particular_year_range(df, year_range: list) -> pd.DataFrame:
+def grab_data_in_particular_year_range(df:pd.DataFrame, year_range: list) -> pd.DataFrame:
     """ Grab data recorded between start_year and end_year. """
     return df[df['year'].isin(year_range)]
 
 
-def remove_data_outside_fire_season(df, season: dict):
+def remove_data_outside_fire_season(df: pd.DataFrame, season: dict):
     """ Remove data recorded outside of fire season. """
     outside_month = (df['month'] < season['start_month']) | (
         df['month'] > season['end_month'])
@@ -129,7 +133,7 @@ def remove_data_outside_fire_season(df, season: dict):
     df.drop(df[after_end].index, inplace=True)
 
 
-def calculate_percentile(df, percentile: float) -> dict:
+def calculate_percentile(df: pd.DataFrame, percentile: float) -> dict:
     """ Calculate percentile """
     ffmc = df[df['FINE_FUEL_MOISTURE_CODE'].notnull()]['FINE_FUEL_MOISTURE_CODE'].quantile(percentile)
     bui = df[df['BUILDUP_INDEX'].notnull()]['BUILDUP_INDEX'].quantile(percentile)
@@ -142,7 +146,7 @@ def calculate_percentile(df, percentile: float) -> dict:
     return {'ffmc': ffmc, 'bui': bui, 'isi': isi}
 
 
-def get_years_for_valid_fwi_values(df) -> list:
+def get_years_for_valid_fwi_values(df: pd.DataFrame) -> list:
     """ List each year that is sorted """
     ffmc_data_years = df[df['FINE_FUEL_MOISTURE_CODE'].notnull()].year.unique().tolist()
     bui_data_years = df[df['BUILDUP_INDEX'].notnull()].year.unique().tolist()
@@ -154,6 +158,22 @@ def get_years_for_valid_fwi_values(df) -> list:
 
     return data_years
 
+
+def load_all_csv_to_dataframe(all_csv: Generator, filter_dailies:bool = False) -> pd.DataFrame:
+    dfs = []
+
+    for csv in all_csv:
+        df = pd.read_csv(csv)
+
+        if filter_dailies:
+            # DATE_TIME is provided in PST (GMT-8) and does not recognize DST. 
+            # Daily records will therefor always show up as “YYYYMMDD12”
+            df = df[df['DATE_TIME'].astype(str).str.endswith('12')]
+        dfs.append(df)
+
+    all_dailies_df = pd.concat(dfs, ignore_index=True)
+
+    return all_dailies_df
 
 if __name__ == '__main__':
     main()
