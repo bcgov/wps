@@ -30,7 +30,7 @@ RUN mkdir -p -m 777 /var/log/pgbackrest \
     && chown postgres:postgres /etc/pgbackrest/pgbackrest.conf
 
 
-EXPOSE 5432 8008 2222
+# EXPOSE 5432 8008 2222
 # ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 EDITOR=/usr/bin/editor
 # ENV HOME=/home/postgres
 # ENV SSHD_CONF_DIR=/home/postgres/ssh_config_template
