@@ -58,5 +58,5 @@ COPY init_postgis /usr/share/scripts/patroni/
 RUN cat /usr/share/scripts/patroni/init_postgis >> /usr/share/scripts/patroni/post_init.sh
 RUN rm /usr/share/scripts/patroni/init_postgis
 
-# Switch back to default user
-USER 1001
+USER postgres
+WORKDIR /home/postgres
