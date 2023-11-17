@@ -21,15 +21,20 @@ RUN apt-get update \
     pgbackrest \
     && rm -rf /var/lib/apt/lists/*
 
-# Add the POSTGIS command to the end of the post_init script.
-COPY init_postgis /usr/share/scripts/patroni/
-RUN cat /usr/share/scripts/patroni/init_postgis >> /usr/share/scripts/patroni/post_init.sh
-RUN rm /usr/share/scripts/patroni/init_postgis
+RUN mkdir -p -m 777 /var/log/pgbackrest \
+    && chown postgres:postgres /var/log/pgbackrest \
+    && mkdir -p /etc/pgbackrest \
+    && mkdir -p /etc/pgbackrest/conf.d \
+    && touch /etc/pgbackrest/pgbackrest.conf \
+    && chmod 640 /etc/pgbackrest/pgbackrest.conf \
+    && chown postgres:postgres /etc/pgbackrest/pgbackrest.conf
+
 
 # configure pgbackrest
 RUN mkdir -p /home/pgbackrest/log \
-    && touch /home/pgbackrest/pgbackrest.conf \
-    && echo "[global] \n \
+    && touch /home/pgbackrest/pgbackrest.conf
+RUN echo \ 
+    "[global] \n \
     repo1-type=s3 \n \
     repo1-storage-verify-tls=n \n \
     repo1-s3-endpoint=$OBJECT_STORE_SERVER \n\
@@ -48,7 +53,14 @@ RUN mkdir -p /home/pgbackrest/log \
     process-max=2 \n \
     \n \
     [demo-cluster-1] \n \
-    pg1-port=5432 \n" >> /home/pgbackrest/pgbackrest.conf
+    pg1-path=/home/postgres/pgdata/pgroot/data \
+    pg1-port=5432 \n \
+    pg1-user=$APP_USER" >> /etc/pgbackrest/pgbackrest.conf
+
+# Add the POSTGIS command to the end of the post_init script.
+COPY init_postgis /usr/share/scripts/patroni/
+RUN cat /usr/share/scripts/patroni/init_postgis >> /usr/share/scripts/patroni/post_init.sh
+RUN rm /usr/share/scripts/patroni/init_postgis
 
 # Switch back to default user
 USER 1001
