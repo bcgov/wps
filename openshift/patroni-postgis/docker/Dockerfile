@@ -18,7 +18,7 @@ RUN apt-get update \
     \
     postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR=$POSTGIS_VERSION \
     postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR-scripts \
-    pgbackrest \
+    # pgbackrest \
     && rm -rf /var/lib/apt/lists/*
 
 # RUN mkdir -p -m 777 /var/log/pgbackrest \
