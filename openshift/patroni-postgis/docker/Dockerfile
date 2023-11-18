@@ -21,13 +21,13 @@ RUN apt-get update \
     pgbackrest \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p -m 777 /var/log/pgbackrest \
-    && chown postgres:postgres /var/log/pgbackrest \
-    && mkdir -p /etc/pgbackrest \
-    && mkdir -p /etc/pgbackrest/conf.d \
-    && touch /etc/pgbackrest/pgbackrest.conf \
-    && chmod 777 /etc/pgbackrest/pgbackrest.conf \
-    && chown postgres:postgres /etc/pgbackrest/pgbackrest.conf
+# RUN mkdir -p -m 777 /var/log/pgbackrest \
+#     && chown postgres:postgres /var/log/pgbackrest \
+#     && mkdir -p /etc/pgbackrest \
+#     && mkdir -p /etc/pgbackrest/conf.d \
+#     && touch /etc/pgbackrest/pgbackrest.conf \
+#     && chmod 777 /etc/pgbackrest/pgbackrest.conf \
+#     && chown postgres:postgres /etc/pgbackrest/pgbackrest.conf
 
 
 # EXPOSE 5432 8008 2222
