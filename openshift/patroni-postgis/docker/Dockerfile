@@ -18,7 +18,7 @@ RUN apt-get update \
     \
     postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR=$POSTGIS_VERSION \
     postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR-scripts \
-    # pgbackrest \
+    pgbackrest \
     && rm -rf /var/lib/apt/lists/*
 
 # Add the POSTGIS command to the end of the post_init script.
