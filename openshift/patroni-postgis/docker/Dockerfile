@@ -21,6 +21,14 @@ RUN apt-get update \
     pgbackrest \
     && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir -p -m 777 /var/log/pgbackrest \
+    && chown postgres:postgres /var/log/pgbackrest \
+    && mkdir -p /etc/pgbackrest \
+    && mkdir -p /etc/pgbackrest/conf.d \
+    && touch /etc/pgbackrest/pgbackrest.conf \
+    && chmod 777 /etc/pgbackrest/pgbackrest.conf \
+    && chown postgres:postgres /etc/pgbackrest/pgbackrest.conf
+
 # Add the POSTGIS command to the end of the post_init script.
 COPY init_postgis /usr/share/scripts/patroni/
 RUN cat /usr/share/scripts/patroni/init_postgis >> /usr/share/scripts/patroni/post_init.sh
