@@ -65,7 +65,7 @@ RUN echo "[global] \n \
     process-max=2 \n \
     \n \
     [demo-cluster-1] \n \
-    pg1-port=5432 \n" >> /home/pgbackrest/pgbackrest.conf
+    pg1-port=5432 \n" >> /etc/pgbackrest/pgbackrest.conf
 
 # Switch back to default user
 USER 1001
