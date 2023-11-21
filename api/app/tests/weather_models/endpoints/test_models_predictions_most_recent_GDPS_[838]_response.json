@@ -13,8 +13,8 @@
                     "end_month": 8,
                     "end_day": 31
                 },
-                "elevation": 821,
-                "wfwx_station_uuid": "",
+                "elevation": null,
+                "wfwx_station_uuid": null,
                 "zone_code": null
             },
             "model_runs": [
