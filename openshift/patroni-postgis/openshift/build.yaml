@@ -76,6 +76,8 @@ objects:
               value: "${OBJECT_STORE_USER_ID}"
             - name: "OBJECT_STORE_SECRET"
               value: "${OBJECT_STORE_SECRET}"
+            - name: PATRONI_POSTGRESQL_DATA_DIR
+              value: "${PATRONI_POSTGRESQL_DATA_DIR}"
         type: Docker
       triggers:
         - type: ConfigChange
