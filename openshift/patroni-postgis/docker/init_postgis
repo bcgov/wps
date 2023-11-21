@@ -8,5 +8,5 @@ if [[ (! -z "$APP_USER") &&  (! -z "$APP_PASSWORD") && (! -z "$APP_DATABASE") &&
     echo "Restarting postgres to init config"
     pg_ctl restart -D /home/postgres/pgdata/pgroot/data
     echo "Creating pgbackrest stanza"
-    pgbackrest --stanza=$NAME-cluster-1 --pg1-path=/home/postgres/pgdata/pgroot/data --pg1-port=5432 stanza-create
+    pgbackrest --stanza="$NAME-cluster-1" --pg1-path=/home/postgres/pgdata/pgroot/data --pg1-port=5432 stanza-create
 fi
