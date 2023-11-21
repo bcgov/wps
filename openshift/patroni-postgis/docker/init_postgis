@@ -1,5 +1,5 @@
 
-if [[ (! -z "$APP_USER") &&  (! -z "$APP_PASSWORD") && (! -z "$APP_DATABASE")]]; then
+if [[ (! -z "$APP_USER") &&  (! -z "$APP_PASSWORD") && (! -z "$APP_DATABASE") && (! -z "$NAME")]]; then
     echo "Initializing archive mode for pgbackrest"
     psql -c "alter system set archive_mode=on;"
     psql -c "alter system set archive_command=pgbackrest --stanza=demo-cluster-1 archive-push '%p';"
@@ -8,5 +8,5 @@ if [[ (! -z "$APP_USER") &&  (! -z "$APP_PASSWORD") && (! -z "$APP_DATABASE")]];
     echo "Restarting postgres to init config"
     pg_ctl restart -D /home/postgres/pgdata/pgroot/data
     echo "Creating pgbackrest stanza"
-    pgbackrest --stanza=demo-cluster-1 stanza-create
+    pgbackrest --stanza=$NAME-cluster-1 --pg1-path=/home/postgres/pgdata/pgroot/data --pg1-port=5432 stanza-create
 fi

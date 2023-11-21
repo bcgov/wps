@@ -62,11 +62,7 @@ RUN echo "[global] \n \
     log-level-console=info \n \
     log-level-file=debug \n \
     delta=y \n \
-    process-max=2 \n \
-    \n \
-    [demo-cluster-1] \n \
-    pg1-path=/home/postgres/pgdata/pgroot/data \n \
-    pg1-port=5432 \n" >> /etc/pgbackrest/pgbackrest.conf
+    process-max=2 \n" >> /etc/pgbackrest/pgbackrest.conf
 
 # Switch back to default user
 USER 1001
