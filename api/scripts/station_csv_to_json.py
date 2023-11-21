@@ -58,7 +58,8 @@ def process_stations(station_df: pd.DataFrame, ecodivisions: gpd.GeoDataFrame, c
             "lat": row['LATITUDE'],
             "long": row['LONGITUDE'],
             "ecodivision_name": ecodivision_name,
-            "core_season": core_season
+            "core_season": core_season,
+            "elevation": int(row['ELEVATION_M'])
         })
 
     # Order stations by name.

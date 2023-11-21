@@ -1,6 +1,20 @@
 {
   "weather_stations": [
     {
+      "code": 3090,
+      "name": "ADAMS LAKE SOUTH PRECIP",
+      "lat": 50.961943,
+      "long": -119.68793,
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      },
+      "elevation": 449
+    },
+    {
       "code": 322,
       "name": "AFTON",
       "lat": 50.6733333,
@@ -11,7 +25,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 780
     },
     {
       "code": 838,
@@ -24,7 +39,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 821
     },
     {
       "code": 209,
@@ -37,7 +53,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 791
     },
     {
       "code": 317,
@@ -50,7 +67,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1215
     },
     {
       "code": 213,
@@ -63,7 +81,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1096
     },
     {
       "code": 977,
@@ -76,7 +95,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 630
     },
     {
       "code": 1275,
@@ -89,7 +109,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1414
     },
     {
       "code": 331,
@@ -102,7 +123,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1683
     },
     {
       "code": 302,
@@ -115,7 +137,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1065
     },
     {
       "code": 111,
@@ -128,7 +151,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 729
     },
     {
       "code": 167,
@@ -141,7 +165,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 918
     },
     {
       "code": 836,
@@ -154,7 +179,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 855
     },
     {
       "code": 503,
@@ -167,7 +193,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 2262
     },
     {
       "code": 221,
@@ -180,7 +207,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1666
     },
     {
       "code": 149,
@@ -193,7 +221,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 715
     },
     {
       "code": 37,
@@ -206,7 +235,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 121
     },
     {
       "code": 390,
@@ -219,7 +249,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 807
     },
     {
       "code": 175,
@@ -232,7 +263,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 858
     },
     {
       "code": 432,
@@ -245,7 +277,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 388
     },
     {
       "code": 228,
@@ -258,7 +291,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1006
     },
     {
       "code": 267,
@@ -271,7 +305,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1469
     },
     {
       "code": 868,
@@ -284,7 +319,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1091
     },
     {
       "code": 1040,
@@ -297,7 +333,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 561
     },
     {
       "code": 262,
@@ -310,7 +347,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1355
     },
     {
       "code": 2450,
@@ -323,7 +361,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1540
     },
     {
       "code": 148,
@@ -336,7 +375,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1126
     },
     {
       "code": 866,
@@ -349,7 +389,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 861
     },
     {
       "code": 1108,
@@ -362,7 +403,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 684
     },
     {
       "code": 113,
@@ -375,7 +417,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 609
     },
     {
       "code": 1339,
@@ -388,7 +431,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 19
     },
     {
       "code": 1240,
@@ -401,7 +445,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1275
     },
     {
       "code": 193,
@@ -414,7 +459,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 945
     },
     {
       "code": 56,
@@ -427,7 +473,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 121
     },
     {
       "code": 445,
@@ -440,7 +487,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 730
     },
     {
       "code": 283,
@@ -453,7 +501,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1476
     },
     {
       "code": 865,
@@ -466,7 +515,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 930
     },
     {
       "code": 181,
@@ -479,7 +529,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 830
     },
     {
       "code": 253,
@@ -492,7 +543,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1543
     },
     {
       "code": 554,
@@ -505,7 +557,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 400
     },
     {
       "code": 1790,
@@ -518,7 +571,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1529
     },
     {
       "code": 1262,
@@ -531,7 +585,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1561
     },
     {
       "code": 199,
@@ -544,7 +599,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 866
     },
     {
       "code": 59,
@@ -557,7 +613,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 30
     },
     {
       "code": 429,
@@ -570,7 +627,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 274
     },
     {
       "code": 1283,
@@ -583,7 +641,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 595
     },
     {
       "code": 1383,
@@ -596,7 +655,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 456
     },
     {
       "code": 791,
@@ -609,7 +669,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1372
     },
     {
       "code": 189,
@@ -622,7 +683,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 814
     },
     {
       "code": 832,
@@ -635,7 +697,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1100
     },
     {
       "code": 1199,
@@ -648,7 +711,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1275
     },
     {
       "code": 239,
@@ -661,7 +725,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 440
     },
     {
       "code": 232,
@@ -674,7 +739,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1122
     },
     {
       "code": 556,
@@ -687,7 +753,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 430
     },
     {
       "code": 433,
@@ -700,7 +767,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 500
     },
     {
       "code": 426,
@@ -713,7 +781,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 996
     },
     {
       "code": 873,
@@ -726,7 +795,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 887
     },
     {
       "code": 352,
@@ -739,7 +809,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1286
     },
     {
       "code": 292,
@@ -752,7 +823,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 330
     },
     {
       "code": 1203,
@@ -765,7 +837,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1657
     },
     {
       "code": 108,
@@ -778,7 +851,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 800
     },
     {
       "code": 251,
@@ -791,7 +865,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1170
     },
     {
       "code": 421,
@@ -804,7 +879,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1608
     },
     {
       "code": 905,
@@ -817,7 +893,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 757
     },
     {
       "code": 385,
@@ -830,7 +907,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1376
     },
     {
       "code": 243,
@@ -843,7 +921,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 631
     },
     {
       "code": 170,
@@ -856,7 +935,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1089
     },
     {
       "code": 391,
@@ -869,7 +949,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1338
     },
     {
       "code": 438,
@@ -882,7 +963,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 437
     },
     {
       "code": 412,
@@ -895,7 +977,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 775
     },
     {
       "code": 425,
@@ -908,7 +991,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1190
     },
     {
       "code": 2850,
@@ -921,7 +1005,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 963
     },
     {
       "code": 383,
@@ -934,7 +1019,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 790
     },
     {
       "code": 1263,
@@ -947,7 +1033,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1308
     },
     {
       "code": 298,
@@ -960,7 +1047,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 670
     },
     {
       "code": 440,
@@ -973,7 +1061,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 731
     },
     {
       "code": 1029,
@@ -986,7 +1075,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 865
     },
     {
       "code": 418,
@@ -999,7 +1089,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1311
     },
     {
       "code": 1144,
@@ -1012,7 +1103,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 247
     },
     {
       "code": 1377,
@@ -1025,7 +1117,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 276
     },
     {
       "code": 599,
@@ -1038,7 +1131,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 384
     },
     {
       "code": 146,
@@ -1051,7 +1145,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 750
     },
     {
       "code": 1375,
@@ -1064,7 +1159,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 305
     },
     {
       "code": 306,
@@ -1077,7 +1173,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1320
     },
     {
       "code": 474,
@@ -1090,7 +1187,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 2149
     },
     {
       "code": 182,
@@ -1103,7 +1201,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 844
     },
     {
       "code": 222,
@@ -1116,7 +1215,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1675
     },
     {
       "code": 227,
@@ -1129,7 +1229,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1081
     },
     {
       "code": 291,
@@ -1142,7 +1243,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1381
     },
     {
       "code": 401,
@@ -1155,7 +1257,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1098
     },
     {
       "code": 886,
@@ -1168,7 +1271,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1051
     },
     {
       "code": 3191,
@@ -1181,7 +1285,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 957
     },
     {
       "code": 379,
@@ -1194,7 +1299,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 800
     },
     {
       "code": 919,
@@ -1207,7 +1313,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1333
     },
     {
       "code": 270,
@@ -1220,7 +1327,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1873
     },
     {
       "code": 124,
@@ -1233,7 +1341,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 768
     },
     {
       "code": 392,
@@ -1246,7 +1355,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 630
     },
     {
       "code": 161,
@@ -1259,7 +1369,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 944
     },
     {
       "code": 321,
@@ -1272,7 +1383,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1800
     },
     {
       "code": 1332,
@@ -1285,7 +1397,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1520
     },
     {
       "code": 309,
@@ -1298,7 +1411,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1205
     },
     {
       "code": 904,
@@ -1311,7 +1425,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 47
     },
     {
       "code": 67,
@@ -1324,7 +1439,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 38
     },
     {
       "code": 964,
@@ -1337,7 +1453,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 610
     },
     {
       "code": 250,
@@ -1350,7 +1467,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1525
     },
     {
       "code": 118,
@@ -1363,7 +1481,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 598
     },
     {
       "code": 187,
@@ -1376,7 +1495,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 615
     },
     {
       "code": 201,
@@ -1389,7 +1509,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1179
     },
     {
       "code": 654,
@@ -1402,7 +1523,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 961
     },
     {
       "code": 1349,
@@ -1415,7 +1537,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1481
     },
     {
       "code": 93,
@@ -1428,7 +1551,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 21
     },
     {
       "code": 230,
@@ -1441,7 +1565,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 701
     },
     {
       "code": 162,
@@ -1454,7 +1579,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 608
     },
     {
       "code": 343,
@@ -1467,7 +1593,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 838
     },
     {
       "code": 132,
@@ -1480,7 +1607,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 704
     },
     {
       "code": 876,
@@ -1493,7 +1621,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1261
     },
     {
       "code": 145,
@@ -1506,7 +1635,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 680
     },
     {
       "code": 2170,
@@ -1519,7 +1649,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1406
     },
     {
       "code": 965,
@@ -1532,7 +1663,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 684
     },
     {
       "code": 112,
@@ -1545,7 +1677,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 890
     },
     {
       "code": 190,
@@ -1558,7 +1691,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 997
     },
     {
       "code": 419,
@@ -1571,7 +1705,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 853
     },
     {
       "code": 444,
@@ -1584,7 +1719,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 687
     },
     {
       "code": 388,
@@ -1597,7 +1733,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1389
     },
     {
       "code": 428,
@@ -1610,7 +1747,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 335
     },
     {
       "code": 106,
@@ -1623,7 +1761,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 75
     },
     {
       "code": 1348,
@@ -1636,7 +1775,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1532
     },
     {
       "code": 166,
@@ -1649,7 +1789,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1137
     },
     {
       "code": 225,
@@ -1662,7 +1803,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 821
     },
     {
       "code": 1075,
@@ -1675,7 +1817,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 804
     },
     {
       "code": 1323,
@@ -1688,7 +1831,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 892
     },
     {
       "code": 307,
@@ -1701,7 +1845,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1167
     },
     {
       "code": 140,
@@ -1714,7 +1859,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 757
     },
     {
       "code": 171,
@@ -1727,7 +1873,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 915
     },
     {
       "code": 255,
@@ -1740,7 +1887,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1046
     },
     {
       "code": 280,
@@ -1753,7 +1901,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 408
     },
     {
       "code": 1330,
@@ -1766,7 +1915,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1543
     },
     {
       "code": 218,
@@ -1779,7 +1929,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1158
     },
     {
       "code": 163,
@@ -1792,7 +1943,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 990
     },
     {
       "code": 1264,
@@ -1805,7 +1957,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 835
     },
     {
       "code": 1350,
@@ -1818,7 +1971,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1
     },
     {
       "code": 362,
@@ -1831,7 +1985,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 548
     },
     {
       "code": 101,
@@ -1844,7 +1999,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 332
     },
     {
       "code": 1276,
@@ -1857,7 +2013,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1609
     },
     {
       "code": 155,
@@ -1870,7 +2027,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 697
     },
     {
       "code": 141,
@@ -1883,7 +2041,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1047
     },
     {
       "code": 367,
@@ -1896,7 +2055,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1300
     },
     {
       "code": 263,
@@ -1909,7 +2069,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1108
     },
     {
       "code": 1082,
@@ -1922,7 +2083,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1315
     },
     {
       "code": 195,
@@ -1935,7 +2097,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 714
     },
     {
       "code": 180,
@@ -1948,7 +2111,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 810
     },
     {
       "code": 334,
@@ -1961,7 +2125,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1067
     },
     {
       "code": 192,
@@ -1974,7 +2139,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 975
     },
     {
       "code": 311,
@@ -1987,7 +2153,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1123
     },
     {
       "code": 153,
@@ -2000,7 +2167,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 915
     },
     {
       "code": 1242,
@@ -2013,7 +2181,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1132
     },
     {
       "code": 1392,
@@ -2026,7 +2195,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1595
     },
     {
       "code": 236,
@@ -2039,7 +2209,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1070
     },
     {
       "code": 1083,
@@ -2052,7 +2223,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 545
     },
     {
       "code": 19,
@@ -2065,7 +2237,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 438
     },
     {
       "code": 1399,
@@ -2078,7 +2251,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 640
     },
     {
       "code": 934,
@@ -2091,7 +2265,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 183
     },
     {
       "code": 226,
@@ -2104,7 +2279,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 915
     },
     {
       "code": 165,
@@ -2117,7 +2293,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1109
     },
     {
       "code": 1274,
@@ -2130,7 +2307,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1459
     },
     {
       "code": 1221,
@@ -2143,7 +2321,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1592
     },
     {
       "code": 1176,
@@ -2156,7 +2335,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 870
     },
     {
       "code": 131,
@@ -2169,7 +2349,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 780
     },
     {
       "code": 151,
@@ -2182,7 +2363,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1108
     },
     {
       "code": 179,
@@ -2195,7 +2377,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 954
     },
     {
       "code": 316,
@@ -2208,7 +2391,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 552
     },
     {
       "code": 407,
@@ -2221,7 +2405,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1397
     },
     {
       "code": 427,
@@ -2234,7 +2419,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 191
     },
     {
       "code": 211,
@@ -2247,7 +2433,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 910
     },
     {
       "code": 789,
@@ -2260,7 +2447,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1572
     },
     {
       "code": 119,
@@ -2273,7 +2461,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 604
     },
     {
       "code": 216,
@@ -2286,7 +2475,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1220
     },
     {
       "code": 393,
@@ -2299,7 +2489,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 866
     },
     {
       "code": 172,
@@ -2312,7 +2503,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 978
     },
     {
       "code": 437,
@@ -2325,7 +2517,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 988
     },
     {
       "code": 408,
@@ -2338,7 +2531,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 2423
     },
     {
       "code": 2513,
@@ -2351,7 +2545,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 675
     },
     {
       "code": 173,
@@ -2364,7 +2559,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 951
     },
     {
       "code": 159,
@@ -2377,7 +2573,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 850
     },
     {
       "code": 396,
@@ -2390,7 +2587,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1432
     },
     {
       "code": 1270,
@@ -2403,7 +2601,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 866
     },
     {
       "code": 1261,
@@ -2416,7 +2615,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 527
     },
     {
       "code": 1045,
@@ -2429,7 +2629,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 700
     },
     {
       "code": 121,
@@ -2442,7 +2643,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 729
     },
     {
       "code": 411,
@@ -2455,7 +2657,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1100
     },
     {
       "code": 183,
@@ -2468,7 +2671,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1259
     },
     {
       "code": 326,
@@ -2481,7 +2685,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1440
     },
     {
       "code": 178,
@@ -2494,7 +2699,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 747
     },
     {
       "code": 301,
@@ -2507,7 +2713,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 204
     },
     {
       "code": 402,
@@ -2520,7 +2727,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 725
     },
     {
       "code": 328,
@@ -2533,7 +2741,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 427
     },
     {
       "code": 1347,
@@ -2546,7 +2755,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 970
     },
     {
       "code": 1248,
@@ -2559,7 +2769,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1985
     },
     {
       "code": 938,
@@ -2572,7 +2783,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1320
     },
     {
       "code": 129,
@@ -2585,7 +2797,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 989
     },
     {
       "code": 212,
@@ -2598,7 +2811,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1065
     },
     {
       "code": 1387,
@@ -2611,7 +2825,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 2712
     },
     {
       "code": 380,
@@ -2624,7 +2839,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1019
     },
     {
       "code": 1218,
@@ -2637,7 +2853,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 100
     },
     {
       "code": 264,
@@ -2650,7 +2867,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1015
     },
     {
       "code": 1911,
@@ -2663,7 +2881,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 844
     },
     {
       "code": 1093,
@@ -2676,7 +2895,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 78
     },
     {
       "code": 2512,
@@ -2689,7 +2909,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 920
     },
     {
       "code": 138,
@@ -2702,7 +2923,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1306
     },
     {
       "code": 1260,
@@ -2715,7 +2937,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1009
     },
     {
       "code": 363,
@@ -2728,7 +2951,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 680
     },
     {
       "code": 210,
@@ -2741,7 +2965,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 929
     },
     {
       "code": 394,
@@ -2754,7 +2979,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 609
     },
     {
       "code": 3190,
@@ -2767,7 +2993,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1123
     },
     {
       "code": 1092,
@@ -2780,7 +3007,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1580
     },
     {
       "code": 105,
@@ -2793,7 +3021,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 239
     },
     {
       "code": 788,
@@ -2806,7 +3035,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1647
     },
     {
       "code": 45,
@@ -2819,7 +3049,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 18
     },
     {
       "code": 1239,
@@ -2832,7 +3063,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1442
     },
     {
       "code": 1345,
@@ -2845,7 +3077,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 600
     },
     {
       "code": 82,
@@ -2858,7 +3091,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 116
     },
     {
       "code": 1165,
@@ -2871,7 +3105,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 798
     },
     {
       "code": 344,
@@ -2884,7 +3119,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 511
     },
     {
       "code": 555,
@@ -2897,7 +3133,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 390
     },
     {
       "code": 882,
@@ -2910,7 +3147,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1115
     },
     {
       "code": 117,
@@ -2923,7 +3161,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 584
     },
     {
       "code": 152,
@@ -2936,7 +3175,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 985
     },
     {
       "code": 120,
@@ -2949,7 +3189,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 835
     },
     {
       "code": 1024,
@@ -2962,7 +3203,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1557
     },
     {
       "code": 406,
@@ -2975,7 +3217,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1230
     },
     {
       "code": 404,
@@ -2988,7 +3231,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 997
     },
     {
       "code": 305,
@@ -3001,7 +3245,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 972
     },
     {
       "code": 3110,
@@ -3014,7 +3259,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1208
     },
     {
       "code": 1055,
@@ -3027,7 +3273,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 424
     },
     {
       "code": 1359,
@@ -3040,7 +3287,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1100
     },
     {
       "code": 374,
@@ -3053,7 +3301,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1000
     },
     {
       "code": 11,
@@ -3066,7 +3315,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 680
     },
     {
       "code": 156,
@@ -3079,7 +3329,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 871
     },
     {
       "code": 376,
@@ -3092,7 +3343,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 2438
     },
     {
       "code": 144,
@@ -3105,7 +3357,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 760
     },
     {
       "code": 233,
@@ -3118,7 +3371,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 270
     },
     {
       "code": 208,
@@ -3131,7 +3385,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 945
     },
     {
       "code": 206,
@@ -3144,7 +3399,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1085
     },
     {
       "code": 110,
@@ -3157,7 +3413,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 382
     },
     {
       "code": 1313,
@@ -3170,7 +3427,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1422
     },
     {
       "code": 279,
@@ -3183,7 +3441,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 1407
     },
     {
       "code": 234,
@@ -3196,7 +3455,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1161
     },
     {
       "code": 126,
@@ -3209,7 +3469,8 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
+      },
+      "elevation": 711
     },
     {
       "code": 75,
@@ -3222,7 +3483,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 43
     },
     {
       "code": 417,
@@ -3235,7 +3497,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 894
     },
     {
       "code": 387,
@@ -3248,7 +3511,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 991
     },
     {
       "code": 995,
@@ -3261,7 +3525,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 130
     },
     {
       "code": 1378,
@@ -3274,7 +3539,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 462
     },
     {
       "code": 1408,
@@ -3287,7 +3553,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 296
     },
     {
       "code": 1362,
@@ -3300,7 +3567,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 77
     },
     {
       "code": 956,
@@ -3313,7 +3581,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 632
     },
     {
       "code": 1002,
@@ -3326,7 +3595,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 593
     },
     {
       "code": 1056,
@@ -3339,7 +3609,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 168
     },
     {
       "code": 1066,
@@ -3352,7 +3623,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 154
     },
     {
       "code": 1398,
@@ -3365,7 +3637,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 341
     },
     {
       "code": 945,
@@ -3378,7 +3651,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 515
     },
     {
       "code": 944,
@@ -3391,7 +3665,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 296
     },
     {
       "code": 1025,
@@ -3404,7 +3679,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 87
     },
     {
       "code": 361,
@@ -3417,7 +3693,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1200
     },
     {
       "code": 127,
@@ -3430,7 +3707,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 942
     },
     {
       "code": 286,
@@ -3443,7 +3721,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 640
     },
     {
       "code": 2211,
@@ -3456,7 +3735,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 24
     },
     {
       "code": 72,
@@ -3469,7 +3749,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 162
     },
     {
       "code": 1265,
@@ -3482,7 +3763,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1638
     },
     {
       "code": 169,
@@ -3495,7 +3777,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 900
     },
     {
       "code": 431,
@@ -3508,7 +3791,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 410
     },
     {
       "code": 200,
@@ -3521,7 +3805,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1195
     },
     {
       "code": 1268,
@@ -3534,7 +3819,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 788
     },
     {
       "code": 430,
@@ -3547,7 +3833,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 296
     },
     {
       "code": 158,
@@ -3560,7 +3847,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 678
     },
     {
       "code": 1241,
@@ -3573,7 +3861,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1277
     },
     {
       "code": 266,
@@ -3586,7 +3875,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 968
     },
     {
       "code": 1277,
@@ -3599,7 +3889,8 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 650
     },
     {
       "code": 366,
@@ -3612,7 +3903,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1300
     },
     {
       "code": 790,
@@ -3625,7 +3917,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1357
     },
     {
       "code": 244,
@@ -3638,7 +3931,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1580
     },
     {
       "code": 154,
@@ -3651,7 +3945,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1030
     },
     {
       "code": 136,
@@ -3664,7 +3959,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 967
     },
     {
       "code": 21,
@@ -3677,7 +3973,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 156
     },
     {
       "code": 235,
@@ -3690,7 +3987,8 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 1170
     }
   ]
 }
