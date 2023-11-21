@@ -162,6 +162,8 @@ objects:
                       key: app-db-password
                 - name: APP_DATABASE
                   value: ${PARENT_NAME}
+                - name: NAME
+                  value: ${NAME}
                 - name: PATRONI_SCOPE
                   value: ${NAME}
                 - name: PATRONI_NAME
