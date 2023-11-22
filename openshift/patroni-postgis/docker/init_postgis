@@ -2,7 +2,7 @@
 if [[ (! -z "$APP_USER") &&  (! -z "$APP_PASSWORD") && (! -z "$APP_DATABASE") && (! -z "$NAME")]]; then
     echo "Initializing archive mode for pgbackrest"
     psql -c "alter system set archive_mode=on;"
-    psql -c "alter system set archive_command=pgbackrest --stanza=$NAME-cluster-1 archive-push '%p';"
+    psql -c "alter system set archive_command='pgbackrest --stanza=$NAME-cluster-1 archive-push %p'"
     echo "Loading PostGIS extensions into $APP_DATABASE"
     psql "$1" -w -c "\c ${APP_DATABASE}" -c "CREATE EXTENSION IF NOT EXISTS postgis;"
     echo "Restarting postgres to init config"
