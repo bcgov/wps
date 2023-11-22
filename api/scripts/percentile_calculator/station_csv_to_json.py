@@ -1,13 +1,12 @@
-""" This module contains "throaway" code for pre-generating a list of stations.
-
-TODO: Remove this module when the Fire Weather Index Calculator uses the correct API as source for data.
+""" This module contains code for generating a weather_stations.json file on it's own. This file contains all active and historical 
+stations along with metadata.
 """
 import json
+import asyncio
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Point
-from pathlib import Path
-from typing import Generator
+from scripts.percentile_calculator.s3_to_dataframe import load_all_csv_to_dataframe, get_csv_list_from_s3, filter_wx_and_station_csv
 
 ECODIVISIONS = R'app/data/ERC_ECODIV_polygon/ERC_ECODIV_polygon.shp'
 CORE_SEASONS = R'app/data/ecodivisions_core_seasons.json'
@@ -48,9 +47,9 @@ def process_stations(station_df: pd.DataFrame, ecodivisions: gpd.GeoDataFrame, c
             ecodivision_name = fetch_ecodivision_name(row['LATITUDE'], row['LONGITUDE'], ecodivisions)
 
         if ecodivision_name is not None:
-            core_season = core_seasons.get(ecodivision_name, {}).get('core_season', {})
+            core_season = core_seasons.get(ecodivision_name, core_seasons['DEFAULT']).get('core_season')
         else:
-            core_season = {"start_month": "5", "start_day": "1", "end_month": "8", "end_day": "31"}
+            core_season = core_seasons['DEFAULT']['core_season']
 
         weather_stations.append({
             "code": row['STATION_CODE'],
@@ -72,29 +71,11 @@ def export_stations_to_json(weather_stations: list, output_path: str):
         # Dump json with an indent making it more human-readable.
         json.dump({'weather_stations': weather_stations}, json_file, indent=2)
 
-def load_all_csv_to_dataframe(all_csv: Generator, filter_dailies:bool = False) -> pd.DataFrame:
-    dfs = []
 
-    for csv in all_csv:
-        df = pd.read_csv(csv)
-
-        if filter_dailies:
-            # DATE_TIME is provided in PST (GMT-8) and does not recognize DST. 
-            # Daily records will therefor always show up as “YYYYMMDD12”
-            df = df[df['DATE_TIME'].astype(str).str.endswith('12')]
-        dfs.append(df)
-
-    all_dailies_df = pd.concat(dfs, ignore_index=True)
-
-    return all_dailies_df
-
-def generate_station_json(input_path: str) -> str:
-    base_path = Path(input_path)
-
+async def generate_station_json(station_csv_list: list) -> str:
     ecodivisions_gdf = gpd.read_file(ECODIVISIONS)
     core_seasons_json = load_json(CORE_SEASONS)
-
-    station_csv_list = base_path.rglob('*STATIONS.csv')
+    
     weather_stations_df = load_all_csv_to_dataframe(station_csv_list)
 
     filtered_stations_df = filter_stations(weather_stations_df)
@@ -109,6 +90,7 @@ def generate_station_json(input_path: str) -> str:
     return export_path
 
 if __name__ == "__main__":
-    csv_parent_path = '/path/to/parent/BCWS_datamart_historical_wx_obs'
-    generate_station_json(csv_parent_path)
+    all_csv_from_s3 = asyncio.run(get_csv_list_from_s3(2023))
+    _, station_list = filter_wx_and_station_csv(all_csv_from_s3)
+    asyncio.run(generate_station_json(station_list))
 

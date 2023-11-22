@@ -1,26 +1,32 @@
-""" Pre 90th percentile calculator """
+""" 
+This script can be used to update data for the 90th Percentile Calculator from data stored in the dev s3 bucket.
+It will updates both the weather_stations.json and the 90th percentile values by station json files.
+
+- Change the RECENT_YEAR to match the most recent data dump on s3 (s3 folders named by year)
+ 
+"""
 import os
 import json
 import pandas as pd
-from pathlib import Path
-from scripts.station_csv_to_json import generate_station_json, load_all_csv_to_dataframe
+import asyncio
+from scripts.percentile_calculator.station_csv_to_json import generate_station_json
+from scripts.percentile_calculator.s3_to_dataframe import load_all_csv_to_dataframe, get_csv_list_from_s3, filter_wx_and_station_csv
 
 
-RECENT_YEAR = 2023  # the most recent year that has the core fire season recorded
+RECENT_YEAR = 2023  # the most recent year that has the core fire season recorded.
 RANGES = [(RECENT_YEAR - 29, RECENT_YEAR), (RECENT_YEAR - 19, RECENT_YEAR),
           (RECENT_YEAR - 9, RECENT_YEAR)]
 PERCENTILE = 0.9
 NUMBER_OF_DECIMAL_POINT = 5  # for FWI values
 
-# this is the path to the parent folder containing years of BCWS historical data in csv format
-BASE = Path(R'/path/to/csv/parent/BCWS_datamart_historical_wx_obs')
-
-def main():
+async def main():
     """ The main entrypoint for pre-generating json daily summaries. """
-    station_json = generate_station_json(BASE)
+    all_csv_from_s3 = await get_csv_list_from_s3(RECENT_YEAR)
+    wx_csv_list, station_csv_list = filter_wx_and_station_csv(all_csv_from_s3)
+    station_json = await generate_station_json(station_csv_list)
     
-    wx_obs_csv_list = BASE.rglob('*OBS.csv')
-    df = load_all_csv_to_dataframe(wx_obs_csv_list, filter_dailies=True)
+    print('Loading all historical weather csv to dataframes from s3')
+    df = load_all_csv_to_dataframe(wx_csv_list, filter_dailies=True)
 
     print('Split dates into multiple columns...')
     split_dates_into_multiple_cols(df)
@@ -158,4 +164,4 @@ def get_years_for_valid_fwi_values(df: pd.DataFrame) -> list:
     return data_years
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
