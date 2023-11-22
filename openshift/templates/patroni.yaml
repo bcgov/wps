@@ -162,6 +162,8 @@ objects:
                       key: app-db-password
                 - name: APP_DATABASE
                   value: ${PARENT_NAME}
+                - name: NAME
+                  value: ${NAME}
                 - name: PATRONI_SCOPE
                   value: ${NAME}
                 - name: PATRONI_NAME
@@ -287,12 +289,12 @@ parameters:
   - name: IMAGE_NAME
     description: |
       The Patroni image stream name
-    value: patroni-postgres
+    value: patroni-postgres-pgbackrest
   - name: IMAGE_TAG
     description: |
       The image tag used to specify which image you would like deployed.
       Don't use `latest`.
-    value: "v12-2022-09-12"
+    value: "v12-2023-11-22"
   - name: PVC_SIZE
     description: The size of the persistent volume to create.
     displayName: Persistent Volume Size

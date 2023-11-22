@@ -12,7 +12,7 @@ labels:
   app.kubernetes.io/version: "12"
 parameters:
   - name: NAME
-    value: patroni-postgres
+    value: patroni-postgres-pgbackrest
   - name: SUFFIX
   - name: VERSION
     description: Output version
@@ -23,6 +23,18 @@ parameters:
     value: main
   - name: POSTGRES_VERSION
     value: "12"
+  - name: OBJECT_STORE_SERVER
+    description: Backup object store server
+    required: true
+  - name: OBJECT_STORE_BUCKET
+    description: Backup object store bucket
+    required: true
+  - name: OBJECT_STORE_USER_ID
+    description: Backup object store user id
+    required: true
+  - name: OBJECT_STORE_SECRET
+    description: Backup object store secret
+    required: true
 objects:
   - apiVersion: v1
     kind: ImageStream
@@ -55,6 +67,15 @@ objects:
         type: Git
       strategy:
         dockerStrategy:
+          env:
+            - name: "OBJECT_STORE_SERVER"
+              value: "${OBJECT_STORE_SERVER}"
+            - name: "OBJECT_STORE_BUCKET"
+              value: "${OBJECT_STORE_BUCKET}"
+            - name: "OBJECT_STORE_USER_ID"
+              value: "${OBJECT_STORE_USER_ID}"
+            - name: "OBJECT_STORE_SECRET"
+              value: "${OBJECT_STORE_SECRET}"
         type: Docker
       triggers:
         - type: ConfigChange
