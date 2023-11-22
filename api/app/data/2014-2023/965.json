@@ -1,7 +1,7 @@
 {
-    "ffmc": 91.745,
-    "isi": 10.8902,
-    "bui": 102.7704,
+    "ffmc": 91.4982,
+    "isi": 10.0232,
+    "bui": 106.8768,
     "years": [
         2015,
         2016,
@@ -16,8 +16,8 @@
         "core_season": {
             "start_month": "5",
             "start_day": "1",
-            "end_month": "8",
-            "end_day": "31"
+            "end_month": "9",
+            "end_day": "15"
         },
         "elevation": 684
     }
