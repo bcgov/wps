@@ -50,7 +50,7 @@ RUN echo "[global] \n \
     log-level-console=info \n \
     log-level-file=debug \n \
     delta=y \n \
-    archive-async=y \
+    archive-async=y \n \
     process-max=2 \n" >> /etc/pgbackrest/pgbackrest.conf
 
 # Switch back to default user
