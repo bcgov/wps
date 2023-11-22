@@ -10,12 +10,13 @@ The WPS pipeline currently assumes the existence of an appropriately tagged patr
 ### Build and tag an imagestream as follows:
 
 ```bash
-# Build a patroni imagestream:
-oc -n e1e498-tools process -f openshift/build.yaml | oc -n e1e498-tools apply -f -
+# Build a patroni-pgbackrest imagestream:
+oc -n e1e498-tools process -f openshift/build.yaml -p OBJECT_STORE_SERVER="server" -p OBJECT_STORE_BUCKET="bucket" -p OBJECT_STORE_USER_ID="uid" -p OBJECT_STORE_SECRET="sec" -p GIT_REF="<branch>" | oc -n e1e498-tools apply -f -
 # Tag the old imagestream so we can keep it around if we need to revert:
-oc -n e1e498-tools tag patroni-postgres:v12 patroni-postgres:v12-<date deprecated, e.g. 20200826>
+oc -n e1e498-tools tag patroni-postgres-pgbackrest:v12-<current-tag, e.g. 2023-11-22> patroni-postgres-pgbackrest:v12-<date deprecated, e.g. 20200826>
 # Tag the new imagestream (it won't be used until the pods get re-created):
-oc -n e1e498-tools tag patroni-postgres:v12-latest patroni-postgres:v12
+oc -n e1e498-tools tag patroni-postgres-pgbackrest:v12-latest patroni-postgres-pgbackrest:v12-<current date, e.g. 2024-1-1>
+# Then update the tag in the patroni yaml files to point to the current date tag
 ```
 
 #### Common build failures
