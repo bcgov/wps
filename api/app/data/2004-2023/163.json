@@ -35,6 +35,7 @@
             "start_day": "15",
             "end_month": "8",
             "end_day": "31"
-        }
+        },
+        "elevation": 990
     }
 }

@@ -3039,6 +3039,20 @@
       "elevation": 1647
     },
     {
+      "code": 346,
+      "name": "SALMON ARM",
+      "lat": 50.685,
+      "long": -119.235,
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      },
+      "elevation": 527
+    },
+    {
       "code": 45,
       "name": "SALTSPRING 2",
       "lat": 48.7728889,
