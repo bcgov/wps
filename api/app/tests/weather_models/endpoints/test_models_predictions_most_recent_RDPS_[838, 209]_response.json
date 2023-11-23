@@ -14,7 +14,7 @@
                     "end_day": 31
                 },
                 "elevation": 791,
-                "wfwx_station_uuid": "",
+                "wfwx_station_uuid": null,
                 "zone_code": null
             },
             "model_runs": [
@@ -154,7 +154,7 @@
                     "end_day": 31
                 },
                 "elevation": 821,
-                "wfwx_station_uuid": "",
+                "wfwx_station_uuid": null,
                 "zone_code": null
             },
             "model_runs": [

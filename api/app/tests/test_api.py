@@ -31,8 +31,8 @@ class BasicTestCase(unittest.TestCase):
                                    ],
                                    "percentile": 90,
                                    "year_range": {
-                                       "start": 2010,
-                                       "end": 2019
+                                       "start": 2014,
+                                       "end": 2023
                                    }
                                })
         self.assertEqual(response.status_code, 200)

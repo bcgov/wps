@@ -42,7 +42,7 @@ def test_read_single_raster_value():
     raster_band = dataset.GetRasterBand(1)
     station, value = next(processor.yield_value_for_stations(raster_band))
 
-    assert math.isclose(value, 55.976, abs_tol=0.001)
-    assert station.code == 322
+    assert station.code == 3090
+    assert math.isclose(value, 67.150, abs_tol=0.001)
 
     del dataset

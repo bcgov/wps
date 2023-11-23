@@ -26,8 +26,8 @@ interface Props {
   onYearRangeChange: (yearRangeNumber: number) => void
 }
 
-export const earliestYearAvailableForCalculation = 1970
-export const yearWhenTheCalculationIsDone = 2020
+export const yearWhenTheCalculationIsDone = 2023
+export const earliestYearAvailableForCalculation = yearWhenTheCalculationIsDone - 30
 
 const MIN_YEARS = 0
 const MAX_YEARS = yearWhenTheCalculationIsDone - earliestYearAvailableForCalculation
@@ -47,7 +47,7 @@ const TIME_RANGE_OPTIONS = [
   },
   {
     value: MAX_YEARS,
-    label: 'Full'
+    label: MAX_YEARS
   }
 ]
 
