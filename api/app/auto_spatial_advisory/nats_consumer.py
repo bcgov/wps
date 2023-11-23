@@ -4,7 +4,7 @@ Nats consumer setup for consuming processing messages
 import asyncio
 import json
 import datetime
-from datetime import datetime, date
+from datetime import datetime
 import logging
 from typing import List
 from starlette.background import BackgroundTasks
