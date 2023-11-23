@@ -16,10 +16,13 @@ from app.auto_spatial_advisory.common import get_s3_key
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.database import DB_READ_STRING, get_async_write_session_scope
 from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType
-from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sfms_fuel_types, get_run_parameters_id, save_advisory_fuel_stats
+from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sfms_fuel_types, get_run_parameters_id, store_advisory_fuel_stats
 
 
 logger = logging.getLogger(__name__)
+
+
+FUEL_TYPE_RASTER_RESOLUTION_IN_METRES = 2000
 
 
 def get_warped_fuel_type_s3_key(bucket):
@@ -75,23 +78,6 @@ async def calculate_fuel_type_area_by_shape(session: AsyncSession, temp_dir: str
         await store_advisory_fuel_stats(session, fuel_type_areas, threshold, run_parameters_id, row[0])
 
 
-async def store_advisory_fuel_stats(session: AsyncSession, fuel_type_areas: dict, threshold: int, run_parameters_id: int, advisory_shape_id: int):
-    """
-    Creates AdvisoryFuelStats objects and save them in the wps database.
-
-    :param : A dictionary keyed by fuel type code with value representing an area in square meters.
-    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k.
-    :param run_parameters_id: The RunParameter object id associated with the run_type, for_date and run_datetime of interest.
-    :param advisory_shape_id: The id of advisory shape (eg. fire zone unit) the fuel type area has been calcualted for.
-    """
-    advisory_fuel_stats = []
-    for key in fuel_type_areas:
-        advisory_fuel_stats.append(
-            AdvisoryFuelStats(advisory_shape_id=advisory_shape_id, threshold=threshold, run_parameters=run_parameters_id, fuel_type=key, area=fuel_type_areas[key])
-        )
-    await save_advisory_fuel_stats(session, advisory_fuel_stats)
-
-
 def calculate_fuel_type_areas(source_path: str, fuel_types: list[SFMSFuelType]):
     """
     Calculates the ground area of the raster layer at the source_path covered by each fuel type.
@@ -106,7 +92,7 @@ def calculate_fuel_type_areas(source_path: str, fuel_types: list[SFMSFuelType]):
     fuel_type_areas = {}
     for fuel_type_id in combustible_fuel_type_ids:
         count = histogram[fuel_type_id]
-        area = count * 2000 * 2000
+        area = count * FUEL_TYPE_RASTER_RESOLUTION_IN_METRES * FUEL_TYPE_RASTER_RESOLUTION_IN_METRES
         if area > 0:
             fuel_type_areas[fuel_type_id] = area
     return fuel_type_areas
