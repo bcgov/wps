@@ -51,7 +51,7 @@ async def main():
                 continue
 
             season = get_core_fire_season(station)
-            remove_data_outside_fire_season(station_df, season)
+            station_df = remove_data_outside_fire_season(station_df, season)
             percentiles = calculate_percentile(station_df, PERCENTILE)
 
             years = get_years_for_valid_fwi_values(station_df)
@@ -127,15 +127,17 @@ def remove_data_outside_fire_season(df: pd.DataFrame, season: dict):
     """ Remove data recorded outside of fire season. """
     outside_month = (df['month'] < season['start_month']) | (
         df['month'] > season['end_month'])
-    df.drop(df[outside_month].index, inplace=True)
+    df = df.loc[~outside_month]
 
     before_start = ((df['month'] == season['start_month']) &
                     (df['day'] < season['start_day']))
-    df.drop(df[before_start].index, inplace=True)
+    df = df.loc[~before_start]
 
     after_end = ((df['month'] == season['end_month']) &
                  (df['day'] > season['end_day']))
-    df.drop(df[after_end].index, inplace=True)
+    df = df.loc[~after_end]
+
+    return df
 
 
 def calculate_percentile(df: pd.DataFrame, percentile: float) -> dict:
