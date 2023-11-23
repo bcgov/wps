@@ -159,7 +159,7 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
     General description of the process:
      - get an hfi raster from S3 based on the run type, run datetime and for date
      - get the fuel type raster from S3
-     - for each threshold, create a mask from the hfi raster that will contains values of 0 and 1 for use in raster mulitplication
+     - for each threshold, create a mask from the hfi raster that will contains values of 0 and 1 for use in raster multiplication
      - multiply the fuel type layer by the mask in order to filter out fuel types where hfi does not match the threshold
      - for each advisory shape (aka fire zone unit), clip the masked fuel type layer by shape's geometry
      - count the pixels for each fuel type in the clipped fuel type layer to determine the area of each fuel type
