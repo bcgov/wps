@@ -43,14 +43,16 @@ RUN echo "[global] \n \
     repo1-s3-key=$OBJECT_STORE_USER_ID \n \
     repo1-s3-key-secret=$OBJECT_STORE_SECRET \n \
     repo1-s3-region=eu-west-3 \n \
-    \n \
     repo1-path=/repo1 \n \
     repo1-retention-full=3 \n \
     start-fast=y \n \
     log-level-console=info \n \
     log-level-file=debug \n \
     delta=y \n \
-    process-max=2 \n" >> /etc/pgbackrest/pgbackrest.conf
+    process-max=2 \n \
+    \n \
+    [global:archive-push] \n \
+    compress-level=3">> /etc/pgbackrest/pgbackrest.conf
 
 # Switch back to default user
 USER 1001
