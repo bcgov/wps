@@ -22,12 +22,11 @@ from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sf
 logger = logging.getLogger(__name__)
 
 
-def get_warped_fuel_type_s3_key():
+def get_warped_fuel_type_s3_key(bucket):
     """
     Returns the key to the fuel type layer that has been reprojected to the Lambert Conformal Conic spatial reference and
     transformed to match the extent and spatial reference of hfi files output by sfms.
     """
-    bucket = config.get("OBJECT_STORE_BUCKET")
 
     # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
     # it's S3 virtual file system driver to read the file.
@@ -36,7 +35,7 @@ def get_warped_fuel_type_s3_key():
     return key
 
 
-def classify_by_threshold(source_data: list[list[float]], threshold: int):
+def classify_by_threshold(source_data: np.array, threshold: int):
     """
     Classifies the provided 2-d array based on the provided threshold. When the threshold is 1, all cells with an hfi value
     in the range of 4k - 10k are assigned a value of 1 and other cells are assigned a value of 0. When the threshold is 2,
@@ -197,7 +196,7 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         # Retrieve the fuel type raster from s3 storage. This raster has previously been reprojected to a
         # Lambert Confirmal Conic spatial reference and re-sampled to match the extent and resolution
         # of the hfi rasters we get from sfms
-        fuel_type_key = get_warped_fuel_type_s3_key()
+        fuel_type_key = get_warped_fuel_type_s3_key(config.get("OBJECT_STORE_BUCKET"))
         fuel_type_raster = gdal.Open(fuel_type_key, gdal.GA_ReadOnly)
         fuel_type_band = fuel_type_raster.GetRasterBand(1)
         fuel_type_data = fuel_type_band.ReadAsArray()
