@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Find PR number
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           # reference used to figure out this part:
           # https://docs.github.com/en/rest/reference/pulls#list-pull-requests
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Set status to deployed
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           # reference used to figure out how to set the deployment status:
           # https://docs.github.com/en/rest/reference/repos#deployments

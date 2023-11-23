@@ -129,7 +129,7 @@ describe('Percentile Calculator Page', () => {
 
       cy.requestPercentilesAndCheckRequestBody('@getPercentiles', {
         stations: [stationCode],
-        year_range: { start: 2010, end: 2019 },
+        year_range: { start: 2014, end: 2023 },
         percentile: 90
       })
 
@@ -158,7 +158,7 @@ describe('Percentile Calculator Page', () => {
 
       cy.requestPercentilesAndCheckRequestBody('@getPercentiles', {
         stations: stationCodes,
-        year_range: { start: 2010, end: 2019 },
+        year_range: { start: 2014, end: 2023 },
         percentile: 90
       })
 
