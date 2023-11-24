@@ -240,8 +240,26 @@ async def save_high_hfi_area(session: AsyncSession, high_hfi_area: HighHfiArea):
     session.add(high_hfi_area)
 
 
+async def store_advisory_fuel_stats(session: AsyncSession, fuel_type_areas: dict, threshold: int, run_parameters_id: int, advisory_shape_id: int):
+    """
+    Creates AdvisoryFuelStats objects and save them in the wps database.
+
+    :param : A dictionary keyed by fuel type code with value representing an area in square meters.
+    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k.
+    :param run_parameters_id: The RunParameter object id associated with the run_type, for_date and run_datetime of interest.
+    :param advisory_shape_id: The id of advisory shape (eg. fire zone unit) the fuel type area has been calcualted for.
+    """
+    advisory_fuel_stats = []
+    for key in fuel_type_areas:
+        advisory_fuel_stats.append(
+            AdvisoryFuelStats(advisory_shape_id=advisory_shape_id, threshold=threshold, run_parameters=run_parameters_id, fuel_type=key, area=fuel_type_areas[key])
+        )
+    await save_advisory_fuel_stats(session, advisory_fuel_stats)
+
+
 async def save_advisory_fuel_stats(session: AsyncSession, advisory_fuel_stats: List[AdvisoryFuelStats]):
     session.add_all(advisory_fuel_stats)
+
 
 async def calculate_high_hfi_areas(session: AsyncSession, run_type: RunType, run_datetime: datetime,
                                    for_date: date) -> List[Row]:
