@@ -10,6 +10,7 @@ import numpy as np
 from osgeo import gdal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
+from sqlalchemy.future import select
 from app import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType
@@ -39,16 +40,24 @@ async def process_elevation(source_path: str, run_type: RunType, run_datetime: d
     async with get_async_read_session_scope() as session:
         run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
-    # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
-    # it's S3 virtual file system driver to read the file.
-    # https://gdal.org/user/virtual_file_systems.html
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_filename = os.path.join(temp_dir, 'classified.tif')
-        classify_hfi(source_path, temp_filename)
-        # thresholds: 1 = 4k-10k, 2 = >10k
-        thresholds = [1, 2]
-        for threshold in thresholds:
-            await process_threshold(threshold, temp_filename, temp_dir, run_parameters_id)
+        stmt = select(AdvisoryElevationStats)\
+            .where(AdvisoryElevationStats == run_parameters_id)
+        
+        exists = (await session.execute(stmt)).scalars().first() is not None
+        if (not exists):
+            # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
+            # it's S3 virtual file system driver to read the file.
+            # https://gdal.org/user/virtual_file_systems.html
+            with tempfile.TemporaryDirectory() as temp_dir:
+                temp_filename = os.path.join(temp_dir, 'classified.tif')
+                classify_hfi(source_path, temp_filename)
+                # thresholds: 1 = 4k-10k, 2 = >10k
+                thresholds = [1, 2]
+                for threshold in thresholds:
+                    await process_threshold(threshold, temp_filename, temp_dir, run_parameters_id)
+        else:
+            logger.info("Elevation stats already computed")
+
 
     perf_end = perf_counter()
     delta = perf_end - perf_start
