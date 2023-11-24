@@ -4,6 +4,7 @@
 
 import logging
 from datetime import date, datetime
+from sqlalchemy.future import select
 from time import perf_counter
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auto_spatial_advisory.run_type import RunType
@@ -30,19 +31,26 @@ async def process_high_hfi_area(run_type: RunType, run_datetime: datetime, for_d
     :param run_date: The date of the run to process. (when was the hfi file created?)
     :param for_date: The date of the hfi to process. (when is the hfi for?)
     """
-
-    # TODO: check for already processed high HFI data based on run parameters
     logger.info('Processing high HFI area %s for run date: %s, for date: %s', run_type, run_datetime, for_date)
     perf_start = perf_counter()
 
     async with get_async_write_session_scope() as session:
         run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
-        logger.info('Getting high HFI area per zone...')
-        high_hfi_areas = await calculate_high_hfi_areas(session, run_type, run_datetime, for_date)
 
-        logger.info('Writing high HFI areas...')
-        for row in high_hfi_areas:
-            await write_high_hfi_area(session, row, run_parameters_id)
+        stmt = select(HighHfiArea)\
+            .where(HighHfiArea.run_parameters == run_parameters_id)
+        
+        exists = (await session.execute(stmt)).scalars().first() is not None
+
+        if (not exists):
+            logger.info('Getting high HFI area per zone...')
+            high_hfi_areas = await calculate_high_hfi_areas(session, run_type, run_datetime, for_date)
+
+            logger.info('Writing high HFI areas...')
+            for row in high_hfi_areas:
+                await write_high_hfi_area(session, row, run_parameters_id)
+        else:
+            logger.info("High hfi area already processed")
 
     perf_end = perf_counter()
     delta = perf_end - perf_start

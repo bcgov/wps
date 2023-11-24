@@ -18,7 +18,6 @@ async def process_hfi_elevation(run_type: RunType, run_date: date, run_datetime:
     :param for_date: The date of the hfi to process. (when is the hfi for?)
     """
 
-    # TODO: check for already processed HFI elevation data based on run parameters
     logger.info('Processing HFI elevation %s for run date: %s, for date: %s', run_type, run_date, for_date)
     perf_start = perf_counter()
 
