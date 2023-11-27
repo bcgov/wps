@@ -1,0 +1,85 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: patroni
+labels:
+  app: ${NAME}${SUFFIX}
+  phase: build
+  app.kubernetes.io/component: database
+  app.kubernetes.io/name: patroni
+  app.kubernetes.io/managed-by: template
+  app.kubernetes.io/version: "12"
+parameters:
+  - name: NAME
+    value: patroni-postgres-pgbackrest
+  - name: SUFFIX
+  - name: VERSION
+    description: Output version
+    value: "v12-latest"
+  - name: GIT_URI
+    value: https://github.com/bcgov/wps.git
+  - name: GIT_REF
+    value: main
+  - name: POSTGRES_VERSION
+    value: "12"
+  - name: OBJECT_STORE_SERVER
+    description: Backup object store server
+    required: true
+  - name: OBJECT_STORE_BUCKET
+    description: Backup object store bucket
+    required: true
+  - name: OBJECT_STORE_USER_ID
+    description: Backup object store user id
+    required: true
+  - name: OBJECT_STORE_SECRET
+    description: Backup object store secret
+    required: true
+objects:
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      creationTimestamp: null
+      name: ${NAME}
+    spec:
+      lookupPolicy:
+        local: false
+    status:
+      dockerImageRepository: ""
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      creationTimestamp: null
+      name: ${NAME}${SUFFIX}
+    spec:
+      nodeSelector: null
+      output:
+        to:
+          kind: ImageStreamTag
+          name: "${NAME}:${VERSION}"
+      postCommit: {}
+      resources: {}
+      source:
+        contextDir: openshift/patroni-postgis-pgbackrest/docker
+        git:
+          ref: ${GIT_REF}
+          uri: ${GIT_URI}
+        type: Git
+      strategy:
+        dockerStrategy:
+          env:
+            - name: "OBJECT_STORE_SERVER"
+              value: "${OBJECT_STORE_SERVER}"
+            - name: "OBJECT_STORE_BUCKET"
+              value: "${OBJECT_STORE_BUCKET}"
+            - name: "OBJECT_STORE_USER_ID"
+              value: "${OBJECT_STORE_USER_ID}"
+            - name: "OBJECT_STORE_SECRET"
+              value: "${OBJECT_STORE_SECRET}"
+        type: Docker
+      triggers:
+        - type: ConfigChange
+        - imageChange: {}
+          type: ImageChange
+    status:
+      lastVersion: 0
