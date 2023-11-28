@@ -135,6 +135,8 @@ class WeatherIndeterminate(BaseModel):
     build_up_index: Optional[float] = None
     fire_weather_index: Optional[float] = None
     danger_rating: Optional[int] = None
+    grass_curing: Optional[float] = None
+
 
 
 class IndeterminateDailiesResponse(BaseModel):
