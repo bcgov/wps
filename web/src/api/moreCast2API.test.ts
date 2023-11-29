@@ -23,7 +23,8 @@ describe('moreCast2API', () => {
     rh: { choice: 'FORECAST', value: 0 },
     temp: { choice: 'FORECAST', value: 0 },
     windDirection: { choice: 'FORECAST', value: 0 },
-    windSpeed: { choice: 'FORECAST', value: 0 }
+    windSpeed: { choice: 'FORECAST', value: 0 },
+    grassCuring: 0
   })
   it('should marshall forecast records correctly', async () => {
     const res = marshalMoreCast2ForecastRecords([
@@ -38,6 +39,7 @@ describe('moreCast2API', () => {
     expect(res[0].rh).toEqual(0)
     expect(res[0].wind_speed).toEqual(0)
     expect(res[0].wind_direction).toEqual(0)
+    expect(res[0].grass_curing).toEqual(0)
 
     expect(res[1].station_code).toBe(2)
     expect(res[1].for_date).toEqual(DateTime.fromObject({ year: 2021, month: 1, day: 1 }).toMillis())
@@ -46,6 +48,7 @@ describe('moreCast2API', () => {
     expect(res[1].rh).toEqual(0)
     expect(res[1].wind_speed).toEqual(0)
     expect(res[1].wind_direction).toEqual(0)
+    expect(res[1].grass_curing).toEqual(0)
   })
   it('should call submit endpoint for forecast submission', async () => {
     axios.post = jest.fn().mockResolvedValue({ status: 201 })

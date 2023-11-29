@@ -51,7 +51,8 @@ describe('parseForecastsHelper', () => {
     rh: 1,
     temp: 1,
     wind_direction: 1,
-    wind_speed: 1
+    wind_speed: 1,
+    grass_curing: 1
   })
 
   const buildStationGroupMember = (
