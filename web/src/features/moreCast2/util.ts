@@ -35,7 +35,8 @@ export const parseForecastsHelper = (
       windSpeed: {
         choice: ModelChoice.FORECAST,
         value: forecast.wind_speed
-      }
+      },
+      grassCuring: forecast.grass_curing
     }
     rows.push(row)
   })
@@ -116,4 +117,21 @@ export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: Mor
     }
   }
   return newRows
+}
+
+export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
+  const stationGrassMap = new Map<number, { date: DateTime; grassCuring: number }>()
+
+  for (const row of rows) {
+    const { stationCode, forDate, grassCuring } = row
+
+    if (!isNaN(grassCuring)) {
+      if (!stationGrassMap.has(stationCode) || forDate > stationGrassMap.get(stationCode)!.date) {
+        stationGrassMap.set(stationCode, { date: forDate, grassCuring: grassCuring })
+      }
+    } else if (stationGrassMap.has(stationCode)) {
+      row.grassCuring = stationGrassMap.get(stationCode)!.grassCuring
+    }
+  }
+  return rows
 }

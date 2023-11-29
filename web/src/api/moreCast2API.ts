@@ -169,6 +169,7 @@ export interface MoreCast2ForecastRecord {
   wind_direction: number
   update_timestamp?: number
   station_name?: string
+  grass_curing: number
 }
 
 export interface MoreCastForecastRequest {
@@ -185,7 +186,8 @@ export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[
       rh: forecast.rh.value,
       temp: forecast.temp.value,
       wind_direction: forecast.windDirection.value,
-      wind_speed: forecast.windSpeed.value
+      wind_speed: forecast.windSpeed.value,
+      grass_curing: forecast.grassCuring
     }
   })
   return forecastRecords

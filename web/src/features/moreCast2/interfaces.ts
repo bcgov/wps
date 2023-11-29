@@ -16,6 +16,7 @@ export interface MoreCast2ForecastRow {
   temp: PredictionItem
   windDirection: PredictionItem
   windSpeed: PredictionItem
+  grassCuring: number
 }
 
 export interface BaseRow {
