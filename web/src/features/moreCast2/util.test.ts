@@ -1,16 +1,16 @@
 import { DateTime } from 'luxon'
 import { ModelChoice } from 'api/moreCast2API'
-import { createEmptyMoreCast2Row } from 'features/moreCast2/slices/dataSlice'
 import {
   createDateInterval,
   createWeatherModelLabel,
+  fillGrassCuring,
   mapForecastChoiceLabels,
   parseForecastsHelper,
   rowIDHasher,
   validActualPredicate,
   validForecastPredicate
 } from 'features/moreCast2/util'
-import { buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
+import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
 
 const TEST_DATE = '2023-02-16T20:00:00+00:00'
 const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
@@ -103,7 +103,8 @@ describe('parseForecastsHelper', () => {
         stationName: 'one',
         temp: { choice: ModelChoice.FORECAST, value: 1 },
         windDirection: { choice: ModelChoice.FORECAST, value: 1 },
-        windSpeed: { choice: ModelChoice.FORECAST, value: 1 }
+        windSpeed: { choice: ModelChoice.FORECAST, value: 1 },
+        grassCuring: 1
       },
       {
         id: '22022-01-02',
@@ -114,7 +115,8 @@ describe('parseForecastsHelper', () => {
         stationName: 'two',
         temp: { choice: ModelChoice.FORECAST, value: 1 },
         windDirection: { choice: ModelChoice.FORECAST, value: 1 },
-        windSpeed: { choice: ModelChoice.FORECAST, value: 1 }
+        windSpeed: { choice: ModelChoice.FORECAST, value: 1 },
+        grassCuring: 1
       }
     ])
   })
@@ -130,13 +132,24 @@ describe('parseForecastsHelper', () => {
         stationName: '',
         temp: { choice: ModelChoice.FORECAST, value: 1 },
         windDirection: { choice: ModelChoice.FORECAST, value: 1 },
-        windSpeed: { choice: ModelChoice.FORECAST, value: 1 }
+        windSpeed: { choice: ModelChoice.FORECAST, value: 1 },
+        grassCuring: 1
       }
     ])
   })
   it('should handle case where forecast parameters are missing', () => {
     const result = parseForecastsHelper(
-      [{ ...buildForecastRecord(1), precip: NaN, rh: NaN, temp: NaN, wind_speed: NaN, wind_direction: NaN }],
+      [
+        {
+          ...buildForecastRecord(1),
+          precip: NaN,
+          rh: NaN,
+          temp: NaN,
+          wind_speed: NaN,
+          wind_direction: NaN,
+          grass_curing: NaN
+        }
+      ],
       [buildStationGroupMember('1', 1, 'one', '1', '1')]
     )
     expect(result).toEqual([
@@ -149,7 +162,8 @@ describe('parseForecastsHelper', () => {
         stationName: 'one',
         temp: { choice: ModelChoice.FORECAST, value: NaN },
         windDirection: { choice: ModelChoice.FORECAST, value: NaN },
-        windSpeed: { choice: ModelChoice.FORECAST, value: NaN }
+        windSpeed: { choice: ModelChoice.FORECAST, value: NaN },
+        grassCuring: NaN
       }
     ])
   })
@@ -165,12 +179,8 @@ describe('createWeatherModelLabel', () => {
   })
 })
 describe('validActualPredicate', () => {
-  const row = createEmptyMoreCast2Row('id', 123, 'testStation', DateTime.fromISO('2023-05-25T09:08:34.123'), 56, -123)
+  const row = buildValidActualRow(123, TEST_DATETIME)
   it('should return true if a row contains valid Actual values', () => {
-    row.precipActual = 1
-    row.tempActual = 1
-    row.rhActual = 1
-    row.windSpeedActual = 1
     const result = validActualPredicate(row)
     expect(result).toBe(true)
   })
@@ -181,12 +191,8 @@ describe('validActualPredicate', () => {
   })
 })
 describe('validForecastPredicate', () => {
-  const row = createEmptyMoreCast2Row('id', 123, 'testStation', DateTime.fromISO('2023-05-25T09:08:34.123'), 56, -123)
+  const row = buildValidForecastRow(123, TEST_DATETIME, 'FORECAST')
   it('should return true if a row contains valid Forecast values', () => {
-    row.precipForecast = { choice: 'FORECAST', value: 2 }
-    row.tempForecast = { choice: 'FORECAST', value: 2 }
-    row.rhForecast = { choice: 'FORECAST', value: 2 }
-    row.windSpeedForecast = { choice: 'FORECAST', value: 2 }
     const result = validForecastPredicate(row)
     expect(result).toBe(true)
   })
@@ -213,5 +219,26 @@ describe('mapForecastChoiceLabels', () => {
     expect(labelledRows[0].precipForecast!.choice).toBe('GDPS')
     expect(labelledRows[1].precipForecast!.choice).toBe('GFS')
     expect(labelledRows[1].rhForecast!.choice).toBe('MANUAL')
+  })
+})
+describe('fillGrassCuring', () => {
+  const forecast1A = buildValidForecastRow(123, TEST_DATETIME, 'FORECAST')
+  const forecast2A = buildValidForecastRow(321, TEST_DATETIME, 'FORECAST')
+  const actual1A = buildValidActualRow(123, TEST_DATETIME.minus({ days: 1 }))
+  const actual2A = buildValidActualRow(321, TEST_DATETIME.minus({ days: 1 }))
+  actual1A.grassCuring = 80
+  actual2A.grassCuring = 70
+
+  const actual1B = buildValidActualRow(123, TEST_DATETIME.minus({ days: 2 }))
+  const actual2B = buildValidActualRow(321, TEST_DATETIME.minus({ days: 2 }))
+  actual1B.grassCuring = 8
+  actual2B.grassCuring = 7
+
+  const rows = [forecast1A, forecast2A, actual1A, actual1B, actual2A, actual2B]
+
+  it('should map the most recent grass curing value for each station to each forecast', () => {
+    const filledRows = fillGrassCuring(rows)
+    expect(filledRows[0].grassCuring).toBe(80)
+    expect(filledRows[1].grassCuring).toBe(70)
   })
 })
