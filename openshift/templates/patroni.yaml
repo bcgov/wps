@@ -209,6 +209,9 @@ objects:
               volumeMounts:
                 - mountPath: /home/postgres/pgdata
                   name: postgresql
+                - name: certs
+                  mountPath: "/home/postgres/certs"
+                  readOnly: true
           dnsPolicy: ClusterFirst
           restartPolicy: Always
           schedulerName: default-scheduler
@@ -219,6 +222,22 @@ objects:
             - name: postgresql
               persistentVolumeClaim:
                 claimName: ${NAME}
+            - name: certs
+              projected:
+                sources:
+                  - secret:
+                      name: postgresql-ca
+                      items:
+                        - key: ca.crt
+                          path: ca.crt
+                  - secret:
+                      name: patroni-test.tls
+                      items:
+                        - key: tls.crt
+                          path: tls.crt
+                        - key: tls.key
+                          path: tls.key
+
       updateStrategy:
         type: RollingUpdate
       volumeClaimTemplates:
