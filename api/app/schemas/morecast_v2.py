@@ -73,6 +73,7 @@ class MoreCastForecastInput(BaseModel):
     precip: float
     wind_speed: float
     wind_direction: int | None = None
+    grass_curing: float | None = None
 
 
 class MoreCastForecastRequest(BaseModel):
@@ -171,4 +172,5 @@ class WF1PostForecast(BaseModel):
     precipitation: float
     windSpeed: float
     windDirection: Optional[float] = None
+    grasslandCuring: Optional[float] = None
     recordType: WF1ForecastRecordType

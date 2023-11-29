@@ -1,5 +1,5 @@
 
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, timezone
 from urllib.parse import urljoin
 from app import config
 
@@ -47,15 +47,16 @@ def construct_wf1_forecast(forecast: MorecastForecastRecord, stations: List[WFWX
                                         precipitation=forecast.precip,
                                         windSpeed=forecast.wind_speed,
                                         windDirection=forecast.wind_direction,
-                                        weatherTimestamp=datetime.timestamp(forecast.for_date) * 1000,
-                                        recordType=WF1ForecastRecordType())
+                                        weatherTimestamp=forecast.for_date,
+                                        recordType=WF1ForecastRecordType(),
+                                        grasslandCuring=forecast.grass_curing)
     return wf1_post_forecast
 
 
 async def construct_wf1_forecasts(session: ClientSession, forecast_records: List[MorecastForecastRecord], stations: List[WFWXWeatherStation]) -> List[WF1PostForecast]:
     # Fetch existing forecasts from WF1 for the stations and date range in the forecast records
     header = await get_auth_header(session)
-    forecast_dates = [f.for_date for f in forecast_records]
+    forecast_dates = [datetime.fromtimestamp(f.for_date / 1000, timezone.utc) for f in forecast_records]
     min_forecast_date = min(forecast_dates)
     max_forecast_date = max(forecast_dates)
     start_time = vancouver_tz.localize(datetime.combine(min_forecast_date, time.min))
