@@ -224,6 +224,7 @@ objects:
                 claimName: ${NAME}
             - name: certs
               projected:
+                defaultMode: 0640
                 sources:
                   - secret:
                       name: postgresql-ca
