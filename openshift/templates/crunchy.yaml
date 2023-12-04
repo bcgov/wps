@@ -48,6 +48,10 @@ objects:
         name: ${APP_NAME}-${SUFFIX}
         labels:
           app: ${APP_NAME}-${SUFFIX}
+      customTLSSecret:
+        name: custom.tls
+      customReplicationTLSSecret:
+        name: custom.tls
       standby:
         enabled: true
         host: "patroni-wps-test-leader.e1e498-dev.svc.cluster.local"
