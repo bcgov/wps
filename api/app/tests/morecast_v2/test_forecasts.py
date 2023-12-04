@@ -181,6 +181,7 @@ def assert_wf1_forecast(result: WF1PostForecast,
     assert result.windDirection == morecast_record_1.wind_direction
     assert result.weatherTimestamp == morecast_record_1.for_date
     assert result.recordType == WF1ForecastRecordType()
+    assert result.grasslandCuring == morecast_record_1.grass_curing
 
 
 def test_get_fwi_values():

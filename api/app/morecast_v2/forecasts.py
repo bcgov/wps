@@ -22,7 +22,7 @@ def get_forecasts(db_session: Session, start_time: Optional[datetime], end_time:
 
     result = get_forecasts_in_range(db_session, start_time, end_time, station_codes)
 
-    forecasts: List[WeatherIndeterminate] = [MoreCastForecastOutput(station_code=forecast.station_code,
+    forecasts: List[MoreCastForecastOutput] = [MoreCastForecastOutput(station_code=forecast.station_code,
                                                                     for_date=forecast.for_date.timestamp() * 1000,
                                                                     temp=forecast.temp,
                                                                     rh=forecast.rh,

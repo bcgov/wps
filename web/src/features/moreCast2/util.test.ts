@@ -224,8 +224,10 @@ describe('mapForecastChoiceLabels', () => {
 describe('fillGrassCuring', () => {
   const forecast1A = buildValidForecastRow(123, TEST_DATETIME, 'FORECAST')
   const forecast2A = buildValidForecastRow(321, TEST_DATETIME, 'FORECAST')
+  const forecast3A = buildValidForecastRow(111, TEST_DATETIME, 'FORECAST')
   const actual1A = buildValidActualRow(123, TEST_DATETIME.minus({ days: 1 }))
   const actual2A = buildValidActualRow(321, TEST_DATETIME.minus({ days: 1 }))
+  const actual3A = buildValidActualRow(111, TEST_DATETIME.minus({ days: 1 }))
   actual1A.grassCuring = 80
   actual2A.grassCuring = 70
 
@@ -234,11 +236,12 @@ describe('fillGrassCuring', () => {
   actual1B.grassCuring = 8
   actual2B.grassCuring = 7
 
-  const rows = [forecast1A, forecast2A, actual1A, actual1B, actual2A, actual2B]
+  const rows = [forecast1A, forecast2A, forecast3A, actual1A, actual1B, actual2A, actual2B, actual3A]
 
   it('should map the most recent grass curing value for each station to each forecast', () => {
     const filledRows = fillGrassCuring(rows)
     expect(filledRows[0].grassCuring).toBe(80)
     expect(filledRows[1].grassCuring).toBe(70)
+    expect(filledRows[2].grassCuring).toBe(NaN)
   })
 })

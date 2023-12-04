@@ -139,7 +139,6 @@ class WeatherIndeterminate(BaseModel):
     grass_curing: Optional[float] = None
 
 
-
 class IndeterminateDailiesResponse(BaseModel):
     actuals: List[WeatherIndeterminate]
     predictions: List[WeatherIndeterminate]
