@@ -14,3 +14,15 @@ def _create_redis():
 def create_redis():
     """ Call _create_redis, to make it easy to mock out for everyone in unit testing. """
     return _create_redis()
+
+
+def clear_cache_matching(key_part_match: str):
+    """
+    Clear cache entry from redis cache
+
+    :param key_part_match: Part of key to search for in redis key
+    :type key_match_str: str
+    """
+    redis = create_redis()
+    for key in redis.scan_iter(f'*{key_part_match}*'):
+        redis.delete(key)

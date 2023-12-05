@@ -189,6 +189,7 @@ export const createMoreCast2Rows = (
       firstItem.latitude,
       firstItem.longitude
     )
+    row.grassCuring = getNumberOrNaN(firstItem.grass_curing)
 
     for (const value of values) {
       switch (value.determinate) {
@@ -613,6 +614,9 @@ export const createEmptyMoreCast2Row = (
     fwiCalcActual: NaN,
     dgrCalcActual: NaN,
 
+    //
+    grassCuring: NaN,
+
     // GDPS model predictions
     precipGDPS: NaN,
     rhGDPS: NaN,
@@ -720,6 +724,7 @@ const createEmptyWeatherIndeterminate = (
     initial_spread_index: null,
     build_up_index: null,
     fire_weather_index: null,
-    danger_rating: null
+    danger_rating: null,
+    grass_curing: null
   }
 }
