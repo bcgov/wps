@@ -21,11 +21,10 @@ from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sf
 
 logger = logging.getLogger(__name__)
 
-
 FUEL_TYPE_RASTER_RESOLUTION_IN_METRES = 2000
 
 
-def get_warped_fuel_type_s3_key(bucket):
+def get_fuel_type_s3_key(bucket):
     """
     Returns the key to the fuel type layer that has been reprojected to the Lambert Conformal Conic spatial reference and
     transformed to match the extent and spatial reference of hfi files output by sfms.
@@ -34,7 +33,7 @@ def get_warped_fuel_type_s3_key(bucket):
     # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
     # it's S3 virtual file system driver to read the file.
     # https://gdal.org/user/virtual_file_systems.html
-    key = f"/vsis3/{bucket}/ftl/fuel_types_lambert_2000.tif"
+    key = f"/vsis3/{bucket}/ftl/fuel_types_from_sfms_epsg_3005.tif"
     return key
 
 
@@ -86,13 +85,17 @@ def calculate_fuel_type_areas(source_path: str, fuel_types: list[SFMSFuelType]):
     :param fuel_types: A list of fuel types from the sfms system that may be present in the source_path fuel type layer.
     """
     source = gdal.Open(source_path, gdal.GA_ReadOnly)
+    geotransform = source.GetGeoTransform()
+    # Get pixel size (aka resolution). Vertical resolution is negative, so we need the absolute value.
+    x_res = geotransform[1]
+    y_res = abs(geotransform[5])
     source_band = source.GetRasterBand(1)
     histogram = source_band.GetHistogram()
     combustible_fuel_type_ids = [fuel_type.fuel_type_id for fuel_type in fuel_types if fuel_type.fuel_type_id < 99 and fuel_type.fuel_type_id > 0]
     fuel_type_areas = {}
     for fuel_type_id in combustible_fuel_type_ids:
         count = histogram[fuel_type_id]
-        area = count * FUEL_TYPE_RASTER_RESOLUTION_IN_METRES * FUEL_TYPE_RASTER_RESOLUTION_IN_METRES
+        area = count * x_res * y_res
         if area > 0:
             fuel_type_areas[fuel_type_id] = area
     return fuel_type_areas
@@ -138,16 +141,32 @@ def create_masked_fuel_type_tif(masked_fuel_type_data: list[list[float]], temp_d
     return masked_fuel_type_path
 
 
+def warp_hfi_layer(temp_dir, hfi, fuel_types):
+    geo_transform = fuel_types.GetGeoTransform()
+    x_res = geo_transform[1]
+    y_res = -geo_transform[5]
+    minx = geo_transform[0]
+    maxy = geo_transform[3]
+    maxx = minx + geo_transform[1] * fuel_types.RasterXSize
+    miny = maxy + geo_transform[5] * fuel_types.RasterYSize
+    extent = [minx, miny, maxx, maxy]
+    spatial_reference = fuel_types.GetSpatialRef()
+    warped_hfi_path = os.path.join(temp_dir, "warped_hfi_3005.tif")
+    gdal.Warp(warped_hfi_path, hfi, dstSRS=spatial_reference, outputBounds=extent, xRes=x_res, yRes=y_res, resampleAlg=gdal.GRA_NearestNeighbour)
+    return warped_hfi_path
+
+
 async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: datetime, for_date: date):
     """
     Entry point for deriving fuel type areas for each hfi threshold per advisory shape (eg. fire zone unit).
 
     General description of the process:
-     - get an hfi raster from S3 based on the run type, run datetime and for date
+     - get a hfi raster from S3 based on the run type, run datetime and for date
      - get the fuel type raster from S3
-     - for each threshold, create a mask from the hfi raster that will contains values of 0 and 1 for use in raster multiplication
+     - reproject the hfi raster to match extent, spatial reference and resolution of the fuel type raster
+     - for each threshold, create a mask from the reprojected hfi raster that will contains values of 0 and 1 for use in raster multiplication
      - multiply the fuel type layer by the mask in order to filter out fuel types where hfi does not match the threshold
-     - for each advisory shape (aka fire zone unit), clip the masked fuel type layer by shape's geometry
+     - for each advisory shape (aka fire zone unit), clip the masked fuel type layer by the shape's geometry
      - count the pixels for each fuel type in the clipped fuel type layer to determine the area of each fuel type
      - store the results in the AdvisoryFuelStats table
 
@@ -177,15 +196,14 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         # Retrieve the appropriate hfi raster from s3 storage
         hfi_key = get_s3_key(run_type, run_datetime.date(), for_date)
         hfi_raster = gdal.Open(hfi_key, gdal.GA_ReadOnly)
-        hfi_data = hfi_raster.GetRasterBand(1).ReadAsArray()
 
-        # Retrieve the fuel type raster from s3 storage. This raster has previously been reprojected to a
-        # Lambert Confirmal Conic spatial reference and re-sampled to match the extent and resolution
-        # of the hfi rasters we get from sfms
-        fuel_type_key = get_warped_fuel_type_s3_key(config.get("OBJECT_STORE_BUCKET"))
+
+        # Retrieve the fuel type raster with BC Albers (EPSG: 3005) spatial reference from s3 storage.
+        fuel_type_key = get_fuel_type_s3_key(config.get("OBJECT_STORE_BUCKET"))
         fuel_type_raster = gdal.Open(fuel_type_key, gdal.GA_ReadOnly)
         fuel_type_band = fuel_type_raster.GetRasterBand(1)
         fuel_type_data = fuel_type_band.ReadAsArray()
+
 
         # Properties useful for creating a new GeoTiff
         geotransform = fuel_type_raster.GetGeoTransform()
@@ -197,13 +215,18 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         fuel_types = await get_all_sfms_fuel_types(session)
 
         with tempfile.TemporaryDirectory() as temp_dir:
+            # Reproject HFI raster to match spatial reference, extent and resolution of fuel layer
+            warped_hfi_path = warp_hfi_layer(temp_dir, hfi_raster, fuel_type_raster)
+            warped_hfi_raster = gdal.Open(warped_hfi_path, gdal.GA_ReadOnly)
+            warped_hfi_data = warped_hfi_raster.GetRasterBand(1).ReadAsArray()
             for threshold in thresholds:
-                classified_hfi_data = classify_by_threshold(hfi_data, threshold.id)
+                classified_hfi_data = classify_by_threshold(warped_hfi_data, threshold.id)
                 masked_fuel_type_data = np.multiply(fuel_type_data, classified_hfi_data)
                 masked_fuel_type_path = create_masked_fuel_type_tif(masked_fuel_type_data, temp_dir, threshold.id, geotransform, projection, x_size, y_size)
                 await calculate_fuel_type_area_by_shape(session, temp_dir, masked_fuel_type_path, threshold.id, run_parameters_id, fuel_types)
     # Clean up open gdal objects
     hfi_raster = None
+    warped_hfi_raster = None
     fuel_type_raster = None
 
     perf_end = perf_counter()
