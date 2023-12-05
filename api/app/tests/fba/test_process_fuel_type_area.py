@@ -1,4 +1,4 @@
-from app.auto_spatial_advisory.process_fuel_type_area import get_warped_fuel_type_s3_key, classify_by_threshold
+from app.auto_spatial_advisory.process_fuel_type_area import get_fuel_type_s3_key, classify_by_threshold
 import numpy as np
 
 
@@ -7,7 +7,7 @@ HFI_RASTER = np.array([[1000, 2000, 3000, 4005], [5000, 10001, 11000, 12000], [3
 
 def test_get_warped_fuel_type_s3_key():
     bucket = "abcde"
-    key = get_warped_fuel_type_s3_key(bucket)
+    key = get_fuel_type_s3_key(bucket)
     assert key == f"/vsis3/{bucket}/ftl/fuel_types_lambert_2000.tif"
 
 
