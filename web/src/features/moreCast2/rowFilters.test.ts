@@ -23,7 +23,7 @@ export const buildValidForecastRow = (
   return forecastRow
 }
 
-const buildValidActualRow = (stationCode: number, forDate: DateTime): MoreCast2Row => {
+export const buildValidActualRow = (stationCode: number, forDate: DateTime): MoreCast2Row => {
   const actualRow = createEmptyMoreCast2Row('id', stationCode, 'stationName', forDate, 1, 2)
   actualRow.precipActual = 1
   actualRow.tempActual = 1
