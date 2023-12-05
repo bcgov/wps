@@ -103,6 +103,12 @@
             ]
         },
         {
+            "name": "generate text advisory",
+            "type": "python",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.generate_text_advisory",
+        },
+        {
             "name": "Chrome",
             "type": "pwa-chrome",
             "request": "launch",
