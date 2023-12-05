@@ -20,6 +20,10 @@ define run-env-canada-model
 	POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.jobs.env_canada ${1}
 endef
 
+define run-gen-advisory
+	$(POETRY_RUN) python -m app.auto_spatial_advisory.generate_text_advisory
+endef
+
 define run-env-canada
 	${call run-env-canada-model,GDPS}
 	${call run-env-canada-model,HRDPS}
@@ -85,6 +89,9 @@ run-with-tests:
 
 run:
 	${call run-api,$(POETRY_RUN)}
+
+run-gen-advisory:
+	${call run-gen-advisory}
 
 run-env-canada:
 	${call run-env-canada}
