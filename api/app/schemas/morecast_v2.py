@@ -73,6 +73,7 @@ class MoreCastForecastInput(BaseModel):
     precip: float
     wind_speed: float
     wind_direction: int | None = None
+    grass_curing: float | None = None
 
 
 class MoreCastForecastRequest(BaseModel):
@@ -135,6 +136,7 @@ class WeatherIndeterminate(BaseModel):
     build_up_index: Optional[float] = None
     fire_weather_index: Optional[float] = None
     danger_rating: Optional[int] = None
+    grass_curing: Optional[float] = None
 
 
 class IndeterminateDailiesResponse(BaseModel):
@@ -169,4 +171,5 @@ class WF1PostForecast(BaseModel):
     precipitation: float
     windSpeed: float
     windDirection: Optional[float] = None
+    grasslandCuring: Optional[float] = None
     recordType: WF1ForecastRecordType

@@ -37,6 +37,7 @@ const ISI = 10.5
 const BUI = 110
 const FWI = 50
 const DGR = 5
+const GC = 50
 
 const modelDeterminates = WeatherDeterminateChoices.filter(
   determinate =>
@@ -71,7 +72,8 @@ const weatherIndeterminateGenerator = (
     initial_spread_index: ISI,
     build_up_index: BUI,
     fire_weather_index: FWI,
-    danger_rating: DGR
+    danger_rating: DGR,
+    grass_curing: GC
   }
 }
 
@@ -125,7 +127,8 @@ describe('dataSlice', () => {
           initial_spread_index: 9.5,
           build_up_index: 110,
           fire_weather_index: 25,
-          danger_rating: 5
+          danger_rating: 5,
+          grass_curing: 50
         }
       ]
       const forecasts: [] = []
@@ -149,7 +152,8 @@ describe('dataSlice', () => {
           initial_spread_index: 9.5,
           build_up_index: 110,
           fire_weather_index: 25,
-          danger_rating: 5
+          danger_rating: 5,
+          grass_curing: 50
         }
       ]
       const payload: WeatherIndeterminatePayload = {

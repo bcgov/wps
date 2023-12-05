@@ -16,6 +16,7 @@ export interface MoreCast2ForecastRow {
   temp: PredictionItem
   windDirection: PredictionItem
   windSpeed: PredictionItem
+  grassCuring: number
 }
 
 export interface BaseRow {
@@ -44,6 +45,9 @@ export interface MoreCast2Row extends BaseRow {
   buiCalcForecast?: PredictionItem
   fwiCalcForecast?: PredictionItem
   dgrCalcForecast?: PredictionItem
+
+  // Grass curing carryover
+  grassCuring: number
 
   // Forecast properties
   precipForecast?: PredictionItem
