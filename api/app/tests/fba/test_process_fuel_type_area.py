@@ -8,7 +8,7 @@ HFI_RASTER = np.array([[1000, 2000, 3000, 4005], [5000, 10001, 11000, 12000], [3
 def test_get_warped_fuel_type_s3_key():
     bucket = "abcde"
     key = get_fuel_type_s3_key(bucket)
-    assert key == f"/vsis3/{bucket}/ftl/fuel_types_lambert_2000.tif"
+    assert key == f"/vsis3/{bucket}/ftl/fuel_types_from_sfms_epsg_3005.tif"
 
 
 def test_classify_by_threshold_1():
