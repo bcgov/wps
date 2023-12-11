@@ -1,34 +1,42 @@
 
+import os
 import logging
 from app import configure_logging
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from transformers import GPT2Tokenizer, GPT2Model, GPT2LMHeadModel
+from llama_cpp.llama import Llama, LlamaGrammar
+
 
 
 logger = logging.getLogger(__name__)
 
+grammar_text = """
+root ::= Advisory
+FireZone ::= "{"   ws   "\"id\":"   ws   string   ","   ws   "\"name\":"   ws   string   ","   ws   "\"fuelType\":"   ws   FuelType   "}"
+FireZonelist ::= "[]" | "["   ws   FireZone   (","   ws   FireZone)*   "]"
+FuelType ::= "\"C1\"" | "\"C2\"" | "\"C3\""
+Advisory ::= "{"   ws   "\"id\":"   ws   string   ","   ws   "\"fireZone\":"   ws   FireZone   ","   ws   "\"percentageCombustable\":"   ws   number   "}"
+Advisorylist ::= "[]" | "["   ws   Advisory   (","   ws   Advisory)*   "]"
+string ::= "\""   ([^"]*)   "\""
+boolean ::= "true" | "false"
+ws ::= [ \t\n]*
+number ::= [0-9]+   "."?   [0-9]*
+stringlist ::= "["   ws   "]" | "["   ws   string   (","   ws   string)*   ws   "]"
+numberlist ::= "["   ws   "]" | "["   ws   string   (","   ws   number)*   ws   "]"
+
+"""
+
 def main():
     """ main script - process and download models, then do exception handling """
-    logger.info("Generating advisory")
-    # model_name = 'Intel/neural-chat-7b-v3-1'
-    # model = AutoModelForCausalLM.from_pretrained(model_name)
-    # tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     prompt = "A fire weather advisory with winds of 30km/hr, temperature 27 degrees celcius and wind direction from the southeast"
-    # inputs = tokenizer.encode(prompt, return_tensors="pt", add_special_tokens=False)
-    # outputs = model.generate(inputs, max_length=1000, num_return_sequences=1)
-    # response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    # logger.info(response)
+    logger.info("Generating advisory")
+    grammer_path = os.path.join(os.path.dirname(__file__), 'grammar.gbnf')
+    with open(grammer_path, 'r') as grammer_file:
+        grammar_text = grammer_file.read()
+        llm = Llama("/Users/cbrady/mistral-7b-openorca.Q5_K_S.gguf")
+        grammar = LlamaGrammar.from_string(grammar_text)
+        response = llm(prompt, grammar=grammar)
+        logger.info(response)
 
-    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-    model = GPT2LMHeadModel.from_pretrained('gpt2')
-    text = "Replace me by any text you'd like."
-    inputs = tokenizer.encode(prompt, return_tensors="pt", add_special_tokens=False)
-    outputs = model.generate(inputs, max_length=1000, num_return_sequences=1)
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    # encoded_input = tokenizer(text, return_tensors='pt')
-    # output = model(**encoded_input)
-    logger.info(response)
 
 
 if __name__ == "__main__":

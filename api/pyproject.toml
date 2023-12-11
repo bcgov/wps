@@ -47,6 +47,7 @@ transformers = "^4.35.2"
 bitsandbytes = "^0.41.2.post2"
 torch = "^2.1.1"
 accelerate = "^0.25.0"
+llama-cpp-python = "^0.2.20"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"

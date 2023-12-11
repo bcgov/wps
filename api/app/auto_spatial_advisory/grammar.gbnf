@@ -1,0 +1,12 @@
+root ::= Advisory
+FireZone ::= "{"   ws   "\"id\":"   ws   string   ","   ws   "\"name\":"   ws   string   ","   ws   "\"fuelType\":"   ws   FuelType   "}"
+FireZonelist ::= "[]" | "["   ws   FireZone   (","   ws   FireZone)*   "]"
+FuelType ::= "\"C1\"" | "\"C2\"" | "\"C3\""
+Advisory ::= "{"   ws   "\"id\":"   ws   string   ","   ws   "\"fireZone\":"   ws   FireZone   ","   ws   "\"percentageCombustable\":"   ws   number   "}"
+Advisorylist ::= "[]" | "["   ws   Advisory   (","   ws   Advisory)*   "]"
+string ::= "\""   ([^"]*)   "\""
+boolean ::= "true" | "false"
+ws ::= [ \t\n]*
+number ::= [0-9]+   "."?   [0-9]*
+stringlist ::= "["   ws   "]" | "["   ws   string   (","   ws   string)*   ws   "]"
+numberlist ::= "["   ws   "]" | "["   ws   string   (","   ws   number)*   ws   "]"
