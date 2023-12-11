@@ -249,7 +249,7 @@ class StationMachineLearning:
             return None
 
         assert len(predicted_wind_dir) == 2
-        predicted_wind_dir_deg = calculate_wind_dir_from_u_v(u_v[0], u_v[1])
+        predicted_wind_dir_deg = calculate_wind_dir_from_u_v(predicted_wind_dir[0], predicted_wind_dir[1])
         return predicted_wind_dir_deg
     
     def predict_precipitation(self, model_precipitation: float, timestamp: datetime):

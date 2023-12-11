@@ -6,6 +6,7 @@ from app.tests.weather_models.crud import (get_actuals_left_outer_join_with_pred
                                            get_predicted_daily_precip)
 from app.db.models.weather_models import PredictionModel
 from app.weather_models.machine_learning import StationMachineLearning
+import math
 
 
 @pytest.fixture()
@@ -49,7 +50,7 @@ def test_bias_adjustment_with_samples(mock_get_actuals_left_outer_join_with_pred
     precip_result = machine_learner.predict_precipitation(3, datetime(2023,10,26,20,0,0))
     assert temp_result == 30
     assert rh_result == 100
-    assert wdir_result == 120
+    assert math.isclose(wdir_result, 115.51556685719027)
     assert precip_result == 3
 
 
