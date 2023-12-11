@@ -20,7 +20,7 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install libgdal-dev
       - name: Setup Python ${{ matrix.python-version }} (api)
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Cache poetry installer
@@ -93,7 +93,7 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install libgdal-dev wkhtmltopdf
       - name: Setup Python ${{ matrix.python-version }} (api)
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Cache poetry installer
@@ -255,7 +255,7 @@ jobs:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
       - name: Setup Python ${{ matrix.python-version }} (api)
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Cache poetry installer
