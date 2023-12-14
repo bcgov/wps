@@ -44,13 +44,13 @@ def get_actuals_left_outer_join_with_predictions(
                         ModelRunPrediction.station_code == station_code))\
         .outerjoin(PredictionModelRunTimestamp,
                    and_(PredictionModelRunTimestamp.id ==
-                        ModelRunPrediction.prediction_model_run_timestamp_id,
-                        PredictionModelRunTimestamp.prediction_model_id == model_id))\
+                        ModelRunPrediction.prediction_model_run_timestamp_id))\
         .filter(HourlyActual.station_code == station_code)\
         .filter(HourlyActual.weather_date >= start_date)\
         .filter(HourlyActual.temp_valid == True)\
         .filter(HourlyActual.rh_valid == True)\
         .filter(HourlyActual.weather_date <= end_date)\
+        .filter(PredictionModelRunTimestamp.prediction_model_id == model_id)\
         .order_by(HourlyActual.station_code)\
         .order_by(HourlyActual.weather_date)\
         .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
