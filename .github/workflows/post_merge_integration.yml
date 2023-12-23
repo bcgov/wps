@@ -166,7 +166,7 @@ jobs:
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
       - name: Archive coverage report (api)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: api-coverage-report
           path: ./api/coverage-reports/coverage-report.xml
@@ -215,7 +215,7 @@ jobs:
         run: yarn run finalizeCoverage
 
       - name: Archive coverage report (web)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: web-coverage-report
           path: ./web/finalCoverage
