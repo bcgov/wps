@@ -3,11 +3,12 @@
 import logging
 import math
 from typing import Optional
-import pandas as pd
 import rpy2.robjects as robjs
+from rpy2.robjects import pandas2ri
 from rpy2.robjects import DataFrame
 import rpy2.robjects.conversion as cv
 from rpy2.rinterface import NULL
+import pandas as pd
 import app.utils.r_importer
 from app.utils.singleton import Singleton
 from app.schemas.fba_calc import FuelTypeEnum
@@ -805,6 +806,20 @@ def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
     raise CFFDRSException("Failed to calculate hffmc")
 
 
+def pandas_to_r_converter(df: pd.DataFrame):
+    with (robjs.default_converter + pandas2ri.converter).context():
+        r_df = robjs.conversion.get_conversion().py2rpy(df)
+
+    return r_df
+
+
+def r_to_pandas_converter(r):
+    with (robjs.default_converter + pandas2ri.converter).context():
+        df = robjs.conversion.get_conversion().rpy2py(r)
+
+    return df
+
+
 def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
                                    time_step: int = 1, calc_step: bool = False, batch: bool = True,
                                    hourly_fwi: bool = False):
@@ -845,12 +860,16 @@ def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
         bui  (optional)  Daily BUI value for the computation of hourly FWI. It is
                           required when hourlyFWI=TRUE
     """
-    result = CFFDRS.instance().cffdrs.hffmc(weatherstream=weatherstream,
+    column_name_map = {'temperature':'temp', 'relative_humidity': 'rh', 'wind_speed': 'ws', 'precipitation': 'prec'}
+    weatherstream.rename(columns=column_name_map)
+
+    r_weatherstream = pandas_to_r_converter(weatherstream)
+
+    result = CFFDRS.instance().cffdrs.hffmc(weatherstream=r_weatherstream,
                                             ffmc_old=ffmc_old, time_step=time_step, calc_step=calc_step,
                                             batch=batch, hourlyFWI=hourly_fwi)
-    if isinstance(result[0], float):
-        return result[0]
-    raise CFFDRSException("Failed to calculate hffmc")
+
+    return result
     
 
 def get_ffmc_for_target_hfi(
