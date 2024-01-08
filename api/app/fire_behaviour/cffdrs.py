@@ -768,7 +768,9 @@ def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
                             time.
                calc.step:   Whether time step between 2 obs is calculated
                             (optional)
-                   batch:   Single step or iterative (default=TRUE)
+                   batch:   Single step or iterative (default=TRUE). If multiple weather stations are processed, 
+                            an additional "id" column is required in the input weatherstream to label different 
+                            stations, and the data needs to be sorted by date/time and "id". 
                hourlyFWI:   Can calculated hourly ISI & FWI as well
                             (TRUE/FALSE, default=FALSE)
     
