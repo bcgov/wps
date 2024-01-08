@@ -746,7 +746,15 @@ def head_fire_intensity(fuel_type: FuelTypeEnum,
     raise CFFDRSException("Failed to calculate FI")
 
 
-def pandas_to_r_converter(df: pd.DataFrame):
+def pandas_to_r_converter(df: pd.DataFrame) -> robjs.vectors.DataFrame:
+    """
+    Converyt pandas dataframe to an R data.frame object
+
+    :param df: Pandas dataframe
+    :type df: pd.DataFrame
+    :return: R data.frame object
+    :rtype: robjs.vectors.DataFrame
+    """
     with (robjs.default_converter + pandas2ri.converter).context():
         r_df = robjs.conversion.get_conversion().py2rpy(df)
 
@@ -755,7 +763,7 @@ def pandas_to_r_converter(df: pd.DataFrame):
 
 def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
                                    time_step: int = 1, calc_step: bool = False, batch: bool = True,
-                                   hourly_fwi: bool = False):
+                                   hourly_fwi: bool = False) -> pd.Dataframe:    
     """ Computes hourly FFMC based on noon FFMC using diurnal curve for approximation.
     Delegates the calculation to cffdrs R package.
 
@@ -764,9 +772,10 @@ def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
                             precipitation, hourly value, and bui. More specific
                             info can be found in the hffmc.Rd help file.
                 ffmc_old:   ffmc from previous timestep
-               time.step:   The time (hours) between previous FFMC and current
+               time_step:   The time (hours) between previous FFMC and current
                             time.
-               calc.step:   Whether time step between 2 obs is calculated
+               calc_step:   Optional for whether time step between two observations is calculated. Default is FALSE, 
+                            no calculations. This is used when time intervals are not uniform in the input.
                             (optional)
                    batch:   Single step or iterative (default=TRUE). If multiple weather stations are processed, 
                             an additional "id" column is required in the input weatherstream to label different 
@@ -795,6 +804,8 @@ def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
         bui  (optional)  Daily BUI value for the computation of hourly FWI. It is
                           required when hourlyFWI=TRUE
     """
+
+    # We have to change field names to exactly what the CFFDRS lib expects
     column_name_map = {'temperature':'temp', 'relative_humidity': 'rh', 'wind_speed': 'ws', 'precipitation': 'prec'}
     weatherstream = weatherstream.rename(columns=column_name_map)
 
