@@ -3,7 +3,7 @@ apiVersion: template.openshift.io/v1
 metadata:
   name: ${JOB_NAME}-cronjob-template
   annotations:
-    description: "Scheduled task to download and process VIIRS snow data from the Nasa Snow and Ice Data Centre.""
+    description: "Scheduled task to download and process VIIRS snow data from the Nasa Snow and Ice Data Centre."
     tags: "cronjob,viirs,snow"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
