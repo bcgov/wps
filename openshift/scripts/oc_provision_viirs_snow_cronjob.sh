@@ -26,7 +26,7 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Specify a default schedule to run daily at 4am
-SCHEDULE="${* 4 * * *}"
+SCHEDULE="${SCHEDULE:-$((3 + $RANDOM % 54)) * * * *}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/viirs_snow.cronjob.yaml \
