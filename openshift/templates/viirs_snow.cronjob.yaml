@@ -21,7 +21,7 @@ parameters:
   - name: PROJ_TOOLS
     value: e1e498-tools
   - name: JOB_NAME
-    value: viirs_snow
+    value: viirs-snow
   - name: IMAGE_REGISTRY
     required: true
     value: image-registry.openshift-image-registry.svc:5000
