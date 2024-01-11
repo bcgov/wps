@@ -188,6 +188,12 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} apply
 
+      - name: VIIRS SNOW cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_viirs_snow_cronjob.sh ${SUFFIX} apply
+
   # TODO: Delete once pmtiles has run for some time
   # deploy-tileserv:
   #   name: Deploy tileserv to Dev
