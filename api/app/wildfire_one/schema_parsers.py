@@ -98,6 +98,7 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
         bui = raw_daily.get('buildUpIndex')
         fwi = raw_daily.get('fireWeatherIndex')
         dgr = raw_daily.get('dangerForest')
+        gc = raw_daily.get('grasslandCuring')
 
         if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') in [WF1RecordTypeEnum.ACTUAL.value, WF1RecordTypeEnum.MANUAL.value]:
             observed_dailies.append(WeatherIndeterminate(
@@ -118,7 +119,8 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
                 initial_spread_index=isi,
                 build_up_index=bui,
                 fire_weather_index=fwi,
-                danger_rating=dgr
+                danger_rating=dgr,
+                grass_curing=gc
             ))
         elif is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == WF1RecordTypeEnum.FORECAST.value:
             forecasts.append(WeatherIndeterminate(
@@ -132,7 +134,8 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
                 relative_humidity=rh,
                 precipitation=precip,
                 wind_direction=wind_dir,
-                wind_speed=wind_spd
+                wind_speed=wind_spd,
+                grass_curing=gc
             ))
     return observed_dailies, forecasts
 

@@ -32,6 +32,7 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_for_stations_and_date,
                                        get_daily_determinates_for_stations_and_date, get_wfwx_stations_from_station_codes)
 from app.wildfire_one.wfwx_post_api import post_forecasts
+from app.utils.redis import clear_cache_matching
 
 
 logger = logging.getLogger(__name__)
@@ -107,8 +108,12 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
 
     async with ClientSession() as client_session:
         try:
-            wf1_forecast_records = await format_as_wf1_post_forecasts(client_session, forecasts_to_save)
+            wf1_forecast_records = await format_as_wf1_post_forecasts(client_session, forecasts_list)
             await post_forecasts(client_session, token=forecasts.token, forecasts=wf1_forecast_records)
+            
+            station_ids = [wfwx_station.stationId for wfwx_station in wf1_forecast_records]
+            for station_id in station_ids:
+                clear_cache_matching(station_id)
         except Exception as exc:
             logger.error('Encountered error posting forecast data to WF1 API', exc_info=exc)
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Error submitting forecast(s) to WF1')

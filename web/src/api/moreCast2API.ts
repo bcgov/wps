@@ -138,6 +138,7 @@ export interface WeatherIndeterminate {
   build_up_index: number | null
   fire_weather_index: number | null
   danger_rating: number | null
+  grass_curing: number | null
 }
 
 export interface WeatherIndeterminatePayload {
@@ -168,6 +169,7 @@ export interface MoreCast2ForecastRecord {
   wind_direction: number
   update_timestamp?: number
   station_name?: string
+  grass_curing: number
 }
 
 export interface MoreCastForecastRequest {
@@ -184,7 +186,8 @@ export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[
       rh: forecast.rh.value,
       temp: forecast.temp.value,
       wind_direction: forecast.windDirection.value,
-      wind_speed: forecast.windSpeed.value
+      wind_speed: forecast.windSpeed.value,
+      grass_curing: forecast.grassCuring
     }
   })
   return forecastRecords
@@ -274,7 +277,8 @@ export const mapMoreCast2RowsToIndeterminates = (rows: MoreCast2Row[]): WeatherI
       initial_spread_index: isForecast ? r.isiCalcForecast!.value : r.isiCalcActual,
       build_up_index: isForecast ? r.buiCalcForecast!.value : r.buiCalcActual,
       fire_weather_index: isForecast ? r.fwiCalcForecast!.value : r.fwiCalcActual,
-      danger_rating: isForecast ? null : r.rhActual
+      danger_rating: isForecast ? null : r.rhActual,
+      grass_curing: r.grassCuring
     }
   })
   return mappedIndeterminates
