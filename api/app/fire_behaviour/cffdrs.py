@@ -763,7 +763,7 @@ def pandas_to_r_converter(df: pd.DataFrame) -> robjs.vectors.DataFrame:
 
 def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
                                    time_step: int = 1, calc_step: bool = False, batch: bool = True,
-                                   hourly_fwi: bool = False) -> pd.Dataframe:    
+                                   hourly_fwi: bool = False) -> pd.DataFrame:    
     """ Computes hourly FFMC based on noon FFMC using diurnal curve for approximation.
     Delegates the calculation to cffdrs R package.
 
