@@ -184,7 +184,7 @@ class ModelRunPrediction(Base):
     # The date and time to which the prediction applies.
     prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
     # The station code representing the location (aka weather station).
-    station_code = Column(Integer, nullable=True)
+    station_code = Column(Integer, nullable=False)
     # Temperature 2m above model layer.
     tmp_tgl_2 = Column(Float, nullable=True)
     # Relative humidity 2m above model layer.

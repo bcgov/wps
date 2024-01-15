@@ -16,3 +16,4 @@ from app.db.models.hfi_calc import (FireCentre, FuelType, PlanningArea, Planning
 from app.db.models.auto_spatial_advisory import (Shape, ShapeType, HfiClassificationThreshold,
                                                  ClassifiedHfi, RunTypeEnum, ShapeTypeEnum, FuelType, HighHfiArea, RunParameters)
 from app.db.models.morecast_v2 import MorecastForecastRecord
+from app.db.models.snow import ProcessedSnow, SnowSourceEnum
