@@ -5,7 +5,6 @@ import math
 from typing import Optional
 import rpy2.robjects as robjs
 from rpy2.robjects import pandas2ri
-from rpy2.robjects import DataFrame
 import rpy2.robjects.conversion as cv
 from rpy2.rinterface import NULL
 import pandas as pd
