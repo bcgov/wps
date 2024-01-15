@@ -4,8 +4,6 @@ import logging
 import math
 from typing import Optional
 import rpy2.robjects as robjs
-from rpy2.robjects import pandas2ri
-import rpy2.robjects.conversion as cv
 from rpy2.rinterface import NULL
 import pandas as pd
 import app.utils.r_importer
@@ -20,7 +18,7 @@ def _none2null(_):
     return robjs.r("NULL")
 
 
-none_converter = cv.Converter("None converter")
+none_converter = robjs.conversion.Converter("None converter")
 none_converter.py2rpy.register(type(None), _none2null)
 
 
@@ -754,7 +752,7 @@ def pandas_to_r_converter(df: pd.DataFrame) -> robjs.vectors.DataFrame:
     :return: R data.frame object
     :rtype: robjs.vectors.DataFrame
     """
-    with (robjs.default_converter + pandas2ri.converter).context():
+    with (robjs.default_converter + robjs.pandas2ri.converter).context():
         r_df = robjs.conversion.get_conversion().py2rpy(df)
 
     return r_df
