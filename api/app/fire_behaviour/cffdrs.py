@@ -766,6 +766,7 @@ def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
                                    hourly_fwi: bool = False) -> pd.DataFrame:    
     """ Computes hourly FFMC based on noon FFMC using diurnal curve for approximation.
     Delegates the calculation to cffdrs R package.
+    https://rdrr.io/rforge/cffdrs/man/hffmc.html
 
      Args: weatherstream:   Input weather stream data.frame which includes
                             temperature, relative humidity, wind speed,
@@ -780,7 +781,7 @@ def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
                    batch:   Single step or iterative (default=TRUE). If multiple weather stations are processed, 
                             an additional "id" column is required in the input weatherstream to label different 
                             stations, and the data needs to be sorted by date/time and "id". 
-               hourlyFWI:   Can calculated hourly ISI & FWI as well
+               hourlyFWI:   calculate hourly ISI, FWI, and DSR. Daily BUI is required.
                             (TRUE/FALSE, default=FALSE)
     
      Returns: A single or multiple hourly ffmc value(s)
@@ -805,7 +806,8 @@ def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
                           required when hourlyFWI=TRUE
     """
 
-    # We have to change field names to exactly what the CFFDRS lib expects
+    # We have to change field names to exactly what the CFFDRS lib expects. 
+    # This may need to be adjusted depending on the future data input model, which is currently unknown
     column_name_map = {'temperature':'temp', 'relative_humidity': 'rh', 'wind_speed': 'ws', 'precipitation': 'prec'}
     weatherstream = weatherstream.rename(columns=column_name_map)
 
