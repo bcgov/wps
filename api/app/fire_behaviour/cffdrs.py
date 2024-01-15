@@ -747,7 +747,7 @@ def head_fire_intensity(fuel_type: FuelTypeEnum,
 
 def pandas_to_r_converter(df: pd.DataFrame) -> robjs.vectors.DataFrame:
     """
-    Converyt pandas dataframe to an R data.frame object
+    Convert pandas dataframe to an R data.frame object
 
     :param df: Pandas dataframe
     :type df: pd.DataFrame
