@@ -4,6 +4,7 @@ import logging
 import math
 from typing import Optional
 import rpy2.robjects as robjs
+from rpy2.robjects import pandas2ri
 from rpy2.rinterface import NULL
 import pandas as pd
 import app.utils.r_importer
@@ -752,7 +753,7 @@ def pandas_to_r_converter(df: pd.DataFrame) -> robjs.vectors.DataFrame:
     :return: R data.frame object
     :rtype: robjs.vectors.DataFrame
     """
-    with (robjs.default_converter + robjs.pandas2ri.converter).context():
+    with (robjs.default_converter + pandas2ri.converter).context():
         r_df = robjs.conversion.get_conversion().py2rpy(df)
 
     return r_df
