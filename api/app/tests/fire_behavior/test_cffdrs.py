@@ -1,9 +1,12 @@
-from app.fire_behaviour.cffdrs import (pandas_to_r_converter, 
-                                       hourly_fine_fuel_moisture_code)
 from datetime import datetime
 import pandas as pd
 import numpy as np
 import rpy2.robjects as robjs
+import pytest
+import math
+from app.schemas.fba_calc import FuelTypeEnum
+from app.fire_behaviour import cffdrs
+from app.fire_behaviour.cffdrs import (pandas_to_r_converter, hourly_fine_fuel_moisture_code)
 
 
 start_date = datetime(2023, 8, 17)
@@ -32,3 +35,32 @@ def test_hourly_ffmc_calculates_values():
     df = hourly_fine_fuel_moisture_code(df_hourly, ffmc_old)
     
     assert not df['hffmc'].isnull().any()
+
+
+def test_ros():
+    """ ROS runs """
+    ros =cffdrs.rate_of_spread(FuelTypeEnum.C7, 1, 1, 1, 1, pc=100, pdf=None,
+                                 cc=None, cbh=10)
+    assert math.isclose(ros, 1.2966988409822604e-05)
+
+
+def test_ros_no_isi():
+    """ ROS fails """
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.rate_of_spread(FuelTypeEnum.C7, None, 1, 1, 1, pc=100, pdf=None,
+                              cc=None, cbh=10)
+
+
+def test_ros_no_bui():
+    """ ROS fails """
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.rate_of_spread(FuelTypeEnum.C7, 1, None, 1, 1, pc=100, pdf=None,
+                              cc=None, cbh=10)
+
+
+def test_ros_no_params():
+    """ ROS fails """
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.rate_of_spread(FuelTypeEnum.C7, None, None, None, None, pc=100, pdf=None,
+                              cc=None, cbh=10)
+
