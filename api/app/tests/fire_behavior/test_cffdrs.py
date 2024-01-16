@@ -6,7 +6,7 @@ import pytest
 import math
 from app.schemas.fba_calc import FuelTypeEnum
 from app.fire_behaviour import cffdrs
-from app.fire_behaviour.cffdrs import (pandas_to_r_converter, hourly_fine_fuel_moisture_code)
+from app.fire_behaviour.cffdrs import (pandas_to_r_converter, hourly_fine_fuel_moisture_code, CFFDRSException)
 
 
 start_date = datetime(2023, 8, 17)
@@ -36,6 +36,14 @@ def test_hourly_ffmc_calculates_values():
     
     assert not df['hffmc'].isnull().any()
 
+
+def test_hourly_ffmc_no_temperature():
+    ffmc_old = 80.0
+    df_hourly = pd.DataFrame({'celsius': [12, 1], 'precip': [0, 1], 'ws': [14, 12], 'rh':[50, 50]})
+
+    with pytest.raises(CFFDRSException):
+        hourly_fine_fuel_moisture_code(df_hourly, ffmc_old)
+    
 
 def test_ros():
     """ ROS runs """
