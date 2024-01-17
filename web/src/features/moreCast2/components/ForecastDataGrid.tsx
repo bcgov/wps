@@ -26,9 +26,9 @@ const Root = styled('div')(() => ({
   [`&.${classes.root}`]: {
     display: 'flex',
     flexGrow: 1,
-    flexDirection: 'column'
-  },
-  height: '1px'
+    flexDirection: 'column',
+    height: '1px'
+  }
 }))
 
 export interface ForecastDataGridProps {
