@@ -135,7 +135,7 @@ objects:
             persistentVolumeReclaimPolicy: Delete
             resources:
               requests:
-                storage: 256M
+                storage: 256Mi
       template:
         metadata:
           labels:
