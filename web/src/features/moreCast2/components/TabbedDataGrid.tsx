@@ -338,9 +338,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         <SelectableButton onClick={() => setRhVisible(!rhVisible)} selected={rhVisible}>
           RH
         </SelectableButton>
-        <SelectableButton onClick={() => setPrecipVisible(!precipVisible)} selected={precipVisible}>
-          Precip
-        </SelectableButton>
         <SelectableButton
           onClick={() => setWindDirectionVisible(!windDirectionVisible)}
           selected={windDirectionVisible}
@@ -349,6 +346,9 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         </SelectableButton>
         <SelectableButton onClick={() => setWindSpeedVisible(!windSpeedVisible)} selected={windSpeedVisible}>
           Wind Speed
+        </SelectableButton>
+        <SelectableButton onClick={() => setPrecipVisible(!precipVisible)} selected={precipVisible}>
+          Precip
         </SelectableButton>
         <SelectableButton
           onClick={() => setForecastSummaryVisible(!forecastSummaryVisible)}
