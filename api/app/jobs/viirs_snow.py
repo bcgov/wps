@@ -167,7 +167,7 @@ class ViirsSnowJob():
         else:
             # Start processing the day after the last record of a successful job.
             next_date = last_processed_date + timedelta(days=1)
-        if next_date == today:
+        if next_date >= today:
             logger.info("Processing of VIIRS snow data is up to date.")
             return
         with tempfile.TemporaryDirectory() as temp_dir:
