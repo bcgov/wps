@@ -21,7 +21,7 @@ def test_viirs_snow_job_fail(mocker: MockerFixture,
     """
 
     async def mock__get_last_processed_date(self):
-        raise Exception("Error")
+        raise OSError("Error")
 
     monkeypatch.setattr(ViirsSnowJob, '_get_last_processed_date', mock__get_last_processed_date)
     rocket_chat_spy = mocker.spy(viirs_snow, 'send_rocketchat_notification')
