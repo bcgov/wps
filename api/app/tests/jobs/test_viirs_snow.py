@@ -72,29 +72,6 @@ def test_viirs_snow_job_exits_cleanly_when_no_viirs_data(monkeypatch):
     assert excinfo.value.code == os.EX_OK
 
 
-def test_viirs_snow_job_exits_cleanly_when_no_viirs_data(monkeypatch):
-    """ Test that viirs_snow_job exits cleanly when attempt to download data that doesn't exist
-    throws a HTTPError with status code of 501.
-    """
-    async def mock__get_last_processed_date(self):
-        return date.today() - timedelta(days=2)
-    
-    def mock__download_viirs_granules_by_date(self, for_date: date, path: str, file_name: str):
-        error = HTTPError(response=Response())
-        error.response.status_code = 501
-        raise error
-    
-    monkeypatch.setattr(ViirsSnowJob, '_get_last_processed_date', mock__get_last_processed_date)    
-    monkeypatch.setattr(ViirsSnowJob, '_get_bc_boundary_from_s3', mock__get_bc_boundary_from_s3)
-    monkeypatch.setattr(ViirsSnowJob, '_download_viirs_granules_by_date', mock__download_viirs_granules_by_date)
-
-
-    with pytest.raises(SystemExit) as excinfo:
-        viirs_snow.main()
-    # Assert that we exited with an error code.
-    assert excinfo.value.code == os.EX_OK
-
-
 def test_viirs_snow_job_fails_on_nsidc_auth_failure(mocker: MockerFixture, monkeypatch):
     """
     Test that when authentication with the NSIDC fails a message is sent to rocket-chat and our exit code is 1.
