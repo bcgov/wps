@@ -197,7 +197,7 @@ class ViirsSnowJob():
 
 
 def main():
-    """ Kicks off asyncronous processing of VIIRS snow coverage data.
+    """ Kicks off asynchronous processing of VIIRS snow coverage data.
     """
     try:
         # We don't want gdal to silently swallow errors.
