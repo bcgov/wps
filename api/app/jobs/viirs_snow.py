@@ -59,7 +59,6 @@ class ViirsSnowJob():
         session = requests.session()
         resp = session.get(f"https://n5eil02u.ecs.nsidc.org/egi/capabilities/{SHORT_NAME}.{PRODUCT_VERSION}.xml")
         session.get(resp.url, auth=(config.get("NASA_EARTHDATA_USER"),config.get("NASA_EARTHDATA_PWD")))
-        # Check if request was successful
         param_dict = {'short_name': SHORT_NAME, 
                         'version': PRODUCT_VERSION, 
                         'temporal': f"{for_date},{for_date}",
