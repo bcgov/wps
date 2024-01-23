@@ -209,9 +209,6 @@ objects:
               volumeMounts:
                 - mountPath: /home/postgres/pgdata
                   name: postgresql
-                - name: certs
-                  mountPath: "/home/postgres/certs"
-                  readOnly: true
           dnsPolicy: ClusterFirst
           restartPolicy: Always
           schedulerName: default-scheduler
@@ -222,20 +219,6 @@ objects:
             - name: postgresql
               persistentVolumeClaim:
                 claimName: ${NAME}
-            - name: certs
-              projected:
-                defaultMode: 0640
-                sources:
-                  - secret:
-                      name: custom.tls
-                      items:
-                        - key: tls.crt
-                          path: tls.crt
-                        - key: tls.key
-                          path: tls.key
-                        - key: ca.crt
-                          path: ca.crt
-
       updateStrategy:
         type: RollingUpdate
       volumeClaimTemplates:
@@ -304,12 +287,12 @@ parameters:
   - name: IMAGE_NAME
     description: |
       The Patroni image stream name
-    value: patroni-postgres-vim
+    value: patroni-postgres
   - name: IMAGE_TAG
     description: |
       The image tag used to specify which image you would like deployed.
       Don't use `latest`.
-    value: "v12-latest"
+    value: "v12-2022-09-12"
   - name: PVC_SIZE
     description: The size of the persistent volume to create.
     displayName: Persistent Volume Size
