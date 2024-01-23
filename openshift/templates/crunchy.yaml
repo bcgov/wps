@@ -21,6 +21,15 @@ parameters:
     description: Application name (wps - wildfire predictive services)
     value: wps-crunchydb
     required: true
+  - name: BUCKET
+    description: S3 bucket name
+    required: true
+  - name: DATA_SIZE
+    description: Data PVC size
+    required: true
+  - name: WAL_SIZE
+    description: WAL PVC size
+    required: true
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
@@ -56,14 +65,14 @@ objects:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 45Gi
+                storage: ${DATA_SIZE}
             storageClassName: netapp-block-standard
           walVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 15Gi
+                storage: ${WAL_SIZE}
             storageClassName: netapp-block-standard
       backups:
         pgbackrest:
@@ -76,9 +85,10 @@ objects:
                     path: s3.conf
           global:
             repo1-retention-full: "3"
+            repo1-path: /pgbackrest/${SUFFIX}/repo1
           repos:
             - name: repo1
               s3:
-                bucket: lwzrin
+                bucket: ${BUCKET}
                 endpoint: nrs.objectstore.gov.bc.ca
                 region: "ca-central-1"
