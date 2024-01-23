@@ -121,7 +121,7 @@ class ViirsSnowJob():
                 file.write(data)
 
 
-    async def _save_clipped_snow_coverage_moasic_to_s3(self, for_date: date, path: str):
+    async def _save_clipped_snow_coverage_mosaic_to_s3(self, for_date: date, path: str):
         """ Save the clipped mosaic to S3 storage.
 
         :param for_date: The date of interest.
