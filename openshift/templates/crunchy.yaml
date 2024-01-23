@@ -55,6 +55,7 @@ objects:
         - name: ${APP_NAME}-${SUFFIX}
           databases:
             - postgres
+            - wps
           options: "SUPERUSER"
       postgresVersion: 14
       instances:
