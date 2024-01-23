@@ -22,26 +22,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
-
-  prepare-dev-database-backups:
-    name: Prepare Dev Database Backups
-    needs: [prepare-dev-database]
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Postgres Backup Cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          bash openshift/scripts/oc_provision_backup_s3_postgres_cronjob.sh ${SUFFIX} apply
+          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_crunchy.sh ${SUFFIX} apply
 
   build-web-image:
     # Declared ahead of build-api-image ; it runs slightly slower than the api build, and putting
