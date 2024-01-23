@@ -45,7 +45,7 @@ export const Observations = styled('div')(({ theme }) => ({
   flexDirection: 'column',
   flexGrow: 1,
   marginTop: theme.spacing(2),
-  overflowX: 'auto'
+  overflow: 'hidden'
 }))
 
 const MoreCast2Page = () => {

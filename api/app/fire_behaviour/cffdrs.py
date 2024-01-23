@@ -4,9 +4,9 @@ import logging
 import math
 from typing import Optional
 import rpy2.robjects as robjs
-from rpy2.robjects import DataFrame
-import rpy2.robjects.conversion as cv
+from rpy2.robjects import pandas2ri
 from rpy2.rinterface import NULL
+import pandas as pd
 import app.utils.r_importer
 from app.utils.singleton import Singleton
 from app.schemas.fba_calc import FuelTypeEnum
@@ -19,7 +19,7 @@ def _none2null(_):
     return robjs.r("NULL")
 
 
-none_converter = cv.Converter("None converter")
+none_converter = robjs.conversion.Converter("None converter")
 none_converter.py2rpy.register(type(None), _none2null)
 
 
@@ -744,65 +744,82 @@ def head_fire_intensity(fuel_type: FuelTypeEnum,
     raise CFFDRSException("Failed to calculate FI")
 
 
-def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
-                                     temperature: float, relative_humidity: float,
-                                     wind_speed: float, precip: float):
+def pandas_to_r_converter(df: pd.DataFrame) -> robjs.vectors.DataFrame:
+    """
+    Convert pandas dataframe to an R data.frame object
+
+    :param df: Pandas dataframe
+    :type df: pd.DataFrame
+    :return: R data.frame object
+    :rtype: robjs.vectors.DataFrame
+    """
+    with (robjs.default_converter + pandas2ri.converter).context():
+        r_df = robjs.conversion.get_conversion().py2rpy(df)
+
+    return r_df
+
+
+def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
+                                   time_step: int = 1, calc_step: bool = False, batch: bool = True,
+                                   hourly_fwi: bool = False) -> pd.DataFrame:    
     """ Computes hourly FFMC based on noon FFMC using diurnal curve for approximation.
     Delegates the calculation to cffdrs R package.
+    https://rdrr.io/rforge/cffdrs/man/hffmc.html
 
-    ffmc_solar_noon is the forecasted or actual FFMC value for solar noon of the date in question.
-    target_hour is the hour of the day (on 24 hour clock) for which hourly FFMC should be calculated
-    the weather variables (temperature, rh, wind_speed, precip) is the forecasted or actual weather
-    values for solar noon.
+     Args: weatherstream:   Input weather stream data.frame which includes
+                            temperature, relative humidity, wind speed,
+                            precipitation, hourly value, and bui. More specific
+                            info can be found in the hffmc.Rd help file.
+                ffmc_old:   ffmc from previous timestep
+               time_step:   The time (hours) between previous FFMC and current
+                            time.
+               calc_step:   Optional for whether time step between two observations is calculated. Default is FALSE, 
+                            no calculations. This is used when time intervals are not uniform in the input.
+                            (optional)
+                   batch:   Single step or iterative (default=TRUE). If multiple weather stations are processed, 
+                            an additional "id" column is required in the input weatherstream to label different 
+                            stations, and the data needs to be sorted by date/time and "id". 
+               hourlyFWI:   calculate hourly ISI, FWI, and DSR. Daily BUI is required.
+                            (TRUE/FALSE, default=FALSE)
+    
+     Returns: A single or multiple hourly ffmc value(s)
+    
+     From hffmc.Rd:
+        weatherstream (required)
+            A dataframe containing input variables of hourly weather observations.
+            It is important that variable names have to be the same as in the following list, but they
+            are case insensitive. The order in which the input variables are entered is not important.
 
-    # Args: weatherstream:   Input weather stream data.frame which includes
-    #                        temperature, relative humidity, wind speed,
-    #                        precipitation, hourly value, and bui. More specific
-    #                        info can be found in the hffmc.Rd help file.
-    #            ffmc_old:   ffmc from previous timestep
-    #           time.step:   The time (hours) between previous FFMC and current
-    #                        time.
-    #           calc.step:   Whether time step between 2 obs is calculated
-    #                        (optional)
-    #               batch:   Single step or iterative (default=TRUE)
-    #           hourlyFWI:   Can calculated hourly ISI & FWI as well
-    #                        (TRUE/FALSE, default=FALSE)
-    #
-    # Returns: A single or multiple hourly ffmc value(s)
-    #
-    # From hffmc.Rd:
-    # {weatherstream}{
-    # A dataframe containing input variables of hourly weather observations.
-    # It is important that variable names have to be the same as in the following list, but they
-    # are case insensitive. The order in which the input variables are entered is not important.
-    #
-    #     temp (required)  Temperature (centigrade)
-    #     rh   (required)  Relative humidity (%)
-    #     ws   (required)  10-m height wind speed (km/h)
-    #     prec (required)  1-hour rainfall (mm)
-    #     hr   (optional)  Hourly value to calculate sub-hourly ffmc
-    #     bui  (optional)  Daily BUI value for the computation of hourly FWI. It is
-    # required when hourlyFWI=TRUE
+            Typically this dataframe also contains date and hour fields so outputs can be associated 
+            with a specific day and time, however these fields are not used in the calculations. If 
+            multiple weather stations are being used, a weather station ID field is typically included as well, 
+            though this is simply for bookkeeping purposes and does not affect the calculation.
+    
+        temp (required)  Temperature (centigrade)
+        rh   (required)  Relative humidity (%)
+        ws   (required)  10-m height wind speed (km/h)
+        prec (required)  1-hour rainfall (mm)
+        hr   (optional)  Hourly value to calculate sub-hourly ffmc
+        bui  (optional)  Daily BUI value for the computation of hourly FWI. It is
+                          required when hourlyFWI=TRUE
     """
-    time_offset = target_hour - 13  # solar noon
-    # build weather_data dictionary to be passed as weatherstream
-    weather_data = {
-        'hr': 13.0,
-        'temp': temperature,
-        'rh': relative_humidity,
-        'ws': wind_speed,
-        'prec': precip / 24     # the precip received will be based on the previous 24 hours, but the
-        # R function requires 1-hour rainfall. We don't have hourly data, so the best we can do is
-        # take the mean amount of precip for the past 24 hours. This is a liberal approximation
-        # with a lot of hand-waving.
-    }
-    weather_data = DataFrame(weather_data)
-    result = CFFDRS.instance().cffdrs.hffmc(weatherstream=weather_data,
-                                            ffmc_old=ffmc_solar_noon, time_step=time_offset)
-    if isinstance(result[0], float):
-        return result[0]
-    raise CFFDRSException("Failed to calculate hffmc")
 
+    # We have to change field names to exactly what the CFFDRS lib expects. 
+    # This may need to be adjusted depending on the future data input model, which is currently unknown
+    column_name_map = {'temperature':'temp', 'relative_humidity': 'rh', 'wind_speed': 'ws', 'precipitation': 'prec'}
+    weatherstream = weatherstream.rename(columns=column_name_map)
+
+    r_weatherstream = pandas_to_r_converter(weatherstream)
+
+    result = CFFDRS.instance().cffdrs.hffmc(weatherstream=r_weatherstream,
+                                            ffmc_old=ffmc_old, time_step=time_step, calc_step=calc_step,
+                                            batch=batch, hourlyFWI=hourly_fwi)
+    
+    if isinstance(result, robjs.vectors.FloatVector):
+        weatherstream['hffmc'] = list(result)
+        return weatherstream
+    raise CFFDRSException("Failed to calculate hffmc")
+    
 
 def get_ffmc_for_target_hfi(
         fuel_type: FuelTypeEnum,
