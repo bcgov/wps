@@ -37,6 +37,9 @@ parameters:
     value: image-registry.apps.silver.devops.gov.bc.ca
   - name: IMAGE_NAMESPACE
     value: e1e498-tools
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
 objects:
   - apiVersion: postgres-operator.crunchydata.com/v1beta1
     kind: PostgresCluster
@@ -48,14 +51,6 @@ objects:
         name: ${APP_NAME}-${SUFFIX}
         labels:
           app: ${APP_NAME}-${SUFFIX}
-      customTLSSecret:
-        name: custom.tls
-      customReplicationTLSSecret:
-        name: custom.tls
-      standby:
-        enabled: true
-        host: "patroni-wps-test-leader.e1e498-dev.svc.cluster.local"
-        port: 5432
       users:
         - name: ${APP_NAME}-${SUFFIX}
           databases:
@@ -64,29 +59,35 @@ objects:
       postgresVersion: 14
       instances:
         - name: crunchy
+          replicas: 1
           dataVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 1Gi
+                storage: 45Gi
             storageClassName: netapp-block-standard
           walVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 1Gi
+                storage: 15Gi
             storageClassName: netapp-block-standard
       backups:
         pgbackrest:
           image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbackrest:ubi8-2.41-4
+          configuration:
+            - secret:
+                name: crunchy-pgbackrest
+                items:
+                  - key: conf
+                    path: s3.conf
+          global:
+            repo1-retention-full: "3"
           repos:
             - name: repo1
-              volume:
-                volumeClaimSpec:
-                  accessModes:
-                    - "ReadWriteOnce"
-                  resources:
-                    requests:
-                      storage: 1Gi
+              s3:
+                bucket: lwzrin
+                endpoint: nrs.objectstore.gov.bc.ca
+                region: "ca-central-1"
