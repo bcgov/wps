@@ -26,7 +26,7 @@ source "$(dirname ${0})/common/common"
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
  
-# Prepare names for patroni ephemeral instance for this PR.
+# Prepare names for crunchy ephemeral instance for this PR.
 IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE:-${PROJ_TOOLS}}
 EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 
@@ -48,7 +48,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy.yaml \
  ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"}"
 
 
-# In order to avoid running out of storage quote in our development environment, use
+# In order to avoid running out of storage quota in our development environment, use
 # ephemeral storage by removing the pvc request from the template.
 if [ "$EPHEMERAL_STORAGE" = "True" ]
 then
