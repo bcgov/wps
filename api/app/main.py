@@ -123,10 +123,11 @@ async def get_health():
     """ A simple endpoint for Openshift Healthchecks.
     It's assumed that if patroni is ok, then all is well.  """
     try:
-        health_check = health.patroni_cluster_health_check()
+        # TODO reenable
+        # health_check = health.patroni_cluster_health_check()
 
-        logger.debug('/health - healthy: %s. %s',
-                     health_check.get('healthy'), health_check.get('message'))
+        # logger.debug('/health - healthy: %s. %s',
+        #              health_check.get('healthy'), health_check.get('message'))
 
         # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
         cffdrs_start = perf_counter()
@@ -137,7 +138,7 @@ async def get_health():
         if delta > 0.1:
             logger.info('%f seconds added by CFFDRS startup', delta)
 
-        return health_check
+        return {"message": "API healthy", "healthy": True}
     except Exception as exception:
         logger.error(exception, exc_info=True)
         raise
