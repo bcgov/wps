@@ -41,6 +41,14 @@ parameters:
     description: Name of global Module
     value: wps-global
 objects:
+  - apiVersion: v1
+    data:
+      init.sql: |-
+        \c wps\\
+        CREATE EXTENSION postgis;
+    kind: ConfigMap
+    metadata:
+      name: wps-init-sql
   - apiVersion: postgres-operator.crunchydata.com/v1beta1
     kind: PostgresCluster
     metadata:
@@ -51,6 +59,9 @@ objects:
         name: ${APP_NAME}-${SUFFIX}
         labels:
           app: ${APP_NAME}-${SUFFIX}
+      databaseInitSQL:
+        key: init.sql
+        name: wps-init-sql
       users:
         - name: ${APP_NAME}-${SUFFIX}
           databases:
