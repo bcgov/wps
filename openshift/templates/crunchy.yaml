@@ -1,0 +1,106 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: ${APP_NAME}-${SUFFIX}
+  annotations:
+    "openshift.io/display-name": ${APP_NAME}-${SUFFIX}
+labels:
+  app.kubernetes.io/part-of: "${APP_NAME}"
+  app: ${APP_NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: |
+      The name of the application for labelling all artifacts.
+    displayName: Application Name
+    required: true
+  - description: Namespace in which database resides
+    displayName: Target Namespace
+    name: TARGET_NAMESPACE
+    required: true
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
+    value: wps-crunchydb
+    required: true
+  - name: BUCKET
+    description: S3 bucket name
+    required: true
+  - name: DATA_SIZE
+    description: Data PVC size
+    required: true
+  - name: WAL_SIZE
+    description: WAL PVC size
+    required: true
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: IMAGE_REGISTRY
+    value: image-registry.apps.silver.devops.gov.bc.ca
+  - name: IMAGE_NAMESPACE
+    value: e1e498-tools
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+objects:
+  - apiVersion: v1
+    data:
+      init.sql: |-
+        \c wps\\
+        CREATE EXTENSION postgis;
+    kind: ConfigMap
+    metadata:
+      name: wps-init-sql
+  - apiVersion: postgres-operator.crunchydata.com/v1beta1
+    kind: PostgresCluster
+    metadata:
+      name: ${APP_NAME}-${SUFFIX}
+    spec:
+      image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres-gis:ubi8-14.7-3.2-0
+      metadata:
+        name: ${APP_NAME}-${SUFFIX}
+        labels:
+          app: ${APP_NAME}-${SUFFIX}
+      databaseInitSQL:
+        key: init.sql
+        name: wps-init-sql
+      users:
+        - name: ${APP_NAME}-${SUFFIX}
+          databases:
+            - postgres
+            - wps
+          options: "SUPERUSER"
+      postgresVersion: 14
+      instances:
+        - name: crunchy
+          replicas: 1
+          dataVolumeClaimSpec:
+            accessModes:
+              - "ReadWriteOnce"
+            resources:
+              requests:
+                storage: ${DATA_SIZE}
+            storageClassName: netapp-block-standard
+          walVolumeClaimSpec:
+            accessModes:
+              - "ReadWriteOnce"
+            resources:
+              requests:
+                storage: ${WAL_SIZE}
+            storageClassName: netapp-block-standard
+      backups:
+        pgbackrest:
+          image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbackrest:ubi8-2.41-4
+          configuration:
+            - secret:
+                name: crunchy-pgbackrest
+                items:
+                  - key: conf
+                    path: s3.conf
+          global:
+            repo1-retention-full: "3"
+            repo1-path: /pgbackrest/${SUFFIX}/repo1
+          repos:
+            - name: repo1
+              s3:
+                bucket: ${BUCKET}
+                endpoint: nrs.objectstore.gov.bc.ca
+                region: "ca-central-1"

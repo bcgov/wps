@@ -21,6 +21,9 @@ parameters:
   - name: GLOBAL_NAME
     description: Name of global Module
     value: wps-global
+  - name: CRUNCHYDB_USER
+    description: Name of crunchydb user details key
+    required: true
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
@@ -199,8 +202,8 @@ objects:
                 - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: app-db-password
+                      name: ${CRUNCHYDB_USER}
+                      key: password
                 - name: POSTGRES_WRITE_HOST
                   value: ${POSTGRES_WRITE_HOST}
                 - name: POSTGRES_READ_HOST
@@ -225,7 +228,7 @@ objects:
                       name: ${GLOBAL_NAME}
                       key: env.openshift-namespace-api
                 - name: PATRONI_CLUSTER_NAME
-                  value: patroni-wps-${SUFFIX}
+                  value: wps-crunchydb-${SUFFIX}-ha
                 - name: PROJECT_NAMESPACE
                   value: ${PROJECT_NAMESPACE}
                 - name: ROCKET_URL_POST_MESSAGE

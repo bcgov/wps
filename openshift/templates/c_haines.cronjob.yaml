@@ -41,6 +41,8 @@ parameters:
     required: true
   - name: POSTGRES_DATABASE
     required: true
+  - name: CRUNCHYDB_USER
+    required: true
   - name: APP_LABEL
     required: true
 objects:
@@ -82,8 +84,8 @@ objects:
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}
-                          key: app-db-password
+                          name: ${CRUNCHYDB_USER}
+                          key: password
                     - name: POSTGRES_WRITE_HOST
                       value: ${POSTGRES_WRITE_HOST}
                     - name: POSTGRES_READ_HOST
