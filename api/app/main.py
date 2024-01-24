@@ -12,7 +12,7 @@ from app import schemas, configure_logging
 from app.percentile import get_precalculated_percentiles
 from app.auth import authentication_required, audit
 from app import config
-from app import health
+# from app import health
 from app import hourlies
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.routers import (fba, forecasts, weather_models, c_haines, stations, hfi_calc,
