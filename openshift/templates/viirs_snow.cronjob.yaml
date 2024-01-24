@@ -27,15 +27,14 @@ parameters:
     value: image-registry.openshift-image-registry.svc:5000
   - name: POSTGRES_WRITE_HOST
     required: true
-    value: patroni-${NAME}-${SUFFIX}-leader
   - name: POSTGRES_READ_HOST
-    value: patroni-${NAME}-${SUFFIX}-replica
+    required: true
   - name: POSTGRES_USER
     required: true
-    value: ${NAME}-${SUFFIX}
   - name: POSTGRES_DATABASE
     required: true
-    value: ${NAME}-${SUFFIX}
+  - name: CRUNCHYDB_USER
+    required: true
   - name: SCHEDULE
     required: true
   - name: APP_LABEL
@@ -74,8 +73,8 @@ objects:
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}
-                          key: app-db-password
+                          name: ${CRUNCHYDB_USER}
+                          key: password
                     - name: POSTGRES_WRITE_HOST
                       value: ${POSTGRES_WRITE_HOST}
                     - name: POSTGRES_READ_HOST
