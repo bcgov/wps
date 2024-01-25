@@ -5,7 +5,7 @@ import {
   GridValueFormatterParams,
   GridValueGetterParams,
   GridValueSetterParams
-} from '@mui/x-data-grid'
+} from '@mui/x-data-grid-pro'
 import { WeatherDeterminate, WeatherDeterminateType } from 'api/moreCast2API'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 

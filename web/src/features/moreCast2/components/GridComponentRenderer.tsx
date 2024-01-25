@@ -6,7 +6,7 @@ import {
   GridValueFormatterParams,
   GridValueGetterParams,
   GridValueSetterParams
-} from '@mui/x-data-grid'
+} from '@mui/x-data-grid-pro'
 import { ModelChoice } from 'api/moreCast2API'
 import { createLabel } from 'features/moreCast2/util'
 

@@ -1,7 +1,7 @@
 import React from 'react'
 import SaveIcon from '@mui/icons-material/Save'
 import { Button, FormControl, Grid, Menu, MenuItem } from '@mui/material'
-import { GridColDef } from '@mui/x-data-grid'
+import { GridColDef } from '@mui/x-data-grid-pro'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import { DEFAULT_MODEL_TYPE, ModelOptions, ModelType } from 'api/moreCast2API'
 import { isNull } from 'lodash'
