@@ -101,9 +101,6 @@ objects:
                     path: s3.conf
           global:
             repo1-retention-full: "3"
-            repo1-retention-full-type: count
-            repo1-retention-differential: "7"
-            repo1-retention-differential-type: count
             repo1-path: /pgbackrest/${SUFFIX}/repo1
           repos:
             - name: repo1
