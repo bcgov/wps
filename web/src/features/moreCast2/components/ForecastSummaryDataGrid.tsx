@@ -1,6 +1,6 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
+import { DataGridPro, GridColDef, GridEventListener } from '@mui/x-data-grid-pro'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
@@ -61,7 +61,7 @@ const ForecastSummaryDataGrid = ({
 
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
-      <DataGrid
+      <DataGridPro
         slots={{
           loadingOverlay: LinearProgress
         }}
