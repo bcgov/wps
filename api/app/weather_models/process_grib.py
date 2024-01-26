@@ -149,7 +149,8 @@ class GribFileProcessor():
                  raster_to_geo_transformer=None,
                  geo_to_raster_transformer=None):
         # Get list of stations we're interested in, and store it so that we only call it once.
-        self.stations = get_stations_synchronously(station_source)
+        all_stations = get_stations_synchronously(station_source)
+        self.stations = list(station for station in all_stations if station.code == 208)
         self.padf_transform = padf_transform
         self.raster_to_geo_transformer = raster_to_geo_transformer
         self.geo_to_raster_transformer = geo_to_raster_transformer
