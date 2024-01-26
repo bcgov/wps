@@ -143,12 +143,13 @@ def get_file_date_part(now, model_run_hour, is_hrdps: bool = False) -> str:
 
 def get_model_run_hours(model_type: ModelEnum):
     """ Yield model run hours for GDPS (00h00 and 12h00) """
-    if model_type == ModelEnum.GDPS:
-        for hour in [0, 12]:
-            yield hour
-    elif model_type in (ModelEnum.HRDPS, ModelEnum.RDPS):
-        for hour in [0, 6, 12, 18]:
-            yield hour
+    yield 0
+    # if model_type == ModelEnum.GDPS:
+    #     for hour in [0]:
+    #         yield hour
+    # elif model_type in (ModelEnum.HRDPS, ModelEnum.RDPS):
+    #     for hour in [0]:
+    #         yield hour
 
 
 def get_model_run_urls(now: datetime.datetime, model_type: ModelEnum, model_run_hour: int):
@@ -170,7 +171,7 @@ def get_global_model_run_download_urls(now: datetime.datetime,
     # hhh: prediction hour [000, 003, 006, ..., 240]
     hh = f"{model_run_hour:02d}"
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
-    for h in range(0, 241, 3):
+    for h in range(0, 13, 3):
         hhh = format(h, '03d')
         for level in GRIB_LAYERS:
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
@@ -187,7 +188,7 @@ def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> G
     """ Yield urls to download HRDPS (high-res) model runs """
     hh = f"{hour:02d}"
     # For the high-res model, predictions are at 1 hour intervals up to 48 hours.
-    for h in range(0, 49):
+    for h in range(0, 3):
         hhh = format(h, '03d')
         for level in HRDPS_GRIB_LAYERS:
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
@@ -204,7 +205,7 @@ def get_regional_model_run_download_urls(now: datetime.datetime, hour: int) -> G
     """ Yield urls to download RDPS model runs """
     hh = f"{hour:02d}"
     # For the RDPS model, predictions are at 1 hour intervals up to 84 hours.
-    for h in range(0, 85):
+    for h in range(0, 3):
         hhh = format(h, '03d')
         for level in GRIB_LAYERS:
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
