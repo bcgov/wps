@@ -233,10 +233,10 @@ async def get_run_datetimes(session: AsyncSession, run_type: RunTypeEnum, for_da
     Retrieve all distinct available run_datetimes for a given run_type and for_date, and return the run_datetimes
     in descending order (most recent is first)
     """
-    stmt = select(ClassifiedHfi.run_datetime)\
-        .where(ClassifiedHfi.run_type == run_type.value, ClassifiedHfi.for_date == for_date)\
+    stmt = select(RunParameters.run_datetime)\
+        .where(RunParameters.run_type == run_type.value, RunParameters.for_date == for_date)\
         .distinct()\
-        .order_by(ClassifiedHfi.run_datetime.desc())
+        .order_by(RunParameters.run_datetime.desc())
     result = await session.execute(stmt)
     return result.all()
 
