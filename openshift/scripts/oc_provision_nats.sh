@@ -32,6 +32,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_NATS} \
  -p POSTGRES_DATABASE=wps \
  -p POSTGRES_WRITE_HOST=wps-crunchydb-${SUFFIX}-primary \
  -p POSTGRES_READ_HOST=wps-crunchydb-${SUFFIX}-primary \
+ -p CRUNCHYDB_USER=wps-crunchydb-${SUFFIX}-pguser-wps-crunchydb-${SUFFIX} \
  -p APP_NAME=${APP_NAME}"
 
 # Apply a template (apply or use --dry-run=client)
