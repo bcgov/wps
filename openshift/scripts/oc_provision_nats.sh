@@ -28,10 +28,10 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_NATS} \
  -p SUFFIX=${SUFFIX} \
  -p IMAGE_NAME=${APP_NAME}-api-${SUFFIX} \
  -p IMAGE_TAG=${SUFFIX} \
- -p POSTGRES_USER=wps \
+ -p POSTGRES_USER=wps-crunchydb-${SUFFIX} \
  -p POSTGRES_DATABASE=wps \
- -p POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader \
- -p POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica \
+ -p POSTGRES_WRITE_HOST=wps-crunchydb-${SUFFIX}-primary \
+ -p POSTGRES_READ_HOST=wps-crunchydb-${SUFFIX}-primary \
  -p APP_NAME=${APP_NAME}"
 
 # Apply a template (apply or use --dry-run=client)
