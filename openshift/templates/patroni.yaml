@@ -90,7 +90,7 @@ objects:
         template.alpha.openshift.io/wait-for-ready: "true"
     spec:
       podManagementPolicy: Parallel
-      replicas: ${REPLICAS}
+      replicas: ${{REPLICAS}}
       revisionHistoryLimit: 10
       selector:
         matchLabels:
