@@ -151,7 +151,7 @@ class ViirsSnowJob():
             # Create a mosaic from the snow coverage imagery, clip it to the boundary of BC and save to S3
             self._create_snow_coverage_mosaic(sub_dir)
             await self._clip_snow_coverage_mosaic(sub_dir, path)
-            await self._save_clipped_snow_coverage_moasic_to_s3(for_date, sub_dir)
+            await self._save_clipped_snow_coverage_mosaic_to_s3(for_date, sub_dir)
 
 
     async def _run_viirs_snow(self):
