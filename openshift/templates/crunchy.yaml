@@ -71,7 +71,7 @@ objects:
       postgresVersion: 14
       instances:
         - name: crunchy
-          replicas: 1
+          replicas: 3
           dataVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
