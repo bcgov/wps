@@ -119,12 +119,13 @@ export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: Mor
   return newRows
 }
 
-export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
+export const fillGrassCuringForward = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   const stationGrassMap = new Map<number, { date: DateTime; grassCuring: number }>()
   // iterate through all rows first so we know we have all the grass curing values for each station
   // regardless of row order
   for (const row of rows) {
-    const { stationCode, forDate, grassCuring } = row
+    const { stationCode, forDate, grassCuringForecast, grassCuringActual } = row
+    const grassCuring = isNaN(grassCuringForecast!.value) ? grassCuringActual : NaN
 
     if (!isNaN(grassCuring)) {
       const existingStation = stationGrassMap.get(stationCode)
@@ -136,12 +137,10 @@ export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   }
 
   for (const row of rows) {
-    if (validForecastPredicate(row)) {
-      const stationInfo = stationGrassMap.get(row.stationCode)
+    const stationInfo = stationGrassMap.get(row.stationCode)
 
-      if (stationInfo) {
-        row.grassCuring = stationInfo.grassCuring
-      }
+    if (stationInfo) {
+      row.grassCuringForecast!.value = stationInfo.grassCuring
     }
   }
   return rows

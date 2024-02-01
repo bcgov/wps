@@ -46,8 +46,9 @@ export interface MoreCast2Row extends BaseRow {
   fwiCalcForecast?: PredictionItem
   dgrCalcForecast?: PredictionItem
 
-  // Grass curing carryover
-  grassCuring: number
+  // Grass curing
+  grassCuringActual: number
+  grassCuringForecast?: PredictionItem
 
   // Forecast properties
   precipForecast?: PredictionItem
