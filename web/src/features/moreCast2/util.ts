@@ -114,12 +114,13 @@ export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: Mor
       row.rhForecast = matchingRow.rhForecast
       row.windDirectionForecast = matchingRow.windDirectionForecast
       row.windSpeedForecast = matchingRow.windSpeedForecast
+      row.grassCuringForecast = matchingRow.grassCuringForecast
     }
   }
   return newRows
 }
 
-export const fillGrassCuringForward = (rows: MoreCast2Row[]): MoreCast2Row[] => {
+export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   const stationGrassMap = new Map<number, { date: DateTime; grassCuring: number }>()
   // iterate through all rows first so we know we have all the grass curing values for each station
   // regardless of row order
@@ -144,4 +145,17 @@ export const fillGrassCuringForward = (rows: MoreCast2Row[]): MoreCast2Row[] => 
     }
   }
   return rows
+}
+
+export const fillGrassCuringForward = (editedRow: MoreCast2Row, allRows: MoreCast2Row[]) => {
+  const editedStation = editedRow.stationCode
+  const editedDate = editedRow.forDate
+  const newGrassCuringValue = editedRow.grassCuringForecast!.value
+
+  for (const row of allRows) {
+    if (row.stationCode === editedStation && row.forDate > editedDate) {
+      row.grassCuringForecast!.value = newGrassCuringValue
+    }
+  }
+  return allRows
 }

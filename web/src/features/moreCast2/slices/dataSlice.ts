@@ -12,7 +12,7 @@ import {
   fetchCalculatedIndices
 } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
-import { createDateInterval, rowIDHasher, fillGrassCuringForward } from 'features/moreCast2/util'
+import { createDateInterval, rowIDHasher, fillGrassCuring } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
@@ -346,7 +346,7 @@ export const createMoreCast2Rows = (
       row.precipForecast.value = 0
     }
   }
-  const newRows = fillGrassCuringForward(rows)
+  const newRows = fillGrassCuring(rows)
 
   return newRows
 }
