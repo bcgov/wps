@@ -179,7 +179,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_grtass_curing_cronjob.sh ${SUFFIX} apply
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_grass_curing_cronjob.sh ${SUFFIX} apply
 
   # TODO: Delete once pmtiles has run for some time
   # deploy-tileserv:
