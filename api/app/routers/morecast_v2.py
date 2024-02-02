@@ -77,6 +77,7 @@ async def get_forecasts_by_date_range(start_date: date, end_date: date, request:
                                                             precip=forecast.precip,
                                                             wind_speed=forecast.wind_speed,
                                                             wind_direction=forecast.wind_direction,
+                                                            grass_curing=forecast.grass_curing,
                                                             update_timestamp=forecast.update_timestamp.timestamp()) for forecast in result]
     return MorecastForecastResponse(forecasts=morecast_forecast_outputs)
 
@@ -101,6 +102,7 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
                                                 precip=forecast.precip,
                                                 wind_speed=forecast.wind_speed,
                                                 wind_direction=forecast.wind_direction,
+                                                grass_curing=forecast.grass_curing,
                                                 create_user=username,
                                                 create_timestamp=now,
                                                 update_user=username,
@@ -127,6 +129,7 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
                                                         precip=forecast.precip,
                                                         wind_speed=forecast.wind_speed,
                                                         wind_direction=forecast.wind_direction,
+                                                        grass_curing=forecast.grass_curing,
                                                         update_timestamp=int(now.timestamp() * 1000)) for forecast in forecasts_list]
     return MorecastForecastResponse(forecasts=morecast_forecast_outputs)
 

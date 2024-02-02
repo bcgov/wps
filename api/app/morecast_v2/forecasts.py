@@ -29,6 +29,7 @@ def get_forecasts(db_session: Session, start_time: Optional[datetime], end_time:
                                                                     precip=forecast.precip,
                                                                     wind_speed=forecast.wind_speed,
                                                                     wind_direction=forecast.wind_direction,
+                                                                    grass_curing=forecast.grass_curing,
                                                                     update_timestamp=int(forecast.update_timestamp.timestamp())) for forecast in result]
     return forecasts
 
