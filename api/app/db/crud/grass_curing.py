@@ -1,6 +1,5 @@
 """ CRUD operations relating to processing snow coverage
 """
-from datetime import date
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
