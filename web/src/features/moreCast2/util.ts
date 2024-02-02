@@ -123,6 +123,11 @@ export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: Mor
   return newRows
 }
 
+/**
+ * Fills all stations grass curing values with the last entered value for each station
+ * @param rows - MoreCast2Row[]
+ * @returns MoreCast2Row[]
+ */
 export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   const stationGrassMap = new Map<number, { date: DateTime; grassCuring: number }>()
   // iterate through all rows first so we know we have all the grass curing values for each station
@@ -152,7 +157,14 @@ export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   return rows
 }
 
-export const fillGrassCuringForward = (editedRow: MoreCast2Row, allRows: MoreCast2Row[]) => {
+/**
+ * Provided a single row for a station is edited, fills all grass curing values for that station
+ * forward in time.
+ * @param editedRow - MoreCast2Row
+ * @param allRows - MoreCast2Row[]
+ * @returns MoreCast2Row[]
+ */
+export const fillStationGrassCuringForward = (editedRow: MoreCast2Row, allRows: MoreCast2Row[]) => {
   const editedStation = editedRow.stationCode
   const editedDate = editedRow.forDate
   const newGrassCuringValue = editedRow.grassCuringForecast!.value

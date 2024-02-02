@@ -4,7 +4,7 @@ import {
   createDateInterval,
   createWeatherModelLabel,
   fillGrassCuring,
-  fillGrassCuringForward,
+  fillStationGrassCuringForward,
   mapForecastChoiceLabels,
   parseForecastsHelper,
   rowIDHasher,
@@ -260,10 +260,10 @@ describe('fillGrassCuring', () => {
     expect(forecast3A.grassCuringForecast!.value).toBe(NaN)
   })
 })
-describe('fillGrassCuringForward', () => {
+describe('fillStationGrassCuringForward', () => {
   it('should fill grass curing forward for each station if a row is edited', () => {
     forecast1B.grassCuringForecast!.value = 43
-    fillGrassCuringForward(forecast1B, rows)
+    fillStationGrassCuringForward(forecast1B, rows)
     expect(forecast1C.grassCuringForecast!.value).toBe(43)
     expect(forecast1A.grassCuringForecast!.value).toBe(80)
     expect(forecast2A.grassCuringForecast!.value).toBe(70)
