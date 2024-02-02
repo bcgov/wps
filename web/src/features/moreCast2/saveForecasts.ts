@@ -8,7 +8,8 @@ export const isForecastRowPredicate = (row: MoreCast2Row) =>
   isNaN(row.rhActual) &&
   isNaN(row.tempActual) &&
   isNaN(row.windDirectionActual) &&
-  isNaN(row.windSpeedActual)
+  isNaN(row.windSpeedActual) &&
+  isNaN(row.grassCuringActual)
 
 export const getForecastRows = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   return rows ? rows.filter(isForecastRowPredicate) : []
