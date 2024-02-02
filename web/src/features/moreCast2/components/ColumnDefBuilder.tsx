@@ -114,7 +114,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       headerName: headerName,
       sortable: false,
       type: 'number',
-      width: width || DEFAULT_FORECAST_COLUMN_WIDTH,
+      width: width ?? DEFAULT_FORECAST_COLUMN_WIDTH,
       renderHeader: (params: GridColumnHeaderParams) => {
         return isCalcField || isGrassField
           ? this.gridComponentRenderer.renderHeaderWith(params)
