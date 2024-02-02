@@ -36,7 +36,10 @@ export const parseForecastsHelper = (
         choice: ModelChoice.FORECAST,
         value: forecast.wind_speed
       },
-      grassCuring: forecast.grass_curing
+      grassCuring: {
+        choice: ModelChoice.FORECAST,
+        value: forecast.grass_curing
+      }
     }
     rows.push(row)
   })
@@ -126,7 +129,9 @@ export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   // regardless of row order
   for (const row of rows) {
     const { stationCode, forDate, grassCuringForecast, grassCuringActual } = row
-    const grassCuring = isNaN(grassCuringForecast!.value) ? grassCuringActual : NaN
+
+    const grassCuring =
+      grassCuringForecast && !isNaN(grassCuringForecast.value) ? grassCuringForecast.value : grassCuringActual
 
     if (!isNaN(grassCuring)) {
       const existingStation = stationGrassMap.get(stationCode)
@@ -140,8 +145,8 @@ export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   for (const row of rows) {
     const stationInfo = stationGrassMap.get(row.stationCode)
 
-    if (stationInfo) {
-      row.grassCuringForecast!.value = stationInfo.grassCuring
+    if (stationInfo && row.grassCuringForecast) {
+      row.grassCuringForecast.value = stationInfo.grassCuring
     }
   }
   return rows

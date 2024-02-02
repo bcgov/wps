@@ -103,6 +103,9 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
   public generateForecastColDefWith = (field: string, headerName: string, precision: number, width?: number) => {
     const isGrassField = field.includes('grass')
     const isCalcField = field.includes('Calc')
+    if (isGrassField || isCalcField) {
+      width = DEFAULT_COLUMN_WIDTH
+    }
     return {
       field: field,
       disableColumnMenu: true,
@@ -111,7 +114,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       headerName: headerName,
       sortable: false,
       type: 'number',
-      width: isCalcField || isGrassField ? DEFAULT_COLUMN_WIDTH : width,
+      width: width || DEFAULT_FORECAST_COLUMN_WIDTH,
       renderHeader: (params: GridColumnHeaderParams) => {
         return isCalcField || isGrassField
           ? this.gridComponentRenderer.renderHeaderWith(params)

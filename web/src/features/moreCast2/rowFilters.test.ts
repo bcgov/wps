@@ -18,6 +18,7 @@ export const buildValidForecastRow = (
   forecastRow.tempForecast = { choice: choice, value: 2 }
   forecastRow.rhForecast = { choice: choice, value: 2 }
   forecastRow.windSpeedForecast = { choice: choice, value: 2 }
+  forecastRow.grassCuringForecast = { choice: choice, value: NaN }
   forecastRow.id = id
 
   return forecastRow

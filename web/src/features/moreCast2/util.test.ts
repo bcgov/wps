@@ -104,7 +104,7 @@ describe('parseForecastsHelper', () => {
         temp: { choice: ModelChoice.FORECAST, value: 1 },
         windDirection: { choice: ModelChoice.FORECAST, value: 1 },
         windSpeed: { choice: ModelChoice.FORECAST, value: 1 },
-        grassCuring: 1
+        grassCuring: { choice: ModelChoice.FORECAST, value: 1 }
       },
       {
         id: '22022-01-02',
@@ -116,7 +116,7 @@ describe('parseForecastsHelper', () => {
         temp: { choice: ModelChoice.FORECAST, value: 1 },
         windDirection: { choice: ModelChoice.FORECAST, value: 1 },
         windSpeed: { choice: ModelChoice.FORECAST, value: 1 },
-        grassCuring: 1
+        grassCuring: { choice: ModelChoice.FORECAST, value: 1 }
       }
     ])
   })
@@ -133,7 +133,7 @@ describe('parseForecastsHelper', () => {
         temp: { choice: ModelChoice.FORECAST, value: 1 },
         windDirection: { choice: ModelChoice.FORECAST, value: 1 },
         windSpeed: { choice: ModelChoice.FORECAST, value: 1 },
-        grassCuring: 1
+        grassCuring: { choice: ModelChoice.FORECAST, value: 1 }
       }
     ])
   })
@@ -163,7 +163,7 @@ describe('parseForecastsHelper', () => {
         temp: { choice: ModelChoice.FORECAST, value: NaN },
         windDirection: { choice: ModelChoice.FORECAST, value: NaN },
         windSpeed: { choice: ModelChoice.FORECAST, value: NaN },
-        grassCuring: NaN
+        grassCuring: { choice: ModelChoice.FORECAST, value: NaN }
       }
     ])
   })
@@ -228,20 +228,20 @@ describe('fillGrassCuring', () => {
   const actual1A = buildValidActualRow(123, TEST_DATETIME.minus({ days: 1 }))
   const actual2A = buildValidActualRow(321, TEST_DATETIME.minus({ days: 1 }))
   const actual3A = buildValidActualRow(111, TEST_DATETIME.minus({ days: 1 }))
-  actual1A.grassCuring = 80
-  actual2A.grassCuring = 70
+  actual1A.grassCuringActual = 80
+  actual2A.grassCuringActual = 70
 
   const actual1B = buildValidActualRow(123, TEST_DATETIME.minus({ days: 2 }))
   const actual2B = buildValidActualRow(321, TEST_DATETIME.minus({ days: 2 }))
-  actual1B.grassCuring = 8
-  actual2B.grassCuring = 7
+  actual1B.grassCuringActual = 8
+  actual2B.grassCuringActual = 7
 
   const rows = [forecast1A, forecast2A, forecast3A, actual1A, actual1B, actual2A, actual2B, actual3A]
 
   it('should map the most recent grass curing value for each station to each forecast', () => {
     const filledRows = fillGrassCuring(rows)
-    expect(filledRows[0].grassCuring).toBe(80)
-    expect(filledRows[1].grassCuring).toBe(70)
-    expect(filledRows[2].grassCuring).toBe(NaN)
+    expect(filledRows[0].grassCuringForecast!.value).toBe(80)
+    expect(filledRows[1].grassCuringForecast!.value).toBe(70)
+    expect(filledRows[2].grassCuringForecast!.value).toBe(NaN)
   })
 })

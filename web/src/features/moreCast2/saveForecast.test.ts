@@ -67,7 +67,7 @@ const baseRow = {
   buiCalcActual: 0,
   fwiCalcActual: 0,
   dgrCalcActual: 0,
-  grassCuring: 0
+  grassCuringActual: 0
 }
 
 const baseRowWithActuals = {
@@ -100,7 +100,8 @@ const buildCompleteForecast = (
   rhForecast: { choice: ModelChoice.GDPS, value: 0 },
   tempForecast: { choice: ModelChoice.GDPS, value: 0 },
   windDirectionForecast: { choice: ModelChoice.GDPS, value: 0 },
-  windSpeedForecast: { choice: ModelChoice.GDPS, value: 0 }
+  windSpeedForecast: { choice: ModelChoice.GDPS, value: 0 },
+  grassCuringForecast: { choice: ModelChoice.NULL, value: 0 }
 })
 
 const buildForecastMissingWindDirection = (
@@ -123,7 +124,7 @@ const buildForecastMissingWindDirection = (
   tempForecast: { choice: ModelChoice.GDPS, value: 0 },
   windDirectionForecast: { choice: ModelChoice.NULL, value: NaN },
   windSpeedForecast: { choice: ModelChoice.GDPS, value: 0 },
-  grassCuring: 0
+  grassCuringForecast: { choice: ModelChoice.NULL, value: 0 }
 })
 
 const buildInvalidForecast = (
