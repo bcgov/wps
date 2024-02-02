@@ -277,7 +277,7 @@ export const mapMoreCast2RowsToIndeterminates = (rows: MoreCast2Row[]): WeatherI
       initial_spread_index: isForecast ? r.isiCalcForecast!.value : r.isiCalcActual,
       build_up_index: isForecast ? r.buiCalcForecast!.value : r.buiCalcActual,
       fire_weather_index: isForecast ? r.fwiCalcForecast!.value : r.fwiCalcActual,
-      danger_rating: isForecast ? null : r.rhActual,
+      danger_rating: isForecast ? null : r.dgrCalcActual,
       grass_curing: isForecast ? r.grassCuringForecast!.value : r.grassCuringActual
     }
   })
