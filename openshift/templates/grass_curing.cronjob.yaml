@@ -3,7 +3,7 @@ apiVersion: template.openshift.io/v1
 metadata:
   name: ${JOB_NAME}-cronjob-template
   annotations:
-    description: "Scheduled task to download and process percent grass curing data from the Canadian Wildland Fire Information System.
+    description: "Scheduled task to download and process percent grass curing data from the Canadian Wildland Fire Information System."
     tags: "cronjob,grass curing"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
