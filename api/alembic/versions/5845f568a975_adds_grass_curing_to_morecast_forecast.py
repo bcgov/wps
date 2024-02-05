@@ -17,7 +17,7 @@ depends_on = None
 
 def upgrade():
     # ### start Alembic commands ###
-    op.add_column('morecast_forecast', sa.Column('grass_curing', sa.Integer(), nullable=True))
+    op.add_column('morecast_forecast', sa.Column('grass_curing', sa.Float(), nullable=True))
     op.create_index(op.f('ix_morecast_forecast_grass_curing'), 'morecast_forecast', ['grass_curing'], unique=False)
     # ### end Alembic commands ###
 

@@ -73,7 +73,7 @@ class MoreCastForecastInput(BaseModel):
     precip: float
     wind_speed: float
     wind_direction: int | None = None
-    grass_curing: int | None = None
+    grass_curing: float | None = None
 
 
 class MoreCastForecastRequest(BaseModel):
