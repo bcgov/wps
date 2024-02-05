@@ -30,6 +30,23 @@ parameters:
   - name: WAL_SIZE
     description: WAL PVC size
     required: true
+  - name: CPU_REQUEST
+    description: |
+      Starting amount of CPU the container can use.
+    displayName: CPU REQUEST
+    value: "50m"
+  - name: CPU_LIMIT
+    description: Maximum amount of CPU the container can use.
+    displayName: CPU Limit
+    value: "250m"
+  - name: MEMORY_REQUEST
+    description: Starting amount of memory the container can use.
+    displayName: Memory Request
+    value: 256Mi
+  - name: MEMORY_LIMIT
+    description: Maximum amount of memory the container can use.
+    displayName: Memory Limit
+    value: 1Gi
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
@@ -71,7 +88,14 @@ objects:
       postgresVersion: 14
       instances:
         - name: crunchy
-          replicas: 1
+          replicas: 3
+          resources:
+            requests:
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
+            limits:
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
           dataVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
@@ -89,6 +113,10 @@ objects:
       backups:
         pgbackrest:
           image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbackrest:ubi8-2.41-4
+          manual:
+            repoName: repo1
+            options:
+              - --type=full
           configuration:
             - secret:
                 name: crunchy-pgbackrest
@@ -97,9 +125,13 @@ objects:
                     path: s3.conf
           global:
             repo1-retention-full: "3"
+            repo1-retention-full-type: count
             repo1-path: /pgbackrest/${SUFFIX}/repo1
           repos:
             - name: repo1
+              schedules:
+                full: "0 1 * * 0"
+                differential: "0 1 * * 1-6"
               s3:
                 bucket: ${BUCKET}
                 endpoint: nrs.objectstore.gov.bc.ca
