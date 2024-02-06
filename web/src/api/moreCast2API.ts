@@ -187,7 +187,7 @@ export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[
       temp: forecast.temp.value,
       wind_direction: forecast.windDirection.value,
       wind_speed: forecast.windSpeed.value,
-      grass_curing: forecast.grassCuring
+      grass_curing: forecast.grassCuring.value
     }
   })
   return forecastRecords
@@ -277,8 +277,8 @@ export const mapMoreCast2RowsToIndeterminates = (rows: MoreCast2Row[]): WeatherI
       initial_spread_index: isForecast ? r.isiCalcForecast!.value : r.isiCalcActual,
       build_up_index: isForecast ? r.buiCalcForecast!.value : r.buiCalcActual,
       fire_weather_index: isForecast ? r.fwiCalcForecast!.value : r.fwiCalcActual,
-      danger_rating: isForecast ? null : r.rhActual,
-      grass_curing: r.grassCuring
+      danger_rating: isForecast ? null : r.dgrCalcActual,
+      grass_curing: isForecast ? r.grassCuringForecast!.value : r.grassCuringActual
     }
   })
   return mappedIndeterminates

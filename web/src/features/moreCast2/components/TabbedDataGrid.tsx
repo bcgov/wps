@@ -88,7 +88,8 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     if (
       !isEqual(params.colDef.field, 'stationName') &&
       !isEqual(params.colDef.field, 'forDate') &&
-      !params.colDef.field.includes('Calc')
+      !params.colDef.field.includes('Calc') &&
+      !params.colDef.field.includes('grass')
     ) {
       setClickedColDef(params.colDef)
       setContextMenu(contextMenu === null ? { mouseX: event.clientX, mouseY: event.clientY } : null)
