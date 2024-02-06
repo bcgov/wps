@@ -1,7 +1,7 @@
 """Percent grass curing
 
 Revision ID: 2b3755392ad8
-Revises: 403586c146ae
+Revises: 5845f568a975
 Create Date: 2024-02-01 16:45:05.914743
 
 """
@@ -11,7 +11,7 @@ from app.db.models.common import TZTimeStamp
 
 # revision identifiers, used by Alembic.
 revision = '2b3755392ad8'
-down_revision = '403586c146ae'
+down_revision = '5845f568a975'
 branch_labels = None
 depends_on = None
 
