@@ -24,7 +24,6 @@ GRASS_CURING_FILE_NAME_3978 = "grass_curing_epsg_3978.tif"
 GRASS_CURING_FILE_NAME_4326 = "grass_curing_epsg_4326.tif"
 GRASS_CURING_COVERAGE_ID = "public:pc_current"
 WCS_URL = "https://cwfis.cfs.nrcan.gc.ca/geoserver/public/wcs"
-PATH = "/Users/dareboss/Documents/grass"
 
 
 class OwsException(Exception):
@@ -107,8 +106,7 @@ class GrassCuringJob():
             today = date.today()
             logger.info(f"Starting collection of percent grass curing data from CWFIS for {today}.")
             with tempfile.TemporaryDirectory() as temp_dir:
-                temp_dir = PATH
-                # await self._get_grass_curing_wcs_raster(temp_dir)
+                await self._get_grass_curing_wcs_raster(temp_dir)
                 self._reproject_to_epsg_4326(temp_dir)
 
                 # Open the reprojected grass curing data
