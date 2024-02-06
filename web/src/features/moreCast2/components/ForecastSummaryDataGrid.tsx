@@ -10,6 +10,7 @@ import { storeUserEditedRows, getSimulatedIndices } from 'features/moreCast2/sli
 import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
 import { filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
+import { fillStationGrassCuringForward } from 'features/moreCast2/util'
 
 const PREFIX = 'ForecastSummaryDataGrid'
 
@@ -48,15 +49,17 @@ const ForecastSummaryDataGrid = ({
   handleClose
 }: ForecastSummaryDataGridProps) => {
   const dispatch: AppDispatch = useDispatch()
-  const processRowUpdate = async (editedRow: MoreCast2Row) => {
-    dispatch(storeUserEditedRows([editedRow]))
 
-    const rowsForSimulation = filterRowsForSimulationFromEdited(editedRow, rows)
+  const processRowUpdate = async (newRow: MoreCast2Row) => {
+    const filledRows = fillStationGrassCuringForward(newRow, rows)
+    dispatch(storeUserEditedRows(filledRows))
+
+    const rowsForSimulation = filterRowsForSimulationFromEdited(newRow, filledRows)
     if (rowsForSimulation) {
       dispatch(getSimulatedIndices(rowsForSimulation))
     }
 
-    return editedRow
+    return newRow
   }
 
   return (

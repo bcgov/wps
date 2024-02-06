@@ -67,7 +67,7 @@ const baseRow = {
   buiCalcActual: 0,
   fwiCalcActual: 0,
   dgrCalcActual: 0,
-  grassCuring: 0
+  grassCuringActual: NaN
 }
 
 const baseRowWithActuals = {
@@ -76,7 +76,8 @@ const baseRowWithActuals = {
   rhActual: 0,
   tempActual: 0,
   windDirectionActual: 0,
-  windSpeedActual: 0
+  windSpeedActual: 0,
+  grassCuringActual: 0
 }
 
 const mockForDate = DateTime.fromISO('2023-02-16T20:00:00+00:00')
@@ -100,7 +101,8 @@ const buildCompleteForecast = (
   rhForecast: { choice: ModelChoice.GDPS, value: 0 },
   tempForecast: { choice: ModelChoice.GDPS, value: 0 },
   windDirectionForecast: { choice: ModelChoice.GDPS, value: 0 },
-  windSpeedForecast: { choice: ModelChoice.GDPS, value: 0 }
+  windSpeedForecast: { choice: ModelChoice.GDPS, value: 0 },
+  grassCuringForecast: { choice: ModelChoice.NULL, value: 0 }
 })
 
 const buildForecastMissingWindDirection = (
@@ -123,7 +125,7 @@ const buildForecastMissingWindDirection = (
   tempForecast: { choice: ModelChoice.GDPS, value: 0 },
   windDirectionForecast: { choice: ModelChoice.NULL, value: NaN },
   windSpeedForecast: { choice: ModelChoice.GDPS, value: 0 },
-  grassCuring: 0
+  grassCuringForecast: { choice: ModelChoice.NULL, value: 0 }
 })
 
 const buildInvalidForecast = (
@@ -162,7 +164,8 @@ const buildNAForecast = (
   rhForecast: { choice: ModelChoice.NULL, value: NaN },
   tempForecast: { choice: ModelChoice.NULL, value: NaN },
   windDirectionForecast: { choice: ModelChoice.NULL, value: NaN },
-  windSpeedForecast: { choice: ModelChoice.NULL, value: NaN }
+  windSpeedForecast: { choice: ModelChoice.NULL, value: NaN },
+  grassCuringForecast: { choice: ModelChoice.NULL, value: NaN }
 })
 
 const buildForecastWithActuals = (
@@ -184,7 +187,8 @@ const buildForecastWithActuals = (
   rhForecast: { choice: ModelChoice.GDPS, value: 0 },
   tempForecast: { choice: ModelChoice.GDPS, value: 0 },
   windDirectionForecast: { choice: ModelChoice.GDPS, value: 0 },
-  windSpeedForecast: { choice: ModelChoice.GDPS, value: 0 }
+  windSpeedForecast: { choice: ModelChoice.GDPS, value: 0 },
+  grassCuringForecast: { choice: ModelChoice.NULL, value: 0 }
 })
 
 describe('saveForecasts', () => {

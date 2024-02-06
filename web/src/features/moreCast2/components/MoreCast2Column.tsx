@@ -119,6 +119,7 @@ export const ffmcField = new IndeterminateField('ffmcCalc', 'FFMC', 'number', 1,
 export const dmcField = new IndeterminateField('dmcCalc', 'DMC', 'number', 0, false)
 export const dcField = new IndeterminateField('dcCalc', 'DC', 'number', 0, false)
 export const dgrField = new IndeterminateField('dgrCalc', 'DGR', 'number', 0, false)
+export const gcField = new IndeterminateField('grassCuring', 'GC', 'number', 0, false)
 
 export const MORECAST2_STATION_DATE_FIELDS: ColDefGenerator[] = [
   StationForecastField.getInstance(),
@@ -140,7 +141,8 @@ export const MORECAST2_FORECAST_FIELDS: ForecastColDefGenerator[] = [
   rhForecastField,
   windDirForecastField,
   windSpeedForecastField,
-  precipForecastField
+  precipForecastField,
+  gcField
 ]
 
 export const MORECAST2_INDEX_FIELDS: ForecastColDefGenerator[] = [
