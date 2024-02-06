@@ -39,6 +39,10 @@ OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
     all,cm,secret,endpoints,serviceaccounts,rolebinding.rbac.authorization.k8s.io,roles.rbac.authorization.k8s.io,pvc \
     -o name -l app=${APPLICATION_NAME} -l cluster-name=${APPLICATION_NAME}"
 
+OC_CLEAN_CRUNCHY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
+    PostgresCluster \
+    -o name -l app=wps-crunchydb-${SUFFIX}"
+
 OC_CLEAN_CONFIGMAPS="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
     configmaps \
     -o name -l cluster-name=${APPLICATION_NAME}"
@@ -47,11 +51,12 @@ OC_CLEAN_PATRONI_NETWORK_POLICY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} networkpo
 
 # Execute commands
 #
-echo -e "\n${PROJ_TARGET}:" 
+echo -e "\n${PROJ_TARGET}:"
 eval "${OC_CLEAN_DEPLOY}"
+eval "${OC_CLEAN_CRUNCHY}"
 eval "${OC_CLEAN_CONFIGMAPS}"
 eval "${OC_CLEAN_PATRONI_NETWORK_POLICY}"
 
 # Provide oc command instruction
 #
-display_helper "${OC_CLEAN_DEPLOY}" "${OC_CLEAN_CONFIGMAPS}" "${OC_CLEAN_PATRONI_NETWORK_POLICY}"
+display_helper "${OC_CLEAN_DEPLOY}" "${OC_CLEAN_CRUNCHY}" "${OC_CLEAN_CONFIGMAPS}" "${OC_CLEAN_PATRONI_NETWORK_POLICY}"
