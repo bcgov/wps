@@ -146,7 +146,7 @@ def main():
         sys.exit(os.EX_OK)
     except Exception as exception:
         # Exit non 0 - failure.
-        logger.error("An error occurred while processing VIIRS snow coverage data.", exc_info=exception)
+        logger.error("An error occurred while processing CWFIS grass curing data.", exc_info=exception)
         rc_message = ':scream: Encountered an error while processing VIIRS snow data.'
         send_rocketchat_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
