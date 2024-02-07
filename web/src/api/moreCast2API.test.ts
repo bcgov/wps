@@ -24,7 +24,7 @@ describe('moreCast2API', () => {
     temp: { choice: 'FORECAST', value: 0 },
     windDirection: { choice: 'FORECAST', value: 0 },
     windSpeed: { choice: 'FORECAST', value: 0 },
-    grassCuring: 0
+    grassCuring: { choice: 'FORECAST', value: 0 }
   })
   it('should marshall forecast records correctly', async () => {
     const res = marshalMoreCast2ForecastRecords([

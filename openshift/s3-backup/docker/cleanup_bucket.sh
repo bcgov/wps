@@ -6,10 +6,16 @@
 # AWS_HOSTNAME=[your aws hostname] AWS_ACCESS_KEY=[your access key] AWS_SECRET_KEY=[your secret key] AWS_BUCKET=[your aws bucket] PG_HOSTNAME=localhost PG_DATABASE=wps ./cleanup_bucket.sh
 
 # variable checks
-if [ -z ${PG_HOSTNAME+0} ]
+if [ -z ${SUFFIX+0} ]
 then
-    echo "PG_HOSTNAME not specified"
-    echo "Specify a postgress hostname"
+    echo "SUFFIX not specified"
+    echo "Specify a PR suffix"
+    exit 1
+fi
+
+if [ "$SUFFIX" == "prod" ]
+then
+    echo "Please only specify a dev suffix"
     exit 1
 fi
 
@@ -48,7 +54,7 @@ then
     exit 1
 fi
 
-_target_path="s3://${AWS_BUCKET}/backup/${PG_HOSTNAME}_${PG_DATABASE}/"
+_target_path="s3://${AWS_BUCKET}/pgbackrest/${SUFFIX}/"
 
 echo "Cleaning up ${_target_path}"
 AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}" AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}" aws --endpoint="https://${AWS_HOSTNAME}" s3 rm --recursive "${_target_path}"
