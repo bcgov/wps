@@ -31,7 +31,7 @@ export class GridComponentRenderer {
     return <>{params.colDef.headerName}</>
   }
   public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue'>) => (
-    <TextField disabled={true} size="small" value={params.formattedValue}></TextField>
+    <TextField sx={{ pointerEvents: 'none' }} disabled={true} size="small" value={params.formattedValue}></TextField>
   )
 
   public getActualField = (field: string) => {
