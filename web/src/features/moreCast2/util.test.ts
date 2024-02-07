@@ -253,9 +253,13 @@ const rows = [
 ]
 
 describe('fillGrassCuring', () => {
-  it('should map the most recent grass curing value for each station to each forecast', () => {
+  it('should map the most recent grass curing value for each station to each forecast, without overwriting existing submitted values', () => {
+    forecast1A.grassCuringForecast!.value = 60
+    forecast1B.grassCuringForecast!.value = 50
     fillGrassCuring(rows)
-    expect(forecast1A.grassCuringForecast!.value).toBe(80)
+    expect(forecast1A.grassCuringForecast!.value).toBe(60)
+    expect(forecast1B.grassCuringForecast!.value).toBe(50)
+    expect(forecast1C.grassCuringForecast!.value).toBe(50)
     expect(forecast2A.grassCuringForecast!.value).toBe(70)
     expect(forecast3A.grassCuringForecast!.value).toBe(NaN)
   })
@@ -265,7 +269,7 @@ describe('fillStationGrassCuringForward', () => {
     forecast1B.grassCuringForecast!.value = 43
     fillStationGrassCuringForward(forecast1B, rows)
     expect(forecast1C.grassCuringForecast!.value).toBe(43)
-    expect(forecast1A.grassCuringForecast!.value).toBe(80)
+    expect(forecast1A.grassCuringForecast!.value).toBe(60)
     expect(forecast2A.grassCuringForecast!.value).toBe(70)
   })
 })
