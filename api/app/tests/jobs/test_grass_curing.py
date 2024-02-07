@@ -1,4 +1,4 @@
-""" Unit testing for VIIRS snow data processing """
+""" Unit testing for CWFIS grass curing data processing """
 
 import os
 import pytest
