@@ -17,3 +17,4 @@ from app.db.models.auto_spatial_advisory import (Shape, ShapeType, HfiClassifica
                                                  ClassifiedHfi, RunTypeEnum, ShapeTypeEnum, FuelType, HighHfiArea, RunParameters)
 from app.db.models.morecast_v2 import MorecastForecastRecord
 from app.db.models.snow import ProcessedSnow, SnowSourceEnum
+from app.db.models.grass_curing import PercentGrassCuring
