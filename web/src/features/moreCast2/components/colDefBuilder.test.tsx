@@ -86,7 +86,7 @@ describe('ColDefBuilder', () => {
       )
 
       expect(forecastColDef.renderCell({ formattedValue: 1 })).toEqual(
-        <TextField disabled={true} size="small" value={1}></TextField>
+        <TextField sx={{ pointerEvents: 'none' }} disabled={true} size="small" value={1}></TextField>
       )
       expect(forecastColDef.valueFormatter({ value: 1.11 })).toEqual('1.1')
     })
