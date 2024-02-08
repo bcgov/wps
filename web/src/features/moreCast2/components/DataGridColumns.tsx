@@ -1,3 +1,4 @@
+import React from 'react'
 import { GridColumnVisibilityModel, GridColDef, GridColumnGroupingModel } from '@mui/x-data-grid'
 import { WeatherDeterminate, WeatherDeterminateChoices } from 'api/moreCast2API'
 import {
@@ -6,9 +7,11 @@ import {
   MORECAST2_INDEX_FIELDS,
   MORECAST2_STATION_DATE_FIELDS
 } from 'features/moreCast2/components/MoreCast2Column'
+import GroupHeader from 'features/moreCast2/components/GroupHeader'
 
 export interface ColumnVis {
   columnName: string
+  displayName?: string
   visible: boolean
 }
 
@@ -27,7 +30,27 @@ export class DataGridColumns {
     return model
   }
 
-  public static updateGridColumnVisibliityModel(
+  public static initGridColumnVisibilityModelNew() {
+    // First check local storage for existing column visibility
+    const groupedColumnVisibility = localStorage.getItem('groupedColumnVisibility')
+    if (groupedColumnVisibility) {
+      console.log(groupedColumnVisibility)
+    }
+
+    const model: GridColumnVisibilityModel = {}
+    const weatherParameterColumns = this.getWeatherParameterColumns()
+    weatherParameterColumns.forEach(columnName => {
+      // temperature columns are visible by default
+      if (columnName.startsWith('temp')) {
+        model[columnName] = true
+      } else {
+        model[columnName] = false
+      }
+    })
+    return model
+  }
+
+  public static updateGridColumnVisibilityModel(
     parameters: ColumnVis[],
     columnVisibilityModel: GridColumnVisibilityModel
   ) {
@@ -40,6 +63,18 @@ export class DataGridColumns {
           newModel[property] = parameter.visible
         }
       })
+    }
+    return newModel
+  }
+
+  public static updateGridColumnVisibilityFromShowHideColumnsModel(
+    parameters: ColumnVis[],
+    columnVisibilityModel: GridColumnVisibilityModel
+  ) {
+    const newModel: GridColumnVisibilityModel = {}
+    Object.assign(newModel, columnVisibilityModel)
+    for (const param of parameters) {
+      newModel[param.columnName] = param.visible
     }
     return newModel
   }
@@ -64,6 +99,57 @@ export class DataGridColumns {
     const fields = DataGridColumns.getTabColumns().map(column => column.field)
     return fields.filter(field => field !== 'stationName' && field !== 'forDate')
   }
+
+  public static getWeatherModelColumns() {
+    const columns = DataGridColumns.getTabColumns()
+    return columns.filter(
+      column => column.field !== 'stationName' && column.field !== 'forDate' && !column.field.endsWith('Forecast')
+    )
+  }
+}
+
+const renderGroupHeader = (id: string, weatherParam: string, columns: ColumnVis[], handleShowHideChange) => {
+  return (
+    <GroupHeader columns={columns} id={id} weatherParam={weatherParam} handleShowHideChange={handleShowHideChange} />
+  )
+}
+
+export const getColumnGroupingModel = (showHideColumnsModel: Record<string, ColumnVis[]>, handleShowHideChange) => {
+  const model = [
+    {
+      groupId: 'ID',
+      children: [{ field: 'stationName' }, { field: 'forDate' }]
+    },
+    {
+      groupId: 'Temp',
+      children: columnGroupingModelChildGenerator('temp'),
+      renderHeaderGroup: () => renderGroupHeader('Temp', 'temp', showHideColumnsModel['temp'], handleShowHideChange)
+    },
+    {
+      groupId: 'RH',
+      children: columnGroupingModelChildGenerator('rh'),
+      renderHeaderGroup: () => renderGroupHeader('RH', 'rh', showHideColumnsModel['rh'], handleShowHideChange)
+    },
+    {
+      groupId: 'Precip',
+      children: columnGroupingModelChildGenerator('precip'),
+      renderHeaderGroup: () =>
+        renderGroupHeader('Precip', 'precip', showHideColumnsModel['precip'], handleShowHideChange)
+    },
+    {
+      groupId: 'Wind Dir',
+      children: columnGroupingModelChildGenerator('windDirection'),
+      renderHeaderGroup: () =>
+        renderGroupHeader('Wind Dir', 'windDirection', showHideColumnsModel['windDirection'], handleShowHideChange)
+    },
+    {
+      groupId: 'Wind Speed',
+      children: columnGroupingModelChildGenerator('windSpeed'),
+      renderHeaderGroup: () =>
+        renderGroupHeader('Wind Speed', 'windSpeed', showHideColumnsModel['windSpeed'], handleShowHideChange)
+    }
+  ]
+  return model
 }
 
 export const columnGroupingModel: GridColumnGroupingModel = [

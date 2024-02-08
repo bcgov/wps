@@ -1,8 +1,14 @@
 import { AlertColor, List, Stack } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { GridCellParams, GridColDef, GridColumnVisibilityModel, GridEventListener } from '@mui/x-data-grid'
+import {
+  GridCellParams,
+  GridColDef,
+  GridColumnGroupingModel,
+  GridColumnVisibilityModel,
+  GridEventListener
+} from '@mui/x-data-grid'
 import { ModelChoice, ModelType, submitMoreCastForecastRecords } from 'api/moreCast2API'
-import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
+import { getColumnGroupingModel, ColumnVis, DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
@@ -28,6 +34,7 @@ import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
 import { mapForecastChoiceLabels } from 'features/moreCast2/util'
+import { cloneDeep } from 'lodash'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -65,7 +72,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   const [visibleRows, setVisibleRows] = useState<MoreCast2Row[]>([])
 
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
-    DataGridColumns.initGridColumnVisibilityModel()
+    DataGridColumns.initGridColumnVisibilityModelNew()
   )
 
   const [tempVisible, setTempVisible] = useState(true)
@@ -78,6 +85,9 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success')
+
+  const [showHideColumnsModel, setShowHideColumnsModel] = useState<Record<string, ColumnVis[]>>({})
+  const [columnGroupingModel, setColumnGroupingModel] = useState<GridColumnGroupingModel>([])
 
   const [contextMenu, setContextMenu] = React.useState<{
     mouseX: number
@@ -98,6 +108,73 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   const handleClose = () => {
     setContextMenu(null)
   }
+
+  const groupByWeatherParam = (ungroupedState: ColumnVis[]) => {
+    const grouper = (item: ColumnVis) => {
+      const field = item.columnName
+      if (field.startsWith('temp')) {
+        return 'temp'
+      }
+      if (field.startsWith('rh')) {
+        return 'rh'
+      }
+      if (field.startsWith('precip')) {
+        return 'precip'
+      }
+      if (field.startsWith('windDirection')) {
+        return 'windDirection'
+      }
+      if (field.startsWith('windSpeed')) {
+        return 'windSpeed'
+      }
+    }
+    const groupedState = groupBy(ungroupedState, grouper)
+    return groupedState
+  }
+
+  useEffect(() => {
+    const colGroupingModel = getColumnGroupingModel(showHideColumnsModel, handleShowHideChange)
+    setColumnGroupingModel(colGroupingModel)
+  }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const getColumnDisplayName = (name: string) => {
+    if (name.endsWith('_BIAS')) {
+      const index = name.indexOf('_BIAS')
+      return `${name.slice(0, index)} bias`
+    }
+    return name
+  }
+
+  useEffect(() => {
+    // Start get initial state from local storage or default
+    const weatherModelColumns = DataGridColumns.getWeatherModelColumns()
+    const showHideColumnsUngroupedState = weatherModelColumns.map((column: GridColDef): ColumnVis => {
+      return {
+        columnName: column.field,
+        displayName: getColumnDisplayName(column.headerName || ''),
+        visible: column.field.startsWith('temp') ? true : false
+      }
+    })
+    // End get initial state from local storage or default
+
+    const showHideColumnsGrouped = groupByWeatherParam(showHideColumnsUngroupedState)
+    setShowHideColumnsModel(showHideColumnsGrouped)
+  }, [])
+
+  useEffect(() => {
+    const flattened: GridColumnVisibilityModel = {}
+    for (const key of Object.keys(showHideColumnsModel)) {
+      const columns = showHideColumnsModel[key]
+      for (const column of columns) {
+        flattened[column.columnName] = column.visible
+      }
+    }
+    const newColumnVisibilityModel = {
+      ...columnVisibilityModel,
+      ...flattened
+    }
+    setColumnVisibilityModel(newColumnVisibilityModel)
+  }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const labelledRows = mapForecastChoiceLabels(morecast2Rows, deepClone(userEditedRows))
@@ -120,7 +197,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   useEffect(() => {
     tempVisible && setForecastSummaryVisible(false)
     setColumnVisibilityModel(
-      DataGridColumns.updateGridColumnVisibliityModel(
+      DataGridColumns.updateGridColumnVisibilityModel(
         [{ columnName: 'temp', visible: tempVisible }],
         columnVisibilityModel
       )
@@ -130,14 +207,14 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   useEffect(() => {
     rhVisible && setForecastSummaryVisible(false)
     setColumnVisibilityModel(
-      DataGridColumns.updateGridColumnVisibliityModel([{ columnName: 'rh', visible: rhVisible }], columnVisibilityModel)
+      DataGridColumns.updateGridColumnVisibilityModel([{ columnName: 'rh', visible: rhVisible }], columnVisibilityModel)
     )
   }, [rhVisible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     precipVisible && setForecastSummaryVisible(false)
     setColumnVisibilityModel(
-      DataGridColumns.updateGridColumnVisibliityModel(
+      DataGridColumns.updateGridColumnVisibilityModel(
         [{ columnName: 'precip', visible: precipVisible }],
         columnVisibilityModel
       )
@@ -147,7 +224,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   useEffect(() => {
     windDirectionVisible && setForecastSummaryVisible(false)
     setColumnVisibilityModel(
-      DataGridColumns.updateGridColumnVisibliityModel(
+      DataGridColumns.updateGridColumnVisibilityModel(
         [{ columnName: 'windDirection', visible: windDirectionVisible }],
         columnVisibilityModel
       )
@@ -157,7 +234,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   useEffect(() => {
     windSpeedVisible && setForecastSummaryVisible(false)
     setColumnVisibilityModel(
-      DataGridColumns.updateGridColumnVisibliityModel(
+      DataGridColumns.updateGridColumnVisibilityModel(
         [{ columnName: 'windSpeed', visible: windSpeedVisible }],
         columnVisibilityModel
       )
@@ -173,7 +250,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       setWindDirectionVisible(false)
       setWindSpeedVisible(false)
       setColumnVisibilityModel(
-        DataGridColumns.updateGridColumnVisibliityModel(
+        DataGridColumns.updateGridColumnVisibilityModel(
           [
             { columnName: 'temp', visible: false },
             { columnName: 'rh', visible: false },
@@ -316,6 +393,13 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   // Checks if the displayed rows includes non-Actual rows
   const hasForecastRow = () => {
     return visibleRows.filter(isForecastRowPredicate).length > 0
+  }
+
+  const handleShowHideChange = (weatherParam: string, columnName: string, value: boolean) => {
+    const newModel = cloneDeep(showHideColumnsModel)
+    const changedColumn = newModel[weatherParam].filter(column => column.columnName === columnName)[0]
+    changedColumn.visible = value
+    setShowHideColumnsModel(newModel)
   }
 
   return (
