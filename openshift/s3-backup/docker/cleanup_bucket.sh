@@ -3,7 +3,7 @@
 # DANGER! Don't run this in production!
 
 # usage example:
-# AWS_HOSTNAME=[your aws hostname] AWS_ACCESS_KEY=[your access key] AWS_SECRET_KEY=[your secret key] AWS_BUCKET=[your aws bucket] PG_HOSTNAME=localhost PG_DATABASE=wps ./cleanup_bucket.sh
+# AWS_HOSTNAME=[your aws hostname] AWS_ACCESS_KEY=[your access key] AWS_SECRET_KEY=[your secret key] AWS_BUCKET=[your aws bucket] ./cleanup_bucket.sh
 
 # variable checks
 if [ -z ${SUFFIX+0} ]
@@ -16,13 +16,6 @@ fi
 if [ "$SUFFIX" == "prod" ]
 then
     echo "Please only specify a dev suffix"
-    exit 1
-fi
-
-if [ -z ${PG_DATABASE+0} ]
-then
-    echo "PG_DATABASE not specified"
-    echo "Specify a postgress database"
     exit 1
 fi
 
