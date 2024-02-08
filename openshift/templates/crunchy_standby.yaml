@@ -1,0 +1,123 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: wps-crunchydb-standby
+  annotations:
+    "openshift.io/display-name": wps-crunchydb-standby
+labels:
+  app.kubernetes.io/part-of: wps-crunchydb-standby
+  app: wps-crunchydb-standby
+parameters:
+  - description: Namespace in which database resides
+    displayName: Target Namespace
+    name: TARGET_NAMESPACE
+    required: true
+  - name: BUCKET
+    description: S3 bucket name
+    required: true
+  - name: DATA_SIZE
+    description: Data PVC size
+    required: true
+  - name: WAL_SIZE
+    description: WAL PVC size
+    required: true
+  - name: CPU_REQUEST
+    description: |
+      Starting amount of CPU the container can use.
+    displayName: CPU REQUEST
+    value: "50m"
+  - name: CPU_LIMIT
+    description: Maximum amount of CPU the container can use.
+    displayName: CPU Limit
+    value: "250m"
+  - name: MEMORY_REQUEST
+    description: Starting amount of memory the container can use.
+    displayName: Memory Request
+    value: 256Mi
+  - name: MEMORY_LIMIT
+    description: Maximum amount of memory the container can use.
+    displayName: Memory Limit
+    value: 1Gi
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: IMAGE_REGISTRY
+    value: image-registry.apps.silver.devops.gov.bc.ca
+  - name: IMAGE_NAMESPACE
+    value: e1e498-tools
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+objects:
+  - apiVersion: v1
+    data:
+      init.sql: |-
+        \c wps\\
+        CREATE EXTENSION postgis;
+    kind: ConfigMap
+    metadata:
+      name: wps-init-sql
+  - apiVersion: postgres-operator.crunchydata.com/v1beta1
+    kind: PostgresCluster
+    metadata:
+      name: wps-crunchydb-standby
+    spec:
+      image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres-gis:ubi8-14.7-3.2-0
+      metadata:
+        name: wps-crunchydb-standby
+        labels:
+          app: wps-crunchydb-standby
+      databaseInitSQL:
+        key: init.sql
+        name: wps-init-sql
+      users:
+        - name: wps
+          databases:
+            - postgres
+            - wps
+          options: "SUPERUSER"
+      postgresVersion: 14
+      instances:
+        - name: crunchy
+          replicas: 1
+          resources:
+            requests:
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
+            limits:
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
+          dataVolumeClaimSpec:
+            accessModes:
+              - "ReadWriteOnce"
+            resources:
+              requests:
+                storage: ${DATA_SIZE}
+            storageClassName: netapp-block-standard
+          walVolumeClaimSpec:
+            accessModes:
+              - "ReadWriteOnce"
+            resources:
+              requests:
+                storage: ${WAL_SIZE}
+            storageClassName: netapp-block-standard
+      backups:
+        pgbackrest:
+          image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbackrest:ubi8-2.41-4
+          configuration:
+            - secret:
+                name: crunchy-pgbackrest
+                items:
+                  - key: conf
+                    path: s3.conf
+          global:
+            repo1-path: /pgbackrest/${SUFFIX}/repo1
+          repos:
+            - name: repo1
+              s3:
+                bucket: ${BUCKET}
+                endpoint: nrs.objectstore.gov.bc.ca
+                region: "ca-central-1"
+    standby:
+      enabled: true
+      repoName: repo1
