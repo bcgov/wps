@@ -12,8 +12,6 @@ parameters:
     value: wps-global
   - name: PROJ_TOOLS
     required: true
-  - name: CLUSTER_NAME
-    required: true
   - name: "TAG_NAME"
     displayName: "Environment TAG name"
     description: "The TAG name for this environment, e.g., dev, test, prod"
