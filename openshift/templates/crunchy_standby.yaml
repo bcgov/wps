@@ -118,6 +118,6 @@ objects:
                 bucket: ${BUCKET}
                 endpoint: nrs.objectstore.gov.bc.ca
                 region: "ca-central-1"
-    standby:
-      enabled: true
-      repoName: repo1
+      standby:
+        enabled: true
+        repoName: repo1
