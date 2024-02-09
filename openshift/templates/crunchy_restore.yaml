@@ -1,12 +1,12 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: wps-crunchydb-standby
+  name: wps-crunchydb-restore
   annotations:
-    "openshift.io/display-name": wps-crunchydb-standby
+    "openshift.io/display-name": wps-crunchydb-restore
 labels:
-  app.kubernetes.io/part-of: wps-crunchydb-standby
-  app: wps-crunchydb-standby
+  app.kubernetes.io/part-of: wps-crunchydb-restore
+  app: wps-crunchydb-restore
 parameters:
   - description: Namespace in which database resides
     displayName: Target Namespace
@@ -60,13 +60,13 @@ objects:
   - apiVersion: postgres-operator.crunchydata.com/v1beta1
     kind: PostgresCluster
     metadata:
-      name: wps-crunchydb-standby
+      name: wps-crunchydb-restore
     spec:
       image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres-gis:ubi8-14.7-3.2-0
       metadata:
-        name: wps-crunchydb-standby
+        name: wps-crunchydb-restore
         labels:
-          app: wps-crunchydb-standby
+          app: wps-crunchydb-restore
       databaseInitSQL:
         key: init.sql
         name: wps-init-sql
@@ -77,6 +77,23 @@ objects:
             - wps
           options: "SUPERUSER"
       postgresVersion: 14
+      dataSource:
+        pgbackrest:
+          stanza: db
+          configuration:
+            - secret:
+                name: crunchy-pgbackrest
+                items:
+                  - key: conf
+                    path: s3.conf
+          global:
+            repo1-path: /pgbackrest/prod/repo1
+          repo:
+            name: repo1
+            s3:
+              bucket: ${BUCKET}
+              endpoint: nrs.objectstore.gov.bc.ca
+              region: "ca-central-1"
       instances:
         - name: crunchy
           replicas: 1
@@ -111,13 +128,10 @@ objects:
                   - key: conf
                     path: s3.conf
           global:
-            repo1-path: /pgbackrest/${SUFFIX}/repo1
+            repo1-path: /pgbackrest/prod-restore/repo1
           repos:
             - name: repo1
               s3:
                 bucket: ${BUCKET}
                 endpoint: nrs.objectstore.gov.bc.ca
                 region: "ca-central-1"
-      standby:
-        enabled: true
-        repoName: repo1
