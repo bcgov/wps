@@ -32,16 +32,12 @@ parameters:
     description: "The TAG name for this environment, e.g., dev, test, prod"
     required: true
     value: "dev"
-  - name: "DATABASE_SERVICE_NAME"
-    displayName: "Database Service Name"
-    description: "The name of the database service."
-    required: true
   - name: DATABASE_USER
     value: wps
     required: true
-  - name: "DATABASE_DEPLOYMENT_NAME"
-    displayName: "Database Deployment Name"
-    description: "The name associated to the database deployment resources.  In particular, this is used to wire up the credentials associated to the database."
+  - name: "CRUNCHYDB_USER"
+    displayName: "CrunchyDB user details"
+    description: "User details for the database"
     required: true
   - name: DATABASE_PASSWORD_KEY_NAME
     displayName: Database Password Key Name
@@ -140,18 +136,21 @@ objects:
                   # image: backup
                   env:
                     - name: PG_HOSTNAME
-                      value: ${CLUSTER_NAME}-leader
+                      value: ${CLUSTER_NAME}-primary
                     - name: PG_PORT
                       value: ${PG_PORT}
                     - name: PG_DATABASE
                       value: ${PG_DATABASE}
                     - name: PG_USER
-                      value: ${DATABASE_USER}
+                      valueFrom:
+                        secretKeyRef:
+                          name: "${CRUNCHYDB_USER}"
+                          key: "user"
                     - name: PG_PASSWORD
                       valueFrom:
                         secretKeyRef:
-                          name: "${DATABASE_DEPLOYMENT_NAME}"
-                          key: "${DATABASE_PASSWORD_KEY_NAME}"
+                          name: "${CRUNCHYDB_USER}"
+                          key: "password"
                     - name: AWS_HOSTNAME
                       valueFrom:
                         secretKeyRef:
@@ -172,15 +171,6 @@ objects:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
                           key: object-store-bucket
-                    - name: POSTGRESQL_USER
-                      value: ${DATABASE_USER}
-                    - name: POSTGRESQL_PASSWORD
-                      valueFrom:
-                        secretKeyRef:
-                          name: "${DATABASE_DEPLOYMENT_NAME}"
-                          key: "${DATABASE_PASSWORD_KEY_NAME}"
-                    - name: POSTGRESQL_DATABASE
-                      value: ${PG_DATABASE}
               restartPolicy: "Never"
               terminationGracePeriodSeconds: 30
               activeDeadlineSeconds: 1600
