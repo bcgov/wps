@@ -278,7 +278,6 @@ jobs:
           python install-poetry.py --version 1.7.1
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
-          poetry config experimental.new-installer false
       # poetry cache folder: /home/runner/.cache/pypoetry
       - name: Cache poetry
         uses: actions/cache@v4
