@@ -15,7 +15,13 @@ oc -n e1e498-tools process -f build.yaml | oc -n e1e498-tools apply -f -
 ### Apply template using a specified branch and version
 
 ```bash
-oc -n e1e498-tools -p VERSION=some-date -p GIT_BRANCH=my-branch process -f build.yaml | oc -n e1e498-tools apply -f -
+oc -n e1e498-tools process -p VERSION=some-date -p GIT_BRANCH=my-branch process -f build.yaml | oc -n e1e498-tools apply -f -
+```
+
+### Kick off the build
+
+```bash
+oc -n e1e498-tools start-build s3-backup --follow
 ```
 
 ### Re-tag for production
