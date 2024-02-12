@@ -32,7 +32,6 @@ IMAGE_NAMESPACE=${PROJ_TOOLS}
 CLUSTER_NAME="wps-crunchydb-${SUFFIX}"
 
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-postgres-cronjob.yaml \
-    -p DATABASE_DEPLOYMENT_NAME=wps-global \
     -p CRUNCHYDB_USER=wps-crunchydb-${SUFFIX}-pguser-wps-crunchydb-${SUFFIX} \
     -p JOB_NAME=${JOB_NAME} \
     -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \

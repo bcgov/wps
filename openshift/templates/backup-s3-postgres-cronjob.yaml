@@ -39,13 +39,6 @@ parameters:
     displayName: "CrunchyDB user details"
     description: "User details for the database"
     required: true
-  - name: DATABASE_PASSWORD_KEY_NAME
-    displayName: Database Password Key Name
-    description:
-      The database password key name stored in database deployment resources
-      specified by DATABASE_DEPLOYMENT_NAME.
-    required: true
-    value: app-db-password
   - name: "PG_PORT"
     displayName: "Postgres port"
     required: true
