@@ -51,12 +51,16 @@ const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error 
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved and sent to Wildfire One.'
 const FORECAST_WARN_MESSAGE = 'Forecast not submitted. A forecast can only contain N/A values for the Wind Direction.'
 
+const SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY = 'showHideColumnsModel'
+
 interface TabbedDataGridProps {
   morecast2Rows: MoreCast2Row[]
   fetchWeatherIndeterminates: () => void
   fromTo: DateRange
   setFromTo: React.Dispatch<React.SetStateAction<DateRange>>
 }
+
+export type handleShowHideChangeType = (weatherParam: string, columnName: string, value: boolean) => void
 
 const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProps) => {
   const dispatch: AppDispatch = useDispatch()
@@ -89,7 +93,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   const [showHideColumnsModel, setShowHideColumnsModel] = useState<Record<string, ColumnVis[]>>({})
   const [columnGroupingModel, setColumnGroupingModel] = useState<GridColumnGroupingModel>([])
 
-  const [contextMenu, setContextMenu] = React.useState<{
+  const [contextMenu, setContextMenu] = useState<{
     mouseX: number
     mouseY: number
   } | null>(null)
@@ -132,11 +136,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     return groupedState
   }
 
-  useEffect(() => {
-    const colGroupingModel = getColumnGroupingModel(showHideColumnsModel, handleShowHideChange)
-    setColumnGroupingModel(colGroupingModel)
-  }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
-
   const getColumnDisplayName = (name: string) => {
     if (name.endsWith('_BIAS')) {
       const index = name.indexOf('_BIAS')
@@ -145,33 +144,99 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     return name
   }
 
-  useEffect(() => {
-    // Start get initial state from local storage or default
+  // Given an array of weather parameters (aka tabs) return a GridColumnVisibilityModel object that
+  // contains all weather model columns that are visible for each weather parameter.
+  const getVisibleColumns = (weatherParams: string[]) => {
+    const visibleColumns: GridColumnVisibilityModel = {}
+    for (const param of weatherParams) {
+      if (param in showHideColumnsModel) {
+        for (const column of showHideColumnsModel[param]) {
+          visibleColumns[column.columnName] = column.visible
+        }
+      }
+    }
+    return visibleColumns
+  }
+
+  // Given a weather parameter (aka tab) and its visibility, get the current columnVisibility modeal
+  // and updates the visibility of the specified weatherPatam to match the specified visible param.
+  // Returns an updated GridColumnVisiblityModel object.
+  const getVisibleColumnsByWeatherParam = (weatherParam: string, visible: boolean) => {
+    let updatedColumnVisibilityModel: GridColumnVisibilityModel
+    if (visible) {
+      const showHideColumns = showHideColumnsModel[weatherParam] || []
+      updatedColumnVisibilityModel = { ...columnVisibilityModel }
+      for (const column of showHideColumns) {
+        updatedColumnVisibilityModel[column.columnName] = column.visible
+      }
+    } else {
+      updatedColumnVisibilityModel = DataGridColumns.updateGridColumnVisibilityModel(
+        [{ columnName: weatherParam, visible: visible }],
+        columnVisibilityModel
+      )
+    }
+    return updatedColumnVisibilityModel
+  }
+
+  // Save the current set of weather model columns for each weather parameter (aka tab) as selected
+  // by the user.
+  const saveShowHideColumnsModelToLocalStorage = (model: Record<string, ColumnVis[]>) => {
+    const modelAsString = JSON.stringify(model)
+    window.localStorage.setItem(SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY, modelAsString)
+  }
+
+  // Gets the previously stored set of weather model columns for each weather paramter (aka tab).
+  const getShowHideColumnsModelFromLocalStorage = () => {
+    const modelAsString = window.localStorage.getItem(SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY)
+    return modelAsString
+  }
+
+  // Get the showHideColumnsModel from local storage if it exists, else provide default values.
+  const initShowHidColumnsModel = (): Record<string, ColumnVis[]> => {
+    // First check localStorage for an existing model
+    const modelAsString = getShowHideColumnsModelFromLocalStorage()
+    if (modelAsString) {
+      return JSON.parse(modelAsString)
+    }
     const weatherModelColumns = DataGridColumns.getWeatherModelColumns()
+    // Provide default with all columns
     const showHideColumnsUngroupedState = weatherModelColumns.map((column: GridColDef): ColumnVis => {
       return {
         columnName: column.field,
         displayName: getColumnDisplayName(column.headerName || ''),
-        visible: column.field.startsWith('temp') ? true : false
+        visible: true
       }
     })
-    // End get initial state from local storage or default
+    return groupByWeatherParam(showHideColumnsUngroupedState)
+  }
 
-    const showHideColumnsGrouped = groupByWeatherParam(showHideColumnsUngroupedState)
-    setShowHideColumnsModel(showHideColumnsGrouped)
-  }, [])
+  // Return an array of strings representing which weather parameters (aka tabs) are currently visible.
+  const getVisibleTabs = () => {
+    const visibleTabs = []
+    tempVisible && visibleTabs.push('temp')
+    rhVisible && visibleTabs.push('rh')
+    precipVisible && visibleTabs.push('precip')
+    windDirectionVisible && visibleTabs.push('windDirection')
+    windSpeedVisible && visibleTabs.push('windSpeed')
+    return visibleTabs
+  }
 
   useEffect(() => {
-    const flattened: GridColumnVisibilityModel = {}
-    for (const key of Object.keys(showHideColumnsModel)) {
-      const columns = showHideColumnsModel[key]
-      for (const column of columns) {
-        flattened[column.columnName] = column.visible
-      }
-    }
+    const initialShowHideColumnsModel = initShowHidColumnsModel()
+    setShowHideColumnsModel(initialShowHideColumnsModel)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const colGroupingModel = getColumnGroupingModel(showHideColumnsModel, handleShowHideChange)
+    setColumnGroupingModel(colGroupingModel)
+  }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const visibleTabs = getVisibleTabs()
+    const visibleColumns = getVisibleColumns(visibleTabs)
     const newColumnVisibilityModel = {
       ...columnVisibilityModel,
-      ...flattened
+      ...visibleColumns
     }
     setColumnVisibilityModel(newColumnVisibilityModel)
   }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -196,49 +261,33 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
 
   useEffect(() => {
     tempVisible && setForecastSummaryVisible(false)
-    setColumnVisibilityModel(
-      DataGridColumns.updateGridColumnVisibilityModel(
-        [{ columnName: 'temp', visible: tempVisible }],
-        columnVisibilityModel
-      )
-    )
+    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('temp', tempVisible)
+    setColumnVisibilityModel(updatedColumnVisibilityModel)
   }, [tempVisible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     rhVisible && setForecastSummaryVisible(false)
-    setColumnVisibilityModel(
-      DataGridColumns.updateGridColumnVisibilityModel([{ columnName: 'rh', visible: rhVisible }], columnVisibilityModel)
-    )
+    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('rh', rhVisible)
+    setColumnVisibilityModel(updatedColumnVisibilityModel)
   }, [rhVisible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     precipVisible && setForecastSummaryVisible(false)
-    setColumnVisibilityModel(
-      DataGridColumns.updateGridColumnVisibilityModel(
-        [{ columnName: 'precip', visible: precipVisible }],
-        columnVisibilityModel
-      )
-    )
+    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('precip', precipVisible)
+    setColumnVisibilityModel(updatedColumnVisibilityModel)
   }, [precipVisible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     windDirectionVisible && setForecastSummaryVisible(false)
-    setColumnVisibilityModel(
-      DataGridColumns.updateGridColumnVisibilityModel(
-        [{ columnName: 'windDirection', visible: windDirectionVisible }],
-        columnVisibilityModel
-      )
-    )
+    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('windDirection', windDirectionVisible)
+    setColumnVisibilityModel(updatedColumnVisibilityModel)
   }, [windDirectionVisible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    setForecastSummaryVisible(false)
     windSpeedVisible && setForecastSummaryVisible(false)
-    setColumnVisibilityModel(
-      DataGridColumns.updateGridColumnVisibilityModel(
-        [{ columnName: 'windSpeed', visible: windSpeedVisible }],
-        columnVisibilityModel
-      )
-    )
+    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('windSpeed', windSpeedVisible)
+    setColumnVisibilityModel(updatedColumnVisibilityModel)
   }, [windSpeedVisible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -395,10 +444,11 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     return visibleRows.filter(isForecastRowPredicate).length > 0
   }
 
-  const handleShowHideChange = (weatherParam: string, columnName: string, value: boolean) => {
+  const handleShowHideChange: handleShowHideChangeType = (weatherParam: string, columnName: string, value: boolean) => {
     const newModel = cloneDeep(showHideColumnsModel)
     const changedColumn = newModel[weatherParam].filter(column => column.columnName === columnName)[0]
     changedColumn.visible = value
+    saveShowHideColumnsModelToLocalStorage(newModel)
     setShowHideColumnsModel(newModel)
   }
 

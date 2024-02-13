@@ -8,6 +8,7 @@ import {
   MORECAST2_STATION_DATE_FIELDS
 } from 'features/moreCast2/components/MoreCast2Column'
 import GroupHeader from 'features/moreCast2/components/GroupHeader'
+import { handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
 
 export interface ColumnVis {
   columnName: string
@@ -108,13 +109,21 @@ export class DataGridColumns {
   }
 }
 
-const renderGroupHeader = (id: string, weatherParam: string, columns: ColumnVis[], handleShowHideChange) => {
+const renderGroupHeader = (
+  id: string,
+  weatherParam: string,
+  columns: ColumnVis[],
+  handleShowHideChange: handleShowHideChangeType
+) => {
   return (
     <GroupHeader columns={columns} id={id} weatherParam={weatherParam} handleShowHideChange={handleShowHideChange} />
   )
 }
 
-export const getColumnGroupingModel = (showHideColumnsModel: Record<string, ColumnVis[]>, handleShowHideChange) => {
+export const getColumnGroupingModel = (
+  showHideColumnsModel: Record<string, ColumnVis[]>,
+  handleShowHideChange: handleShowHideChangeType
+) => {
   const model = [
     {
       groupId: 'ID',

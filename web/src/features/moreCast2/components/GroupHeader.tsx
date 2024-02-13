@@ -86,4 +86,4 @@ const GroupHeader = ({ id, columns, weatherParam, handleShowHideChange }: GroupH
   )
 }
 
-export default GroupHeader
+export default React.memo(GroupHeader)
