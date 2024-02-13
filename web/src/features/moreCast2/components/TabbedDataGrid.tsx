@@ -22,7 +22,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
-import { groupBy, isEqual, isUndefined } from 'lodash'
+import { cloneDeep, groupBy, isEqual, isNull, isUndefined } from 'lodash'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
 import { ROLES } from 'features/auth/roles'
 import { selectAuthentication, selectWf1Authentication } from 'app/rootReducer'
@@ -34,7 +34,6 @@ import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
 import { mapForecastChoiceLabels } from 'features/moreCast2/util'
-import { cloneDeep } from 'lodash'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -159,22 +158,16 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     return visibleColumns
   }
 
-  // Given a weather parameter (aka tab) and its visibility, get the current columnVisibility modeal
-  // and updates the visibility of the specified weatherPatam to match the specified visible param.
-  // Returns an updated GridColumnVisiblityModel object.
   const getVisibleColumnsByWeatherParam = (weatherParam: string, visible: boolean) => {
-    let updatedColumnVisibilityModel: GridColumnVisibilityModel
+    const updatedColumnVisibilityModel = DataGridColumns.updateGridColumnVisibilityModel(
+      [{ columnName: weatherParam, visible: visible }],
+      columnVisibilityModel
+    )
     if (visible) {
       const showHideColumns = showHideColumnsModel[weatherParam] || []
-      updatedColumnVisibilityModel = { ...columnVisibilityModel }
       for (const column of showHideColumns) {
         updatedColumnVisibilityModel[column.columnName] = column.visible
       }
-    } else {
-      updatedColumnVisibilityModel = DataGridColumns.updateGridColumnVisibilityModel(
-        [{ columnName: weatherParam, visible: visible }],
-        columnVisibilityModel
-      )
     }
     return updatedColumnVisibilityModel
   }
@@ -189,15 +182,15 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   // Gets the previously stored set of weather model columns for each weather paramter (aka tab).
   const getShowHideColumnsModelFromLocalStorage = () => {
     const modelAsString = window.localStorage.getItem(SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY)
-    return modelAsString
+    return isNull(modelAsString) ? null : JSON.parse(modelAsString)
   }
 
   // Get the showHideColumnsModel from local storage if it exists, else provide default values.
-  const initShowHidColumnsModel = (): Record<string, ColumnVis[]> => {
+  const initShowHideColumnsModel = (): Record<string, ColumnVis[]> => {
     // First check localStorage for an existing model
-    const modelAsString = getShowHideColumnsModelFromLocalStorage()
-    if (modelAsString) {
-      return JSON.parse(modelAsString)
+    const model = getShowHideColumnsModelFromLocalStorage()
+    if (model) {
+      return model
     }
     const weatherModelColumns = DataGridColumns.getWeatherModelColumns()
     // Provide default with all columns
@@ -223,7 +216,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   }
 
   useEffect(() => {
-    const initialShowHideColumnsModel = initShowHidColumnsModel()
+    const initialShowHideColumnsModel = initShowHideColumnsModel()
     setShowHideColumnsModel(initialShowHideColumnsModel)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
