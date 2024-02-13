@@ -112,4 +112,19 @@ describe('GridComponentRenderer', () => {
     const actualField = gridComponentRenderer.getActualField('testForecast')
     expect(actualField).toEqual('testActual')
   })
+
+  it('should return an actual over a prediction if it exists for grass curing', () => {
+    const itemValue = gridComponentRenderer.valueGetter(
+      {
+        row: {
+          grassCuringForecast: { choice: ModelChoice.GDPS, value: 10.0 },
+          grassCuringActual: 20.0
+        },
+        value: { choice: ModelChoice.NULL, value: 10.0 }
+      },
+      1,
+      'grassCuringForecast'
+    )
+    expect(itemValue).toEqual('20.0')
+  })
 })
