@@ -14,6 +14,7 @@ export const DEFAULT_FORECAST_COLUMN_WIDTH = 120
 
 // Defines the order in which weather models display in the datagrid.
 export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
+  WeatherDeterminate.ACTUAL,
   WeatherDeterminate.HRDPS,
   WeatherDeterminate.HRDPS_BIAS,
   WeatherDeterminate.RDPS,
@@ -75,7 +76,12 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       ? ORDERED_COLUMN_HEADERS
       : ORDERED_COLUMN_HEADERS.filter(header => !header.endsWith('_BIAS'))
     return fields.map(header =>
-      this.generateColDefWith(`${this.field}${header}`, header, this.precision, DEFAULT_COLUMN_WIDTH)
+      this.generateColDefWith(
+        `${this.field}${header}`,
+        header,
+        this.precision,
+        header.includes('Actual') ? DEFAULT_FORECAST_COLUMN_WIDTH : DEFAULT_COLUMN_WIDTH
+      )
     )
   }
 

@@ -8,7 +8,8 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { ModelChoice } from 'api/moreCast2API'
-import { createLabel } from 'features/moreCast2/util'
+import { createWeatherModelLabel } from 'features/moreCast2/util'
+import { DateTime } from 'luxon'
 
 const NOT_AVAILABLE = 'N/A'
 
@@ -44,13 +45,14 @@ export class GridComponentRenderer {
     precision: number,
     field: string
   ): string => {
-    const actualField = this.getActualField(field)
-    const actual = params.row[actualField]
+    if (field.includes('grass')) {
+      const actualField = this.getActualField(field)
+      const actual = params.row[actualField]
 
-    if (!isNaN(actual)) {
-      return Number(actual).toFixed(precision)
+      if (!isNaN(actual)) {
+        return Number(actual).toFixed(precision)
+      }
     }
-
     const value = params?.value?.value
 
     if (isNaN(value)) {
@@ -63,17 +65,20 @@ export class GridComponentRenderer {
     // The value of field will be precipForecast, rhForecast, tempForecast, etc.
     // We need the prefix to help us grab the correct 'actual' field (eg. tempACTUAL, precipACTUAL, etc.)
     const actualField = this.getActualField(field)
+    const isActual = !isNaN(params.row[actualField])
+    const isPreviousDate = params.row['forDate'] < DateTime.now()
 
     const isGrassField = field.includes('grass')
 
-    const isActual = !isNaN(params.row[actualField])
-
     return (
       <TextField
-        disabled={isActual}
+        disabled={isActual || isPreviousDate}
         size="small"
-        label={isGrassField ? '' : createLabel(isActual, params.row[field].choice)}
-        value={params.formattedValue}
+        label={isGrassField ? '' : createWeatherModelLabel(params.row[field].choice)}
+        InputLabelProps={{
+          shrink: true
+        }}
+        value={!isActual && params.formattedValue === NOT_AVAILABLE ? undefined : params.formattedValue}
       ></TextField>
     )
   }
