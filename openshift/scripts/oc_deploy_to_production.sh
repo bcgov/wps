@@ -35,7 +35,8 @@ MODULE_NAME=web bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 # MODULE_NAME=tileserv bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 echo Provision database
 PROJ_TARGET=${PROJ_TARGET} BUCKET=lwzrin CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=45Gi WAL_SIZE=15Gi bash $(dirname ${0})/oc_provision_crunchy.sh prod ${RUN_TYPE}
-CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi PVC_SIZE=45Gi PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_db.sh prod ${RUN_TYPE}
+# TODO: remove once crunchydb satisfactory in prod for sometime
+# CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi PVC_SIZE=45Gi PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_db.sh prod ${RUN_TYPE}
 # Using pmtiles now, TODO: remove once pmtiles is satisfactory in prod over sometime
 # echo Provision tileserv
 # PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_tileserv.sh prod ${RUN_TYPE}
@@ -54,6 +55,8 @@ echo C-Haines
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_c_haines_cronjob.sh prod ${RUN_TYPE}
 echo VIIRS Snow
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_viirs_snow_cronjob.sh prod ${RUN_TYPE}
+echo Grass Curing
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_grass_curing_cronjob.sh prod ${RUN_TYPE}
 echo BC FireWeather cronjobs
 echo "Run forecast at 8h30 PDT and 16h30 PDT (so before and after noon)"
 PROJ_TARGET=${PROJ_TARGET} SCHEDULE="30 * * * *" bash $(dirname ${0})/oc_provision_wfwx_noon_forecasts_cronjob.sh prod ${RUN_TYPE}

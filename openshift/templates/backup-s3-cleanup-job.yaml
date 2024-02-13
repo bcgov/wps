@@ -12,8 +12,6 @@ parameters:
     value: wps-global
   - name: PROJ_TOOLS
     required: true
-  - name: CLUSTER_NAME
-    required: true
   - name: "TAG_NAME"
     displayName: "Environment TAG name"
     description: "The TAG name for this environment, e.g., dev, test, prod"
@@ -60,9 +58,7 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: object-store-bucket
-                - name: PG_DATABASE
-                  value: wps
-                - name: PG_HOSTNAME
-                  value: ${CLUSTER_NAME}-leader
+                - name: SUFFIX
+                  value: ${SUFFIX}
               command: ["bash", "cleanup_bucket.sh"]
           restartPolicy: OnFailure

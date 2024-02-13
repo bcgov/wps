@@ -31,7 +31,7 @@ export class GridComponentRenderer {
     return <>{params.colDef.headerName}</>
   }
   public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue'>) => (
-    <TextField disabled={true} size="small" value={params.formattedValue}></TextField>
+    <TextField sx={{ pointerEvents: 'none' }} disabled={true} size="small" value={params.formattedValue}></TextField>
   )
 
   public getActualField = (field: string) => {
@@ -64,14 +64,15 @@ export class GridComponentRenderer {
     // We need the prefix to help us grab the correct 'actual' field (eg. tempACTUAL, precipACTUAL, etc.)
     const actualField = this.getActualField(field)
 
-    const isCalcField = field.includes('Calc')
+    const isGrassField = field.includes('grass')
 
     const isActual = !isNaN(params.row[actualField])
+
     return (
       <TextField
-        disabled={isActual || isCalcField}
+        disabled={isActual}
         size="small"
-        label={isCalcField ? '' : createLabel(isActual, params.row[field].choice)}
+        label={isGrassField ? '' : createLabel(isActual, params.row[field].choice)}
         value={params.formattedValue}
       ></TextField>
     )
@@ -83,7 +84,7 @@ export class GridComponentRenderer {
     precision: number
   ) => {
     const oldValue = params.row[field].value
-    const newValue = Number(params.value)
+    const newValue = params.value ? Number(params.value) : NaN
 
     if (isNaN(oldValue) && isNaN(newValue)) {
       return { ...params.row }

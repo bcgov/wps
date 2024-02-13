@@ -4,6 +4,7 @@ import {
   createDateInterval,
   createWeatherModelLabel,
   fillGrassCuring,
+  fillStationGrassCuringForward,
   mapForecastChoiceLabels,
   parseForecastsHelper,
   rowIDHasher,
@@ -104,7 +105,7 @@ describe('parseForecastsHelper', () => {
         temp: { choice: ModelChoice.FORECAST, value: 1 },
         windDirection: { choice: ModelChoice.FORECAST, value: 1 },
         windSpeed: { choice: ModelChoice.FORECAST, value: 1 },
-        grassCuring: 1
+        grassCuring: { choice: ModelChoice.FORECAST, value: 1 }
       },
       {
         id: '22022-01-02',
@@ -116,7 +117,7 @@ describe('parseForecastsHelper', () => {
         temp: { choice: ModelChoice.FORECAST, value: 1 },
         windDirection: { choice: ModelChoice.FORECAST, value: 1 },
         windSpeed: { choice: ModelChoice.FORECAST, value: 1 },
-        grassCuring: 1
+        grassCuring: { choice: ModelChoice.FORECAST, value: 1 }
       }
     ])
   })
@@ -133,7 +134,7 @@ describe('parseForecastsHelper', () => {
         temp: { choice: ModelChoice.FORECAST, value: 1 },
         windDirection: { choice: ModelChoice.FORECAST, value: 1 },
         windSpeed: { choice: ModelChoice.FORECAST, value: 1 },
-        grassCuring: 1
+        grassCuring: { choice: ModelChoice.FORECAST, value: 1 }
       }
     ])
   })
@@ -163,7 +164,7 @@ describe('parseForecastsHelper', () => {
         temp: { choice: ModelChoice.FORECAST, value: NaN },
         windDirection: { choice: ModelChoice.FORECAST, value: NaN },
         windSpeed: { choice: ModelChoice.FORECAST, value: NaN },
-        grassCuring: NaN
+        grassCuring: { choice: ModelChoice.FORECAST, value: NaN }
       }
     ])
   })
@@ -221,27 +222,54 @@ describe('mapForecastChoiceLabels', () => {
     expect(labelledRows[1].rhForecast!.choice).toBe('MANUAL')
   })
 })
+
+const forecast1A = buildValidForecastRow(123, TEST_DATETIME, 'FORECAST')
+const forecast1B = buildValidForecastRow(123, TEST_DATETIME.plus({ days: 1 }), 'FORECAST')
+const forecast1C = buildValidForecastRow(123, TEST_DATETIME.plus({ days: 2 }), 'FORECAST')
+const forecast2A = buildValidForecastRow(321, TEST_DATETIME, 'FORECAST')
+const forecast3A = buildValidForecastRow(111, TEST_DATETIME, 'FORECAST')
+const actual1A = buildValidActualRow(123, TEST_DATETIME.minus({ days: 1 }))
+const actual2A = buildValidActualRow(321, TEST_DATETIME.minus({ days: 1 }))
+const actual3A = buildValidActualRow(111, TEST_DATETIME.minus({ days: 1 }))
+actual1A.grassCuringActual = 80
+actual2A.grassCuringActual = 70
+
+const actual1B = buildValidActualRow(123, TEST_DATETIME.minus({ days: 2 }))
+const actual2B = buildValidActualRow(321, TEST_DATETIME.minus({ days: 2 }))
+actual1B.grassCuringActual = 8
+actual2B.grassCuringActual = 7
+
+const rows = [
+  forecast1A,
+  forecast1B,
+  forecast1C,
+  forecast2A,
+  forecast3A,
+  actual1A,
+  actual1B,
+  actual2A,
+  actual2B,
+  actual3A
+]
+
 describe('fillGrassCuring', () => {
-  const forecast1A = buildValidForecastRow(123, TEST_DATETIME, 'FORECAST')
-  const forecast2A = buildValidForecastRow(321, TEST_DATETIME, 'FORECAST')
-  const forecast3A = buildValidForecastRow(111, TEST_DATETIME, 'FORECAST')
-  const actual1A = buildValidActualRow(123, TEST_DATETIME.minus({ days: 1 }))
-  const actual2A = buildValidActualRow(321, TEST_DATETIME.minus({ days: 1 }))
-  const actual3A = buildValidActualRow(111, TEST_DATETIME.minus({ days: 1 }))
-  actual1A.grassCuring = 80
-  actual2A.grassCuring = 70
-
-  const actual1B = buildValidActualRow(123, TEST_DATETIME.minus({ days: 2 }))
-  const actual2B = buildValidActualRow(321, TEST_DATETIME.minus({ days: 2 }))
-  actual1B.grassCuring = 8
-  actual2B.grassCuring = 7
-
-  const rows = [forecast1A, forecast2A, forecast3A, actual1A, actual1B, actual2A, actual2B, actual3A]
-
-  it('should map the most recent grass curing value for each station to each forecast', () => {
-    const filledRows = fillGrassCuring(rows)
-    expect(filledRows[0].grassCuring).toBe(80)
-    expect(filledRows[1].grassCuring).toBe(70)
-    expect(filledRows[2].grassCuring).toBe(NaN)
+  it('should map the most recent grass curing value for each station to each forecast, without overwriting existing submitted values', () => {
+    forecast1A.grassCuringForecast!.value = 60
+    forecast1B.grassCuringForecast!.value = 50
+    fillGrassCuring(rows)
+    expect(forecast1A.grassCuringForecast!.value).toBe(60)
+    expect(forecast1B.grassCuringForecast!.value).toBe(50)
+    expect(forecast1C.grassCuringForecast!.value).toBe(50)
+    expect(forecast2A.grassCuringForecast!.value).toBe(70)
+    expect(forecast3A.grassCuringForecast!.value).toBe(NaN)
+  })
+})
+describe('fillStationGrassCuringForward', () => {
+  it('should fill grass curing forward for each station if a row is edited', () => {
+    forecast1B.grassCuringForecast!.value = 43
+    fillStationGrassCuringForward(forecast1B, rows)
+    expect(forecast1C.grassCuringForecast!.value).toBe(43)
+    expect(forecast1A.grassCuringForecast!.value).toBe(60)
+    expect(forecast2A.grassCuringForecast!.value).toBe(70)
   })
 })

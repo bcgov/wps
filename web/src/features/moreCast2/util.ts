@@ -36,7 +36,10 @@ export const parseForecastsHelper = (
         choice: ModelChoice.FORECAST,
         value: forecast.wind_speed
       },
-      grassCuring: forecast.grass_curing
+      grassCuring: {
+        choice: ModelChoice.FORECAST,
+        value: forecast.grass_curing
+      }
     }
     rows.push(row)
   })
@@ -114,17 +117,26 @@ export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: Mor
       row.rhForecast = matchingRow.rhForecast
       row.windDirectionForecast = matchingRow.windDirectionForecast
       row.windSpeedForecast = matchingRow.windSpeedForecast
+      row.grassCuringForecast = matchingRow.grassCuringForecast
     }
   }
   return newRows
 }
 
+/**
+ * Fills all stations grass curing values with the last entered value for each station
+ * @param rows - MoreCast2Row[]
+ * @returns MoreCast2Row[]
+ */
 export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   const stationGrassMap = new Map<number, { date: DateTime; grassCuring: number }>()
   // iterate through all rows first so we know we have all the grass curing values for each station
   // regardless of row order
   for (const row of rows) {
-    const { stationCode, forDate, grassCuring } = row
+    const { stationCode, forDate, grassCuringForecast, grassCuringActual } = row
+
+    const grassCuring =
+      grassCuringForecast && !isNaN(grassCuringForecast.value) ? grassCuringForecast.value : grassCuringActual
 
     if (!isNaN(grassCuring)) {
       const existingStation = stationGrassMap.get(stationCode)
@@ -136,13 +148,31 @@ export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   }
 
   for (const row of rows) {
-    if (validForecastPredicate(row)) {
-      const stationInfo = stationGrassMap.get(row.stationCode)
-
-      if (stationInfo) {
-        row.grassCuring = stationInfo.grassCuring
-      }
+    const stationInfo = stationGrassMap.get(row.stationCode)
+    // fill the grass curing forecast value, as long as it doesn't already have a value
+    if (stationInfo && row.grassCuringForecast && isNaN(row.grassCuringForecast.value)) {
+      row.grassCuringForecast.value = stationInfo.grassCuring
     }
   }
   return rows
+}
+
+/**
+ * Provided a single row for a station is edited, fills all grass curing values for that station
+ * forward in time.
+ * @param editedRow - MoreCast2Row
+ * @param allRows - MoreCast2Row[]
+ * @returns MoreCast2Row[]
+ */
+export const fillStationGrassCuringForward = (editedRow: MoreCast2Row, allRows: MoreCast2Row[]) => {
+  const editedStation = editedRow.stationCode
+  const editedDate = editedRow.forDate
+  const newGrassCuringValue = editedRow.grassCuringForecast!.value
+
+  for (const row of allRows) {
+    if (row.stationCode === editedStation && row.forDate > editedDate) {
+      row.grassCuringForecast!.value = newGrassCuringValue
+    }
+  }
+  return allRows
 }

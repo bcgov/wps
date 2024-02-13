@@ -12,7 +12,7 @@ import {
   fetchCalculatedIndices
 } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
-import { createDateInterval, rowIDHasher } from 'features/moreCast2/util'
+import { createDateInterval, rowIDHasher, fillGrassCuring } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
@@ -189,7 +189,6 @@ export const createMoreCast2Rows = (
       firstItem.latitude,
       firstItem.longitude
     )
-    row.grassCuring = getNumberOrNaN(firstItem.grass_curing)
 
     for (const value of values) {
       switch (value.determinate) {
@@ -206,6 +205,7 @@ export const createMoreCast2Rows = (
           row.buiCalcActual = getNumberOrNaN(value.build_up_index)
           row.fwiCalcActual = getNumberOrNaN(value.fire_weather_index)
           row.dgrCalcActual = getNumberOrNaN(value.danger_rating)
+          row.grassCuringActual = getNumberOrNaN(value.grass_curing)
           break
         case WeatherDeterminate.FORECAST:
         case WeatherDeterminate.NULL:
@@ -252,6 +252,10 @@ export const createMoreCast2Rows = (
           row.fwiCalcForecast = {
             choice: forecastOrNull(ModelChoice.NULL),
             value: getNumberOrNaN(value.fire_weather_index)
+          }
+          row.grassCuringForecast = {
+            choice: forecastOrNull(ModelChoice.NULL),
+            value: getNumberOrNaN(value.grass_curing)
           }
           break
         case WeatherDeterminate.GDPS:
@@ -342,8 +346,9 @@ export const createMoreCast2Rows = (
       row.precipForecast.value = 0
     }
   }
+  const newRows = fillGrassCuring(rows)
 
-  return rows
+  return newRows
 }
 
 const forecastOrNull = (determinate: WeatherDeterminateType): ModelChoice.FORECAST | ModelChoice.NULL => {
@@ -615,7 +620,7 @@ export const createEmptyMoreCast2Row = (
     dgrCalcActual: NaN,
 
     //
-    grassCuring: NaN,
+    grassCuringActual: NaN,
 
     // GDPS model predictions
     precipGDPS: NaN,
