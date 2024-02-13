@@ -78,7 +78,7 @@ export class GridComponentRenderer {
         InputLabelProps={{
           shrink: true
         }}
-        value={!isActual && params.formattedValue === NOT_AVAILABLE ? undefined : params.formattedValue}
+        value={!isActual && params.formattedValue === NOT_AVAILABLE && !isPreviousDate ? '' : params.formattedValue}
       ></TextField>
     )
   }
