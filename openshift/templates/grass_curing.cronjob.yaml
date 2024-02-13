@@ -103,6 +103,11 @@ objects:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
                           key: rocket.chat-auth-token-secret
+                    - name: WFWX_BASE_URL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: env.wfwx-base-url
                     - name: WFWX_AUTH_URL
                       valueFrom:
                         configMapKeyRef:
@@ -143,6 +148,11 @@ objects:
                         secretKeyRef:
                           name: wps-redis
                           key: database-password
+                    - name: REDIS_USE
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: env.redis-use
                   resources:
                     limits:
                       cpu: "1"
