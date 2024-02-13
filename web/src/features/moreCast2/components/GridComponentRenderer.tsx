@@ -9,7 +9,6 @@ import {
 } from '@mui/x-data-grid'
 import { ModelChoice } from 'api/moreCast2API'
 import { createWeatherModelLabel } from 'features/moreCast2/util'
-import { DateTime } from 'luxon'
 
 const NOT_AVAILABLE = 'N/A'
 
@@ -66,9 +65,13 @@ export class GridComponentRenderer {
     // We need the prefix to help us grab the correct 'actual' field (eg. tempACTUAL, precipACTUAL, etc.)
     const actualField = this.getActualField(field)
     const isActual = !isNaN(params.row[actualField])
-    const isPreviousDate = params.row['forDate'] < DateTime.now()
 
     const isGrassField = field.includes('grass')
+    // We can disable to field if an Actual exists or the forDate is before today.
+    // Both forDate and today are currently in the system's time zone
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const isPreviousDate = params.row['forDate'] < today
 
     return (
       <TextField
