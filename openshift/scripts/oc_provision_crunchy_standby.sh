@@ -32,7 +32,7 @@ EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy_standby.yaml \
--p SUFFIX=prod \
+-p SUFFIX=${SUFFIX} \
 -p TARGET_NAMESPACE=${PROJ_TARGET} \
 -p BUCKET=${BUCKET} \
 -p DATA_SIZE=45Gi \
