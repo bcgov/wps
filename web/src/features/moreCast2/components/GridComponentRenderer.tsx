@@ -10,7 +10,7 @@ import {
 import { ModelChoice } from 'api/moreCast2API'
 import { createWeatherModelLabel } from 'features/moreCast2/util'
 
-const NOT_AVAILABLE = 'N/A'
+export const NOT_AVAILABLE = 'N/A'
 
 export class GridComponentRenderer {
   public renderForecastHeaderWith = (params: GridColumnHeaderParams) => {

@@ -2,7 +2,8 @@ import { GridColumnHeaderParams, GridValueSetterParams } from '@mui/x-data-grid'
 import { GridStateColDef } from '@mui/x-data-grid/internals'
 import { render } from '@testing-library/react'
 import { ModelChoice } from 'api/moreCast2API'
-import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
+import { GridComponentRenderer, NOT_AVAILABLE } from 'features/moreCast2/components/GridComponentRenderer'
+import { DateTime } from 'luxon'
 
 describe('GridComponentRenderer', () => {
   const gridComponentRenderer = new GridComponentRenderer()
@@ -25,6 +26,44 @@ describe('GridComponentRenderer', () => {
     expect(headerButton).toBeInTheDocument()
     expect(headerButton).toBeEnabled()
     expect(headerButton).toHaveTextContent('Test ID')
+  })
+
+  it('should render an empty cell (no N/A) if the cell is enabled and can have a forecast entered', () => {
+    const field = 'tempForecast'
+    const fieldActual = 'tempActual'
+    const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().plus({ days: 2 }) }
+    const { getByRole } = render(
+      gridComponentRenderer.renderForecastCellWith(
+        {
+          row: row,
+          formattedValue: NOT_AVAILABLE
+        },
+        field
+      )
+    )
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveValue('')
+    expect(renderedCell).toBeEnabled()
+  })
+
+  it('should render N/A and be disabled if the cell is from a previous date and has no Actual', () => {
+    const field = 'tempForecast'
+    const fieldActual = 'tempActual'
+    const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
+    const { getByRole } = render(
+      gridComponentRenderer.renderForecastCellWith(
+        {
+          row: row,
+          formattedValue: NOT_AVAILABLE
+        },
+        field
+      )
+    )
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveValue(NOT_AVAILABLE)
+    expect(renderedCell).toBeDisabled()
   })
 
   it('should render the cell with the formatted value', () => {
