@@ -19,6 +19,7 @@ const PopoverHeader = styled(Typography)(({ theme }) => ({
 }))
 
 const PopoverFormControlLabel = styled(FormControlLabel)(({ theme }) => ({
+  height: theme.spacing(3),
   marginRight: 0,
   paddingLeft: theme.spacing(1),
   [':hover']: {
@@ -60,7 +61,7 @@ const GroupHeader = ({ id, columns, weatherParam, handleShowHideChange }: GroupH
         onClose={handleClose}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
-        <Stack>
+        <Stack sx={{ overflow: 'hidden' }}>
           <PopoverHeader>Choose Models to Display</PopoverHeader>
           <FormGroup>
             {columns.map(column => {
