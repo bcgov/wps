@@ -39,7 +39,7 @@ describe('ColDefBuilder', () => {
         })
       )
     })
-    it('should generate all col defs correcty', () => {
+    it('should generate all col defs correctly', () => {
       const colDefs = colDefBuilder.generateColDefs()
 
       const expected = [
@@ -62,7 +62,7 @@ describe('ColDefBuilder', () => {
             headerName: determinate,
             sortable: false,
             type: 'number',
-            width: DEFAULT_COLUMN_WIDTH
+            width: determinate === WeatherDeterminate.ACTUAL ? DEFAULT_FORECAST_COLUMN_WIDTH : DEFAULT_COLUMN_WIDTH
           })
         )
       )
@@ -146,14 +146,34 @@ describe('ColDefBuilder', () => {
       )
       expect(
         forecastColDef.renderCell({ row: { testField: { choice: ModelChoice.GDPS, value: 1 } }, formattedValue: 1 })
-      ).toEqual(<TextField disabled={false} label={ModelChoice.GDPS} size="small" value={1} />)
+      ).toEqual(
+        <TextField
+          disabled={false}
+          InputLabelProps={{
+            shrink: true
+          }}
+          label={ModelChoice.GDPS}
+          size="small"
+          value={1}
+        />
+      )
 
       expect(
         forecastColDef.renderCell({
           row: { testField: { choice: ModelChoice.GDPS, value: 1 }, testActual: 2 },
           formattedValue: 1
         })
-      ).toEqual(<TextField disabled={false} label={ModelChoice.GDPS} size="small" value={1} />)
+      ).toEqual(
+        <TextField
+          disabled={false}
+          InputLabelProps={{
+            shrink: true
+          }}
+          label={ModelChoice.GDPS}
+          size="small"
+          value={1}
+        />
+      )
       expect(forecastColDef.valueFormatter({ value: 1.11 })).toEqual('1.1')
       expect(
         forecastColDef.valueGetter({

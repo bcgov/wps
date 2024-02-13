@@ -112,19 +112,4 @@ describe('GridComponentRenderer', () => {
     const actualField = gridComponentRenderer.getActualField('testForecast')
     expect(actualField).toEqual('testActual')
   })
-
-  it('should return an actual over a prediction if it exists', () => {
-    const itemValue = gridComponentRenderer.valueGetter(
-      {
-        row: {
-          testForecast: { choice: ModelChoice.GDPS, value: 1.11 },
-          testActual: 2.22
-        },
-        value: { choice: ModelChoice.GDPS, value: 1.11 }
-      },
-      1,
-      'testForecast'
-    )
-    expect(itemValue).toEqual('2.2')
-  })
 })
