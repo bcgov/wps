@@ -67,7 +67,7 @@ export class GridComponentRenderer {
     const isActual = !isNaN(params.row[actualField])
 
     const isGrassField = field.includes('grass')
-    // We can disable to field if an Actual exists or the forDate is before today.
+    // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
     const today = new Date()
     today.setHours(0, 0, 0, 0)
