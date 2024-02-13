@@ -111,7 +111,7 @@ objects:
                   - key: conf
                     path: s3.conf
           global:
-            repo1-path: /pgbackrest/crunchy-standby/repo1
+            repo1-path: /pgbackrest/${SUFFIX}/repo1
           repos:
             - name: repo1
               s3:
