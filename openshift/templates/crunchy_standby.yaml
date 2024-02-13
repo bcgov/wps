@@ -77,23 +77,6 @@ objects:
             - wps
           options: "SUPERUSER"
       postgresVersion: 14
-      dataSource:
-        pgbackrest:
-          stanza: db
-          configuration:
-            - secret:
-                name: crunchy-pgbackrest
-                items:
-                  - key: conf
-                    path: s3.conf
-          global:
-            repo1-path: /pgbackrest/prod/repo1
-          repo:
-            name: repo1
-            s3:
-              bucket: ${BUCKET}
-              endpoint: nrs.objectstore.gov.bc.ca
-              region: "ca-central-1"
       instances:
         - name: crunchy
           replicas: 1
