@@ -13,13 +13,13 @@ interface GroupHeaderProps {
 
 const PopoverHeader = styled(Typography)(({ theme }) => ({
   backgroundColor: DARK_GREY,
-  fontSize: '12px',
+  fontSize: '14px',
   fontWeight: 'bold',
   padding: theme.spacing(1)
 }))
 
 const PopoverFormControlLabel = styled(FormControlLabel)(({ theme }) => ({
-  height: theme.spacing(3),
+  height: theme.spacing(4),
   marginRight: 0,
   paddingLeft: theme.spacing(1),
   [':hover']: {
