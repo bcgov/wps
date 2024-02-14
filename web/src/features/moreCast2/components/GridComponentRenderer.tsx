@@ -11,6 +11,7 @@ import { ModelChoice } from 'api/moreCast2API'
 import { createWeatherModelLabel } from 'features/moreCast2/util'
 
 export const NOT_AVAILABLE = 'N/A'
+export const NOT_REPORTING = 'N/R'
 
 export class GridComponentRenderer {
   public renderForecastHeaderWith = (params: GridColumnHeaderParams) => {
@@ -106,10 +107,15 @@ export class GridComponentRenderer {
     return { ...params.row }
   }
 
-  public predictionItemValueFormatter = (params: Pick<GridValueFormatterParams, 'value'>, precision: number) => {
+  public predictionItemValueFormatter = (
+    params: Pick<GridValueFormatterParams, 'field' | 'value'>,
+    precision: number
+  ) => {
     const value = Number.parseFloat(params?.value)
+    const isActualField = params?.field.includes('Actual')
+    const noDataField = isActualField ? NOT_REPORTING : NOT_AVAILABLE
 
-    return isNaN(value) ? NOT_AVAILABLE : value.toFixed(precision)
+    return isNaN(value) ? noDataField : value.toFixed(precision)
   }
 
   public cellValueGetter = (params: Pick<GridValueGetterParams, 'value'>, precision: number) => {

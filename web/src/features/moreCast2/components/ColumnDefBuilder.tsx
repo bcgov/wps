@@ -100,7 +100,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       renderHeader: (params: GridColumnHeaderParams) => {
         return this.gridComponentRenderer.renderHeaderWith(params)
       },
-      valueFormatter: (params: Pick<GridValueFormatterParams, 'value'>) => {
+      valueFormatter: (params: Pick<GridValueFormatterParams, 'field' | 'value'>) => {
         return this.valueFormatterWith(params, precision)
       }
     }
@@ -131,7 +131,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
           ? this.gridComponentRenderer.renderCellWith(params)
           : this.gridComponentRenderer.renderForecastCellWith(params, field)
       },
-      valueFormatter: (params: Pick<GridValueFormatterParams, 'value'>) => {
+      valueFormatter: (params: Pick<GridValueFormatterParams, 'field' | 'value'>) => {
         return this.valueFormatterWith(params, precision)
       },
       valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>
@@ -141,7 +141,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     }
   }
 
-  public valueFormatterWith = (params: Pick<GridValueFormatterParams, 'value'>, precision: number) =>
+  public valueFormatterWith = (params: Pick<GridValueFormatterParams, 'field' | 'value'>, precision: number) =>
     this.gridComponentRenderer.predictionItemValueFormatter(params, precision)
   public valueGetterWith = (params: Pick<GridValueGetterParams, 'value'>, precision: number) =>
     this.gridComponentRenderer.cellValueGetter(params, precision)

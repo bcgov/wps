@@ -88,7 +88,7 @@ describe('ColDefBuilder', () => {
       expect(forecastColDef.renderCell({ formattedValue: 1 })).toEqual(
         <TextField sx={{ pointerEvents: 'none' }} disabled={true} size="small" value={1}></TextField>
       )
-      expect(forecastColDef.valueFormatter({ value: 1.11 })).toEqual('1.1')
+      expect(forecastColDef.valueFormatter({ field: 'field', value: 1.11 })).toEqual('1.1')
     })
   })
 
@@ -174,7 +174,7 @@ describe('ColDefBuilder', () => {
           value={1}
         />
       )
-      expect(forecastColDef.valueFormatter({ value: 1.11 })).toEqual('1.1')
+      expect(forecastColDef.valueFormatter({ field: 'field', value: 1.11 })).toEqual('1.1')
       expect(
         forecastColDef.valueGetter({
           row: { testField: { choice: ModelChoice.GDPS, value: 1 } },
@@ -204,7 +204,7 @@ describe('ColDefBuilder', () => {
     })
 
     it('should delegate to GridComponentRenderer', () => {
-      expect(colDefBuilder.valueFormatterWith({ value: 1.11 }, 1)).toEqual('1.1')
+      expect(colDefBuilder.valueFormatterWith({ field: 'field', value: 1.11 }, 1)).toEqual('1.1')
       expect(colDefBuilder.valueGetterWith({ value: 1.11 }, 1)).toEqual('1.1')
       expect(
         colDefBuilder.valueGetter(

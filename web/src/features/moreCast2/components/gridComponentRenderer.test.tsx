@@ -116,12 +116,12 @@ describe('GridComponentRenderer', () => {
   })
 
   it('should format the row correctly with a value', () => {
-    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter({ value: 1.11 }, 1)
+    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter({ field: 'field', value: 1.11 }, 1)
     expect(formattedItemValue).toEqual('1.1')
   })
 
   it('should format the row correctly without a value', () => {
-    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter({ value: NaN }, 1)
+    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter({ field: 'field', value: NaN }, 1)
     expect(formattedItemValue).toEqual('N/A')
   })
 
