@@ -54,7 +54,6 @@ const SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY = 'showHideColumnsModel'
 
 interface TabbedDataGridProps {
   morecast2Rows: MoreCast2Row[]
-  fetchWeatherIndeterminates: () => void
   fromTo: DateRange
   setFromTo: React.Dispatch<React.SetStateAction<DateRange>>
 }
@@ -460,25 +459,39 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         onClick={handleSaveClick}
       />
       <List component={Stack} direction="row">
-        <SelectableButton onClick={() => setTempVisible(!tempVisible)} selected={tempVisible}>
+        <SelectableButton
+          dataTestId="temp-tab-button"
+          onClick={() => setTempVisible(!tempVisible)}
+          selected={tempVisible}
+        >
           Temp
         </SelectableButton>
-        <SelectableButton onClick={() => setRhVisible(!rhVisible)} selected={rhVisible}>
+        <SelectableButton dataTestId="rh-tab-button" onClick={() => setRhVisible(!rhVisible)} selected={rhVisible}>
           RH
         </SelectableButton>
         <SelectableButton
+          dataTestId="wind-direction-tab-button"
           onClick={() => setWindDirectionVisible(!windDirectionVisible)}
           selected={windDirectionVisible}
         >
           Wind Direction
         </SelectableButton>
-        <SelectableButton onClick={() => setWindSpeedVisible(!windSpeedVisible)} selected={windSpeedVisible}>
+        <SelectableButton
+          dataTestId="wind-speed-tab-button"
+          onClick={() => setWindSpeedVisible(!windSpeedVisible)}
+          selected={windSpeedVisible}
+        >
           Wind Speed
         </SelectableButton>
-        <SelectableButton onClick={() => setPrecipVisible(!precipVisible)} selected={precipVisible}>
+        <SelectableButton
+          dataTestId="precip-tab-button"
+          onClick={() => setPrecipVisible(!precipVisible)}
+          selected={precipVisible}
+        >
           Precip
         </SelectableButton>
         <SelectableButton
+          dataTestId="summary-tab-button"
           onClick={() => setForecastSummaryVisible(!forecastSummaryVisible)}
           selected={forecastSummaryVisible}
         >
