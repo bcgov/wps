@@ -120,12 +120,7 @@ const MoreCast2Page = () => {
           />
         </SidePanel>
         <Observations>
-          <TabbedDataGrid
-            morecast2Rows={sortedMoreCast2Rows}
-            fetchWeatherIndeterminates={fetchWeatherIndeterminates}
-            fromTo={fromTo}
-            setFromTo={setFromTo}
-          />
+          <TabbedDataGrid morecast2Rows={sortedMoreCast2Rows} fromTo={fromTo} setFromTo={setFromTo} />
         </Observations>
       </Content>
     </Root>
