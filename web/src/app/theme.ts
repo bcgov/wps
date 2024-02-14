@@ -91,3 +91,6 @@ export const PLANNING_AREA = {
   height: 45
 }
 export const UNSELECTED_STATION_COLOR = 'rgba(0,0,0,0.54)'
+export const DARK_GREY = '#A7A7A7'
+export const LIGHT_GREY = '#DADADA'
+export const MEDIUM_GREY = '#B5B5B5'

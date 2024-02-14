@@ -14,7 +14,7 @@ const NOT_AVAILABLE = 'N/A'
 
 export class GridComponentRenderer {
   public renderForecastHeaderWith = (params: GridColumnHeaderParams) => {
-    return <Button>{params.colDef.headerName}</Button>
+    return <Button data-testid={`${params.colDef.field}-column-header`}>{params.colDef.headerName}</Button>
   }
   public renderHeaderWith = (params: GridColumnHeaderParams) => {
     if (params.field.endsWith('_BIAS')) {
@@ -22,13 +22,13 @@ export class GridComponentRenderer {
       const index = headerName.indexOf('_BIAS')
       const prefix = headerName.slice(0, index)
       return (
-        <div>
+        <div data-testid={`${params.colDef.field}-column-header`}>
           <Box sx={{ height: '1rem' }}>{prefix}</Box>
           <Box>bias</Box>
         </div>
       )
     }
-    return <>{params.colDef.headerName}</>
+    return <div data-testid={`${params.colDef.field}-column-header`}>{params.colDef.headerName}</div>
   }
   public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue'>) => (
     <TextField sx={{ pointerEvents: 'none' }} disabled={true} size="small" value={params.formattedValue}></TextField>
