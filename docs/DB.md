@@ -69,3 +69,17 @@ Install postgis extension:
 ```psql
 create extension postgis;
 ```
+
+### CrunchyDB Openshift Cluster
+
+The database is deployed using the CrunchyDB postgres operator: https://github.com/CrunchyData/postgres-operator
+
+#### Standby Cluster Restore
+
+To spin up a standby cluster that bootstraps itself from our configured pgbackrest repo run:
+
+`PROJ_TARGET=<your-namespace> BUCKET=<your-bucket> bash openshift/scripts/oc_provision_crunchy_standby.sh <your-suffix> apply`
+
+Further details here: https://access.crunchydata.com/documentation/postgres-operator/latest/tutorials/backups-disaster-recovery/disaster-recovery#repo-based-standby
+
+In the case of needing promote the standby cluster to the primary cluster, follow instructions here: https://access.crunchydata.com/documentation/postgres-operator/latest/tutorials/backups-disaster-recovery/disaster-recovery#promoting-a-standby-cluster
