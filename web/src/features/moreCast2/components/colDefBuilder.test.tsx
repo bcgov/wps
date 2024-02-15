@@ -9,6 +9,11 @@ import {
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 import { tempForecastField } from 'features/moreCast2/components/MoreCast2Column'
+import { DateTime } from 'luxon'
+import { rowIDHasher } from 'features/moreCast2/util'
+
+const TEST_DATE = DateTime.local().startOf('day')
+const TEST_ID = rowIDHasher(123, TEST_DATE)
 
 describe('ColDefBuilder', () => {
   const colDefBuilder = new ColumnDefBuilder(
@@ -88,7 +93,7 @@ describe('ColDefBuilder', () => {
       expect(forecastColDef.renderCell({ formattedValue: 1 })).toEqual(
         <TextField sx={{ pointerEvents: 'none' }} disabled={true} size="small" value={1}></TextField>
       )
-      expect(forecastColDef.valueFormatter({ field: 'field', value: 1.11 })).toEqual('1.1')
+      expect(forecastColDef.valueFormatter({ field: 'field', value: 1.11, id: TEST_ID })).toEqual('1.1')
     })
   })
 
@@ -160,7 +165,7 @@ describe('ColDefBuilder', () => {
 
       expect(
         forecastColDef.renderCell({
-          row: { testField: { choice: ModelChoice.GDPS, value: 1 }, testActual: 2 },
+          row: { testField: { choice: ModelChoice.GDPS, value: 1 }, testActual: 2, id: TEST_ID },
           formattedValue: 1
         })
       ).toEqual(
@@ -174,7 +179,7 @@ describe('ColDefBuilder', () => {
           value={1}
         />
       )
-      expect(forecastColDef.valueFormatter({ field: 'field', value: 1.11 })).toEqual('1.1')
+      expect(forecastColDef.valueFormatter({ field: 'field', value: 1.11, id: TEST_ID })).toEqual('1.1')
       expect(
         forecastColDef.valueGetter({
           row: { testField: { choice: ModelChoice.GDPS, value: 1 } },
@@ -204,7 +209,7 @@ describe('ColDefBuilder', () => {
     })
 
     it('should delegate to GridComponentRenderer', () => {
-      expect(colDefBuilder.valueFormatterWith({ field: 'field', value: 1.11 }, 1, 'header')).toEqual('1.1')
+      expect(colDefBuilder.valueFormatterWith({ field: 'field', value: 1.11, id: TEST_ID }, 1, 'header')).toEqual('1.1')
       expect(colDefBuilder.valueGetterWith({ value: 1.11 }, 1)).toEqual('1.1')
       expect(
         colDefBuilder.valueGetter(

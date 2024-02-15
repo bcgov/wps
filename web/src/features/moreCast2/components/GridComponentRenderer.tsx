@@ -9,15 +9,15 @@ import {
 } from '@mui/x-data-grid'
 import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
 import { createWeatherModelLabel, getDateTimeFromRowID, isPreviousToToday } from 'features/moreCast2/util'
-import {
-  gcField,
-  precipForecastField,
-  rhForecastField,
-  tempForecastField,
-  windDirForecastField,
-  windSpeedForecastField
-} from 'features/moreCast2/components/MoreCast2Column'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
+import {
+  GC_HEADER,
+  PRECIP_HEADER,
+  RH_HEADER,
+  TEMP_HEADER,
+  WIND_DIR_HEADER,
+  WIND_SPEED_HEADER
+} from 'features/moreCast2/components/ColumnDefBuilder'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -85,7 +85,8 @@ export class GridComponentRenderer {
   public renderForecastCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>, field: string) => {
     // The value of field will be precipForecast, rhForecast, tempForecast, etc.
     // We need the prefix to help us grab the correct 'actual' field (eg. tempACTUAL, precipACTUAL, etc.)
-    const isActual = this.rowContainsActual(params.row)
+    const actualField = this.getActualField(field)
+    const isActual = !isNaN(params.row[actualField])
     const isGrassField = field.includes('grass')
     // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
@@ -126,26 +127,27 @@ export class GridComponentRenderer {
 
   public isForecastColumn = (headerName: string): boolean => {
     const forecastColumns = [
-      tempForecastField,
-      rhForecastField,
-      windDirForecastField,
-      windSpeedForecastField,
-      precipForecastField,
-      gcField
+      WeatherDeterminate.FORECAST,
+      TEMP_HEADER,
+      RH_HEADER,
+      WIND_DIR_HEADER,
+      WIND_SPEED_HEADER,
+      PRECIP_HEADER,
+      GC_HEADER
     ]
 
-    return forecastColumns.some(column => column.headerName === headerName) || headerName === 'Forecast'
+    return forecastColumns.some(column => column === headerName)
   }
 
   public predictionItemValueFormatter = (
     params: Pick<GridValueFormatterParams, 'field' | 'value' | 'id'>,
     precision: number,
-    headerName?: string
+    headerName: string
   ) => {
     const value = Number.parseFloat(params?.value)
     const forDate = getDateTimeFromRowID(params.id!.toString())
 
-    const isForecastColumn = this.isForecastColumn(headerName!)
+    const isForecastColumn = this.isForecastColumn(headerName)
     const isPreviousDate = isPreviousToToday(forDate)
 
     const noDataField = headerName === WeatherDeterminate.ACTUAL ? NOT_REPORTING : NOT_AVAILABLE

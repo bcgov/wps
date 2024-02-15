@@ -27,6 +27,13 @@ export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
   WeatherDeterminate.GFS_BIAS
 ]
 
+export const TEMP_HEADER = 'Temp'
+export const RH_HEADER = 'RH'
+export const WIND_SPEED_HEADER = 'Wind Speed'
+export const WIND_DIR_HEADER = 'Wind Dir'
+export const PRECIP_HEADER = 'Precip'
+export const GC_HEADER = 'GC'
+
 export interface ForecastColDefGenerator {
   generateForecastColDef: (headerName?: string) => GridColDef
 }

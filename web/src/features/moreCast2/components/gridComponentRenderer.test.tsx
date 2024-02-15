@@ -3,7 +3,11 @@ import { GridStateColDef } from '@mui/x-data-grid/internals'
 import { render } from '@testing-library/react'
 import { ModelChoice } from 'api/moreCast2API'
 import { GridComponentRenderer, NOT_AVAILABLE } from 'features/moreCast2/components/GridComponentRenderer'
+import { rowIDHasher } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
+
+const TEST_DATE = DateTime.local().startOf('day')
+const TEST_ID_TOMORROW = rowIDHasher(123, TEST_DATE.plus({ days: 1 }))
 
 describe('GridComponentRenderer', () => {
   const gridComponentRenderer = new GridComponentRenderer()
@@ -31,12 +35,12 @@ describe('GridComponentRenderer', () => {
   it('should render an empty cell (no N/A) if the cell is enabled and can have a forecast entered', () => {
     const field = 'tempForecast'
     const fieldActual = 'tempActual'
-    const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().plus({ days: 2 }) }
+    const row = { [field]: NaN, [fieldActual]: NaN, id: TEST_ID_TOMORROW, forDate: DateTime.now().plus({ days: 2 }) }
     const { getByRole } = render(
       gridComponentRenderer.renderForecastCellWith(
         {
           row: row,
-          formattedValue: NOT_AVAILABLE
+          formattedValue: ''
         },
         field
       )
@@ -118,7 +122,8 @@ describe('GridComponentRenderer', () => {
   it('should format the row correctly with a value', () => {
     const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter(
       { field: 'field', value: 1.11, id: 1 },
-      1
+      1,
+      'headerName'
     )
     expect(formattedItemValue).toEqual('1.1')
   })
@@ -126,7 +131,8 @@ describe('GridComponentRenderer', () => {
   it('should format the row correctly without a value', () => {
     const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter(
       { field: 'field', value: NaN, id: 1 },
-      1
+      1,
+      'headerName'
     )
     expect(formattedItemValue).toEqual('N/A')
   })
