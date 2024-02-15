@@ -5,13 +5,19 @@ import { theme } from 'app/theme'
 
 interface SelectableButtonProps {
   children?: React.ReactNode
+  dataTestId?: string
   onClick: () => void
   selected: boolean
 }
 
-const SelectableButton = ({ children, onClick, selected }: SelectableButtonProps) => {
+const SelectableButton = ({ children, dataTestId, onClick, selected }: SelectableButtonProps) => {
   return (
-    <Button sx={{ marginLeft: theme.spacing(1) }} onClick={onClick} variant={selected ? 'contained' : 'outlined'}>
+    <Button
+      data-testid={dataTestId}
+      sx={{ marginLeft: theme.spacing(1) }}
+      onClick={onClick}
+      variant={selected ? 'contained' : 'outlined'}
+    >
       {children}
     </Button>
   )
