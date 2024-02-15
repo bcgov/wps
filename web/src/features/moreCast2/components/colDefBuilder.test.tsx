@@ -165,7 +165,7 @@ describe('ColDefBuilder', () => {
 
       expect(
         forecastColDef.renderCell({
-          row: { testField: { choice: ModelChoice.GDPS, value: 1 }, testActual: 2, id: TEST_ID },
+          row: { testField: { choice: ModelChoice.GDPS, value: 1 }, id: TEST_ID },
           formattedValue: 1
         })
       ).toEqual(
