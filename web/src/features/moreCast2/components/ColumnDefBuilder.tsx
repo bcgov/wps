@@ -100,8 +100,8 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       renderHeader: (params: GridColumnHeaderParams) => {
         return this.gridComponentRenderer.renderHeaderWith(params)
       },
-      valueFormatter: (params: GridValueFormatterParams) => {
-        return this.valueFormatterWith(params, precision)
+      valueFormatter: (params: Pick<GridValueFormatterParams, 'field' | 'value' | 'id'>) => {
+        return this.valueFormatterWith(params, precision, headerName)
       }
     }
   }
@@ -131,8 +131,8 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
           ? this.gridComponentRenderer.renderCellWith(params)
           : this.gridComponentRenderer.renderForecastCellWith(params, field)
       },
-      valueFormatter: (params: GridValueFormatterParams) => {
-        return this.valueFormatterWith(params, precision)
+      valueFormatter: (params: Pick<GridValueFormatterParams, 'field' | 'value' | 'id'>) => {
+        return this.valueFormatterWith(params, precision, headerName)
       },
       valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>
         this.gridComponentRenderer.valueGetter(params, precision, field),
@@ -141,8 +141,11 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     }
   }
 
-  public valueFormatterWith = (params: GridValueFormatterParams, precision: number) =>
-    this.gridComponentRenderer.predictionItemValueFormatter(params, precision)
+  public valueFormatterWith = (
+    params: Pick<GridValueFormatterParams, 'field' | 'value' | 'id'>,
+    precision: number,
+    headerName: string
+  ) => this.gridComponentRenderer.predictionItemValueFormatter(params, precision, headerName)
   public valueGetterWith = (params: Pick<GridValueGetterParams, 'value'>, precision: number) =>
     this.gridComponentRenderer.cellValueGetter(params, precision)
   public valueGetter = (params: Pick<GridValueGetterParams, 'row' | 'value'>, field: string, precision: number) =>

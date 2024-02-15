@@ -8,7 +8,7 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
-import { createWeatherModelLabel, isPreviousToToday } from 'features/moreCast2/util'
+import { createWeatherModelLabel, getDateTimeFromRowID, isPreviousToToday } from 'features/moreCast2/util'
 import {
   gcField,
   precipForecastField,
@@ -137,18 +137,20 @@ export class GridComponentRenderer {
     return forecastColumns.some(column => column.headerName === headerName) || headerName === 'Forecast'
   }
 
-  public predictionItemValueFormatter = (params: GridValueFormatterParams, precision: number) => {
-    const row = params.api.getRow(params.id!)
-    const headerName = params.api.getColumnHeaderParams(params.field).colDef.headerName
+  public predictionItemValueFormatter = (
+    params: Pick<GridValueFormatterParams, 'field' | 'value' | 'id'>,
+    precision: number,
+    headerName?: string
+  ) => {
     const value = Number.parseFloat(params?.value)
+    const forDate = getDateTimeFromRowID(params.id!.toString())
 
-    const isActual = this.rowContainsActual(row)
     const isForecastColumn = this.isForecastColumn(headerName!)
-    const isPreviousDate = isPreviousToToday(row['forDate'])
+    const isPreviousDate = isPreviousToToday(forDate)
 
     const noDataField = headerName === WeatherDeterminate.ACTUAL ? NOT_REPORTING : NOT_AVAILABLE
 
-    if (isNaN(value) && isForecastColumn && !isPreviousDate && !isActual) {
+    if (isNaN(value) && isForecastColumn && !isPreviousDate) {
       return ''
     } else return isNaN(value) ? noDataField : value.toFixed(precision)
   }

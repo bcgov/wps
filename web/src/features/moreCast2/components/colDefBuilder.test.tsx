@@ -204,7 +204,7 @@ describe('ColDefBuilder', () => {
     })
 
     it('should delegate to GridComponentRenderer', () => {
-      expect(colDefBuilder.valueFormatterWith({ field: 'field', value: 1.11 }, 1)).toEqual('1.1')
+      expect(colDefBuilder.valueFormatterWith({ field: 'field', value: 1.11 }, 1, 'header')).toEqual('1.1')
       expect(colDefBuilder.valueGetterWith({ value: 1.11 }, 1)).toEqual('1.1')
       expect(
         colDefBuilder.valueGetter(
