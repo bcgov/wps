@@ -85,8 +85,8 @@ export class GridComponentRenderer {
   public renderForecastCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>, field: string) => {
     // The value of field will be precipForecast, rhForecast, tempForecast, etc.
     // We need the prefix to help us grab the correct 'actual' field (eg. tempACTUAL, precipACTUAL, etc.)
-    const actualField = this.getActualField(field)
-    const isActual = !isNaN(params.row[actualField])
+    // const actualField = this.getActualField(field)
+    const isActual = this.rowContainsActual(params.row)
     const isGrassField = field.includes('grass')
     // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
@@ -100,7 +100,7 @@ export class GridComponentRenderer {
         InputLabelProps={{
           shrink: true
         }}
-        value={params.formattedValue}
+        value={isActual && params.formattedValue === '' ? NOT_AVAILABLE : params.formattedValue}
       ></TextField>
     )
   }
