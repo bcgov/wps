@@ -2,12 +2,13 @@ import { GridColumnHeaderParams, GridValueSetterParams } from '@mui/x-data-grid'
 import { GridStateColDef } from '@mui/x-data-grid/internals'
 import { render } from '@testing-library/react'
 import { ModelChoice } from 'api/moreCast2API'
-import { GridComponentRenderer, NOT_AVAILABLE } from 'features/moreCast2/components/GridComponentRenderer'
-import { rowIDHasher } from 'features/moreCast2/util'
+import { GC_HEADER } from 'features/moreCast2/components/ColumnDefBuilder'
+import {
+  GridComponentRenderer,
+  NOT_AVAILABLE,
+  NOT_REPORTING
+} from 'features/moreCast2/components/GridComponentRenderer'
 import { DateTime } from 'luxon'
-
-const TEST_DATE = DateTime.local().startOf('day')
-const TEST_ID_TOMORROW = rowIDHasher(123, TEST_DATE.plus({ days: 1 }))
 
 describe('GridComponentRenderer', () => {
   const gridComponentRenderer = new GridComponentRenderer()
@@ -35,7 +36,7 @@ describe('GridComponentRenderer', () => {
   it('should render an empty cell (no N/A) if the cell is enabled and can have a forecast entered', () => {
     const field = 'tempForecast'
     const fieldActual = 'tempActual'
-    const row = { [field]: NaN, [fieldActual]: NaN, id: TEST_ID_TOMORROW, forDate: DateTime.now().plus({ days: 2 }) }
+    const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().plus({ days: 2 }) }
     const { getByRole } = render(
       gridComponentRenderer.renderForecastCellWith(
         {
@@ -120,21 +121,13 @@ describe('GridComponentRenderer', () => {
   })
 
   it('should format the row correctly with a value', () => {
-    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter(
-      { field: 'field', value: 1.11, id: 1 },
-      1,
-      'headerName'
-    )
+    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter({ value: 1.11 }, 1)
     expect(formattedItemValue).toEqual('1.1')
   })
 
   it('should format the row correctly without a value', () => {
-    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter(
-      { field: 'field', value: NaN, id: 1 },
-      1,
-      'headerName'
-    )
-    expect(formattedItemValue).toEqual('N/A')
+    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter({ value: NOT_REPORTING }, 1)
+    expect(formattedItemValue).toEqual(NOT_REPORTING)
   })
 
   it('should return an existent cell value correctly', () => {
@@ -154,7 +147,8 @@ describe('GridComponentRenderer', () => {
         value: { choice: ModelChoice.GDPS, value: 1.11 }
       },
       1,
-      'testField'
+      'testField',
+      'testHeader'
     )
     expect(itemValue).toEqual('1.1')
   })
@@ -174,7 +168,8 @@ describe('GridComponentRenderer', () => {
         value: { choice: ModelChoice.NULL, value: 10.0 }
       },
       1,
-      'grassCuringForecast'
+      'grassCuringForecast',
+      GC_HEADER
     )
     expect(itemValue).toEqual('20.0')
   })

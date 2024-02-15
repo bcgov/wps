@@ -8,7 +8,7 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
-import { createWeatherModelLabel, getDateTimeFromRowID, isPreviousToToday } from 'features/moreCast2/util'
+import { createWeatherModelLabel, isPreviousToToday } from 'features/moreCast2/util'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import {
   GC_HEADER,
@@ -64,8 +64,10 @@ export class GridComponentRenderer {
   public valueGetter = (
     params: Pick<GridValueGetterParams, 'row' | 'value'>,
     precision: number,
-    field: string
+    field: string,
+    headerName: string
   ): string => {
+    // The grass curing column is the only column that shows both actuals and forecast in a single column
     if (field.includes('grass')) {
       const actualField = this.getActualField(field)
       const actual = params.row[actualField]
@@ -74,23 +76,30 @@ export class GridComponentRenderer {
         return Number(actual).toFixed(precision)
       }
     }
-    const value = params?.value?.value
 
-    if (isNaN(value)) {
-      return 'NaN'
-    }
-    return Number(value).toFixed(precision)
+    const value = field.includes(WeatherDeterminate.ACTUAL) ? params.value : params?.value?.value
+    // The 'Actual' column will show N/R for Not Reporting, instead of N/A
+    const noDataField = headerName === WeatherDeterminate.ACTUAL ? NOT_REPORTING : NOT_AVAILABLE
+
+    const isPreviousDate = isPreviousToToday(params.row['forDate'])
+    const isForecastColumn = this.isForecastColumn(headerName)
+    const rowContainsActual = this.rowContainsActual(params.row)
+
+    // If a cell has no value, belongs to a Forecast column, is a future forDate, and the row doesn't contain any Actuals from today,
+    // we can leave it blank, so it's obvious that it can have a value entered into it.
+    if (isNaN(value) && !isPreviousDate && isForecastColumn && !rowContainsActual) {
+      return ''
+    } else return isNaN(value) ? noDataField : value.toFixed(precision)
   }
 
   public renderForecastCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>, field: string) => {
-    // The value of field will be precipForecast, rhForecast, tempForecast, etc.
-    // We need the prefix to help us grab the correct 'actual' field (eg. tempACTUAL, precipACTUAL, etc.)
-    // const actualField = this.getActualField(field)
+    // If a single cell in a row contains an Actual, no Forecast will be entered into the row anymore, so we can disable the whole row.
     const isActual = this.rowContainsActual(params.row)
-    const isGrassField = field.includes('grass')
     // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
     const isPreviousDate = isPreviousToToday(params.row['forDate'])
+
+    const isGrassField = field.includes('grass')
 
     return (
       <TextField
@@ -100,7 +109,7 @@ export class GridComponentRenderer {
         InputLabelProps={{
           shrink: true
         }}
-        value={isActual && params.formattedValue === '' ? NOT_AVAILABLE : params.formattedValue}
+        value={params.formattedValue}
       ></TextField>
     )
   }
@@ -139,22 +148,10 @@ export class GridComponentRenderer {
     return forecastColumns.some(column => column === headerName)
   }
 
-  public predictionItemValueFormatter = (
-    params: Pick<GridValueFormatterParams, 'field' | 'value' | 'id'>,
-    precision: number,
-    headerName: string
-  ) => {
+  public predictionItemValueFormatter = (params: Pick<GridValueFormatterParams, 'value'>, precision: number) => {
     const value = Number.parseFloat(params?.value)
-    const forDate = getDateTimeFromRowID(params.id!.toString())
 
-    const isForecastColumn = this.isForecastColumn(headerName)
-    const isPreviousDate = isPreviousToToday(forDate)
-
-    const noDataField = headerName === WeatherDeterminate.ACTUAL ? NOT_REPORTING : NOT_AVAILABLE
-
-    if (isNaN(value) && isForecastColumn && !isPreviousDate) {
-      return ''
-    } else return isNaN(value) ? noDataField : value.toFixed(precision)
+    return isNaN(value) ? params.value : value.toFixed(precision)
   }
 
   public cellValueGetter = (params: Pick<GridValueGetterParams, 'value'>, precision: number) => {

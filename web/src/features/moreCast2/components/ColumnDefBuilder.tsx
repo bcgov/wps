@@ -27,6 +27,7 @@ export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
   WeatherDeterminate.GFS_BIAS
 ]
 
+// Columns that can have values entered as part of a forecast
 export const TEMP_HEADER = 'Temp'
 export const RH_HEADER = 'RH'
 export const WIND_SPEED_HEADER = 'Wind Speed'
@@ -107,8 +108,10 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       renderHeader: (params: GridColumnHeaderParams) => {
         return this.gridComponentRenderer.renderHeaderWith(params)
       },
-      valueFormatter: (params: Pick<GridValueFormatterParams, 'field' | 'value' | 'id'>) => {
-        return this.valueFormatterWith(params, precision, headerName)
+      valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>
+        this.gridComponentRenderer.valueGetter(params, precision, field, headerName),
+      valueFormatter: (params: Pick<GridValueFormatterParams, 'value'>) => {
+        return this.valueFormatterWith(params, precision)
       }
     }
   }
@@ -138,25 +141,26 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
           ? this.gridComponentRenderer.renderCellWith(params)
           : this.gridComponentRenderer.renderForecastCellWith(params, field)
       },
-      valueFormatter: (params: Pick<GridValueFormatterParams, 'field' | 'value' | 'id'>) => {
-        return this.valueFormatterWith(params, precision, headerName)
+      valueFormatter: (params: Pick<GridValueFormatterParams, 'value'>) => {
+        return this.valueFormatterWith(params, precision)
       },
       valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>
-        this.gridComponentRenderer.valueGetter(params, precision, field),
+        this.gridComponentRenderer.valueGetter(params, precision, field, headerName),
       valueSetter: (params: Pick<GridValueSetterParams, 'row' | 'value'>) =>
         this.valueSetterWith(params, field, precision)
     }
   }
 
-  public valueFormatterWith = (
-    params: Pick<GridValueFormatterParams, 'field' | 'value' | 'id'>,
-    precision: number,
-    headerName: string
-  ) => this.gridComponentRenderer.predictionItemValueFormatter(params, precision, headerName)
+  public valueFormatterWith = (params: Pick<GridValueFormatterParams, 'value'>, precision: number) =>
+    this.gridComponentRenderer.predictionItemValueFormatter(params, precision)
   public valueGetterWith = (params: Pick<GridValueGetterParams, 'value'>, precision: number) =>
     this.gridComponentRenderer.cellValueGetter(params, precision)
-  public valueGetter = (params: Pick<GridValueGetterParams, 'row' | 'value'>, field: string, precision: number) =>
-    this.gridComponentRenderer.valueGetter(params, precision, field)
+  public valueGetter = (
+    params: Pick<GridValueGetterParams, 'row' | 'value'>,
+    field: string,
+    precision: number,
+    headerName: string
+  ) => this.gridComponentRenderer.valueGetter(params, precision, field, headerName)
   public valueSetterWith = (params: Pick<GridValueSetterParams, 'row' | 'value'>, field: string, precision: number) =>
     this.gridComponentRenderer.predictionItemValueSetter(params, field, precision)
 }

@@ -187,10 +187,3 @@ export const isPreviousToToday = (datetime: DateTime): boolean => {
 
   return datetime < today
 }
-
-export const getDateTimeFromRowID = (rowid: string): DateTime => {
-  const dateStartIndex = rowid.indexOf('-') - 4
-  const date = rowid.substring(dateStartIndex)
-
-  return DateTime.fromISO(date)
-}
