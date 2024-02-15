@@ -7,7 +7,13 @@ import {
   GridColumnVisibilityModel,
   GridEventListener
 } from '@mui/x-data-grid'
-import { ModelChoice, ModelType, submitMoreCastForecastRecords } from 'api/moreCast2API'
+import {
+  ModelChoice,
+  ModelType,
+  WeatherDeterminate,
+  WeatherDeterminateType,
+  submitMoreCastForecastRecords
+} from 'api/moreCast2API'
 import { getColumnGroupingModel, ColumnVis, DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
