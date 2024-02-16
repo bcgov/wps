@@ -153,8 +153,6 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
 
   public valueFormatterWith = (params: Pick<GridValueFormatterParams, 'value'>, precision: number) =>
     this.gridComponentRenderer.predictionItemValueFormatter(params, precision)
-  public valueGetterWith = (params: Pick<GridValueGetterParams, 'value'>, precision: number) =>
-    this.gridComponentRenderer.cellValueGetter(params, precision)
   public valueGetter = (
     params: Pick<GridValueGetterParams, 'row' | 'value'>,
     field: string,

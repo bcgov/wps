@@ -153,8 +153,4 @@ export class GridComponentRenderer {
 
     return isNaN(value) ? params.value : value.toFixed(precision)
   }
-
-  public cellValueGetter = (params: Pick<GridValueGetterParams, 'value'>, precision: number) => {
-    return isNaN(params?.value) ? 'NaN' : params.value.toFixed(precision)
-  }
 }

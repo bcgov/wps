@@ -182,16 +182,6 @@ describe('GridComponentRenderer', () => {
     expect(formattedItemValue).toEqual(NOT_REPORTING)
   })
 
-  it('should return an existent cell value correctly', () => {
-    const cellValue = gridComponentRenderer.cellValueGetter({ value: 1.11 }, 1)
-    expect(cellValue).toEqual('1.1')
-  })
-
-  it('should return an non-existent cell value correctly', () => {
-    const cellValue = gridComponentRenderer.cellValueGetter({ value: NaN }, 1)
-    expect(cellValue).toEqual('NaN')
-  })
-
   it('should return an existent prediction item value correctly', () => {
     const itemValue = gridComponentRenderer.valueGetter(
       {
