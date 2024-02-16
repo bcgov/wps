@@ -89,7 +89,7 @@ export class GridComponentRenderer {
     // we can leave it blank, so it's obvious that it can have a value entered into it.
     if (isNaN(value) && !isPreviousDate && isForecastColumn && !rowContainsActual) {
       return ''
-    } else return isNaN(value) ? noDataField : value
+    } else return isNaN(value) ? noDataField : Number(value).toFixed(precision)
   }
 
   public renderForecastCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>, field: string) => {
