@@ -14,6 +14,7 @@ export const DEFAULT_FORECAST_COLUMN_WIDTH = 120
 
 // Defines the order in which weather models display in the datagrid.
 export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
+  WeatherDeterminate.ACTUAL,
   WeatherDeterminate.HRDPS,
   WeatherDeterminate.HRDPS_BIAS,
   WeatherDeterminate.RDPS,
@@ -25,6 +26,14 @@ export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
   WeatherDeterminate.GFS,
   WeatherDeterminate.GFS_BIAS
 ]
+
+// Columns that can have values entered as part of a forecast
+export const TEMP_HEADER = 'Temp'
+export const RH_HEADER = 'RH'
+export const WIND_SPEED_HEADER = 'Wind Speed'
+export const WIND_DIR_HEADER = 'Wind Dir'
+export const PRECIP_HEADER = 'Precip'
+export const GC_HEADER = 'GC'
 
 export interface ForecastColDefGenerator {
   generateForecastColDef: (headerName?: string) => GridColDef
@@ -51,7 +60,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
   public generateForecastColDef = (headerName?: string) => {
     return this.generateForecastColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
-      headerName ? headerName : this.headerName,
+      headerName ?? this.headerName,
       this.precision,
       DEFAULT_FORECAST_COLUMN_WIDTH
     )
@@ -75,7 +84,12 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       ? ORDERED_COLUMN_HEADERS
       : ORDERED_COLUMN_HEADERS.filter(header => !header.endsWith('_BIAS'))
     return fields.map(header =>
-      this.generateColDefWith(`${this.field}${header}`, header, this.precision, DEFAULT_COLUMN_WIDTH)
+      this.generateColDefWith(
+        `${this.field}${header}`,
+        header,
+        this.precision,
+        header.includes('Actual') ? DEFAULT_FORECAST_COLUMN_WIDTH : DEFAULT_COLUMN_WIDTH
+      )
     )
   }
 
@@ -87,13 +101,15 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       headerName,
       sortable: false,
       type: 'number',
-      width: width ? width : DEFAULT_COLUMN_WIDTH,
+      width: width ?? DEFAULT_COLUMN_WIDTH,
       renderCell: (params: Pick<GridRenderCellParams, 'formattedValue'>) => {
         return this.gridComponentRenderer.renderCellWith(params)
       },
       renderHeader: (params: GridColumnHeaderParams) => {
         return this.gridComponentRenderer.renderHeaderWith(params)
       },
+      valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>
+        this.gridComponentRenderer.valueGetter(params, precision, field, headerName),
       valueFormatter: (params: Pick<GridValueFormatterParams, 'value'>) => {
         return this.valueFormatterWith(params, precision)
       }
@@ -129,7 +145,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
         return this.valueFormatterWith(params, precision)
       },
       valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>
-        this.gridComponentRenderer.valueGetter(params, precision, field),
+        this.gridComponentRenderer.valueGetter(params, precision, field, headerName),
       valueSetter: (params: Pick<GridValueSetterParams, 'row' | 'value'>) =>
         this.valueSetterWith(params, field, precision)
     }
@@ -137,10 +153,12 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
 
   public valueFormatterWith = (params: Pick<GridValueFormatterParams, 'value'>, precision: number) =>
     this.gridComponentRenderer.predictionItemValueFormatter(params, precision)
-  public valueGetterWith = (params: Pick<GridValueGetterParams, 'value'>, precision: number) =>
-    this.gridComponentRenderer.cellValueGetter(params, precision)
-  public valueGetter = (params: Pick<GridValueGetterParams, 'row' | 'value'>, field: string, precision: number) =>
-    this.gridComponentRenderer.valueGetter(params, precision, field)
+  public valueGetter = (
+    params: Pick<GridValueGetterParams, 'row' | 'value'>,
+    field: string,
+    precision: number,
+    headerName: string
+  ) => this.gridComponentRenderer.valueGetter(params, precision, field, headerName)
   public valueSetterWith = (params: Pick<GridValueSetterParams, 'row' | 'value'>, field: string, precision: number) =>
     this.gridComponentRenderer.predictionItemValueSetter(params, field, precision)
 }

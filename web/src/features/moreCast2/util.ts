@@ -176,3 +176,14 @@ export const fillStationGrassCuringForward = (editedRow: MoreCast2Row, allRows: 
   }
   return allRows
 }
+
+/**
+ * Checks if a datetime object is before the start of today
+ * @param datetime
+ * @returns boolean
+ */
+export const isPreviousToToday = (datetime: DateTime): boolean => {
+  const today = DateTime.local().startOf('day')
+
+  return datetime < today
+}

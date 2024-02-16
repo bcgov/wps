@@ -3,7 +3,13 @@ import { DateTime } from 'luxon'
 import {
   ColDefGenerator,
   ColumnDefBuilder,
-  ForecastColDefGenerator
+  ForecastColDefGenerator,
+  GC_HEADER,
+  PRECIP_HEADER,
+  RH_HEADER,
+  TEMP_HEADER,
+  WIND_DIR_HEADER,
+  WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 
@@ -107,11 +113,11 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
   }
 }
 
-export const tempForecastField = new IndeterminateField('temp', 'Temp', 'number', 1, true)
-export const rhForecastField = new IndeterminateField('rh', 'RH', 'number', 0, true)
-export const windDirForecastField = new IndeterminateField('windDirection', 'Wind Dir', 'number', 0, true)
-export const windSpeedForecastField = new IndeterminateField('windSpeed', 'Wind Speed', 'number', 1, true)
-export const precipForecastField = new IndeterminateField('precip', 'Precip', 'number', 1, true)
+export const tempForecastField = new IndeterminateField('temp', TEMP_HEADER, 'number', 1, true)
+export const rhForecastField = new IndeterminateField('rh', RH_HEADER, 'number', 0, true)
+export const windDirForecastField = new IndeterminateField('windDirection', WIND_DIR_HEADER, 'number', 0, true)
+export const windSpeedForecastField = new IndeterminateField('windSpeed', WIND_SPEED_HEADER, 'number', 1, true)
+export const precipForecastField = new IndeterminateField('precip', PRECIP_HEADER, 'number', 1, true)
 export const buiField = new IndeterminateField('buiCalc', 'BUI', 'number', 0, false)
 export const isiField = new IndeterminateField('isiCalc', 'ISI', 'number', 1, false)
 export const fwiField = new IndeterminateField('fwiCalc', 'FWI', 'number', 0, false)
@@ -119,7 +125,7 @@ export const ffmcField = new IndeterminateField('ffmcCalc', 'FFMC', 'number', 1,
 export const dmcField = new IndeterminateField('dmcCalc', 'DMC', 'number', 0, false)
 export const dcField = new IndeterminateField('dcCalc', 'DC', 'number', 0, false)
 export const dgrField = new IndeterminateField('dgrCalc', 'DGR', 'number', 0, false)
-export const gcField = new IndeterminateField('grassCuring', 'GC', 'number', 0, false)
+export const gcField = new IndeterminateField('grassCuring', GC_HEADER, 'number', 0, false)
 
 export const MORECAST2_STATION_DATE_FIELDS: ColDefGenerator[] = [
   StationForecastField.getInstance(),
