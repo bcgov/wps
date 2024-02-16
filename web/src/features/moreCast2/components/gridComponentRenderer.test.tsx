@@ -37,11 +37,12 @@ describe('GridComponentRenderer', () => {
     const field = 'tempForecast'
     const fieldActual = 'tempActual'
     const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().plus({ days: 2 }) }
+    const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Forecast')
     const { getByRole } = render(
       gridComponentRenderer.renderForecastCellWith(
         {
           row: row,
-          formattedValue: ''
+          formattedValue: formattedValue
         },
         field
       )
@@ -56,11 +57,12 @@ describe('GridComponentRenderer', () => {
     const field = 'tempForecast'
     const fieldActual = 'tempActual'
     const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
+    const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Forecast')
     const { getByRole } = render(
       gridComponentRenderer.renderForecastCellWith(
         {
           row: row,
-          formattedValue: NOT_AVAILABLE
+          formattedValue: formattedValue
         },
         field
       )
@@ -68,6 +70,26 @@ describe('GridComponentRenderer', () => {
     const renderedCell = getByRole('textbox')
     expect(renderedCell).toBeInTheDocument()
     expect(renderedCell).toHaveValue(NOT_AVAILABLE)
+    expect(renderedCell).toBeDisabled()
+  })
+
+  it('should render N/R and be disabled if the cell is from a previous date and is has no actual in the actual column', () => {
+    const field = 'tempForecast'
+    const fieldActual = 'tempActual'
+    const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
+    const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Actual')
+    const { getByRole } = render(
+      gridComponentRenderer.renderForecastCellWith(
+        {
+          row: row,
+          formattedValue: formattedValue
+        },
+        field
+      )
+    )
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveValue(NOT_REPORTING)
     expect(renderedCell).toBeDisabled()
   })
 
@@ -173,4 +195,20 @@ describe('GridComponentRenderer', () => {
     )
     expect(itemValue).toEqual('20.0')
   })
+  // it('should return an empty cell for am empty forecast cell in the future', () => {
+  //   const itemValue = gridComponentRenderer.valueGetter(
+  //     {
+  //       row: {
+  //         grassCuringForecast: { choice: ModelChoice.GDPS, value: 10.0 },
+  //         grassCuringActual: NaN,
+  //         forDate:
+  //       },
+  //       value: NaN
+  //     },
+  //     1,
+  //     'grassCuringForecast',
+  //     GC_HEADER
+  //   )
+  //   expect(itemValue).toEqual('20.0')
+  // })
 })
