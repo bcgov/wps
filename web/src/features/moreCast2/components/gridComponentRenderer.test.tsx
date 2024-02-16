@@ -206,20 +206,4 @@ describe('GridComponentRenderer', () => {
     )
     expect(itemValue).toEqual('20.0')
   })
-  // it('should return an empty cell for am empty forecast cell in the future', () => {
-  //   const itemValue = gridComponentRenderer.valueGetter(
-  //     {
-  //       row: {
-  //         grassCuringForecast: { choice: ModelChoice.GDPS, value: 10.0 },
-  //         grassCuringActual: NaN,
-  //         forDate:
-  //       },
-  //       value: NaN
-  //     },
-  //     1,
-  //     'grassCuringForecast',
-  //     GC_HEADER
-  //   )
-  //   expect(itemValue).toEqual('20.0')
-  // })
 })
