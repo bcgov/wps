@@ -53,10 +53,9 @@ describe('GridComponentRenderer', () => {
     expect(renderedCell).toBeEnabled()
   })
 
-  it('should render N/A and be disabled if the cell is from a previous date and has no Actual', () => {
+  it('should render N/A and be disabled if the cell is from a previous date', () => {
     const field = 'tempForecast'
-    const fieldActual = 'tempActual'
-    const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
+    const row = { [field]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
     const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Forecast')
     const { getByRole } = render(
       gridComponentRenderer.renderForecastCellWith(
@@ -73,7 +72,27 @@ describe('GridComponentRenderer', () => {
     expect(renderedCell).toBeDisabled()
   })
 
-  it('should render N/R and be disabled if the cell is from a previous date and is has no actual in the actual column', () => {
+  it('should render N/A and be disabled if the row has an actual', () => {
+    const field = 'tempForecast'
+    const fieldActual = 'tempActual'
+    const row = { [field]: NaN, [fieldActual]: 2, forDate: DateTime.now() }
+    const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Forecast')
+    const { getByRole } = render(
+      gridComponentRenderer.renderForecastCellWith(
+        {
+          row: row,
+          formattedValue: formattedValue
+        },
+        field
+      )
+    )
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveValue(NOT_AVAILABLE)
+    expect(renderedCell).toBeDisabled()
+  })
+
+  it('should render N/R and be disabled if the cell is from a previous date and has no actual in the actual column', () => {
     const field = 'tempForecast'
     const fieldActual = 'tempActual'
     const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
