@@ -7,7 +7,13 @@ import {
   GridColumnVisibilityModel,
   GridEventListener
 } from '@mui/x-data-grid'
-import { ModelChoice, ModelType, submitMoreCastForecastRecords } from 'api/moreCast2API'
+import {
+  ModelChoice,
+  ModelType,
+  WeatherDeterminate,
+  WeatherDeterminateType,
+  submitMoreCastForecastRecords
+} from 'api/moreCast2API'
 import { getColumnGroupingModel, ColumnVis, DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
@@ -390,8 +396,8 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   // occurs on a cell in a weather model field/column and row where a forecast is being created (ie. the
   // row has no actual value for the weather parameter of interest)
   const handleCellDoubleClick = (params: GridCellParams) => {
-    const headerName = params.colDef.headerName as ModelType
-    if (!headerName || headerName === ModelChoice.ACTUAL || headerName === ModelChoice.FORECAST) {
+    const headerName = params.colDef.headerName as WeatherDeterminateType
+    if (!headerName || headerName === WeatherDeterminate.ACTUAL || headerName === WeatherDeterminate.FORECAST) {
       // A forecast or actual column was clicked, or there is no value for headerName, nothing to do
       return
     }
