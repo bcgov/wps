@@ -77,7 +77,7 @@ export class GridComponentRenderer {
       }
     }
 
-    const value = field.includes(WeatherDeterminate.ACTUAL) ? params.value : params?.value?.value
+    const value = params?.value?.value ?? params.value
     // The 'Actual' column will show N/R for Not Reporting, instead of N/A
     const noDataField = headerName === WeatherDeterminate.ACTUAL ? NOT_REPORTING : NOT_AVAILABLE
 
