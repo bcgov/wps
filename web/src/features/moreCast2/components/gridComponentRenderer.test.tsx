@@ -113,6 +113,17 @@ describe('GridComponentRenderer', () => {
     expect(renderedCell).not.toBeDisabled()
   })
 
+  it('should render any cell as disabled if any other cell has an actual', () => {
+    const field = 'grassCuringForecast'
+    const actual = 'tempActual'
+    const { getByRole } = render(
+      gridComponentRenderer.renderForecastCellWith({ row: { [field]: 10, [actual]: 15 } }, field)
+    )
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toBeDisabled()
+  })
+
   it('should render the forecast cell as uneditable with an actual', () => {
     const field = 'tempForecast'
     const actualField = `tempActual`
