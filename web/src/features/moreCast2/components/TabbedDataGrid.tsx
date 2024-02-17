@@ -469,16 +469,23 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="temp-tab-button"
           onClick={() => setTempVisible(!tempVisible)}
           selected={tempVisible}
+          colorClass="temp"
         >
           Temp
         </SelectableButton>
-        <SelectableButton dataTestId="rh-tab-button" onClick={() => setRhVisible(!rhVisible)} selected={rhVisible}>
+        <SelectableButton
+          dataTestId="rh-tab-button"
+          onClick={() => setRhVisible(!rhVisible)}
+          selected={rhVisible}
+          colorClass="rh"
+        >
           RH
         </SelectableButton>
         <SelectableButton
           dataTestId="wind-direction-tab-button"
           onClick={() => setWindDirectionVisible(!windDirectionVisible)}
           selected={windDirectionVisible}
+          colorClass="windDirection"
         >
           Wind Direction
         </SelectableButton>
@@ -486,6 +493,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="wind-speed-tab-button"
           onClick={() => setWindSpeedVisible(!windSpeedVisible)}
           selected={windSpeedVisible}
+          colorClass="windSpeed"
         >
           Wind Speed
         </SelectableButton>
@@ -493,6 +501,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="precip-tab-button"
           onClick={() => setPrecipVisible(!precipVisible)}
           selected={precipVisible}
+          colorClass="precip"
         >
           Precip
         </SelectableButton>
@@ -500,6 +509,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="summary-tab-button"
           onClick={() => setForecastSummaryVisible(!forecastSummaryVisible)}
           selected={forecastSummaryVisible}
+          colorClass="summary"
         >
           Forecast Summary
         </SelectableButton>

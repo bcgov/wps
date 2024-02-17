@@ -15,6 +15,9 @@ import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
+import { MORECAST_COLORS } from 'app/theme'
+
+type MoreCastColors = typeof MORECAST_COLORS
 
 const PREFIX = 'ForecastDataGrid'
 
@@ -22,14 +25,24 @@ const classes = {
   root: `${PREFIX}-root`
 }
 
-const Root = styled('div')(() => ({
-  [`&.${classes.root}`]: {
-    display: 'flex',
-    flexGrow: 1,
-    flexDirection: 'column',
-    height: '1px'
+const Root = styled('div')(() => {
+  const styles: Record<string, React.CSSProperties> = {
+    [`&.${classes.root}`]: {
+      display: 'flex',
+      flexGrow: 1,
+      flexDirection: 'column',
+      height: '1px'
+    }
   }
-}))
+
+  Object.keys(MORECAST_COLORS).forEach(key => {
+    styles[`& .${key}-group`] = {
+      backgroundColor: MORECAST_COLORS[key as keyof MoreCastColors].color
+    }
+  })
+
+  return styles
+})
 
 export interface ForecastDataGridProps {
   loading: boolean

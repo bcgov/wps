@@ -94,3 +94,34 @@ export const UNSELECTED_STATION_COLOR = 'rgba(0,0,0,0.54)'
 export const DARK_GREY = '#A7A7A7'
 export const LIGHT_GREY = '#DADADA'
 export const MEDIUM_GREY = '#B5B5B5'
+
+export const MORECAST_COLORS = {
+  temp: {
+    color: 'rgba(215, 48, 39, 0.3)',
+    fontColor: 'black'
+  },
+  rh: {
+    color: 'rgba(254, 224, 144, 0.7)',
+    fontColor: 'black'
+  },
+  windDirection: {
+    color: 'rgba(145, 191, 219, 0.5)',
+    fontColor: 'black'
+  },
+  windSpeed: {
+    color: 'rgba(69, 117, 180, 0.6)',
+    fontColor: 'black'
+  },
+  precip: {
+    color: 'rgba(127, 191, 123, 0.4)',
+    fontColor: 'black'
+  },
+  gc: {
+    color: 'rgba(153, 142, 195, 0.7)',
+    fontColor: 'black'
+  },
+  summary: {
+    color: 'rgba(0, 51, 102, 1)',
+    fontColor: 'white'
+  }
+}

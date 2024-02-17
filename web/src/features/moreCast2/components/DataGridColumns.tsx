@@ -132,28 +132,33 @@ export const getColumnGroupingModel = (
     {
       groupId: 'Temp',
       children: columnGroupingModelChildGenerator('temp'),
+      headerClassName: 'temp-group',
       renderHeaderGroup: () => renderGroupHeader('Temp', 'temp', showHideColumnsModel['temp'], handleShowHideChange)
     },
     {
       groupId: 'RH',
       children: columnGroupingModelChildGenerator('rh'),
+      headerClassName: 'rh-group',
       renderHeaderGroup: () => renderGroupHeader('RH', 'rh', showHideColumnsModel['rh'], handleShowHideChange)
     },
     {
       groupId: 'Precip',
       children: columnGroupingModelChildGenerator('precip'),
+      headerClassName: 'precip-group',
       renderHeaderGroup: () =>
         renderGroupHeader('Precip', 'precip', showHideColumnsModel['precip'], handleShowHideChange)
     },
     {
       groupId: 'Wind Dir',
       children: columnGroupingModelChildGenerator('windDirection'),
+      headerClassName: 'windDirection-group',
       renderHeaderGroup: () =>
         renderGroupHeader('Wind Dir', 'windDirection', showHideColumnsModel['windDirection'], handleShowHideChange)
     },
     {
       groupId: 'Wind Speed',
       children: columnGroupingModelChildGenerator('windSpeed'),
+      headerClassName: 'windSpeed-group',
       renderHeaderGroup: () =>
         renderGroupHeader('Wind Speed', 'windSpeed', showHideColumnsModel['windSpeed'], handleShowHideChange)
     }
