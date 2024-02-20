@@ -1,12 +1,14 @@
 import React from 'react'
 
 import { Button } from '@mui/material'
-import { theme, MORECAST_COLORS } from 'app/theme'
+import { theme } from 'app/theme'
 import styled from '@emotion/styled'
 
 const StyledButton = styled(Button)(({ selected }: { selected: boolean }) => ({
   marginLeft: theme.spacing(1),
   border: `solid ${selected ? '2px' : '1px'}`,
+  borderColor: 'black',
+  color: 'black',
   '&:hover': {
     color: 'black',
     backgroundColor: 'white'
@@ -18,19 +20,17 @@ interface SelectableButtonProps {
   dataTestId?: string
   onClick: () => void
   selected: boolean
-  colorClass: keyof typeof MORECAST_COLORS
+  className?: string
 }
 
-const SelectableButton = ({ children, dataTestId, onClick, selected, colorClass }: SelectableButtonProps) => {
-  const { color, fontColor } = MORECAST_COLORS[colorClass] || theme.palette.primary
-
+const SelectableButton = ({ children, dataTestId, onClick, selected, className }: SelectableButtonProps) => {
   return (
     <StyledButton
       data-testid={dataTestId}
-      sx={{ backgroundColor: color, color: fontColor }}
       onClick={onClick}
       variant={selected ? 'contained' : 'outlined'}
       selected={selected}
+      className={className}
     >
       {children}
     </StyledButton>

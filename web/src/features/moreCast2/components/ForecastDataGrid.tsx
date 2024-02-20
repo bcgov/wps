@@ -37,7 +37,7 @@ const Root = styled('div')(() => {
 
   Object.keys(MORECAST_COLORS).forEach(key => {
     styles[`& .${key}-group`] = {
-      backgroundColor: MORECAST_COLORS[key as keyof MoreCastColors].color
+      backgroundColor: MORECAST_COLORS[key as keyof MoreCastColors]
     }
   })
 

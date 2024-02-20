@@ -40,11 +40,42 @@ import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
 import { mapForecastChoiceLabels } from 'features/moreCast2/util'
+import { MORECAST_COLORS } from 'app/theme'
+
+const PREFIX = 'MoreCast'
+
+const classes = {
+  tempBtn: `${PREFIX}-tempBtn`,
+  rhBtn: `${PREFIX}-rhBtn`,
+  windDirBtn: `${PREFIX}-windDirBtn`,
+  windSpeedBtn: `${PREFIX}-windSpeedBtn`,
+  precipBtn: `${PREFIX}-precipBtn`,
+  summaryBtn: `${PREFIX}-summaryBtn`
+}
 
 export const Root = styled('div')({
   display: 'flex',
   flexGrow: 1,
-  flexDirection: 'column'
+  flexDirection: 'column',
+  [`& .${classes.tempBtn}`]: {
+    backgroundColor: MORECAST_COLORS.temp
+  },
+  [`& .${classes.rhBtn}`]: {
+    backgroundColor: MORECAST_COLORS.rh
+  },
+  [`& .${classes.windDirBtn}`]: {
+    backgroundColor: MORECAST_COLORS.windDirection
+  },
+  [`& .${classes.windSpeedBtn}`]: {
+    backgroundColor: MORECAST_COLORS.windSpeed
+  },
+  [`& .${classes.precipBtn}`]: {
+    backgroundColor: MORECAST_COLORS.precip
+  },
+  [`& .${classes.summaryBtn}`]: {
+    backgroundColor: MORECAST_COLORS.summary,
+    color: 'white'
+  }
 })
 
 export const SaveButton = styled(SaveForecastButton)(({ theme }) => ({
@@ -469,7 +500,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="temp-tab-button"
           onClick={() => setTempVisible(!tempVisible)}
           selected={tempVisible}
-          colorClass="temp"
+          className={classes.tempBtn}
         >
           Temp
         </SelectableButton>
@@ -477,7 +508,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="rh-tab-button"
           onClick={() => setRhVisible(!rhVisible)}
           selected={rhVisible}
-          colorClass="rh"
+          className={classes.rhBtn}
         >
           RH
         </SelectableButton>
@@ -485,7 +516,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="wind-direction-tab-button"
           onClick={() => setWindDirectionVisible(!windDirectionVisible)}
           selected={windDirectionVisible}
-          colorClass="windDirection"
+          className={classes.windDirBtn}
         >
           Wind Direction
         </SelectableButton>
@@ -493,7 +524,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="wind-speed-tab-button"
           onClick={() => setWindSpeedVisible(!windSpeedVisible)}
           selected={windSpeedVisible}
-          colorClass="windSpeed"
+          className={classes.windSpeedBtn}
         >
           Wind Speed
         </SelectableButton>
@@ -501,7 +532,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="precip-tab-button"
           onClick={() => setPrecipVisible(!precipVisible)}
           selected={precipVisible}
-          colorClass="precip"
+          className={classes.precipBtn}
         >
           Precip
         </SelectableButton>
@@ -509,7 +540,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="summary-tab-button"
           onClick={() => setForecastSummaryVisible(!forecastSummaryVisible)}
           selected={forecastSummaryVisible}
-          colorClass="summary"
+          className={classes.summaryBtn}
         >
           Forecast Summary
         </SelectableButton>
