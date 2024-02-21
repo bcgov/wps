@@ -397,7 +397,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       !headerName ||
       headerName === WeatherDeterminate.ACTUAL ||
       headerName === WeatherDeterminate.FORECAST ||
-      params.field.indexOf('grass') > -1
+      params.field.includes('grass')
     ) {
       // A forecast or actual column was clicked, or there is no value for headerName, nothing to do
       return
