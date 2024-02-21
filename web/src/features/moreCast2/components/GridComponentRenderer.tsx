@@ -28,7 +28,7 @@ export class GridComponentRenderer {
   }
   public renderHeaderWith = (params: GridColumnHeaderParams) => {
     if (params.field.endsWith('_BIAS')) {
-      const headerName = params.colDef.headerName || ''
+      const headerName = params.colDef.headerName ?? ''
       const index = headerName.indexOf('_BIAS')
       const prefix = headerName.slice(0, index)
       return (

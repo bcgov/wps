@@ -1,15 +1,17 @@
 import React from 'react'
 
 import { Button } from '@mui/material'
-import { MORECAST_COLORS, MorecastColors, theme } from 'app/theme'
+import { MORECAST_WEATHER_PARAM_COLORS, MorecastColors, theme } from 'app/theme'
 import styled from '@emotion/styled'
 
 const StyledButton = styled(Button)(
   ({ weatherParam, selected }: { weatherParam: keyof MorecastColors; selected: boolean }) => ({
     marginLeft: theme.spacing(1),
-    backgroundColor: selected ? MORECAST_COLORS[weatherParam].active : MORECAST_COLORS[weatherParam].inactive,
+    backgroundColor: selected
+      ? MORECAST_WEATHER_PARAM_COLORS[weatherParam].active
+      : MORECAST_WEATHER_PARAM_COLORS[weatherParam].inactive,
     borderColor: 'black',
-    color: MORECAST_COLORS[weatherParam].text,
+    color: MORECAST_WEATHER_PARAM_COLORS[weatherParam].text,
     '&:hover': {
       color: 'black',
       backgroundColor: 'white'
