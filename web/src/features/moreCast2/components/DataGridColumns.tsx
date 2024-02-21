@@ -1,4 +1,5 @@
 import React from 'react'
+import { Typography } from '@mui/material'
 import { GridColumnVisibilityModel, GridColDef } from '@mui/x-data-grid'
 import { WeatherDeterminate, WeatherDeterminateChoices } from 'api/moreCast2API'
 import {
@@ -120,7 +121,10 @@ export const getColumnGroupingModel = (
   const model = [
     {
       groupId: 'ID',
-      children: [{ field: 'stationName' }, { field: 'forDate' }]
+      children: [{ field: 'stationName' }, { field: 'forDate' }],
+      renderHeaderGroup: () => {
+        return <Typography style={{ fontWeight: 'bold' }}>ID</Typography>
+      }
     },
     {
       groupId: 'Temp',
@@ -152,7 +156,10 @@ export const getColumnGroupingModel = (
     },
     {
       groupId: 'Grass Curing',
-      children: [{ field: 'grassCuringForecast' }, { field: 'grassCuringCWFIS' }]
+      children: [{ field: 'grassCuringForecast' }, { field: 'grassCuringCWFIS' }],
+      renderHeaderGroup: () => {
+        return <Typography style={{ fontWeight: 'bold' }}>Grass Curing</Typography>
+      }
     }
   ]
   return model
