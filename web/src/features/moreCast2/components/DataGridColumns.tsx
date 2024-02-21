@@ -9,6 +9,7 @@ import {
 } from 'features/moreCast2/components/MoreCast2Column'
 import GroupHeader from 'features/moreCast2/components/GroupHeader'
 import { handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
+import { MorecastColors } from 'app/theme'
 
 export interface ColumnVis {
   columnName: string
@@ -111,7 +112,7 @@ export class DataGridColumns {
 
 const renderGroupHeader = (
   id: string,
-  weatherParam: string,
+  weatherParam: keyof MorecastColors,
   columns: ColumnVis[],
   handleShowHideChange: handleShowHideChangeType
 ) => {
@@ -132,33 +133,33 @@ export const getColumnGroupingModel = (
     {
       groupId: 'Temp',
       children: columnGroupingModelChildGenerator('temp'),
-      headerClassName: 'temp-group',
+      headerClassName: 'temp',
       renderHeaderGroup: () => renderGroupHeader('Temp', 'temp', showHideColumnsModel['temp'], handleShowHideChange)
     },
     {
       groupId: 'RH',
       children: columnGroupingModelChildGenerator('rh'),
-      headerClassName: 'rh-group',
+      headerClassName: 'rh',
       renderHeaderGroup: () => renderGroupHeader('RH', 'rh', showHideColumnsModel['rh'], handleShowHideChange)
     },
     {
       groupId: 'Precip',
       children: columnGroupingModelChildGenerator('precip'),
-      headerClassName: 'precip-group',
+      headerClassName: 'precip',
       renderHeaderGroup: () =>
         renderGroupHeader('Precip', 'precip', showHideColumnsModel['precip'], handleShowHideChange)
     },
     {
       groupId: 'Wind Dir',
       children: columnGroupingModelChildGenerator('windDirection'),
-      headerClassName: 'windDirection-group',
+      headerClassName: 'windDirection',
       renderHeaderGroup: () =>
         renderGroupHeader('Wind Dir', 'windDirection', showHideColumnsModel['windDirection'], handleShowHideChange)
     },
     {
       groupId: 'Wind Speed',
       children: columnGroupingModelChildGenerator('windSpeed'),
-      headerClassName: 'windSpeed-group',
+      headerClassName: 'windSpeed',
       renderHeaderGroup: () =>
         renderGroupHeader('Wind Speed', 'windSpeed', showHideColumnsModel['windSpeed'], handleShowHideChange)
     }

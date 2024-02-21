@@ -96,11 +96,18 @@ export const LIGHT_GREY = '#DADADA'
 export const MEDIUM_GREY = '#B5B5B5'
 
 export const MORECAST_COLORS = {
-  temp: 'rgba(215, 48, 39, 0.3)',
-  rh: 'rgba(254, 224, 144, 0.7)',
-  windDirection: 'rgba(145, 191, 219, 0.5)',
-  windSpeed: 'rgba(69, 117, 180, 0.6)',
-  precip: 'rgba(127, 191, 123, 0.4)',
-  gc: 'rgba(153, 142, 195, 0.7)',
-  summary: 'rgba(0, 51, 102, 1)'
+  temp: {
+    active: 'rgba(215, 48, 39, 0.3)',
+    inactive: 'rgba(215, 48, 39, 0.2)',
+    text: 'black'
+  },
+  rh: { active: 'rgba(254, 224, 144, 0.7)', inactive: 'rgba(254, 224, 144, 0.3)', text: 'black' },
+  windDirection: { active: 'rgba(145, 191, 219, 0.5)', inactive: 'rgba(145, 191, 219, 0.2)', text: 'black' },
+  windSpeed: { active: 'rgba(69, 117, 180, 0.6)', inactive: 'rgba(69, 117, 180, 0.3)', text: 'black' },
+  precip: { active: 'rgba(127, 191, 123, 0.4)', inactive: 'rgba(77, 146, 33, 0.1)', text: 'black' },
+  gc: { active: 'rgba(153, 142, 195, 0.7)', inactive: 'rgba(153, 142, 195, 0.2)', text: 'black' },
+  summary: { active: 'rgba(0, 51, 102, 1)', inactive: 'rgba(0, 51, 102, 0.6)', text: 'white' }
 }
+
+export type MorecastColors = typeof MORECAST_COLORS
+export type MorecastColor = keyof MorecastColors

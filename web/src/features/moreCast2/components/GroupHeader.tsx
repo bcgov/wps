@@ -1,14 +1,14 @@
 import { Checkbox, FormControlLabel, FormGroup, IconButton, Popover, Stack, Typography, styled } from '@mui/material'
 import { ExpandMore } from '@mui/icons-material'
 import React, { ChangeEvent, MouseEvent, useState } from 'react'
-import { LIGHT_GREY, MEDIUM_GREY, DARK_GREY } from 'app/theme'
+import { LIGHT_GREY, MEDIUM_GREY, DARK_GREY, MorecastColors } from 'app/theme'
 import { ColumnVis } from 'features/moreCast2/components/DataGridColumns'
 
 interface GroupHeaderProps {
   id: string
   columns: ColumnVis[]
-  weatherParam: string
-  handleShowHideChange: (weatherParam: string, columnName: string, value: boolean) => void
+  weatherParam: keyof MorecastColors
+  handleShowHideChange: (weatherParam: keyof MorecastColors, columnName: string, value: boolean) => void
 }
 
 const PopoverHeader = styled(Typography)(({ theme }) => ({
