@@ -390,7 +390,8 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
 
   // Handle a double-click on a cell in the datagrid. We only handle a double-click when the clicking
   // occurs on a cell in a weather model field/column and row where a forecast is being created (ie. the
-  // row has no actual value for the weather parameter of interest)
+  // row has no actual value for the weather parameter of interest). Do nothing when double-clicking on
+  // grass curing related fields.
   const handleCellDoubleClick = (params: GridCellParams) => {
     const headerName = params.colDef.headerName as WeatherDeterminateType
     if (
