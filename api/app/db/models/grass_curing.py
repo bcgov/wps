@@ -7,7 +7,7 @@ class PercentGrassCuring(Base):
     """ Daily percent grass curing per weather station. """
     __tablename__ = 'percent_grass_curing'
     __table_args__ = (
-        {'comment': 'Record containing information about percent grass curing from the CFWIS.'}
+        {'comment': 'Record containing information about percent grass curing from the CWFIS.'}
     )
 
     id = Column(Integer, Sequence('percent_grass_curing_id_seq'),

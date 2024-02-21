@@ -150,7 +150,12 @@ export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   for (const row of rows) {
     const stationInfo = stationGrassMap.get(row.stationCode)
     // fill the grass curing forecast value, as long as it doesn't already have a value
-    if (stationInfo && row.grassCuringForecast && isNaN(row.grassCuringForecast.value)) {
+    if (
+      stationInfo &&
+      row.grassCuringForecast &&
+      isNaN(row.grassCuringForecast.value) &&
+      row.forDate > stationInfo.date
+    ) {
       row.grassCuringForecast.value = stationInfo.grassCuring
     }
   }

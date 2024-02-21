@@ -81,6 +81,41 @@ export class DateForecastField implements ColDefGenerator {
   }
 }
 
+export class GrassCuringFCWFISield implements ColDefGenerator {
+  private static instance: GrassCuringFCWFISield
+  private colDefBuilder: ColumnDefBuilder
+
+  readonly field = 'grassCuringCWFIS'
+  readonly headerName = 'CWFIS'
+  readonly type = 'number'
+  readonly precision = 0
+  private constructor() {
+    this.colDefBuilder = new ColumnDefBuilder(
+      this.field,
+      this.headerName,
+      this.type,
+      this.precision,
+      new GridComponentRenderer()
+    )
+  }
+
+  public generateColDef = () => {
+    return this.colDefBuilder.generateColDefWith(this.field, this.headerName, this.precision)
+  }
+
+  public generateColDefs = () => {
+    return [this.generateColDef()]
+  }
+
+  public static getInstance(): GrassCuringFCWFISield {
+    if (!GrassCuringFCWFISield.instance) {
+      GrassCuringFCWFISield.instance = new GrassCuringFCWFISield()
+    }
+
+    return GrassCuringFCWFISield.instance
+  }
+}
+
 export class IndeterminateField implements ColDefGenerator, ForecastColDefGenerator {
   private colDefBuilder: ColumnDefBuilder
 
@@ -118,6 +153,8 @@ export const rhForecastField = new IndeterminateField('rh', RH_HEADER, 'number',
 export const windDirForecastField = new IndeterminateField('windDirection', WIND_DIR_HEADER, 'number', 0, true)
 export const windSpeedForecastField = new IndeterminateField('windSpeed', WIND_SPEED_HEADER, 'number', 1, true)
 export const precipForecastField = new IndeterminateField('precip', PRECIP_HEADER, 'number', 1, true)
+export const gcForecastField = new IndeterminateField('grassCuring', GC_HEADER, 'number', 0, false)
+
 export const buiField = new IndeterminateField('buiCalc', 'BUI', 'number', 0, false)
 export const isiField = new IndeterminateField('isiCalc', 'ISI', 'number', 1, false)
 export const fwiField = new IndeterminateField('fwiCalc', 'FWI', 'number', 0, false)
@@ -125,7 +162,6 @@ export const ffmcField = new IndeterminateField('ffmcCalc', 'FFMC', 'number', 1,
 export const dmcField = new IndeterminateField('dmcCalc', 'DMC', 'number', 0, false)
 export const dcField = new IndeterminateField('dcCalc', 'DC', 'number', 0, false)
 export const dgrField = new IndeterminateField('dgrCalc', 'DGR', 'number', 0, false)
-export const gcField = new IndeterminateField('grassCuring', GC_HEADER, 'number', 0, false)
 
 export const MORECAST2_STATION_DATE_FIELDS: ColDefGenerator[] = [
   StationForecastField.getInstance(),
@@ -148,7 +184,7 @@ export const MORECAST2_FORECAST_FIELDS: ForecastColDefGenerator[] = [
   windDirForecastField,
   windSpeedForecastField,
   precipForecastField,
-  gcField
+  gcForecastField
 ]
 
 export const MORECAST2_INDEX_FIELDS: ForecastColDefGenerator[] = [
@@ -160,3 +196,7 @@ export const MORECAST2_INDEX_FIELDS: ForecastColDefGenerator[] = [
   fwiField,
   dgrField
 ]
+
+export const MORECAST2_GRASS_CURING_FORCAST_FIELD: ForecastColDefGenerator = gcForecastField
+
+export const MORECAST2_GRASS_CURING_CWFIS_FIELD: ColDefGenerator = GrassCuringFCWFISield.getInstance()

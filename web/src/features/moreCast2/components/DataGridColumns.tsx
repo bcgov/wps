@@ -1,11 +1,13 @@
 import React from 'react'
-import { GridColumnVisibilityModel, GridColDef, GridColumnGroupingModel } from '@mui/x-data-grid'
+import { GridColumnVisibilityModel, GridColDef } from '@mui/x-data-grid'
 import { WeatherDeterminate, WeatherDeterminateChoices } from 'api/moreCast2API'
 import {
   MORECAST2_FIELDS,
   MORECAST2_FORECAST_FIELDS,
   MORECAST2_INDEX_FIELDS,
-  MORECAST2_STATION_DATE_FIELDS
+  MORECAST2_STATION_DATE_FIELDS,
+  MORECAST2_GRASS_CURING_CWFIS_FIELD,
+  MORECAST2_GRASS_CURING_FORCAST_FIELD
 } from 'features/moreCast2/components/MoreCast2Column'
 import GroupHeader from 'features/moreCast2/components/GroupHeader'
 import { handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
@@ -18,20 +20,6 @@ export interface ColumnVis {
 
 export class DataGridColumns {
   public static initGridColumnVisibilityModel() {
-    const model: GridColumnVisibilityModel = {}
-    const weatherParameterColumns = this.getWeatherParameterColumns()
-    weatherParameterColumns.forEach(columnName => {
-      // temperature columns are visible by default
-      if (columnName.startsWith('temp')) {
-        model[columnName] = true
-      } else {
-        model[columnName] = false
-      }
-    })
-    return model
-  }
-
-  public static initGridColumnVisibilityModelNew() {
     // First check local storage for existing column visibility
     const groupedColumnVisibility = localStorage.getItem('groupedColumnVisibility')
     if (groupedColumnVisibility) {
@@ -85,6 +73,11 @@ export class DataGridColumns {
     MORECAST2_FIELDS.forEach(field => {
       tabColumns = [...tabColumns, ...field.generateColDefs(WeatherDeterminate.FORECAST)]
     })
+    const gcForecastField = MORECAST2_GRASS_CURING_FORCAST_FIELD.generateForecastColDef()
+    const gcCwfisField = MORECAST2_GRASS_CURING_CWFIS_FIELD.generateColDef()
+    tabColumns.push(gcForecastField)
+    tabColumns.push(gcCwfisField)
+
     return tabColumns
   }
 
@@ -156,37 +149,14 @@ export const getColumnGroupingModel = (
       children: columnGroupingModelChildGenerator('windSpeed'),
       renderHeaderGroup: () =>
         renderGroupHeader('Wind Speed', 'windSpeed', showHideColumnsModel['windSpeed'], handleShowHideChange)
+    },
+    {
+      groupId: 'Grass Curing',
+      children: [{ field: 'grassCuringForecast' }, { field: 'grassCuringCWFIS' }]
     }
   ]
   return model
 }
-
-export const columnGroupingModel: GridColumnGroupingModel = [
-  {
-    groupId: 'ID',
-    children: [{ field: 'stationName' }, { field: 'forDate' }]
-  },
-  {
-    groupId: 'Temp',
-    children: columnGroupingModelChildGenerator('temp')
-  },
-  {
-    groupId: 'RH',
-    children: columnGroupingModelChildGenerator('rh')
-  },
-  {
-    groupId: 'Precip',
-    children: columnGroupingModelChildGenerator('precip')
-  },
-  {
-    groupId: 'Wind Dir',
-    children: columnGroupingModelChildGenerator('windDirection')
-  },
-  {
-    groupId: 'Wind Speed',
-    children: columnGroupingModelChildGenerator('windSpeed')
-  }
-]
 
 // Returns an array of objects of the shape { field: weather parameter + weather determinate }. For example,
 // eg. { field: 'tempACTUAL' }  These objects are used in the column grouping model to help manage grouping

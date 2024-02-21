@@ -34,7 +34,7 @@ class GrassCuringJob():
     """ Job that downloads and processes percent grass curing data from the CWFIS. """
 
     async def _get_grass_curing_wcs_raster(self, path: str):
-        """ Gets the current percent grass curing as a tif from the CFWIS Web Coverage Service. """
+        """ Gets the current percent grass curing as a tif from the CWFIS Web Coverage Service. """
         session = requests.session()
         param_dict= {
             "service": "WCS",
@@ -117,7 +117,7 @@ class GrassCuringJob():
                                                                 percent_grass_curing=value,
                                                                 station_code=station )
                     await save_percent_grass_curing(session, percent_grass_curing)
-        logger.info(f"Finished processing percent grass curing data from CFWIS for {today}.")
+        logger.info(f"Finished processing percent grass curing data from CWFIS for {today}.")
             
 
     async def _run_grass_curing(self):

@@ -80,7 +80,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   const [visibleRows, setVisibleRows] = useState<MoreCast2Row[]>([])
 
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
-    DataGridColumns.initGridColumnVisibilityModelNew()
+    DataGridColumns.initGridColumnVisibilityModel()
   )
 
   const [tempVisible, setTempVisible] = useState(true)
@@ -89,6 +89,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   const [windDirectionVisible, setWindDirectionVisible] = useState(false)
   const [windSpeedVisible, setWindSpeedVisible] = useState(false)
   const [forecastSummaryVisible, setForecastSummaryVisible] = useState(false)
+  const [grassCuringVisible, setGrassCuringVisible] = useState(false)
 
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
@@ -290,6 +291,12 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   }, [windSpeedVisible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    grassCuringVisible && setForecastSummaryVisible(false)
+    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('grassCuring', grassCuringVisible)
+    setColumnVisibilityModel(updatedColumnVisibilityModel)
+  }, [grassCuringVisible]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     // if the forecast summary is visible, we need to toggle off the weather parameter buttons
     if (forecastSummaryVisible) {
       setTempVisible(false)
@@ -297,18 +304,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       setPrecipVisible(false)
       setWindDirectionVisible(false)
       setWindSpeedVisible(false)
-      setColumnVisibilityModel(
-        DataGridColumns.updateGridColumnVisibilityModel(
-          [
-            { columnName: 'temp', visible: false },
-            { columnName: 'rh', visible: false },
-            { columnName: 'precip', visible: false },
-            { columnName: 'windDirection', visible: false },
-            { columnName: 'windSpeed', visible: false }
-          ],
-          columnVisibilityModel
-        )
-      )
+      setGrassCuringVisible(false)
     }
   }, [forecastSummaryVisible]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -397,7 +393,12 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   // row has no actual value for the weather parameter of interest)
   const handleCellDoubleClick = (params: GridCellParams) => {
     const headerName = params.colDef.headerName as WeatherDeterminateType
-    if (!headerName || headerName === WeatherDeterminate.ACTUAL || headerName === WeatherDeterminate.FORECAST) {
+    if (
+      !headerName ||
+      headerName === WeatherDeterminate.ACTUAL ||
+      headerName === WeatherDeterminate.FORECAST ||
+      params.field.indexOf('grass') > -1
+    ) {
       // A forecast or actual column was clicked, or there is no value for headerName, nothing to do
       return
     }
@@ -495,6 +496,13 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           selected={precipVisible}
         >
           Precip
+        </SelectableButton>
+        <SelectableButton
+          dataTestId="grass-curing-tab-button"
+          onClick={() => setGrassCuringVisible(!grassCuringVisible)}
+          selected={grassCuringVisible}
+        >
+          Grass Curing
         </SelectableButton>
         <SelectableButton
           dataTestId="summary-tab-button"
