@@ -254,6 +254,16 @@ const rows = [
 
 describe('fillGrassCuring', () => {
   it('should map the most recent grass curing value for each station to each forecast, without overwriting existing submitted values', () => {
+    forecast1A.grassCuringForecast!.value = NaN
+    forecast1B.grassCuringForecast!.value = 50
+    fillGrassCuring(rows)
+    expect(forecast1A.grassCuringForecast!.value).toBe(NaN)
+    expect(forecast1B.grassCuringForecast!.value).toBe(50)
+    expect(forecast1C.grassCuringForecast!.value).toBe(50)
+    expect(forecast2A.grassCuringForecast!.value).toBe(70)
+    expect(forecast3A.grassCuringForecast!.value).toBe(NaN)
+  })
+  it('should not update values in the past', () => {
     forecast1A.grassCuringForecast!.value = 60
     forecast1B.grassCuringForecast!.value = 50
     fillGrassCuring(rows)
