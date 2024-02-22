@@ -8,7 +8,7 @@ import {
   MORECAST2_INDEX_FIELDS,
   MORECAST2_STATION_DATE_FIELDS,
   MORECAST2_GRASS_CURING_CWFIS_FIELD,
-  MORECAST2_GRASS_CURING_FORCAST_FIELD
+  MORECAST2_GRASS_CURING_FORECAST_FIELD
 } from 'features/moreCast2/components/MoreCast2Column'
 import GroupHeader from 'features/moreCast2/components/GroupHeader'
 import { handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
@@ -74,7 +74,7 @@ export class DataGridColumns {
     MORECAST2_FIELDS.forEach(field => {
       tabColumns = [...tabColumns, ...field.generateColDefs(WeatherDeterminate.FORECAST)]
     })
-    const gcForecastField = MORECAST2_GRASS_CURING_FORCAST_FIELD.generateForecastColDef()
+    const gcForecastField = MORECAST2_GRASS_CURING_FORECAST_FIELD.generateForecastColDef()
     const gcCwfisField = MORECAST2_GRASS_CURING_CWFIS_FIELD.generateColDef()
     tabColumns.push(gcForecastField)
     tabColumns.push(gcCwfisField)
