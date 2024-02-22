@@ -197,6 +197,6 @@ export const MORECAST2_INDEX_FIELDS: ForecastColDefGenerator[] = [
   dgrField
 ]
 
-export const MORECAST2_GRASS_CURING_FORCAST_FIELD: ForecastColDefGenerator = gcForecastField
+export const MORECAST2_GRASS_CURING_FORECAST_FIELD: ForecastColDefGenerator = gcForecastField
 
 export const MORECAST2_GRASS_CURING_CWFIS_FIELD: ColDefGenerator = GrassCuringCWFISield.getInstance()
