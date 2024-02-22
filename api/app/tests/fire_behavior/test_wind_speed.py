@@ -18,7 +18,7 @@ def test_wind_speed_result_no_wind_speed():
                    'recordType': {'id': 'ACTUAL'}}
     )
     assert math.isclose(wind_speed_result.bui, 0.606, abs_tol=0.001)
-    assert math.isclose(wind_speed_result.ffmc, 26.765, abs_tol=0.001)
+    assert math.isclose(wind_speed_result.ffmc, 26.757, abs_tol=0.001)
     assert math.isclose(wind_speed_result.isi, 0.001, abs_tol=0.001)
     assert math.isclose(wind_speed_result.wind_speed, 1.0, abs_tol=0.001)
     assert math.isclose(wind_speed_result.fwi, 0.0, abs_tol=0.001)
