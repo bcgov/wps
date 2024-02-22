@@ -47,18 +47,18 @@ async def test_c1_request_response(anyio_backend, async_client: AsyncClient, mon
     assert response.json()['stations'][0]['elevation'] == 701
     assert response.json()['stations'][0]['fuel_type'] == 'C1'
 
-    assert math.isclose(response.json()['stations'][0]['fine_fuel_moisture_code'], 90.683, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['fine_fuel_moisture_code'], 90.638, abs_tol=0.001)
     assert math.isclose(response.json()['stations'][0]['drought_code'], 340.544, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['initial_spread_index'], 7.51, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['initial_spread_index'], 7.462, abs_tol=0.001)
     assert math.isclose(response.json()['stations'][0]['build_up_index'], 117.899, abs_tol=0.001)
     assert math.isclose(response.json()['stations'][0]['duff_moisture_code'], 103.923, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['fire_weather_index'], 27.913, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['head_fire_intensity'], 540.41, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['rate_of_spread'], 1.274, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['fire_weather_index'], 27.792, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['head_fire_intensity'], 528.189, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['rate_of_spread'], 1.246, abs_tol=0.001)
     assert math.isclose(response.json()['stations'][0]['percentage_crown_fraction_burned'], 0.0, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['flame_length'], 1.342, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['sixty_minute_fire_size'], 0.253, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['thirty_minute_fire_size'], 0.045, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['flame_length'], 1.327, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['sixty_minute_fire_size'], 0.241, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['thirty_minute_fire_size'], 0.043, abs_tol=0.001)
 
     assert response.json()['stations'][0]['fire_type'] == 'SUR'
     assert response.json()['stations'][0]['critical_hours_hfi_4000'] is None
@@ -146,18 +146,18 @@ async def test_c1_forecast_request_response(anyio_backend, async_client: AsyncCl
     assert response.json()['stations'][0]['elevation'] == 701
     assert response.json()['stations'][0]['fuel_type'] == 'C1'
 
-    assert math.isclose(response.json()['stations'][0]['fine_fuel_moisture_code'], 93.305, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['fine_fuel_moisture_code'], 93.258, abs_tol=0.001)
     assert math.isclose(response.json()['stations'][0]['drought_code'], 340.544, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['initial_spread_index'], 10.88, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['initial_spread_index'], 10.810, abs_tol=0.001)
     assert math.isclose(response.json()['stations'][0]['build_up_index'], 117.899, abs_tol=0.001)
     assert math.isclose(response.json()['stations'][0]['duff_moisture_code'], 103.923, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['fire_weather_index'], 35.793, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['head_fire_intensity'], 2382.172, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['rate_of_spread'], 4.336, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['percentage_crown_fraction_burned'], 0.503, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['flame_length'], 2.818, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['sixty_minute_fire_size'], 2.973, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['thirty_minute_fire_size'], 0.531, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['fire_weather_index'], 35.640, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['head_fire_intensity'], 2324.330, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['rate_of_spread'], 4.249, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['percentage_crown_fraction_burned'], 0.493, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['flame_length'], 2.784, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['sixty_minute_fire_size'], 2.854, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['thirty_minute_fire_size'], 0.509, abs_tol=0.001)
 
     assert response.json()['stations'][0]['fire_type'] == 'IC'
     assert response.json()['stations'][0]['critical_hours_hfi_4000'] is None
@@ -204,18 +204,18 @@ async def test_c1_request_multiple_response(anyio_backend, async_client: AsyncCl
         assert station['fuel_type'] == 'C1'
         assert station['fine_fuel_moisture_code']
 
-        assert math.isclose(station['fine_fuel_moisture_code'], 90.683, abs_tol=0.001)
+        assert math.isclose(station['fine_fuel_moisture_code'], 90.638, abs_tol=0.001)
         assert math.isclose(station['drought_code'], 340.544, abs_tol=0.001)
-        assert math.isclose(station['initial_spread_index'], 7.51, abs_tol=0.001)
+        assert math.isclose(station['initial_spread_index'], 7.462, abs_tol=0.001)
         assert math.isclose(station['build_up_index'], 117.899, abs_tol=0.001)
         assert math.isclose(station['duff_moisture_code'], 103.923, abs_tol=0.001)
-        assert math.isclose(station['fire_weather_index'], 27.913, abs_tol=0.001)
-        assert math.isclose(station['head_fire_intensity'], 540.409, abs_tol=0.001)
-        assert math.isclose(station['rate_of_spread'], 1.274, abs_tol=0.001)
+        assert math.isclose(station['fire_weather_index'], 27.792, abs_tol=0.001)
+        assert math.isclose(station['head_fire_intensity'], 528.189, abs_tol=0.001)
+        assert math.isclose(station['rate_of_spread'], 1.246, abs_tol=0.001)
         assert math.isclose(station['percentage_crown_fraction_burned'], 0.0, abs_tol=0.001)
-        assert math.isclose(station['flame_length'], 1.342, abs_tol=0.001)
-        assert math.isclose(station['sixty_minute_fire_size'], 0.252, abs_tol=0.001)
-        assert math.isclose(station['thirty_minute_fire_size'], 0.045, abs_tol=0.001)
+        assert math.isclose(station['flame_length'], 1.327, abs_tol=0.001)
+        assert math.isclose(station['sixty_minute_fire_size'], 0.241, abs_tol=0.001)
+        assert math.isclose(station['thirty_minute_fire_size'], 0.043, abs_tol=0.001)
 
         assert station['critical_hours_hfi_4000'] is None
         assert station['critical_hours_hfi_10000'] is None
