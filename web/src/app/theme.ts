@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material/styles'
+import { GridCellParams } from '@mui/x-data-grid'
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
@@ -104,6 +105,7 @@ export const MORECAST_WEATHER_PARAM_COLORS = {
   gc: { active: 'rgba(153, 142, 195, 0.7)', inactive: 'rgba(153, 142, 195, 0.2)', text: 'black' },
   summary: { active: 'rgba(0, 51, 102, 1)', inactive: 'rgba(0, 51, 102, 0.6)', text: 'white' }
 }
+export type MoreCastParamColors = typeof MORECAST_WEATHER_PARAM_COLORS
 
 export const MORECAST_MODEL_COLORS = {
   nam: { bg: 'rgba(255, 20, 147, 0.1)', border: 'rgba(255, 20, 147, 1)' },
@@ -112,6 +114,23 @@ export const MORECAST_MODEL_COLORS = {
   rdps: { bg: 'rgba(56, 152, 52, 0.1)', border: 'rgba(56, 152, 52, 1)' },
   hrdps: { bg: 'rgba(7, 79, 0, 0.1)', border: 'rgba(7, 79, 0, 1)' }
 }
+export type MoreCastModelColors = typeof MORECAST_MODEL_COLORS
 
-export type MorecastColors = typeof MORECAST_WEATHER_PARAM_COLORS
-export type MorecastColor = keyof MorecastColors
+export const cellColorClass = (params: Pick<GridCellParams, 'field'>) => {
+  if (params.field.includes('GDPS')) {
+    return 'gdps'
+  }
+  if (params.field.includes('GFS')) {
+    return 'gfs'
+  }
+  if (params.field.includes('HRDPS')) {
+    return 'hrdps'
+  }
+  if (params.field.includes('NAM')) {
+    return 'nam'
+  }
+  if (params.field.includes('RDPS')) {
+    return 'rdps'
+  }
+  return ''
+}
