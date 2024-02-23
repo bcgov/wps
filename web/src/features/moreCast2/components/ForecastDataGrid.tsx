@@ -15,7 +15,12 @@ import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
-import { MORECAST_WEATHER_PARAM_COLORS, MoreCastParamColors } from 'app/theme'
+import {
+  MORECAST_MODEL_COLORS,
+  MORECAST_WEATHER_PARAM_COLORS,
+  MoreCastModelColors,
+  MoreCastParamColors
+} from 'app/theme'
 
 const PREFIX = 'ForecastDataGrid'
 
@@ -36,6 +41,17 @@ const Root = styled('div')(() => {
   Object.keys(MORECAST_WEATHER_PARAM_COLORS).forEach(key => {
     styles[`& .${key}`] = {
       backgroundColor: MORECAST_WEATHER_PARAM_COLORS[key as keyof MoreCastParamColors].active
+    }
+  })
+
+  Object.keys(MORECAST_MODEL_COLORS).forEach(key => {
+    styles[`& .${key}`] = {
+      backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
+      borderLeft: 'solid',
+      borderTop: 'solid',
+      borderBottom: 'solid',
+      borderRight: 'none',
+      borderColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].border
     }
   })
 

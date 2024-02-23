@@ -1,5 +1,5 @@
 import { createTheme } from '@mui/material/styles'
-import { GridCellParams } from '@mui/x-data-grid'
+import { GridCellParams, GridColumnHeaderParams } from '@mui/x-data-grid'
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
@@ -116,7 +116,10 @@ export const MORECAST_MODEL_COLORS = {
 }
 export type MoreCastModelColors = typeof MORECAST_MODEL_COLORS
 
-export const cellColorClass = (params: Pick<GridCellParams, 'field'>) => {
+export const modelColorClass = (params: Pick<GridCellParams | GridColumnHeaderParams, 'field'>) => {
+  if (params.field.includes('Actual')) {
+    return ''
+  }
   if (params.field.includes('GDPS')) {
     return 'gdps'
   }
