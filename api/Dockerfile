@@ -21,7 +21,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update
 RUN apt-get -y install unixodbc-dev
 # Install old (2.4.*; current debian) version of gdal
-RUN apt-get -y install libgdal-dev
+# cffdrs requires libudunits2-dev
+RUN apt-get -y install libgdal-dev libudunits2-dev
 
 # Install R
 RUN apt-get update --fix-missing && apt-get -y install r-base

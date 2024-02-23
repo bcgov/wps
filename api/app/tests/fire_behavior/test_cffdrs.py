@@ -17,7 +17,7 @@ hourly_data = {
     'datetime': hourly_datetimes,
     'temp': np.random.default_rng(111).uniform(20.0, 30.0, size=len(hourly_datetimes)),
     'rh': np.random.default_rng(111).uniform(40.0, 100.0, size=len(hourly_datetimes)),
-    'precip': np.random.default_rng(111).uniform(0.0, 1.0, size=len(hourly_datetimes)),
+    'precipitation': np.random.default_rng(111).uniform(0.0, 1.0, size=len(hourly_datetimes)),
     'ws': np.random.default_rng(111).uniform(0.0, 30.0, size=len(hourly_datetimes)),
 }
 
@@ -39,7 +39,7 @@ def test_hourly_ffmc_calculates_values():
 
 def test_hourly_ffmc_no_temperature():
     ffmc_old = 80.0
-    df_hourly = pd.DataFrame({'celsius': [12, 1], 'precip': [0, 1], 'ws': [14, 12], 'rh':[50, 50]})
+    df_hourly = pd.DataFrame({'datetime': [hourly_datetimes[0], hourly_datetimes[1]], 'celsius': [12, 1], 'precipitation': [0, 1], 'ws': [14, 12], 'rh':[50, 50]})
 
     with pytest.raises(CFFDRSException):
         hourly_fine_fuel_moisture_code(df_hourly, ffmc_old)
