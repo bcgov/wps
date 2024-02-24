@@ -18,6 +18,7 @@ import {
   WIND_DIR_HEADER,
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
+import { theme } from 'app/theme'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -42,7 +43,7 @@ export class GridComponentRenderer {
   }
   public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue'>) => (
     <TextField
-      sx={{ pointerEvents: 'none', backgroundColor: 'white', borderRadius: 1 }}
+      sx={{ pointerEvents: 'none', backgroundColor: theme.palette.common.white, borderRadius: 1 }}
       disabled={true}
       size="small"
       value={params.formattedValue}
