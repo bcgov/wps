@@ -118,6 +118,8 @@ sudo apt install python3 python3-pip
 sudo apt install python-is-python3
 # install osgeo/gdal
 sudo apt install libgdal-dev
+# isntall libudunits2-dev as required dependency of cffdrs
+sudo apt install libudunits2-dev
 # install R and pre-req for cffdrs
 sudo apt install r-base
 R

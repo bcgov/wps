@@ -45,18 +45,18 @@ async def test_c1_request_response(anyio_backend, async_client: AsyncClient, mon
     assert response.json()['stations'][0]['elevation'] == 701
     assert response.json()['stations'][0]['fuel_type'] == 'S2'
 
-    assert math.isclose(response.json()['stations'][0]['fine_fuel_moisture_code'], 90.683, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['fine_fuel_moisture_code'], 90.638, abs_tol=0.001)
     assert math.isclose(response.json()['stations'][0]['drought_code'], 340.544, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['initial_spread_index'], 7.51, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['initial_spread_index'], 7.462, abs_tol=0.001)
     assert math.isclose(response.json()['stations'][0]['build_up_index'], 117.899, abs_tol=0.001)
     assert math.isclose(response.json()['stations'][0]['duff_moisture_code'], 103.923, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['fire_weather_index'], 27.913, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['head_fire_intensity'], 21246.233, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['rate_of_spread'], 5.1188, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['fire_weather_index'], 27.792, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['head_fire_intensity'], 21053.162, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['rate_of_spread'], 5.072, abs_tol=0.001)
     assert math.isclose(response.json()['stations'][0]['percentage_crown_fraction_burned'], 0.0, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['flame_length'], 8.4155, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['sixty_minute_fire_size'], 5.9529, abs_tol=0.001)
-    assert math.isclose(response.json()['stations'][0]['thirty_minute_fire_size'], 1.062368, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['flame_length'], 8.377, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['sixty_minute_fire_size'], 5.843, abs_tol=0.001)
+    assert math.isclose(response.json()['stations'][0]['thirty_minute_fire_size'], 1.043, abs_tol=0.001)
 
     assert response.json()['stations'][0]['fire_type'] == 'SUR'
     assert response.json()['stations'][0]['critical_hours_hfi_4000'] == {'start': 12.0, 'end': 0.0}

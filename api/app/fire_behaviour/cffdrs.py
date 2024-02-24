@@ -3,6 +3,7 @@
 import logging
 import math
 from typing import Optional
+import rpy2
 import rpy2.robjects as robjs
 from rpy2.robjects import pandas2ri
 from rpy2.rinterface import NULL
@@ -10,6 +11,7 @@ import pandas as pd
 import app.utils.r_importer
 from app.utils.singleton import Singleton
 from app.schemas.fba_calc import FuelTypeEnum
+
 
 logger = logging.getLogger(__name__)
 
@@ -806,19 +808,21 @@ def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
 
     # We have to change field names to exactly what the CFFDRS lib expects. 
     # This may need to be adjusted depending on the future data input model, which is currently unknown
-    column_name_map = {'temperature':'temp', 'relative_humidity': 'rh', 'wind_speed': 'ws', 'precipitation': 'prec'}
+    column_name_map = {'temperature':'temp', 'relative_humidity': 'rh', 'wind_speed': 'ws', 'precipitation': 'prec', 'datetime': 'hr'}
     weatherstream = weatherstream.rename(columns=column_name_map)
 
     r_weatherstream = pandas_to_r_converter(weatherstream)
-
-    result = CFFDRS.instance().cffdrs.hffmc(weatherstream=r_weatherstream,
+    try:
+        result = CFFDRS.instance().cffdrs.hffmc(r_weatherstream,
                                             ffmc_old=ffmc_old, time_step=time_step, calc_step=calc_step,
                                             batch=batch, hourlyFWI=hourly_fwi)
     
-    if isinstance(result, robjs.vectors.FloatVector):
-        weatherstream['hffmc'] = list(result)
-        return weatherstream
-    raise CFFDRSException("Failed to calculate hffmc")
+        if isinstance(result, robjs.vectors.FloatVector):
+            weatherstream['hffmc'] = list(result)
+            return weatherstream
+    except rpy2.rinterface_lib.embedded.RRuntimeError as e:
+        logger.error(f"An error occurred when calculating hourly ffmc: {e}")
+        raise CFFDRSException("Failed to calculate hffmc")
     
 
 def get_ffmc_for_target_hfi(
