@@ -50,9 +50,6 @@ const Root = styled('div')(() => {
     }
     styles[`& .${key}-header`] = {
       backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
-      borderLeft: 'none',
-      borderRight: 'none',
-      borderTop: 'none',
       borderBottom: 'solid',
       borderColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].border
     }
