@@ -4,7 +4,7 @@ import { Button } from '@mui/material'
 import { MORECAST_WEATHER_PARAM_COLORS, MoreCastParamColors, theme } from 'app/theme'
 import styled from '@emotion/styled'
 
-const StyledButton = styled(Button)(
+const StyledButton = styled(Button, { shouldForwardProp: prop => prop !== 'weatherParam' })(
   ({ weatherParam, selected }: { weatherParam: keyof MoreCastParamColors; selected: boolean }) => ({
     marginLeft: theme.spacing(1),
     backgroundColor: selected
