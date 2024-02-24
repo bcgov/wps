@@ -137,3 +137,8 @@ export const modelColorClass = (params: Pick<GridCellParams | GridColumnHeaderPa
   }
   return ''
 }
+
+export const modelHeaderColorClass = (params: Pick<GridCellParams | GridColumnHeaderParams, 'field'>) => {
+  const modelClass = modelColorClass(params)
+  return modelClass === '' ? modelClass : `${modelClass}-header`
+}
