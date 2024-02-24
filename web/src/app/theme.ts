@@ -42,6 +42,13 @@ export const theme = createTheme({
           fontSize: 14
         }
       }
+    },
+    MuiInputBase: {
+      styleOverrides: {
+        root: {
+          fontSize: '1em'
+        }
+      }
     }
   }
 })
@@ -62,13 +69,6 @@ export const fireTableTheme = createTheme({
         },
         stickyHeader: {
           padding: 5
-        }
-      }
-    },
-    MuiInputBase: {
-      styleOverrides: {
-        root: {
-          fontSize: '1em'
         }
       }
     },
