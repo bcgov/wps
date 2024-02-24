@@ -41,7 +41,12 @@ export class GridComponentRenderer {
     return <div data-testid={`${params.colDef.field}-column-header`}>{params.colDef.headerName}</div>
   }
   public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue'>) => (
-    <TextField sx={{ pointerEvents: 'none' }} disabled={true} size="small" value={params.formattedValue}></TextField>
+    <TextField
+      sx={{ pointerEvents: 'none', backgroundColor: 'white', borderRadius: 1 }}
+      disabled={true}
+      size="small"
+      value={params.formattedValue}
+    ></TextField>
   )
 
   public getActualField = (field: string) => {
