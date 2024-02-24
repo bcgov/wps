@@ -46,12 +46,7 @@ const Root = styled('div')(() => {
 
   Object.keys(MORECAST_MODEL_COLORS).forEach(key => {
     styles[`& .${key}`] = {
-      backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
-      borderLeft: 'solid',
-      borderTop: 'solid',
-      borderBottom: 'solid',
-      borderRight: 'none',
-      borderColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].border
+      backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg
     }
   })
 

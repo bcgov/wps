@@ -1,4 +1,5 @@
 import {
+  GridCellParams,
   GridColDef,
   GridColumnHeaderParams,
   GridRenderCellParams,
@@ -103,6 +104,9 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       sortable: false,
       type: 'number',
       width: width ?? DEFAULT_COLUMN_WIDTH,
+      cellClassName: (params: Pick<GridCellParams, 'field'>) => {
+        return modelColorClass(params)
+      },
       headerClassName: (params: Pick<GridColumnHeaderParams, 'field'>) => {
         return modelColorClass(params)
       },
