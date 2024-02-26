@@ -58,7 +58,7 @@ describe('TabbedDataGrid', () => {
     )
     // Temp forecast column is visible on load
     await waitFor(() => expect(screen.getByTestId('tempForecast-column-header')).toBeDefined())
-    const tempTabElement = screen.getByTestId(TABS[0])
+    const tempTabElement = screen.getByTestId(`${TABS[0]}-selected`)
     // Toggle off Temp tab which should hide temp forecast column
     fireEvent.click(tempTabElement)
     await waitFor(() => expect(screen.queryByTestId('tempForecast-column-header')).not.toBeInTheDocument())
