@@ -22,6 +22,8 @@ RUN apt-get -y update
 RUN apt-get -y install unixodbc-dev
 # Install old (2.4.*; current debian) version of gdal
 RUN apt-get -y install libgdal-dev
+# Dependency required for installation of cffdrs
+RUN apt-get -y install libudunits2-dev
 
 # Install R
 RUN apt-get update --fix-missing && apt-get -y install r-base
