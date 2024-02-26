@@ -5,7 +5,6 @@ import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 import { DateRange } from 'components/dateRangePicker/types'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import store from 'app/store'
-import { createTheme } from '@mui/material/styles'
 
 const EMPTY_MORECAST_2_ROWS: MoreCast2Row[] = []
 const FROM_TO: DateRange = {}
@@ -31,50 +30,22 @@ const TABS = [
 //   'tempGFS-column-header',
 //   'tempGFS_BIAS-column-header'
 // ]
-const theme = createTheme()
-
-const hexToRgb = (hex: string): string => {
-  if (hex.startsWith('#')) {
-    hex = hex.slice(1)
-  }
-  const value = parseInt(hex, 16)
-  const red = (value >> 16) & 0xff
-  const green = (value >> 8) & 0xff
-  const blue = value & 0xff
-  return `rgb(${red}, ${green}, ${blue})`
-}
-
-const convertRgbaToRgb = (rgba: string): string => {
-  if (rgba.startsWith(rgba)) {
-    const temp = rgba.slice(5)
-    const split = temp.split(',').map(item => item.trim())
-    return `rgb(${split[0]}, ${split[1]}, ${split[2]})`
-  }
-  return ''
-}
 
 describe('TabbedDataGrid', () => {
-  test('Only temp tab is selected on load', () => {
-    render(
+  test('Only temp tab is selected on load', async () => {
+    const { getByTestId } = render(
       <Provider store={store}>
         <TabbedDataGrid morecast2Rows={EMPTY_MORECAST_2_ROWS} fromTo={FROM_TO} setFromTo={SET_FROM_TO} />
       </Provider>
     )
-    const tab = screen.getByTestId('temp-tab-button')
-    expect(tab).toBeVisible()
-    const style = getComputedStyle(tab)
-    // A dark background color indicates the tab is selected
-    expect(style.backgroundColor).toBe(hexToRgb(theme.palette.primary.dark))
 
     for (const tab of TABS) {
-      const tabElement = screen.getByTestId(tab)
-      expect(tabElement).toBeVisible()
-      const style = getComputedStyle(tabElement)
       if (tab === TABS[0]) {
-        expect(style.backgroundColor).toBe(hexToRgb(theme.palette.primary.dark))
+        const tabElement = getByTestId(`${tab}-selected`)
+        await waitFor(() => expect(tabElement).toBeInTheDocument())
       } else {
-        const bgColor = convertRgbaToRgb(style.backgroundColor)
-        expect(bgColor).toBe(hexToRgb(theme.palette.primary.main))
+        const tabElement = getByTestId(`${tab}-unselected`)
+        expect(tabElement).toBeVisible()
       }
     }
   })
