@@ -1,5 +1,6 @@
 import React from 'react'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, waitFor } from '@testing-library/react'
+import { userEvent } from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 import { DateRange } from 'components/dateRangePicker/types'
@@ -51,20 +52,21 @@ describe('TabbedDataGrid', () => {
   })
 
   test('Forecast column visibility', async () => {
-    render(
+    const { getByTestId, queryByTestId } = render(
       <Provider store={store}>
         <TabbedDataGrid morecast2Rows={EMPTY_MORECAST_2_ROWS} fromTo={FROM_TO} setFromTo={SET_FROM_TO} />
       </Provider>
     )
-    // Temp forecast column is visible on load
-    await waitFor(() => expect(screen.getByTestId('tempForecast-column-header')).toBeDefined())
-    const tempTabElement = screen.getByTestId(`${TABS[0]}-selected`)
-    // Toggle off Temp tab which should hide temp forecast column
-    fireEvent.click(tempTabElement)
-    await waitFor(() => expect(screen.queryByTestId('tempForecast-column-header')).not.toBeInTheDocument())
-    // Toggle on Temp tab and ensure temp forecast column is visible again
-    fireEvent.click(tempTabElement)
-    await waitFor(() => expect(screen.getByTestId('tempForecast-column-header')).toBeDefined())
+    // // Temp forecast column is visible on load
+    await waitFor(() => expect(getByTestId('tempForecast-column-header')).toBeDefined())
+    const selectedTabButton = getByTestId(`${TABS[0]}-selected`)
+    // // Toggle off Temp tab which should hide temp forecast column
+    await userEvent.click(selectedTabButton)
+    await waitFor(() => expect(queryByTestId('tempForecast-column-header')).not.toBeInTheDocument())
+    // // Toggle on Temp tab and ensure temp forecast column is visible again
+    const unselectedTabButton = getByTestId(`${TABS[0]}-unselected`)
+    await userEvent.click(unselectedTabButton)
+    await waitFor(() => expect(getByTestId('tempForecast-column-header')).toBeDefined())
   })
 })
 
