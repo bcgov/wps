@@ -41,6 +41,7 @@ export type ModelType =
   | 'PERSISTENCE'
   | 'RDPS'
   | 'RDPS_BIAS'
+  | 'Grass_Curing_CWFIS'
 
 export const ModelChoices: ModelType[] = [
   ModelChoice.GDPS,
