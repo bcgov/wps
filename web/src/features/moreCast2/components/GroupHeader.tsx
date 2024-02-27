@@ -1,14 +1,4 @@
-import {
-  Box,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
-  IconButton,
-  Popover,
-  Stack,
-  Typography,
-  styled
-} from '@mui/material'
+import { Checkbox, FormControlLabel, FormGroup, IconButton, Popover, Stack, Typography, styled } from '@mui/material'
 import { ExpandMore } from '@mui/icons-material'
 import React, { ChangeEvent, MouseEvent, useState } from 'react'
 import { LIGHT_GREY, MEDIUM_GREY, DARK_GREY, MoreCastParamColors } from 'app/theme'
@@ -59,7 +49,7 @@ const GroupHeader = ({ id, columns, weatherParam, handleShowHideChange }: GroupH
   }
 
   return (
-    <Box datatest-id={`${weatherParam}-group-header`}>
+    <>
       <Typography style={{ fontWeight: 'bold' }}>{id}</Typography>
       <IconButton onClick={handleClick}>
         <ExpandMore />
@@ -93,7 +83,7 @@ const GroupHeader = ({ id, columns, weatherParam, handleShowHideChange }: GroupH
           </FormGroup>
         </Stack>
       </Popover>
-    </Box>
+    </>
   )
 }
 
