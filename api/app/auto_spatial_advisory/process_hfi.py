@@ -15,10 +15,11 @@ from app.db.crud.auto_spatial_advisory import (
     save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters,
     get_run_parameters_id)
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
-from app.auto_spatial_advisory.polygonize import polygonize_in_memory
 from app.auto_spatial_advisory.run_type import RunType
 from app.geospatial import NAD83_BC_ALBERS
-from app.auto_spatial_advisory.hfi_pmtiles import write_hfi_geojson, tippecanoe_wrapper, get_pmtiles_filepath
+from app.auto_spatial_advisory.hfi_pmtiles import get_pmtiles_filepath
+from app.utils.polygonize import polygonize_in_memory
+from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
 from app.utils.s3 import get_client
 
 
@@ -108,7 +109,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
         with polygonize_in_memory(temp_filename) as layer:
 
             # We need a geojson file to pass to tippecanoe
-            temp_geojson = write_hfi_geojson(layer, temp_dir)
+            temp_geojson = write_geojson(layer, temp_dir)
 
             pmtiles_filename = f'hfi{for_date.strftime("%Y%m%d")}.pmtiles'
             temp_pmtiles_filepath = os.path.join(temp_dir, pmtiles_filename)
