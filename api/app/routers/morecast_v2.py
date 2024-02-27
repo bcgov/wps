@@ -10,6 +10,7 @@ from fastapi.responses import ORJSONResponse
 from app.auth import (auth_with_forecaster_role_required,
                       audit,
                       authentication_required)
+from app.db.crud.grass_curing import get_percent_grass_curing_by_station_for_date_range
 from app.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_for_date, save_all_forecasts
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
@@ -223,6 +224,23 @@ async def get_determinates_for_date_range(start_date: date,
         predictions: List[WeatherIndeterminate] = await fetch_latest_model_run_predictions_by_station_code_and_date_range(db_session,
                                                                                                                           unique_station_codes,
                                                                                                                           start_time, end_time)
+        station_codes = [station.code for station in wfwx_stations]
+        grass_curing_rows = get_percent_grass_curing_by_station_for_date_range(db_session, start_time.date(), end_time.date(), station_codes)
+        grass_curing = []
+
+        for gc_tuple in grass_curing_rows:
+            gc_row = gc_tuple[0]
+            current_station = [station for station in wfwx_stations if station.code == gc_row.station_code][0]
+            gc_indeterminate = WeatherIndeterminate(
+                determinate=WeatherDeterminate.GRASS_CURING_CWFIS,
+                station_code=current_station.code,
+                station_name=current_station.name,
+                latitude=current_station.lat,
+                longitude=current_station.long,
+                utc_timestamp=get_hour_20_from_date(gc_row.for_date),
+                grass_curing=gc_row.percent_grass_curing
+            )
+            grass_curing.append(gc_indeterminate)
 
         transformed_forecasts = transform_morecastforecastoutput_to_weatherindeterminate(
             forecasts_from_db, wfwx_stations)
@@ -237,8 +255,9 @@ async def get_determinates_for_date_range(start_date: date,
 
     return IndeterminateDailiesResponse(
         actuals=wf1_actuals,
-        predictions=predictions,
-        forecasts=wf1_forecasts)
+        forecasts=wf1_forecasts,
+        grass_curing=grass_curing,
+        predictions=predictions)
 
 
 @router.post('/simulate-indices/', response_model=SimulatedWeatherIndeterminateResponse)

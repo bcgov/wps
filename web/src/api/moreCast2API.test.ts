@@ -64,7 +64,7 @@ describe('moreCast2API', () => {
       DateTime.fromObject({ year: 2021, month: 1, day: 1 }),
       DateTime.fromObject({ year: 2021, month: 1, day: 2 })
     )
-    expect(JSON.stringify(res)).toBe(JSON.stringify({ actuals: [], forecasts: [], predictions: [] }))
+    expect(JSON.stringify(res)).toBe(JSON.stringify({ actuals: [], forecasts: [], grassCuring: [], predictions: [] }))
   })
 
   it('should fetch weather indeterminates with stations requested', async () => {
