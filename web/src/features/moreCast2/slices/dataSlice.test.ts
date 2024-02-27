@@ -100,7 +100,10 @@ describe('dataSlice', () => {
     })
     it('should set loading = false when getWeatherIndeterminatesSuccess is called', () => {
       expect(
-        dataSliceReducer(initialState, getWeatherIndeterminatesSuccess({ actuals: [], forecasts: [], predictions: [] }))
+        dataSliceReducer(
+          initialState,
+          getWeatherIndeterminatesSuccess({ actuals: [], forecasts: [], grassCuring: [], predictions: [] })
+        )
       ).toEqual({
         ...initialState,
         loading: false
@@ -132,6 +135,7 @@ describe('dataSlice', () => {
         }
       ]
       const forecasts: [] = []
+      const grassCuring: [] = []
       const predictions: WeatherIndeterminate[] = [
         {
           id: 'test3',
@@ -159,12 +163,14 @@ describe('dataSlice', () => {
       const payload: WeatherIndeterminatePayload = {
         actuals,
         forecasts,
+        grassCuring,
         predictions
       }
       expect(dataSliceReducer(initialState, getWeatherIndeterminatesSuccess(payload))).toEqual({
         ...initialState,
         actuals: payload.actuals,
         forecasts: payload.forecasts,
+        grassCuring: payload.grassCuring,
         predictions: payload.predictions
       })
     })
@@ -225,6 +231,7 @@ describe('dataSlice', () => {
       const rows = createMoreCast2Rows(
         [],
         [weatherIndeterminateGenerator(1, 'test1', WeatherDeterminate.FORECAST, FROM_DATE_STRING)],
+        [],
         []
       )
       expect(dataSliceReducer(initialState, storeUserEditedRows(rows)).userEditedRows).toEqual(rows)
@@ -232,7 +239,7 @@ describe('dataSlice', () => {
 
     it('should updated the edited rows', () => {
       const forecast = weatherIndeterminateGenerator(1, 'test1', WeatherDeterminate.FORECAST, FROM_DATE_STRING)
-      const rows = createMoreCast2Rows([], [forecast], [])
+      const rows = createMoreCast2Rows([], [forecast], [], [])
       expect(dataSliceReducer(initialState, storeUserEditedRows(rows)).userEditedRows).toEqual(rows)
 
       const updatedForecast = {
@@ -245,7 +252,7 @@ describe('dataSlice', () => {
         fire_weather_index: 1,
         danger_rating: 1
       }
-      const updatedRows = createMoreCast2Rows([], [updatedForecast], [])
+      const updatedRows = createMoreCast2Rows([], [updatedForecast], [], [])
       expect(dataSliceReducer(initialState, storeUserEditedRows(updatedRows)).userEditedRows).toEqual(updatedRows)
     })
   })
@@ -331,8 +338,11 @@ describe('dataSlice', () => {
       const forecasts = [
         weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.NULL, FROM_DATE_STRING)
       ]
+      const grassCuring = [
+        weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.GRASS_CURING_CWFIS, FROM_DATE_STRING)
+      ]
       const predictions = predictionGenerator(stationCode, stationName, FROM_DATE_STRING)
-      const rows = createMoreCast2Rows(actuals, forecasts, predictions)
+      const rows = createMoreCast2Rows(actuals, forecasts, grassCuring, predictions)
       expect(rows.length).toBe(1)
       const row = rows[0]
       expect(row.stationCode).toBe(stationCode)
@@ -352,8 +362,11 @@ describe('dataSlice', () => {
       const forecasts = [
         weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.NULL, FROM_DATE_STRING, NaN)
       ]
+      const grassCuring = [
+        weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.GRASS_CURING_CWFIS, FROM_DATE_STRING)
+      ]
       const predictions = predictionGenerator(stationCode, stationName, FROM_DATE_STRING)
-      const rows = createMoreCast2Rows(actuals, forecasts, predictions)
+      const rows = createMoreCast2Rows(actuals, forecasts, grassCuring, predictions)
       const row = rows[0]
       expect(row.precipForecast?.choice).toBe(WeatherDeterminate.NULL)
       expect(row.precipForecast?.value).toBe(0)
@@ -367,8 +380,11 @@ describe('dataSlice', () => {
       const forecasts = [
         weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.NULL, FROM_DATE_STRING, NaN)
       ]
+      const grassCuring = [
+        weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.GRASS_CURING_CWFIS, FROM_DATE_STRING)
+      ]
       const predictions = predictionGenerator(stationCode, stationName, FROM_DATE_STRING)
-      const rows = createMoreCast2Rows(actuals, forecasts, predictions)
+      const rows = createMoreCast2Rows(actuals, forecasts, grassCuring, predictions)
       const row = rows[0]
       expect(row.precipForecast?.choice).toBe(WeatherDeterminate.NULL)
       expect(row.precipForecast?.value).toBe(NaN)
@@ -382,8 +398,11 @@ describe('dataSlice', () => {
       const forecasts = [
         weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.NULL, FROM_DATE_STRING, 1)
       ]
+      const grassCuring = [
+        weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.GRASS_CURING_CWFIS, FROM_DATE_STRING)
+      ]
       const predictions = predictionGenerator(stationCode, stationName, FROM_DATE_STRING)
-      const rows = createMoreCast2Rows(actuals, forecasts, predictions)
+      const rows = createMoreCast2Rows(actuals, forecasts, grassCuring, predictions)
       const row = rows[0]
       expect(row.precipForecast?.choice).toBe(WeatherDeterminate.NULL)
       expect(row.precipForecast?.value).toBe(1)
