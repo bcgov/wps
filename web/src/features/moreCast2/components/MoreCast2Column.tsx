@@ -81,8 +81,8 @@ export class DateForecastField implements ColDefGenerator {
   }
 }
 
-export class GrassCuringCWFISield implements ColDefGenerator {
-  private static instance: GrassCuringCWFISield
+export class GrassCuringCWFISField implements ColDefGenerator {
+  private static instance: GrassCuringCWFISField
   private colDefBuilder: ColumnDefBuilder
 
   readonly field = 'grassCuringCWFIS'
@@ -107,12 +107,12 @@ export class GrassCuringCWFISield implements ColDefGenerator {
     return [this.generateColDef()]
   }
 
-  public static getInstance(): GrassCuringCWFISield {
-    if (!GrassCuringCWFISield.instance) {
-      GrassCuringCWFISield.instance = new GrassCuringCWFISield()
+  public static getInstance(): GrassCuringCWFISField {
+    if (!GrassCuringCWFISField.instance) {
+      GrassCuringCWFISField.instance = new GrassCuringCWFISField()
     }
 
-    return GrassCuringCWFISield.instance
+    return GrassCuringCWFISField.instance
   }
 }
 
@@ -199,4 +199,4 @@ export const MORECAST2_INDEX_FIELDS: ForecastColDefGenerator[] = [
 
 export const MORECAST2_GRASS_CURING_FORECAST_FIELD: ForecastColDefGenerator = gcForecastField
 
-export const MORECAST2_GRASS_CURING_CWFIS_FIELD: ColDefGenerator = GrassCuringCWFISield.getInstance()
+export const MORECAST2_GRASS_CURING_CWFIS_FIELD: ColDefGenerator = GrassCuringCWFISField.getInstance()
