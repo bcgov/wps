@@ -12,7 +12,7 @@ import {
   fetchCalculatedIndices
 } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
-import { createDateInterval, rowIDHasher, fillGrassCuring } from 'features/moreCast2/util'
+import { createDateInterval, rowIDHasher, fillGrassCuringForecast, fillGrassCuringCWFIS } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
@@ -24,6 +24,7 @@ interface State {
   error: string | null
   actuals: WeatherIndeterminate[]
   forecasts: WeatherIndeterminate[]
+  grassCuring: WeatherIndeterminate[]
   predictions: WeatherIndeterminate[]
   userEditedRows: MoreCast2Row[]
 }
@@ -33,6 +34,7 @@ export const initialState: State = {
   error: null,
   actuals: [],
   forecasts: [],
+  grassCuring: [],
   predictions: [],
   userEditedRows: []
 }
@@ -45,6 +47,7 @@ const dataSlice = createSlice({
       state.error = null
       state.actuals = []
       state.forecasts = []
+      state.grassCuring = []
       state.predictions = []
       state.userEditedRows = []
       state.loading = true
@@ -57,6 +60,7 @@ const dataSlice = createSlice({
       state.error = null
       state.actuals = action.payload.actuals
       state.forecasts = action.payload.forecasts
+      state.grassCuring = action.payload.grassCuring
       state.predictions = action.payload.predictions
       state.loading = false
     },
@@ -100,7 +104,7 @@ export default dataSlice.reducer
 
 /**
  * Use the morecast2API to get WeatherIndeterminates from the backend. Fills in missing
- * actuals and predictions. Results are stored the Redux store.
+ * actuals and predictions. Results are stored in the Redux store.
  * @param stations The list of stations to retreive data for.
  * @param fromDate The start date from which to retrieve data from (inclusive).
  * @param toDate The end date from which to retrieve data from (inclusive).
@@ -130,13 +134,22 @@ export const getWeatherIndeterminates =
         stationMap,
         WeatherDeterminate.NULL
       )
+      let grassCuring = fillMissingWeatherIndeterminates(
+        data.grassCuring,
+        fromDate,
+        toDate,
+        stationMap,
+        WeatherDeterminate.GRASS_CURING_CWFIS
+      )
       let predictions = fillMissingPredictions(data.predictions, fromDate, toDate, stationMap)
       actuals = addUniqueIds(actuals)
       forecasts = addUniqueIds(forecasts)
+      grassCuring = addUniqueIds(grassCuring)
       predictions = addUniqueIds(predictions)
       const payload = {
         actuals,
         forecasts,
+        grassCuring,
         predictions
       }
       dispatch(getWeatherIndeterminatesSuccess(payload))
@@ -168,11 +181,12 @@ export const getSimulatedIndices =
 export const createMoreCast2Rows = (
   actuals: WeatherIndeterminate[],
   forecasts: WeatherIndeterminate[],
+  grassCuring: WeatherIndeterminate[],
   predictions: WeatherIndeterminate[]
 ): MoreCast2Row[] => {
   // Since ids are a composite of a station code and date, grouping by id ensures that each group represents
   // the weather indeterminates for a single station and date
-  const groupedById = groupBy([...actuals, ...forecasts, ...predictions], 'id')
+  const groupedById = groupBy([...actuals, ...forecasts, ...grassCuring, ...predictions], 'id')
 
   const rows: MoreCast2Row[] = []
 
@@ -254,7 +268,13 @@ export const createMoreCast2Rows = (
             value: getNumberOrNaN(value.fire_weather_index)
           }
           row.grassCuringForecast = {
-            choice: forecastOrNull(ModelChoice.NULL),
+            choice: forecastOrNull(value.determinate),
+            value: getNumberOrNaN(value.grass_curing)
+          }
+          break
+        case WeatherDeterminate.GRASS_CURING_CWFIS:
+          row.grassCuringCWFIS = {
+            choice: forecastOrNull(value.determinate),
             value: getNumberOrNaN(value.grass_curing)
           }
           break
@@ -346,7 +366,8 @@ export const createMoreCast2Rows = (
       row.precipForecast.value = 0
     }
   }
-  const newRows = fillGrassCuring(rows)
+  let newRows = fillGrassCuringForecast(rows)
+  newRows = fillGrassCuringCWFIS(newRows)
 
   return newRows
 }
@@ -371,7 +392,7 @@ export const addUniqueIds = (items: WeatherIndeterminate[]) => {
 
 /**
  * Given an array of WeatherIndeterminates, a date range, a map of station codes to stations names and
- * a WeatherDeterminate, ensure a WeatherIndetermiante is present for each day for each station.
+ * a WeatherDeterminate, ensure a WeatherIndeterminate is present for each day for each station.
  * @param items An array of WeatherIndeterminates that may need additional empty actuals added.
  * @param fromDate The start date for which actuals are required (inclusive).
  * @param toDate The end date for which actuals are required (inclusive).
@@ -513,6 +534,7 @@ export const selectAllMoreCast2Rows = createSelector([selectWeatherIndeterminate
   const rows = createMoreCast2Rows(
     weatherIndeterminates.actuals,
     weatherIndeterminates.forecasts,
+    weatherIndeterminates.grassCuring,
     weatherIndeterminates.predictions
   )
   const sortedRows = sortRowsByStationNameAndDate(rows)

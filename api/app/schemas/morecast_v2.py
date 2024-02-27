@@ -28,6 +28,7 @@ class WeatherDeterminate(str, Enum):
     NAM_BIAS = 'NAM_BIAS'
     RDPS = 'RDPS'
     RDPS_BIAS = 'RDPS_BIAS'
+    GRASS_CURING_CWFIS = 'Grass_Curing_CWFIS'
 
     # non prediction models
     FORECAST = 'Forecast'
@@ -141,8 +142,9 @@ class WeatherIndeterminate(BaseModel):
 
 class IndeterminateDailiesResponse(BaseModel):
     actuals: List[WeatherIndeterminate]
-    predictions: List[WeatherIndeterminate]
     forecasts: List[WeatherIndeterminate]
+    grass_curing: List[WeatherIndeterminate]
+    predictions: List[WeatherIndeterminate]
 
 
 class SimulateIndeterminateIndices(BaseModel):

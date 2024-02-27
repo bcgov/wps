@@ -128,7 +128,39 @@ export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: Mor
  * @param rows - MoreCast2Row[]
  * @returns MoreCast2Row[]
  */
-export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
+export const fillGrassCuringCWFIS = (rows: MoreCast2Row[]): MoreCast2Row[] => {
+  const stationGrassMap = new Map<number, { date: DateTime; grassCuringCWFIS: number }>()
+  // Iterate through all rows first so we know we have all the CWFIS grass curing values for each station
+  // regardless of row order.
+  for (const row of rows) {
+    const { stationCode, forDate, grassCuringCWFIS } = row
+    const grassCuring = grassCuringCWFIS && !isNaN(grassCuringCWFIS.value) ? grassCuringCWFIS.value : NaN
+
+    if (!isNaN(grassCuring)) {
+      const existingStation = stationGrassMap.get(stationCode)
+
+      if (!existingStation || forDate > existingStation.date) {
+        stationGrassMap.set(stationCode, { date: forDate, grassCuringCWFIS: grassCuring })
+      }
+    }
+  }
+
+  for (const row of rows) {
+    const stationInfo = stationGrassMap.get(row.stationCode)
+    // Fill the grass curing CWFIS value as long as it doesn't already have a value.
+    if (stationInfo && row.grassCuringCWFIS && isNaN(row.grassCuringCWFIS.value) && row.forDate > stationInfo.date) {
+      row.grassCuringCWFIS.value = stationInfo.grassCuringCWFIS
+    }
+  }
+  return rows
+}
+
+/**
+ * Fills all stations grass curing values with the last entered value for each station
+ * @param rows - MoreCast2Row[]
+ * @returns MoreCast2Row[]
+ */
+export const fillGrassCuringForecast = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   const stationGrassMap = new Map<number, { date: DateTime; grassCuring: number }>()
   // iterate through all rows first so we know we have all the grass curing values for each station
   // regardless of row order
@@ -150,7 +182,12 @@ export const fillGrassCuring = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   for (const row of rows) {
     const stationInfo = stationGrassMap.get(row.stationCode)
     // fill the grass curing forecast value, as long as it doesn't already have a value
-    if (stationInfo && row.grassCuringForecast && isNaN(row.grassCuringForecast.value)) {
+    if (
+      stationInfo &&
+      row.grassCuringForecast &&
+      isNaN(row.grassCuringForecast.value) &&
+      row.forDate > stationInfo.date
+    ) {
       row.grassCuringForecast.value = stationInfo.grassCuring
     }
   }

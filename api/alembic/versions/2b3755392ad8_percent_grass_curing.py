@@ -24,7 +24,7 @@ def upgrade():
     sa.Column('percent_grass_curing', sa.Float(), nullable=False),
     sa.Column('for_date', TZTimeStamp(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
-    comment='Record containing information about percent grass curing from the CFWIS.'
+    comment='Record containing information about percent grass curing from the CWFIS.'
     )
     op.create_index(op.f('ix_percent_grass_curing_for_date'), 'percent_grass_curing', ['for_date'], unique=False)
     op.create_index(op.f('ix_percent_grass_curing_id'), 'percent_grass_curing', ['id'], unique=False)
