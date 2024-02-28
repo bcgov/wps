@@ -45,7 +45,8 @@ const Root = styled('div')(() => {
 
   Object.keys(MORECAST_MODEL_COLORS).forEach(key => {
     styles[`& .${key}`] = {
-      backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg
+      backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
+      borderRightColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].border
     }
     styles[`& .${key}-header`] = {
       backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
@@ -105,6 +106,7 @@ const ForecastDataGrid = ({
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
+        showCellVerticalBorder
         columnVisibilityModel={columnVisibilityModel}
         onColumnVisibilityModelChange={newModel => setColumnVisibilityModel(newModel)}
         columnGroupingModel={columnGroupingModel}
