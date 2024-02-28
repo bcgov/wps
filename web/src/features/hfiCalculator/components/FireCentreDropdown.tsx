@@ -30,10 +30,6 @@ const Root = styled('div')({
     '& .MuiAutocomplete-popupIndicator': {
       color: 'white'
     },
-    '& .MuiAutocomplete-endAdornment': {
-      right: -3,
-      top: -3
-    },
     '& .MuiInputLabel-root': {
       color: 'white'
     },
