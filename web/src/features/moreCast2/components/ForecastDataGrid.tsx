@@ -107,6 +107,7 @@ const ForecastDataGrid = ({
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
         showCellVerticalBorder
+        showColumnVerticalBorder
         columnVisibilityModel={columnVisibilityModel}
         onColumnVisibilityModelChange={newModel => setColumnVisibilityModel(newModel)}
         columnGroupingModel={columnGroupingModel}
