@@ -12,7 +12,7 @@ import {
 } from 'features/moreCast2/components/MoreCast2Column'
 import GroupHeader from 'features/moreCast2/components/GroupHeader'
 import { handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
-import { MoreCastParamColors } from 'app/theme'
+import { MoreCastParams } from 'app/theme'
 
 export interface ColumnVis {
   columnName: string
@@ -106,7 +106,7 @@ export class DataGridColumns {
 
 const renderGroupHeader = (
   id: string,
-  weatherParam: keyof MoreCastParamColors,
+  weatherParam: keyof MoreCastParams,
   columns: ColumnVis[],
   handleShowHideChange: handleShowHideChangeType
 ) => {

@@ -15,12 +15,7 @@ import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
-import {
-  MORECAST_MODEL_COLORS,
-  MORECAST_WEATHER_PARAM_COLORS,
-  MoreCastModelColors,
-  MoreCastParamColors
-} from 'app/theme'
+import { MORECAST_MODEL_COLORS, MORECAST_WEATHER_PARAMS, MoreCastModelColors, MoreCastParams } from 'app/theme'
 import { fillStationGrassCuringForward } from 'features/moreCast2/util'
 import { storeUserEditedRows } from 'features/moreCast2/slices/dataSlice'
 import { AppDispatch } from 'app/store'
@@ -42,9 +37,9 @@ const Root = styled('div')(() => {
     }
   }
 
-  Object.keys(MORECAST_WEATHER_PARAM_COLORS).forEach(key => {
+  Object.keys(MORECAST_WEATHER_PARAMS).forEach(key => {
     styles[`& .${key}`] = {
-      backgroundColor: MORECAST_WEATHER_PARAM_COLORS[key as keyof MoreCastParamColors].active
+      backgroundColor: MORECAST_WEATHER_PARAMS[key as keyof MoreCastParams].active
     }
   })
 

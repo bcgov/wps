@@ -40,7 +40,7 @@ import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
 import { mapForecastChoiceLabels } from 'features/moreCast2/util'
-import { MoreCastParamColors } from 'app/theme'
+import { MoreCastParams } from 'app/theme'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -65,11 +65,7 @@ interface TabbedDataGridProps {
   setFromTo: React.Dispatch<React.SetStateAction<DateRange>>
 }
 
-export type handleShowHideChangeType = (
-  weatherParam: keyof MoreCastParamColors,
-  columnName: string,
-  value: boolean
-) => void
+export type handleShowHideChangeType = (weatherParam: keyof MoreCastParams, columnName: string, value: boolean) => void
 
 const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProps) => {
   const dispatch: AppDispatch = useDispatch()
@@ -450,7 +446,11 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     return visibleRows.filter(isForecastRowPredicate).length > 0
   }
 
-  const handleShowHideChange: handleShowHideChangeType = (weatherParam: string, columnName: string, value: boolean) => {
+  const handleShowHideChange: handleShowHideChangeType = (
+    weatherParam: keyof MoreCastParams,
+    columnName: string,
+    value: boolean
+  ) => {
     const newModel = cloneDeep(showHideColumnsModel)
     const changedColumn = newModel[weatherParam].filter(column => column.columnName === columnName)[0]
     changedColumn.visible = value

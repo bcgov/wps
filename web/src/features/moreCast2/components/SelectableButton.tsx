@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { Button } from '@mui/material'
-import { MORECAST_WEATHER_PARAM_COLORS, MoreCastParamColors, theme } from 'app/theme'
+import { MORECAST_WEATHER_PARAMS, MoreCastParams, theme } from 'app/theme'
 import styled from '@emotion/styled'
 
 const StyledButton = styled(Button)(() => ({
@@ -13,16 +13,16 @@ const StyledButton = styled(Button)(() => ({
 }))
 
 const SelectedButton = styled(StyledButton, { shouldForwardProp: prop => prop !== 'weatherParam' })(
-  ({ weatherParam }: { weatherParam: keyof MoreCastParamColors }) => ({
-    backgroundColor: MORECAST_WEATHER_PARAM_COLORS[weatherParam].active,
-    color: MORECAST_WEATHER_PARAM_COLORS[weatherParam].text
+  ({ weatherParam }: { weatherParam: keyof MoreCastParams }) => ({
+    backgroundColor: MORECAST_WEATHER_PARAMS[weatherParam].active,
+    color: MORECAST_WEATHER_PARAMS[weatherParam].text
   })
 )
 
 const UnSelectedButton = styled(StyledButton, { shouldForwardProp: prop => prop !== 'weatherParam' })(
-  ({ weatherParam }: { weatherParam: keyof MoreCastParamColors }) => ({
-    backgroundColor: MORECAST_WEATHER_PARAM_COLORS[weatherParam].inactive,
-    color: MORECAST_WEATHER_PARAM_COLORS[weatherParam].text
+  ({ weatherParam }: { weatherParam: keyof MoreCastParams }) => ({
+    backgroundColor: MORECAST_WEATHER_PARAMS[weatherParam].inactive,
+    color: MORECAST_WEATHER_PARAMS[weatherParam].text
   })
 )
 
@@ -31,7 +31,7 @@ interface SelectableButtonProps {
   dataTestId?: string
   onClick: () => void
   selected: boolean
-  weatherParam: keyof MoreCastParamColors
+  weatherParam: keyof MoreCastParams
 }
 
 const SelectableButton = ({ children, dataTestId, onClick, selected, weatherParam }: SelectableButtonProps) => {

@@ -96,7 +96,7 @@ export const DARK_GREY = '#A7A7A7'
 export const LIGHT_GREY = '#DADADA'
 export const MEDIUM_GREY = '#B5B5B5'
 
-export const MORECAST_WEATHER_PARAM_COLORS = {
+export const MORECAST_WEATHER_PARAMS = {
   temp: { active: 'rgba(215, 48, 39, 0.3)', inactive: 'rgba(215, 48, 39, 0.2)', text: 'black' },
   rh: { active: 'rgba(254, 224, 144, 0.7)', inactive: 'rgba(254, 224, 144, 0.3)', text: 'black' },
   windDirection: { active: 'rgba(145, 191, 219, 0.5)', inactive: 'rgba(145, 191, 219, 0.2)', text: 'black' },
@@ -105,7 +105,7 @@ export const MORECAST_WEATHER_PARAM_COLORS = {
   gc: { active: 'rgba(153, 142, 195, 0.7)', inactive: 'rgba(153, 142, 195, 0.2)', text: 'black' },
   summary: { active: 'rgba(0, 51, 102, 1)', inactive: 'rgba(0, 51, 102, 0.6)', text: 'white' }
 }
-export type MoreCastParamColors = typeof MORECAST_WEATHER_PARAM_COLORS
+export type MoreCastParams = typeof MORECAST_WEATHER_PARAMS
 
 export const MORECAST_MODEL_COLORS = {
   nam: { bg: 'rgba(255, 20, 147, 0.1)', border: 'rgba(255, 20, 147, 1)' },
