@@ -162,7 +162,17 @@ export const getColumnGroupingModel = (
     },
     {
       groupId: 'Grass Curing',
-      children: [{ field: 'grassCuringForecast' }, { field: 'grassCuringCWFIS' }],
+      children: [
+        {
+          groupId: 'Grass Curing Forecast',
+          field: 'grassCuringForecast'
+        },
+        {
+          groupId: 'Grass Curing CWFIS',
+          field: 'grassCuringCWFIS'
+        }
+      ],
+      headerClassName: 'gc',
       renderHeaderGroup: () => {
         return <Typography style={{ fontWeight: 'bold' }}>Grass Curing</Typography>
       }
