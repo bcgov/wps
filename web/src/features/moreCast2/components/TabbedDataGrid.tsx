@@ -395,12 +395,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   // grass curing related fields.
   const handleCellDoubleClick = (params: GridCellParams) => {
     const headerName = params.colDef.headerName as WeatherDeterminateType
-    if (
-      !headerName ||
-      headerName === WeatherDeterminate.ACTUAL ||
-      headerName === WeatherDeterminate.FORECAST ||
-      params.field.includes('grass')
-    ) {
+    if (!headerName || headerName === WeatherDeterminate.ACTUAL || headerName === WeatherDeterminate.FORECAST) {
       // A forecast or actual column was clicked, or there is no value for headerName, nothing to do
       return
     }
