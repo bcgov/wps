@@ -9,6 +9,7 @@ import {
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 import { tempForecastField } from 'features/moreCast2/components/MoreCast2Column'
+import { theme } from 'app/theme'
 
 describe('ColDefBuilder', () => {
   const colDefBuilder = new ColumnDefBuilder(
@@ -86,7 +87,12 @@ describe('ColDefBuilder', () => {
       )
 
       expect(forecastColDef.renderCell({ formattedValue: 1 })).toEqual(
-        <TextField sx={{ pointerEvents: 'none' }} disabled={true} size="small" value={1}></TextField>
+        <TextField
+          sx={{ pointerEvents: 'none', backgroundColor: theme.palette.common.white, borderRadius: 1 }}
+          disabled={true}
+          size="small"
+          value={1}
+        ></TextField>
       )
       expect(forecastColDef.valueFormatter({ value: 1.11 })).toEqual('1.1')
     })

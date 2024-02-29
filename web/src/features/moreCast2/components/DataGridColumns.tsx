@@ -12,6 +12,7 @@ import {
 } from 'features/moreCast2/components/MoreCast2Column'
 import GroupHeader from 'features/moreCast2/components/GroupHeader'
 import { handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
+import { MoreCastParams } from 'app/theme'
 
 export interface ColumnVis {
   columnName: string
@@ -105,7 +106,7 @@ export class DataGridColumns {
 
 const renderGroupHeader = (
   id: string,
-  weatherParam: string,
+  weatherParam: keyof MoreCastParams,
   columns: ColumnVis[],
   handleShowHideChange: handleShowHideChangeType
 ) => {
@@ -129,34 +130,49 @@ export const getColumnGroupingModel = (
     {
       groupId: 'Temp',
       children: columnGroupingModelChildGenerator('temp'),
+      headerClassName: 'temp',
       renderHeaderGroup: () => renderGroupHeader('Temp', 'temp', showHideColumnsModel['temp'], handleShowHideChange)
     },
     {
       groupId: 'RH',
       children: columnGroupingModelChildGenerator('rh'),
+      headerClassName: 'rh',
       renderHeaderGroup: () => renderGroupHeader('RH', 'rh', showHideColumnsModel['rh'], handleShowHideChange)
     },
     {
       groupId: 'Precip',
       children: columnGroupingModelChildGenerator('precip'),
+      headerClassName: 'precip',
       renderHeaderGroup: () =>
         renderGroupHeader('Precip', 'precip', showHideColumnsModel['precip'], handleShowHideChange)
     },
     {
       groupId: 'Wind Dir',
       children: columnGroupingModelChildGenerator('windDirection'),
+      headerClassName: 'windDirection',
       renderHeaderGroup: () =>
         renderGroupHeader('Wind Dir', 'windDirection', showHideColumnsModel['windDirection'], handleShowHideChange)
     },
     {
       groupId: 'Wind Speed',
       children: columnGroupingModelChildGenerator('windSpeed'),
+      headerClassName: 'windSpeed',
       renderHeaderGroup: () =>
         renderGroupHeader('Wind Speed', 'windSpeed', showHideColumnsModel['windSpeed'], handleShowHideChange)
     },
     {
       groupId: 'Grass Curing',
-      children: [{ field: 'grassCuringForecast' }, { field: 'grassCuringCWFIS' }],
+      children: [
+        {
+          groupId: 'Grass Curing Forecast',
+          field: 'grassCuringForecast'
+        },
+        {
+          groupId: 'Grass Curing CWFIS',
+          field: 'grassCuringCWFIS'
+        }
+      ],
+      headerClassName: 'gc',
       renderHeaderGroup: () => {
         return <Typography style={{ fontWeight: 'bold' }}>Grass Curing</Typography>
       }
