@@ -29,6 +29,7 @@ import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
 import { StyledFormControl } from 'components/StyledFormControl'
+import { getMostRecentProcessedSnowByDate } from 'api/snow'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -61,8 +62,20 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
   const [showSummaryPanel, setShowSummaryPanel] = useState(true)
+  const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const { mostRecentRunDate } = useSelector(selectRunDates)
   const { fireShapeAreas } = useSelector(selectFireShapeAreas)
+
+  // Query our API for the most recently processed snow coverage date <= the currently selected date.
+  const fetchLastProcessedSnow = async (selectedDate: DateTime) => {
+    const data = await getMostRecentProcessedSnowByDate(selectedDate)
+    if (isNull(data)) {
+      setSnowDate(null)
+    } else {
+      const newSnowDate = data.forDate
+      setSnowDate(newSnowDate)
+    }
+  }
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -104,6 +117,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (!isNull(doiISODate)) {
       dispatch(fetchSFMSRunDates(runType, doiISODate))
     }
+    fetchLastProcessedSnow(dateOfInterest)
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -240,6 +254,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               setSelectedFireShape={setSelectedFireShape}
               fireShapeAreas={fireShapeAreas}
               showSummaryPanel={showSummaryPanel}
+              snowDate={snowDate}
               setShowSummaryPanel={setShowSummaryPanel}
             />
           </Grid>

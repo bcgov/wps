@@ -106,7 +106,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(key, temp_filename)
-        with polygonize_in_memory(temp_filename) as layer:
+        with polygonize_in_memory(temp_filename, 'hfi', 'hfi') as layer:
 
             # We need a geojson file to pass to tippecanoe
             temp_geojson = write_geojson(layer, temp_dir)

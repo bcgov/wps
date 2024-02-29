@@ -183,7 +183,7 @@ class ViirsSnowJob():
 
     async def _create_pmtiles_layer(self, path: str, for_date: date):
         filename = os.path.join(path, BINARY_SNOW_COVERAGE_CLASSIFICATION_NAME)
-        with polygonize_in_memory(filename) as layer:
+        with polygonize_in_memory(filename, 'snow', 'snow') as layer:
             # We need a geojson file to pass to tippecanoe
             temp_geojson = write_geojson(layer, path)
             pmtiles_filename = f'snowCoverage{for_date.strftime("%Y%m%d")}.pmtiles'
