@@ -173,7 +173,7 @@ export const hfiStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style 
 
 // A styling function for the snow coverage pmtiles layer.
 export const snowStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-  const snow = feature.get('hfi')
+  const snow = feature.get('snow')
   const snowStyle = new Style({})
   if (snow === 1) {
     snowStyle.setFill(new Fill({ color: SNOW_FILL }))
