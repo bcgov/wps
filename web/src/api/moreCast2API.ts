@@ -41,6 +41,7 @@ export type ModelType =
   | 'PERSISTENCE'
   | 'RDPS'
   | 'RDPS_BIAS'
+  | 'Grass_Curing_CWFIS'
 
 export const ModelChoices: ModelType[] = [
   ModelChoice.GDPS,
@@ -84,7 +85,8 @@ export enum WeatherDeterminate {
   NAM_BIAS = 'NAM_BIAS',
   NULL = 'NULL',
   RDPS = 'RDPS',
-  RDPS_BIAS = 'RDPS_BIAS'
+  RDPS_BIAS = 'RDPS_BIAS',
+  GRASS_CURING_CWFIS = 'Grass_Curing_CWFIS'
 }
 
 export type WeatherDeterminateType =
@@ -101,6 +103,7 @@ export type WeatherDeterminateType =
   | 'NULL'
   | 'RDPS'
   | 'RDPS_BIAS'
+  | 'Grass_Curing_CWFIS'
 
 export const WeatherDeterminateChoices = [
   WeatherDeterminate.ACTUAL,
@@ -144,12 +147,14 @@ export interface WeatherIndeterminate {
 export interface WeatherIndeterminatePayload {
   actuals: WeatherIndeterminate[]
   forecasts: WeatherIndeterminate[]
+  grassCuring: WeatherIndeterminate[]
   predictions: WeatherIndeterminate[]
 }
 
 export interface WeatherIndeterminateResponse {
   actuals: WeatherIndeterminate[]
   forecasts: WeatherIndeterminate[]
+  grass_curing: WeatherIndeterminate[]
   predictions: WeatherIndeterminate[]
 }
 
@@ -227,6 +232,7 @@ export async function fetchWeatherIndeterminates(
     return {
       actuals: [],
       forecasts: [],
+      grassCuring: [],
       predictions: []
     }
   }
@@ -237,6 +243,7 @@ export async function fetchWeatherIndeterminates(
   const payload: WeatherIndeterminatePayload = {
     actuals: data.actuals,
     forecasts: data.forecasts,
+    grassCuring: data.grass_curing,
     predictions: data.predictions
   }
 
