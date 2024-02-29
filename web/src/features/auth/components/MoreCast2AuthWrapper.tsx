@@ -1,4 +1,3 @@
-import { jwtDecode } from 'jwt-decode'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from 'app/store'
@@ -38,7 +37,6 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
       if (window.location.href?.includes('access_token')) {
         const wf1Token = window.location.href.split('#access_token=')[1].split('&')[0]
         try {
-          jwtDecode(wf1Token)
           dispatch(wf1Authenticate(wf1Token))
           setRenderChildren(true)
         } catch (e) {
