@@ -18,6 +18,7 @@ import {
   WIND_DIR_HEADER,
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
+import { theme } from 'app/theme'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -28,7 +29,7 @@ export class GridComponentRenderer {
   }
   public renderHeaderWith = (params: GridColumnHeaderParams) => {
     if (params.field.endsWith('_BIAS')) {
-      const headerName = params.colDef.headerName || ''
+      const headerName = params.colDef.headerName ?? ''
       const index = headerName.indexOf('_BIAS')
       const prefix = headerName.slice(0, index)
       return (
@@ -41,7 +42,12 @@ export class GridComponentRenderer {
     return <div data-testid={`${params.colDef.field}-column-header`}>{params.colDef.headerName}</div>
   }
   public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue'>) => (
-    <TextField sx={{ pointerEvents: 'none' }} disabled={true} size="small" value={params.formattedValue}></TextField>
+    <TextField
+      sx={{ pointerEvents: 'none', backgroundColor: theme.palette.common.white, borderRadius: 1 }}
+      disabled={true}
+      size="small"
+      value={params.formattedValue}
+    ></TextField>
   )
 
   public getActualField = (field: string) => {

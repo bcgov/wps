@@ -40,6 +40,7 @@ import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
 import { mapForecastChoiceLabels } from 'features/moreCast2/util'
+import { MoreCastParams } from 'app/theme'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -64,7 +65,7 @@ interface TabbedDataGridProps {
   setFromTo: React.Dispatch<React.SetStateAction<DateRange>>
 }
 
-export type handleShowHideChangeType = (weatherParam: string, columnName: string, value: boolean) => void
+export type handleShowHideChangeType = (weatherParam: keyof MoreCastParams, columnName: string, value: boolean) => void
 
 const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProps) => {
   const dispatch: AppDispatch = useDispatch()
@@ -203,7 +204,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     const showHideColumnsUngroupedState = weatherModelColumns.map((column: GridColDef): ColumnVis => {
       return {
         columnName: column.field,
-        displayName: getColumnDisplayName(column.headerName || ''),
+        displayName: getColumnDisplayName(column.headerName ?? ''),
         visible: true
       }
     })
@@ -445,7 +446,11 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     return visibleRows.filter(isForecastRowPredicate).length > 0
   }
 
-  const handleShowHideChange: handleShowHideChangeType = (weatherParam: string, columnName: string, value: boolean) => {
+  const handleShowHideChange: handleShowHideChangeType = (
+    weatherParam: keyof MoreCastParams,
+    columnName: string,
+    value: boolean
+  ) => {
     const newModel = cloneDeep(showHideColumnsModel)
     const changedColumn = newModel[weatherParam].filter(column => column.columnName === columnName)[0]
     changedColumn.visible = value
@@ -471,16 +476,23 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="temp-tab-button"
           onClick={() => setTempVisible(!tempVisible)}
           selected={tempVisible}
+          weatherParam="temp"
         >
           Temp
         </SelectableButton>
-        <SelectableButton dataTestId="rh-tab-button" onClick={() => setRhVisible(!rhVisible)} selected={rhVisible}>
+        <SelectableButton
+          dataTestId="rh-tab-button"
+          onClick={() => setRhVisible(!rhVisible)}
+          selected={rhVisible}
+          weatherParam="rh"
+        >
           RH
         </SelectableButton>
         <SelectableButton
           dataTestId="wind-direction-tab-button"
           onClick={() => setWindDirectionVisible(!windDirectionVisible)}
           selected={windDirectionVisible}
+          weatherParam="windDirection"
         >
           Wind Direction
         </SelectableButton>
@@ -488,6 +500,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="wind-speed-tab-button"
           onClick={() => setWindSpeedVisible(!windSpeedVisible)}
           selected={windSpeedVisible}
+          weatherParam="windSpeed"
         >
           Wind Speed
         </SelectableButton>
@@ -495,6 +508,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="precip-tab-button"
           onClick={() => setPrecipVisible(!precipVisible)}
           selected={precipVisible}
+          weatherParam="precip"
         >
           Precip
         </SelectableButton>
@@ -502,6 +516,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="grass-curing-tab-button"
           onClick={() => setGrassCuringVisible(!grassCuringVisible)}
           selected={grassCuringVisible}
+          weatherParam="gc"
         >
           Grass Curing
         </SelectableButton>
@@ -509,6 +524,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           dataTestId="summary-tab-button"
           onClick={() => setForecastSummaryVisible(!forecastSummaryVisible)}
           selected={forecastSummaryVisible}
+          weatherParam="summary"
         >
           Forecast Summary
         </SelectableButton>
