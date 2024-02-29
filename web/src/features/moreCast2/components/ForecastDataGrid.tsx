@@ -15,6 +15,10 @@ import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
+import { fillStationGrassCuringForward } from 'features/moreCast2/util'
+import { storeUserEditedRows } from 'features/moreCast2/slices/dataSlice'
+import { AppDispatch } from 'app/store'
+import { useDispatch } from 'react-redux'
 
 const PREFIX = 'ForecastDataGrid'
 
@@ -65,6 +69,15 @@ const ForecastDataGrid = ({
   columnGroupingModel,
   allMoreCast2Rows
 }: ForecastDataGridProps) => {
+  const dispatch: AppDispatch = useDispatch()
+
+  const processRowUpdate = async (newRow: MoreCast2Row) => {
+    const filledRows = fillStationGrassCuringForward(newRow, allMoreCast2Rows)
+    dispatch(storeUserEditedRows(filledRows))
+
+    return newRow
+  }
+
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
@@ -81,6 +94,7 @@ const ForecastDataGrid = ({
         columns={DataGridColumns.getTabColumns()}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
         rows={allMoreCast2Rows}
+        processRowUpdate={processRowUpdate}
       />
       <ApplyToColumnMenu
         colDef={clickedColDef}

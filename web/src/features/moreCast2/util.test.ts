@@ -3,7 +3,8 @@ import { ModelChoice } from 'api/moreCast2API'
 import {
   createDateInterval,
   createWeatherModelLabel,
-  fillGrassCuring,
+  fillGrassCuringForecast,
+  fillGrassCuringCWFIS,
   fillStationGrassCuringForward,
   mapForecastChoiceLabels,
   parseForecastsHelper,
@@ -252,11 +253,45 @@ const rows = [
   actual3A
 ]
 
-describe('fillGrassCuring', () => {
+describe('fillGrassCuringCWFIS', () => {
+  it('should map the most recent CWFIS grass curing value to all future rows', () => {
+    forecast1A.grassCuringCWFIS!.value = 50
+    fillGrassCuringCWFIS(rows)
+    expect(forecast1A.grassCuringCWFIS!.value).toBe(50)
+    expect(forecast1B.grassCuringCWFIS!.value).toBe(50)
+    expect(forecast1C.grassCuringCWFIS!.value).toBe(50)
+  })
+  it('should not map the most recent CWFIS grass curing value to past rows', () => {
+    forecast1A.grassCuringCWFIS!.value = NaN
+    forecast1B.grassCuringCWFIS!.value = 50
+    fillGrassCuringCWFIS(rows)
+    expect(forecast1A.grassCuringCWFIS!.value).toBe(NaN)
+    expect(forecast1B.grassCuringCWFIS!.value).toBe(50)
+  })
+  it('should not map CWFIS values from one station to another station', () => {
+    forecast1A.grassCuringCWFIS!.value = 50
+    forecast1B.grassCuringCWFIS!.value = NaN
+    fillGrassCuringCWFIS(rows)
+    expect(forecast2A.grassCuringCWFIS!.value).toBe(NaN)
+    expect(forecast3A.grassCuringCWFIS!.value).toBe(NaN)
+  })
+})
+
+describe('fillGrassCuringForecast', () => {
   it('should map the most recent grass curing value for each station to each forecast, without overwriting existing submitted values', () => {
+    forecast1A.grassCuringForecast!.value = NaN
+    forecast1B.grassCuringForecast!.value = 50
+    fillGrassCuringForecast(rows)
+    expect(forecast1A.grassCuringForecast!.value).toBe(NaN)
+    expect(forecast1B.grassCuringForecast!.value).toBe(50)
+    expect(forecast1C.grassCuringForecast!.value).toBe(50)
+    expect(forecast2A.grassCuringForecast!.value).toBe(70)
+    expect(forecast3A.grassCuringForecast!.value).toBe(NaN)
+  })
+  it('should not update values in the past', () => {
     forecast1A.grassCuringForecast!.value = 60
     forecast1B.grassCuringForecast!.value = 50
-    fillGrassCuring(rows)
+    fillGrassCuringForecast(rows)
     expect(forecast1A.grassCuringForecast!.value).toBe(60)
     expect(forecast1B.grassCuringForecast!.value).toBe(50)
     expect(forecast1C.grassCuringForecast!.value).toBe(50)

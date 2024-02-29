@@ -49,6 +49,7 @@ export interface MoreCast2Row extends BaseRow {
   // Grass curing
   grassCuringActual: number
   grassCuringForecast?: PredictionItem
+  grassCuringCWFIS?: PredictionItem
 
   // Forecast properties
   precipForecast?: PredictionItem
