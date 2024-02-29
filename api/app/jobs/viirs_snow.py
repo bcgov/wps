@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from osgeo import gdal
 import asyncio
 import glob
@@ -17,6 +17,7 @@ from app.rocketchat_notifications import send_rocketchat_notification
 from app.utils.polygonize import polygonize_in_memory
 from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
 from app.utils.s3 import get_client
+from app.utils.time import vancouver_tz
 
 logger = logging.getLogger(__name__)
 
@@ -247,10 +248,11 @@ class ViirsSnowJob():
             while next_date < today:
                 date_string = next_date.strftime('%Y-%m-%d')
                 logger.info(f"Processing snow coverage data for date: {date_string}")
+                tz_aware_datetime = vancouver_tz.localize(datetime.combine(next_date, datetime.min.time()))
                 try: 
                     await self._process_viirs_snow(next_date, temp_dir)
                     async with get_async_write_session_scope() as session:
-                        processed_snow = ProcessedSnow(for_date=next_date, processed_date=today, snow_source=SnowSourceEnum.viirs)
+                        processed_snow = ProcessedSnow(for_date=tz_aware_datetime, processed_date=today, snow_source=SnowSourceEnum.viirs)
                         await save_processed_snow(session, processed_snow)
                     logger.info(f"Successfully processed VIIRS snow coverage data for date: {date_string}")
                 except requests.exceptions.HTTPError as http_error:

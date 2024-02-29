@@ -20,7 +20,7 @@ router = APIRouter(
 
 @router.get('/most-recent-by-date/{for_date}', response_model=ProcessedSnowResponse | None)
 async def get_most_recent_by_date(for_date: date, _=Depends(authentication_required)):
-    """ Returns a the most recent processed snow record before or equal to the provided date. """
+    """ Returns the most recent processed snow record before or equal to the provided date. """
     logger.info('/snow/most-recent-by-date/')
     tz_aware_datetime = vancouver_tz.localize(datetime.combine(for_date, datetime.min.time()))
     async with get_async_read_session_scope() as session:
