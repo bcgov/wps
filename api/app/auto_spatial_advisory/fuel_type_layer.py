@@ -33,7 +33,7 @@ def fuel_type_iterator() -> Generator[Tuple[int, str], None, None]:
     # that gdal is able to read.
     filename = f'/vsis3/{bucket}/sfms/static/fbp2021.tif'
     logger.info('Polygonizing %s...', filename)
-    with polygonize_in_memory(filename) as layer:
+    with polygonize_in_memory(filename, 'fuel', 'fuel') as layer:
 
         spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
         target_srs = osr.SpatialReference()
