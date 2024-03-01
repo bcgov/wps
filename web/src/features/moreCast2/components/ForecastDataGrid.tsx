@@ -15,6 +15,7 @@ import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
+import { MORECAST_MODEL_COLORS, MORECAST_WEATHER_PARAMS, MoreCastModelColors, MoreCastParams } from 'app/theme'
 import { fillStationGrassCuringForward } from 'features/moreCast2/util'
 import { storeUserEditedRows } from 'features/moreCast2/slices/dataSlice'
 import { AppDispatch } from 'app/store'
@@ -26,14 +27,40 @@ const classes = {
   root: `${PREFIX}-root`
 }
 
-const Root = styled('div')(() => ({
-  [`&.${classes.root}`]: {
-    display: 'flex',
-    flexGrow: 1,
-    flexDirection: 'column',
-    height: '1px'
+const Root = styled('div')(() => {
+  const styles: Record<string, React.CSSProperties> = {
+    [`&.${classes.root}`]: {
+      display: 'flex',
+      flexGrow: 1,
+      flexDirection: 'column',
+      height: '1px'
+    }
   }
-}))
+
+  Object.keys(MORECAST_WEATHER_PARAMS).forEach(key => {
+    styles[`& .${key}`] = {
+      backgroundColor: MORECAST_WEATHER_PARAMS[key as keyof MoreCastParams].active
+    }
+  })
+
+  Object.keys(MORECAST_MODEL_COLORS).forEach(key => {
+    styles[`& .${key}`] = {
+      backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
+      borderRight: 'solid',
+      // Ugly override, tried to avoid, but MUI overwrites border with it's own otherwise
+      borderRightColor: `${MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].border} !important`
+    }
+    styles[`& .${key}-header`] = {
+      backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
+      borderBottom: 'solid',
+      borderRight: 'solid',
+      // Ugly override, tried to avoid, but MUI overwrites border with it's own otherwise
+      borderColor: `${MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].border} !important`
+    }
+  })
+
+  return styles
+})
 
 export interface ForecastDataGridProps {
   loading: boolean
