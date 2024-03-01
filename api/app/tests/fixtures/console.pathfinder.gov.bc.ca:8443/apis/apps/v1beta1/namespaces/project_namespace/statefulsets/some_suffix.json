@@ -1,222 +1,526 @@
 {
-  "kind": "StatefulSet",
-  "apiVersion": "apps/v1beta1",
+  "apiVersion": "postgres-operator.crunchydata.com/v1beta1",
+  "kind": "PostgresCluster",
   "metadata": {
-    "name": "patroni-wps-api-dev",
-    "namespace": "e1e498-dev",
-    "selfLink": "/apis/apps/v1beta1/namespaces/e1e498-dev/statefulsets/patroni-wps-api-dev",
-    "uid": "1cb36251-dcef-11ea-bc4f-0050568348cc",
-    "resourceVersion": "2023643219",
-    "generation": 1,
-    "creationTimestamp": "2020-08-12T22:56:52Z",
-    "labels": {
-      "app": "wps-api-dev",
-      "app.kubernetes.io/part-of": "wps-api",
-      "application": "patroni-wps-api-dev",
-      "cluster-name": "patroni-wps-api-dev",
-      "component": "database",
-      "instance": "wps-api-dev",
-      "version": "10"
-    },
     "annotations": {
-      "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"StatefulSet\",\"metadata\":{\"annotations\":{},\"creationTimestamp\":null,\"generation\":3,\"labels\":{\"app\":\"wps-api-dev\",\"app.kubernetes.io/part-of\":\"wps-api\",\"application\":\"patroni-wps-api-dev\",\"cluster-name\":\"patroni-wps-api-dev\",\"component\":\"database\",\"instance\":\"wps-api-dev\",\"version\":\"10\"},\"name\":\"patroni-wps-api-dev\",\"namespace\":\"e1e498-dev\"},\"spec\":{\"podManagementPolicy\":\"OrderedReady\",\"replicas\":3,\"revisionHistoryLimit\":10,\"selector\":{\"matchLabels\":{\"application\":\"patroni-wps-api-dev\",\"cluster-name\":\"patroni-wps-api-dev\"}},\"serviceName\":\"patroni-wps-api-dev\",\"template\":{\"metadata\":{\"creationTimestamp\":null,\"labels\":{\"application\":\"patroni-wps-api-dev\",\"cluster-name\":\"patroni-wps-api-dev\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"POD_IP\",\"valueFrom\":{\"fieldRef\":{\"apiVersion\":\"v1\",\"fieldPath\":\"status.podIP\"}}},{\"name\":\"PATRONI_KUBERNETES_NAMESPACE\",\"valueFrom\":{\"fieldRef\":{\"apiVersion\":\"v1\",\"fieldPath\":\"metadata.namespace\"}}},{\"name\":\"PATRONI_KUBERNETES_LABELS\",\"value\":\"{application: patroni-wps-api-dev, cluster-name: patroni-wps-api-dev}\"},{\"name\":\"PATRONI_SUPERUSER_USERNAME\",\"value\":\"postgres\"},{\"name\":\"PATRONI_SUPERUSER_PASSWORD\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"patroni-superuser-password\",\"name\":\"wps-api-global\"}}},{\"name\":\"PATRONI_REPLICATION_USERNAME\",\"value\":\"replication\"},{\"name\":\"PATRONI_REPLICATION_PASSWORD\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"patroni-replication-password\",\"name\":\"wps-api-global\"}}},{\"name\":\"PATRONI_SCOPE\",\"value\":\"patroni-wps-api-dev\"},{\"name\":\"PATRONI_NAME\",\"valueFrom\":{\"fieldRef\":{\"apiVersion\":\"v1\",\"fieldPath\":\"metadata.name\"}}},{\"name\":\"APP_USER\",\"value\":\"wps-api-dev\"},{\"name\":\"APP_PASSWORD\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"app-db-password\",\"name\":\"wps-api-global\"}}},{\"name\":\"APP_DATABASE\",\"value\":\"wps-api-dev\"},{\"name\":\"PATRONI_POSTGRESQL_DATA_DIR\",\"value\":\"/home/postgres/pgdata/pgroot/data\"},{\"name\":\"PATRONI_POSTGRESQL_PGPASS\",\"value\":\"/tmp/pgpass\"},{\"name\":\"PATRONI_POSTGRESQL_LISTEN\",\"value\":\"0.0.0.0:5432\"},{\"name\":\"PATRONI_RESTAPI_LISTEN\",\"value\":\"0.0.0.0:8008\"}],\"image\":\"image-registry.openshift-image-registry.svc:5000/e1e498-tools/patroni:10\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"patroni-wps-api-dev\",\"ports\":[{\"containerPort\":8008,\"protocol\":\"TCP\"},{\"containerPort\":5432,\"protocol\":\"TCP\"}],\"resources\":{},\"terminationMessagePath\":\"/dev/termination-log\",\"terminationMessagePolicy\":\"File\",\"volumeMounts\":[{\"mountPath\":\"/home/postgres/pgdata\",\"name\":\"patroni-wps-api-dev\"}]}],\"dnsPolicy\":\"ClusterFirst\",\"restartPolicy\":\"Always\",\"schedulerName\":\"default-scheduler\",\"securityContext\":{},\"serviceAccount\":\"patroniocp-wps-api-dev\",\"serviceAccountName\":\"patroniocp-wps-api-dev\",\"terminationGracePeriodSeconds\":0,\"volumes\":[{\"name\":\"patroni-wps-api-dev\",\"persistentVolumeClaim\":{\"claimName\":\"patroni-wps-api-dev\"}}]}},\"updateStrategy\":{\"type\":\"OnDelete\"},\"volumeClaimTemplates\":[{\"metadata\":{\"labels\":{\"application\":\"patroni-wps-api-dev\"},\"name\":\"patroni-wps-api-dev\"},\"spec\":{\"accessModes\":[\"ReadWriteOnce\"],\"resources\":{\"requests\":{\"storage\":\"5Gi\"}}}}]}}\n"
-    }
+      "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"postgres-operator.crunchydata.com/v1beta1\",\"kind\":\"PostgresCluster\",\"metadata\":{\"annotations\":{},\"labels\":{\"app\":\"wps-crunchy\",\"app.kubernetes.io/part-of\":\"wps-crunchydb\"},\"name\":\"wps-crunchy\",\"namespace\":\"e1e498-dev\"},\"spec\":{\"backups\":{\"pgbackrest\":{\"configuration\":[{\"secret\":{\"items\":[{\"key\":\"conf\",\"path\":\"s3.conf\"}],\"name\":\"crunchy-pgbackrest\"}}],\"global\":{\"repo1-path\":\"/pgbackrest/prod/repo1\",\"repo1-retention-full\":\"3\",\"repo1-retention-full-type\":\"count\"},\"image\":\"artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbackrest:ubi8-2.41-4\",\"manual\":{\"options\":[\"--type=full\"],\"repoName\":\"repo1\"},\"repos\":[{\"name\":\"repo1\",\"s3\":{\"bucket\":\"lwzrin\",\"endpoint\":\"nrs.objectstore.gov.bc.ca\",\"region\":\"ca-central-1\"},\"schedules\":{\"differential\":\"0 1 * * 1-6\",\"full\":\"0 1 * * 0\"}}]}},\"databaseInitSQL\":{\"key\":\"init.sql\",\"name\":\"wps-init-sql\"},\"image\":\"artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres-gis:ubi8-14.7-3.2-0\",\"instances\":[{\"dataVolumeClaimSpec\":{\"accessModes\":[\"ReadWriteOnce\"],\"resources\":{\"requests\":{\"storage\":\"45Gi\"}},\"storageClassName\":\"netapp-block-standard\"},\"name\":\"crunchy\",\"replicas\":3,\"resources\":{\"limits\":{\"cpu\":\"2000m\",\"memory\":\"16Gi\"},\"requests\":{\"cpu\":\"75m\",\"memory\":\"2Gi\"}},\"walVolumeClaimSpec\":{\"accessModes\":[\"ReadWriteOnce\"],\"resources\":{\"requests\":{\"storage\":\"15Gi\"}},\"storageClassName\":\"netapp-block-standard\"}}],\"metadata\":{\"labels\":{\"app\":\"wps-crunchy\"},\"name\":\"wps-crunchy\"},\"postgresVersion\":14,\"users\":[{\"databases\":[\"postgres\",\"wps\"],\"name\":\"wps-crunchy\",\"options\":\"SUPERUSER\"}]}}\n",
+      "postgres-operator.crunchydata.com/pgbackrest-backup": "2024-02-13_15:38:42"
+    },
+    "creationTimestamp": "2024-01-23T00:30:56Z",
+    "finalizers": [
+      "postgres-operator.crunchydata.com/finalizer"
+    ],
+    "generation": 16,
+    "labels": {
+      "app": "wps-crunchy",
+      "app.kubernetes.io/part-of": "wps-crunchydb"
+    },
+    "managedFields": [
+      {
+        "apiVersion": "postgres-operator.crunchydata.com/v1beta1",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:metadata": {
+            "f:finalizers": {
+              ".": {},
+              "v:\"postgres-operator.crunchydata.com/finalizer\"": {}
+            }
+          }
+        },
+        "manager": "postgrescluster-controller",
+        "operation": "Update",
+        "time": "2024-01-23T00:31:46Z"
+      },
+      {
+        "apiVersion": "postgres-operator.crunchydata.com/v1beta1",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:metadata": {
+            "f:annotations": {
+              ".": {},
+              "f:kubectl.kubernetes.io/last-applied-configuration": {}
+            },
+            "f:labels": {
+              ".": {},
+              "f:app": {},
+              "f:app.kubernetes.io/part-of": {}
+            }
+          },
+          "f:spec": {
+            ".": {},
+            "f:backups": {
+              ".": {},
+              "f:pgbackrest": {
+                ".": {},
+                "f:configuration": {},
+                "f:global": {
+                  ".": {},
+                  "f:repo1-path": {},
+                  "f:repo1-retention-full": {},
+                  "f:repo1-retention-full-type": {}
+                },
+                "f:image": {},
+                "f:manual": {
+                  ".": {},
+                  "f:options": {},
+                  "f:repoName": {}
+                },
+                "f:repos": {
+                  ".": {},
+                  "k:{\"name\":\"repo1\"}": {
+                    ".": {},
+                    "f:name": {},
+                    "f:s3": {
+                      ".": {},
+                      "f:bucket": {},
+                      "f:endpoint": {},
+                      "f:region": {}
+                    },
+                    "f:schedules": {
+                      ".": {},
+                      "f:differential": {},
+                      "f:full": {}
+                    }
+                  }
+                }
+              }
+            },
+            "f:databaseInitSQL": {
+              ".": {},
+              "f:key": {},
+              "f:name": {}
+            },
+            "f:image": {},
+            "f:instances": {
+              ".": {},
+              "k:{\"name\":\"crunchy\"}": {
+                ".": {},
+                "f:dataVolumeClaimSpec": {
+                  ".": {},
+                  "f:accessModes": {},
+                  "f:resources": {
+                    ".": {},
+                    "f:requests": {
+                      ".": {},
+                      "f:storage": {}
+                    }
+                  },
+                  "f:storageClassName": {}
+                },
+                "f:name": {},
+                "f:resources": {
+                  ".": {},
+                  "f:limits": {
+                    ".": {},
+                    "f:cpu": {},
+                    "f:memory": {}
+                  },
+                  "f:requests": {
+                    ".": {},
+                    "f:cpu": {},
+                    "f:memory": {}
+                  }
+                },
+                "f:walVolumeClaimSpec": {
+                  ".": {},
+                  "f:accessModes": {},
+                  "f:resources": {
+                    ".": {},
+                    "f:requests": {
+                      ".": {},
+                      "f:storage": {}
+                    }
+                  },
+                  "f:storageClassName": {}
+                }
+              }
+            },
+            "f:metadata": {
+              ".": {},
+              "f:labels": {
+                ".": {},
+                "f:app": {}
+              }
+            },
+            "f:port": {},
+            "f:postgresVersion": {},
+            "f:users": {
+              ".": {},
+              "k:{\"name\":\"wps-crunchy\"}": {
+                ".": {},
+                "f:databases": {
+                  ".": {},
+                  "v:\"postgres\"": {},
+                  "v:\"wps\"": {}
+                },
+                "f:name": {},
+                "f:options": {}
+              }
+            }
+          }
+        },
+        "manager": "kubectl-client-side-apply",
+        "operation": "Update",
+        "time": "2024-01-31T16:48:21Z"
+      },
+      {
+        "apiVersion": "postgres-operator.crunchydata.com/v1beta1",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:spec": {
+            "f:instances": {
+              "k:{\"name\":\"crunchy\"}": {
+                "f:replicas": {}
+              }
+            }
+          }
+        },
+        "manager": "Mozilla",
+        "operation": "Update",
+        "time": "2024-02-09T23:18:00Z"
+      },
+      {
+        "apiVersion": "postgres-operator.crunchydata.com/v1beta1",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:metadata": {
+            "f:annotations": {
+              "f:postgres-operator.crunchydata.com/pgbackrest-backup": {}
+            }
+          }
+        },
+        "manager": "kubectl-annotate",
+        "operation": "Update",
+        "time": "2024-02-13T23:38:42Z"
+      },
+      {
+        "apiVersion": "postgres-operator.crunchydata.com/v1beta1",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:status": {
+            ".": {},
+            "f:conditions": {
+              ".": {},
+              "k:{\"type\":\"PGBackRestManualBackupSuccessful\"}": {
+                ".": {},
+                "f:lastTransitionTime": {},
+                "f:message": {},
+                "f:observedGeneration": {},
+                "f:reason": {},
+                "f:status": {},
+                "f:type": {}
+              },
+              "k:{\"type\":\"PGBackRestReplicaCreate\"}": {
+                ".": {},
+                "f:lastTransitionTime": {},
+                "f:message": {},
+                "f:observedGeneration": {},
+                "f:reason": {},
+                "f:status": {},
+                "f:type": {}
+              },
+              "k:{\"type\":\"PGBackRestReplicaRepoReady\"}": {
+                ".": {},
+                "f:lastTransitionTime": {},
+                "f:message": {},
+                "f:observedGeneration": {},
+                "f:reason": {},
+                "f:status": {},
+                "f:type": {}
+              }
+            },
+            "f:databaseInitSQL": {},
+            "f:databaseRevision": {},
+            "f:instances": {
+              ".": {},
+              "k:{\"name\":\"crunchy\"}": {
+                ".": {},
+                "f:name": {},
+                "f:readyReplicas": {},
+                "f:replicas": {},
+                "f:updatedReplicas": {}
+              }
+            },
+            "f:monitoring": {
+              ".": {},
+              "f:exporterConfiguration": {}
+            },
+            "f:observedGeneration": {},
+            "f:patroni": {
+              ".": {},
+              "f:systemIdentifier": {}
+            },
+            "f:pgbackrest": {
+              ".": {},
+              "f:manualBackup": {
+                ".": {},
+                "f:completionTime": {},
+                "f:finished": {},
+                "f:id": {},
+                "f:startTime": {},
+                "f:succeeded": {}
+              },
+              "f:repos": {
+                ".": {},
+                "k:{\"name\":\"repo1\"}": {
+                  ".": {},
+                  "f:name": {},
+                  "f:replicaCreateBackupComplete": {},
+                  "f:repoOptionsHash": {},
+                  "f:stanzaCreated": {}
+                }
+              },
+              "f:scheduledBackups": {}
+            },
+            "f:proxy": {
+              ".": {},
+              "f:pgBouncer": {
+                ".": {},
+                "f:postgresRevision": {}
+              }
+            },
+            "f:usersRevision": {}
+          }
+        },
+        "manager": "postgrescluster-controller",
+        "operation": "Update",
+        "subresource": "status",
+        "time": "2024-02-29T01:08:15Z"
+      }
+    ],
+    "name": "wps-crunchy",
+    "namespace": "e1e498-dev",
+    "resourceVersion": "9226764652",
+    "uid": "cad0b6c3-51e2-402c-b514-a12e1da6c503"
   },
   "spec": {
-    "replicas": 3,
-    "selector": {
-      "matchLabels": {
-        "application": "patroni-wps-api-dev",
-        "cluster-name": "patroni-wps-api-dev"
-      }
-    },
-    "template": {
-      "metadata": {
-        "creationTimestamp": null,
-        "labels": {
-          "application": "patroni-wps-api-dev",
-          "cluster-name": "patroni-wps-api-dev"
-        }
-      },
-      "spec": {
-        "volumes": [
+    "backups": {
+      "pgbackrest": {
+        "configuration": [
           {
-            "name": "patroni-wps-api-dev",
-            "persistentVolumeClaim": {
-              "claimName": "patroni-wps-api-dev"
+            "secret": {
+              "items": [
+                {
+                  "key": "conf",
+                  "path": "s3.conf"
+                }
+              ],
+              "name": "crunchy-pgbackrest"
             }
           }
         ],
-        "containers": [
+        "global": {
+          "repo1-path": "/pgbackrest/prod/repo1",
+          "repo1-retention-full": "3",
+          "repo1-retention-full-type": "count"
+        },
+        "image": "artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbackrest:ubi8-2.41-4",
+        "manual": {
+          "options": [
+            "--type=full"
+          ],
+          "repoName": "repo1"
+        },
+        "repos": [
           {
-            "name": "patroni-wps-api-dev",
-            "image": "image-registry.openshift-image-registry.svc:5000/e1e498-tools/patroni:10",
-            "ports": [
-              {
-                "containerPort": 8008,
-                "protocol": "TCP"
-              },
-              {
-                "containerPort": 5432,
-                "protocol": "TCP"
-              }
-            ],
-            "env": [
-              {
-                "name": "POD_IP",
-                "valueFrom": {
-                  "fieldRef": {
-                    "apiVersion": "v1",
-                    "fieldPath": "status.podIP"
-                  }
-                }
-              },
-              {
-                "name": "PATRONI_KUBERNETES_NAMESPACE",
-                "valueFrom": {
-                  "fieldRef": {
-                    "apiVersion": "v1",
-                    "fieldPath": "metadata.namespace"
-                  }
-                }
-              },
-              {
-                "name": "PATRONI_KUBERNETES_LABELS",
-                "value": "{application: patroni-wps-api-dev, cluster-name: patroni-wps-api-dev}"
-              },
-              {
-                "name": "PATRONI_SUPERUSER_USERNAME",
-                "value": "postgres"
-              },
-              {
-                "name": "PATRONI_SUPERUSER_PASSWORD",
-                "valueFrom": {
-                  "secretKeyRef": {
-                    "name": "wps-api-global",
-                    "key": "patroni-superuser-password"
-                  }
-                }
-              },
-              {
-                "name": "PATRONI_REPLICATION_USERNAME",
-                "value": "replication"
-              },
-              {
-                "name": "PATRONI_REPLICATION_PASSWORD",
-                "valueFrom": {
-                  "secretKeyRef": {
-                    "name": "wps-api-global",
-                    "key": "patroni-replication-password"
-                  }
-                }
-              },
-              {
-                "name": "PATRONI_SCOPE",
-                "value": "patroni-wps-api-dev"
-              },
-              {
-                "name": "PATRONI_NAME",
-                "valueFrom": {
-                  "fieldRef": {
-                    "apiVersion": "v1",
-                    "fieldPath": "metadata.name"
-                  }
-                }
-              },
-              {
-                "name": "APP_USER",
-                "value": "wps-api-dev"
-              },
-              {
-                "name": "APP_PASSWORD",
-                "valueFrom": {
-                  "secretKeyRef": {
-                    "name": "wps-api-global",
-                    "key": "app-db-password"
-                  }
-                }
-              },
-              {
-                "name": "APP_DATABASE",
-                "value": "wps-api-dev"
-              },
-              {
-                "name": "PATRONI_POSTGRESQL_DATA_DIR",
-                "value": "/home/postgres/pgdata/pgroot/data"
-              },
-              {
-                "name": "PATRONI_POSTGRESQL_PGPASS",
-                "value": "/tmp/pgpass"
-              },
-              {
-                "name": "PATRONI_POSTGRESQL_LISTEN",
-                "value": "0.0.0.0:5432"
-              },
-              {
-                "name": "PATRONI_RESTAPI_LISTEN",
-                "value": "0.0.0.0:8008"
-              }
-            ],
-            "resources": {},
-            "volumeMounts": [
-              {
-                "name": "patroni-wps-api-dev",
-                "mountPath": "/home/postgres/pgdata"
-              }
-            ],
-            "terminationMessagePath": "/dev/termination-log",
-            "terminationMessagePolicy": "File",
-            "imagePullPolicy": "IfNotPresent"
+            "name": "repo1",
+            "s3": {
+              "bucket": "lwzrin",
+              "endpoint": "nrs.objectstore.gov.bc.ca",
+              "region": "ca-central-1"
+            },
+            "schedules": {
+              "differential": "0 1 * * 1-6",
+              "full": "0 1 * * 0"
+            }
           }
-        ],
-        "restartPolicy": "Always",
-        "terminationGracePeriodSeconds": 0,
-        "dnsPolicy": "ClusterFirst",
-        "serviceAccountName": "patroniocp-wps-api-dev",
-        "serviceAccount": "patroniocp-wps-api-dev",
-        "securityContext": {},
-        "schedulerName": "default-scheduler"
+        ]
       }
     },
-    "volumeClaimTemplates": [
+    "databaseInitSQL": {
+      "key": "init.sql",
+      "name": "wps-init-sql"
+    },
+    "image": "artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres-gis:ubi8-14.7-3.2-0",
+    "instances": [
       {
-        "metadata": {
-          "name": "patroni-wps-api-dev",
-          "creationTimestamp": null,
-          "labels": {
-            "application": "patroni-wps-api-dev"
-          }
-        },
-        "spec": {
+        "dataVolumeClaimSpec": {
           "accessModes": [
             "ReadWriteOnce"
           ],
           "resources": {
             "requests": {
-              "storage": "5Gi"
+              "storage": "45Gi"
             }
+          },
+          "storageClassName": "netapp-block-standard"
+        },
+        "name": "crunchy",
+        "replicas": 3,
+        "resources": {
+          "limits": {
+            "cpu": "2000m",
+            "memory": "16Gi"
+          },
+          "requests": {
+            "cpu": "75m",
+            "memory": "2Gi"
           }
         },
-        "status": {
-          "phase": "Pending"
+        "walVolumeClaimSpec": {
+          "accessModes": [
+            "ReadWriteOnce"
+          ],
+          "resources": {
+            "requests": {
+              "storage": "15Gi"
+            }
+          },
+          "storageClassName": "netapp-block-standard"
         }
       }
     ],
-    "serviceName": "patroni-wps-api-dev",
-    "podManagementPolicy": "OrderedReady",
-    "updateStrategy": {
-      "type": "OnDelete"
+    "metadata": {
+      "labels": {
+        "app": "wps-crunchy"
+      }
     },
-    "revisionHistoryLimit": 10
+    "port": 5432,
+    "postgresVersion": 14,
+    "users": [
+      {
+        "databases": [
+          "postgres",
+          "wps"
+        ],
+        "name": "wps-crunchy",
+        "options": "SUPERUSER"
+      }
+    ]
   },
   "status": {
-    "observedGeneration": 1,
-    "replicas": 3,
-    "readyReplicas": 3,
-    "currentReplicas": 3,
-    "updatedReplicas": 3,
-    "currentRevision": "patroni-wps-api-dev-58d758bf6c",
-    "updateRevision": "patroni-wps-api-dev-58d758bf6c",
-    "collisionCount": 0
+    "conditions": [
+      {
+        "lastTransitionTime": "2024-01-23T00:37:01Z",
+        "message": "pgBackRest replica create repo is ready for backups",
+        "observedGeneration": 16,
+        "reason": "StanzaCreated",
+        "status": "True",
+        "type": "PGBackRestReplicaRepoReady"
+      },
+      {
+        "lastTransitionTime": "2024-01-23T00:37:43Z",
+        "message": "pgBackRest replica creation is now possible",
+        "observedGeneration": 16,
+        "reason": "RepoBackupComplete",
+        "status": "True",
+        "type": "PGBackRestReplicaCreate"
+      },
+      {
+        "lastTransitionTime": "2024-02-13T23:51:47Z",
+        "message": "Manual backup completed successfully",
+        "observedGeneration": 16,
+        "reason": "ManualBackupComplete",
+        "status": "True",
+        "type": "PGBackRestManualBackupSuccessful"
+      }
+    ],
+    "databaseInitSQL": "wps-init-sql",
+    "databaseRevision": "585cd6c7b8",
+    "instances": [
+      {
+        "name": "crunchy",
+        "readyReplicas": 3,
+        "replicas": 3,
+        "updatedReplicas": 3
+      }
+    ],
+    "monitoring": {
+      "exporterConfiguration": "559c4c97d6"
+    },
+    "observedGeneration": 16,
+    "patroni": {
+      "systemIdentifier": "7327085359955959890"
+    },
+    "pgbackrest": {
+      "manualBackup": {
+        "completionTime": "2024-02-13T23:51:41Z",
+        "finished": true,
+        "id": "2024-02-13_15:38:42",
+        "startTime": "2024-02-13T23:38:58Z",
+        "succeeded": 1
+      },
+      "repos": [
+        {
+          "name": "repo1",
+          "replicaCreateBackupComplete": true,
+          "repoOptionsHash": "6759bf98f5",
+          "stanzaCreated": true
+        }
+      ],
+      "scheduledBackups": [
+        {
+          "cronJobName": "wps-crunchy-repo1-diff",
+          "failed": 7,
+          "repo": "repo1",
+          "startTime": "2024-02-09T01:00:00Z",
+          "type": "diff"
+        },
+        {
+          "completionTime": "2024-02-27T01:10:00Z",
+          "cronJobName": "wps-crunchy-repo1-diff",
+          "repo": "repo1",
+          "startTime": "2024-02-27T01:00:00Z",
+          "succeeded": 1,
+          "type": "diff"
+        },
+        {
+          "completionTime": "2024-02-28T01:11:32Z",
+          "cronJobName": "wps-crunchy-repo1-diff",
+          "repo": "repo1",
+          "startTime": "2024-02-28T01:00:00Z",
+          "succeeded": 1,
+          "type": "diff"
+        },
+        {
+          "completionTime": "2024-02-29T01:08:08Z",
+          "cronJobName": "wps-crunchy-repo1-diff",
+          "repo": "repo1",
+          "startTime": "2024-02-29T01:00:00Z",
+          "succeeded": 1,
+          "type": "diff"
+        },
+        {
+          "completionTime": "2024-02-11T01:15:53Z",
+          "cronJobName": "wps-crunchy-repo1-full",
+          "repo": "repo1",
+          "startTime": "2024-02-11T01:00:00Z",
+          "succeeded": 1,
+          "type": "full"
+        },
+        {
+          "completionTime": "2024-02-18T01:13:13Z",
+          "cronJobName": "wps-crunchy-repo1-full",
+          "repo": "repo1",
+          "startTime": "2024-02-18T01:00:00Z",
+          "succeeded": 1,
+          "type": "full"
+        },
+        {
+          "completionTime": "2024-02-25T01:17:06Z",
+          "cronJobName": "wps-crunchy-repo1-full",
+          "repo": "repo1",
+          "startTime": "2024-02-25T01:00:00Z",
+          "succeeded": 1,
+          "type": "full"
+        }
+      ]
+    },
+    "proxy": {
+      "pgBouncer": {
+        "postgresRevision": "5c9966f6bc"
+      }
+    },
+    "usersRevision": "5c57ddf6bc"
   }
 }

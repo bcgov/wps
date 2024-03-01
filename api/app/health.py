@@ -7,7 +7,7 @@ from app import config, url_join
 logger = logging.getLogger(__name__)
 
 
-def patroni_cluster_health_check():
+def crunchydb_cluster_health_check():
     """ Makes call to Patroni cluster namespace in Openshift to retrieve the statuses of all
     individual Patroni pods, then re-formats response """
     parts = [
@@ -24,12 +24,12 @@ def patroni_cluster_health_check():
     }
     resp = requests.get(url, headers=header, timeout=10)
     resp_json = resp.json()
-    # NOTE: In Openshift parlance "replica" refers to how many of one pod we have, in Patroni, a "Replica"
-    # refers to a read only copy of of the Leader.
+    # NOTE: In Openshift parlance "replica" refers to how many of one pod we have, in CrunchyDB's managed
+    # Patroni, a "Replica" refers to a read only copy of of the Leader.
     # Get the number of pods that are ready:
     ready_count = resp_json.get('status').get('instances')[0].get('readyReplicas')
     # Get the number of pods we expect:
-    replica_count = resp_json.get('status').get('replicas')[0].get('replicas')
+    replica_count = resp_json.get('status').get('instances')[0].get('replicas')
     if ready_count > 1:
         # It's actually a bit more complicated than this.
         # There are a number of scenarios that are ok:
