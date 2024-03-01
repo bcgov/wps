@@ -174,7 +174,6 @@ class ViirsSnowJob():
         classified_snow.SetGeoTransform(source.GetGeoTransform())
         classified_snow.SetProjection(source.GetProjection())
         classified_snow_band = classified_snow.GetRasterBand(1)
-        # snow_mask_band.SetNoDataValue(0) ???
         classified_snow_band.WriteArray(classified)
         source_data = None
         source_band = None
