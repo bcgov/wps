@@ -1,4 +1,5 @@
 import {
+  GridCellParams,
   GridColDef,
   GridColumnHeaderParams,
   GridRenderCellParams,
@@ -7,6 +8,7 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { WeatherDeterminate, WeatherDeterminateType } from 'api/moreCast2API'
+import { modelColorClass, modelHeaderColorClass } from 'app/theme'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 
 export const DEFAULT_COLUMN_WIDTH = 80
@@ -102,6 +104,12 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       sortable: false,
       type: 'number',
       width: width ?? DEFAULT_COLUMN_WIDTH,
+      cellClassName: (params: Pick<GridCellParams, 'field'>) => {
+        return modelColorClass(params)
+      },
+      headerClassName: (params: Pick<GridColumnHeaderParams, 'field'>) => {
+        return modelHeaderColorClass(params)
+      },
       renderCell: (params: Pick<GridRenderCellParams, 'formattedValue'>) => {
         return this.gridComponentRenderer.renderCellWith(params)
       },
