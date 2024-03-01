@@ -5,8 +5,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: status-checker
-    namespace: e1e498-prod
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: get-postgres-clusters 
+  name: get-postgres-clusters
