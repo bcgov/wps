@@ -27,9 +27,9 @@ def patroni_cluster_health_check():
     # NOTE: In Openshift parlance "replica" refers to how many of one pod we have, in Patroni, a "Replica"
     # refers to a read only copy of of the Leader.
     # Get the number of pods that are ready:
-    ready_count = resp_json.get('status').get('readyReplicas')
+    ready_count = resp_json.get('status').get('instances')[0].get('readyReplicas')
     # Get the number of pods we expect:
-    replica_count = resp_json.get('status').get('replicas')
+    replica_count = resp_json.get('status').get('replicas')[0].get('replicas')
     if ready_count > 1:
         # It's actually a bit more complicated than this.
         # There are a number of scenarios that are ok:
