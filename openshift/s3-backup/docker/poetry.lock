@@ -2,24 +2,24 @@
 
 [[package]]
 name = "aiobotocore"
-version = "2.11.2"
+version = "2.12.1"
 description = "Async client for aws services using botocore and aiohttp"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "aiobotocore-2.11.2-py3-none-any.whl", hash = "sha256:487fede588040bfa3a43df945275c28c1c73ca75bf705295adb9fbadd2e89be7"},
-    {file = "aiobotocore-2.11.2.tar.gz", hash = "sha256:6dd7352248e3523019c5a54a395d2b1c31080697fc80a9ad2672de4eec8c7abd"},
+    {file = "aiobotocore-2.12.1-py3-none-any.whl", hash = "sha256:6a9a3d646cf422f45fdc1e4256e78563ebffba64733bc9b8ca9123614e8ba9af"},
+    {file = "aiobotocore-2.12.1.tar.gz", hash = "sha256:8706b28f16f93c541f6ed50352115a79d8f3499539f8d0bb70aa0f7a5379c1fe"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.7.4.post0,<4.0.0"
 aioitertools = ">=0.5.1,<1.0.0"
-botocore = ">=1.33.2,<1.34.35"
+botocore = ">=1.34.41,<1.34.52"
 wrapt = ">=1.10.10,<2.0.0"
 
 [package.extras]
-awscli = ["awscli (>=1.31.2,<1.32.35)"]
-boto3 = ["boto3 (>=1.33.2,<1.34.35)"]
+awscli = ["awscli (>=1.32.41,<1.32.52)"]
+boto3 = ["boto3 (>=1.34.41,<1.34.52)"]
 
 [[package]]
 name = "aiohttp"
@@ -193,13 +193,13 @@ tests-no-zope = ["attrs[tests-mypy]", "cloudpickle", "hypothesis", "pympler", "p
 
 [[package]]
 name = "botocore"
-version = "1.34.34"
+version = "1.34.51"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">= 3.8"
 files = [
-    {file = "botocore-1.34.34-py3-none-any.whl", hash = "sha256:cd060b0d88ebb2b893f1411c1db7f2ba66cc18e52dcc57ad029564ef5fec437b"},
-    {file = "botocore-1.34.34.tar.gz", hash = "sha256:54093dc97372bb7683f5c61a279aa8240408abf3b2cc494ae82a9a90c1b784b5"},
+    {file = "botocore-1.34.51-py3-none-any.whl", hash = "sha256:01d5156247f991b3466a8404e3d7460a9ecbd9b214f9992d6ba797d9ddc6f120"},
+    {file = "botocore-1.34.51.tar.gz", hash = "sha256:5086217442e67dd9de36ec7e87a0c663f76b7790d5fb6a12de565af95e87e319"},
 ]
 
 [package.dependencies]
@@ -632,13 +632,13 @@ testing = ["argcomplete", "attrs (>=19.2.0)", "hypothesis (>=3.56)", "mock", "no
 
 [[package]]
 name = "python-dateutil"
-version = "2.8.2"
+version = "2.9.0.post0"
 description = "Extensions to the standard Python datetime module"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 files = [
-    {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
-    {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
+    {file = "python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3"},
+    {file = "python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"},
 ]
 
 [package.dependencies]
@@ -679,24 +679,24 @@ files = [
 
 [[package]]
 name = "tomlkit"
-version = "0.12.3"
+version = "0.12.4"
 description = "Style preserving TOML library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "tomlkit-0.12.3-py3-none-any.whl", hash = "sha256:b0a645a9156dc7cb5d3a1f0d4bab66db287fcb8e0430bdd4664a095ea16414ba"},
-    {file = "tomlkit-0.12.3.tar.gz", hash = "sha256:75baf5012d06501f07bee5bf8e801b9f343e7aac5a92581f20f80ce632e6b5a4"},
+    {file = "tomlkit-0.12.4-py3-none-any.whl", hash = "sha256:5cd82d48a3dd89dee1f9d64420aa20ae65cfbd00668d6f094d7578a78efbb77b"},
+    {file = "tomlkit-0.12.4.tar.gz", hash = "sha256:7ca1cfc12232806517a8515047ba66a19369e71edf2439d0f5824f91032b6cc3"},
 ]
 
 [[package]]
 name = "typing-extensions"
-version = "4.9.0"
+version = "4.10.0"
 description = "Backported and Experimental Type Hints for Python 3.8+"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "typing_extensions-4.9.0-py3-none-any.whl", hash = "sha256:af72aea155e91adfc61c3ae9e0e342dbc0cba726d6cba4b6c72c1f34e47291cd"},
-    {file = "typing_extensions-4.9.0.tar.gz", hash = "sha256:23478f88c37f27d76ac8aee6c905017a143b0b1b886c3c9f66bc2fd94f9f5783"},
+    {file = "typing_extensions-4.10.0-py3-none-any.whl", hash = "sha256:69b1a937c3a517342112fb4c6df7e72fc39a38e7891a5730ed4985b5214b5475"},
+    {file = "typing_extensions-4.10.0.tar.gz", hash = "sha256:b0abd7c89e8fb96f98db18d86106ff1d90ab692004eb746cf6eda2682f91b3cb"},
 ]
 
 [[package]]
