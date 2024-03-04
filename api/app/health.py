@@ -14,7 +14,7 @@ def crunchydb_cluster_health_check():
         config.get('OPENSHIFT_BASE_URI'),
         config.get('OPENSHIFT_NAMESPACE_API'),
         config.get('PROJECT_NAMESPACE'),
-        'statefulsets/',
+        'postgresclusters/',
         config.get('PATRONI_CLUSTER_NAME')
     ]
     # form URL by concatenating all substrings in parts[], making sure there's exactly 1 / between each part
