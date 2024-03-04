@@ -218,7 +218,7 @@ class ViirsSnowJob():
             self._create_snow_coverage_mosaic(sub_dir)
             await self._clip_snow_coverage_mosaic(sub_dir, path)
             await self._save_clipped_snow_coverage_mosaic_to_s3(for_date, sub_dir)
-            # Reclassify the clipped snow coverage mosaic to 1for snow and 0 for all other cells
+            # Reclassify the clipped snow coverage mosaic to 1 for snow and 0 for all other cells
             self._classify_snow_coverage(sub_dir)
             # Create pmtiles file and save to S3
             await self._create_pmtiles_layer(sub_dir, for_date)
