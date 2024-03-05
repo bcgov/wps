@@ -11,6 +11,7 @@ describe('Fire Behaviour Advisory Page', () => {
       },
       { fixture: 'fba/vectors.json' }
     ).as('getVectors')
+    cy.intercept('GET', 'api/snow/most-recent-by-date/*', { fixture: 'fba/processedSnow.json' }).as('processedSnow')
 
     cy.visit(FIRE_BEHAVIOUR_ADVISORY_ROUTE)
   })

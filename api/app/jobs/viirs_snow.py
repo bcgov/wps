@@ -1,8 +1,9 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from osgeo import gdal
 import asyncio
 import glob
 import logging
+import numpy as np
 import os
 import requests
 import shutil
@@ -13,7 +14,10 @@ from app.db.crud.snow import get_last_processed_snow_by_source, save_processed_s
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope
 from app.db.models.snow import ProcessedSnow, SnowSourceEnum
 from app.rocketchat_notifications import send_rocketchat_notification
+from app.utils.polygonize import polygonize_in_memory
+from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
 from app.utils.s3 import get_client
+from app.utils.time import vancouver_tz
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +28,27 @@ SHORT_NAME = "VNP10A1F"
 LAYER_VARIABLE = "/VIIRS_Grid_IMG_2D/CGF_NDSI_Snow_Cover"
 RAW_SNOW_COVERAGE_NAME = 'raw_snow_coverage.tif'
 RAW_SNOW_COVERAGE_CLIPPED_NAME = 'raw_snow_coverage_clipped.tif'
+BINARY_SNOW_COVERAGE_CLASSIFICATION_NAME = 'binary_snow_coverage.tif'
+SNOW_COVERAGE_PMTILES_MIN_ZOOM = 4
+SNOW_COVERAGE_PMTILES_MAX_ZOOM = 11
+SNOW_COVERAGE_PMTILES_PERMISSIONS = 'public-read'
 
+
+def get_pmtiles_filepath(for_date: date, filename: str) -> str:
+    """
+    Returns the S3 storage key for storing the snow coverage pmtiles for the given date and file name.
+
+
+    :param for_date: The date of snow coverage imagery.
+    :type run_date: date
+    :param filename: snowCoverage[for_date].pmtiles -> snowCoverage20230821.pmtiles
+    :type filename: str
+    :return: s3 bucket key for pmtiles file
+    :rtype: str
+    """
+    pmtiles_filepath = os.path.join('psu', 'pmtiles', 'snow', for_date.strftime('%Y-%m-%d'), filename)
+
+    return pmtiles_filepath
 
 class ViirsSnowJob():
     """ Job that downloads and processed VIIRS snow coverage data from the NSIDC (https://nsidc.org).
@@ -135,6 +159,48 @@ class ViirsSnowJob():
                 await client.put_object(Bucket=bucket,
                                     Key=key,
                                     Body=file)
+                
+    def _classify_snow_coverage(self, path: str):
+        source_path = os.path.join(path, RAW_SNOW_COVERAGE_CLIPPED_NAME)
+        source = gdal.Open(source_path, gdal.GA_ReadOnly)
+        source_band = source.GetRasterBand(1)
+        source_data = source_band.ReadAsArray()
+        # Classify the data. Snow coverage in the source data is indicated by values in the range of 0-100. I'm using a range of 
+        # 10 - 100 to increase confidence. In the classified data 1 is assigned to snow covered pixels and all other pixels are 0.
+        classified = np.where((source_data > 10) & (source_data <= 100), 1, 0)
+        output_driver = gdal.GetDriverByName("GTiff")
+        classified_snow_path = os.path.join(path, BINARY_SNOW_COVERAGE_CLASSIFICATION_NAME)
+        classified_snow = output_driver.Create(classified_snow_path, xsize=source_band.XSize, ysize=source_band.YSize, bands=1, eType=gdal.GDT_Byte)
+        classified_snow.SetGeoTransform(source.GetGeoTransform())
+        classified_snow.SetProjection(source.GetProjection())
+        classified_snow_band = classified_snow.GetRasterBand(1)
+        classified_snow_band.WriteArray(classified)
+        source_data = None
+        source_band = None
+        source = None
+        classified_snow_band = None
+        classified_snow = None
+
+    async def _create_pmtiles_layer(self, path: str, for_date: date):
+        filename = os.path.join(path, BINARY_SNOW_COVERAGE_CLASSIFICATION_NAME)
+        with polygonize_in_memory(filename, 'snow', 'snow') as layer:
+            # We need a geojson file to pass to tippecanoe
+            temp_geojson = write_geojson(layer, path)
+            pmtiles_filename = f'snowCoverage{for_date.strftime("%Y%m%d")}.pmtiles'
+            temp_pmtiles_filepath = os.path.join(path, pmtiles_filename)
+            logger.info(f'Writing snow coverage pmtiles -- {pmtiles_filename}')
+            tippecanoe_wrapper(temp_geojson, temp_pmtiles_filepath,
+                               min_zoom=SNOW_COVERAGE_PMTILES_MIN_ZOOM, max_zoom=SNOW_COVERAGE_PMTILES_MAX_ZOOM)
+
+            async with get_client() as (client, bucket):
+                key = get_pmtiles_filepath(for_date, pmtiles_filename)
+                logger.info(f'Uploading snow coverage file {pmtiles_filename} to {key}')
+
+                await client.put_object(Bucket=bucket,
+                                        Key=key,
+                                        ACL=SNOW_COVERAGE_PMTILES_PERMISSIONS,  # We need these to be accessible to everyone
+                                        Body=open(temp_pmtiles_filepath, 'rb'))
+                logger.info('Done uploading snow coverage file')
 
 
     async def _process_viirs_snow(self, for_date: date, path: str):
@@ -152,6 +218,11 @@ class ViirsSnowJob():
             self._create_snow_coverage_mosaic(sub_dir)
             await self._clip_snow_coverage_mosaic(sub_dir, path)
             await self._save_clipped_snow_coverage_mosaic_to_s3(for_date, sub_dir)
+            # Reclassify the clipped snow coverage mosaic to 1 for snow and 0 for all other cells
+            self._classify_snow_coverage(sub_dir)
+            # Create pmtiles file and save to S3
+            await self._create_pmtiles_layer(sub_dir, for_date)
+
 
 
     async def _run_viirs_snow(self):
@@ -162,7 +233,7 @@ class ViirsSnowJob():
         today = date.today()
         if last_processed_date is None:
             # Case to cover the initial run of VIIRS snow processing (ie. start processing one week ago)
-            next_date = today - timedelta(days=7)
+            next_date = today - timedelta(days=10)
         else:
             # Start processing the day after the last record of a successful job.
             next_date = last_processed_date + timedelta(days=1)
@@ -176,10 +247,11 @@ class ViirsSnowJob():
             while next_date < today:
                 date_string = next_date.strftime('%Y-%m-%d')
                 logger.info(f"Processing snow coverage data for date: {date_string}")
+                tz_aware_datetime = vancouver_tz.localize(datetime.combine(next_date, datetime.min.time()))
                 try: 
                     await self._process_viirs_snow(next_date, temp_dir)
                     async with get_async_write_session_scope() as session:
-                        processed_snow = ProcessedSnow(for_date=next_date, processed_date=today, snow_source=SnowSourceEnum.viirs)
+                        processed_snow = ProcessedSnow(for_date=tz_aware_datetime, processed_date=today, snow_source=SnowSourceEnum.viirs)
                         await save_processed_snow(session, processed_snow)
                     logger.info(f"Successfully processed VIIRS snow coverage data for date: {date_string}")
                 except requests.exceptions.HTTPError as http_error:
