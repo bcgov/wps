@@ -316,7 +316,7 @@ const FBAMap = (props: FBAMapProps) => {
   // Generate a message to display about the snow layer in the legend.
   const getSnowDateMessage = () => {
     if (!showSnow) {
-      return ''
+      return null
     }
     if (isNull(props.snowDate)) {
       return 'No data available'

@@ -39,11 +39,18 @@ interface LegendItemProps {
   onChange: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => void
   subItems?: SubItem[]
   description?: string | null
+  renderEmptyDescription?: boolean
 }
 
-const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subItems, description }) => {
+const LegendItem: React.FC<LegendItemProps> = ({
+  label,
+  checked,
+  onChange,
+  subItems,
+  description,
+  renderEmptyDescription = false
+}) => {
   // Dirty hack used to force whitespace for the Snow Coverage legend item
-  const hasEmptyDescription = description === ''
   return (
     <div>
       <Grid>
@@ -64,7 +71,7 @@ const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subIt
         <Grid container alignItems={'center'}>
           <Grid item sx={{ transform: 'translate(50%, -50%)' }}>
             <Typography variant="body1" sx={{ fontSize: '0.75rem' }}>
-              {hasEmptyDescription ? <span>&nbsp;</span> : description}
+              {description ?? (renderEmptyDescription && <span>&nbsp;</span>)}
             </Typography>
           </Grid>
         </Grid>
@@ -147,6 +154,7 @@ const Legend = ({
         checked={showSnow}
         onChange={() => handleLayerChange('snowVector', showSnow, setShowSnow)}
         description={snowDescription}
+        renderEmptyDescription={true}
       ></LegendItem>
     </LegendGrid>
   )
