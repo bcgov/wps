@@ -12,7 +12,7 @@ from app import schemas, configure_logging
 from app.percentile import get_precalculated_percentiles
 from app.auth import authentication_required, audit
 from app import config
-# from app import health
+from app import health
 from app import hourlies
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.routers import (fba, forecasts, weather_models, c_haines, stations, hfi_calc,
@@ -124,11 +124,10 @@ async def get_health():
     """ A simple endpoint for Openshift Healthchecks.
     It's assumed that if patroni is ok, then all is well.  """
     try:
-        # TODO reenable
-        # health_check = health.patroni_cluster_health_check()
+        health_check = health.crunchydb_cluster_health_check()
 
-        # logger.debug('/health - healthy: %s. %s',
-        #              health_check.get('healthy'), health_check.get('message'))
+        logger.debug('/health - healthy: %s. %s',
+                     health_check.get('healthy'), health_check.get('message'))
 
         # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
         cffdrs_start = perf_counter()
@@ -139,7 +138,7 @@ async def get_health():
         if delta > 0.1:
             logger.info('%f seconds added by CFFDRS startup', delta)
 
-        return {"message": "API healthy", "healthy": True}
+        return health_check
     except Exception as exception:
         logger.error(exception, exc_info=True)
         raise
