@@ -50,7 +50,6 @@ const LegendItem: React.FC<LegendItemProps> = ({
   description,
   renderEmptyDescription = false
 }) => {
-  // Dirty hack used to force whitespace for the Snow Coverage legend item
   return (
     <div>
       <Grid>
