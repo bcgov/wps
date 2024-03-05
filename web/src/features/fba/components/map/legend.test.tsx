@@ -8,6 +8,7 @@ describe('Legend', () => {
     const onToggleLayer = jest.fn()
     const setShowZoneStatus = jest.fn()
     const setShowHFI = jest.fn()
+    const setShowSnow = jest.fn()
     const { getByTestId } = render(
       <Legend
         onToggleLayer={onToggleLayer}
@@ -15,6 +16,9 @@ describe('Legend', () => {
         setShowHFI={setShowHFI}
         showHFI={false}
         showShapeStatus={true}
+        showSnow={false}
+        setShowSnow={setShowSnow}
+        snowDescription="foo"
       />
     )
     const legendComponent = getByTestId('asa-map-legend')
@@ -35,6 +39,7 @@ describe('Legend', () => {
     const onToggleLayer = jest.fn()
     const setShowZoneStatus = jest.fn()
     const setShowHFI = jest.fn()
+    const setShowSnow = jest.fn()
     const { getByTestId } = render(
       <Legend
         onToggleLayer={onToggleLayer}
@@ -42,6 +47,9 @@ describe('Legend', () => {
         setShowHFI={setShowHFI}
         showHFI={false}
         showShapeStatus={true}
+        showSnow={false}
+        setShowSnow={setShowSnow}
+        snowDescription="foo"
       />
     )
 
