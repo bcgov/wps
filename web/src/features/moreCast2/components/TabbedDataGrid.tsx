@@ -1,4 +1,4 @@
-import { AlertColor, List, Stack } from '@mui/material'
+import { AlertColor, Button, Grid, List, Stack } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
   GridCellParams,
@@ -39,19 +39,14 @@ import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2Dat
 import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
-import { mapForecastChoiceLabels } from 'features/moreCast2/util'
-import { MoreCastParams } from 'app/theme'
+import { clearLocalStorageRows, mapForecastChoiceLabels } from 'features/moreCast2/util'
+import { MoreCastParams, theme } from 'app/theme'
 
 export const Root = styled('div')({
   display: 'flex',
   flexGrow: 1,
   flexDirection: 'column'
 })
-
-export const SaveButton = styled(SaveForecastButton)(({ theme }) => ({
-  position: 'absolute',
-  right: theme.spacing(2)
-}))
 
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved and sent to Wildfire One.'
@@ -338,20 +333,22 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       // Get rows with actuals that have non-NaN values
       const rowsWithActuals: MoreCast2Row[] = values.filter(value => !isNaN(value[actualField] as number))
       // Filter for the row with the most recent forDate as this contains our most recent actual
-      const mostRecentRow = rowsWithActuals.reduce((a, b) => {
-        return a.forDate > b.forDate ? a : b
-      })
-      // The most recent value from the weather station for the weather parameter of interest
-      // (eg. tempActual) which will be applied as the forecast value
-      const mostRecentValue = mostRecentRow[actualField]
-      // Finally, get an array of rows that don't have an actual for the weather parameter of interest
-      // and iterate through them to apply the most recent actual as the new forecast value
-      const rowsWithoutActuals: MoreCast2Row[] = values.filter(value => isNaN(value[actualField] as number))
-      rowsWithoutActuals.forEach(row => {
-        const predictionItem = row[forecastField] as PredictionItem
-        predictionItem.choice = ModelChoice.PERSISTENCE
-        predictionItem.value = mostRecentValue as number
-      })
+      if (rowsWithActuals.length > 0) {
+        const mostRecentRow = rowsWithActuals.reduce((a, b) => {
+          return a.forDate > b.forDate ? a : b
+        })
+        // The most recent value from the weather station for the weather parameter of interest
+        // (eg. tempActual) which will be applied as the forecast value
+        const mostRecentValue = mostRecentRow[actualField]
+        // Finally, get an array of rows that don't have an actual for the weather parameter of interest
+        // and iterate through them to apply the most recent actual as the new forecast value
+        const rowsWithoutActuals: MoreCast2Row[] = values.filter(value => isNaN(value[actualField] as number))
+        rowsWithoutActuals.forEach(row => {
+          const predictionItem = row[forecastField] as PredictionItem
+          predictionItem.choice = ModelChoice.PERSISTENCE
+          predictionItem.value = mostRecentValue as number
+        })
+      }
     }
     const rowsForSimulation = filterAllVisibleRowsForSimulation(newRows)
     if (rowsForSimulation) {
@@ -455,17 +452,28 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
 
   return (
     <Root>
-      <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
-      <SaveButton
-        enabled={
-          isAuthenticated &&
-          roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
-          hasForecastRow() &&
-          forecastSummaryVisible
-        }
-        label={'Save Forecast'}
-        onClick={handleSaveClick}
-      />
+      <Grid container justifyContent="space-between" alignItems={'center'}>
+        <Grid item>
+          <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
+        </Grid>
+        <Grid item sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
+          <Stack direction="row" spacing={theme.spacing(2)}>
+            <Button variant="contained" onClick={() => clearLocalStorageRows()}>
+              Reset
+            </Button>
+            <SaveForecastButton
+              enabled={
+                isAuthenticated &&
+                roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
+                hasForecastRow() &&
+                forecastSummaryVisible
+              }
+              label={'Publish to WF1'}
+              onClick={handleSaveClick}
+            />
+          </Stack>
+        </Grid>
+      </Grid>
       <List component={Stack} direction="row">
         <SelectableButton
           dataTestId="temp-tab-button"

@@ -12,12 +12,21 @@ import {
   fetchCalculatedIndices
 } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
-import { createDateInterval, rowIDHasher, fillGrassCuringForecast, fillGrassCuringCWFIS } from 'features/moreCast2/util'
+import {
+  createDateInterval,
+  rowIDHasher,
+  fillGrassCuringForecast,
+  fillGrassCuringCWFIS,
+  rowContainsActual,
+  getLocalStorageRowsMap
+} from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { groupBy, isEqual, isNull, isNumber, isUndefined } from 'lodash'
 import { StationGroupMember } from 'api/stationAPI'
+
+export const MORECAST_ROW_LOCAL_STORAGE_KEY = 'morecastRows'
 
 interface State {
   loading: boolean
@@ -87,6 +96,7 @@ const dataSlice = createSlice({
         }
       }
       state.userEditedRows = storedRows
+      setLocalStorageRows(storedRows)
     }
   }
 })
@@ -101,6 +111,19 @@ export const {
 } = dataSlice.actions
 
 export default dataSlice.reducer
+
+const setLocalStorageRows = (rowsToStore: MoreCast2Row[]) => {
+  const storedRows = getLocalStorageRowsMap()
+
+  rowsToStore.forEach(row => {
+    storedRows.set(row.id, row)
+  })
+  // we only need to store rows that are 'Forecast' rows
+  const forecastRows = Array.from(storedRows.values()).filter(row => {
+    return !rowContainsActual(row)
+  })
+  localStorage.setItem(MORECAST_ROW_LOCAL_STORAGE_KEY, JSON.stringify(forecastRows))
+}
 
 /**
  * Use the morecast2API to get WeatherIndeterminates from the backend. Fills in missing
@@ -355,6 +378,7 @@ export const createMoreCast2Rows = (
     rows.push(row)
   }
 
+  const localStoredRows = getLocalStorageRowsMap()
   // Set the forecasted precip value to 0 for rows which have no actual or forecasted precip value.
   for (const row of rows) {
     if (
@@ -364,6 +388,27 @@ export const createMoreCast2Rows = (
       isNaN(row.precipForecast.value)
     ) {
       row.precipForecast.value = 0
+    }
+    // if we have draft rows stored in local storage, replace forecasts with that draft data as long
+    // as an actual doesn't exist
+    if (localStoredRows.size > 0) {
+      if (!rowContainsActual(row)) {
+        const storedRow = localStoredRows.get(row.id)
+        if (storedRow) {
+          row.tempForecast = storedRow.tempForecast
+          row.rhForecast = storedRow.rhForecast
+          row.windDirectionForecast = storedRow.windDirectionForecast
+          row.windSpeedForecast = storedRow.windSpeedForecast
+          row.precipForecast = storedRow.precipForecast
+          row.grassCuringForecast = storedRow.grassCuringForecast
+          row.ffmcCalcForecast = storedRow.ffmcCalcForecast
+          row.dmcCalcForecast = storedRow.dmcCalcForecast
+          row.dcCalcForecast = storedRow.dcCalcForecast
+          row.isiCalcForecast = storedRow.isiCalcForecast
+          row.buiCalcForecast = storedRow.buiCalcForecast
+          row.fwiCalcForecast = storedRow.fwiCalcForecast
+        }
+      }
     }
   }
   let newRows = fillGrassCuringForecast(rows)

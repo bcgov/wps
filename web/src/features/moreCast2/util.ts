@@ -1,8 +1,9 @@
 import { DateTime, Interval } from 'luxon'
-import { ModelChoice, MoreCast2ForecastRecord } from 'api/moreCast2API'
+import { ModelChoice, MoreCast2ForecastRecord, WeatherDeterminate } from 'api/moreCast2API'
 import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { StationGroupMember } from 'api/stationAPI'
 import { isUndefined } from 'lodash'
+import { MORECAST_ROW_LOCAL_STORAGE_KEY } from 'features/moreCast2/slices/dataSlice'
 
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
@@ -223,4 +224,35 @@ export const isPreviousToToday = (datetime: DateTime): boolean => {
   const today = DateTime.local().startOf('day')
 
   return datetime < today
+}
+
+export const rowContainsActual = (row: MoreCast2Row): boolean => {
+  for (const key in row) {
+    if (key.includes(WeatherDeterminate.ACTUAL)) {
+      const value = row[key as keyof MoreCast2Row]
+      if (typeof value === 'number' && !isNaN(value)) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
+export const getLocalStorageRowsMap = (): Map<string, MoreCast2Row> => {
+  const storedRowMap = new Map<string, MoreCast2Row>()
+  const localStoredRowStrings = localStorage.getItem(MORECAST_ROW_LOCAL_STORAGE_KEY)
+
+  if (localStoredRowStrings) {
+    const localStoredRows = JSON.parse(localStoredRowStrings)
+    if (Object.keys(localStoredRows).length > 0) {
+      localStoredRows.forEach((row: MoreCast2Row) => {
+        storedRowMap.set(row.id, row)
+      })
+    }
+  }
+  return storedRowMap
+}
+
+export const clearLocalStorageRows = () => {
+  localStorage.removeItem(MORECAST_ROW_LOCAL_STORAGE_KEY)
 }
