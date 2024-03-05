@@ -38,9 +38,10 @@ interface LegendItemProps {
   checked: boolean
   onChange: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => void
   subItems?: SubItem[]
+  description?: string | null
 }
 
-const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subItems }) => (
+const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subItems, description }) => (
   <div>
     <Grid>
       <Grid container alignItems={'center'}>
@@ -57,6 +58,14 @@ const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subIt
           </Typography>
         </Grid>
       </Grid>
+      <Grid container alignItems={'center'}>
+        <Grid item sx={{ transform: 'translate(50%, -50%)' }}>
+          <Typography variant="body1" sx={{ fontSize: '0.75rem' }}>
+            {description}
+          </Typography>
+        </Grid>
+      </Grid>
+
       {subItems && (
         <List dense={true} sx={{ marginLeft: '2.5rem', marginTop: '-1rem' }}>
           {subItems.map(subItem => (
@@ -79,9 +88,21 @@ interface LegendProps {
   setShowShapeStatus: React.Dispatch<React.SetStateAction<boolean>>
   showHFI: boolean
   setShowHFI: React.Dispatch<React.SetStateAction<boolean>>
+  showSnow: boolean
+  setShowSnow: React.Dispatch<React.SetStateAction<boolean>>
+  snowDescription: string | null
 }
 
-const Legend = ({ onToggleLayer, showShapeStatus, setShowShapeStatus, showHFI, setShowHFI }: LegendProps) => {
+const Legend = ({
+  onToggleLayer,
+  showShapeStatus,
+  setShowShapeStatus,
+  showHFI,
+  setShowHFI,
+  showSnow,
+  setShowSnow,
+  snowDescription
+}: LegendProps) => {
   const handleLayerChange = (
     layerName: string,
     isVisible: boolean,
@@ -117,6 +138,12 @@ const Legend = ({ onToggleLayer, showShapeStatus, setShowShapeStatus, showHFI, s
         onChange={() => handleLayerChange('hfiVector', showHFI, setShowHFI)}
         subItems={hfiSubItems}
       />
+      <LegendItem
+        label="Snow Coverage"
+        checked={showSnow}
+        onChange={() => handleLayerChange('snowVector', showSnow, setShowSnow)}
+        description={snowDescription}
+      ></LegendItem>
     </LegendGrid>
   )
 }

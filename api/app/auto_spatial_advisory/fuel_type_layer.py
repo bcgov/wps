@@ -6,11 +6,11 @@ import logging
 from osgeo import ogr, osr, gdal
 from shapely import wkt, wkb
 from app import config
-from app.auto_spatial_advisory.polygonize import polygonize_in_memory
 from app.db.models.auto_spatial_advisory import FuelType
 from app.db.database import get_async_write_session_scope
 from app.db.crud.auto_spatial_advisory import save_fuel_type
 from app.geospatial import NAD83_BC_ALBERS
+from app.utils.polygonize import polygonize_in_memory
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ def fuel_type_iterator() -> Generator[Tuple[int, str], None, None]:
     # that gdal is able to read.
     filename = f'/vsis3/{bucket}/sfms/static/fbp2021.tif'
     logger.info('Polygonizing %s...', filename)
-    with polygonize_in_memory(filename) as layer:
+    with polygonize_in_memory(filename, 'fuel', 'fuel') as layer:
 
         spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
         target_srs = osr.SpatialReference()

@@ -25,7 +25,7 @@ def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransfor
 
 
 @contextmanager
-def polygonize_in_memory(geotiff_filename) -> ogr.Layer:
+def polygonize_in_memory(geotiff_filename, layer, field) -> ogr.Layer:
     """  Given some tiff file, return a polygonized version of it, in memory, as an ogr layer. """
     source: gdal.Dataset = gdal.Open(geotiff_filename, gdal.GA_ReadOnly)
 
@@ -46,8 +46,8 @@ def polygonize_in_memory(geotiff_filename) -> ogr.Layer:
     # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.DataSource
     dst_ds: ogr.DataSource = mem_drv.CreateDataSource("out")
 
-    dst_layer: ogr.Layer = dst_ds.CreateLayer("hfi", spatial_reference, ogr.wkbPolygon)
-    field_name = ogr.FieldDefn("hfi", ogr.OFTInteger)
+    dst_layer: ogr.Layer = dst_ds.CreateLayer(layer, spatial_reference, ogr.wkbPolygon)
+    field_name = ogr.FieldDefn(field, ogr.OFTInteger)
     field_name.SetWidth(24)
     dst_layer.CreateField(field_name)
 

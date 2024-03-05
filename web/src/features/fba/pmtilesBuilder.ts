@@ -16,3 +16,15 @@ export const buildPMTilesURL = (for_date: DateTime, run_type: RunType, run_date:
 
   return PMTilesURL
 }
+
+/**
+ * Builds the URL for snow coverage pmtiles layers.
+ * @param snowDate The target date for snow coverage.
+ * @returns A URL to the snow coverage PMTiles stored in S3
+ */
+export const buildSnowPMTilesURL = (snowDate: DateTime) => {
+  const snowPMTilesUrl = `${PMTILES_BUCKET}snow/${snowDate.toISODate()}/snowCoverage${snowDate.toISODate({
+    format: 'basic'
+  })}.pmtiles`
+  return snowPMTilesUrl
+}
