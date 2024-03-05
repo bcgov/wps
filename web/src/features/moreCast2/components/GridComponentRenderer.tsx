@@ -117,7 +117,7 @@ export class GridComponentRenderer {
     // field.
     if (!isNaN(actualValue) && isNumber(actualValue) && isNumber(formattedValue) && !field.includes('windDirection')) {
       showLessThan = formattedValue < actualValue
-      showGreaterThan = params.formattedValue > actualValue
+      showGreaterThan = formattedValue > actualValue
     }
 
     // The grass curing 'forecast' field is rendered differently
