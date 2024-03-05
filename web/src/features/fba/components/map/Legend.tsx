@@ -41,46 +41,50 @@ interface LegendItemProps {
   description?: string | null
 }
 
-const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subItems, description }) => (
-  <div>
-    <Grid>
-      <Grid container alignItems={'center'}>
-        <Grid item>
-          <Checkbox
-            data-testid={`${label.toLowerCase().split(' ')[0]}-checkbox`}
-            checked={checked}
-            onChange={onChange}
-          />
+const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subItems, description }) => {
+  // Dirty hack used to force whitespace for the Snow Coverage legend item
+  const hasEmptyDescription = description === ''
+  return (
+    <div>
+      <Grid>
+        <Grid container alignItems={'center'}>
+          <Grid item>
+            <Checkbox
+              data-testid={`${label.toLowerCase().split(' ')[0]}-checkbox`}
+              checked={checked}
+              onChange={onChange}
+            />
+          </Grid>
+          <Grid item>
+            <Typography variant="h2" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
+              {label}
+            </Typography>
+          </Grid>
         </Grid>
-        <Grid item>
-          <Typography variant="h2" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
-            {label}
-          </Typography>
+        <Grid container alignItems={'center'}>
+          <Grid item sx={{ transform: 'translate(50%, -50%)' }}>
+            <Typography variant="body1" sx={{ fontSize: '0.75rem' }}>
+              {hasEmptyDescription ? <span>&nbsp;</span> : description}
+            </Typography>
+          </Grid>
         </Grid>
-      </Grid>
-      <Grid container alignItems={'center'}>
-        <Grid item sx={{ transform: 'translate(50%, -50%)' }}>
-          <Typography variant="body1" sx={{ fontSize: '0.75rem' }}>
-            {description}
-          </Typography>
-        </Grid>
-      </Grid>
 
-      {subItems && (
-        <List dense={true} sx={{ marginLeft: '2.5rem', marginTop: '-1rem' }}>
-          {subItems.map(subItem => (
-            <ListItem disablePadding key={subItem.label}>
-              <ListItemIcon>
-                <LegendSymbol sx={{ backgroundColor: subItem.symbol }} />
-              </ListItemIcon>
-              <ListItemText>{subItem.label}</ListItemText>
-            </ListItem>
-          ))}
-        </List>
-      )}
-    </Grid>
-  </div>
-)
+        {subItems && (
+          <List dense={true} sx={{ marginLeft: '2.5rem', marginTop: '-1rem' }}>
+            {subItems.map(subItem => (
+              <ListItem disablePadding key={subItem.label}>
+                <ListItemIcon>
+                  <LegendSymbol sx={{ backgroundColor: subItem.symbol }} />
+                </ListItemIcon>
+                <ListItemText>{subItem.label}</ListItemText>
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </Grid>
+    </div>
+  )
+}
 
 interface LegendProps {
   onToggleLayer: (layerName: string, isVisible: boolean) => void
