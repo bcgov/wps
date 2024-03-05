@@ -114,12 +114,14 @@ export class GridComponentRenderer {
     const actualValue = params.row[actualField]
     let showLessThan = false
     let showGreaterThan = false
-    if (!isNaN(actualValue) && isNumber(actualValue) && isNumber(formattedValue)) {
+    // Only show + and - icons if an actual value exists, a forecast value exists and this is not a windDirection
+    // field.
+    if (!isNaN(actualValue) && isNumber(actualValue) && isNumber(formattedValue) && !field.includes('windDirection')) {
       showLessThan = formattedValue < actualValue
       showGreaterThan = params.formattedValue > actualValue
     }
 
-    // The grass curing 'forecast' field and other weather parameter forecasts fields are rendered differently
+    // The grass curing 'forecast' field is rendered differently
     if (isGrassField) {
       return (
         <TextField
@@ -133,6 +135,8 @@ export class GridComponentRenderer {
         ></TextField>
       )
     } else {
+      // Forecast fields (except wind direction) have plus and minus icons indicating if the forecast was
+      // greater than or less than the actual
       return (
         <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
           <Grid item xs={2}>
