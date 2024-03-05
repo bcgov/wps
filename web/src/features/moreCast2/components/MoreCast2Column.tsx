@@ -139,6 +139,10 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
     return this.colDefBuilder.generateForecastColDef(headerName ?? this.headerName)
   }
 
+  public generateForecastSummaryColDef = () => {
+    return this.colDefBuilder.generateForecastSummaryColDef()
+  }
+
   public generateColDef = () => {
     return this.colDefBuilder.generateColDefWith(this.field, this.headerName, this.precision)
   }

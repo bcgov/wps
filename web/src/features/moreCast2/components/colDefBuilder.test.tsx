@@ -1,5 +1,3 @@
-import React from 'react'
-import { TextField } from '@mui/material'
 import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
 import {
   ColumnDefBuilder,
@@ -8,9 +6,7 @@ import {
   ORDERED_COLUMN_HEADERS
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
-import { tempForecastField } from 'features/moreCast2/components/MoreCast2Column'
-import { theme } from 'app/theme'
-
+import { gcForecastField, tempForecastField } from 'features/moreCast2/components/MoreCast2Column'
 describe('ColDefBuilder', () => {
   const colDefBuilder = new ColumnDefBuilder(
     tempForecastField.field,
@@ -63,7 +59,7 @@ describe('ColDefBuilder', () => {
             headerName: determinate,
             sortable: false,
             type: 'number',
-            width: determinate === WeatherDeterminate.ACTUAL ? DEFAULT_FORECAST_COLUMN_WIDTH : DEFAULT_COLUMN_WIDTH
+            width: DEFAULT_COLUMN_WIDTH
           })
         )
       )
@@ -84,15 +80,6 @@ describe('ColDefBuilder', () => {
           type: 'number',
           width: testWidth
         })
-      )
-
-      expect(forecastColDef.renderCell({ formattedValue: 1 })).toEqual(
-        <TextField
-          sx={{ pointerEvents: 'none', backgroundColor: theme.palette.common.white, borderRadius: 1 }}
-          disabled={true}
-          size="small"
-          value={1}
-        ></TextField>
       )
       expect(forecastColDef.valueFormatter({ value: 1.11 })).toEqual('1.1')
     })
@@ -150,36 +137,6 @@ describe('ColDefBuilder', () => {
           width: testWidth
         })
       )
-      expect(
-        forecastColDef.renderCell({ row: { testField: { choice: ModelChoice.GDPS, value: 1 } }, formattedValue: 1 })
-      ).toEqual(
-        <TextField
-          disabled={false}
-          InputLabelProps={{
-            shrink: true
-          }}
-          label={ModelChoice.GDPS}
-          size="small"
-          value={1}
-        />
-      )
-
-      expect(
-        forecastColDef.renderCell({
-          row: { testField: { choice: ModelChoice.GDPS, value: 1 } },
-          formattedValue: 1
-        })
-      ).toEqual(
-        <TextField
-          disabled={false}
-          InputLabelProps={{
-            shrink: true
-          }}
-          label={ModelChoice.GDPS}
-          size="small"
-          value={1}
-        />
-      )
       expect(forecastColDef.valueFormatter({ value: 1.11 })).toEqual('1.1')
       expect(
         forecastColDef.valueGetter({
@@ -192,7 +149,7 @@ describe('ColDefBuilder', () => {
       ).toEqual({ testField: { choice: ModelChoice.MANUAL, value: 2 } })
     })
 
-    it('should generate col def with parameters correctly with a default width', () => {
+    it('should generate forecast col def with parameters correctly with a default width', () => {
       const forecastColDef = colDefBuilder.generateForecastColDefWith(testField, testHeader, testPrecision)
 
       expect(JSON.stringify(forecastColDef)).toEqual(
@@ -204,7 +161,7 @@ describe('ColDefBuilder', () => {
           headerName: testHeader,
           sortable: false,
           type: 'number',
-          width: 120
+          width: 145
         })
       )
     })
@@ -230,5 +187,29 @@ describe('ColDefBuilder', () => {
         )
       ).toEqual({ testField: { choice: ModelChoice.MANUAL, value: 2 } })
     })
+  })
+  it('should generate grass curing cold def correctly', () => {
+    const gcColDefBuilder = new ColumnDefBuilder(
+      gcForecastField.field,
+      gcForecastField.headerName,
+      gcForecastField.type,
+      gcForecastField.precision,
+      new GridComponentRenderer()
+    )
+
+    const gcColDef = gcColDefBuilder.generateForecastColDef()
+
+    expect(JSON.stringify(gcColDef)).toEqual(
+      JSON.stringify({
+        field: `${gcForecastField.field}${WeatherDeterminate.FORECAST}`,
+        disableColumnMenu: true,
+        disableReorder: true,
+        editable: true,
+        headerName: gcForecastField.headerName,
+        sortable: false,
+        type: gcForecastField.type,
+        width: DEFAULT_COLUMN_WIDTH
+      })
+    )
   })
 })
