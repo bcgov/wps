@@ -196,7 +196,7 @@ describe('ColDefBuilder', () => {
       ).toEqual({ testField: { choice: ModelChoice.MANUAL, value: 2 } })
     })
   })
-  it('should generate grass curing cold def correctly', () => {
+  it('should generate grass curing column definition correctly', () => {
     const gcColDefBuilder = new ColumnDefBuilder(
       gcForecastField.field,
       gcForecastField.headerName,

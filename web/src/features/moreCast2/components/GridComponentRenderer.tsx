@@ -1,7 +1,5 @@
 import React from 'react'
-import { Box, Button, Grid, TextField, Tooltip } from '@mui/material'
-import RemoveCircleIcon from '@mui/icons-material/RemoveCircle'
-import AddBoxIcon from '@mui/icons-material/AddBox'
+import { Box, Button, TextField } from '@mui/material'
 import {
   GridColumnHeaderParams,
   GridRenderCellParams,
@@ -20,8 +18,9 @@ import {
   WIND_DIR_HEADER,
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
-import { MEDIUM_GREY, theme } from 'app/theme'
+import { theme } from 'app/theme'
 import { isNumber } from 'lodash'
+import ForecastCell from 'features/moreCast2/components/ForecastCell'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -138,46 +137,13 @@ export class GridComponentRenderer {
       // Forecast fields (except wind direction) have plus and minus icons indicating if the forecast was
       // greater than or less than the actual
       return (
-        <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-          <Grid item xs={2}>
-            {showLessThan && (
-              <Tooltip placement="bottom-end" title="Lower than actual">
-                <RemoveCircleIcon sx={{ color: MEDIUM_GREY, fontSize: '1.15rem' }} />
-              </Tooltip>
-            )}
-          </Grid>
-          <Grid item xs={8}>
-            <TextField
-              disabled={isActual || isPreviousDate}
-              size="small"
-              label={label}
-              InputLabelProps={{
-                shrink: true
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: '#737373',
-                    borderWidth: '2px'
-                  }
-                },
-                '& .Mui-disabled': {
-                  '& fieldset': {
-                    borderWidth: '1px'
-                  }
-                }
-              }}
-              value={params.formattedValue}
-            ></TextField>
-          </Grid>
-          <Grid item xs={2} sx={{ marginLeft: 'auto' }}>
-            {showGreaterThan && (
-              <Tooltip placement="bottom-start" title="Higher than actual">
-                <AddBoxIcon sx={{ color: MEDIUM_GREY, fontSize: '1.25rem', marginLeft: '2px' }} />
-              </Tooltip>
-            )}
-          </Grid>
-        </Grid>
+        <ForecastCell
+          disabled={isActual || isPreviousDate}
+          label={label}
+          showGreaterThan={showGreaterThan}
+          showLessThan={showLessThan}
+          value={params.formattedValue}
+        />
       )
     }
   }
