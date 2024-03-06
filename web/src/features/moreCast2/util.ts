@@ -1,6 +1,6 @@
 import { DateTime, Interval } from 'luxon'
 import { ModelChoice, MoreCast2ForecastRecord, WeatherDeterminate } from 'api/moreCast2API'
-import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
+import { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { StationGroupMember } from 'api/stationAPI'
 import { isUndefined } from 'lodash'
 import { MORECAST_ROW_LOCAL_STORAGE_KEY } from 'features/moreCast2/slices/dataSlice'
@@ -236,6 +236,17 @@ export const rowContainsActual = (row: MoreCast2Row): boolean => {
     }
   }
   return false
+}
+
+export const getStoredDraftForecast = (): DraftMorecast2Rows => {
+  const localStoredRowStrings = localStorage.getItem(MORECAST_ROW_LOCAL_STORAGE_KEY)
+  let storedDraft: DraftMorecast2Rows = { rows: [], lastEdited: 0 }
+
+  if (localStoredRowStrings) {
+    storedDraft = JSON.parse(MORECAST_ROW_LOCAL_STORAGE_KEY)
+  }
+
+  return storedDraft
 }
 
 export const getLocalStorageRowsMap = (): Map<string, MoreCast2Row> => {

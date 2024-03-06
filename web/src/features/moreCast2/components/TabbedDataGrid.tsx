@@ -1,4 +1,4 @@
-import { AlertColor, Button, Grid, List, Stack } from '@mui/material'
+import { AlertColor, Grid, List, Stack } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
   GridCellParams,
@@ -19,6 +19,7 @@ import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
 import {
+  MORECAST_ROW_LOCAL_STORAGE_KEY,
   getSimulatedIndices,
   selectUserEditedRows,
   selectWeatherIndeterminatesLoading,
@@ -39,8 +40,14 @@ import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2Dat
 import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
-import { clearLocalStorageRows, fillGrassCuringForecast, mapForecastChoiceLabels } from 'features/moreCast2/util'
+import {
+  clearLocalStorageRows,
+  fillGrassCuringForecast,
+  getLocalStorageRowsMap,
+  mapForecastChoiceLabels
+} from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
+import ResetForecastButton from 'features/moreCast2/components/resetForecastButton'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -421,6 +428,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         setSnackbarMessage(FORECAST_SAVED_MESSAGE)
         setSnackbarSeverity('success')
         setSnackbarOpen(true)
+        clearSavedRowsFromLocalStorage(rowsToSave)
       } else {
         setSnackbarMessage(result.errorMessage ?? FORECAST_ERROR_MESSAGE)
         setSnackbarSeverity('error')
@@ -431,6 +439,20 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       setSnackbarSeverity('warning')
       setSnackbarOpen(true)
     }
+  }
+
+  const clearSavedRowsFromLocalStorage = (savedRows: MoreCast2ForecastRow[]) => {
+    const localStoredRows = getLocalStorageRowsMap()
+    savedRows.forEach(row => {
+      localStoredRows.delete(row.id)
+    })
+    const newRowsToStore = Array.from(localStoredRows.values())
+    localStorage.setItem(MORECAST_ROW_LOCAL_STORAGE_KEY, JSON.stringify(newRowsToStore))
+  }
+
+  const hasRowsStoredLocally = (): boolean => {
+    const localStoredRows = getLocalStorageRowsMap()
+    return localStoredRows.size > 0
   }
 
   // Checks if the displayed rows includes non-Actual rows
@@ -486,9 +508,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         </Grid>
         <Grid item sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
           <Stack direction="row" spacing={theme.spacing(2)}>
-            <Button variant="contained" onClick={handleResetClick}>
-              Reset
-            </Button>
+            <ResetForecastButton label={'Reset'} onClick={handleResetClick} enabled={hasRowsStoredLocally()} />
             <SaveForecastButton
               enabled={
                 isAuthenticated &&
