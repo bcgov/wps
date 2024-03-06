@@ -53,6 +53,22 @@ describe('ForecastCell', () => {
     const element = queryByTestId('forecast-cell-less-than-icon')
     expect(element).toBeInTheDocument()
   })
+  it('should throw an error when showGreaterThan and showLessThan are both positive', () => {
+    // Suppres the console error message for an unhandled error
+    const consoleErrorFn = jest.spyOn(console, 'error').mockImplementation(() => jest.fn())
+    expect(() => {
+      render(
+        <ForecastCell
+          disabled={false}
+          label="foo"
+          showGreaterThan={true}
+          showLessThan={true}
+          value={params.formattedValue}
+        />
+      )
+    }).toThrow('ForecastCell cannot show both greater than and less than icons at the same time.')
+    consoleErrorFn.mockRestore()
+  })
   it('should not show less than icon when showLessThan is false', () => {
     const { queryByTestId } = render(
       <ForecastCell
