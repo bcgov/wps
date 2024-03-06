@@ -19,6 +19,8 @@ import {
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { theme } from 'app/theme'
+import { isNumber } from 'lodash'
+import ForecastCell from 'features/moreCast2/components/ForecastCell'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -104,20 +106,57 @@ export class GridComponentRenderer {
     // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
     const isPreviousDate = isPreviousToToday(params.row['forDate'])
-
     const isGrassField = field.includes('grass')
+    const label = isGrassField || isPreviousDate ? '' : createWeatherModelLabel(params.row[field].choice)
+    const formattedValue = parseFloat(params.formattedValue)
+    const actualField = this.getActualField(field)
+    const actualValue = params.row[actualField]
+    let showLessThan = false
+    let showGreaterThan = false
+    // Only show + and - icons if an actual value exists, a forecast value exists and this is not a windDirection
+    // field.
+    if (!isNaN(actualValue) && isNumber(actualValue) && isNumber(formattedValue) && !field.includes('windDirection')) {
+      showLessThan = formattedValue < actualValue
+      showGreaterThan = formattedValue > actualValue
+    }
 
-    return (
-      <TextField
-        disabled={isActual || isPreviousDate}
-        size="small"
-        label={isGrassField ? '' : createWeatherModelLabel(params.row[field].choice)}
-        InputLabelProps={{
-          shrink: true
-        }}
-        value={params.formattedValue}
-      ></TextField>
-    )
+    // The grass curing 'forecast' field is rendered differently
+    if (isGrassField) {
+      return (
+        <TextField
+          disabled={isActual || isPreviousDate}
+          size="small"
+          label={label}
+          InputLabelProps={{
+            shrink: true
+          }}
+          value={params.formattedValue}
+        ></TextField>
+      )
+    } else {
+      // Forecast fields (except wind direction) have plus and minus icons indicating if the forecast was
+      // greater than or less than the actual
+      return (
+        <ForecastCell
+          disabled={isActual || isPreviousDate}
+          label={label}
+          showGreaterThan={showGreaterThan}
+          showLessThan={showLessThan}
+          value={params.formattedValue}
+        />
+      )
+    }
+  }
+
+  public renderForecastSummaryCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>) => {
+    // If a single cell in a row contains an Actual, no Forecast will be entered into the row anymore, so we can disable the whole row.
+    const isActual = this.rowContainsActual(params.row)
+    // We can disable a cell if an Actual exists or the forDate is before today.
+    // Both forDate and today are currently in the system's time zone
+    const isPreviousDate = isPreviousToToday(params.row['forDate'])
+
+    // The grass curing 'forecast' field and other weather parameter forecasts fields are rendered differently
+    return <TextField disabled={isActual || isPreviousDate} size="small" value={params.formattedValue}></TextField>
   }
 
   public predictionItemValueSetter = (
