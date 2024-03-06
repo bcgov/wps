@@ -1,4 +1,4 @@
-import { GridValueFormatterParams } from '@mui/x-data-grid'
+import { GridColumnHeaderParams, GridValueFormatterParams } from '@mui/x-data-grid'
 import { DateTime } from 'luxon'
 import {
   ColDefGenerator,
@@ -12,6 +12,7 @@ import {
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
+import { weatherParamHeaderColorClass } from 'app/theme'
 
 export class StationForecastField implements ColDefGenerator {
   private static instance: StationForecastField
@@ -119,7 +120,7 @@ export class GrassCuringCWFISField implements ColDefGenerator {
 export class IndeterminateField implements ColDefGenerator, ForecastColDefGenerator {
   private colDefBuilder: ColumnDefBuilder
 
-  constructor(
+  public constructor(
     readonly field: string,
     readonly headerName: string,
     readonly type: 'string' | 'number',
@@ -135,8 +136,15 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
     )
   }
 
+  public getField = () => this.field
+
   public generateForecastColDef = (headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(headerName ?? this.headerName)
+    return {
+      ...this.colDefBuilder.generateForecastColDef(headerName ?? this.headerName),
+      headerClassName: (params: Pick<GridColumnHeaderParams, 'field'>) => {
+        return weatherParamHeaderColorClass(params)
+      }
+    }
   }
 
   public generateColDef = () => {

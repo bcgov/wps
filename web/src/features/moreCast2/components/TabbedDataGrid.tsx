@@ -14,7 +14,7 @@ import {
   WeatherDeterminateType,
   submitMoreCastForecastRecords
 } from 'api/moreCast2API'
-import { getColumnGroupingModel, ColumnVis, DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
+import { getTabColumnGroupModel, ColumnVis, DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
@@ -228,7 +228,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const colGroupingModel = getColumnGroupingModel(showHideColumnsModel, handleShowHideChange)
+    const colGroupingModel = getTabColumnGroupModel(showHideColumnsModel, handleShowHideChange)
     setColumnGroupingModel(colGroupingModel)
   }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
 

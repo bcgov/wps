@@ -1,5 +1,8 @@
 import { createTheme } from '@mui/material/styles'
 import { GridCellParams, GridColumnHeaderParams } from '@mui/x-data-grid'
+import { WeatherDeterminate } from 'api/moreCast2API'
+import { MORECAST2_INDEX_FIELDS } from 'features/moreCast2/components/MoreCast2Column'
+import { isUndefined } from 'lodash'
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
@@ -96,7 +99,15 @@ export const DARK_GREY = '#A7A7A7'
 export const LIGHT_GREY = '#DADADA'
 export const MEDIUM_GREY = '#B5B5B5'
 
-export const MORECAST_WEATHER_PARAMS = {
+interface WeatherParams {
+  [key: string]: {
+    active: string
+    inactive: string
+    text: string
+  }
+}
+
+export const MORECAST_WEATHER_PARAMS: WeatherParams = {
   temp: { active: 'rgba(215, 48, 39, 0.3)', inactive: 'rgba(215, 48, 39, 0.2)', text: 'black' },
   rh: { active: 'rgba(254, 224, 144, 0.7)', inactive: 'rgba(254, 224, 144, 0.3)', text: 'black' },
   windDirection: { active: 'rgba(145, 191, 219, 0.5)', inactive: 'rgba(145, 191, 219, 0.2)', text: 'black' },
@@ -107,7 +118,13 @@ export const MORECAST_WEATHER_PARAMS = {
 }
 export type MoreCastParams = typeof MORECAST_WEATHER_PARAMS
 
-export const MORECAST_MODEL_COLORS = {
+interface ModelDetails {
+  [key: string]: {
+    bg: string
+    border: string
+  }
+}
+export const MORECAST_MODEL_COLORS: ModelDetails = {
   nam: { bg: 'rgba(255, 20, 147, 0.1)', border: 'rgba(255, 20, 147, 1)' },
   gfs: { bg: 'rgba(205, 133, 63, 0.1)', border: 'rgba(205, 133, 63, 1)' },
   gdps: { bg: 'rgba(0, 0, 255, 0.1)', border: 'rgba(0, 0, 255, 1)' },
@@ -120,22 +137,26 @@ export const modelColorClass = (params: Pick<GridCellParams | GridColumnHeaderPa
   if (params.field.includes('Actual')) {
     return ''
   }
-  if (params.field.includes('GDPS')) {
-    return 'gdps'
+  const stringKeys = Object.keys(MORECAST_MODEL_COLORS)
+  const modelKey = stringKeys.find(key => params.field.includes(key.toUpperCase()))
+  return modelKey ? modelKey : ''
+}
+
+export const weatherParamHeaderColorClass = (params: Pick<GridCellParams | GridColumnHeaderParams, 'field'>) => {
+  if (params.field.includes('Actual')) {
+    return ''
   }
-  if (params.field.includes('GFS')) {
-    return 'gfs'
+  const weatherParam = params.field.split(WeatherDeterminate.FORECAST)[0]
+  const paramKey = MORECAST_WEATHER_PARAMS[weatherParam]
+  if (!isUndefined(paramKey)) {
+    return `${weatherParam}-forecast-header`
   }
-  if (params.field.includes('HRDPS')) {
-    return 'hrdps'
+  const indexKey = MORECAST2_INDEX_FIELDS.find(field => params.field.includes(field.getField()))
+  if (!isUndefined(indexKey)) {
+    return `${indexKey.getField()}-forecast-header`
   }
-  if (params.field.includes('NAM')) {
-    return 'nam'
-  }
-  if (params.field.includes('RDPS')) {
-    return 'rdps'
-  }
-  return ''
+
+  return params.field.includes('grass') ? 'gc-forecast-header' : ''
 }
 
 export const modelHeaderColorClass = (params: Pick<GridCellParams | GridColumnHeaderParams, 'field'>) => {

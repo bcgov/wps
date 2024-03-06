@@ -47,6 +47,7 @@ const Root = styled('div')(() => {
     styles[`& .${key}`] = {
       backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
       borderRight: 'solid',
+      borderWidth: '1px',
       // Ugly override, tried to avoid, but MUI overwrites border with it's own otherwise
       borderRightColor: `${MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].border} !important`
     }
@@ -54,6 +55,8 @@ const Root = styled('div')(() => {
       backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
       borderBottom: 'solid',
       borderRight: 'solid',
+      borderWidth: '1px',
+
       // Ugly override, tried to avoid, but MUI overwrites border with it's own otherwise
       borderColor: `${MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].border} !important`
     }

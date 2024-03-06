@@ -8,7 +8,7 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { WeatherDeterminate, WeatherDeterminateType } from 'api/moreCast2API'
-import { modelColorClass, modelHeaderColorClass } from 'app/theme'
+import { modelColorClass, modelHeaderColorClass, weatherParamHeaderColorClass } from 'app/theme'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 
 export const DEFAULT_COLUMN_WIDTH = 80
@@ -38,6 +38,7 @@ export const PRECIP_HEADER = 'Precip'
 export const GC_HEADER = 'GC'
 
 export interface ForecastColDefGenerator {
+  getField: () => string
   generateForecastColDef: (headerName?: string) => GridColDef
 }
 
@@ -54,7 +55,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     readonly precision: number,
     readonly gridComponentRenderer: GridComponentRenderer
   ) {}
-
+  public getField = () => this.field
   public generateColDef = () => {
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
@@ -139,6 +140,9 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       sortable: false,
       type: 'number',
       width: width ?? DEFAULT_FORECAST_COLUMN_WIDTH,
+      headerClassName: (params: GridColumnHeaderParams) => {
+        return weatherParamHeaderColorClass(params)
+      },
       renderHeader: (params: GridColumnHeaderParams) => {
         return isCalcField || isGrassField
           ? this.gridComponentRenderer.renderHeaderWith(params)

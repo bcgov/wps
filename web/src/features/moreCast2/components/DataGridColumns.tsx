@@ -115,7 +115,7 @@ const renderGroupHeader = (
   )
 }
 
-export const getColumnGroupingModel = (
+export const getTabColumnGroupModel = (
   showHideColumnsModel: Record<string, ColumnVis[]>,
   handleShowHideChange: handleShowHideChangeType
 ) => {
@@ -176,6 +176,16 @@ export const getColumnGroupingModel = (
       renderHeaderGroup: () => {
         return <Typography style={{ fontWeight: 'bold' }}>Grass Curing</Typography>
       }
+    }
+  ]
+  return model
+}
+
+export const getSummaryColumnGroupModel = () => {
+  const model = [
+    {
+      groupId: 'Temp',
+      children: [{ groupId: 'Forecast', field: '' }]
     }
   ]
   return model

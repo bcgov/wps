@@ -5,12 +5,14 @@ import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
-import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
+import { DataGridColumns, getSummaryColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
 import { storeUserEditedRows, getSimulatedIndices } from 'features/moreCast2/slices/dataSlice'
 import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
 import { filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
 import { fillStationGrassCuringForward } from 'features/moreCast2/util'
+import { MORECAST_WEATHER_PARAMS, MoreCastParams, theme } from 'app/theme'
+import { MORECAST2_INDEX_FIELDS } from 'features/moreCast2/components/MoreCast2Column'
 
 const PREFIX = 'ForecastSummaryDataGrid'
 
@@ -18,12 +20,30 @@ const classes = {
   root: `${PREFIX}-root`
 }
 
-const Root = styled('div')({
-  [`&.${classes.root}`]: {
-    display: 'flex',
-    flexGrow: 1,
-    height: '1px'
+const Root = styled('div')(() => {
+  const styles: Record<string, React.CSSProperties> = {
+    [`&.${classes.root}`]: {
+      display: 'flex',
+      flexGrow: 1,
+      flexDirection: 'column',
+      height: '1px'
+    }
   }
+
+  Object.keys(MORECAST_WEATHER_PARAMS).forEach(key => {
+    styles[`& .${key}-forecast-header`] = {
+      backgroundColor: `${MORECAST_WEATHER_PARAMS[key as keyof MoreCastParams].active}`
+    }
+  })
+
+  MORECAST2_INDEX_FIELDS.forEach(indexField => {
+    styles[`& .${indexField.getField()}-forecast-header`] = {
+      backgroundColor: `rgba(0, 51, 102, 1)`,
+      color: theme.palette.common.white
+    }
+  })
+
+  return styles
 })
 
 interface ForecastSummaryDataGridProps {
@@ -73,6 +93,7 @@ const ForecastSummaryDataGrid = ({
             sortModel: [{ field: 'stationName', sort: 'asc' }]
           }
         }}
+        columnGroupingModel={getSummaryColumnGroupModel()}
         onColumnHeaderClick={handleColumnHeaderClick}
         loading={loading}
         columns={DataGridColumns.getSummaryColumns()}
