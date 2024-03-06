@@ -39,7 +39,7 @@ import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2Dat
 import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
-import { clearLocalStorageRows, mapForecastChoiceLabels } from 'features/moreCast2/util'
+import { clearLocalStorageRows, fillGrassCuringForecast, mapForecastChoiceLabels } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
 
 export const Root = styled('div')({
@@ -450,6 +450,34 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     setShowHideColumnsModel(newModel)
   }
 
+  /**
+   * Reset forecast rows to their default state. Temp, RH, Wind Dir & Speed are cleared,
+   * Precip is set to 0, and GC is carried forward from last submitted value.
+   */
+  const resetForecastRows = () => {
+    const resetRows = allRows.map(row => {
+      const rowToReset = { ...row }
+      Object.keys(rowToReset).forEach(key => {
+        if (key.includes(WeatherDeterminate.FORECAST)) {
+          const isPrecipField = key.includes('precip')
+          const item = rowToReset[key as keyof MoreCast2Row] as PredictionItem
+          if (item.choice != ModelChoice.FORECAST && !isNaN(item.value)) {
+            item.value = isPrecipField ? 0 : NaN
+            item.choice = ''
+          }
+        }
+      })
+      return rowToReset
+    })
+    setAllRows(resetRows)
+    fillGrassCuringForecast(allRows)
+  }
+
+  const handleResetClick = () => {
+    resetForecastRows()
+    clearLocalStorageRows()
+  }
+
   return (
     <Root>
       <Grid container justifyContent="space-between" alignItems={'center'}>
@@ -458,7 +486,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         </Grid>
         <Grid item sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
           <Stack direction="row" spacing={theme.spacing(2)}>
-            <Button variant="contained" onClick={() => clearLocalStorageRows()}>
+            <Button variant="contained" onClick={handleResetClick}>
               Reset
             </Button>
             <SaveForecastButton

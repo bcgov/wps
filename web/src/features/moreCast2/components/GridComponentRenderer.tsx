@@ -9,7 +9,6 @@ import {
 } from '@mui/x-data-grid'
 import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
 import { createWeatherModelLabel, isPreviousToToday } from 'features/moreCast2/util'
-import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import {
   GC_HEADER,
   PRECIP_HEADER,
@@ -19,6 +18,7 @@ import {
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { theme } from 'app/theme'
+import { rowContainsActual } from 'features/moreCast2/util'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -55,18 +55,6 @@ export class GridComponentRenderer {
     return actualField
   }
 
-  public rowContainsActual = (row: MoreCast2Row): boolean => {
-    for (const key in row) {
-      if (key.includes(WeatherDeterminate.ACTUAL)) {
-        const value = row[key as keyof MoreCast2Row]
-        if (typeof value === 'number' && !isNaN(value)) {
-          return true
-        }
-      }
-    }
-    return false
-  }
-
   public valueGetter = (
     params: Pick<GridValueGetterParams, 'row' | 'value'>,
     precision: number,
@@ -89,18 +77,18 @@ export class GridComponentRenderer {
 
     const isPreviousDate = isPreviousToToday(params.row['forDate'])
     const isForecastColumn = this.isForecastColumn(headerName)
-    const rowContainsActual = this.rowContainsActual(params.row)
+    const containsActual = rowContainsActual(params.row)
 
     // If a cell has no value, belongs to a Forecast column, is a future forDate, and the row doesn't contain any Actuals from today,
     // we can leave it blank, so it's obvious that it can have a value entered into it.
-    if (isNaN(value) && !isPreviousDate && isForecastColumn && !rowContainsActual) {
+    if (isNaN(value) && !isPreviousDate && isForecastColumn && !containsActual) {
       return ''
     } else return isNaN(value) ? noDataField : Number(value).toFixed(precision)
   }
 
   public renderForecastCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>, field: string) => {
     // If a single cell in a row contains an Actual, no Forecast will be entered into the row anymore, so we can disable the whole row.
-    const isActual = this.rowContainsActual(params.row)
+    const isActual = rowContainsActual(params.row)
     // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
     const isPreviousDate = isPreviousToToday(params.row['forDate'])
