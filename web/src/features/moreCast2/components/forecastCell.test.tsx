@@ -95,6 +95,22 @@ describe('ForecastCell', () => {
     const element = queryByTestId('forecast-cell-greater-than-icon')
     expect(element).not.toBeInTheDocument()
   })
+  it('should not show less than or greater than icons when showLessThan and showGreater than are both false', () => {
+    const { queryByTestId } = render(
+      <ForecastCell
+        disabled={false}
+        label="foo"
+        showGreaterThan={false}
+        showLessThan={false}
+        value={params.formattedValue}
+      />
+    )
+
+    const greaterThanElement = queryByTestId('forecast-cell-greater-than-icon')
+    expect(greaterThanElement).not.toBeInTheDocument()
+    const lessThanElement = queryByTestId('forecast-cell-less-than-icon')
+    expect(lessThanElement).not.toBeInTheDocument()
+  })
   it('should not show a label when none specified', () => {
     const { container } = render(
       <ForecastCell
