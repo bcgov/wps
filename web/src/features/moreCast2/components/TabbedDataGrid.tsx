@@ -39,15 +39,10 @@ import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2Dat
 import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
-import { fillGrassCuringForecast, mapForecastChoiceLabels } from 'features/moreCast2/util'
+import { mapForecastChoiceLabels } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
 import ResetForecastButton from 'features/moreCast2/components/resetForecastButton'
-import {
-  clearLocalStorageRows,
-  deleteRowsFromStoredDraft,
-  getLastSavedDraftDateTime,
-  hasDraftForecastStored
-} from 'features/moreCast2/forecastDraft'
+import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -418,6 +413,8 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     }
   }
 
+  const storedDraftForecast = new MorecastDraftForecast(localStorage)
+
   const handleSaveClick = async () => {
     if (isForecastValid(visibleRows) && !isUndefined(wf1Token)) {
       const rowsToSave: MoreCast2ForecastRow[] = getRowsToSave(visibleRows)
@@ -426,7 +423,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         setSnackbarMessage(FORECAST_SAVED_MESSAGE)
         setSnackbarSeverity('success')
         setSnackbarOpen(true)
-        deleteRowsFromStoredDraft(rowsToSave)
+        storedDraftForecast.deleteRowsFromStoredDraft(rowsToSave)
       } else {
         setSnackbarMessage(result.errorMessage ?? FORECAST_ERROR_MESSAGE)
         setSnackbarSeverity('error')
@@ -456,36 +453,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     setShowHideColumnsModel(newModel)
   }
 
-  /**
-   * Reset forecast rows to their default state. Temp, RH, Wind Dir & Speed are cleared,
-   * Precip is set to 0, and GC is carried forward from last submitted value.
-   */
-  const resetForecastRows = () => {
-    const resetRows = allRows.map(row => {
-      const rowToReset = { ...row }
-      // We don't need to reset the row if an actual exists
-      Object.keys(rowToReset).forEach(key => {
-        if (key.includes(WeatherDeterminate.FORECAST)) {
-          const isPrecipField = key.includes('precip')
-          const field = rowToReset[key as keyof MoreCast2Row] as PredictionItem
-          // Submitted forecasts have a ModelChoice.FORECAST, we don't want to reset those
-          if (field.choice != ModelChoice.FORECAST && !isNaN(field.value)) {
-            field.value = isPrecipField ? 0 : NaN
-            field.choice = ''
-          }
-        }
-      })
-      return rowToReset
-    })
-    setAllRows(resetRows)
-    fillGrassCuringForecast(allRows)
-  }
-
-  const handleResetClick = () => {
-    resetForecastRows()
-    clearLocalStorageRows()
-  }
-
   return (
     <Root>
       <Grid container justifyContent="space-between" alignItems={'center'}>
@@ -494,10 +461,17 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         </Grid>
         <Grid item sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
           <Stack direction="row" spacing={theme.spacing(2)} alignItems={'center'}>
-            {getLastSavedDraftDateTime() && (
-              <Typography sx={{ fontSize: 12 }}>Draft saved {getLastSavedDraftDateTime()}</Typography>
+            {storedDraftForecast.getLastSavedDraftDateTime() && (
+              <Typography sx={{ fontSize: 12 }}>
+                Draft saved {storedDraftForecast.getLastSavedDraftDateTime()}
+              </Typography>
             )}
-            <ResetForecastButton label={'Reset'} onClick={handleResetClick} enabled={hasDraftForecastStored()} />
+            <ResetForecastButton
+              label={'Reset'}
+              allRows={allRows}
+              setAllRows={setAllRows}
+              enabled={storedDraftForecast.hasDraftForecastStored()}
+            />
             <SaveForecastButton
               enabled={
                 isAuthenticated &&

@@ -236,3 +236,11 @@ export const rowContainsActual = (row: MoreCast2Row): boolean => {
   }
   return false
 }
+
+export const getRowsMap = (morecastRows: MoreCast2Row[]): Map<string, MoreCast2Row> => {
+  const morecastRowMap = new Map<string, MoreCast2Row>()
+  morecastRows.forEach((row: MoreCast2Row) => {
+    morecastRowMap.set(row.id, row)
+  })
+  return morecastRowMap
+}

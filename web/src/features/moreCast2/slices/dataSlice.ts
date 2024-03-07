@@ -17,15 +17,17 @@ import {
   rowIDHasher,
   fillGrassCuringForecast,
   fillGrassCuringCWFIS,
-  rowContainsActual
+  rowContainsActual,
+  getRowsMap
 } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { groupBy, isEqual, isNull, isNumber, isUndefined } from 'lodash'
 import { StationGroupMember } from 'api/stationAPI'
-import { getRowsMap, getStoredDraftForecasts, updateStoredDraftForecasts } from 'features/moreCast2/forecastDraft'
+import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 
+const morecastDraftForecast = new MorecastDraftForecast(localStorage)
 interface State {
   loading: boolean
   error: string | null
@@ -94,7 +96,7 @@ const dataSlice = createSlice({
         }
       }
       state.userEditedRows = storedRows
-      updateStoredDraftForecasts(storedRows)
+      morecastDraftForecast.updateStoredDraftForecasts(storedRows)
     }
   }
 })
@@ -363,7 +365,7 @@ export const createMoreCast2Rows = (
     rows.push(row)
   }
 
-  const storedDraftForecasts = getStoredDraftForecasts()
+  const storedDraftForecast = morecastDraftForecast.getStoredDraftForecasts()
 
   // Set the forecasted precip value to 0 for rows which have no actual or forecasted precip value.
   for (const row of rows) {
@@ -377,8 +379,8 @@ export const createMoreCast2Rows = (
     }
     // if we have draft rows stored in local storage, replace forecasts with that draft data as long
     // as an actual doesn't exist
-    if (storedDraftForecasts.rows) {
-      const storedRowsMap = getRowsMap(storedDraftForecasts.rows)
+    if (storedDraftForecast.rows) {
+      const storedRowsMap = getRowsMap(storedDraftForecast.rows)
       if (!rowContainsActual(row)) {
         const storedRow = storedRowsMap.get(row.id)
         if (storedRow) {
