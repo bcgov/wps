@@ -1,5 +1,6 @@
 import { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { rowContainsActual } from 'features/moreCast2/util'
+import { DateTime } from 'luxon'
 
 export const MORECAST_ROW_LOCAL_STORAGE_KEY = 'morecastForecastDraft'
 
@@ -55,4 +56,16 @@ export const getRowsMap = (morecastRows: MoreCast2Row[]): Map<string, MoreCast2R
 
 export const clearLocalStorageRows = () => {
   localStorage.removeItem(MORECAST_ROW_LOCAL_STORAGE_KEY)
+}
+
+export const hasDraftForecastStored = (): boolean => {
+  const localStoredRows = getStoredDraftForecasts().rows
+  return localStoredRows.length > 0
+}
+
+export const getLastSavedDraftDateTime = (): string | undefined => {
+  const storedDraftForecast = getStoredDraftForecasts()
+  return storedDraftForecast.lastEdited !== 0
+    ? DateTime.fromMillis(storedDraftForecast.lastEdited).toFormat('MMMM dd, HH:mm')
+    : undefined
 }

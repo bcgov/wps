@@ -42,11 +42,11 @@ import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters
 import { fillGrassCuringForecast, mapForecastChoiceLabels } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
 import ResetForecastButton from 'features/moreCast2/components/resetForecastButton'
-import { DateTime } from 'luxon'
 import {
   clearLocalStorageRows,
   deleteSavedRowsFromLocalStorage,
-  getStoredDraftForecasts
+  getLastSavedDraftDateTime,
+  hasDraftForecastStored
 } from 'features/moreCast2/forecastDraft'
 
 export const Root = styled('div')({
@@ -439,18 +439,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     }
   }
 
-  const hasRowsStoredLocally = (): boolean => {
-    const localStoredRows = getStoredDraftForecasts().rows
-    return localStoredRows.length > 0
-  }
-
-  const getLastSavedDraftDateTime = (): string | undefined => {
-    const storedDraftForecast = getStoredDraftForecasts()
-    return storedDraftForecast.lastEdited !== 0
-      ? DateTime.fromMillis(storedDraftForecast.lastEdited).toFormat('MMMM dd, HH:mm')
-      : undefined
-  }
-
   // Checks if the displayed rows includes non-Actual rows
   const hasForecastRow = () => {
     return visibleRows.filter(isForecastRowPredicate).length > 0
@@ -507,7 +495,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
             {getLastSavedDraftDateTime() && (
               <Typography sx={{ fontSize: 12 }}>Draft saved {getLastSavedDraftDateTime()}</Typography>
             )}
-            <ResetForecastButton label={'Reset'} onClick={handleResetClick} enabled={hasRowsStoredLocally()} />
+            <ResetForecastButton label={'Reset'} onClick={handleResetClick} enabled={hasDraftForecastStored()} />
             <SaveForecastButton
               enabled={
                 isAuthenticated &&
