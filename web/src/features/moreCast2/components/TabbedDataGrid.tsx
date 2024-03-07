@@ -39,17 +39,15 @@ import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2Dat
 import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
-import {
-  clearLocalStorageRows,
-  fillGrassCuringForecast,
-  getRowsMap,
-  getStoredDraftForecasts,
-  mapForecastChoiceLabels,
-  storeDraftForecasts
-} from 'features/moreCast2/util'
+import { fillGrassCuringForecast, mapForecastChoiceLabels } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
 import ResetForecastButton from 'features/moreCast2/components/resetForecastButton'
 import { DateTime } from 'luxon'
+import {
+  clearLocalStorageRows,
+  deleteSavedRowsFromLocalStorage,
+  getStoredDraftForecasts
+} from 'features/moreCast2/forecastDraft'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -441,17 +439,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       setSnackbarSeverity('warning')
       setSnackbarOpen(true)
     }
-  }
-
-  const deleteSavedRowsFromLocalStorage = (savedRows: MoreCast2ForecastRow[]) => {
-    const localStoredForecast = getStoredDraftForecasts()
-    const localStoredRows = getRowsMap(localStoredForecast.rows)
-    savedRows.forEach(row => {
-      localStoredRows.delete(row.id)
-    })
-    localStoredForecast.rows = Array.from(localStoredRows.values())
-    localStoredForecast.lastEdited = Date.now()
-    storeDraftForecasts(localStoredForecast)
   }
 
   const hasRowsStoredLocally = (): boolean => {

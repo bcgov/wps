@@ -1,10 +1,8 @@
 import { DateTime, Interval } from 'luxon'
 import { ModelChoice, MoreCast2ForecastRecord, WeatherDeterminate } from 'api/moreCast2API'
-import { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { StationGroupMember } from 'api/stationAPI'
 import { isUndefined } from 'lodash'
-
-export const MORECAST_ROW_LOCAL_STORAGE_KEY = 'morecastRows'
 
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
@@ -237,47 +235,4 @@ export const rowContainsActual = (row: MoreCast2Row): boolean => {
     }
   }
   return false
-}
-
-export const storeDraftForecasts = (forecastDraft: DraftMorecast2Rows) => {
-  localStorage.setItem(MORECAST_ROW_LOCAL_STORAGE_KEY, JSON.stringify(forecastDraft))
-}
-
-export const updateStoredDraftForecasts = (rowsToStore: MoreCast2Row[]) => {
-  const storedForecastsToUpdate = getStoredDraftForecasts()
-  const storedRowsMap = getRowsMap(storedForecastsToUpdate.rows)
-
-  rowsToStore.forEach(row => {
-    storedRowsMap.set(row.id, row)
-  })
-  // we only need to store rows that are 'Forecast' rows
-  storedForecastsToUpdate.rows = Array.from(storedRowsMap.values()).filter(row => {
-    return !rowContainsActual(row)
-  })
-  storedForecastsToUpdate.lastEdited = Date.now()
-
-  storeDraftForecasts(storedForecastsToUpdate)
-}
-
-export const getStoredDraftForecasts = (): DraftMorecast2Rows => {
-  const localStoredRowStrings = localStorage.getItem(MORECAST_ROW_LOCAL_STORAGE_KEY)
-  let storedDraft: DraftMorecast2Rows = { rows: [], lastEdited: 0 }
-
-  if (localStoredRowStrings) {
-    storedDraft = JSON.parse(localStoredRowStrings)
-  }
-
-  return storedDraft
-}
-
-export const getRowsMap = (morecastRows: MoreCast2Row[]): Map<string, MoreCast2Row> => {
-  const storedRowMap = new Map<string, MoreCast2Row>()
-  morecastRows.forEach((row: MoreCast2Row) => {
-    storedRowMap.set(row.id, row)
-  })
-  return storedRowMap
-}
-
-export const clearLocalStorageRows = () => {
-  localStorage.removeItem(MORECAST_ROW_LOCAL_STORAGE_KEY)
 }
