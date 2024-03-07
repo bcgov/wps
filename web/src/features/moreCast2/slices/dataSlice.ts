@@ -388,6 +388,7 @@ export const createMoreCast2Rows = (
           row.windSpeedForecast = storedRow.windSpeedForecast
           row.precipForecast = storedRow.precipForecast
           row.grassCuringForecast = storedRow.grassCuringForecast
+          // We'll need to do the indices too, since they could potentially have been simulated from the weather parameter inputs
           row.ffmcCalcForecast = storedRow.ffmcCalcForecast
           row.dmcCalcForecast = storedRow.dmcCalcForecast
           row.dcCalcForecast = storedRow.dcCalcForecast
