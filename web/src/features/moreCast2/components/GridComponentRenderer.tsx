@@ -137,7 +137,7 @@ export class GridComponentRenderer {
 
   public renderForecastSummaryCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>) => {
     // If a single cell in a row contains an Actual, no Forecast will be entered into the row anymore, so we can disable the whole row.
-    const isActual = this.rowContainsActual(params.row)
+    const isActual = rowContainsActual(params.row)
     // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
     const isPreviousDate = isPreviousToToday(params.row['forDate'])
