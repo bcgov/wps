@@ -8,7 +8,7 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
-import { createWeatherModelLabel, isPreviousToToday } from 'features/moreCast2/util'
+import { createWeatherModelLabel, isPreviousToToday, rowContainsActual } from 'features/moreCast2/util'
 import {
   GC_HEADER,
   PRECIP_HEADER,
@@ -18,7 +18,6 @@ import {
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { theme } from 'app/theme'
-import { rowContainsActual } from 'features/moreCast2/util'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
