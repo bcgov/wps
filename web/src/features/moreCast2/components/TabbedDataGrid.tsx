@@ -1,4 +1,4 @@
-import { AlertColor, Grid, List, Stack } from '@mui/material'
+import { AlertColor, Grid, List, Stack, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
   GridCellParams,
@@ -19,7 +19,6 @@ import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
 import {
-  MORECAST_ROW_LOCAL_STORAGE_KEY,
   getSimulatedIndices,
   selectUserEditedRows,
   selectWeatherIndeterminatesLoading,
@@ -43,11 +42,14 @@ import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters
 import {
   clearLocalStorageRows,
   fillGrassCuringForecast,
-  getLocalStorageRowsMap,
-  mapForecastChoiceLabels
+  getRowsMap,
+  getStoredDraftForecasts,
+  mapForecastChoiceLabels,
+  storeDraftForecasts
 } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
 import ResetForecastButton from 'features/moreCast2/components/resetForecastButton'
+import { DateTime } from 'luxon'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -428,7 +430,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         setSnackbarMessage(FORECAST_SAVED_MESSAGE)
         setSnackbarSeverity('success')
         setSnackbarOpen(true)
-        clearSavedRowsFromLocalStorage(rowsToSave)
+        deleteSavedRowsFromLocalStorage(rowsToSave)
       } else {
         setSnackbarMessage(result.errorMessage ?? FORECAST_ERROR_MESSAGE)
         setSnackbarSeverity('error')
@@ -441,18 +443,27 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     }
   }
 
-  const clearSavedRowsFromLocalStorage = (savedRows: MoreCast2ForecastRow[]) => {
-    const localStoredRows = getLocalStorageRowsMap()
+  const deleteSavedRowsFromLocalStorage = (savedRows: MoreCast2ForecastRow[]) => {
+    const localStoredForecast = getStoredDraftForecasts()
+    const localStoredRows = getRowsMap(localStoredForecast.rows)
     savedRows.forEach(row => {
       localStoredRows.delete(row.id)
     })
-    const newRowsToStore = Array.from(localStoredRows.values())
-    localStorage.setItem(MORECAST_ROW_LOCAL_STORAGE_KEY, JSON.stringify(newRowsToStore))
+    localStoredForecast.rows = Array.from(localStoredRows.values())
+    localStoredForecast.lastEdited = Date.now()
+    storeDraftForecasts(localStoredForecast)
   }
 
   const hasRowsStoredLocally = (): boolean => {
-    const localStoredRows = getLocalStorageRowsMap()
-    return localStoredRows.size > 0
+    const localStoredRows = getStoredDraftForecasts().rows
+    return localStoredRows.length > 0
+  }
+
+  const getLastSavedDraftDateTime = (): string | undefined => {
+    const storedDraftForecast = getStoredDraftForecasts()
+    return storedDraftForecast.lastEdited !== 0
+      ? DateTime.fromMillis(storedDraftForecast.lastEdited).toFormat('MMMM dd, HH:mm')
+      : undefined
   }
 
   // Checks if the displayed rows includes non-Actual rows
@@ -507,7 +518,10 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
           <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
         </Grid>
         <Grid item sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
-          <Stack direction="row" spacing={theme.spacing(2)}>
+          <Stack direction="row" spacing={theme.spacing(2)} alignItems={'center'}>
+            {getLastSavedDraftDateTime() && (
+              <Typography sx={{ fontSize: 12 }}>Draft saved {getLastSavedDraftDateTime()}</Typography>
+            )}
             <ResetForecastButton label={'Reset'} onClick={handleResetClick} enabled={hasRowsStoredLocally()} />
             <SaveForecastButton
               enabled={
