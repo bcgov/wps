@@ -42,7 +42,7 @@ const ResetForecastButton = ({ className, enabled, label, allRows, setAllRows }:
 
   const handleResetClick = () => {
     resetForecastRows()
-    storedDraftForecast.clearDraftForecast()
+    storedDraftForecast.clearDraftForecasts()
   }
 
   return (
