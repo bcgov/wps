@@ -340,22 +340,20 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       // Get rows with actuals that have non-NaN values
       const rowsWithActuals: MoreCast2Row[] = values.filter(value => !isNaN(value[actualField] as number))
       // Filter for the row with the most recent forDate as this contains our most recent actual
-      if (rowsWithActuals.length > 0) {
-        const mostRecentRow = rowsWithActuals.reduce((a, b) => {
-          return a.forDate > b.forDate ? a : b
-        })
-        // The most recent value from the weather station for the weather parameter of interest
-        // (eg. tempActual) which will be applied as the forecast value
-        const mostRecentValue = mostRecentRow[actualField]
-        // Finally, get an array of rows that don't have an actual for the weather parameter of interest
-        // and iterate through them to apply the most recent actual as the new forecast value
-        const rowsWithoutActuals: MoreCast2Row[] = values.filter(value => isNaN(value[actualField] as number))
-        rowsWithoutActuals.forEach(row => {
-          const predictionItem = row[forecastField] as PredictionItem
-          predictionItem.choice = ModelChoice.PERSISTENCE
-          predictionItem.value = mostRecentValue as number
-        })
-      }
+      const mostRecentRow = rowsWithActuals.reduce((a, b) => {
+        return a.forDate > b.forDate ? a : b
+      })
+      // The most recent value from the weather station for the weather parameter of interest
+      // (eg. tempActual) which will be applied as the forecast value
+      const mostRecentValue = mostRecentRow[actualField]
+      // Finally, get an array of rows that don't have an actual for the weather parameter of interest
+      // and iterate through them to apply the most recent actual as the new forecast value
+      const rowsWithoutActuals: MoreCast2Row[] = values.filter(value => isNaN(value[actualField] as number))
+      rowsWithoutActuals.forEach(row => {
+        const predictionItem = row[forecastField] as PredictionItem
+        predictionItem.choice = ModelChoice.PERSISTENCE
+        predictionItem.value = mostRecentValue as number
+      })
     }
     const rowsForSimulation = filterAllVisibleRowsForSimulation(newRows)
     if (rowsForSimulation) {
