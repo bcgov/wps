@@ -1,14 +1,14 @@
 import React from 'react'
 import { Button } from '@mui/material'
 
-export interface SubmitForecastButtonProps {
+export interface ResetForecastButtonProps {
   className?: string
   enabled: boolean
   label: string
   onClick: () => void
 }
 
-const ResetForecastButton = ({ className, enabled, label, onClick }: SubmitForecastButtonProps) => {
+const ResetForecastButton = ({ className, enabled, label, onClick }: ResetForecastButtonProps) => {
   return (
     <Button
       className={className}

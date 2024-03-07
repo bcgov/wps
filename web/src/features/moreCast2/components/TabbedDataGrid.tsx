@@ -466,10 +466,10 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       Object.keys(rowToReset).forEach(key => {
         if (key.includes(WeatherDeterminate.FORECAST)) {
           const isPrecipField = key.includes('precip')
-          const item = rowToReset[key as keyof MoreCast2Row] as PredictionItem
-          if (item.choice != ModelChoice.FORECAST && !isNaN(item.value)) {
-            item.value = isPrecipField ? 0 : NaN
-            item.choice = ''
+          const field = rowToReset[key as keyof MoreCast2Row] as PredictionItem
+          if (field.choice != ModelChoice.FORECAST && !isNaN(field.value)) {
+            field.value = isPrecipField ? 0 : NaN
+            field.choice = ''
           }
         }
       })
