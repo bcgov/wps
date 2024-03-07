@@ -35,7 +35,7 @@ export const getStoredDraftForecasts = (): DraftMorecast2Rows => {
   return storedDraft
 }
 
-export const deleteSavedRowsFromLocalStorage = (savedRows: MoreCast2ForecastRow[]) => {
+export const deleteRowsFromStoredDraft = (savedRows: MoreCast2ForecastRow[] | MoreCast2Row[]) => {
   const localStoredForecast = getStoredDraftForecasts()
   const localStoredRows = getRowsMap(localStoredForecast.rows)
   savedRows.forEach(row => {

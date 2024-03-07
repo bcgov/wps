@@ -44,7 +44,7 @@ import { MoreCastParams, theme } from 'app/theme'
 import ResetForecastButton from 'features/moreCast2/components/resetForecastButton'
 import {
   clearLocalStorageRows,
-  deleteSavedRowsFromLocalStorage,
+  deleteRowsFromStoredDraft,
   getLastSavedDraftDateTime,
   hasDraftForecastStored
 } from 'features/moreCast2/forecastDraft'
@@ -426,7 +426,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         setSnackbarMessage(FORECAST_SAVED_MESSAGE)
         setSnackbarSeverity('success')
         setSnackbarOpen(true)
-        deleteSavedRowsFromLocalStorage(rowsToSave)
+        deleteRowsFromStoredDraft(rowsToSave)
       } else {
         setSnackbarMessage(result.errorMessage ?? FORECAST_ERROR_MESSAGE)
         setSnackbarSeverity('error')
@@ -463,10 +463,12 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   const resetForecastRows = () => {
     const resetRows = allRows.map(row => {
       const rowToReset = { ...row }
+      // We don't need to reset the row if an actual exists
       Object.keys(rowToReset).forEach(key => {
         if (key.includes(WeatherDeterminate.FORECAST)) {
           const isPrecipField = key.includes('precip')
           const field = rowToReset[key as keyof MoreCast2Row] as PredictionItem
+          // Submitted forecasts have a ModelChoice.FORECAST, we don't want to reset those
           if (field.choice != ModelChoice.FORECAST && !isNaN(field.value)) {
             field.value = isPrecipField ? 0 : NaN
             field.choice = ''
