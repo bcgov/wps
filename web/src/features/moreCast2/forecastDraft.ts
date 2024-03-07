@@ -4,7 +4,7 @@ import { DateTime } from 'luxon'
 
 export class MorecastDraftForecast {
   private readonly STORAGE_KEY = 'morecastForecastDraft'
-  private localStorage: Storage
+  private readonly localStorage: Storage
 
   constructor(localStorage: Storage) {
     this.localStorage = localStorage
@@ -21,7 +21,7 @@ export class MorecastDraftForecast {
     return storedDraft
   }
 
-  public storeDraftForecasts = (forecastDraft: DraftMorecast2Rows) => {
+  private storeDraftForecasts = (forecastDraft: DraftMorecast2Rows) => {
     this.localStorage.setItem(this.STORAGE_KEY, JSON.stringify(forecastDraft))
   }
 
