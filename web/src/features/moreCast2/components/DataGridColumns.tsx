@@ -1,6 +1,6 @@
 import React from 'react'
 import { Typography } from '@mui/material'
-import { GridColumnVisibilityModel, GridColDef } from '@mui/x-data-grid'
+import { GridColumnVisibilityModel, GridColDef, GridColumnGroup } from '@mui/x-data-grid'
 import { WeatherDeterminate, WeatherDeterminateChoices } from 'api/moreCast2API'
 import {
   MORECAST2_FIELDS,
@@ -107,8 +107,8 @@ export class DataGridColumns {
 const renderGroupHeader = (
   id: string,
   weatherParam: keyof MoreCastParams,
-  columns: ColumnVis[],
-  handleShowHideChange: handleShowHideChangeType
+  columns?: ColumnVis[],
+  handleShowHideChange?: handleShowHideChangeType
 ) => {
   return (
     <GroupHeader columns={columns} id={id} weatherParam={weatherParam} handleShowHideChange={handleShowHideChange} />
@@ -116,9 +116,9 @@ const renderGroupHeader = (
 }
 
 export const getTabColumnGroupModel = (
-  showHideColumnsModel: Record<string, ColumnVis[]>,
-  handleShowHideChange: handleShowHideChangeType
-) => {
+  showHideColumnsModel?: Record<string, ColumnVis[]>,
+  handleShowHideChange?: handleShowHideChangeType
+): GridColumnGroup[] => {
   const model = [
     {
       groupId: 'ID',
@@ -131,34 +131,51 @@ export const getTabColumnGroupModel = (
       groupId: 'Temp',
       children: columnGroupingModelChildGenerator('temp'),
       headerClassName: 'temp',
-      renderHeaderGroup: () => renderGroupHeader('Temp', 'temp', showHideColumnsModel['temp'], handleShowHideChange)
+      renderHeaderGroup: () =>
+        renderGroupHeader('Temp', 'temp', showHideColumnsModel && showHideColumnsModel['temp'], handleShowHideChange)
     },
     {
       groupId: 'RH',
       children: columnGroupingModelChildGenerator('rh'),
       headerClassName: 'rh',
-      renderHeaderGroup: () => renderGroupHeader('RH', 'rh', showHideColumnsModel['rh'], handleShowHideChange)
+      renderHeaderGroup: () =>
+        renderGroupHeader('RH', 'rh', showHideColumnsModel && showHideColumnsModel['rh'], handleShowHideChange)
     },
     {
       groupId: 'Precip',
       children: columnGroupingModelChildGenerator('precip'),
       headerClassName: 'precip',
       renderHeaderGroup: () =>
-        renderGroupHeader('Precip', 'precip', showHideColumnsModel['precip'], handleShowHideChange)
+        renderGroupHeader(
+          'Precip',
+          'precip',
+          showHideColumnsModel && showHideColumnsModel['precip'],
+          handleShowHideChange
+        )
     },
     {
       groupId: 'Wind Dir',
       children: columnGroupingModelChildGenerator('windDirection'),
       headerClassName: 'windDirection',
       renderHeaderGroup: () =>
-        renderGroupHeader('Wind Dir', 'windDirection', showHideColumnsModel['windDirection'], handleShowHideChange)
+        renderGroupHeader(
+          'Wind Dir',
+          'windDirection',
+          showHideColumnsModel && showHideColumnsModel['windDirection'],
+          handleShowHideChange
+        )
     },
     {
       groupId: 'Wind Speed',
       children: columnGroupingModelChildGenerator('windSpeed'),
       headerClassName: 'windSpeed',
       renderHeaderGroup: () =>
-        renderGroupHeader('Wind Speed', 'windSpeed', showHideColumnsModel['windSpeed'], handleShowHideChange)
+        renderGroupHeader(
+          'Wind Speed',
+          'windSpeed',
+          showHideColumnsModel && showHideColumnsModel['windSpeed'],
+          handleShowHideChange
+        )
     },
     {
       groupId: 'Grass Curing',
@@ -182,10 +199,98 @@ export const getTabColumnGroupModel = (
 }
 
 export const getSummaryColumnGroupModel = () => {
+  // const model = getTabColumnGroupModel()
   const model = [
     {
+      groupId: 'ID',
+      children: [{ field: 'stationName' }, { field: 'forDate' }],
+      renderHeaderGroup: () => {
+        return <Typography style={{ fontWeight: 'bold' }}>ID</Typography>
+      }
+    },
+    {
       groupId: 'Temp',
-      children: [{ groupId: 'Forecast', field: '' }]
+      children: columnGroupingModelChildGenerator('temp'),
+      headerClassName: 'temp-forecast-header',
+      renderHeaderGroup: () => renderGroupHeader('Temp', 'temp')
+    },
+    {
+      groupId: 'RH',
+      children: columnGroupingModelChildGenerator('rh'),
+      headerClassName: 'rh-forecast-header',
+      renderHeaderGroup: () => <Typography style={{ fontWeight: 'bold' }}>RH</Typography>
+    },
+    {
+      groupId: 'Wind Dir',
+      children: columnGroupingModelChildGenerator('windDirection'),
+      headerClassName: 'windDirection-forecast-header',
+      renderHeaderGroup: () => <Typography style={{ fontWeight: 'bold' }}>Wind Dir</Typography>
+    },
+    {
+      groupId: 'Wind Speed',
+      children: columnGroupingModelChildGenerator('windSpeed'),
+      headerClassName: 'windSpeed-forecast-header',
+      renderHeaderGroup: () => <Typography style={{ fontWeight: 'bold' }}>Wind Speed</Typography>
+    },
+    {
+      groupId: 'Precip',
+      children: columnGroupingModelChildGenerator('precip'),
+      headerClassName: 'precip-forecast-header',
+      renderHeaderGroup: () => <Typography style={{ fontWeight: 'bold' }}>Precip</Typography>
+    },
+    {
+      groupId: 'GC',
+      children: [
+        {
+          groupId: 'Grass Curing Forecast',
+          field: 'grassCuringForecast'
+        },
+        {
+          groupId: 'Grass Curing CWFIS',
+          field: 'grassCuringCWFIS'
+        }
+      ],
+      headerClassName: 'gc-forecast-header',
+      renderHeaderGroup: () => {
+        return <Typography style={{ fontWeight: 'bold' }}>GC</Typography>
+      }
+    },
+    {
+      groupId: 'FWI',
+      children: [
+        {
+          groupId: 'FFMC',
+          field: 'ffmcCalcForecast'
+        },
+        {
+          groupId: 'DMC',
+          field: 'dmcCalcForecast'
+        },
+        {
+          groupId: 'DC',
+          field: 'dcCalcForecast'
+        },
+        {
+          groupId: 'ISI',
+          field: 'isiCalcForecast'
+        },
+        {
+          groupId: 'BUI',
+          field: 'buiCalcForecast'
+        },
+        {
+          groupId: 'FWI',
+          field: 'fwiCalcForecast'
+        },
+        {
+          groupId: 'DGR',
+          field: 'dgrCalcForecast'
+        }
+      ],
+      headerClassName: 'ffmcCalc-forecast-header',
+      renderHeaderGroup: () => {
+        return <Typography style={{ fontWeight: 'bold' }}>FWI</Typography>
+      }
     }
   ]
   return model

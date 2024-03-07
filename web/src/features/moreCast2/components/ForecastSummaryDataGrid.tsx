@@ -93,6 +93,7 @@ const ForecastSummaryDataGrid = ({
             sortModel: [{ field: 'stationName', sort: 'asc' }]
           }
         }}
+        experimentalFeatures={{ columnGrouping: true }}
         columnGroupingModel={getSummaryColumnGroupModel()}
         onColumnHeaderClick={handleColumnHeaderClick}
         loading={loading}
