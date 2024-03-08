@@ -41,8 +41,8 @@ import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
 import { mapForecastChoiceLabels } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
-import ResetForecastButton from 'features/moreCast2/components/resetForecastButton'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
+import ResetForecastButton from 'features/moreCast2/components/resetForecastButton'
 
 export const Root = styled('div')({
   display: 'flex',
