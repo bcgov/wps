@@ -42,7 +42,7 @@ import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters
 import { mapForecastChoiceLabels } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
-import ResetForecastButton from 'features/moreCast2/components/resetForecastButton'
+import ResetForecastButton from 'features/moreCast2/components/ResetForecastButton'
 
 export const Root = styled('div')({
   display: 'flex',
