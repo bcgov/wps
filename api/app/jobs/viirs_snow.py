@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 BC_BOUNDING_BOX = "-139.06,48.3,-114.03,60"
 NSIDC_URL = "https://n5eil02u.ecs.nsidc.org/egi/request"
-PRODUCT_VERSION = 2
+PRODUCT_VERSION = 1
 SHORT_NAME = "VNP10A1F"
 LAYER_VARIABLE = "/VIIRS_Grid_IMG_2D/CGF_NDSI_Snow_Cover"
 RAW_SNOW_COVERAGE_NAME = 'raw_snow_coverage.tif'
@@ -212,6 +212,7 @@ class ViirsSnowJob():
         :type path: str      
         """
         with tempfile.TemporaryDirectory() as sub_dir:
+            sub_dir = "/Users/dareboss/Documents/snow_hfi"
             file_name = f"{for_date.strftime('%Y-%m-%d')}.zip"
             self._download_viirs_granules_by_date(for_date, sub_dir, file_name)
             # Create a mosaic from the snow coverage imagery, clip it to the boundary of BC and save to S3
@@ -233,7 +234,7 @@ class ViirsSnowJob():
         today = date.today()
         if last_processed_date is None:
             # Case to cover the initial run of VIIRS snow processing (ie. start processing one week ago)
-            next_date = today - timedelta(days=10)
+            next_date = today - timedelta(days=14)
         else:
             # Start processing the day after the last record of a successful job.
             next_date = last_processed_date + timedelta(days=1)
