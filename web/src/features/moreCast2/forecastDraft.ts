@@ -1,5 +1,5 @@
 import { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
-import { getRowsMap, rowContainsActual } from 'features/moreCast2/util'
+import { getRowsMap, isPreviousToToday, rowContainsActual } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 
 export class MorecastDraftForecast {
@@ -12,7 +12,7 @@ export class MorecastDraftForecast {
 
   public getStoredDraftForecasts = (): DraftMorecast2Rows => {
     const storedDraftString = this.localStorage.getItem(this.STORAGE_KEY)
-    let storedDraft: DraftMorecast2Rows = { rows: [], lastEdited: 0 }
+    let storedDraft: DraftMorecast2Rows = { rows: [], lastEdited: undefined }
 
     if (storedDraftString) {
       storedDraft = JSON.parse(storedDraftString)
@@ -38,7 +38,7 @@ export class MorecastDraftForecast {
     })
     // we only need to store rows that are 'Forecast' rows
     storedForecastsToUpdate.rows = Array.from(storedRowsMap.values()).filter(row => {
-      return !rowContainsActual(row)
+      return !rowContainsActual(row) && !isPreviousToToday(row.forDate)
     })
     storedForecastsToUpdate.lastEdited = Date.now()
 
@@ -63,8 +63,8 @@ export class MorecastDraftForecast {
 
   public getLastSavedDraftDateTime = (): string | undefined => {
     const storedDraftForecast = this.getStoredDraftForecasts()
-    return storedDraftForecast.lastEdited !== 0
-      ? DateTime.fromMillis(storedDraftForecast.lastEdited).toFormat('MMMM dd, HH:mm')
-      : undefined
+    if (storedDraftForecast.lastEdited) {
+      return DateTime.fromMillis(storedDraftForecast.lastEdited).toFormat('MMMM dd, HH:mm')
+    }
   }
 }
