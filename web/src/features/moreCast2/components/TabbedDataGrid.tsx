@@ -77,6 +77,10 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   // A subset of allRows with visibility determined by the currently selected stations
   const [visibleRows, setVisibleRows] = useState<MoreCast2Row[]>([])
 
+  const [storedDraftForecast, setStoredDraftForecast] = useState<MorecastDraftForecast>(
+    new MorecastDraftForecast(localStorage)
+  )
+
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
     DataGridColumns.initGridColumnVisibilityModel()
   )
@@ -255,6 +259,11 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     setVisibleRows(newVisibleRows)
   }, [allRows, selectedStations])
 
+  useEffect(() => {
+    const draftForecast = new MorecastDraftForecast(localStorage)
+    setStoredDraftForecast(draftForecast)
+  }, [])
+
   /********** Start useEffects for managing visibility of column groups *************/
 
   useEffect(() => {
@@ -412,8 +421,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       setVisibleRows([...visibleRows])
     }
   }
-
-  const storedDraftForecast = new MorecastDraftForecast(localStorage)
 
   const handleSaveClick = async () => {
     if (isForecastValid(visibleRows) && !isUndefined(wf1Token)) {
