@@ -102,6 +102,10 @@ export const validForecastPredicate = (row: MoreCast2Row) =>
   !isUndefined(row.windSpeedForecast) &&
   !isNaN(row.windSpeedForecast.value)
 
+export const isForecastRow = (row: MoreCast2Row) => {
+  return !rowContainsActual(row) && !isPreviousToToday(row.forDate)
+}
+
 export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: MoreCast2Row[]): MoreCast2Row[] => {
   const storedRowChoicesMap = new Map<string, MoreCast2Row>()
 
@@ -202,16 +206,17 @@ export const fillGrassCuringForecast = (rows: MoreCast2Row[]): MoreCast2Row[] =>
  * @returns MoreCast2Row[]
  */
 export const fillStationGrassCuringForward = (editedRow: MoreCast2Row, allRows: MoreCast2Row[]) => {
-  const editedStation = editedRow.stationCode
+  const editedStationCode = editedRow.stationCode
   const editedDate = editedRow.forDate
   const newGrassCuringValue = editedRow.grassCuringForecast!.value
+  const stationForecastRows = allRows.filter(row => row.stationCode === editedStationCode && isForecastRow(row))
 
-  for (const row of allRows) {
-    if (row.stationCode === editedStation && row.forDate > editedDate) {
+  for (const row of stationForecastRows) {
+    if (row.stationCode === editedStationCode && row.forDate > editedDate) {
       row.grassCuringForecast!.value = newGrassCuringValue
     }
   }
-  return allRows
+  return stationForecastRows
 }
 
 /**
