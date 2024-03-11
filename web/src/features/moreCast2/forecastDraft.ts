@@ -1,5 +1,5 @@
 import { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
-import { getRowsMap, isPreviousToToday, rowContainsActual } from 'features/moreCast2/util'
+import { getRowsMap, isForecastRow } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 
 export class MorecastDraftForecast {
@@ -38,7 +38,7 @@ export class MorecastDraftForecast {
     })
     // we only need to store rows that are 'Forecast' rows
     storedForecastsToUpdate.rows = Array.from(storedRowsMap.values()).filter(row => {
-      return !rowContainsActual(row) && !isPreviousToToday(row.forDate)
+      return isForecastRow(row)
     })
     storedForecastsToUpdate.lastEdited = Date.now()
 
