@@ -3,7 +3,7 @@ import { getRowsMap, isForecastRow } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 
 export class MorecastDraftForecast {
-  private readonly STORAGE_KEY = 'morecastForecastDraft'
+  public readonly STORAGE_KEY = 'morecastForecastDraft'
   private readonly localStorage: Storage
 
   constructor(localStorage: Storage) {
