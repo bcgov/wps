@@ -236,7 +236,7 @@ class ViirsSnowJob():
         today = date.today()
         if last_processed_date is None:
             # Case to cover the initial run of VIIRS snow processing (ie. start processing one week ago)
-            next_date = today - timedelta(days=10)
+            next_date = today - timedelta(days=21)
         else:
             # Start processing the day after the last record of a successful job.
             next_date = last_processed_date + timedelta(days=1)
