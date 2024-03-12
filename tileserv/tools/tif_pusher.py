@@ -8,6 +8,8 @@ from decouple import config
 
 from s3 import get_tifs_for_date
 
+import pdb
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 ch = logging.StreamHandler()
@@ -41,6 +43,7 @@ async def push_tifs_to_api(start_date: date, end_date: date):
             logger.info(post_body)
             response = requests.post(url=config("URL"), json=post_body, headers={
                 "Secret": config("SECRET"), "Content-Type": "application/json"})
+            pdb.set_trace()
             logger.info(response)
 
 
