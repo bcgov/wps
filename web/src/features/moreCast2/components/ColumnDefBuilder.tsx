@@ -14,7 +14,7 @@ import { GridComponentRenderer } from 'features/moreCast2/components/GridCompone
 
 export const DEFAULT_COLUMN_WIDTH = 80
 export const DEFAULT_FORECAST_COLUMN_WIDTH = 145
-export const DEFAULT_FORECAST_SUMMARY_COLUMN_WIDTH = 100
+export const DEFAULT_FORECAST_SUMMARY_COLUMN_WIDTH = 110
 
 // Defines the order in which weather models display in the datagrid.
 export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [

@@ -34,7 +34,7 @@ const SummaryGroupHeader = ({ id, params, columnClickHandlerProps }: SummaryGrou
   return (
     <>
       {'Forecast'}
-      <IconButton onClick={handleClick}>
+      <IconButton size="small" onClick={handleClick}>
         <ExpandMore />
       </IconButton>
       <Menu
