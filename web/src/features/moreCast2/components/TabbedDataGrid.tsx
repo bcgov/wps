@@ -42,6 +42,16 @@ import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters
 import { mapForecastChoiceLabels } from 'features/moreCast2/util'
 import { MoreCastParams } from 'app/theme'
 
+export interface ColumnClickHandlerProps {
+  colDef: GridColDef | null
+  contextMenu: {
+    mouseX: number
+    mouseY: number
+  } | null
+  updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
+  handleClose: () => void
+}
+
 export const Root = styled('div')({
   display: 'flex',
   flexGrow: 1,
@@ -528,6 +538,12 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         <ForecastSummaryDataGrid
           loading={loading}
           rows={visibleRows}
+          columnClickHandlerProps={{
+            colDef: clickedColDef,
+            contextMenu: contextMenu,
+            updateColumnWithModel: updateColumnWithModel,
+            handleClose: handleClose
+          }}
           clickedColDef={clickedColDef}
           contextMenu={contextMenu}
           updateColumnWithModel={updateColumnWithModel}

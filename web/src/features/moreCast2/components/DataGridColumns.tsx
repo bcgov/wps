@@ -11,7 +11,7 @@ import {
   MORECAST2_GRASS_CURING_FORECAST_FIELD
 } from 'features/moreCast2/components/MoreCast2Column'
 import GroupHeader from 'features/moreCast2/components/GroupHeader'
-import { handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
+import { ColumnClickHandlerProps, handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
 import { MoreCastParams } from 'app/theme'
 
 export interface ColumnVis {
@@ -83,7 +83,13 @@ export class DataGridColumns {
     return tabColumns
   }
 
-  public static getSummaryColumns(): GridColDef[] {
+  public static getSummaryColumns(columnClickHandlerProps: ColumnClickHandlerProps): GridColDef[] {
+    console.log(
+      columnClickHandlerProps.colDef,
+      columnClickHandlerProps.contextMenu,
+      columnClickHandlerProps.updateColumnWithModel,
+      columnClickHandlerProps.handleClose
+    )
     return MORECAST2_STATION_DATE_FIELDS.map(field => field.generateColDef()).concat(
       MORECAST2_FORECAST_FIELDS.map(forecastField => forecastField.generateForecastColDef()).concat(
         MORECAST2_INDEX_FIELDS.map(field => field.generateForecastColDef())

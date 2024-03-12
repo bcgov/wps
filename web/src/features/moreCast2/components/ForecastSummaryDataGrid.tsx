@@ -4,7 +4,6 @@ import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
-import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { DataGridColumns, getSummaryColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
 import { storeUserEditedRows, getSimulatedIndices } from 'features/moreCast2/slices/dataSlice'
 import { AppDispatch } from 'app/store'
@@ -13,6 +12,7 @@ import { filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters
 import { fillStationGrassCuringForward } from 'features/moreCast2/util'
 import { MORECAST_WEATHER_PARAMS, MoreCastParams, theme } from 'app/theme'
 import { MORECAST2_INDEX_FIELDS } from 'features/moreCast2/components/MoreCast2Column'
+import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 
 const PREFIX = 'ForecastSummaryDataGrid'
 
@@ -49,6 +49,7 @@ const Root = styled('div')(() => {
 interface ForecastSummaryDataGridProps {
   loading: boolean
   rows: MoreCast2Row[]
+  columnClickHandlerProps: ColumnClickHandlerProps
   clickedColDef: GridColDef | null
   contextMenu: {
     mouseX: number
@@ -62,11 +63,8 @@ interface ForecastSummaryDataGridProps {
 const ForecastSummaryDataGrid = ({
   loading,
   rows,
-  clickedColDef,
-  contextMenu,
-  updateColumnWithModel,
-  handleColumnHeaderClick,
-  handleClose
+  columnClickHandlerProps,
+  handleColumnHeaderClick
 }: ForecastSummaryDataGridProps) => {
   const dispatch: AppDispatch = useDispatch()
 
@@ -97,17 +95,17 @@ const ForecastSummaryDataGrid = ({
         columnGroupingModel={getSummaryColumnGroupModel()}
         onColumnHeaderClick={handleColumnHeaderClick}
         loading={loading}
-        columns={DataGridColumns.getSummaryColumns()}
+        columns={DataGridColumns.getSummaryColumns(columnClickHandlerProps)}
         rows={rows}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
         processRowUpdate={processRowUpdate}
       />
-      <ApplyToColumnMenu
-        colDef={clickedColDef}
-        contextMenu={contextMenu}
-        handleClose={handleClose}
-        updateColumnWithModel={updateColumnWithModel}
-      />
+      {/* <ApplyToColumnMenu
+        colDef={columnClickHandlerProps.colDef}
+        contextMenu={columnClickHandlerProps.contextMenu}
+        handleClose={columnClickHandlerProps.handleClose}
+        updateColumnWithModel={columnClickHandlerProps.updateColumnWithModel}
+      /> */}
     </Root>
   )
 }

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Button, TextField } from '@mui/material'
+import { Box, TextField } from '@mui/material'
 import {
   GridColumnHeaderParams,
   GridRenderCellParams,
@@ -19,13 +19,20 @@ import {
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { theme } from 'app/theme'
+import SummaryGroupHeader from 'features/moreCast2/components/SummaryGroupHeader'
+import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
 
 export class GridComponentRenderer {
-  public renderForecastHeaderWith = (params: GridColumnHeaderParams) => {
-    return <Button data-testid={`${params.colDef.field}-column-header`}>{params.colDef.headerName}</Button>
+  public renderForecastHeaderWith = (
+    params: GridColumnHeaderParams,
+    columnClickHandlerProps?: ColumnClickHandlerProps
+  ) => {
+    console.log(columnClickHandlerProps)
+    const title = params.colDef.headerName ? params.colDef.headerName : ''
+    return <SummaryGroupHeader id={title} params={params} columnClickHandlerProps={columnClickHandlerProps} />
   }
   public renderHeaderWith = (params: GridColumnHeaderParams) => {
     if (params.field.endsWith('_BIAS')) {
