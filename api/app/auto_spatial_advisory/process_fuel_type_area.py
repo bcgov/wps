@@ -152,6 +152,10 @@ def warp_hfi_layer(temp_dir, hfi, fuel_types):
     extent = [minx, miny, maxx, maxy]
     spatial_reference = fuel_types.GetSpatialRef()
     warped_hfi_path = os.path.join(temp_dir, "warped_hfi_3005.tif")
+    print(temp_dir)
+    print(warped_hfi_path)
+    print(os.path.isfile(warped_hfi_path))
+
     gdal.Warp(warped_hfi_path, hfi, dstSRS=spatial_reference, outputBounds=extent, xRes=x_res, yRes=y_res, resampleAlg=gdal.GRA_NearestNeighbour)
     return warped_hfi_path
 
@@ -195,6 +199,8 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
 
         # Retrieve the appropriate hfi raster from s3 storage
         hfi_key = get_s3_key(run_type, run_datetime.date(), for_date)
+        print('******************')
+        print(hfi_key)
         hfi_raster = gdal.Open(hfi_key, gdal.GA_ReadOnly)
 
 
