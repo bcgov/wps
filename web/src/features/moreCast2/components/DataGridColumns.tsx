@@ -91,7 +91,7 @@ export class DataGridColumns {
       columnClickHandlerProps.handleClose
     )
     return MORECAST2_STATION_DATE_FIELDS.map(field => field.generateColDef()).concat(
-      MORECAST2_FORECAST_FIELDS.map(forecastField => forecastField.generateForecastColDef()).concat(
+      MORECAST2_FORECAST_FIELDS.map(forecastField => forecastField.generateForecastSummaryColDef()).concat(
         MORECAST2_INDEX_FIELDS.map(field => field.generateForecastColDef())
       )
     )

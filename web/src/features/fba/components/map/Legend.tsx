@@ -38,40 +38,59 @@ interface LegendItemProps {
   checked: boolean
   onChange: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => void
   subItems?: SubItem[]
+  description?: string | null
+  renderEmptyDescription?: boolean
 }
 
-const LegendItem: React.FC<LegendItemProps> = ({ label, checked, onChange, subItems }) => (
-  <div>
-    <Grid>
-      <Grid container alignItems={'center'}>
-        <Grid item>
-          <Checkbox
-            data-testid={`${label.toLowerCase().split(' ')[0]}-checkbox`}
-            checked={checked}
-            onChange={onChange}
-          />
+const LegendItem: React.FC<LegendItemProps> = ({
+  label,
+  checked,
+  onChange,
+  subItems,
+  description,
+  renderEmptyDescription = false
+}) => {
+  return (
+    <div>
+      <Grid>
+        <Grid container alignItems={'center'}>
+          <Grid item>
+            <Checkbox
+              data-testid={`${label.toLowerCase().split(' ')[0]}-checkbox`}
+              checked={checked}
+              onChange={onChange}
+            />
+          </Grid>
+          <Grid item>
+            <Typography variant="h2" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
+              {label}
+            </Typography>
+          </Grid>
         </Grid>
-        <Grid item>
-          <Typography variant="h2" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
-            {label}
-          </Typography>
+        <Grid container alignItems={'center'}>
+          <Grid item sx={{ transform: 'translate(50%, -50%)' }}>
+            <Typography variant="body1" sx={{ fontSize: '0.75rem' }}>
+              {description ?? (renderEmptyDescription && <span>&nbsp;</span>)}
+            </Typography>
+          </Grid>
         </Grid>
+
+        {subItems && (
+          <List dense={true} sx={{ marginLeft: '2.5rem', marginTop: '-1rem' }}>
+            {subItems.map(subItem => (
+              <ListItem disablePadding key={subItem.label}>
+                <ListItemIcon>
+                  <LegendSymbol sx={{ backgroundColor: subItem.symbol }} />
+                </ListItemIcon>
+                <ListItemText>{subItem.label}</ListItemText>
+              </ListItem>
+            ))}
+          </List>
+        )}
       </Grid>
-      {subItems && (
-        <List dense={true} sx={{ marginLeft: '2.5rem', marginTop: '-1rem' }}>
-          {subItems.map(subItem => (
-            <ListItem disablePadding key={subItem.label}>
-              <ListItemIcon>
-                <LegendSymbol sx={{ backgroundColor: subItem.symbol }} />
-              </ListItemIcon>
-              <ListItemText>{subItem.label}</ListItemText>
-            </ListItem>
-          ))}
-        </List>
-      )}
-    </Grid>
-  </div>
-)
+    </div>
+  )
+}
 
 interface LegendProps {
   onToggleLayer: (layerName: string, isVisible: boolean) => void
@@ -79,9 +98,21 @@ interface LegendProps {
   setShowShapeStatus: React.Dispatch<React.SetStateAction<boolean>>
   showHFI: boolean
   setShowHFI: React.Dispatch<React.SetStateAction<boolean>>
+  showSnow: boolean
+  setShowSnow: React.Dispatch<React.SetStateAction<boolean>>
+  snowDescription: string | null
 }
 
-const Legend = ({ onToggleLayer, showShapeStatus, setShowShapeStatus, showHFI, setShowHFI }: LegendProps) => {
+const Legend = ({
+  onToggleLayer,
+  showShapeStatus,
+  setShowShapeStatus,
+  showHFI,
+  setShowHFI,
+  showSnow,
+  setShowSnow,
+  snowDescription
+}: LegendProps) => {
   const handleLayerChange = (
     layerName: string,
     isVisible: boolean,
@@ -117,6 +148,13 @@ const Legend = ({ onToggleLayer, showShapeStatus, setShowShapeStatus, showHFI, s
         onChange={() => handleLayerChange('hfiVector', showHFI, setShowHFI)}
         subItems={hfiSubItems}
       />
+      <LegendItem
+        label="Snow Coverage"
+        checked={showSnow}
+        onChange={() => handleLayerChange('snowVector', showSnow, setShowSnow)}
+        description={snowDescription}
+        renderEmptyDescription={true}
+      ></LegendItem>
     </LegendGrid>
   )
 }

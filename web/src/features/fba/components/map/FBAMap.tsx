@@ -22,13 +22,14 @@ import {
   fireShapeStyler,
   fireShapeLabelStyler,
   stationStyler,
-  hfiStyler
+  hfiStyler,
+  snowStyler
 } from 'features/fba/components/map/featureStylers'
 import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
 import { PMTILES_BUCKET } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
-import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
+import { buildPMTilesURL, buildSnowPMTilesURL } from 'features/fba/pmtilesBuilder'
 import { isUndefined, cloneDeep, isNull } from 'lodash'
 import { Box } from '@mui/material'
 import Legend from 'features/fba/components/map/Legend'
@@ -47,6 +48,7 @@ export interface FBAMapProps {
   runType: RunType
   advisoryThreshold: number
   showSummaryPanel: boolean
+  snowDate: DateTime | null
   setShowSummaryPanel: React.Dispatch<React.SetStateAction<boolean>>
 }
 
@@ -63,7 +65,8 @@ const removeLayerByName = (map: ol.Map, layerName: string) => {
 const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const [showShapeStatus, setShowShapeStatus] = useState(true)
-  const [showHFI, setShowHFI] = React.useState(false)
+  const [showHFI, setShowHFI] = useState(false)
+  const [showSnow, setShowSnow] = useState<boolean>(false)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const { mostRecentRunDate } = useSelector(selectRunDates)
@@ -232,6 +235,27 @@ const FBAMap = (props: FBAMapProps) => {
   }, [showHFI, mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (!map) return
+    const layerName = 'snowVector'
+    removeLayerByName(map, layerName)
+    if (!isNull(props.snowDate)) {
+      const snowPMTilesSource = new olpmtiles.PMTilesVectorSource({
+        url: buildSnowPMTilesURL(props.snowDate)
+      })
+
+      const latestSnowPMTilesLayer = new VectorTileLayer({
+        source: snowPMTilesSource,
+        style: snowStyler,
+        zIndex: 100,
+        minZoom: 4,
+        properties: { name: layerName },
+        visible: showSnow
+      })
+      map.addLayer(latestSnowPMTilesLayer)
+    }
+  }, [props.snowDate]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     // The React ref is used to attach to the div rendered in our
     // return statement of which this map's target is set to.
     // The ref is a div of type  HTMLDivElement.
@@ -289,6 +313,17 @@ const FBAMap = (props: FBAMapProps) => {
     map?.addLayer(stationsLayer)
   }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Generate a message to display about the snow layer in the legend.
+  const getSnowDateMessage = () => {
+    if (!showSnow) {
+      return null
+    }
+    if (isNull(props.snowDate)) {
+      return 'No data available'
+    }
+    return `as of ${props.snowDate?.toISODate()}`
+  }
+
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
@@ -308,6 +343,9 @@ const FBAMap = (props: FBAMapProps) => {
               setShowShapeStatus={setShowShapeStatus}
               showHFI={showHFI}
               setShowHFI={setShowHFI}
+              showSnow={showSnow}
+              setShowSnow={setShowSnow}
+              snowDescription={getSnowDateMessage()}
             />
           </Box>
         </Box>

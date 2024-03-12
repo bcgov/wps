@@ -1,4 +1,5 @@
 import {
+  GridAlignment,
   GridCellParams,
   GridColDef,
   GridColumnHeaderParams,
@@ -12,7 +13,8 @@ import { modelColorClass, modelHeaderColorClass } from 'app/theme'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 
 export const DEFAULT_COLUMN_WIDTH = 80
-export const DEFAULT_FORECAST_COLUMN_WIDTH = 120
+export const DEFAULT_FORECAST_COLUMN_WIDTH = 145
+export const DEFAULT_FORECAST_SUMMARY_COLUMN_WIDTH = 100
 
 // Defines the order in which weather models display in the datagrid.
 export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
@@ -40,6 +42,7 @@ export const GC_HEADER = 'GC'
 export interface ForecastColDefGenerator {
   getField: () => string
   generateForecastColDef: (headerName?: string) => GridColDef
+  generateForecastSummaryColDef: () => GridColDef
 }
 
 export interface ColDefGenerator {
@@ -69,6 +72,15 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     )
   }
 
+  public generateForecastSummaryColDef = () => {
+    return this.generateForecastSummaryColDefWith(
+      `${this.field}${WeatherDeterminate.FORECAST}`,
+      this.headerName,
+      this.precision,
+      DEFAULT_FORECAST_SUMMARY_COLUMN_WIDTH
+    )
+  }
+
   public generateColDefs = (headerName?: string, includeBiasFields = true) => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
@@ -87,12 +99,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       ? ORDERED_COLUMN_HEADERS
       : ORDERED_COLUMN_HEADERS.filter(header => !header.endsWith('_BIAS'))
     return fields.map(header =>
-      this.generateColDefWith(
-        `${this.field}${header}`,
-        header,
-        this.precision,
-        header.includes('Actual') ? DEFAULT_FORECAST_COLUMN_WIDTH : DEFAULT_COLUMN_WIDTH
-      )
+      this.generateColDefWith(`${this.field}${header}`, header, this.precision, DEFAULT_COLUMN_WIDTH)
     )
   }
 
@@ -101,6 +108,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       field,
       disableColumnMenu: true,
       disableReorder: true,
+      headerAlign: 'center' as GridAlignment,
       headerName,
       sortable: false,
       type: 'number',
@@ -136,6 +144,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       disableColumnMenu: true,
       disableReorder: true,
       editable: true,
+      headerAlign: 'center' as GridAlignment,
       headerName: headerName,
       sortable: false,
       type: 'number',
@@ -152,6 +161,42 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
         return isCalcField
           ? this.gridComponentRenderer.renderCellWith(params)
           : this.gridComponentRenderer.renderForecastCellWith(params, field)
+      },
+      valueFormatter: (params: Pick<GridValueFormatterParams, 'value'>) => {
+        return this.valueFormatterWith(params, precision)
+      },
+      valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>
+        this.gridComponentRenderer.valueGetter(params, precision, field, headerName),
+      valueSetter: (params: Pick<GridValueSetterParams, 'row' | 'value'>) =>
+        this.valueSetterWith(params, field, precision)
+    }
+  }
+
+  public generateForecastSummaryColDefWith = (field: string, headerName: string, precision: number, width?: number) => {
+    const isGrassField = field.includes('grass')
+    const isCalcField = field.includes('Calc')
+    if (isGrassField || isCalcField) {
+      width = DEFAULT_COLUMN_WIDTH
+    }
+    return {
+      field: field,
+      disableColumnMenu: true,
+      disableReorder: true,
+      editable: true,
+      headerAlign: 'center' as GridAlignment,
+      headerName: headerName,
+      sortable: false,
+      type: 'number',
+      width: width ?? DEFAULT_FORECAST_SUMMARY_COLUMN_WIDTH,
+      renderHeader: (params: GridColumnHeaderParams) => {
+        return isCalcField || isGrassField
+          ? this.gridComponentRenderer.renderHeaderWith(params)
+          : this.gridComponentRenderer.renderForecastHeaderWith(params)
+      },
+      renderCell: (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>) => {
+        return isCalcField
+          ? this.gridComponentRenderer.renderCellWith(params)
+          : this.gridComponentRenderer.renderForecastSummaryCellWith(params)
       },
       valueFormatter: (params: Pick<GridValueFormatterParams, 'value'>) => {
         return this.valueFormatterWith(params, precision)

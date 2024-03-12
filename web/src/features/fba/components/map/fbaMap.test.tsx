@@ -36,6 +36,7 @@ describe('FBAMap', () => {
           setShowSummaryPanel={function (): void {
             throw new Error('Function not implemented.')
           }}
+          snowDate={DateTime.now()}
         />
       </Provider>
     )
