@@ -214,7 +214,6 @@ class ViirsSnowJob():
         :type path: str      
         """
         with tempfile.TemporaryDirectory() as sub_dir:
-            sub_dir = "/Users/dareboss/Documents/snow_hfi"
             file_name = f"{for_date.strftime('%Y-%m-%d')}.zip"
             self._download_viirs_granules_by_date(for_date, sub_dir, file_name)
             # Create a mosaic from the snow coverage imagery, clip it to the boundary of BC and save to S3
