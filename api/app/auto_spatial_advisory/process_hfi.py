@@ -14,8 +14,11 @@ from app.db.database import get_async_read_session_scope, get_async_write_sessio
 from app.db.crud.auto_spatial_advisory import (
     save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters,
     get_run_parameters_id)
+from app.db.crud.snow import get_last_processed_snow_by_source
+from app.db.models.snow import SnowSourceEnum
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType
+from app.auto_spatial_advisory.snow import apply_snow_mask
 from app.geospatial import NAD83_BC_ALBERS
 from app.auto_spatial_advisory.hfi_pmtiles import get_pmtiles_filepath
 from app.utils.polygonize import polygonize_in_memory
@@ -97,16 +100,19 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
                     f'for_date:{for_date}'
                 ))
             return
+        last_processed_snow = await get_last_processed_snow_by_source(session, SnowSourceEnum.viirs)
 
     logger.info('Processing HFI %s for run date: %s, for date: %s', run_type, run_date, for_date)
     perf_start = perf_counter()
 
-    key = get_s3_key(run_type, run_date, for_date)
-    logger.info(f'Key to HFI in object storage: {key}')
+    hfi_key = get_s3_key(run_type, run_date, for_date)
+    logger.info(f'Key to HFI in object storage: {hfi_key}')
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
-        classify_hfi(key, temp_filename)
-        with polygonize_in_memory(temp_filename, 'hfi', 'hfi') as layer:
+        classify_hfi(hfi_key, temp_filename)
+        # Create a snow coverage mask from previously downloaded snow data.
+        snow_masked_hfi_path = await apply_snow_mask(temp_filename, last_processed_snow[0], temp_dir)
+        with polygonize_in_memory(snow_masked_hfi_path, 'hfi', 'hfi') as layer:
 
             # We need a geojson file to pass to tippecanoe
             temp_geojson = write_geojson(layer, temp_dir)
