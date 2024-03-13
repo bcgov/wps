@@ -137,18 +137,20 @@ export const fillForecastsFromRows = (
       .filter(row => isForecastRow(row))
       .map(forecastRow => {
         const savedRow = savedRowsMap.get(forecastRow.id)
-        forecastRow.tempForecast = savedRow?.tempForecast
-        forecastRow.rhForecast = savedRow?.rhForecast
-        forecastRow.windDirectionForecast = savedRow?.windDirectionForecast
-        forecastRow.windSpeedForecast = savedRow?.windSpeedForecast
-        forecastRow.precipForecast = savedRow?.precipForecast
-        forecastRow.grassCuringForecast = savedRow?.grassCuringForecast
-        forecastRow.ffmcCalcForecast = savedRow?.ffmcCalcForecast
-        forecastRow.dmcCalcForecast = savedRow?.dmcCalcForecast
-        forecastRow.dcCalcForecast = savedRow?.dcCalcForecast
-        forecastRow.isiCalcForecast = savedRow?.isiCalcForecast
-        forecastRow.buiCalcForecast = savedRow?.buiCalcForecast
-        forecastRow.fwiCalcForecast = savedRow?.fwiCalcForecast
+        if (savedRow) {
+          forecastRow.tempForecast = savedRow.tempForecast
+          forecastRow.rhForecast = savedRow.rhForecast
+          forecastRow.windDirectionForecast = savedRow.windDirectionForecast
+          forecastRow.windSpeedForecast = savedRow.windSpeedForecast
+          forecastRow.precipForecast = savedRow.precipForecast
+          forecastRow.grassCuringForecast = savedRow.grassCuringForecast
+          forecastRow.ffmcCalcForecast = savedRow.ffmcCalcForecast
+          forecastRow.dmcCalcForecast = savedRow.dmcCalcForecast
+          forecastRow.dcCalcForecast = savedRow.dcCalcForecast
+          forecastRow.isiCalcForecast = savedRow.isiCalcForecast
+          forecastRow.buiCalcForecast = savedRow.buiCalcForecast
+          forecastRow.fwiCalcForecast = savedRow.fwiCalcForecast
+        }
       })
   }
   return rowsToFill
