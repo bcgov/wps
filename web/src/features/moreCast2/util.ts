@@ -127,6 +127,32 @@ export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: Mor
   return newRows
 }
 
+export const fillRowsFromSavedDraft = (rows: MoreCast2Row[], savedRows: MoreCast2Row[]): MoreCast2Row[] => {
+  for (const row of rows) {
+    if (savedRows) {
+      const storedRowsMap = getRowsMap(savedRows)
+      if (isForecastRow(row)) {
+        const storedRow = storedRowsMap.get(row.id)
+        if (storedRow) {
+          row.tempForecast = storedRow.tempForecast
+          row.rhForecast = storedRow.rhForecast
+          row.windDirectionForecast = storedRow.windDirectionForecast
+          row.windSpeedForecast = storedRow.windSpeedForecast
+          row.precipForecast = storedRow.precipForecast
+          row.grassCuringForecast = storedRow.grassCuringForecast
+          row.ffmcCalcForecast = storedRow.ffmcCalcForecast
+          row.dmcCalcForecast = storedRow.dmcCalcForecast
+          row.dcCalcForecast = storedRow.dcCalcForecast
+          row.isiCalcForecast = storedRow.isiCalcForecast
+          row.buiCalcForecast = storedRow.buiCalcForecast
+          row.fwiCalcForecast = storedRow.fwiCalcForecast
+        }
+      }
+    }
+  }
+  return rows
+}
+
 /**
  * Fills all stations grass curing values with the last entered value for each station
  * @param rows - MoreCast2Row[]

@@ -10,9 +10,11 @@ import {
   parseForecastsHelper,
   rowIDHasher,
   validActualPredicate,
-  validForecastPredicate
+  validForecastPredicate,
+  fillRowsFromSavedDraft
 } from 'features/moreCast2/util'
 import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
+import { createEmptyMoreCast2Row } from 'features/moreCast2/slices/dataSlice'
 
 const TEST_DATE = '2023-02-16T20:00:00+00:00'
 const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
@@ -306,5 +308,40 @@ describe('fillStationGrassCuringForward', () => {
     expect(forecast1C.grassCuringForecast!.value).toBe(43)
     expect(forecast1A.grassCuringForecast!.value).toBe(60)
     expect(forecast2A.grassCuringForecast!.value).toBe(70)
+  })
+})
+describe('fillRowsFromSavedDraft', () => {
+  it('should fill forecast rows from saved drafts', () => {
+    const tomorrow = DateTime.now().plus({ days: 1 })
+    const stationCode = 1
+    const id = rowIDHasher(stationCode, tomorrow)
+    const savedRows = buildValidForecastRow(stationCode, tomorrow, 'MANUAL')
+    const rowsToFill = createEmptyMoreCast2Row(id, stationCode, 'station', tomorrow, 1, 1)
+
+    const filledRows = fillRowsFromSavedDraft([rowsToFill], [savedRows])
+    expect(filledRows[0].tempForecast?.value).toBe(2)
+    expect(filledRows[0].tempForecast?.choice).toBe(ModelChoice.MANUAL)
+  })
+  it('should not fill rows if they contain actuals', () => {
+    const tomorrow = DateTime.now()
+    const stationCode = 1
+    const id = rowIDHasher(stationCode, tomorrow)
+    const savedRows = buildValidActualRow(stationCode, tomorrow)
+    const rowsToFill = createEmptyMoreCast2Row(id, stationCode, 'station', tomorrow, 1, 1)
+
+    const filledRows = fillRowsFromSavedDraft([rowsToFill], [savedRows])
+    expect(filledRows[0].tempForecast?.value).toBe(undefined)
+    expect(filledRows[0].tempForecast?.choice).toBe(undefined)
+  })
+  it('should not fill rows if they are in the past', () => {
+    const tomorrow = DateTime.now().minus({ days: 2 })
+    const stationCode = 1
+    const id = rowIDHasher(stationCode, tomorrow)
+    const savedRows = buildValidActualRow(stationCode, tomorrow)
+    const rowsToFill = createEmptyMoreCast2Row(id, stationCode, 'station', tomorrow, 1, 1)
+
+    const filledRows = fillRowsFromSavedDraft([rowsToFill], [savedRows])
+    expect(filledRows[0].tempForecast?.value).toBe(undefined)
+    expect(filledRows[0].tempForecast?.choice).toBe(undefined)
   })
 })

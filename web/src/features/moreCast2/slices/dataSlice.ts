@@ -17,8 +17,7 @@ import {
   rowIDHasher,
   fillGrassCuringForecast,
   fillGrassCuringCWFIS,
-  rowContainsActual,
-  getRowsMap
+  fillRowsFromSavedDraft
 } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
@@ -365,8 +364,6 @@ export const createMoreCast2Rows = (
     rows.push(row)
   }
 
-  const storedDraftForecast = morecastDraftForecast.getStoredDraftForecasts()
-
   // Set the forecasted precip value to 0 for rows which have no actual or forecasted precip value.
   for (const row of rows) {
     if (
@@ -377,32 +374,12 @@ export const createMoreCast2Rows = (
     ) {
       row.precipForecast.value = 0
     }
-    // if we have draft rows stored in local storage, replace forecasts with that draft data as long
-    // as an actual doesn't exist
-    if (storedDraftForecast.rows) {
-      const storedRowsMap = getRowsMap(storedDraftForecast.rows)
-      if (!rowContainsActual(row)) {
-        const storedRow = storedRowsMap.get(row.id)
-        if (storedRow) {
-          row.tempForecast = storedRow.tempForecast
-          row.rhForecast = storedRow.rhForecast
-          row.windDirectionForecast = storedRow.windDirectionForecast
-          row.windSpeedForecast = storedRow.windSpeedForecast
-          row.precipForecast = storedRow.precipForecast
-          row.grassCuringForecast = storedRow.grassCuringForecast
-          // We'll need to do the indices too, since they could potentially have been simulated from the weather parameter inputs
-          row.ffmcCalcForecast = storedRow.ffmcCalcForecast
-          row.dmcCalcForecast = storedRow.dmcCalcForecast
-          row.dcCalcForecast = storedRow.dcCalcForecast
-          row.isiCalcForecast = storedRow.isiCalcForecast
-          row.buiCalcForecast = storedRow.buiCalcForecast
-          row.fwiCalcForecast = storedRow.fwiCalcForecast
-        }
-      }
-    }
   }
   let newRows = fillGrassCuringForecast(rows)
   newRows = fillGrassCuringCWFIS(newRows)
+
+  const savedRows = morecastDraftForecast.getStoredDraftForecasts().rows
+  newRows = fillRowsFromSavedDraft(newRows, savedRows)
 
   return newRows
 }
