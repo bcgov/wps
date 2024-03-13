@@ -41,7 +41,7 @@ describe('MorecastDraftForecast', () => {
     const getSpy = jest.spyOn(localStorageMock, 'getItem')
     draftForecast.getStoredDraftForecasts()
 
-    expect(getSpy).toHaveBeenCalled()
+    expect(getSpy).toHaveBeenCalledWith(draftForecast.STORAGE_KEY)
   })
   it('should delete saved rows from storage', () => {
     const storedDraft: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: Date.now() }

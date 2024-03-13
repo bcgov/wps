@@ -8,7 +8,7 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
-import { createWeatherModelLabel, isPreviousToToday, rowContainsActual } from 'features/moreCast2/util'
+import { createWeatherModelLabel, isBeforeToday, rowContainsActual } from 'features/moreCast2/util'
 import {
   GC_HEADER,
   PRECIP_HEADER,
@@ -76,7 +76,7 @@ export class GridComponentRenderer {
     // The 'Actual' column will show N/R for Not Reporting, instead of N/A
     const noDataField = headerName === WeatherDeterminate.ACTUAL ? NOT_REPORTING : NOT_AVAILABLE
 
-    const isPreviousDate = isPreviousToToday(params.row['forDate'])
+    const isPreviousDate = isBeforeToday(params.row['forDate'])
     const isForecastColumn = this.isForecastColumn(headerName)
     const containsActual = rowContainsActual(params.row)
 
@@ -92,7 +92,7 @@ export class GridComponentRenderer {
     const isActual = rowContainsActual(params.row)
     // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
-    const isPreviousDate = isPreviousToToday(params.row['forDate'])
+    const isPreviousDate = isBeforeToday(params.row['forDate'])
     const isGrassField = field.includes('grass')
     const label = isGrassField || isPreviousDate ? '' : createWeatherModelLabel(params.row[field].choice)
     const formattedValue = parseFloat(params.formattedValue)
@@ -140,7 +140,7 @@ export class GridComponentRenderer {
     const isActual = rowContainsActual(params.row)
     // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
-    const isPreviousDate = isPreviousToToday(params.row['forDate'])
+    const isPreviousDate = isBeforeToday(params.row['forDate'])
 
     // The grass curing 'forecast' field and other weather parameter forecasts fields are rendered differently
     return <TextField disabled={isActual || isPreviousDate} size="small" value={params.formattedValue}></TextField>

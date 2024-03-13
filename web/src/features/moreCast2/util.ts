@@ -103,7 +103,7 @@ export const validForecastPredicate = (row: MoreCast2Row) =>
   !isNaN(row.windSpeedForecast.value)
 
 export const isForecastRow = (row: MoreCast2Row) => {
-  return !rowContainsActual(row) && !isPreviousToToday(row.forDate)
+  return !rowContainsActual(row) && !isBeforeToday(row.forDate)
 }
 
 export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: MoreCast2Row[]): MoreCast2Row[] => {
@@ -127,28 +127,29 @@ export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: Mor
   return newRows
 }
 
-export const fillForecastsFromRows = (rowsToFill: MoreCast2Row[], savedRows: MoreCast2Row[]): MoreCast2Row[] => {
-  for (const row of rowsToFill) {
-    if (savedRows) {
-      const storedRowsMap = getRowsMap(savedRows)
-      if (isForecastRow(row)) {
-        const storedRow = storedRowsMap.get(row.id)
-        if (storedRow) {
-          row.tempForecast = storedRow.tempForecast
-          row.rhForecast = storedRow.rhForecast
-          row.windDirectionForecast = storedRow.windDirectionForecast
-          row.windSpeedForecast = storedRow.windSpeedForecast
-          row.precipForecast = storedRow.precipForecast
-          row.grassCuringForecast = storedRow.grassCuringForecast
-          row.ffmcCalcForecast = storedRow.ffmcCalcForecast
-          row.dmcCalcForecast = storedRow.dmcCalcForecast
-          row.dcCalcForecast = storedRow.dcCalcForecast
-          row.isiCalcForecast = storedRow.isiCalcForecast
-          row.buiCalcForecast = storedRow.buiCalcForecast
-          row.fwiCalcForecast = storedRow.fwiCalcForecast
-        }
-      }
-    }
+export const fillForecastsFromRows = (
+  rowsToFill: MoreCast2Row[],
+  savedRows: MoreCast2Row[] | undefined
+): MoreCast2Row[] => {
+  if (savedRows) {
+    const savedRowsMap = getRowsMap(savedRows)
+    rowsToFill
+      .filter(row => isForecastRow(row))
+      .map(forecastRow => {
+        const savedRow = savedRowsMap.get(forecastRow.id)
+        forecastRow.tempForecast = savedRow?.tempForecast
+        forecastRow.rhForecast = savedRow?.rhForecast
+        forecastRow.windDirectionForecast = savedRow?.windDirectionForecast
+        forecastRow.windSpeedForecast = savedRow?.windSpeedForecast
+        forecastRow.precipForecast = savedRow?.precipForecast
+        forecastRow.grassCuringForecast = savedRow?.grassCuringForecast
+        forecastRow.ffmcCalcForecast = savedRow?.ffmcCalcForecast
+        forecastRow.dmcCalcForecast = savedRow?.dmcCalcForecast
+        forecastRow.dcCalcForecast = savedRow?.dcCalcForecast
+        forecastRow.isiCalcForecast = savedRow?.isiCalcForecast
+        forecastRow.buiCalcForecast = savedRow?.buiCalcForecast
+        forecastRow.fwiCalcForecast = savedRow?.fwiCalcForecast
+      })
   }
   return rowsToFill
 }
@@ -250,22 +251,16 @@ export const fillStationGrassCuringForward = (editedRow: MoreCast2Row, allRows: 
  * @param datetime
  * @returns boolean
  */
-export const isPreviousToToday = (datetime: DateTime): boolean => {
+export const isBeforeToday = (datetime: DateTime): boolean => {
   const today = DateTime.local().startOf('day')
 
   return datetime < today
 }
 
 export const rowContainsActual = (row: MoreCast2Row): boolean => {
-  for (const key in row) {
-    if (key.includes(WeatherDeterminate.ACTUAL)) {
-      const value = row[key as keyof MoreCast2Row]
-      if (typeof value === 'number' && !isNaN(value)) {
-        return true
-      }
-    }
-  }
-  return false
+  return Object.entries(row).some(
+    ([key, value]) => key.includes(WeatherDeterminate.ACTUAL) && typeof value === 'number' && !isNaN(value)
+  )
 }
 
 export const getRowsMap = (morecastRows: MoreCast2Row[]): Map<string, MoreCast2Row> => {
