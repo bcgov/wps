@@ -77,8 +77,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   // A subset of allRows with visibility determined by the currently selected stations
   const [visibleRows, setVisibleRows] = useState<MoreCast2Row[]>([])
 
-  const [storedDraftForecast] = useState(() => new MorecastDraftForecast(localStorage))
-
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
     DataGridColumns.initGridColumnVisibilityModel()
   )
@@ -102,6 +100,8 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     mouseX: number
     mouseY: number
   } | null>(null)
+
+  const storedDraftForecast = new MorecastDraftForecast(localStorage)
 
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
     if (
