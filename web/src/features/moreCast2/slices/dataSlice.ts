@@ -17,7 +17,7 @@ import {
   rowIDHasher,
   fillGrassCuringForecast,
   fillGrassCuringCWFIS,
-  fillRowsFromSavedDraft
+  fillForecastsFromRows
 } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
@@ -379,7 +379,7 @@ export const createMoreCast2Rows = (
   newRows = fillGrassCuringCWFIS(newRows)
 
   const savedRows = morecastDraftForecast.getStoredDraftForecasts().rows
-  newRows = fillRowsFromSavedDraft(newRows, savedRows)
+  newRows = fillForecastsFromRows(newRows, savedRows)
 
   return newRows
 }

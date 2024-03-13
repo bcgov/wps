@@ -127,8 +127,8 @@ export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: Mor
   return newRows
 }
 
-export const fillRowsFromSavedDraft = (rows: MoreCast2Row[], savedRows: MoreCast2Row[]): MoreCast2Row[] => {
-  for (const row of rows) {
+export const fillForecastsFromRows = (rowsToFill: MoreCast2Row[], savedRows: MoreCast2Row[]): MoreCast2Row[] => {
+  for (const row of rowsToFill) {
     if (savedRows) {
       const storedRowsMap = getRowsMap(savedRows)
       if (isForecastRow(row)) {
@@ -150,7 +150,7 @@ export const fillRowsFromSavedDraft = (rows: MoreCast2Row[], savedRows: MoreCast
       }
     }
   }
-  return rows
+  return rowsToFill
 }
 
 /**

@@ -11,7 +11,7 @@ import {
   rowIDHasher,
   validActualPredicate,
   validForecastPredicate,
-  fillRowsFromSavedDraft
+  fillForecastsFromRows
 } from 'features/moreCast2/util'
 import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
 import { createEmptyMoreCast2Row } from 'features/moreCast2/slices/dataSlice'
@@ -318,7 +318,7 @@ describe('fillRowsFromSavedDraft', () => {
     const savedRows = buildValidForecastRow(stationCode, tomorrow, 'MANUAL')
     const rowsToFill = createEmptyMoreCast2Row(id, stationCode, 'station', tomorrow, 1, 1)
 
-    const filledRows = fillRowsFromSavedDraft([rowsToFill], [savedRows])
+    const filledRows = fillForecastsFromRows([rowsToFill], [savedRows])
     expect(filledRows[0].tempForecast?.value).toBe(2)
     expect(filledRows[0].tempForecast?.choice).toBe(ModelChoice.MANUAL)
   })
@@ -329,7 +329,7 @@ describe('fillRowsFromSavedDraft', () => {
     const savedRows = buildValidActualRow(stationCode, tomorrow)
     const rowsToFill = createEmptyMoreCast2Row(id, stationCode, 'station', tomorrow, 1, 1)
 
-    const filledRows = fillRowsFromSavedDraft([rowsToFill], [savedRows])
+    const filledRows = fillForecastsFromRows([rowsToFill], [savedRows])
     expect(filledRows[0].tempForecast?.value).toBe(undefined)
     expect(filledRows[0].tempForecast?.choice).toBe(undefined)
   })
@@ -340,7 +340,7 @@ describe('fillRowsFromSavedDraft', () => {
     const savedRows = buildValidActualRow(stationCode, tomorrow)
     const rowsToFill = createEmptyMoreCast2Row(id, stationCode, 'station', tomorrow, 1, 1)
 
-    const filledRows = fillRowsFromSavedDraft([rowsToFill], [savedRows])
+    const filledRows = fillForecastsFromRows([rowsToFill], [savedRows])
     expect(filledRows[0].tempForecast?.value).toBe(undefined)
     expect(filledRows[0].tempForecast?.choice).toBe(undefined)
   })
