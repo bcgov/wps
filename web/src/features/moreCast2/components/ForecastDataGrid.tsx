@@ -61,6 +61,10 @@ const Root = styled('div')(() => {
     }
   })
 
+  styles[`& .forecastCell`] = {
+    backgroundColor: 'rgba(208, 208, 208, 1)'
+  }
+
   return styles
 })
 
@@ -101,6 +105,9 @@ const ForecastDataGrid = ({
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
+        getCellClassName={params => {
+          return params.field.endsWith('Forecast') || params.field.endsWith('Actual') ? 'forecastCell' : ''
+        }}
         columnVisibilityModel={columnVisibilityModel}
         onColumnVisibilityModelChange={newModel => setColumnVisibilityModel(newModel)}
         columnGroupingModel={columnGroupingModel}
