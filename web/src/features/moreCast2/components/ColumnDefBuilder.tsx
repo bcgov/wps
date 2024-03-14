@@ -64,7 +64,9 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     readonly precision: number,
     readonly gridComponentRenderer: GridComponentRenderer
   ) {}
-  public getField = () => this.field
+  public getField = () => {
+    return this.field
+  }
   public generateColDef = () => {
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
