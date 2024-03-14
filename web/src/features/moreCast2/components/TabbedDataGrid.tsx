@@ -209,7 +209,12 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     if (model) {
       return model
     }
-    const weatherModelColumns = DataGridColumns.getWeatherModelColumns()
+    const weatherModelColumns = DataGridColumns.getWeatherModelColumns({
+      colDef: clickedColDef,
+      contextMenu: contextMenu,
+      updateColumnWithModel: updateColumnWithModel,
+      handleClose: handleClose
+    })
     // Provide default with all columns
     const showHideColumnsUngroupedState = weatherModelColumns.map((column: GridColDef): ColumnVis => {
       return {
@@ -553,6 +558,12 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       ) : (
         <ForecastDataGrid
           loading={loading}
+          columnClickHandlerProps={{
+            colDef: clickedColDef,
+            contextMenu: contextMenu,
+            updateColumnWithModel: updateColumnWithModel,
+            handleClose: handleClose
+          }}
           clickedColDef={clickedColDef}
           contextMenu={contextMenu}
           columnVisibilityModel={columnVisibilityModel}

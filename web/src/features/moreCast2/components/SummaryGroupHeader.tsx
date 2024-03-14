@@ -11,7 +11,7 @@ import { GridColumnHeaderParams } from '@mui/x-data-grid'
 interface SummaryGroupHeaderProps {
   id: string
   params: GridColumnHeaderParams
-  columnClickHandlerProps?: ColumnClickHandlerProps
+  columnClickHandlerProps: ColumnClickHandlerProps
 }
 
 const SummaryGroupHeader = ({ id, params, columnClickHandlerProps }: SummaryGroupHeaderProps) => {

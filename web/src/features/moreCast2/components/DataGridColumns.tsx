@@ -8,7 +8,8 @@ import {
   MORECAST2_INDEX_FIELDS,
   MORECAST2_STATION_DATE_FIELDS,
   MORECAST2_GRASS_CURING_CWFIS_FIELD,
-  MORECAST2_GRASS_CURING_FORECAST_FIELD
+  MORECAST2_GRASS_CURING_FORECAST_FIELD,
+  MORECAST2_TAB_COLUMNS
 } from 'features/moreCast2/components/MoreCast2Column'
 import GroupHeader from 'features/moreCast2/components/GroupHeader'
 import { ColumnClickHandlerProps, handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
@@ -70,13 +71,13 @@ export class DataGridColumns {
     return newModel
   }
 
-  public static getTabColumns(): GridColDef[] {
+  public static getTabColumns(columnClickHandlerProps: ColumnClickHandlerProps): GridColDef[] {
     let tabColumns: GridColDef[] = []
     MORECAST2_FIELDS.forEach(field => {
-      tabColumns = [...tabColumns, ...field.generateColDefs(WeatherDeterminate.FORECAST)]
+      tabColumns = [...tabColumns, ...field.generateColDefs(columnClickHandlerProps, WeatherDeterminate.FORECAST)]
     })
-    const gcForecastField = MORECAST2_GRASS_CURING_FORECAST_FIELD.generateForecastColDef()
-    const gcCwfisField = MORECAST2_GRASS_CURING_CWFIS_FIELD.generateColDef()
+    const gcForecastField = MORECAST2_GRASS_CURING_FORECAST_FIELD.generateForecastColDef(columnClickHandlerProps)
+    const gcCwfisField = MORECAST2_GRASS_CURING_CWFIS_FIELD.generateColDef(columnClickHandlerProps)
     tabColumns.push(gcForecastField)
     tabColumns.push(gcCwfisField)
 
@@ -90,20 +91,20 @@ export class DataGridColumns {
       columnClickHandlerProps.updateColumnWithModel,
       columnClickHandlerProps.handleClose
     )
-    return MORECAST2_STATION_DATE_FIELDS.map(field => field.generateColDef()).concat(
-      MORECAST2_FORECAST_FIELDS.map(forecastField => forecastField.generateForecastSummaryColDef()).concat(
-        MORECAST2_INDEX_FIELDS.map(field => field.generateForecastColDef())
-      )
+    return MORECAST2_STATION_DATE_FIELDS.map(field => field.generateColDef(columnClickHandlerProps)).concat(
+      MORECAST2_FORECAST_FIELDS.map(forecastField =>
+        forecastField.generateForecastColDef(columnClickHandlerProps)
+      ).concat(MORECAST2_INDEX_FIELDS.map(field => field.generateForecastColDef(columnClickHandlerProps)))
     )
   }
 
   public static getWeatherParameterColumns() {
-    const fields = DataGridColumns.getTabColumns().map(column => column.field)
+    const fields = MORECAST2_TAB_COLUMNS.map(column => column.getField())
     return fields.filter(field => field !== 'stationName' && field !== 'forDate')
   }
 
-  public static getWeatherModelColumns() {
-    const columns = DataGridColumns.getTabColumns()
+  public static getWeatherModelColumns(columnClickHandlerProps: ColumnClickHandlerProps) {
+    const columns = DataGridColumns.getTabColumns(columnClickHandlerProps)
     return columns.filter(
       column => column.field !== 'stationName' && column.field !== 'forDate' && !column.field.endsWith('Forecast')
     )

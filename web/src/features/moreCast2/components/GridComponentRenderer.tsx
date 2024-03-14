@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, TextField } from '@mui/material'
+import { Box, Button, TextField } from '@mui/material'
 import {
   GridColumnHeaderParams,
   GridRenderCellParams,
@@ -28,13 +28,17 @@ export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
 
 export class GridComponentRenderer {
-  public renderForecastHeaderWith = (
+  public renderSummaryHeaderWith = (
     params: GridColumnHeaderParams,
-    columnClickHandlerProps?: ColumnClickHandlerProps
+    columnClickHandlerProps: ColumnClickHandlerProps
   ) => {
     console.log(columnClickHandlerProps)
     const title = params.colDef.headerName ? params.colDef.headerName : ''
     return <SummaryGroupHeader id={title} params={params} columnClickHandlerProps={columnClickHandlerProps} />
+  }
+
+  public renderForecastHeaderWith = (params: GridColumnHeaderParams) => {
+    return <Button data-testid={`${params.colDef.field}-column-header`}>{params.colDef.headerName}</Button>
   }
   public renderHeaderWith = (params: GridColumnHeaderParams) => {
     if (params.field.endsWith('_BIAS')) {

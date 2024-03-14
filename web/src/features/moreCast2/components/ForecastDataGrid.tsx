@@ -20,6 +20,7 @@ import { fillStationGrassCuringForward } from 'features/moreCast2/util'
 import { storeUserEditedRows } from 'features/moreCast2/slices/dataSlice'
 import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
+import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 
 const PREFIX = 'ForecastDataGrid'
 
@@ -67,6 +68,7 @@ const Root = styled('div')(() => {
 
 export interface ForecastDataGridProps {
   loading: boolean
+  columnClickHandlerProps: ColumnClickHandlerProps
   clickedColDef: GridColDef | null
   contextMenu: {
     mouseX: number
@@ -88,6 +90,7 @@ export interface ForecastDataGridProps {
 
 const ForecastDataGrid = ({
   loading,
+  columnClickHandlerProps,
   clickedColDef,
   contextMenu,
   columnVisibilityModel,
@@ -121,7 +124,7 @@ const ForecastDataGrid = ({
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellDoubleClick={onCellDoubleClickHandler}
         loading={loading}
-        columns={DataGridColumns.getTabColumns()}
+        columns={DataGridColumns.getTabColumns(columnClickHandlerProps)}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
         rows={allMoreCast2Rows}
         processRowUpdate={processRowUpdate}
