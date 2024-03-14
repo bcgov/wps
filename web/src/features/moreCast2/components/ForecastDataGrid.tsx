@@ -4,7 +4,6 @@ import {
   DataGrid,
   GridCallbackDetails,
   GridCellParams,
-  GridColDef,
   GridColumnGroupingModel,
   GridColumnVisibilityModel,
   GridEventListener,
@@ -13,8 +12,7 @@ import {
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
-import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
-import { ModelChoice, ModelType } from 'api/moreCast2API'
+import { ModelChoice } from 'api/moreCast2API'
 import { MORECAST_MODEL_COLORS, MORECAST_WEATHER_PARAMS, MoreCastModelColors, MoreCastParams } from 'app/theme'
 import { fillStationGrassCuringForward } from 'features/moreCast2/util'
 import { storeUserEditedRows } from 'features/moreCast2/slices/dataSlice'
@@ -69,11 +67,6 @@ const Root = styled('div')(() => {
 export interface ForecastDataGridProps {
   loading: boolean
   columnClickHandlerProps: ColumnClickHandlerProps
-  clickedColDef: GridColDef | null
-  contextMenu: {
-    mouseX: number
-    mouseY: number
-  } | null
   columnVisibilityModel: GridColumnVisibilityModel
   setColumnVisibilityModel: React.Dispatch<React.SetStateAction<GridColumnVisibilityModel>>
   onCellDoubleClickHandler: (
@@ -81,9 +74,7 @@ export interface ForecastDataGridProps {
     event: MuiEvent<React.MouseEvent>,
     details: GridCallbackDetails
   ) => void
-  updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
   handleColumnHeaderClick: GridEventListener<'columnHeaderClick'>
-  handleClose: () => void
   columnGroupingModel: GridColumnGroupingModel
   allMoreCast2Rows: MoreCast2Row[]
 }
@@ -91,14 +82,10 @@ export interface ForecastDataGridProps {
 const ForecastDataGrid = ({
   loading,
   columnClickHandlerProps,
-  clickedColDef,
-  contextMenu,
   columnVisibilityModel,
   setColumnVisibilityModel,
   onCellDoubleClickHandler,
-  updateColumnWithModel,
   handleColumnHeaderClick,
-  handleClose,
   columnGroupingModel,
   allMoreCast2Rows
 }: ForecastDataGridProps) => {
@@ -128,12 +115,6 @@ const ForecastDataGrid = ({
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
         rows={allMoreCast2Rows}
         processRowUpdate={processRowUpdate}
-      />
-      <ApplyToColumnMenu
-        colDef={clickedColDef}
-        contextMenu={contextMenu}
-        handleClose={handleClose}
-        updateColumnWithModel={updateColumnWithModel}
       />
     </Root>
   )
