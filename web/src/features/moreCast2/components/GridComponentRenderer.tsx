@@ -135,6 +135,11 @@ export class GridComponentRenderer {
     if (isGrassField) {
       return (
         <TextField
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              backgroundColor: `${theme.palette.common.white}`
+            }
+          }}
           disabled={isActual || isPreviousDate}
           size="small"
           label={label}
