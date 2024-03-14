@@ -42,7 +42,7 @@ import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters
 import { mapForecastChoiceLabels } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
-import ResetForecastButton from 'features/moreCast2/components/ResetForecastButton'
+import ResetForecastButton, { resetForecastRows } from 'features/moreCast2/components/ResetForecastButton'
 import { getDateTimeNowPST } from 'utils/date'
 
 export const Root = styled('div')({
@@ -437,6 +437,12 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     }
   }
 
+  const handleResetClick = () => {
+    const resetRows = resetForecastRows(allRows)
+    setAllRows(resetRows)
+    storedDraftForecast.clearDraftForecasts()
+  }
+
   // Checks if the displayed rows includes non-Actual rows
   const hasForecastRow = () => {
     return visibleRows.filter(isForecastRowPredicate).length > 0
@@ -469,9 +475,8 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
             )}
             <ResetForecastButton
               label={'Reset'}
-              allRows={allRows}
-              setAllRows={setAllRows}
               enabled={storedDraftForecast.hasDraftForecastStored()}
+              onClick={handleResetClick}
             />
             <SaveForecastButton
               enabled={

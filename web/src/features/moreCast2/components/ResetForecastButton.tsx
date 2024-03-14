@@ -3,14 +3,13 @@ import { Button } from '@mui/material'
 import { fillGrassCuringForecast } from 'features/moreCast2/util'
 import { MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
-import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
+// import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 
 export interface ResetForecastButtonProps {
   className?: string
   enabled: boolean
   label: string
-  allRows: MoreCast2Row[]
-  setAllRows: React.Dispatch<React.SetStateAction<MoreCast2Row[]>>
+  onClick: () => void
 }
 
 /**
@@ -37,22 +36,14 @@ export const resetForecastRows = (rows: MoreCast2Row[]) => {
   return resetRows
 }
 
-const ResetForecastButton = ({ className, enabled, label, allRows, setAllRows }: ResetForecastButtonProps) => {
-  const storedDraftForecast = new MorecastDraftForecast(localStorage)
-
-  const handleResetClick = () => {
-    const resetRows = resetForecastRows(allRows)
-    setAllRows(resetRows)
-    storedDraftForecast.clearDraftForecasts()
-  }
-
+const ResetForecastButton = ({ className, enabled, label, onClick }: ResetForecastButtonProps) => {
   return (
     <Button
       className={className}
       variant="contained"
       data-testid={'reset-forecast-button'}
       disabled={!enabled}
-      onClick={handleResetClick}
+      onClick={onClick}
     >
       {label}
     </Button>
