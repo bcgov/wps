@@ -1,8 +1,5 @@
 import { createTheme } from '@mui/material/styles'
 import { GridCellParams, GridColumnHeaderParams } from '@mui/x-data-grid'
-import { WeatherDeterminate } from 'api/moreCast2API'
-import { MORECAST2_INDEX_FIELDS } from 'features/moreCast2/components/MoreCast2Column'
-import { isUndefined } from 'lodash'
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
@@ -140,23 +137,6 @@ export const modelColorClass = (params: Pick<GridCellParams | GridColumnHeaderPa
   const stringKeys = Object.keys(MORECAST_MODEL_COLORS)
   const modelKey = stringKeys.find(key => params.field.includes(key.toUpperCase()))
   return modelKey ? modelKey : ''
-}
-
-export const weatherParamHeaderColorClass = (params: Pick<GridCellParams | GridColumnHeaderParams, 'field'>) => {
-  if (params.field.includes('Actual')) {
-    return ''
-  }
-  const weatherParam = params.field.split(WeatherDeterminate.FORECAST)[0]
-  const paramKey = MORECAST_WEATHER_PARAMS[weatherParam]
-  if (!isUndefined(paramKey)) {
-    return `${weatherParam}-forecast-header`
-  }
-  const indexKey = MORECAST2_INDEX_FIELDS.find(field => params.field.includes(field.getField()))
-  if (!isUndefined(indexKey)) {
-    return `${indexKey.getField()}-forecast-header`
-  }
-
-  return params.field.includes('grass') ? 'gc-forecast-header' : ''
 }
 
 export const modelHeaderColorClass = (params: Pick<GridCellParams | GridColumnHeaderParams, 'field'>) => {

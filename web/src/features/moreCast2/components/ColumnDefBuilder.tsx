@@ -169,9 +169,6 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       sortable: false,
       type: 'number',
       width: width ?? DEFAULT_FORECAST_COLUMN_WIDTH,
-      // headerClassName: (params: GridColumnHeaderParams) => {
-      //   return weatherParamHeaderColorClass(params)
-      // },
       renderHeader: (params: GridColumnHeaderParams) => {
         return isCalcField || isGrassField
           ? this.gridComponentRenderer.renderHeaderWith(params)
