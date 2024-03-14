@@ -85,12 +85,6 @@ export class DataGridColumns {
   }
 
   public static getSummaryColumns(columnClickHandlerProps: ColumnClickHandlerProps): GridColDef[] {
-    console.log(
-      columnClickHandlerProps.colDef,
-      columnClickHandlerProps.contextMenu,
-      columnClickHandlerProps.updateColumnWithModel,
-      columnClickHandlerProps.handleClose
-    )
     return MORECAST2_STATION_DATE_FIELDS.map(field => field.generateColDef(columnClickHandlerProps)).concat(
       MORECAST2_FORECAST_FIELDS.map(forecastField =>
         forecastField.generateForecastColDef(columnClickHandlerProps)
