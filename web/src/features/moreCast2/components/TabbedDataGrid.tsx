@@ -549,11 +549,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
             updateColumnWithModel: updateColumnWithModel,
             handleClose: handleClose
           }}
-          clickedColDef={clickedColDef}
-          contextMenu={contextMenu}
-          updateColumnWithModel={updateColumnWithModel}
           handleColumnHeaderClick={handleColumnHeaderClick}
-          handleClose={handleClose}
         />
       ) : (
         <ForecastDataGrid
@@ -564,14 +560,10 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
             updateColumnWithModel: updateColumnWithModel,
             handleClose: handleClose
           }}
-          clickedColDef={clickedColDef}
-          contextMenu={contextMenu}
           columnVisibilityModel={columnVisibilityModel}
           setColumnVisibilityModel={setColumnVisibilityModel}
           onCellDoubleClickHandler={handleCellDoubleClick}
-          updateColumnWithModel={updateColumnWithModel}
           handleColumnHeaderClick={handleColumnHeaderClick}
-          handleClose={handleClose}
           columnGroupingModel={columnGroupingModel}
           allMoreCast2Rows={visibleRows}
         />
