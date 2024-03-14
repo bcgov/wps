@@ -1,13 +1,15 @@
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import { DraftMorecast2Rows } from 'features/moreCast2/interfaces'
 import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
-import { DateTime, Settings } from 'luxon'
+import { DateTime } from 'luxon'
+import * as DateUtils from 'utils/date'
 
-// Temporarily set DateTime.now() to return the same DateTime when called
 const TEST_DATE = DateTime.fromISO('2024-01-01T00:00:00.000-08:00')
-Settings.now = () => TEST_DATE.toMillis()
 
 describe('MorecastDraftForecast', () => {
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
   const localStorageMock: Storage = {
     getItem: jest.fn(),
     setItem: jest.fn(),
@@ -29,6 +31,7 @@ describe('MorecastDraftForecast', () => {
   ]
 
   it('should only store forecast rows', () => {
+    jest.spyOn(DateUtils, 'getDateTimeNowPST').mockReturnValue(TEST_DATE)
     const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE.toISO() }
     const setSpy = jest.spyOn(localStorageMock, 'setItem')
 

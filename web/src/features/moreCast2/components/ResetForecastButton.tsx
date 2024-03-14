@@ -3,7 +3,6 @@ import { Button } from '@mui/material'
 import { fillGrassCuringForecast } from 'features/moreCast2/util'
 import { MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
-// import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 
 export interface ResetForecastButtonProps {
   className?: string

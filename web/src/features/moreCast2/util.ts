@@ -3,6 +3,7 @@ import { ModelChoice, MoreCast2ForecastRecord, WeatherDeterminate } from 'api/mo
 import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { StationGroupMember } from 'api/stationAPI'
 import { isUndefined } from 'lodash'
+import { getDateTimeNowPST } from 'utils/date'
 
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
@@ -254,7 +255,7 @@ export const fillStationGrassCuringForward = (editedRow: MoreCast2Row, allRows: 
  * @returns boolean
  */
 export const isBeforeToday = (datetime: DateTime): boolean => {
-  const today = DateTime.local().startOf('day')
+  const today = getDateTimeNowPST().startOf('day')
 
   return datetime < today
 }
