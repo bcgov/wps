@@ -4,7 +4,7 @@ import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/r
 import { Settings, DateTime } from 'luxon'
 
 // Temporarily set DateTime.now() to return the same DateTime when called
-const TEST_DATE = DateTime.local(2024, 1, 1)
+const TEST_DATE = DateTime.fromISO('2024-01-01T00:00:00.000-08:00')
 Settings.now = () => TEST_DATE.toMillis()
 
 describe('MorecastDraftForecast', () => {
