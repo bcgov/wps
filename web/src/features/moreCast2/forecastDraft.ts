@@ -1,6 +1,7 @@
 import { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { getRowsMap, isForecastRow } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
+import { getDateTimeNowPST } from 'utils/date'
 
 export class MorecastDraftForecast {
   public readonly STORAGE_KEY = 'morecastForecastDraft'
@@ -12,7 +13,7 @@ export class MorecastDraftForecast {
 
   public getStoredDraftForecasts = (): DraftMorecast2Rows => {
     const storedDraftString = this.localStorage.getItem(this.STORAGE_KEY)
-    let storedDraft: DraftMorecast2Rows = { rows: [], lastEdited: undefined }
+    let storedDraft: DraftMorecast2Rows = { rows: [], lastEdited: null }
 
     if (storedDraftString) {
       storedDraft = JSON.parse(storedDraftString)
@@ -40,7 +41,7 @@ export class MorecastDraftForecast {
     storedForecastsToUpdate.rows = Array.from(storedRowsMap.values()).filter(row => {
       return isForecastRow(row)
     })
-    storedForecastsToUpdate.lastEdited = Date.now()
+    storedForecastsToUpdate.lastEdited = getDateTimeNowPST().toISO()
 
     this.storeDraftForecasts(storedForecastsToUpdate)
   }
@@ -52,7 +53,7 @@ export class MorecastDraftForecast {
       localStoredRows.delete(row.id)
     })
     localStoredForecast.rows = Array.from(localStoredRows.values())
-    localStoredForecast.lastEdited = Date.now()
+    localStoredForecast.lastEdited = getDateTimeNowPST().toISO()
     this.storeDraftForecasts(localStoredForecast)
   }
 
@@ -64,7 +65,7 @@ export class MorecastDraftForecast {
   public getLastSavedDraftDateTime = (): string | undefined => {
     const storedDraftForecast = this.getStoredDraftForecasts()
     if (storedDraftForecast.lastEdited && this.hasDraftForecastStored()) {
-      return DateTime.fromMillis(storedDraftForecast.lastEdited).toFormat('MMMM dd, HH:mm')
+      return DateTime.fromISO(storedDraftForecast.lastEdited).toFormat('MMMM dd, HH:mm')
     }
   }
 }

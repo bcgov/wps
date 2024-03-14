@@ -1,14 +1,13 @@
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import { DraftMorecast2Rows } from 'features/moreCast2/interfaces'
 import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
-import { DateTime } from 'luxon'
+import { Settings, DateTime } from 'luxon'
 
-const TEST_DATE = DateTime.now()
-const EDITED_TEST_DATE_NUMBER = 1710187123569
+// Temporarily set DateTime.now() to return the same DateTime when called
+const TEST_DATE = DateTime.local(2024, 1, 1)
+Settings.now = () => TEST_DATE.toMillis()
 
 describe('MorecastDraftForecast', () => {
-  jest.spyOn(Date, 'now').mockReturnValue(EDITED_TEST_DATE_NUMBER)
-
   const localStorageMock: Storage = {
     getItem: jest.fn(),
     setItem: jest.fn(),
@@ -30,7 +29,7 @@ describe('MorecastDraftForecast', () => {
   ]
 
   it('should only store forecast rows', () => {
-    const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: Date.now() }
+    const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE.toISO() }
     const setSpy = jest.spyOn(localStorageMock, 'setItem')
 
     draftForecast.updateStoredDraftForecasts(mockRowData)
@@ -44,8 +43,8 @@ describe('MorecastDraftForecast', () => {
     expect(getSpy).toHaveBeenCalledWith(draftForecast.STORAGE_KEY)
   })
   it('should delete saved rows from storage', () => {
-    const storedDraft: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: Date.now() }
-    const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(2, 4), lastEdited: Date.now() }
+    const storedDraft: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE.toISO() }
+    const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(2, 4), lastEdited: TEST_DATE.toISO() }
     const savedRows = mockRowData.slice(0, 2)
 
     jest.spyOn(localStorageMock, 'getItem').mockReturnValue(JSON.stringify(storedDraft))
@@ -56,7 +55,7 @@ describe('MorecastDraftForecast', () => {
     expect(setSpy).toHaveBeenCalledWith(draftForecast.STORAGE_KEY, JSON.stringify(toBeStored))
   })
   it('should return true if a draft forecast is stored', () => {
-    const storedDraft: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: Date.now() }
+    const storedDraft: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE.toISO() }
     jest.spyOn(localStorageMock, 'getItem').mockReturnValue(JSON.stringify(storedDraft))
 
     const draftStored = draftForecast.hasDraftForecastStored()
