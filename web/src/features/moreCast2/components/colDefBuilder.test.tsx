@@ -7,7 +7,15 @@ import {
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 import { gcForecastField, tempForecastField } from 'features/moreCast2/components/MoreCast2Column'
+import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 describe('ColDefBuilder', () => {
+  const mockColumnClickHandlerProps: ColumnClickHandlerProps = {
+    colDef: null,
+    contextMenu: null,
+    updateColumnWithModel: jest.fn(),
+    handleClose: jest.fn()
+  }
+
   const colDefBuilder = new ColumnDefBuilder(
     tempForecastField.field,
     tempForecastField.headerName,
@@ -38,7 +46,7 @@ describe('ColDefBuilder', () => {
       )
     })
     it('should generate all col defs correctly', () => {
-      const colDefs = colDefBuilder.generateColDefs()
+      const colDefs = colDefBuilder.generateColDefs(mockColumnClickHandlerProps)
 
       const expected = [
         JSON.stringify({
@@ -91,7 +99,7 @@ describe('ColDefBuilder', () => {
 
   describe('generateForecastColDef', () => {
     it('should generate the forecast col def correctly', () => {
-      const forecastColDef = colDefBuilder.generateForecastColDef()
+      const forecastColDef = colDefBuilder.generateForecastColDef(mockColumnClickHandlerProps)
 
       expect(JSON.stringify(forecastColDef)).toEqual(
         JSON.stringify({
@@ -111,7 +119,7 @@ describe('ColDefBuilder', () => {
     it('should generate the forecast col def correctly with a supplied header', () => {
       const header = 'test'
 
-      const forecastColDef = colDefBuilder.generateForecastColDef(header)
+      const forecastColDef = colDefBuilder.generateForecastColDef(mockColumnClickHandlerProps, header)
 
       expect(JSON.stringify(forecastColDef)).toEqual(
         JSON.stringify({
@@ -129,7 +137,13 @@ describe('ColDefBuilder', () => {
     })
 
     it('should generate col def with parameters correctly', () => {
-      const forecastColDef = colDefBuilder.generateForecastColDefWith(testField, testHeader, testPrecision, testWidth)
+      const forecastColDef = colDefBuilder.generateForecastColDefWith(
+        testField,
+        testHeader,
+        testPrecision,
+        mockColumnClickHandlerProps,
+        testWidth
+      )
 
       expect(JSON.stringify(forecastColDef)).toEqual(
         JSON.stringify({
@@ -157,7 +171,12 @@ describe('ColDefBuilder', () => {
     })
 
     it('should generate forecast col def with parameters correctly with a default width', () => {
-      const forecastColDef = colDefBuilder.generateForecastColDefWith(testField, testHeader, testPrecision)
+      const forecastColDef = colDefBuilder.generateForecastColDefWith(
+        testField,
+        testHeader,
+        testPrecision,
+        mockColumnClickHandlerProps
+      )
 
       expect(JSON.stringify(forecastColDef)).toEqual(
         JSON.stringify({
@@ -205,7 +224,7 @@ describe('ColDefBuilder', () => {
       new GridComponentRenderer()
     )
 
-    const gcColDef = gcColDefBuilder.generateForecastColDef()
+    const gcColDef = gcColDefBuilder.generateForecastColDef(mockColumnClickHandlerProps)
 
     expect(JSON.stringify(gcColDef)).toEqual(
       JSON.stringify({

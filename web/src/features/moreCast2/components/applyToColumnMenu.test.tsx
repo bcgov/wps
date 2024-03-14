@@ -5,9 +5,17 @@ import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { ColumnDefBuilder } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 import { tempForecastField } from 'features/moreCast2/components/MoreCast2Column'
+import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import React from 'react'
 
 describe('ApplyToColumnMenu', () => {
+  const mockColumnClickHandlerProps: ColumnClickHandlerProps = {
+    colDef: null,
+    contextMenu: null,
+    updateColumnWithModel: jest.fn(),
+    handleClose: jest.fn()
+  }
+
   const colDefBuilder = new ColumnDefBuilder(
     tempForecastField.field,
     tempForecastField.headerName,
@@ -34,7 +42,7 @@ describe('ApplyToColumnMenu', () => {
   it('should render the menu when context from a click exists', async () => {
     const mockUpdateColumnWithModel = jest.fn()
     const mockHandleClose = jest.fn()
-    const colDef = colDefBuilder.generateForecastColDef()
+    const colDef = colDefBuilder.generateForecastColDef(mockColumnClickHandlerProps)
     expect(colDef).not.toBeNull()
 
     const { getByTestId } = render(
@@ -50,7 +58,7 @@ describe('ApplyToColumnMenu', () => {
   })
 
   describe('clicking apply', () => {
-    const colDef = colDefBuilder.generateForecastColDef()
+    const colDef = colDefBuilder.generateForecastColDef(mockColumnClickHandlerProps)
 
     it('should apply the model to the supplied column definition', async () => {
       const mockUpdateColumnWithModel = jest.fn()
