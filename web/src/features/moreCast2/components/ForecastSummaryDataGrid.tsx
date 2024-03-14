@@ -1,7 +1,7 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
-import { ModelChoice, ModelType } from 'api/moreCast2API'
+import { DataGrid, GridEventListener } from '@mui/x-data-grid'
+import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import { DataGridColumns, getSummaryColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
@@ -50,14 +50,7 @@ interface ForecastSummaryDataGridProps {
   loading: boolean
   rows: MoreCast2Row[]
   columnClickHandlerProps: ColumnClickHandlerProps
-  clickedColDef: GridColDef | null
-  contextMenu: {
-    mouseX: number
-    mouseY: number
-  } | null
-  updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
   handleColumnHeaderClick: GridEventListener<'columnHeaderClick'>
-  handleClose: () => void
 }
 
 const ForecastSummaryDataGrid = ({
@@ -100,12 +93,6 @@ const ForecastSummaryDataGrid = ({
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
         processRowUpdate={processRowUpdate}
       />
-      {/* <ApplyToColumnMenu
-        colDef={columnClickHandlerProps.colDef}
-        contextMenu={columnClickHandlerProps.contextMenu}
-        handleClose={columnClickHandlerProps.handleClose}
-        updateColumnWithModel={columnClickHandlerProps.updateColumnWithModel}
-      /> */}
     </Root>
   )
 }
