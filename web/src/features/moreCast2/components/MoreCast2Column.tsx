@@ -25,7 +25,9 @@ export class StationForecastField implements ColDefGenerator {
     /* no op */
   }
 
-  public getField = () => this.field
+  public getField = () => {
+    return this.field
+  }
 
   public generateColDef = () => {
     return { field: this.field, flex: 1, headerName: this.headerName, maxWidth: 200, minWidth: 200, width: 200 }
@@ -55,7 +57,9 @@ export class DateForecastField implements ColDefGenerator {
     /* no op */
   }
 
-  public getField = () => this.field
+  public getField = () => {
+    return this.field
+  }
 
   public generateColDef = () => {
     return {
@@ -104,8 +108,9 @@ export class GrassCuringCWFISField implements ColDefGenerator {
       new GridComponentRenderer()
     )
   }
-  public getField = () => this.field
-
+  public getField = () => {
+    return this.field
+  }
   public generateColDef = () => {
     return this.colDefBuilder.generateColDefWith(this.field, this.headerName, this.precision)
   }
@@ -142,8 +147,9 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
     )
   }
 
-  public getField = () => this.field
-
+  public getField = () => {
+    return this.field
+  }
   public generateForecastColDef = (columnClickHandlerProps: ColumnClickHandlerProps, headerName?: string) => {
     return {
       ...this.colDefBuilder.generateForecastColDef(columnClickHandlerProps, headerName ?? this.headerName)
