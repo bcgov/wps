@@ -1,7 +1,7 @@
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import { DraftMorecast2Rows } from 'features/moreCast2/interfaces'
 import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
-import { Settings, DateTime } from 'luxon'
+import { DateTime, Settings } from 'luxon'
 
 // Temporarily set DateTime.now() to return the same DateTime when called
 const TEST_DATE = DateTime.fromISO('2024-01-01T00:00:00.000-08:00')
@@ -32,7 +32,7 @@ describe('MorecastDraftForecast', () => {
     const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE.toISO() }
     const setSpy = jest.spyOn(localStorageMock, 'setItem')
 
-    draftForecast.updateStoredDraftForecasts(mockRowData)
+    draftForecast.updateStoredDraftForecasts(mockRowData, TEST_DATE)
 
     expect(setSpy).toHaveBeenCalledWith(draftForecast.STORAGE_KEY, JSON.stringify(toBeStored))
   })
@@ -50,7 +50,7 @@ describe('MorecastDraftForecast', () => {
     jest.spyOn(localStorageMock, 'getItem').mockReturnValue(JSON.stringify(storedDraft))
     const setSpy = jest.spyOn(localStorageMock, 'setItem')
 
-    draftForecast.deleteRowsFromStoredDraft(savedRows)
+    draftForecast.deleteRowsFromStoredDraft(savedRows, TEST_DATE)
 
     expect(setSpy).toHaveBeenCalledWith(draftForecast.STORAGE_KEY, JSON.stringify(toBeStored))
   })

@@ -1,7 +1,6 @@
 import { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { getRowsMap, isForecastRow } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
-import { getDateTimeNowPST } from 'utils/date'
 
 export class MorecastDraftForecast {
   public readonly STORAGE_KEY = 'morecastForecastDraft'
@@ -30,7 +29,7 @@ export class MorecastDraftForecast {
     this.localStorage.removeItem(this.STORAGE_KEY)
   }
 
-  public updateStoredDraftForecasts = (rowsToStore: MoreCast2Row[]) => {
+  public updateStoredDraftForecasts = (rowsToStore: MoreCast2Row[], editDateTime: DateTime) => {
     const storedForecastsToUpdate = this.getStoredDraftForecasts()
     const storedRowsMap = getRowsMap(storedForecastsToUpdate.rows)
 
@@ -41,19 +40,19 @@ export class MorecastDraftForecast {
     storedForecastsToUpdate.rows = Array.from(storedRowsMap.values()).filter(row => {
       return isForecastRow(row)
     })
-    storedForecastsToUpdate.lastEdited = getDateTimeNowPST().toISO()
+    storedForecastsToUpdate.lastEdited = editDateTime.toISO()
 
     this.storeDraftForecasts(storedForecastsToUpdate)
   }
 
-  public deleteRowsFromStoredDraft = (savedRows: MoreCast2ForecastRow[] | MoreCast2Row[]) => {
+  public deleteRowsFromStoredDraft = (savedRows: MoreCast2ForecastRow[] | MoreCast2Row[], editDateTime: DateTime) => {
     const localStoredForecast = this.getStoredDraftForecasts()
     const localStoredRows = getRowsMap(localStoredForecast.rows)
     savedRows.forEach(row => {
       localStoredRows.delete(row.id)
     })
     localStoredForecast.rows = Array.from(localStoredRows.values())
-    localStoredForecast.lastEdited = getDateTimeNowPST().toISO()
+    localStoredForecast.lastEdited = editDateTime.toISO()
     this.storeDraftForecasts(localStoredForecast)
   }
 

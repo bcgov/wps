@@ -25,6 +25,7 @@ import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { groupBy, isEqual, isNull, isNumber, isUndefined } from 'lodash'
 import { StationGroupMember } from 'api/stationAPI'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
+import { getDateTimeNowPST } from 'utils/date'
 
 const morecastDraftForecast = new MorecastDraftForecast(localStorage)
 interface State {
@@ -95,7 +96,7 @@ const dataSlice = createSlice({
         }
       }
       state.userEditedRows = storedRows
-      morecastDraftForecast.updateStoredDraftForecasts(storedRows)
+      morecastDraftForecast.updateStoredDraftForecasts(storedRows, getDateTimeNowPST())
     }
   }
 })

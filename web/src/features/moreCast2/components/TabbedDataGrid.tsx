@@ -43,6 +43,7 @@ import { mapForecastChoiceLabels } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import ResetForecastButton from 'features/moreCast2/components/ResetForecastButton'
+import { getDateTimeNowPST } from 'utils/date'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -55,6 +56,8 @@ const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved and sent to Wild
 const FORECAST_WARN_MESSAGE = 'Forecast not submitted. A forecast can only contain N/A values for the Wind Direction.'
 
 const SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY = 'showHideColumnsModel'
+
+const storedDraftForecast = new MorecastDraftForecast(localStorage)
 
 interface TabbedDataGridProps {
   morecast2Rows: MoreCast2Row[]
@@ -100,8 +103,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
     mouseX: number
     mouseY: number
   } | null>(null)
-
-  const storedDraftForecast = new MorecastDraftForecast(localStorage)
 
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
     if (
@@ -423,7 +424,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         setSnackbarMessage(FORECAST_SAVED_MESSAGE)
         setSnackbarSeverity('success')
         setSnackbarOpen(true)
-        storedDraftForecast.deleteRowsFromStoredDraft(rowsToSave)
+        storedDraftForecast.deleteRowsFromStoredDraft(rowsToSave, getDateTimeNowPST())
       } else {
         setSnackbarMessage(result.errorMessage ?? FORECAST_ERROR_MESSAGE)
         setSnackbarSeverity('error')
