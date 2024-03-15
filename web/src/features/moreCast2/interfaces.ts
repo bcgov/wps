@@ -146,5 +146,5 @@ export interface ForecastMorecast2Row extends BaseRow {
 
 export interface DraftMorecast2Rows {
   rows: MoreCast2Row[]
-  lastEdited: string | null
+  lastEdited: DateTime
 }

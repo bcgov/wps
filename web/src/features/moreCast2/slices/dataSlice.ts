@@ -379,8 +379,10 @@ export const createMoreCast2Rows = (
   let newRows = fillGrassCuringForecast(rows)
   newRows = fillGrassCuringCWFIS(newRows)
 
-  const savedRows = morecastDraftForecast.getStoredDraftForecasts().rows
-  newRows = fillForecastsFromRows(newRows, savedRows)
+  const savedDraft = morecastDraftForecast.getStoredDraftForecasts()
+  if (savedDraft) {
+    newRows = fillForecastsFromRows(newRows, savedDraft.rows)
+  }
 
   return newRows
 }

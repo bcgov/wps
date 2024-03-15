@@ -10,19 +10,21 @@ export class MorecastDraftForecast {
     this.localStorage = localStorage
   }
 
-  public getStoredDraftForecasts = (): DraftMorecast2Rows => {
+  public getStoredDraftForecasts = (): DraftMorecast2Rows | undefined => {
     const storedDraftString = this.localStorage.getItem(this.STORAGE_KEY)
-    let storedDraft: DraftMorecast2Rows = { rows: [], lastEdited: null }
 
     if (storedDraftString) {
-      storedDraft = JSON.parse(storedDraftString)
+      const storedDraft = JSON.parse(storedDraftString)
+      storedDraft.lastEdited = storedDraft.lastEdited ? DateTime.fromISO(storedDraft.lastEdited) : undefined
+      return storedDraft
     }
-
-    return storedDraft
   }
 
   private storeDraftForecasts = (forecastDraft: DraftMorecast2Rows) => {
-    this.localStorage.setItem(this.STORAGE_KEY, JSON.stringify(forecastDraft))
+    this.localStorage.setItem(
+      this.STORAGE_KEY,
+      JSON.stringify({ rows: forecastDraft.rows, lastEdited: forecastDraft.lastEdited })
+    )
   }
 
   public clearDraftForecasts = () => {
@@ -30,7 +32,7 @@ export class MorecastDraftForecast {
   }
 
   public updateStoredDraftForecasts = (rowsToStore: MoreCast2Row[], editDateTime: DateTime) => {
-    const storedForecastsToUpdate = this.getStoredDraftForecasts()
+    const storedForecastsToUpdate = this.getStoredDraftForecasts() ?? { rows: rowsToStore, lastEdited: editDateTime }
     const storedRowsMap = getRowsMap(storedForecastsToUpdate.rows)
 
     rowsToStore.forEach(row => {
@@ -40,31 +42,33 @@ export class MorecastDraftForecast {
     storedForecastsToUpdate.rows = Array.from(storedRowsMap.values()).filter(row => {
       return isForecastRow(row)
     })
-    storedForecastsToUpdate.lastEdited = editDateTime.toISO()
+    storedForecastsToUpdate.lastEdited = editDateTime
 
     this.storeDraftForecasts(storedForecastsToUpdate)
   }
 
   public deleteRowsFromStoredDraft = (savedRows: MoreCast2ForecastRow[] | MoreCast2Row[], editDateTime: DateTime) => {
     const localStoredForecast = this.getStoredDraftForecasts()
-    const localStoredRows = getRowsMap(localStoredForecast.rows)
-    savedRows.forEach(row => {
-      localStoredRows.delete(row.id)
-    })
-    localStoredForecast.rows = Array.from(localStoredRows.values())
-    localStoredForecast.lastEdited = editDateTime.toISO()
-    this.storeDraftForecasts(localStoredForecast)
+    if (localStoredForecast) {
+      const localStoredRows = getRowsMap(localStoredForecast.rows)
+      savedRows.forEach(row => {
+        localStoredRows.delete(row.id)
+      })
+      localStoredForecast.rows = Array.from(localStoredRows.values())
+      localStoredForecast.lastEdited = editDateTime
+      this.storeDraftForecasts(localStoredForecast)
+    }
   }
 
   public hasDraftForecastStored = (): boolean => {
-    const localStoredRows = this.getStoredDraftForecasts().rows
-    return localStoredRows.length > 0
+    const localStoredForecast = this.getStoredDraftForecasts()
+    return !!localStoredForecast && localStoredForecast.rows.length > 0
   }
 
   public getLastSavedDraftDateTime = (): string | undefined => {
     const storedDraftForecast = this.getStoredDraftForecasts()
-    if (storedDraftForecast.lastEdited && this.hasDraftForecastStored()) {
-      return DateTime.fromISO(storedDraftForecast.lastEdited).toFormat('MMMM dd, HH:mm')
+    if (storedDraftForecast && this.hasDraftForecastStored()) {
+      return storedDraftForecast.lastEdited.toFormat('MMMM dd, HH:mm')
     }
   }
 }

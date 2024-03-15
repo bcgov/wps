@@ -8,7 +8,7 @@ const TEST_DATE = DateTime.fromISO('2024-01-01T00:00:00.000-08:00')
 
 describe('MorecastDraftForecast', () => {
   afterEach(() => {
-    jest.clearAllMocks()
+    jest.restoreAllMocks()
   })
   const localStorageMock: Storage = {
     getItem: jest.fn(),
@@ -32,7 +32,7 @@ describe('MorecastDraftForecast', () => {
 
   it('should only store forecast rows', () => {
     jest.spyOn(DateUtils, 'getDateTimeNowPST').mockReturnValue(TEST_DATE)
-    const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE.toISO() }
+    const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE }
     const setSpy = jest.spyOn(localStorageMock, 'setItem')
 
     draftForecast.updateStoredDraftForecasts(mockRowData, TEST_DATE)
@@ -46,8 +46,8 @@ describe('MorecastDraftForecast', () => {
     expect(getSpy).toHaveBeenCalledWith(draftForecast.STORAGE_KEY)
   })
   it('should delete saved rows from storage', () => {
-    const storedDraft: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE.toISO() }
-    const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(2, 4), lastEdited: TEST_DATE.toISO() }
+    const storedDraft: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE }
+    const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(2, 4), lastEdited: TEST_DATE }
     const savedRows = mockRowData.slice(0, 2)
 
     jest.spyOn(localStorageMock, 'getItem').mockReturnValue(JSON.stringify(storedDraft))
@@ -58,7 +58,7 @@ describe('MorecastDraftForecast', () => {
     expect(setSpy).toHaveBeenCalledWith(draftForecast.STORAGE_KEY, JSON.stringify(toBeStored))
   })
   it('should return true if a draft forecast is stored', () => {
-    const storedDraft: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE.toISO() }
+    const storedDraft: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE }
     jest.spyOn(localStorageMock, 'getItem').mockReturnValue(JSON.stringify(storedDraft))
 
     const draftStored = draftForecast.hasDraftForecastStored()
