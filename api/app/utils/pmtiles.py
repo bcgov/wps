@@ -23,8 +23,7 @@ def tippecanoe_wrapper(geojson_filepath: str, output_pmtiles_filepath: str, min_
         '--projection=EPSG:4326',
         f'--output={output_pmtiles_filepath}',
         f'{geojson_filepath}',
-        '--force',
-        '--quiet'
+        '--force'
     ], check=True
     )
 
