@@ -78,7 +78,7 @@ export class MorecastDraftForecast {
 
   public getLastSavedDraftDateTime = (): string | undefined => {
     const storedDraftForecast = this.getStoredDraftForecasts()
-    if (storedDraftForecast && this.hasDraftForecastStored()) {
+    if (storedDraftForecast) {
       return storedDraftForecast.lastEdited.toFormat('MMMM dd, HH:mm')
     }
   }
