@@ -172,7 +172,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       renderHeader: (params: GridColumnHeaderParams) => {
         return isCalcField || isGrassField
           ? this.gridComponentRenderer.renderHeaderWith(params)
-          : this.gridComponentRenderer.renderSummaryHeaderWith(params, columnClickHandlerProps)
+          : this.gridComponentRenderer.renderForecastHeaderWith(params, columnClickHandlerProps)
       },
       renderCell: (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>) => {
         return isCalcField
@@ -214,7 +214,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       renderHeader: (params: GridColumnHeaderParams) => {
         return isCalcField || isGrassField
           ? this.gridComponentRenderer.renderHeaderWith(params)
-          : this.gridComponentRenderer.renderSummaryHeaderWith(params, columnClickHandlerProps)
+          : this.gridComponentRenderer.renderForecastHeaderWith(params, columnClickHandlerProps)
       },
       renderCell: (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>) => {
         return isCalcField

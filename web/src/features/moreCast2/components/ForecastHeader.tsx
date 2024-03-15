@@ -6,18 +6,19 @@ import { DEFAULT_MODEL_TYPE, ModelOptions, ModelType } from 'api/moreCast2API'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import { isNull } from 'lodash'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
-import { GridColumnHeaderParams } from '@mui/x-data-grid'
+import { GridColDef } from '@mui/x-data-grid'
 
-interface SummaryGroupHeaderProps {
-  id: string
-  params: GridColumnHeaderParams
+interface ForecastHeaderProps {
+  colDef: Pick<GridColDef, 'field' | 'headerName'>
   columnClickHandlerProps: ColumnClickHandlerProps
 }
 
-const SummaryGroupHeader = ({ id, params, columnClickHandlerProps }: SummaryGroupHeaderProps) => {
-  const [selectedColumnModel, setSelectedColumnModel] = React.useState<ModelType>(DEFAULT_MODEL_TYPE)
+const ForecastHeader = ({ colDef, columnClickHandlerProps }: ForecastHeaderProps) => {
+  const title = colDef.headerName ? colDef.headerName : ''
 
+  const [selectedColumnModel, setSelectedColumnModel] = React.useState<ModelType>(DEFAULT_MODEL_TYPE)
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
+
   const open = Boolean(anchorEl)
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
@@ -28,13 +29,13 @@ const SummaryGroupHeader = ({ id, params, columnClickHandlerProps }: SummaryGrou
   }
 
   const isAForecastColumn = (): boolean => {
-    return params.colDef.field.includes('Forecast')
+    return colDef.field.includes('Forecast')
   }
 
   return (
     <>
       {'Forecast'}
-      <IconButton size="small" onClick={handleClick}>
+      <IconButton data-testid={`${colDef.field}-column-header`} size="small" onClick={handleClick}>
         <ExpandMore />
       </IconButton>
       <Menu
@@ -47,7 +48,7 @@ const SummaryGroupHeader = ({ id, params, columnClickHandlerProps }: SummaryGrou
           root: {
             onContextMenu: e => {
               e.preventDefault()
-              columnClickHandlerProps?.handleClose()
+              columnClickHandlerProps.handleClose()
             }
           }
         }}
@@ -82,13 +83,13 @@ const SummaryGroupHeader = ({ id, params, columnClickHandlerProps }: SummaryGrou
                   variant="contained"
                   startIcon={<SaveIcon />}
                   onClick={() => {
-                    if (!isNull(columnClickHandlerProps?.colDef)) {
+                    if (!isNull(columnClickHandlerProps.colDef)) {
                       columnClickHandlerProps.updateColumnWithModel(selectedColumnModel, columnClickHandlerProps.colDef)
-                      columnClickHandlerProps?.handleClose()
+                      columnClickHandlerProps.handleClose()
                     }
                   }}
                 >
-                  Apply {selectedColumnModel} to {id}
+                  Apply {selectedColumnModel} to {title}
                 </Button>
               </Grid>
             </Grid>
@@ -99,4 +100,4 @@ const SummaryGroupHeader = ({ id, params, columnClickHandlerProps }: SummaryGrou
   )
 }
 
-export default React.memo(SummaryGroupHeader)
+export default React.memo(ForecastHeader)

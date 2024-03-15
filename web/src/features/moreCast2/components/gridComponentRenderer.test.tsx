@@ -8,12 +8,19 @@ import {
   NOT_AVAILABLE,
   NOT_REPORTING
 } from 'features/moreCast2/components/GridComponentRenderer'
+import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { DateTime } from 'luxon'
 
 describe('GridComponentRenderer', () => {
   const gridComponentRenderer = new GridComponentRenderer()
+  const mockColumnClickHandlerProps: ColumnClickHandlerProps = {
+    colDef: null,
+    contextMenu: null,
+    updateColumnWithModel: jest.fn(),
+    handleClose: jest.fn()
+  }
 
-  it('should render the header as a button with the headerName', () => {
+  it('should render the header with the forecast button', () => {
     const colDef: GridStateColDef = {
       field: 'testID',
       headerName: 'Test ID',
@@ -25,12 +32,13 @@ describe('GridComponentRenderer', () => {
       field: 'test',
       colDef
     }
-    const { getByRole } = render(gridComponentRenderer.renderForecastHeaderWith(columnHeaderParams))
+    const { getByTestId } = render(
+      gridComponentRenderer.renderForecastHeaderWith(columnHeaderParams, mockColumnClickHandlerProps)
+    )
 
-    const headerButton = getByRole('button')
+    const headerButton = getByTestId(`${colDef.field}-column-header`)
     expect(headerButton).toBeInTheDocument()
     expect(headerButton).toBeEnabled()
-    expect(headerButton).toHaveTextContent('Test ID')
   })
 
   it('should render an empty cell (no N/A) if the cell is enabled and can have a forecast entered', () => {
