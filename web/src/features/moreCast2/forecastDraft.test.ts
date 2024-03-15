@@ -27,10 +27,11 @@ describe('MorecastDraftForecast', () => {
     buildValidForecastRow(222, TEST_DATE.plus({ days: 1 })),
     buildValidForecastRow(222, TEST_DATE.plus({ days: 2 })),
     buildValidActualRow(222, TEST_DATE.minus({ days: 1 })),
-    buildValidActualRow(222, TEST_DATE.minus({ days: 2 }))
+    buildValidActualRow(222, TEST_DATE.minus({ days: 2 })),
+    buildValidForecastRow(111, TEST_DATE.minus({ days: 1 }))
   ]
 
-  it('should only store forecast rows', () => {
+  it('should only store current forecast rows', () => {
     jest.spyOn(DateUtils, 'getDateTimeNowPST').mockReturnValue(TEST_DATE)
     const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE }
     const setSpy = jest.spyOn(localStorageMock, 'setItem')

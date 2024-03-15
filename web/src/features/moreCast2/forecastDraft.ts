@@ -31,20 +31,31 @@ export class MorecastDraftForecast {
     this.localStorage.removeItem(this.STORAGE_KEY)
   }
 
+  public createStoredForecast = (rowsToStore: MoreCast2Row[], editDateTime: DateTime): void => {
+    const forecastRows = rowsToStore.filter(row => isForecastRow(row))
+    const forecastDraft: DraftMorecast2Rows = { rows: forecastRows, lastEdited: editDateTime }
+
+    this.storeDraftForecasts(forecastDraft)
+  }
+
   public updateStoredDraftForecasts = (rowsToStore: MoreCast2Row[], editDateTime: DateTime) => {
-    const storedForecastsToUpdate = this.getStoredDraftForecasts() ?? { rows: rowsToStore, lastEdited: editDateTime }
-    const storedRowsMap = getRowsMap(storedForecastsToUpdate.rows)
+    const storedForecastsToUpdate = this.getStoredDraftForecasts()
+    if (!storedForecastsToUpdate) {
+      this.createStoredForecast(rowsToStore, editDateTime)
+    } else {
+      const storedRowsMap = getRowsMap(storedForecastsToUpdate.rows)
 
-    rowsToStore.forEach(row => {
-      storedRowsMap.set(row.id, row)
-    })
-    // we only need to store rows that are 'Forecast' rows
-    storedForecastsToUpdate.rows = Array.from(storedRowsMap.values()).filter(row => {
-      return isForecastRow(row)
-    })
-    storedForecastsToUpdate.lastEdited = editDateTime
+      rowsToStore.forEach(row => {
+        storedRowsMap.set(row.id, row)
+      })
+      // we only need to store rows that are 'Forecast' rows
+      storedForecastsToUpdate.rows = Array.from(storedRowsMap.values()).filter(row => {
+        return isForecastRow(row)
+      })
+      storedForecastsToUpdate.lastEdited = editDateTime
 
-    this.storeDraftForecasts(storedForecastsToUpdate)
+      this.storeDraftForecasts(storedForecastsToUpdate)
+    }
   }
 
   public deleteRowsFromStoredDraft = (savedRows: MoreCast2ForecastRow[] | MoreCast2Row[], editDateTime: DateTime) => {
