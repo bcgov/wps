@@ -143,3 +143,8 @@ export interface ForecastMorecast2Row extends BaseRow {
   windDirection?: PredictionItem
   windSpeed?: PredictionItem
 }
+
+export interface DraftMorecast2Rows {
+  rows: MoreCast2Row[]
+  lastEdited: DateTime
+}

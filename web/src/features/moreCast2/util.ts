@@ -1,8 +1,9 @@
 import { DateTime, Interval } from 'luxon'
-import { ModelChoice, MoreCast2ForecastRecord } from 'api/moreCast2API'
+import { ModelChoice, MoreCast2ForecastRecord, WeatherDeterminate } from 'api/moreCast2API'
 import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { StationGroupMember } from 'api/stationAPI'
 import { isUndefined } from 'lodash'
+import { getDateTimeNowPST } from 'utils/date'
 
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
@@ -102,6 +103,10 @@ export const validForecastPredicate = (row: MoreCast2Row) =>
   !isUndefined(row.windSpeedForecast) &&
   !isNaN(row.windSpeedForecast.value)
 
+export const isForecastRow = (row: MoreCast2Row) => {
+  return !rowContainsActual(row) && !isBeforeToday(row.forDate)
+}
+
 export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: MoreCast2Row[]): MoreCast2Row[] => {
   const storedRowChoicesMap = new Map<string, MoreCast2Row>()
 
@@ -121,6 +126,35 @@ export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: Mor
     }
   }
   return newRows
+}
+
+export const fillForecastsFromRows = (
+  rowsToFill: MoreCast2Row[],
+  savedRows: MoreCast2Row[] | undefined
+): MoreCast2Row[] => {
+  if (savedRows) {
+    const savedRowsMap = getRowsMap(savedRows)
+    rowsToFill
+      .filter(row => isForecastRow(row))
+      .map(forecastRow => {
+        const savedRow = savedRowsMap.get(forecastRow.id)
+        if (savedRow) {
+          forecastRow.tempForecast = savedRow.tempForecast
+          forecastRow.rhForecast = savedRow.rhForecast
+          forecastRow.windDirectionForecast = savedRow.windDirectionForecast
+          forecastRow.windSpeedForecast = savedRow.windSpeedForecast
+          forecastRow.precipForecast = savedRow.precipForecast
+          forecastRow.grassCuringForecast = savedRow.grassCuringForecast
+          forecastRow.ffmcCalcForecast = savedRow.ffmcCalcForecast
+          forecastRow.dmcCalcForecast = savedRow.dmcCalcForecast
+          forecastRow.dcCalcForecast = savedRow.dcCalcForecast
+          forecastRow.isiCalcForecast = savedRow.isiCalcForecast
+          forecastRow.buiCalcForecast = savedRow.buiCalcForecast
+          forecastRow.fwiCalcForecast = savedRow.fwiCalcForecast
+        }
+      })
+  }
+  return rowsToFill
 }
 
 /**
@@ -202,16 +236,17 @@ export const fillGrassCuringForecast = (rows: MoreCast2Row[]): MoreCast2Row[] =>
  * @returns MoreCast2Row[]
  */
 export const fillStationGrassCuringForward = (editedRow: MoreCast2Row, allRows: MoreCast2Row[]) => {
-  const editedStation = editedRow.stationCode
+  const editedStationCode = editedRow.stationCode
   const editedDate = editedRow.forDate
   const newGrassCuringValue = editedRow.grassCuringForecast!.value
+  const stationRows = allRows.filter(row => row.stationCode === editedStationCode)
 
-  for (const row of allRows) {
-    if (row.stationCode === editedStation && row.forDate > editedDate) {
+  for (const row of stationRows) {
+    if (row.forDate > editedDate) {
       row.grassCuringForecast!.value = newGrassCuringValue
     }
   }
-  return allRows
+  return stationRows
 }
 
 /**
@@ -219,8 +254,22 @@ export const fillStationGrassCuringForward = (editedRow: MoreCast2Row, allRows: 
  * @param datetime
  * @returns boolean
  */
-export const isPreviousToToday = (datetime: DateTime): boolean => {
-  const today = DateTime.local().startOf('day')
+export const isBeforeToday = (datetime: DateTime): boolean => {
+  const today = getDateTimeNowPST().startOf('day')
 
   return datetime < today
+}
+
+export const rowContainsActual = (row: MoreCast2Row): boolean => {
+  return Object.entries(row).some(
+    ([key, value]) => key.includes(WeatherDeterminate.ACTUAL) && typeof value === 'number' && !isNaN(value)
+  )
+}
+
+export const getRowsMap = (morecastRows: MoreCast2Row[]): Map<string, MoreCast2Row> => {
+  const morecastRowMap = new Map<string, MoreCast2Row>()
+  morecastRows.forEach((row: MoreCast2Row) => {
+    morecastRowMap.set(row.id, row)
+  })
+  return morecastRowMap
 }
