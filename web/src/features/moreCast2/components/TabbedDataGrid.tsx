@@ -1,4 +1,4 @@
-import { AlertColor, List, Stack } from '@mui/material'
+import { AlertColor, Grid, List, Stack, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
   GridCellParams,
@@ -40,7 +40,10 @@ import { AppDispatch } from 'app/store'
 import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
 import { mapForecastChoiceLabels } from 'features/moreCast2/util'
-import { MoreCastParams } from 'app/theme'
+import { MoreCastParams, theme } from 'app/theme'
+import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
+import ResetForecastButton, { resetForecastRows } from 'features/moreCast2/components/ResetForecastButton'
+import { getDateTimeNowPST } from 'utils/date'
 
 export interface ColumnClickHandlerProps {
   colDef: GridColDef | null
@@ -58,16 +61,13 @@ export const Root = styled('div')({
   flexDirection: 'column'
 })
 
-export const SaveButton = styled(SaveForecastButton)(({ theme }) => ({
-  position: 'absolute',
-  right: theme.spacing(2)
-}))
-
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved and sent to Wildfire One.'
 const FORECAST_WARN_MESSAGE = 'Forecast not submitted. A forecast can only contain N/A values for the Wind Direction.'
 
 const SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY = 'showHideColumnsModel'
+
+const storedDraftForecast = new MorecastDraftForecast(localStorage)
 
 interface TabbedDataGridProps {
   morecast2Rows: MoreCast2Row[]
@@ -442,6 +442,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         setSnackbarMessage(FORECAST_SAVED_MESSAGE)
         setSnackbarSeverity('success')
         setSnackbarOpen(true)
+        storedDraftForecast.deleteRowsFromStoredDraft(rowsToSave, getDateTimeNowPST())
       } else {
         setSnackbarMessage(result.errorMessage ?? FORECAST_ERROR_MESSAGE)
         setSnackbarSeverity('error')
@@ -452,6 +453,12 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
       setSnackbarSeverity('warning')
       setSnackbarOpen(true)
     }
+  }
+
+  const handleResetClick = () => {
+    const resetRows = resetForecastRows(allRows)
+    dispatch(storeUserEditedRows(resetRows))
+    storedDraftForecast.clearDraftForecasts()
   }
 
   // Checks if the displayed rows includes non-Actual rows
@@ -473,17 +480,35 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
 
   return (
     <Root>
-      <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
-      <SaveButton
-        enabled={
-          isAuthenticated &&
-          roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
-          hasForecastRow() &&
-          forecastSummaryVisible
-        }
-        label={'Save Forecast'}
-        onClick={handleSaveClick}
-      />
+      <Grid container justifyContent="space-between" alignItems={'center'}>
+        <Grid item>
+          <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
+        </Grid>
+        <Grid item sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
+          <Stack direction="row" spacing={theme.spacing(2)} alignItems={'center'}>
+            {storedDraftForecast.getLastSavedDraftDateTime() && (
+              <Typography sx={{ fontSize: 12 }}>
+                Draft saved {storedDraftForecast.getLastSavedDraftDateTime()}
+              </Typography>
+            )}
+            <ResetForecastButton
+              label={'Reset'}
+              enabled={storedDraftForecast.hasDraftForecastStored()}
+              onClick={handleResetClick}
+            />
+            <SaveForecastButton
+              enabled={
+                isAuthenticated &&
+                roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
+                hasForecastRow() &&
+                forecastSummaryVisible
+              }
+              label={'Publish to WF1'}
+              onClick={handleSaveClick}
+            />
+          </Stack>
+        </Grid>
+      </Grid>
       <List component={Stack} direction="row">
         <SelectableButton
           dataTestId="temp-tab-button"

@@ -8,8 +8,7 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
-import { createWeatherModelLabel, isPreviousToToday } from 'features/moreCast2/util'
-import { MoreCast2Row } from 'features/moreCast2/interfaces'
+import { createWeatherModelLabel, isBeforeToday, rowContainsActual } from 'features/moreCast2/util'
 import {
   GC_HEADER,
   PRECIP_HEADER,
@@ -62,18 +61,6 @@ export class GridComponentRenderer {
     return actualField
   }
 
-  public rowContainsActual = (row: MoreCast2Row): boolean => {
-    for (const key in row) {
-      if (key.includes(WeatherDeterminate.ACTUAL)) {
-        const value = row[key as keyof MoreCast2Row]
-        if (typeof value === 'number' && !isNaN(value)) {
-          return true
-        }
-      }
-    }
-    return false
-  }
-
   public valueGetter = (
     params: Pick<GridValueGetterParams, 'row' | 'value'>,
     precision: number,
@@ -94,23 +81,23 @@ export class GridComponentRenderer {
     // The 'Actual' column will show N/R for Not Reporting, instead of N/A
     const noDataField = headerName === WeatherDeterminate.ACTUAL ? NOT_REPORTING : NOT_AVAILABLE
 
-    const isPreviousDate = isPreviousToToday(params.row['forDate'])
+    const isPreviousDate = isBeforeToday(params.row['forDate'])
     const isForecastColumn = this.isForecastColumn(headerName)
-    const rowContainsActual = this.rowContainsActual(params.row)
+    const containsActual = rowContainsActual(params.row)
 
     // If a cell has no value, belongs to a Forecast column, is a future forDate, and the row doesn't contain any Actuals from today,
     // we can leave it blank, so it's obvious that it can have a value entered into it.
-    if (isNaN(value) && !isPreviousDate && isForecastColumn && !rowContainsActual) {
+    if (isNaN(value) && !isPreviousDate && isForecastColumn && !containsActual) {
       return ''
     } else return isNaN(value) ? noDataField : Number(value).toFixed(precision)
   }
 
   public renderForecastCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>, field: string) => {
     // If a single cell in a row contains an Actual, no Forecast will be entered into the row anymore, so we can disable the whole row.
-    const isActual = this.rowContainsActual(params.row)
+    const isActual = rowContainsActual(params.row)
     // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
-    const isPreviousDate = isPreviousToToday(params.row['forDate'])
+    const isPreviousDate = isBeforeToday(params.row['forDate'])
     const isGrassField = field.includes('grass')
     const label = isGrassField || isPreviousDate ? '' : createWeatherModelLabel(params.row[field].choice)
     const formattedValue = parseFloat(params.formattedValue)
@@ -160,10 +147,10 @@ export class GridComponentRenderer {
 
   public renderForecastSummaryCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>) => {
     // If a single cell in a row contains an Actual, no Forecast will be entered into the row anymore, so we can disable the whole row.
-    const isActual = this.rowContainsActual(params.row)
+    const isActual = rowContainsActual(params.row)
     // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
-    const isPreviousDate = isPreviousToToday(params.row['forDate'])
+    const isPreviousDate = isBeforeToday(params.row['forDate'])
 
     // The grass curing 'forecast' field and other weather parameter forecasts fields are rendered differently
     return <TextField disabled={isActual || isPreviousDate} size="small" value={params.formattedValue}></TextField>
