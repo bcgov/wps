@@ -32,7 +32,6 @@ export class GridComponentRenderer {
     params: GridColumnHeaderParams,
     columnClickHandlerProps: ColumnClickHandlerProps
   ) => {
-    console.log(columnClickHandlerProps)
     const title = params.colDef.headerName ? params.colDef.headerName : ''
     return <SummaryGroupHeader id={title} params={params} columnClickHandlerProps={columnClickHandlerProps} />
   }

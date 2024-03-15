@@ -6,9 +6,9 @@ import { ColumnVis } from 'features/moreCast2/components/DataGridColumns'
 
 interface GroupHeaderProps {
   id: string
-  columns?: ColumnVis[]
+  columns: ColumnVis[]
   weatherParam: keyof MoreCastParams
-  handleShowHideChange?: (weatherParam: keyof MoreCastParams, columnName: string, value: boolean) => void
+  handleShowHideChange: (weatherParam: keyof MoreCastParams, columnName: string, value: boolean) => void
 }
 
 const PopoverHeader = styled(Typography)(({ theme }) => ({
@@ -45,48 +45,44 @@ const GroupHeader = ({ id, columns, weatherParam, handleShowHideChange }: GroupH
   }
 
   const handleOnChange = (event: ChangeEvent<HTMLInputElement>) => {
-    handleShowHideChange && handleShowHideChange(weatherParam, event.target.name, event.target.checked)
+    handleShowHideChange(weatherParam, event.target.name, event.target.checked)
   }
 
   return (
     <>
       <Typography style={{ fontWeight: 'bold' }}>{id}</Typography>
-      {columns && handleShowHideChange && (
-        <>
-          <IconButton onClick={handleClick}>
-            <ExpandMore />
-          </IconButton>
-          <Popover
-            id={id}
-            open={open}
-            anchorEl={anchorEl}
-            onClose={handleClose}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-          >
-            <Stack sx={{ overflow: 'hidden' }}>
-              <PopoverHeader>Choose Models to Display</PopoverHeader>
-              <FormGroup>
-                {columns.map(column => {
-                  return (
-                    <PopoverFormControlLabel
-                      control={
-                        <ShowHideCheckbox
-                          checked={column.visible}
-                          name={column.columnName}
-                          onChange={handleOnChange}
-                          size="small"
-                        />
-                      }
-                      key={column.columnName}
-                      label={<Typography sx={{ fontSize: '12px' }}>{column.displayName}</Typography>}
+      <IconButton onClick={handleClick}>
+        <ExpandMore />
+      </IconButton>
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      >
+        <Stack sx={{ overflow: 'hidden' }}>
+          <PopoverHeader>Choose Models to Display</PopoverHeader>
+          <FormGroup>
+            {columns.map(column => {
+              return (
+                <PopoverFormControlLabel
+                  control={
+                    <ShowHideCheckbox
+                      checked={column.visible}
+                      name={column.columnName}
+                      onChange={handleOnChange}
+                      size="small"
                     />
-                  )
-                })}
-              </FormGroup>
-            </Stack>
-          </Popover>
-        </>
-      )}
+                  }
+                  key={column.columnName}
+                  label={<Typography sx={{ fontSize: '12px' }}>{column.displayName}</Typography>}
+                />
+              )
+            })}
+          </FormGroup>
+        </Stack>
+      </Popover>
     </>
   )
 }

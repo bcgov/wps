@@ -8,8 +8,7 @@ import {
   MORECAST2_INDEX_FIELDS,
   MORECAST2_STATION_DATE_FIELDS,
   MORECAST2_GRASS_CURING_CWFIS_FIELD,
-  MORECAST2_GRASS_CURING_FORECAST_FIELD,
-  MORECAST2_TAB_COLUMNS
+  MORECAST2_GRASS_CURING_FORECAST_FIELD
 } from 'features/moreCast2/components/MoreCast2Column'
 import GroupHeader from 'features/moreCast2/components/GroupHeader'
 import { ColumnClickHandlerProps, handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
@@ -22,7 +21,7 @@ export interface ColumnVis {
 }
 
 export class DataGridColumns {
-  public static initGridColumnVisibilityModel() {
+  public static initGridColumnVisibilityModel(columnClickHandlerProps: ColumnClickHandlerProps) {
     // First check local storage for existing column visibility
     const groupedColumnVisibility = localStorage.getItem('groupedColumnVisibility')
     if (groupedColumnVisibility) {
@@ -30,7 +29,7 @@ export class DataGridColumns {
     }
 
     const model: GridColumnVisibilityModel = {}
-    const weatherParameterColumns = this.getWeatherParameterColumns()
+    const weatherParameterColumns = this.getWeatherParameterColumns(columnClickHandlerProps)
     weatherParameterColumns.forEach(columnName => {
       // temperature columns are visible by default
       if (columnName.startsWith('temp')) {
@@ -92,8 +91,8 @@ export class DataGridColumns {
     )
   }
 
-  public static getWeatherParameterColumns() {
-    const fields = MORECAST2_TAB_COLUMNS.map(column => column.getField())
+  public static getWeatherParameterColumns(columnClickHandlerProps: ColumnClickHandlerProps) {
+    const fields = DataGridColumns.getTabColumns(columnClickHandlerProps).map(column => column.field)
     return fields.filter(field => field !== 'stationName' && field !== 'forDate')
   }
 
@@ -108,8 +107,8 @@ export class DataGridColumns {
 const renderGroupHeader = (
   id: string,
   weatherParam: keyof MoreCastParams,
-  columns?: ColumnVis[],
-  handleShowHideChange?: handleShowHideChangeType
+  columns: ColumnVis[],
+  handleShowHideChange: handleShowHideChangeType
 ) => {
   return (
     <GroupHeader columns={columns} id={id} weatherParam={weatherParam} handleShowHideChange={handleShowHideChange} />
@@ -117,8 +116,8 @@ const renderGroupHeader = (
 }
 
 export const getTabColumnGroupModel = (
-  showHideColumnsModel?: Record<string, ColumnVis[]>,
-  handleShowHideChange?: handleShowHideChangeType
+  showHideColumnsModel: Record<string, ColumnVis[]>,
+  handleShowHideChange: handleShowHideChangeType
 ): GridColumnGroup[] => {
   const model = [
     {
@@ -132,51 +131,34 @@ export const getTabColumnGroupModel = (
       groupId: 'Temp',
       children: columnGroupingModelChildGenerator('temp'),
       headerClassName: 'temp',
-      renderHeaderGroup: () =>
-        renderGroupHeader('Temp', 'temp', showHideColumnsModel && showHideColumnsModel['temp'], handleShowHideChange)
+      renderHeaderGroup: () => renderGroupHeader('Temp', 'temp', showHideColumnsModel['temp'], handleShowHideChange)
     },
     {
       groupId: 'RH',
       children: columnGroupingModelChildGenerator('rh'),
       headerClassName: 'rh',
-      renderHeaderGroup: () =>
-        renderGroupHeader('RH', 'rh', showHideColumnsModel && showHideColumnsModel['rh'], handleShowHideChange)
+      renderHeaderGroup: () => renderGroupHeader('RH', 'rh', showHideColumnsModel['rh'], handleShowHideChange)
     },
     {
       groupId: 'Precip',
       children: columnGroupingModelChildGenerator('precip'),
       headerClassName: 'precip',
       renderHeaderGroup: () =>
-        renderGroupHeader(
-          'Precip',
-          'precip',
-          showHideColumnsModel && showHideColumnsModel['precip'],
-          handleShowHideChange
-        )
+        renderGroupHeader('Precip', 'precip', showHideColumnsModel['precip'], handleShowHideChange)
     },
     {
       groupId: 'Wind Dir',
       children: columnGroupingModelChildGenerator('windDirection'),
       headerClassName: 'windDirection',
       renderHeaderGroup: () =>
-        renderGroupHeader(
-          'Wind Dir',
-          'windDirection',
-          showHideColumnsModel && showHideColumnsModel['windDirection'],
-          handleShowHideChange
-        )
+        renderGroupHeader('Wind Dir', 'windDirection', showHideColumnsModel['windDirection'], handleShowHideChange)
     },
     {
       groupId: 'Wind Speed',
       children: columnGroupingModelChildGenerator('windSpeed'),
       headerClassName: 'windSpeed',
       renderHeaderGroup: () =>
-        renderGroupHeader(
-          'Wind Speed',
-          'windSpeed',
-          showHideColumnsModel && showHideColumnsModel['windSpeed'],
-          handleShowHideChange
-        )
+        renderGroupHeader('Wind Speed', 'windSpeed', showHideColumnsModel['windSpeed'], handleShowHideChange)
     },
     {
       groupId: 'Grass Curing',
@@ -200,7 +182,6 @@ export const getTabColumnGroupModel = (
 }
 
 export const getSummaryColumnGroupModel = () => {
-  // const model = getTabColumnGroupModel()
   const model = [
     {
       groupId: 'ID',
@@ -213,7 +194,7 @@ export const getSummaryColumnGroupModel = () => {
       groupId: 'Temp',
       children: columnGroupingModelChildGenerator('temp'),
       headerClassName: 'temp-forecast-header',
-      renderHeaderGroup: () => renderGroupHeader('Temp', 'temp')
+      renderHeaderGroup: () => <Typography style={{ fontWeight: 'bold' }}>Temp</Typography>
     },
     {
       groupId: 'RH',
