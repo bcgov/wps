@@ -10,6 +10,7 @@ describe('MorecastDraftForecast', () => {
   afterEach(() => {
     jest.restoreAllMocks()
   })
+
   const localStorageMock: Storage = {
     getItem: jest.fn(),
     setItem: jest.fn(),

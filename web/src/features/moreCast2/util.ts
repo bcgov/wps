@@ -236,16 +236,17 @@ export const fillGrassCuringForecast = (rows: MoreCast2Row[]): MoreCast2Row[] =>
  * @returns MoreCast2Row[]
  */
 export const fillStationGrassCuringForward = (editedRow: MoreCast2Row, allRows: MoreCast2Row[]) => {
-  const editedStation = editedRow.stationCode
+  const editedStationCode = editedRow.stationCode
   const editedDate = editedRow.forDate
   const newGrassCuringValue = editedRow.grassCuringForecast!.value
+  const stationRows = allRows.filter(row => row.stationCode === editedStationCode)
 
-  for (const row of allRows) {
-    if (row.stationCode === editedStation && row.forDate > editedDate) {
+  for (const row of stationRows) {
+    if (row.forDate > editedDate) {
       row.grassCuringForecast!.value = newGrassCuringValue
     }
   }
-  return allRows
+  return stationRows
 }
 
 /**

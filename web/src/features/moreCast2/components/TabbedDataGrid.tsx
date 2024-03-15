@@ -439,7 +439,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
 
   const handleResetClick = () => {
     const resetRows = resetForecastRows(allRows)
-    setAllRows(resetRows)
+    dispatch(storeUserEditedRows(resetRows))
     storedDraftForecast.clearDraftForecasts()
   }
 
