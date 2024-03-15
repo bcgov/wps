@@ -55,3 +55,7 @@ export const pstFormatter = (fromDate: DateTime): string => {
 
   return !isNull(pstFormattedDate) ? pstFormattedDate : ''
 }
+
+export const getDateTimeNowPST = (): DateTime => {
+  return DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
+}
