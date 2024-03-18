@@ -6,7 +6,7 @@ import {
   GridValueFormatterParams,
   GridValueGetterParams,
   GridValueSetterParams
-} from '@mui/x-data-grid'
+} from '@mui/x-data-grid-pro'
 import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
 import { createWeatherModelLabel, isBeforeToday, rowContainsActual } from 'features/moreCast2/util'
 import {

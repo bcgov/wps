@@ -6,7 +6,7 @@ import {
   GridColumnGroupingModel,
   GridColumnVisibilityModel,
   GridEventListener
-} from '@mui/x-data-grid'
+} from '@mui/x-data-grid-pro'
 import {
   ModelChoice,
   ModelType,

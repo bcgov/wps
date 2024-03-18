@@ -1,6 +1,6 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
+import { DataGridPro, GridColDef, GridEventListener } from '@mui/x-data-grid-pro'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
@@ -11,6 +11,7 @@ import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
 import { filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
 import { fillStationGrassCuringForward } from 'features/moreCast2/util'
+import { PINNED_COLUMNS } from 'features/moreCast2/components/ColumnDefBuilder'
 
 const PREFIX = 'ForecastSummaryDataGrid'
 
@@ -64,14 +65,15 @@ const ForecastSummaryDataGrid = ({
 
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
-      <DataGrid
+      <DataGridPro
         slots={{
           loadingOverlay: LinearProgress
         }}
         initialState={{
           sorting: {
             sortModel: [{ field: 'stationName', sort: 'asc' }]
-          }
+          },
+          pinnedColumns: { left: PINNED_COLUMNS }
         }}
         onColumnHeaderClick={handleColumnHeaderClick}
         loading={loading}

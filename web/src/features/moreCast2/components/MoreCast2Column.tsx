@@ -1,4 +1,4 @@
-import { GridValueFormatterParams } from '@mui/x-data-grid'
+import { GridValueFormatterParams } from '@mui/x-data-grid-pro'
 import { DateTime } from 'luxon'
 import {
   ColDefGenerator,

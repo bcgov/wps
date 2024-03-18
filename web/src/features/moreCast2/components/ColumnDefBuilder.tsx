@@ -7,7 +7,7 @@ import {
   GridValueFormatterParams,
   GridValueGetterParams,
   GridValueSetterParams
-} from '@mui/x-data-grid'
+} from '@mui/x-data-grid-pro'
 import { WeatherDeterminate, WeatherDeterminateType } from 'api/moreCast2API'
 import { modelColorClass, modelHeaderColorClass } from 'app/theme'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
@@ -30,6 +30,8 @@ export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
   WeatherDeterminate.GFS,
   WeatherDeterminate.GFS_BIAS
 ]
+
+export const PINNED_COLUMNS = ['stationName', 'forDate']
 
 // Columns that can have values entered as part of a forecast
 export const TEMP_HEADER = 'Temp'
