@@ -26,6 +26,7 @@ import { groupBy, isEqual, isNull, isNumber, isUndefined } from 'lodash'
 import { StationGroupMember } from 'api/stationAPI'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import { getDateTimeNowPST } from 'utils/date'
+import { filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
 
 const morecastDraftForecast = new MorecastDraftForecast(localStorage)
 interface State {
@@ -186,6 +187,55 @@ export const getSimulatedIndices =
       dispatch(simulateWeatherIndeterminatesFailed((err as Error).toString()))
       logError(err)
     }
+  }
+
+export const getSimulatedIndicesAndStoreEditedRows =
+  (editedRow: MoreCast2Row, rows: MoreCast2Row[]): AppThunk =>
+  async dispatch => {
+    let rowsToStore: MoreCast2Row[] = rows
+    try {
+      const rowsForSimulation = filterRowsForSimulationFromEdited(editedRow, rows)
+      if (rowsForSimulation) {
+        const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
+        const updatedForecasts = addUniqueIds(simulatedForecasts.simulated_forecasts)
+
+        rowsToStore = rows.map(row => {
+          const match = updatedForecasts.find(indeterminate => indeterminate.id === row.id)
+          if (match) {
+            row.ffmcCalcForecast = {
+              choice: forecastOrNull(ModelChoice.NULL),
+              value: getNumberOrNaN(match.fine_fuel_moisture_code)
+            }
+            row.dmcCalcForecast = {
+              choice: forecastOrNull(ModelChoice.NULL),
+              value: getNumberOrNaN(match.duff_moisture_code)
+            }
+            row.dcCalcForecast = {
+              choice: forecastOrNull(ModelChoice.NULL),
+              value: getNumberOrNaN(match.drought_code)
+            }
+            row.isiCalcForecast = {
+              choice: forecastOrNull(ModelChoice.NULL),
+              value: getNumberOrNaN(match.initial_spread_index)
+            }
+            row.buiCalcForecast = {
+              choice: forecastOrNull(ModelChoice.NULL),
+              value: getNumberOrNaN(match.build_up_index)
+            }
+            row.fwiCalcForecast = {
+              choice: forecastOrNull(ModelChoice.NULL),
+              value: getNumberOrNaN(match.fire_weather_index)
+            }
+          }
+          return row
+        })
+        dispatch(simulateWeatherIndeterminatesSuccess(simulatedForecasts))
+      }
+    } catch (err) {
+      dispatch(simulateWeatherIndeterminatesFailed((err as Error).toString()))
+      logError(err)
+    }
+    dispatch(storeUserEditedRows(rowsToStore))
   }
 
 export const createMoreCast2Rows = (

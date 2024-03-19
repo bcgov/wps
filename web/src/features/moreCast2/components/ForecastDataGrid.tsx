@@ -17,7 +17,7 @@ import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { MORECAST_MODEL_COLORS, MORECAST_WEATHER_PARAMS, MoreCastModelColors, MoreCastParams } from 'app/theme'
 import { fillStationGrassCuringForward } from 'features/moreCast2/util'
-import { storeUserEditedRows } from 'features/moreCast2/slices/dataSlice'
+import { getSimulatedIndicesAndStoreEditedRows } from 'features/moreCast2/slices/dataSlice'
 import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
 
@@ -100,7 +100,8 @@ const ForecastDataGrid = ({
 
   const processRowUpdate = async (newRow: MoreCast2Row) => {
     const filledRows = fillStationGrassCuringForward(newRow, allMoreCast2Rows)
-    dispatch(storeUserEditedRows(filledRows))
+
+    dispatch(getSimulatedIndicesAndStoreEditedRows(newRow, filledRows))
 
     return newRow
   }
