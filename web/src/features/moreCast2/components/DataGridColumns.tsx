@@ -104,6 +104,8 @@ export class DataGridColumns {
   }
 }
 
+const renderSimpleGroupHeader = (id: string) => <Typography style={{ fontWeight: 'bold' }}>{id}</Typography>
+
 const renderGroupHeader = (
   id: string,
   weatherParam: keyof MoreCastParams,
@@ -186,39 +188,37 @@ export const getSummaryColumnGroupModel = () => {
     {
       groupId: 'ID',
       children: [{ field: 'stationName' }, { field: 'forDate' }],
-      renderHeaderGroup: () => {
-        return <Typography style={{ fontWeight: 'bold' }}>ID</Typography>
-      }
+      renderHeaderGroup: () => renderSimpleGroupHeader('ID')
     },
     {
       groupId: 'Temp',
       children: columnGroupingModelChildGenerator('temp'),
       headerClassName: 'temp-forecast-header',
-      renderHeaderGroup: () => <Typography style={{ fontWeight: 'bold' }}>Temp</Typography>
+      renderHeaderGroup: () => renderSimpleGroupHeader('Temp')
     },
     {
       groupId: 'RH',
       children: columnGroupingModelChildGenerator('rh'),
       headerClassName: 'rh-forecast-header',
-      renderHeaderGroup: () => <Typography style={{ fontWeight: 'bold' }}>RH</Typography>
+      renderHeaderGroup: () => renderSimpleGroupHeader('RH')
     },
     {
       groupId: 'Wind Dir',
       children: columnGroupingModelChildGenerator('windDirection'),
       headerClassName: 'windDirection-forecast-header',
-      renderHeaderGroup: () => <Typography style={{ fontWeight: 'bold' }}>Wind Dir</Typography>
+      renderHeaderGroup: () => renderSimpleGroupHeader('Wind Dir')
     },
     {
       groupId: 'Wind Speed',
       children: columnGroupingModelChildGenerator('windSpeed'),
       headerClassName: 'windSpeed-forecast-header',
-      renderHeaderGroup: () => <Typography style={{ fontWeight: 'bold' }}>Wind Speed</Typography>
+      renderHeaderGroup: () => renderSimpleGroupHeader('Wind Speed')
     },
     {
       groupId: 'Precip',
       children: columnGroupingModelChildGenerator('precip'),
       headerClassName: 'precip-forecast-header',
-      renderHeaderGroup: () => <Typography style={{ fontWeight: 'bold' }}>Precip</Typography>
+      renderHeaderGroup: () => renderSimpleGroupHeader('Precip')
     },
     {
       groupId: 'GC',
@@ -233,9 +233,7 @@ export const getSummaryColumnGroupModel = () => {
         }
       ],
       headerClassName: 'gc-forecast-header',
-      renderHeaderGroup: () => {
-        return <Typography style={{ fontWeight: 'bold' }}>GC</Typography>
-      }
+      renderHeaderGroup: () => renderSimpleGroupHeader('GC')
     },
     {
       groupId: 'FWI',
@@ -270,9 +268,7 @@ export const getSummaryColumnGroupModel = () => {
         }
       ],
       headerClassName: 'ffmcCalc-forecast-header',
-      renderHeaderGroup: () => {
-        return <Typography style={{ fontWeight: 'bold' }}>FWI</Typography>
-      }
+      renderHeaderGroup: () => renderSimpleGroupHeader('FWI')
     }
   ]
   return model
