@@ -14,7 +14,9 @@ import dataSliceReducer, {
   getWeatherIndeterminatesSuccess,
   simulateWeatherIndeterminatesSuccess,
   simulateWeatherIndeterminatesFailed,
-  storeUserEditedRows
+  storeUserEditedRows,
+  createEmptyMoreCast2Row,
+  mapIndeterminateIndicesToRow
 } from 'features/moreCast2/slices/dataSlice'
 import { rowIDHasher } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
@@ -46,7 +48,7 @@ const modelDeterminates = WeatherDeterminateChoices.filter(
     determinate !== WeatherDeterminate.NULL
 )
 
-const weatherIndeterminateGenerator = (
+export const weatherIndeterminateGenerator = (
   station_code: number,
   station_name: string,
   determinate: WeatherDeterminate,
@@ -406,6 +408,30 @@ describe('dataSlice', () => {
       const row = rows[0]
       expect(row.precipForecast?.choice).toBe(WeatherDeterminate.NULL)
       expect(row.precipForecast?.value).toBe(1)
+    })
+  })
+  describe('mapIndeterminateIndicesToRow', () => {
+    it('should map the correct indices to the correct row by matching ids', () => {
+      const indeterminate1 = weatherIndeterminateGenerator(1, 'station1', WeatherDeterminate.FORECAST, FROM_DATE_STRING)
+      indeterminate1.fine_fuel_moisture_code = 90
+      indeterminate1.drought_code = 300
+      const indeterminate2 = weatherIndeterminateGenerator(2, 'station1', WeatherDeterminate.FORECAST, FROM_DATE_STRING)
+      indeterminate2.duff_moisture_code = 200
+      const indeterminate3 = weatherIndeterminateGenerator(3, 'station1', WeatherDeterminate.FORECAST, FROM_DATE_STRING)
+      indeterminate3.initial_spread_index = 50
+      const row1 = createEmptyMoreCast2Row(rowIDHasher(1, FROM_DATE_TIME), 1, 'station1', FROM_DATE_TIME, 1, 1)
+      const row2 = createEmptyMoreCast2Row(rowIDHasher(2, FROM_DATE_TIME), 1, 'station1', FROM_DATE_TIME, 1, 1)
+      const row3 = createEmptyMoreCast2Row(rowIDHasher(3, FROM_DATE_TIME), 1, 'station1', FROM_DATE_TIME, 1, 1)
+
+      const indeterminates = [indeterminate1, indeterminate2, indeterminate3]
+      const rows = [row1, row2, row3]
+
+      mapIndeterminateIndicesToRow(indeterminates, rows)
+
+      expect(row1.ffmcCalcForecast?.value).toBe(90)
+      expect(row1.dcCalcForecast?.value).toBe(300)
+      expect(row2.dmcCalcForecast?.value).toBe(200)
+      expect(row3.isiCalcForecast?.value).toBe(50)
     })
   })
 })

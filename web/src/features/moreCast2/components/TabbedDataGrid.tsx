@@ -42,7 +42,7 @@ import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters
 import { mapForecastChoiceLabels } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
-import ResetForecastButton, { resetForecastRows } from 'features/moreCast2/components/ResetForecastButton'
+import ResetForecastButton from 'features/moreCast2/components/ResetForecastButton'
 import { getDateTimeNowPST } from 'utils/date'
 
 export interface ColumnClickHandlerProps {
@@ -73,11 +73,12 @@ interface TabbedDataGridProps {
   morecast2Rows: MoreCast2Row[]
   fromTo: DateRange
   setFromTo: React.Dispatch<React.SetStateAction<DateRange>>
+  fetchWeatherIndeterminates: () => void
 }
 
 export type handleShowHideChangeType = (weatherParam: keyof MoreCastParams, columnName: string, value: boolean) => void
 
-const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProps) => {
+const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterminates }: TabbedDataGridProps) => {
   const dispatch: AppDispatch = useDispatch()
   const selectedStations = useSelector(selectSelectedStations)
   const loading = useSelector(selectWeatherIndeterminatesLoading)
@@ -456,8 +457,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   }
 
   const handleResetClick = () => {
-    const resetRows = resetForecastRows(allRows)
-    dispatch(storeUserEditedRows(resetRows))
+    fetchWeatherIndeterminates()
     storedDraftForecast.clearDraftForecasts()
   }
 

@@ -5,10 +5,9 @@ import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import { DataGridColumns, getSummaryColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
-import { storeUserEditedRows, getSimulatedIndices } from 'features/moreCast2/slices/dataSlice'
+import { getSimulatedIndicesAndStoreEditedRows } from 'features/moreCast2/slices/dataSlice'
 import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
-import { filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
 import { fillStationGrassCuringForward } from 'features/moreCast2/util'
 import { MORECAST_WEATHER_PARAMS, MoreCastParams, theme } from 'app/theme'
 import { MORECAST2_INDEX_FIELDS } from 'features/moreCast2/components/MoreCast2Column'
@@ -67,12 +66,8 @@ const ForecastSummaryDataGrid = ({
 
   const processRowUpdate = async (newRow: MoreCast2Row) => {
     const filledRows = fillStationGrassCuringForward(newRow, rows)
-    dispatch(storeUserEditedRows(filledRows))
 
-    const rowsForSimulation = filterRowsForSimulationFromEdited(newRow, filledRows)
-    if (rowsForSimulation) {
-      dispatch(getSimulatedIndices(rowsForSimulation))
-    }
+    dispatch(getSimulatedIndicesAndStoreEditedRows(newRow, filledRows))
 
     return newRow
   }

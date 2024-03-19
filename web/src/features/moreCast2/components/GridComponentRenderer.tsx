@@ -67,8 +67,8 @@ export class GridComponentRenderer {
     field: string,
     headerName: string
   ): string => {
-    // The grass curing column is the only column that shows both actuals and forecast in a single column
-    if (field.includes('grass')) {
+    // The grass curing and calculated fwi indices show both actuals and forecasts in the same column
+    if (field.includes('grass') || field.includes('Calc')) {
       const actualField = this.getActualField(field)
       const actual = params.row[actualField]
 
