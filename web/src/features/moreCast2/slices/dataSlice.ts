@@ -205,38 +205,9 @@ export const getSimulatedIndicesAndStoreEditedRows =
       const rowsForSimulation = filterRowsForSimulationFromEdited(editedRow, rows)
       if (rowsForSimulation) {
         const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
-        const updatedForecasts = addUniqueIds(simulatedForecasts.simulated_forecasts)
 
-        rowsToStore = rows.map(row => {
-          const match = updatedForecasts.find(indeterminate => indeterminate.id === row.id)
-          if (match) {
-            row.ffmcCalcForecast = {
-              choice: forecastOrNull(ModelChoice.NULL),
-              value: getNumberOrNaN(match.fine_fuel_moisture_code)
-            }
-            row.dmcCalcForecast = {
-              choice: forecastOrNull(ModelChoice.NULL),
-              value: getNumberOrNaN(match.duff_moisture_code)
-            }
-            row.dcCalcForecast = {
-              choice: forecastOrNull(ModelChoice.NULL),
-              value: getNumberOrNaN(match.drought_code)
-            }
-            row.isiCalcForecast = {
-              choice: forecastOrNull(ModelChoice.NULL),
-              value: getNumberOrNaN(match.initial_spread_index)
-            }
-            row.buiCalcForecast = {
-              choice: forecastOrNull(ModelChoice.NULL),
-              value: getNumberOrNaN(match.build_up_index)
-            }
-            row.fwiCalcForecast = {
-              choice: forecastOrNull(ModelChoice.NULL),
-              value: getNumberOrNaN(match.fire_weather_index)
-            }
-          }
-          return row
-        })
+        rowsToStore = mapIndeterminateIndicesToRow(simulatedForecasts.simulated_forecasts, rowsToStore)
+
         dispatch(simulateWeatherIndeterminatesSuccess(simulatedForecasts))
       }
     } catch (err) {
@@ -512,6 +483,45 @@ export const fillMissingWeatherIndeterminates = (
     }
   }
   return weatherIndeterminates
+}
+
+export const mapIndeterminateIndicesToRow = (
+  indeterminate: WeatherIndeterminate[],
+  rows: MoreCast2Row[]
+): MoreCast2Row[] => {
+  const updatedIndeterminates = addUniqueIds(indeterminate)
+
+  rows = rows.map(row => {
+    const match = updatedIndeterminates.find(indeterminate => indeterminate.id === row.id)
+    if (match) {
+      row.ffmcCalcForecast = {
+        choice: forecastOrNull(ModelChoice.NULL),
+        value: getNumberOrNaN(match.fine_fuel_moisture_code)
+      }
+      row.dmcCalcForecast = {
+        choice: forecastOrNull(ModelChoice.NULL),
+        value: getNumberOrNaN(match.duff_moisture_code)
+      }
+      row.dcCalcForecast = {
+        choice: forecastOrNull(ModelChoice.NULL),
+        value: getNumberOrNaN(match.drought_code)
+      }
+      row.isiCalcForecast = {
+        choice: forecastOrNull(ModelChoice.NULL),
+        value: getNumberOrNaN(match.initial_spread_index)
+      }
+      row.buiCalcForecast = {
+        choice: forecastOrNull(ModelChoice.NULL),
+        value: getNumberOrNaN(match.build_up_index)
+      }
+      row.fwiCalcForecast = {
+        choice: forecastOrNull(ModelChoice.NULL),
+        value: getNumberOrNaN(match.fire_weather_index)
+      }
+    }
+    return row
+  })
+  return rows
 }
 
 /**
