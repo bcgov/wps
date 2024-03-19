@@ -189,6 +189,14 @@ export const getSimulatedIndices =
     }
   }
 
+/**
+ * Combination of actions, simulating indices and storing user edited rows. This combination exists
+ * so we can be certain that we're storing updated/simulated indices any time we're storing row data.
+ *
+ * @param editedRow The user edited row, used to filter rows for FWI indices simulation
+ * @param rows Array of Morecast2Rows
+ * @returns
+ */
 export const getSimulatedIndicesAndStoreEditedRows =
   (editedRow: MoreCast2Row, rows: MoreCast2Row[]): AppThunk =>
   async dispatch => {
