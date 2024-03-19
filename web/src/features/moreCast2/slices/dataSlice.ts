@@ -26,6 +26,7 @@ import { groupBy, isEqual, isNull, isNumber, isUndefined } from 'lodash'
 import { StationGroupMember } from 'api/stationAPI'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import { getDateTimeNowPST } from 'utils/date'
+import { filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
 
 const morecastDraftForecast = new MorecastDraftForecast(localStorage)
 interface State {
@@ -186,6 +187,34 @@ export const getSimulatedIndices =
       dispatch(simulateWeatherIndeterminatesFailed((err as Error).toString()))
       logError(err)
     }
+  }
+
+/**
+ * Combination of actions, simulating indices and storing user edited rows. This combination exists
+ * so we can be certain that we're storing updated/simulated indices any time we're storing row data.
+ *
+ * @param editedRow The user edited row, used to filter rows for FWI indices simulation
+ * @param rows Array of Morecast2Rows
+ * @returns
+ */
+export const getSimulatedIndicesAndStoreEditedRows =
+  (editedRow: MoreCast2Row, rows: MoreCast2Row[]): AppThunk =>
+  async dispatch => {
+    let rowsToStore: MoreCast2Row[] = rows
+    try {
+      const rowsForSimulation = filterRowsForSimulationFromEdited(editedRow, rows)
+      if (rowsForSimulation) {
+        const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
+
+        rowsToStore = mapIndeterminateIndicesToRow(simulatedForecasts.simulated_forecasts, rowsToStore)
+
+        dispatch(simulateWeatherIndeterminatesSuccess(simulatedForecasts))
+      }
+    } catch (err) {
+      dispatch(simulateWeatherIndeterminatesFailed((err as Error).toString()))
+      logError(err)
+    }
+    dispatch(storeUserEditedRows(rowsToStore))
   }
 
 export const createMoreCast2Rows = (
@@ -454,6 +483,45 @@ export const fillMissingWeatherIndeterminates = (
     }
   }
   return weatherIndeterminates
+}
+
+export const mapIndeterminateIndicesToRow = (
+  indeterminate: WeatherIndeterminate[],
+  rows: MoreCast2Row[]
+): MoreCast2Row[] => {
+  const updatedIndeterminates = addUniqueIds(indeterminate)
+
+  rows = rows.map(row => {
+    const match = updatedIndeterminates.find(indeterminate => indeterminate.id === row.id)
+    if (match) {
+      row.ffmcCalcForecast = {
+        choice: forecastOrNull(ModelChoice.NULL),
+        value: getNumberOrNaN(match.fine_fuel_moisture_code)
+      }
+      row.dmcCalcForecast = {
+        choice: forecastOrNull(ModelChoice.NULL),
+        value: getNumberOrNaN(match.duff_moisture_code)
+      }
+      row.dcCalcForecast = {
+        choice: forecastOrNull(ModelChoice.NULL),
+        value: getNumberOrNaN(match.drought_code)
+      }
+      row.isiCalcForecast = {
+        choice: forecastOrNull(ModelChoice.NULL),
+        value: getNumberOrNaN(match.initial_spread_index)
+      }
+      row.buiCalcForecast = {
+        choice: forecastOrNull(ModelChoice.NULL),
+        value: getNumberOrNaN(match.build_up_index)
+      }
+      row.fwiCalcForecast = {
+        choice: forecastOrNull(ModelChoice.NULL),
+        value: getNumberOrNaN(match.fire_weather_index)
+      }
+    }
+    return row
+  })
+  return rows
 }
 
 /**
