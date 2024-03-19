@@ -33,10 +33,16 @@ const TABS = [
 // ]
 
 describe('TabbedDataGrid', () => {
+  const fetchWeatherIndeterminatesMock = jest.fn((): void => {})
   test('Only temp tab is selected on load', async () => {
     const { getByTestId } = render(
       <Provider store={store}>
-        <TabbedDataGrid morecast2Rows={EMPTY_MORECAST_2_ROWS} fromTo={FROM_TO} setFromTo={SET_FROM_TO} />
+        <TabbedDataGrid
+          morecast2Rows={EMPTY_MORECAST_2_ROWS}
+          fromTo={FROM_TO}
+          setFromTo={SET_FROM_TO}
+          fetchWeatherIndeterminates={fetchWeatherIndeterminatesMock}
+        />
       </Provider>
     )
 
@@ -54,7 +60,12 @@ describe('TabbedDataGrid', () => {
   test('Forecast column visibility', async () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={store}>
-        <TabbedDataGrid morecast2Rows={EMPTY_MORECAST_2_ROWS} fromTo={FROM_TO} setFromTo={SET_FROM_TO} />
+        <TabbedDataGrid
+          morecast2Rows={EMPTY_MORECAST_2_ROWS}
+          fromTo={FROM_TO}
+          setFromTo={SET_FROM_TO}
+          fetchWeatherIndeterminates={fetchWeatherIndeterminatesMock}
+        />
       </Provider>
     )
     // // Temp forecast column is visible on load
