@@ -12,6 +12,7 @@ import {
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
+import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 
 export class StationForecastField implements ColDefGenerator {
   private static instance: StationForecastField
@@ -23,6 +24,11 @@ export class StationForecastField implements ColDefGenerator {
   private constructor() {
     /* no op */
   }
+
+  public getField = () => {
+    return this.field
+  }
+
   public generateColDef = () => {
     return { field: this.field, flex: 1, headerName: this.headerName, maxWidth: 200, minWidth: 200, width: 200 }
   }
@@ -49,6 +55,10 @@ export class DateForecastField implements ColDefGenerator {
   readonly precision = 0
   private constructor() {
     /* no op */
+  }
+
+  public getField = () => {
+    return this.field
   }
 
   public generateColDef = () => {
@@ -98,7 +108,9 @@ export class GrassCuringCWFISField implements ColDefGenerator {
       new GridComponentRenderer()
     )
   }
-
+  public getField = () => {
+    return this.field
+  }
   public generateColDef = () => {
     return this.colDefBuilder.generateColDefWith(this.field, this.headerName, this.precision)
   }
@@ -119,7 +131,7 @@ export class GrassCuringCWFISField implements ColDefGenerator {
 export class IndeterminateField implements ColDefGenerator, ForecastColDefGenerator {
   private colDefBuilder: ColumnDefBuilder
 
-  constructor(
+  public constructor(
     readonly field: string,
     readonly headerName: string,
     readonly type: 'string' | 'number',
@@ -135,20 +147,25 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
     )
   }
 
-  public generateForecastColDef = (headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(headerName ?? this.headerName)
+  public getField = () => {
+    return this.field
+  }
+  public generateForecastColDef = (columnClickHandlerProps: ColumnClickHandlerProps, headerName?: string) => {
+    return {
+      ...this.colDefBuilder.generateForecastColDef(columnClickHandlerProps, headerName ?? this.headerName)
+    }
   }
 
-  public generateForecastSummaryColDef = () => {
-    return this.colDefBuilder.generateForecastSummaryColDef()
+  public generateForecastSummaryColDef = (columnClickHandlerProps: ColumnClickHandlerProps) => {
+    return this.colDefBuilder.generateForecastColDef(columnClickHandlerProps)
   }
 
   public generateColDef = () => {
     return this.colDefBuilder.generateColDefWith(this.field, this.headerName, this.precision)
   }
 
-  public generateColDefs = (headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(headerName ?? this.headerName, this.includeBias)
+  public generateColDefs = (columnClickHandlerProps: ColumnClickHandlerProps, headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(columnClickHandlerProps, headerName ?? this.headerName, this.includeBias)
   }
 }
 
@@ -204,3 +221,9 @@ export const MORECAST2_INDEX_FIELDS: ForecastColDefGenerator[] = [
 export const MORECAST2_GRASS_CURING_FORECAST_FIELD: ForecastColDefGenerator = gcForecastField
 
 export const MORECAST2_GRASS_CURING_CWFIS_FIELD: ColDefGenerator = GrassCuringCWFISField.getInstance()
+
+export const MORECAST2_TAB_COLUMNS = [
+  ...MORECAST2_FORECAST_FIELDS,
+  MORECAST2_GRASS_CURING_FORECAST_FIELD,
+  MORECAST2_GRASS_CURING_CWFIS_FIELD
+]

@@ -14,7 +14,7 @@ import {
   WeatherDeterminateType,
   submitMoreCastForecastRecords
 } from 'api/moreCast2API'
-import { getColumnGroupingModel, ColumnVis, DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
+import { getTabColumnGroupModel, ColumnVis, DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
@@ -44,6 +44,16 @@ import { MoreCastParams, theme } from 'app/theme'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import ResetForecastButton from 'features/moreCast2/components/ResetForecastButton'
 import { getDateTimeNowPST } from 'utils/date'
+
+export interface ColumnClickHandlerProps {
+  colDef: GridColDef | null
+  contextMenu: {
+    mouseX: number
+    mouseY: number
+  } | null
+  updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
+  handleClose: () => void
+}
 
 export const Root = styled('div')({
   display: 'flex',
@@ -80,9 +90,38 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
   const [allRows, setAllRows] = useState<MoreCast2Row[]>(morecast2Rows)
   // A subset of allRows with visibility determined by the currently selected stations
   const [visibleRows, setVisibleRows] = useState<MoreCast2Row[]>([])
+  const [clickedColDef, setClickedColDef] = useState<GridColDef | null>(null)
+  const [contextMenu, setContextMenu] = useState<{
+    mouseX: number
+    mouseY: number
+  } | null>(null)
+
+  // Updates forecast field for a given weather parameter (temp, rh, precip, etc...) based on the
+  // model/source selected in the column header menu
+  const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
+    // The value of coldDef.field will be precipForecast, rhForecast, tempForecast, etc.
+    // We need the prefix to help us grab the correct weather model field to update (eg. tempHRDPS,
+    // precipGFS, etc.)
+    const forecastField = colDef.field as keyof MoreCast2Row
+    const index = forecastField.indexOf('Forecast')
+    const prefix = forecastField.slice(0, index)
+    const actualField = `${prefix}Actual` as keyof MoreCast2Row
+    modelType === ModelChoice.PERSISTENCE
+      ? updateColumnFromLastActual(forecastField, actualField)
+      : updateColumnFromModel(modelType, forecastField, actualField, prefix)
+  }
+
+  const handleClose = () => {
+    setContextMenu(null)
+  }
 
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
-    DataGridColumns.initGridColumnVisibilityModel()
+    DataGridColumns.initGridColumnVisibilityModel({
+      colDef: clickedColDef,
+      contextMenu: contextMenu,
+      updateColumnWithModel: updateColumnWithModel,
+      handleClose: handleClose
+    })
   )
 
   const [tempVisible, setTempVisible] = useState(true)
@@ -100,11 +139,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
   const [showHideColumnsModel, setShowHideColumnsModel] = useState<Record<string, ColumnVis[]>>({})
   const [columnGroupingModel, setColumnGroupingModel] = useState<GridColumnGroupingModel>([])
 
-  const [contextMenu, setContextMenu] = useState<{
-    mouseX: number
-    mouseY: number
-  } | null>(null)
-
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
     if (
       !isEqual(params.colDef.field, 'stationName') &&
@@ -115,10 +149,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
       setClickedColDef(params.colDef)
       setContextMenu(contextMenu === null ? { mouseX: event.clientX, mouseY: event.clientY } : null)
     }
-  }
-
-  const handleClose = () => {
-    setContextMenu(null)
   }
 
   const groupByWeatherParam = (ungroupedState: ColumnVis[]) => {
@@ -200,7 +230,12 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
     if (model) {
       return model
     }
-    const weatherModelColumns = DataGridColumns.getWeatherModelColumns()
+    const weatherModelColumns = DataGridColumns.getWeatherModelColumns({
+      colDef: clickedColDef,
+      contextMenu: contextMenu,
+      updateColumnWithModel: updateColumnWithModel,
+      handleClose: handleClose
+    })
     // Provide default with all columns
     const showHideColumnsUngroupedState = weatherModelColumns.map((column: GridColDef): ColumnVis => {
       return {
@@ -229,7 +264,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const colGroupingModel = getColumnGroupingModel(showHideColumnsModel, handleShowHideChange)
+    const colGroupingModel = getTabColumnGroupModel(showHideColumnsModel, handleShowHideChange)
     setColumnGroupingModel(colGroupingModel)
   }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -311,23 +346,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
   }, [forecastSummaryVisible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /********** End useEffects for managing visibility of column groups *************/
-
-  const [clickedColDef, setClickedColDef] = useState<GridColDef | null>(null)
-
-  // Updates forecast field for a given weather parameter (temp, rh, precip, etc...) based on the
-  // model/source selected in the column header menu
-  const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
-    // The value of coldDef.field will be precipForecast, rhForecast, tempForecast, etc.
-    // We need the prefix to help us grab the correct weather model field to update (eg. tempHRDPS,
-    // precipGFS, etc.)
-    const forecastField = colDef.field as keyof MoreCast2Row
-    const index = forecastField.indexOf('Forecast')
-    const prefix = forecastField.slice(0, index)
-    const actualField = `${prefix}Actual` as keyof MoreCast2Row
-    modelType === ModelChoice.PERSISTENCE
-      ? updateColumnFromLastActual(forecastField, actualField)
-      : updateColumnFromModel(modelType, forecastField, actualField, prefix)
-  }
 
   // Persistence forecasting. Get the most recent actual and persist it through the rest of the
   // days in this forecast period.
@@ -553,23 +571,27 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
         <ForecastSummaryDataGrid
           loading={loading}
           rows={visibleRows}
-          clickedColDef={clickedColDef}
-          contextMenu={contextMenu}
-          updateColumnWithModel={updateColumnWithModel}
+          columnClickHandlerProps={{
+            colDef: clickedColDef,
+            contextMenu: contextMenu,
+            updateColumnWithModel: updateColumnWithModel,
+            handleClose: handleClose
+          }}
           handleColumnHeaderClick={handleColumnHeaderClick}
-          handleClose={handleClose}
         />
       ) : (
         <ForecastDataGrid
           loading={loading}
-          clickedColDef={clickedColDef}
-          contextMenu={contextMenu}
+          columnClickHandlerProps={{
+            colDef: clickedColDef,
+            contextMenu: contextMenu,
+            updateColumnWithModel: updateColumnWithModel,
+            handleClose: handleClose
+          }}
           columnVisibilityModel={columnVisibilityModel}
           setColumnVisibilityModel={setColumnVisibilityModel}
           onCellDoubleClickHandler={handleCellDoubleClick}
-          updateColumnWithModel={updateColumnWithModel}
           handleColumnHeaderClick={handleColumnHeaderClick}
-          handleClose={handleClose}
           columnGroupingModel={columnGroupingModel}
           allMoreCast2Rows={visibleRows}
         />

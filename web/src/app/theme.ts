@@ -96,7 +96,15 @@ export const DARK_GREY = '#A7A7A7'
 export const LIGHT_GREY = '#DADADA'
 export const MEDIUM_GREY = '#B5B5B5'
 
-export const MORECAST_WEATHER_PARAMS = {
+interface WeatherParams {
+  [key: string]: {
+    active: string
+    inactive: string
+    text: string
+  }
+}
+
+export const MORECAST_WEATHER_PARAMS: WeatherParams = {
   temp: { active: 'rgba(215, 48, 39, 0.3)', inactive: 'rgba(215, 48, 39, 0.2)', text: 'black' },
   rh: { active: 'rgba(254, 224, 144, 0.7)', inactive: 'rgba(254, 224, 144, 0.3)', text: 'black' },
   windDirection: { active: 'rgba(145, 191, 219, 0.5)', inactive: 'rgba(145, 191, 219, 0.2)', text: 'black' },
@@ -107,7 +115,13 @@ export const MORECAST_WEATHER_PARAMS = {
 }
 export type MoreCastParams = typeof MORECAST_WEATHER_PARAMS
 
-export const MORECAST_MODEL_COLORS = {
+interface ModelDetails {
+  [key: string]: {
+    bg: string
+    border: string
+  }
+}
+export const MORECAST_MODEL_COLORS: ModelDetails = {
   nam: { bg: 'rgba(255, 20, 147, 0.1)', border: 'rgba(255, 20, 147, 1)' },
   gfs: { bg: 'rgba(205, 133, 63, 0.1)', border: 'rgba(205, 133, 63, 1)' },
   gdps: { bg: 'rgba(0, 0, 255, 0.1)', border: 'rgba(0, 0, 255, 1)' },
@@ -120,22 +134,9 @@ export const modelColorClass = (params: Pick<GridCellParams | GridColumnHeaderPa
   if (params.field.includes('Actual')) {
     return ''
   }
-  if (params.field.includes('GDPS')) {
-    return 'gdps'
-  }
-  if (params.field.includes('GFS')) {
-    return 'gfs'
-  }
-  if (params.field.includes('HRDPS')) {
-    return 'hrdps'
-  }
-  if (params.field.includes('NAM')) {
-    return 'nam'
-  }
-  if (params.field.includes('RDPS')) {
-    return 'rdps'
-  }
-  return ''
+  const stringKeys = Object.keys(MORECAST_MODEL_COLORS)
+  const modelKey = stringKeys.find(key => params.field.includes(key.toUpperCase()))
+  return modelKey ? modelKey : ''
 }
 
 export const modelHeaderColorClass = (params: Pick<GridCellParams | GridColumnHeaderParams, 'field'>) => {
