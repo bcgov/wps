@@ -125,9 +125,7 @@ export const getTabColumnGroupModel = (
     {
       groupId: 'ID',
       children: [{ field: 'stationName' }, { field: 'forDate' }],
-      renderHeaderGroup: () => {
-        return <Typography style={{ fontWeight: 'bold' }}>ID</Typography>
-      }
+      renderHeaderGroup: () => renderSimpleGroupHeader('ID')
     },
     {
       groupId: 'Temp',
