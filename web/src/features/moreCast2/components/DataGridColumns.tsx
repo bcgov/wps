@@ -22,12 +22,6 @@ export interface ColumnVis {
 
 export class DataGridColumns {
   public static initGridColumnVisibilityModel(columnClickHandlerProps: ColumnClickHandlerProps) {
-    // First check local storage for existing column visibility
-    const groupedColumnVisibility = localStorage.getItem('groupedColumnVisibility')
-    if (groupedColumnVisibility) {
-      console.log(groupedColumnVisibility)
-    }
-
     const model: GridColumnVisibilityModel = {}
     const weatherParameterColumns = this.getWeatherParameterColumns(columnClickHandlerProps)
     weatherParameterColumns.forEach(columnName => {

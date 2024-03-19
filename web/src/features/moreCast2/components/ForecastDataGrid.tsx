@@ -62,7 +62,7 @@ const Root = styled('div')(() => {
   })
 
   styles[`& .forecastCell`] = {
-    backgroundColor: 'rgba(208, 208, 208, 1)'
+    backgroundColor: 'rgba(238,238,238,1)'
   }
 
   return styles
