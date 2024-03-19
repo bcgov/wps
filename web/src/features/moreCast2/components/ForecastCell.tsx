@@ -3,7 +3,7 @@ import { Grid, TextField, Tooltip } from '@mui/material'
 import { GridRenderCellParams } from '@mui/x-data-grid'
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle'
 import AddBoxIcon from '@mui/icons-material/AddBox'
-import { MEDIUM_GREY } from 'app/theme'
+import { MEDIUM_GREY, theme } from 'app/theme'
 
 interface ForecastCellProps {
   disabled: boolean
@@ -41,6 +41,7 @@ const ForecastCell = ({ disabled, label, showGreaterThan, showLessThan, value }:
           }}
           sx={{
             '& .MuiOutlinedInput-root': {
+              backgroundColor: `${theme.palette.common.white}`,
               '& fieldset': {
                 borderColor: '#737373',
                 borderWidth: '2px'

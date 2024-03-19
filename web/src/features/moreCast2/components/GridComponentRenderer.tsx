@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Button, TextField } from '@mui/material'
+import { Box, TextField } from '@mui/material'
 import {
   GridColumnHeaderParams,
   GridRenderCellParams,
@@ -18,6 +18,8 @@ import {
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { theme } from 'app/theme'
+import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
+import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { isNumber } from 'lodash'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
 
@@ -25,8 +27,11 @@ export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
 
 export class GridComponentRenderer {
-  public renderForecastHeaderWith = (params: GridColumnHeaderParams) => {
-    return <Button data-testid={`${params.colDef.field}-column-header`}>{params.colDef.headerName}</Button>
+  public renderForecastHeaderWith = (
+    params: GridColumnHeaderParams,
+    columnClickHandlerProps: ColumnClickHandlerProps
+  ) => {
+    return <ForecastHeader colDef={params.colDef} columnClickHandlerProps={columnClickHandlerProps} />
   }
   public renderHeaderWith = (params: GridColumnHeaderParams) => {
     if (params.field.endsWith('_BIAS')) {
@@ -111,6 +116,11 @@ export class GridComponentRenderer {
     if (isGrassField) {
       return (
         <TextField
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              backgroundColor: `${theme.palette.common.white}`
+            }
+          }}
           disabled={isActual || isPreviousDate}
           size="small"
           label={label}

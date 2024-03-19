@@ -1,15 +1,17 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
-import { ModelChoice, ModelType } from 'api/moreCast2API'
+import { DataGrid, GridEventListener } from '@mui/x-data-grid'
+import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
-import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
-import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
+import { DataGridColumns, getSummaryColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
 import { getSimulatedIndicesAndStoreEditedRows } from 'features/moreCast2/slices/dataSlice'
 import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
 import { fillStationGrassCuringForward } from 'features/moreCast2/util'
+import { MORECAST_WEATHER_PARAMS, MoreCastParams, theme } from 'app/theme'
+import { MORECAST2_INDEX_FIELDS } from 'features/moreCast2/components/MoreCast2Column'
+import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 
 const PREFIX = 'ForecastSummaryDataGrid'
 
@@ -17,35 +19,48 @@ const classes = {
   root: `${PREFIX}-root`
 }
 
-const Root = styled('div')({
-  [`&.${classes.root}`]: {
-    display: 'flex',
-    flexGrow: 1,
-    height: '1px'
+const Root = styled('div')(() => {
+  const styles: Record<string, React.CSSProperties> = {
+    [`&.${classes.root}`]: {
+      display: 'flex',
+      flexGrow: 1,
+      flexDirection: 'column',
+      height: '1px'
+    }
   }
+
+  Object.keys(MORECAST_WEATHER_PARAMS).forEach(key => {
+    styles[`& .${key}-forecast-header`] = {
+      backgroundColor: `${MORECAST_WEATHER_PARAMS[key as keyof MoreCastParams].active}`
+    }
+  })
+
+  MORECAST2_INDEX_FIELDS.forEach(indexField => {
+    styles[`& .${indexField.getField()}-forecast-header`] = {
+      backgroundColor: `rgba(0, 51, 102, 1)`,
+      color: theme.palette.common.white
+    }
+  })
+
+  styles[`& .forecastCell`] = {
+    backgroundColor: 'rgba(238,238,238,1)'
+  }
+
+  return styles
 })
 
 interface ForecastSummaryDataGridProps {
   loading: boolean
   rows: MoreCast2Row[]
-  clickedColDef: GridColDef | null
-  contextMenu: {
-    mouseX: number
-    mouseY: number
-  } | null
-  updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
+  columnClickHandlerProps: ColumnClickHandlerProps
   handleColumnHeaderClick: GridEventListener<'columnHeaderClick'>
-  handleClose: () => void
 }
 
 const ForecastSummaryDataGrid = ({
   loading,
   rows,
-  clickedColDef,
-  contextMenu,
-  updateColumnWithModel,
-  handleColumnHeaderClick,
-  handleClose
+  columnClickHandlerProps,
+  handleColumnHeaderClick
 }: ForecastSummaryDataGridProps) => {
   const dispatch: AppDispatch = useDispatch()
 
@@ -60,6 +75,9 @@ const ForecastSummaryDataGrid = ({
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
+        getCellClassName={params => {
+          return params.field.endsWith('Forecast') || params.field.endsWith('Actual') ? 'forecastCell' : ''
+        }}
         slots={{
           loadingOverlay: LinearProgress
         }}
@@ -68,18 +86,14 @@ const ForecastSummaryDataGrid = ({
             sortModel: [{ field: 'stationName', sort: 'asc' }]
           }
         }}
+        experimentalFeatures={{ columnGrouping: true }}
+        columnGroupingModel={getSummaryColumnGroupModel()}
         onColumnHeaderClick={handleColumnHeaderClick}
         loading={loading}
-        columns={DataGridColumns.getSummaryColumns()}
+        columns={DataGridColumns.getSummaryColumns(columnClickHandlerProps)}
         rows={rows}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
         processRowUpdate={processRowUpdate}
-      />
-      <ApplyToColumnMenu
-        colDef={clickedColDef}
-        contextMenu={contextMenu}
-        handleClose={handleClose}
-        updateColumnWithModel={updateColumnWithModel}
       />
     </Root>
   )

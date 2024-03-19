@@ -4,7 +4,6 @@ import {
   DataGrid,
   GridCallbackDetails,
   GridCellParams,
-  GridColDef,
   GridColumnGroupingModel,
   GridColumnVisibilityModel,
   GridEventListener,
@@ -13,13 +12,13 @@ import {
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
-import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
-import { ModelChoice, ModelType } from 'api/moreCast2API'
+import { ModelChoice } from 'api/moreCast2API'
 import { MORECAST_MODEL_COLORS, MORECAST_WEATHER_PARAMS, MoreCastModelColors, MoreCastParams } from 'app/theme'
 import { fillStationGrassCuringForward } from 'features/moreCast2/util'
 import { getSimulatedIndicesAndStoreEditedRows } from 'features/moreCast2/slices/dataSlice'
 import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
+import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 
 const PREFIX = 'ForecastDataGrid'
 
@@ -47,6 +46,7 @@ const Root = styled('div')(() => {
     styles[`& .${key}`] = {
       backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
       borderRight: 'solid',
+      borderWidth: '1px',
       // Ugly override, tried to avoid, but MUI overwrites border with it's own otherwise
       borderRightColor: `${MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].border} !important`
     }
@@ -54,21 +54,23 @@ const Root = styled('div')(() => {
       backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
       borderBottom: 'solid',
       borderRight: 'solid',
+      borderWidth: '1px',
+
       // Ugly override, tried to avoid, but MUI overwrites border with it's own otherwise
       borderColor: `${MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].border} !important`
     }
   })
+
+  styles[`& .forecastCell`] = {
+    backgroundColor: 'rgba(238,238,238,1)'
+  }
 
   return styles
 })
 
 export interface ForecastDataGridProps {
   loading: boolean
-  clickedColDef: GridColDef | null
-  contextMenu: {
-    mouseX: number
-    mouseY: number
-  } | null
+  columnClickHandlerProps: ColumnClickHandlerProps
   columnVisibilityModel: GridColumnVisibilityModel
   setColumnVisibilityModel: React.Dispatch<React.SetStateAction<GridColumnVisibilityModel>>
   onCellDoubleClickHandler: (
@@ -76,23 +78,18 @@ export interface ForecastDataGridProps {
     event: MuiEvent<React.MouseEvent>,
     details: GridCallbackDetails
   ) => void
-  updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
   handleColumnHeaderClick: GridEventListener<'columnHeaderClick'>
-  handleClose: () => void
   columnGroupingModel: GridColumnGroupingModel
   allMoreCast2Rows: MoreCast2Row[]
 }
 
 const ForecastDataGrid = ({
   loading,
-  clickedColDef,
-  contextMenu,
+  columnClickHandlerProps,
   columnVisibilityModel,
   setColumnVisibilityModel,
   onCellDoubleClickHandler,
-  updateColumnWithModel,
   handleColumnHeaderClick,
-  handleClose,
   columnGroupingModel,
   allMoreCast2Rows
 }: ForecastDataGridProps) => {
@@ -109,6 +106,9 @@ const ForecastDataGrid = ({
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
+        getCellClassName={params => {
+          return params.field.endsWith('Forecast') || params.field.endsWith('Actual') ? 'forecastCell' : ''
+        }}
         columnVisibilityModel={columnVisibilityModel}
         onColumnVisibilityModelChange={newModel => setColumnVisibilityModel(newModel)}
         columnGroupingModel={columnGroupingModel}
@@ -119,16 +119,10 @@ const ForecastDataGrid = ({
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellDoubleClick={onCellDoubleClickHandler}
         loading={loading}
-        columns={DataGridColumns.getTabColumns()}
+        columns={DataGridColumns.getTabColumns(columnClickHandlerProps)}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
         rows={allMoreCast2Rows}
         processRowUpdate={processRowUpdate}
-      />
-      <ApplyToColumnMenu
-        colDef={clickedColDef}
-        contextMenu={contextMenu}
-        handleClose={handleClose}
-        updateColumnWithModel={updateColumnWithModel}
       />
     </Root>
   )
