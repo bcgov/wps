@@ -65,8 +65,8 @@ describe('FuelTypeDropdown', () => {
     await user.type(input, '{enter}')
 
     await waitFor(() => expect(input.value).toBe(fuelTypes[5].abbrev))
-    await waitFor(() => expect(setFuelTypeMock).toBeCalledTimes(1))
-    await waitFor(() => expect(setFuelTypeMock).toBeCalledWith(testStation.code, fuelTypes[5].id))
+    await waitFor(() => expect(setFuelTypeMock).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(setFuelTypeMock).toHaveBeenCalledWith(testStation.code, fuelTypes[5].id))
   })
   it('should be disabled when set fuel type is disabled', async () => {
     const setFuelTypeMock = jest.fn()

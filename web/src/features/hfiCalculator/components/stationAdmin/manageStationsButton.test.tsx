@@ -25,9 +25,10 @@ describe('ManageStationsButton', () => {
     )
 
     const manageStationsButton = getByTestId('manage-stations-button')
-    manageStationsButton.focus()
-    fireEvent.click(manageStationsButton)
-
-    await waitFor(() => expect(getByTestId('manage-stations-modal')).toBeInTheDocument())
+    await waitFor(() => {
+      manageStationsButton.focus()
+      fireEvent.click(manageStationsButton)
+      expect(getByTestId('manage-stations-modal')).toBeInTheDocument()
+    })
   })
 })

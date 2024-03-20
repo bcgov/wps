@@ -237,7 +237,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
       handleClose: handleClose
     })
     // Provide default with all columns
-    const showHideColumnsUngroupedState = weatherModelColumns.map((column: GridColDef): ColumnVis => {
+    const showHideColumnsUngroupedState = weatherModelColumns?.map((column: GridColDef): ColumnVis => {
       return {
         columnName: column.field,
         displayName: getColumnDisplayName(column.headerName ?? ''),
@@ -285,7 +285,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
 
   useEffect(() => {
     const newVisibleRows: MoreCast2Row[] = []
-    const stationCodes = selectedStations.map(station => station.station_code)
+    const stationCodes = selectedStations?.map(station => station.station_code)
     for (const row of allRows) {
       if (!isUndefined(stationCodes.find(code => code == row.stationCode))) {
         newVisibleRows.push(row)

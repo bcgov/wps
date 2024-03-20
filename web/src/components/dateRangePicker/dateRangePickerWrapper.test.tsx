@@ -36,7 +36,7 @@ describe('DateRangePickerWrapper', () => {
     const datePickerWrapper = getByTestId('date-range-picker-menu')
 
     expect(datePickerWrapper).toBeDefined()
-    expect(toggleMock).toBeCalledTimes(0)
-    expect(onChangeMock).toBeCalledTimes(0)
+    expect(toggleMock).toHaveBeenCalledTimes(0)
+    expect(onChangeMock).toHaveBeenCalledTimes(0)
   })
 })

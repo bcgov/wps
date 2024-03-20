@@ -64,7 +64,7 @@ const GroupHeader = ({ id, columns, weatherParam, handleShowHideChange }: GroupH
         <Stack sx={{ overflow: 'hidden' }}>
           <PopoverHeader>Choose Models to Display</PopoverHeader>
           <FormGroup>
-            {columns.map(column => {
+            {columns?.map(column => {
               return (
                 <PopoverFormControlLabel
                   control={

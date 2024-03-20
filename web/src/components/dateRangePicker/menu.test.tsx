@@ -114,11 +114,11 @@ describe('Menu', () => {
     expect(endDateLabel).toBeDefined()
     expect(endDateLabel).toHaveTextContent(format(endDate, 'MMMM dd, yyyy'))
 
-    expect(onDayClickMock).toBeCalledTimes(0)
-    expect(onDayHoverMock).toBeCalledTimes(0)
-    expect(onMonthNavigateMock).toBeCalledTimes(0)
-    expect(setFirstMonthMock).toBeCalledTimes(0)
-    expect(setSecondMonthMock).toBeCalledTimes(0)
+    expect(onDayClickMock).toHaveBeenCalledTimes(0)
+    expect(onDayHoverMock).toHaveBeenCalledTimes(0)
+    expect(onMonthNavigateMock).toHaveBeenCalledTimes(0)
+    expect(setFirstMonthMock).toHaveBeenCalledTimes(0)
+    expect(setSecondMonthMock).toHaveBeenCalledTimes(0)
   })
 
   it('should render the start and end dates defaults when no range is specified', () => {

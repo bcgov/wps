@@ -40,7 +40,7 @@ describe('StationSelectCell', () => {
     expect(input).not.toHaveAttribute('disabled')
     checkbox.focus()
     checkbox.click()
-    await waitFor(() => expect(toggleSelectedStationMock).toBeCalledTimes(1))
+    await waitFor(() => expect(toggleSelectedStationMock).toHaveBeenCalledTimes(1))
   })
 
   it('should be disabled when station is selected and not change checked value when clicked', async () => {

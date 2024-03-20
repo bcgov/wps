@@ -25,7 +25,7 @@ describe('FireStartsDropdown', () => {
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
     await waitFor(() => expect(input.value).toBe(lowestFireStarts.label))
-    await waitFor(() => expect(setFireStartsMock).toBeCalledTimes(0))
+    await waitFor(() => expect(setFireStartsMock).toHaveBeenCalledTimes(0))
   })
   it('should change value on change and call parent callback', async () => {
     const setFireStartsMock = jest.fn()
@@ -48,8 +48,8 @@ describe('FireStartsDropdown', () => {
     await waitFor(() => expect(input.value).toBe('2'))
 
     await userEvent.type(autocomplete, '{enter}')
-    await waitFor(() => expect(setFireStartsMock).toBeCalledTimes(1))
-    await waitFor(() => expect(setFireStartsMock).toBeCalledWith(testAreaId, dayOffset, highestFireStarts))
+    await waitFor(() => expect(setFireStartsMock).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(setFireStartsMock).toHaveBeenCalledWith(testAreaId, dayOffset, highestFireStarts))
   })
   it('should be disabled when fire starts are not enabled', async () => {
     const setFireStartsMock = jest.fn()

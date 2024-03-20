@@ -56,11 +56,11 @@ describe('Legend', () => {
     const zoneStatus = getByTestId('zone-checkbox')
     const zoneStatusCheckbox = within(zoneStatus).getByRole('checkbox')
     await userEvent.click(zoneStatusCheckbox)
-    await waitFor(() => expect(setShowZoneStatus).toBeCalledTimes(1))
+    await waitFor(() => expect(setShowZoneStatus).toHaveBeenCalledTimes(1))
 
     const hfi = getByTestId('hfi-checkbox')
     const hfiCheckbox = within(hfi).getByRole('checkbox')
     await userEvent.click(hfiCheckbox)
-    await waitFor(() => expect(setShowHFI).toBeCalledTimes(1))
+    await waitFor(() => expect(setShowHFI).toHaveBeenCalledTimes(1))
   })
 })

@@ -76,10 +76,11 @@ describe('PlanningAreaAdmin', () => {
 
     const togglebutton = getByTestId('admin-add-station-button')
 
-    togglebutton.focus()
-    userEvent.click(togglebutton)
-
-    await waitFor(() => expect(adminHandlers.handleAddStation).toHaveBeenCalledTimes(1))
-    await waitFor(() => expect(adminHandlers.handleAddStation).toHaveBeenCalledWith(planningArea.id))
+    await waitFor(() => {
+      togglebutton.focus()
+      userEvent.click(togglebutton)
+      expect(adminHandlers.handleAddStation).toHaveBeenCalledTimes(1)
+      expect(adminHandlers.handleAddStation).toHaveBeenCalledWith(planningArea.id)
+    })
   })
 })
