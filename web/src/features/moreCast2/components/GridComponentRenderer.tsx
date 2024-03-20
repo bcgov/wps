@@ -20,7 +20,7 @@ import {
 import { theme } from 'app/theme'
 import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
-import { isNumber } from 'lodash'
+import { cloneDeep, isNumber } from 'lodash'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
 
 export const NOT_AVAILABLE = 'N/A'
@@ -173,7 +173,7 @@ export class GridComponentRenderer {
       params.row[field].value = newValue
     }
 
-    return { ...params.row }
+    return cloneDeep(params.row)
   }
 
   public isForecastColumn = (headerName: string): boolean => {
