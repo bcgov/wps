@@ -1,6 +1,6 @@
 import React from 'react'
 import { Typography } from '@mui/material'
-import { GridColumnVisibilityModel, GridColDef, GridColumnGroup } from '@mui/x-data-grid'
+import { GridColumnVisibilityModel, GridColDef, GridColumnGroup } from '@mui/x-data-grid-pro'
 import { WeatherDeterminate, WeatherDeterminateChoices } from 'api/moreCast2API'
 import {
   MORECAST2_FIELDS,

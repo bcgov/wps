@@ -1,6 +1,6 @@
 import React from 'react'
 import { Grid, TextField, Tooltip } from '@mui/material'
-import { GridRenderCellParams } from '@mui/x-data-grid'
+import { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle'
 import AddBoxIcon from '@mui/icons-material/AddBox'
 import { MEDIUM_GREY, theme } from 'app/theme'
