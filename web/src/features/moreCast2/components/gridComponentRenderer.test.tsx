@@ -1,5 +1,5 @@
-import { GridColumnHeaderParams, GridValueSetterParams } from '@mui/x-data-grid'
-import { GridStateColDef } from '@mui/x-data-grid/internals'
+import { GridColumnHeaderParams, GridValueSetterParams } from '@mui/x-data-grid-pro'
+import { GridStateColDef } from '@mui/x-data-grid-pro/internals'
 import { render } from '@testing-library/react'
 import { ModelChoice } from 'api/moreCast2API'
 import { GC_HEADER } from 'features/moreCast2/components/ColumnDefBuilder'

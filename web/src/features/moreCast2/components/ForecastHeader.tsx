@@ -6,7 +6,7 @@ import { DEFAULT_MODEL_TYPE, ModelOptions, ModelType } from 'api/moreCast2API'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import { isNull } from 'lodash'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
-import { GridColDef } from '@mui/x-data-grid'
+import { GridColDef } from '@mui/x-data-grid-pro'
 
 interface ForecastHeaderProps {
   colDef: Pick<GridColDef, 'field' | 'headerName'>
