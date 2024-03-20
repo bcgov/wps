@@ -37,7 +37,6 @@ import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import { AppDispatch } from 'app/store'
-import { deepClone } from '@mui/x-data-grid/utils/utils'
 import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
 import { mapForecastChoiceLabels } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
@@ -279,7 +278,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
   }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const labelledRows = mapForecastChoiceLabels(morecast2Rows, deepClone(userEditedRows))
+    const labelledRows = mapForecastChoiceLabels(morecast2Rows, cloneDeep(userEditedRows))
     setAllRows(labelledRows)
   }, [userEditedRows, morecast2Rows])
 
