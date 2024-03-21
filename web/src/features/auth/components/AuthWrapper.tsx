@@ -47,7 +47,7 @@ const AuthWrapper = ({ children }: Props) => {
     return <div>You are not authenticated!</div>
   }
 
-  return children
+  return <React.StrictMode>{children}</React.StrictMode>
 }
 
 export default React.memo(AuthWrapper)
