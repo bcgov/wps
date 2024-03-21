@@ -1,14 +1,14 @@
 import { styled } from '@mui/material/styles'
 import React from 'react'
 import {
-  DataGrid,
+  DataGridPro,
   GridCallbackDetails,
   GridCellParams,
   GridColumnGroupingModel,
   GridColumnVisibilityModel,
   GridEventListener,
   MuiEvent
-} from '@mui/x-data-grid'
+} from '@mui/x-data-grid-pro'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
@@ -19,6 +19,7 @@ import { getSimulatedIndicesAndStoreEditedRows } from 'features/moreCast2/slices
 import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
+import { PINNED_COLUMNS } from 'features/moreCast2/components/ColumnDefBuilder'
 
 const PREFIX = 'ForecastDataGrid'
 
@@ -105,7 +106,7 @@ const ForecastDataGrid = ({
 
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
-      <DataGrid
+      <DataGridPro
         getCellClassName={params => {
           return params.field.endsWith('Forecast') || params.field.endsWith('Actual') ? 'forecastCell' : ''
         }}
@@ -123,6 +124,7 @@ const ForecastDataGrid = ({
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
         rows={allMoreCast2Rows}
         processRowUpdate={processRowUpdate}
+        initialState={{ pinnedColumns: { left: PINNED_COLUMNS } }}
       />
     </Root>
   )
