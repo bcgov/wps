@@ -47,22 +47,6 @@ def get_ecmwf_model_run_hours():
         hour_str = format(hour, '02d')
         yield hour_str
 
-
-def get_year_mo_date_string_from_datetime(datetime: datetime.datetime) -> str:
-    """ Returns string for year_mo_date to be used when requesting
-    grib files from NOAA"""
-    year_mo_date = f"{datetime.year}" + format(datetime.month, '02d') + format(datetime.day, '02d')
-    return year_mo_date
-
-
-def get_ecmwf_wx_variables_filter_str() -> str:
-    wx_vars_filter_str = ''
-    for var in WX_VARS:
-        wx_vars_filter_str += f'var_{var}=on&'
-
-    return wx_vars_filter_str
-
-
 def get_ecmwf_model_run_download_urls(download_date: datetime.datetime, model_cycle: str, client: Client) -> Generator[str, None, None]:
     """ Yield URLs to download ECMWF model runs.  """
 
