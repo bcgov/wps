@@ -42,7 +42,7 @@ LEVELS = [1000]
 
 
 def get_ecmwf_model_run_hours():
-    """ Yield GFS and/or NAM model run hours (they're both on the same schedule)
+    """ Yield ECMWF model run hours
      ("00", "06", "12", "18") """
     for hour in range(0, 19, 6):
         hour_str = format(hour, '02d')
