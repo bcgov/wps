@@ -49,10 +49,11 @@ describe('PlanningAreaReadyToggle', () => {
     )
     const togglebutton = getByTestId('hfi-toggle-ready')
 
-    togglebutton.focus()
-    userEvent.click(togglebutton)
-
-    await waitFor(() => expect(toggleMockFn).toHaveBeenCalledTimes(1))
+    await waitFor(() => {
+      togglebutton.focus()
+      userEvent.click(togglebutton)
+      expect(toggleMockFn).toHaveBeenCalledTimes(1)
+    })
   })
   it('should render the button disabled if no ready state exists', () => {
     const { getByTestId } = render(

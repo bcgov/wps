@@ -105,20 +105,24 @@ describe('Month', () => {
     expect(startDay.className).toMatch(/Day-buttonContainer/)
     const startDayButton = within(startDay).getByRole('button') as HTMLInputElement
 
-    startDayButton.focus()
-    fireEvent.click(startDayButton)
-    await waitFor(() => expect(onDayClickMock).toBeCalledTimes(1))
+    await waitFor(() => {
+      startDayButton.focus()
+      fireEvent.click(startDayButton)
+      expect(onDayClickMock).toHaveBeenCalledTimes(1)
+    })
 
     const endDay = getByTestId(`day-${endDate.toISOString().split('T')[0]}`)
 
     const endDayButton = within(endDay).getByRole('button') as HTMLInputElement
-    endDayButton.focus()
 
-    fireEvent.click(endDayButton)
-    await waitFor(() => expect(onDayClickMock).toBeCalledTimes(2))
+    await waitFor(() => {
+      endDayButton.focus()
+      fireEvent.click(endDayButton)
+      expect(onDayClickMock).toHaveBeenCalledTimes(2)
+    })
 
-    expect(onDayHoverMock).toBeCalledTimes(0)
-    expect(onMonthNavigateMock).toBeCalledTimes(0)
+    expect(onDayHoverMock).toHaveBeenCalledTimes(0)
+    expect(onMonthNavigateMock).toHaveBeenCalledTimes(0)
   })
   it('should disable day buttons outside of 7 day range', async () => {
     const dateRange = { startDate: new Date('2021/2/1'), endDate: new Date('2021/2/7') }

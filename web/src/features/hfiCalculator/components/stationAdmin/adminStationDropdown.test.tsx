@@ -30,10 +30,10 @@ describe('AdminStationDropdown', () => {
     userEvent.type(autocomplete, '{enter}')
 
     await waitFor(() => expect(input.value).toBe(stationOptions[0].name))
-    await waitFor(() => expect(handleEditStationMock).toBeCalledTimes(1))
+    await waitFor(() => expect(handleEditStationMock).toHaveBeenCalledTimes(1))
 
     await waitFor(() =>
-      expect(handleEditStationMock).toBeCalledWith(stationAdminRow.planningAreaId, stationAdminRow.rowId, {
+      expect(handleEditStationMock).toHaveBeenCalledWith(stationAdminRow.planningAreaId, stationAdminRow.rowId, {
         ...stationAdminRow,
         station: { ...stationOptions[0] }
       })

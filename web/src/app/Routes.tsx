@@ -33,10 +33,21 @@ const WPSRoutes: React.FunctionComponent = () => {
     <Router>
       <Suspense fallback={<LoadingBackdrop isLoadingWithoutError={true} />}>
         <Routes>
-          <Route path={LANDING_PAGE_ROUTE} element={<LandingPage />} />
+          <Route
+            path={LANDING_PAGE_ROUTE}
+            element={
+              <React.StrictMode>
+                <LandingPage />
+              </React.StrictMode>
+            }
+          />
           <Route
             path={PERCENTILE_CALC_ROUTE}
-            element={<PercentileCalculatorPageWithDisclaimer showDisclaimer={shouldShowDisclaimer} />}
+            element={
+              <React.StrictMode>
+                <PercentileCalculatorPageWithDisclaimer showDisclaimer={shouldShowDisclaimer} />
+              </React.StrictMode>
+            }
           />
           <Route
             path={HFI_CALC_ROUTE}
@@ -46,7 +57,14 @@ const WPSRoutes: React.FunctionComponent = () => {
               </AuthWrapper>
             }
           />
-          <Route path={C_HAINES_ROUTE} element={<CHainesPage />} />
+          <Route
+            path={C_HAINES_ROUTE}
+            element={
+              <React.StrictMode>
+                <CHainesPage />
+              </React.StrictMode>
+            }
+          />
           <Route
             path={FIRE_BEHAVIOR_CALC_ROUTE}
             element={

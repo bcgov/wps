@@ -24,8 +24,8 @@ describe('WeatherModelDropdown', () => {
     userEvent.type(autocomplete, '{enter}')
 
     await waitFor(() => expect(input.value).toBe(ModelChoice.PERSISTENCE))
-    await waitFor(() => expect(handleSelectedModelTypeMock).toBeCalledTimes(1))
+    await waitFor(() => expect(handleSelectedModelTypeMock).toHaveBeenCalledTimes(1))
 
-    await waitFor(() => expect(handleSelectedModelTypeMock).toBeCalledWith(ModelChoice.PERSISTENCE))
+    await waitFor(() => expect(handleSelectedModelTypeMock).toHaveBeenCalledWith(ModelChoice.PERSISTENCE))
   })
 })
