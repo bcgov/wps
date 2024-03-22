@@ -1,4 +1,4 @@
-""" A script that downloads weather models from NCEI NOAA HTTPS data server
+""" A script that downloads weather models from ECMWF HTTPS data server
 """
 import os
 import sys
@@ -37,9 +37,7 @@ ECMWF_HIGH_RES_FORECAST = 'oper'
 ECMWF_GRID = '0p25'  # 0.25 degree grid
 WX_VARS = ['r', 't', 'tp', '10u', '10v']
 LEVELS = [1000]
-
 # -------------------------------------- #
-
 
 def get_ecmwf_model_run_hours():
     """ Yield ECMWF model run hours
@@ -59,6 +57,8 @@ def get_ecmwf_model_run_download_urls(download_date: datetime.datetime, model_cy
         steps = [step for step in range(0, 91, 3)]
 
     dt = datetime.datetime(year=download_date.year, month=download_date.month, day=download_date.day, hour=int(model_cycle))
+
+    # from https://github.com/ecmwf/ecmwf-opendata/blob/ffe7a477c32b51dd780998ee88af84d6e0897041/ecmwf/opendata/client.py#L33
     HOURLY_PATTERN = (
     "{_url}/{_yyyymmdd}/{_H}z/{model}/{resol}/{_stream}/"
     "{_yyyymmddHHMMSS}-{step}h-{_stream}-{type}.{_extension}")
@@ -118,7 +118,7 @@ def mark_prediction_model_run_processed(session: Session,
 
 
 class ECMWF():
-    """ Class that orchestrates downloading and processing of GFS weather model grib files from NOAA.
+    """ Class that orchestrates downloading and processing of high res model grib files from ECMWF.
     """
 
     def __init__(self, model_type: ModelEnum, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
@@ -130,6 +130,8 @@ class ECMWF():
         self.now = time_utils.get_utc_now()
         self.grib_processor = GribFileProcessor(station_source)
         self.model_type: ModelEnum = model_type
+
+        # TODO: adjust
         # projection depends on model type
         if self.model_type == ModelEnum.GFS:
             self.projection = ProjectionEnum.GFS_LONLAT
@@ -155,8 +157,8 @@ class ECMWF():
                         # download the file:
                         with tempfile.TemporaryDirectory() as temporary_path:
                             downloaded = download(url, temporary_path,
-                                                  'REDIS_CACHE_NOAA', self.model_type.value,
-                                                  'REDIS_NOAA_CACHE_EXPIRY')
+                                                  'REDIS_CACHE_ECMWF', self.model_type.value,
+                                                  'REDIS_ECMWF_CACHE_EXPIRY')
                             if downloaded:
                                 self.files_downloaded += 1
                                 # If we've downloaded the file ok, we can now process it.
@@ -223,6 +225,7 @@ def process_models(station_source: StationSourceEnum = StationSourceEnum.UNSPECI
     ecmwf = ECMWF(model_type, station_source)
     ecmwf.process()
 
+    # TODO re-enable
     # with app.db.database.get_write_session_scope() as session:
     #     # interpolate and machine learn everything that needs interpolating.
     #     model_value_processor = ModelValueProcessor(session, station_source)
@@ -255,7 +258,7 @@ def main():
     except Exception as exception:
         # We catch and log any exceptions we may have missed.
         logger.error('unexpected exception processing', exc_info=exception)
-        rc_message = ':poop: Encountered error retrieving {sys.argv[1]} model data from NOAA'
+        rc_message = ':poop: Encountered error retrieving {sys.argv[1]} model data from ECMWF'
         send_rocketchat_notification(rc_message, exception)
         # Exit with a failure code.
         sys.exit(os.EX_SOFTWARE)
