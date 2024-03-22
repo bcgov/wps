@@ -31,10 +31,10 @@ describe('AdminFuelTypesDropdown', () => {
     userEvent.type(autocomplete, '{enter}')
 
     await waitFor(() => expect(input.value).toBe(fuelTypes[0].abbrev))
-    await waitFor(() => expect(handleEditStationMock).toBeCalledTimes(1))
+    await waitFor(() => expect(handleEditStationMock).toHaveBeenCalledTimes(1))
 
     await waitFor(() =>
-      expect(handleEditStationMock).toBeCalledWith(stationAdminRow.planningAreaId, stationAdminRow.rowId, {
+      expect(handleEditStationMock).toHaveBeenCalledWith(stationAdminRow.planningAreaId, stationAdminRow.rowId, {
         ...stationAdminRow,
         fuelType: { ...fuelTypes[0] }
       })

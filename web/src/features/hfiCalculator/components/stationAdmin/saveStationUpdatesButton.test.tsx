@@ -108,6 +108,6 @@ describe('SaveStationUpdatesButton', () => {
     )
     const saveButton = getByTestId('save-new-station-button')
     userEvent.click(saveButton)
-    await waitFor(() => expect(handleSaveMock).toBeCalledTimes(1))
+    await waitFor(() => expect(handleSaveMock).toHaveBeenCalledTimes(1))
   })
 })

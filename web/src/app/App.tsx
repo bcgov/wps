@@ -10,14 +10,12 @@ LicenseInfo.setLicenseKey(MUI_LICENSE)
 
 const App: React.FunctionComponent = () => {
   return (
-    <React.StrictMode>
-      <StyledEngineProvider injectFirst>
-        <CssBaseline />
-        <ThemeProvider theme={theme}>
-          <WPSRoutes />
-        </ThemeProvider>
-      </StyledEngineProvider>
-    </React.StrictMode>
+    <StyledEngineProvider injectFirst>
+      <CssBaseline />
+      <ThemeProvider theme={theme}>
+        <WPSRoutes />
+      </ThemeProvider>
+    </StyledEngineProvider>
   )
 }
 

@@ -18,12 +18,15 @@ describe('AdminRemoveButton', () => {
     )
 
     const adminRemoveButton = getByTestId('admin-remove-button')
-    adminRemoveButton.focus()
-    userEvent.click(adminRemoveButton)
-
-    await waitFor(() => expect(removeMock).toBeCalledTimes(1))
-    await waitFor(() =>
-      expect(removeMock).toBeCalledWith(stationAdminRow.planningAreaId, stationAdminRow.rowId, stationAdminRow.station)
-    )
+    await waitFor(() => {
+      adminRemoveButton.focus()
+      userEvent.click(adminRemoveButton)
+      expect(removeMock).toHaveBeenCalledTimes(1)
+      expect(removeMock).toHaveBeenCalledWith(
+        stationAdminRow.planningAreaId,
+        stationAdminRow.rowId,
+        stationAdminRow.station
+      )
+    })
   })
 })

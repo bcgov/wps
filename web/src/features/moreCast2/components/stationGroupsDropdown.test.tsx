@@ -30,7 +30,7 @@ describe('StationGroupsDropdown', () => {
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
     await waitFor(() => expect(input.value).toBe(''))
-    await waitFor(() => expect(setSelectedStationGroup).toBeCalledTimes(0))
+    await waitFor(() => expect(setSelectedStationGroup).toHaveBeenCalledTimes(0))
   })
   it('should change value on change and call parent callback', async () => {
     const setSelectedStationGroup = jest.fn()
@@ -52,8 +52,8 @@ describe('StationGroupsDropdown', () => {
 
     await userEvent.type(autocomplete, '{arrowdown}')
     await userEvent.type(autocomplete, '{enter}')
-    await waitFor(() => expect(setSelectedStationGroup).toBeCalledTimes(1))
-    await waitFor(() => expect(setSelectedStationGroup).toBeCalledWith(stationGroups[0]))
+    await waitFor(() => expect(setSelectedStationGroup).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(setSelectedStationGroup).toHaveBeenCalledWith(stationGroups[0]))
   })
   it('should show all groups', async () => {
     const setSelectedStationGroup = jest.fn()

@@ -134,8 +134,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success')
-
-  const [showHideColumnsModel, setShowHideColumnsModel] = useState<Record<string, ColumnVis[]>>({})
   const [columnGroupingModel, setColumnGroupingModel] = useState<GridColumnGroupingModel>([])
 
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
@@ -181,6 +179,40 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
     return name
   }
 
+  // Gets the previously stored set of weather model columns for each weather paramter (aka tab).
+  const getShowHideColumnsModelFromLocalStorage = () => {
+    const modelAsString = window.localStorage.getItem(SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY)
+    return isNull(modelAsString) ? null : JSON.parse(modelAsString)
+  }
+
+  // Get the showHideColumnsModel from local storage if it exists, else provide default values.
+  const initShowHideColumnsModel = (): Record<string, ColumnVis[]> => {
+    // First check localStorage for an existing model
+    const model = getShowHideColumnsModelFromLocalStorage()
+    if (model) {
+      return model
+    }
+    const weatherModelColumns = DataGridColumns.getWeatherModelColumns({
+      colDef: clickedColDef,
+      contextMenu: contextMenu,
+      updateColumnWithModel: updateColumnWithModel,
+      handleClose: handleClose
+    })
+    // Provide default with all columns
+    const showHideColumnsUngroupedState = weatherModelColumns.map((column: GridColDef): ColumnVis => {
+      return {
+        columnName: column.field,
+        displayName: getColumnDisplayName(column.headerName ?? ''),
+        visible: true
+      }
+    })
+    return groupByWeatherParam(showHideColumnsUngroupedState)
+  }
+
+  const [showHideColumnsModel, setShowHideColumnsModel] = useState<Record<string, ColumnVis[]>>(
+    initShowHideColumnsModel()
+  )
+
   // Given an array of weather parameters (aka tabs) return a GridColumnVisibilityModel object that
   // contains all weather model columns that are visible for each weather parameter.
   const getVisibleColumns = (weatherParams: string[]) => {
@@ -214,36 +246,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
   const saveShowHideColumnsModelToLocalStorage = (model: Record<string, ColumnVis[]>) => {
     const modelAsString = JSON.stringify(model)
     window.localStorage.setItem(SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY, modelAsString)
-  }
-
-  // Gets the previously stored set of weather model columns for each weather paramter (aka tab).
-  const getShowHideColumnsModelFromLocalStorage = () => {
-    const modelAsString = window.localStorage.getItem(SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY)
-    return isNull(modelAsString) ? null : JSON.parse(modelAsString)
-  }
-
-  // Get the showHideColumnsModel from local storage if it exists, else provide default values.
-  const initShowHideColumnsModel = (): Record<string, ColumnVis[]> => {
-    // First check localStorage for an existing model
-    const model = getShowHideColumnsModelFromLocalStorage()
-    if (model) {
-      return model
-    }
-    const weatherModelColumns = DataGridColumns.getWeatherModelColumns({
-      colDef: clickedColDef,
-      contextMenu: contextMenu,
-      updateColumnWithModel: updateColumnWithModel,
-      handleClose: handleClose
-    })
-    // Provide default with all columns
-    const showHideColumnsUngroupedState = weatherModelColumns.map((column: GridColDef): ColumnVis => {
-      return {
-        columnName: column.field,
-        displayName: getColumnDisplayName(column.headerName ?? ''),
-        visible: true
-      }
-    })
-    return groupByWeatherParam(showHideColumnsUngroupedState)
   }
 
   // Return an array of strings representing which weather parameters (aka tabs) are currently visible.
