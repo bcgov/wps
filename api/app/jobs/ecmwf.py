@@ -6,6 +6,7 @@ import datetime
 from typing import Generator
 import logging
 import tempfile
+from urllib.parse import parse_qs, urlsplit
 from sqlalchemy.orm import Session
 from ecmwf.opendata import Client
 from app.db.crud.weather_models import (get_processed_file_record,
@@ -68,11 +69,14 @@ def get_ecmwf_model_run_download_urls(download_date: datetime.datetime, model_cy
 
 
 def parse_url_for_timestamps(url: str, model_type: ModelEnum):
-    return []
-    # if model_type == ModelEnum.GFS:
-    #     return parse_gfs_url_for_timestamps(url)
-    # elif model_type == ModelEnum.NAM:
-    #     return parse_nam_url_for_timestamps(url)
+    # TODO implement
+    """ Interpret the model_run_timestamp and prediction_timestamp from a ECMWF model URL """
+    # sample URL: 'https://data.ecmwf.int/forecasts/20240321/00z/ifs/0p25/oper/20240321000000-0h-oper-fc.grib2'
+    query = urlsplit(url).query
+    params = parse_qs(query)
+
+    return (datetime.datetime.now(), datetime.datetime.now())
+
 
 
 def adjust_model_day(now, model_run_hour) -> datetime:
