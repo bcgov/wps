@@ -40,18 +40,6 @@ LEVELS = [1000]
 # -------------------------------------- #
 
 
-# ------- Static variables to be used for all NOAA models --------- #
-# weather variables are APCP: total precip, TMP: temperature, UGRD: U-component of wind,
-# VGRD: V-component of wind
-# WX_VARS = ['APCP', 'RH', 'TMP', 'UGRD', 'VGRD']
-# LEVELS = ['surface', '2_m_above_ground', '10_m_above_ground']
-# SUBREGION_TOP_LAT = 60
-# SUBREGION_BOTTOM_LAT = 48
-# SUBREGION_LEFT_LON = -139
-# SUBREGION_RIGHT_LON = -114
-# -------------------------------------- #
-
-
 def get_ecmwf_model_run_hours():
     """ Yield GFS and/or NAM model run hours (they're both on the same schedule)
      ("00", "06", "12", "18") """
