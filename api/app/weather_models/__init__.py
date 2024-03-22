@@ -21,6 +21,7 @@ class ModelEnum(str, Enum):
     HRDPS = 'HRDPS'
     GFS = 'GFS'
     NAM = 'NAM'
+    ECMWF ='ECMWF'
 
 
 class ProjectionEnum(str, Enum):
