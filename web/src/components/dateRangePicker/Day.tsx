@@ -110,6 +110,7 @@ const Day: React.FunctionComponent<DayProps> = ({
         <Typography
           color={!disabled ? 'textPrimary' : 'textSecondary'}
           className={combineCSSClassNames(classes.buttonText, !disabled && filled && classes.contrast)}
+          sx={{ fontWeight: !disabled ? 600 : 400 }}
           variant="body2"
         >
           {value}
