@@ -34,7 +34,12 @@ const ResetForecastButton = ({
       >
         {label}
       </Button>
-      <Dialog open={showResetDialog} onClose={handleResetDialogClose} data-testid={'reset-dialog'}>
+      <Dialog
+        open={showResetDialog}
+        onClose={handleResetDialogClose}
+        data-testid={'reset-dialog'}
+        PaperProps={{ sx: { border: 2, borderColor: '#808080' } }}
+      >
         <DialogContent>
           <DialogContentText>
             Are you sure you want to delete your unsaved forecasts? This will reset all forecasts that have not been
@@ -42,9 +47,11 @@ const ResetForecastButton = ({
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleResetDialogClose}>Cancel</Button>
-          <Button onClick={handleResetButtonConfirm} data-testid={'reset-forecast-confirm-button'}>
-            Confirm
+          <Button variant="outlined" onClick={handleResetButtonConfirm} data-testid={'reset-forecast-confirm-button'}>
+            Reset
+          </Button>
+          <Button variant="contained" onClick={handleResetDialogClose}>
+            Cancel
           </Button>
         </DialogActions>
       </Dialog>
