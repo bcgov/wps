@@ -38,7 +38,8 @@ const Root = styled('div')(() => ({
   },
 
   [`& .${classes.buttonText}`]: {
-    lineHeight: 1.6
+    lineHeight: 1.6,
+    fontSize: '1rem'
   },
 
   [`& .${classes.outlined}`]: {
