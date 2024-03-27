@@ -1,9 +1,11 @@
 import * as ol from 'ol'
+import 'ol/ol.css'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as olpmtiles from 'ol-pmtiles'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
 import { fromLonLat } from 'ol/proj'
+import ScaleLine from 'ol/control/ScaleLine'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import VectorSource from 'ol/source/Vector'
@@ -68,7 +70,8 @@ const FBAMap = (props: FBAMapProps) => {
   const [showHFI, setShowHFI] = useState(false)
   const [showSnow, setShowSnow] = useState<boolean>(false)
   const [map, setMap] = useState<ol.Map | null>(null)
-  const mapRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
+  const scaleRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const { mostRecentRunDate } = useSelector(selectRunDates)
 
   const fireCentreVectorSource = new olpmtiles.PMTilesVectorSource({
@@ -284,6 +287,14 @@ const FBAMap = (props: FBAMapProps) => {
     })
     mapObject.setTarget(mapRef.current)
 
+    const scaleBar = new ScaleLine({
+      bar: true,
+      minWidth: 160,
+      steps: 5
+    })
+    scaleBar.setTarget(scaleRef.current)
+    scaleBar.setMap(mapObject)
+
     if (props.selectedFireCenter) {
       const fireCentreExtent = extentsMap.get(props.selectedFireCenter.name)
       if (fireCentreExtent) {
@@ -353,6 +364,36 @@ const FBAMap = (props: FBAMapProps) => {
           </Box>
         </Box>
       </MapContext.Provider>
+      <Box
+        sx={{
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #000000',
+          padding: '12px',
+          position: 'absolute',
+          right: '8px',
+          bottom: '8px',
+          overflow: 'hidden'
+        }}
+      >
+        <Box
+          id="scalebar"
+          sx={{
+            ['& div.ol-scale-bar']: {
+              position: 'static'
+            },
+            ['& div.ol-scale-bar-inner div.ol-scale-step-marker']: {
+              top: '13px !important'
+            },
+            ['& div.ol-scale-bar-inner div>div.ol-scale-step-marker']: {
+              top: '-8px !important'
+            },
+            ['& div.ol-scale-step-text']: {
+              bottom: '5px !important'
+            }
+          }}
+          ref={scaleRef}
+        ></Box>
+      </Box>
     </ErrorBoundary>
   )
 }
