@@ -38,7 +38,8 @@ const Root = styled('div')(() => ({
   },
 
   [`& .${classes.buttonText}`]: {
-    lineHeight: 1.6
+    lineHeight: 1.6,
+    fontSize: '1rem'
   },
 
   [`& .${classes.outlined}`]: {
@@ -110,6 +111,7 @@ const Day: React.FunctionComponent<DayProps> = ({
         <Typography
           color={!disabled ? 'textPrimary' : 'textSecondary'}
           className={combineCSSClassNames(classes.buttonText, !disabled && filled && classes.contrast)}
+          sx={{ fontWeight: !disabled ? 600 : 400 }}
           variant="body2"
         >
           {value}
