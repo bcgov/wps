@@ -50,7 +50,7 @@ const ResetForecastButton = ({
           <Button variant="outlined" onClick={handleResetButtonConfirm} data-testid={'reset-forecast-confirm-button'}>
             Reset
           </Button>
-          <Button variant="contained" onClick={handleResetDialogClose}>
+          <Button variant="contained" onClick={handleResetDialogClose} data-testid={'reset-forecast-cancel-button'}>
             Cancel
           </Button>
         </DialogActions>

@@ -8,12 +8,13 @@ import { Provider } from 'react-redux'
 describe('SaveForecastButton', () => {
   const mockHandleResetClick = jest.fn()
   const mockHandleResetButtonConfirm = jest.fn()
+  const mockSetShowResetDialog = jest.fn()
 
   const defaultProps: ResetForecastButtonProps = {
     enabled: true,
     label: 'Reset',
     showResetDialog: false,
-    setShowResetDialog: jest.fn(),
+    setShowResetDialog: mockSetShowResetDialog,
     handleResetButtonConfirm: mockHandleResetButtonConfirm,
     onClick: mockHandleResetClick
   }
@@ -63,5 +64,16 @@ describe('SaveForecastButton', () => {
     const confirmButton = getByTestId('reset-forecast-confirm-button')
     userEvent.click(confirmButton)
     await waitFor(() => expect(mockHandleResetButtonConfirm).toHaveBeenCalledTimes(1))
+  })
+  it('should close the dialog when the Cancel button is clicked', async () => {
+    const propsWithResetDialog = { ...defaultProps, showResetDialog: true }
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <ResetForecastButton {...propsWithResetDialog} />
+      </Provider>
+    )
+    const cancelButton = getByTestId('reset-forecast-cancel-button')
+    userEvent.click(cancelButton)
+    await waitFor(() => expect(mockSetShowResetDialog).toHaveBeenCalledWith(false))
   })
 })
