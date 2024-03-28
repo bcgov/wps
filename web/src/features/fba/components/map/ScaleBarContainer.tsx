@@ -1,9 +1,10 @@
 import { Box } from '@mui/material'
 import React, { forwardRef } from 'react'
 
-const ScalebarContainer = forwardRef(function ScalebarBox(props, ref) {
+const ScalebarContainer = forwardRef((_, ref) => {
   return (
     <Box
+      data-test-id="scalebar-container"
       sx={{
         backgroundColor: '#FFFFFF',
         border: '1px solid #000000',
@@ -34,5 +35,6 @@ const ScalebarContainer = forwardRef(function ScalebarBox(props, ref) {
     </Box>
   )
 })
+ScalebarContainer.displayName = 'ScalebarContainer'
 
 export default React.memo(ScalebarContainer)
