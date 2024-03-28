@@ -35,7 +35,7 @@ import { buildPMTilesURL, buildSnowPMTilesURL } from 'features/fba/pmtilesBuilde
 import { isUndefined, cloneDeep, isNull } from 'lodash'
 import { Box } from '@mui/material'
 import Legend from 'features/fba/components/map/Legend'
-
+import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
@@ -364,36 +364,7 @@ const FBAMap = (props: FBAMapProps) => {
           </Box>
         </Box>
       </MapContext.Provider>
-      <Box
-        sx={{
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #000000',
-          padding: '12px',
-          position: 'absolute',
-          right: '8px',
-          bottom: '8px',
-          overflow: 'hidden'
-        }}
-      >
-        <Box
-          id="scalebar"
-          sx={{
-            ['& div.ol-scale-bar']: {
-              position: 'static'
-            },
-            ['& div.ol-scale-bar-inner div.ol-scale-step-marker']: {
-              top: '13px !important'
-            },
-            ['& div.ol-scale-bar-inner div>div.ol-scale-step-marker']: {
-              top: '-8px !important'
-            },
-            ['& div.ol-scale-step-text']: {
-              bottom: '5px !important'
-            }
-          }}
-          ref={scaleRef}
-        ></Box>
-      </Box>
+      <ScalebarContainer ref={scaleRef} />
     </ErrorBoundary>
   )
 }
