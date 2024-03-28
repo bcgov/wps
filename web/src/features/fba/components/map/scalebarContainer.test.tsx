@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React from 'react'
 import { render } from '@testing-library/react'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
 
