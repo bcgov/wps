@@ -4,11 +4,11 @@ import React, { forwardRef } from 'react'
 const ScalebarContainer = forwardRef((_, ref) => {
   return (
     <Box
-      data-test-id="scalebar-container"
+      data-testid="scalebar-container"
       sx={{
         backgroundColor: '#FFFFFF',
         border: '1px solid #000000',
-        padding: '10px',
+        padding: '12px',
         position: 'absolute',
         right: '10px',
         bottom: '10px',

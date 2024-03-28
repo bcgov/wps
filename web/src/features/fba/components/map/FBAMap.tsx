@@ -290,7 +290,7 @@ const FBAMap = (props: FBAMapProps) => {
     const scaleBar = new ScaleLine({
       bar: true,
       minWidth: 160,
-      steps: 5
+      steps: 4
     })
     scaleBar.setTarget(scaleRef.current)
     scaleBar.setMap(mapObject)
