@@ -96,7 +96,7 @@ export const moreCast2Info: ToolInfo = {
     </Typography>
   ),
   icon: <AirOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: true
+  isBeta: false
 }
 
 export const percentileCalcInfo: ToolInfo = {
@@ -116,27 +116,24 @@ export const fbpGoInfo: ToolInfo = {
   name: FBP_GO_NAME,
   route: FBP_GO_ROUTE,
   description: (
-    <>
-      <Typography>
-        A mobile application for calculating fire behaviour in the field. Available for download from the&nbsp;
-        <Link href="https://apps.apple.com/app/fbp-go/id1605675034" rel="noreferrer" target="_blank">
-          Apple
-        </Link>
-        &nbsp;and&nbsp;
-        <Link href="https://play.google.com/store/apps/details?id=ca.bc.gov.FBPGo" rel="noreferrer" target="_blank">
-          Google Play
-        </Link>
-        &nbsp;stores.
-      </Typography>
-    </>
+    <Typography>
+      A mobile application for calculating fire behaviour in the field. Available for download from the&nbsp;
+      <Link href="https://apps.apple.com/app/fbp-go/id1605675034" rel="noreferrer" target="_blank">
+        Apple
+      </Link>
+      &nbsp;and&nbsp;
+      <Link href="https://play.google.com/store/apps/details?id=ca.bc.gov.FBPGo" rel="noreferrer" target="_blank">
+        Google Play
+      </Link>
+      &nbsp;stores.
+    </Typography>
   ),
-  icon: <img style={{ height: '36px', width: '36px' }} src="/images/fbpgo_maskable.png" />,
+  icon: <img alt="FBP Go logog" style={{ height: '36px', width: '36px' }} src="/images/fbpgo_maskable.png" />,
   isBeta: false
 }
 
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of CardTravelSharp.
-// Temporarily exclude MoreCast 2.0 from prod
 export const toolInfos = [
   moreCast2Info,
   fireBehaviourAdvisoryInfo,

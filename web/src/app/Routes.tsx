@@ -81,9 +81,9 @@ const WPSRoutes: React.FunctionComponent = () => {
               </AuthWrapper>
             }
           />
-          <Route path={MORECAST_ROUTE} element={<Navigate to={MORE_CAST_2_ROUTE} />} />
+          <Route path={MORE_CAST_2_ROUTE} element={<Navigate to={MORECAST_ROUTE} />} />
           <Route
-            path={MORE_CAST_2_ROUTE}
+            path={MORECAST_ROUTE}
             element={
               <AuthWrapper>
                 <MoreCast2AuthWrapper>
