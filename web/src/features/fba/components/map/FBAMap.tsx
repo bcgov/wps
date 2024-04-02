@@ -362,9 +362,9 @@ const FBAMap = (props: FBAMapProps) => {
               snowDescription={getSnowDateMessage()}
             />
           </Box>
+          <ScalebarContainer ref={scaleRef} />
         </Box>
       </MapContext.Provider>
-      <ScalebarContainer ref={scaleRef} />
     </ErrorBoundary>
   )
 }

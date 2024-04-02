@@ -12,7 +12,8 @@ const ScalebarContainer = forwardRef((_, ref) => {
         position: 'absolute',
         right: '10px',
         bottom: '10px',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        zIndex: 1
       }}
     >
       <Box
