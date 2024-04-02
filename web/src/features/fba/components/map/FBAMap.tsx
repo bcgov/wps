@@ -1,9 +1,11 @@
 import * as ol from 'ol'
+import 'ol/ol.css'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as olpmtiles from 'ol-pmtiles'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
 import { fromLonLat } from 'ol/proj'
+import ScaleLine from 'ol/control/ScaleLine'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import VectorSource from 'ol/source/Vector'
@@ -33,7 +35,7 @@ import { buildPMTilesURL, buildSnowPMTilesURL } from 'features/fba/pmtilesBuilde
 import { isUndefined, cloneDeep, isNull } from 'lodash'
 import { Box } from '@mui/material'
 import Legend from 'features/fba/components/map/Legend'
-
+import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
@@ -68,7 +70,8 @@ const FBAMap = (props: FBAMapProps) => {
   const [showHFI, setShowHFI] = useState(false)
   const [showSnow, setShowSnow] = useState<boolean>(false)
   const [map, setMap] = useState<ol.Map | null>(null)
-  const mapRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
+  const scaleRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const { mostRecentRunDate } = useSelector(selectRunDates)
 
   const fireCentreVectorSource = new olpmtiles.PMTilesVectorSource({
@@ -284,6 +287,14 @@ const FBAMap = (props: FBAMapProps) => {
     })
     mapObject.setTarget(mapRef.current)
 
+    const scaleBar = new ScaleLine({
+      bar: true,
+      minWidth: 160,
+      steps: 4
+    })
+    scaleBar.setTarget(scaleRef.current)
+    scaleBar.setMap(mapObject)
+
     if (props.selectedFireCenter) {
       const fireCentreExtent = extentsMap.get(props.selectedFireCenter.name)
       if (fireCentreExtent) {
@@ -351,6 +362,7 @@ const FBAMap = (props: FBAMapProps) => {
               snowDescription={getSnowDateMessage()}
             />
           </Box>
+          <ScalebarContainer ref={scaleRef} />
         </Box>
       </MapContext.Provider>
     </ErrorBoundary>
