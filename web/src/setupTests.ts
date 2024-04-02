@@ -8,3 +8,9 @@ Object.defineProperty(global, 'crypto', {
     randomUUID: () => crypto.randomUUID()
   }
 })
+
+jest.mock('@mui/x-license-pro', () => ({
+  ...jest.requireActual('@mui/x-license-pro'),
+  useLicenseVerifier: () => 'Valid',
+  Watermark: () => null
+}))

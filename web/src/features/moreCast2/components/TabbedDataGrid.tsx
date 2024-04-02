@@ -136,6 +136,8 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success')
   const [columnGroupingModel, setColumnGroupingModel] = useState<GridColumnGroupingModel>([])
 
+  const [showResetDialog, setShowResetDialog] = useState(false)
+
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
     if (
       !isEqual(params.colDef.field, 'stationName') &&
@@ -457,9 +459,14 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
     }
   }
 
-  const handleResetClick = () => {
+  const handleResetButtonConfirm = () => {
     fetchWeatherIndeterminates()
     storedDraftForecast.clearDraftForecasts()
+    setShowResetDialog(false)
+  }
+
+  const handleResetClick = () => {
+    setShowResetDialog(true)
   }
 
   // Checks if the displayed rows includes non-Actual rows
@@ -495,6 +502,9 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
             <ResetForecastButton
               label={'Reset'}
               enabled={storedDraftForecast.hasDraftForecastStored()}
+              showResetDialog={showResetDialog}
+              setShowResetDialog={setShowResetDialog}
+              handleResetButtonConfirm={handleResetButtonConfirm}
               onClick={handleResetClick}
             />
             <SaveForecastButton
