@@ -128,7 +128,7 @@ export const fbpGoInfo: ToolInfo = {
       &nbsp;stores.
     </Typography>
   ),
-  icon: <img alt="FBP Go logog" style={{ height: '36px', width: '36px' }} src="/images/fbpgo_maskable.png" />,
+  icon: <img alt="FBP Go logo" style={{ height: '36px', width: '36px' }} src="/images/fbpgo_maskable.png" />,
   isBeta: false
 }
 
