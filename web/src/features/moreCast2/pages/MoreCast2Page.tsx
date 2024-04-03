@@ -107,7 +107,7 @@ const MoreCast2Page = () => {
 
   return (
     <Root data-testid="more-cast-2-page">
-      <GeneralHeader isBeta={true} spacing={0.985} title={MORE_CAST_2_NAME} productName={MORE_CAST_2_NAME} />
+      <GeneralHeader isBeta={false} spacing={0.985} title={MORE_CAST_2_NAME} productName={MORE_CAST_2_NAME} />
       <Content>
         <SidePanel>
           <StationPanel
