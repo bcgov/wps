@@ -85,13 +85,10 @@
         },
         {
             "name": "app.jobs.ecmwf ECMWF",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.ecmwf",
-            "justMyCode": false,
-            "args": [
-                "ECMWF"
-            ]
+            "justMyCode": false
         },
         {
             "name": "backup unit tests",

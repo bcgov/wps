@@ -328,6 +328,14 @@ class GribFileProcessor():
         for station, wind_value in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, 'wind_tgl_10'):
             grib_info.variable_name = 'wind_tgl_10'
             self.store_prediction_value(station.code, wind_value, prediction_run, grib_info, session)
+    
+    def process_ecmwf_grib_file(self, session: Session, dataset, grib_info: ModelRunInfo,
+                               prediction_run: PredictionModelRunTimestamp):
+        # for ECMWF models, always only ever 1 raster band in the dataset
+        raster_band = dataset.GetRasterBand(1)
+        # Iterate through stations:
+        for station, value in self.yield_value_for_stations(raster_band):
+            print(station.code, value)
 
     def process_grib_file(self, filename, grib_info: ModelRunInfo, session: Session):
         """ Process a grib file, extracting and storing relevant information. """
@@ -358,3 +366,5 @@ class GribFileProcessor():
             self.process_env_can_grib_file(session, dataset, grib_info, prediction_run)
         elif self.prediction_model.abbreviation in ['GFS', 'NAM']:
             self.process_noaa_grib_file(session, dataset, grib_info, prediction_run)
+        elif self.prediction_model.abbreviation in ['ECMWF']:
+            self.process_ecmwf_grib_file(session, dataset, grib_info, prediction_run)

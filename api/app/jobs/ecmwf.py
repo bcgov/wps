@@ -6,9 +6,8 @@ import datetime
 from typing import Generator
 import logging
 import tempfile
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import urlsplit
 from sqlalchemy.orm import Session
-from ecmwf.opendata import Client
 from app.db.crud.weather_models import (get_processed_file_record,
                                         get_prediction_model,
                                         get_prediction_run,
@@ -46,8 +45,14 @@ def get_ecmwf_model_run_hours():
         hour_str = format(hour, '02d')
         yield hour_str
 
-def get_ecmwf_model_run_download_urls(download_date: datetime.datetime, model_cycle: str, client: Client) -> Generator[str, None, None]:
-    """ Yield URLs to download ECMWF model runs.  """
+def get_ecmwf_model_run_download_urls(download_date: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
+    """ Yield URLs to download ECMWF model runs.  
+    
+        URL pattern from https://github.com/ecmwf/ecmwf-opendata/blob/ffe7a477c32b51dd780998ee88af84d6e0897041/ecmwf/opendata/client.py#L33
+        "{_url}/{_yyyymmdd}/{_H}z/{model}/{resol}/{_stream}/{_yyyymmddHHMMSS}-{step}h-{_stream}-{type}.{_extension}"
+
+        Variables above are defined under "File-naming convention at: https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS"
+    """
 
     #  a step is a forecast time step expressed in hours from a base date (UTC) and base hour (00, 06, 12, 18)
     if model_cycle == '00' or model_cycle == '12':
@@ -58,24 +63,24 @@ def get_ecmwf_model_run_download_urls(download_date: datetime.datetime, model_cy
 
     dt = datetime.datetime(year=download_date.year, month=download_date.month, day=download_date.day, hour=int(model_cycle))
 
-    # from https://github.com/ecmwf/ecmwf-opendata/blob/ffe7a477c32b51dd780998ee88af84d6e0897041/ecmwf/opendata/client.py#L33
-    HOURLY_PATTERN = (
-    "{_url}/{_yyyymmdd}/{_H}z/{model}/{resol}/{_stream}/"
-    "{_yyyymmddHHMMSS}-{step}h-{_stream}-{type}.{_extension}")
     for forecast_step in steps:
         url = f"""{ECMWF_BASE_URL}/{dt.strftime('%Y%m%d')}/{model_cycle}z/{ECMWF_IFS_MODEL}/{ECMWF_GRID}/{ECMWF_HIGH_RES_FORECAST}/{dt.strftime('%Y%m%d%H%M%S')}-{forecast_step}h-{ECMWF_HIGH_RES_FORECAST}-fc.grib2"""
         yield url
 
 
 
-def parse_url_for_timestamps(url: str, model_type: ModelEnum):
-    # TODO implement
+def parse_url_for_timestamps(url: str):
     """ Interpret the model_run_timestamp and prediction_timestamp from a ECMWF model URL """
-    # sample URL: 'https://data.ecmwf.int/forecasts/20240321/00z/ifs/0p25/oper/20240321000000-0h-oper-fc.grib2'
-    query = urlsplit(url).query
-    params = parse_qs(query)
+    # sample URL: 'https://data.ecmwf.int/forecasts/20240331/00z/ifs/0p25/oper/20240331000000-0h-oper-fc.grib2'
+    split_result = urlsplit(url)
+    path_parts = split_result.path.split("/")
+    model_run_date = path_parts[2] # trim z
+    model_run_time = path_parts[3][:-1]
+    forecast_hour = path_parts[7].split("-")[1][:-1] # trim h
+    model_run_timestamp = datetime.datetime.strptime(model_run_date + ' ' + model_run_time, '%Y%m%d %H').replace(tzinfo=datetime.timezone.utc)
+    prediction_timestamp = model_run_timestamp + datetime.timedelta(hours=int(forecast_hour))
 
-    return (datetime.datetime.now(), datetime.datetime.now())
+    return (model_run_timestamp, prediction_timestamp)
 
 
 
@@ -121,7 +126,7 @@ class ECMWF():
     """ Class that orchestrates downloading and processing of high res model grib files from ECMWF.
     """
 
-    def __init__(self, model_type: ModelEnum, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
+    def __init__(self, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
         """ Prep variables """
         self.files_downloaded = 0
         self.files_processed = 0
@@ -129,14 +134,7 @@ class ECMWF():
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
         self.grib_processor = GribFileProcessor(station_source)
-        self.model_type: ModelEnum = model_type
-
-        # TODO: adjust
-        # projection depends on model type
-        if self.model_type == ModelEnum.GFS:
-            self.projection = ProjectionEnum.GFS_LONLAT
-        elif self.model_type == ModelEnum.NAM:
-            self.projection = ProjectionEnum.NAM_POLAR_STEREO
+        self.projection = ProjectionEnum.GFS_LONLAT
 
     def process_model_run_urls(self, urls):
         """ Process the urls for a model run.
@@ -151,13 +149,13 @@ class ECMWF():
                         # NOTE: changing this to logger.debug causes too much noise in unit tests.
                         logger.debug('file already processed %s', url)
                     else:
-                        model_run_timestamp, prediction_timestamp = parse_url_for_timestamps(url, self.model_type)
-                        model_info = ModelRunInfo(self.model_type, self.projection,
+                        model_run_timestamp, prediction_timestamp = parse_url_for_timestamps(url)
+                        model_info = ModelRunInfo(ModelEnum.ECMWF, self.projection,
                                                   model_run_timestamp, prediction_timestamp)
                         # download the file:
                         with tempfile.TemporaryDirectory() as temporary_path:
                             downloaded = download(url, temporary_path,
-                                                  'REDIS_CACHE_ECMWF', self.model_type.value,
+                                                  'REDIS_CACHE_ECMWF', ModelEnum.ECMWF.value,
                                                   'REDIS_ECMWF_CACHE_EXPIRY')
                             if downloaded:
                                 self.files_downloaded += 1
@@ -179,12 +177,12 @@ class ECMWF():
                 logger.error('unexpected exception processing %s',
                              url, exc_info=exception)
 
-    def process_model_run(self, model_run_hour, client: Client):
+    def process_model_run(self, model_run_hour):
         """ Process a particular model run """
         logger.info('Processing {} model run {}'.format(
-            self.model_type, model_run_hour))
+            ModelEnum.ECMWF, model_run_hour))
 
-        urls = list(get_ecmwf_model_run_download_urls(self.now, model_run_hour, client))
+        urls = list(get_ecmwf_model_run_download_urls(self.now, model_run_hour))
 
         # Process all the urls.
         self.process_model_run_urls(urls)
@@ -193,36 +191,32 @@ class ECMWF():
         with app.db.database.get_write_session_scope() as session:
             if check_if_model_run_complete(session, urls):
                 logger.info(
-                    '{} model run {}:00 completed with SUCCESS'.format(self.model_type, model_run_hour))
+                    '{} model run {}:00 completed with SUCCESS'.format(ModelEnum.ECMWF, model_run_hour))
 
                 mark_prediction_model_run_processed(
-                    session, self.model_type, self.projection, self.now, model_run_hour)
+                    session, ModelEnum.ECMWF, self.projection, self.now, model_run_hour)
 
     def process(self):
         """ Entry point for downloading and processing weather model grib files """
-        client = Client()
         for hour in get_ecmwf_model_run_hours():
             try:
-                self.process_model_run(hour, client)
+                self.process_model_run(hour)
             except Exception as exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
                 logger.error(
                     'unexpected exception processing %s model run %s',
-                    self.model_type, hour, exc_info=exception)
+                    ModelEnum.ECMWF, hour, exc_info=exception)
 
 
 def process_models(station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
     """ downloading and processing models """
-    # set the model type requested based on arg passed via command line
-    model_type = ModelEnum(sys.argv[1])
-    logger.info('model type %s', model_type)
 
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    ecmwf = ECMWF(model_type, station_source)
+    ecmwf = ECMWF(station_source)
     ecmwf.process()
 
     # TODO re-enable
