@@ -196,20 +196,35 @@ objects:
                       name: ${GLOBAL_NAME}
                       key: env.gold.keycloak-client
                 - name: POSTGRES_READ_USER
-                  value: ${POSTGRES_USER}
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: user
                 - name: POSTGRES_WRITE_USER
-                  value: ${POSTGRES_USER}
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: user
                 - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
                       key: password
                 - name: POSTGRES_WRITE_HOST
-                  value: ${POSTGRES_WRITE_HOST}
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-host
                 - name: POSTGRES_READ_HOST
-                  value: ${POSTGRES_READ_HOST}
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-host
                 - name: POSTGRES_PORT
-                  value: "5432"
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-port
                 - name: POSTGRES_DATABASE
                   value: ${POSTGRES_DATABASE}
                 - name: STATUS_CHECKER_SECRET
