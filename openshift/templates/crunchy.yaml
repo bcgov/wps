@@ -150,8 +150,8 @@ objects:
                   weight: 1
           config:
             global:
-              client_tls_sslmode: disable
               pool_mode: session
+              ignore_startup_parameters: options
           port: 5432
           replicas: 1
           resources:
