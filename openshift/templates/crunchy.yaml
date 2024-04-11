@@ -84,7 +84,6 @@ objects:
           databases:
             - postgres
             - wps
-          options: "SUPERUSER"
       postgresVersion: 14
       instances:
         - name: crunchy
