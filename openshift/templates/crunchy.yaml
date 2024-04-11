@@ -139,4 +139,26 @@ objects:
 
       proxy:
         pgBouncer:
-          image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbouncer:ubi8-1.21-3
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - podAffinityTerm:
+                    labelSelector:
+                      matchLabels:
+                        postgres-operator.crunchydata.com/cluster: db
+                        postgres-operator.crunchydata.com/role: pgbouncer
+                    topologyKey: kubernetes.io/hostname
+                  weight: 1
+          config:
+            global:
+              client_tls_sslmode: disable
+              pool_mode: session
+          port: 5432
+          replicas: 1
+          resources:
+            limits:
+              cpu: 20m
+              memory: 32Mi
+            requests:
+              cpu: 5m
+              memory: 16Mi
