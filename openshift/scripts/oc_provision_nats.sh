@@ -28,10 +28,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_NATS} \
  -p SUFFIX=${SUFFIX} \
  -p IMAGE_NAME=${APP_NAME}-api-${SUFFIX} \
  -p IMAGE_TAG=${SUFFIX} \
- -p POSTGRES_USER=wps-crunchydb-${SUFFIX} \
  -p POSTGRES_DATABASE=wps \
- -p POSTGRES_WRITE_HOST=wps-crunchydb-${SUFFIX}-pgbouncer \
- -p POSTGRES_READ_HOST=wps-crunchydb-${SUFFIX}-pgbouncer \
  -p CRUNCHYDB_USER=wps-crunchydb-${SUFFIX}-pguser-wps-crunchydb-${SUFFIX} \
  -p APP_NAME=${APP_NAME}"
 

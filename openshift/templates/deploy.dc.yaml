@@ -66,10 +66,6 @@ parameters:
     description: The domain of which this application hangs.
     required: True
     value: apps.silver.devops.gov.bc.ca
-  - name: POSTGRES_WRITE_HOST
-    required: True
-  - name: POSTGRES_READ_HOST
-    required: True
   - name: ENVIRONMENT
     description: Can be used to modify route (e.g. when deploying to test)
     value: ""
