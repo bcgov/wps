@@ -156,8 +156,8 @@ objects:
           replicas: 1
           resources:
             limits:
-              cpu: 20m
-              memory: 32Mi
+              cpu: 500m
+              memory: 3Gi
             requests:
-              cpu: 5m
-              memory: 16Mi
+              cpu: 100m
+              memory: 1Gi
