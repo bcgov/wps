@@ -150,7 +150,7 @@ objects:
                   weight: 1
           config:
             global:
-              pool_mode: session
+              pool_mode: transaction
               ignore_startup_parameters: options
           port: 5432
           replicas: 1
