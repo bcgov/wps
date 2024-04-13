@@ -136,7 +136,7 @@ coverage-reports
 .scannerwork
 
 # Jupyter notebooks
-*.ipynb
+# *.ipynb
 
 # Temporary files
 tmp/
