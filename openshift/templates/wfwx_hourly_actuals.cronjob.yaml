@@ -26,12 +26,6 @@ parameters:
     value: wfwx-hourly-actuals
   - name: SCHEDULE
     required: true
-  - name: POSTGRES_WRITE_HOST
-    required: true
-  - name: POSTGRES_READ_HOST
-    required: true
-  - name: POSTGRES_USER
-    required: true
   - name: POSTGRES_DATABASE
     required: true
   - name: CRUNCHYDB_USER
@@ -84,21 +78,38 @@ objects:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
                           key: wfwx-secret
+                    - name: POSTGRES_READ_USER
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: user
+                    - name: POSTGRES_WRITE_USER
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: user
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
                           name: ${CRUNCHYDB_USER}
                           key: password
                     - name: POSTGRES_WRITE_HOST
-                      value: ${POSTGRES_WRITE_HOST}
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-host
+                    - name: POSTGRES_READ_HOST
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-host
                     - name: POSTGRES_PORT
-                      value: "5432"
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-port
                     - name: POSTGRES_DATABASE
                       value: ${POSTGRES_DATABASE}
-                    - name: POSTGRES_WRITE_USER
-                      value: ${POSTGRES_USER}
-                    - name: POSTGRES_READ_USER
-                      value: ${POSTGRES_USER}
                     - name: ROCKET_URL_POST_MESSAGE
                       valueFrom:
                         configMapKeyRef:

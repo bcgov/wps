@@ -28,13 +28,7 @@ parameters:
     # run before and after local noon (8h30 PDT and 16h30 PDT)
     value: "30 15,23 * * *"
     required: true
-  - name: POSTGRES_WRITE_HOST
-    required: true
-  - name: POSTGRES_READ_HOST
-    required: true
   - name: CRUNCHYDB_USER
-    required: true
-  - name: POSTGRES_USER
     required: true
     value: ${NAME}-${SUFFIX}
   - name: POSTGRES_DATABASE
@@ -91,20 +85,35 @@ objects:
                           name: ${GLOBAL_NAME}
                           key: wfwx-secret
                     - name: POSTGRES_READ_USER
-                      value: ${POSTGRES_USER}
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: user
                     - name: POSTGRES_WRITE_USER
-                      value: ${POSTGRES_USER}
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: user
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
                           name: ${CRUNCHYDB_USER}
                           key: password
                     - name: POSTGRES_WRITE_HOST
-                      value: ${POSTGRES_WRITE_HOST}
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-host
                     - name: POSTGRES_READ_HOST
-                      value: ${POSTGRES_READ_HOST}
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-host
                     - name: POSTGRES_PORT
-                      value: "5432"
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-port
                     - name: POSTGRES_DATABASE
                       value: ${POSTGRES_DATABASE}
                     - name: ROCKET_URL_POST_MESSAGE
