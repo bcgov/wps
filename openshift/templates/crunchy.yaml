@@ -138,6 +138,7 @@ objects:
 
       proxy:
         pgBouncer:
+          image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbouncer:ubi8-1.21-0
           affinity:
             podAntiAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
@@ -152,6 +153,7 @@ objects:
             global:
               pool_mode: transaction
               ignore_startup_parameters: options
+              max_prepared_statements: "10"
           port: 5432
           replicas: 1
           resources:
