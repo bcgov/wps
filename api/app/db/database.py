@@ -1,6 +1,7 @@
 """ Setup database to perform CRUD transactions
 """
 import logging
+import uuid
 from typing import Generator, AsyncGenerator
 from contextlib import contextmanager, asynccontextmanager
 from sqlalchemy import create_engine
@@ -39,8 +40,16 @@ _read_engine = create_engine(
     pool_pre_ping=True, connect_args=connect_args)
 
 # TODO: figure out connection pooling? pre-ping etc.?
-_async_read_engine = create_async_engine(ASYNC_DB_READ_STRING, connect_args={"timeout": 30})
-_async_write_engine = create_async_engine(ASYNC_DB_WRITE_STRING)
+_async_read_engine = create_async_engine(
+    ASYNC_DB_READ_STRING, 
+    connect_args={"timeout": 30,
+                  "prepared_statement_name_func": lambda: f"__asyncpg_{uuid.uuid4()}__"
+                  })
+_async_write_engine = create_async_engine(
+    ASYNC_DB_WRITE_STRING, 
+    connect_args={
+                    "prepared_statement_name_func": lambda: f"__asyncpg_{uuid.uuid4()}__"
+})
 
 # bind session to database
 # avoid using these variables anywhere outside of context manager - if
