@@ -48,8 +48,8 @@ _async_read_engine = create_async_engine(
 _async_write_engine = create_async_engine(
     ASYNC_DB_WRITE_STRING, 
     connect_args={
-                    "prepared_statement_name_func": lambda: f"__asyncpg_{uuid.uuid4()}__"
-})
+        "prepared_statement_name_func": lambda: f"__asyncpg_{uuid.uuid4()}__"
+        })
 
 # bind session to database
 # avoid using these variables anywhere outside of context manager - if
