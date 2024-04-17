@@ -84,7 +84,6 @@ objects:
           databases:
             - postgres
             - wps
-          options: "SUPERUSER"
       postgresVersion: 14
       instances:
         - name: crunchy
@@ -136,3 +135,31 @@ objects:
                 bucket: ${BUCKET}
                 endpoint: nrs.objectstore.gov.bc.ca
                 region: "ca-central-1"
+
+      proxy:
+        pgBouncer:
+          image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbouncer:ubi8-1.21-0
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - podAffinityTerm:
+                    labelSelector:
+                      matchLabels:
+                        postgres-operator.crunchydata.com/cluster: db
+                        postgres-operator.crunchydata.com/role: pgbouncer
+                    topologyKey: kubernetes.io/hostname
+                  weight: 1
+          config:
+            global:
+              pool_mode: transaction
+              ignore_startup_parameters: options
+              max_prepared_statements: "10"
+          port: 5432
+          replicas: 1
+          resources:
+            limits:
+              cpu: 500m
+              memory: 3Gi
+            requests:
+              cpu: 100m
+              memory: 1Gi

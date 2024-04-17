@@ -33,10 +33,6 @@ parameters:
   - name: SCHEDULE
     value: "27 * * * *"
     required: true
-  - name: POSTGRES_WRITE_HOST
-    required: true
-  - name: POSTGRES_READ_HOST
-    required: true
   - name: POSTGRES_USER
     required: true
   - name: POSTGRES_DATABASE
@@ -78,20 +74,35 @@ objects:
                     ["poetry", "run", "python", "-m", "app.c_haines.worker"]
                   env:
                     - name: POSTGRES_READ_USER
-                      value: ${POSTGRES_USER}
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: user
                     - name: POSTGRES_WRITE_USER
-                      value: ${POSTGRES_USER}
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: user
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
                           name: ${CRUNCHYDB_USER}
                           key: password
                     - name: POSTGRES_WRITE_HOST
-                      value: ${POSTGRES_WRITE_HOST}
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-host
                     - name: POSTGRES_READ_HOST
-                      value: ${POSTGRES_READ_HOST}
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-host
                     - name: POSTGRES_PORT
-                      value: "5432"
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-port
                     - name: POSTGRES_DATABASE
                       value: ${POSTGRES_DATABASE}
                     - name: MAX_WEEKS_C_HAINES

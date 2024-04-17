@@ -35,8 +35,6 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/c_haines.cronjob.ya
 -p SUFFIX=${SUFFIX} \
 -p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${APP_NAME}} \
 -p POSTGRES_USER=wps-crunchydb-${SUFFIX} \
--p POSTGRES_WRITE_HOST=wps-crunchydb-${SUFFIX}-primary \
--p POSTGRES_READ_HOST=wps-crunchydb-${SUFFIX}-primary \
 -p CRUNCHYDB_USER=wps-crunchydb-${SUFFIX}-pguser-wps-crunchydb-${SUFFIX} \
 ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"}"
 
