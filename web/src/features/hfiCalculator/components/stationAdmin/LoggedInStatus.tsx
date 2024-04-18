@@ -1,7 +1,7 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { isEmpty } from 'lodash'
-import { LockOutlined, LockOpenOutlined } from '@mui/icons-material'
+// import { isEmpty } from 'lodash'
+import { /* LockOutlined, */ LockOpenOutlined } from '@mui/icons-material'
 
 const PREFIX = 'LoggedInStatus'
 
