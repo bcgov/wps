@@ -1,6 +1,7 @@
 import axios, { raster } from 'api/axios'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { DateTime } from 'luxon'
+import { GeoJSONFeature } from 'ol/format/GeoJSON'
 
 export interface FireCenterStation {
   code: number
@@ -58,6 +59,10 @@ export interface FireZoneElevationInfoResponse {
 
 export interface FireShapeAreaListResponse {
   shapes: FireShapeArea[]
+}
+
+export interface AreaOfInterestStatsResponse {
+  aoi: string
 }
 
 export interface HfiThresholdFuelTypeArea {
@@ -127,6 +132,18 @@ export async function getFireZoneElevationInfo(
   const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
   const { data } = await axios.get(url, {})
   return data
+}
+
+export async function getAreaOfInterestStats(
+  run_type: RunType,
+  for_date: DateTime,
+  run_datetime: DateTime,
+  geojson: GeoJSONFeature
+): Promise<AreaOfInterestStatsResponse> {
+  const url = `fba/area-of-interest/${run_type.toLowerCase()}/${for_date.toISODate()}/${run_datetime.toISODate()}`
+  const { data } = await axios.post(url, { geojson: JSON.stringify(geojson) })
+
+  return { aoi: data }
 }
 
 export async function getValueAtCoordinate(

@@ -98,3 +98,11 @@ class FireZoneElevationStatsByThreshold(BaseModel):
 class FireZoneElevationStatsListResponse(BaseModel):
     """ Response for a firezone that includes elevation statistics by threshold for the run parameters of interest """
     hfi_elevation_info: List[FireZoneElevationStatsByThreshold]
+
+
+class AreaOfInterestResponse(BaseModel):
+    hfi: List[float]
+    area: float
+
+class AreaOfInterest(BaseModel):
+    geojson: str
