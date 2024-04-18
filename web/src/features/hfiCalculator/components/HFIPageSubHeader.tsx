@@ -12,7 +12,6 @@ import PrepDateRangeSelector from 'features/hfiCalculator/components/PrepDateRan
 import LoggedInStatus from 'features/hfiCalculator/components/stationAdmin/LoggedInStatus'
 import { selectAuthentication } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
-import SignoutButton from 'features/auth/components/SignoutButton'
 
 const PREFIX = 'HFIPageSubHeader'
 
@@ -88,7 +87,6 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
         setDateRange={props.setDateRange}
       />
       <LoggedInStatus isAuthenticated={isAuthenticated} roles={roles} idir={idir} />
-      <SignoutButton />
       <AboutButtonGridItem>
         <MinWidthFormControl>
           <Button onClick={openAboutModal} size="small">
