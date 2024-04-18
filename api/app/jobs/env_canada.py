@@ -249,7 +249,7 @@ class EnvCanada():
     Canada.
     """
 
-    def __init__(self, model_type: ModelEnum, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
+    def __init__(self, session: Session, model_type: ModelEnum, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
         """ Prep variables """
         self.files_downloaded = 0
         self.files_processed = 0
@@ -258,6 +258,7 @@ class EnvCanada():
         self.now = time_utils.get_utc_now()
         self.grib_processor = GribFileProcessor(station_source)
         self.model_type: ModelEnum = model_type
+        self.session = session
         # set projection based on model_type
         if self.model_type == ModelEnum.GDPS:
             self.projection = ProjectionEnum.LATLON_15X_15
@@ -273,39 +274,35 @@ class EnvCanada():
         """
         for url in urls:
             try:
-                with app.db.database.get_write_session_scope() as session:
-                    # check the database for a record of this file:
-                    processed_file_record = get_processed_file_record(session, url)
-                    if processed_file_record:
-                        # This file has already been processed - so we skip it.
-                        # NOTE: changing this to logger.debug causes too much noise in unit tests.
-                        logger.debug('file already processed %s', url)
-                    else:
-                        # extract model info from URL:
-                        model_info = parse_env_canada_filename(url)
-                        # download the file:
-                        with tempfile.TemporaryDirectory() as temporary_path:
-                            downloaded = download(url, temporary_path, 'REDIS_CACHE_ENV_CANADA', model_info.model_enum.value,
-                                                  'REDIS_ENV_CANADA_CACHE_EXPIRY')
-                            if downloaded:
-                                self.files_downloaded += 1
-                                # If we've downloaded the file ok, we can now process it.
-                                try:
-                                    self.grib_processor.process_grib_file(
-                                        downloaded, model_info, session)
-                                    # Flag the file as processed
-                                    flag_file_as_processed(url, session)
-                                    self.files_processed += 1
-                                finally:
-                                    # delete the file when done.
-                                    os.remove(downloaded)
+                # check the database for a record of this file:
+                processed_file_record = get_processed_file_record(self.session, url)
+                if processed_file_record:
+                    # This file has already been processed - so we skip it.
+                    # NOTE: changing this to logger.debug causes too much noise in unit tests.
+                    logger.debug("file already processed %s", url)
+                else:
+                    # extract model info from URL:
+                    model_info = parse_env_canada_filename(url)
+                    # download the file:
+                    with tempfile.TemporaryDirectory() as temporary_path:
+                        downloaded = download(url, temporary_path, "REDIS_CACHE_ENV_CANADA", model_info.model_enum.value, "REDIS_ENV_CANADA_CACHE_EXPIRY")
+                        if downloaded:
+                            self.files_downloaded += 1
+                            # If we've downloaded the file ok, we can now process it.
+                            try:
+                                self.grib_processor.process_grib_file(downloaded, model_info, self.session)
+                                # Flag the file as processed
+                                flag_file_as_processed(url, self.session)
+                                self.files_processed += 1
+                            finally:
+                                # delete the file when done.
+                                os.remove(downloaded)
             except Exception as exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
                 # We intentionally catch a broad exception, as we want to try and download as much
                 # as we can.
-                logger.error('unexpected exception processing %s',
-                             url, exc_info=exception)
+                logger.error("unexpected exception processing %s", url, exc_info=exception)
 
     def process_model_run(self, model_run_hour):
         """ Process a particular model run """
@@ -319,13 +316,10 @@ class EnvCanada():
         self.process_model_run_urls(urls)
 
         # Having completed processing, check if we're all done.
-        with app.db.database.get_write_session_scope() as session:
-            if check_if_model_run_complete(session, urls):
-                logger.info(
-                    '{} model run {:02d}:00 completed with SUCCESS'.format(self.model_type, model_run_hour))
+        if check_if_model_run_complete(self.session, urls):
+            logger.info("{} model run {:02d}:00 completed with SUCCESS".format(self.model_type, model_run_hour))
 
-                mark_prediction_model_run_processed(
-                    session, self.model_type, self.projection, self.now, model_run_hour)
+            mark_prediction_model_run_processed(self.session, self.model_type, self.projection, self.now, model_run_hour)
 
     def process(self):
         """ Entry point for downloading and processing weather model grib files """
@@ -351,10 +345,10 @@ def process_models(station_source: StationSourceEnum = StationSourceEnum.UNSPECI
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    env_canada = EnvCanada(model_type, station_source)
-    env_canada.process()
-
     with app.db.database.get_write_session_scope() as session:
+        env_canada = EnvCanada(session, model_type, station_source)
+        env_canada.process()
+
         # interpolate and machine learn everything that needs interpolating.
         model_value_processor = ModelValueProcessor(session, station_source)
         model_value_processor.process(model_type)
