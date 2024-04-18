@@ -154,7 +154,7 @@ objects:
               pool_mode: transaction
               ignore_startup_parameters: options
               max_prepared_statements: "10"
-              max_client_conn: 1000
+              max_client_conn: "1000"
           port: 5432
           replicas: 1
           resources:
