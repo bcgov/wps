@@ -16,10 +16,11 @@ from app.db.crud.auto_spatial_advisory import (get_all_sfms_fuel_types,
 from app.db.models.auto_spatial_advisory import RunTypeEnum
 from app.schemas.fba import (ClassifiedHfiThresholdFuelTypeArea, FireCenterListResponse, FireShapeAreaListResponse,
                              FireShapeArea, FireZoneElevationStats, FireZoneElevationStatsByThreshold,
-                             FireZoneElevationStatsListResponse, SFMSFuelType, HfiThreshold)
+                             FireZoneElevationStatsListResponse, SFMSFuelType, HfiThreshold, AreaOfInterestResponse, AreaOfInterest)
 from app.auth import authentication_required, audit
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 from app.auto_spatial_advisory.process_hfi import RunType
+from app.auto_spatial_advisory.raster_query import get_aoi_stats
 
 logger = logging.getLogger(__name__)
 
@@ -145,3 +146,10 @@ async def get_fire_zone_elevation_stats(fire_zone_id: int, run_type: RunType, ru
             stats_by_threshold = FireZoneElevationStatsByThreshold(threshold=row.threshold, elevation_info=stats)
             data.append(stats_by_threshold)
         return FireZoneElevationStatsListResponse(hfi_elevation_info=data)
+
+@router.post('/area-of-interest/{run_type}/{for_date}/{run_datetime}', response_model=AreaOfInterestResponse)
+async def get_area_of_interest_stats(run_type: RunType, for_date: date, run_datetime: date, request: AreaOfInterest):
+    logger.info('area-of-interest/%s/%s/%s', run_type.value, for_date, run_datetime)
+    hfi, area = get_aoi_stats(run_type, for_date, run_datetime, request.geojson)
+
+    return AreaOfInterestResponse(hfi=hfi, area=area/1_000_000)

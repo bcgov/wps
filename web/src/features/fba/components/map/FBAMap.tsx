@@ -16,7 +16,7 @@ import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectRunDates } from 'app/rootReducer'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
-import { FireCenter, FireShape, FireShapeArea } from 'api/fbaAPI'
+import { FireCenter, FireShape, FireShapeArea, getAreaOfInterestStats } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
 import {
   fireCentreStyler,
@@ -36,6 +36,10 @@ import { isUndefined, cloneDeep, isNull } from 'lodash'
 import { Box } from '@mui/material'
 import Legend from 'features/fba/components/map/Legend'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
+import { Draw } from 'ol/interaction'
+import { DrawEvent } from 'ol/interaction/Draw'
+import DrawButton from 'features/fba/components/map/DrawButton'
+
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
@@ -70,6 +74,8 @@ const FBAMap = (props: FBAMapProps) => {
   const [showHFI, setShowHFI] = useState(false)
   const [showSnow, setShowSnow] = useState<boolean>(false)
   const [map, setMap] = useState<ol.Map | null>(null)
+  const [drawInteraction, setDrawInteraction] = useState<Draw | null>(null)
+  const [isDrawing, setIsDrawing] = useState(false)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const scaleRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const { mostRecentRunDate } = useSelector(selectRunDates)
@@ -87,6 +93,27 @@ const FBAMap = (props: FBAMapProps) => {
     url: `${PMTILES_BUCKET}fireZoneUnitLabels.pmtiles`
   })
 
+  const getPixelsWithinPolygon = async (
+    event: DrawEvent,
+    runType: RunType,
+    forDate: DateTime,
+    recentRunDate: string
+  ) => {
+    const feature = event.feature
+    if (feature) {
+      // Convert geometry to GeoJSON format, from EPSG 3857 to 4326
+      const geoJsonWriter = new GeoJSON()
+      const geoJSON = geoJsonWriter.writeFeatureObject(feature, {
+        dataProjection: 'EPSG:4326',
+        featureProjection: 'EPSG:3857'
+      })
+
+      const runDate = runType === RunType.FORECAST && !isNull(recentRunDate) ? DateTime.fromISO(recentRunDate) : forDate
+      const test = await getAreaOfInterestStats(runType, forDate, runDate, geoJSON)
+      console.log(test)
+    }
+  }
+
   const handleToggleLayer = (layerName: string, isVisible: boolean) => {
     if (map) {
       const layer = map
@@ -101,6 +128,17 @@ const FBAMap = (props: FBAMapProps) => {
       } else if (layer) {
         layer.setVisible(isVisible)
       }
+    }
+  }
+
+  const handleToggleDraw = () => {
+    if (drawInteraction) {
+      if (isDrawing) {
+        map?.removeInteraction(drawInteraction)
+      } else {
+        map?.addInteraction(drawInteraction)
+      }
+      setIsDrawing(prev => !prev)
     }
   }
 
@@ -327,6 +365,40 @@ const FBAMap = (props: FBAMapProps) => {
     map?.addLayer(stationsLayer)
   }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!map) return
+    const layerName = 'aoiPolygon'
+    removeLayerByName(map, layerName)
+
+    const drawPolygonSource = new VectorSource()
+
+    const drawPolygonLayer = new OLVectorLayer({
+      source: drawPolygonSource,
+      zIndex: 51,
+      properties: { name: layerName }
+    })
+
+    const draw = new Draw({
+      source: drawPolygonSource,
+      type: 'Polygon',
+      stopClick: true
+    })
+
+    draw.on('drawstart', () => {
+      drawPolygonSource.clear()
+    })
+    draw.on('drawend', event => {
+      getPixelsWithinPolygon(event, props.runType, props.forDate, mostRecentRunDate!)
+    })
+
+    if (isDrawing && drawInteraction) {
+      map?.removeInteraction(drawInteraction)
+      map?.addInteraction(draw)
+    }
+    setDrawInteraction(draw)
+    map.addLayer(drawPolygonLayer)
+  }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Generate a message to display about the snow layer in the legend.
   const getSnowDateMessage = () => {
     if (!showSnow) {
@@ -350,6 +422,9 @@ const FBAMap = (props: FBAMapProps) => {
             position: 'relative'
           }}
         >
+          <Box sx={{ position: 'absolute', zIndex: '1', top: '4.5rem' }}>
+            <DrawButton onClick={handleToggleDraw} />
+          </Box>
           <Box sx={{ position: 'absolute', zIndex: '1', bottom: '0.5rem' }}>
             <Legend
               onToggleLayer={handleToggleLayer}
