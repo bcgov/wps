@@ -68,7 +68,7 @@ interface Props {
 }
 
 export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) => {
-  const { isAuthenticated, roles, idir } = useSelector(selectAuthentication)
+  const { isAuthenticated, /* roles, */ idir } = useSelector(selectAuthentication)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
 
   const openAboutModal = () => {
@@ -86,7 +86,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
         dateRange={props.result ? props.result.date_range : undefined}
         setDateRange={props.setDateRange}
       />
-      <LoggedInStatus isAuthenticated={isAuthenticated} roles={roles} idir={idir} />
+      <LoggedInStatus isAuthenticated={isAuthenticated} /* roles={roles} */ idir={idir} />
       <AboutButtonGridItem>
         <MinWidthFormControl>
           <Button onClick={openAboutModal} size="small">

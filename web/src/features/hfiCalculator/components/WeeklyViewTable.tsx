@@ -24,7 +24,7 @@ import { FireStartRange, PlanningAreaResult, PrepDateRange } from 'features/hfiC
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { FireCentrePlanningAreaHeaderRowCell } from 'features/hfiCalculator/components/HeaderRowCell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
-import { ROLES } from 'features/auth/roles'
+// import { ROLES } from 'features/auth/roles'
 import PlanningAreaReadyToggle from 'features/hfiCalculator/components/PlanningAreaReadyToggle'
 import { AppDispatch } from 'app/store'
 import { fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
@@ -56,7 +56,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   const dispatch: AppDispatch = useDispatch()
 
   const { result } = useSelector(selectHFICalculatorState)
-  const { roles, isAuthenticated } = useSelector(selectAuthentication)
+  const { /* roles, */ isAuthenticated } = useSelector(selectAuthentication)
   const { loading, planningAreaReadyDetails } = useSelector(selectHFIReadyState)
 
   const toggleReady = (planningAreaId: number) => {
@@ -151,7 +151,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 <NoBottomBorderCell>
                                   {area.name}
                                   <PlanningAreaReadyToggle
-                                    enabled={roles.includes(ROLES.HFI.SET_READY_STATE) && isAuthenticated}
+                                    enabled={/* roles.includes(ROLES.HFI.SET_READY_STATE) && */ isAuthenticated}
                                     loading={loading}
                                     readyDetails={planningAreaReadyDetails[area.id]}
                                     toggleReady={toggleReady}
@@ -177,7 +177,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           planningAreaResult={areaHFIResult}
                           setNewFireStarts={props.setNewFireStarts}
                           numPrepDays={numPrepDays}
-                          fireStartsEnabled={roles.includes(ROLES.HFI.SET_FIRE_STARTS) && isAuthenticated}
+                          fireStartsEnabled={/* roles.includes(ROLES.HFI.SET_FIRE_STARTS) && */ isAuthenticated}
                           fireStartRanges={result.fire_start_ranges}
                           fuelTypes={props.fuelTypes}
                           planningAreaStationInfo={result.planning_area_station_info}
@@ -203,8 +203,8 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                               <BaseStationAttributeCells
                                 station={station}
                                 planningAreaId={area.id}
-                                selectStationEnabled={roles.includes(ROLES.HFI.SELECT_STATION) && isAuthenticated}
-                                isSetFuelTypeEnabled={roles.includes(ROLES.HFI.SET_FUEL_TYPE) && isAuthenticated}
+                                selectStationEnabled={/* roles.includes(ROLES.HFI.SELECT_STATION) && */ isAuthenticated}
+                                isSetFuelTypeEnabled={/* roles.includes(ROLES.HFI.SET_FUEL_TYPE) && */ isAuthenticated}
                                 stationCodeInSelected={stationCodeInSelected}
                                 toggleSelectedStation={toggleSelectedStation}
                                 grassCurePercentage={
