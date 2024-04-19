@@ -26,13 +26,15 @@ from app.schemas.hfi_calc import (HFIAdminStationUpdateRequest, HFIAllReadyState
                                   DateRange,
                                   FuelTypesResponse,
                                   HFIWeatherStationsResponse)
-from app.auth import (auth_with_select_station_role_required,
-                      auth_with_set_fire_starts_role_required,
-                      auth_with_station_admin_role_required,
-                      auth_with_set_fuel_type_role_required,
-                      auth_with_set_ready_state_required,
-                      authentication_required,
-                      audit)
+from app.auth import (
+    auth_with_station_admin_role_required,
+    authentication_required,
+    audit,
+    # auth_with_select_station_role_required,
+    # auth_with_set_fire_starts_role_required,
+    # auth_with_set_fuel_type_role_required,
+    # auth_with_set_ready_state_required,
+)
 from app.schemas.shared import (FuelType)
 from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request,
@@ -190,11 +192,7 @@ async def get_fuel_types(response: Response) -> FuelTypesResponse:
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
              "/station/{station_code}/selected/{enable}")
 async def set_planning_area_station(
-    fire_centre_id: int, start_date: date, end_date: date,
-    planning_area_id: int, station_code: int,
-    enable: bool,
-    response: Response,
-    token=Depends(auth_with_select_station_role_required)
+    fire_centre_id: int, start_date: date, end_date: date, planning_area_id: int, station_code: int, enable: bool, response: Response, token=Depends(authentication_required)
 ):
     """ Enable / disable a station withing a planning area """
     logger.info('/fire_centre/%s/%s/%s/planning_area/%s/station/%s/selected/%s',
@@ -228,14 +226,7 @@ async def set_planning_area_station(
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
              "/station/{station_code}/fuel_type/{fuel_type_id}")
 async def set_planning_area_station_fuel_type(
-    fire_centre_id: int,
-    start_date: date,
-    end_date: date,
-    planning_area_id: int,
-    station_code: int,
-    fuel_type_id: int,
-    response: Response,
-    token=Depends(auth_with_set_fuel_type_role_required)
+    fire_centre_id: int, start_date: date, end_date: date, planning_area_id: int, station_code: int, fuel_type_id: int, response: Response, token=Depends(authentication_required)
 ):
     """ Set the fuel type for a station in a planning area. """
     logger.info("/fire_centre/%s/%s/%s/planning_area/%s/station/%s/fuel_type/%s",
@@ -272,14 +263,16 @@ async def set_planning_area_station_fuel_type(
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
              "/fire_starts/{prep_day_date}/fire_start_range/{fire_start_range_id}",
              response_model=HFIResultResponse)
-async def set_fire_start_range(fire_centre_id: int,
-                               start_date: date,
-                               end_date: date,
-                               planning_area_id: int,
-                               prep_day_date: date,
-                               fire_start_range_id: int,
-                               response: Response,
-                               token=Depends(auth_with_set_fire_starts_role_required)):
+async def set_fire_start_range(
+    fire_centre_id: int,
+    start_date: date,
+    end_date: date,
+    planning_area_id: int,
+    prep_day_date: date,
+    fire_start_range_id: int,
+    response: Response,
+    token=Depends(authentication_required),
+):
     """ Set the fire start range, by id."""
     logger.info("/fire_centre/%s/%s/%s/planning_area/%s"
                 "/fire_starts/%s/fire_start_range/%s",
@@ -412,12 +405,7 @@ async def get_all_ready_records(
 
 @router.post("/fire_centre/{fire_centre_id}/planning_area/{planning_area_id}/{start_date}/{end_date}/ready",
              response_model=HFIReadyState)
-async def toggle_planning_area_ready(
-        fire_centre_id: int,
-        planning_area_id: int,
-        start_date: date,
-        end_date: date, response: Response,
-        token=Depends(auth_with_set_ready_state_required)):
+async def toggle_planning_area_ready(fire_centre_id: int, planning_area_id: int, start_date: date, end_date: date, response: Response, token=Depends(authentication_required)):
     """ Set the fire start range, by id."""
     logger.info("/fire_centre/%s/planning_area/%s/start_date/%s/end_date/%s/ready",
                 fire_centre_id, planning_area_id, start_date, end_date)
