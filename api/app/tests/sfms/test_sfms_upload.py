@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, patch
 from datetime import datetime, timezone
 from fastapi.testclient import TestClient
-from app.auto_spatial_advisory.sfms import get_prefix
+from app.auto_spatial_advisory.sfms import get_hourly_filename, get_prefix
 from app.routers.sfms import get_target_filename
 from app import config
 
@@ -114,6 +114,12 @@ def test_get_target_filename_day_difference(_):
     assert get_target_filename(today) == 'sfms/uploads/actual/2022-08-23/hfi20220823.tif'
     # It's 5 pm, so anything for tomorrow, is a forecast.
     assert get_target_filename(tomorrow) == 'sfms/uploads/forecast/2022-08-23/hfi20220824.tif'
+
+
+@patch('app.auto_spatial_advisory.sfms.get_vancouver_now', return_value=get_pdt_17())
+def test_get_hourly_filename(_):
+    """ Test get_hourly_filename function """
+    assert get_hourly_filename(today) == 'sfms/uploads/hourlies/2022-08-23/hfi20220823.tif'
 
 
 @patch('app.routers.sfms.get_client')
