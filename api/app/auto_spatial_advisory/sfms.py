@@ -10,10 +10,6 @@ def is_hfi_file(filename: str) -> bool:
     "Returns true if filename starts with 'hfi'"
     return filename.startswith("hfi")
 
-def is_ffmc_file(filename: str) -> bool:
-    "Returns true if filename starts with 'hfi'"
-    return filename.startswith("ffmc")
-
 def get_date_part(filename: str) -> str:
     """ Get the date part of the filename.
     Filename example: hfi20220823.tif
