@@ -11,6 +11,7 @@ from app.main import app
 
 
 URL = '/api/sfms/upload'
+HOURLY_FFMC_URL = '/api/sfms/upload/hourlies'
 
 yesterday: Final = 'hfi20220822.tif'
 today: Final = 'hfi20220823.tif'
@@ -188,3 +189,30 @@ def test_endpoint_wrong_secret(mock_publish: AsyncMock, mock_get_client: AsyncMo
     assert mock_s3_client.put_object.called is False
     # Publish should not have been called.
     assert mock_publish.called is False
+
+
+
+@patch('app.routers.sfms.get_client')
+@patch('app.routers.sfms.publish')
+def test_hourly_ffmc_endpoint(mock_publish: AsyncMock, mock_get_client: AsyncMock):
+    """ Test that if all is well - the endpoint returns 200, the file is uploaded to S3. """
+    mock_s3_client = AsyncMock()
+
+    @asynccontextmanager
+    async def _mock_get_client_for_router():
+        yield mock_s3_client, 'some_bucket'
+
+    mock_get_client.return_value = _mock_get_client_for_router()
+    client = TestClient(app)
+    response = client.post(HOURLY_FFMC_URL,
+                           files={'file': ('hfi20220904.tiff', b'')},
+                           headers={
+                               'Secret': config.get('SFMS_SECRET'),
+                               'Last-modified': datetime.now().isoformat(),
+                               'Create-time': datetime.now().isoformat()})
+    # We should get a 200 response if the file is uploaded successfully.
+    assert response.status_code == 200
+    # We should have called put_object once.
+    assert mock_s3_client.put_object.called
+    # We should not publish hourly ffmc
+    assert mock_publish.called == False
