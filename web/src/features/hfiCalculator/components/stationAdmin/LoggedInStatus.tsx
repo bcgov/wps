@@ -1,7 +1,7 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { isEmpty } from 'lodash'
-import { LockOutlined, LockOpenOutlined } from '@mui/icons-material'
+// import { isEmpty } from 'lodash'
+import { /* LockOutlined, */ LockOpenOutlined } from '@mui/icons-material'
 
 const PREFIX = 'LoggedInStatus'
 
@@ -14,23 +14,23 @@ const Root = styled('div', {
 
 export interface LoggedInStatusProps {
   isAuthenticated: boolean
-  roles: string[]
+  // roles: string[]
   idir: string | undefined
 }
 
-const LoggedInStatus = ({ isAuthenticated, roles, idir }: LoggedInStatusProps) => {
+const LoggedInStatus = ({ isAuthenticated, /* roles, */ idir }: LoggedInStatusProps) => {
   if (!isAuthenticated) {
     return <></>
   }
 
-  if (isAuthenticated && isEmpty(roles)) {
-    return (
-      <Root data-testid="logged-in-status">
-        <LockOutlined />
-        Read only: {idir}
-      </Root>
-    )
-  }
+  // if (isAuthenticated && isEmpty(roles)) {
+  //   return (
+  //     <Root data-testid="logged-in-status">
+  //       <LockOutlined />
+  //       Read only: {idir}
+  //     </Root>
+  //   )
+  // }
 
   return (
     <Root data-testid="logged-in-status">

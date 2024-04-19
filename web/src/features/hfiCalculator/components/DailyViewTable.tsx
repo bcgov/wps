@@ -25,7 +25,7 @@ import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredData
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DailyHFICell } from 'features/hfiCalculator/components/DailyHFICell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
-import { ROLES } from 'features/auth/roles'
+/* import { ROLES } from 'features/auth / roles' */
 import {
   NoBottomBorderCell,
   PlanningAreaBorderTableCell,
@@ -78,7 +78,7 @@ export const dailyTableColumnLabels = [
 
 export const DailyViewTable = (props: Props): JSX.Element => {
   const { selectedPrepDate, result } = useSelector(selectHFICalculatorState)
-  const { roles, isAuthenticated } = useSelector(selectAuthentication)
+  const { /* roles, */ isAuthenticated } = useSelector(selectAuthentication)
 
   const getDailyForDay = (stationCode: number): StationDaily | undefined => {
     const dailiesForStation = getDailiesByStationCode(result, stationCode)
@@ -299,8 +299,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             <BaseStationAttributeCells
                               station={station}
                               planningAreaId={area.id}
-                              selectStationEnabled={roles.includes(ROLES.HFI.SELECT_STATION) && isAuthenticated}
-                              isSetFuelTypeEnabled={roles.includes(ROLES.HFI.SET_FUEL_TYPE) && isAuthenticated}
+                              selectStationEnabled={/* roles.includes(ROLES.HFI.SELECT_STATION) && */ isAuthenticated}
+                              isSetFuelTypeEnabled={/* roles.includes(ROLES.HFI.SET_FUEL_TYPE) && */ isAuthenticated}
                               stationCodeInSelected={stationCodeInSelected}
                               toggleSelectedStation={toggleSelectedStation}
                               isDailyTable={true}
