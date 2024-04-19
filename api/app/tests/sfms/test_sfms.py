@@ -1,4 +1,4 @@
-from app.auto_spatial_advisory.sfms import is_hfi_file
+from app.auto_spatial_advisory.sfms import is_hfi_file, is_ffmc_file
 
 
 def test_is_hfi_file():
@@ -7,3 +7,10 @@ def test_is_hfi_file():
 
 def test_is_not_hfi_file():
     assert is_hfi_file('at20220824.tiff') is False
+
+def test_is_ffmc_file():
+    assert is_ffmc_file('ffmc20220824.tiff') is True
+
+
+def test_is_not_ffmc_file():
+    assert is_ffmc_file('hfi20220824.tiff') is False

@@ -6,11 +6,13 @@ from typing import Final
 from app.schemas.auto_spatial_advisory import SFMSFile, SFMSRunType
 from app.utils.time import get_hour_20, get_vancouver_now
 
-
 def is_hfi_file(filename: str) -> bool:
     "Returns true if filename starts with 'hfi'"
     return filename.startswith("hfi")
 
+def is_ffmc_file(filename: str) -> bool:
+    "Returns true if filename starts with 'hfi'"
+    return filename.startswith("ffmc")
 
 def get_date_part(filename: str) -> str:
     """ Get the date part of the filename.
@@ -64,6 +66,18 @@ def get_target_filename(filename: str) -> str:
     prefix = get_prefix(filename)
     # create the filename
     return os.path.join('sfms', 'uploads', prefix, issue_date.isoformat()[:10], filename)
+
+
+def get_hourly_filename(filename: str) -> str:
+    """ Get the hourly filename, something that looks like this:
+    bucket/sfms/upload/hourlies/[issue date NOT TIME]/hfi20220823-HH.tif
+    """
+    # We are assuming that the local server time, matches the issue date. We assume that
+    # right after a file is generated, this API is called - and as such the current
+    # time IS the issue date.
+    issue_date = get_vancouver_now()
+    # create the filename
+    return os.path.join('sfms', 'uploads', 'hourlies', issue_date.isoformat()[:10], filename)
 
 
 def get_sfms_file_message(filename: str, meta_data: dict) -> SFMSFile:
