@@ -4,11 +4,12 @@ import logging
 from datetime import datetime, date
 import os
 from tempfile import SpooledTemporaryFile
-from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Header
+from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends, Header
+from app.auth import sfms_authenticate
 from app.nats_publish import publish
 from app.utils.s3 import get_client
 from app import config
-from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename, get_date_part, is_hfi_file
+from app.auto_spatial_advisory.sfms import get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_hfi_file
 from app.auto_spatial_advisory.nats_config import stream_name, subjects, sfms_file_subject
 from app.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
 
@@ -60,7 +61,8 @@ def get_meta_data(request: Request) -> dict:
 @router.post('/upload')
 async def upload(file: UploadFile,
                  request: Request,
-                 background_tasks: BackgroundTasks):
+                 background_tasks: BackgroundTasks,
+                 _=Depends(sfms_authenticate)):
     """
     Trigger the SFMS process to run on the provided file.
     The header MUST include the SFMS secret key.
@@ -75,9 +77,6 @@ async def upload(file: UploadFile,
     ```
     """
     logger.info('sfms/upload/')
-    secret = request.headers.get('Secret')
-    if not secret or secret != config.get('SFMS_SECRET'):
-        return Response(status_code=401)
     # Get an async S3 client.
     async with get_client() as (client, bucket):
         # We save the Last-modified and Create-time as metadata in the object store - just
@@ -107,6 +106,38 @@ async def upload(file: UploadFile,
         # NOTE: Ideally, we'd be able to rely on the caller to retry the upload if we fail to
         # put a message on the queue. But, we can't do that because the caller isn't very smart,
         # and can't be given that level of responsibility.
+    return Response(status_code=200)
+
+@router.post('/upload/hourlies')
+async def upload_hourlies(file: UploadFile,
+                 request: Request,
+                 _=Depends(sfms_authenticate)):
+    """
+    Trigger the SFMS process to run on the provided file for hourlies.
+    The header MUST include the SFMS secret key.
+
+    ```
+    curl -X 'POST' \\
+        'https://psu.nrs.gov.bc.ca/api/sfms/upload/hourlies' \\
+        -H 'accept: application/json' \\
+        -H 'Content-Type: multipart/form-data' \\
+        -H 'Secret: secret' \\
+        -F 'file=@hfi20220812.tif;type=image/tiff'
+    ```
+    """
+    logger.info('sfms/upload/hourlies')
+    # Get an async S3 client.
+    async with get_client() as (client, bucket):
+        # We save the Last-modified and Create-time as metadata in the object store - just
+        # in case we need to know about it in the future.
+        key = get_hourly_filename(file.filename)
+        logger.info('Uploading file "%s" to "%s"', file.filename, key)
+        meta_data = get_meta_data(request)
+        await client.put_object(Bucket=bucket,
+                                Key=key,
+                                Body=FileLikeObject(file.file),
+                                Metadata=meta_data)
+        logger.info('Done uploading file')
     return Response(status_code=200)
 
 

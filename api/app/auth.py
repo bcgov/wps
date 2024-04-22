@@ -21,6 +21,12 @@ async def permissive_oauth2_scheme(request: Request):
         logger.error('Could not validate the credential %s', exception)
         return None
 
+async def sfms_authenticate(request: Request):
+    """ Returns parsed auth token if authorized, None otherwise. """
+    secret = request.headers.get('Secret')
+    if not secret or secret != config.get('SFMS_SECRET'):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    
 
 async def authenticate(token: str = Depends(permissive_oauth2_scheme)):
     """ Returns Decoded token when validation of the token is successful.
