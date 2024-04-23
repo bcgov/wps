@@ -13,13 +13,7 @@ const render = () => {
   Sentry.init({
     dsn: SENTRY_DSN,
     environment: SENTRY_ENV,
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration(),
-      Sentry.feedbackIntegration({
-        colorScheme: 'system'
-      })
-    ],
+    integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
     // Performance Monitoring
     tracesSampleRate: 1.0, //  Capture 100% of the transactions
     // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
