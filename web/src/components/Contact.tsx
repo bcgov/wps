@@ -1,5 +1,6 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
+import FeedbackButton from 'components/FeedbackButton'
 const PREFIX = 'Contact'
 
 const classes = {
@@ -28,17 +29,10 @@ interface Props {
 
 const Contact = (props: Props) => {
   const productName = props.productName
-
+  console.log(productName)
   return (
     <Root>
-      <a className={classes.plainText}>Email: </a>
-      <a
-        id="contact-link"
-        className={classes.contact}
-        href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - ${productName}`}
-      >
-        bcws.predictiveservices@gov.bc.ca
-      </a>
+      <FeedbackButton color="inherit" />
     </Root>
   )
 }
