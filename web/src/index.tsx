@@ -2,7 +2,7 @@ import React from 'react'
 import * as ReactDOMClient from 'react-dom/client'
 import { Provider } from 'react-redux'
 import App from 'app/App'
-import { SENTRY_DSN, API_BASE_URL } from 'utils/env'
+import { SENTRY_DSN, SENTRY_ENV, API_BASE_URL } from 'utils/env'
 
 import 'index.css'
 import store from 'app/store'
@@ -12,6 +12,7 @@ import * as Sentry from '@sentry/react'
 const render = () => {
   Sentry.init({
     dsn: SENTRY_DSN,
+    environment: SENTRY_ENV,
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration(),
