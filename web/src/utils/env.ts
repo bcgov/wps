@@ -11,7 +11,8 @@ let ENV = {
   MS_TEAMS_SPRINT_REVIEW_URL: process.env.REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL as string,
   MIRO_SPRINT_REVIEW_BOARD_URL: process.env.REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL as string,
   PMTILES_BUCKET: process.env.REACT_APP_PMTILES_BUCKET as string,
-  MUI_LICENSE: process.env.REACT_APP_MUI_LICENSE_KEY as string
+  MUI_LICENSE: process.env.REACT_APP_MUI_LICENSE_KEY as string,
+  SENTRY_DSN: process.env.REACT_APP_SENTRY_DSN as string
 }
 
 // If the app is built using 'npm run build'
@@ -31,7 +32,8 @@ if (process.env.NODE_ENV === 'production') {
     MS_TEAMS_SPRINT_REVIEW_URL: window.env.REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL,
     MIRO_SPRINT_REVIEW_BOARD_URL: window.env.REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL,
     PMTILES_BUCKET: window.env.REACT_APP_PMTILES_BUCKET,
-    MUI_LICENSE: window.env.REACT_APP_MUI_LICENSE_KEY
+    MUI_LICENSE: window.env.REACT_APP_MUI_LICENSE_KEY,
+    SENTRY_DSN: window.env.REACT_APP_SENTRY_DSN
   }
 }
 
@@ -48,5 +50,6 @@ export const {
   MIRO_SPRINT_REVIEW_BOARD_URL,
   WF1_AUTH_URL,
   PMTILES_BUCKET,
-  MUI_LICENSE
+  MUI_LICENSE,
+  SENTRY_DSN
 } = ENV
