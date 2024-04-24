@@ -177,13 +177,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <GeneralHeader
-        ref={navRef}
-        isBeta={true}
-        spacing={1}
-        title={FIRE_BEHAVIOUR_ADVISORY_NAME}
-        productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
-      />
+      <GeneralHeader ref={navRef} isBeta={true} spacing={1} title={FIRE_BEHAVIOUR_ADVISORY_NAME} />
       <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
           <Grid container spacing={1} ref={formControlRef}>

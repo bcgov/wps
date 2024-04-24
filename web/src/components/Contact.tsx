@@ -23,13 +23,7 @@ const Root = styled('div')({
   }
 })
 
-interface Props {
-  productName: string
-}
-
-const Contact = (props: Props) => {
-  const productName = props.productName
-  console.log(productName)
+const Contact = () => {
   return (
     <Root>
       <FeedbackButton color="inherit" />

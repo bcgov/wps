@@ -53,13 +53,12 @@ const Root = styled('nav')(({ theme }) => ({
 interface Props {
   isBeta: boolean
   padding?: string
-  productName: string
   spacing: number
   title: string
 }
 
 export const GeneralHeader = React.forwardRef((props: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
-  const { title, productName, spacing } = props
+  const { title, spacing } = props
   GeneralHeader.displayName = 'GeneralHeader'
 
   return (
@@ -71,7 +70,7 @@ export const GeneralHeader = React.forwardRef((props: Props, ref: React.Forwarde
           {props.isBeta && <div className={classes.beta}>BETA</div>}
         </div>
         <div style={{ flexGrow: spacing }}></div>
-        <Contact productName={productName}></Contact>
+        <Contact></Contact>
       </OptionalContainer>
     </Root>
   )
