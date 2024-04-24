@@ -70,7 +70,7 @@ export const GeneralHeader = React.forwardRef((props: Props, ref: React.Forwarde
           {props.isBeta && <div className={classes.beta}>BETA</div>}
         </div>
         <div style={{ flexGrow: spacing }}></div>
-        <Contact></Contact>
+        <Contact />
       </OptionalContainer>
     </Root>
   )
