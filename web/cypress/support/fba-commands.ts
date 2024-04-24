@@ -35,6 +35,26 @@ declare namespace Cypress {
      * @example rowCountShouldBe(0)
      */
     rowCountShouldBe(rowCount: number): void
+
+    /**
+     * Custom command to expect the grass curing in a row.
+     */
+    grassCuringForRowShouldBe(grassCuring: string, rowId: number): void
+
+    /**
+     * Custom command to expect the windspeed in a row.
+     */
+    windSpeedForRowShouldBe(windSpeed: string, rowId: number): void
+
+    /**
+     * Custom command to expect the station code in a row.
+     */
+    stationCodeForRowShouldBe(stationCode: string, rowId: number): void
+
+    /**
+     * Custom command to expect the fuel type in a row.
+     */
+    fuelTypeForRowShouldBe(fuelType: string, rowId: number): void
   }
 }
 
@@ -70,4 +90,30 @@ Cypress.Commands.add('setSelectedRow', () => {
 
 Cypress.Commands.add('rowCountShouldBe', (rowCount: number) => {
   return cy.getByTestId('fba-table-body').find('tr').should('have.length', rowCount)
+})
+
+Cypress.Commands.add('grassCuringForRowShouldBe', (grassCuring: string, rowId: number) => {
+  return cy.getByTestId(`grassCureInput-fba-${rowId}`).find('input').should('have.value', grassCuring)
+})
+
+Cypress.Commands.add('windSpeedForRowShouldBe', (windSpeed: string, rowId: number) => {
+  return cy.getByTestId(`windSpeedInput-fba-${rowId}`).find('input').should('have.value', windSpeed)
+})
+
+Cypress.Commands.add('stationCodeForRowShouldBe', (stationCode: string, rowId: number) => {
+  return cy
+    .getByTestId(`weather-station-dropdown-fba-${rowId}`)
+    .find('input')
+    .should($input => {
+      expect($input.val()).to.include(stationCode)
+    })
+})
+
+Cypress.Commands.add('fuelTypeForRowShouldBe', (fuelType: string, rowId: number) => {
+  return cy
+    .getByTestId(`fuel-type-dropdown-fba-${rowId}`)
+    .find('input')
+    .should($input => {
+      expect($input.val()).to.include(fuelType.toUpperCase())
+    })
 })
