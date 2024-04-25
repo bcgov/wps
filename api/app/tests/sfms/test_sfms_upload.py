@@ -211,7 +211,7 @@ def test_hourly_ffmc_endpoint(mock_publish: AsyncMock, mock_get_client: AsyncMoc
     mock_get_client.return_value = _mock_get_client_for_router()
     client = TestClient(app)
     response = client.post(HOURLY_FFMC_URL,
-                           files={'file': ('hfi20220904.tiff', b'')},
+                           files={'file': ('fine_fuel_moisture_code20220904.tiff', b'')},
                            headers={
                                'Secret': config.get('SFMS_SECRET'),
                                'Last-modified': datetime.now().isoformat(),
@@ -220,5 +220,30 @@ def test_hourly_ffmc_endpoint(mock_publish: AsyncMock, mock_get_client: AsyncMoc
     assert response.status_code == 200
     # We should have called put_object once.
     assert mock_s3_client.put_object.called
+    # We should not publish hourly ffmc
+    assert mock_publish.called == False
+
+@patch('app.routers.sfms.get_client')
+@patch('app.routers.sfms.publish')
+def test_hourly_ffmc_endpoint_non_ffmc_file(mock_publish: AsyncMock, mock_get_client: AsyncMock):
+    """ Verify we don't store other files besides ffmc files """
+    mock_s3_client = AsyncMock()
+
+    @asynccontextmanager
+    async def _mock_get_client_for_router():
+        yield mock_s3_client, 'some_bucket'
+
+    mock_get_client.return_value = _mock_get_client_for_router()
+    client = TestClient(app)
+    response = client.post(HOURLY_FFMC_URL,
+                           files={'file': ('hfi20220904.tiff', b'')},
+                           headers={
+                               'Secret': config.get('SFMS_SECRET'),
+                               'Last-modified': datetime.now().isoformat(),
+                               'Create-time': datetime.now().isoformat()})
+    # We should get a 200 response if the file is uploaded successfully.
+    assert response.status_code == 200
+    # We should have called put_object once.
+    assert mock_s3_client.put_object.called == False
     # We should not publish hourly ffmc
     assert mock_publish.called == False

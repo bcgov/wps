@@ -9,7 +9,7 @@ from app.auth import sfms_authenticate
 from app.nats_publish import publish
 from app.utils.s3 import get_client
 from app import config
-from app.auto_spatial_advisory.sfms import get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_hfi_file
+from app.auto_spatial_advisory.sfms import get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_ffmc_file, is_hfi_file
 from app.auto_spatial_advisory.nats_config import stream_name, subjects, sfms_file_subject
 from app.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
 
@@ -126,18 +126,20 @@ async def upload_hourlies(file: UploadFile,
     ```
     """
     logger.info('sfms/upload/hourlies')
-    # Get an async S3 client.
-    async with get_client() as (client, bucket):
-        # We save the Last-modified and Create-time as metadata in the object store - just
-        # in case we need to know about it in the future.
-        key = get_hourly_filename(file.filename)
-        logger.info('Uploading file "%s" to "%s"', file.filename, key)
-        meta_data = get_meta_data(request)
-        await client.put_object(Bucket=bucket,
-                                Key=key,
-                                Body=FileLikeObject(file.file),
-                                Metadata=meta_data)
-        logger.info('Done uploading file')
+
+    if is_ffmc_file(file.filename):
+        # Get an async S3 client.
+        async with get_client() as (client, bucket):
+            # We save the Last-modified and Create-time as metadata in the object store - just
+            # in case we need to know about it in the future.
+            key = get_hourly_filename(file.filename)
+            logger.info('Uploading file "%s" to "%s"', file.filename, key)
+            meta_data = get_meta_data(request)
+            await client.put_object(Bucket=bucket,
+                                    Key=key,
+                                    Body=FileLikeObject(file.file),
+                                    Metadata=meta_data)
+            logger.info('Done uploading file')
     return Response(status_code=200)
 
 
