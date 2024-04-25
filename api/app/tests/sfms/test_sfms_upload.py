@@ -241,7 +241,7 @@ def test_hourly_ffmc_endpoint_non_ffmc_file(mock_publish: AsyncMock, mock_get_cl
                                'Secret': config.get('SFMS_SECRET'),
                                'Last-modified': datetime.now().isoformat(),
                                'Create-time': datetime.now().isoformat()})
-    # We should get a 200 response if the file is uploaded successfully.
+    # We should get a 200 response if the file is received
     assert response.status_code == 200
     # We should not upload the file
     assert mock_s3_client.put_object.called == False
