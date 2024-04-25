@@ -8,7 +8,7 @@ import { range, startCase, lowerCase, isUndefined } from 'lodash'
 import { FireShape, FireShapeArea } from 'api/fbaAPI'
 
 const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
-const SNOW_FILL = 'rgba(255, 255, 255, 0.85)'
+const SNOW_FILL = 'rgba(255, 255, 255, 0.75)'
 export const ADVISORY_ORANGE_FILL = 'rgba(255, 147, 38, 0.4)'
 export const ADVISORY_RED_FILL = 'rgba(128, 0, 0, 0.4)'
 
