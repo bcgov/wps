@@ -249,7 +249,7 @@ const FBAMap = (props: FBAMapProps) => {
       const latestSnowPMTilesLayer = new VectorTileLayer({
         source: snowPMTilesSource,
         style: snowStyler,
-        zIndex: 100,
+        zIndex: 40,
         minZoom: 4,
         properties: { name: layerName },
         visible: showSnow
