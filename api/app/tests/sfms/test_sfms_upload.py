@@ -243,7 +243,7 @@ def test_hourly_ffmc_endpoint_non_ffmc_file(mock_publish: AsyncMock, mock_get_cl
                                'Create-time': datetime.now().isoformat()})
     # We should get a 200 response if the file is uploaded successfully.
     assert response.status_code == 200
-    # We should have called put_object once.
+    # We should not upload the file
     assert mock_s3_client.put_object.called == False
     # We should not publish hourly ffmc
     assert mock_publish.called == False
