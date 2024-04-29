@@ -30,6 +30,8 @@ import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevatio
 import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
 import { StyledFormControl } from 'components/StyledFormControl'
 import { getMostRecentProcessedSnowByDate } from 'api/snow'
+import InfoPanel from 'features/fba/components/InfoPanel'
+import ProvincialSummary from 'features/fba/components/ProvincialSummary'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -233,7 +235,10 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       </Container>
       <Container sx={{ display: 'flex', flex: 1 }} disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
-          <Grid item>
+          <InfoPanel>
+            <ProvincialSummary />
+          </InfoPanel>
+          {/* <Grid item>
             <ZoneSummaryPanel
               ref={sidePanelRef}
               selectedFireZone={selectedFireShape}
@@ -243,7 +248,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               showSummaryPanel={showSummaryPanel}
               setShowSummaryPanel={setShowSummaryPanel}
             />
-          </Grid>
+          </Grid> */}
           <Grid sx={{ display: 'flex', flex: 1 }} ref={mapRef} item>
             <FBAMap
               forDate={dateOfInterest}
