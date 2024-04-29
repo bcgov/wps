@@ -431,7 +431,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
       // forecast field value with the value of the cell that was double-clicked
       row[forecastField].choice = headerName
       row[forecastField].value = params.value
-      // We've updated local state directly, so now we ned to sync Redux state
+      // We've updated local state directly, so now we need to sync Redux state
       dispatch(storeUserEditedRows([...visibleRows]))
     }
   }
