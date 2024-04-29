@@ -20,6 +20,7 @@ router = APIRouter(
     prefix="/sfms",
 )
 
+SFMS_HOURLIES_PERMISSIONS = 'public-read'
 
 class FileLikeObject(io.IOBase):
     """ Very basic wrapper of the SpooledTemporaryFile to expose the file-like object interface.
@@ -137,6 +138,7 @@ async def upload_hourlies(file: UploadFile,
             meta_data = get_meta_data(request)
             await client.put_object(Bucket=bucket,
                                     Key=key,
+                                    ACL=SFMS_HOURLIES_PERMISSIONS,
                                     Body=FileLikeObject(file.file),
                                     Metadata=meta_data)
             logger.info('Done uploading file')
