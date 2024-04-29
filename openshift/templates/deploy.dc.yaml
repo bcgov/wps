@@ -381,7 +381,7 @@ objects:
                   valueFrom:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
-                      key: sentry-dns
+                      key: sentry-dsn
                 - name: NATS_STREAM_PREFIX
                   value: ${APP_NAME}-${SUFFIX}
                 - name: NATS_SERVER
