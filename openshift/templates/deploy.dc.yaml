@@ -67,7 +67,7 @@ parameters:
     required: True
     value: apps.silver.devops.gov.bc.ca
   - name: ENVIRONMENT
-    description: Can be used to modify route (e.g. when deploying to test)
+    description: Used for specifying which environment sentry is running in
     value: ""
   - name: USE_WFWX
     value: "False"
@@ -377,6 +377,11 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: sfms-secret
+                - name: SENTRY_DSN
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: sentry-dsn
                 - name: NATS_STREAM_PREFIX
                   value: ${APP_NAME}-${SUFFIX}
                 - name: NATS_SERVER
@@ -460,7 +465,7 @@ objects:
         haproxy.router.openshift.io/balance: roundrobin
         haproxy.router.openshift.io/disable_cookies: "true"
     spec:
-      host: ${APP_NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
+      host: ${APP_NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
       path: "/api"
       port:
         targetPort: 8080-tcp
@@ -485,7 +490,7 @@ objects:
         haproxy.router.openshift.io/balance: roundrobin
         haproxy.router.openshift.io/disable_cookies: "true"
     spec:
-      host: ${APP_NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
+      host: ${APP_NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
       port:
         targetPort: 3000-tcp
       to:

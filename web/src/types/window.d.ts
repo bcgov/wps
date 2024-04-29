@@ -12,6 +12,8 @@ interface Window {
     REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL: string
     REACT_APP_PMTILES_BUCKET: string
     REACT_APP_MUI_LICENSE_KEY: string
+    REACT_APP_SENTRY_DSN: string
+    REACT_APP_SENTRY_ENV: string
   }
   Cypress: {} | undefined
 }
