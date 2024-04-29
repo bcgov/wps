@@ -18,8 +18,6 @@ import Subheading from 'features/landingPage/components/Subheading'
 import { ReactComponent as MsTeamsIcon } from 'features/landingPage/images/msTeams.svg'
 import { ReactComponent as MiroIcon } from 'features/landingPage/images/miro.svg'
 import { MIRO_SPRINT_REVIEW_BOARD_URL, MS_TEAMS_SPRINT_REVIEW_URL } from 'utils/env'
-import FeedbackButton from 'components/FeedbackButton'
-import { Grid } from '@mui/material'
 
 const PREFIX = 'Sidebar'
 
@@ -237,10 +235,8 @@ export const Sidebar: React.FunctionComponent = () => {
         {renderLargeCollaborate()}
         <Subheading title="Support" />
         <Content>
-          <Typography>To report bugs or receive support on technical issues, please click below:</Typography>
-          <Grid marginTop={1.5} container justifyContent="center">
-            <FeedbackButton color="primary" />
-          </Grid>
+          <Typography>To report bugs or receive support on technical issues, please email:</Typography>
+          <Email href={'mailto:BCWS.PredictiveServices@gov.bc.ca'}>BCWS.PredictiveServices@gov.bc.ca</Email>
         </Content>
       </RootStack>
     )
