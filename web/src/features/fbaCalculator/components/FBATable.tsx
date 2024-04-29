@@ -162,7 +162,10 @@ const FBATable = (props: FBATableProps) => {
           ...RowManager.buildFBATableRow(inputRow, stationCodeMap)
         }))
       )
-      setRows(sortedRows)
+      if (rows.length > 0 || sortedRows.length > 0) {
+        setRows(sortedRows)
+      }
+
       dispatch(fetchFireBehaviourStations(dateOfInterest, sortedRows))
     }
   }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -183,7 +186,9 @@ const FBATable = (props: FBATableProps) => {
         rows.filter(row => !isUndefined(row)),
         fireBehaviourResultStations
       )
-      setRows(updatedRows)
+      if (rows.length > 0 || updatedRows.length > 0) {
+        setRows(updatedRows)
+      }
 
       const updatedRowIds = difference(
         Array.from(rowIdsToUpdate),
@@ -201,7 +206,9 @@ const FBATable = (props: FBATableProps) => {
           fireBehaviourResultStations
         )
       )
-      setRows(sortedRows)
+      if (rows.length > 0 || sortedRows.length > 0) {
+        setRows(sortedRows)
+      }
       setInitialLoad(false)
     }
     const updatedCalculatedResults = RowManager.updateRows(calculatedResults, fireBehaviourResultStations)
@@ -219,7 +226,9 @@ const FBATable = (props: FBATableProps) => {
     )
     const updatedCalculatedResults = RowManager.updateRows(calculatedResults, fireBehaviourResultStations)
     setCalculatedResults(updatedCalculatedResults)
-    setRows(sortedRows)
+    if (rows.length > 0 || sortedRows.length > 0) {
+      setRows(sortedRows)
+    }
   }, [dateOfInterest, fireBehaviourResultStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -228,7 +237,9 @@ const FBATable = (props: FBATableProps) => {
       order,
       rows.filter(row => !isUndefined(row))
     )
-    setRows(sortedRows)
+    if (rows.length > 0 || sortedRows.length > 0) {
+      setRows(sortedRows)
+    }
   }, [order]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const addStation = () => {
