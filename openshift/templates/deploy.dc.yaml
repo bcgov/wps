@@ -377,6 +377,11 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: sfms-secret
+                - name: SENTRY_DSN
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: sentry-dns
                 - name: NATS_STREAM_PREFIX
                   value: ${APP_NAME}-${SUFFIX}
                 - name: NATS_SERVER
