@@ -1,11 +1,15 @@
 """ This module contains pydantic schemas related to SFMS.
 """
 from datetime import datetime
+from typing import List
 from pydantic import BaseModel
 
-
 class HourlyTIF(BaseModel):
-    """ Data structure for a noon forecast retrieved from BC FireWeather Phase 1 """
+    """ URL of the public hourly tif and it's last modified date in UTC """
     url: str
-    timezone: str # timezone tif was uploaded from
     last_modified: datetime
+
+class HourlyTIFs(BaseModel):
+    """ Encapsulates list of hourly tifs as well as metadata about them """
+    timezone: str # timezone the tifs were uploaded in
+    hourlies: List[HourlyTIF]
