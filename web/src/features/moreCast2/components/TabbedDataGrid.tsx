@@ -381,7 +381,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
     }
 
     dispatch(storeUserEditedRows(newRows))
-    setVisibleRows(newRows)
   }
 
   const updateColumnFromModel = (
@@ -408,7 +407,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
     }
 
     dispatch(storeUserEditedRows(newRows))
-    setVisibleRows(newRows)
   }
 
   // Handle a double-click on a cell in the datagrid. We only handle a double-click when the clicking
@@ -433,8 +431,8 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
       // forecast field value with the value of the cell that was double-clicked
       row[forecastField].choice = headerName
       row[forecastField].value = params.value
-      // We've updated local state directly, so now we have to re-render by calling setVisibleRows
-      setVisibleRows([...visibleRows])
+      // We've updated local state directly, so now we need to sync Redux state
+      dispatch(storeUserEditedRows([...visibleRows]))
     }
   }
 
