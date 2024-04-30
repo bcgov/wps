@@ -155,8 +155,6 @@ async def get_hourlies(for_date: date, response_model=List[HourlyTIF]):
     logger.info('sfms/upload/hourlies')
 
     async with get_client() as (client, bucket):
-        # We save the Last-modified and Create-time as metadata in the object store - just
-        # in case we need to know about it in the future.
         logger.info('Retrieving hourlies for "%s"', for_date)
         bucket = config.get('OBJECT_STORE_BUCKET')
         response = await client.list_objects_v2(Bucket=bucket, Prefix=f'sfms/uploads/hourlies/{str(for_date)}')
