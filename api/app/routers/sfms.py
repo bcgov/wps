@@ -4,9 +4,11 @@ import logging
 from datetime import datetime, date
 import os
 from tempfile import SpooledTemporaryFile
+from typing import List
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends, Header
 from app.auth import sfms_authenticate
 from app.nats_publish import publish
+from app.schemas.sfms import HourlyTIF
 from app.utils.s3 import get_client
 from app import config
 from app.auto_spatial_advisory.sfms import get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_ffmc_file, is_hfi_file
@@ -144,6 +146,23 @@ async def upload_hourlies(file: UploadFile,
             logger.info('Done uploading file')
     return Response(status_code=200)
 
+
+@router.get('/hourlies')
+async def get_hourlies(for_date: date, response_model=List[HourlyTIF]):
+    """
+    Retrieve hourlies for the given date
+    """
+    logger.info('sfms/upload/hourlies')
+
+    async with get_client() as (client, bucket):
+        # We save the Last-modified and Create-time as metadata in the object store - just
+        # in case we need to know about it in the future.
+        logger.info('Retrieving hourlies for "%s"', for_date)
+        bucket = config.get('OBJECT_STORE_BUCKET')
+        response = await client.list_objects_v2(Bucket=bucket, Prefix=f'sfms/uploads/hourlies/{str(for_date)}')
+        hourlies = [HourlyTIF(url=f'https://nrs.objectstore.gov.bc.ca/{bucket}/{hourly["Key"]}', timezone="America/Vancouver", last_modified=hourly["LastModified"]) for hourly in response['Contents']]
+        logger.info(f'Retrieved {len(hourlies)} hourlies')
+        return hourlies
 
 @router.post('/manual')
 async def upload_manual(file: UploadFile,
