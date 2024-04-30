@@ -254,6 +254,22 @@ def test_hourly_ffmc_endpoint_non_ffmc_file(mock_publish: AsyncMock, mock_get_cl
 def test_hourly_ffmc_get_endpoint(mock_get_client: AsyncMock):
     """ Verify we request the correct hourlies sub path for the date supplied """
     mock_s3_client = AsyncMock()
+
+    mock_hourlies = { 
+        'Contents': 
+            [{'Key': 'sfms/uploads/hourlies/2024-04-29/fine_fuel_moisture_code2024042908.tif',
+                'LastModified': datetime(2024, 4, 30, 6, 45, 8, 204000, tzinfo=timezone.utc),
+                'ETag': '"e0aca5f55faba4dee198c72ad769b38d"', 
+                'Size': 2132049,
+                'StorageClass': 'STANDARD'},
+            {'Key': 'sfms/uploads/hourlies/2024-04-29/fine_fuel_moisture_code2024042909.tif',
+                'LastModified': datetime(2024, 4, 29, 7, 45, 9, 257000, tzinfo=timezone.utc),
+                'ETag': '"950ab256cd9859b9f0e696de595bb4a4"', 
+                'Size': 2132049,
+                'StorageClass': 'STANDARD'}] 
+        }
+    
+    mock_s3_client.list_objects_v2.return_value = mock_hourlies
     for_date = '2024-04-29'
 
     @asynccontextmanager
@@ -265,5 +281,8 @@ def test_hourly_ffmc_get_endpoint(mock_get_client: AsyncMock):
     response = client.get(HOURLY_FFMC_GET_URL, params={'for_date': for_date})
 
     assert response.status_code == 200
+    assert response.json()['hourlies'][0] == {'url': 'https://nrs.objectstore.gov.bc.ca/some bucket/sfms/uploads/hourlies/2024-04-29/fine_fuel_moisture_code2024042908.tif'}
+    assert response.json()['hourlies'][1] == {'url': 'https://nrs.objectstore.gov.bc.ca/some bucket/sfms/uploads/hourlies/2024-04-29/fine_fuel_moisture_code2024042909.tif'}
+
     # s3 client is called correctly
     mock_s3_client.list_objects_v2.assert_called_once_with(Bucket='some bucket', Prefix=f'sfms/uploads/hourlies/{for_date}')
