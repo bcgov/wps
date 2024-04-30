@@ -4,9 +4,9 @@ from typing import List
 from pydantic import BaseModel
 
 class HourlyTIF(BaseModel):
-    """ URL of the public hourly tif and it's last modified date in UTC """
+    """ URL of the public hourly tif """
     url: str
 
 class HourlyTIFs(BaseModel):
-    """ Encapsulates list of hourly tifs as well as metadata about them """
+    """ Encapsulates list of hourly tif urls """
     hourlies: List[HourlyTIF]
