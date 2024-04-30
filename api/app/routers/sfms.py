@@ -147,11 +147,11 @@ async def upload_hourlies(file: UploadFile,
     return Response(status_code=200)
 
 
-@router.get('/hourlies')
-async def get_hourlies(for_date: date, response_model=List[HourlyTIF]):
+@router.get('/hourlies', response_model=HourlyTIFs)
+async def get_hourlies(for_date: date):
     """
     Retrieve hourly FFMC TIF files for the given date. 
-    Files are named in the format: fine_fuel_moisture_codeYYYYMMDDHH.tif, where HH is in PST.
+    Files are named in the format: "fine_fuel_moisture_codeYYYYMMDDHH.tif", where HH is the two digit day hour in PST.
     """
     logger.info('sfms/hourlies')
 
