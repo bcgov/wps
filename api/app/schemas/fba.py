@@ -38,6 +38,21 @@ class FireShapeAreaListResponse(BaseModel):
     shapes: List[FireShapeArea]
 
 
+class FireShapeAreaDetail(BaseModel):
+    """Summary information about an advisory shape"""
+
+    fire_shape_id: int
+    threshold: Optional[int] = None
+    combustible_area: float
+    elevated_hfi_area: Optional[float] = None
+    fire_shape_name: str
+    fire_centre_name: str
+
+
+class ProvincialSummaryResponse(BaseModel):
+    provincial_summary: List[FireShapeAreaDetail]
+
+
 class FireShapeHighHfiAreas(BaseModel):
     """ A fire zone and the area exceeding HFI thresholds. """
     fire_shape_id: int
