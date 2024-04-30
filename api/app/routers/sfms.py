@@ -7,6 +7,7 @@ from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends, Header
 from app.auth import sfms_authenticate
 from app.nats_publish import publish
+from app.schemas.sfms import HourlyTIF, HourlyTIFs
 from app.utils.s3 import get_client
 from app import config
 from app.auto_spatial_advisory.sfms import get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_ffmc_file, is_hfi_file
@@ -144,6 +145,22 @@ async def upload_hourlies(file: UploadFile,
             logger.info('Done uploading file')
     return Response(status_code=200)
 
+
+@router.get('/hourlies', response_model=HourlyTIFs)
+async def get_hourlies(for_date: date):
+    """
+    Retrieve hourly FFMC TIF files for the given date. 
+    Files are named in the format: "fine_fuel_moisture_codeYYYYMMDDHH.tif", where HH is the two digit day hour in PST.
+    """
+    logger.info('sfms/hourlies')
+
+    async with get_client() as (client, bucket):
+        logger.info('Retrieving hourlies for "%s"', for_date)
+        bucket = config.get('OBJECT_STORE_BUCKET')
+        response = await client.list_objects_v2(Bucket=bucket, Prefix=f'sfms/uploads/hourlies/{str(for_date)}')
+        hourlies = [HourlyTIF(url=f'https://nrs.objectstore.gov.bc.ca/{bucket}/{hourly["Key"]}') for hourly in response['Contents']]
+        logger.info(f'Retrieved {len(hourlies)} hourlies')
+        return HourlyTIFs(hourlies=hourlies)
 
 @router.post('/manual')
 async def upload_manual(file: UploadFile,
