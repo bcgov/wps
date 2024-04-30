@@ -150,17 +150,18 @@ async def upload_hourlies(file: UploadFile,
 @router.get('/hourlies')
 async def get_hourlies(for_date: date, response_model=List[HourlyTIF]):
     """
-    Retrieve hourlies for the given date
+    Retrieve hourly FFMC TIF files for the given date. 
+    Files are named in the format: fine_fuel_moisture_codeYYYYMMDDHH.tif, where HH is in PST.
     """
-    logger.info('sfms/upload/hourlies')
+    logger.info('sfms/hourlies')
 
     async with get_client() as (client, bucket):
         logger.info('Retrieving hourlies for "%s"', for_date)
         bucket = config.get('OBJECT_STORE_BUCKET')
         response = await client.list_objects_v2(Bucket=bucket, Prefix=f'sfms/uploads/hourlies/{str(for_date)}')
-        hourlies = [HourlyTIF(url=f'https://nrs.objectstore.gov.bc.ca/{bucket}/{hourly["Key"]}', last_modified=hourly["LastModified"]) for hourly in response['Contents']]
+        hourlies = [HourlyTIF(url=f'https://nrs.objectstore.gov.bc.ca/{bucket}/{hourly["Key"]}') for hourly in response['Contents']]
         logger.info(f'Retrieved {len(hourlies)} hourlies')
-        return HourlyTIFs(timezone="America/Vancouver", hourlies=hourlies)
+        return HourlyTIFs(hourlies=hourlies)
 
 @router.post('/manual')
 async def upload_manual(file: UploadFile,

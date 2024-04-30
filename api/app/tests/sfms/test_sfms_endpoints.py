@@ -11,7 +11,9 @@ from app.main import app
 
 
 URL = '/api/sfms/upload'
-HOURLY_FFMC_URL = '/api/sfms/upload/hourlies'
+HOURLY_FFMC_UPLOAD_URL = '/api/sfms/upload/hourlies'
+HOURLY_FFMC_GET_URL = '/api/sfms/hourlies'
+
 
 yesterday: Final = 'hfi20220822.tif'
 today: Final = 'hfi20220823.tif'
@@ -210,7 +212,7 @@ def test_hourly_ffmc_endpoint(mock_publish: AsyncMock, mock_get_client: AsyncMoc
 
     mock_get_client.return_value = _mock_get_client_for_router()
     client = TestClient(app)
-    response = client.post(HOURLY_FFMC_URL,
+    response = client.post(HOURLY_FFMC_UPLOAD_URL,
                            files={'file': ('fine_fuel_moisture_code20220904.tiff', b'')},
                            headers={
                                'Secret': config.get('SFMS_SECRET'),
@@ -235,7 +237,7 @@ def test_hourly_ffmc_endpoint_non_ffmc_file(mock_publish: AsyncMock, mock_get_cl
 
     mock_get_client.return_value = _mock_get_client_for_router()
     client = TestClient(app)
-    response = client.post(HOURLY_FFMC_URL,
+    response = client.post(HOURLY_FFMC_UPLOAD_URL,
                            files={'file': ('hfi20220904.tiff', b'')},
                            headers={
                                'Secret': config.get('SFMS_SECRET'),
@@ -247,3 +249,21 @@ def test_hourly_ffmc_endpoint_non_ffmc_file(mock_publish: AsyncMock, mock_get_cl
     assert mock_s3_client.put_object.called == False
     # We should not publish hourly ffmc
     assert mock_publish.called == False
+
+@patch('app.routers.sfms.get_client')
+def test_hourly_ffmc_get_endpoint(mock_get_client: AsyncMock):
+    """ Verify we request the correct hourlies sub path for the date supplied """
+    mock_s3_client = AsyncMock()
+    for_date = '2024-04-29'
+
+    @asynccontextmanager
+    async def _mock_get_client_for_router():
+        yield mock_s3_client, 'some_bucket'
+
+    mock_get_client.return_value = _mock_get_client_for_router()
+    client = TestClient(app)
+    response = client.get(HOURLY_FFMC_GET_URL, params={'for_date': for_date})
+
+    assert response.status_code == 200
+    # s3 client is called correctly
+    mock_s3_client.list_objects_v2.assert_called_once_with(Bucket='some bucket', Prefix=f'sfms/uploads/hourlies/{for_date}')
