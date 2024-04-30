@@ -4,7 +4,6 @@ import logging
 from datetime import datetime, date
 import os
 from tempfile import SpooledTemporaryFile
-from typing import List
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends, Header
 from app.auth import sfms_authenticate
 from app.nats_publish import publish
