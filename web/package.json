@@ -59,7 +59,8 @@
   "scripts": {
     "start": "CI=true craco start",
     "start:cypress": "export $(cat .env.cypress | xargs) && craco --max_old_space_size=4096 -r @cypress/instrument-cra start",
-    "build": "craco --max_old_space_size=2048 build && yarn sentry:sourcemaps",
+    "build": "craco --max_old_space_size=2048 build",
+    "build:prod": "craco --max_old_space_size=2048 build && yarn sentry:sourcemaps",
     "test": "craco test --transformIgnorePatterns \"node_modules/(?!ol)/\"",
     "test:ci": "CI=true npm test",
     "coverage": "npm test -- --coverage --watchAll=false",
