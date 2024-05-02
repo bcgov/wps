@@ -467,7 +467,7 @@ objects:
         haproxy.router.openshift.io/balance: roundrobin
         haproxy.router.openshift.io/disable_cookies: "true"
     spec:
-      host: ${APP_NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
+      host: ${APP_NAME}-${SUFFIX}${PROJECT_NAMESPACE}.${SECOND_LEVEL_DOMAIN}
       path: "/api"
       port:
         targetPort: 8080-tcp
@@ -492,7 +492,7 @@ objects:
         haproxy.router.openshift.io/balance: roundrobin
         haproxy.router.openshift.io/disable_cookies: "true"
     spec:
-      host: ${APP_NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
+      host: ${APP_NAME}-${SUFFIX}${PROJECT_NAMESPACE}.${SECOND_LEVEL_DOMAIN}
       port:
         targetPort: 3000-tcp
       to:
