@@ -8,7 +8,7 @@ module.exports = async ({ github, context }) => {
     repo: context.repo.repo,
     pull_number: prNum,
   });
-  const prBaseUrl = `https://wps-pr-${prNum}.apps.silver.devops.gov.bc.ca`;
+  const prBaseUrl = `https://wps-pr-${prNum}-e1e498-dev.apps.silver.devops.gov.bc.ca`;
   if (pr.data.body === null || !pr.data.body.includes(prBaseUrl)) {
     // If the body doesn't already contain some test links, we create a few.
     let body = pr.data.body === null ? "" : pr.data.body;
