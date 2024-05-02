@@ -2,6 +2,7 @@ from datetime import datetime
 import pytest
 from app.weather_models import machine_learning
 from app.tests.weather_models.crud import (get_actuals_left_outer_join_with_predictions,
+                                           get_actuals_and_predictions_with_high_rh,
                                            get_accumulated_precip_by_24h_interval,
                                            get_predicted_daily_precip)
 from app.db.models.weather_models import PredictionModel
@@ -14,7 +15,12 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
     """ Mock out call to DB returning actuals macthed with predictions """
     monkeypatch.setattr(machine_learning, 'get_actuals_left_outer_join_with_predictions',
                         get_actuals_left_outer_join_with_predictions)
-    
+
+@pytest.fixture()
+def mock_get_actuals_and_predictions_high_rh(monkeypatch):
+    monkeypatch.setattr(machine_learning, 'get_actuals_left_outer_join_with_predictions',
+                        get_actuals_and_predictions_with_high_rh)
+
 @pytest.fixture()
 def mock_get_accumulated_precip_by_24h_interval(monkeypatch):
     """ Mock out call to DB returning actual 24 hour precipitation data """
@@ -52,6 +58,26 @@ def test_bias_adjustment_with_samples(mock_get_actuals_left_outer_join_with_pred
     assert rh_result == 100
     assert math.isclose(wdir_result, 115.51556685719027)
     assert precip_result == 3
+
+def test_bias_adjustment_of_rh_above_100(mock_get_actuals_and_predictions_high_rh,                                         
+                                         mock_get_accumulated_precip_by_24h_interval,
+                                         mock_get_predicted_daily_precip):
+    
+    predict_date_with_samples = datetime.fromisoformat("2020-09-03T21:14:51.939836+00:00")
+
+    machine_learner = StationMachineLearning(
+        session=None,
+        model=PredictionModel(id=1),
+        target_coordinate=[
+            -120.4816667,
+            50.6733333
+        ],
+        station_code=None,
+        max_learn_date=datetime.now())
+    machine_learner.learn()
+
+    rh_result = machine_learner.predict_rh(105, predict_date_with_samples)
+    assert rh_result == 100
 
 
 def test_bias_adjustment_without_samples(mock_get_actuals_left_outer_join_with_predictions,
