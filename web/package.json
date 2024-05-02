@@ -20,6 +20,7 @@
     "@mui/x-data-grid-pro": "^6.0.0",
     "@mui/x-date-pickers": "^7.0.0",
     "@reduxjs/toolkit": "^1.8.0",
+    "@sentry/cli": "^2.31.1",
     "@sentry/react": "^7.112.1",
     "@types/esri-leaflet": "^3.0.0",
     "@types/leaflet": "^1.7.0",
@@ -58,7 +59,8 @@
   "scripts": {
     "start": "CI=true craco start",
     "start:cypress": "export $(cat .env.cypress | xargs) && craco --max_old_space_size=4096 -r @cypress/instrument-cra start",
-    "build": "GENERATE_SOURCEMAP=false craco --max_old_space_size=2048 build",
+    "build": "craco --max_old_space_size=2048 build",
+    "build:prod": "craco --max_old_space_size=2048 build && yarn sentry:sourcemaps",
     "test": "craco test --transformIgnorePatterns \"node_modules/(?!ol)/\"",
     "test:ci": "CI=true npm test",
     "coverage": "npm test -- --coverage --watchAll=false",
@@ -71,7 +73,8 @@
     "lint": "eslint './src/**/*.{ts,tsx}'",
     "lint:fix": "eslint --fix './src/**/*.{ts,tsx}'",
     "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md)\"",
-    "finalizeCoverage": "node mergeCoverage.js"
+    "finalizeCoverage": "node mergeCoverage.js",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org bcps-wps --project frontend ./build && sentry-cli sourcemaps upload --org bcps-wps --project frontend ./build"
   },
   "browserslist": {
     "production": [

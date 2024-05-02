@@ -33,6 +33,9 @@ parameters:
     description: Dockerfile to use
     required: true
     value: Dockerfile.web
+  - name: SENTRY_AUTH_TOKEN
+    description: Sentry auth token for uploading source maps
+    required: true
 objects:
   - apiVersion: v1
     kind: ImageStream
@@ -76,5 +79,8 @@ objects:
         contextDir: ./
       strategy:
         dockerStrategy:
+          env:
+            - name: "SENTRY_AUTH_TOKEN"
+              value: ${SENTRY_AUTH_TOKEN}
           dockerfilePath: ${DOCKER_FILE}
       triggers: []
