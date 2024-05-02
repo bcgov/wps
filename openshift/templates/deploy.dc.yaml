@@ -147,7 +147,7 @@ objects:
                 - name: ORIGINS
                   value: ${ALLOWED_ORIGINS}
                 - name: BASE_URI
-                  value: https://${APP_NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
+                  value: https://${APP_NAME}-${SUFFIX}${PROJECT_NAMESPACE}.${SECOND_LEVEL_DOMAIN}
                 - name: PORT # The port that the API will run on (used by fastapi docker image)
                   value: "8080"
                 - name: ENVIRONMENT
