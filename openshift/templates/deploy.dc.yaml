@@ -150,6 +150,8 @@ objects:
                   value: https://${APP_NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
                 - name: PORT # The port that the API will run on (used by fastapi docker image)
                   value: "8080"
+                - name: ENVIRONMENT
+                  value: ${ENVIRONMENT}
                 - name: GUNICORN_WORKERS # The number of workers to spawn
                   value: ${GUNICORN_WORKERS}
                 - name: "TIMEOUT" # https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout
