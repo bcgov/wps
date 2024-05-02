@@ -60,7 +60,7 @@ API_INFO = '''
     programs or information, even if the Government of British Columbia
     has been specifically advised of the possibility of such damages.'''
 
-if config.get('ENVIRONMENT') != 'development':        
+if config.get('ENVIRONMENT') == 'production':        
     sentry_sdk.init(
         dsn=config.get("SENTRY_DSN"),
         environment=config.get('ENVIRONMENT'),
