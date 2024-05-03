@@ -11,7 +11,7 @@ parameters:
     description: Name of global Module
     value: wps-global
   - name: PROJ_TOOLS
-    required: true
+    value: e1e498-tools
   - name: SCHEDULE
     required: true
   - name: "TAG_NAME"
