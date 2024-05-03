@@ -12,6 +12,8 @@ parameters:
     value: wps-global
   - name: PROJ_TOOLS
     required: true
+  - name: SCHEDULE
+    required: true
   - name: "TAG_NAME"
     displayName: "Environment TAG name"
     description: "The TAG name for this environment, e.g., dev, test, prod"
@@ -19,10 +21,14 @@ parameters:
     value: "prod"
 objects:
   - apiVersion: batch/v1
-    kind: Job
+    kind: CronJob
     metadata:
       name: prune-hourlies-${NAME}-${SUFFIX}
+      labels:
+        cronjob: prune-hourlies-${NAME}-${SUFFIX}
     spec:
+      schedule: ${SCHEDULE}
+      concurrencyPolicy: "Replace"
       # cleanup after run
       ttlSecondsAfterFinished: 100
       parallelism: 1
