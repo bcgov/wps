@@ -1,0 +1,64 @@
+kind: "Template"
+apiVersion: "template.openshift.io/v1"
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: PROJ_TOOLS
+    required: true
+  - name: "TAG_NAME"
+    displayName: "Environment TAG name"
+    description: "The TAG name for this environment, e.g., dev, test, prod"
+    required: true
+    value: "prod"
+objects:
+  - apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: prune-hourlies-${NAME}-${SUFFIX}
+    spec:
+      # cleanup after run
+      ttlSecondsAfterFinished: 100
+      parallelism: 1
+      completions: 1
+      activeDeadlineSeconds: 1800
+      backoffLimit: 6
+      template:
+        metadata:
+          name: prune-hourlies-${NAME}-${SUFFIX}
+        spec:
+          containers:
+            - name: prune-hourlies-${NAME}-${SUFFIX}
+              image: "image-registry.openshift-image-registry.svc:5000/${PROJ_TOOLS}/hourlies-prune:${TAG_NAME}"
+              imagePullPolicy: Always
+              env:
+                - name: AWS_HOSTNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-server
+                - name: AWS_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-user-id
+                - name: AWS_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-secret
+                - name: AWS_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-bucket
+                - name: SUFFIX
+                  value: ${SUFFIX}
+              command: ["bash", "prune_hourlies.sh"]
+          restartPolicy: OnFailure
