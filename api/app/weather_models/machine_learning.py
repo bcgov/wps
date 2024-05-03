@@ -217,7 +217,7 @@ class StationMachineLearning:
         if self.regression_models[hour].relative_humidity_wrapper.good_model and model_rh is not None:
             predicted_rh = self.regression_models[hour].relative_humidity_wrapper.model.predict([[model_rh]])[0]
             # in the real world the RH value can't be negative. Sometimes linear regression returns negative value, so assume 0
-            return max(0, predicted_rh)
+            return min(max(0, predicted_rh), 100)
         return None
 
     def predict_wind_speed(self, model_wind_speed: float, timestamp: datetime):
