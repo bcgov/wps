@@ -67,4 +67,5 @@ objects:
                 - name: SUFFIX
                   value: ${SUFFIX}
               command: ["bash", "prune_hourlies.sh"]
+
           restartPolicy: OnFailure
