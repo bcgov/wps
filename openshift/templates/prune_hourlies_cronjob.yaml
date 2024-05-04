@@ -20,52 +20,58 @@ parameters:
     required: true
     value: "prod"
 objects:
-  - apiVersion: batch/v1
-    kind: CronJob
+  - kind: CronJob
+    apiVersion: batch/v1
     metadata:
       name: prune-hourlies-${NAME}-${SUFFIX}
-      labels:
-        cronjob: prune-hourlies-${NAME}-${SUFFIX}
     spec:
       schedule: ${SCHEDULE}
+      # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
+      # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
+      # If we were to use Forbid, and a cronjob gets stuck, then we'd stop gathering data until someone
+      # noticed. We don't want that.
       concurrencyPolicy: "Replace"
-      # cleanup after run
-      ttlSecondsAfterFinished: 100
-      parallelism: 1
-      completions: 1
-      activeDeadlineSeconds: 1800
-      backoffLimit: 6
-      template:
+      jobTemplate:
         metadata:
-          name: prune-hourlies-${NAME}-${SUFFIX}
+          labels:
+            cronjob: prune-hourlies-${NAME}-${SUFFIX}
+            app: ${APP_LABEL}
         spec:
-          containers:
-            - name: prune-hourlies-${NAME}-${SUFFIX}
-              image: "image-registry.openshift-image-registry.svc:5000/${PROJ_TOOLS}/hourlies-prune:${TAG_NAME}"
-              imagePullPolicy: Always
-              env:
-                - name: AWS_HOSTNAME
-                  valueFrom:
-                    secretKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: object-store-server
-                - name: AWS_ACCESS_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: object-store-user-id
-                - name: AWS_SECRET_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: object-store-secret
-                - name: AWS_BUCKET
-                  valueFrom:
-                    secretKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: object-store-bucket
-                - name: SUFFIX
-                  value: ${SUFFIX}
-              command: ["bash", "prune_hourlies.sh"]
-
-          restartPolicy: OnFailure
+          template:
+            spec:
+              containers:
+                - name: prune-hourlies-${NAME}-${SUFFIX}
+                  image: "image-registry.openshift-image-registry.svc:5000/${PROJ_TOOLS}/hourlies-prune:${TAG_NAME}"
+                  imagePullPolicy: "Always"
+                  command: ["bash", "prune_hourlies.sh"]
+                  env:
+                    - name: AWS_HOSTNAME
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-server
+                    - name: AWS_ACCESS_KEY
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-user-id
+                    - name: AWS_SECRET_KEY
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-secret
+                    - name: AWS_BUCKET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-bucket
+                    - name: SUFFIX
+                      value: ${SUFFIX}
+                  resources:
+                    limits:
+                      cpu: "1"
+                      memory: 1024Mi
+                    requests:
+                      cpu: "500m"
+                      memory: 512Mi
+              restartPolicy: OnFailure
