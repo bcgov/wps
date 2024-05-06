@@ -3,53 +3,40 @@ import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import FireZoneUnitInfo from 'features/fba/components/FireZoneUnitInfo'
-
-export interface FireZoneUnitStatus {
-  fireZoneUnitName: string
-  status: 0 | 1 | 2
-}
-
-export interface FireZoneCentreInfo {
-  fireCentreName: string
-  fireZoneUnits: FireZoneUnitStatus[]
-}
+import { groupBy } from 'lodash'
+import { FireShapeAreaDetail } from 'api/fbaAPI'
 
 interface FireCentreInfoProps {
+  advisoryThreshold: number
   fireCentreName: string
-  fireZoneUnits: FireZoneUnitStatus[]
+  fireZoneUnitInfos: FireShapeAreaDetail[]
 }
 
 const StyledAccordionSummary = styled(AccordionSummary)(() => ({
   flexDirection: 'row-reverse',
   fontSize: '0.85rem',
   fontWeight: 'bold',
+  margin: '0px',
   minHeight: '32px',
   ['& . .MuiButtonBase-root.MuiAccordionSummary-root']: {
     minHeight: '32px'
-  },
-  ['& .MuiAccordionSummary-content.Mui-expanded']: {
-    margin: '0px'
   }
 }))
 
-const StyledAccordion = styled(Accordion)(() => ({
-  ['& .MuiPaper-root .MuiAccordion-root .MuiAccordion-rounded .Mui-expanded']: {
-    margin: '0px'
-  }
-}))
-
-const FireCenterInfo = ({ fireCentreName, fireZoneUnits }: FireCentreInfoProps) => {
+const FireCenterInfo = ({ advisoryThreshold, fireCentreName, fireZoneUnitInfos }: FireCentreInfoProps) => {
+  const groupedFireZoneUnitInfos = groupBy(fireZoneUnitInfos, 'fire_shape_name')
   return (
-    <Accordion disableGutters defaultExpanded={true} elevation={0}>
+    <Accordion disableGutters defaultExpanded={false} elevation={0}>
       <StyledAccordionSummary expandIcon={<ExpandMoreIcon />}>{fireCentreName}</StyledAccordionSummary>
       <AccordionDetails sx={{ paddingTop: '0px', paddingBottom: '0px' }}>
-        {fireZoneUnits.map(unit => {
+        {Object.keys(groupedFireZoneUnitInfos).map((key, index) => {
           return (
             <FireZoneUnitInfo
-              key={unit.fireZoneUnitName}
-              fireZoneUnitName={unit.fireZoneUnitName}
-              status={unit.status}
-            ></FireZoneUnitInfo>
+              key={index}
+              advisoryThreshold={advisoryThreshold}
+              fireZoneUnitName={key}
+              fireZoneUnitDetails={groupedFireZoneUnitInfos[key]}
+            />
           )
         })}
       </AccordionDetails>

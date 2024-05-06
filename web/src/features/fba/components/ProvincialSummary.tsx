@@ -1,63 +1,38 @@
 import React from 'react'
-
-import { Box, Typography } from '@mui/material'
+import { useSelector } from 'react-redux'
+import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
+import FireCentreInfo from 'features/fba/components/FireCentreInfo'
+import InfoAccordion from 'features/fba/components/InfoAccordion'
+import { isNull, isUndefined } from 'lodash'
+import { Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import Grid from '@mui/material/Unstable_Grid2'
-import { Container } from 'components'
-import FireCentreInfo, { FireZoneCentreInfo } from 'features/fba/components/FireCentreInfo'
 
-const fireZoneCentreDetails: FireZoneCentreInfo[] = [
-  {
-    fireCentreName: 'Cariboo FC',
-    fireZoneUnits: [
-      { fireZoneUnitName: 'C1 - Quesnel', status: 0 },
-      { fireZoneUnitName: 'C2/C3 - Central Cariboo', status: 0 },
-      { fireZoneUnitName: 'C4 - 100 Mile House', status: 0 },
-      { fireZoneUnitName: 'C5 - Chilcotin', status: 0 }
-    ]
-  },
-  {
-    fireCentreName: 'Kamloops FC',
-    fireZoneUnits: [
-      { fireZoneUnitName: 'K2 - Kamloops', status: 1 },
-      { fireZoneUnitName: 'K4 - Vernon', status: 1 },
-      { fireZoneUnitName: 'K5 - Penticton', status: 1 },
-      { fireZoneUnitName: 'K6 - Merritt', status: 2 },
-      { fireZoneUnitName: 'K7 - Lillooet', status: 2 }
-    ]
-  }
-]
+interface ProvincialSummaryProps {
+  advisoryThreshold: number
+}
 
-const ProvincialSummary = () => {
+// Displays advisory status of all fire zone units in all fire centres across BC.
+const ProvincialSummary = ({ advisoryThreshold }: ProvincialSummaryProps) => {
+  const provincialSummary = useSelector(selectProvincialSummary)
   const theme = useTheme()
+
   return (
-    <Grid container>
-      <Grid xs={12}>
-        <Box sx={{ backgroundColor: '#e4e4e5', paddingTop: '8px', paddingBottom: '8px' }}>
-          <Typography
-            sx={{
-              color: theme.palette.primary.main,
-              fontWeight: 'bold',
-              paddingLeft: '1.25rem'
-            }}
-            variant="h6"
-          >
-            Provincial Summary
-          </Typography>
-        </Box>
-        <Box>
-          {fireZoneCentreDetails.map(fireCentre => {
-            return (
-              <FireCentreInfo
-                key={fireCentre.fireCentreName}
-                fireCentreName={fireCentre.fireCentreName}
-                fireZoneUnits={fireCentre.fireZoneUnits}
-              />
-            )
-          })}
-        </Box>
-      </Grid>
-    </Grid>
+    <InfoAccordion defaultExpanded={false} title={'Provincial Summary'}>
+      {isNull(provincialSummary) || isUndefined(provincialSummary) || Object.keys(provincialSummary).length === 0 ? (
+        <Typography sx={{ paddingTop: theme.spacing(1) }}>No data avaiable for the selected parameters</Typography>
+      ) : (
+        Object.keys(provincialSummary).map((key, index) => {
+          return (
+            <FireCentreInfo
+              key={index}
+              advisoryThreshold={advisoryThreshold}
+              fireCentreName={key}
+              fireZoneUnitInfos={provincialSummary[key]}
+            />
+          )
+        })
+      )}
+    </InfoAccordion>
   )
 }
 

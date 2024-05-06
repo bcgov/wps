@@ -60,6 +60,21 @@ export interface FireShapeAreaListResponse {
   shapes: FireShapeArea[]
 }
 
+// Fire shape area (aka fire zone unit) data transfer object
+export interface FireShapeAreaDetail {
+  fire_shape_id: number
+  fire_shape_name: string
+  fire_centre_name: string
+  combustible_area: number
+  threshold?: number
+  elevated_hfi_area?: number
+}
+
+// Response object for provincial summary request
+export interface ProvincialSummaryResponse {
+  provincial_summary: FireShapeAreaDetail[]
+}
+
 export interface HfiThresholdFuelTypeArea {
   fuel_type_id: number
   threshold_id: number
@@ -91,6 +106,17 @@ export async function getFireShapeAreas(
   for_date: string
 ): Promise<FireShapeAreaListResponse> {
   const url = `/fba/fire-shape-areas/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
+  const { data } = await axios.get(url, {})
+  return data
+}
+
+// Gets a summary of info about all fire zone units in the province
+export async function getProvincialSummary(
+  run_type: RunType,
+  run_datetime: string,
+  for_date: string
+): Promise<ProvincialSummaryResponse> {
+  const url = `/fba/provincial-summary/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
   const { data } = await axios.get(url, {})
   return data
 }

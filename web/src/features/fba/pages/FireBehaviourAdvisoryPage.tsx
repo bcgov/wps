@@ -27,11 +27,12 @@ import { isNull, isUndefined } from 'lodash'
 import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
-import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
 import { StyledFormControl } from 'components/StyledFormControl'
 import { getMostRecentProcessedSnowByDate } from 'api/snow'
 import InfoPanel from 'features/fba/components/InfoPanel'
 import ProvincialSummary from 'features/fba/components/ProvincialSummary'
+import FireZoneUnitSummary from 'features/fba/components/FireZoneUnitSummary'
+import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -141,6 +142,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(mostRecentRunDate) && !isNull(doiISODate) && !isUndefined(mostRecentRunDate)) {
       dispatch(fetchFireShapeAreas(runType, mostRecentRunDate.toString(), doiISODate))
+      dispatch(fetchProvincialSummary(runType, mostRecentRunDate.toString(), doiISODate))
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -235,20 +237,15 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       </Container>
       <Container sx={{ display: 'flex', flex: 1 }} disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
-          <InfoPanel>
-            <ProvincialSummary />
-          </InfoPanel>
-          {/* <Grid item>
-            <ZoneSummaryPanel
-              ref={sidePanelRef}
-              selectedFireZone={selectedFireShape}
+          <InfoPanel ref={sidePanelRef}>
+            <ProvincialSummary advisoryThreshold={advisoryThreshold} />
+            <FireZoneUnitSummary
+              fireShapeAreas={fireShapeAreas}
               fuelTypeInfo={hfiThresholdsFuelTypes}
               hfiElevationInfo={fireZoneElevationInfo}
-              fireShapeAreas={fireShapeAreas}
-              showSummaryPanel={showSummaryPanel}
-              setShowSummaryPanel={setShowSummaryPanel}
+              selectedFireZoneUnit={selectedFireShape}
             />
-          </Grid> */}
+          </InfoPanel>
           <Grid sx={{ display: 'flex', flex: 1 }} ref={mapRef} item>
             <FBAMap
               forDate={dateOfInterest}

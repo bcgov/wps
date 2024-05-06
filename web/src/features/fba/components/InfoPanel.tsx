@@ -5,8 +5,15 @@ interface InfoPanelProps {
   children: React.ReactNode
 }
 
-const InfoPanel = ({ children }: InfoPanelProps) => {
-  return <Grid sx={{ maxWidth: 400, minWidth: 400 }}>{children}</Grid>
-}
+// A component to host information in a side panel in ASA.
+const InfoPanel = React.forwardRef(({ children }: InfoPanelProps, ref: React.ForwardedRef<HTMLDivElement>) => {
+  return (
+    <Grid id="info-panel" item ref={ref} sx={{ minWidth: '500px', overflowY: 'auto' }}>
+      {children}
+    </Grid>
+  )
+})
+
+InfoPanel.displayName = 'InfoPanel'
 
 export default InfoPanel
