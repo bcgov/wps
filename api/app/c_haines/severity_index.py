@@ -35,6 +35,8 @@ from app.weather_models.process_grib import get_dataset_geometry
 
 logger = logging.getLogger(__name__)
 
+C_HAINES_JSON_PERMISSIONS = 'public-read'
+
 
 def get_severity(c_haines_index) -> int:
     """ Return the "severity" of the continuous haines index.
@@ -333,7 +335,10 @@ async def save_as_geojson_to_s3(source_json_filename: str,
             bio.seek(0)
             # smash it into the object store.
             logger.info('uploading %s', target_path)
-            await client.put_object(Bucket=bucket, Key=target_path, Body=bio)
+            await client.put_object(Bucket=bucket,
+                                    Key=target_path,
+                                    ACL=C_HAINES_JSON_PERMISSIONS,
+                                    Body=bio)
 
 
 class CHainesSeverityGenerator():
