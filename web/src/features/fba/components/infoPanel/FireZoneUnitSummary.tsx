@@ -5,7 +5,7 @@ import { isUndefined } from 'lodash'
 import { ElevationInfoByThreshold, FireShape, FireShapeArea, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import ElevationInfoViz from 'features/fba/components/viz/ElevationInfoViz'
 import FuelTypesBreakdown from 'features/fba/components/viz/FuelTypesBreakdown'
-import InfoAccordion from 'features/fba/components/InfoAccordion'
+import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import { useTheme } from '@mui/material/styles'
 
 interface FireZoneUnitSummaryProps {
