@@ -37,5 +37,5 @@ hourlies_path="sfms/uploads/hourlies"
 day_before_yesterday=$(TZ=America/Vancouver date -v-2d -I)
 
 echo "Cleaning up hourlies from ${AWS_BUCKET}/${hourlies_path}/${day_before_yesterday}"
-AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}" AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}" aws --endpoint="https://${AWS_HOSTNAME}" s3 rm --recursive "s3://${AWS_BUCKET}/${hourlies_path}/${day_before_yesterday}"
+AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}" AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}" aws --endpoint="https://${AWS_HOSTNAME}" s3 rm --recursive "s3://${AWS_BUCKET}/${hourlies_path}/${day_before_yesterday}/"
 echo 'Complete'
