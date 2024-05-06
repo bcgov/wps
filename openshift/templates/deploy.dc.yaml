@@ -429,7 +429,7 @@ objects:
       name: vpa-recommender-${SUFFIX}
     spec:
       targetRef:
-        apiVersion: "apps/v1"
+        apiVersion: "apps.openshift.io/v1"
         kind: DeploymentConfig
         name: ${APP_NAME}-${SUFFIX}
       updatePolicy:
