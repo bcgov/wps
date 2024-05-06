@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 FOLDER_OPEN: Final = '<Folder>'
 FOLDER_CLOSE: Final = '</Folder>'
+C_HAINES_KML_PERMISSIONS = 'public-read'
 
 
 # Severity enum -> Text description mapping
@@ -71,7 +72,10 @@ async def save_as_kml_to_s3(json_filename: str,
             bio.seek(0)
             # save it to s3
             logger.info('uploading %s', target_kml_path)
-            await client.put_object(Bucket=bucket, Key=target_kml_path, Body=bio)
+            await client.put_object(Bucket=bucket,
+                                    Key=target_kml_path,
+                                    ACL=C_HAINES_KML_PERMISSIONS,  # We need these to be accessible to everyone
+                                    Body=bio)
 
 
 def open_placemark(model: ModelEnum, severity: SeverityEnum, timestamp: datetime) -> str:
