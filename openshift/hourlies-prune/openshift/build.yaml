@@ -1,0 +1,65 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: hourlies-prune
+labels:
+  app: hourlies-prune
+  phase: build
+  app.kubernetes.io/name: hourlies-prune
+  app.kubernetes.io/managed-by: template
+parameters:
+  - name: NAME
+    value: hourlies-prune
+  - name: VERSION
+    description: Output version
+    required: true
+    value: "latest"
+  - name: GIT_URL
+    value: https://github.com/bcgov/wps.git
+  - name: GIT_BRANCH
+    value: task/hourlies-prune
+objects:
+  #ImageStream is create if it doesn't already exist
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: hourlies-prune
+        common: "true"
+      name: hourlies-prune
+    spec:
+      lookupPolicy:
+        local: false
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: hourlies-prune
+      name: hourlies-prune
+    spec:
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "512Mi"
+        requests:
+          # we might as well start high!
+          cpu: "500m"
+          memory: "256Mi"
+      completionDeadlineSeconds: 600 # 10 minutes.
+      output:
+        to:
+          kind: ImageStreamTag
+          name: hourlies-prune:${VERSION}
+      source:
+        type: Git
+        git:
+          uri: ${GIT_URL}
+          ref: origin/${GIT_BRANCH}
+        contextDir: openshift/hourlies-prune/docker
+      strategy:
+        type: Docker

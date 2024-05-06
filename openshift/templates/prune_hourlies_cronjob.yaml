@@ -1,0 +1,77 @@
+kind: "Template"
+apiVersion: "template.openshift.io/v1"
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+  - name: SCHEDULE
+    required: true
+  - name: "TAG_NAME"
+    displayName: "Environment TAG name"
+    description: "The TAG name for this environment, e.g., dev, test, prod"
+    required: true
+    value: "prod"
+objects:
+  - kind: CronJob
+    apiVersion: batch/v1
+    metadata:
+      name: prune-hourlies-${NAME}-${SUFFIX}
+    spec:
+      schedule: ${SCHEDULE}
+      # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
+      # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
+      # If we were to use Forbid, and a cronjob gets stuck, then we'd stop gathering data until someone
+      # noticed. We don't want that.
+      concurrencyPolicy: "Replace"
+      jobTemplate:
+        metadata:
+          labels:
+            cronjob: prune-hourlies-${NAME}-${SUFFIX}
+            app: prune-hourlies-${NAME}-${SUFFIX}
+        spec:
+          template:
+            spec:
+              containers:
+                - name: prune-hourlies-${NAME}-${SUFFIX}
+                  image: "image-registry.openshift-image-registry.svc:5000/${PROJ_TOOLS}/hourlies-prune:${TAG_NAME}"
+                  imagePullPolicy: "Always"
+                  command: ["bash", "prune_hourlies.sh"]
+                  env:
+                    - name: AWS_HOSTNAME
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-server
+                    - name: AWS_ACCESS_KEY
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-user-id
+                    - name: AWS_SECRET_KEY
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-secret
+                    - name: AWS_BUCKET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-bucket
+                    - name: SUFFIX
+                      value: ${SUFFIX}
+                  resources:
+                    limits:
+                      cpu: "1"
+                      memory: 1024Mi
+                    requests:
+                      cpu: "500m"
+                      memory: 512Mi
+              restartPolicy: OnFailure
