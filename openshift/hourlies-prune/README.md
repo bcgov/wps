@@ -1,6 +1,6 @@
 # Hourlies Prune Job
 
-Deletes hourlies from object that are from the day before yesterday, to maintain the last 24 hours of hourly FFMC tifs.
+Deletes hourlies from object storage that are from the day before yesterday, to maintain the last 24 hours of hourly FFMC tifs.
 
 ## Building
 
