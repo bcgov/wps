@@ -212,13 +212,13 @@ crt = ["awscrt (==0.19.19)"]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.34.88"
+version = "1.34.94"
 description = "Type annotations and code completion for botocore"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "botocore_stubs-1.34.88-py3-none-any.whl", hash = "sha256:f55b03ae2e1706bd56299fd2975bb048f96aa49012a866e931a040a74f85c3cc"},
-    {file = "botocore_stubs-1.34.88.tar.gz", hash = "sha256:656e966ea152a4f2828892aa7a9673bc91799998f5a8efd8e8fe390f61c2f4f1"},
+    {file = "botocore_stubs-1.34.94-py3-none-any.whl", hash = "sha256:b0345f55babd8b901c53804fc5c326a4a0bd2e23e3b71f9ea5d9f7663466e6ba"},
+    {file = "botocore_stubs-1.34.94.tar.gz", hash = "sha256:64d80a3467e3b19939e9c2750af33328b3087f8f524998dbdf7ed168227f507d"},
 ]
 
 [package.dependencies]
@@ -450,13 +450,13 @@ files = [
 
 [[package]]
 name = "geoalchemy2"
-version = "0.14.7"
+version = "0.15.1"
 description = "Using SQLAlchemy with Spatial Databases"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "GeoAlchemy2-0.14.7-py3-none-any.whl", hash = "sha256:af592892c58da0b98aa284d400f207f08a643aeee4523f025cef74991f76af14"},
-    {file = "GeoAlchemy2-0.14.7.tar.gz", hash = "sha256:9ff731c4e5b955525cb128ee7173222365e7f084d4b99f6f68e491bac6b44d21"},
+    {file = "GeoAlchemy2-0.15.1-py3-none-any.whl", hash = "sha256:c1083cc3270608c3d5000a5487069ac9e75ac21a8ef2b7ebc29e060a0d4719ec"},
+    {file = "geoalchemy2-0.15.1.tar.gz", hash = "sha256:33df0cd901abf8518ec0985f9201d42cce65887127cf59f40be38cf758a9a6dc"},
 ]
 
 [package.dependencies]
@@ -1830,4 +1830,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "492772e0e94c90d103f0505491ece140f35d2ef9927ddc6dacc461bd57b78373"
+content-hash = "7a9602cf29fe39a317ea6ff06a295f0ece10c0053f93d45a083063c73e9835f0"
