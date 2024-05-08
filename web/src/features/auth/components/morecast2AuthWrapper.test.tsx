@@ -7,6 +7,33 @@ import React from 'react'
 import { WF1_AUTH_URL } from 'utils/env'
 import { ROLES } from 'features/auth/roles'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
+import { DateTime } from 'luxon'
+
+const mockLocalStorage = (() => {
+  let store = {} as Storage
+
+  return {
+    getItem(key: string) {
+      return store[key]
+    },
+
+    setItem(key: string, value: string) {
+      store[key] = value
+    },
+
+    removeItem(key: string) {
+      delete store[key]
+    },
+
+    clear() {
+      store = {} as Storage
+    }
+  }
+})()
+
+Object.defineProperty(window, 'localStorage', {
+  value: mockLocalStorage
+})
 
 describe('MoreCast2AuthWrapper', () => {
   const { location } = window
@@ -53,7 +80,7 @@ describe('MoreCast2AuthWrapper', () => {
         <a href=""></a>
       </Provider>
     )
-    expect(window.location.href).toBe(`${WF1_AUTH_URL}&redirect_uri=`)
+    expect(window.location.href.indexOf(`${WF1_AUTH_URL}&redirect_uri=`)).toBe(0)
   })
 
   it('should not make auth request to wf1 if forecaster when already authd', () => {
@@ -61,6 +88,7 @@ describe('MoreCast2AuthWrapper', () => {
       ...initialState,
       roles: [ROLES.MORECAST_2.WRITE_FORECAST]
     })
+    window.localStorage.setItem('last_morecast_login', DateTime.now().toUnixInteger().toString())
     const authedUrl = 'test.com/#access_token=t&'
     expect(window.location.href).toBe('')
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

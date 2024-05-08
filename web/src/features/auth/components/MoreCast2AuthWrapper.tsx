@@ -37,8 +37,10 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
         // Force a redirect to WF1 authentication if there is no access_token or the last time Morecast
         // was logged into was more than 60 minutes ago in order to handle a user reloading a page with an
         // old access token
-        if (!window.location.href?.includes('access_token') || now - lastLogin > 30) {
-          window.location.href = `${WF1_AUTH_URL}&redirect_uri=${window.location.href}`
+        const redirectUri = `${location.origin}${location.pathname}`
+
+        if (isAuthenticatedForecaster && (!window.location.href?.includes('access_token') || now - lastLogin > 30)) {
+          window.location.href = `${WF1_AUTH_URL}&redirect_uri=${redirectUri}`
         }
 
         if (window.location.href?.includes('access_token')) {
