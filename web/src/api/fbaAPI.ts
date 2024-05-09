@@ -33,9 +33,9 @@ export interface FireZoneThresholdFuelTypeArea {
 
 export interface FireShapeArea {
   fire_shape_id: number
-  threshold: number
+  threshold?: number
   combustible_area: number
-  elevated_hfi_area: number
+  elevated_hfi_area?: number
   elevated_hfi_percentage: number
 }
 
@@ -61,13 +61,9 @@ export interface FireShapeAreaListResponse {
 }
 
 // Fire shape area (aka fire zone unit) data transfer object
-export interface FireShapeAreaDetail {
-  fire_shape_id: number
+export interface FireShapeAreaDetail extends FireShapeArea {
   fire_shape_name: string
   fire_centre_name: string
-  combustible_area: number
-  threshold?: number
-  elevated_hfi_area?: number
 }
 
 // Response object for provincial summary request

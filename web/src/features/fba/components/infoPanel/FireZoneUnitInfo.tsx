@@ -20,11 +20,8 @@ const FireZoneUnitInfo = ({ advisoryThreshold, fireZoneUnitName, fireZoneUnitDet
 
     const advisoryThresholdDetail = details.find(detail => detail.threshold == 1)
     const warningThresholdDetail = details.find(detail => detail.threshold == 2)
-    const combustibleArea = details[0].combustible_area
-    const advisoryArea = advisoryThresholdDetail?.elevated_hfi_area ?? 0
-    const warningArea = warningThresholdDetail?.elevated_hfi_area ?? 0
-    const advisoryPercentage = (advisoryArea / combustibleArea) * 100
-    const warningPercentage = (warningArea / combustibleArea) * 100
+    const advisoryPercentage = advisoryThresholdDetail?.elevated_hfi_percentage ?? 0
+    const warningPercentage = warningThresholdDetail?.elevated_hfi_percentage ?? 0
 
     if (advisoryPercentage + warningPercentage > advisoryThreshold) {
       // advisory color orange

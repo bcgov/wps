@@ -29,16 +29,18 @@ const FireCenterInfo = ({ advisoryThreshold, fireCentreName, fireZoneUnitInfos }
     <Accordion data-testid={`fire-centre-info`} disableGutters defaultExpanded={false} elevation={0}>
       <StyledAccordionSummary expandIcon={<ExpandMoreIcon />}>{fireCentreName}</StyledAccordionSummary>
       <AccordionDetails sx={{ paddingTop: '0px', paddingBottom: '0px' }}>
-        {Object.keys(groupedFireZoneUnitInfos).map((key, index) => {
-          return (
-            <FireZoneUnitInfo
-              key={index}
-              advisoryThreshold={advisoryThreshold}
-              fireZoneUnitName={key}
-              fireZoneUnitDetails={groupedFireZoneUnitInfos[key]}
-            />
-          )
-        })}
+        {Object.keys(groupedFireZoneUnitInfos)
+          .sort()
+          .map((key, index) => {
+            return (
+              <FireZoneUnitInfo
+                key={index}
+                advisoryThreshold={advisoryThreshold}
+                fireZoneUnitName={key}
+                fireZoneUnitDetails={groupedFireZoneUnitInfos[key]}
+              />
+            )
+          })}
       </AccordionDetails>
     </Accordion>
   )
