@@ -63,7 +63,7 @@ parameters:
     description: "Number of gunicorn workers"
     value: "4"
 objects:
-  - apiVersion: v1
+  - apiVersion: apps/v1
     kind: Deployment
     metadata:
       labels:
