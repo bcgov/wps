@@ -46,25 +46,25 @@ export default provincialSummarySlice.reducer
 
 export const fetchProvincialSummary =
   (runType: RunType, run_datetime: string, for_date: string): AppThunk =>
-    async dispatch => {
-      if (run_datetime != undefined && run_datetime !== ``) {
-        try {
-          dispatch(getProvincialSummaryStart())
-          const fireShapeAreas = await getProvincialSummary(runType, run_datetime, for_date)
-          dispatch(getProvincialSummarySuccess(fireShapeAreas))
-        } catch (err) {
-          dispatch(getProvincialSummaryFailed((err as Error).toString()))
-          logError(err)
-        }
-      } else {
-        try {
-          dispatch(getProvincialSummaryFailed('run_datetime cannot be undefined!'))
-        } catch (err) {
-          dispatch(getProvincialSummaryFailed((err as Error).toString()))
-          logError(err)
-        }
+  async dispatch => {
+    if (run_datetime != undefined && run_datetime !== ``) {
+      try {
+        dispatch(getProvincialSummaryStart())
+        const fireShapeAreas = await getProvincialSummary(runType, run_datetime, for_date)
+        dispatch(getProvincialSummarySuccess(fireShapeAreas))
+      } catch (err) {
+        dispatch(getProvincialSummaryFailed((err as Error).toString()))
+        logError(err)
+      }
+    } else {
+      try {
+        dispatch(getProvincialSummaryFailed('run_datetime cannot be undefined!'))
+      } catch (err) {
+        dispatch(getProvincialSummaryFailed((err as Error).toString()))
+        logError(err)
       }
     }
+  }
 
 const selectFireShapeAreaDetails = (state: RootState) => state.provincialSummary
 
