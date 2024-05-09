@@ -92,7 +92,7 @@ objects:
             #############################################################################
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-api-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
-              command: ["bash", "start_sfms.sh"]
+              command: ["while true; do echo thinking; sleep 2; done"]
               name: ${APP_NAME}
               env:
                 - name: ORIGINS
