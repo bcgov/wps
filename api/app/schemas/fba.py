@@ -27,9 +27,9 @@ class FireCenterListResponse(BaseModel):
 class FireShapeArea(BaseModel):
     """ A zone is a grouping of planning areas within a fire centre. """
     fire_shape_id: int
-    threshold: int
+    threshold: Optional[int] = None
     combustible_area: float
-    elevated_hfi_area: float
+    elevated_hfi_area: Optional[float] = None
     elevated_hfi_percentage: float
 
 
@@ -38,13 +38,9 @@ class FireShapeAreaListResponse(BaseModel):
     shapes: List[FireShapeArea]
 
 
-class FireShapeAreaDetail(BaseModel):
+class FireShapeAreaDetail(FireShapeArea):
     """Summary information about an advisory shape"""
 
-    fire_shape_id: int
-    threshold: Optional[int] = None
-    combustible_area: float
-    elevated_hfi_area: Optional[float] = None
     fire_shape_name: str
     fire_centre_name: str
 
