@@ -79,7 +79,7 @@ objects:
       template:
         metadata:
           labels:
-            name: ${APP_NAME}-${SUFFIX}
+            app: ${APP_NAME}-${SUFFIX}
         spec:
           automountServiceAccountToken: false
           volumes:
