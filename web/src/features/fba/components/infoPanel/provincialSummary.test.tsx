@@ -54,7 +54,8 @@ describe('ProvincialSummary', () => {
         fire_centre_name: 'fizz',
         combustible_area: 2,
         threshold: 1,
-        elevated_hfi_area: 100
+        elevated_hfi_area: 100,
+        elevated_hfi_percentage: 0
       }
     ]
     const testStore = buildTestStore({
