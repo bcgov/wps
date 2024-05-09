@@ -5,6 +5,7 @@ import { TEST_AUTH, WF1_AUTH_URL } from 'utils/env'
 import { wf1Authenticate, wf1AuthenticateError } from 'features/auth/slices/wf1AuthenticationSlice'
 import { selectAuthentication, selectWf1Authentication } from 'app/rootReducer'
 import { ROLES } from 'features/auth/roles'
+import { DateTime } from 'luxon'
 
 interface Props {
   children: React.ReactElement
@@ -24,23 +25,33 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
       if (TEST_AUTH || window.Cypress) {
         dispatch(wf1Authenticate('test token'))
         setRenderChildren(true)
-      }
-
-      if (!isAuthenticatedForecaster) {
-        setRenderChildren(true)
-      }
-
-      if (!window.location.href?.includes('access_token') && isAuthenticatedForecaster) {
-        window.location.href = `${WF1_AUTH_URL}&redirect_uri=${window.location.href}`
-      }
-
-      if (window.location.href?.includes('access_token')) {
-        const wf1Token = window.location.href.split('#access_token=')[1].split('&')[0]
-        try {
-          dispatch(wf1Authenticate(wf1Token))
+      } else {
+        if (!isAuthenticatedForecaster) {
           setRenderChildren(true)
-        } catch (e) {
-          dispatch(wf1AuthenticateError('Failed to authenticate with WF1'))
+        }
+
+        const lastLoginString = localStorage.getItem('last_morecast_login') ?? '0'
+        const lastLogin = parseInt(lastLoginString)
+        const now = DateTime.now().toUnixInteger()
+
+        // Force a redirect to WF1 authentication if there is no access_token or the last time Morecast
+        // was logged into was more than 60 minutes ago in order to handle a user reloading a page with an
+        // old access token
+        const redirectUri = `${location.origin}${location.pathname}`
+
+        if (isAuthenticatedForecaster && (!window.location.href?.includes('access_token') || now - lastLogin > 3600)) {
+          window.location.href = `${WF1_AUTH_URL}&redirect_uri=${redirectUri}`
+        }
+
+        if (window.location.href?.includes('access_token')) {
+          const wf1Token = window.location.href.split('#access_token=')[1].split('&')[0]
+          localStorage.setItem('last_morecast_login', DateTime.now().toUnixInteger().toString())
+          try {
+            dispatch(wf1Authenticate(wf1Token))
+            setRenderChildren(true)
+          } catch (e) {
+            dispatch(wf1AuthenticateError('Failed to authenticate with WF1'))
+          }
         }
       }
     }
