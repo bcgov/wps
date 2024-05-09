@@ -1,10 +1,8 @@
-""" This module contains the entrypoint for the Predictive Services Unit Fire Weather Index calculator API.
-
-See README.md for details on how to run.
+""" This module contains the router for the SFMS API.
 """
 import logging
 from urllib.request import Request
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import sentry_sdk
 from starlette.applications import Starlette
@@ -19,7 +17,7 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 API_INFO = '''
-    Description: API for the PSU Services
+    Description: SFMS API for the PSU Services
 
     Warranty Disclaimer:
 
@@ -105,7 +103,6 @@ api.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
-api.middleware('http')(catch_exception_middleware)
 
 api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
 

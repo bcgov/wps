@@ -226,7 +226,7 @@ objects:
                   memory: ${MEMORY_REQUEST}
               readinessProbe:
                 httpGet:
-                  path: /api/ready
+                  path: /api/sfms/ready
                   port: 8080
                   scheme: HTTP
                 # first probe will fire some time between:
@@ -238,7 +238,7 @@ objects:
                 successThreshold: 1
                 failureThreshold: 3
                 httpGet:
-                  path: /api/health
+                  path: /api/sfms/health
                   port: 8080
                   scheme: HTTP
                 # first probe will fire some time between:
