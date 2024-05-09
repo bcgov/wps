@@ -207,11 +207,11 @@ objects:
                       name: ${GLOBAL_NAME}
                       key: sentry-dsn
                 - name: NATS_STREAM_PREFIX
-                  value: ${APP_NAME}-${SUFFIX}
+                  value: wps-${SUFFIX}
                 - name: NATS_SERVER
                   valueFrom:
                     configMapKeyRef:
-                      name: ${APP_NAME}-${SUFFIX}-nats-server
+                      name: wps-${SUFFIX}-nats-server
                       key: nats.server
               ports:
                 - containerPort: 8080
