@@ -39,7 +39,7 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
         // old access token
         const redirectUri = `${location.origin}${location.pathname}`
 
-        if (isAuthenticatedForecaster && (!window.location.href?.includes('access_token') || now - lastLogin > 30)) {
+        if (isAuthenticatedForecaster && (!window.location.href?.includes('access_token') || now - lastLogin > 3600)) {
           window.location.href = `${WF1_AUTH_URL}&redirect_uri=${redirectUri}`
         }
 
