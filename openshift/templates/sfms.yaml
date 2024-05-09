@@ -72,7 +72,8 @@ objects:
     spec:
       replicas: ${{REPLICAS}}
       selector:
-        name: ${APP_NAME}-${SUFFIX}
+        matchLabels:
+          app: ${APP_NAME}-${SUFFIX}
       strategy:
         type: RollingUpdate
       template:
