@@ -5,7 +5,34 @@ import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from 'features/fba/components
 import { LIGHT_GREY } from 'app/theme'
 import { FireShapeAreaDetail } from 'api/fbaAPI'
 
+const fireShapeAreaDetailA: FireShapeAreaDetail = {
+  fire_shape_id: 1,
+  fire_shape_name: 'foo',
+  fire_centre_name: 'fizz',
+  combustible_area: 100,
+  threshold: 1,
+  elevated_hfi_area: 0,
+  elevated_hfi_percentage: 0
+}
+const fireShapeAreaDetailB: FireShapeAreaDetail = {
+  fire_shape_id: 2,
+  fire_shape_name: 'foo',
+  fire_centre_name: 'fizz',
+  combustible_area: 100,
+  threshold: 2,
+  elevated_hfi_area: 0,
+  elevated_hfi_percentage: 0
+}
+
 describe('FireZoneUnitInfo', () => {
+  beforeEach(() => {
+    fireShapeAreaDetailA.threshold = 1
+    fireShapeAreaDetailA.elevated_hfi_area = 0
+    fireShapeAreaDetailA.elevated_hfi_percentage = 0
+    fireShapeAreaDetailB.threshold = 2
+    fireShapeAreaDetailB.elevated_hfi_area = 0
+    fireShapeAreaDetailB.elevated_hfi_percentage = 0
+  })
   it('should render', () => {
     const { getByTestId } = render(
       <FireZoneUnitInfo advisoryThreshold={20} fireZoneUnitName="foo" fireZoneUnitDetails={[]} />
@@ -21,132 +48,61 @@ describe('FireZoneUnitInfo', () => {
     expect(fireZoneUnitInfo).toHaveTextContent('foo')
   })
   it('should render a LIGHT_GREY swatch when fireZoneUnitDetails have no threshold specified', () => {
-    const fireZoneUnitDetails: FireShapeAreaDetail[] = [
-      {
-        fire_shape_id: 1,
-        fire_shape_name: 'foo',
-        fire_centre_name: 'fizz',
-        combustible_area: 2,
-        threshold: undefined,
-        elevated_hfi_area: 100,
-        elevated_hfi_percentage: 0
-      }
-    ]
+    fireShapeAreaDetailA.threshold = undefined
     const { getByTestId } = render(
-      <FireZoneUnitInfo advisoryThreshold={20} fireZoneUnitName="foo" fireZoneUnitDetails={fireZoneUnitDetails} />
+      <FireZoneUnitInfo advisoryThreshold={20} fireZoneUnitName="foo" fireZoneUnitDetails={[fireShapeAreaDetailA]} />
     )
     const fireZoneUnitInfoSwatch = getByTestId('fire-zone-unit-info-swatch')
     expect(fireZoneUnitInfoSwatch).toBeInTheDocument()
     expect(fireZoneUnitInfoSwatch).toHaveStyle(`background-color: ${LIGHT_GREY}`)
   })
   it('should render a LIGHT_GREY swatch when fireZoneUnitDetails values do not exceed advisoryThreshold', () => {
-    const fireZoneUnitDetails: FireShapeAreaDetail[] = [
-      {
-        fire_shape_id: 1,
-        fire_shape_name: 'foo',
-        fire_centre_name: 'fizz',
-        combustible_area: 100,
-        threshold: 1,
-        elevated_hfi_area: 2,
-        elevated_hfi_percentage: 19
-      }
-    ]
+    fireShapeAreaDetailA.elevated_hfi_area = 2
+    fireShapeAreaDetailA.elevated_hfi_percentage = 19
     const { getByTestId } = render(
-      <FireZoneUnitInfo advisoryThreshold={20} fireZoneUnitName="foo" fireZoneUnitDetails={fireZoneUnitDetails} />
+      <FireZoneUnitInfo advisoryThreshold={20} fireZoneUnitName="foo" fireZoneUnitDetails={[fireShapeAreaDetailA]} />
     )
     const fireZoneUnitInfoSwatch = getByTestId('fire-zone-unit-info-swatch')
     expect(fireZoneUnitInfoSwatch).toBeInTheDocument()
     expect(fireZoneUnitInfoSwatch).toHaveStyle(`background-color: ${LIGHT_GREY}`)
   })
   it('should render an ADVISORY_ORANGE_FILL swatch when fireZoneUnitDetails values do not exceed advisoryThreshold', () => {
-    const fireZoneUnitDetails: FireShapeAreaDetail[] = [
-      {
-        fire_shape_id: 1,
-        fire_shape_name: 'foo',
-        fire_centre_name: 'fizz',
-        combustible_area: 100,
-        threshold: 1,
-        elevated_hfi_area: 21,
-        elevated_hfi_percentage: 21
-      }
-    ]
+    fireShapeAreaDetailA.elevated_hfi_area = 21
+    fireShapeAreaDetailA.elevated_hfi_percentage = 21
     const { getByTestId } = render(
-      <FireZoneUnitInfo advisoryThreshold={20} fireZoneUnitName="foo" fireZoneUnitDetails={fireZoneUnitDetails} />
-    )
-    const fireZoneUnitInfoSwatch = getByTestId('fire-zone-unit-info-swatch')
-    expect(fireZoneUnitInfoSwatch).toBeInTheDocument()
-    expect(fireZoneUnitInfoSwatch).toHaveStyle(`background-color: ${ADVISORY_ORANGE_FILL}`)
-  })
-  it('should render an ADVISORY_ORANGE_FILL swatch when fireZoneUnitDetails values exceed advisoryThreshold with one set of details', () => {
-    const fireZoneUnitDetails: FireShapeAreaDetail[] = [
-      {
-        fire_shape_id: 1,
-        fire_shape_name: 'foo',
-        fire_centre_name: 'fizz',
-        combustible_area: 100,
-        threshold: 1,
-        elevated_hfi_area: 21,
-        elevated_hfi_percentage: 21
-      }
-    ]
-    const { getByTestId } = render(
-      <FireZoneUnitInfo advisoryThreshold={20} fireZoneUnitName="foo" fireZoneUnitDetails={fireZoneUnitDetails} />
+      <FireZoneUnitInfo advisoryThreshold={20} fireZoneUnitName="foo" fireZoneUnitDetails={[fireShapeAreaDetailA]} />
     )
     const fireZoneUnitInfoSwatch = getByTestId('fire-zone-unit-info-swatch')
     expect(fireZoneUnitInfoSwatch).toBeInTheDocument()
     expect(fireZoneUnitInfoSwatch).toHaveStyle(`background-color: ${ADVISORY_ORANGE_FILL}`)
   })
   it('should render an ADVISORY_ORANGE_FILL swatch when fireZoneUnitDetails values exceed advisoryThreshold with multiple details', () => {
-    const fireZoneUnitDetails: FireShapeAreaDetail[] = [
-      {
-        fire_shape_id: 1,
-        fire_shape_name: 'foo',
-        fire_centre_name: 'fizz',
-        combustible_area: 100,
-        threshold: 1,
-        elevated_hfi_area: 16,
-        elevated_hfi_percentage: 16
-      },
-      {
-        fire_shape_id: 2,
-        fire_shape_name: 'foo',
-        fire_centre_name: 'fizz',
-        combustible_area: 100,
-        threshold: 2,
-        elevated_hfi_area: 5,
-        elevated_hfi_percentage: 5
-      }
-    ]
+    fireShapeAreaDetailA.elevated_hfi_area = 16
+    fireShapeAreaDetailA.elevated_hfi_percentage = 16
+    fireShapeAreaDetailB.elevated_hfi_area = 5
+    fireShapeAreaDetailB.elevated_hfi_percentage = 5
     const { getByTestId } = render(
-      <FireZoneUnitInfo advisoryThreshold={20} fireZoneUnitName="foo" fireZoneUnitDetails={fireZoneUnitDetails} />
+      <FireZoneUnitInfo
+        advisoryThreshold={20}
+        fireZoneUnitName="foo"
+        fireZoneUnitDetails={[fireShapeAreaDetailA, fireShapeAreaDetailB]}
+      />
     )
     const fireZoneUnitInfoSwatch = getByTestId('fire-zone-unit-info-swatch')
     expect(fireZoneUnitInfoSwatch).toBeInTheDocument()
     expect(fireZoneUnitInfoSwatch).toHaveStyle(`background-color: ${ADVISORY_ORANGE_FILL}`)
   })
   it('should render an ADVISORY_RED_FILL swatch when fireZoneUnitDetails threshold 2 value exceeds advisoryThreshold', () => {
-    const fireZoneUnitDetails: FireShapeAreaDetail[] = [
-      {
-        fire_shape_id: 1,
-        fire_shape_name: 'foo',
-        fire_centre_name: 'fizz',
-        combustible_area: 100,
-        threshold: 1,
-        elevated_hfi_area: 16,
-        elevated_hfi_percentage: 16
-      },
-      {
-        fire_shape_id: 2,
-        fire_shape_name: 'foo',
-        fire_centre_name: 'fizz',
-        combustible_area: 100,
-        threshold: 2,
-        elevated_hfi_area: 21,
-        elevated_hfi_percentage: 21
-      }
-    ]
+    fireShapeAreaDetailA.elevated_hfi_area = 16
+    fireShapeAreaDetailA.elevated_hfi_percentage = 16
+    fireShapeAreaDetailB.elevated_hfi_area = 21
+    fireShapeAreaDetailB.elevated_hfi_percentage = 21
     const { getByTestId } = render(
-      <FireZoneUnitInfo advisoryThreshold={20} fireZoneUnitName="foo" fireZoneUnitDetails={fireZoneUnitDetails} />
+      <FireZoneUnitInfo
+        advisoryThreshold={20}
+        fireZoneUnitName="foo"
+        fireZoneUnitDetails={[fireShapeAreaDetailA, fireShapeAreaDetailB]}
+      />
     )
     const fireZoneUnitInfoSwatch = getByTestId('fire-zone-unit-info-swatch')
     expect(fireZoneUnitInfoSwatch).toBeInTheDocument()
