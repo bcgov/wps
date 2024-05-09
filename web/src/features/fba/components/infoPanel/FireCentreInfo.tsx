@@ -30,11 +30,11 @@ const FireCenterInfo = ({ advisoryThreshold, fireCentreName, fireZoneUnitInfos }
       <StyledAccordionSummary expandIcon={<ExpandMoreIcon />}>{fireCentreName}</StyledAccordionSummary>
       <AccordionDetails sx={{ paddingTop: '0px', paddingBottom: '0px' }}>
         {Object.keys(groupedFireZoneUnitInfos)
-          .sort()
-          .map((key, index) => {
+          .sort((a, b) => a.localeCompare(b))
+          .map(key => {
             return (
               <FireZoneUnitInfo
-                key={index}
+                key={key}
                 advisoryThreshold={advisoryThreshold}
                 fireZoneUnitName={key}
                 fireZoneUnitDetails={groupedFireZoneUnitInfos[key]}

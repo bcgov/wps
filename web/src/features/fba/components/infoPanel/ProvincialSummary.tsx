@@ -26,10 +26,10 @@ const ProvincialSummary = ({ advisoryThreshold }: ProvincialSummaryProps) => {
             {NO_DATA_MESSAGE}
           </Typography>
         ) : (
-          Object.keys(provincialSummary).map((key, index) => {
+          Object.keys(provincialSummary).map(key => {
             return (
               <FireCentreInfo
-                key={index}
+                key={key}
                 advisoryThreshold={advisoryThreshold}
                 fireCentreName={key}
                 fireZoneUnitInfos={provincialSummary[key]}

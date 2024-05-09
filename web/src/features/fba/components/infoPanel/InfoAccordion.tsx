@@ -1,9 +1,8 @@
 import React from 'react'
 
 import { Accordion, AccordionDetails, AccordionSummary, Typography } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { styled, useTheme } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { styled } from '@mui/material/styles'
 
 interface InfoAccordionProps {
   children: React.ReactNode
