@@ -28,7 +28,8 @@ describe('FireZoneUnitInfo', () => {
         fire_centre_name: 'fizz',
         combustible_area: 2,
         threshold: undefined,
-        elevated_hfi_area: 100
+        elevated_hfi_area: 100,
+        elevated_hfi_percentage: 0
       }
     ]
     const { getByTestId } = render(
@@ -46,7 +47,8 @@ describe('FireZoneUnitInfo', () => {
         fire_centre_name: 'fizz',
         combustible_area: 100,
         threshold: 1,
-        elevated_hfi_area: 2
+        elevated_hfi_area: 2,
+        elevated_hfi_percentage: 19
       }
     ]
     const { getByTestId } = render(
@@ -64,7 +66,8 @@ describe('FireZoneUnitInfo', () => {
         fire_centre_name: 'fizz',
         combustible_area: 100,
         threshold: 1,
-        elevated_hfi_area: 21
+        elevated_hfi_area: 21,
+        elevated_hfi_percentage: 21
       }
     ]
     const { getByTestId } = render(
@@ -82,7 +85,8 @@ describe('FireZoneUnitInfo', () => {
         fire_centre_name: 'fizz',
         combustible_area: 100,
         threshold: 1,
-        elevated_hfi_area: 21
+        elevated_hfi_area: 21,
+        elevated_hfi_percentage: 21
       }
     ]
     const { getByTestId } = render(
@@ -100,7 +104,8 @@ describe('FireZoneUnitInfo', () => {
         fire_centre_name: 'fizz',
         combustible_area: 100,
         threshold: 1,
-        elevated_hfi_area: 16
+        elevated_hfi_area: 16,
+        elevated_hfi_percentage: 16
       },
       {
         fire_shape_id: 2,
@@ -108,7 +113,8 @@ describe('FireZoneUnitInfo', () => {
         fire_centre_name: 'fizz',
         combustible_area: 100,
         threshold: 2,
-        elevated_hfi_area: 5
+        elevated_hfi_area: 5,
+        elevated_hfi_percentage: 5
       }
     ]
     const { getByTestId } = render(
@@ -126,7 +132,8 @@ describe('FireZoneUnitInfo', () => {
         fire_centre_name: 'fizz',
         combustible_area: 100,
         threshold: 1,
-        elevated_hfi_area: 16
+        elevated_hfi_area: 16,
+        elevated_hfi_percentage: 16
       },
       {
         fire_shape_id: 2,
@@ -134,7 +141,8 @@ describe('FireZoneUnitInfo', () => {
         fire_centre_name: 'fizz',
         combustible_area: 100,
         threshold: 2,
-        elevated_hfi_area: 21
+        elevated_hfi_area: 21,
+        elevated_hfi_percentage: 21
       }
     ]
     const { getByTestId } = render(
