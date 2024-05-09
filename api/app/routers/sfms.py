@@ -90,6 +90,7 @@ async def upload(file: UploadFile,
                                 Key=key,
                                 Body=FileLikeObject(file.file),
                                 Metadata=meta_data)
+        await file.close()
         logger.info('Done uploading file')
     try:
         # We don't want to hold back the response to the client, so we'll publish the message
@@ -142,6 +143,7 @@ async def upload_hourlies(file: UploadFile,
                                     ACL=SFMS_HOURLIES_PERMISSIONS,
                                     Body=FileLikeObject(file.file),
                                     Metadata=meta_data)
+            await file.close()
             logger.info('Done uploading file')
     return Response(status_code=200)
 
@@ -199,6 +201,7 @@ async def upload_manual(file: UploadFile,
                                 Key=key,
                                 Body=FileLikeObject(file.file),
                                 Metadata=meta_data)
+        await file.close()
         logger.info('Done uploading file')
     return add_msg_to_queue(file, key, forecast_or_actual, meta_data, issue_date, background_tasks)
 
