@@ -92,7 +92,8 @@ objects:
             #############################################################################
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-api-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
-              command: ["while true; do echo thinking; sleep 2; done"]
+              command:
+                ["bash", "-c", "while true; do echo thinking; sleep 2; done"]
               name: ${APP_NAME}
               env:
                 - name: ORIGINS
