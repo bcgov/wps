@@ -64,7 +64,7 @@ parameters:
     value: "4"
 objects:
   - apiVersion: v1
-    kind: DeploymentConfig
+    kind: Deployment
     metadata:
       labels:
         app: ${APP_NAME}-${SUFFIX}
@@ -75,7 +75,6 @@ objects:
         name: ${APP_NAME}-${SUFFIX}
       strategy:
         type: Rolling
-      triggers: []
       template:
         metadata:
           labels:
