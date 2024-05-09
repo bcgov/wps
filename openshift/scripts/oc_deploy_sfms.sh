@@ -31,7 +31,7 @@ OBJ_NAME="${APP_NAME}-${SUFFIX}"
 
 # Process a template (mostly variable substition)
 #
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DC} \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_SFMS_DC} \
  -p SUFFIX=${SUFFIX} \
  -p PROJECT_NAMESPACE=${PROJ_TARGET} \
  -p VANITY_DOMAIN=${VANITY_DOMAIN} \
