@@ -109,19 +109,6 @@ api.middleware('http')(catch_exception_middleware)
 
 api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
 
-
-@api.get('/ready')
-async def get_ready():
-    """ A simple endpoint for OpenShift readiness """
-    return Response()
-
-
-@api.get('/health')
-async def get_health():
-    """ A simple endpoint for Openshift Healthchecks. """
-    return Response()
-
-
 if __name__ == "__main__":
     # This section of code is for the convenience of developers only. Having this section of code, allows
     # for developers to easily debug the application by running main.py and attaching to it with a debugger.
