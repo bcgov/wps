@@ -69,27 +69,7 @@ fi
 #
 eval "${OC_PROCESS}"
 eval "${OC_PROCESS} | ${OC_APPLY}"
-if [ "${APPLY}" ]; then
-  echo "canceling previous deployments..."
-  eval "${OC_CANCEL_ALL_PREV_DEPLOY}"
-  count=1
-  timeout=10
-  # Check previous deployment statuses before moving onto new deploying
-  while [ $count -le $timeout ]; do
-    sleep 1
-    PENDINGS="$(oc -n ${PROJ_TARGET} rollout history dc/${OBJ_NAME} | awk '{print $2}' | grep -c Pending || true)"
-    RUNNINGS="$(oc -n ${PROJ_TARGET} rollout history dc/${OBJ_NAME} | awk '{print $2}' | grep -c Running || true)"
-    if [ "${PENDINGS}" == 0 ] && [ "${RUNNINGS}" == 0 ]; then
-      # No pending or running replica controllers so exit the while loop
-      break 2
-    fi
-    count=$(( $count + 1 ))
-  done
-  if [ $count -gt $timeout ]; then
-    echo "\n*** timeout for canceling deployment ***\n"
-    exit 1
-  fi
-fi
+
 eval "${OC_DEPLOY}"
 eval "${OC_LOG}"
 
