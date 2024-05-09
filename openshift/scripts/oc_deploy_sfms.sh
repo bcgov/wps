@@ -70,9 +70,6 @@ fi
 eval "${OC_PROCESS}"
 eval "${OC_PROCESS} | ${OC_APPLY}"
 
-eval "${OC_DEPLOY}"
-eval "${OC_LOG}"
-
 # Provide oc command instruction
 #
 display_helper "${OC_PROCESS} | ${OC_APPLY}" $OC_CANCEL_ALL_PREV_DEPLOY $OC_DEPLOY $OC_LOG
