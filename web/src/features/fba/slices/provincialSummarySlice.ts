@@ -6,13 +6,13 @@ import { FireShapeAreaDetail, getProvincialSummary, ProvincialSummaryResponse } 
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { RootState } from 'app/rootReducer'
 
-interface State {
+export interface ProvincialSummaryState {
   loading: boolean
   error: string | null
   fireShapeAreaDetails: FireShapeAreaDetail[]
 }
 
-const initialState: State = {
+export const initialState: ProvincialSummaryState = {
   loading: false,
   error: null,
   fireShapeAreaDetails: []
@@ -22,16 +22,16 @@ const provincialSummarySlice = createSlice({
   name: 'provincialSummary',
   initialState,
   reducers: {
-    getProvincialSummaryStart(state: State) {
+    getProvincialSummaryStart(state: ProvincialSummaryState) {
       state.error = null
       state.loading = true
       state.fireShapeAreaDetails = []
     },
-    getProvincialSummaryFailed(state: State, action: PayloadAction<string>) {
+    getProvincialSummaryFailed(state: ProvincialSummaryState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getProvincialSummarySuccess(state: State, action: PayloadAction<ProvincialSummaryResponse>) {
+    getProvincialSummarySuccess(state: ProvincialSummaryState, action: PayloadAction<ProvincialSummaryResponse>) {
       state.error = null
       state.fireShapeAreaDetails = action.payload.provincial_summary
       state.loading = false

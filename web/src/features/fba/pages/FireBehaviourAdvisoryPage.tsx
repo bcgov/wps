@@ -29,9 +29,9 @@ import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
 import { getMostRecentProcessedSnowByDate } from 'api/snow'
-import InfoPanel from 'features/fba/components/InfoPanel'
-import ProvincialSummary from 'features/fba/components/ProvincialSummary'
-import FireZoneUnitSummary from 'features/fba/components/FireZoneUnitSummary'
+import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
+import ProvincialSummary from 'features/fba/components/infoPanel/ProvincialSummary'
+import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 
 export enum RunType {

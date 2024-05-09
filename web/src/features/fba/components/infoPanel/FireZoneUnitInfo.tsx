@@ -40,9 +40,12 @@ const FireZoneUnitInfo = ({ advisoryThreshold, fireZoneUnitName, fireZoneUnitDet
   }
 
   return (
-    <ListItem sx={{ paddingBottom: '0px', paddingTop: '0px' }}>
+    <ListItem data-testid="fire-zone-unit-info" sx={{ paddingBottom: '0px', paddingTop: '0px' }}>
       <ListItemIcon sx={{ minWidth: '24px' }}>
-        <Box sx={{ backgroundColor: calculateStatus(fireZoneUnitDetails), height: '0.7rem', width: '1rem' }} />
+        <Box
+          data-testid="fire-zone-unit-info-swatch"
+          sx={{ backgroundColor: calculateStatus(fireZoneUnitDetails), height: '0.7rem', width: '1rem' }}
+        />
       </ListItemIcon>
       <Typography sx={{ fontSize: '0.75rem' }}>{fireZoneUnitName}</Typography>
     </ListItem>

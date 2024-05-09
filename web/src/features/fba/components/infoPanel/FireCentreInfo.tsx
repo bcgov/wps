@@ -2,7 +2,7 @@ import React from 'react'
 import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import FireZoneUnitInfo from 'features/fba/components/FireZoneUnitInfo'
+import FireZoneUnitInfo from 'features/fba/components/infoPanel/FireZoneUnitInfo'
 import { groupBy } from 'lodash'
 import { FireShapeAreaDetail } from 'api/fbaAPI'
 
@@ -26,7 +26,7 @@ const StyledAccordionSummary = styled(AccordionSummary)(() => ({
 const FireCenterInfo = ({ advisoryThreshold, fireCentreName, fireZoneUnitInfos }: FireCentreInfoProps) => {
   const groupedFireZoneUnitInfos = groupBy(fireZoneUnitInfos, 'fire_shape_name')
   return (
-    <Accordion disableGutters defaultExpanded={false} elevation={0}>
+    <Accordion data-testid={`fire-centre-info`} disableGutters defaultExpanded={false} elevation={0}>
       <StyledAccordionSummary expandIcon={<ExpandMoreIcon />}>{fireCentreName}</StyledAccordionSummary>
       <AccordionDetails sx={{ paddingTop: '0px', paddingBottom: '0px' }}>
         {Object.keys(groupedFireZoneUnitInfos).map((key, index) => {

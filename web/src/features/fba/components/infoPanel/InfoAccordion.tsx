@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Accordion, AccordionDetails, AccordionSummary, Box, Typography } from '@mui/material'
+import { Accordion, AccordionDetails, AccordionSummary, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { styled } from '@mui/material/styles'
@@ -23,22 +23,23 @@ const InfoAccordion = ({ children, defaultExpanded, title }: InfoAccordionProps)
   const theme = useTheme()
 
   return (
-    <Accordion disableGutters defaultExpanded={defaultExpanded} elevation={0}>
+    <Accordion data-testid="info-accordion" disableGutters defaultExpanded={defaultExpanded} elevation={0}>
       <StyledAccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Box sx={{ paddingTop: '8px', paddingBottom: '8px' }}>
-          <Typography
-            sx={{
-              color: theme.palette.primary.main,
-              fontWeight: 'bold',
-              paddingLeft: '1.25rem'
-            }}
-            variant="h6"
-          >
-            {title}
-          </Typography>
-        </Box>
+        <Typography
+          data-testid="info-accordion-title"
+          sx={{
+            color: theme.palette.primary.main,
+            fontWeight: 'bold',
+            paddingLeft: '1.25rem'
+          }}
+          variant="h6"
+        >
+          {title}
+        </Typography>
       </StyledAccordionSummary>
-      <AccordionDetails sx={{ paddingTop: '0px', paddingBottom: '0px' }}>{children}</AccordionDetails>
+      <AccordionDetails data-testid="info-accordion-details" sx={{ paddingTop: '0px', paddingBottom: '0px' }}>
+        {children}
+      </AccordionDetails>
     </Accordion>
   )
 }
