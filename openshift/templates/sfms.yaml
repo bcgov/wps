@@ -74,7 +74,7 @@ objects:
       selector:
         name: ${APP_NAME}-${SUFFIX}
       strategy:
-        type: Rolling
+        type: RollingUpdate
       template:
         metadata:
           labels:
