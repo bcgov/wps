@@ -64,7 +64,7 @@ describe('MoreCast2AuthWrapper', () => {
     return testStore
   }
 
-  it('should make auth request to wf1 if forecaster when not authd', () => {
+  it('should make auth request to wf1 if forecaster when not authd and no timestamp in local storage', () => {
     const testStore = buildTestStore({
       ...initialState,
       roles: [ROLES.MORECAST_2.WRITE_FORECAST]
@@ -83,7 +83,34 @@ describe('MoreCast2AuthWrapper', () => {
     expect(window.location.href.indexOf(`${WF1_AUTH_URL}&redirect_uri=`)).toBe(0)
   })
 
-  it('should not make auth request to wf1 if forecaster when already authd', () => {
+  it('should make auth request to wf1 if forecaster already authd and timestamp in localstorage is more than 3600 seconds old', () => {
+    const testStore = buildTestStore({
+      ...initialState,
+      roles: [ROLES.MORECAST_2.WRITE_FORECAST]
+    })
+    window.localStorage.setItem('last_morecast_login', '0')
+    const authedUrl = 'test.com/#access_token=t&'
+    expect(window.location.href).toBe('')
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    delete window.location
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    window.location = {
+      href: authedUrl
+    }
+
+    render(
+      <Provider store={testStore}>
+        <MoreCast2AuthWrapper>
+          <div></div>
+        </MoreCast2AuthWrapper>
+      </Provider>
+    )
+    expect(window.location.href.indexOf(`${WF1_AUTH_URL}&redirect_uri=`)).toBe(0)
+  })
+
+  it('should not make auth request to wf1 if forecaster when already authd and timestamp in localstorage is less than 3600 seconds old', () => {
     const testStore = buildTestStore({
       ...initialState,
       roles: [ROLES.MORECAST_2.WRITE_FORECAST]
