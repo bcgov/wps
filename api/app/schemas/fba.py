@@ -40,7 +40,6 @@ class FireShapeAreaListResponse(BaseModel):
 
 class FireShapeAreaDetail(FireShapeArea):
     """Summary information about an advisory shape"""
-
     fire_shape_name: str
     fire_centre_name: str
 
