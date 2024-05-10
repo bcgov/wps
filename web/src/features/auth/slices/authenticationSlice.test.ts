@@ -8,7 +8,7 @@ import authReducer, {
   refreshTokenFinished,
   signoutFinished,
   signoutError,
-  decodeIdir
+  decodeUserDetails
 } from 'features/auth/slices/authenticationSlice'
 import sinon from 'sinon'
 import * as jwt from 'jwt-decode'
@@ -24,12 +24,15 @@ describe('authenticationSlice', () => {
   })
   const testToken = 'testToken'
   const idir_username = 'test@idir'
+  const email = 'test@example.com'
   const decodedAllRoles = {
     idir_username,
+    email,
     client_roles: Object.values(ROLES.HFI)
   }
   const decodedNoRoles = {
     idir_username,
+    email,
     client_roles: []
   }
   it('should return all roles of a user from a token', () => {
@@ -44,8 +47,8 @@ describe('authenticationSlice', () => {
   })
   it('should return idir username from token', () => {
     sandbox.stub(jwt, 'jwtDecode').returns(decodedNoRoles)
-    const roles = decodeIdir(testToken)
-    expect(roles).toEqual(idir_username)
+    const userDetails = decodeUserDetails(testToken)
+    expect(userDetails).toEqual({ idir: idir_username, email })
   })
   describe('reducer', () => {
     it('should be initialized with correct state', () => {
@@ -70,6 +73,7 @@ describe('authenticationSlice', () => {
         authenticating: false,
         isAuthenticated: true,
         idir: 'test@idir',
+        email,
         token: testToken,
         idToken: testToken,
         roles: Object.values(ROLES.HFI)
@@ -84,6 +88,7 @@ describe('authenticationSlice', () => {
         authenticating: false,
         isAuthenticated: true,
         idir: 'test@idir',
+        email,
         token: testToken,
         idToken: testToken,
         roles: []
@@ -110,6 +115,7 @@ describe('authenticationSlice', () => {
         token: testToken,
         idToken: testToken,
         idir: 'test@idir',
+        email,
         roles: Object.values(ROLES.HFI)
       })
     })
@@ -124,6 +130,7 @@ describe('authenticationSlice', () => {
         token: testToken,
         idToken: testToken,
         idir: 'test@idir',
+        email,
         roles: []
       })
     })
@@ -137,6 +144,7 @@ describe('authenticationSlice', () => {
           token: testToken,
           idToken: testToken,
           idir: 'test@idir',
+          email: 'test@example.com',
           roles: Object.values(ROLES.HFI),
           error: null
         }
@@ -159,6 +167,7 @@ describe('authenticationSlice', () => {
           token: testToken,
           idToken: testToken,
           idir: 'test@idir',
+          email: 'test@example.com',
           roles: Object.values(ROLES.HFI),
           error: null
         }
