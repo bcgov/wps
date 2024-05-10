@@ -3,13 +3,6 @@ import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitS
 import { FireShape } from 'api/fbaAPI'
 import { render } from '@testing-library/react'
 
-// fire - zone - unit - summary
-
-// selectedFireZoneUnit: FireShape | undefined
-// fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
-// hfiElevationInfo: ElevationInfoByThreshold[]
-// fireShapeAreas: FireShapeArea[]
-
 describe('FireZoneUnitSummary', () => {
   class ResizeObserver {
     observe() {

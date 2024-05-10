@@ -37,9 +37,8 @@ class FireShapeAreaListResponse(BaseModel):
     """ Response for all planning areas, in a list """
     shapes: List[FireShapeArea]
 
-
 class FireShapeAreaDetail(FireShapeArea):
-    """Summary information about an advisory shape"""
+    """ Summary information about an advisory shape """
     fire_shape_name: str
     fire_centre_name: str
 

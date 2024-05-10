@@ -92,7 +92,7 @@ export interface FuelType {
 export async function getFBAFireCenters(): Promise<FBAResponse> {
   const url = '/fba/fire-centers'
 
-  const { data } = await axios.get(url, {})
+  const { data } = await axios.get(url)
   return data
 }
 
@@ -102,7 +102,7 @@ export async function getFireShapeAreas(
   for_date: string
 ): Promise<FireShapeAreaListResponse> {
   const url = `/fba/fire-shape-areas/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
-  const { data } = await axios.get(url, {})
+  const { data } = await axios.get(url)
   return data
 }
 
@@ -113,19 +113,19 @@ export async function getProvincialSummary(
   for_date: string
 ): Promise<ProvincialSummaryResponse> {
   const url = `/fba/provincial-summary/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
-  const { data } = await axios.get(url, {})
+  const { data } = await axios.get(url)
   return data
 }
 
 export async function getMostRecentRunDate(run_type: RunType, for_date: string): Promise<string> {
   const url = `fba/sfms-run-datetimes/${run_type.toLowerCase()}/${for_date}`
-  const { data } = await axios.get(url, {})
+  const { data } = await axios.get(url)
   return data[0]
 }
 
 export async function getAllRunDates(run_type: RunType, for_date: string): Promise<DateTime[]> {
   const url = `fba/sfms-run-datetimes/${run_type.toLowerCase()}/${for_date}`
-  const { data } = await axios.get(url, {})
+  const { data } = await axios.get(url)
   return data
 }
 
@@ -136,7 +136,7 @@ export async function getHFIThresholdsFuelTypesForZone(
   zone_id: number
 ): Promise<Record<number, FireZoneThresholdFuelTypeArea[]>> {
   const url = `fba/hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${zone_id}`
-  const { data } = await axios.get(url, {})
+  const { data } = await axios.get(url)
   return data
 }
 
@@ -147,7 +147,7 @@ export async function getFireZoneElevationInfo(
   for_date: string
 ): Promise<FireZoneElevationInfoResponse> {
   const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
-  const { data } = await axios.get(url, {})
+  const { data } = await axios.get(url)
   return data
 }
 
