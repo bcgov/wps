@@ -30,12 +30,13 @@ def polygonize_in_memory(geotiff_filename, layer, field) -> ogr.Layer:
     source: gdal.Dataset = gdal.Open(geotiff_filename, gdal.GA_ReadOnly)
 
     source_band = source.GetRasterBand(1)
+    nodata_value = source_band.GetNoDataValue()
     source_data = source.ReadAsArray()
     # https://gdal.org/api/python/osgeo.osr.html#osgeo.osr.SpatialReference
     spatial_reference: osr.SpatialReference = source.GetSpatialRef()
 
     # generate mask data
-    mask_data = np.where(source_data == 0, False, True)
+    mask_data = np.where(source_data == nodata_value, False, True)
     mask_ds, mask_band = _create_in_memory_band(
         mask_data, source_band.XSize, source_band.YSize, source.GetProjection(),
         source.GetGeoTransform())
