@@ -408,7 +408,7 @@ objects:
                   scheme: HTTP
                 # first probe will fire some time between:
                 # initialDelaySeconds and initialDelaySeconds + periodSeconds
-                initialDelaySeconds: 30
+                initialDelaySeconds: 60
                 periodSeconds: 120
                 timeoutSeconds: 1
               livenessProbe:
@@ -420,9 +420,9 @@ objects:
                   scheme: HTTP
                 # first probe will fire some time between:
                 # initialDelaySeconds and initialDelaySeconds + periodSeconds
-                initialDelaySeconds: 30
+                initialDelaySeconds: 60
                 periodSeconds: 120
-                timeoutSeconds: 20
+                timeoutSeconds: 30
   - apiVersion: autoscaling.k8s.io/v1
     kind: VerticalPodAutoscaler
     metadata:
