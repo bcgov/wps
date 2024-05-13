@@ -41,7 +41,7 @@ async def process_elevation(source_path: str, run_type: RunType, run_datetime: d
         run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
         stmt = select(AdvisoryElevationStats)\
-            .where(AdvisoryElevationStats == run_parameters_id)
+            .where(AdvisoryElevationStats.run_parameters == run_parameters_id)
         
         exists = (await session.execute(stmt)).scalars().first() is not None
         if (not exists):

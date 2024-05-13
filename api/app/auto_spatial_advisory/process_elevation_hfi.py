@@ -28,4 +28,4 @@ async def process_hfi_elevation(run_type: RunType, run_date: date, run_datetime:
 
     perf_end = perf_counter()
     delta = perf_end - perf_start
-    logger.info('%f delta count before and after processing HFI elevatioon', delta)
+    logger.info('%f delta count before and after processing HFI elevation', delta)
