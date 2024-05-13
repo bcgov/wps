@@ -1,7 +1,6 @@
 import React from 'react'
 import { Box, ListItem, ListItemIcon, Typography } from '@mui/material'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from 'features/fba/components/map/featureStylers'
-import { LIGHT_GREY } from 'app/theme'
 import { FireShapeAreaDetail } from 'api/fbaAPI'
 import { useTheme } from '@mui/material/styles'
 
@@ -14,7 +13,8 @@ interface FireZoneUnitInfoProps {
 const FireZoneUnitInfo = ({ advisoryThreshold, fireZoneUnitName, fireZoneUnitDetails }: FireZoneUnitInfoProps) => {
   const theme = useTheme()
   const calculateStatus = (details: FireShapeAreaDetail[]) => {
-    let status = LIGHT_GREY
+    // Default is transparent
+    let status = '#0000'
 
     if (details.length === 0) {
       return status
@@ -43,7 +43,12 @@ const FireZoneUnitInfo = ({ advisoryThreshold, fireZoneUnitName, fireZoneUnitDet
       <ListItemIcon sx={{ minWidth: '24px' }}>
         <Box
           data-testid="fire-zone-unit-info-swatch"
-          sx={{ backgroundColor: calculateStatus(fireZoneUnitDetails), height: '0.7rem', width: '1rem' }}
+          sx={{
+            backgroundColor: calculateStatus(fireZoneUnitDetails),
+            border: '1px solid #777',
+            height: '0.7rem',
+            width: '1rem'
+          }}
         />
       </ListItemIcon>
       <Typography>{fireZoneUnitName}</Typography>
