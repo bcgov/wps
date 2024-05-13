@@ -3,6 +3,7 @@ import { Box, ListItem, ListItemIcon, Typography } from '@mui/material'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from 'features/fba/components/map/featureStylers'
 import { LIGHT_GREY } from 'app/theme'
 import { FireShapeAreaDetail } from 'api/fbaAPI'
+import { useTheme } from '@mui/material/styles'
 
 interface FireZoneUnitInfoProps {
   advisoryThreshold: number
@@ -11,6 +12,7 @@ interface FireZoneUnitInfoProps {
 }
 
 const FireZoneUnitInfo = ({ advisoryThreshold, fireZoneUnitName, fireZoneUnitDetails }: FireZoneUnitInfoProps) => {
+  const theme = useTheme()
   const calculateStatus = (details: FireShapeAreaDetail[]) => {
     let status = LIGHT_GREY
 
@@ -37,14 +39,14 @@ const FireZoneUnitInfo = ({ advisoryThreshold, fireZoneUnitName, fireZoneUnitDet
   }
 
   return (
-    <ListItem data-testid="fire-zone-unit-info" sx={{ paddingBottom: '0px', paddingTop: '0px' }}>
+    <ListItem data-testid="fire-zone-unit-info" sx={{ paddingBottom: theme.spacing(1), paddingTop: '0px' }}>
       <ListItemIcon sx={{ minWidth: '24px' }}>
         <Box
           data-testid="fire-zone-unit-info-swatch"
           sx={{ backgroundColor: calculateStatus(fireZoneUnitDetails), height: '0.7rem', width: '1rem' }}
         />
       </ListItemIcon>
-      <Typography sx={{ fontSize: '0.75rem' }}>{fireZoneUnitName}</Typography>
+      <Typography>{fireZoneUnitName}</Typography>
     </ListItem>
   )
 }
