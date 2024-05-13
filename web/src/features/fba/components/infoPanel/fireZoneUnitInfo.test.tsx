@@ -2,7 +2,7 @@ import React from 'react'
 import { render } from '@testing-library/react'
 import FireZoneUnitInfo from 'features/fba/components/infoPanel/FireZoneUnitInfo'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from 'features/fba/components/map/featureStylers'
-import { LIGHT_GREY } from 'app/theme'
+import { TRANSPARENT_COLOUR } from 'app/theme'
 import { FireShapeAreaDetail } from 'api/fbaAPI'
 
 const fireShapeAreaDetailA: FireShapeAreaDetail = {
@@ -54,7 +54,7 @@ describe('FireZoneUnitInfo', () => {
     )
     const fireZoneUnitInfoSwatch = getByTestId('fire-zone-unit-info-swatch')
     expect(fireZoneUnitInfoSwatch).toBeInTheDocument()
-    expect(fireZoneUnitInfoSwatch).toHaveStyle(`background-color: ${LIGHT_GREY}`)
+    expect(fireZoneUnitInfoSwatch).toHaveStyle(`background-color: ${TRANSPARENT_COLOUR}`)
   })
   it('should render a LIGHT_GREY swatch when fireZoneUnitDetails values do not exceed advisoryThreshold', () => {
     fireShapeAreaDetailA.elevated_hfi_area = 2
@@ -64,7 +64,7 @@ describe('FireZoneUnitInfo', () => {
     )
     const fireZoneUnitInfoSwatch = getByTestId('fire-zone-unit-info-swatch')
     expect(fireZoneUnitInfoSwatch).toBeInTheDocument()
-    expect(fireZoneUnitInfoSwatch).toHaveStyle(`background-color: ${LIGHT_GREY}`)
+    expect(fireZoneUnitInfoSwatch).toHaveStyle(`background-color: ${TRANSPARENT_COLOUR}`)
   })
   it('should render an ADVISORY_ORANGE_FILL swatch when fireZoneUnitDetails values do not exceed advisoryThreshold', () => {
     fireShapeAreaDetailA.elevated_hfi_area = 21

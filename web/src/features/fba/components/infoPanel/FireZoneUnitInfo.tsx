@@ -3,6 +3,7 @@ import { Box, ListItem, ListItemIcon, Typography } from '@mui/material'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from 'features/fba/components/map/featureStylers'
 import { FireShapeAreaDetail } from 'api/fbaAPI'
 import { useTheme } from '@mui/material/styles'
+import { TRANSPARENT_COLOUR } from 'app/theme'
 
 interface FireZoneUnitInfoProps {
   advisoryThreshold: number
@@ -14,7 +15,7 @@ const FireZoneUnitInfo = ({ advisoryThreshold, fireZoneUnitName, fireZoneUnitDet
   const theme = useTheme()
   const calculateStatus = (details: FireShapeAreaDetail[]) => {
     // Default is transparent
-    let status = '#0000'
+    let status = TRANSPARENT_COLOUR
 
     if (details.length === 0) {
       return status

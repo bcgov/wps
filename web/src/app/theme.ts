@@ -98,6 +98,7 @@ export const MEDIUM_GREY = '#B5B5B5'
 
 export const INFO_PANEL_HEADER_BACKGORUND = '#e4e4e5'
 export const INFO_PANEL_CONTENT_BACKGORUND = '#f0f0f0'
+export const TRANSPARENT_COLOUR = '#0000'
 
 interface WeatherParams {
   [key: string]: {
