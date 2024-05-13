@@ -162,7 +162,7 @@ export class GridComponentRenderer {
     precision: number
   ) => {
     const oldValue = params.row[field].value
-    const newValue = params.value ? Number(params.value) : NaN
+    const newValue = isNaN(params.value) ? NaN : Number(params.value)
 
     if (isNaN(oldValue) && isNaN(newValue)) {
       return { ...params.row }
