@@ -84,7 +84,7 @@ export const fireTableTheme = createTheme({
 
 export const BACKGROUND_COLOR = { backgroundColor: '#e9ecf5' }
 
-export const LANDING_BACKGROUND_COLOUR = '#f2f2f2'
+export const LANDING_BACKGROUND_COLOUR = 'red'
 
 export const PLANNING_AREA = {
   minWidth: 45,
