@@ -8,7 +8,7 @@ from typing import Final
 import asyncio
 from app.utils import esri
 
-def fetch_from_esri():
+async def fetch_from_esri():
     # We fetch a list of object id's, fetching the entire layer in one go, will most likely crash
     # the server we're talking to.
     zone_url: Final = "https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/8"
