@@ -26,7 +26,7 @@ fuel_type_table = sa.Table('advisory_fuel_types', sa.MetaData(),
 
 def upgrade():
     # Iterate through the fuel types and insert them.
-    for fuel_type_id, geom in fuel_type_iterator('fbp2021.tif'):
+    for fuel_type_id, geom in fuel_type_iterator('fbp2024.tif'):
         statement = fuel_type_table.insert().values(fuel_type_id=fuel_type_id, geom=geom)
         op.execute(statement)
 
