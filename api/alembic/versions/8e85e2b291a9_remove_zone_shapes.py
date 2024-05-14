@@ -1,7 +1,7 @@
 """remove zone shapes
 
 Revision ID: 8e85e2b291a9
-Revises: d5115b761e39
+Revises: f2e027a47a3f
 Create Date: 2023-11-03 14:10:44.782737
 
 """
@@ -12,7 +12,7 @@ from sqlalchemy.orm.session import Session
 
 # revision identifiers, used by Alembic.
 revision = '8e85e2b291a9'
-down_revision = 'd5115b761e39'
+down_revision = 'f2e027a47a3f'
 branch_labels = None
 depends_on = None
 
