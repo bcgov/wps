@@ -62,5 +62,5 @@ def downgrade():
 
     for zone in zones:
         op.execute('UPDATE advisory_shapes SET combustible_area = NULL WHERE source_identifier LIKE \'{}\''.format(
-            str(zone.source_identifier)
+            str(zone['source_identifier'])
         ))
