@@ -103,6 +103,13 @@
             ]
         },
         {
+            "name": "fetch fire zones",
+            "type": "python",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.local.import_fire_zones",
+            "console": "integratedTerminal",
+        },
+        {
             "name": "Chrome",
             "type": "pwa-chrome",
             "request": "launch",
