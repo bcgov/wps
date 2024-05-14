@@ -7,16 +7,29 @@ from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.db.database import get_async_read_session_scope
-from app.db.crud.auto_spatial_advisory import (get_all_sfms_fuel_types,
-                                               get_all_hfi_thresholds,
-                                               get_hfi_area,
-                                               get_precomputed_high_hfi_fuel_type_areas_for_shape,
-                                               get_run_datetimes,
-                                               get_zonal_elevation_stats)
+from app.db.crud.auto_spatial_advisory import (
+    get_all_sfms_fuel_types,
+    get_all_hfi_thresholds,
+    get_hfi_area,
+    get_precomputed_high_hfi_fuel_type_areas_for_shape,
+    get_provincial_rollup,
+    get_run_datetimes,
+    get_zonal_elevation_stats,
+)
 from app.db.models.auto_spatial_advisory import RunTypeEnum
-from app.schemas.fba import (ClassifiedHfiThresholdFuelTypeArea, FireCenterListResponse, FireShapeAreaListResponse,
-                             FireShapeArea, FireZoneElevationStats, FireZoneElevationStatsByThreshold,
-                             FireZoneElevationStatsListResponse, SFMSFuelType, HfiThreshold)
+from app.schemas.fba import (
+    ClassifiedHfiThresholdFuelTypeArea,
+    FireCenterListResponse,
+    FireShapeAreaListResponse,
+    FireShapeArea,
+    FireZoneElevationStats,
+    FireZoneElevationStatsByThreshold,
+    FireZoneElevationStatsListResponse,
+    SFMSFuelType,
+    HfiThreshold,
+    FireShapeAreaDetail,
+    ProvincialSummaryResponse,
+)
 from app.auth import authentication_required, audit
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 from app.auto_spatial_advisory.process_hfi import RunType
@@ -62,6 +75,31 @@ async def get_shapes(run_type: RunType, run_datetime: datetime, for_date: date, 
                 elevated_hfi_area=row.hfi_area,  # type: ignore
                 elevated_hfi_percentage=hfi_area / combustible_area * 100))
         return FireShapeAreaListResponse(shapes=shapes)
+
+
+@router.get("/provincial-summary/{run_type}/{run_datetime}/{for_date}", response_model=ProvincialSummaryResponse)
+async def get_provincial_summary(run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
+    """Return all Fire Centres with their fire shapes and the HFI status of those shapes."""
+    logger.info("/fba/provincial_summary/")
+    async with get_async_read_session_scope() as session:
+        fire_shape_area_details = []
+        rows = await get_provincial_rollup(session, RunTypeEnum(run_type.value), run_datetime, for_date)
+        for row in rows:
+            elevated_hfi_percentage = 0
+            if row.hfi_area is not None and row.combustible_area is not None:
+                elevated_hfi_percentage = row.hfi_area / row.combustible_area * 100
+            fire_shape_area_details.append(
+                FireShapeAreaDetail(
+                    fire_shape_id=row.source_identifier,
+                    fire_shape_name=row.label,
+                    fire_centre_name=row.fire_centre_name,
+                    threshold=row.threshold,
+                    combustible_area=row.combustible_area,
+                    elevated_hfi_area=row.hfi_area,
+                    elevated_hfi_percentage=elevated_hfi_percentage,
+                )
+            )
+    return ProvincialSummaryResponse(provincial_summary=fire_shape_area_details)
 
 
 @router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}/{zone_id}',
