@@ -12,7 +12,7 @@ interface FireCentreInfoProps {
   expanded: boolean
   fireCentreName: string
   fireZoneUnitInfos: FireShapeAreaDetail[]
-  onChangeExpaneded: (name: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void
+  onChangeExpanded: (name: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void
 }
 
 const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
@@ -31,7 +31,7 @@ const FireCenterInfo = ({
   expanded,
   fireCentreName,
   fireZoneUnitInfos,
-  onChangeExpaneded
+  onChangeExpanded
 }: FireCentreInfoProps) => {
   const theme = useTheme()
   const groupedFireZoneUnitInfos = groupBy(fireZoneUnitInfos, 'fire_shape_name')
@@ -41,7 +41,7 @@ const FireCenterInfo = ({
       disableGutters
       expanded={expanded}
       elevation={0}
-      onChange={onChangeExpaneded(fireCentreName)}
+      onChange={onChangeExpanded(fireCentreName)}
       sx={{ marginLeft: theme.spacing(2) }}
     >
       <StyledAccordionSummary expandIcon={<ExpandMoreIcon />}>{fireCentreName}</StyledAccordionSummary>

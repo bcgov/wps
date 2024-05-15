@@ -59,7 +59,7 @@ const ProvincialSummary = ({ advisoryThreshold }: ProvincialSummaryProps) => {
           expanded={fireCentreExpanded[key]}
           fireCentreName={key}
           fireZoneUnitInfos={provincialSummary[key]}
-          onChangeExpaneded={handleFireCentreAccordionChanged}
+          onChangeExpanded={handleFireCentreAccordionChanged}
         />
       )
     })
