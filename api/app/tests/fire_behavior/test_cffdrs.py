@@ -72,3 +72,23 @@ def test_ros_no_params():
         cffdrs.rate_of_spread(FuelTypeEnum.C7, None, None, None, None, pc=100, pdf=None,
                               cc=None, cbh=10)
 
+@pytest.mark.parametrize(
+    "ffmc,temperature,precipitation,relative_humidity,wind_speed",
+    [
+        (None, 10, 9, 8, 7),
+        (11, None, 9, 8, 7),
+        (11, 10, None, 8, 7),
+        (11, 10, 9, None, 7),
+        (11, 10, 9, 8, None),
+        (None, None, None, 8, 7),
+        (None, None, None, None, None),
+    ],
+)
+def test_failing_ffmc(ffmc, temperature, precipitation, relative_humidity, wind_speed):
+    """ Test that we can handle None values when attempting to calculate ffmc """
+    res = cffdrs.fine_fuel_moisture_code(ffmc=ffmc, 
+                                        temperature=temperature,
+                                        precipitation=precipitation,
+                                        relative_humidity=relative_humidity,
+                                        wind_speed=wind_speed)
+    assert res is None

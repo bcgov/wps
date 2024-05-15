@@ -545,12 +545,25 @@ def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: 
 
     if ffmc is None:
         ffmc = NULL
+    if temperature is None:
+        temperature = NULL
+    if relative_humidity is None:
+        relative_humidity = NULL
+    if precipitation is None:
+        precipitation = NULL
+    if wind_speed is None:
+        logger.error("Failed to calculate ffmc")
+        return None
     result = CFFDRS.instance().cffdrs._ffmcCalc(ffmc_yda=ffmc, temp=temperature, rh=relative_humidity,
                                                 prec=precipitation, ws=wind_speed)
+    if len(result) == 0:
+        logger.error("Failed to calculate ffmc")
+        return None
     if isinstance(result[0], float):
         return result[0]
-    raise CFFDRSException("Failed to calculate ffmc")
-
+    
+    logger.error("Failed to calculate ffmc")
+    return None
 
 def duff_moisture_code(dmc: float, temperature: float, relative_humidity: float,
                        precipitation: float, latitude: float = 55, month: int = 7,
