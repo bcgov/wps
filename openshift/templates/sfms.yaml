@@ -270,7 +270,7 @@ objects:
           port: 80
           targetPort: 8080
       selector:
-        name: ${APP_NAME}-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}
   - apiVersion: route.openshift.io/v1
     ################################################################################
     # SFMS API ROUTE
