@@ -18,13 +18,14 @@ export const NO_DATA_MESSAGE = 'Choose a date of interest above.'
 // Displays advisory status of all fire zone units in all fire centres across BC.
 const ProvincialSummary = ({ advisoryThreshold }: ProvincialSummaryProps) => {
   const [fireCentreExpanded, setFireCentreExpanded] = useState<Record<string, boolean>>({
-    CARIBOO_FC: false,
-    COASTAL_FC: true,
-    KAMLOOPS_FC: false,
-    NORTHWEST_FC: false,
-    PRINCE_GEORGE_FC: false,
-    SOUTHEAST_FC: false
+    [CARIBOO_FC]: false,
+    [COASTAL_FC]: false,
+    [KAMLOOPS_FC]: false,
+    [NORTHWEST_FC]: false,
+    [PRINCE_GEORGE_FC]: false,
+    [SOUTHEAST_FC]: false
   })
+
   const provincialSummary = useSelector(selectProvincialSummary)
   const theme = useTheme()
   const noProvincialSummary =
@@ -37,6 +38,33 @@ const ProvincialSummary = ({ advisoryThreshold }: ProvincialSummaryProps) => {
       setFireCentreExpanded(newValue)
     }
 
+  const renderNoDataMessage = () => {
+    return (
+      <Typography
+        data-testid="provincial-summary-no-data"
+        sx={{ paddingLeft: theme.spacing(4), paddingTop: theme.spacing(1) }}
+      >
+        {NO_DATA_MESSAGE}
+      </Typography>
+    )
+  }
+
+  const renderFireCentreInfos = () => {
+    const sortedKeys = Object.keys(provincialSummary).sort((a, b) => a.localeCompare(b))
+    return sortedKeys.map(key => {
+      return (
+        <FireCentreInfo
+          key={key}
+          advisoryThreshold={advisoryThreshold}
+          expanded={fireCentreExpanded[key]}
+          fireCentreName={key}
+          fireZoneUnitInfos={provincialSummary[key]}
+          onChangeExpaneded={handleFireCentreAccordionChanged}
+        />
+      )
+    })
+  }
+
   return (
     <div data-testid="provincial-summary">
       <InfoAccordion
@@ -44,29 +72,7 @@ const ProvincialSummary = ({ advisoryThreshold }: ProvincialSummaryProps) => {
         defaultExpanded={true}
         title={'Provincial Summary'}
       >
-        {noProvincialSummary ? (
-          <Typography
-            data-testid="provincial-summary-no-data"
-            sx={{ paddingLeft: theme.spacing(4), paddingTop: theme.spacing(1) }}
-          >
-            {NO_DATA_MESSAGE}
-          </Typography>
-        ) : (
-            Object.keys(provincialSummary)
-              .sort((a, b) => a.localeCompare(b))
-              .map(key => {
-                return (
-                  <FireCentreInfo
-                    key={key}
-                    advisoryThreshold={advisoryThreshold}
-                  expanded={fireCentreExpanded[key]}
-                  fireCentreName={key}
-                  fireZoneUnitInfos={provincialSummary[key]}
-                  onChangeExpaneded={handleFireCentreAccordionChanged}
-                />
-              )
-            })
-        )}
+        {noProvincialSummary ? renderNoDataMessage() : renderFireCentreInfos()}
       </InfoAccordion>
     </div>
   )
