@@ -287,7 +287,7 @@ objects:
         haproxy.router.openshift.io/balance: roundrobin
         haproxy.router.openshift.io/disable_cookies: "true"
     spec:
-      host: ${APP_NAME}-${SUFFIX}-${PROJECT_NAMESPACE}.${SECOND_LEVEL_DOMAIN}
+      host: wps-${SUFFIX}-${PROJECT_NAMESPACE}.${SECOND_LEVEL_DOMAIN}
       path: "/api/sfms"
       port:
         targetPort: 8080-tcp
