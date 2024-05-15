@@ -59,6 +59,17 @@ def get_meta_data(request: Request) -> dict:
         'last_modified': last_modified.isoformat(),
         'create_time': create_time.isoformat()}
 
+@router.get('/ready')
+async def get_ready():
+    """ A simple endpoint for OpenShift readiness """
+    return Response()
+
+
+@router.get('/health')
+async def get_health():
+    """ A simple endpoint for Openshift Healthchecks. """
+    return Response()
+
 
 @router.post('/upload')
 async def upload(file: UploadFile,

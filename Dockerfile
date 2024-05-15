@@ -44,6 +44,7 @@ COPY ./api/alembic.ini /app
 # Copy pre-start.sh (it will be run on startup):
 COPY ./api/prestart.sh /app
 COPY ./api/start.sh /app
+COPY ./api/start_sfms.sh /app
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080
