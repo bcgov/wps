@@ -55,9 +55,11 @@ export const HFI_CALC_DOC_TITLE = 'HFI Calculator | BCWS PSU'
 export const MORE_CAST_2_DOC_TITLE = 'MoreCast | BCWS PSU'
 export const PERCENTILE_CALC_DOC_TITLE = 'Percentile Calculator | BCWS PSU'
 
-export const CARIBOO_FC = 'Cariboo Fire Centre'
-export const COASTAL_FC = 'Coastal Fire Centre'
-export const KAMLOOPS_FC = 'Kamloops Fire Centre'
-export const NORTHWEST_FC = 'Northwest Fire Centre'
-export const PRINCE_GEORGE_FC = 'Prince George Fire Centre'
-export const SOUTHEAST_FC = 'Southeast Fire Centre'
+export enum FireCentres {
+  CARIBOO_FC = 'Cariboo Fire Centre',
+  COASTAL_FC = 'Coastal Fire Centre',
+  KAMLOOPS_FC = 'Kamloops Fire Centre',
+  NORTHWEST_FC = 'Northwest Fire Centre',
+  PRINCE_GEORGE_FC = 'Prince George Fire Centre',
+  SOUTHEAST_FC = 'Southeast Fire Centre'
+}

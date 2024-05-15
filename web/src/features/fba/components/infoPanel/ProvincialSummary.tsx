@@ -7,7 +7,7 @@ import { isNull, isUndefined } from 'lodash'
 import { Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { INFO_PANEL_CONTENT_BACKGORUND } from 'app/theme'
-import { CARIBOO_FC, COASTAL_FC, KAMLOOPS_FC, NORTHWEST_FC, PRINCE_GEORGE_FC, SOUTHEAST_FC } from 'utils/constants'
+import { FireCentres } from 'utils/constants'
 
 interface ProvincialSummaryProps {
   advisoryThreshold: number
@@ -18,12 +18,12 @@ export const NO_DATA_MESSAGE = 'Choose a date of interest above.'
 // Displays advisory status of all fire zone units in all fire centres across BC.
 const ProvincialSummary = ({ advisoryThreshold }: ProvincialSummaryProps) => {
   const [fireCentreExpanded, setFireCentreExpanded] = useState<Record<string, boolean>>({
-    [CARIBOO_FC]: false,
-    [COASTAL_FC]: false,
-    [KAMLOOPS_FC]: false,
-    [NORTHWEST_FC]: false,
-    [PRINCE_GEORGE_FC]: false,
-    [SOUTHEAST_FC]: false
+    [FireCentres.CARIBOO_FC]: false,
+    [FireCentres.COASTAL_FC]: false,
+    [FireCentres.KAMLOOPS_FC]: false,
+    [FireCentres.NORTHWEST_FC]: false,
+    [FireCentres.PRINCE_GEORGE_FC]: false,
+    [FireCentres.SOUTHEAST_FC]: false
   })
 
   const provincialSummary = useSelector(selectProvincialSummary)
