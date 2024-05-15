@@ -1,7 +1,7 @@
 """Add SFMSFuelType
 
 Revision ID: fdbf57102d06
-Revises: 04bc7be60b4f
+Revises: 56916d46d8cb
 Create Date: 2023-01-31 16:54:10.824782
 
 """
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'fdbf57102d06'
-down_revision = '04bc7be60b4f'
+down_revision = '56916d46d8cb'
 branch_labels = None
 depends_on = None
 
