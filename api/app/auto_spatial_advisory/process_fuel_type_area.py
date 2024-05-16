@@ -6,7 +6,7 @@ import numpy as np
 import os
 import tempfile
 from datetime import date, datetime
-from osgeo import gdal
+from osgeo import gdal, ogr, osr
 from time import perf_counter
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -17,7 +17,6 @@ from app.auto_spatial_advisory.run_type import RunType
 from app.db.database import DB_READ_STRING, get_async_write_session_scope
 from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType
 from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sfms_fuel_types, get_run_parameters_id, store_advisory_fuel_stats
-
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +32,7 @@ def get_fuel_type_s3_key(bucket):
     # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
     # it's S3 virtual file system driver to read the file.
     # https://gdal.org/user/virtual_file_systems.html
-    key = f"/vsis3/{bucket}/ftl/fuel_types_from_sfms_epsg_3005.tif"
+    key = f"/vsis3/{bucket}/sfms/static/fbp2024.tif"
     return key
 
 
@@ -112,8 +111,42 @@ def intersect_raster_by_advisory_shape(threshold: int, advisory_shape_id: int, s
     :param temp_dir: A temporary location for storing intermediate files.
     """
     output_path = os.path.join(temp_dir, f"advisory_shape_{source_identifier}_threshold_{threshold}.tif")
-    warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=DB_READ_STRING, cutlineSQL=f"SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}", cropToCutline=True)
+
+    with gdal.Open(raster_path) as raster:
+        tif_prj = raster.GetProjection()
+        tif_srs = osr.SpatialReference(wkt=tif_prj)
+
+    advisory_shape = get_advisory_shape(advisory_shape_id)
+    reproj_advisory_shape = reproject_ogr_layer(advisory_shape, temp_dir, tif_srs)
+    warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=reproj_advisory_shape, cropToCutline=True)
     gdal.Warp(output_path, raster_path, options=warp_options)
+    return output_path
+
+
+def get_advisory_shape(advisory_shape_id: int) -> ogr.Layer:
+    with ogr.Open(DB_READ_STRING) as data_source:
+        sql = f'SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}'
+        advisory_shape = data_source.ExecuteSQL(sql)
+
+    return advisory_shape
+
+
+def reproject_ogr_layer(layer: ogr.Layer, out_dir: str, to_projection: osr.SpatialReference) -> str:
+    layer_srs = layer.GetSpatialRef()
+    coordinate_transform = osr.CoordinateTransformation(layer_srs, to_projection)
+
+    output_path = f'/{out_dir}/reprojected.gpkg'
+    reprojected_ds = ogr.GetDriverByName('GPKG').CreateDataSource(output_path)
+    reprojected_layer = reprojected_ds.CreateLayer('reprojected', srs=to_projection)
+
+    for feature in layer:
+        geometry = feature.GetGeometryRef()
+        geometry.Transform(coordinate_transform)
+        new_feature = ogr.Feature(reprojected_layer.GetLayerDefn())
+        new_feature.SetGeometry(geometry)
+        reprojected_layer.CreateFeature(new_feature)
+        new_feature = None
+
     return output_path
 
 
@@ -196,6 +229,7 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         # Retrieve the appropriate hfi raster from s3 storage
         hfi_key = get_s3_key(run_type, run_datetime.date(), for_date)
         hfi_raster = gdal.Open(hfi_key, gdal.GA_ReadOnly)
+        hfi_data = hfi_raster.GetRasterBand(1).ReadAsArray()
 
 
         # Retrieve the fuel type raster with BC Albers (EPSG: 3005) spatial reference from s3 storage.
@@ -215,18 +249,14 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         fuel_types = await get_all_sfms_fuel_types(session)
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Reproject HFI raster to match spatial reference, extent and resolution of fuel layer
-            warped_hfi_path = warp_hfi_layer(temp_dir, hfi_raster, fuel_type_raster)
-            warped_hfi_raster = gdal.Open(warped_hfi_path, gdal.GA_ReadOnly)
-            warped_hfi_data = warped_hfi_raster.GetRasterBand(1).ReadAsArray()
+            
             for threshold in thresholds:
-                classified_hfi_data = classify_by_threshold(warped_hfi_data, threshold.id)
+                classified_hfi_data = classify_by_threshold(hfi_data, threshold.id)
                 masked_fuel_type_data = np.multiply(fuel_type_data, classified_hfi_data)
                 masked_fuel_type_path = create_masked_fuel_type_tif(masked_fuel_type_data, temp_dir, threshold.id, geotransform, projection, x_size, y_size)
                 await calculate_fuel_type_area_by_shape(session, temp_dir, masked_fuel_type_path, threshold.id, run_parameters_id, fuel_types)
     # Clean up open gdal objects
     hfi_raster = None
-    warped_hfi_raster = None
     fuel_type_raster = None
 
     perf_end = perf_counter()
