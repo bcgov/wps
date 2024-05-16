@@ -6,14 +6,26 @@ import { FireShapeAreaDetail } from 'api/fbaAPI'
 describe('FireCentreInfo', () => {
   it('should render', () => {
     const { getByTestId } = render(
-      <FireCentreInfo advisoryThreshold={20} fireCentreName="foo" fireZoneUnitInfos={[]} />
+      <FireCentreInfo
+        advisoryThreshold={20}
+        expanded={false}
+        fireCentreName="foo"
+        fireZoneUnitInfos={[]}
+        onChangeExpanded={jest.fn()}
+      />
     )
     const fireCentreInfo = getByTestId('fire-centre-info')
     expect(fireCentreInfo).toBeInTheDocument()
   })
   it('should render the fire centre name', () => {
     const { getByTestId } = render(
-      <FireCentreInfo advisoryThreshold={20} fireCentreName="foo" fireZoneUnitInfos={[]} />
+      <FireCentreInfo
+        advisoryThreshold={20}
+        expanded={false}
+        fireCentreName="foo"
+        fireZoneUnitInfos={[]}
+        onChangeExpanded={jest.fn()}
+      />
     )
     const fireCentreInfo = getByTestId('fire-centre-info')
     expect(fireCentreInfo).toBeInTheDocument()
@@ -32,7 +44,13 @@ describe('FireCentreInfo', () => {
       }
     ]
     const { getByTestId } = render(
-      <FireCentreInfo advisoryThreshold={20} fireCentreName="foo" fireZoneUnitInfos={fireShapeAreaDetails} />
+      <FireCentreInfo
+        advisoryThreshold={20}
+        expanded={true}
+        fireCentreName="foo"
+        fireZoneUnitInfos={fireShapeAreaDetails}
+        onChangeExpanded={jest.fn()}
+      />
     )
     const fireZoneUnitInfo = getByTestId('fire-zone-unit-info')
     expect(fireZoneUnitInfo).toBeInTheDocument()
