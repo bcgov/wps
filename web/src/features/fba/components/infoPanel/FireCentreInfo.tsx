@@ -9,8 +9,10 @@ import { INFO_PANEL_CONTENT_BACKGORUND } from 'app/theme'
 
 interface FireCentreInfoProps {
   advisoryThreshold: number
+  expanded: boolean
   fireCentreName: string
   fireZoneUnitInfos: FireShapeAreaDetail[]
+  onChangeExpanded: (name: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void
 }
 
 const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
@@ -24,15 +26,22 @@ const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
   }
 }))
 
-const FireCenterInfo = ({ advisoryThreshold, fireCentreName, fireZoneUnitInfos }: FireCentreInfoProps) => {
+const FireCenterInfo = ({
+  advisoryThreshold,
+  expanded,
+  fireCentreName,
+  fireZoneUnitInfos,
+  onChangeExpanded
+}: FireCentreInfoProps) => {
   const theme = useTheme()
   const groupedFireZoneUnitInfos = groupBy(fireZoneUnitInfos, 'fire_shape_name')
   return (
     <Accordion
       data-testid={`fire-centre-info`}
       disableGutters
-      defaultExpanded={false}
+      expanded={expanded}
       elevation={0}
+      onChange={onChangeExpanded(fireCentreName)}
       sx={{ marginLeft: theme.spacing(2) }}
     >
       <StyledAccordionSummary expandIcon={<ExpandMoreIcon />}>{fireCentreName}</StyledAccordionSummary>
