@@ -544,7 +544,8 @@ def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: 
     """
 
     if ffmc is None:
-        ffmc = NULL
+        logger.error("Failed to calculate FFMC; initial FFMC is required.")
+        return None
     if temperature is None:
         temperature = NULL
     if relative_humidity is None:
@@ -552,6 +553,7 @@ def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: 
     if precipitation is None:
         precipitation = NULL
     if wind_speed is None:
+        # _ffmcCalc with throw if passed a NULL windspeed, so log a message and return None.
         logger.error("Failed to calculate ffmc")
         return None
     result = CFFDRS.instance().cffdrs._ffmcCalc(ffmc_yda=ffmc, temp=temperature, rh=relative_humidity,
