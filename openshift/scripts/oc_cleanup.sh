@@ -29,7 +29,7 @@ if [ "${APPLY}" ]; then
 else
 	DELETE_OR_GET="get"
 fi
-OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc -o name -l app=${APP_LABEL} -l app=sfms-${SUFFIX}"
+OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc -o name -l 'app in (${APP_LABEL},sfms-${SUFFIX})'
 
 # Execute commands
 #
