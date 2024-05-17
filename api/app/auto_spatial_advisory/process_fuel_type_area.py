@@ -112,9 +112,10 @@ def intersect_raster_by_advisory_shape(threshold: int, advisory_shape_id: int, s
     """
     output_path = os.path.join(temp_dir, f"advisory_shape_{source_identifier}_threshold_{threshold}.tif")
 
-    with gdal.Open(raster_path) as raster:
-        tif_prj = raster.GetProjection()
-        tif_srs = osr.SpatialReference(wkt=tif_prj)
+    raster = gdal.Open(raster_path)
+    tif_prj = raster.GetProjection()
+    tif_srs = osr.SpatialReference(wkt=tif_prj)
+    raster = None
 
     advisory_shape = get_advisory_shape(advisory_shape_id)
     reproj_advisory_shape = reproject_ogr_layer(advisory_shape, temp_dir, tif_srs)
@@ -124,9 +125,11 @@ def intersect_raster_by_advisory_shape(threshold: int, advisory_shape_id: int, s
 
 
 def get_advisory_shape(advisory_shape_id: int) -> ogr.Layer:
-    with ogr.Open(DB_READ_STRING) as data_source:
-        sql = f'SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}'
-        advisory_shape = data_source.ExecuteSQL(sql)
+    data_source= ogr.Open(DB_READ_STRING)
+    sql = f'SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}'
+    advisory_shape = data_source.ExecuteSQL(sql)
+
+    data_source = None
 
     return advisory_shape
 

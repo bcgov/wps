@@ -44,10 +44,13 @@ def get_fuel_types_from_object_store():
 
 
 def get_fuel_types_from_db():
-    with ogr.Open(DB_READ_STRING) as data_source:
-        sql = 'SELECT * FROM advisory_fuel_types WHERE fuel_type_id > 0 AND (fuel_type_id < 99)'
-        advisory_shape = data_source.ExecuteSQL(sql)
-        
+    logger.info('Retrieving fuel types layer from database')
+    data_source = ogr.Open(DB_READ_STRING)
+    sql = 'SELECT * FROM advisory_fuel_types WHERE fuel_type_id > 0 AND (fuel_type_id < 99)'
+    advisory_shape = data_source.ExecuteSQL(sql)
+
+    data_source = None
+
     return advisory_shape
 
 
