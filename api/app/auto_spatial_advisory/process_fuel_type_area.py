@@ -125,7 +125,8 @@ def intersect_raster_by_advisory_shape(threshold: int, advisory_shape_id: int, s
 
 
 def get_advisory_shape(advisory_shape_id: int) -> ogr.Layer:
-    data_source= ogr.Open(DB_READ_STRING)
+    logger.info(f'Reading advisory shape {advisory_shape_id} from database')
+    data_source = ogr.Open(DB_READ_STRING)
     sql = f'SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}'
     advisory_shape = data_source.ExecuteSQL(sql)
 
