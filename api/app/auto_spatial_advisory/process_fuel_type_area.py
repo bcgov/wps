@@ -128,8 +128,6 @@ def get_advisory_shape(advisory_shape_id: int) -> ogr.Layer:
     logger.info(f'Reading advisory shape {advisory_shape_id} from database')
     driver = ogr.GetDriverByName("PostgreSQL")
     data_source = driver.Open(DB_READ_STRING)
-    if data_source is None:
-        logger.error('Failed to connect to database')
     sql = f'SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}'
     advisory_shape = data_source.ExecuteSQL(sql)
 
