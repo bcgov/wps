@@ -601,6 +601,10 @@ def duff_moisture_code(dmc: float, temperature: float, relative_humidity: float,
         relative_humidity = NULL
     if precipitation is None:
         precipitation = NULL
+    if latitude is None:
+        latitude = 55
+    if month is None:
+        month = 7
     result = CFFDRS.instance().cffdrs._dmcCalc(dmc, temperature, relative_humidity, precipitation,
                                                latitude, month, latitude_adjust)
 
@@ -645,6 +649,10 @@ def drought_code(dc: float, temperature: float, relative_humidity: float, precip
         relative_humidity = NULL
     if precipitation is None:
         precipitation = NULL
+    if latitude is None:
+        latitude = 55
+    if month is None:
+        month = 7
     result = CFFDRS.instance().cffdrs._dcCalc(dc, temperature, relative_humidity, precipitation,
                                               latitude, month, latitude_adjust)
     if len(result) == 0:
