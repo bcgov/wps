@@ -118,3 +118,23 @@ def test_failing_dc(dc, temperature, relative_humidity, precipitation):
     """Test that we can handle None values when attempting to calculate dc"""
     res = cffdrs.drought_code(dc, temperature, relative_humidity, precipitation)
     assert res is None
+
+
+def test_none_latitude_dmc():
+    res = cffdrs.duff_moisture_code(100, 10, 90, 0, latitude=None)
+    assert res is not None
+
+
+def test_none_month_dmc():
+    res = cffdrs.duff_moisture_code(100, 10, 90, 0, month=None)
+    assert res is not None
+
+
+def test_none_latitude_dc():
+    res = cffdrs.drought_code(100, 10, 90, 0, latitude=None)
+    assert res is not None
+
+
+def test_none_month_dc():
+    res = cffdrs.drought_code(100, 10, 90, 0, month=None)
+    assert res is not None
