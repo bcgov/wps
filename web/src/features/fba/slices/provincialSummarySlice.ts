@@ -1,7 +1,7 @@
 import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { groupBy } from 'lodash'
+import { groupBy, isNull, isUndefined } from 'lodash'
 import { FireShapeAreaDetail, getProvincialSummary, ProvincialSummaryResponse } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { RootState } from 'app/rootReducer'
@@ -45,9 +45,9 @@ export const { getProvincialSummaryStart, getProvincialSummaryFailed, getProvinc
 export default provincialSummarySlice.reducer
 
 export const fetchProvincialSummary =
-  (runType: RunType, run_datetime: string, for_date: string): AppThunk =>
+  (runType: RunType, run_datetime: string | null, for_date: string): AppThunk =>
   async dispatch => {
-    if (run_datetime != undefined && run_datetime !== ``) {
+    if (!isUndefined(run_datetime) && !isNull(run_datetime)) {
       try {
         dispatch(getProvincialSummaryStart())
         const fireShapeAreas = await getProvincialSummary(runType, run_datetime, for_date)
@@ -58,7 +58,7 @@ export const fetchProvincialSummary =
       }
     } else {
       try {
-        dispatch(getProvincialSummaryFailed('run_datetime cannot be undefined!'))
+        dispatch(getProvincialSummarySuccess({ provincial_summary: [] }))
       } catch (err) {
         dispatch(getProvincialSummaryFailed((err as Error).toString()))
         logError(err)
