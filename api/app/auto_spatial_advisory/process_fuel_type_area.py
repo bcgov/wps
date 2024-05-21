@@ -126,8 +126,8 @@ def intersect_raster_by_advisory_shape(threshold: int, advisory_shape_id: int, s
 def get_advisory_shape(advisory_shape_id: int, out_dir: str, projection: osr.SpatialReference) -> str:
     """
     Get advisory_shape from database and store it (typically temporarily) in the specified projection for raster
-    intersection. The advisory_shape layer returned by ExecuteSQL must be store somewhere and can't simply be returned
-    because of GDAL (https://gdal.org/api/python_gotchas.html)
+    intersection. The advisory_shape layer returned by ExecuteSQL must be stored somewhere and can't simply be returned
+    because of the way GDAL connection references are handled (https://gdal.org/api/python_gotchas.html)
 
     :param advisory_shape_id: advisory_shape_id
     :type advisory_shape_id: int
