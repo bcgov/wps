@@ -131,6 +131,7 @@ def get_advisory_shape(advisory_shape_id: int, out_dir: str, projection: osr.Spa
 
     advisory_shape = reproject_ogr_layer(advisory_layer, out_dir, projection)
 
+    data_source = None
 
     return advisory_shape
 
