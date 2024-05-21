@@ -165,6 +165,8 @@ def reproject_ogr_layer(layer: ogr.Layer, out_dir: str, to_projection: osr.Spati
         reprojected_layer.CreateFeature(new_feature)
         new_feature = None
 
+    reprojected_ds = None
+
     return output_path
 
 
