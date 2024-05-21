@@ -117,20 +117,20 @@ def intersect_raster_by_advisory_shape(threshold: int, advisory_shape_id: int, s
     tif_srs = osr.SpatialReference(wkt=tif_prj)
     raster = None
 
-    advisory_shape = get_advisory_shape(advisory_shape_id)
-    reproj_advisory_shape = reproject_ogr_layer(advisory_shape, temp_dir, tif_srs)
-    warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=reproj_advisory_shape, cropToCutline=True)
+    advisory_shape = get_advisory_shape(advisory_shape_id, temp_dir, tif_srs)
+    warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=advisory_shape, cropToCutline=True)
     gdal.Warp(output_path, raster_path, options=warp_options)
     return output_path
 
 
-def get_advisory_shape(advisory_shape_id: int) -> ogr.Layer:
+def get_advisory_shape(advisory_shape_id: int, out_dir: str, projection: osr.SpatialReference) -> str:
     logger.info(f'Reading advisory shape {advisory_shape_id} from database')
     data_source = ogr.Open(DB_READ_STRING)
     sql = f'SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}'
-    advisory_shape = data_source.ExecuteSQL(sql)
+    advisory_layer = data_source.ExecuteSQL(sql)
 
-    data_source = None
+    advisory_shape = reproject_ogr_layer(advisory_layer, out_dir, projection)
+
 
     return advisory_shape
 
