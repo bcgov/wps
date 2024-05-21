@@ -192,21 +192,6 @@ def create_masked_fuel_type_tif(masked_fuel_type_data: list[list[float]], temp_d
     return masked_fuel_type_path
 
 
-def warp_hfi_layer(temp_dir, hfi, fuel_types):
-    geo_transform = fuel_types.GetGeoTransform()
-    x_res = geo_transform[1]
-    y_res = -geo_transform[5]
-    minx = geo_transform[0]
-    maxy = geo_transform[3]
-    maxx = minx + geo_transform[1] * fuel_types.RasterXSize
-    miny = maxy + geo_transform[5] * fuel_types.RasterYSize
-    extent = [minx, miny, maxx, maxy]
-    spatial_reference = fuel_types.GetSpatialRef()
-    warped_hfi_path = os.path.join(temp_dir, "warped_hfi_3005.tif")
-    gdal.Warp(warped_hfi_path, hfi, dstSRS=spatial_reference, outputBounds=extent, xRes=x_res, yRes=y_res, resampleAlg=gdal.GRA_NearestNeighbour)
-    return warped_hfi_path
-
-
 async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: datetime, for_date: date):
     """
     Entry point for deriving fuel type areas for each hfi threshold per advisory shape (eg. fire zone unit).
