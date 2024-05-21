@@ -43,15 +43,17 @@ def get_fuel_types_from_object_store():
     yield fuel_types_layer
 
 
+@contextmanager
 def get_fuel_types_from_db():
     logger.info('Retrieving fuel types layer from database')
-    data_source = ogr.Open(DB_READ_STRING)
-    sql = 'SELECT * FROM advisory_fuel_types WHERE fuel_type_id > 0 AND (fuel_type_id < 99)'
-    advisory_shape = data_source.ExecuteSQL(sql)
+    data_source = ogr.Open(DB_READ_STRING, gdal.GA_ReadOnly)
+    fuel_types_layer = data_source.GetLayerByName('advisory_fuel_types')
 
+    # Filter out non-combustible fuel types
+    fuel_types_layer.SetAttributeFilter('"fuel_type_id" > 0 and "fuel_type_id" < 99')
+
+    yield fuel_types_layer
     data_source = None
-
-    return advisory_shape
 
 
 def calculate_combustible_area_by_fire_zone(fuel_types_layer, zones) -> Generator[Tuple[str, float], None, None]:

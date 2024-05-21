@@ -124,7 +124,20 @@ def intersect_raster_by_advisory_shape(threshold: int, advisory_shape_id: int, s
 
 
 def get_advisory_shape(advisory_shape_id: int, out_dir: str, projection: osr.SpatialReference) -> str:
-    logger.info(f'Reading advisory shape {advisory_shape_id} from database')
+    """
+    Get advisory_shape from database and store it (typically temporarily) in the specified projection for raster
+    intersection. The advisory_shape layer returned by ExecuteSQL must be store somewhere and can't simply be returned
+    because of GDAL (https://gdal.org/api/python_gotchas.html)
+
+    :param advisory_shape_id: advisory_shape_id
+    :type advisory_shape_id: int
+    :param out_dir: Output directory of reprojected polygon(s)
+    :type out_dir: str
+    :param projection: Spatial reference
+    :type projection: osr.SpatialReference
+    :return: path to stored advisory shape
+    :rtype: str
+    """
     data_source = ogr.Open(DB_READ_STRING)
     sql = f'SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}'
     advisory_layer = data_source.ExecuteSQL(sql)
@@ -237,7 +250,7 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         hfi_data = hfi_raster.GetRasterBand(1).ReadAsArray()
 
 
-        # Retrieve the fuel type raster with BC Albers (EPSG: 3005) spatial reference from s3 storage.
+        # Retrieve the fuel type raster from s3 storage.
         fuel_type_key = get_fuel_type_s3_key(config.get("OBJECT_STORE_BUCKET"))
         fuel_type_raster = gdal.Open(fuel_type_key, gdal.GA_ReadOnly)
         fuel_type_band = fuel_type_raster.GetRasterBand(1)
