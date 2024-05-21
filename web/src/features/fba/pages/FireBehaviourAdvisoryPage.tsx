@@ -140,9 +140,9 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
-    if (!isNull(mostRecentRunDate) && !isNull(doiISODate) && !isUndefined(mostRecentRunDate)) {
-      dispatch(fetchFireShapeAreas(runType, mostRecentRunDate.toString(), doiISODate))
-      dispatch(fetchProvincialSummary(runType, mostRecentRunDate.toString(), doiISODate))
+    if (!isNull(doiISODate)) {
+      dispatch(fetchFireShapeAreas(runType, mostRecentRunDate, doiISODate))
+      dispatch(fetchProvincialSummary(runType, mostRecentRunDate, doiISODate))
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
