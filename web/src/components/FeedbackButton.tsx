@@ -11,7 +11,16 @@ const FeedbackButton = ({ color }: { color: 'primary' | 'inherit' }) => {
   }
 
   return (
-    <Button startIcon={<CampaignIcon />} variant={'contained'} color={color} onClick={() => feedback.openDialog()}>
+    <Button
+      startIcon={<CampaignIcon />}
+      variant={'contained'}
+      color={color}
+      onClick={async () => {
+        const form = await feedback.createForm({})
+        form.appendToDom()
+        form.open()
+      }}
+    >
       Submit Feedback
     </Button>
   )
