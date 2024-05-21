@@ -4,6 +4,7 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FireShapeArea, FireShapeAreaListResponse, getFireShapeAreas } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
+import { isNull, isUndefined } from 'lodash'
 
 interface State {
   loading: boolean
@@ -43,9 +44,9 @@ export const { getFireShapeAreasStart, getFireShapeAreasFailed, getFireShapeArea
 export default fireShapeAreasSlice.reducer
 
 export const fetchFireShapeAreas =
-  (runType: RunType, run_datetime: string, for_date: string): AppThunk =>
+  (runType: RunType, run_datetime: string | null, for_date: string): AppThunk =>
   async dispatch => {
-    if (run_datetime != undefined && run_datetime !== ``) {
+    if (!isUndefined(run_datetime) && !isNull(run_datetime)) {
       try {
         dispatch(getFireShapeAreasStart())
         const fireShapeAreas = await getFireShapeAreas(runType, run_datetime, for_date)
@@ -56,7 +57,7 @@ export const fetchFireShapeAreas =
       }
     } else {
       try {
-        dispatch(getFireShapeAreasFailed('run_datetime cannot be undefined!'))
+        dispatch(getFireShapeAreasSuccess({ shapes: [] }))
       } catch (err) {
         dispatch(getFireShapeAreasFailed((err as Error).toString()))
         logError(err)
