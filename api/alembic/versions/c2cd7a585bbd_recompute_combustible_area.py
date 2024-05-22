@@ -9,7 +9,10 @@ from alembic import op
 import sqlalchemy as sa
 import geoalchemy2
 from sqlalchemy.orm.session import Session
-from app.auto_spatial_advisory.calculate_combustible_land_area import calculate_combustible_area_by_fire_zone, get_fuel_types_from_db
+from contextlib import contextmanager
+from osgeo import ogr, gdal
+from app.db.database import DB_READ_STRING
+from app.auto_spatial_advisory.calculate_combustible_land_area import calculate_combustible_area_by_fire_zone
 
 # revision identifiers, used by Alembic.
 revision = 'c2cd7a585bbd'
@@ -39,6 +42,18 @@ def get_fire_zone_units(session: Session, fire_zone_type_id: int):
     statement = shape_table.select().where(shape_table.c.shape_type == fire_zone_type_id)
     result = session.execute(statement).fetchall()
     return result
+
+
+@contextmanager
+def get_fuel_types_from_db():
+    data_source = ogr.Open(DB_READ_STRING, gdal.GA_ReadOnly)
+    fuel_types_layer = data_source.GetLayerByName('advisory_fuel_types')
+
+    # Filter out non-combustible fuel types
+    fuel_types_layer.SetAttributeFilter('"fuel_type_id" > 0 and "fuel_type_id" < 99')
+
+    yield fuel_types_layer
+    data_source = None
 
 
 def upgrade():
