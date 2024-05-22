@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import * as Sentry from '@sentry/browser'
 import { useDispatch, useSelector } from 'react-redux'
 import { authenticate, testAuthenticate } from 'features/auth/slices/authenticationSlice'
 import axios from 'api/axios'
@@ -24,7 +25,7 @@ const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
 
 const AuthWrapper = ({ children }: Props) => {
   const dispatch: AppDispatch = useDispatch()
-  const { isAuthenticated, authenticating, error } = useSelector(selectAuthentication)
+  const { isAuthenticated, authenticating, error, email } = useSelector(selectAuthentication)
 
   useEffect(() => {
     if (TEST_AUTH || window.Cypress) {
@@ -46,6 +47,8 @@ const AuthWrapper = ({ children }: Props) => {
   if (!isAuthenticated) {
     return <div>You are not authenticated!</div>
   }
+
+  Sentry.setUser({ email: email })
 
   return <React.StrictMode>{children}</React.StrictMode>
 }
