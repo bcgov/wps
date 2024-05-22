@@ -3,6 +3,7 @@ from sqlalchemy import (Integer, Date, String, Float, Column, Index, ForeignKey,
 from app.db.models.common import TZTimeStamp
 from geoalchemy2 import Geometry
 from app.db.models import Base
+from app.db.models.hfi_calc import FireCentre
 from app.geospatial import NAD83_BC_ALBERS
 from sqlalchemy.dialects import postgresql
 
@@ -52,6 +53,8 @@ class Shape(Base):
     # modified in subsequent migration to nullable=False
     combustible_area = Column(Float, nullable=True)
     geom = Column(Geometry('MULTIPOLYGON', spatial_index=False, srid=NAD83_BC_ALBERS), nullable=False)
+    label = Column(String, nullable=True, index=False)
+    fire_centre = Column(Integer, ForeignKey(FireCentre.id), nullable=True, index=True)
 
 
 # Explict creation of index due to issue with alembic + geoalchemy.

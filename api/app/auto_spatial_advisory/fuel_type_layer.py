@@ -16,7 +16,7 @@ from app.utils.polygonize import polygonize_in_memory
 logger = logging.getLogger(__name__)
 
 
-def fuel_type_iterator() -> Generator[Tuple[int, str], None, None]:
+def fuel_type_iterator(fuel_grid_filename: str) -> Generator[Tuple[int, str], None, None]:
     """
     Yields fuel type id and geom by polygonizing fuel type layer raster stored in S3, and then
     iterating over feature from the resultant layer.
@@ -31,7 +31,7 @@ def fuel_type_iterator() -> Generator[Tuple[int, str], None, None]:
     bucket = config.get('OBJECT_STORE_BUCKET')
     # Hard coded for a geotiff on our S3 server, but this could be replaced by any raster file
     # that gdal is able to read.
-    filename = f'/vsis3/{bucket}/sfms/static/fbp2021.tif'
+    filename = f'/vsis3/{bucket}/sfms/static/{fuel_grid_filename}'
     logger.info('Polygonizing %s...', filename)
     with polygonize_in_memory(filename, 'fuel', 'fuel') as layer:
 
@@ -61,7 +61,7 @@ async def inject_ftl_into_database():
     """
     logger.info('save to database')
     async with get_async_write_session_scope() as session:
-        for fuel_type_id, geom in fuel_type_iterator():
+        for fuel_type_id, geom in fuel_type_iterator('fbp2024.tif'):
             fuel_type = FuelType(fuel_type_id=fuel_type_id, geom=geom)
             await save_fuel_type(session, fuel_type)
 
