@@ -144,7 +144,7 @@ describe('authenticationSlice', () => {
           token: testToken,
           idToken: testToken,
           idir: 'test@idir',
-          email: 'test@example.com',
+          email,
           roles: Object.values(ROLES.HFI),
           error: null
         }
@@ -167,7 +167,7 @@ describe('authenticationSlice', () => {
           token: testToken,
           idToken: testToken,
           idir: 'test@idir',
-          email: 'test@example.com',
+          email,
           roles: Object.values(ROLES.HFI),
           error: null
         }
