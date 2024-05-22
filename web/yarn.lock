@@ -8780,9 +8780,9 @@ ol-pmtiles@^0.4.0:
     pmtiles "^3.0.4"
 
 ol@^9.0.0-dev.1700506701744:
-  version "9.2.2"
-  resolved "https://registry.yarnpkg.com/ol/-/ol-9.2.2.tgz#e00822a6c2bb11543af743b89a354c67651206ca"
-  integrity sha512-YkuZW5MQTiKrr/0al1xuKarctNRvVj/anHZuq8rYMMq5BECG5E8rEOENOVFxhrbMX6T+un48D1Q0GtqBmU8Qdg==
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/ol/-/ol-9.1.0.tgz#738e9f17093f65dafe114b8a78c69f110f5d0220"
+  integrity sha512-nDrkJ2tzZNpo/wzN/PpHV5zdxbnXZaFktoMaD2cFLEc6gCwlgLY21Yd8wnt/4FjaVYwLBnbN9USXSwIBGcyksQ==
   dependencies:
     color-rgba "^3.0.0"
     color-space "^2.0.1"
