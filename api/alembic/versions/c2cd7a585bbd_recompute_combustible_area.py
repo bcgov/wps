@@ -59,22 +59,22 @@ def get_fuel_type_polygons(session: Session):
 def get_fuel_types_from_db(session):
     mem_driver = ogr.GetDriverByName('Memory')
     mem_ds = mem_driver.CreateDataSource('mem_data')
-    mem_layer = mem_ds.CreateLayer('advisory_shapes', geom_type=ogr.wkbPolygon)
-    mem_layer.CreateField(ogr.FieldDefn('id', ogr.OFTInteger))
-    mem_layer.CreateField(ogr.FieldDefn('fuel_type_id', ogr.OFTInteger))
+    fuel_types_layer = mem_ds.CreateLayer('advisory_shapes', geom_type=ogr.wkbPolygon)
+    fuel_types_layer.CreateField(ogr.FieldDefn('id', ogr.OFTInteger))
+    fuel_types_layer.CreateField(ogr.FieldDefn('fuel_type_id', ogr.OFTInteger))
 
-    fuel_type = get_fuel_type_polygons(session)
-    for row in fuel_type:
+    fuel_type_polygons = get_fuel_type_polygons(session)
+    for row in fuel_type_polygons:
         shapely_obj = to_shape(row.geom)
 
-        feature = ogr.Feature(mem_layer.GetLayerDefn())
+        feature = ogr.Feature(fuel_types_layer.GetLayerDefn())
         feature.SetGeometry(ogr.CreateGeometryFromWkt(shapely_obj.wkt))
         feature.SetField('id', row.id)
         feature.SetField('fuel_type_id', row.fuel_type_id)
-        mem_layer.CreateFeature(feature)
+        fuel_types_layer.CreateFeature(feature)
         feature = None
 
-    yield mem_layer
+    yield fuel_types_layer
     mem_ds = None
 
 
