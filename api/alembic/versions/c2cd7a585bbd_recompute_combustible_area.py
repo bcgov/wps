@@ -59,7 +59,7 @@ def get_fuel_type_polygons(session: Session):
 def get_fuel_types_from_db(session):
     mem_driver = ogr.GetDriverByName('Memory')
     mem_ds = mem_driver.CreateDataSource('mem_data')
-    fuel_types_layer = mem_ds.CreateLayer('advisory_shapes', geom_type=ogr.wkbPolygon)
+    fuel_types_layer = mem_ds.CreateLayer('fuel_types', geom_type=ogr.wkbPolygon)
     fuel_types_layer.CreateField(ogr.FieldDefn('id', ogr.OFTInteger))
     fuel_types_layer.CreateField(ogr.FieldDefn('fuel_type_id', ogr.OFTInteger))
 
