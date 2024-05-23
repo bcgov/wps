@@ -12,7 +12,6 @@ from geoalchemy2.shape import to_shape
 from sqlalchemy.orm.session import Session
 from osgeo import ogr
 from contextlib import contextmanager
-from app.db.models.auto_spatial_advisory import FuelType
 from app.auto_spatial_advisory.calculate_combustible_land_area import calculate_combustible_area_by_fire_zone
 
 # revision identifiers, used by Alembic.

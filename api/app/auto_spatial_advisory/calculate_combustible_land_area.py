@@ -11,7 +11,6 @@ import logging
 from osgeo import gdal, ogr
 from geoalchemy2.shape import to_shape
 from app import config
-from app.db.database import DB_READ_STRING
 
 
 logger = logging.getLogger(__name__)
