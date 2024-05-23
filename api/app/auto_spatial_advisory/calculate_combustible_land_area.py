@@ -11,7 +11,6 @@ import logging
 from osgeo import gdal, ogr
 from geoalchemy2.shape import to_shape
 from app import config
-from app.db.database import DB_READ_STRING
 
 
 logger = logging.getLogger(__name__)
@@ -41,19 +40,6 @@ def get_fuel_types_from_object_store():
     fuel_types_layer.SetAttributeFilter('"Band 1" > 0 and ("Band 1" < 99 or "Band 1" > 103)')
 
     yield fuel_types_layer
-
-
-@contextmanager
-def get_fuel_types_from_db():
-    logger.info('Retrieving fuel types layer from database')
-    data_source = ogr.Open(DB_READ_STRING, gdal.GA_ReadOnly)
-    fuel_types_layer = data_source.GetLayerByName('advisory_fuel_types')
-
-    # Filter out non-combustible fuel types
-    fuel_types_layer.SetAttributeFilter('"fuel_type_id" > 0 and "fuel_type_id" < 99')
-
-    yield fuel_types_layer
-    data_source = None
 
 
 def calculate_combustible_area_by_fire_zone(fuel_types_layer, zones) -> Generator[Tuple[str, float], None, None]:
