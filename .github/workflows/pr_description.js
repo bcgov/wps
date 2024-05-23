@@ -16,7 +16,6 @@ module.exports = async ({ github, context }) => {
     body += `[Landing Page](${prBaseUrl}/)\n`
     body += `[MoreCast](${prBaseUrl}/morecast)\n`;
     body += `[Percentile Calculator](${prBaseUrl}/percentile-calculator)\n`;
-    body += `[MoreCast](${prBaseUrl}/morecast)\n`;
     body += `[C-Haines](${prBaseUrl}/c-haines)\n`;
     body += `[FireBat](${prBaseUrl}/fire-behaviour-calculator)\n`;
     body += `[FireBat bookmark](${prBaseUrl}/fire-behaviour-calculator?s=266&f=c5&c=NaN&w=20,s=286&f=c7&c=NaN&w=16,s=1055&f=c7&c=NaN&w=NaN,s=305&f=c7&c=NaN&w=NaN,s=344&f=c5&c=NaN&w=NaN,s=346&f=c7&c=NaN&w=NaN,s=328&f=c7&c=NaN&w=NaN,s=1399&f=c7&c=NaN&w=NaN,s=334&f=c7&c=NaN&w=NaN,s=1082&f=c3&c=NaN&w=NaN,s=388&f=c7&c=NaN&w=NaN,s=309&f=c7&c=NaN&w=16,s=306&f=c7&c=NaN&w=NaN,s=1029&f=c7&c=NaN&w=NaN,s=298&f=c7&c=NaN&w=NaN,s=836&f=c7&c=NaN&w=NaN,s=9999&f=c7&c=NaN&w=NaN)\n`;
