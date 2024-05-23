@@ -8,10 +8,11 @@ Create Date: 2024-05-15 08:32:04.942965
 from alembic import op
 import sqlalchemy as sa
 import geoalchemy2
+from geoalchemy2.shape import to_shape
 from sqlalchemy.orm.session import Session
+from osgeo import ogr
 from contextlib import contextmanager
-from osgeo import ogr, gdal
-from app.db.database import DB_READ_STRING
+from app.db.models.auto_spatial_advisory import FuelType
 from app.auto_spatial_advisory.calculate_combustible_land_area import calculate_combustible_area_by_fire_zone
 
 # revision identifiers, used by Alembic.
@@ -31,6 +32,11 @@ shape_table = sa.Table('advisory_shapes', sa.MetaData(),
                        sa.Column('shape_type', sa.Integer),
                        sa.Column('geom', geoalchemy2.Geometry))
 
+fuel_type_table = sa.Table('advisory_fuel_types', sa.MetaData(),
+                        sa.Column('id', sa.Integer),
+                        sa.Column('fuel_type_id', sa.Integer),
+                        sa.Column('geom', geoalchemy2.Geometry))
+
 
 def get_fire_zone_unit_shape_type_id(session: Session):
     statement = shape_type_table.select().where(shape_type_table.c.name == 'fire_zone_unit')
@@ -44,23 +50,39 @@ def get_fire_zone_units(session: Session, fire_zone_type_id: int):
     return result
 
 
+def get_fuel_type_polygons(session: Session):
+    stmt = fuel_type_table.select().where(fuel_type_table.c.fuel_type_id < 99, fuel_type_table.c.fuel_type_id > 0)
+    result = session.execute(stmt).fetchall()
+    return result
+
+
 @contextmanager
-def get_fuel_types_from_db():
-    data_source = ogr.Open(DB_READ_STRING, gdal.GA_ReadOnly)
-    fuel_types_layer = data_source.GetLayerByName('advisory_fuel_types')
+def get_fuel_types_from_db(session):
+    mem_driver = ogr.GetDriverByName('Memory')
+    mem_ds = mem_driver.CreateDataSource('mem_data')
+    mem_layer = mem_ds.CreateLayer('advisory_shapes', geom_type=ogr.wkbPolygon)
+    mem_layer.CreateField(ogr.FieldDefn('id', ogr.OFTInteger))
+    mem_layer.CreateField(ogr.FieldDefn('fuel_type_id', ogr.OFTInteger))
 
-    # Filter out non-combustible fuel types
-    fuel_types_layer.SetAttributeFilter('"fuel_type_id" > 0 and "fuel_type_id" < 99')
+    fuel_type = get_fuel_type_polygons(session)
+    for row in fuel_type:
+        shapely_obj = to_shape(row.geom)
 
-    yield fuel_types_layer
-    data_source = None
+        feature = ogr.Feature(mem_layer.GetLayerDefn())
+        feature.SetGeometry(ogr.CreateGeometryFromWkt(shapely_obj.wkt))
+        feature.SetField('id', row.id)
+        feature.SetField('fuel_type_id', row.fuel_type_id)
+        mem_layer.CreateFeature(feature)
+        feature = None
+
+    yield mem_layer
+    mem_ds = None
 
 
 def upgrade():
     session = Session(bind=op.get_bind())
 
-    with get_fuel_types_from_db() as fuel_types:
-        # fetch all fire zones from DB
+    with get_fuel_types_from_db(session) as fuel_types:
         fire_zone_shape_type_id = get_fire_zone_unit_shape_type_id(session)
         zone_units = get_fire_zone_units(session, fire_zone_shape_type_id)
 
