@@ -2,7 +2,7 @@ import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { validForecastPredicate, validActualPredicate, validActualOrForecastPredicate } from 'features/moreCast2/util'
 
 export const filterAllVisibleRowsForSimulation = (rows: MoreCast2Row[]): MoreCast2Row[] | undefined => {
-  const forecasts = rows.filter(validForecastPredicate)
+  const forecasts = rows.filter(row => !validActualPredicate(row))
   const actuals = rows.filter(validActualPredicate)
   const mostRecentActualMap = new Map<number, MoreCast2Row>()
   let rowsForSimulation = undefined
@@ -39,4 +39,21 @@ export const filterRowsForSimulationFromEdited = (
     }
   }
   return undefined
+}
+
+export const filterRowsForSimulation = (editedRow: MoreCast2Row, allRows: MoreCast2Row[]): MoreCast2Row[] => {
+  if (validForecastPredicate(editedRow)) {
+    const validRowsForStation = allRows.filter(
+      row => row.stationCode === editedRow.stationCode && validActualOrForecastPredicate(row)
+    )
+
+    const yesterday = editedRow.forDate.minus({ days: 1 })
+    const yesterdayRow = validRowsForStation.find(row => row.forDate.toISODate() === yesterday.toISODate())
+
+    if (yesterdayRow) {
+      const rowsForSimulation = validRowsForStation.filter(row => row.forDate >= yesterday)
+      return rowsForSimulation
+    }
+  }
+  return []
 }

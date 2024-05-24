@@ -2,8 +2,10 @@ import { DateTime, Interval } from 'luxon'
 import { ModelChoice, MoreCast2ForecastRecord, WeatherDeterminate } from 'api/moreCast2API'
 import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { StationGroupMember } from 'api/stationAPI'
-import { isUndefined } from 'lodash'
+import { groupBy, isUndefined } from 'lodash'
 import { getDateTimeNowPST } from 'utils/date'
+import { isForecastRowPredicate } from 'features/moreCast2/saveForecasts'
+import { bui, dc, dmc, ffmc, fwi, isi } from 'utils/fwi'
 
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
@@ -273,3 +275,99 @@ export const getRowsMap = (morecastRows: MoreCast2Row[]): Map<string, MoreCast2R
   })
   return morecastRowMap
 }
+
+export const simulateFireWeatherIndices = (rows: MoreCast2Row[]): MoreCast2Row[] => {
+  // Group all the rows by stationCode and sort each array of group members by date
+  const groupedByStation = groupBy(rows, 'stationCode')
+  for (const values of Object.values(groupedByStation)) {
+    values.sort((a, b) => dateTimeComparator(a.forDate, b.forDate))
+  }
+
+  for (const key of Object.keys(groupedByStation)) {
+    const group = groupedByStation[key]
+    // If we only have 0 or 1 forecasts in the group it isn't possible to simulate indices
+    if (group.length < 2) {
+      continue
+    }
+    // Iterate through the forecasts in the group in pairs, using a previous actual/forecast
+    // as the basis simulating indices of the current forecast
+    for (let i = 1; i < group.length; i++) {
+      const previous = group[i - 1]
+      const current = group[i]
+      if (!isForecastRowPredicate(current)) {
+        // No need to simulate indices for actuals
+        continue
+      }
+
+      const updatedForecast = calculateFWIs(previous, current)
+      group[i] = updatedForecast
+    }
+  }
+  // Merge all the forecasts in the group back into a single array.
+  let result: MoreCast2Row[] = []
+  for (const key of Object.keys(groupedByStation)) {
+    result = [...result, ...groupedByStation[key]]
+  }
+  return result
+}
+
+const calculateFWIs = (previous: MoreCast2Row, current: MoreCast2Row): MoreCast2Row => {
+  const month = current.forDate.month
+  const latitude = current.latitude
+  const temp = current.tempForecast
+  const rh = current.rhForecast
+  const precip = current.precipForecast
+  const windSpeed = current.windSpeedForecast
+
+  const previousFfmc = isForecastRowPredicate(previous) ? previous.ffmcCalcForecast?.value : previous.ffmcCalcActual
+  const previousDmc = isForecastRowPredicate(previous) ? previous.dmcCalcForecast?.value : previous.dmcCalcActual
+  const previousDc = isForecastRowPredicate(previous) ? previous.dcCalcForecast?.value : previous.dcCalcActual
+
+  if (previousFfmc) {
+    const simulatedFfmc = ffmc(previousFfmc, temp!.value, rh!.value, windSpeed!.value, precip!.value)
+    current.ffmcCalcForecast = { choice: ModelChoice.NULL, value: simulatedFfmc }
+  }
+  if (previousDmc) {
+    const simulatedDmc = dmc(previousDmc, temp!.value, rh!.value, precip!.value, latitude, month, true)
+    current.dmcCalcForecast = { choice: ModelChoice.NULL, value: simulatedDmc }
+  }
+  if (previousDc) {
+    const simulatedDc = dc(previousDc, temp!.value, rh!.value, precip!.value, latitude, month, true)
+    current.dcCalcForecast = { choice: ModelChoice.NULL, value: simulatedDc }
+  }
+  if (!isUndefined(current.ffmcCalcForecast?.value)) {
+    const simulatedIsi = isi(current.ffmcCalcForecast.value, windSpeed!.value, false)
+    current.isiCalcForecast = { choice: ModelChoice.NULL, value: simulatedIsi }
+  }
+  if (!isUndefined(current.dmcCalcForecast?.value) && !isUndefined(current.dcCalcForecast?.value)) {
+    const simulatedBui = bui(current.dmcCalcForecast.value, current.dcCalcForecast.value)
+    current.buiCalcForecast = { choice: ModelChoice.NULL, value: simulatedBui }
+  }
+  if (!isUndefined(current.isiCalcForecast?.value) && !isUndefined(current.buiCalcForecast?.value)) {
+    const simulatedFwi = fwi(current.isiCalcForecast.value, current.buiCalcForecast.value)
+    current.fwiCalcForecast = { choice: ModelChoice.NULL, value: simulatedFwi }
+  }
+
+  return current
+}
+
+/**
+ * Compares two luxon DateTime objects for sorting purposes.
+ * @param a A luxon DateTime.
+ * @param b A luxon DateTime
+ * @returns -1 if a is earlier than b, 1 if a is later than b and 0 if a and b are the same
+ */
+const dateTimeComparator = (a: DateTime, b: DateTime): number => {
+  return a < b ? -1 : a > b ? 1 : 0
+}
+
+// const forecasts = rows.filter(row => isForecastRowPredicate(row))
+// const actuals = rows.filter(row => !isForecastRowPredicate(row))
+// const groupedForecasts = groupBy(forecasts, 'stationCode')
+// const groupedActuals = groupBy(actuals, 'stationCode')
+// for (const values of Object.values(groupedForecasts)) {
+//   values.sort((a, b) => dateTimeComparator(a.forDate, b.forDate))
+// }
+// for (const values of Object.values(groupedActuals)) {
+//   values.sort((a, b) => dateTimeComparator(a.forDate, b.forDate))
+// }
