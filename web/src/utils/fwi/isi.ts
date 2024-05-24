@@ -20,21 +20,18 @@
  */
 export function isi(ffmc: number, ws: number, fbpMod: boolean = false) {
   // FIX: works for now
-  const exp = Math.exp;
+  const exp = Math.exp
   // Eq. 10 - Moisture content
-  const fm = (147.27723 * (101 - ffmc)) / (59.5 + ffmc);
+  const fm = (147.27723 * (101 - ffmc)) / (59.5 + ffmc)
   // Eq. 24 - Wind Effect
   // the ifelse, also takes care of the ISI modification for the fbp functions
   // This modification is Equation 53a in FCFDG (1992)
-  const fW =
-    ws >= 40 && fbpMod
-      ? 12 * (1 - exp(-0.0818 * (ws - 28)))
-      : exp(0.05039 * ws);
+  const fW = ws >= 40 && fbpMod ? 12 * (1 - exp(-0.0818 * (ws - 28))) : exp(0.05039 * ws)
   //Eq. 25 - Fine Fuel Moisture
-  const fF = 91.9 * exp(-0.1386 * fm) * (1 + (fm ** 5.31) / 49300000);
+  const fF = 91.9 * exp(-0.1386 * fm) * (1 + fm ** 5.31 / 49300000)
   //Eq. 26 - Spread Index Equation
-  const isi1 = 0.208 * fW * fF;
-  return isi1;
+  const isi1 = 0.208 * fW * fF
+  return isi1
 }
 
-export default isi;
+export default isi

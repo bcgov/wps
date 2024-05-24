@@ -23,16 +23,13 @@
  */
 export function fwi(isi: number, bui: number) {
   // FIX: works for now
-  const exp = Math.exp;
-  const log = Math.log;
+  const exp = Math.exp
+  const log = Math.log
   //Eqs. 28b, 28a, 29
-  const bb =
-    bui > 80
-      ? 0.1 * isi * (1000 / (25 + 108.64 / exp(0.023 * bui)))
-      : 0.1 * isi * (0.626 * (bui ** 0.809) + 2);
+  const bb = bui > 80 ? 0.1 * isi * (1000 / (25 + 108.64 / exp(0.023 * bui))) : 0.1 * isi * (0.626 * bui ** 0.809 + 2)
   //Eqs. 30b, 30a
-  const fwi1 = bb <= 1 ? bb : exp(2.72 * ((0.434 * log(bb)) ** 0.647));
-  return fwi1;
+  const fwi1 = bb <= 1 ? bb : exp(2.72 * (0.434 * log(bb)) ** 0.647)
+  return fwi1
 }
 
-export default fwi;
+export default fwi
