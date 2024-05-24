@@ -15,16 +15,16 @@ from app.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_f
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
 from app.morecast_v2.forecasts import filter_for_api_forecasts, get_forecasts, get_fwi_values
-from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
-                                     MoreCastForecastOutput,
-                                     MoreCastForecastRequest,
-                                     MorecastForecastResponse,
-                                     ObservedDailiesForStations,
-                                     StationDailiesResponse,
-                                     WeatherIndeterminate,
-                                     WeatherDeterminate,
-                                     SimulateIndeterminateIndices,
-                                     SimulatedWeatherIndeterminateResponse)
+from app.schemas.morecast_v2 import (
+    IndeterminateDailiesResponse,
+    MoreCastForecastOutput,
+    MoreCastForecastRequest,
+    MorecastForecastResponse,
+    ObservedDailiesForStations,
+    StationDailiesResponse,
+    WeatherIndeterminate,
+    WeatherDeterminate,
+)
 from app.schemas.shared import StationsRequest
 from app.wildfire_one.schema_parsers import transform_morecastforecastoutput_to_weatherindeterminate
 from app.utils.time import get_hour_20_from_date, get_utc_now
@@ -259,19 +259,3 @@ async def get_determinates_for_date_range(start_date: date,
         grass_curing=grass_curing,
         predictions=predictions)
 
-
-@router.post('/simulate-indices/', response_model=SimulatedWeatherIndeterminateResponse)
-async def calculate_forecasted_indices(simulate_records: SimulateIndeterminateIndices):
-    """ 
-    Returns forecasts with all Fire Weather Index System values calculated using the CFFDRS R library
-    """
-    indeterminates = simulate_records.simulate_records
-    logger.info(
-        f'/simulate-indices/ - simulating forecast records for stations: {set(indeterminate.station_name for indeterminate in indeterminates)}')
-
-    forecasts = [indeterminate for indeterminate in indeterminates if indeterminate.determinate ==
-                 WeatherDeterminate.FORECAST]
-    actuals = [indeterminate for indeterminate in indeterminates if indeterminate.determinate == WeatherDeterminate.ACTUAL]
-
-    _, forecasts = get_fwi_values(actuals, forecasts)
-    return (SimulatedWeatherIndeterminateResponse(simulated_forecasts=forecasts))
