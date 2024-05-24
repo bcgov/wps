@@ -162,7 +162,7 @@ export class GridComponentRenderer {
     precision: number
   ) => {
     const oldValue = params.row[field].value
-    const newValue = params.value ? Number(params.value) : NaN
+    const newValue = isNaN(params.value) ? NaN : Number(params.value)
 
     if (isNaN(oldValue) && isNaN(newValue)) {
       return { ...params.row }
@@ -170,7 +170,9 @@ export class GridComponentRenderer {
     // Check if the user has edited the value. If so, update the value and choice to reflect the Manual edit.
     if (newValue.toFixed(precision) !== Number(params.row[field].value).toFixed(precision)) {
       params.row[field].choice = ModelChoice.MANUAL
-      params.row[field].value = newValue
+      const fixedValue = newValue.toFixed(precision)
+
+      params.row[field].value = precision === 0 ? parseInt(fixedValue) : parseFloat(fixedValue)
     }
 
     return cloneDeep(params.row)

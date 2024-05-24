@@ -3,7 +3,7 @@ from enum import Enum
 import logging
 from time import perf_counter
 from typing import List
-from sqlalchemy import select, func, cast, String
+from sqlalchemy import and_, select, func, cast, String
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
@@ -11,6 +11,7 @@ from app.auto_spatial_advisory.run_type import RunType
 from app.db.models.auto_spatial_advisory import (
     AdvisoryFuelStats, Shape, ClassifiedHfi, HfiClassificationThreshold, SFMSFuelType, RunTypeEnum,
     FuelType, HighHfiArea, RunParameters, AdvisoryElevationStats, ShapeType)
+from app.db.models.hfi_calc import FireCentre
 
 logger = logging.getLogger(__name__)
 
@@ -356,3 +357,25 @@ async def get_zonal_elevation_stats(session: AsyncSession,
         .order_by(AdvisoryElevationStats.threshold)
 
     return await session.execute(stmt)
+
+
+async def get_provincial_rollup(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date) -> List[Row]:
+    logger.info("gathering provincial rollup")
+    run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+    stmt = (
+        select(
+            Shape.id,
+            Shape.source_identifier,
+            Shape.combustible_area,
+            Shape.label,
+            FireCentre.name.label("fire_centre_name"),
+            HighHfiArea.id,
+            HighHfiArea.advisory_shape_id,
+            HighHfiArea.threshold,
+            HighHfiArea.area.label("hfi_area"),
+        )
+        .join(FireCentre, FireCentre.id == Shape.fire_centre)
+        .join(HighHfiArea, and_(HighHfiArea.advisory_shape_id == Shape.id, HighHfiArea.run_parameters == run_parameter_id), isouter=True)
+    )
+    result = await session.execute(stmt)
+    return result.all()

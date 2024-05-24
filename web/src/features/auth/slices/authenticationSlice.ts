@@ -15,6 +15,7 @@ export interface AuthState {
   token: string | undefined
   idToken: string | undefined
   idir: string | undefined
+  email: string | undefined
   roles: string[]
   error: string | null
 }
@@ -26,6 +27,7 @@ export const initialState: AuthState = {
   token: undefined,
   idToken: undefined,
   idir: undefined,
+  email: undefined,
   roles: [],
   error: null
 }
@@ -50,7 +52,9 @@ const authSlice = createSlice({
       state.token = action.payload.token
       state.idToken = action.payload.idToken
       state.roles = decodeRoles(action.payload.token)
-      state.idir = decodeIdir(action.payload.token)
+      const userDetails = decodeUserDetails(action.payload.token)
+      state.idir = userDetails?.idir
+      state.email = userDetails?.email
     },
     authenticateError(state: AuthState, action: PayloadAction<string>) {
       state.authenticating = false
@@ -70,7 +74,9 @@ const authSlice = createSlice({
       state.idToken = action.payload.idToken
       state.tokenRefreshed = action.payload.tokenRefreshed
       state.roles = decodeRoles(action.payload.token)
-      state.idir = decodeIdir(action.payload.token)
+      const userDetails = decodeUserDetails(action.payload.token)
+      state.idir = userDetails?.idir
+      state.email = userDetails?.email
     },
     signoutFinished(state: AuthState) {
       state.authenticating = false
@@ -121,17 +127,17 @@ export const decodeRoles = (token: string | undefined) => {
   }
 }
 
-export const decodeIdir = (token: string | undefined) => {
+export const decodeUserDetails = (token: string | undefined) => {
   if (isUndefined(token)) {
     return undefined
   }
   if (TEST_AUTH || window.Cypress) {
-    return 'test@idir'
+    return { idir: 'test@idir', email: 'test@example.com' }
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const decodedToken: any = jwtDecode(token)
   try {
-    return decodedToken.idir_username
+    return { idir: decodedToken.idir_username, email: decodedToken.email }
   } catch (e) {
     // No idir username
     return undefined
