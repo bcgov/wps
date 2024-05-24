@@ -344,6 +344,19 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
   /********** End useEffects for managing visibility of column groups *************/
 
+  const updateColumnHelper = (rows: MoreCast2Row[]) => {
+    const rowsForSimulation = filterAllVisibleRowsForSimulation(rows) ?? []
+
+    if (rowsForSimulation.length > 0) {
+      storedDraftForecast.updateStoredDraftForecasts(rowsForSimulation, getDateTimeNowPST())
+      const filteredRowsWithIndices = simulateFireWeatherIndices(rowsForSimulation)
+      let newRows = cloneDeep(allRows)
+      // Merge the copy of existing rows with rows that were updated with simulated indices
+      newRows = newRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)
+      setAllRows(newRows)
+    }
+  }
+
   // Persistence forecasting. Get the most recent actual and persist it through the rest of the
   // days in this forecast period.
   const updateColumnFromLastActual = (forecastField: keyof MoreCast2Row, actualField: keyof MoreCast2Row) => {
@@ -369,16 +382,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
         predictionItem.value = mostRecentValue as number
       })
     }
-    const rowsForSimulation = filterAllVisibleRowsForSimulation(newVisibleRows) ?? []
-
-    if (rowsForSimulation.length > 0) {
-      storedDraftForecast.updateStoredDraftForecasts(rowsForSimulation, getDateTimeNowPST())
-      const filteredRowsWithIndices = simulateFireWeatherIndices(rowsForSimulation)
-      let newRows = cloneDeep(allRows)
-      // Merge the copy of existing rows with rows that were updated with simulated indices
-      newRows = newRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)
-      setAllRows(newRows)
-    }
+    updateColumnHelper(newVisibleRows)
   }
 
   const updateColumnFromModel = (
@@ -399,16 +403,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
         predictionItem.value = (row[sourceKey] as number) ?? NaN
       }
     }
-    const rowsForSimulation = filterAllVisibleRowsForSimulation(newVisibleRows) ?? []
-
-    if (rowsForSimulation.length > 0) {
-      storedDraftForecast.updateStoredDraftForecasts(rowsForSimulation, getDateTimeNowPST())
-      const filteredRowsWithIndices = simulateFireWeatherIndices(rowsForSimulation)
-      let newRows = cloneDeep(allRows)
-      // Merge the copy of existing rows with rows that were updated with simulated indices
-      newRows = newRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)
-      setAllRows(newRows)
-    }
+    updateColumnHelper(newVisibleRows)
   }
 
   // Handle a double-click on a cell in the datagrid. We only handle a double-click when the clicking
