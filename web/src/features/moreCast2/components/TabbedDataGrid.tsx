@@ -344,17 +344,21 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
   /********** End useEffects for managing visibility of column groups *************/
 
-  const updateColumnHelper = (rows: MoreCast2Row[]) => {
-    const rowsForSimulation = filterAllVisibleRowsForSimulation(rows) ?? []
+  const updateColumnHelper = (editedRows: MoreCast2Row[]) => {
+    storedDraftForecast.updateStoredDraftForecasts(editedRows, getDateTimeNowPST())
+    // Create a copy of all Morecast2ForecastRows
+    let newRows = cloneDeep(allRows)
+    newRows = newRows.map(newRow => editedRows.find(row => row.id === newRow.id) || newRow)
+
+    const rowsForSimulation = filterAllVisibleRowsForSimulation(editedRows) ?? []
 
     if (rowsForSimulation.length > 0) {
-      storedDraftForecast.updateStoredDraftForecasts(rowsForSimulation, getDateTimeNowPST())
       const filteredRowsWithIndices = simulateFireWeatherIndices(rowsForSimulation)
-      let newRows = cloneDeep(allRows)
-      // Merge the copy of existing rows with rows that were updated with simulated indices
+      // Merge the copy of allRows with rows that were updated with simulated indices
       newRows = newRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)
-      setAllRows(newRows)
     }
+
+    setAllRows(newRows)
   }
 
   // Persistence forecasting. Get the most recent actual and persist it through the rest of the
@@ -367,12 +371,15 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       // Get rows with actuals that have non-NaN values
       const rowsWithActuals: MoreCast2Row[] = values.filter(value => !isNaN(value[actualField] as number))
       // Filter for the row with the most recent forDate as this contains our most recent actual
-      const mostRecentRow = rowsWithActuals.reduce((a, b) => {
-        return a.forDate > b.forDate ? a : b
-      })
+      let mostRecentRow: MoreCast2Row | undefined = undefined
+      if (rowsWithActuals.length > 0) {
+        mostRecentRow = rowsWithActuals.reduce((a, b) => {
+          return a.forDate > b.forDate ? a : b
+        })
+      }
       // The most recent value from the weather station for the weather parameter of interest
       // (eg. tempActual) which will be applied as the forecast value
-      const mostRecentValue = mostRecentRow[actualField]
+      const mostRecentValue = isUndefined(mostRecentRow) ? NaN : mostRecentRow[actualField]
       // Finally, get an array of rows that don't have an actual for the weather parameter of interest
       // and iterate through them to apply the most recent actual as the new forecast value
       const rowsWithoutActuals: MoreCast2Row[] = values.filter(value => isNaN(value[actualField] as number))
