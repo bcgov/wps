@@ -369,4 +369,5 @@ def refresh_morecast2_materialized_view(session: Session):
     start = datetime.datetime.now()
     logger.info("Refreshing morecast_2_materialized_view")
     session.execute(text("REFRESH MATERIALIZED VIEW morecast_2_materialized_view"))
+    session.commit()
     logger.info(f"Finished mat view refresh with elapsed time: {datetime.datetime.now() - start}")
