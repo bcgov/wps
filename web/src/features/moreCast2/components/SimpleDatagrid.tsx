@@ -5,12 +5,16 @@ import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import { DataGridColumns, getSummaryColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
+import { getSimulatedIndicesAndStoreEditedRows } from 'features/moreCast2/slices/dataSlice'
+import { AppDispatch } from 'app/store'
+import { useDispatch } from 'react-redux'
+import { fillStationGrassCuringForward } from 'features/moreCast2/util'
 import { MORECAST_WEATHER_PARAMS, MoreCastParams, theme } from 'app/theme'
 import { MORECAST2_INDEX_FIELDS } from 'features/moreCast2/components/MoreCast2Column'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { PINNED_COLUMNS } from 'features/moreCast2/components/ColumnDefBuilder'
 
-const PREFIX = 'ForecastSummaryDataGrid'
+const PREFIX = 'SimpleDataGrid'
 
 const classes = {
   root: `${PREFIX}-root`
@@ -46,21 +50,24 @@ const Root = styled('div')(() => {
   return styles
 })
 
-interface ForecastSummaryDataGridProps {
+interface SimpleDataGridProps {
   loading: boolean
   rows: MoreCast2Row[]
   columnClickHandlerProps: ColumnClickHandlerProps
   handleColumnHeaderClick: GridEventListener<'columnHeaderClick'>
-  processRowUpdate: (newRow: MoreCast2Row) => MoreCast2Row
 }
 
-const ForecastSummaryDataGrid = ({
-  loading,
-  rows,
-  columnClickHandlerProps,
-  handleColumnHeaderClick,
-  processRowUpdate
-}: ForecastSummaryDataGridProps) => {
+const SimpleDataGrid = ({ loading, rows, columnClickHandlerProps, handleColumnHeaderClick }: SimpleDataGridProps) => {
+  const dispatch: AppDispatch = useDispatch()
+
+  const processRowUpdate = async (newRow: MoreCast2Row) => {
+    const filledRows = fillStationGrassCuringForward(newRow, rows)
+
+    dispatch(getSimulatedIndicesAndStoreEditedRows(newRow, filledRows))
+
+    return newRow
+  }
+
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGridPro
@@ -89,4 +96,4 @@ const ForecastSummaryDataGrid = ({
   )
 }
 
-export default ForecastSummaryDataGrid
+export default SimpleDataGrid

@@ -4,10 +4,8 @@ import { userEvent } from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 import { DateRange } from 'components/dateRangePicker/types'
-import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import store from 'app/store'
 
-const EMPTY_MORECAST_2_ROWS: MoreCast2Row[] = []
 const FROM_TO: DateRange = {}
 const SET_FROM_TO: React.Dispatch<React.SetStateAction<DateRange>> = jest.fn()
 const TABS = [
@@ -38,7 +36,6 @@ describe('TabbedDataGrid', () => {
     const { getByTestId } = render(
       <Provider store={store}>
         <TabbedDataGrid
-          morecast2Rows={EMPTY_MORECAST_2_ROWS}
           fromTo={FROM_TO}
           setFromTo={SET_FROM_TO}
           fetchWeatherIndeterminates={fetchWeatherIndeterminatesMock}
@@ -61,7 +58,6 @@ describe('TabbedDataGrid', () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={store}>
         <TabbedDataGrid
-          morecast2Rows={EMPTY_MORECAST_2_ROWS}
           fromTo={FROM_TO}
           setFromTo={SET_FROM_TO}
           fetchWeatherIndeterminates={fetchWeatherIndeterminatesMock}

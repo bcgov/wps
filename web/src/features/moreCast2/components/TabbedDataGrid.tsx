@@ -75,7 +75,6 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   const loading = useSelector(selectWeatherIndeterminatesLoading)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { wf1Token } = useSelector(selectWf1Authentication)
-  const [userEditedRows, setUserEditedRows] = useState<MoreCast2Row[]>([])
 
   // All MoreCast2Rows derived from WeatherIndeterminates in dataSlice.ts. Updates in response to
   // a change of station group or date range.
@@ -276,6 +275,10 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     }
     setColumnVisibilityModel(newColumnVisibilityModel)
   }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    setAllRows(morecast2Rows)
+  }, [morecast2Rows])
 
   useEffect(() => {
     const newVisibleRows: MoreCast2Row[] = []

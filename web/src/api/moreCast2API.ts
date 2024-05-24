@@ -158,10 +158,6 @@ export interface WeatherIndeterminateResponse {
   predictions: WeatherIndeterminate[]
 }
 
-export interface UpdatedWeatherIndeterminateResponse {
-  simulated_forecasts: WeatherIndeterminate[]
-}
-
 export const ModelOptions: ModelType[] = ModelChoices.filter(choice => !isEqual(choice, ModelChoice.MANUAL))
 
 export interface MoreCast2ForecastRecord {
@@ -248,18 +244,6 @@ export async function fetchWeatherIndeterminates(
   }
 
   return payload
-}
-
-export async function fetchCalculatedIndices(
-  recordsToSimulate: MoreCast2Row[]
-): Promise<UpdatedWeatherIndeterminateResponse> {
-  const url = 'morecast-v2/simulate-indices/'
-  const determinatesToSimulate = mapMoreCast2RowsToIndeterminates(recordsToSimulate)
-  const { data } = await axios.post<UpdatedWeatherIndeterminateResponse>(url, {
-    simulate_records: determinatesToSimulate
-  })
-
-  return data
 }
 
 export const mapMoreCast2RowsToIndeterminates = (rows: MoreCast2Row[]): WeatherIndeterminate[] => {
