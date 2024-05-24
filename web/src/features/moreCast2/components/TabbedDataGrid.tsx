@@ -31,7 +31,7 @@ import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
-import { filterAllVisibleRowsForSimulation, filterRowsForSimulation } from 'features/moreCast2/rowFilters'
+import { filterAllVisibleRowsForSimulation, filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
 import { fillStationGrassCuringForward, simulateFireWeatherIndices } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
@@ -494,7 +494,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   // Handler passed to our datagrids that runs after a row is updated.
   const processRowUpdate = (newRow: MoreCast2Row) => {
     const filledRows = fillStationGrassCuringForward(newRow, allRows)
-    const filteredRows = filterRowsForSimulation(newRow, filledRows)
+    const filteredRows = filterRowsForSimulationFromEdited(newRow, filledRows)
     storedDraftForecast.updateStoredDraftForecasts(filteredRows, getDateTimeNowPST())
     const filteredRowsWithIndices = simulateFireWeatherIndices(filteredRows)
     let newRows = cloneDeep(allRows)
