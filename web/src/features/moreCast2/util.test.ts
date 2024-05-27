@@ -24,6 +24,9 @@ const TEST_DATE = '2023-02-16T20:00:00+00:00'
 const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
 const TEST_CODE = 209
 const TEST_DATETIME = DateTime.fromISO(TEST_DATE)
+const YESTERDAY = DateTime.now().plus({ days: -1 })
+const TODAY = DateTime.now()
+const TOMORROW = DateTime.now().plus({ days: 1 })
 
 describe('createDateInterval', () => {
   it('should return array with single date when fromDate and toDate are the same', () => {
@@ -384,15 +387,36 @@ const populateForecastRowWithFWIs = (row: MoreCast2Row, dc: number, dmc: number,
   row.ffmcCalcForecast = { choice: ModelChoice.NULL, value: ffmc }
   return row
 }
+
+const buildActualRowWithIndices = (
+  stationCode: number,
+  forDate: DateTime,
+  dc: number = NaN,
+  dmc: number = NaN,
+  ffmc: number = NaN
+): MoreCast2Row => {
+  let actualRow = buildValidActualRow(stationCode, forDate)
+  actualRow = populateActualRowWithFWIs(actualRow, dc, dmc, ffmc)
+  return actualRow
+}
+
+const buildForecastRowWithIndices = (
+  stationCode: number,
+  forDate: DateTime,
+  dc: number = NaN,
+  dmc: number = NaN,
+  ffmc: number = NaN
+): MoreCast2Row => {
+  let forecastRow = buildValidForecastRow(stationCode, forDate)
+  forecastRow = populateForecastRowWithFWIs(forecastRow, dc, dmc, ffmc)
+  return forecastRow
+}
 /** End helper functions for calculateFWIs tests */
 
 describe('calculateFWIs', () => {
   it('should populate forecast FWIS for forecast from actual', () => {
-    const today = DateTime.now()
-    const yesterday = today.plus({ days: -1 })
-    let actualRow = buildValidActualRow(1, yesterday)
-    let forecastRow = buildValidForecastRow(1, today)
-    actualRow = populateActualRowWithFWIs(actualRow, 438, 89, 87)
+    const actualRow = buildActualRowWithIndices(1, YESTERDAY, 438, 89, 87)
+    let forecastRow = buildValidForecastRow(1, TODAY)
     forecastRow = calculateFWIs(actualRow, forecastRow)
     expect(forecastRow.buiCalcForecast!.choice).toBe(ModelChoice.NULL)
     expect(forecastRow.dcCalcForecast!.choice).toBe(ModelChoice.NULL)
@@ -408,11 +432,8 @@ describe('calculateFWIs', () => {
     expect(forecastRow.fwiCalcForecast!.value).toBeCloseTo(4.7, 1)
   })
   it('should populate forecast FWIS for forecast from another forecast', () => {
-    const today = DateTime.now()
-    const yesterday = today.plus({ days: -1 })
-    let yesterdayForecastRow = buildValidForecastRow(1, yesterday)
-    let forecastRow = buildValidForecastRow(1, today)
-    yesterdayForecastRow = populateForecastRowWithFWIs(yesterdayForecastRow, 438, 89, 87)
+    const yesterdayForecastRow = buildForecastRowWithIndices(1, YESTERDAY, 438, 89, 87)
+    let forecastRow = buildValidForecastRow(1, TODAY)
     forecastRow = calculateFWIs(yesterdayForecastRow, forecastRow)
     expect(forecastRow.buiCalcForecast!.choice).toBe(ModelChoice.NULL)
     expect(forecastRow.dcCalcForecast!.choice).toBe(ModelChoice.NULL)
@@ -428,66 +449,48 @@ describe('calculateFWIs', () => {
     expect(forecastRow.fwiCalcForecast!.value).toBeCloseTo(4.7, 1)
   })
   it("should not calculate ffmc, isi, bui or fwi if ffmc in yesterday's actual row is NaN", () => {
-    const today = DateTime.now()
-    const yesterday = today.plus({ days: -1 })
-    let yesterdayForecastRow = buildValidActualRow(1, yesterday)
-    let forecastRow = buildValidForecastRow(1, today)
-    yesterdayForecastRow = populateActualRowWithFWIs(yesterdayForecastRow, 438, 89, NaN)
+    const yesterdayForecastRow = buildForecastRowWithIndices(1, YESTERDAY, 438, 89, NaN)
+    let forecastRow = buildValidForecastRow(1, TODAY)
     forecastRow = calculateFWIs(yesterdayForecastRow, forecastRow)
     expect(forecastRow.ffmcCalcForecast).toBe(undefined)
     expect(forecastRow.isiCalcForecast).toBe(undefined)
     expect(forecastRow.fwiCalcForecast).toBe(undefined)
   })
   it("should not calculate ffmc, isi, bui or fwi if ffmc in yesterday's forecast row is NaN", () => {
-    const today = DateTime.now()
-    const yesterday = today.plus({ days: -1 })
-    let yesterdayForecastRow = buildValidForecastRow(1, yesterday)
-    let forecastRow = buildValidForecastRow(1, today)
-    yesterdayForecastRow = populateForecastRowWithFWIs(yesterdayForecastRow, 438, 89, NaN)
+    const yesterdayForecastRow = buildForecastRowWithIndices(1, YESTERDAY, 438, 89, NaN)
+    let forecastRow = buildValidForecastRow(1, TODAY)
     forecastRow = calculateFWIs(yesterdayForecastRow, forecastRow)
     expect(forecastRow.ffmcCalcForecast).toBe(undefined)
     expect(forecastRow.isiCalcForecast).toBe(undefined)
     expect(forecastRow.fwiCalcForecast).toBe(undefined)
   })
   it("should not calculate dmc, bui, fwi if dmc in yesterday's actual row is NaN", () => {
-    const today = DateTime.now()
-    const yesterday = today.plus({ days: -1 })
-    let yesterdayForecastRow = buildValidActualRow(1, yesterday)
-    let forecastRow = buildValidForecastRow(1, today)
-    yesterdayForecastRow = populateActualRowWithFWIs(yesterdayForecastRow, 438, NaN, 87)
+    const yesterdayForecastRow = buildForecastRowWithIndices(1, YESTERDAY, 438, NaN, 87)
+    let forecastRow = buildValidForecastRow(1, TODAY)
     forecastRow = calculateFWIs(yesterdayForecastRow, forecastRow)
     expect(forecastRow.dmcCalcForecast).toBe(undefined)
     expect(forecastRow.buiCalcForecast).toBe(undefined)
     expect(forecastRow.fwiCalcForecast).toBe(undefined)
   })
   it("sshould not calculate dmc, bui, fwi if dmc in yesterday's forecast row is NaN", () => {
-    const today = DateTime.now()
-    const yesterday = today.plus({ days: -1 })
-    let yesterdayForecastRow = buildValidForecastRow(1, yesterday)
-    let forecastRow = buildValidForecastRow(1, today)
-    yesterdayForecastRow = populateForecastRowWithFWIs(yesterdayForecastRow, 438, NaN, 87)
+    const yesterdayForecastRow = buildForecastRowWithIndices(1, YESTERDAY, 438, NaN, 87)
+    let forecastRow = buildValidForecastRow(1, TODAY)
     forecastRow = calculateFWIs(yesterdayForecastRow, forecastRow)
     expect(forecastRow.dmcCalcForecast).toBe(undefined)
     expect(forecastRow.buiCalcForecast).toBe(undefined)
     expect(forecastRow.fwiCalcForecast).toBe(undefined)
   })
   it("should not calculate dc, bui, fwi if dmc in yesterday's actual row is NaN", () => {
-    const today = DateTime.now()
-    const yesterday = today.plus({ days: -1 })
-    let yesterdayForecastRow = buildValidActualRow(1, yesterday)
-    let forecastRow = buildValidForecastRow(1, today)
-    yesterdayForecastRow = populateActualRowWithFWIs(yesterdayForecastRow, NaN, 89, 87)
+    const yesterdayForecastRow = buildForecastRowWithIndices(1, YESTERDAY, NaN, 89, 87)
+    let forecastRow = buildValidForecastRow(1, TODAY)
     forecastRow = calculateFWIs(yesterdayForecastRow, forecastRow)
     expect(forecastRow.dcCalcForecast).toBe(undefined)
     expect(forecastRow.buiCalcForecast).toBe(undefined)
     expect(forecastRow.fwiCalcForecast).toBe(undefined)
   })
   it("sshould not calculate dc, bui, fwi if dmc in yesterday's forecast row is NaN", () => {
-    const today = DateTime.now()
-    const yesterday = today.plus({ days: -1 })
-    let yesterdayForecastRow = buildValidForecastRow(1, yesterday)
-    let forecastRow = buildValidForecastRow(1, today)
-    yesterdayForecastRow = populateForecastRowWithFWIs(yesterdayForecastRow, NaN, 89, 87)
+    const yesterdayForecastRow = buildForecastRowWithIndices(1, YESTERDAY, NaN, 89, 87)
+    let forecastRow = buildValidForecastRow(1, TODAY)
     forecastRow = calculateFWIs(yesterdayForecastRow, forecastRow)
     expect(forecastRow.dcCalcForecast).toBe(undefined)
     expect(forecastRow.buiCalcForecast).toBe(undefined)
@@ -497,39 +500,24 @@ describe('calculateFWIs', () => {
 
 describe('simulateFireWeatherIndices', () => {
   it('should return input unchanged if only one row present per station', () => {
-    const today = DateTime.now()
-    const forecastRow = buildValidForecastRow(1, today)
+    const forecastRow = buildValidForecastRow(1, TODAY)
     const result = simulateFireWeatherIndices([forecastRow])
     expect(result[0]).toBe(forecastRow)
   })
   it('should simulate FWIs for all forecast rows', () => {
-    const today = DateTime.now()
-    let forecastRowA = buildValidForecastRow(1, today)
-    forecastRowA = populateForecastRowWithFWIs(forecastRowA, 438, 89, 87)
-    const forecastRowB = buildValidForecastRow(1, today.plus({ days: 1 }))
-    const forecastRowC = buildValidForecastRow(1, today.plus({ days: 2 }))
+    const forecastRowA = buildForecastRowWithIndices(1, YESTERDAY, 438, 89, 87)
+    const forecastRowB = buildValidForecastRow(1, TODAY)
+    const forecastRowC = buildValidForecastRow(1, TOMORROW)
     forecastRowC.tempForecast!.value = 27
     const result = simulateFireWeatherIndices([forecastRowA, forecastRowB, forecastRowC])
     expect(result.length).toBe(3)
     expect(result[0]).toBe(forecastRowA)
-    expect(forecastRowB.buiCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(forecastRowB.dcCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(forecastRowB.dmcCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(forecastRowB.ffmcCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(forecastRowB.isiCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(forecastRowB.fwiCalcForecast!.choice).toBe(ModelChoice.NULL)
     expect(forecastRowB.buiCalcForecast!.value).toBeCloseTo(108.5, 1)
     expect(forecastRowB.dcCalcForecast!.value).toBeCloseTo(439.6, 1)
     expect(forecastRowB.dmcCalcForecast!.value).toBeCloseTo(78.4, 1)
     expect(forecastRowB.ffmcCalcForecast!.value).toBeCloseTo(75.9, 1)
     expect(forecastRowB.isiCalcForecast!.value).toBeCloseTo(0.9, 1)
     expect(forecastRowB.fwiCalcForecast!.value).toBeCloseTo(4.7, 1)
-    expect(forecastRowC.buiCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(forecastRowC.dcCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(forecastRowC.dmcCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(forecastRowC.ffmcCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(forecastRowC.isiCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(forecastRowC.fwiCalcForecast!.choice).toBe(ModelChoice.NULL)
     expect(forecastRowC.buiCalcForecast!.value).toBeCloseTo(104.7, 1)
     expect(forecastRowC.dcCalcForecast!.value).toBeCloseTo(445.6, 1)
     expect(forecastRowC.dmcCalcForecast!.value).toBeCloseTo(74.2, 1)
@@ -538,42 +526,26 @@ describe('simulateFireWeatherIndices', () => {
     expect(forecastRowC.fwiCalcForecast!.value).toBeCloseTo(17.8, 1)
   })
   it('should simulate FWIs for multiple stations', () => {
-    const today = DateTime.now()
-    const tomorrow = today.plus({ days: 1 })
-    let station1ForecastA = buildValidForecastRow(1, today)
-    let station2ForecastA = buildValidForecastRow(2, today)
-    const station1ForecastB = buildValidForecastRow(1, tomorrow)
-    const station2ForecastB = buildValidForecastRow(2, tomorrow)
-    station1ForecastA = populateForecastRowWithFWIs(station1ForecastA, 438, 89, 87)
-    station2ForecastA = populateForecastRowWithFWIs(station2ForecastA, 445, 91, 85)
+    const station1ForecastA = buildForecastRowWithIndices(1, TODAY, 438, 89, 87)
+    const station2ForecastA = buildForecastRowWithIndices(2, TODAY, 445, 91, 85)
+    const station1ForecastB = buildValidForecastRow(1, TOMORROW)
+    const station2ForecastB = buildValidForecastRow(2, TOMORROW)
     const result = simulateFireWeatherIndices([
       station1ForecastB,
       station2ForecastA,
       station1ForecastA,
       station2ForecastB
     ])
-    expect(result.filter(row => row.stationCode === 1 && row.forDate === today)[0]).toBe(station1ForecastA)
-    expect(result.filter(row => row.stationCode === 2 && row.forDate === today)[0]).toBe(station2ForecastA)
-    const station1Bresult = result.filter(row => row.stationCode === 1 && row.forDate === tomorrow)[0]
-    expect(station1Bresult.buiCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(station1Bresult.dcCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(station1Bresult.dmcCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(station1Bresult.ffmcCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(station1Bresult.isiCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(station1Bresult.fwiCalcForecast!.choice).toBe(ModelChoice.NULL)
+    expect(result.filter(row => row.stationCode === 1 && row.forDate === TODAY)[0]).toBe(station1ForecastA)
+    expect(result.filter(row => row.stationCode === 2 && row.forDate === TODAY)[0]).toBe(station2ForecastA)
+    const station1Bresult = result.filter(row => row.stationCode === 1 && row.forDate === TOMORROW)[0]
     expect(station1Bresult.buiCalcForecast!.value).toBeCloseTo(108.5, 1)
     expect(station1Bresult.dcCalcForecast!.value).toBeCloseTo(439.6, 1)
     expect(station1Bresult.dmcCalcForecast!.value).toBeCloseTo(78.4, 1)
     expect(station1Bresult.ffmcCalcForecast!.value).toBeCloseTo(75.9, 1)
     expect(station1Bresult.isiCalcForecast!.value).toBeCloseTo(0.9, 1)
     expect(station1Bresult.fwiCalcForecast!.value).toBeCloseTo(4.7, 1)
-    const station2Bresult = result.filter(row => row.stationCode === 2 && row.forDate === tomorrow)[0]
-    expect(station2Bresult.buiCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(station2Bresult.dcCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(station2Bresult.dmcCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(station2Bresult.ffmcCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(station2Bresult.isiCalcForecast!.choice).toBe(ModelChoice.NULL)
-    expect(station2Bresult.fwiCalcForecast!.choice).toBe(ModelChoice.NULL)
+    const station2Bresult = result.filter(row => row.stationCode === 2 && row.forDate === TOMORROW)[0]
     expect(station2Bresult.buiCalcForecast!.value).toBeCloseTo(110.5, 1)
     expect(station2Bresult.dcCalcForecast!.value).toBeCloseTo(446.6, 1)
     expect(station2Bresult.dmcCalcForecast!.value).toBeCloseTo(80.0, 1)
