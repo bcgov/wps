@@ -190,7 +190,7 @@ export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[
       precip: forecast.precip.value,
       rh: forecast.rh.value,
       temp: forecast.temp.value,
-      wind_direction: forecast.windDirection.value,
+      wind_direction: Math.round(forecast.windDirection.value),
       wind_speed: forecast.windSpeed.value,
       grass_curing: forecast.grassCuring.value
     }
