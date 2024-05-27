@@ -16,6 +16,13 @@ depends_on = None
 
 
 def upgrade():
+    op.create_index(
+    op.f('ix_wsm_prediction_timestamp_station_code'),
+    'weather_station_model_predictions',
+    ['prediction_timestamp', 'station_code'],
+    unique=False
+)
+
     # drop mat view and limit the number of rows by prediction_timestamp within the last 21 days
     op.execute("DROP MATERIALIZED VIEW morecast_2_materialized_view;")
     op.execute("""
@@ -69,6 +76,7 @@ def upgrade():
     
 
 def downgrade():
+    op.drop_index('ix_wsm_prediction_timestamp_station_code', if_exists=True)
     op.execute("DROP MATERIALIZED VIEW morecast_2_materialized_view;")
     op.execute("""
         CREATE MATERIALIZED VIEW morecast_2_materialized_view AS
