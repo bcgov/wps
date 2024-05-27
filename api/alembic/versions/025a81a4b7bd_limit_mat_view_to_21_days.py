@@ -69,7 +69,7 @@ def upgrade():
         weather_station_model_predictions.prediction_timestamp = latest.latest_prediction
         AND weather_station_model_predictions.station_code = latest.station_code
     WHERE
-        weather_station_model_predictions.prediction_timestamp >= current_date  - INTERVAL '21 days'
+        weather_station_model_predictions.prediction_timestamp >= current_date - INTERVAL '21 days'
     ORDER BY
         weather_station_model_predictions.update_date DESC;
     """)
