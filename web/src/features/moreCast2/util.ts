@@ -311,7 +311,7 @@ export const simulateFireWeatherIndices = (rows: MoreCast2Row[]): MoreCast2Row[]
   return result
 }
 
-const calculateFWIs = (previous: MoreCast2Row, current: MoreCast2Row): MoreCast2Row => {
+export const calculateFWIs = (previous: MoreCast2Row, current: MoreCast2Row): MoreCast2Row => {
   const month = current.forDate.month
   const latitude = current.latitude
   const temp = current.tempForecast
@@ -357,17 +357,6 @@ const calculateFWIs = (previous: MoreCast2Row, current: MoreCast2Row): MoreCast2
  * @param b A luxon DateTime
  * @returns -1 if a is earlier than b, 1 if a is later than b and 0 if a and b are the same
  */
-const dateTimeComparator = (a: DateTime, b: DateTime): number => {
+export const dateTimeComparator = (a: DateTime, b: DateTime): number => {
   return a < b ? -1 : a > b ? 1 : 0
 }
-
-// const forecasts = rows.filter(row => isForecastRowPredicate(row))
-// const actuals = rows.filter(row => !isForecastRowPredicate(row))
-// const groupedForecasts = groupBy(forecasts, 'stationCode')
-// const groupedActuals = groupBy(actuals, 'stationCode')
-// for (const values of Object.values(groupedForecasts)) {
-//   values.sort((a, b) => dateTimeComparator(a.forDate, b.forDate))
-// }
-// for (const values of Object.values(groupedActuals)) {
-//   values.sort((a, b) => dateTimeComparator(a.forDate, b.forDate))
-// }
