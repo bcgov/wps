@@ -155,12 +155,9 @@ def apply_data_retention_policy():
     We can't keep data forever, we just don't have the space.
     """
     with app.db.database.get_write_session_scope() as session:
-        # The easiest target, is the 4 points surrounding a weather station, once it's interpolated
-        # and used for machine learning - it's no longer of use.
-        # It would be great to keep it forever. we could go back and use historic data to improve
-        # machine learning, but unfortunately takes a lot of space.
         # Currently we're using 19 days of data for machine learning, so
-        # keeping 21 days (3 weeks) of historic data is sufficient.
+        # keeping 21 days (3 weeks) of historic data is sufficient, howeever, we keep
+        # a years' worth of prediction data for historical skill scoring.
         oldest_to_keep = time_utils.get_utc_now() - time_utils.data_retention_threshold
         delete_weather_station_model_predictions(session, oldest_to_keep)
         delete_model_run_predictions(session, oldest_to_keep)
