@@ -553,4 +553,21 @@ describe('simulateFireWeatherIndices', () => {
     expect(station2Bresult.isiCalcForecast!.value).toBeCloseTo(0.9, 1)
     expect(station2Bresult.fwiCalcForecast!.value).toBeCloseTo(4.5, 1)
   })
+  it('should not use old actuals when multiple actuals present', () => {
+    const yesterdayForecastRow = buildActualRowWithIndices(1, YESTERDAY, 445, 91, 85)
+    const todayForecastRow = buildActualRowWithIndices(1, TODAY, 438, 89, 87)
+    const tomorrowForecastRow = buildValidForecastRow(1, TOMORROW)
+    const result = simulateFireWeatherIndices([yesterdayForecastRow, todayForecastRow, tomorrowForecastRow])
+    const yesterdayResult = result.filter(row => row.forDate === YESTERDAY)[0]
+    const todayResult = result.filter(row => row.forDate === TODAY)[0]
+    const tomorrowResult = result.filter(row => row.forDate === TOMORROW)[0]
+    expect(yesterdayResult).toEqual(yesterdayForecastRow)
+    expect(todayResult).toEqual(todayForecastRow)
+    expect(tomorrowResult.buiCalcForecast!.value).toBeCloseTo(108.5, 1)
+    expect(tomorrowResult.dcCalcForecast!.value).toBeCloseTo(439.6, 1)
+    expect(tomorrowResult.dmcCalcForecast!.value).toBeCloseTo(78.4, 1)
+    expect(tomorrowResult.ffmcCalcForecast!.value).toBeCloseTo(75.9, 1)
+    expect(tomorrowResult.isiCalcForecast!.value).toBeCloseTo(0.9, 1)
+    expect(tomorrowResult.fwiCalcForecast!.value).toBeCloseTo(4.7, 1)
+  })
 })
