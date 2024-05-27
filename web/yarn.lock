@@ -8778,10 +8778,10 @@ ol-pmtiles@^0.4.0:
   dependencies:
     pmtiles "^3.0.4"
 
-ol@^9.0.0-dev.1700506701744:
-  version "9.2.3"
-  resolved "https://registry.yarnpkg.com/ol/-/ol-9.2.3.tgz#c81052299aa96d63d74d91268c5f635d5b1cd3f2"
-  integrity sha512-zxCgrVUU9DWZZSa7eW2ukU6gp1ugX0K5bF+Gwuh/RKa2sQLdwOrIRjLt4NYAdM7jpHOdW1FaT68E8tosE/DC1g==
+ol@9.1.0:
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/ol/-/ol-9.1.0.tgz#738e9f17093f65dafe114b8a78c69f110f5d0220"
+  integrity sha512-nDrkJ2tzZNpo/wzN/PpHV5zdxbnXZaFktoMaD2cFLEc6gCwlgLY21Yd8wnt/4FjaVYwLBnbN9USXSwIBGcyksQ==
   dependencies:
     color-rgba "^3.0.0"
     color-space "^2.0.1"
