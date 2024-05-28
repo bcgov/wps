@@ -84,10 +84,10 @@ describe('filterRowsForSimulationFromEdited', () => {
     expect(filteredRows).not.toContain(forecast2B)
     expect(filteredRows).not.toContain(actual2A)
   })
-  it('should return undefined if yesterday does not contain a valid row', () => {
+  it('should return an empty array if yesterday does not contain a valid row', () => {
     actual1A.precipActual = NaN
     const filteredRows = filterRowsForSimulationFromEdited(forecast1A, rows)
-    expect(filteredRows).toBe(undefined)
+    expect(filteredRows).toStrictEqual([])
   })
 })
 describe('filterAllVisibleRowsForSimulation', () => {
