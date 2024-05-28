@@ -7,9 +7,7 @@ import {
   WeatherIndeterminatePayload,
   WeatherDeterminate,
   WeatherDeterminateChoices,
-  WeatherDeterminateType,
-  UpdatedWeatherIndeterminateResponse,
-  fetchCalculatedIndices
+  WeatherDeterminateType
 } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
 import {
@@ -25,8 +23,6 @@ import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { groupBy, isEqual, isNull, isNumber, isUndefined } from 'lodash'
 import { StationGroupMember } from 'api/stationAPI'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
-import { getDateTimeNowPST } from 'utils/date'
-import { filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
 
 const morecastDraftForecast = new MorecastDraftForecast(localStorage)
 interface State {
@@ -36,7 +32,6 @@ interface State {
   forecasts: WeatherIndeterminate[]
   grassCuring: WeatherIndeterminate[]
   predictions: WeatherIndeterminate[]
-  userEditedRows: MoreCast2Row[]
 }
 
 export const initialState: State = {
@@ -45,8 +40,7 @@ export const initialState: State = {
   actuals: [],
   forecasts: [],
   grassCuring: [],
-  predictions: [],
-  userEditedRows: []
+  predictions: []
 }
 
 const dataSlice = createSlice({
@@ -59,7 +53,6 @@ const dataSlice = createSlice({
       state.forecasts = []
       state.grassCuring = []
       state.predictions = []
-      state.userEditedRows = []
       state.loading = true
     },
     getWeatherIndeterminatesFailed(state: State, action: PayloadAction<string>) {
@@ -73,43 +66,12 @@ const dataSlice = createSlice({
       state.grassCuring = action.payload.grassCuring
       state.predictions = action.payload.predictions
       state.loading = false
-    },
-    simulateWeatherIndeterminatesSuccess(state: State, action: PayloadAction<UpdatedWeatherIndeterminateResponse>) {
-      const updatedForecasts = addUniqueIds(action.payload.simulated_forecasts)
-
-      state.forecasts = state.forecasts.map(forecast => {
-        const updatedForecast = updatedForecasts.find(item => item.id === forecast.id)
-        return updatedForecast ?? forecast
-      })
-    },
-    simulateWeatherIndeterminatesFailed(state: State, action: PayloadAction<string>) {
-      state.error = action.payload
-    },
-    storeUserEditedRows(state: State, action: PayloadAction<MoreCast2Row[]>) {
-      const storedRows = [...state.userEditedRows]
-
-      for (const row of action.payload) {
-        const existingIndex = storedRows.findIndex(storedRow => storedRow.id === row.id)
-        if (existingIndex !== -1) {
-          storedRows[existingIndex] = row
-        } else {
-          storedRows.push(row)
-        }
-      }
-      state.userEditedRows = storedRows
-      morecastDraftForecast.updateStoredDraftForecasts(storedRows, getDateTimeNowPST())
     }
   }
 })
 
-export const {
-  getWeatherIndeterminatesStart,
-  getWeatherIndeterminatesFailed,
-  getWeatherIndeterminatesSuccess,
-  simulateWeatherIndeterminatesSuccess,
-  simulateWeatherIndeterminatesFailed,
-  storeUserEditedRows
-} = dataSlice.actions
+export const { getWeatherIndeterminatesStart, getWeatherIndeterminatesFailed, getWeatherIndeterminatesSuccess } =
+  dataSlice.actions
 
 export default dataSlice.reducer
 
@@ -168,53 +130,6 @@ export const getWeatherIndeterminates =
       dispatch(getWeatherIndeterminatesFailed((err as Error).toString()))
       logError(err)
     }
-  }
-
-/**
- * Use the morecast2API to get simulated Fire Weather Index value from the backend.
- * Results are stored in the Redux store.
- * @param rowsForSimulation List of MoreCast2Row's to simulate. The first row in the array must contain
- * valid values for all Fire Weather Indices.
- * @returns Array of MoreCast2Rows
- */
-export const getSimulatedIndices =
-  (rowsForSimulation: MoreCast2Row[]): AppThunk =>
-  async dispatch => {
-    try {
-      const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
-      dispatch(simulateWeatherIndeterminatesSuccess(simulatedForecasts))
-    } catch (err) {
-      dispatch(simulateWeatherIndeterminatesFailed((err as Error).toString()))
-      logError(err)
-    }
-  }
-
-/**
- * Combination of actions, simulating indices and storing user edited rows. This combination exists
- * so we can be certain that we're storing updated/simulated indices any time we're storing row data.
- *
- * @param editedRow The user edited row, used to filter rows for FWI indices simulation
- * @param rows Array of Morecast2Rows
- * @returns
- */
-export const getSimulatedIndicesAndStoreEditedRows =
-  (editedRow: MoreCast2Row, rows: MoreCast2Row[]): AppThunk =>
-  async dispatch => {
-    let rowsToStore: MoreCast2Row[] = rows
-    try {
-      const rowsForSimulation = filterRowsForSimulationFromEdited(editedRow, rows)
-      if (rowsForSimulation) {
-        const simulatedForecasts = await fetchCalculatedIndices(rowsForSimulation)
-
-        rowsToStore = mapIndeterminateIndicesToRow(simulatedForecasts.simulated_forecasts, rowsToStore)
-
-        dispatch(simulateWeatherIndeterminatesSuccess(simulatedForecasts))
-      }
-    } catch (err) {
-      dispatch(simulateWeatherIndeterminatesFailed((err as Error).toString()))
-      logError(err)
-    }
-    dispatch(storeUserEditedRows(rowsToStore))
   }
 
 export const createMoreCast2Rows = (
@@ -622,11 +537,6 @@ export const selectAllMoreCast2Rows = createSelector([selectWeatherIndeterminate
   )
   const sortedRows = sortRowsByStationNameAndDate(rows)
   return sortedRows
-})
-
-export const selectUserEditedRows = createSelector([selectWeatherIndeterminates], weatherIndeterminates => {
-  const rows = weatherIndeterminates.userEditedRows
-  return rows
 })
 
 export const selectForecastMoreCast2Rows = createSelector([selectAllMoreCast2Rows], allMorecast2Rows =>

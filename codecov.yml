@@ -12,6 +12,7 @@ ignore:
   - "api/app/db/crud" # We don't write tests for the crud layer, the crud layer is mocked out in tests.
   - "api/app/db/database.py" # We don't write tests for the database layer, it's mocked out in tests.
   - "api/app/tests" # We don't care about coverage of the tests themselves.
+  - "web/src/utils/fwi" # We're temporarily hardcoding cffdrs ts modules here. Will switch to npm package eventually.
 coverage:
   # https://docs.codecov.com/docs/commit-status
   status:
