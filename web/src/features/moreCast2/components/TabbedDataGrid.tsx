@@ -432,15 +432,14 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       // There is no actual value, so we are in a forecast row and can proceed with updating the
       // forecast field value with the value of the cell that was double-clicked
       const forecastField = `${prefix}Forecast` as keyof MoreCast2Row
-      const newRows = cloneDeep(allRows)
-      const editedRowIndex = newRows.findIndex(row => row.id === params.row.id)
+      const newVisibleRows = cloneDeep(visibleRows)
+      const editedRowIndex = newVisibleRows.findIndex(row => row.id === params.row.id)
       if (editedRowIndex > -1) {
-        const editedRow = newRows[editedRowIndex]
+        const editedRow = newVisibleRows[editedRowIndex]
         const editedPredictionItem = editedRow[forecastField] as PredictionItem
         editedPredictionItem.choice = headerName
-        editedPredictionItem.value = params.value as number
-        storedDraftForecast.updateStoredDraftForecasts([editedRow], getDateTimeNowPST())
-        setAllRows(newRows)
+        editedPredictionItem.value = Number(params.value)
+        updateColumnHelper(newVisibleRows)
       }
     }
   }
