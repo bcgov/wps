@@ -345,7 +345,6 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   /********** End useEffects for managing visibility of column groups *************/
 
   const updateColumnHelper = (editedRows: MoreCast2Row[]) => {
-    storedDraftForecast.updateStoredDraftForecasts(editedRows, getDateTimeNowPST())
     // Create a copy of all Morecast2ForecastRows
     let newRows = cloneDeep(allRows)
     newRows = newRows.map(newRow => editedRows.find(row => row.id === newRow.id) || newRow)
@@ -354,6 +353,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
     if (rowsForSimulation.length > 0) {
       const filteredRowsWithIndices = simulateFireWeatherIndices(rowsForSimulation)
+      storedDraftForecast.updateStoredDraftForecasts(filteredRowsWithIndices, getDateTimeNowPST())
       // Merge the copy of allRows with rows that were updated with simulated indices
       newRows = newRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)
     }
@@ -375,7 +375,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       if (rowsWithActuals.length > 0) {
         mostRecentRow = rowsWithActuals.reduce((a, b) => {
           return a.forDate > b.forDate ? a : b
-        })
+        }, rowsWithActuals[0])
       }
       // The most recent value from the weather station for the weather parameter of interest
       // (eg. tempActual) which will be applied as the forecast value
@@ -497,8 +497,8 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   const processRowUpdate = (newRow: MoreCast2Row) => {
     const filledRows = fillStationGrassCuringForward(newRow, allRows)
     const filteredRows = filterRowsForSimulationFromEdited(newRow, filledRows)
-    storedDraftForecast.updateStoredDraftForecasts(filteredRows, getDateTimeNowPST())
     const filteredRowsWithIndices = simulateFireWeatherIndices(filteredRows)
+    storedDraftForecast.updateStoredDraftForecasts(filteredRowsWithIndices, getDateTimeNowPST())
     let newRows = cloneDeep(allRows)
     // Merge the copy of existing rows with rows that were updated with simulated indices
     newRows = newRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)

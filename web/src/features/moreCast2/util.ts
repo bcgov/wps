@@ -358,5 +358,11 @@ export const calculateFWIs = (previous: MoreCast2Row, current: MoreCast2Row): Mo
  * @returns -1 if a is earlier than b, 1 if a is later than b and 0 if a and b are the same
  */
 export const dateTimeComparator = (a: DateTime, b: DateTime): number => {
-  return a < b ? -1 : a > b ? 1 : 0
+  if (a < b) {
+    return -1
+  }
+  if (a > b) {
+    return 1
+  }
+  return 0
 }
