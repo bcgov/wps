@@ -18,14 +18,9 @@ import { getTabColumnGroupModel, ColumnVis, DataGridColumns } from 'features/mor
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
-import {
-  getSimulatedIndices,
-  selectUserEditedRows,
-  selectWeatherIndeterminatesLoading,
-  storeUserEditedRows
-} from 'features/moreCast2/slices/dataSlice'
+import { selectAllMoreCast2Rows, selectWeatherIndeterminatesLoading } from 'features/moreCast2/slices/dataSlice'
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 import { cloneDeep, groupBy, isEqual, isNull, isUndefined } from 'lodash'
@@ -36,9 +31,8 @@ import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
-import { AppDispatch } from 'app/store'
-import { filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
-import { mapForecastChoiceLabels } from 'features/moreCast2/util'
+import { filterAllVisibleRowsForSimulation, filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
+import { fillStationGrassCuringForward, simulateFireWeatherIndices } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import ResetForecastButton from 'features/moreCast2/components/ResetForecastButton'
@@ -69,7 +63,6 @@ const SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY = 'showHideColumnsModel'
 const storedDraftForecast = new MorecastDraftForecast(localStorage)
 
 interface TabbedDataGridProps {
-  morecast2Rows: MoreCast2Row[]
   fromTo: DateRange
   setFromTo: React.Dispatch<React.SetStateAction<DateRange>>
   fetchWeatherIndeterminates: () => void
@@ -77,13 +70,15 @@ interface TabbedDataGridProps {
 
 export type handleShowHideChangeType = (weatherParam: keyof MoreCastParams, columnName: string, value: boolean) => void
 
-const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterminates }: TabbedDataGridProps) => {
-  const dispatch: AppDispatch = useDispatch()
+const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: TabbedDataGridProps) => {
   const selectedStations = useSelector(selectSelectedStations)
   const loading = useSelector(selectWeatherIndeterminatesLoading)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { wf1Token } = useSelector(selectWf1Authentication)
-  const userEditedRows = useSelector(selectUserEditedRows)
+
+  // All MoreCast2Rows derived from WeatherIndeterminates in dataSlice.ts. Updates in response to
+  // a change of station group or date range.
+  const morecast2Rows = useSelector(selectAllMoreCast2Rows)
 
   // A copy of the sortedMoreCast2Rows as local state
   const [allRows, setAllRows] = useState<MoreCast2Row[]>(morecast2Rows)
@@ -282,9 +277,8 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
   }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const labelledRows = mapForecastChoiceLabels(morecast2Rows, cloneDeep(userEditedRows))
-    setAllRows(labelledRows)
-  }, [userEditedRows, morecast2Rows])
+    setAllRows(morecast2Rows)
+  }, [morecast2Rows])
 
   useEffect(() => {
     const newVisibleRows: MoreCast2Row[] = []
@@ -350,22 +344,42 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
 
   /********** End useEffects for managing visibility of column groups *************/
 
+  const updateColumnHelper = (editedRows: MoreCast2Row[]) => {
+    // Create a copy of all Morecast2ForecastRows
+    let newRows = cloneDeep(allRows)
+    newRows = newRows.map(newRow => editedRows.find(row => row.id === newRow.id) || newRow)
+
+    const rowsForSimulation = filterAllVisibleRowsForSimulation(editedRows) ?? []
+
+    if (rowsForSimulation.length > 0) {
+      const filteredRowsWithIndices = simulateFireWeatherIndices(rowsForSimulation)
+      storedDraftForecast.updateStoredDraftForecasts(filteredRowsWithIndices, getDateTimeNowPST())
+      // Merge the copy of allRows with rows that were updated with simulated indices
+      newRows = newRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)
+    }
+
+    setAllRows(newRows)
+  }
+
   // Persistence forecasting. Get the most recent actual and persist it through the rest of the
   // days in this forecast period.
   const updateColumnFromLastActual = (forecastField: keyof MoreCast2Row, actualField: keyof MoreCast2Row) => {
-    const newRows = [...visibleRows]
+    const newVisibleRows = cloneDeep(visibleRows)
     // Group our visible rows by station code and work on each group sepearately
-    const groupedByStationCode = groupBy(newRows, 'stationCode')
+    const groupedByStationCode = groupBy(newVisibleRows, 'stationCode')
     for (const values of Object.values(groupedByStationCode)) {
       // Get rows with actuals that have non-NaN values
       const rowsWithActuals: MoreCast2Row[] = values.filter(value => !isNaN(value[actualField] as number))
       // Filter for the row with the most recent forDate as this contains our most recent actual
-      const mostRecentRow = rowsWithActuals.reduce((a, b) => {
-        return a.forDate > b.forDate ? a : b
-      })
+      let mostRecentRow: MoreCast2Row | undefined = undefined
+      if (rowsWithActuals.length > 0) {
+        mostRecentRow = rowsWithActuals.reduce((a, b) => {
+          return a.forDate > b.forDate ? a : b
+        }, rowsWithActuals[0])
+      }
       // The most recent value from the weather station for the weather parameter of interest
       // (eg. tempActual) which will be applied as the forecast value
-      const mostRecentValue = mostRecentRow[actualField]
+      const mostRecentValue = isUndefined(mostRecentRow) ? NaN : mostRecentRow[actualField]
       // Finally, get an array of rows that don't have an actual for the weather parameter of interest
       // and iterate through them to apply the most recent actual as the new forecast value
       const rowsWithoutActuals: MoreCast2Row[] = values.filter(value => isNaN(value[actualField] as number))
@@ -375,12 +389,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
         predictionItem.value = mostRecentValue as number
       })
     }
-    const rowsForSimulation = filterAllVisibleRowsForSimulation(newRows)
-    if (rowsForSimulation) {
-      dispatch(getSimulatedIndices(rowsForSimulation))
-    }
-
-    dispatch(storeUserEditedRows(newRows))
+    updateColumnHelper(newVisibleRows)
   }
 
   const updateColumnFromModel = (
@@ -389,10 +398,10 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
     actualField: keyof MoreCast2Row,
     prefix: string
   ) => {
-    const newRows = [...visibleRows]
+    const newVisibleRows = cloneDeep(visibleRows)
     // Iterate through all the currently visible rows. If a row has an actual value for the weather parameter of
     // interest we can skip it as we are only concerned with creating new forecasts.
-    for (const row of newRows) {
+    for (const row of newVisibleRows) {
       // If an actual has a value of NaN, then the forecast field needs to be updated.
       if (isNaN(row[actualField] as number)) {
         const predictionItem = row[forecastField] as PredictionItem
@@ -401,12 +410,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
         predictionItem.value = (row[sourceKey] as number) ?? NaN
       }
     }
-    const rowsForSimulation = filterAllVisibleRowsForSimulation(newRows)
-    if (rowsForSimulation) {
-      dispatch(getSimulatedIndices(rowsForSimulation))
-    }
-
-    dispatch(storeUserEditedRows(newRows))
+    updateColumnHelper(newVisibleRows)
   }
 
   // Handle a double-click on a cell in the datagrid. We only handle a double-click when the clicking
@@ -420,19 +424,24 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
       return
     }
     // Make sure we're in a row where a forecast is being created (ie. no actual for this weather parameter)
-    const doubleClickedField = params.field as keyof MoreCast2Row
+    const doubleClickedField = params.field
     const index = doubleClickedField.indexOf(headerName)
     const prefix = doubleClickedField.slice(0, index)
     const actualField = `${prefix}Actual`
-    const forecastField = `${prefix}Forecast`
-    const row = params.row
-    if (isNaN(row[actualField])) {
+    if (isNaN(params.row[actualField])) {
       // There is no actual value, so we are in a forecast row and can proceed with updating the
       // forecast field value with the value of the cell that was double-clicked
-      row[forecastField].choice = headerName
-      row[forecastField].value = params.value
-      // We've updated local state directly, so now we need to sync Redux state
-      dispatch(storeUserEditedRows([...visibleRows]))
+      const forecastField = `${prefix}Forecast` as keyof MoreCast2Row
+      const newRows = cloneDeep(allRows)
+      const editedRowIndex = newRows.findIndex(row => row.id === params.row.id)
+      if (editedRowIndex > -1) {
+        const editedRow = newRows[editedRowIndex]
+        const editedPredictionItem = editedRow[forecastField] as PredictionItem
+        editedPredictionItem.choice = headerName
+        editedPredictionItem.value = params.value as number
+        storedDraftForecast.updateStoredDraftForecasts([editedRow], getDateTimeNowPST())
+        setAllRows(newRows)
+      }
     }
   }
 
@@ -482,6 +491,19 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
     changedColumn.visible = value
     saveShowHideColumnsModelToLocalStorage(newModel)
     setShowHideColumnsModel(newModel)
+  }
+
+  // Handler passed to our datagrids that runs after a row is updated.
+  const processRowUpdate = (newRow: MoreCast2Row) => {
+    const filledRows = fillStationGrassCuringForward(newRow, allRows)
+    const filteredRows = filterRowsForSimulationFromEdited(newRow, filledRows)
+    const filteredRowsWithIndices = simulateFireWeatherIndices(filteredRows)
+    storedDraftForecast.updateStoredDraftForecasts(filteredRowsWithIndices, getDateTimeNowPST())
+    let newRows = cloneDeep(allRows)
+    // Merge the copy of existing rows with rows that were updated with simulated indices
+    newRows = newRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)
+    setAllRows(newRows)
+    return newRow
   }
 
   return (
@@ -587,6 +609,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
             handleClose: handleClose
           }}
           handleColumnHeaderClick={handleColumnHeaderClick}
+          processRowUpdate={processRowUpdate}
         />
       ) : (
         <ForecastDataGrid
@@ -603,6 +626,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, fetchWeatherIndeterm
           handleColumnHeaderClick={handleColumnHeaderClick}
           columnGroupingModel={columnGroupingModel}
           allMoreCast2Rows={visibleRows}
+          processRowUpdate={processRowUpdate}
         />
       )}
       <MoreCast2Snackbar

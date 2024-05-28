@@ -12,7 +12,7 @@ import { DateRange } from 'components/dateRangePicker/types'
 import { fetchStationGroups } from 'commonSlices/stationGroupsSlice'
 import { StationGroup } from 'api/stationAPI'
 import { fetchStationGroupsMembers } from 'commonSlices/selectedStationGroupMembers'
-import { getWeatherIndeterminates, selectAllMoreCast2Rows } from 'features/moreCast2/slices/dataSlice'
+import { getWeatherIndeterminates } from 'features/moreCast2/slices/dataSlice'
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 import { selectedStationsChanged } from 'features/moreCast2/slices/selectedStationsSlice'
 
@@ -53,9 +53,6 @@ const MoreCast2Page = () => {
   const { groups, loading: groupsLoading } = useSelector(selectStationGroups)
   const { members } = useSelector(selectStationGroupsMembers)
   const { idir } = useSelector(selectAuthentication)
-  // All MoreCast2Rows derived from WeatherIndeterminates in dataSlice.ts. Updates in response to
-  // a change of station group or date range.
-  const sortedMoreCast2Rows = useSelector(selectAllMoreCast2Rows)
   const [selectedStationGroup, setSelectedStationGroup] = useState<StationGroup>()
 
   const currentTimeIsBeforeNoon = DateTime.now().hour < 13 ? true : false
@@ -121,7 +118,6 @@ const MoreCast2Page = () => {
         </SidePanel>
         <Observations>
           <TabbedDataGrid
-            morecast2Rows={sortedMoreCast2Rows}
             fromTo={fromTo}
             setFromTo={setFromTo}
             fetchWeatherIndeterminates={fetchWeatherIndeterminates}
