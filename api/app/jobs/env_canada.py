@@ -9,10 +9,13 @@ from urllib.parse import urlparse
 import logging
 import tempfile
 from sqlalchemy.orm import Session
-from app.db.crud.weather_models import (get_processed_file_record,
-                                        get_prediction_model,
-                                        get_prediction_run,
-                                        update_prediction_run)
+from app.db.crud.weather_models import (
+    get_processed_file_record,
+    get_prediction_model,
+    get_prediction_run,
+    update_prediction_run,
+    refresh_morecast2_materialized_view,
+)
 from app.jobs.common_model_fetchers import (CompletedWithSomeExceptions, ModelValueProcessor, UnhandledPredictionModelType,
                                             apply_data_retention_policy,
                                             check_if_model_run_complete, download, flag_file_as_processed)
@@ -352,6 +355,7 @@ def process_models(station_source: StationSourceEnum = StationSourceEnum.UNSPECI
         # interpolate and machine learn everything that needs interpolating.
         model_value_processor = ModelValueProcessor(session, station_source)
         model_value_processor.process(model_type)
+        refresh_morecast2_materialized_view(session)
 
     # calculate the execution time.
     execution_time = datetime.datetime.now() - start_time
