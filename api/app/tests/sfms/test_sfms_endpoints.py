@@ -286,3 +286,28 @@ def test_hourly_ffmc_get_endpoint(mock_get_client: AsyncMock):
 
     # s3 client is called correctly
     mock_s3_client.list_objects_v2.assert_called_once_with(Bucket='some bucket', Prefix=f'sfms/uploads/hourlies/{for_date}')
+
+
+@patch('app.routers.sfms.get_client')
+def test_hourly_ffmc_get_endpoint_no_hourlies(mock_get_client: AsyncMock):
+    """ Verify we request the correct hourlies sub path for the date supplied """
+    mock_s3_client = AsyncMock()
+
+    mock_hourlies = { }
+    
+    mock_s3_client.list_objects_v2.return_value = mock_hourlies
+    for_date = '2024-04-29'
+
+    @asynccontextmanager
+    async def _mock_get_client_for_router():
+        yield mock_s3_client, 'some_bucket'
+
+    mock_get_client.return_value = _mock_get_client_for_router()
+    client = TestClient(app)
+    response = client.get(HOURLY_FFMC_GET_URL, params={'for_date': for_date})
+
+    assert response.status_code == 200
+    assert len(response.json()['hourlies']) == 0
+
+    # s3 client is called correctly
+    mock_s3_client.list_objects_v2.assert_called_once_with(Bucket='some bucket', Prefix=f'sfms/uploads/hourlies/{for_date}')
