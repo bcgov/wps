@@ -14,10 +14,6 @@ import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import { ModelChoice } from 'api/moreCast2API'
 import { MORECAST_MODEL_COLORS, MORECAST_WEATHER_PARAMS, MoreCastModelColors, MoreCastParams } from 'app/theme'
-import { fillStationGrassCuringForward } from 'features/moreCast2/util'
-import { getSimulatedIndicesAndStoreEditedRows } from 'features/moreCast2/slices/dataSlice'
-import { AppDispatch } from 'app/store'
-import { useDispatch } from 'react-redux'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { PINNED_COLUMNS } from 'features/moreCast2/components/ColumnDefBuilder'
 
@@ -82,6 +78,7 @@ export interface ForecastDataGridProps {
   handleColumnHeaderClick: GridEventListener<'columnHeaderClick'>
   columnGroupingModel: GridColumnGroupingModel
   allMoreCast2Rows: MoreCast2Row[]
+  processRowUpdate: (newRow: MoreCast2Row) => MoreCast2Row
 }
 
 const ForecastDataGrid = ({
@@ -92,18 +89,9 @@ const ForecastDataGrid = ({
   onCellDoubleClickHandler,
   handleColumnHeaderClick,
   columnGroupingModel,
-  allMoreCast2Rows
+  allMoreCast2Rows,
+  processRowUpdate
 }: ForecastDataGridProps) => {
-  const dispatch: AppDispatch = useDispatch()
-
-  const processRowUpdate = async (newRow: MoreCast2Row) => {
-    const filledRows = fillStationGrassCuringForward(newRow, allMoreCast2Rows)
-
-    dispatch(getSimulatedIndicesAndStoreEditedRows(newRow, filledRows))
-
-    return newRow
-  }
-
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGridPro

@@ -21,10 +21,7 @@ export const filterAllVisibleRowsForSimulation = (rows: MoreCast2Row[]): MoreCas
   return rowsForSimulation
 }
 
-export const filterRowsForSimulationFromEdited = (
-  editedRow: MoreCast2Row,
-  allRows: MoreCast2Row[]
-): MoreCast2Row[] | undefined => {
+export const filterRowsForSimulationFromEdited = (editedRow: MoreCast2Row, allRows: MoreCast2Row[]): MoreCast2Row[] => {
   if (validForecastPredicate(editedRow)) {
     const validRowsForStation = allRows.filter(
       row => row.stationCode === editedRow.stationCode && validActualOrForecastPredicate(row)
@@ -38,5 +35,5 @@ export const filterRowsForSimulationFromEdited = (
       return rowsForSimulation
     }
   }
-  return undefined
+  return []
 }
