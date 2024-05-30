@@ -1,8 +1,5 @@
 """ Code common to app.weather_models.fetch """
 from enum import Enum
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 # Key values on ModelRunGridSubsetPrediction.

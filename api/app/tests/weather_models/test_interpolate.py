@@ -28,3 +28,7 @@ def test_construct_interpolated_noon_prediction():
     assert noon_prediction.wdir_tgl_10 is not None
     assert noon_prediction.wind_tgl_10 is not None
     assert noon_prediction.tmp_tgl_2 is not None
+
+def test_interpolate_between_two_points():
+    interp_value = interpolate_between_two_points(1, 4, 1, 4, 3)
+    assert interp_value == 3
