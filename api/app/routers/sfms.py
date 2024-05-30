@@ -171,9 +171,13 @@ async def get_hourlies(for_date: date):
         logger.info('Retrieving hourlies for "%s"', for_date)
         bucket = config.get('OBJECT_STORE_BUCKET')
         response = await client.list_objects_v2(Bucket=bucket, Prefix=f'sfms/uploads/hourlies/{str(for_date)}')
-        hourlies = [HourlyTIF(url=f'https://nrs.objectstore.gov.bc.ca/{bucket}/{hourly["Key"]}') for hourly in response['Contents']]
-        logger.info(f'Retrieved {len(hourlies)} hourlies')
-        return HourlyTIFs(hourlies=hourlies)
+        if 'Contents' in response:
+            hourlies = [HourlyTIF(url=f'https://nrs.objectstore.gov.bc.ca/{bucket}/{hourly["Key"]}') for hourly in response['Contents']]
+            logger.info(f'Retrieved {len(hourlies)} hourlies')
+            return HourlyTIFs(hourlies=hourlies)
+        logger.info(f'No hourlies found for {for_date}')
+        return HourlyTIFs(hourlies=[])
+        
 
 @router.post('/manual')
 async def upload_manual(file: UploadFile,
