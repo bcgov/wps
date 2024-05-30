@@ -1,6 +1,6 @@
 from datetime import datetime
 from pytest_bdd import scenario, given, when, then, parsers
-from app.weather_models import interpolate_bearing
+from app.weather_models.interpolate import interpolate_bearing
 
 
 @scenario("test_interpolate_bearings.feature", "Interpolate bearings")
