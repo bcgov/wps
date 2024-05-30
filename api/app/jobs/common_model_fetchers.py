@@ -454,14 +454,14 @@ class ModelValueProcessor:
         # Get model runs that are complete (fully downloaded), but not yet interpolated.
         query = get_prediction_model_run_timestamp_records(
             self.session, complete=True, interpolated=False, model_type=model_type)
-        refresh_mat_view = False
+        model_processed = False
         for model_run, model in query:
-            refresh_mat_view = True
+            model_processed = True
             logger.info('model %s', model)
             logger.info('model_run %s', model_run)
             # Process the model run.
             self._process_model_run(model_run, model_type)
             # Mark the model run as interpolated.
             self._mark_model_run_interpolated(model_run)
-        if refresh_mat_view:
+        if model_processed:
             refresh_morecast2_materialized_view(self.session)
