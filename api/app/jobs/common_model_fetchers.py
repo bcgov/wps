@@ -189,8 +189,7 @@ class ModelValueProcessor:
     def __init__(self, session, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
         """ Prepare variables we're going to use throughout """
         self.session = session
-        all_stations = get_stations_synchronously(station_source)
-        self.stations = list(station for station in all_stations if station.code == 344)
+        self.stations = get_stations_synchronously(station_source)
         self.station_count = len(self.stations)
 
     def _process_model_run(self, model_run: PredictionModelRunTimestamp, model_type: ModelEnum):
