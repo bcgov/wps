@@ -16,7 +16,7 @@ from app.db.crud.weather_models import (
     delete_model_run_predictions,
 )
 from app.weather_models.machine_learning import StationMachineLearning
-from app.weather_models import SCALAR_MODEL_VALUE_KEYS, ModelEnum, construct_interpolated_noon_prediction, interpolate_between_two_points
+from app.weather_models import ModelEnum, construct_interpolated_noon_prediction, interpolate_between_two_points
 from app.schemas.stations import WeatherStation
 from app import config, configure_logging
 import app.utils.time as time_utils
@@ -32,6 +32,9 @@ if __name__ == "__main__":
     configure_logging()
 
 logger = logging.getLogger(__name__)
+
+# Keys for weather variables that require interpolation between 1800 and 2100
+SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_10", "apcp_sfc_0")
 
 
 class UnhandledPredictionModelType(Exception):
@@ -428,8 +431,7 @@ class ModelValueProcessor:
             if (prev_prediction is not None
                     and prev_prediction.prediction_timestamp.hour == 18
                     and prediction.prediction_timestamp.hour == 21):
-                noon_prediction = construct_interpolated_noon_prediction(
-                    prev_prediction, prediction, SCALAR_MODEL_VALUE_KEYS)
+                noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction, SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION)
                 self._process_prediction(
                     noon_prediction, station, model_run, machine, True)
             self._process_prediction(
