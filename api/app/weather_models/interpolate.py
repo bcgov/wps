@@ -26,9 +26,9 @@ def interpolate_between_two_points(
     y_axis = [y1, y2]
 
     # Create interpolation function.
-    function = interp1d(x_axis, y_axis, kind='linear')
+    linear_interp = interp1d(x_axis, y_axis, kind='linear')
     # Use iterpolation function to derive values at the time of interest.
-    return function(xn).item()
+    return linear_interp(xn).item()
 
 
 def interpolate_bearing(time_a: datetime, time_b: datetime, target_time: datetime,
@@ -58,8 +58,8 @@ def interpolate_bearing(time_a: datetime, time_b: datetime, target_time: datetim
     else:
         y_axis = (direction_a, direction_b)
 
-    function = interp1d(x_axis, y_axis, kind='linear')
-    interpolated_value = function(target_time.timestamp()).item(0)
+    linear_interp = interp1d(x_axis, y_axis, kind='linear')
+    interpolated_value = linear_interp(target_time.timestamp()).item(0)
     if interpolated_value >= 360:
         # If we had to adjust the angles, we need to re-adjust the resultant angle.
         return interpolated_value - 360
