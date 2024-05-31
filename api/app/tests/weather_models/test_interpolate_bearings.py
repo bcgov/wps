@@ -1,43 +1,26 @@
+import pytest
 from datetime import datetime
-from pytest_bdd import scenario, given, when, then, parsers
 from app.weather_models.interpolate import interpolate_bearing
 
+time_a = datetime.fromisoformat("2020-09-03T18:00:00.000000+00:00")
+time_b = datetime.fromisoformat("2020-09-03T21:00:00.000000+00:00")
+target_time = datetime.fromisoformat("2020-09-03T20:00:00.000000+00:00")
 
-@scenario("test_interpolate_bearings.feature", "Interpolate bearings")
-def test_direction_interpolation():
-    """ BDD Scenario for directions """
-
-
-@given(parsers.parse("{time_a}, {time_b}, {target_time}, {direction_a}, {direction_b}"),
-       target_fixture='data',
-       converters={
-           'time_a': datetime.fromisoformat,
-           'time_b': datetime.fromisoformat,
-           'target_time': datetime.fromisoformat,
-           'direction_a': float,
-           'direction_b': float})
-def given_data(
-        time_a: datetime,
-        time_b: datetime,
-        target_time: datetime,
-        direction_a: float,
-        direction_b: float) -> dict:
-    """ Collect data """
-    return dict(
-        time_a=time_a,
-        time_b=time_b,
-        target_time=target_time,
-        direction_a=direction_a,
-        direction_b=direction_b)
-
-
-@when("You interpolate")
-def when_interpolate(data: dict) -> float:
-    """ Perform calculate """
-    data['result'] = interpolate_bearing(**data)
-
-
-@then(parsers.parse("You get {result}"), converters={'result': float})
-def then_result(result: float, data: dict):
-    """ Check results """
-    assert result == data['result']
+@pytest.mark.parametrize(
+    "direction_a,direction_b,result",
+    [
+        # Acute angle
+        (10, 20, 16.666666666666668),
+        # Obtuse angle
+        (10, 20, 16.666666666666668),
+        # Obtuse angle, interpolation in the other direction
+        (200, 10, 313.3333333333333),
+        # Acute angle between two bearings > 180
+        (200, 220, 213.33333333333334),
+        (91, 220, 177.0),
+        # Two equal angles
+        (91, 91, 91)
+    ],
+)
+def test_interpol_b(direction_a, direction_b, result):
+    assert interpolate_bearing(time_a, time_b, target_time, direction_a, direction_b) == result
