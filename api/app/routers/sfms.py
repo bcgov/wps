@@ -8,7 +8,7 @@ from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends, Header
 from app.auth import sfms_authenticate
 from app.nats_publish import publish
-from app.schemas.sfms import BUIResult, HourlyTIF, HourlyTIFs
+from app.schemas.sfms import HourlyTIF, HourlyTIFs
 from app.utils.s3 import get_client
 from app import config
 from app.auto_spatial_advisory.sfms import bui, get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_ffmc_file, is_hfi_file
