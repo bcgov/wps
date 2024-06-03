@@ -11,6 +11,3 @@ class HourlyTIFs(BaseModel):
     """ Encapsulates list of hourly tif urls """
     hourlies: List[HourlyTIF]
 
-
-class BUIResult(BaseModel):
-    result: List[float]
