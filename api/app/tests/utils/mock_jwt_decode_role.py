@@ -4,6 +4,7 @@ class MockJWTDecodeWithRole:
     def __init__(self, role):
         self.decoded_token = {
             "idir_username": "test_username",
+            "email": "test@email.com",
             "client_roles": [
                 role
             ]
