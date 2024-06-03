@@ -70,7 +70,7 @@ objects:
         app: ${APP_NAME}-${SUFFIX}
       name: ${APP_NAME}-${SUFFIX}
       annotations:
-        image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"wps-api-prod:prod"},"fieldPath":"spec.template.spec.containers[?(@.name==\"container\")].sfms"}]'
+        image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-api-${SUFFIX}:${SUFFIX}"},"fieldPath":"spec.template.spec.containers[?(@.name==\"container\")].sfms"}]'
     spec:
       replicas: ${{REPLICAS}}
       selector:
