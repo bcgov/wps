@@ -139,6 +139,7 @@ def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):
         def __init__(self, role):
             self.decoded_token = {
                 "idir_username": "test_username",
+                "email": "test@email.com",
                 "client_roles": [
                     role
                 ]}

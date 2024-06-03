@@ -181,6 +181,15 @@ def mock_jwt_decode(monkeypatch):
 
     monkeypatch.setattr("jwt.decode", mock_function)
 
+@pytest.fixture(autouse=True)
+def mock_sentry(monkeypatch):
+    """ Mock sentrys' set_user function """
+
+    def mock_sentry(*args, **kwargs):
+        pass
+
+    monkeypatch.setattr('app.auth.set_user', mock_sentry)
+
 
 @pytest.fixture()
 def mock_requests_session(monkeypatch):

@@ -56,7 +56,7 @@ async def audit(request: Request, token=Depends(authenticate)):
 
 
 async def authentication_required(token=Depends(authenticate)):
-    """ Raises HTTPExcecption with status code 401 if authentation fails."""
+    """ Raises HTTPException with status code 401 if authentation fails."""
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
