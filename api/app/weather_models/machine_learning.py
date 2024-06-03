@@ -8,7 +8,8 @@ from logging import getLogger
 from sklearn.linear_model import LinearRegression
 import numpy as np
 from sqlalchemy.orm import Session
-from app.weather_models import SCALAR_MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
+from app.weather_models import SCALAR_MODEL_VALUE_KEYS
+from app.weather_models.interpolate import construct_interpolated_noon_prediction
 from app.db.models.weather_models import (PredictionModel, ModelRunPrediction)
 from app.db.models.observations import HourlyActual
 from app.db.crud.observations import (get_accumulated_precip_by_24h_interval,

@@ -17,7 +17,8 @@ from app.db.crud.weather_models import (
     refresh_morecast2_materialized_view,
 )
 from app.weather_models.machine_learning import StationMachineLearning
-from app.weather_models import ModelEnum, construct_interpolated_noon_prediction, interpolate_between_two_points
+from app.weather_models import ModelEnum
+from app.weather_models.interpolate import construct_interpolated_noon_prediction, interpolate_between_two_points
 from app.schemas.stations import WeatherStation
 from app import config, configure_logging
 import app.utils.time as time_utils
