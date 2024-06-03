@@ -6,6 +6,7 @@ from operator import itemgetter
 from affine import Affine
 from pytest_bdd import scenario, given, then, when, parsers
 from pyproj import CRS
+from osgeo import gdal
 from app.geospatial import NAD83_CRS
 import app.weather_models.process_grib as process_grib
 
@@ -31,7 +32,7 @@ def given_grib_file(filename):
     """ Open the dataset. """
     dirname = os.path.dirname(os.path.realpath(__file__))
     full_path = os.path.join(dirname, filename)
-    return dict(dataset=process_grib.open_grib(full_path), filename=full_path)
+    return dict(dataset=gdal.Open(full_path), filename=full_path)
 
 
 @when('I extract the geometry')
