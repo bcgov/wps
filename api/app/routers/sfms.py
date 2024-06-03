@@ -3,14 +3,15 @@ import io
 import logging
 from datetime import datetime, date
 import os
+from osgeo import gdal
 from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends, Header
 from app.auth import sfms_authenticate
 from app.nats_publish import publish
-from app.schemas.sfms import HourlyTIF, HourlyTIFs
+from app.schemas.sfms import BUIResult, HourlyTIF, HourlyTIFs
 from app.utils.s3 import get_client
 from app import config
-from app.auto_spatial_advisory.sfms import get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_ffmc_file, is_hfi_file
+from app.auto_spatial_advisory.sfms import bui, get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_ffmc_file, is_hfi_file
 from app.auto_spatial_advisory.nats_config import stream_name, subjects, sfms_file_subject
 from app.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
 
@@ -178,6 +179,43 @@ async def get_hourlies(for_date: date):
         logger.info(f'No hourlies found for {for_date}')
         return HourlyTIFs(hourlies=[])
         
+
+@router.get('/testBui')
+async def get_test_bui():
+    """
+    Retrieving and calculation bui for testing
+    """
+    logger.info('sfms/testBui')
+
+    async with get_client() as (client, bucket):
+        bucket = config.get('OBJECT_STORE_BUCKET')
+        dc_response = await client.get_object(Bucket=bucket, Key='sfms/uploads/forecast/2023-06-01/dc20230604.tif')
+
+        dc_mem_path = '/vsimem/dc.tif'
+        dc_data = await dc_response['Body'].read()
+        gdal.FileFromMemBuffer(dc_mem_path, dc_data)
+        dc_source = gdal.Open(dc_mem_path, gdal.GA_ReadOnly)
+        dc_source_band = dc_source.GetRasterBand(1)
+        dc_nodata_value = dc_source_band.GetNoDataValue()
+        dc_source_data = dc_source_band.ReadAsArray()
+        dc_source_data[dc_source_data == dc_nodata_value] = 0
+
+
+        dmc_mem_path = '/vsimem/dmc.tif'
+        dmc_response = await client.get_object(Bucket=bucket, Key='sfms/uploads/forecast/2023-06-01/dmc20230604.tif')
+        dmc_data = await dmc_response['Body'].read()
+        gdal.FileFromMemBuffer(dmc_mem_path, dmc_data)
+        dmc_source = gdal.Open(dmc_mem_path, gdal.GA_ReadOnly)
+        dmc_source_band = dmc_source.GetRasterBand(1)
+        dmc_nodata_value = dmc_source_band.GetNoDataValue()
+        dmc_source_data = dmc_source_band.ReadAsArray()
+        dmc_source_data[dmc_source_data == dmc_nodata_value] = 0
+
+        bui_result = bui(dmc_source_data, dc_source_data)
+
+        logger.info(f'Calculated bui: ${bui_result}')
+
+        return Response(status_code=200)
 
 @router.post('/manual')
 async def upload_manual(file: UploadFile,
