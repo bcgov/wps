@@ -4,6 +4,7 @@ from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from jwt import InvalidTokenError
+from sentry_sdk import set_user
 from app import config
 from app.db.crud.api_access_audits import create_api_access_audit_log
 
@@ -55,12 +56,13 @@ async def audit(request: Request, token=Depends(authenticate)):
 
 
 async def authentication_required(token=Depends(authenticate)):
-    """ Raises HTTPExcecption with status code 401 if authentation fails."""
+    """ Raises HTTPException with status code 401 if authentication fails."""
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             headers={'WWW-Authenticate': 'Bearer'}
         )
+    set_user({"email": token.get('email', None)})
     return token
 
 
