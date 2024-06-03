@@ -111,12 +111,6 @@ def calculate_geographic_coordinate(point: Tuple[int],
     return (lon, lat)
 
 
-def open_grib(filename: str) -> gdal.Dataset:
-    """ Open grib file """
-    # NOTE: What's the purpose of wrapping the gdal call in a function?
-    return gdal.Open(filename, gdal.GA_ReadOnly)
-
-
 def get_dataset_geometry(filename) -> Affine:
     """ Get the geometry info (origin and pixel size) of the dataset.
 
@@ -333,7 +327,7 @@ class GribFileProcessor():
         """ Process a grib file, extracting and storing relevant information. """
         logger.info('processing %s', filename)
         # Open grib file
-        dataset = open_grib(filename)
+        dataset = gdal.Open(filename, gdal.GA_ReadOnly)
         # Ensure that grib file uses EPSG:4269 (NAD83) coordinate system
         # (this step is included because HRDPS grib files are in another coordinate system)
         wkt = dataset.GetProjection()
@@ -358,3 +352,4 @@ class GribFileProcessor():
             self.process_env_can_grib_file(session, dataset, grib_info, prediction_run)
         elif self.prediction_model.abbreviation in ['GFS', 'NAM']:
             self.process_noaa_grib_file(session, dataset, grib_info, prediction_run)
+        dataset = None
