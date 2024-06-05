@@ -36,6 +36,9 @@ parameters:
   - name: SENTRY_AUTH_TOKEN
     description: Sentry auth token for uploading source maps
     required: true
+  - name: ARTIFACTORY_SVCACCT
+    description: Arctifactory service account container
+    value: artifacts-default-mvqmjx
 objects:
   - apiVersion: v1
     kind: ImageStream
@@ -82,5 +85,15 @@ objects:
           env:
             - name: "SENTRY_AUTH_TOKEN"
               value: ${SENTRY_AUTH_TOKEN}
+            - name: "AF_USER"
+              valueFrom:
+                secretKeyRef:
+                    name: ${ARTIFACTORY_SVCACCT}
+                  key: username
+            - name: "AF_PASSWD"
+                valueFrom:
+                  secretKeyRef:
+                    name: ${ARTIFACTORY_SVCACCT}
+                    key: password
           dockerfilePath: ${DOCKER_FILE}
       triggers: []
