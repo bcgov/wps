@@ -91,9 +91,9 @@ objects:
                   name: ${ARTIFACTORY_SVCACCT}
                   key: username
             - name: "AF_PASSWD"
-                valueFrom:
-                  secretKeyRef:
-                    name: ${ARTIFACTORY_SVCACCT}
-                    key: password
+              valueFrom:
+                secretKeyRef:
+                  name: ${ARTIFACTORY_SVCACCT}
+                  key: password
           dockerfilePath: ${DOCKER_FILE}
       triggers: []
