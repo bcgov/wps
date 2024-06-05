@@ -88,7 +88,7 @@ objects:
             - name: "AF_USER"
               valueFrom:
                 secretKeyRef:
-                    name: ${ARTIFACTORY_SVCACCT}
+                  name: ${ARTIFACTORY_SVCACCT}
                   key: username
             - name: "AF_PASSWD"
                 valueFrom:
