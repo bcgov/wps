@@ -17,7 +17,7 @@ USER 0
 ADD web .
 # NOTE: Can't use "--production=true", build will fail.
 RUN npm config set @psu:registry https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
-RUN curl -u ${AF_USER}:${AF_PASSWD} https://artifacts.developer.gov.bc.ca/artifactory/api/npm/auth >> ~/.npmrc
+RUN npm login --registry=https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/ --scope=@psu -u ${AF_USER} -p ${AF_PASSWD}
 RUN npm install -g npm@8.19.4 && npm install -g yarn@latest yarn install --frozen-lockfile
 RUN yarn run build:prod
 
