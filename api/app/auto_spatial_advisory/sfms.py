@@ -3,7 +3,6 @@
 import os
 from datetime import date
 from typing import Final
-from numba import vectorize, float64
 from app.schemas.auto_spatial_advisory import SFMSFile, SFMSRunType
 from app.utils.time import get_hour_20, get_vancouver_now
 
@@ -101,8 +100,6 @@ def get_sfms_file_message(filename: str, meta_data: dict) -> SFMSFile:
                                   month=int(for_date[4:6]),
                                   day=int(for_date[6:8])))
 
-@vectorize(['float32(float32, float32)',
-            'float64(float64, float64)'])
 def bui(dmc, dc):
     """
     Buildup Index Calculation

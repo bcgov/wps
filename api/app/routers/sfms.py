@@ -11,9 +11,10 @@ from app.nats_publish import publish
 from app.schemas.sfms import HourlyTIF, HourlyTIFs
 from app.utils.s3 import get_client
 from app import config
-from app.auto_spatial_advisory.sfms import bui, get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_ffmc_file, is_hfi_file
+from app.auto_spatial_advisory.sfms import get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_ffmc_file, is_hfi_file
 from app.auto_spatial_advisory.nats_config import stream_name, subjects, sfms_file_subject
 from app.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
+from app.auto_spatial_advisory.vec_sfms import vec_bui
 
 
 logger = logging.getLogger(__name__)
@@ -211,7 +212,7 @@ async def get_test_bui():
         dmc_source_data = dmc_source_band.ReadAsArray()
         dmc_source_data[dmc_source_data == dmc_nodata_value] = 0
 
-        bui_result = bui(dmc_source_data, dc_source_data)
+        bui_result = vec_bui(dmc_source_data, dc_source_data)
 
         logger.info(f'Calculated bui: ${bui_result}')
 
