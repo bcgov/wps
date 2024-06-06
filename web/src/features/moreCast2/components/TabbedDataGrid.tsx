@@ -415,12 +415,16 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
   // Handle a double-click on a cell in the datagrid. We only handle a double-click when the clicking
   // occurs on a cell in a weather model field/column and row where a forecast is being created (ie. the
-  // row has no actual value for the weather parameter of interest). Do nothing when double-clicking on
-  // grass curing related fields.
+  // row has no actual value for the weather parameter of interest).
   const handleCellDoubleClick = (params: GridCellParams) => {
     const headerName = params.colDef.headerName as WeatherDeterminateType
-    if (!headerName || headerName === WeatherDeterminate.ACTUAL || headerName === WeatherDeterminate.FORECAST) {
-      // A forecast or actual column was clicked, or there is no value for headerName, nothing to do
+    if (
+      !headerName ||
+      headerName === WeatherDeterminate.ACTUAL ||
+      headerName === WeatherDeterminate.FORECAST ||
+      headerName === WeatherDeterminate.GC
+    ) {
+      // A forecast, actual or GC column was clicked, or there is no value for headerName, nothing to do
       return
     }
     // Make sure we're in a row where a forecast is being created (ie. no actual for this weather parameter)
