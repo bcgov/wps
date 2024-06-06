@@ -19,7 +19,7 @@ ADD web .
 RUN npm install -g npm@8.19.4
 RUN npm config set @psu:registry https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
 RUN npm config set //artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/:_authToken ${ARTIFACTORY_SVCACCT_TOKEN}
-RUN npm install -g yarn@latest yarn install --frozen-lockfile
+RUN npm install -g yarn@latest && yarn install --frozen-lockfile
 RUN yarn run build:prod
 
 # Remove sourcemaps after they've been uploaded to sentry
