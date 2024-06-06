@@ -25,6 +25,9 @@ USER $USERNAME
 RUN python -m pip install --upgrade pip
 # Copy poetry files.
 COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
+# Copy Artifactory credentials
+COPY /opt/credentials/username .artifactory/username
+COPY /opt/credentials/password .artifactory/password
 # Install dependencies.
 RUN poetry install --without dev
 # Get a python binding for gdal that matches the version of gdal we have installed.
