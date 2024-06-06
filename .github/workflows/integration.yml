@@ -201,6 +201,9 @@ jobs:
             **/node_modules
             ~/.cache/Cypress
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - name: Setup .nmprc for scoped artifactory packages
+        working-directory: ./web
+        run: npm config set @psu:registry https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/ && npm config set //artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/:_authToken ${{ARTIFACTORY_SVCACCT_TOKEN}}
       - name: Install node dependencies (web)
         working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'
