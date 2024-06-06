@@ -86,7 +86,8 @@ export enum WeatherDeterminate {
   NULL = 'NULL',
   RDPS = 'RDPS',
   RDPS_BIAS = 'RDPS_BIAS',
-  GRASS_CURING_CWFIS = 'Grass_Curing_CWFIS'
+  GRASS_CURING_CWFIS = 'Grass_Curing_CWFIS',
+  GC = 'GC'
 }
 
 export type WeatherDeterminateType =
@@ -104,6 +105,7 @@ export type WeatherDeterminateType =
   | 'RDPS'
   | 'RDPS_BIAS'
   | 'Grass_Curing_CWFIS'
+  | 'GC'
 
 export const WeatherDeterminateChoices = [
   WeatherDeterminate.ACTUAL,
