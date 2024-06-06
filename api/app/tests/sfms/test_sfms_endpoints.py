@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, patch
 from datetime import datetime, timezone
 from fastapi.testclient import TestClient
-from app.auto_spatial_advisory.sfms import get_hourly_filename, get_prefix
+from app.utils.sfms import get_hourly_filename, get_prefix
 from app.routers.sfms import get_target_filename
 from app import config
 

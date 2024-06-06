@@ -84,4 +84,12 @@ objects:
             - name: "DOCKER_IMAGE"
               value: "${{DOCKER_IMAGE}}"
           dockerfilePath: ${DOCKER_FILE}
+      volumes:
+        - name: artifactory-credentials-volume
+          secret:
+            secretName: artifacts-default-mvqmjx
+      build:
+        volumes:
+          - name: artifactory-credentials-volume
+            mountPath: /opt/credentials
       triggers: []
