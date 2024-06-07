@@ -84,12 +84,12 @@ objects:
             - name: "DOCKER_IMAGE"
               value: "${{DOCKER_IMAGE}}"
           dockerfilePath: ${DOCKER_FILE}
-        volumes:
-          - name: artifactory-credentials-volume
-            mounts:
-            - destinationPath: /opt/credentials
-            source:
-              type: Secret
-              secret:
-                secretName: test-secret
+          volumes:
+            - name: artifactory-credentials-volume
+              mounts:
+              - destinationPath: /opt/credentials
+              source:
+                type: Secret
+                secret:
+                  secretName: test-secret
       triggers: []
