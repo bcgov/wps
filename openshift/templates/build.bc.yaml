@@ -86,20 +86,12 @@ objects:
             - name: "POETRY_HTTP_BASIC_PSU_USERNAME"
               valueFrom:
                 secretKeyRef:
-                  name: test-secret
+                  name: artifacts-psu-idxqza
                   value: username
             - name: "POETRY_HTTP_BASIC_PSU_PASSWORD"
               valueFrom:
                 secretKeyRef:
-                  name: test-secret
+                  name: artifacts-psu-idxqza
                   value: password
           dockerfilePath: ${DOCKER_FILE}
-          volumes:
-            - name: artifactory-credentials-volume
-              mounts:
-              - destinationPath: /opt/credentials
-              source:
-                type: Secret
-                secret:
-                  secretName: artifacts-psu-idxqza
       triggers: []
