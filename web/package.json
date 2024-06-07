@@ -19,6 +19,7 @@
     "@mui/material": "5.15.19",
     "@mui/x-data-grid-pro": "^6.0.0",
     "@mui/x-date-pickers": "^7.0.0",
+    "@psu/cffdrs_ts": "^0.1.0",
     "@reduxjs/toolkit": "^1.8.0",
     "@sentry/cli": "^2.31.2",
     "@sentry/react": "^8.2.1",
