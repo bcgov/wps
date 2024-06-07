@@ -1,5 +1,22 @@
 ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:ubuntu.22.04-latest
 
+FROM ${DOCKER_IMAGE} AS builder
+RUN mkdir /app
+WORKDIR /app
+
+# Make sure we have the latest pip.
+RUN python -m pip install --upgrade pip
+# Copy poetry files.
+COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
+# Copy Artifactory credentials
+RUN pwd
+# Install dependencies.
+RUN POETRY_HTTP_BASIC_PSU_USERNAME=${cat /opt/credentials/username} POETRY_HTTP_BASIC_PSU_PASSWORD=${cat /opt/credentials/password} poetry install --without dev
+# Get a python binding for gdal that matches the version of gdal we have installed.
+RUN poetry run python -m pip install gdal==$(gdal-config --version)
+RUN ls -la
+
+
 # To build locally, point to a local base image you've already built (see openshift/wps-api-base)
 # e.g. : docker build --build-arg DOCKER_IMAGE=wps-api-base:my-tag .
 
@@ -21,21 +38,22 @@ WORKDIR /app
 # Switch back to our non-root user
 USER $USERNAME
 
-# Make sure we have the latest pip.
-RUN python -m pip install --upgrade pip
-# Copy poetry files.
-COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
-# Copy Artifactory credentials
-RUN ls -la /opt/credentials
-# COPY --from=builder /var/run/secrets/kubernetes.io/serviceaccount/username /root/.artifactory/username
-# COPY --from=builder /var/run/secrets/kubernetes.io/serviceaccount/password /root/.artifactory/password
-# Install dependencies.
-RUN poetry install --without dev
-# Get a python binding for gdal that matches the version of gdal we have installed.
-RUN poetry run python -m pip install gdal==$(gdal-config --version)
+# # Make sure we have the latest pip.
+# RUN python -m pip install --upgrade pip
+# # Copy poetry files.
+# COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
+# # Copy Artifactory credentials
+# RUN ls -la /opt/credentials
+# # COPY --from=builder /var/run/secrets/kubernetes.io/serviceaccount/username /root/.artifactory/username
+# # COPY --from=builder /var/run/secrets/kubernetes.io/serviceaccount/password /root/.artifactory/password
+# # Install dependencies.
+# RUN poetry install --without dev
+# # Get a python binding for gdal that matches the version of gdal we have installed.
+# RUN poetry run python -m pip install gdal==$(gdal-config --version)
 
 # Copy the app:
 COPY ./api/app /app/app
+COPY --from=builder /app/.venv /app/app/.venv
 # TODO: we need to do this better.
 RUN mkdir /app/advisory
 COPY ./api/advisory /app/advisory
