@@ -83,6 +83,16 @@ objects:
           buildArgs:
             - name: "DOCKER_IMAGE"
               value: "${{DOCKER_IMAGE}}"
+            - name: "POETRY_HTTP_BASIC_PSU_USERNAME"
+              valueFrom:
+                secretKeyRef:
+                  name: test-secret
+                  value: username
+            - name: "POETRY_HTTP_BASIC_PSU_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: test-secret
+                  value: password
           dockerfilePath: ${DOCKER_FILE}
           volumes:
             - name: artifactory-credentials-volume
