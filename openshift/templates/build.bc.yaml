@@ -101,5 +101,5 @@ objects:
               source:
                 type: Secret
                 secret:
-                  secretName: test-secret
+                  secretName: artifacts-psu-idxqza
       triggers: []
