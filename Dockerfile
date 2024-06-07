@@ -24,7 +24,7 @@ RUN python -m pip install --upgrade pip
 COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
 
 # Install dependencies.
-RUN POETRY_HTTP_BASIC_PSU_USERNAME=${POETRY_HTTP_BASIC_PSU_PASSWORD} POETRY_HTTP_BASIC_PSU_PASSWORD=${POETRY_HTTP_BASIC_PSU_PASSWORD} poetry install --without dev
+RUN POETRY_HTTP_BASIC_PSU_USERNAME=${POETRY_HTTP_BASIC_PSU_USERNAME} POETRY_HTTP_BASIC_PSU_PASSWORD=${POETRY_HTTP_BASIC_PSU_PASSWORD} poetry install --without dev
 # Get a python binding for gdal that matches the version of gdal we have installed.
 RUN poetry run python -m pip install gdal==$(gdal-config --version)
 RUN ls -la
