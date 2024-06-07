@@ -26,7 +26,7 @@ RUN python -m pip install --upgrade pip
 # Copy poetry files.
 COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
 # Copy Artifactory credentials
-RUN cat /opt/credentials/test-secret
+RUN ls -la /opt/credentials
 # COPY --from=builder /var/run/secrets/kubernetes.io/serviceaccount/username /root/.artifactory/username
 # COPY --from=builder /var/run/secrets/kubernetes.io/serviceaccount/password /root/.artifactory/password
 # Install dependencies.
