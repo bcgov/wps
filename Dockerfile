@@ -1,8 +1,22 @@
 ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:ubuntu.22.04-latest
 
 FROM ${DOCKER_IMAGE} AS builder
+
+# We don't want to run our app as root, so we define a worker user.
+ARG USERNAME=worker
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# Switch to root
+USER 0
+
+# Create a directory for the app to run in, and grant worker access
 RUN mkdir /app
+RUN chown $USERNAME /app
 WORKDIR /app
+
+# Switch back to our non-root user
+USER $USERNAME
 
 # Make sure we have the latest pip.
 RUN python -m pip install --upgrade pip
