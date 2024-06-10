@@ -5,8 +5,21 @@ ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/w
 
 FROM python:3.10 AS builder
 
+# We don't want to run our app as root, so we define a worker user.
+ARG USERNAME=worker
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
 # Switch to root
 USER 0
+
+# Create a directory for the app to run in, and grant worker access
+RUN mkdir /app
+RUN chown $USERNAME /app
+WORKDIR /app
+
+# Switch back to our non-root user
+USER $USERNAME
 
 WORKDIR /app
 
