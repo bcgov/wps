@@ -23,8 +23,8 @@ RUN python -m pip install --upgrade pip
 # Copy poetry files.
 COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
 
-ENV POETRY_HTTP_BASIC_PSU_USER ${cat /opt/credentials/username}
-ENV POETRY_HTTP_BASIC_PSU_PWD ${cat /opt/credentials/password}
+RUN export POETRY_HTTP_BASIC_PSU_USER="${cat /opt/credentials/username}"
+RUN export POETRY_HTTP_BASIC_PSU_PWD="${cat /opt/credentials/password}"
 
 # Install dependencies.
 RUN POETRY_HTTP_BASIC_PSU_USERNAME=${POETRY_HTTP_BASIC_PSU_USER} POETRY_HTTP_BASIC_PSU_PASSWORD=${POETRY_HTTP_BASIC_PSU_PWD} poetry install --without dev
