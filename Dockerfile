@@ -72,7 +72,7 @@ COPY ./api/prestart.sh /app
 COPY ./api/start.sh /app
 COPY ./api/start_sfms.sh /app
 
-COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /home/worker/.cache/pypoetry/virtualenvs /home/worker/.cache/pypoetry/virtualenvs
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080
