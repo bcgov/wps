@@ -3,7 +3,7 @@ ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/w
 # To build locally, point to a local base image you've already built (see openshift/wps-api-base)
 # e.g. : docker build --build-arg DOCKER_IMAGE=wps-api-base:my-tag .
 
-FROM ${DOCKER_IMAGE}
+FROM ${DOCKER_IMAGE} as builder
 
 # We don't want to run our app as root, so we define a worker user.
 ARG USERNAME=worker
@@ -28,10 +28,15 @@ COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
 # Copy Artifactory credentials
 COPY --from=builder /var/run/secrets/kubernetes.io/serviceaccount/username /root/.artifactory/username
 COPY --from=builder /var/run/secrets/kubernetes.io/serviceaccount/password /root/.artifactory/password
+
+RUN poetry config http-basic.psu ${ARTIFACTORY_PYPI_USERNAME} ${ARTIFACTORY_PYPI_PASSWORD}
+
 # Install dependencies.
 RUN poetry install --without dev
 # Get a python binding for gdal that matches the version of gdal we have installed.
 RUN poetry run python -m pip install gdal==$(gdal-config --version)
+
+FROM ${DOCKER_IMAGE}
 
 # Copy the app:
 COPY ./api/app /app/app
@@ -48,6 +53,8 @@ COPY ./api/alembic.ini /app
 COPY ./api/prestart.sh /app
 COPY ./api/start.sh /app
 COPY ./api/start_sfms.sh /app
+
+COPY --from=builder /app/.venv /app/.venv
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080
