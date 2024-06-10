@@ -31,7 +31,7 @@ jobs:
           cache-name: cache-poetry-installer
         with:
           path: "~/poetry_installer"
-          key: "poetry-installer-1.6.1"
+          key: "poetry-installer-1.8.3"
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
         run: |
@@ -41,7 +41,7 @@ jobs:
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python install-poetry.py --version 1.6.1
+          python install-poetry.py --version 1.8.3
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
       - name: Cache poetry
@@ -50,15 +50,15 @@ jobs:
           cache-name: cache-poetry
         with:
           path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-1.6.1-cache-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-poetry-1.8.3-cache-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-poetry-1.6.1-cache-
+            ${{ runner.os }}-poetry-1.8.3-cache-
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
         with:
           path: ~/work/wps/wps/api/.venv
-          key: ${{ runner.os }}-venv-poetry-1.6.1-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-venv-poetry-1.8.3-${{ hashFiles('**/poetry.lock') }}
       - name: Install python dependencies using poetry (api)
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
@@ -106,7 +106,7 @@ jobs:
           cache-name: cache-poetry-installer
         with:
           path: "~/poetry_installer"
-          key: "poetry-installer-1.6.1"
+          key: "poetry-installer-1.8.3"
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
         run: |
@@ -116,7 +116,7 @@ jobs:
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python install-poetry.py --version 1.6.1
+          python install-poetry.py --version 1.8.3
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
       # poetry cache folder: /home/runner/.cache/pypoetry
@@ -126,15 +126,15 @@ jobs:
           cache-name: cache-poetry
         with:
           path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-1.6.1-cache-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-poetry-1.8.3-cache-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-poetry-1.6.1-cache-
+            ${{ runner.os }}-poetry-1.8.3-cache-
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
         with:
           path: ~/work/wps/wps/api/.venv
-          key: ${{ runner.os }}-venv-poetry-1.6.1-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-venv-poetry-1.8.3-${{ hashFiles('**/poetry.lock') }}
       - name: Install python dependencies using poetry (api)
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api

@@ -52,7 +52,7 @@ def get_time_in_utc(date: datetime):
     return date.astimezone(timezone.utc)
 
 
-@patch('app.auto_spatial_advisory.sfms.get_vancouver_now', return_value=get_pdt_8am())
+@patch("app.utils.sfms.get_vancouver_now", return_value=get_pdt_8am())
 def test_is_actual_before_noon(_):
     """ Test is_actual function """
     # If it's for yesterday, we assume it's an actual.
@@ -69,7 +69,7 @@ def test_tiff_does_not_break():
     assert get_prefix('hfi20220824.tiff') in ('actual', 'forecast')
 
 
-@patch('app.auto_spatial_advisory.sfms.get_vancouver_now', return_value=get_pdt_noon())
+@patch("app.utils.sfms.get_vancouver_now", return_value=get_pdt_noon())
 def test_is_actual_after_noon(_):
     """ Test is_actual function """
     # If it's for yesterday, we assume it's an actual.
@@ -80,7 +80,7 @@ def test_is_actual_after_noon(_):
     assert get_prefix(tomorrow) == 'forecast'
 
 
-@patch('app.auto_spatial_advisory.sfms.get_vancouver_now', return_value=get_pdt_1pm())
+@patch("app.utils.sfms.get_vancouver_now", return_value=get_pdt_1pm())
 def test_is_actual_after_solar_noon(_):
     """ Test is_actual function """
     # If it's for yesterday, we assume it's an actual.
@@ -91,7 +91,7 @@ def test_is_actual_after_solar_noon(_):
     assert get_prefix(tomorrow) == 'forecast'
 
 
-@patch('app.auto_spatial_advisory.sfms.get_vancouver_now', return_value=get_pdt_1pm())
+@patch("app.utils.sfms.get_vancouver_now", return_value=get_pdt_1pm())
 def test_get_target_filename(_):
     """ Test get_target_filename function """
     # If it's for yesterday, we assume it's an actual.
@@ -102,7 +102,7 @@ def test_get_target_filename(_):
     assert get_target_filename(tomorrow) == 'sfms/uploads/forecast/2022-08-23/hfi20220824.tif'
 
 
-@patch('app.auto_spatial_advisory.sfms.get_vancouver_now', return_value=get_pdt_17())
+@patch("app.utils.sfms.get_vancouver_now", return_value=get_pdt_17())
 def test_get_target_filename_day_difference(_):
     """ Test get_target_filename function, when UTC day is different from PST day """
     # If the issue date is today in Canada, we want the filename to reflect that.
@@ -118,7 +118,7 @@ def test_get_target_filename_day_difference(_):
     assert get_target_filename(tomorrow) == 'sfms/uploads/forecast/2022-08-23/hfi20220824.tif'
 
 
-@patch('app.auto_spatial_advisory.sfms.get_vancouver_now', return_value=get_pdt_17())
+@patch("app.utils.sfms.get_vancouver_now", return_value=get_pdt_17())
 def test_get_hourly_filename(_):
     """ Test get_hourly_filename function """
     assert get_hourly_filename(today) == 'sfms/uploads/hourlies/2022-08-23/hfi20220823.tif'
