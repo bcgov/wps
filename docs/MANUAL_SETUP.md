@@ -30,7 +30,7 @@ Alternatively, you can create a project specific `.npmrc` at the root of the `we
 `@psu:registry=https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/`
 `//artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/:_authToken={artifactory_token}`
 
-The artifactory token is currently stored in Vault.
+The artifactory token is currently stored in Vault as gha_artifactory_token.
 
 ##### Java
 
