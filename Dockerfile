@@ -7,9 +7,6 @@ ARG USERNAME=worker
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-RUN 
-RUN 
-
 # Switch to root
 USER 0
 
