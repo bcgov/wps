@@ -3,7 +3,7 @@ ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/w
 # To build locally, point to a local base image you've already built (see openshift/wps-api-base)
 # e.g. : docker build --build-arg DOCKER_IMAGE=wps-api-base:my-tag .
 
-FROM python:3.10 AS builder
+FROM ${DOCKER_IMAGE} AS builder
 
 # We don't want to run our app as root, so we define a worker user.
 ARG USERNAME=worker
