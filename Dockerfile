@@ -3,23 +3,12 @@ ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/w
 # To build locally, point to a local base image you've already built (see openshift/wps-api-base)
 # e.g. : docker build --build-arg DOCKER_IMAGE=wps-api-base:my-tag .
 
-FROM ${DOCKER_IMAGE} as builder
-
-# We don't want to run our app as root, so we define a worker user.
-ARG USERNAME=worker
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+FROM python:3.10 AS builder
 
 # Switch to root
 USER 0
 
-# Create a directory for the app to run in, and grant worker access
-RUN mkdir /app
-RUN chown $USERNAME /app
 WORKDIR /app
-
-# Switch back to our non-root user
-USER $USERNAME
 
 # Make sure we have the latest pip.
 RUN python -m pip install --upgrade pip
@@ -37,6 +26,22 @@ RUN poetry install --without dev
 RUN poetry run python -m pip install gdal==$(gdal-config --version)
 
 FROM ${DOCKER_IMAGE}
+
+# We don't want to run our app as root, so we define a worker user.
+ARG USERNAME=worker
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# Switch to root
+USER 0
+
+# Create a directory for the app to run in, and grant worker access
+RUN mkdir /app
+RUN chown $USERNAME /app
+WORKDIR /app
+
+# Switch back to our non-root user
+USER $USERNAME
 
 # Copy the app:
 COPY ./api/app /app/app
