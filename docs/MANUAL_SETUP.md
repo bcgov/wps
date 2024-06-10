@@ -22,8 +22,7 @@ from source is a world of trouble you don't want to get into. Stick to brew.
 
 We currently publish the cffdrs_ts package to our internal artifactory instance. You need to configure credentials so npm can pull the cffdrs_ts package from this repo. To add the credentials to your global `~/.npmrc` run:
 ```bash
-npm config set @psu:registry
-https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
+npm config set @psu:registry https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
 npm config set //artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/:_authToken {artifactory_token}
 ```
 Alternatively, you can create a project specific `.npmrc` at the root of the `web` directory and add the following:
