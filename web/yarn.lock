@@ -1986,9 +1986,7 @@
     react-is "^18.2.0"
 
 "@mui/x-data-grid-pro@^6.0.0":
-  version "6.20.0"
-  resolved "https://registry.yarnpkg.com/@mui/x-data-grid-pro/-/x-data-grid-pro-6.20.0.tgz#3111df8cbce97d9d0ec916edcc0da82274379266"
-  integrity sha512-4pXvrTXy+WXSMvpEApA+nK31A14e62OXd7+uAmcBn/sY/l59N22Oc5p3+vYEa4H+HamC3vfdEJQ6vWUwI49XDw==
+  version "6.20.1"
   dependencies:
     "@babel/runtime" "^7.23.2"
     "@mui/utils" "^5.14.16"
@@ -2011,9 +2009,7 @@
     reselect "^4.1.8"
 
 "@mui/x-date-pickers@^7.0.0":
-  version "7.6.1"
-  resolved "https://registry.yarnpkg.com/@mui/x-date-pickers/-/x-date-pickers-7.6.1.tgz#39aab46e785f885c19d324e637d7312ded6f636d"
-  integrity sha512-erSq5cnOUyBgBmpHnMxIit5yhT3bl/lOaNZKpObvJtvEJetvNA9xWQ7dz/J/AufLzDuvThjusuRD0y+GmeXtiw==
+  version "7.6.2"
   dependencies:
     "@babel/runtime" "^7.24.6"
     "@mui/base" "^5.0.0-beta.40"
@@ -2264,9 +2260,7 @@
     "@sentry/utils" "8.7.0"
 
 "@sentry/react@^8.2.1":
-  version "8.7.0"
-  resolved "https://registry.yarnpkg.com/@sentry/react/-/react-8.7.0.tgz#fc3f4303abb2ccd1e23f75f9f5bb6e648e095fa0"
-  integrity sha512-JFo8QW8JB4eaFC8RdkOBO96JvlGgstywmyMZ39qWfFbD735vGl8PnOa0AnrC/5Auc86dZ98/I4OEPboqUE9q1w==
+  version "8.8.0"
   dependencies:
     "@sentry/browser" "8.7.0"
     "@sentry/core" "8.7.0"
@@ -2824,24 +2818,7 @@
     "@types/geojson" "*"
 
 "@types/lodash@^4.14.173":
-  version "4.17.4"
-  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.17.4.tgz#0303b64958ee070059e3a7184048a55159fe20b7"
-  integrity sha512-wYCP26ZLxaT3R39kiN2+HcJ4kTd3U1waI/cY7ivWYqFP6pW3ZNpvi6Wd6PHZx7T/t8z0vlkXMg3QYLa7DZ/IJQ==
-
-"@types/luxon@^3.0.2":
-  version "3.4.2"
-  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-3.4.2.tgz#e4fc7214a420173cea47739c33cdf10874694db7"
-  integrity sha512-TifLZlFudklWlMBfhubvgqTXRzLDI5pCbGa4P8a3wPyUQSW+1xQ5eDsreP9DWHX3tjq1ke96uYG/nwundroWcA==
-
-"@types/mime@^1":
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/@types/mime/-/mime-1.3.5.tgz#1ef302e01cf7d2b5a0fa526790c9123bf1d06690"
-  integrity sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==
-
-"@types/node-forge@^1.3.0":
-  version "1.3.11"
-  resolved "https://registry.yarnpkg.com/@types/node-forge/-/node-forge-1.3.11.tgz#0972ea538ddb0f4d9c2fa0ec5db5724773a604da"
-  integrity sha512-FQx220y22OKNTqaByeBGqHWYz4cl94tpcxeFdvBo3wjG6XPBuZ0BNgNZRV5J5TFmmcsJ4IzsLkmGRiQbnYsBEQ==
+  version "4.17.5"
   dependencies:
     "@types/node" "*"
 
@@ -3102,9 +3079,7 @@
     tsutils "^3.21.0"
 
 "@typescript-eslint/eslint-plugin@^7.0.0":
-  version "7.12.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-7.12.0.tgz#f87a32e8972b8a60024f2f8f12205e7c8108bc41"
-  integrity sha512-7F91fcbuDf/d3S8o21+r3ZncGIke/+eWk0EpO21LXhDfLahriZF9CGj4fbAetEjlaBdjdSm9a6VeXbpbT6Z40Q==
+  version "7.13.0"
   dependencies:
     "@eslint-community/regexpp" "^4.10.0"
     "@typescript-eslint/scope-manager" "7.12.0"
@@ -3134,9 +3109,7 @@
     debug "^4.3.4"
 
 "@typescript-eslint/parser@^7.0.0":
-  version "7.12.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-7.12.0.tgz#8761df3345528b35049353db80010b385719b1c3"
-  integrity sha512-dm/J2UDY3oV3TKius2OUZIFHsomQmpHtsV0FTh1WO8EKgHLQ1QCADUqscPgTpU+ih1e21FQSRjXckHn3txn6kQ==
+  version "7.13.0"
   dependencies:
     "@typescript-eslint/scope-manager" "7.12.0"
     "@typescript-eslint/types" "7.12.0"
