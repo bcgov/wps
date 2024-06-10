@@ -54,7 +54,7 @@ RUN chown $USERNAME /app
 WORKDIR /app
 
 # Copy poetry files.
-COPY --from=builder --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
+COPY --from=builder --chown=$USERNAME:$USERNAME /app/pyproject.toml /app/poetry.lock /app/
 
 # Switch back to our non-root user
 USER $USERNAME
