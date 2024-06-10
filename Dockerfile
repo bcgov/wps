@@ -7,8 +7,8 @@ ARG USERNAME=worker
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-RUN cat /opt/credentials/username
-RUN cat /opt/credentials/password
+RUN 
+RUN 
 
 # Switch to root
 USER 0
@@ -26,11 +26,11 @@ RUN python -m pip install --upgrade pip
 # Copy poetry files.
 COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
 
-ARG POETRY_HTTP_BASIC_PSU_USERNAME
-ARG POETRY_HTTP_BASIC_PSU_PASSWORD
+ENV POETRY_HTTP_BASIC_PSU_USER ${cat /opt/credentials/username}
+ENV POETRY_HTTP_BASIC_PSU_PWD ${cat /opt/credentials/password}
 
 # Install dependencies.
-RUN POETRY_HTTP_BASIC_PSU_USERNAME=${POETRY_HTTP_BASIC_PSU_USERNAME} POETRY_HTTP_BASIC_PSU_PASSWORD=${POETRY_HTTP_BASIC_PSU_PASSWORD} poetry install --without dev
+RUN POETRY_HTTP_BASIC_PSU_USERNAME=${POETRY_HTTP_BASIC_PSU_USER} POETRY_HTTP_BASIC_PSU_PASSWORD=${POETRY_HTTP_BASIC_PSU_PWD} poetry install --without dev
 # Get a python binding for gdal that matches the version of gdal we have installed.
 RUN poetry run python -m pip install gdal==$(gdal-config --version)
 RUN ls -la
