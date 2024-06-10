@@ -26,7 +26,10 @@ RUN python -m pip install --upgrade pip
 # Copy poetry files.
 COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
 
-RUN poetry config http-basic.psu ${ARTIFACTORY_PYPI_USERNAME} ${ARTIFACTORY_PYPI_PASSWORD}
+ARG ARTIFACTORY_PYPI_USERNAME
+ARG ARTIFACTORY_PYPI_PASSWORD
+
+RUN poetry config http-basic.psu $ARTIFACTORY_PYPI_USERNAME $ARTIFACTORY_PYPI_PASSWORD
 
 # Install dependencies.
 RUN poetry install --without dev
