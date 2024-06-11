@@ -110,10 +110,15 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(hfi_key, temp_filename)
+        # If something has gone wrong with the collection of snow coverage data and it has not been collected
+        # within the past 7 days, don't apply an old snow mask, work with the classified hfi data as is
+        if last_processed_snow is None or last_processed_snow[0].for_date + datetime.timedelta(days=7) < datetime.now():
+            logger.info("No recently processed snow data found. Proceeding with non-masked hfi data.")
+            working_hfi_path = temp_filename
+        else:
+            working_hfi_path = await apply_snow_mask(temp_filename, last_processed_snow[0], temp_dir)
         # Create a snow coverage mask from previously downloaded snow data.
-        snow_masked_hfi_path = await apply_snow_mask(temp_filename, last_processed_snow[0], temp_dir)
-        with polygonize_in_memory(snow_masked_hfi_path, 'hfi', 'hfi') as layer:
-
+        with polygonize_in_memory(working_hfi_path, "hfi", "hfi") as layer:
             # We need a geojson file to pass to tippecanoe
             temp_geojson = write_geojson(layer, temp_dir)
 
