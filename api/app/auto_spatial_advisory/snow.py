@@ -1,7 +1,6 @@
 import logging
 import os
 import numpy as np
-from datetime import datetime, timedelta
 from osgeo import gdal
 from app import config
 from app.db.models.snow import ProcessedSnow
