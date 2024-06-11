@@ -1,5 +1,7 @@
+import logging
 import os
 import numpy as np
+from datetime import datetime, timedelta
 from osgeo import gdal
 from app import config
 from app.db.models.snow import ProcessedSnow
@@ -7,6 +9,9 @@ from app.db.models.snow import ProcessedSnow
 SNOW_COVERAGE_WARPED_NAME = 'snow_coverage_warped.tif'
 SNOW_COVERAGE_MASK_NAME = 'snow_coverage_mask.tif'
 MASKED_HFI_PATH_NAME = 'masked_hfi.tif'
+
+logger = logging.getLogger(__name__)
+
 
 def classify_snow_mask(snow_path: str, temp_dir: str):
     """
@@ -106,6 +111,12 @@ def apply_snow_mask_to_hfi(hfi_path: str, snow_mask_path: str, temp_dir: str):
 
 
 async def apply_snow_mask(hfi_path: str, last_processed_snow: ProcessedSnow, temp_dir: str):
+    # If something has gone wrong with the collection of snow coverage data and it has not been collected
+    # within the past 7 days, don't apply an old snow mask, work with the classified hfi data as is
+    if last_processed_snow.for_date + timedelta(days=7) < datetime.now():
+        logger.info("No recently processed snow data found. Proceeding with non-masked hfi data.")
+        return hfi_path
+
     gdal.SetConfigOption('AWS_SECRET_ACCESS_KEY', config.get('OBJECT_STORE_SECRET'))
     gdal.SetConfigOption('AWS_ACCESS_KEY_ID', config.get('OBJECT_STORE_USER_ID'))
     gdal.SetConfigOption('AWS_S3_ENDPOINT', config.get('OBJECT_STORE_SERVER'))
