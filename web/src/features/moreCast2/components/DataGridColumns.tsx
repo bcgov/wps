@@ -20,6 +20,15 @@ export interface ColumnVis {
   visible: boolean
 }
 
+export enum GroupHeaderName {
+  GC = 'GC (%)',
+  PRECIP = 'Precip (mm)',
+  RH = 'RH (%)',
+  TEMP = 'Temp (°C)',
+  WindDir = 'Wind Direction (°)',
+  WindSpeed = 'Wind Speed (km/h)'
+}
+
 export class DataGridColumns {
   public static initGridColumnVisibilityModel(columnClickHandlerProps: ColumnClickHandlerProps) {
     const model: GridColumnVisibilityModel = {}
@@ -125,34 +134,46 @@ export const getTabColumnGroupModel = (
       groupId: 'Temp',
       children: columnGroupingModelChildGenerator('temp'),
       headerClassName: 'temp',
-      renderHeaderGroup: () => renderGroupHeader('Temp', 'temp', showHideColumnsModel['temp'], handleShowHideChange)
+      renderHeaderGroup: () =>
+        renderGroupHeader(GroupHeaderName.TEMP, 'temp', showHideColumnsModel['temp'], handleShowHideChange)
     },
     {
       groupId: 'RH',
       children: columnGroupingModelChildGenerator('rh'),
       headerClassName: 'rh',
-      renderHeaderGroup: () => renderGroupHeader('RH', 'rh', showHideColumnsModel['rh'], handleShowHideChange)
+      renderHeaderGroup: () =>
+        renderGroupHeader(GroupHeaderName.RH, 'rh', showHideColumnsModel['rh'], handleShowHideChange)
     },
     {
       groupId: 'Precip',
       children: columnGroupingModelChildGenerator('precip'),
       headerClassName: 'precip',
       renderHeaderGroup: () =>
-        renderGroupHeader('Precip', 'precip', showHideColumnsModel['precip'], handleShowHideChange)
+        renderGroupHeader(GroupHeaderName.PRECIP, 'precip', showHideColumnsModel['precip'], handleShowHideChange)
     },
     {
       groupId: 'Wind Dir',
       children: columnGroupingModelChildGenerator('windDirection'),
       headerClassName: 'windDirection',
       renderHeaderGroup: () =>
-        renderGroupHeader('Wind Dir', 'windDirection', showHideColumnsModel['windDirection'], handleShowHideChange)
+        renderGroupHeader(
+          GroupHeaderName.WindDir,
+          'windDirection',
+          showHideColumnsModel['windDirection'],
+          handleShowHideChange
+        )
     },
     {
       groupId: 'Wind Speed',
       children: columnGroupingModelChildGenerator('windSpeed'),
       headerClassName: 'windSpeed',
       renderHeaderGroup: () =>
-        renderGroupHeader('Wind Speed', 'windSpeed', showHideColumnsModel['windSpeed'], handleShowHideChange)
+        renderGroupHeader(
+          GroupHeaderName.WindSpeed,
+          'windSpeed',
+          showHideColumnsModel['windSpeed'],
+          handleShowHideChange
+        )
     },
     {
       groupId: 'Grass Curing',
@@ -168,7 +189,7 @@ export const getTabColumnGroupModel = (
       ],
       headerClassName: 'gc',
       renderHeaderGroup: () => {
-        return <Typography style={{ fontWeight: 'bold' }}>Grass Curing</Typography>
+        return <Typography style={{ fontWeight: 'bold' }}>{GroupHeaderName.GC}</Typography>
       }
     }
   ]
