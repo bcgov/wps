@@ -10,7 +10,7 @@ from app.nats_publish import publish
 from app.schemas.sfms import HourlyTIF, HourlyTIFs
 from app.utils.s3 import get_client
 from app import config
-from app.auto_spatial_advisory.sfms import get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_ffmc_file, is_hfi_file
+from app.utils.sfms import get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_ffmc_file, is_hfi_file
 from app.auto_spatial_advisory.nats_config import stream_name, subjects, sfms_file_subject
 from app.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
 
