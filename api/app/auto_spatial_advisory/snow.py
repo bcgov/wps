@@ -1,3 +1,4 @@
+import logging
 import os
 import numpy as np
 from osgeo import gdal
@@ -7,6 +8,9 @@ from app.db.models.snow import ProcessedSnow
 SNOW_COVERAGE_WARPED_NAME = 'snow_coverage_warped.tif'
 SNOW_COVERAGE_MASK_NAME = 'snow_coverage_mask.tif'
 MASKED_HFI_PATH_NAME = 'masked_hfi.tif'
+
+logger = logging.getLogger(__name__)
+
 
 def classify_snow_mask(snow_path: str, temp_dir: str):
     """

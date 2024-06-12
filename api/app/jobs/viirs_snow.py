@@ -262,7 +262,8 @@ class ViirsSnowJob():
                     # expected to occur and there is no need to send a notification to RocketChat.
                     if http_error.response.status_code == 501:
                         logger.info(f"VIIRS snow data is unavailable for date: {date_string}. Exiting job.")
-                        break
+                        next_date = next_date + timedelta(days=1)
+                        continue
                     else:
                         # If a different HTTPError occurred re-raise and let the next exception handler send a notification to RocketChat.
                         raise http_error
