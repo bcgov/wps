@@ -60,6 +60,8 @@ jobs:
         with:
           path: ~/work/wps/wps/api/.venv
           key: ${{ runner.os }}-venv-poetry-1.6.1-${{ hashFiles('**/poetry.lock') }}
+      - name: Configure artifactory creds for poetry
+        run: poetry config http-basic.psu ${{ secrets.ARTIFACTORY_PYPI_USERNAME }}  ${{ secrets.ARTIFACTORY_PYPI_PASSWORD }}
       - name: Install python dependencies using poetry (api)
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
@@ -113,6 +115,8 @@ jobs:
           echo
           mkdir ~/poetry_installer
           curl -sSL https://install.python-poetry.org > ~/poetry_installer/install-poetry.py
+      - name: Configure artifactory creds for poetry
+        run: poetry config http-basic.psu ${{ secrets.ARTIFACTORY_PYPI_USERNAME }}  ${{ secrets.ARTIFACTORY_PYPI_PASSWORD }}
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
