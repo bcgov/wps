@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy
 from numba import vectorize
+from app.utils.s3 import read_into_memory
 
 @dataclass
 class TemporalPrecip:
@@ -11,12 +12,24 @@ class TemporalPrecip:
     
     def is_after(self, other) -> bool:
         return self.timestamp > other.timestamp
+    
+# TODO change when we have stored precip 
+RDPS_PRECIP_S3_PREFIX = "sfms/temp/prefix"
 
-def generate_24_hour_accumulating_precip_raster(current_time: datetime):
+async def generate_24_hour_accumulating_precip_raster(current_time: datetime):
     """
-    Given a UTC datetime, grab the raster for that date and compute the 
+    Given a UTC datetime, grab the raster for that date
+    and the date for 24 hours before to compute the difference.
     """
-    pass
+    day = current_time.date().isoformat()
+    daytime_before = current_time - timedelta(days=1)
+    day_before = daytime_before.date().isoformat()
+    day_data = await read_into_memory(f'{RDPS_PRECIP_S3_PREFIX}/{day}')
+    day_before_data = await read_into_memory(f'{RDPS_PRECIP_S3_PREFIX}/{day_before}')
+
+    later_precip = TemporalPrecip(timestamp=current_time, precip_amount=day_data)
+    earlier_precip = TemporalPrecip(timestamp=daytime_before, precip_amount=day_before_data)
+    return compute_precip_difference(later_precip, earlier_precip)
 
 
 def compute_precip_difference(later_precip: TemporalPrecip, earlier_precip: TemporalPrecip):

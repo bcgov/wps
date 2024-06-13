@@ -4,6 +4,7 @@ from typing import Generator, Tuple
 from contextlib import asynccontextmanager
 from aiobotocore.client import AioBaseClient
 from aiobotocore.session import get_session
+from osgeo import gdal
 from app import config
 
 
@@ -47,3 +48,13 @@ async def object_exists_v2(target_path: str):
     """
     async with get_client() as (client, bucket):
         return await object_exists(client, bucket, target_path)
+
+async def read_into_memory(key: str):
+    async with get_client() as (client, bucket):
+        s3_source = await client.get_object(Bucket=bucket, Key=key)
+        mem_path = f'/vsimem/{key}'
+        s3_data = await s3_source['Body'].read()
+        gdal.FileFromMemBuffer(mem_path, s3_data)
+        data = gdal.Open(mem_path, gdal.GA_ReadOnly)
+        gdal.Unlink(mem_path)
+        return data
