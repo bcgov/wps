@@ -9,6 +9,7 @@ import requests
 import datetime
 from sqlalchemy.orm import Session
 from pytest_mock import MockerFixture
+from app.jobs.env_canada_utils import HRDPS_GRIB_LAYERS, get_high_res_model_run_download_urls
 import app.utils.time as time_utils
 import app.db.database
 import app.db.crud.weather_models
@@ -91,9 +92,8 @@ def mock_download(monkeypatch):
 def test_get_hrdps_download_urls():
     """ test to see if get_download_urls methods gives the correct number of urls """
     # -1 because 000 hour has no APCP_SFC_0
-    total_num_of_urls = 49 * len(app.jobs.env_canada.HRDPS_GRIB_LAYERS) - 1
-    assert len(list(app.jobs.env_canada.get_high_res_model_run_download_urls(
-        time_utils.get_utc_now(), 0))) == total_num_of_urls
+    total_num_of_urls = 49 * len(HRDPS_GRIB_LAYERS) - 1
+    assert len(list(get_high_res_model_run_download_urls(time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
 @pytest.mark.usefixtures('mock_get_processed_file_record')

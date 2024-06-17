@@ -7,6 +7,7 @@ import pytest
 import requests
 from typing import Optional
 from sqlalchemy.orm import Session
+from app.jobs.env_canada_utils import GRIB_LAYERS, get_regional_model_run_download_urls
 import app.utils.time as time_utils
 import app.weather_models.process_grib
 import app.jobs.env_canada
@@ -97,9 +98,8 @@ def mock_download_fail(monkeypatch):
 def test_get_rdps_download_urls():
     """ test to see if get_download_urls methods give the correct number of urls """
     # -1 because 000 hour has no APCP_SFC_0
-    total_num_of_urls = 85 * len(app.jobs.env_canada.GRIB_LAYERS) - 1
-    assert len(list(app.jobs.env_canada.get_regional_model_run_download_urls(
-        time_utils.get_utc_now(), 0))) == total_num_of_urls
+    total_num_of_urls = 85 * len(GRIB_LAYERS) - 1
+    assert len(list(get_regional_model_run_download_urls(time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
 @pytest.mark.usefixtures('mock_get_processed_file_record')
