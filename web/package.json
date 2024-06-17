@@ -42,7 +42,7 @@
     "esri-leaflet": "3.0.12",
     "filefy": "^0.1.11",
     "jwt-decode": "^4.0.0",
-    "keycloak-js": "^24.0.0",
+    "keycloak-js": "^25.0.0",
     "leaflet": "^1.7.1",
     "lodash": "^4.17.21",
     "luxon": "^3.0.2",
