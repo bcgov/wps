@@ -182,6 +182,11 @@ objects:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
                           key: object-store-bucket
+                    - name: REDIS_CACHE_ENV_CANADA
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: env.redis-cache-env-canada
                   resources:
                     limits:
                       cpu: "1"
