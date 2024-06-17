@@ -8,8 +8,15 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models.weather_models import (
-    ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp,
-    ModelRunPrediction, WeatherStationModelPrediction, MoreCast2MaterializedView)
+    ProcessedModelRunUrl,
+    PredictionModel,
+    PredictionModelRunTimestamp,
+    ModelRunPrediction,
+    WeatherStationModelPrediction,
+    MoreCast2MaterializedView,
+    SavedModelRunForSfmsUrl,
+)
+from app.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -325,6 +332,17 @@ def get_processed_file_record(session: Session, url: str) -> ProcessedModelRunUr
     processed_file = session.query(ProcessedModelRunUrl).\
         filter(ProcessedModelRunUrl.url == url).first()
     return processed_file
+
+def get_saved_model_run_for_sfms(session: Session, url: str) -> SavedModelRunForSfmsUrl:
+    """Get record corresponding to a processed model run url for sfms"""
+    return session.query(SavedModelRunForSfmsUrl).filter(SavedModelRunForSfmsUrl.url == url).first()
+
+
+def create_saved_model_run_for_sfms(session: Session, url: str):
+    now = get_utc_now()
+    saved_model_run_for_sfms_url = SavedModelRunForSfmsUrl(url=url, create_date=now, update_date=now)
+    session.add(saved_model_run_for_sfms_url)
+    session.commit()
 
 
 def get_prediction_model(session: Session,

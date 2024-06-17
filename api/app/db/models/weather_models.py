@@ -31,6 +31,22 @@ class ProcessedModelRunUrl(Base):
     # Date this record was updated.
     update_date = Column(TZTimeStamp, nullable=False)
 
+class SavedModelRunForSfmsUrl(Base):
+    """Record to indicate that a particular RDPS model run file has been downloaded
+    and saved to S3 storage.
+    """
+
+    __tablename__ = "saved_model_run_for_sfms_urls"
+    __table_args__ = {"comment": "Record to indicate that a particular RDPS model run file has been downloaded and saved to S3 storage."}
+    # Unique identifier.
+    id = Column(Integer, Sequence("saved_model_run_for_sfms_urls_id_seq"), primary_key=True, nullable=False, index=True)
+    # Source URL of file processed.
+    url = Column(String, nullable=False, unique=True, index=True)
+    # Date this record was created.
+    create_date = Column(TZTimeStamp, nullable=False)
+    # Date this record was updated.
+    update_date = Column(TZTimeStamp, nullable=False)
+
 
 class PredictionModel(Base):
     """ Identifies the Weather Prediction model (e.g. GDPS 15km resolution). """

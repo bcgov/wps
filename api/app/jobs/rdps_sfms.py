@@ -1,0 +1,190 @@
+"""
+A script that downloads RDPS temp, rh, precip and wind speed weather model data from NCEI NOAA HTTPS data server.
+Data is stored in S3 storage for a maximum of 7 days
+"""
+
+import asyncio
+import os
+import sys
+from datetime import datetime
+from collections.abc import Generator
+import logging
+import tempfile
+from sqlalchemy.orm import Session
+from app.db.database import get_write_session_scope
+from app.db.crud.weather_models import create_saved_model_run_for_sfms, get_saved_model_run_for_sfms
+from app.jobs.common_model_fetchers import CompletedWithSomeExceptions, download
+from app.weather_models import ModelEnum, ProjectionEnum
+from app import configure_logging
+import app.utils.time as time_utils
+from app.utils.s3 import get_client
+from app.rocketchat_notifications import send_rocketchat_notification
+from app.jobs.env_canada_utils import get_regional_model_run_download_urls
+
+# If running as its own process, configure logging appropriately.
+if __name__ == "__main__":
+    configure_logging()
+
+logger = logging.getLogger(__name__)
+
+
+DAYS_TO_RETAIN = 7
+MAX_MODEL_RUN_HOUR = 36
+GRIB_LAYERS = ("TMP_TGL_2", "RH_TGL_2", "APCP_SFC_0", "WIND_TGL_10")
+
+
+def get_model_run_hours_to_process() -> Generator[int, None, None]:
+    """Yield the 00 and 12 model run hours for RDPS (skip 06 and 18 for now)"""
+    for hour in [0, 12]:
+        yield hour
+
+
+class RdpsGrib:
+    """Class that orchestrates downloading, storage and retention policy of RDPS grib files.
+    TODO - Implement retention policy
+    """
+
+    def __init__(self, session: Session):
+        """Prep variables"""
+        self.files_downloaded = 0
+        self.files_saved = 0
+        self.exception_count = 0
+        # We always work in UTC:
+        self.now = time_utils.get_utc_now()
+        self.date_key = f"{self.now.year}-{self.now.month}-{self.now.day}"
+        self.session = session
+        self.projection = ProjectionEnum.REGIONAL_PS
+
+    def get_file_name_from_url(self, url: str) -> str:
+        """Parses the grib file name from the URL. URLs have the form:
+        https://dd.weather.gc.ca/model_gem_regional/10km/grib2/00/000/CMC_reg_TMP_TGL_2_ps10km_2024061700_P000.grib2
+        """
+        parts = url.split("/")
+        name = parts[-1]
+        return name
+
+    def generate_s3_key(self, model_run_hour: int, file_name) -> str:
+        """Creates a key for storing an object in S3 storage."""
+        return f"weather_models/{(ModelEnum.RDPS).lower()}/{self.date_key}/{model_run_hour:02d}/{file_name}"
+
+    async def process_model_run_urls(self, model_run_hour: int, urls: list[str]):
+        """Process the urls for a model run."""
+        for url in urls:
+            try:
+                # check the database for a record of this file:
+                processed_url = get_saved_model_run_for_sfms(self.session, url)
+                if processed_url:
+                    # This url has already been processed - so we skip it.
+                    logger.debug("file already processed %s", url)
+                    continue
+                else:
+                    # download the file:
+                    with tempfile.TemporaryDirectory() as temporary_path:
+                        downloaded = download(url, temporary_path, "REDIS_CACHE_ENV_CANADA", ModelEnum.RDPS, "REDIS_ENV_CANADA_CACHE_EXPIRY")
+                        if downloaded:
+                            self.files_downloaded += 1
+                            file_name = self.get_file_name_from_url(url)
+                            file_path = os.path.join(temporary_path, file_name)
+                            key = self.generate_s3_key(model_run_hour, file_name)
+                            # If we've downloaded the file ok, we can now save it to S3 storage.
+                            try:
+                                async with get_client() as (client, bucket):
+                                    await client.put_object(Bucket=bucket, Key=key, Body=open(file_path, "rb"))
+                                    create_saved_model_run_for_sfms(self.session, url)
+                                    print(url)
+                                # self.grib_processor.process_grib_file(downloaded, model_info, self.session)
+                                # # Flag the file as processed
+                                # flag_file_as_processed(url, self.session)
+                            finally:
+                                # delete the file when done.
+                                os.remove(downloaded)
+            except Exception as exception:
+                self.exception_count += 1
+                # We catch and log exceptions, but keep trying to download.
+                # We intentionally catch a broad exception, as we want to try and download as much
+                # as we can.
+                logger.error("unexpected exception processing %s", url, exc_info=exception)
+
+    async def process_model_run(self, model_run_hour: int):
+        """Process a particular RDPS model run"""
+        logger.info(f"Processing RDPS model run {model_run_hour}Z")
+
+        # Get the urls for the current model run.
+        urls = list(get_regional_model_run_download_urls(self.now, model_run_hour, GRIB_LAYERS, MAX_MODEL_RUN_HOUR))
+
+        # Process all the urls.
+        await self.process_model_run_urls(model_run_hour, urls)
+
+        # Having completed processing, check if we're all done.
+        # if check_if_model_run_complete(self.session, urls):
+        #     logger.info("{} model run {:02d}:00 completed with SUCCESS".format(self.model_type, model_run_hour))
+
+        #     mark_prediction_model_run_processed(self.session, self.model_type, self.projection, self.now, model_run_hour)
+
+    async def process(self):
+        """Entry point for downloading and processing RDPS weather model grib files"""
+        for hour in get_model_run_hours_to_process():
+            try:
+                await self.process_model_run(hour)
+            except Exception as exception:
+                # We catch and log exceptions, but keep trying to process.
+                # We intentionally catch a broad exception, as we want to try to process as much as we can.
+                self.exception_count += 1
+                logger.error("unexpected exception processing %s model run %d", self.model_type, hour, exc_info=exception)
+
+
+class RdpsJob:
+    async def _run_rdp_job(self):
+        # Add some check based on current time and previous runs to determine if we need to proceed
+        logger.info("Begin download and storage of RDPS gribs.")
+
+        # grab the start time.
+        start_time = datetime.now()
+        with get_write_session_scope() as session:
+            rdps_grib = RdpsGrib(session)
+            await rdps_grib.process()
+
+        # calculate the execution time.
+        execution_time = datetime.now() - start_time
+        hours, remainder = divmod(execution_time.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        # log some info.
+        logger.info(
+            "%d downloaded, %d processed in total, time taken %d hours, %d minutes, %d seconds (%s)",
+            rdps_grib.files_downloaded,
+            rdps_grib.files_saved,
+            hours,
+            minutes,
+            seconds,
+            execution_time,
+        )
+        # check if we encountered any exceptions.
+        if rdps_grib.exception_count > 0:
+            # if there were any exceptions, return a non-zero status.
+            raise CompletedWithSomeExceptions()
+
+
+def main():
+    """Kicks off asynchronous downloading and storage of RDPS weather model data."""
+    try:
+        logger.debug("Begin download and storage of RDPS NWM data.")
+
+        bot = RdpsJob()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(bot._run_rdp_job())
+
+        # Exit with 0 - success.
+        sys.exit(os.EX_OK)
+    except Exception as exception:
+        # Exit non 0 - failure.
+        logger.error("An error occurred while downloading and storgin RDPS NWM data.", exc_info=exception)
+        rc_message = ":scream: Encountered an error while processing RDPS NWM data."
+        send_rocketchat_notification(rc_message, exception)
+        sys.exit(os.EX_SOFTWARE)
+
+
+if __name__ == "__main__":
+    configure_logging()
+    main()
