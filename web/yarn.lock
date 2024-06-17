@@ -1913,9 +1913,7 @@
   integrity sha512-tCHSi/Tomez9ERynFhZRvFO6n9ATyrPs+2N80DMDzp6xDVirbBjEwhPcE+x7Lj+nwYw0SqFkOxyvMP0irnm55w==
 
 "@mui/icons-material@^5.5.1":
-  version "5.15.19"
-  resolved "https://registry.yarnpkg.com/@mui/icons-material/-/icons-material-5.15.19.tgz#0602da80d814af662812659eab891e435ec0d5c0"
-  integrity sha512-RsEiRxA5azN9b8gI7JRqekkgvxQUlitoBOtZglflb8cUDyP12/cP4gRwhb44Ea1/zwwGGjAj66ZJpGHhKfibNA==
+  version "5.15.20"
   dependencies:
     "@babel/runtime" "^7.23.9"
 
@@ -2011,9 +2009,7 @@
     reselect "^4.1.8"
 
 "@mui/x-date-pickers@^7.0.0":
-  version "7.6.2"
-  resolved "https://registry.yarnpkg.com/@mui/x-date-pickers/-/x-date-pickers-7.6.2.tgz#361ab64ecce2f2b8d3ce57cbda4e3c5acc4aed02"
-  integrity sha512-9e5qO76eLvjiEm7Yt4HNR1jqGFia7vnZYbhi4Tw/xQ32emMKYLUzXZLhQNtb1wa7SwHWxXcPJOkIEmvQgEvaqQ==
+  version "7.7.0"
   dependencies:
     "@babel/runtime" "^7.24.6"
     "@mui/base" "^5.0.0-beta.40"
@@ -2264,9 +2260,7 @@
     "@sentry/utils" "8.8.0"
 
 "@sentry/react@^8.2.1":
-  version "8.8.0"
-  resolved "https://registry.yarnpkg.com/@sentry/react/-/react-8.8.0.tgz#0173a28f8948da318fce65401b7298ad6e4e31da"
-  integrity sha512-7BZyYQFJCRpWz5dn5SZxrhMU8hHH7eBC7BqNMhtsbctP/ObK6BEt3YJUDjTslkXZMOCXfN9ZdBgYEAGc7EPhFQ==
+  version "8.9.2"
   dependencies:
     "@sentry/browser" "8.8.0"
     "@sentry/core" "8.8.0"
@@ -2488,9 +2482,7 @@
     pretty-format "^27.0.2"
 
 "@testing-library/jest-dom@^6.4.2":
-  version "6.4.5"
-  resolved "https://registry.yarnpkg.com/@testing-library/jest-dom/-/jest-dom-6.4.5.tgz#badb40296477149136dabef32b572ddd3b56adf1"
-  integrity sha512-AguB9yvTXmCnySBP1lWjfNNUwpbElsaQ567lt2VdGqAdHtpieLgjmcVyv1q7PMIvLbgpDdkWV5Ydv3FEejyp2A==
+  version "6.4.6"
   dependencies:
     "@adobe/css-tools" "^4.3.2"
     "@babel/runtime" "^7.9.2"
@@ -3102,9 +3094,7 @@
     tsutils "^3.21.0"
 
 "@typescript-eslint/eslint-plugin@^7.0.0":
-  version "7.13.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-7.13.0.tgz#3cdeb5d44d051b21a9567535dd90702b2a42c6ff"
-  integrity sha512-FX1X6AF0w8MdVFLSdqwqN/me2hyhuQg4ykN6ZpVhh1ij/80pTvDKclX1sZB9iqex8SjQfVhwMKs3JtnnMLzG9w==
+  version "7.13.1"
   dependencies:
     "@eslint-community/regexpp" "^4.10.0"
     "@typescript-eslint/scope-manager" "7.13.0"
@@ -3134,9 +3124,7 @@
     debug "^4.3.4"
 
 "@typescript-eslint/parser@^7.0.0":
-  version "7.13.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-7.13.0.tgz#9489098d68d57ad392f507495f2b82ce8b8f0a6b"
-  integrity sha512-EjMfl69KOS9awXXe83iRN7oIEXy9yYdqWfqdrFAYAAr6syP8eLEFI7ZE4939antx2mNgPRW/o1ybm2SFYkbTVA==
+  version "7.13.1"
   dependencies:
     "@typescript-eslint/scope-manager" "7.13.0"
     "@typescript-eslint/types" "7.13.0"
