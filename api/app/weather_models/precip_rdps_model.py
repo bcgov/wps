@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Dict, List, Protocol
+from abc import abstractmethod
 import numpy
 from numba import vectorize
 from app.utils.s3 import read_into_memory
@@ -15,6 +17,18 @@ class TemporalPrecip:
     
 # TODO change when we have stored precip 
 RDPS_PRECIP_S3_PREFIX = "sfms/temp/prefix"
+
+def retrieve_previous_precip_raster(timestamp: datetime): 
+    """ Retrieve the rasters for computing the 24 hour difference for """
+    if timestamp.utcoffset() is None or timestamp.utcoffset().total_seconds != 0.0:
+        raise ValueError("timestamp must be a UTC timestamp")
+    
+    if timestamp.hour < 13:
+        ## retrieve yesterday's raster run
+        yesterday = timestamp.date() - timedelta(days=1)
+        return f'{RDPS_PRECIP_S3_PREFIX}/{yesterday.isoformat()}/12Z.tif'
+    
+    # otherwise 
 
 async def generate_24_hour_accumulating_precip_raster(current_time: datetime):
     """
