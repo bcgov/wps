@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Generator
 from app.jobs.common_model_fetchers import UnhandledPredictionModelType
 from app.weather_models import ModelEnum
@@ -14,7 +14,7 @@ def adjust_model_day(now: datetime, model_run_hour) -> datetime:
     model run.
     """
     if now.hour < model_run_hour:
-        return now - datetime.timedelta(days=1)
+        return now - timedelta(days=1)
     return now
 
 
