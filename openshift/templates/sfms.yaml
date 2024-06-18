@@ -34,10 +34,10 @@ parameters:
     value: 500m
   - name: MEMORY_REQUEST
     description: Requested memory
-    value: 3Gi
+    value: 500Mi
   - name: MEMORY_LIMIT
     description: Memory upper limit
-    value: 6Gi
+    value: 1Gi
   - name: REPLICAS
     description: Number of replicas (pods)
     value: "2"
