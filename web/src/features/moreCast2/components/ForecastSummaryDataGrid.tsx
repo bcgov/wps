@@ -1,6 +1,6 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { DataGridPro, GridEventListener } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridCellParams, GridEventListener } from '@mui/x-data-grid-pro'
 import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
@@ -61,6 +61,10 @@ const ForecastSummaryDataGrid = ({
   handleColumnHeaderClick,
   processRowUpdate
 }: ForecastSummaryDataGridProps) => {
+  const isCellEditable = (params: GridCellParams) => {
+    return params.row[params.field] !== ModelChoice.ACTUAL && !params.field.includes('Calc')
+  }
+
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGridPro
@@ -82,7 +86,7 @@ const ForecastSummaryDataGrid = ({
         loading={loading}
         columns={DataGridColumns.getSummaryColumns(columnClickHandlerProps)}
         rows={rows}
-        isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
+        isCellEditable={isCellEditable}
         processRowUpdate={processRowUpdate}
       />
     </Root>
