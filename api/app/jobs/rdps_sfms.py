@@ -12,7 +12,7 @@ import logging
 import tempfile
 from sqlalchemy.orm import Session
 from app.db.database import get_write_session_scope
-from app.db.crud.weather_models import create_saved_model_run_for_sfms, get_saved_model_run_for_sfms
+from app.db.crud.weather_models import create_model_run_for_sfms, create_saved_model_run_for_sfms_url, get_saved_model_run_for_sfms
 from app.jobs.common_model_fetchers import CompletedWithSomeExceptions, download
 from app.weather_models import ModelEnum, ProjectionEnum
 from app import configure_logging
@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 
 
 DAYS_TO_RETAIN = 7
-MAX_MODEL_RUN_HOUR = 36
-GRIB_LAYERS = ("TMP_TGL_2", "RH_TGL_2", "APCP_SFC_0", "WIND_TGL_10")
+MAX_MODEL_RUN_HOUR = 37
+GRIB_LAYERS = {"temp": "TMP_TGL_2", "rh": "RH_TGL_2", "precip": "APCP_SFC_0", "wind_speed": "WIND_TGL_10"}
 
 
 def get_model_run_hours_to_process() -> Generator[int, None, None]:
@@ -47,7 +47,6 @@ class RdpsGrib:
     def __init__(self, session: Session):
         """Prep variables"""
         self.files_downloaded = 0
-        self.files_saved = 0
         self.exception_count = 0
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
@@ -63,11 +62,11 @@ class RdpsGrib:
         name = parts[-1]
         return name
 
-    def generate_s3_key(self, model_run_hour: int, file_name) -> str:
+    def generate_s3_key(self, model_run_hour: int, weather_param: str, file_name) -> str:
         """Creates a key for storing an object in S3 storage."""
-        return f"weather_models/{(ModelEnum.RDPS).lower()}/{self.date_key}/{model_run_hour:02d}/{file_name}"
+        return f"weather_models/{(ModelEnum.RDPS).lower()}/{self.date_key}/{model_run_hour:02d}/{weather_param}/{file_name}"
 
-    async def process_model_run_urls(self, model_run_hour: int, urls: list[str]):
+    async def process_model_run_urls(self, model_run_hour: int, weather_param: str, urls: list[str]):
         """Process the urls for a model run."""
         for url in urls:
             try:
@@ -85,12 +84,12 @@ class RdpsGrib:
                             self.files_downloaded += 1
                             file_name = self.get_file_name_from_url(url)
                             file_path = os.path.join(temporary_path, file_name)
-                            key = self.generate_s3_key(model_run_hour, file_name)
+                            key = self.generate_s3_key(model_run_hour, weather_param, file_name)
                             # If we've downloaded the file ok, we can now save it to S3 storage.
                             try:
                                 async with get_client() as (client, bucket):
                                     await client.put_object(Bucket=bucket, Key=key, Body=open(file_path, "rb"))
-                                    create_saved_model_run_for_sfms(self.session, url)
+                                    create_saved_model_run_for_sfms_url(self.session, url)
                                     print(url)
                                 # self.grib_processor.process_grib_file(downloaded, model_info, self.session)
                                 # # Flag the file as processed
@@ -108,24 +107,17 @@ class RdpsGrib:
     async def process_model_run(self, model_run_hour: int):
         """Process a particular RDPS model run"""
         logger.info(f"Processing RDPS model run {model_run_hour}Z")
-
-        # Get the urls for the current model run.
-        urls = list(get_regional_model_run_download_urls(self.now, model_run_hour, GRIB_LAYERS, MAX_MODEL_RUN_HOUR))
-
-        # Process all the urls.
-        await self.process_model_run_urls(model_run_hour, urls)
-
-        # Having completed processing, check if we're all done.
-        # if check_if_model_run_complete(self.session, urls):
-        #     logger.info("{} model run {:02d}:00 completed with SUCCESS".format(self.model_type, model_run_hour))
-
-        #     mark_prediction_model_run_processed(self.session, self.model_type, self.projection, self.now, model_run_hour)
+        for key, value in GRIB_LAYERS.items():
+            urls = list(get_regional_model_run_download_urls(self.now, model_run_hour, [value], MAX_MODEL_RUN_HOUR))
+            await self.process_model_run_urls(model_run_hour, key, urls)
 
     async def process(self):
         """Entry point for downloading and processing RDPS weather model grib files"""
         for hour in get_model_run_hours_to_process():
             try:
                 await self.process_model_run(hour)
+                if self.files_downloaded > 0:
+                    create_model_run_for_sfms(self.session, ModelEnum.RDPS, self.now, hour)
             except Exception as exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
@@ -151,9 +143,8 @@ class RdpsJob:
 
         # log some info.
         logger.info(
-            "%d downloaded, %d processed in total, time taken %d hours, %d minutes, %d seconds (%s)",
+            "%d downloaded, time taken %d hours, %d minutes, %d seconds (%s)",
             rdps_grib.files_downloaded,
-            rdps_grib.files_saved,
             hours,
             minutes,
             seconds,
@@ -179,7 +170,7 @@ def main():
         sys.exit(os.EX_OK)
     except Exception as exception:
         # Exit non 0 - failure.
-        logger.error("An error occurred while downloading and storgin RDPS NWM data.", exc_info=exception)
+        logger.error("An error occurred while downloading and storing RDPS NWM data.", exc_info=exception)
         rc_message = ":scream: Encountered an error while processing RDPS NWM data."
         send_rocketchat_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
