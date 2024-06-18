@@ -55,6 +55,8 @@ async def read_into_memory(key: str):
         mem_path = f'/vsimem/{key}'
         s3_data = await s3_source['Body'].read()
         gdal.FileFromMemBuffer(mem_path, s3_data)
-        data = gdal.Open(mem_path, gdal.GA_ReadOnly)
+        data_source = gdal.Open(mem_path, gdal.GA_ReadOnly)
         gdal.Unlink(mem_path)
-        return data
+        dem_band = data_source.GetRasterBand(1)
+        dem_data = dem_band.ReadAsArray()
+        return dem_data
