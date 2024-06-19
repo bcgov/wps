@@ -22,3 +22,4 @@ code --install-extension REditorSupport.r
 code --install-extension shd101wyy.markdown-preview-enhanced
 code --install-extension SonarSource.sonarlint-vscode
 code --install-extension tamasfe.even-better-toml
+code --install-extension streetsidesoftware.code-spell-checker
