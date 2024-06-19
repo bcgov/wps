@@ -88,7 +88,7 @@ class RDPSGrib:
                             try:
                                 async with get_client() as (client, bucket):
                                     await client.put_object(Bucket=bucket, Key=key, Body=open(file_path, "rb"))
-                                    create_saved_model_run_for_sfms_url(self.session, url)
+                                    create_saved_model_run_for_sfms_url(self.session, url, key)
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)

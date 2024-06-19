@@ -42,6 +42,8 @@ class SavedModelRunForSfmsUrl(Base):
     id = Column(Integer, Sequence("saved_model_run_for_sfms_urls_id_seq"), primary_key=True, nullable=False, index=True)
     # Source URL of file processed.
     url = Column(String, nullable=False, unique=True, index=True)
+    # The S3 key for the downloaded data
+    s3_key = Column(String, nullable=False, unique=True, index=True)
     # Date this record was created.
     create_date = Column(TZTimeStamp, nullable=False)
     # Date this record was updated.

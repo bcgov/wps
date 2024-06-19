@@ -339,10 +339,10 @@ def get_saved_model_run_for_sfms(session: Session, url: str) -> SavedModelRunFor
     return session.query(SavedModelRunForSfmsUrl).filter(SavedModelRunForSfmsUrl.url == url).first()
 
 
-def create_saved_model_run_for_sfms_url(session: Session, url: str):
+def create_saved_model_run_for_sfms_url(session: Session, url: str, key: str):
     """Create a record of a model run url that has been downloaded and stored in S3."""
     now = get_utc_now()
-    saved_model_run_for_sfms_url = SavedModelRunForSfmsUrl(url=url, create_date=now, update_date=now)
+    saved_model_run_for_sfms_url = SavedModelRunForSfmsUrl(url=url, create_date=now, update_date=now, s3_key=key)
     session.add(saved_model_run_for_sfms_url)
     session.commit()
 
