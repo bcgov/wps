@@ -14,8 +14,8 @@ from app.db.models.weather_models import (
     ModelRunPrediction,
     WeatherStationModelPrediction,
     MoreCast2MaterializedView,
-    SavedModelRunForSfmsUrl,
-    ModelRunForSfms,
+    SavedModelRunForSFMSUrl,
+    ModelRunForSFMS,
 )
 from app.utils.time import get_utc_now
 
@@ -334,15 +334,15 @@ def get_processed_file_record(session: Session, url: str) -> ProcessedModelRunUr
         filter(ProcessedModelRunUrl.url == url).first()
     return processed_file
 
-def get_saved_model_run_for_sfms(session: Session, url: str) -> SavedModelRunForSfmsUrl:
+def get_saved_model_run_for_sfms(session: Session, url: str) -> SavedModelRunForSFMSUrl:
     """Get record corresponding to a processed model run url for sfms"""
-    return session.query(SavedModelRunForSfmsUrl).filter(SavedModelRunForSfmsUrl.url == url).first()
+    return session.query(SavedModelRunForSFMSUrl).filter(SavedModelRunForSFMSUrl.url == url).first()
 
 
 def create_saved_model_run_for_sfms_url(session: Session, url: str, key: str):
     """Create a record of a model run url that has been downloaded and stored in S3."""
     now = get_utc_now()
-    saved_model_run_for_sfms_url = SavedModelRunForSfmsUrl(url=url, create_date=now, update_date=now, s3_key=key)
+    saved_model_run_for_sfms_url = SavedModelRunForSFMSUrl(url=url, create_date=now, update_date=now, s3_key=key)
     session.add(saved_model_run_for_sfms_url)
     session.commit()
 
@@ -355,7 +355,7 @@ def create_model_run_for_sfms(session: Session, model: ModelEnum, model_run_date
     model_run_timestamp = datetime.datetime(
         year=model_run_date.year, month=model_run_date.month, day=model_run_date.day, hour=model_run_hour, tzinfo=datetime.timezone.utc
     )
-    model_run_for_sfms = ModelRunForSfms(
+    model_run_for_sfms = ModelRunForSFMS(
         prediction_model_id=prediction_model.id,
         model_run_timestamp=model_run_timestamp,
         create_date=model_run_date,

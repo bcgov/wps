@@ -16,8 +16,8 @@ from app.db.models.weather_models import (
     PredictionModelGridSubset,
     ModelRunGridSubsetPrediction,
     WeatherStationModelPrediction,
-    SavedModelRunForSfmsUrl,
-    ModelRunForSfms,
+    SavedModelRunForSFMSUrl,
+    ModelRunForSFMS,
 )
 from app.db.models.hfi_calc import (FireCentre, FuelType, PlanningArea, PlanningWeatherStation)
 from app.db.models.auto_spatial_advisory import (Shape, ShapeType, HfiClassificationThreshold,

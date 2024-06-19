@@ -31,7 +31,7 @@ class ProcessedModelRunUrl(Base):
     # Date this record was updated.
     update_date = Column(TZTimeStamp, nullable=False)
 
-class SavedModelRunForSfmsUrl(Base):
+class SavedModelRunForSFMSUrl(Base):
     """Record to indicate that a particular RDPS model run file has been downloaded
     and saved to S3 storage.
     """
@@ -49,7 +49,7 @@ class SavedModelRunForSfmsUrl(Base):
     # Date this record was updated.
     update_date = Column(TZTimeStamp, nullable=False)
 
-class ModelRunForSfms(Base):
+class ModelRunForSFMS(Base):
     """Record to indicate numerical weather model data for SFMS has been downloaded and stored in S3."""
 
     __tablename__ = "model_run_for_sfms"
