@@ -1,5 +1,5 @@
 """
-A script that downloads RDPS temp, rh, precip and wind speed weather model data from NCEI NOAA HTTPS data server.
+A script that downloads RDPS temp, rh, precip and wind speed weather model data from the Environment Canada HTTP data server.
 Data is stored in S3 storage for a maximum of 7 days
 """
 
@@ -90,10 +90,6 @@ class RdpsGrib:
                                 async with get_client() as (client, bucket):
                                     await client.put_object(Bucket=bucket, Key=key, Body=open(file_path, "rb"))
                                     create_saved_model_run_for_sfms_url(self.session, url)
-                                    print(url)
-                                # self.grib_processor.process_grib_file(downloaded, model_info, self.session)
-                                # # Flag the file as processed
-                                # flag_file_as_processed(url, self.session)
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
@@ -126,7 +122,7 @@ class RdpsGrib:
 
 
 class RdpsJob:
-    async def _run_rdp_job(self):
+    async def run(self):
         # Add some check based on current time and previous runs to determine if we need to proceed
         logger.info("Begin download and storage of RDPS gribs.")
 
@@ -164,7 +160,7 @@ def main():
         bot = RdpsJob()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(bot._run_rdp_job())
+        loop.run_until_complete(bot.run())
 
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
