@@ -62,6 +62,7 @@ const ForecastSummaryDataGrid = ({
   processRowUpdate
 }: ForecastSummaryDataGridProps) => {
   const isCellEditable = (params: GridCellParams) => {
+    // Actual fields and FWI fields (containing the 'Calc' substring) are not editable.
     return params.row[params.field] !== ModelChoice.ACTUAL && !params.field.includes('Calc')
   }
 
