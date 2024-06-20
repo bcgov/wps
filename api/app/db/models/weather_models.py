@@ -31,6 +31,41 @@ class ProcessedModelRunUrl(Base):
     # Date this record was updated.
     update_date = Column(TZTimeStamp, nullable=False)
 
+class SavedModelRunForSFMSUrl(Base):
+    """Record to indicate that a particular RDPS model run file has been downloaded
+    and saved to S3 storage.
+    """
+
+    __tablename__ = "saved_model_run_for_sfms_urls"
+    __table_args__ = {"comment": "Record to indicate that a particular RDPS model run file has been downloaded and saved to S3 storage."}
+    # Unique identifier.
+    id = Column(Integer, Sequence("saved_model_run_for_sfms_urls_id_seq"), primary_key=True, nullable=False, index=True)
+    # Source URL of file processed.
+    url = Column(String, nullable=False, unique=True, index=True)
+    # The S3 key for the downloaded data
+    s3_key = Column(String, nullable=False, unique=True, index=True)
+    # Date this record was created.
+    create_date = Column(TZTimeStamp, nullable=False)
+    # Date this record was updated.
+    update_date = Column(TZTimeStamp, nullable=False)
+
+class ModelRunForSFMS(Base):
+    """Record to indicate numerical weather model data for SFMS has been downloaded and stored in S3."""
+
+    __tablename__ = "model_run_for_sfms"
+    __table_args__ = {"comment": "Record to indicate numerical weather model data for SFMS has been downloaded and stored in S3."}
+    # Unique identifier.
+    id = Column(Integer, Sequence("model_run_for_sfms_id_seq"), primary_key=True, nullable=False, index=True)
+    # The numerical weather model.
+    prediction_model_id = Column(Integer, ForeignKey("prediction_models.id"), nullable=False)
+    prediction_model = relationship("PredictionModel")
+    # The date and time of the model run.
+    model_run_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    # Date this record was created.
+    create_date = Column(TZTimeStamp, nullable=False)
+    # Date this record was updated.
+    update_date = Column(TZTimeStamp, nullable=False)
+
 
 class PredictionModel(Base):
     """ Identifies the Weather Prediction model (e.g. GDPS 15km resolution). """
@@ -71,7 +106,7 @@ class PredictionModelRunTimestamp(Base):
 
     id = Column(Integer, Sequence('prediction_model_run_timestamps_id_seq'),
                 primary_key=True, nullable=False, index=True)
-    # Is it GPDS or RDPS?
+    # The numerical weather model.
     prediction_model_id = Column(Integer, ForeignKey(
         'prediction_models.id'), nullable=False, index=True)
     prediction_model = relationship("PredictionModel")
