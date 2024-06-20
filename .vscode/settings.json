@@ -54,6 +54,12 @@
     ],
     "typescript.preferences.importModuleSpecifier": "non-relative",
     "cSpell.words": [
-        "Albers"
+        "Albers",
+        "ndarray",
+        "numba",
+        "PRECIP",
+        "RDPS",
+        "sfms",
+        "vectorize"
     ]
 }
