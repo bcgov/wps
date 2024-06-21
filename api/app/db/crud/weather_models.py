@@ -346,6 +346,16 @@ def create_saved_model_run_for_sfms_url(session: Session, url: str, key: str):
     session.add(saved_model_run_for_sfms_url)
     session.commit()
 
+def get_rdps_sfms_urls_for_deletion(session: Session, threshold: datetime):
+    """Gets all records older than the provided threshold."""
+    return session.query(SavedModelRunForSFMSUrl).filter(SavedModelRunForSFMSUrl.create_date < threshold).all()
+
+
+def delete_rdps_sfms_urls(session: Session, ids: list[int]):
+    """Delete records with the specified ids."""
+    if ids is not None and len(ids) > 0:
+        session.query(SavedModelRunForSFMSUrl).filter(SavedModelRunForSFMSUrl.id.in_(ids)).delete()
+
 
 def create_model_run_for_sfms(session: Session, model: ModelEnum, model_run_date: datetime, model_run_hour: int):
     """Create a model run for sfms record to indicate that weather model data for the given
