@@ -6,13 +6,19 @@ Data is stored in S3 storage for a maximum of 7 days
 import asyncio
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections.abc import Generator
 import logging
 import tempfile
 from sqlalchemy.orm import Session
 from app.db.database import get_write_session_scope
-from app.db.crud.weather_models import create_model_run_for_sfms, create_saved_model_run_for_sfms_url, get_saved_model_run_for_sfms
+from app.db.crud.weather_models import (
+    create_model_run_for_sfms,
+    create_saved_model_run_for_sfms_url,
+    get_saved_model_run_for_sfms,
+    get_rdps_sfms_urls_for_deletion,
+    delete_rdps_sfms_urls,
+)
 from app.jobs.common_model_fetchers import CompletedWithSomeExceptions, download
 from app.weather_models import ModelEnum
 from app import configure_logging
@@ -119,6 +125,20 @@ class RDPSGrib:
                 self.exception_count += 1
                 logger.error("unexpected exception processing %s model run %d", self.model_type, hour, exc_info=exception)
 
+    async def apply_retention_policy(self, days_to_retain: int):
+        """Delete objects from S3 storage and remove records from database that are older than DAYS_TO_RETAIN"""
+        logger.info(f"Applying retention policy to RDPS data downloaded for SFMS. Data in S3 and correspdoning database records older than {days_to_retain} are being deleted.")
+        deletion_threhold = self.now - timedelta(days=days_to_retain)
+        records_for_deletion = get_rdps_sfms_urls_for_deletion(self.session, deletion_threhold)
+        async with get_client() as (client, bucket):
+            for record in records_for_deletion:
+                s3_key = record.s3_key
+                await client.delete_object(Bucket=bucket, Key=s3_key)
+                print("Object deleted")
+        ids_for_deletion = list(record.id for record in records_for_deletion)
+        delete_rdps_sfms_urls(self.session, ids_for_deletion)
+        logger.info(f"Completed deleting {len(records_for_deletion)} objects and records.")
+
 
 class RDPSJob:
     async def run(self):
@@ -130,7 +150,7 @@ class RDPSJob:
         with get_write_session_scope() as session:
             rdps_grib = RDPSGrib(session)
             await rdps_grib.process()
-
+            await rdps_grib.apply_retention_policy(DAYS_TO_RETAIN)
         # calculate the execution time.
         execution_time = datetime.now() - start_time
         hours, remainder = divmod(execution_time.seconds, 3600)
