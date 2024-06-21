@@ -9,6 +9,7 @@ import pytest
 import requests
 from sqlalchemy.orm import Session
 from app.jobs import env_canada
+from app.jobs.env_canada_utils import GRIB_LAYERS, get_global_model_run_download_urls
 from app.jobs import common_model_fetchers
 import app.utils.time as time_utils
 from app.weather_models import machine_learning
@@ -102,9 +103,8 @@ def mock_download_fail(monkeypatch):
 def test_get_gdps_download_urls():
     """ test to see if get_download_urls methods give the correct number of urls """
     # -1 because 000 hour has no APCP_SFC_0
-    total_num_of_urls = 81 * len(env_canada.GRIB_LAYERS) - 1
-    assert len(list(env_canada.get_global_model_run_download_urls(
-        time_utils.get_utc_now(), 0))) == total_num_of_urls
+    total_num_of_urls = 81 * len(GRIB_LAYERS) - 1
+    assert len(list(get_global_model_run_download_urls(time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
 @pytest.fixture()
@@ -135,7 +135,7 @@ def test_for_zero_day_bug(monkeypatch):
     a url with a month day zero is construced.
     This test ensures that if it's before 12 UTC, we look for the previous days 12 UTC model run"""
     problem_date = datetime.fromisoformat('2020-09-01T00:13:58+00:00')
-    urls = env_canada.get_global_model_run_download_urls(problem_date, 12)
+    urls = get_global_model_run_download_urls(problem_date, 12)
     url = next(urls)
     expected_url = ('https://dd.weather.gc.ca/model_gem_global/15km/'
                     'grib2/lat_lon/12/000/CMC_glb_TMP_TGL_2_latlon.'
