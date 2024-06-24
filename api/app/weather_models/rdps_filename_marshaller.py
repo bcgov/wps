@@ -49,7 +49,7 @@ def parse_rdps_filename(url: str):
     assert len(final_tokens) == 2
     # strip off constant 'P', get forecast hours triplet
     forecast_hour = final_tokens[0][-3:]
-    assert int(forecast_hour) in FORECAST_HOURS
+    assert forecast_hour in FORECAST_HOURS
 
     return (forecast_start_date, run_hour, forecast_hour)
 
