@@ -57,7 +57,7 @@ def parse_rdps_filename(url: str):
 def compose_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
     """Compose and return an RDPS url given a forecast start date, run hour and forecast hour."""
     assert forecast_start_date.tzinfo is not None
-    assert forecast_start_date.utcoffset().total_seconds() == 0
+    assert int(forecast_start_date.utcoffset().total_seconds()) == 0
     assert f"{run_hour:02d}" in RUN_HOURS
     assert f"{forecast_hour:03d}" in FORECAST_HOURS
 
