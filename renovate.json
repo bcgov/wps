@@ -4,7 +4,6 @@
     "openshift/s3-backup/docker/poetry.lock"
   ],
   "ignoreDeps": [
-    "axios",
     "@psu/cffdrs_ts"
   ],
   "onboardingConfig": {
