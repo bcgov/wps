@@ -56,7 +56,7 @@ def get_raster_keys_to_diff(timestamp: datetime):
         # we're not looking at a run hour, so prefix key with computed path
         earlier_key = earlier_key + "computed/"
         later_key = later_key + "computed/"
-    # grab a computed diff since we're not looking at a model run hour
+
     earlier_key = f"{target_model_run_date.hour:02d}/precip/{compose_rdps_filename(target_model_run_date, target_model_run_date.hour - 1, target_model_run_date.hour)}"
     later_key = f"{timestamp.hour:02d}/precip/{compose_rdps_filename(timestamp, timestamp.hour - 1, timestamp.hour)}"
     return (earlier_key, later_key)
