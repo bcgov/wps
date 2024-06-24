@@ -55,7 +55,9 @@
     "typescript.preferences.importModuleSpecifier": "non-relative",
     "cSpell.words": [
         "Albers",
+        "allclose",
         "APCP",
+        "excinfo",
         "GDPS",
         "grib",
         "gribs",

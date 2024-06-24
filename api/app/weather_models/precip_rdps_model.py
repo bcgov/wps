@@ -4,6 +4,7 @@ import numpy
 from numba import vectorize
 from app.utils.s3 import read_into_memory
 from app.weather_models import ModelEnum
+from app.weather_models.rdps_filename_marshaller import compose_rdps_filename
 
 
 @dataclass
@@ -17,8 +18,7 @@ class TemporalPrecip:
         return self.timestamp > other.timestamp
 
 
-# TODO change when we have stored precip
-RDPS_PRECIP_S3_PREFIX = "sfms/temp/prefix"
+RDPS_S3_PREFIX = f"weather_models/{ModelEnum.RDPS.lower()}/"
 
 
 async def generate_24_hour_accumulating_precip_raster(current_time: datetime):
@@ -27,7 +27,7 @@ async def generate_24_hour_accumulating_precip_raster(current_time: datetime):
     and the date for 24 hours before to compute the difference.
     """
     (today_key, yesterday_key) = get_raster_keys_to_diff(current_time)
-    day_data = await read_into_memory(f"{RDPS_PRECIP_S3_PREFIX}/{today_key}")
+    day_data = await read_into_memory(f"{RDPS_S3_PREFIX}/{today_key}")
     if yesterday_key is None:
         # If we don't have yesterday that means we just return today, that happens
         # when current_time is an anchor hour at 00Z or 12Z and we just return the RDPS
@@ -35,7 +35,7 @@ async def generate_24_hour_accumulating_precip_raster(current_time: datetime):
         return day_data
 
     yesterday_time = current_time - timedelta(days=1)
-    yesterday_data = await read_into_memory(f"{RDPS_PRECIP_S3_PREFIX}/{yesterday_key}")
+    yesterday_data = await read_into_memory(f"{RDPS_S3_PREFIX}/{yesterday_key}")
 
     later_precip = TemporalPrecip(timestamp=current_time, precip_amount=day_data)
     earlier_precip = TemporalPrecip(timestamp=yesterday_time, precip_amount=yesterday_data)
@@ -50,9 +50,15 @@ def get_raster_keys_to_diff(timestamp: datetime):
     target_model_run_date = timestamp - timedelta(hours=24)
     target_date_key = f"{target_model_run_date.year}-{target_model_run_date.month}-{target_model_run_date.day}"
     # From earlier model run, get the keys for 24 hours before timestamp and the timestamp to perform the diff
-    # TODO figure out the filename, for model runs we use the RDPS naming, what do we use for intermediate diffs?
-    earlier_key = f"weather_models/{ModelEnum.RDPS.lower()}/{target_date_key}/{target_model_run_date.hour:02d}/precip/todo-filename"
-    later_key = f"weather_models/{ModelEnum.RDPS.lower()}/{target_date_key}/{timestamp.hour:02d}/precip/todo-filename"
+    earlier_key = f"{target_date_key}/"
+    later_key = f"{target_date_key}/"
+    if target_model_run_date.hour != 0 or target_model_run_date.hour != 12:
+        # we're not looking at a run hour, so prefix key with computed path
+        earlier_key = earlier_key + "computed/"
+        later_key = later_key + "computed/"
+    # grab a computed diff since we're not looking at a model run hour
+    earlier_key = f"{target_model_run_date.hour:02d}/precip/{compose_rdps_filename(target_model_run_date, target_model_run_date.hour - 1, target_model_run_date.hour)}"
+    later_key = f"{timestamp.hour:02d}/precip/{compose_rdps_filename(timestamp, timestamp.hour - 1, timestamp.hour)}"
     return (earlier_key, later_key)
 
 

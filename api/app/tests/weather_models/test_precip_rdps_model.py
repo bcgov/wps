@@ -6,6 +6,7 @@ from app.tests.utils.raster_reader import read_raster_array
 
 from app.weather_models.precip_rdps_model import TemporalPrecip, compute_precip_difference
 
+
 def test_difference_identity():
     """
     Verify difference of accumulated precip is zero when diffing the same raster
@@ -18,11 +19,12 @@ def test_difference_identity():
     res = compute_precip_difference(later_precip, earlier_precip)
     assert np.allclose(res, np.zeros(precip_raster.shape))
 
+
 @pytest.mark.parametrize(
-    'later_datetime,earlier_datetime',
+    "later_datetime,earlier_datetime",
     [
-        (datetime.fromisoformat("2024-06-10T18:42:49"), datetime.fromisoformat("2024-06-10T18:42:49")), # same datetime
-        (datetime.fromisoformat("2024-06-09T18:42:49"), datetime.fromisoformat("2024-06-10T18:42:49")) # later earlier than earlier
+        (datetime.fromisoformat("2024-06-10T18:42:49"), datetime.fromisoformat("2024-06-10T18:42:49")),  # same datetime
+        (datetime.fromisoformat("2024-06-09T18:42:49"), datetime.fromisoformat("2024-06-10T18:42:49")),  # later earlier than earlier
     ],
 )
 def test_temporal_assertion_failures(later_datetime, earlier_datetime):
@@ -36,5 +38,5 @@ def test_temporal_assertion_failures(later_datetime, earlier_datetime):
 
     with pytest.raises(ValueError) as excinfo:
         compute_precip_difference(later_precip, earlier_precip)
-    
-    assert excinfo.value.args[0] == 'Later precip value must be after earlier precip value'
+
+    assert excinfo.value.args[0] == "Later precip value must be after earlier precip value"
