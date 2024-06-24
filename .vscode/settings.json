@@ -55,11 +55,18 @@
     "typescript.preferences.importModuleSpecifier": "non-relative",
     "cSpell.words": [
         "Albers",
+        "APCP",
+        "GDPS",
+        "grib",
+        "gribs",
+        "HRDPS",
         "ndarray",
         "numba",
         "PRECIP",
         "RDPS",
+        "rocketchat",
         "sfms",
-        "vectorize"
+        "vectorize",
+        "WDIR"
     ]
 }

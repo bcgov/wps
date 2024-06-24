@@ -7,6 +7,33 @@ GRIB_LAYERS = ("TMP_TGL_2", "RH_TGL_2", "APCP_SFC_0", "WDIR_TGL_10", "WIND_TGL_1
 HRDPS_GRIB_LAYERS = ("TMP_AGL-2m", "APCP_Sfc", "WDIR_AGL-10m", "WIND_AGL-10m", "RH_AGL-2m")
 
 
+def parse_rdps_url(url: str):
+    """Extract the metadata from the RDPS grib url."""
+    tokens = url.split("_")
+    # verify constant indicating file is from Canadian Meterological Centre
+    assert tokens[0] == "CMC"
+    # verify constant indicating file is from the RDPS
+    assert tokens[1] == "reg"
+    # verify this is accumulating precipitation
+    assert tokens[2] == "APCP"
+    # verify this is surface level type
+    assert tokens[3] == "SFC"
+    # verify this is level 0
+    assert tokens[4] == "0"
+    # verify constant indicating projection is polar-stereographic at 10km resolution
+    assert tokens[4] == "ps10km"
+    # verify constant indicating grib file type
+    assert tokens[-1] == "grib2"
+
+    # now for the variable parts of the url
+
+    # utc datetime in YYYYMMDDHH format
+    assert len(tokens[5]) == 10
+    forecast_start_date = tokens[:-2]
+    run_hour = int(tokens[-2:])
+    return (forecast_start_date, run_hour)
+
+
 def adjust_model_day(now: datetime, model_run_hour) -> datetime:
     """Adjust the model day, based on the current time.
 
