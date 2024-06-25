@@ -89,8 +89,8 @@ async def test_generate_24_hour_accumulating_precip_raster_fail(current_time: da
         # not a model run hour, grab data from stored computed raster
         (
             datetime(2024, 1, 1, 2, tzinfo=timezone.utc),
-            "weather_models/rdps/2023-12-31/computed/02/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P002.grib2",
-            "weather_models/rdps/2023-12-31/computed/02/precip/CMC_reg_APCP_SFC_0_ps10km_2024010112_P002.grib2",
+            "weather_models/rdps/2023-12-31/computed/02/precip/CMC_reg_APCP_SFC_0_ps10km_2023123102_P002.grib2",
+            "weather_models/rdps/2023-12-31/computed/02/precip/CMC_reg_APCP_SFC_0_ps10km_2024010102_P002.grib2",
         ),
     ],
 )
