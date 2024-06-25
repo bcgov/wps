@@ -26,7 +26,7 @@ async def generate_24_hour_accumulating_precip_raster(current_time: datetime):
     Given a UTC datetime, grab the raster for that date
     and the date for 24 hours before to compute the difference.
     """
-    (today_key, yesterday_key) = get_raster_keys_to_diff(current_time)
+    (yesterday_key, today_key) = get_raster_keys_to_diff(current_time)
     day_data = await read_into_memory(f"{RDPS_S3_PREFIX}/{today_key}")
 
     yesterday_time = current_time - timedelta(days=1)
@@ -45,17 +45,17 @@ def get_raster_keys_to_diff(timestamp: datetime):
     model run that has data greater than 24 hours ago, but less than 36 hours ago.
     """
     target_model_run_date = timestamp - timedelta(hours=24)
-    target_date_key = f"{target_model_run_date.year}-{target_model_run_date.month}-{target_model_run_date.day}"
+    key_prefix = f"weather_models/{ModelEnum.RDPS.lower()}/{target_model_run_date.date().isoformat()}"
     # From earlier model run, get the keys for 24 hours before timestamp and the timestamp to perform the diff
-    earlier_key = f"{target_date_key}/"
-    later_key = f"{target_date_key}/"
-    if target_model_run_date.hour != 0 or target_model_run_date.hour != 12:
+    earlier_key = f"{key_prefix}/"
+    later_key = f"{key_prefix}/"
+    if target_model_run_date.hour != 0 and target_model_run_date.hour != 12:
         # we're not looking at a run hour, so prefix key with computed path
         earlier_key = earlier_key + "computed/"
         later_key = later_key + "computed/"
 
-    earlier_key = f"{target_model_run_date.hour:02d}/precip/{compose_rdps_filename(target_model_run_date, max(target_model_run_date.hour - 1, 0), target_model_run_date.hour)}"
-    later_key = f"{timestamp.hour:02d}/precip/{compose_rdps_filename(timestamp, max(timestamp.hour - 1, 0), timestamp.hour)}"
+    earlier_key = earlier_key + f"{target_model_run_date.hour:02d}/precip/{compose_rdps_filename(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour)}"
+    later_key = later_key + f"{timestamp.hour:02d}/precip/{compose_rdps_filename(timestamp, timestamp.hour, timestamp.hour)}"
     return (earlier_key, later_key)
 
 

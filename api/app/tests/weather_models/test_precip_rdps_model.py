@@ -5,7 +5,7 @@ from pytest_mock import MockerFixture
 from datetime import datetime, timezone
 from app.tests.utils.raster_reader import read_raster_array
 
-from app.weather_models.precip_rdps_model import TemporalPrecip, compute_precip_difference, generate_24_hour_accumulating_precip_raster
+from app.weather_models.precip_rdps_model import TemporalPrecip, compute_precip_difference, get_raster_keys_to_diff, generate_24_hour_accumulating_precip_raster
 
 
 def test_difference_identity():
@@ -69,3 +69,29 @@ async def test_generate_24_hour_accumulating_precip_raster_fail(current_time: da
     mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[today_raster, yesterday_raster])
     with pytest.raises(ValueError):
         await generate_24_hour_accumulating_precip_raster(current_time)
+
+
+@pytest.mark.parametrize(
+    "timestamp,expected_yesterday_key,expected_today_key",
+    [
+        # 0 hour run, grab data from stored RDPS model raster
+        (
+            datetime(2024, 1, 1, 0, tzinfo=timezone.utc),
+            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P000.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2024010100_P000.grib2",
+        ),
+        # 12 hour run, grab data from stored RDPS model raster
+        (
+            datetime(2024, 1, 1, 12, tzinfo=timezone.utc),
+            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P012.grib2",
+            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2024010112_P012.grib2",
+        ),
+    ],
+)
+def test_get_raster_keys_to_diff(timestamp: datetime, expected_yesterday_key, expected_today_key):
+    """
+    Verify that the appropriate rasters are diffed correctly.
+    """
+    (yesterday_key, today_key) = get_raster_keys_to_diff(timestamp)
+    assert yesterday_key == expected_yesterday_key
+    assert today_key == expected_today_key
