@@ -28,14 +28,11 @@ async def generate_24_hour_accumulating_precip_raster(current_time: datetime):
     """
     (today_key, yesterday_key) = get_raster_keys_to_diff(current_time)
     day_data = await read_into_memory(f"{RDPS_S3_PREFIX}/{today_key}")
-    if yesterday_key is None:
-        # If we don't have yesterday that means we just return today, that happens
-        # when current_time is an anchor hour at 00Z or 12Z and we just return the RDPS
-        # model run precip amount.
-        return day_data
 
     yesterday_time = current_time - timedelta(days=1)
     yesterday_data = await read_into_memory(f"{RDPS_S3_PREFIX}/{yesterday_key}")
+    if day_data is None or yesterday_data is None:
+        raise ValueError("No precip raster data for %s or %s", today_key, yesterday_key)
 
     later_precip = TemporalPrecip(timestamp=current_time, precip_amount=day_data)
     earlier_precip = TemporalPrecip(timestamp=yesterday_time, precip_amount=yesterday_data)
@@ -57,8 +54,8 @@ def get_raster_keys_to_diff(timestamp: datetime):
         earlier_key = earlier_key + "computed/"
         later_key = later_key + "computed/"
 
-    earlier_key = f"{target_model_run_date.hour:02d}/precip/{compose_rdps_filename(target_model_run_date, target_model_run_date.hour - 1, target_model_run_date.hour)}"
-    later_key = f"{timestamp.hour:02d}/precip/{compose_rdps_filename(timestamp, timestamp.hour - 1, timestamp.hour)}"
+    earlier_key = f"{target_model_run_date.hour:02d}/precip/{compose_rdps_filename(target_model_run_date, max(target_model_run_date.hour - 1, 0), target_model_run_date.hour)}"
+    later_key = f"{timestamp.hour:02d}/precip/{compose_rdps_filename(timestamp, max(timestamp.hour - 1, 0), timestamp.hour)}"
     return (earlier_key, later_key)
 
 
