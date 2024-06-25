@@ -4,7 +4,7 @@ import numpy
 from numba import vectorize
 from app.utils.s3 import read_into_memory
 from app.weather_models import ModelEnum
-from app.weather_models.rdps_filename_marshaller import compose_rdps_filename
+from app.weather_models.rdps_filename_marshaller import compose_computed_rdps_filename, compose_rdps_filename
 
 
 @dataclass
@@ -51,11 +51,14 @@ def get_raster_keys_to_diff(timestamp: datetime):
     later_key = f"{key_prefix}/"
     if target_model_run_date.hour != 0 and target_model_run_date.hour != 12:
         # we're not looking at a run hour, so prefix key with computed path
-        earlier_key = earlier_key + "computed/"
-        later_key = later_key + "computed/"
-
-    earlier_key = earlier_key + f"{target_model_run_date.hour:02d}/precip/{compose_rdps_filename(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour)}"
-    later_key = later_key + f"{timestamp.hour:02d}/precip/{compose_rdps_filename(timestamp, timestamp.hour, timestamp.hour)}"
+        earlier_key = (
+            earlier_key
+            + f"computed/{target_model_run_date.hour:02d}/precip/{compose_computed_rdps_filename(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour)}"
+        )
+        later_key = later_key + f"computed/{timestamp.hour:02d}/precip/{compose_computed_rdps_filename(timestamp, timestamp.hour, timestamp.hour)}"
+    else:
+        earlier_key = earlier_key + f"{target_model_run_date.hour:02d}/precip/{compose_rdps_filename(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour)}"
+        later_key = later_key + f"{timestamp.hour:02d}/precip/{compose_rdps_filename(timestamp, timestamp.hour, timestamp.hour)}"
     return (earlier_key, later_key)
 
 

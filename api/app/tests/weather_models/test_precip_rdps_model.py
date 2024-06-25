@@ -86,6 +86,12 @@ async def test_generate_24_hour_accumulating_precip_raster_fail(current_time: da
             "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P012.grib2",
             "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2024010112_P012.grib2",
         ),
+        # not a model run hour, grab data from stored computed raster
+        (
+            datetime(2024, 1, 1, 2, tzinfo=timezone.utc),
+            "weather_models/rdps/2023-12-31/computed/02/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P002.grib2",
+            "weather_models/rdps/2023-12-31/computed/02/precip/CMC_reg_APCP_SFC_0_ps10km_2024010112_P002.grib2",
+        ),
     ],
 )
 def test_get_raster_keys_to_diff(timestamp: datetime, expected_yesterday_key, expected_today_key):
