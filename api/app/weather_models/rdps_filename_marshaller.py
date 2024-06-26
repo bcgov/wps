@@ -54,7 +54,7 @@ def parse_rdps_filename(url: str):
     return (forecast_start_date, run_hour, forecast_hour)
 
 
-def check_compose_invariants(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
+def check_compose_invariants(forecast_start_date: datetime, forecast_hour: int):
     """Explode if any of these assertions fail"""
     assert forecast_start_date.tzinfo is not None
     assert int(forecast_start_date.utcoffset().total_seconds()) == 0
@@ -65,21 +65,17 @@ def compose_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast
     """Compose and return an RDPS url given a forecast start date, run hour and forecast hour.
     An RDPS url has a run hour in [00, 12].
     """
-    check_compose_invariants(forecast_start_date, run_hour, forecast_hour)
     # a model run must have a correct run hour
     assert f"{run_hour:02d}" in RUN_HOURS
 
-    return (
-        f"{CMC}{DELIMITER}{REG}{DELIMITER}{APCP}{DELIMITER}{SFC}{DELIMITER}{LEVEL}{DELIMITER}{PS10KM}{DELIMITER}"
-        f"{forecast_start_date.date().isoformat().replace('-','')}{run_hour:02d}{DELIMITER}P{forecast_hour:03d}.grib2"
-    )
+    return compose_computed_rdps_filename(forecast_start_date, run_hour, forecast_hour)
 
 
 def compose_computed_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
     """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour.
     A computed RDPS url has a run hour outside of [00, 12].
     """
-    check_compose_invariants(forecast_start_date, run_hour, forecast_hour)
+    check_compose_invariants(forecast_start_date, forecast_hour)
 
     return (
         f"{CMC}{DELIMITER}{REG}{DELIMITER}{APCP}{DELIMITER}{SFC}{DELIMITER}{LEVEL}{DELIMITER}{PS10KM}{DELIMITER}"
