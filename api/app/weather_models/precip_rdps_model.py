@@ -18,21 +18,22 @@ class TemporalPrecip:
         return self.timestamp > other.timestamp
 
 
-RDPS_S3_PREFIX = f"weather_models/{ModelEnum.RDPS.lower()}/"
-
-
 async def generate_24_hour_accumulating_precip_raster(current_time: datetime):
     """
     Given a UTC datetime, grab the raster for that date
     and the date for 24 hours before to compute the difference.
     """
     (yesterday_key, today_key) = get_raster_keys_to_diff(current_time)
-    day_data = await read_into_memory(f"{RDPS_S3_PREFIX}/{today_key}")
+    day_data = await read_into_memory(today_key)
+    if yesterday_key is None:
+        if day_data is None:
+            raise ValueError("No precip raster data for %s", today_key)
+        return day_data
 
     yesterday_time = current_time - timedelta(days=1)
-    yesterday_data = await read_into_memory(f"{RDPS_S3_PREFIX}/{yesterday_key}")
-    if day_data is None or yesterday_data is None:
-        raise ValueError("No precip raster data for %s or %s", today_key, yesterday_key)
+    yesterday_data = await read_into_memory(yesterday_key)
+    if yesterday_data is None:
+        raise ValueError("No precip raster data for %s", today_key, yesterday_key)
 
     later_precip = TemporalPrecip(timestamp=current_time, precip_amount=day_data)
     earlier_precip = TemporalPrecip(timestamp=yesterday_time, precip_amount=yesterday_data)

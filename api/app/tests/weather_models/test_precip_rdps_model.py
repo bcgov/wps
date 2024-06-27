@@ -47,18 +47,27 @@ def test_temporal_assertion_failures(later_datetime, earlier_datetime):
 @pytest.mark.anyio
 async def test_generate_24_hour_accumulating_precip_raster_ok(mocker: MockerFixture):
     """
-    Verify that the appropriate rasters are diffed correctly.
+    Verify that the appropriate rasters are diffed correctly for non model hour.
+    """
+    mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[np.array([1, 1]), np.array([1, 1])])
+    res = await generate_24_hour_accumulating_precip_raster(datetime(2024, 1, 1, 1, tzinfo=timezone.utc))
+    assert np.allclose(res, np.array([0, 0]))
+
+
+@pytest.mark.anyio
+async def test_generate_24_hour_accumulating_precip_raster_model_hour_ok(mocker: MockerFixture):
+    """
+    Verify that the appropriate rasters are diffed correctly on a model hour -- just returns todays data.
     """
     mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[np.array([1, 1]), np.array([1, 1])])
     res = await generate_24_hour_accumulating_precip_raster(datetime(2024, 1, 1, 0, tzinfo=timezone.utc))
-    assert np.allclose(res, np.array([0, 0]))
+    assert np.allclose(res, np.array([1, 1]))
 
 
 @pytest.mark.parametrize(
     "current_time,today_raster,yesterday_raster",
     [
         (datetime(2024, 1, 1, 0, tzinfo=timezone.utc), None, np.array([1, 1])),  # no today raster data
-        (datetime(2024, 1, 1, 0, tzinfo=timezone.utc), np.array([1, 1]), None),  # no yesterday raster data
         (datetime(2024, 1, 1, 0, tzinfo=timezone.utc), None, None),  # no raster data
     ],
 )
