@@ -74,23 +74,41 @@ async def test_generate_24_hour_accumulating_precip_raster_fail(current_time: da
 @pytest.mark.parametrize(
     "timestamp,expected_yesterday_key,expected_today_key",
     [
-        # 0 hour run, grab data from stored RDPS model raster
+        # 0 model run, 0:00 UTC hour, grab data from stored RDPS model raster
         (
             datetime(2024, 1, 1, 0, tzinfo=timezone.utc),
-            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P000.grib2",
+            None,
             "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P024.grib2",
         ),
-        # 12 hour run, grab data from stored RDPS model raster
+        # 12 model run, 12:00 UTC hour grab data from stored RDPS model raster
         (
             datetime(2024, 1, 1, 12, tzinfo=timezone.utc),
-            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P012.grib2",
-            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2024010112_P012.grib2",
+            None,
+            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P024.grib2",
         ),
-        # not a model run hour, grab data from stored computed raster
+        # 0 model run, hour 1:00 UTC, grab data from stored RDPS model raster
+        (
+            datetime(2024, 1, 1, 1, tzinfo=timezone.utc),
+            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P001.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P025.grib2",
+        ),
+        # 0 model run, hour 2:00 UTC, grab data from stored RDPS model raster
         (
             datetime(2024, 1, 1, 2, tzinfo=timezone.utc),
-            "weather_models/rdps/2023-12-31/computed/02/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P002.grib2",
-            "weather_models/rdps/2023-12-31/computed/02/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P026.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P002.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P026.grib2",
+        ),
+        # 12 model run, 13:00 UTC hour, grab data from stored RDPS model raster
+        (
+            datetime(2024, 1, 1, 13, tzinfo=timezone.utc),
+            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P001.grib2",
+            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P025.grib2",
+        ),
+        # Test prediction into the future from today. Today = 2024-01-01 01:00 UTC, predict for 2024-01-02 2:00 UTC
+        (
+            datetime(2024, 1, 2, 2, tzinfo=timezone.utc),
+            "weather_models/rdps/2024-01-01/00/precip/CMC_reg_APCP_SFC_0_ps10km_2024010100_P002.grib2",
+            "weather_models/rdps/2024-01-01/00/precip/CMC_reg_APCP_SFC_0_ps10km_2024010100_P026.grib2",
         ),
     ],
 )
