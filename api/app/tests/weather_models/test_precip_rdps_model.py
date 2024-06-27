@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from app.tests.utils.raster_reader import read_raster_array
 
 from app.weather_models.precip_rdps_model import TemporalPrecip, compute_precip_difference, get_raster_keys_to_diff, generate_24_hour_accumulating_precip_raster
+from app.weather_models.rdps_filename_marshaller import model_run_for_hour
 
 
 def test_difference_identity():
@@ -69,6 +70,19 @@ async def test_generate_24_hour_accumulating_precip_raster_fail(current_time: da
     mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[today_raster, yesterday_raster])
     with pytest.raises(ValueError):
         await generate_24_hour_accumulating_precip_raster(current_time)
+
+
+@pytest.mark.parametrize(
+    "hour,expected_model_run",
+    [
+        (1, 0),  # before noon is 00:00 model run
+        (0, 0),
+        (13, 12),  # after noon is 12:00 model run
+        (12, 12),
+    ],
+)
+def test_model_run_for_hour_ok(hour: int, expected_model_run: int):
+    assert model_run_for_hour(hour) == expected_model_run
 
 
 @pytest.mark.parametrize(
