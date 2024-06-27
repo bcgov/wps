@@ -71,7 +71,7 @@ objects:
         key: init.sql
         name: wps-init-sql
       users:
-        - name: wps
+        - name: wps-crunchydb-prod
           databases:
             - postgres
             - wps
@@ -106,7 +106,7 @@ objects:
           image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbackrest:ubi8-2.41-4
           configuration:
             - secret:
-                name: crunchy-pgbackrest
+                name: crunchy-pgbackrest-dgb
                 items:
                   - key: conf
                     path: s3.conf
