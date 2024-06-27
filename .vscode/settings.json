@@ -54,6 +54,22 @@
     ],
     "typescript.preferences.importModuleSpecifier": "non-relative",
     "cSpell.words": [
-        "Albers"
+        "Albers",
+        "allclose",
+        "anyio",
+        "APCP",
+        "excinfo",
+        "GDPS",
+        "grib",
+        "gribs",
+        "HRDPS",
+        "ndarray",
+        "numba",
+        "PRECIP",
+        "RDPS",
+        "rocketchat",
+        "sfms",
+        "vectorize",
+        "WDIR"
     ]
 }

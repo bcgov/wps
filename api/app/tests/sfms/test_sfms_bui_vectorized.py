@@ -1,8 +1,8 @@
 import os
 import pytest
 import numpy as np
-from osgeo import gdal
 from app.auto_spatial_advisory.sfms import vectorized_bui
+from app.tests.utils.raster_reader import read_raster_array
 
 @pytest.mark.parametrize(
     "dmc,dc",
@@ -20,20 +20,9 @@ def test_bc_sfms_sample():
 
     bui_tif_dir = os.path.join(parent_dir, 'fixtures')
 
-    def get_raster_array(path: str):
-        source = gdal.Open(path, gdal.GA_ReadOnly)
-        source_band = source.GetRasterBand(1)
-        nodata_value = source_band.GetNoDataValue()
-        source_data = source.ReadAsArray()
-        source_data[source_data == nodata_value] = 0
-        del source
-        return source_data
-
-
-
-    dc_array = get_raster_array(os.path.join(bui_tif_dir, 'dc20240528.tif'))
-    dmc_array = get_raster_array(os.path.join(bui_tif_dir, 'dmc20240528.tif'))
-    bui_array = get_raster_array(os.path.join(bui_tif_dir, 'bui20240528.tif'))
+    dc_array = read_raster_array(os.path.join(bui_tif_dir, 'dc20240528.tif'))
+    dmc_array = read_raster_array(os.path.join(bui_tif_dir, 'dmc20240528.tif'))
+    bui_array = read_raster_array(os.path.join(bui_tif_dir, 'bui20240528.tif'))
 
     res = vectorized_bui(dmc_array, dc_array)
 

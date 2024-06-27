@@ -127,9 +127,9 @@ class RDPSGrib:
 
     async def apply_retention_policy(self, days_to_retain: int):
         """Delete objects from S3 storage and remove records from database that are older than DAYS_TO_RETAIN"""
-        logger.info(f"Applying retention policy to RDPS data downloaded for SFMS. Data in S3 and correspdoning database records older than {days_to_retain} are being deleted.")
-        deletion_threhold = self.now - timedelta(days=days_to_retain)
-        records_for_deletion = get_rdps_sfms_urls_for_deletion(self.session, deletion_threhold)
+        logger.info(f"Applying retention policy to RDPS data downloaded for SFMS. Data in S3 and corresponding database records older than {days_to_retain} are being deleted.")
+        deletion_threshold = self.now - timedelta(days=days_to_retain)
+        records_for_deletion = get_rdps_sfms_urls_for_deletion(self.session, deletion_threshold)
         async with get_client() as (client, bucket):
             for record in records_for_deletion:
                 s3_key = record.s3_key
