@@ -60,16 +60,17 @@ def parse_rdps_filename(url: str):
     return (forecast_start_date, run_hour, forecast_hour)
 
 
-def check_compose_invariants(forecast_start_date: datetime, forecast_hour: int):
+def check_compose_invariants(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
     """Explode if any of these assertions fail"""
     assert forecast_start_date.tzinfo is not None
     assert int(forecast_start_date.utcoffset().total_seconds()) == 0
     assert f"{forecast_hour:03d}" in FORECAST_HOURS
+    assert run_hour in list(range(0, 36))
 
 
 def compose_computed_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
     """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour."""
-    check_compose_invariants(forecast_start_date, forecast_hour)
+    check_compose_invariants(forecast_start_date, run_hour, forecast_hour)
     model_hour = model_run_for_hour(run_hour)
     adjusted_forecast_hour = forecast_hour - model_hour
 
