@@ -68,9 +68,7 @@ def check_compose_invariants(forecast_start_date: datetime, forecast_hour: int):
 
 
 def compose_computed_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
-    """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour.
-    A computed RDPS url has a run hour outside of [00, 12].
-    """
+    """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour."""
     check_compose_invariants(forecast_start_date, forecast_hour)
     model_hour = model_run_for_hour(run_hour)
     adjusted_forecast_hour = forecast_hour - model_hour
@@ -82,8 +80,6 @@ def compose_computed_rdps_filename(forecast_start_date: datetime, run_hour: int,
 
 
 def compose_computed_precip_rdps_key(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
-    """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour.
-    A computed RDPS url has a run hour outside of [00, 12].
-    """
+    """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour."""
     model_hour = model_run_for_hour(run_hour)
     return f"{model_hour:02d}/precip/{compose_computed_rdps_filename(forecast_start_date, run_hour, forecast_hour)}"
