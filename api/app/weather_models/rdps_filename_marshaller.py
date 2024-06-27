@@ -67,16 +67,6 @@ def check_compose_invariants(forecast_start_date: datetime, forecast_hour: int):
     assert f"{forecast_hour:03d}" in FORECAST_HOURS
 
 
-def compose_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
-    """Compose and return an RDPS url given a forecast start date, run hour and forecast hour.
-    An RDPS url has a run hour in [00, 12].
-    """
-    # a model run must have a correct run hour
-    assert f"{run_hour:02d}" in RUN_HOURS
-
-    return compose_computed_rdps_filename(forecast_start_date, run_hour, forecast_hour)
-
-
 def compose_computed_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
     """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour.
     A computed RDPS url has a run hour outside of [00, 12].

@@ -1,6 +1,5 @@
 import pytest
-from datetime import datetime, timezone
-from app.weather_models.rdps_filename_marshaller import parse_rdps_filename, compose_rdps_filename
+from app.weather_models.rdps_filename_marshaller import parse_rdps_filename
 
 
 def test_parse_rdps_filename_ok():
@@ -32,25 +31,3 @@ def test_parse_rdps_filename_ok():
 def test_parse_rdps_filename_failure(filename):
     with pytest.raises(Exception) as _:
         parse_rdps_filename(filename)
-
-
-def test_compose_rdps_filename_ok():
-    start_date = datetime(2024, 6, 24, tzinfo=timezone.utc)
-    res = compose_rdps_filename(start_date, 12, 1)
-    assert res == "CMC_reg_APCP_SFC_0_ps10km_2024062412_P001.grib2"
-
-
-@pytest.mark.parametrize(
-    "start_date, run_hour, forecast_hour",
-    [
-        # wrong timezone
-        (datetime(2024, 6, 24), 0, 1),
-        # wrong run hour
-        (datetime(2024, 6, 24, tzinfo=timezone.utc), 1, 1),
-        # wrong forecast hour
-        (datetime(2024, 6, 24, tzinfo=timezone.utc), 1, 85),
-    ],
-)
-def test_compose_rdps_filename_failure(start_date, run_hour, forecast_hour):
-    with pytest.raises(Exception) as _:
-        compose_rdps_filename(start_date, run_hour, forecast_hour)
