@@ -6,7 +6,7 @@ Data is stored in S3 storage for a maximum of 7 days
 import asyncio
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections.abc import Generator
 import logging
 import tempfile
@@ -26,6 +26,7 @@ import app.utils.time as time_utils
 from app.utils.s3 import get_client
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.jobs.env_canada_utils import get_regional_model_run_download_urls
+from app.weather_models.precip_rdps_model import generate_24_hour_accumulating_precip_raster
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -146,13 +147,14 @@ class RDPSJob:
         logger.info("Begin download and storage of RDPS gribs.")
 
         # grab the start time.
-        start_time = datetime.now()
+        start_time = datetime.now(timezone.utc)
         with get_write_session_scope() as session:
             rdps_grib = RDPSGrib(session)
             await rdps_grib.process()
             await rdps_grib.apply_retention_policy(DAYS_TO_RETAIN)
+            await generate_24_hour_accumulating_precip_raster(start_time)
         # calculate the execution time.
-        execution_time = datetime.now() - start_time
+        execution_time = datetime.now(timezone.utc) - start_time
         hours, remainder = divmod(execution_time.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
 
