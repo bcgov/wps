@@ -187,9 +187,9 @@ export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[
       for_date: forecast.forDate.toMillis(),
       precip: forecast.precip.value,
       rh: forecast.rh.value,
-      temp: forecast.temp.value,
+      temp: Math.round(forecast.temp.value),
       wind_direction: Math.round(forecast.windDirection.value),
-      wind_speed: forecast.windSpeed.value,
+      wind_speed: Math.round(forecast.windSpeed.value),
       grass_curing: forecast.grassCuring.value
     }
   })
