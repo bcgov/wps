@@ -1,10 +1,15 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+import logging
 import numpy
 from numba import vectorize
-from app.utils.s3 import read_into_memory
+from app.utils.s3 import get_client, read_into_memory
 from app.weather_models import ModelEnum
 from app.weather_models.rdps_filename_marshaller import compose_computed_precip_rdps_key
+
+logger = logging.getLogger(__name__)
+
+RDPS_PRECIP_ACC_RASTER_PERMISSIONS = "public-read"
 
 
 @dataclass
@@ -16,6 +21,27 @@ class TemporalPrecip:
 
     def is_after(self, other) -> bool:
         return self.timestamp > other.timestamp
+
+
+async def compute_and_store_precip_rasters(current_time: datetime):
+    """
+    Given a UTC datetime, trigger 24 hours worth of accumulated precip
+    difference rasters and store them.
+    """
+    for hour in range(0, 24):
+        timestamp = current_time + timedelta(hours=hour)
+        precip_diff_raster = generate_24_hour_accumulating_precip_raster(timestamp)
+        key = compose_computed_precip_rdps_key(current_time, current_time.hour, hour)
+        async with get_client() as (client, bucket):
+            logger.info(f"Uploading RDPS 24 hour acc precip raster for date: {current_time.date().isoformat()}, hour: {current_time.hour}, forecast hour: {hour} to {key}")
+
+            await client.put_object(
+                Bucket=bucket,
+                Key=key,
+                ACL=RDPS_PRECIP_ACC_RASTER_PERMISSIONS,  # We need these to be accessible to everyone
+                Body=precip_diff_raster,
+            )
+            logger.info("Done uploading file")
 
 
 async def generate_24_hour_accumulating_precip_raster(current_time: datetime):

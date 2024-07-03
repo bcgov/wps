@@ -26,7 +26,7 @@ import app.utils.time as time_utils
 from app.utils.s3 import get_client
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.jobs.env_canada_utils import get_regional_model_run_download_urls
-from app.weather_models.precip_rdps_model import generate_24_hour_accumulating_precip_raster
+from app.weather_models.precip_rdps_model import compute_and_store_precip_rasters
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -152,7 +152,7 @@ class RDPSJob:
             rdps_grib = RDPSGrib(session)
             await rdps_grib.process()
             await rdps_grib.apply_retention_policy(DAYS_TO_RETAIN)
-            await generate_24_hour_accumulating_precip_raster(start_time)
+            await compute_and_store_precip_rasters(start_time)
         # calculate the execution time.
         execution_time = datetime.now(timezone.utc) - start_time
         hours, remainder = divmod(execution_time.seconds, 3600)
