@@ -169,10 +169,10 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
   }
 }
 
-export const tempForecastField = new IndeterminateField('temp', TEMP_HEADER, 'number', 1, true)
+export const tempForecastField = new IndeterminateField('temp', TEMP_HEADER, 'number', 0, true)
 export const rhForecastField = new IndeterminateField('rh', RH_HEADER, 'number', 0, true)
 export const windDirForecastField = new IndeterminateField('windDirection', WIND_DIR_HEADER, 'number', 0, true)
-export const windSpeedForecastField = new IndeterminateField('windSpeed', WIND_SPEED_HEADER, 'number', 1, true)
+export const windSpeedForecastField = new IndeterminateField('windSpeed', WIND_SPEED_HEADER, 'number', 0, true)
 export const precipForecastField = new IndeterminateField('precip', PRECIP_HEADER, 'number', 1, true)
 export const gcForecastField = new IndeterminateField('grassCuring', GC_HEADER, 'number', 0, false)
 
