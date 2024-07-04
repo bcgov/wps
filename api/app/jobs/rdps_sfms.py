@@ -6,7 +6,7 @@ Data is stored in S3 storage for a maximum of 7 days
 import asyncio
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from collections.abc import Generator
 import logging
 import tempfile
@@ -57,7 +57,7 @@ class RDPSGrib:
         self.exception_count = 0
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
-        self.date_key = f"{self.now.year}-{self.now.month}-{self.now.day}"
+        self.date_key = self.now.date().isoformat()
         self.session = session
 
     def _get_file_name_from_url(self, url: str) -> str:
@@ -147,14 +147,14 @@ class RDPSJob:
         logger.info("Begin download and storage of RDPS gribs.")
 
         # grab the start time.
-        start_time = datetime.now(timezone.utc)
+        start_time = time_utils.get_utc_now()
         with get_write_session_scope() as session:
             rdps_grib = RDPSGrib(session)
             await rdps_grib.process()
             await rdps_grib.apply_retention_policy(DAYS_TO_RETAIN)
             await compute_and_store_precip_rasters(start_time)
         # calculate the execution time.
-        execution_time = datetime.now(timezone.utc) - start_time
+        execution_time = time_utils.get_utc_now() - start_time
         hours, remainder = divmod(execution_time.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
 
