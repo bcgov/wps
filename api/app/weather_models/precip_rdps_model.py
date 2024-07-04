@@ -40,7 +40,7 @@ async def compute_and_store_precip_rasters(current_time: datetime):
                 Bucket=bucket,
                 Key=key_prefix + key,
                 ACL=RDPS_PRECIP_ACC_RASTER_PERMISSIONS,  # We need these to be accessible to everyone
-                Body=precip_diff_raster,
+                Body=precip_diff_raster.tobytes(),
             )
             logger.info("Done uploading file")
 

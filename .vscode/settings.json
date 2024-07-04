@@ -73,6 +73,7 @@
         "rocketchat",
         "sfms",
         "sqlalchemy",
+        "tobytes",
         "vectorize",
         "vsimem",
         "WDIR"
