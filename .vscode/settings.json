@@ -54,10 +54,12 @@
     ],
     "typescript.preferences.importModuleSpecifier": "non-relative",
     "cSpell.words": [
+        "aiobotocore",
         "Albers",
         "allclose",
         "anyio",
         "APCP",
+        "botocore",
         "excinfo",
         "GDPS",
         "grib",
@@ -65,12 +67,14 @@
         "HRDPS",
         "ndarray",
         "numba",
+        "osgeo",
         "PRECIP",
         "RDPS",
         "rocketchat",
         "sfms",
         "sqlalchemy",
         "vectorize",
+        "vsimem",
         "WDIR"
     ]
 }
