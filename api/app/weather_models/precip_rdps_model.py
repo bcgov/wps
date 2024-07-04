@@ -33,7 +33,7 @@ async def compute_and_store_precip_rasters(current_time: datetime):
         precip_diff_raster = await generate_24_hour_accumulating_precip_raster(timestamp)
         key = f"weather_models/{ModelEnum.RDPS.lower()}/{current_time.date().isoformat()}/" + compose_computed_precip_rdps_key(current_time, current_time.hour, hour)
         async with get_client() as (client, bucket):
-            res = client.list_objects_v2(Bucket=bucket, Prefix=key, MaxKeys=1)
+            res = await client.list_objects_v2(Bucket=bucket, Prefix=key, MaxKeys=1)
             if "Contents" in res:
                 logger.info("File already exists for key: %s, skipping", key)
                 return
