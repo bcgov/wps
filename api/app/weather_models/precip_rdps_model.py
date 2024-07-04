@@ -30,15 +30,19 @@ async def compute_and_store_precip_rasters(current_time: datetime):
     """
     for hour in range(0, 24):
         timestamp = current_time + timedelta(hours=hour)
-        key_prefix = f"weather_models/{ModelEnum.RDPS.lower()}/{current_time.date().isoformat()}/"
         precip_diff_raster = await generate_24_hour_accumulating_precip_raster(timestamp)
-        key = compose_computed_precip_rdps_key(current_time, current_time.hour, hour)
+        key = f"weather_models/{ModelEnum.RDPS.lower()}/{current_time.date().isoformat()}/" + compose_computed_precip_rdps_key(current_time, current_time.hour, hour)
         async with get_client() as (client, bucket):
+            res = client.list_objects_v2(Bucket=bucket, Prefix=key, MaxKeys=1)
+            if "Contents" in res:
+                logger.info("File already exists for key: %s, skipping", key)
+                return
+
             logger.info(f"Uploading RDPS 24 hour acc precip raster for date: {current_time.date().isoformat()}, hour: {current_time.hour}, forecast hour: {hour} to {key}")
 
             await client.put_object(
                 Bucket=bucket,
-                Key=key_prefix + key,
+                Key=key,
                 ACL=RDPS_PRECIP_ACC_RASTER_PERMISSIONS,  # We need these to be accessible to everyone
                 Body=precip_diff_raster.tobytes(),
             )
