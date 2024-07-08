@@ -54,7 +54,7 @@ async def compute_and_store_precip_rasters(current_time: datetime):
             # Create a GDAL memory dataset
             driver = gdal.GetDriverByName("GRIB")
             rows, cols = precip_diff_raster.shape
-            output_dataset = driver.Create(full_key, cols, rows, 1, gdal.GDT_Byte)
+            output_dataset = driver.Create(full_key, cols, rows, 1, gdal.GDT_Float32)
 
             if output_dataset is None:
                 raise IOError(f"Unable to create {full_key}")
