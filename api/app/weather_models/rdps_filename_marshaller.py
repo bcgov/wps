@@ -4,10 +4,15 @@ https://eccc-msc.github.io/open-data/msc-data/nwp_rdps/readme_rdps-datamart_en/#
 """
 
 from datetime import datetime
+import enum
 from typing import Literal
 
-# Canadian Meterological Centre constant
-CMC = "CMC"
+
+class SourcePrefix(enum.Enum):
+    COMPUTED = "COMPUTED"  # Computed constant, indicating that the result file is computed by wps
+    CMC = "CMC"  # Canadian Meterological Centre constant
+
+
 # RDPS constant
 REG = "reg"
 # Accumulating precipitation constant
@@ -36,7 +41,7 @@ def model_run_for_hour(hour: int) -> Literal[0, 12]:
 def parse_rdps_filename(url: str):
     """Parse and return the forecast start date and run hour from the RDPS grib url."""
     tokens = url.split(DELIMITER)
-    assert tokens[0] == CMC
+    assert tokens[0] in [SourcePrefix.CMC.value, SourcePrefix.COMPUTED.value]
     assert tokens[1] == REG
     assert tokens[2] == APCP
     assert tokens[3] == SFC
@@ -68,19 +73,19 @@ def check_compose_invariants(forecast_start_date: datetime, run_hour: int, forec
     assert run_hour in list(range(0, 36))
 
 
-def compose_computed_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
+def compose_computed_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast_hour: int, source_prefix: Literal[SourcePrefix.CMC, SourcePrefix.COMPUTED]):
     """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour."""
     check_compose_invariants(forecast_start_date, run_hour, forecast_hour)
     model_hour = model_run_for_hour(run_hour)
     adjusted_forecast_hour = forecast_hour - model_hour
 
     return (
-        f"{CMC}{DELIMITER}{REG}{DELIMITER}{APCP}{DELIMITER}{SFC}{DELIMITER}{LEVEL}{DELIMITER}{PS10KM}{DELIMITER}"
+        f"{source_prefix.value}{DELIMITER}{REG}{DELIMITER}{APCP}{DELIMITER}{SFC}{DELIMITER}{LEVEL}{DELIMITER}{PS10KM}{DELIMITER}"
         f"{forecast_start_date.date().isoformat().replace('-','')}{model_hour:02d}{DELIMITER}P{adjusted_forecast_hour:03d}.grib2"
     )
 
 
-def compose_computed_precip_rdps_key(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
+def compose_computed_precip_rdps_key(forecast_start_date: datetime, run_hour: int, forecast_hour: int, source_prefix: Literal[SourcePrefix.CMC, SourcePrefix.COMPUTED]):
     """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour."""
     model_hour = model_run_for_hour(run_hour)
-    return f"{model_hour:02d}/precip/{compose_computed_rdps_filename(forecast_start_date, run_hour, forecast_hour)}"
+    return f"{model_hour:02d}/precip/{compose_computed_rdps_filename(forecast_start_date, run_hour, forecast_hour, source_prefix)}"
