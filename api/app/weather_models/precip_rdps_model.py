@@ -83,14 +83,13 @@ def get_raster_keys_to_diff(timestamp: datetime):
     # From earlier model run, get the keys for 24 hours before timestamp and the timestamp to perform the diff
     earlier_key = f"{key_prefix}/"
     later_key = f"{key_prefix}/"
+    later_key = later_key + compose_computed_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24, SourcePrefix.CMC)
     if target_model_run_date.hour != 0 and target_model_run_date.hour != 12:
         # not a model run hour, return earlier and later keys to take difference
-        later_key = later_key + compose_computed_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24, SourcePrefix.COMPUTED)
-        earlier_key = earlier_key + compose_computed_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, SourcePrefix.COMPUTED)
+        earlier_key = earlier_key + compose_computed_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, SourcePrefix.CMC)
         return (earlier_key, later_key)
 
     # model run hour, just return the model value from 24 hours ago
-    later_key = later_key + compose_computed_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24, SourcePrefix.CMC)
     return (None, later_key)
 
 
