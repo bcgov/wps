@@ -71,5 +71,7 @@
         "sfms",
         "vectorize",
         "WDIR"
-    ]
+    ],
+    "autoDocstring.docstringFormat": "sphinx",
+    "autoDocstring.startOnNewLine": true,
 }
