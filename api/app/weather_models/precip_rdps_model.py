@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 import logging
 import numpy
+from osgeo import gdal, ogr
+from app import config
 from numba import vectorize
 from app.utils.s3 import get_client, read_into_memory
 from app.weather_models import ModelEnum
@@ -38,17 +40,33 @@ async def compute_and_store_precip_rasters(current_time: datetime):
             res = await client.list_objects_v2(Bucket=bucket, Prefix=key, MaxKeys=1)
             if "Contents" in res:
                 logger.info("File already exists for key: %s, skipping", key)
-                return
+                continue
 
-            logger.info(f"Uploading RDPS 24 hour acc precip raster for date: {current_time.date().isoformat()}, hour: {current_time.hour}, forecast hour: {hour} to {key}")
+            gdal.SetConfigOption("AWS_SECRET_ACCESS_KEY", config.get("OBJECT_STORE_SECRET"))
+            gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
+            gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
+            gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
+            bucket = config.get("OBJECT_STORE_BUCKET")
+            full_key = f"/vsis3/{bucket}/{key}"
 
-            await client.put_object(
-                Bucket=bucket,
-                Key=key,
-                ACL=RDPS_PRECIP_ACC_RASTER_PERMISSIONS,  # We need these to be accessible to everyone
-                Body=precip_diff_raster.tobytes(),
-            )
-            logger.info("Done uploading file")
+            logger.info("Uploading RDPS 24 hour acc precip raster for date: %s, hour: %s, forecast hour: %s to %s", current_time.date().isoformat(), current_time.hour, hour, full_key)
+
+            # Create a GDAL memory dataset
+            driver = gdal.GetDriverByName("GRIB")
+            rows, cols = precip_diff_raster.shape
+            output_dataset = driver.Create(full_key, cols, rows, 1, gdal.GDT_Byte)
+
+            if output_dataset is None:
+                raise IOError(f"Unable to create {full_key}")
+
+            # Write grib2 file to s3
+            output_band = precip_diff_raster.GetRasterBand(1)
+            output_band.WriteArray(precip_diff_raster)
+            output_band.FlushCache()
+            output_dataset = None
+            del output_dataset
+
+            logger.info("Done uploading file to %s", full_key)
 
 
 async def generate_24_hour_accumulating_precip_raster(current_time: datetime):

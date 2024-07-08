@@ -76,6 +76,7 @@
         "tobytes",
         "vectorize",
         "vsimem",
+        "vsis",
         "WDIR"
     ],
     "autoDocstring.docstringFormat": "sphinx-notypes",
