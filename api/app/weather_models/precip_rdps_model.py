@@ -52,7 +52,7 @@ async def compute_and_store_precip_rasters(current_time: datetime):
             logger.info("Uploading RDPS 24 hour acc precip raster for date: %s, hour: %s, forecast hour: %s to %s", current_time.date().isoformat(), current_time.hour, hour, full_key)
 
             # Create a GDAL memory dataset
-            driver = gdal.GetDriverByName("GRIB")
+            driver = gdal.GetDriverByName("GTiff")
             rows, cols = precip_diff_raster.shape
             output_dataset = driver.Create(full_key, cols, rows, 1, gdal.GDT_Float32)
 

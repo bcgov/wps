@@ -78,10 +78,11 @@ def compose_computed_rdps_filename(forecast_start_date: datetime, run_hour: int,
     check_compose_invariants(forecast_start_date, run_hour, forecast_hour)
     model_hour = model_run_for_hour(run_hour)
     adjusted_forecast_hour = forecast_hour - model_hour
+    file_ext = ".grib2" if source_prefix == SourcePrefix.CMC else ".tif"
 
     return (
         f"{source_prefix.value}{DELIMITER}{REG}{DELIMITER}{APCP}{DELIMITER}{SFC}{DELIMITER}{LEVEL}{DELIMITER}{PS10KM}{DELIMITER}"
-        f"{forecast_start_date.date().isoformat().replace('-','')}{model_hour:02d}{DELIMITER}P{adjusted_forecast_hour:03d}.grib2"
+        f"{forecast_start_date.date().isoformat().replace('-','')}{model_hour:02d}{DELIMITER}P{adjusted_forecast_hour:03d}{file_ext}"
     )
 
 
