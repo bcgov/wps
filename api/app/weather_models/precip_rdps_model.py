@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import logging
@@ -51,11 +52,12 @@ async def compute_and_store_precip_rasters(current_time: datetime):
             bucket = config.get("OBJECT_STORE_BUCKET")
 
             logger.info("Uploading RDPS 24 hour acc precip raster for date: %s, hour: %s, forecast hour: %s to %s", current_time.date().isoformat(), current_time.hour, hour, key)
-            with tempfile.TemporaryFile() as tmp:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                temp_filename = os.path.join(temp_dir, key)
                 # Create temp file
                 driver = gdal.GetDriverByName("GTiff")
                 rows, cols = precip_diff_raster.shape
-                output_dataset = driver.Create(tmp.name, cols, rows, 1, gdal.GDT_Float32)
+                output_dataset = driver.Create(temp_filename, cols, rows, 1, gdal.GDT_Float32)
 
                 if output_dataset is None:
                     raise IOError("Unable to create %s", key)
@@ -68,7 +70,7 @@ async def compute_and_store_precip_rasters(current_time: datetime):
                     Bucket=bucket,
                     Key=key,
                     ACL=RDPS_PRECIP_ACC_RASTER_PERMISSIONS,  # We need these to be accessible to everyone
-                    Body=tmp,
+                    Body=open(temp_filename, "rb"),
                 )
 
                 logger.info("Done uploading file to %s", key)
