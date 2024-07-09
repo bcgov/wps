@@ -53,7 +53,7 @@ async def compute_and_store_precip_rasters(current_time: datetime):
 
             logger.info("Uploading RDPS 24 hour acc precip raster for date: %s, hour: %s, forecast hour: %s to %s", current_time.date().isoformat(), current_time.hour, hour, key)
             with tempfile.TemporaryDirectory() as temp_dir:
-                temp_filename = os.path.join(temp_dir, key)
+                temp_filename = os.path.join(temp_dir, current_time.date().isoformat() + "precip" + str(hour) + ".tif")
                 # Create temp file
                 driver = gdal.GetDriverByName("GTiff")
                 rows, cols = precip_diff_raster.shape
