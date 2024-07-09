@@ -58,7 +58,7 @@ async def compute_and_store_precip_rasters(current_time: datetime):
             output_dataset = driver.Create(full_key, cols, rows, 1, gdal.GDT_Float32)
 
             if output_dataset is None:
-                raise IOError(f"Unable to create {full_key}")
+                raise IOError("Unable to create %s", full_key)
 
             # Write grib2 file to s3
             output_band = precip_diff_raster.GetRasterBand(1)
