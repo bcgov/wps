@@ -3,10 +3,12 @@ import CombustibleAreaViz from 'features/fba/components/viz/CombustibleAreaViz'
 import { Grid } from '@mui/material'
 import { isUndefined } from 'lodash'
 import { ElevationInfoByThreshold, FireShape, FireShapeArea, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
-import ElevationInfoViz from 'features/fba/components/viz/ElevationInfoViz'
+import FuelTypesBreakdown from 'features/fba/components/viz/FuelTypesBreakdown'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
+import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 import { useTheme } from '@mui/material/styles'
 import FuelSummary from 'features/fba/components/viz/FuelSummary'
+import { HFIRiskStatus } from 'features/fba/components/viz/ElevationFlag'
 
 interface FireZoneUnitSummaryProps {
   selectedFireZoneUnit: FireShape | undefined
@@ -35,6 +37,13 @@ const FireZoneUnitSummary = ({
           direction={'column'}
           sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }}
         >
+          <Grid item sx={{ width: '100%' }}>
+            <ElevationStatus
+              bottom={HFIRiskStatus.WARNING}
+              mid={HFIRiskStatus.ADVISORY}
+              upper={HFIRiskStatus.LOW}
+            ></ElevationStatus>
+          </Grid>
           <Grid item>
             <CombustibleAreaViz
               fireZoneAreas={fireShapeAreas.filter(area => area.fire_shape_id == selectedFireZoneUnit?.fire_shape_id)}
@@ -42,9 +51,6 @@ const FireZoneUnitSummary = ({
           </Grid>
           <Grid item sx={{ width: '95%' }}>
             <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fuelTypeInfo={fuelTypeInfo} />
-          </Grid>
-          <Grid item>
-            <ElevationInfoViz selectedFireZone={selectedFireZoneUnit} hfiElevationInfo={hfiElevationInfo} />
           </Grid>
         </Grid>
       </InfoAccordion>
