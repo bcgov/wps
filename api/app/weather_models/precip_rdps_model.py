@@ -46,6 +46,7 @@ async def compute_and_store_precip_rasters(current_time: datetime):
             gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
             gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
             gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
+            gdal.SetConfigOption("CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE", "YES")
             bucket = config.get("OBJECT_STORE_BUCKET")
             full_key = f"/vsis3/{bucket}/{key}"
 

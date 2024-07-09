@@ -75,6 +75,7 @@
         "sqlalchemy",
         "tobytes",
         "vectorize",
+        "VSIL",
         "vsimem",
         "vsis",
         "WDIR"
