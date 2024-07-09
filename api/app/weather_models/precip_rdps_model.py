@@ -44,11 +44,6 @@ async def compute_and_store_precip_rasters(current_time: datetime):
                 logger.info("File already exists for key: %s, skipping", key)
                 continue
 
-            gdal.SetConfigOption("AWS_SECRET_ACCESS_KEY", config.get("OBJECT_STORE_SECRET"))
-            gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
-            gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
-            gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
-            gdal.SetConfigOption("CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE", "YES")
             bucket = config.get("OBJECT_STORE_BUCKET")
 
             logger.info("Uploading RDPS 24 hour acc precip raster for date: %s, hour: %s, forecast hour: %s to %s", current_time.date().isoformat(), current_time.hour, hour, key)
@@ -65,6 +60,10 @@ async def compute_and_store_precip_rasters(current_time: datetime):
                 output_band = output_dataset.GetRasterBand(1)
                 output_band.WriteArray(precip_diff_raster)
                 output_band.FlushCache()
+                output_dataset = None
+                del output_dataset
+                output_band = None
+                del output_band
 
                 await client.put_object(
                     Bucket=bucket,
