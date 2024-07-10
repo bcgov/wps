@@ -1,5 +1,5 @@
-import { Checkbox, FormControlLabel, FormGroup, IconButton, Popover, Stack, Typography, styled } from '@mui/material'
-import { ExpandMore } from '@mui/icons-material'
+import { Button, Checkbox, FormControlLabel, FormGroup, Popover, Stack, Typography, styled } from '@mui/material'
+import { PlaylistAdd } from '@mui/icons-material'
 import React, { ChangeEvent, MouseEvent, useState } from 'react'
 import { LIGHT_GREY, MEDIUM_GREY, DARK_GREY, MoreCastParams } from 'app/theme'
 import { ColumnVis } from 'features/moreCast2/components/DataGridColumns'
@@ -50,10 +50,9 @@ const GroupHeader = ({ id, columns, weatherParam, handleShowHideChange }: GroupH
 
   return (
     <>
-      <Typography style={{ fontWeight: 'bold' }}>{id}</Typography>
-      <IconButton onClick={handleClick}>
-        <ExpandMore />
-      </IconButton>
+      <Button sx={{ color: 'black' }} endIcon={<PlaylistAdd />} onClick={handleClick}>
+        <Typography style={{ fontWeight: 'bold' }}>{id}</Typography>
+      </Button>
       <Popover
         id={id}
         open={open}

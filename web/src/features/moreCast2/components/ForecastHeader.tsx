@@ -1,4 +1,4 @@
-import { Button, FormControl, Grid, IconButton, Menu, MenuItem } from '@mui/material'
+import { Button, FormControl, Grid, Menu, MenuItem } from '@mui/material'
 import { ExpandMore } from '@mui/icons-material'
 import SaveIcon from '@mui/icons-material/Save'
 import React, { MouseEvent, useState } from 'react'
@@ -34,10 +34,14 @@ const ForecastHeader = ({ colDef, columnClickHandlerProps }: ForecastHeaderProps
 
   return (
     <>
-      {'Forecast'}
-      <IconButton data-testid={`${colDef.field}-column-header`} size="small" onClick={handleClick}>
-        <ExpandMore />
-      </IconButton>
+      <Button
+        data-testid={`${colDef.field}-column-header`}
+        endIcon={<ExpandMore />}
+        onClick={handleClick}
+        sx={{ color: 'black' }}
+      >
+        {'Forecast'}
+      </Button>
       <Menu
         data-testid="apply-to-column-menu"
         open={isAForecastColumn() && open}
