@@ -63,7 +63,7 @@ async def test_generate_24_hour_accumulating_precip_raster_model_hour_ok(mocker:
     Verify that the appropriate rasters are diffed correctly on a model hour -- just returns todays data.
     """
     mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[(np.array([1, 1]), geotransform, projection), (np.array([1, 1]), geotransform, projection)])
-    res = await generate_24_hour_accumulating_precip_raster(datetime(2024, 1, 1, 0, tzinfo=timezone.utc))
+    (res, _, _) = await generate_24_hour_accumulating_precip_raster(datetime(2024, 1, 1, 0, tzinfo=timezone.utc))
     assert np.allclose(res, np.array([1, 1]))
 
 

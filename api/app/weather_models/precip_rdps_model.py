@@ -87,7 +87,7 @@ async def generate_24_hour_accumulating_precip_raster(current_time: datetime):
     if yesterday_key is None:
         if day_data is None:
             raise ValueError("No precip raster data for %s", today_key)
-        return day_data
+        return (day_data, day_geotransform, day_projection)
 
     yesterday_time = current_time - timedelta(days=1)
     (yesterday_data, _, _) = await read_into_memory(yesterday_key)
