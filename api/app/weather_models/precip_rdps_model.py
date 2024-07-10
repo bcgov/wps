@@ -34,7 +34,7 @@ async def compute_and_store_precip_rasters(current_time: datetime):
     """
     for hour in range(0, 24):
         timestamp = current_time + timedelta(hours=hour)
-        precip_diff_raster = await generate_24_hour_accumulating_precip_raster(timestamp)
+        (precip_diff_raster, geotransform, projection) = await generate_24_hour_accumulating_precip_raster(timestamp)
         key = f"weather_models/{ModelEnum.RDPS.lower()}/{current_time.date().isoformat()}/" + compose_computed_precip_rdps_key(
             current_time, current_time.hour, hour, SourcePrefix.COMPUTED
         )
@@ -53,6 +53,8 @@ async def compute_and_store_precip_rasters(current_time: datetime):
                 driver = gdal.GetDriverByName("GTiff")
                 rows, cols = precip_diff_raster.shape
                 output_dataset = driver.Create(temp_filename, cols, rows, 1, gdal.GDT_Float32)
+                output_dataset.SetGeoTransform(geotransform)
+                output_dataset.SetProjection(projection)
 
                 if output_dataset is None:
                     raise IOError("Unable to create %s", key)
@@ -81,20 +83,20 @@ async def generate_24_hour_accumulating_precip_raster(current_time: datetime):
     and the date for 24 hours before to compute the difference.
     """
     (yesterday_key, today_key) = get_raster_keys_to_diff(current_time)
-    day_data = await read_into_memory(today_key)
+    (day_data, day_geotransform, day_projection) = await read_into_memory(today_key)
     if yesterday_key is None:
         if day_data is None:
             raise ValueError("No precip raster data for %s", today_key)
         return day_data
 
     yesterday_time = current_time - timedelta(days=1)
-    yesterday_data = await read_into_memory(yesterday_key)
+    (yesterday_data, _, _) = await read_into_memory(yesterday_key)
     if yesterday_data is None:
         raise ValueError("No precip raster data for %s", today_key, yesterday_key)
 
     later_precip = TemporalPrecip(timestamp=current_time, precip_amount=day_data)
     earlier_precip = TemporalPrecip(timestamp=yesterday_time, precip_amount=yesterday_data)
-    return compute_precip_difference(later_precip, earlier_precip)
+    return (compute_precip_difference(later_precip, earlier_precip), day_geotransform, day_projection)
 
 
 def get_raster_keys_to_diff(timestamp: datetime):

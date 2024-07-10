@@ -56,12 +56,14 @@ async def read_into_memory(key: str):
             gdal.FileFromMemBuffer(mem_path, s3_data)
             data_source = gdal.Open(mem_path, gdal.GA_ReadOnly)
             gdal.Unlink(mem_path)
-            dem_band = data_source.GetRasterBand(1)
-            dem_data = dem_band.ReadAsArray()
-            return dem_data
+            data_band = data_source.GetRasterBand(1)
+            data_geotransform = data_source.GetGeoTransform()
+            data_projection = data_source.GetProjection()
+            data_array = data_band.ReadAsArray()
+            return (data_array, data_geotransform, data_projection)
         except ClientError as ex:
             if ex.response["Error"]["Code"] == "NoSuchKey":
                 logger.info("No object found for key: %s", key)
-                return None
+                return (None, None, None)
             else:
                 raise
