@@ -15,6 +15,12 @@ export const ADVISORY_RED_FILL = 'rgba(128, 0, 0, 0.4)'
 export const HFI_ADVISORY = 'rgba(255, 128, 0, 0.4)'
 export const HFI_WARNING = 'rgba(255, 0, 0, 0.4)'
 
+enum FireShapeStatus {
+  NONE = 0,
+  ADVISORY = 1,
+  WARNING = 2
+}
+
 const fireCentreTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
   const text = feature.get('mof_fire_centre_name').replace(' Fire Centre', '\nFire Centre')
   return new Text({
@@ -44,51 +50,87 @@ export const fireCentreStyler = (): Style => {
 export const fireShapeStyler = (
   fireShapeAreas: FireShapeArea[],
   advisoryThreshold: number,
-  selectedFireShape: FireShape | undefined,
   showZoneStatus: boolean
 ) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fire_shape_id = feature.getProperties().OBJECTID
     const fireShapes = fireShapeAreas.filter(f => f.fire_shape_id === fire_shape_id)
-    const selected = !!(selectedFireShape?.fire_shape_id && selectedFireShape.fire_shape_id === fire_shape_id)
-    let strokeValue = 'black'
-    if (selected) {
-      strokeValue = 'green'
-    }
+    const status = getFireShapeStatus(advisoryThreshold, fireShapes)
 
     return new Style({
       stroke: new Stroke({
-        color: strokeValue,
-        width: selected ? 8 : 1
+        color: 'black',
+        width: 1
       }),
-      fill: showZoneStatus ? getAdvisoryColors(advisoryThreshold, fireShapes) : new Fill({ color: EMPTY_FILL })
+      fill: showZoneStatus ? getAdvisoryFillColor(status) : new Fill({ color: EMPTY_FILL })
     })
   }
   return a
 }
 
-export const getAdvisoryColors = (advisoryThreshold: number, fireShapeArea?: FireShapeArea[]) => {
-  let fill = new Fill({ color: EMPTY_FILL })
-  if (isUndefined(fireShapeArea) || fireShapeArea.length === 0) {
-    return fill
-  }
+export const fireShapeHighlightStyler = (
+  fireShapeAreas: FireShapeArea[],
+  advisoryThreshold: number,
+  selectedFireShape: FireShape | undefined
+) => {
+  const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
+    const fire_shape_id = feature.getProperties().OBJECTID
+    const fireShapes = fireShapeAreas.filter(f => f.fire_shape_id === fire_shape_id)
+    const selected = !!(selectedFireShape?.fire_shape_id && selectedFireShape.fire_shape_id === fire_shape_id)
+    const status = getFireShapeStatus(advisoryThreshold, fireShapes)
 
+    return new Style({
+      stroke: new Stroke({
+        color: selected ? getFireShapeStrokeColor(status) : [0, 0, 0, 0],
+        width: selected ? 8 : 0
+      }),
+      fill: new Fill({ color: EMPTY_FILL })
+    })
+  }
+  return a
+}
+
+const getFireShapeStatus = (advisoryThreshold: number, fireShapeArea?: FireShapeArea[]) => {
+  if (isUndefined(fireShapeArea) || fireShapeArea.length === 0) {
+    return FireShapeStatus.NONE
+  }
   const advisoryThresholdArea = fireShapeArea.find(area => area.threshold == 1)
   const warningThresholdArea = fireShapeArea.find(area => area.threshold == 2)
   const advisoryPercentage = advisoryThresholdArea?.elevated_hfi_percentage ?? 0
   const warningPercentage = warningThresholdArea?.elevated_hfi_percentage ?? 0
+  let status = FireShapeStatus.NONE
 
   if (advisoryPercentage + warningPercentage > advisoryThreshold) {
-    // advisory color orange
-    fill = new Fill({ color: ADVISORY_ORANGE_FILL })
+    status = FireShapeStatus.ADVISORY
   }
 
   if (warningPercentage > advisoryThreshold) {
-    // advisory color red
-    fill = new Fill({ color: ADVISORY_RED_FILL })
+    status = FireShapeStatus.WARNING
   }
 
-  return fill
+  return status
+}
+
+const getFireShapeStrokeColor = (fireShapeStatus: FireShapeStatus) => {
+  switch (fireShapeStatus) {
+    case FireShapeStatus.ADVISORY:
+      return '#db8701'
+    case FireShapeStatus.WARNING:
+      return [227, 0, 1, 0.99]
+    default:
+      return 'black'
+  }
+}
+
+export const getAdvisoryFillColor = (fireShapeStatus: FireShapeStatus) => {
+  switch (fireShapeStatus) {
+    case FireShapeStatus.ADVISORY:
+      return new Fill({ color: ADVISORY_ORANGE_FILL })
+    case FireShapeStatus.WARNING:
+      return new Fill({ color: ADVISORY_RED_FILL })
+    default:
+      return new Fill({ color: EMPTY_FILL })
+  }
 }
 
 export const fireShapeLabelStyler = (selectedFireShape: FireShape | undefined) => {
