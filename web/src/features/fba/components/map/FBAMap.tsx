@@ -22,6 +22,7 @@ import {
   fireCentreStyler,
   fireCentreLabelStyler,
   fireShapeStyler,
+  fireShapeHighlightStyler,
   fireShapeLabelStyler,
   stationStyler,
   hfiStyler,
@@ -95,9 +96,7 @@ const FBAMap = (props: FBAMapProps) => {
         .find(l => l.getProperties()?.name === layerName)
 
       if (layerName === 'fireShapeVector') {
-        fireShapeVTL.setStyle(
-          fireShapeStyler(cloneDeep(props.fireShapeAreas), props.advisoryThreshold, props.selectedFireShape, isVisible)
-        )
+        fireShapeVTL.setStyle(fireShapeStyler(cloneDeep(props.fireShapeAreas), props.advisoryThreshold, isVisible))
       } else if (layer) {
         layer.setVisible(isVisible)
       }
@@ -108,19 +107,26 @@ const FBAMap = (props: FBAMapProps) => {
     new VectorTileLayer({
       source: fireCentreVectorSource,
       style: fireCentreStyler,
-      zIndex: 50
+      zIndex: 49
     })
   )
   const [fireShapeVTL] = useState(
     new VectorTileLayer({
       source: fireShapeVectorSource,
-      style: fireShapeStyler(
+      style: fireShapeStyler(cloneDeep(props.fireShapeAreas), props.advisoryThreshold, showShapeStatus),
+      zIndex: 50,
+      properties: { name: 'fireShapeVector' }
+    })
+  )
+  const [fireShapeHighlightVTL] = useState(
+    new VectorTileLayer({
+      source: fireShapeVectorSource,
+      style: fireShapeHighlightStyler(
         cloneDeep(props.fireShapeAreas),
         props.advisoryThreshold,
-        props.selectedFireShape,
-        showShapeStatus
+        props.selectedFireShape
       ),
-      zIndex: 49,
+      zIndex: 51,
       properties: { name: 'fireShapeVector' }
     })
   )
@@ -199,16 +205,13 @@ const FBAMap = (props: FBAMapProps) => {
   useEffect(() => {
     if (!map) return
 
-    fireShapeVTL.setStyle(
-      fireShapeStyler(
-        cloneDeep(props.fireShapeAreas),
-        props.advisoryThreshold,
-        props.selectedFireShape,
-        showShapeStatus
-      )
-    )
+    fireShapeVTL.setStyle(fireShapeStyler(cloneDeep(props.fireShapeAreas), props.advisoryThreshold, showShapeStatus))
     fireShapeLabelVTL.setStyle(fireShapeLabelStyler(props.selectedFireShape))
+    fireShapeHighlightVTL.setStyle(
+      fireShapeHighlightStyler(cloneDeep(props.fireShapeAreas), props.advisoryThreshold, props.selectedFireShape)
+    )
     fireShapeVTL.changed()
+    fireShapeHighlightVTL.changed()
     fireShapeLabelVTL.changed()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedFireShape, props.fireShapeAreas, props.advisoryThreshold])
@@ -279,6 +282,7 @@ const FBAMap = (props: FBAMapProps) => {
         }),
         fireCentreVTL,
         fireShapeVTL,
+        fireShapeHighlightVTL,
         fireCentreLabelVTL,
         fireShapeLabelVTL
       ],
