@@ -1,5 +1,13 @@
 kind: "Template"
 apiVersion: "template.openshift.io/v1"
+metadata:
+  name: prune-hourlies-cronjob-template
+  annotations:
+    description: "Scheduled task to prune SFMS hourly data from the object store."
+    tags: "cronjob,sfms"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
 parameters:
   - name: NAME
     description: Module name
