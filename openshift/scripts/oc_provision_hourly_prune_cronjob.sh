@@ -31,6 +31,7 @@ SCHEDULE="${SCHEDULE:-0 2 * * *}"
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/prune_hourlies_cronjob.yaml \
 -p SUFFIX=${SUFFIX} \
+-p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p SCHEDULE=\"${SCHEDULE}\" \
 ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"}"
 

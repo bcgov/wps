@@ -19,6 +19,8 @@ parameters:
     description: "The TAG name for this environment, e.g., dev, test, prod"
     required: true
     value: "prod"
+  - name: APP_LABEL
+    required: true
 objects:
   - kind: CronJob
     apiVersion: batch/v1
@@ -35,7 +37,7 @@ objects:
         metadata:
           labels:
             cronjob: prune-hourlies-${NAME}-${SUFFIX}
-            app: prune-hourlies-${NAME}-${SUFFIX}
+            app: ${APP_LABEL}
         spec:
           template:
             spec:
