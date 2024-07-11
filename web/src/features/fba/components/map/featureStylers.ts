@@ -79,12 +79,21 @@ export const fireShapeHighlightStyler = (
     const selected = !!(selectedFireShape?.fire_shape_id && selectedFireShape.fire_shape_id === fire_shape_id)
     const status = getFireShapeStatus(advisoryThreshold, fireShapes)
 
+    if (isUndefined(selectedFireShape)) {
+      return new Style({
+        stroke: new Stroke({
+          color: [0, 0, 0, 0],
+          width: 0
+        }),
+        fill: new Fill({ color: EMPTY_FILL })
+      })
+    }
     return new Style({
       stroke: new Stroke({
         color: selected ? getFireShapeStrokeColor(status) : [0, 0, 0, 0],
         width: selected ? 8 : 0
       }),
-      fill: new Fill({ color: EMPTY_FILL })
+      fill: selected ? new Fill({ color: EMPTY_FILL }) : new Fill({ color: [0, 0, 0, 0.25] })
     })
   }
   return a
