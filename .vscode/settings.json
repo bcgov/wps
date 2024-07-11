@@ -62,6 +62,7 @@
         "GDPS",
         "grib",
         "gribs",
+        "hourlies",
         "HRDPS",
         "ndarray",
         "numba",
