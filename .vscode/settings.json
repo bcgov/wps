@@ -65,6 +65,7 @@
         "GEOGCS",
         "grib",
         "gribs",
+        "hourlies",
         "HRDPS",
         "ndarray",
         "numba",
