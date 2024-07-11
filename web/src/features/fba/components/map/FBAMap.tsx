@@ -154,12 +154,13 @@ const FBAMap = (props: FBAMapProps) => {
     if (map) {
       map.on('click', event => {
         fireShapeVTL.getFeatures(event.pixel).then(features => {
-          if (!features.length) {
+          if (!features.length || !features[0]) {
             props.setSelectedFireShape(undefined)
             return
           }
           const feature = features[0]
-          if (!feature) {
+          if (feature.getProperties().OBJECTID === props.selectedFireShape?.fire_shape_id) {
+            props.setSelectedFireShape(undefined)
             return
           }
           const zoneExtent = feature.getGeometry()?.getExtent()
@@ -177,7 +178,7 @@ const FBAMap = (props: FBAMapProps) => {
         })
       })
     }
-  }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [map, props.selectedFireShape]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!map) return
