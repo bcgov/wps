@@ -60,6 +60,8 @@ async def read_into_memory(key: str):
             data_geotransform = data_source.GetGeoTransform()
             data_projection = data_source.GetProjection()
             data_array = data_band.ReadAsArray()
+            data_source = None
+            del data_source
             return (data_array, data_geotransform, data_projection)
         except ClientError as ex:
             if ex.response["Error"]["Code"] == "NoSuchKey":
