@@ -38,6 +38,18 @@ def model_run_for_hour(hour: int) -> Literal[0, 12]:
     return 0 if hour < 12 else 12
 
 
+def adjust_forecast_hour(run_hour: int, forecast_hour: int):
+    """
+    Adjust the forecast hour given the run hour so return an offset from the run hour.
+
+    :param run_hour: hour the model was run at
+    :param forecast_hour: the hour the forecast is for
+    :return: the adjusted hour
+    """
+    model_hour = model_run_for_hour(run_hour)
+    return forecast_hour - model_hour
+
+
 def parse_rdps_filename(url: str):
     """Parse and return the forecast start date and run hour from the RDPS grib url."""
     tokens = url.split(DELIMITER)
@@ -77,7 +89,7 @@ def compose_computed_rdps_filename(forecast_start_date: datetime, run_hour: int,
     """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour."""
     check_compose_invariants(forecast_start_date, run_hour, forecast_hour)
     model_hour = model_run_for_hour(run_hour)
-    adjusted_forecast_hour = forecast_hour - model_hour
+    adjusted_forecast_hour = adjust_forecast_hour(run_hour, forecast_hour)
     file_ext = ".grib2" if source_prefix == SourcePrefix.CMC else ".tif"
 
     return (

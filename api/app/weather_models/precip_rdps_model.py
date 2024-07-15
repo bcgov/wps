@@ -9,7 +9,7 @@ from app import config
 from numba import vectorize
 from app.utils.s3 import get_client, read_into_memory
 from app.weather_models import ModelEnum
-from app.weather_models.rdps_filename_marshaller import SourcePrefix, compose_computed_precip_rdps_key
+from app.weather_models.rdps_filename_marshaller import SourcePrefix, adjust_forecast_hour, compose_computed_precip_rdps_key
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,13 @@ async def compute_and_store_precip_rasters(current_time: datetime):
 
             bucket = config.get("OBJECT_STORE_BUCKET")
 
-            logger.info("Uploading RDPS 24 hour acc precip raster for date: %s, hour: %s, forecast hour: %s to %s", current_time.date().isoformat(), current_time.hour, hour, key)
+            logger.info(
+                "Uploading RDPS 24 hour acc precip raster for date: %s, hour: %s, forecast hour: %s to %s",
+                current_time.date().isoformat(),
+                current_time.hour,
+                adjust_forecast_hour(current_time.hour, hour),
+                key,
+            )
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_filename = os.path.join(temp_dir, current_time.date().isoformat() + "precip" + str(hour) + ".tif")
                 # Create temp file
