@@ -1,35 +1,35 @@
 {
-    "date": "2021-08-30",
-    "stations": [
-        {
-            "id": 1,
-            "station_code": 322,
-            "station_name": "AFTON",
-            "zone_code": "K2",
-            "elevation": 780,
-            "fuel_type": "C5",
-            "status": "ACTUAL",
-            "temp": 20.5,
-            "rh": 38.0,
-            "wind_direction": 310,
-            "wind_speed": 9.2,
-            "precipitation": 0.0,
-            "grass_cure": null,
-            "fine_fuel_moisture_code": 89.579,
-            "drought_code": 858.106,
-            "initial_spread_index": 6.417,
-            "build_up_index": 143.344,
-            "duff_moisture_code": 90.588,
-            "fire_weather_index": 26.922,
-            "head_fire_intensity": 629.1355440376345,
-            "rate_of_spread": 0.5728888963554044,
-            "fire_type": "SUR",
-            "percentage_crown_fraction_burned": 0.0,
-            "flame_length": 1.4481431145178463,
-            "sixty_minute_fire_size": 0.0522691463588831,
-            "thirty_minute_fire_size": 0.009328024522166307,
-            "critical_hours_hfi_4000": null,
-            "critical_hours_hfi_10000": null
-        }
-    ]
+  "date": "2021-08-30",
+  "stations": [
+    {
+      "id": 1,
+      "station_code": 322,
+      "station_name": "AFTON",
+      "zone_code": "K2",
+      "elevation": 780,
+      "fuel_type": "C5",
+      "status": "ACTUAL",
+      "temp": 20.5,
+      "rh": 38.0,
+      "wind_direction": 310,
+      "wind_speed": 9.2,
+      "precipitation": 0.0,
+      "grass_cure": null,
+      "fine_fuel_moisture_code": 89.579,
+      "drought_code": 858.106,
+      "initial_spread_index": 6.417,
+      "build_up_index": 143.344,
+      "duff_moisture_code": 90.588,
+      "fire_weather_index": 26.922,
+      "head_fire_intensity": 629.1355440376345,
+      "rate_of_spread": 0.5728888963554044,
+      "fire_type": "SUR",
+      "percentage_crown_fraction_burned": 0.0,
+      "flame_length": 1.4481431145178463,
+      "sixty_minute_fire_size": 0.0522691463588831,
+      "thirty_minute_fire_size": 0.009328024522166307,
+      "critical_hours_hfi_4000": null,
+      "critical_hours_hfi_10000": null
+    }
+  ]
 }
