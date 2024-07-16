@@ -8,6 +8,9 @@ from app.tests.utils.raster_reader import read_raster_array
 from app.weather_models.precip_rdps_model import TemporalPrecip, compute_precip_difference, get_raster_keys_to_diff, generate_24_hour_accumulating_precip_raster
 from app.weather_models.rdps_filename_marshaller import model_run_for_hour
 
+geotransform = (-4556441.403315245, 10000.0, 0.0, 920682.1411659503, 0.0, -10000.0)
+projection = 'PROJCS["unnamed",GEOGCS["Coordinate System imported from GRIB file",DATUM["unnamed",SPHEROID["Sphere",6371229,0]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]]],PROJECTION["Polar_Stereographic"],PARAMETER["latitude_of_origin",60],PARAMETER["central_meridian",249],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["Metre",1],AXIS["Easting",SOUTH],AXIS["Northing",SOUTH]]'
+
 
 def test_difference_identity():
     """
@@ -49,8 +52,8 @@ async def test_generate_24_hour_accumulating_precip_raster_ok(mocker: MockerFixt
     """
     Verify that the appropriate rasters are diffed correctly for non model hour.
     """
-    mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[np.array([1, 1]), np.array([1, 1])])
-    res = await generate_24_hour_accumulating_precip_raster(datetime(2024, 1, 1, 1, tzinfo=timezone.utc))
+    mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[(np.array([1, 1]), geotransform, projection), (np.array([1, 1]), geotransform, projection)])
+    (res, _, _) = await generate_24_hour_accumulating_precip_raster(datetime(2024, 1, 1, 1, tzinfo=timezone.utc))
     assert np.allclose(res, np.array([0, 0]))
 
 
@@ -59,16 +62,16 @@ async def test_generate_24_hour_accumulating_precip_raster_model_hour_ok(mocker:
     """
     Verify that the appropriate rasters are diffed correctly on a model hour -- just returns todays data.
     """
-    mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[np.array([1, 1]), np.array([1, 1])])
-    res = await generate_24_hour_accumulating_precip_raster(datetime(2024, 1, 1, 0, tzinfo=timezone.utc))
+    mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[(np.array([1, 1]), geotransform, projection), (np.array([1, 1]), geotransform, projection)])
+    (res, _, _) = await generate_24_hour_accumulating_precip_raster(datetime(2024, 1, 1, 0, tzinfo=timezone.utc))
     assert np.allclose(res, np.array([1, 1]))
 
 
 @pytest.mark.parametrize(
     "current_time,today_raster,yesterday_raster",
     [
-        (datetime(2024, 1, 1, 0, tzinfo=timezone.utc), None, np.array([1, 1])),  # no today raster data
-        (datetime(2024, 1, 1, 0, tzinfo=timezone.utc), None, None),  # no raster data
+        (datetime(2024, 1, 1, 0, tzinfo=timezone.utc), (None, None, None), (np.array([1, 1]), geotransform, projection)),  # no today raster data
+        (datetime(2024, 1, 1, 0, tzinfo=timezone.utc), (None, None, None), (None, None, None)),  # no raster data
     ],
 )
 @pytest.mark.anyio
