@@ -52,7 +52,7 @@
                 "rate_of_spread": 0.002561159296112227,
                 "hfi": 2.836898615305482,
                 "intensity_group": 1,
-                "sixty_minute_fire_size": 1.3295582739064132e-06,
+                "sixty_minute_fire_size": 1.3295582739064132e-6,
                 "fire_type": "SUR",
                 "error": true,
                 "error_message": null,

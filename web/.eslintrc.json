@@ -7,11 +7,7 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended"
   ],
-  "plugins": [
-    "@typescript-eslint",
-    "eslint-plugin-prettier",
-    "eslint-plugin-react"
-  ],
+  "plugins": ["@typescript-eslint", "eslint-plugin-prettier", "eslint-plugin-react"],
   "env": {
     "browser": true,
     "jasmine": true,
