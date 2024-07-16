@@ -15,14 +15,8 @@ const run = commands => {
 }
 // Create the intermediate folder and move the reports from cypress and jest inside it
 fs.emptyDirSync(INTERMEDIATE_FOLDER)
-fs.copyFileSync(
-  `${CYPRESS_COVERAGE_FOLDER}/coverage-final.json`,
-  `${INTERMEDIATE_FOLDER}/from-cypress.json`
-)
-fs.copyFileSync(
-  `${JEST_COVERAGE_FOLDER}/coverage-final.json`,
-  `${INTERMEDIATE_FOLDER}/from-jest.json`
-)
+fs.copyFileSync(`${CYPRESS_COVERAGE_FOLDER}/coverage-final.json`, `${INTERMEDIATE_FOLDER}/from-cypress.json`)
+fs.copyFileSync(`${JEST_COVERAGE_FOLDER}/coverage-final.json`, `${INTERMEDIATE_FOLDER}/from-jest.json`)
 fs.emptyDirSync('.nyc_output')
 fs.emptyDirSync(FINAL_OUTPUT_FOLDER)
 // Run "nyc merge" inside the intermediate folder, merging the two coverage files into one,

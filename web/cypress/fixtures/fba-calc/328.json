@@ -1,35 +1,35 @@
 {
-    "date": "2021-08-30",
-    "stations": [
-        {
-            "id": 2,
-            "station_code": 328,
-            "station_name": "PENTICTON RS",
-            "zone_code": "K5",
-            "elevation": 427,
-            "fuel_type": "O1A",
-            "status": "ACTUAL",
-            "temp": 25.9,
-            "rh": 30.0,
-            "wind_direction": 302,
-            "wind_speed": 7.3,
-            "precipitation": 0.0,
-            "grass_cure": 80.0,
-            "fine_fuel_moisture_code": 91.932,
-            "drought_code": 1002.44,
-            "initial_spread_index": 8.156,
-            "build_up_index": 187.86,
-            "duff_moisture_code": 122.665,
-            "fire_weather_index": 33.709,
-            "head_fire_intensity": 1468.3296228910988,
-            "rate_of_spread": 13.984091646581893,
-            "fire_type": "SUR",
-            "percentage_crown_fraction_burned": 0.0,
-            "flame_length": 2.212336338874282,
-            "sixty_minute_fire_size": 28.273388410171016,
-            "thirty_minute_fire_size": 5.1009941188966925,
-            "critical_hours_hfi_4000": null,
-            "critical_hours_hfi_10000": null
-        }
-    ]
+  "date": "2021-08-30",
+  "stations": [
+    {
+      "id": 2,
+      "station_code": 328,
+      "station_name": "PENTICTON RS",
+      "zone_code": "K5",
+      "elevation": 427,
+      "fuel_type": "O1A",
+      "status": "ACTUAL",
+      "temp": 25.9,
+      "rh": 30.0,
+      "wind_direction": 302,
+      "wind_speed": 7.3,
+      "precipitation": 0.0,
+      "grass_cure": 80.0,
+      "fine_fuel_moisture_code": 91.932,
+      "drought_code": 1002.44,
+      "initial_spread_index": 8.156,
+      "build_up_index": 187.86,
+      "duff_moisture_code": 122.665,
+      "fire_weather_index": 33.709,
+      "head_fire_intensity": 1468.3296228910988,
+      "rate_of_spread": 13.984091646581893,
+      "fire_type": "SUR",
+      "percentage_crown_fraction_burned": 0.0,
+      "flame_length": 2.212336338874282,
+      "sixty_minute_fire_size": 28.273388410171016,
+      "thirty_minute_fire_size": 5.1009941188966925,
+      "critical_hours_hfi_4000": null,
+      "critical_hours_hfi_10000": null
+    }
+  ]
 }
