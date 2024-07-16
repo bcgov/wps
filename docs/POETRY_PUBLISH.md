@@ -19,21 +19,21 @@ poetry config repositories.psu https://artifacts.developer.gov.bc.ca/artifactory
 poetry publish --build --repository psu --username <service-account-username> --password <service-account-password>
 ```
 
-##### Pull cffdrs_py from Artifactory
+# Pull cffdrs_py from Artifactory
 
-Set your credentials:
+##### Set your credentials
 
 ```bash
 poetry config http-basic.{scope} <service-account-username> <service-account-password>
 ```
 
-Add the repo source:
+##### Add the repo source
 
 ```bash
 poetry source add --priority=supplemental {scope} https://artifacts.developer.gov.bc.ca/artifactory/api/pypi/{repo_name}/simple
 ```
 
-Add package with:
+##### Add package with
 
 ```bash
 poetry add --source {scope} {package_name}
