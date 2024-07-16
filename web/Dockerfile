@@ -1,4 +1,4 @@
-FROM ubi9/nodejs-20
+FROM node:20
 
 # Set working directory
 WORKDIR /app
