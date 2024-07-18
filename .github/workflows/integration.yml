@@ -206,6 +206,10 @@ jobs:
       - name: Setup .nmprc for scoped artifactory packages
         working-directory: ./web
         run: npm config set @psu:registry https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/ && npm config set //artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/:_authToken ${{ secrets.ARTIFACTORY_SVCACCT_TOKEN }}
+      - name: enable corepack
+        run: corepack enable
+      - name: use new yarn
+        run: yarn set version berry
       - name: Install node dependencies (web)
         working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'
