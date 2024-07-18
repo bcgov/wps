@@ -42,7 +42,7 @@ async def generate():
 
         output_driver = gdal.GetDriverByName("GTiff")
         # Create an object with the same dimensions as the input, but with 8 bit unsigned values.
-        target_tiff = output_driver.Create(target_path, xsize=source_band.XSize, ysize=source_band.YSize, bands=1, eType=gdal.GDT_Float32)
+        target_tiff = output_driver.Create(target_path, xsize=source_band.XSize, ysize=source_band.YSize, bands=1, eType=gdal.GDT_Byte)
         # Set the geotransform and projection to the same as the input.
         target_tiff.SetGeoTransform(dem_source.GetGeoTransform())
         target_tiff.SetProjection(dem_source.GetProjection())
