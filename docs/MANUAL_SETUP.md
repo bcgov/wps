@@ -21,10 +21,12 @@ from source is a world of trouble you don't want to get into. Stick to brew.
 ##### Artifactory npm repo config
 
 We currently publish the cffdrs_ts package to our internal artifactory instance. You need to configure credentials so npm can pull the cffdrs_ts package from this repo. To add the credentials to your global `~/.npmrc` run:
+
 ```bash
 npm config set @psu:registry https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
 npm config set //artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/:_authToken {artifactory_token}
 ```
+
 Alternatively, you can create a project specific `.npmrc` at the root of the `web` directory and add the following:
 `@psu:registry=https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/`
 `//artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/:_authToken={artifactory_token}`
@@ -84,6 +86,23 @@ pyenv which python
 ```bash
 poetry env use [path to python 3.10.4, get this by running 'pyenv which python']
 poetry run python -m pip install --upgrade pip
+```
+
+Add the artifactory repo source to your poetry config:
+
+```bash
+poetry source add --priority=supplemental psu https://artifacts.developer.gov.bc.ca/artifactory/api/pypi/{repo_name}/simple
+```
+
+Add artifactory repo credentials to poetry config:
+
+```bash
+poetry config http-basic.psu <service-account-username> <service-account-password>
+```
+
+Install dependencies:
+
+```bash
 poetry install
 poetry shell
 # we can't include gdal in poetry as we have little control over the version of gdal available on different platforms - we must match whatever version of gdal is available on the system in question.
