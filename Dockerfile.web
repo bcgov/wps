@@ -17,7 +17,7 @@ USER 0
 COPY web/package.json .
 COPY web/yarn.lock . 
 COPY web/.yarnrc.yml .
-RUN npm install -g corepack
+RUN npm install -g --ignore-scripts corepack
 RUN corepack enable
 RUN yarn set version berry
 RUN yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
