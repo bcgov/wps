@@ -125,5 +125,6 @@
       "src/serviceWorker.ts",
       "src/app/store.ts"
     ]
-  }
+  },
+  "packageManager": "yarn@4.3.1"
 }

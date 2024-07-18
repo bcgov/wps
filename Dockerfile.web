@@ -5,7 +5,7 @@
 # the cpu pool size to something realistic.
 ARG NODE_OPTIONS="--v8-pool-size=4"
 
-# PHASE 1 - build static html.
+# PHASE 1 - build frontend.
 # Pull from local registry - we can't pull from docker due to limits.
 # see https://catalog.redhat.com/software/containers/ubi8/nodejs-14/5ed7887dd70cc50e69c2fabb for
 # details
@@ -14,12 +14,17 @@ FROM registry.access.redhat.com/ubi9/nodejs-20 as static
 # Switch to root user for package installs
 USER 0
 
-ADD web .
-# NOTE: Can't use "--production=true", build will fail.
-RUN npm install -g npm@8.19.4
-RUN npm config set @psu:registry https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
-RUN npm config set //artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/:_authToken ${ARTIFACTORY_SVCACCT_TOKEN}
-RUN npm install -g yarn@latest && yarn install --frozen-lockfile
+COPY web/package.json .
+COPY web/yarn.lock . 
+COPY web/.yarnrc.yml .
+RUN npm install -g corepack
+RUN corepack enable
+RUN yarn set version berry
+RUN yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
+RUN yarn config set npmScopes.psu.npmAlwaysAuth true 
+RUN yarn config set npmScopes.psu.npmAuthToken ${ARTIFACTORY_SVCACCT_TOKEN}
+RUN CYPRESS_INSTALL_BINARY=0 yarn install --immutable
+COPY web .
 RUN yarn run build:prod
 
 # Remove sourcemaps after they've been uploaded to sentry
@@ -28,7 +33,7 @@ RUN rm build/static/js/**.map
 # Switch back to default user
 USER 1001
 
-# # PHASE 2 - prepare hosting.
+# PHASE 2 - prepare hosting.
 # https://catalog.redhat.com/software/containers/ubi8/nginx-120/6156abfac739c0a4123a86fd
 FROM registry.access.redhat.com/ubi8/nginx-120
 
