@@ -17,13 +17,13 @@ USER 0
 COPY web/package.json .
 COPY web/yarn.lock . 
 COPY web/.yarnrc.yml .
-RUN npm install --ignore-scripts -g corepack
+RUN npm install -g corepack
 RUN corepack enable
 RUN yarn set version berry
 RUN yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
 RUN yarn config set npmScopes.psu.npmAlwaysAuth true 
 RUN yarn config set npmScopes.psu.npmAuthToken ${ARTIFACTORY_SVCACCT_TOKEN}
-RUN CYPRESS_INSTALL_BINARY=0 yarn install --ignore-scripts --immutable
+RUN CYPRESS_INSTALL_BINARY=0 yarn install --immutable
 COPY web .
 RUN yarn run build:prod
 
