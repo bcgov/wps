@@ -17,6 +17,7 @@ USER 0
 COPY web/package.json .
 COPY web/yarn.lock . 
 COPY web/.yarnrc.yml .
+# do install first so it will be cached
 RUN npm install -g --ignore-scripts corepack
 RUN corepack enable
 RUN yarn set version berry

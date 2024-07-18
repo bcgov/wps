@@ -59,7 +59,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:^7.1.0, @babel/core@npm:^7.11.1, @babel/core@npm:^7.12.3, @babel/core@npm:^7.16.0, @babel/core@npm:^7.7.2, @babel/core@npm:^7.7.5, @babel/core@npm:^7.8.0":
+"@babel/core@npm:^7.1.0, @babel/core@npm:^7.11.1, @babel/core@npm:^7.12.3, @babel/core@npm:^7.16.0, @babel/core@npm:^7.23.9, @babel/core@npm:^7.7.2, @babel/core@npm:^7.7.5, @babel/core@npm:^7.8.0":
   version: 7.24.9
   resolution: "@babel/core@npm:7.24.9"
   dependencies:
@@ -376,7 +376,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/parser@npm:^7.1.0, @babel/parser@npm:^7.14.7, @babel/parser@npm:^7.20.7, @babel/parser@npm:^7.24.7, @babel/parser@npm:^7.24.8":
+"@babel/parser@npm:^7.1.0, @babel/parser@npm:^7.14.7, @babel/parser@npm:^7.20.7, @babel/parser@npm:^7.23.9, @babel/parser@npm:^7.24.7, @babel/parser@npm:^7.24.8":
   version: 7.24.8
   resolution: "@babel/parser@npm:7.24.8"
   bin:
@@ -2307,7 +2307,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@istanbuljs/schema@npm:^0.1.2":
+"@istanbuljs/schema@npm:^0.1.2, @istanbuljs/schema@npm:^0.1.3":
   version: 0.1.3
   resolution: "@istanbuljs/schema@npm:0.1.3"
   checksum: 10c0/61c5286771676c9ca3eb2bd8a7310a9c063fb6e0e9712225c8471c582d157392c88f5353581c8c9adbe0dff98892317d2fdfc56c3499aa42e0194405206a963a
@@ -10424,6 +10424,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"istanbul-lib-instrument@npm:^6.0.2":
+  version: 6.0.3
+  resolution: "istanbul-lib-instrument@npm:6.0.3"
+  dependencies:
+    "@babel/core": "npm:^7.23.9"
+    "@babel/parser": "npm:^7.23.9"
+    "@istanbuljs/schema": "npm:^0.1.3"
+    istanbul-lib-coverage: "npm:^3.2.0"
+    semver: "npm:^7.5.4"
+  checksum: 10c0/a1894e060dd2a3b9f046ffdc87b44c00a35516f5e6b7baf4910369acca79e506fc5323a816f811ae23d82334b38e3ddeb8b3b331bd2c860540793b59a8689128
+  languageName: node
+  linkType: hard
+
 "istanbul-lib-processinfo@npm:^2.0.2":
   version: 2.0.3
   resolution: "istanbul-lib-processinfo@npm:2.0.3"
@@ -12388,6 +12401,43 @@ __metadata:
   bin:
     nyc: bin/nyc.js
   checksum: 10c0/ad0da0627b465f9e88f45105416774a04a033096115bcce8de8952fae25b6e3f3b6441ce81a484b7cd1b79c792aee271f68f57cefe9bb6d062720e61f2feed2c
+  languageName: node
+  linkType: hard
+
+"nyc@npm:^17.0.0":
+  version: 17.0.0
+  resolution: "nyc@npm:17.0.0"
+  dependencies:
+    "@istanbuljs/load-nyc-config": "npm:^1.0.0"
+    "@istanbuljs/schema": "npm:^0.1.2"
+    caching-transform: "npm:^4.0.0"
+    convert-source-map: "npm:^1.7.0"
+    decamelize: "npm:^1.2.0"
+    find-cache-dir: "npm:^3.2.0"
+    find-up: "npm:^4.1.0"
+    foreground-child: "npm:^2.0.0"
+    get-package-type: "npm:^0.1.0"
+    glob: "npm:^7.1.6"
+    istanbul-lib-coverage: "npm:^3.0.0"
+    istanbul-lib-hook: "npm:^3.0.0"
+    istanbul-lib-instrument: "npm:^6.0.2"
+    istanbul-lib-processinfo: "npm:^2.0.2"
+    istanbul-lib-report: "npm:^3.0.0"
+    istanbul-lib-source-maps: "npm:^4.0.0"
+    istanbul-reports: "npm:^3.0.2"
+    make-dir: "npm:^3.0.0"
+    node-preload: "npm:^0.2.1"
+    p-map: "npm:^3.0.0"
+    process-on-spawn: "npm:^1.0.0"
+    resolve-from: "npm:^5.0.0"
+    rimraf: "npm:^3.0.0"
+    signal-exit: "npm:^3.0.2"
+    spawn-wrap: "npm:^2.0.0"
+    test-exclude: "npm:^6.0.0"
+    yargs: "npm:^15.0.2"
+  bin:
+    nyc: bin/nyc.js
+  checksum: 10c0/d77033c42ce3fa8159ab1fa547332ce374aafcb46f48d1c15fd515f3c1b9b6d29335147229abd3d8251e78fad7961f2c8cfae3530cda32845f652ab0c81f53ad
   languageName: node
   linkType: hard
 
@@ -17440,6 +17490,7 @@ __metadata:
     lodash: "npm:^4.17.21"
     luxon: "npm:^3.0.2"
     match-sorter: "npm:^6.3.1"
+    nyc: "npm:^17.0.0"
     ol: "npm:9.2.4"
     ol-pmtiles: "npm:^0.5.0"
     prettier: "npm:^3.3.3"
