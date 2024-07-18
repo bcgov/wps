@@ -110,6 +110,13 @@
             "console": "integratedTerminal",
         },
         {
+            "name": "generate classified tpi",
+            "type": "python",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.local.generate_classified_tpi",
+            "console": "integratedTerminal",
+        },
+        {
             "name": "Chrome",
             "type": "pwa-chrome",
             "request": "launch",
