@@ -13,7 +13,6 @@ const FINAL_OUTPUT_FOLDER = 'finalCoverage'
 const run = commands => {
   commands.forEach(command => execSync(command, { stdio: 'inherit' }))
 }
-// const nyc = require('nyc')
 // Create the intermediate folder and move the reports from cypress and jest inside it
 fs.emptyDirSync(INTERMEDIATE_FOLDER)
 fs.copyFileSync(`${CYPRESS_COVERAGE_FOLDER}/coverage-final.json`, `${INTERMEDIATE_FOLDER}/from-cypress.json`)
@@ -22,7 +21,6 @@ fs.emptyDirSync('.nyc_output')
 fs.emptyDirSync(FINAL_OUTPUT_FOLDER)
 // Run "nyc merge" inside the intermediate folder, merging the two coverage files into one,
 // then generate the final report on the coverage folder
-
 run([
   // "nyc merge" will create a "coverage.json" file on the root, we move it to .nyc_output
   `nyc merge ${INTERMEDIATE_FOLDER} && mv coverage.json .nyc_output/out.json`,
@@ -30,6 +28,6 @@ run([
 ])
 
 // Clean up
-// fs.rmdirSync(CYPRESS_COVERAGE_FOLDER, { recursive: true })
-// fs.rmdirSync(JEST_COVERAGE_FOLDER, { recursive: true })
-// fs.rmdirSync(INTERMEDIATE_FOLDER, { recursive: true })
+fs.rmdirSync(CYPRESS_COVERAGE_FOLDER, { recursive: true })
+fs.rmdirSync(JEST_COVERAGE_FOLDER, { recursive: true })
+fs.rmdirSync(INTERMEDIATE_FOLDER, { recursive: true })
