@@ -7,7 +7,7 @@ ARG NODE_OPTIONS="--v8-pool-size=4"
 
 # PHASE 1 - build frontend.
 # Pull from local registry - we can't pull from docker due to limits.
-# see https://catalog.redhat.com/software/containers/ubi8/nodejs-14/5ed7887dd70cc50e69c2fabb for
+# see https://catalog.redhat.com/software/containers/ubi9/nodejs-20/64770ac7a835530172eee6a9 for
 # details
 FROM registry.access.redhat.com/ubi9/nodejs-20 as static
 
