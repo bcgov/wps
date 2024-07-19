@@ -54,7 +54,7 @@ describe('ForecastCell', () => {
     expect(element).toBeInTheDocument()
   })
   it('should throw an error when showGreaterThan and showLessThan are both positive', () => {
-    // Suppres the console error message for an unhandled error
+    // Suppress the console error message for an unhandled error
     const consoleErrorFn = jest.spyOn(console, 'error').mockImplementation(() => jest.fn())
     expect(() => {
       render(

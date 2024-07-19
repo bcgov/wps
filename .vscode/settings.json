@@ -73,6 +73,7 @@
         "maxx",
         "maxy",
         "miny",
+        "luxon",
         "ndarray",
         "numba",
         "osgeo",
