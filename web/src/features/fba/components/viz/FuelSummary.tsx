@@ -45,7 +45,6 @@ const columns: GridColDef[] = [
     minWidth: 200,
     sortable: false,
     renderCell: (params: GridRenderCellParams) => {
-      console.log(params)
       return <FuelDistribution code={params.row['code']} percent={params.row['percent']} />
     }
   }
