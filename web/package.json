@@ -21,9 +21,11 @@
     "@mui/x-date-pickers": "^7.0.0",
     "@psu/cffdrs_ts": "^0.1.0",
     "@reduxjs/toolkit": "^1.8.0",
+    "@sentry/browser": "^8.18.0",
     "@sentry/cli": "^2.31.2",
     "@sentry/react": "^8.2.1",
     "@types/esri-leaflet": "^3.0.0",
+    "@types/geojson": "7946.0.14",
     "@types/leaflet": "^1.7.0",
     "@types/lodash": "^4.14.173",
     "@types/luxon": "^3.0.2",
@@ -56,6 +58,7 @@
     "react-redux": "^8.0.0",
     "react-router-dom": "^6.22.3",
     "recharts": "^2.1.8",
+    "redux-thunk": "^2.4.2",
     "typescript": "^5.0.0"
   },
   "scripts": {
