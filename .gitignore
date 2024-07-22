@@ -43,8 +43,6 @@ web/build/
 # Dependency directories
 web/node_modules/
 web/jspm_packages/
-web/.pnp
-web/.pnp.js
 
 # TypeScript v1 declaration files
 web/typings/

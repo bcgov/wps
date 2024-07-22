@@ -1,7 +1,6 @@
 
 # Sentry Config File
 .sentryclirc
-.pnp.*
 .yarn/*
 !.yarn/cache
 !.yarn/patches
