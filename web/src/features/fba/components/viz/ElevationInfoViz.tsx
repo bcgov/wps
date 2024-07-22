@@ -17,18 +17,6 @@ const classes = {
   wrapper: `${PREFIX}-wrapper`
 }
 
-const Root = styled('div')({
-  [`& .${classes.header}`]: {
-    fontSize: '1rem',
-    fontWeight: 'bold',
-    paddingBottom: '0.5rem',
-    textAlign: 'center'
-  },
-  [`& .${classes.wrapper}`]: {
-    padding: '20px 10px'
-  }
-})
-
 interface Props {
   className?: string
   selectedFireZone: FireShape | undefined
@@ -37,7 +25,7 @@ interface Props {
 
 const ElevationInfoViz = (props: Props) => {
   if (isUndefined(props.hfiElevationInfo) || props.hfiElevationInfo.length === 0) {
-    return <Root></Root>
+    return
   }
   const advisoryElevationInfoByThreshold = props.hfiElevationInfo.filter(info => info.threshold === 1)
   const warnElevationInfoByThreshold = props.hfiElevationInfo.filter(info => info.threshold === 2)
