@@ -10,7 +10,7 @@ import { useTheme } from '@mui/material/styles'
 export interface FuelTypeInfoSummary {
   area: number
   criticalHoursStart?: DateTime
-  criticalHoursStop?: DateTime
+  criticalHoursEnd?: DateTime
   id: number
   code: string
   description: string
@@ -23,6 +23,7 @@ interface FuelSummaryProps {
   selectedFireZoneUnit: FireShape | undefined
 }
 
+// Column definitions for fire zone unit fuel summary table 
 const columns: GridColDef[] = [
   {
     field: 'code',
@@ -46,7 +47,6 @@ const columns: GridColDef[] = [
       return <FuelDistribution code={params.row['code']} percent={params.row['percent']} />
     }
   }
-  // { field: 'hours', flex: 2, headerName: 'Critical Hours', minWidth: 150, sortable: false }
 ]
 
 const FuelSummary = ({ fuelTypeInfo, selectedFireZoneUnit }: FuelSummaryProps) => {
