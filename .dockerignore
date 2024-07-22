@@ -9,8 +9,17 @@
 node_modules
 web/build
 web/coverage-cypress
+web/coverage
 web/.nyc_output
 web/node_modules
+web/cypress
+web/.pnp.*
+web/.yarn/*
+!web/.yarn/patches
+!web/.yarn/plugins
+!web/.yarn/releases
+!web/.yarn/sdks
+!web/.yarn/versions
 r
 .dockerignore
 **/Dockerfile*
