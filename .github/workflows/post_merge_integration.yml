@@ -202,8 +202,6 @@ jobs:
             **/node_modules
             ~/.cache/Cypress
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-      - name: Install node dependencies (web)
-        working-directory: ./web
       - name: enable corepack
         run: corepack enable
       - name: use new yarn
@@ -211,6 +209,8 @@ jobs:
       - name: Setup yarn for scoped artifactory packages
         working-directory: ./web
         run: yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/ && yarn config set npmScopes.psu.npmAlwaysAuth true && yarn config set npmScopes.psu.npmAuthToken ${{ secrets.ARTIFACTORY_SVCACCT_TOKEN }}
+      - name: Install node dependencies (web)
+        working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn install
       - name: Lint (web)
