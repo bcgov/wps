@@ -26,7 +26,7 @@ interface FuelSummaryProps {
 const columns: GridColDef[] = [
   {
     field: 'code',
-    headerName: 'Fuel',
+    headerName: 'Fuel Type',
     sortable: false,
     width: 75,
     renderCell: (params: GridRenderCellParams) => (
@@ -38,7 +38,7 @@ const columns: GridColDef[] = [
   {
     field: 'area',
     flex: 3,
-    headerName: 'Area Distribution',
+    headerName: 'Distribution > 4k kW/m',
     minWidth: 200,
     sortable: false,
     renderCell: (params: GridRenderCellParams) => {
