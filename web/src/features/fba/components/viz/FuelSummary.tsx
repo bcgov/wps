@@ -27,6 +27,7 @@ interface FuelSummaryProps {
 const columns: GridColDef[] = [
   {
     field: 'code',
+    headerClassName: 'fuel-summary-header',
     headerName: 'Fuel Type',
     sortable: false,
     width: 75,
@@ -39,6 +40,7 @@ const columns: GridColDef[] = [
   {
     field: 'area',
     flex: 3,
+    headerClassName: 'fuel-summary-header',
     headerName: 'Distribution > 4k kW/m',
     minWidth: 200,
     sortable: false,
@@ -119,6 +121,9 @@ const FuelSummary = ({ fuelTypeInfo, selectedFireZoneUnit }: FuelSummaryProps) =
             overflow: 'hidden',
             '& .MuiDataGrid-columnHeaderTitle': {
               fontWeight: 'bold'
+            },
+            '& .fuel-summary-header': {
+              background: '#F1F1F1'
             }
           }}
         ></DataGridPro>
