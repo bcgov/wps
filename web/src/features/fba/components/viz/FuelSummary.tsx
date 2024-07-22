@@ -38,7 +38,7 @@ const columns: GridColDef[] = [
   {
     field: 'area',
     flex: 3,
-    headerName: 'Percent of High HFI Area',
+    headerName: 'Area Distribution',
     minWidth: 200,
     sortable: false,
     renderCell: (params: GridRenderCellParams) => {
