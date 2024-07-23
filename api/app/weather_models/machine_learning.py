@@ -266,5 +266,6 @@ class StationMachineLearning:
         hour = timestamp.hour
         predicted_precip_24h = self.regression_models_v2._precip_model.predict(hour, [[model_precipitation]])
         if predicted_precip_24h is None or len(predicted_precip_24h) == 0:
+            # No data to return
             return None
         return max(0, predicted_precip_24h[0])
