@@ -4,9 +4,9 @@ import { Grid } from '@mui/material'
 import { isUndefined } from 'lodash'
 import { ElevationInfoByThreshold, FireShape, FireShapeArea, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import ElevationInfoViz from 'features/fba/components/viz/ElevationInfoViz'
-import FuelTypesBreakdown from 'features/fba/components/viz/FuelTypesBreakdown'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import { useTheme } from '@mui/material/styles'
+import FuelSummary from 'features/fba/components/viz/FuelSummary'
 
 interface FireZoneUnitSummaryProps {
   selectedFireZoneUnit: FireShape | undefined
@@ -40,8 +40,8 @@ const FireZoneUnitSummary = ({
               fireZoneAreas={fireShapeAreas.filter(area => area.fire_shape_id == selectedFireZoneUnit?.fire_shape_id)}
             />
           </Grid>
-          <Grid item>
-            <FuelTypesBreakdown selectedFireZone={selectedFireZoneUnit} fuelTypeInfo={fuelTypeInfo} />
+          <Grid item sx={{ width: '95%' }}>
+            <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fuelTypeInfo={fuelTypeInfo} />
           </Grid>
           <Grid item>
             <ElevationInfoViz selectedFireZone={selectedFireZoneUnit} hfiElevationInfo={hfiElevationInfo} />
