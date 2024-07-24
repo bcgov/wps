@@ -123,11 +123,11 @@ def _get_raster_data_source(key: str, s3_data, options: Optional[GeospatialOptio
         vector_ds = gdal.OpenEx(mem_path, gdal.OF_VECTOR)
         # peel off path, then extension, then attach .tif extension
         filename = ((key.split("/")[-1]).split(".")[0]) + ".tif"
-        target_path = os.path.join(os.getcwd(), f"{filename}")
+        mem_path = f"/vsimem/{filename}"
 
         # Create the output raster
         driver = gdal.GetDriverByName("GTiff")
-        output_raster_ds = driver.Create(target_path, options.vector_options.source_x_size, options.vector_options.source_y_size, 1, gdal.GDT_Float32)
+        output_raster_ds = driver.Create(mem_path, options.vector_options.source_x_size, options.vector_options.source_y_size, 1, gdal.GDT_Byte)
         # Set the geotransform and projection on the output raster
         output_raster_ds.SetGeoTransform(options.vector_options.source_geotransform)
         output_raster_ds.SetProjection(options.vector_options.source_projection)
