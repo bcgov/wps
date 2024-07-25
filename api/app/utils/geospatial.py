@@ -116,27 +116,28 @@ def _get_raster_data_source(key: str, s3_data, options: Optional[GeospatialOptio
     :param options: options defining the desired metadata as well as vector options if the file is a vector
     :return: raster data source
     """
-    mem_path = f"/vsimem/{key}"
-    gdal.FileFromMemBuffer(mem_path, s3_data)
+    s3_data_mem_path = f"/vsimem/{key}"
+    gdal.FileFromMemBuffer(s3_data_mem_path, s3_data)
     raster_ds = None
     if options is not None and options.vector_options is not None:
-        vector_ds = gdal.OpenEx(mem_path, gdal.OF_VECTOR)
+        vector_ds = gdal.OpenEx(s3_data_mem_path, gdal.OF_VECTOR)
         # peel off path, then extension, then attach .tif extension
         filename = ((key.split("/")[-1]).split(".")[0]) + ".tif"
-        mem_path = f"/vsimem/{filename}"
+        raster_mem_path = f"/vsimem/{filename}"
 
         # Create the output raster
         driver = gdal.GetDriverByName("GTiff")
-        output_raster_ds = driver.Create(mem_path, options.vector_options.source_x_size, options.vector_options.source_y_size, 1, gdal.GDT_Byte)
+        output_raster_ds = driver.Create(raster_mem_path, options.vector_options.source_x_size, options.vector_options.source_y_size, 1, gdal.GDT_Byte)
         # Set the geotransform and projection on the output raster
         output_raster_ds.SetGeoTransform(options.vector_options.source_geotransform)
         output_raster_ds.SetProjection(options.vector_options.source_projection)
         gdal.Rasterize(output_raster_ds, vector_ds, bands=[1])
         raster_ds = output_raster_ds
+        gdal.Unlink(raster_mem_path)
     else:
-        raster_ds = gdal.Open(mem_path, gdal.GA_ReadOnly)
+        raster_ds = gdal.Open(s3_data_mem_path, gdal.GA_ReadOnly)
 
-    gdal.Unlink(mem_path)
+    gdal.Unlink(s3_data_mem_path)
     return raster_ds
 
 
