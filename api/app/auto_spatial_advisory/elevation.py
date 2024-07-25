@@ -5,6 +5,7 @@ from time import perf_counter
 import logging
 import os
 import tempfile
+from typing import Dict
 import numpy as np
 from osgeo import gdal
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +18,7 @@ from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_adviso
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
 from app.db.models.auto_spatial_advisory import AdvisoryElevationStats
 from app.utils.s3 import get_client
+from app.utils.geospatial import GeospatialOptions, Vector2RasterOptions, cut_raster_by_shape_id, read_raster_into_memory
 
 
 logger = logging.getLogger(__name__)
@@ -176,6 +178,61 @@ def apply_threshold_mask_to_dem(threshold: int, mask_path: str, temp_dir: str):
     mask = None
     masked_dem = None
     return masked_dem_path
+
+
+async def process_tpi_by_firezone(run_parameters_id: int):
+    """
+    Given run parameters, lookup associated snow-masked HFI and static classified TPI geospatial data.
+    Cut out each fire zone shape from the above and intersect the TPI and HFI pixels, counting each pixel contributing to the TPI class.
+    Capture all fire zone stats keyed by its source_identifier.
+
+    :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
+    :return: dictionary of {source_identifier: {1: X, 2: Y, 3: Z}}, where 1 = valley bottom, 2 = mid slope, 3 = upper slope
+    and X, Y, Z are pixel counts at each of those elevation classes respectively.
+    """
+    raster_options = GeospatialOptions(include_geotransform=True, include_projection=True, include_x_size=True, include_y_size=True)
+    fire_zone_stats: Dict[int, Dict[int, int]] = {}
+
+    async with get_client() as (client, bucket):
+        tpi_result = await read_raster_into_memory(
+            client,
+            bucket,
+            f'dem/tpi/{config.get("CLASSIFIED_TPI_DEM_NAME")}',
+            raster_options,
+        )
+        hfi_result = await read_raster_into_memory(
+            client,
+            bucket,
+            "psu/pmtiles/hfi/actual/2024-07-18/hfi20240718.pmtiles",  # TODO inform hfi vector lookup by run_parameters_id
+            GeospatialOptions(
+                vector_options=Vector2RasterOptions(
+                    source_geotransform=tpi_result.data_geotransform,
+                    source_projection=tpi_result.data_projection,
+                    source_x_size=tpi_result.data_x_size,
+                    source_y_size=tpi_result.data_y_size,
+                )
+            ),
+        )
+        async with get_async_write_session_scope() as session:
+            stmt = text("SELECT id, source_identifier FROM advisory_shapes;")
+            result = await session.execute(stmt)
+            rows = result.all()
+
+            for row in rows:
+                cut_tpi_result = cut_raster_by_shape_id(row[0], row[1], tpi_result.data_source, raster_options)
+                cut_hfi_result = cut_raster_by_shape_id(row[0], row[1], hfi_result.data_source, raster_options)
+                # transforms all pixels that are 255 to 1, this is what we get from pmtiles
+                hfi_4k_or_above = np.where(cut_hfi_result.data_array == 255, 1, cut_hfi_result.data_array)
+                hfi_masked_tpi = np.multiply(cut_tpi_result.data_array, hfi_4k_or_above)
+                # Get unique values and their counts
+                tpi_classes, counts = np.unique(hfi_masked_tpi, return_counts=True)
+                tpi_class_freq_dist = dict(zip(tpi_classes, counts))
+
+            # Drop TPI class 4, this is the no data value from the TPI raster
+            tpi_class_freq_dist.pop(4, None)
+            fire_zone_stats[row[1]] = tpi_class_freq_dist
+
+        return fire_zone_stats
 
 
 async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, run_parameters_id: int):
