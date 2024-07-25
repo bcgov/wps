@@ -205,7 +205,7 @@ def intersect_raster_by_firezone(threshold: int, advisory_shape_id: int, source_
 
     :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k
     :param advisory_shape_id: The id of the fire zone (aka advisory_shape object) to clip with
-    :param source_identifier: The source identifer of the fire zone.
+    :param source_identifier: The source identifier of the fire zone.
     :param raster_path: The path to the raster to be clipped.
     :param temp_dir: A temporary location for storing intermediate files
     """

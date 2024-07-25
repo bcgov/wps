@@ -5,6 +5,8 @@ from aiobotocore.client import AioBaseClient
 from botocore.exceptions import ClientError
 from osgeo import gdal
 
+from app.db.database import DB_READ_STRING
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,6 +42,7 @@ class GeospatialReadResult:
     """
 
     data_array: Any
+    data_source: Any
     data_geotransform: Optional[Any]
     data_projection: Optional[Any]
     data_x_size: Optional[int]
@@ -99,9 +102,9 @@ def get_raster_data(data_source, options: Optional[GeospatialOptions]) -> Geospa
     """
     (data_geotransform, data_projection, data_x_size, data_y_size) = get_geospatial_metadata(data_source, options)
     data_array = read_raster_data(data_source)
-    data_source = None
-    del data_source
-    return GeospatialReadResult(data_array=data_array, data_geotransform=data_geotransform, data_projection=data_projection, data_x_size=data_x_size, data_y_size=data_y_size)
+    return GeospatialReadResult(
+        data_array=data_array, data_source=data_source, data_geotransform=data_geotransform, data_projection=data_projection, data_x_size=data_x_size, data_y_size=data_y_size
+    )
 
 
 def _get_raster_data_source(key: str, s3_data, options: Optional[GeospatialOptions]):
@@ -164,3 +167,17 @@ async def read_raster_into_memory(client: AioBaseClient, bucket: str, key: str, 
             return None
         else:
             raise
+
+
+def cut_raster_by_shape_id(advisory_shape_id: int, source_identifier: str, data_source: Any, options: Optional[GeospatialOptions]) -> GeospatialReadResult:
+    """
+    Given a raster dataset and a fire zone id, use gdal.Warp to clip out a fire zone from which we can retrieve stats.
+
+    :param advisory_shape_id: The id of the fire zone (aka advisory_shape object) to clip with
+    :param source_identifier: The source identifier of the fire zone.
+    :param data_source: The source raster to be clipped.
+    """
+    output_path = f"/vsimem/firezone_{source_identifier}.tif"
+    warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=DB_READ_STRING, cutlineSQL=f"SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}", cropToCutline=True)
+    output_dataset = gdal.Warp(output_path, data_source, options=warp_options)
+    return get_raster_data(output_dataset, options)
