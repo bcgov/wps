@@ -43,7 +43,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=web DOCKER_FILE=Dockerfile.web PATH_BC=openshift/templates/build.web.bc.yaml SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" ARTIFACTORY_SVCACCT_TOKEN="${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}" bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+          GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=web DOCKER_FILE=Dockerfile.web PATH_BC=openshift/templates/build.web.bc.yaml SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" ARTIFACTORY_SVCACCT_TOKEN="${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}" cat openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   build-api-image:
     name: Build API Image
