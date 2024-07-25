@@ -1,4 +1,3 @@
-import os
 from dataclasses import dataclass
 import logging
 from typing import Any, Optional
@@ -77,14 +76,15 @@ def get_geospatial_metadata(data_source, options: Optional[GeospatialOptions]):
     return (geotransform, projection, x_size, y_size)
 
 
-def read_raster_data(data_source):
+def read_raster_data(data_source, band=1):
     """
     Read raster data and return as array from the data source
 
     :param data_source: data source to read the data from
+    :param band: the band from the data source to read from
     :return: raster data as array
     """
-    data_band = data_source.GetRasterBand(1)
+    data_band = data_source.GetRasterBand(band)
     data_array = data_band.ReadAsArray()
     return data_array
 
