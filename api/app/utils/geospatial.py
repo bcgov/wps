@@ -60,7 +60,7 @@ def get_geospatial_metadata(data_source, options: Optional[GeospatialOptions]):
     x_size = None
     y_size = None
     if options is None:
-        return (geotransform, projection.x_size, y_size)
+        return (geotransform, projection, x_size, y_size)
 
     if options.include_geotransform:
         geotransform = data_source.GetGeoTransform()
