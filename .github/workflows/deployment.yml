@@ -35,8 +35,7 @@ jobs:
           tags: user/app:latest
           file: Dockerfile.web
           secrets: |
-            "github_token=${{ secrets.GITHUB_TOKEN }}"
-            "ARTIFACTORY_SVCACCT_TOKEN="${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}"
+            "ARTIFACTORY_SVCACCT_TOKEN=${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}"
     # name: Build Web Image
     # runs-on: ubuntu-22.04
     # steps:
