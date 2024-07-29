@@ -18,7 +18,7 @@ from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType
 from app.auto_spatial_advisory.snow import apply_snow_mask
 from app.geospatial import NAD83_BC_ALBERS
-from app.auto_spatial_advisory.hfi_pmtiles import get_pmtiles_filepath
+from app.auto_spatial_advisory.hfi_filepath import get_pmtiles_filepath, get_raster_filepath, get_raster_tif_filename
 from app.utils.polygonize import polygonize_in_memory
 from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
 from app.utils.s3 import get_client
@@ -98,27 +98,38 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
 
     hfi_key = get_s3_key(run_type, run_date, for_date)
     logger.info(f"Key to HFI in object storage: {hfi_key}")
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_filename = os.path.join(temp_dir, "classified.tif")
-        classify_hfi(hfi_key, temp_filename)
-        # If something has gone wrong with the collection of snow coverage data and it has not been collected
-        # within the past 7 days, don't apply an old snow mask, work with the classified hfi data as is
-        if last_processed_snow is None or last_processed_snow[0].for_date + datetime.timedelta(days=7) < datetime.now():
-            logger.info("No recently processed snow data found. Proceeding with non-masked hfi data.")
-            working_hfi_path = temp_filename
-        else:
-            working_hfi_path = await apply_snow_mask(temp_filename, last_processed_snow[0], temp_dir)
-        # Create a snow coverage mask from previously downloaded snow data.
-        with polygonize_in_memory(working_hfi_path, "hfi", "hfi") as layer:
-            # We need a geojson file to pass to tippecanoe
-            temp_geojson = write_geojson(layer, temp_dir)
+    async with get_client() as (client, bucket):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_filename = os.path.join(temp_dir, "classified.tif")
+            classify_hfi(hfi_key, temp_filename)
+            # If something has gone wrong with the collection of snow coverage data and it has not been collected
+            # within the past 7 days, don't apply an old snow mask, work with the classified hfi data as is
+            if last_processed_snow is None or last_processed_snow[0].for_date + datetime.timedelta(days=7) < datetime.now():
+                logger.info("No recently processed snow data found. Proceeding with non-masked hfi data.")
+                working_hfi_path = temp_filename
+            else:
+                # Create a snow coverage mask from previously downloaded snow data.
+                working_hfi_path = await apply_snow_mask(temp_filename, last_processed_snow[0], temp_dir)
 
-            pmtiles_filename = f'hfi{for_date.strftime("%Y%m%d")}.pmtiles'
-            temp_pmtiles_filepath = os.path.join(temp_dir, pmtiles_filename)
-            logger.info(f"Writing pmtiles -- {pmtiles_filename}")
-            tippecanoe_wrapper(temp_geojson, temp_pmtiles_filepath, min_zoom=HFI_PMTILES_MIN_ZOOM, max_zoom=HFI_PMTILES_MAX_ZOOM)
+            raster_filename = get_raster_tif_filename(for_date)
+            raster_key = get_raster_filepath(run_date, run_type, raster_filename)
+            logger.info(f"Uploading file {raster_filename} to {raster_key}")
+            await client.put_object(
+                Bucket=bucket,
+                Key=raster_key,
+                ACL=HFI_PMTILES_PERMISSIONS,  # We need these to be accessible to everyone
+                Body=open(working_hfi_path, "rb"),
+            )
+            logger.info("Done uploading %s", raster_key)
+            with polygonize_in_memory(working_hfi_path, "hfi", "hfi") as layer:
+                # We need a geojson file to pass to tippecanoe
+                temp_geojson = write_geojson(layer, temp_dir)
 
-            async with get_client() as (client, bucket):
+                pmtiles_filename = f'hfi{for_date.strftime("%Y%m%d")}.pmtiles'
+                temp_pmtiles_filepath = os.path.join(temp_dir, pmtiles_filename)
+                logger.info(f"Writing pmtiles -- {pmtiles_filename}")
+                tippecanoe_wrapper(temp_geojson, temp_pmtiles_filepath, min_zoom=HFI_PMTILES_MIN_ZOOM, max_zoom=HFI_PMTILES_MAX_ZOOM)
+
                 key = get_pmtiles_filepath(run_date, run_type, pmtiles_filename)
                 logger.info(f"Uploading file {pmtiles_filename} to {key}")
 
@@ -128,27 +139,27 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
                     ACL=HFI_PMTILES_PERMISSIONS,  # We need these to be accessible to everyone
                     Body=open(temp_pmtiles_filepath, "rb"),
                 )
-                logger.info("Done uploading file")
+                logger.info("Done uploading %s", key)
 
-            spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
-            target_srs = osr.SpatialReference()
-            target_srs.ImportFromEPSG(NAD83_BC_ALBERS)
-            target_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-            coordinate_transform = osr.CoordinateTransformation(spatial_reference, target_srs)
+                spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
+                target_srs = osr.SpatialReference()
+                target_srs.ImportFromEPSG(NAD83_BC_ALBERS)
+                target_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+                coordinate_transform = osr.CoordinateTransformation(spatial_reference, target_srs)
 
-            async with get_async_write_session_scope() as session:
-                advisory = await get_hfi_classification_threshold(session, HfiClassificationThresholdEnum.ADVISORY)
-                warning = await get_hfi_classification_threshold(session, HfiClassificationThresholdEnum.WARNING)
+                async with get_async_write_session_scope() as session:
+                    advisory = await get_hfi_classification_threshold(session, HfiClassificationThresholdEnum.ADVISORY)
+                    warning = await get_hfi_classification_threshold(session, HfiClassificationThresholdEnum.WARNING)
 
-                logger.info("Writing HFI advisory zones to API database...")
-                for i in range(layer.GetFeatureCount()):
-                    # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Feature
-                    feature: ogr.Feature = layer.GetFeature(i)
-                    obj = create_model_object(feature, advisory, warning, coordinate_transform, run_type, run_datetime, for_date)
-                    await save_hfi(session, obj)
+                    logger.info("Writing HFI advisory zones to API database...")
+                    for i in range(layer.GetFeatureCount()):
+                        # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Feature
+                        feature: ogr.Feature = layer.GetFeature(i)
+                        obj = create_model_object(feature, advisory, warning, coordinate_transform, run_type, run_datetime, for_date)
+                        await save_hfi(session, obj)
 
-                # Store the unique combination of run type, run datetime and for date in the run_parameters table
-                await save_run_parameters(session, run_type, run_datetime, for_date)
+                    # Store the unique combination of run type, run datetime and for date in the run_parameters table
+                    await save_run_parameters(session, run_type, run_datetime, for_date)
 
     perf_end = perf_counter()
     delta = perf_end - perf_start

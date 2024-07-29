@@ -1,0 +1,49 @@
+import os
+from app.auto_spatial_advisory.run_type import RunType
+from datetime import date
+
+
+def get_pmtiles_filepath(run_date: date, run_type: RunType, filename: str) -> str:
+    """
+    Get the file path for both reading and writing the pmtiles from/to the object store.
+    Example: {bucket}/psu/pmtiles/hfi/actual/[issue/run_date]/hfi[for_date].pmtiles
+
+
+    :param run_date: The date of the run to process. (when was the hfi file created?)
+    :param run_type: forecast or actual
+    :param filename: hfi[for_date].pmtiles -> hfi20230821.pmtiles
+    :return: s3 bucket key for pmtiles file
+    """
+    pmtiles_filepath = os.path.join("psu", "pmtiles", "hfi", run_type.value, run_date.strftime("%Y-%m-%d"), filename)
+
+    return pmtiles_filepath
+
+
+def get_pmtiles_filename(for_date: date):
+    return f'hfi{for_date.strftime("%Y%m%d")}.pmtiles'
+
+
+def get_raster_filepath(run_date: date, run_type: RunType, filename: str) -> str:
+    """
+    Get the file path for both reading and writing the tif raster from/to the object store.
+    Example: {bucket}/psu/rasters/hfi/actual/[issue/run_date]/hfi[for_date].tif
+
+
+    :param run_date: The date of the run to process. (when was the hfi file created?)
+    :param run_type: forecast or actual
+    :param filename: hfi[for_date].tif -> hfi20230821.tif
+    :return: s3 bucket key for raster file
+    """
+    raster_filepath = os.path.join("psu", "rasters", "hfi", run_type.value, run_date.strftime("%Y-%m-%d"), filename)
+
+    return raster_filepath
+
+
+def get_raster_tif_filename(for_date: date) -> str:
+    """
+    Returns the object store filename for a raster tif based on a given for_date.
+
+    :param for_date: the date the hfi tif is forecasted for
+    :return: filename string
+    """
+    return f'snow_masked_hfi{for_date.strftime("%Y%m%d")}.tif'
