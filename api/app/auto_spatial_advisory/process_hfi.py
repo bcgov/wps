@@ -18,7 +18,7 @@ from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType
 from app.auto_spatial_advisory.snow import apply_snow_mask
 from app.geospatial import NAD83_BC_ALBERS
-from app.auto_spatial_advisory.hfi_filepath import get_pmtiles_filepath, get_raster_filepath, get_raster_tif_filename
+from app.auto_spatial_advisory.hfi_filepath import get_pmtiles_filename, get_pmtiles_filepath, get_raster_filepath, get_raster_tif_filename
 from app.utils.polygonize import polygonize_in_memory
 from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
 from app.utils.s3 import get_client
@@ -125,7 +125,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
                 # We need a geojson file to pass to tippecanoe
                 temp_geojson = write_geojson(layer, temp_dir)
 
-                pmtiles_filename = f'hfi{for_date.strftime("%Y%m%d")}.pmtiles'
+                pmtiles_filename = get_pmtiles_filename(for_date)
                 temp_pmtiles_filepath = os.path.join(temp_dir, pmtiles_filename)
                 logger.info(f"Writing pmtiles -- {pmtiles_filename}")
                 tippecanoe_wrapper(temp_geojson, temp_pmtiles_filepath, min_zoom=HFI_PMTILES_MIN_ZOOM, max_zoom=HFI_PMTILES_MAX_ZOOM)
