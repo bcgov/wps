@@ -4,8 +4,8 @@ import Grid from '@mui/material/Unstable_Grid2'
 import Typography from '@mui/material/Typography'
 import ElevationFlag from 'features/fba/components/viz/ElevationFlag'
 import ElevationLabel from 'features/fba/components/viz/ElevationLabel'
-import { HFIRiskStatus } from 'features/fba/components/viz/ElevationFlag'
 import TPIMountain from 'features/fba/components/viz/TPIMountain'
+import { Box } from '@mui/material'
 
 enum ElevationOption {
   BOTTOM = 'Valley Bottom',
@@ -14,21 +14,25 @@ enum ElevationOption {
 }
 
 interface ElevationStatusProps {
-  bottom: HFIRiskStatus
-  mid: HFIRiskStatus
-  upper: HFIRiskStatus
+  bottom: number
+  mid: number
+  upper: number
 }
 
 const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
   const theme = useTheme()
   return (
+    <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }}>
+      <Typography sx={{ fontWeight: 'bold', paddingBottom: theme.spacing(1), textAlign: 'center' }}>
+        HFI Distribution by Elevation
+      </Typography>
     <Grid container sx={{ minHeight: theme.spacing(19) }} xs={12}>
       <Grid container xs={4}>
         <Grid sx={{ alignItems: 'center', display: 'flex', height: '25%', justifyContent: 'flex-end' }} xs={12}>
           <Typography
             sx={{
               fontSize: '0.75em',
-              textAlign: 'center',
+              textAlign: 'right',
               fontWeight: 'bold'
             }}
           >
@@ -49,18 +53,20 @@ const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
           <Typography
             sx={{
               fontSize: '0.75em',
-              textAlign: 'center',
-              fontWeight: 'bold'
+              textAlign: 'left',
+              fontWeight: 'bold',
+              maxWidth: '75%'
             }}
           >
-            Risk:
+            Proportion of Advisory Area:
           </Typography>
         </Grid>
-        <ElevationFlag status={upper} />
-        <ElevationFlag status={mid} />
-        <ElevationFlag status={bottom} />
+        <ElevationFlag percent={upper} />
+        <ElevationFlag percent={mid} />
+        <ElevationFlag percent={bottom} />
       </Grid>
     </Grid>
+    </Box>
   )
 }
 
