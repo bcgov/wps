@@ -1,5 +1,4 @@
 import React, { useState, useContext, useEffect } from 'react'
-import * as ol from 'ol'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { StyleLike } from 'ol/style/Style'
@@ -18,7 +17,7 @@ interface Props {
 const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
   const map = useContext(MapContext)
 
-  const [layer, setLayer] = useState<OLVectorLayer<ol.Feature<Geometry>> | null>(null)
+  const [layer, setLayer] = useState<OLVectorLayer | null>(null)
 
   useEffect(() => {
     if (!map) return
