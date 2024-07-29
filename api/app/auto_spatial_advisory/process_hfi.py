@@ -26,7 +26,7 @@ from app.utils.s3 import get_client
 
 logger = logging.getLogger(__name__)
 
-HFI_PMTILES_PERMISSIONS = "public-read"
+HFI_GEOSPATIAL_PERMISSIONS = "public-read"
 HFI_PMTILES_MIN_ZOOM = 4
 HFI_PMTILES_MAX_ZOOM = 11
 
@@ -117,7 +117,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
             await client.put_object(
                 Bucket=bucket,
                 Key=raster_key,
-                ACL=HFI_PMTILES_PERMISSIONS,  # We need these to be accessible to everyone
+                ACL=HFI_GEOSPATIAL_PERMISSIONS,  # We need these to be accessible to everyone
                 Body=open(working_hfi_path, "rb"),
             )
             logger.info("Done uploading %s", raster_key)
@@ -136,7 +136,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
                 await client.put_object(
                     Bucket=bucket,
                     Key=key,
-                    ACL=HFI_PMTILES_PERMISSIONS,  # We need these to be accessible to everyone
+                    ACL=HFI_GEOSPATIAL_PERMISSIONS,  # We need these to be accessible to everyone
                     Body=open(temp_pmtiles_filepath, "rb"),
                 )
                 logger.info("Done uploading %s", key)
