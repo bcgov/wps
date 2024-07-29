@@ -2,7 +2,7 @@
 
 import logging
 import os
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from time import perf_counter
 import tempfile
 from shapely import wkb, wkt
@@ -104,7 +104,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
             classify_hfi(hfi_key, temp_filename)
             # If something has gone wrong with the collection of snow coverage data and it has not been collected
             # within the past 7 days, don't apply an old snow mask, work with the classified hfi data as is
-            if last_processed_snow is None or last_processed_snow[0].for_date + datetime.timedelta(days=7) < datetime.now():
+            if last_processed_snow is None or last_processed_snow[0].for_date + timedelta(days=7) < datetime.now():
                 logger.info("No recently processed snow data found. Proceeding with non-masked hfi data.")
                 working_hfi_path = temp_filename
             else:
