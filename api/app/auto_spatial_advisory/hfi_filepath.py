@@ -20,6 +20,12 @@ def get_pmtiles_filepath(run_date: date, run_type: RunType, filename: str) -> st
 
 
 def get_pmtiles_filename(for_date: date):
+    """
+    Returns the object store filename for a pmtiles file based on a given for_date.
+
+    :param for_date: the date the hfi pmtiles is forecasted for
+    :return: filename string
+    """
     return f'hfi{for_date.strftime("%Y%m%d")}.pmtiles'
 
 
