@@ -14,15 +14,45 @@ from sqlalchemy.future import select
 from app import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType
-from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats
+from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats, save_advisory_elevation_tpi_stats
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
-from app.db.models.auto_spatial_advisory import AdvisoryElevationStats
+from app.db.models.auto_spatial_advisory import AdvisoryElevationStats, AdvisoryTPIStats
+from app.auto_spatial_advisory.hfi_filepath import get_raster_filepath, get_raster_tif_filename
 from app.utils.s3 import get_client
 from app.utils.geospatial import GeospatialOptions, WarpOptions, cut_raster_by_shape_id, read_raster_into_memory
 
 
 logger = logging.getLogger(__name__)
 DEM_GDAL_SOURCE = None
+
+
+async def process_elevation_tpi(run_type: RunType, run_datetime: datetime, for_date: date):
+    """
+    Create new elevation statistics records for the given parameters.
+
+    :param hfi_s3_key: the object store key pointing to the hfi tif to intersect with tpi layer
+    :param run_type: The type of run to process. (is it a forecast or actual run?)
+    :param run_datetime: The date and time of the run to process. (when was the hfi file created?)
+    :param for_date: The date of the hfi to process. (when is the hfi for?)
+    """
+    logger.info("Processing elevation stats %s for run date: %s, for date: %s", run_type, run_datetime, for_date)
+    perf_start = perf_counter()
+    # Get the id from run_parameters associated with the provided run_type, for_date and for_datetime
+    async with get_async_read_session_scope() as session:
+        run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+
+        stmt = select(AdvisoryTPIStats).where(AdvisoryTPIStats.run_parameters == run_parameters_id)
+
+        exists = (await session.execute(stmt)).scalars().first() is not None
+        if not exists:
+            fire_zone_stats = await process_tpi_by_firezone(run_type, run_datetime.date(), for_date)
+            await store_elevation_tpi_stats(session, run_parameters_id, fire_zone_stats)
+        else:
+            logger.info("Elevation stats already computed")
+
+    perf_end = perf_counter()
+    delta = perf_end - perf_start
+    logger.info("%f delta count before and after processing elevation stats", delta)
 
 
 async def process_elevation(source_path: str, run_type: RunType, run_datetime: datetime, for_date: date):
@@ -180,7 +210,7 @@ def apply_threshold_mask_to_dem(threshold: int, mask_path: str, temp_dir: str):
     return masked_dem_path
 
 
-async def process_tpi_by_firezone(run_parameters_id: int):
+async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: date) -> Dict[int, Dict[int, int]]:
     """
     Given run parameters, lookup associated snow-masked HFI and static classified TPI geospatial data.
     Cut out each fire zone shape from the above and intersect the TPI and HFI pixels, counting each pixel contributing to the TPI class.
@@ -193,6 +223,9 @@ async def process_tpi_by_firezone(run_parameters_id: int):
     raster_options = GeospatialOptions(include_geotransform=True, include_projection=True, include_x_size=True, include_y_size=True)
     fire_zone_stats: Dict[int, Dict[int, int]] = {}
 
+    hfi_raster_filename = get_raster_tif_filename(for_date)
+    hfi_raster_key = get_raster_filepath(run_date, run_type, hfi_raster_filename)
+
     async with get_client() as (client, bucket):
         tpi_result = await read_raster_into_memory(
             client,
@@ -203,7 +236,7 @@ async def process_tpi_by_firezone(run_parameters_id: int):
         hfi_result = await read_raster_into_memory(
             client,
             bucket,
-            "psu/rasters/hfi/actual/2024-09-03/snow_masked_hfi20230903.pmtiles",  # TODO inform hfi vector lookup by run_parameters_id
+            hfi_raster_key,
             GeospatialOptions(
                 warp_options=WarpOptions(
                     source_geotransform=tpi_result.data_geotransform,
@@ -317,3 +350,26 @@ async def store_elevation_stats(session: AsyncSession, threshold: int, shape_id:
         threshold=threshold,
     )
     await save_advisory_elevation_stats(session, advisory_elevation_stats)
+
+
+async def store_elevation_tpi_stats(session: AsyncSession, run_parameters_id: int, fire_zone_stats: Dict[int, Dict[int, int]]):
+    """
+    Writes elevation TPI statistics to the database.
+
+    :param shape_id: The advisory shape id.
+    :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
+    :param fire_zone_stats: Dictionary keying shape id to a dictionary of classified tpi hfi pixel counts
+    """
+    advisory_tpi_stats_list = []
+    for shape_id, tpi_freq_count in fire_zone_stats:
+        advisory_tpi_stats = AdvisoryTPIStats(
+            advisory_shape_id=shape_id,
+            run_parameters=run_parameters_id,
+            valley_bottom=tpi_freq_count[1],
+            mid_slope=tpi_freq_count[2],
+            upper_slope=tpi_freq_count[3],
+            pixel_size_metres=2000,
+        )
+        advisory_tpi_stats_list.append(advisory_tpi_stats)
+
+    await save_advisory_elevation_tpi_stats(session, advisory_tpi_stats_list)

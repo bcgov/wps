@@ -60,7 +60,7 @@ class Shape(Base):
     fire_centre = Column(Integer, ForeignKey(FireCentre.id), nullable=True, index=True)
 
 
-# Explict creation of index due to issue with alembic + geoalchemy.
+# Explicit creation of index due to issue with alembic + geoalchemy.
 Index("idx_advisory_shapes_geom", Shape.geom, postgresql_using="gist")
 
 
@@ -188,7 +188,7 @@ class AdvisoryFuelStats(Base):
 
 class AdvisoryTPIStats(Base):
     """
-    Summary statistics about the elevation based on a classified Topographic Position Index (TPI).
+    Summary statistics about the elevation based on a HFI >4k classified Topographic Position Index (TPI).
     Classification of the TPI are bucketed into 1 = valley bottom, 2 = mid slope, 3 = upper slope.
     Each record includes the raster pixel count of the above classifications as well as the raster pixel size and resolution in metres
     and an advisory shape the stats are related to.
@@ -198,7 +198,6 @@ class AdvisoryTPIStats(Base):
     __table_args__ = {"comment": "Elevation TPI stats per fire shape"}
     id = Column(Integer, primary_key=True, index=True)
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
-    threshold = Column(Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False)
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
     valley_bottom = Column(Integer, nullable=False, index=True)
     mid_slope = Column(Integer, nullable=False, index=True)
