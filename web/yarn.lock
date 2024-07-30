@@ -6540,6 +6540,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"corepack@npm:^0.29.3":
+  version: 0.29.3
+  resolution: "corepack@npm:0.29.3"
+  bin:
+    corepack: ./dist/corepack.js
+    pnpm: ./dist/pnpm.js
+    pnpx: ./dist/pnpx.js
+    yarn: ./dist/yarn.js
+    yarnpkg: ./dist/yarnpkg.js
+  checksum: 10c0/ee8fbd5be7992f2a378a4560f14af8bccca23dbad2239a2fccf3106d0a402d12cf8f8098f6df49cd7b2e246eb27494fd1581f8d3be573d67041bac51cf743d75
+  languageName: node
+  linkType: hard
+
 "cosmiconfig-typescript-loader@npm:^1.0.0":
   version: 1.0.9
   resolution: "cosmiconfig-typescript-loader@npm:1.0.9"
@@ -17435,6 +17448,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^7.16.1"
     "@typescript-eslint/parser": "npm:^7.16.1"
     axios: "npm:1.6.0"
+    corepack: "npm:^0.29.3"
     cypress: "npm:^13.0.0"
     date-fns: "npm:^3.0.0"
     eslint: "npm:^9.7.0"

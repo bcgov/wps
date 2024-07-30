@@ -66,6 +66,7 @@ const RAW_RUNTIME_STATE =
           ["@typescript-eslint/eslint-plugin", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:7.16.1"],\
           ["@typescript-eslint/parser", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:7.16.1"],\
           ["axios", "npm:1.6.0"],\
+          ["corepack", "npm:0.29.3"],\
           ["cypress", "npm:13.13.1"],\
           ["date-fns", "npm:3.6.0"],\
           ["eslint", "npm:9.7.0"],\
@@ -83,7 +84,7 @@ const RAW_RUNTIME_STATE =
           ["luxon", "npm:3.4.4"],\
           ["match-sorter", "npm:6.3.4"],\
           ["nyc", "npm:17.0.0"],\
-          ["ol", "npm:9.2.4"],\
+          ["ol", "npm:10.0.0"],\
           ["ol-pmtiles", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:0.5.0"],\
           ["prettier", "npm:3.3.3"],\
           ["react", "npm:18.3.1"],\
@@ -9570,6 +9571,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["corepack", [\
+      ["npm:0.29.3", {\
+        "packageLocation": "./.yarn/cache/corepack-npm-0.29.3-ae70e01670-ee8fbd5be7.zip/node_modules/corepack/",\
+        "packageDependencies": [\
+          ["corepack", "npm:0.29.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["cosmiconfig", [\
       ["npm:6.0.0", {\
         "packageLocation": "./.yarn/cache/cosmiconfig-npm-6.0.0-cb7d64a2b9-666ed8732d.zip/node_modules/cosmiconfig/",\
@@ -10869,10 +10879,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["earcut", [\
-      ["npm:2.2.4", {\
-        "packageLocation": "./.yarn/cache/earcut-npm-2.2.4-e823546b2f-01ca51830e.zip/node_modules/earcut/",\
+      ["npm:3.0.0", {\
+        "packageLocation": "./.yarn/cache/earcut-npm-3.0.0-7d76c8340b-20f3d8492f.zip/node_modules/earcut/",\
         "packageDependencies": [\
-          ["earcut", "npm:2.2.4"]\
+          ["earcut", "npm:3.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -16517,16 +16527,16 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["ol", [\
-      ["npm:9.2.4", {\
-        "packageLocation": "./.yarn/cache/ol-npm-9.2.4-b4aa0a6ef9-6eb288d039.zip/node_modules/ol/",\
+      ["npm:10.0.0", {\
+        "packageLocation": "./.yarn/cache/ol-npm-10.0.0-dd7b6c7692-0d9ec40818.zip/node_modules/ol/",\
         "packageDependencies": [\
-          ["ol", "npm:9.2.4"],\
+          ["ol", "npm:10.0.0"],\
           ["color-rgba", "npm:3.0.0"],\
           ["color-space", "npm:2.0.1"],\
-          ["earcut", "npm:2.2.4"],\
+          ["earcut", "npm:3.0.0"],\
           ["geotiff", "npm:2.1.3"],\
-          ["pbf", "npm:3.2.1"],\
-          ["rbush", "npm:3.0.1"]\
+          ["pbf", "npm:4.0.1"],\
+          ["rbush", "npm:4.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -16544,7 +16554,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["ol-pmtiles", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:0.5.0"],\
           ["@types/ol", null],\
-          ["ol", "npm:9.2.4"],\
+          ["ol", "npm:10.0.0"],\
           ["pmtiles", "npm:3.0.6"]\
         ],\
         "packagePeers": [\
@@ -16918,11 +16928,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["pbf", [\
-      ["npm:3.2.1", {\
-        "packageLocation": "./.yarn/cache/pbf-npm-3.2.1-d33be8e429-63b4a27749.zip/node_modules/pbf/",\
+      ["npm:4.0.1", {\
+        "packageLocation": "./.yarn/cache/pbf-npm-4.0.1-57e61e349f-1a95cc3bdc.zip/node_modules/pbf/",\
         "packageDependencies": [\
-          ["pbf", "npm:3.2.1"],\
-          ["ieee754", "npm:1.2.1"],\
+          ["pbf", "npm:4.0.1"],\
           ["resolve-protobuf-schema", "npm:2.1.0"]\
         ],\
         "linkType": "HARD"\
@@ -19062,10 +19071,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["rbush", [\
-      ["npm:3.0.1", {\
-        "packageLocation": "./.yarn/cache/rbush-npm-3.0.1-9fc2a71778-55311586c3.zip/node_modules/rbush/",\
+      ["npm:4.0.0", {\
+        "packageLocation": "./.yarn/cache/rbush-npm-4.0.0-4897c429f4-a2d407ea87.zip/node_modules/rbush/",\
         "packageDependencies": [\
-          ["rbush", "npm:3.0.1"],\
+          ["rbush", "npm:4.0.0"],\
           ["quickselect", "npm:2.0.0"]\
         ],\
         "linkType": "HARD"\
@@ -22944,6 +22953,7 @@ const RAW_RUNTIME_STATE =
           ["@typescript-eslint/eslint-plugin", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:7.16.1"],\
           ["@typescript-eslint/parser", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:7.16.1"],\
           ["axios", "npm:1.6.0"],\
+          ["corepack", "npm:0.29.3"],\
           ["cypress", "npm:13.13.1"],\
           ["date-fns", "npm:3.6.0"],\
           ["eslint", "npm:9.7.0"],\
@@ -22961,7 +22971,7 @@ const RAW_RUNTIME_STATE =
           ["luxon", "npm:3.4.4"],\
           ["match-sorter", "npm:6.3.4"],\
           ["nyc", "npm:17.0.0"],\
-          ["ol", "npm:9.2.4"],\
+          ["ol", "npm:10.0.0"],\
           ["ol-pmtiles", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:0.5.0"],\
           ["prettier", "npm:3.3.3"],\
           ["react", "npm:18.3.1"],\
