@@ -11,9 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class Vector2RasterOptions:
+class WarpOptions:
     """
-    Inputs required for burning vector geospatial data into a raster
+    Inputs warping raster based on attributes from a source raster.
     """
 
     source_geotransform: Any
@@ -28,7 +28,7 @@ class GeospatialOptions:
     Options supplied by caller to declare optional outputs
     """
 
-    vector_options: Optional[Vector2RasterOptions] = None
+    warp_options: Optional[WarpOptions] = None
     include_geotransform: Optional[bool] = True
     include_projection: Optional[bool] = True
     include_x_size: Optional[bool] = None
@@ -109,34 +109,34 @@ def get_raster_data(data_source, options: Optional[GeospatialOptions]) -> Geospa
 
 def _get_raster_data_source(key: str, s3_data, options: Optional[GeospatialOptions]):
     """
-    Retrieves geospatial file from S3. If the options include Vector2RasterOptions, it will transform
-    the vector into a raster and return the raster datasource. If no Vector2RasterOptions are included,
-    it will assume the file is a raster and try to read it as a raster. The caller is expected to know whether
-    the geospatial file is a raster or vector and supply the appropriate options.
+    Retrieves geospatial file from S3. If the options include WarpOptions, it will warp
+    the raster based on those options. If no WarpOptions are included,
+    it simply read and return the raster data as is.
 
     :param key: the object store key pointing to the desired geospatial file
     :param s3_data: the object store content blob
-    :param options: options defining the desired metadata as well as vector options if the file is a vector
+    :param options: options defining the desired metadata as well as warp options if desired
     :return: raster data source
     """
     s3_data_mem_path = f"/vsimem/{key}"
     gdal.FileFromMemBuffer(s3_data_mem_path, s3_data)
     raster_ds = None
-    if options is not None and options.vector_options is not None:
-        vector_ds = gdal.OpenEx(s3_data_mem_path, gdal.OF_VECTOR)
+    if options is not None and options.warp_options is not None:
+        raster_ds = gdal.Open(s3_data_mem_path, gdal.GA_ReadOnly)
         # peel off path, then extension, then attach .tif extension
         filename = ((key.split("/")[-1]).split(".")[0]) + ".tif"
-        raster_mem_path = f"/vsimem/{filename}"
-
-        # Create the output raster
-        driver = gdal.GetDriverByName("GTiff")
-        output_raster_ds = driver.Create(raster_mem_path, options.vector_options.source_x_size, options.vector_options.source_y_size, 1, gdal.GDT_Byte)
-        # Set the geotransform and projection on the output raster
-        output_raster_ds.SetGeoTransform(options.vector_options.source_geotransform)
-        output_raster_ds.SetProjection(options.vector_options.source_projection)
-        gdal.Rasterize(output_raster_ds, vector_ds, bands=[1])
+        warped_mem_path = f"/vsimem/{filename}"
+        gdal.Warp(
+            warped_mem_path,
+            raster_ds,
+            dstSRS=options.warp_options.source_projection,
+            xRes=options.warp_options.source_x_size,
+            yRes=options.warp_options.source_y_size,
+            resampleAlg=gdal.GRA_NearestNeighbour,
+        )
+        output_raster_ds = gdal.Open(warped_mem_path, gdal.GA_ReadOnly)
         raster_ds = output_raster_ds
-        gdal.Unlink(raster_mem_path)
+        gdal.Unlink(warped_mem_path)
     else:
         raster_ds = gdal.Open(s3_data_mem_path, gdal.GA_ReadOnly)
 

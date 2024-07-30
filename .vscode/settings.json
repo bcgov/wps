@@ -83,6 +83,7 @@
         "miny",
         "morecast",
         "ndarray",
+        "Neighbour",
         "numba",
         "osgeo",
         "PMTILES",

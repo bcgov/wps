@@ -18,7 +18,7 @@ from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_adviso
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
 from app.db.models.auto_spatial_advisory import AdvisoryElevationStats
 from app.utils.s3 import get_client
-from app.utils.geospatial import GeospatialOptions, Vector2RasterOptions, cut_raster_by_shape_id, read_raster_into_memory
+from app.utils.geospatial import GeospatialOptions, WarpOptions, cut_raster_by_shape_id, read_raster_into_memory
 
 
 logger = logging.getLogger(__name__)
@@ -203,9 +203,9 @@ async def process_tpi_by_firezone(run_parameters_id: int):
         hfi_result = await read_raster_into_memory(
             client,
             bucket,
-            "psu/pmtiles/hfi/actual/2024-07-18/hfi20240718.pmtiles",  # TODO inform hfi vector lookup by run_parameters_id
+            "psu/rasters/hfi/actual/2024-09-03/snow_masked_hfi20230903.pmtiles",  # TODO inform hfi vector lookup by run_parameters_id
             GeospatialOptions(
-                vector_options=Vector2RasterOptions(
+                warp_options=WarpOptions(
                     source_geotransform=tpi_result.data_geotransform,
                     source_projection=tpi_result.data_projection,
                     source_x_size=tpi_result.data_x_size,
@@ -213,6 +213,7 @@ async def process_tpi_by_firezone(run_parameters_id: int):
                 )
             ),
         )
+
         async with get_async_write_session_scope() as session:
             stmt = text("SELECT id, source_identifier FROM advisory_shapes;")
             result = await session.execute(stmt)
@@ -221,9 +222,7 @@ async def process_tpi_by_firezone(run_parameters_id: int):
             for row in rows:
                 cut_tpi_result = cut_raster_by_shape_id(row[0], row[1], tpi_result.data_source, raster_options)
                 cut_hfi_result = cut_raster_by_shape_id(row[0], row[1], hfi_result.data_source, raster_options)
-                # transforms all pixels that are 255 to 1, this is what we get from pmtiles
-                hfi_4k_or_above = np.where(cut_hfi_result.data_array == 255, 1, cut_hfi_result.data_array)
-                hfi_masked_tpi = np.multiply(cut_tpi_result.data_array, hfi_4k_or_above)
+                hfi_masked_tpi = np.multiply(cut_tpi_result.data_array, cut_hfi_result)
                 # Get unique values and their counts
                 tpi_classes, counts = np.unique(hfi_masked_tpi, return_counts=True)
                 tpi_class_freq_dist = dict(zip(tpi_classes, counts))
