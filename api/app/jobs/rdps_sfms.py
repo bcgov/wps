@@ -47,9 +47,7 @@ def get_model_run_hours_to_process() -> Generator[int, None, None]:
 
 
 class RDPSGrib:
-    """Class that orchestrates downloading, storage and retention policy of RDPS grib files.
-    TODO - Implement retention policy
-    """
+    """Class that orchestrates downloading, storage and retention policy of RDPS grib files."""
 
     def __init__(self, session: Session):
         """Prep variables"""

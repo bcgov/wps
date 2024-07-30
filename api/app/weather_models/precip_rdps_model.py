@@ -9,7 +9,7 @@ from app import config
 from numba import vectorize
 from app.utils.s3 import get_client, read_into_memory
 from app.weather_models import ModelEnum
-from app.weather_models.rdps_filename_marshaller import SourcePrefix, adjust_forecast_hour, compose_computed_precip_rdps_key
+from app.weather_models.rdps_filename_marshaller import SourcePrefix, adjust_forecast_hour, compose_precip_rdps_key, compose_computed_precip_rdps_key
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ async def compute_and_store_precip_rasters(current_time: datetime):
             timestamp = current_time + timedelta(hours=hour)
             (precip_diff_raster, geotransform, projection) = await generate_24_hour_accumulating_precip_raster(timestamp)
             key = f"weather_models/{ModelEnum.RDPS.lower()}/{current_time.date().isoformat()}/" + compose_computed_precip_rdps_key(
-                current_time, current_time.hour, hour, SourcePrefix.COMPUTED
+                current_datetime=current_time, forecast_datetime=timestamp
             )
 
             res = await client.list_objects_v2(Bucket=bucket, Prefix=key, MaxKeys=1)
@@ -91,15 +91,15 @@ async def generate_24_hour_accumulating_precip_raster(current_time: datetime):
     """
     (yesterday_key, today_key) = get_raster_keys_to_diff(current_time)
     (day_data, day_geotransform, day_projection) = await read_into_memory(today_key)
-    if yesterday_key is None:
+    if today_key is None:
         if day_data is None:
-            raise ValueError("No precip raster data for %s", today_key)
+            raise ValueError("No precip raster data for %s" % today_key)
         return (day_data, day_geotransform, day_projection)
 
     yesterday_time = current_time - timedelta(days=1)
     (yesterday_data, _, _) = await read_into_memory(yesterday_key)
     if yesterday_data is None:
-        raise ValueError("No precip raster data for %s", today_key, yesterday_key)
+        raise ValueError("No precip raster data for %s" % yesterday_key)
 
     later_precip = TemporalPrecip(timestamp=current_time, precip_amount=day_data)
     earlier_precip = TemporalPrecip(timestamp=yesterday_time, precip_amount=yesterday_data)
@@ -116,10 +116,10 @@ def get_raster_keys_to_diff(timestamp: datetime):
     # From earlier model run, get the keys for 24 hours before timestamp and the timestamp to perform the diff
     earlier_key = f"{key_prefix}/"
     later_key = f"{key_prefix}/"
-    later_key = later_key + compose_computed_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24, SourcePrefix.CMC)
+    later_key = later_key + compose_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24, SourcePrefix.CMC)
     if target_model_run_date.hour != 0 and target_model_run_date.hour != 12:
         # not a model run hour, return earlier and later keys to take difference
-        earlier_key = earlier_key + compose_computed_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, SourcePrefix.CMC)
+        earlier_key = earlier_key + compose_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, SourcePrefix.CMC)
         return (earlier_key, later_key)
 
     # model run hour, just return the model value from 24 hours ago
