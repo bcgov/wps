@@ -14,18 +14,16 @@ FROM registry.access.redhat.com/ubi9/nodejs-20 as static
 # Switch to root user for package installs
 USER 0
 
-COPY web/package.json .
-COPY web/yarn.lock . 
-COPY web/.yarnrc.yml .
-# do install first so it will be cached
 RUN npm install -g --ignore-scripts corepack
 RUN corepack enable
 RUN yarn set version berry
 RUN yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
 RUN yarn config set npmScopes.psu.npmAlwaysAuth true 
 RUN yarn config set npmScopes.psu.npmAuthToken ${ARTIFACTORY_SVCACCT_TOKEN}
-RUN CYPRESS_INSTALL_BINARY=0 yarn install --immutable
 COPY web .
+RUN CYPRESS_INSTALL_BINARY=0 yarn install 
+RUN curl -sL https://sentry.io/get-cli/ | SENTRY_CLI_VERSION="2.33.0" sh
+
 RUN yarn run build:prod
 
 # Remove sourcemaps after they've been uploaded to sentry
