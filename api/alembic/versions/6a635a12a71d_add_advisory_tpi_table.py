@@ -28,8 +28,6 @@ def upgrade():
         sa.Column("valley_bottom", sa.Integer(), nullable=False),
         sa.Column("mid_slope", sa.Integer(), nullable=False),
         sa.Column("upper_slope", sa.Integer(), nullable=False),
-        sa.Column("raster_height", sa.Integer(), nullable=False),
-        sa.Column("raster_width", sa.Integer(), nullable=False),
         sa.Column("pixel_size_metres", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["advisory_shape_id"],
@@ -50,8 +48,6 @@ def upgrade():
     op.create_index(op.f("ix_advisory_tpi_stats_id"), "advisory_tpi_stats", ["id"], unique=False)
     op.create_index(op.f("ix_advisory_tpi_stats_mid_slope"), "advisory_tpi_stats", ["mid_slope"], unique=False)
     op.create_index(op.f("ix_advisory_tpi_stats_pixel_size_metres"), "advisory_tpi_stats", ["pixel_size_metres"], unique=False)
-    op.create_index(op.f("ix_advisory_tpi_stats_raster_height"), "advisory_tpi_stats", ["raster_height"], unique=False)
-    op.create_index(op.f("ix_advisory_tpi_stats_raster_width"), "advisory_tpi_stats", ["raster_width"], unique=False)
     op.create_index(op.f("ix_advisory_tpi_stats_run_parameters"), "advisory_tpi_stats", ["run_parameters"], unique=False)
     op.create_index(op.f("ix_advisory_tpi_stats_upper_slope"), "advisory_tpi_stats", ["upper_slope"], unique=False)
     op.create_index(op.f("ix_advisory_tpi_stats_valley_bottom"), "advisory_tpi_stats", ["valley_bottom"], unique=False)
@@ -63,8 +59,6 @@ def downgrade():
     op.drop_index(op.f("ix_advisory_tpi_stats_valley_bottom"), table_name="advisory_tpi_stats")
     op.drop_index(op.f("ix_advisory_tpi_stats_upper_slope"), table_name="advisory_tpi_stats")
     op.drop_index(op.f("ix_advisory_tpi_stats_run_parameters"), table_name="advisory_tpi_stats")
-    op.drop_index(op.f("ix_advisory_tpi_stats_raster_width"), table_name="advisory_tpi_stats")
-    op.drop_index(op.f("ix_advisory_tpi_stats_raster_height"), table_name="advisory_tpi_stats")
     op.drop_index(op.f("ix_advisory_tpi_stats_pixel_size_metres"), table_name="advisory_tpi_stats")
     op.drop_index(op.f("ix_advisory_tpi_stats_mid_slope"), table_name="advisory_tpi_stats")
     op.drop_index(op.f("ix_advisory_tpi_stats_id"), table_name="advisory_tpi_stats")

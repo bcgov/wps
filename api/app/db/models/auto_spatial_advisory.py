@@ -203,6 +203,4 @@ class AdvisoryTPIStats(Base):
     valley_bottom = Column(Integer, nullable=False, index=True)
     mid_slope = Column(Integer, nullable=False, index=True)
     upper_slope = Column(Integer, nullable=False, index=True)
-    raster_height = Column(Integer, nullable=False, index=True)
-    raster_width = Column(Integer, nullable=False, index=True)
     pixel_size_metres = Column(Integer, nullable=False, index=True)
