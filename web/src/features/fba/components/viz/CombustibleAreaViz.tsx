@@ -8,9 +8,10 @@ const PREFIX = 'CombustibleAreaViz'
 const StyledTypography = styled(Typography, {
   name: `${PREFIX}-Typography`
 })({
-  fontSize: '1.3rem',
-  textAlign: 'center',
-  variant: 'h3'
+  fontSize: '1rem',
+  fontWeight: 'bold',
+  paddingBottom: '0.5rem',
+  textAlign: 'left'
 })
 
 export interface AdvisoryMetadataProps {

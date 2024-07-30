@@ -6,6 +6,7 @@ from collections import defaultdict
 from typing import List
 from logging import getLogger
 from sklearn.linear_model import LinearRegression
+import math
 import numpy as np
 from sqlalchemy.orm import Session
 from app.weather_models import SCALAR_MODEL_VALUE_KEYS
@@ -263,8 +264,12 @@ class StationMachineLearning:
         if model_precipitation is None:
             logger.warning('model precipitation for %s was None', timestamp)
             return None
+        if math.isnan(model_precipitation):
+            logger.warning("model precipitation for %s was NaN", timestamp)
+            return None
         hour = timestamp.hour
         predicted_precip_24h = self.regression_models_v2._precip_model.predict(hour, [[model_precipitation]])
         if predicted_precip_24h is None or len(predicted_precip_24h) == 0:
+            # No data to return
             return None
         return max(0, predicted_precip_24h[0])
