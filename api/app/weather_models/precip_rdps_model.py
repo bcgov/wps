@@ -34,11 +34,9 @@ async def compute_and_store_precip_rasters(current_time: datetime):
     """
     async with get_client() as (client, bucket):
         for hour in range(0, 24):
-            timestamp = current_time + timedelta(hours=hour)
-            (precip_diff_raster, geotransform, projection) = await generate_24_hour_accumulating_precip_raster(timestamp)
-            key = f"weather_models/{ModelEnum.RDPS.lower()}/{current_time.date().isoformat()}/" + compose_computed_precip_rdps_key(
-                current_datetime=current_time, forecast_datetime=timestamp
-            )
+            accumulation_timestamp = current_time + timedelta(hours=hour)
+            (precip_diff_raster, geotransform, projection) = await generate_24_hour_accumulating_precip_raster(accumulation_timestamp)
+            key = f"weather_models/{ModelEnum.RDPS.lower()}/{accumulation_timestamp.date().isoformat()}/" + compose_computed_precip_rdps_key(forecast_datetime=accumulation_timestamp)
 
             res = await client.list_objects_v2(Bucket=bucket, Prefix=key, MaxKeys=1)
             if "Contents" in res:
@@ -116,10 +114,10 @@ def get_raster_keys_to_diff(timestamp: datetime):
     # From earlier model run, get the keys for 24 hours before timestamp and the timestamp to perform the diff
     earlier_key = f"{key_prefix}/"
     later_key = f"{key_prefix}/"
-    later_key = later_key + compose_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24, SourcePrefix.CMC)
+    later_key = later_key + compose_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24)
     if target_model_run_date.hour != 0 and target_model_run_date.hour != 12:
         # not a model run hour, return earlier and later keys to take difference
-        earlier_key = earlier_key + compose_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, SourcePrefix.CMC)
+        earlier_key = earlier_key + compose_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour)
         return (earlier_key, later_key)
 
     # model run hour, just return the model value from 24 hours ago

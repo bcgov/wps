@@ -107,49 +107,40 @@ def check_compose_invariants(forecast_start_date: datetime, run_hour: int, forec
     assert weather_parameter in weather_key_parameters
 
 
-def compose_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast_hour: int, source_prefix: Literal[SourcePrefix.CMC, SourcePrefix.COMPUTED], weather_parameter: str):
+def compose_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast_hour: int, weather_parameter: str):
     """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour."""
     check_compose_invariants(forecast_start_date, run_hour, forecast_hour, weather_parameter)
     key_params = get_weather_key_params(weather_parameter)
     model_hour = model_run_for_hour(run_hour)
     adjusted_forecast_hour = adjust_forecast_hour(run_hour, forecast_hour)
-    file_ext = ".grib2" if source_prefix == SourcePrefix.CMC else ".tif"
+    file_ext = ".grib2"
 
     return (
-        f"{source_prefix.value}{DELIMITER}{REG}{DELIMITER}{key_params.variable}{DELIMITER}{key_params.level_type}{DELIMITER}{key_params.level}{DELIMITER}{PS10KM}{DELIMITER}"
+        f"{SourcePrefix.CMC.value}{DELIMITER}{REG}{DELIMITER}{key_params.variable}{DELIMITER}{key_params.level_type}{DELIMITER}{key_params.level}{DELIMITER}{PS10KM}{DELIMITER}"
         f"{forecast_start_date.date().isoformat().replace('-','')}{model_hour:02d}{DELIMITER}P{adjusted_forecast_hour:03d}{file_ext}"
     )
 
 
-def compose_precip_rdps_key(forecast_start_date: datetime, run_hour: int, forecast_hour: int, source_prefix: Literal[SourcePrefix.CMC, SourcePrefix.COMPUTED]):
+def compose_precip_rdps_key(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
     """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour."""
     model_hour = model_run_for_hour(run_hour)
-    return f"{model_hour:02d}/precip/{compose_rdps_filename(forecast_start_date, run_hour, forecast_hour, source_prefix, 'precip')}"
+    return f"{model_hour:02d}/precip/{compose_rdps_filename(forecast_start_date, run_hour, forecast_hour, 'precip')}"
 
 
-def compose_rdps_key(forecast_start_date: datetime, run_hour: int, forecast_hour: int, source_prefix: Literal[SourcePrefix.CMC, SourcePrefix.COMPUTED], weather_parameter: str):
-    """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour."""
-    model_hour = model_run_for_hour(run_hour)
-    return (
-        f"weather_models/{ModelEnum.RDPS.lower()}/{forecast_start_date.date().isoformat()}/"
-        f"{model_hour:02d}/{weather_parameter}/{compose_rdps_filename(forecast_start_date, run_hour, forecast_hour, source_prefix, weather_parameter)}"
-    )
-
-
-def compose_computed_rdps_filename(current_datetime: datetime, forecast_datetime: datetime):
+def compose_computed_rdps_filename(forecast_datetime: datetime):
     """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour."""
     key_params = get_weather_key_params("precip")
-    model_hour = model_run_for_hour(current_datetime.hour)
+    model_hour = model_run_for_hour(forecast_datetime.hour)
     adjusted_forecast_hour = forecast_datetime.hour - model_hour
     file_ext = ".tif"
 
     return (
         f"{SourcePrefix.COMPUTED.value}{DELIMITER}{REG}{DELIMITER}{key_params.variable}{DELIMITER}{key_params.level_type}{DELIMITER}{key_params.level}{DELIMITER}{PS10KM}{DELIMITER}"
-        f"{current_datetime.date().isoformat().replace('-','')}{model_hour:02d}{DELIMITER}P{adjusted_forecast_hour:03d}{file_ext}"
+        f"{forecast_datetime.date().isoformat().replace('-','')}{model_hour:02d}{DELIMITER}P{adjusted_forecast_hour:03d}{file_ext}"
     )
 
 
-def compose_computed_precip_rdps_key(current_datetime: datetime, forecast_datetime: datetime):
+def compose_computed_precip_rdps_key(forecast_datetime: datetime):
     """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour."""
-    model_hour = model_run_for_hour(current_datetime.hour)
-    return f"{model_hour:02d}/precip/{compose_computed_rdps_filename(current_datetime, forecast_datetime)}"
+    model_hour = model_run_for_hour(forecast_datetime.hour)
+    return f"{model_hour:02d}/precip/{compose_computed_rdps_filename(forecast_datetime)}"
