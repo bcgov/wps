@@ -20,8 +20,6 @@ async def process_hfi_elevation(run_type: RunType, run_date: date, run_datetime:
     logger.info("Processing HFI elevation %s for run date: %s, for date: %s", run_type, run_date, for_date)
     perf_start = perf_counter()
 
-    logger.info(f"Key to HFI in object storage: {key}")
-
     await process_elevation_tpi(run_type, run_datetime, for_date)
 
     perf_end = perf_counter()
