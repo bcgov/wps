@@ -1,4 +1,5 @@
-""" Code for polygonizing a geotiff file. """
+"""Code for polygonizing a geotiff file."""
+
 import logging
 from contextlib import contextmanager
 from osgeo import gdal, ogr, osr
@@ -9,13 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransform):
-    """ Create an in memory data band to represent a single raster layer.
+    """Create an in memory data band to represent a single raster layer.
     See https://gdal.org/user/raster_data_model.html#raster-band for a complete
     description of what a raster band is.
     """
-    mem_driver = gdal.GetDriverByName('MEM')
+    mem_driver = gdal.GetDriverByName("MEM")
 
-    dataset = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
+    dataset = mem_driver.Create("memory", cols, rows, 1, gdal.GDT_Byte)
     dataset.SetProjection(projection)
     dataset.SetGeoTransform(geotransform)
     band = dataset.GetRasterBand(1)
@@ -26,7 +27,7 @@ def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransfor
 
 @contextmanager
 def polygonize_in_memory(geotiff_filename, layer, field) -> ogr.Layer:
-    """  Given some tiff file, return a polygonized version of it, in memory, as an ogr layer. """
+    """Given some tiff file, return a polygonized version of it, in memory, as an ogr layer."""
     source: gdal.Dataset = gdal.Open(geotiff_filename, gdal.GA_ReadOnly)
 
     source_band = source.GetRasterBand(1)
@@ -37,9 +38,7 @@ def polygonize_in_memory(geotiff_filename, layer, field) -> ogr.Layer:
 
     # generate mask data
     mask_data = np.where(source_data == nodata_value, False, True)
-    mask_ds, mask_band = _create_in_memory_band(
-        mask_data, source_band.XSize, source_band.YSize, source.GetProjection(),
-        source.GetGeoTransform())
+    mask_ds, mask_band = _create_in_memory_band(mask_data, source_band.XSize, source_band.YSize, source.GetProjection(), source.GetGeoTransform())
 
     # Create a memory OGR datasource to put results in.
     # https://gdal.org/drivers/vector/memory.html#vector-memory
@@ -71,15 +70,15 @@ def polygonize_geotiff_to_shapefile(raster_source_filename, vector_dest_filename
     <vector_dest_filename>.shp, and inserts polygonized contents of source
     file into destination file.
     """
-    if raster_source_filename[-3:] != '.tif':
-        return f'{raster_source_filename} is an invalid file format for raster source'
-    if vector_dest_filename[-3:] != '.shp':
-        vector_dest_filename += '.shp'
+    if raster_source_filename[-3:] != ".tif":
+        return f"{raster_source_filename} is an invalid file format for raster source"
+    if vector_dest_filename[-3:] != ".shp":
+        vector_dest_filename += ".shp"
 
     source_data = gdal.Open(raster_source_filename, gdal.GA_ReadOnly)
     source_band = source_data.GetRasterBand(1)
-    value = ogr.FieldDefn('Band 1', ogr.OFTInteger)
-    logger.info('%s raster count %s', raster_source_filename, source_data.RasterCount)
+    value = ogr.FieldDefn("Band 1", ogr.OFTInteger)
+    logger.info("%s raster count %s", raster_source_filename, source_data.RasterCount)
 
     driver = ogr.GetDriverByName("ESRI Shapefile")
     destination = driver.CreateDataSource(vector_dest_filename)
@@ -88,7 +87,7 @@ def polygonize_geotiff_to_shapefile(raster_source_filename, vector_dest_filename
     dest_layer = destination.CreateLayer(vector_dest_filename, geom_type=ogr.wkbPolygon, srs=dest_srs)
     dest_layer.CreateField(value)
     # 'Band 1' is the field name on the layer for Fuel Type ID
-    dest_field = dest_layer.GetLayerDefn().GetFieldIndex('Band 1')
+    dest_field = dest_layer.GetLayerDefn().GetFieldIndex("Band 1")
     gdal.Polygonize(source_band, None, dest_layer, dest_field, [])
 
-    return f'Polygonized {raster_source_filename} to {vector_dest_filename}'
+    return f"Polygonized {raster_source_filename} to {vector_dest_filename}"
