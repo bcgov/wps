@@ -9,12 +9,12 @@ ARG NODE_OPTIONS="--v8-pool-size=4"
 # Pull from local registry - we can't pull from docker due to limits.
 # see https://catalog.redhat.com/software/containers/ubi9/nodejs-20/64770ac7a835530172eee6a9 for
 # details
-FROM registry.access.redhat.com/ubi8/nodejs-16 as static
+FROM registry.access.redhat.com/ubi9/nodejs-20 as static
 
 # Switch to root user for package installs
 USER 0
 
-# RUN npm install -g --ignore-scripts corepack
+RUN npm install -g --ignore-scripts corepack
 RUN corepack enable
 RUN yarn set version berry
 RUN yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
