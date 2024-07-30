@@ -22,6 +22,7 @@ from app.auto_spatial_advisory.hfi_filepath import get_pmtiles_filename, get_pmt
 from app.utils.polygonize import polygonize_in_memory
 from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
 from app.utils.s3 import get_client
+import app.utils.time as time_utils
 
 
 logger = logging.getLogger(__name__)
@@ -104,7 +105,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
             classify_hfi(hfi_key, temp_filename)
             # If something has gone wrong with the collection of snow coverage data and it has not been collected
             # within the past 7 days, don't apply an old snow mask, work with the classified hfi data as is
-            if last_processed_snow is None or last_processed_snow[0].for_date + timedelta(days=7) < datetime.now():
+            if last_processed_snow is None or last_processed_snow[0].for_date + timedelta(days=7) < time_utils.get_utc_now():
                 logger.info("No recently processed snow data found. Proceeding with non-masked hfi data.")
                 working_hfi_path = temp_filename
             else:
