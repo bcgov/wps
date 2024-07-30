@@ -24,7 +24,6 @@
     "@psu/cffdrs_ts": "^0.1.0",
     "@reduxjs/toolkit": "^1.8.0",
     "@sentry/browser": "^8.18.0",
-    "@sentry/cli": "^2.31.2",
     "@sentry/react": "^8.2.1",
     "@types/esri-leaflet": "^3.0.0",
     "@types/geojson": "7946.0.14",

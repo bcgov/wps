@@ -45,7 +45,6 @@ const RAW_RUNTIME_STATE =
           ["@psu/cffdrs_ts", "npm:0.1.0::__archiveUrl=https%3A%2F%2Fartifacts.developer.gov.bc.ca%3A443%2Fartifactory%2Fapi%2Fnpm%2Fpe1e-psu-npm-local%2F%40psu%2Fcffdrs_ts%2F-%2F%40psu%2Fcffdrs_ts-0.1.0.tgz"],\
           ["@reduxjs/toolkit", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:1.9.7"],\
           ["@sentry/browser", "npm:8.20.0"],\
-          ["@sentry/cli", "npm:2.32.2"],\
           ["@sentry/react", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:8.18.0"],\
           ["@testing-library/dom", "npm:10.3.2"],\
           ["@testing-library/jest-dom", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:6.4.6"],\
@@ -5561,90 +5560,6 @@ const RAW_RUNTIME_STATE =
           ["@sentry/core", "npm:8.20.0"],\
           ["@sentry/types", "npm:8.20.0"],\
           ["@sentry/utils", "npm:8.20.0"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["@sentry/cli", [\
-      ["npm:2.32.2", {\
-        "packageLocation": "./.yarn/unplugged/@sentry-cli-npm-2.32.2-bc6d798205/node_modules/@sentry/cli/",\
-        "packageDependencies": [\
-          ["@sentry/cli", "npm:2.32.2"],\
-          ["@sentry/cli-darwin", "npm:2.32.2"],\
-          ["@sentry/cli-linux-arm", "npm:2.32.2"],\
-          ["@sentry/cli-linux-arm64", "npm:2.32.2"],\
-          ["@sentry/cli-linux-i686", "npm:2.32.2"],\
-          ["@sentry/cli-linux-x64", "npm:2.32.2"],\
-          ["@sentry/cli-win32-i686", "npm:2.32.2"],\
-          ["@sentry/cli-win32-x64", "npm:2.32.2"],\
-          ["https-proxy-agent", "npm:5.0.1"],\
-          ["node-fetch", "virtual:bc6d79820564c0ea85523666ab7fa9eb37a15b3ea6212c80e7eb6ea5ba7cabcafd33e43f79aafca8b32544e2e090fa4bcdf8e57eb5240ca7d829e265066a02dc#npm:2.7.0"],\
-          ["progress", "npm:2.0.3"],\
-          ["proxy-from-env", "npm:1.1.0"],\
-          ["which", "npm:2.0.2"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["@sentry/cli-darwin", [\
-      ["npm:2.32.2", {\
-        "packageLocation": "./.yarn/unplugged/@sentry-cli-darwin-npm-2.32.2-8174befa5b/node_modules/@sentry/cli-darwin/",\
-        "packageDependencies": [\
-          ["@sentry/cli-darwin", "npm:2.32.2"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["@sentry/cli-linux-arm", [\
-      ["npm:2.32.2", {\
-        "packageLocation": "./.yarn/unplugged/@sentry-cli-linux-arm-npm-2.32.2-d53d1733b0/node_modules/@sentry/cli-linux-arm/",\
-        "packageDependencies": [\
-          ["@sentry/cli-linux-arm", "npm:2.32.2"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["@sentry/cli-linux-arm64", [\
-      ["npm:2.32.2", {\
-        "packageLocation": "./.yarn/unplugged/@sentry-cli-linux-arm64-npm-2.32.2-18e1084712/node_modules/@sentry/cli-linux-arm64/",\
-        "packageDependencies": [\
-          ["@sentry/cli-linux-arm64", "npm:2.32.2"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["@sentry/cli-linux-i686", [\
-      ["npm:2.32.2", {\
-        "packageLocation": "./.yarn/unplugged/@sentry-cli-linux-i686-npm-2.32.2-0e70cdbb6e/node_modules/@sentry/cli-linux-i686/",\
-        "packageDependencies": [\
-          ["@sentry/cli-linux-i686", "npm:2.32.2"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["@sentry/cli-linux-x64", [\
-      ["npm:2.32.2", {\
-        "packageLocation": "./.yarn/unplugged/@sentry-cli-linux-x64-npm-2.32.2-7534cabb61/node_modules/@sentry/cli-linux-x64/",\
-        "packageDependencies": [\
-          ["@sentry/cli-linux-x64", "npm:2.32.2"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["@sentry/cli-win32-i686", [\
-      ["npm:2.32.2", {\
-        "packageLocation": "./.yarn/unplugged/@sentry-cli-win32-i686-npm-2.32.2-b385d69f2e/node_modules/@sentry/cli-win32-i686/",\
-        "packageDependencies": [\
-          ["@sentry/cli-win32-i686", "npm:2.32.2"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["@sentry/cli-win32-x64", [\
-      ["npm:2.32.2", {\
-        "packageLocation": "./.yarn/unplugged/@sentry-cli-win32-x64-npm-2.32.2-06c6af495a/node_modules/@sentry/cli-win32-x64/",\
-        "packageDependencies": [\
-          ["@sentry/cli-win32-x64", "npm:2.32.2"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -16267,29 +16182,6 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["node-fetch", [\
-      ["npm:2.7.0", {\
-        "packageLocation": "./.yarn/cache/node-fetch-npm-2.7.0-587d57004e-b55786b602.zip/node_modules/node-fetch/",\
-        "packageDependencies": [\
-          ["node-fetch", "npm:2.7.0"]\
-        ],\
-        "linkType": "SOFT"\
-      }],\
-      ["virtual:bc6d79820564c0ea85523666ab7fa9eb37a15b3ea6212c80e7eb6ea5ba7cabcafd33e43f79aafca8b32544e2e090fa4bcdf8e57eb5240ca7d829e265066a02dc#npm:2.7.0", {\
-        "packageLocation": "./.yarn/__virtual__/node-fetch-virtual-8e13610606/0/cache/node-fetch-npm-2.7.0-587d57004e-b55786b602.zip/node_modules/node-fetch/",\
-        "packageDependencies": [\
-          ["node-fetch", "virtual:bc6d79820564c0ea85523666ab7fa9eb37a15b3ea6212c80e7eb6ea5ba7cabcafd33e43f79aafca8b32544e2e090fa4bcdf8e57eb5240ca7d829e265066a02dc#npm:2.7.0"],\
-          ["@types/encoding", null],\
-          ["encoding", null],\
-          ["whatwg-url", "npm:5.0.0"]\
-        ],\
-        "packagePeers": [\
-          "@types/encoding",\
-          "encoding"\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
     ["node-forge", [\
       ["npm:1.3.1", {\
         "packageLocation": "./.yarn/cache/node-forge-npm-1.3.1-f31fd566cc-e882819b25.zip/node_modules/node-forge/",\
@@ -18941,15 +18833,6 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["process-on-spawn", "npm:1.0.0"],\
           ["fromentries", "npm:1.3.2"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["progress", [\
-      ["npm:2.0.3", {\
-        "packageLocation": "./.yarn/cache/progress-npm-2.0.3-d1f87e2ac6-1697e07cb1.zip/node_modules/progress/",\
-        "packageDependencies": [\
-          ["progress", "npm:2.0.3"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -21626,13 +21509,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["tr46", [\
-      ["npm:0.0.3", {\
-        "packageLocation": "./.yarn/cache/tr46-npm-0.0.3-de53018915-047cb209a6.zip/node_modules/tr46/",\
-        "packageDependencies": [\
-          ["tr46", "npm:0.0.3"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:1.0.1", {\
         "packageLocation": "./.yarn/cache/tr46-npm-1.0.1-9547f343a4-41525c2ccc.zip/node_modules/tr46/",\
         "packageDependencies": [\
@@ -22389,13 +22265,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["webidl-conversions", [\
-      ["npm:3.0.1", {\
-        "packageLocation": "./.yarn/cache/webidl-conversions-npm-3.0.1-60310f6a2b-5612d5f3e5.zip/node_modules/webidl-conversions/",\
-        "packageDependencies": [\
-          ["webidl-conversions", "npm:3.0.1"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:4.0.2", {\
         "packageLocation": "./.yarn/cache/webidl-conversions-npm-4.0.2-1d159e6409-def5c5ac34.zip/node_modules/webidl-conversions/",\
         "packageDependencies": [\
@@ -22660,15 +22529,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["whatwg-url", [\
-      ["npm:5.0.0", {\
-        "packageLocation": "./.yarn/cache/whatwg-url-npm-5.0.0-374fb45e60-1588bed84d.zip/node_modules/whatwg-url/",\
-        "packageDependencies": [\
-          ["whatwg-url", "npm:5.0.0"],\
-          ["tr46", "npm:0.0.3"],\
-          ["webidl-conversions", "npm:3.0.1"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:7.1.0", {\
         "packageLocation": "./.yarn/cache/whatwg-url-npm-7.1.0-d6cae01571-2785fe4647.zip/node_modules/whatwg-url/",\
         "packageDependencies": [\
@@ -23063,7 +22923,6 @@ const RAW_RUNTIME_STATE =
           ["@psu/cffdrs_ts", "npm:0.1.0::__archiveUrl=https%3A%2F%2Fartifacts.developer.gov.bc.ca%3A443%2Fartifactory%2Fapi%2Fnpm%2Fpe1e-psu-npm-local%2F%40psu%2Fcffdrs_ts%2F-%2F%40psu%2Fcffdrs_ts-0.1.0.tgz"],\
           ["@reduxjs/toolkit", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:1.9.7"],\
           ["@sentry/browser", "npm:8.20.0"],\
-          ["@sentry/cli", "npm:2.32.2"],\
           ["@sentry/react", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:8.18.0"],\
           ["@testing-library/dom", "npm:10.3.2"],\
           ["@testing-library/jest-dom", "virtual:0c0c905b42e08f2ab29ff6e4eec1f9cadad655f1de04ee9d5180254e8f26803f26c2f0c003cb9dc1aef72c7523d318fa935858517df6487f9315aa8eff72d6cf#npm:6.4.6"],\
