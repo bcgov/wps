@@ -1,5 +1,6 @@
 import pytest
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from app.weather_models.precip_rdps_model import get_key
 from app.weather_models.rdps_filename_marshaller import parse_rdps_filename, compose_computed_precip_rdps_key
 
 
@@ -45,8 +46,29 @@ def test_parse_rdps_filename_failure(filename):
             datetime(2024, 7, 30, 20, tzinfo=timezone.utc),
             "12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_2024073012_P008.tif",
         ),
+        (
+            datetime(2024, 7, 30, 20, tzinfo=timezone.utc),
+            "12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_2024073012_P008.tif",
+        ),
     ],
 )
 def test_compose_computed_precip_rdps_key(timestamp, expected_output_key):
     output_precip_key = compose_computed_precip_rdps_key(timestamp)
+    assert output_precip_key == expected_output_key
+
+
+@pytest.mark.parametrize(
+    "timestamp,expected_output_key",
+    [
+        (
+            datetime(2024, 7, 30, 12, tzinfo=timezone.utc),
+            "weather_models/rdps/2024-07-30/",
+        ),
+    ],
+)
+def test_compose_prefix_key(timestamp, expected_output_key):
+    # at noon the model job runs, and we're looking to compute the raster at offset hour 20
+    # this test fails because it sets the model run datetime path to be the next day
+    accumulation_timestamp = timestamp + timedelta(hours=20)
+    output_precip_key = get_key(accumulation_timestamp)
     assert output_precip_key == expected_output_key

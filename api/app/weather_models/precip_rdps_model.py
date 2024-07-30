@@ -27,6 +27,10 @@ class TemporalPrecip:
         return self.timestamp > other.timestamp
 
 
+def get_key(accumulation_timestamp: datetime):
+    return f"weather_models/{ModelEnum.RDPS.lower()}/{accumulation_timestamp.date().isoformat()}/"
+
+
 async def compute_and_store_precip_rasters(current_time: datetime):
     """
     Given a UTC datetime, trigger 24 hours worth of accumulated precip
@@ -36,9 +40,7 @@ async def compute_and_store_precip_rasters(current_time: datetime):
         for hour in range(0, 24):
             accumulation_timestamp = current_time + timedelta(hours=hour)
             (precip_diff_raster, geotransform, projection) = await generate_24_hour_accumulating_precip_raster(accumulation_timestamp)
-            key = f"weather_models/{ModelEnum.RDPS.lower()}/{accumulation_timestamp.date().isoformat()}/" + compose_computed_precip_rdps_key(
-                accumulation_end_datetime=accumulation_timestamp
-            )
+            key = get_key(accumulation_timestamp) + compose_computed_precip_rdps_key(accumulation_end_datetime=accumulation_timestamp)
 
             res = await client.list_objects_v2(Bucket=bucket, Prefix=key, MaxKeys=1)
             if "Contents" in res:
