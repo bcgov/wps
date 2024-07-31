@@ -39,11 +39,11 @@ def test_parse_rdps_filename_failure(filename):
     [
         (
             datetime(2024, 7, 30, 10, tzinfo=timezone.utc),
-            "00/precip/COMPUTED_reg_APCP_SFC_0_ps10km_2024073000_P010.tif",
+            "00/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20240730_010z.tif",
         ),
         (
             datetime(2024, 7, 30, 20, tzinfo=timezone.utc),
-            "12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_2024073012_P008.tif",
+            "12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20240730_020z.tif",
         ),
     ],
 )
