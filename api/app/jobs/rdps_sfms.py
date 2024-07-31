@@ -6,7 +6,7 @@ Data is stored in S3 storage for a maximum of 7 days
 import asyncio
 import os
 import sys
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 from collections.abc import Generator
 import logging
 import tempfile
@@ -146,11 +146,12 @@ class RDPSJob:
 
         # grab the start time.
         start_time = time_utils.get_utc_now()
+        model_start_time = datetime(start_time.year, start_time.month, start_time.day, 0, tzinfo=timezone.utc)
         with get_write_session_scope() as session:
             rdps_grib = RDPSGrib(session)
             await rdps_grib.process()
             await rdps_grib.apply_retention_policy(DAYS_TO_RETAIN)
-            await compute_and_store_precip_rasters(start_time)
+            await compute_and_store_precip_rasters(model_start_time)
         # calculate the execution time.
         execution_time = time_utils.get_utc_now() - start_time
         hours, remainder = divmod(execution_time.seconds, 3600)

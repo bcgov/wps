@@ -27,14 +27,14 @@ class TemporalPrecip:
         return self.timestamp > other.timestamp
 
 
-async def compute_and_store_precip_rasters(current_time: datetime):
+async def compute_and_store_precip_rasters(timestamp: datetime):
     """
     Given a UTC datetime, trigger 24 hours worth of accumulated precip
     difference rasters and store them.
     """
     async with get_client() as (client, bucket):
         for hour in range(0, 24):
-            accumulation_timestamp = current_time + timedelta(hours=hour)
+            accumulation_timestamp = timestamp + timedelta(days=1, hours=hour)
             (precip_diff_raster, geotransform, projection) = await generate_24_hour_accumulating_precip_raster(accumulation_timestamp)
             key = f"weather_models/{ModelEnum.RDPS.lower()}/{accumulation_timestamp.date().isoformat()}/" + compose_computed_precip_rdps_key(
                 accumulation_end_datetime=accumulation_timestamp
@@ -49,13 +49,13 @@ async def compute_and_store_precip_rasters(current_time: datetime):
 
             logger.info(
                 "Uploading RDPS 24 hour acc precip raster for date: %s, hour: %s, forecast hour: %s to %s",
-                current_time.date().isoformat(),
-                current_time.hour,
-                adjust_forecast_hour(current_time.hour, hour),
+                timestamp.date().isoformat(),
+                timestamp.hour,
+                adjust_forecast_hour(timestamp.hour, hour),
                 key,
             )
             with tempfile.TemporaryDirectory() as temp_dir:
-                temp_filename = os.path.join(temp_dir, current_time.date().isoformat() + "precip" + str(hour) + ".tif")
+                temp_filename = os.path.join(temp_dir, timestamp.date().isoformat() + "precip" + str(hour) + ".tif")
                 # Create temp file
                 driver = gdal.GetDriverByName("GTiff")
                 rows, cols = precip_diff_raster.shape
@@ -84,24 +84,26 @@ async def compute_and_store_precip_rasters(current_time: datetime):
                 logger.info("Done uploading file to %s", key)
 
 
-async def generate_24_hour_accumulating_precip_raster(current_time: datetime):
+async def generate_24_hour_accumulating_precip_raster(timestamp: datetime):
     """
     Given a UTC datetime, grab the raster for that date
     and the date for 24 hours before to compute the difference.
     """
-    (yesterday_key, today_key) = get_raster_keys_to_diff(current_time)
+    (yesterday_key, today_key) = get_raster_keys_to_diff(timestamp)
+    logger.info(yesterday_key)
+    logger.info(today_key)
     (day_data, day_geotransform, day_projection) = await read_into_memory(today_key)
     if yesterday_key is None:
         if day_data is None:
             raise ValueError("No precip raster data for %s" % today_key)
         return (day_data, day_geotransform, day_projection)
 
-    yesterday_time = current_time - timedelta(days=1)
+    yesterday_time = timestamp - timedelta(days=1)
     (yesterday_data, _, _) = await read_into_memory(yesterday_key)
     if yesterday_data is None:
         raise ValueError("No precip raster data for %s" % yesterday_key)
 
-    later_precip = TemporalPrecip(timestamp=current_time, precip_amount=day_data)
+    later_precip = TemporalPrecip(timestamp=timestamp, precip_amount=day_data)
     earlier_precip = TemporalPrecip(timestamp=yesterday_time, precip_amount=yesterday_data)
     return (compute_precip_difference(later_precip, earlier_precip), day_geotransform, day_projection)
 

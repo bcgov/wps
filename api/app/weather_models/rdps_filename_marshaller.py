@@ -130,13 +130,11 @@ def compose_precip_rdps_key(forecast_start_date: datetime, run_hour: int, foreca
 def compose_computed_rdps_filename(accumulation_end_datetime: datetime):
     """Compose and return a computed RDPS url given the datetime that precip is being accumulated to."""
     key_params = get_weather_key_params("precip")
-    model_hour = model_run_for_hour(accumulation_end_datetime.hour)
-    adjusted_forecast_hour = accumulation_end_datetime.hour - model_hour
     file_ext = ".tif"
 
     return (
         f"{SourcePrefix.COMPUTED.value}{DELIMITER}{REG}{DELIMITER}{key_params.variable}{DELIMITER}{key_params.level_type}{DELIMITER}{key_params.level}{DELIMITER}{PS10KM}{DELIMITER}"
-        f"{accumulation_end_datetime.date().isoformat().replace('-','')}{model_hour:02d}{DELIMITER}P{adjusted_forecast_hour:03d}{file_ext}"
+        f"{accumulation_end_datetime.date().isoformat().replace('-','')}{DELIMITER}{accumulation_end_datetime.hour:03d}z{file_ext}"
     )
 
 
