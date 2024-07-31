@@ -130,7 +130,7 @@ def compose_precip_rdps_key(forecast_start_date: datetime, run_hour: int, foreca
 def compose_computed_rdps_filename(accumulation_end_datetime: datetime) -> str:
     """
     Compose and return a computed RDPS url given the datetime that precip is being accumulated to.
-    For details on weather model naming conventions, see: [weather-model-naming.md](./weather-model-naming.md)
+    For details on weather model naming conventions, see: https://github.com/bcgov/wps/tree/main/api/app/weather_models/weather-model-naming.md
     """
     key_params = get_weather_key_params("precip")
     file_ext = ".tif"
