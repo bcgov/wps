@@ -35,6 +35,8 @@ jobs:
           push: false
           tags: user/app:latest
           file: Dockerfile.web
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
   
   build-api-image:
     name: Build API Image
