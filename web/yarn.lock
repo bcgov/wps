@@ -3102,13 +3102,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@psu/cffdrs_ts@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@psu/cffdrs_ts@npm:0.1.0::__archiveUrl=https%3A%2F%2Fartifacts.developer.gov.bc.ca%3A443%2Fartifactory%2Fapi%2Fnpm%2Fpe1e-psu-npm-local%2F%40psu%2Fcffdrs_ts%2F-%2F%40psu%2Fcffdrs_ts-0.1.0.tgz"
-  checksum: 10c0/faa141ebc0b73546f542d9253992792b5b198b5c40079e131f0d648295ee5e3641e546b3a730834306b32be9cd6062adf55b8af3952c24703847c41377cee1cd
-  languageName: node
-  linkType: hard
-
 "@reduxjs/toolkit@npm:^1.8.0":
   version: 1.9.7
   resolution: "@reduxjs/toolkit@npm:1.9.7"
@@ -17451,7 +17444,6 @@ __metadata:
     "@mui/material": "npm:5.15.20"
     "@mui/x-data-grid-pro": "npm:^6.0.0"
     "@mui/x-date-pickers": "npm:^7.0.0"
-    "@psu/cffdrs_ts": "npm:^0.1.0"
     "@reduxjs/toolkit": "npm:^1.8.0"
     "@sentry/cli": "npm:^2.31.2"
     "@sentry/react": "npm:^8.2.1"

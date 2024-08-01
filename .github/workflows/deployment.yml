@@ -24,26 +24,37 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           EPHEMERAL_STORAGE=True BUCKET=gpdqha DATA_SIZE=5Gi WAL_SIZE=5Gi bash openshift/scripts/oc_provision_crunchy.sh ${SUFFIX} apply
 
-  build-web-image:
-    # Declared ahead of build-api-image ; it runs slightly slower than the api build, and putting
-    # it here increases the odds that it get's started 1st, so api and web are slightly more likely
-    # to finish building at the same time.
-    name: Build Web Image
-    runs-on: ubuntu-22.04
+  docker:
+    runs-on: ubuntu-latest
     steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: user/app:latest
+          file: {context}/Dockerfile.web
+  # build-web-image:
+  #   # Declared ahead of build-api-image ; it runs slightly slower than the api build, and putting
+  #   # it here increases the odds that it get's started 1st, so api and web are slightly more likely
+  #   # to finish building at the same time.
+  #   name: Build Web Image
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - name: Set Variables
+  #       shell: bash
+  #       run: |
+  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-      - name: Checkout
-        uses: actions/checkout@v4
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Build wps-web Image
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=web DOCKER_FILE=Dockerfile.web PATH_BC=openshift/templates/build.web.bc.yaml SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" ARTIFACTORY_SVCACCT_TOKEN="${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}" bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+  #     - name: Build wps-web Image
+  #       shell: bash
+  #       run: |
+  #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+  #         GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=web DOCKER_FILE=Dockerfile.web PATH_BC=openshift/templates/build.web.bc.yaml SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" ARTIFACTORY_SVCACCT_TOKEN="${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}" bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   build-api-image:
     name: Build API Image
