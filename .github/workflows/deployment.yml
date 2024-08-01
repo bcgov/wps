@@ -34,7 +34,7 @@ jobs:
         with:
           push: true
           tags: user/app:latest
-          file: {context}/Dockerfile.web
+          file: Dockerfile.web
   
   build-api-image:
     name: Build API Image
