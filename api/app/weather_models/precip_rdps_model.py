@@ -34,7 +34,7 @@ async def compute_and_store_precip_rasters(timestamp: datetime):
     """
     async with get_client() as (client, bucket):
         for hour in range(0, 24):
-            accumulation_timestamp = timestamp + timedelta(days=1, hours=hour)
+            accumulation_timestamp = timestamp + timedelta(hours=hour)
             (precip_diff_raster, geotransform, projection) = await generate_24_hour_accumulating_precip_raster(accumulation_timestamp)
             key = f"weather_models/{ModelEnum.RDPS.lower()}/{accumulation_timestamp.date().isoformat()}/" + compose_computed_precip_rdps_key(
                 accumulation_end_datetime=accumulation_timestamp

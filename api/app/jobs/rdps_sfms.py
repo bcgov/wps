@@ -27,6 +27,7 @@ from app.utils.s3 import get_client
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.jobs.env_canada_utils import get_regional_model_run_download_urls
 from app.weather_models.precip_rdps_model import compute_and_store_precip_rasters
+from app.weather_models.rdps_filename_marshaller import model_run_for_hour
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -146,7 +147,10 @@ class RDPSJob:
 
         # grab the start time.
         start_time = time_utils.get_utc_now()
-        model_start_time = datetime(start_time.year, start_time.month, start_time.day, 0, tzinfo=timezone.utc)
+
+        # start our computing at the utc datetime of the most recent model run
+        model_run_hour = model_run_for_hour(start_time.hour)
+        model_start_time = datetime(start_time.year, start_time.month, start_time.day, model_run_hour, tzinfo=timezone.utc)
         with get_write_session_scope() as session:
             rdps_grib = RDPSGrib(session)
             await rdps_grib.process()
