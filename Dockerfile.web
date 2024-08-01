@@ -26,8 +26,7 @@ RUN --mount=type=secret,id=ARTIFACTORY_SVCACCT_TOKEN yarn config set npmScopes.p
 RUN CYPRESS_INSTALL_BINARY=0 yarn install --immutable
 COPY web .
 
-RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN export SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN)
-RUN yarn run build:prod
+RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN) \ yarn run build:prod
 
 # Remove sourcemaps after they've been uploaded to sentry
 RUN rm build/static/js/**.map
