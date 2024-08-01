@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_c_haines_index(t700: float, t850: float, d850: float) -> float:
-    """ Given temperature and dew points values, calculate c-haines. for real
+    """ Given temperature and dew points values, calculate c-haines.
     Based on original work:
     Graham A. Mills and Lachlan McCaw (2010). Atmospheric Stability Environments
     and Fire Weather in Australia – extending the Haines Index.
