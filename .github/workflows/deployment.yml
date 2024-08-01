@@ -37,7 +37,10 @@ jobs:
           file: Dockerfile.web
           cache-from: type=gha
           cache-to: type=gha,mode=max
-  
+          secrets: |
+            "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
+            "ARTIFACTORY_SVCACCT_TOKEN=${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}"  
+
   build-api-image:
     name: Build API Image
     runs-on: ubuntu-22.04

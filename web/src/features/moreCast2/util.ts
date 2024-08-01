@@ -5,7 +5,7 @@ import { StationGroupMember } from 'api/stationAPI'
 import { groupBy, isUndefined } from 'lodash'
 import { getDateTimeNowPST } from 'utils/date'
 import { isForecastRowPredicate } from 'features/moreCast2/saveForecasts'
-import { bui, dc, dmc, ffmc, fwi, isi } from 'cffdrs_ts'
+import { bui, dc, dmc, ffmc, fwi, isi } from '@psu/cffdrs_ts'
 
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
