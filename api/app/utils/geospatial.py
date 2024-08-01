@@ -1,9 +1,11 @@
+import os
 from dataclasses import dataclass
 import logging
 from typing import Any, Optional
 from aiobotocore.client import AioBaseClient
 from botocore.exceptions import ClientError
 from osgeo import gdal
+import numpy as np
 
 from app.db.database import DB_READ_STRING
 
@@ -125,15 +127,19 @@ def _get_raster_data_source(key: str, s3_data, options: Optional[GeospatialOptio
         raster_ds = gdal.Open(s3_data_mem_path, gdal.GA_ReadOnly)
         # peel off path, then extension, then attach .tif extension
         filename = ((key.split("/")[-1]).split(".")[0]) + ".tif"
+
+        x_res = options.warp_options.source_geotransform[1]
+        y_res = -options.warp_options.source_geotransform[5]
+        minx = options.warp_options.source_geotransform[0]
+        maxy = options.warp_options.source_geotransform[3]
+        maxx = minx + options.warp_options.source_geotransform[1] * options.warp_options.source_x_size
+        miny = maxy + options.warp_options.source_geotransform[5] * options.warp_options.source_y_size
+        extent = [minx, miny, maxx, maxy]
+
         warped_mem_path = f"/vsimem/{filename}"
-        gdal.Warp(
-            warped_mem_path,
-            raster_ds,
-            dstSRS=options.warp_options.source_projection,
-            xRes=options.warp_options.source_x_size,
-            yRes=options.warp_options.source_y_size,
-            resampleAlg=gdal.GRA_NearestNeighbour,
-        )
+
+        # Warp to match input option parameters
+        gdal.Warp(warped_mem_path, raster_ds, dstSRS=options.warp_options.source_projection, outputBounds=extent, xRes=x_res, yRes=y_res, resampleAlg=gdal.GRA_NearestNeighbour)
         output_raster_ds = gdal.Open(warped_mem_path, gdal.GA_ReadOnly)
         raster_ds = output_raster_ds
         gdal.Unlink(warped_mem_path)
@@ -181,3 +187,23 @@ def cut_raster_by_shape_id(advisory_shape_id: int, source_identifier: str, data_
     warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=DB_READ_STRING, cutlineSQL=f"SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}", cropToCutline=True)
     output_dataset = gdal.Warp(output_path, data_source, options=warp_options)
     return get_raster_data(output_dataset, options)
+
+
+def data_array_to_raster(data_array: np.ndarray, key: str, options: GeospatialOptions, bands=1):
+    output_driver = gdal.GetDriverByName("GTiff")
+    mem_path = f"/vsimem/d2r-{key}"
+    gdal.FileFromMemBuffer(mem_path, data_array)
+    target_tiff = output_driver.Create(mem_path, xsize=options.warp_options.source_x_size, ysize=options.warp_options.source_y_size, bands=bands, eType=gdal.GDT_Byte)
+    # Set the geotransform and projection to the same as the input.
+    target_tiff.SetGeoTransform(options.warp_options.source_geotransform)
+    target_tiff.SetProjection(options.warp_options.source_projection)
+
+    # Write the classified data to the band.
+    target_band = target_tiff.GetRasterBand(1)
+    target_band.WriteArray(data_array)
+
+    # Important to make sure data is flushed to disk!
+    target_tiff.FlushCache()
+    output_raster_ds = gdal.Open(mem_path, gdal.GA_ReadOnly)
+    gdal.Unlink(mem_path)
+    return output_raster_ds

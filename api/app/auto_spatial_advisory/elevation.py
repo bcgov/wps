@@ -19,7 +19,7 @@ from app.db.database import get_async_read_session_scope, get_async_write_sessio
 from app.db.models.auto_spatial_advisory import AdvisoryElevationStats, AdvisoryTPIStats
 from app.auto_spatial_advisory.hfi_filepath import get_raster_filepath, get_raster_tif_filename
 from app.utils.s3 import get_client
-from app.utils.geospatial import GeospatialOptions, WarpOptions, cut_raster_by_shape_id, read_raster_into_memory
+from app.utils.geospatial import GeospatialOptions, WarpOptions, cut_raster_by_shape_id, data_array_to_raster, read_raster_into_memory
 
 
 logger = logging.getLogger(__name__)
@@ -233,36 +233,35 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
             f'dem/tpi/{config.get("CLASSIFIED_TPI_DEM_NAME")}',
             raster_options,
         )
-        hfi_result = await read_raster_into_memory(
-            client,
-            bucket,
-            hfi_raster_key,
-            GeospatialOptions(
-                warp_options=WarpOptions(
-                    source_geotransform=tpi_result.data_geotransform,
-                    source_projection=tpi_result.data_projection,
-                    source_x_size=tpi_result.data_x_size,
-                    source_y_size=tpi_result.data_y_size,
-                )
-            ),
+        output_options = GeospatialOptions(
+            warp_options=WarpOptions(
+                source_geotransform=tpi_result.data_geotransform,
+                source_projection=tpi_result.data_projection,
+                source_x_size=tpi_result.data_x_size,
+                source_y_size=tpi_result.data_y_size,
+            )
         )
+        hfi_result = await read_raster_into_memory(client, bucket, hfi_raster_key, output_options)
 
+        # We only want pixels with HFI >4k as values to intersect with TPI raster
+        hfi_result.data_array = np.where(hfi_result.data_array >= 1, 1, 0)
+        hfi_masked_tpi = np.multiply(tpi_result.data_array, hfi_result.data_array)
+
+        hfi_masked_tpi_ds = data_array_to_raster(hfi_masked_tpi, hfi_raster_key, output_options)
         async with get_async_write_session_scope() as session:
             stmt = text("SELECT id, source_identifier FROM advisory_shapes;")
             result = await session.execute(stmt)
             rows = result.all()
 
             for row in rows:
-                cut_tpi_result = cut_raster_by_shape_id(row[0], row[1], tpi_result.data_source, raster_options)
-                cut_hfi_result = cut_raster_by_shape_id(row[0], row[1], hfi_result.data_source, raster_options)
-                hfi_masked_tpi = np.multiply(cut_tpi_result.data_array, cut_hfi_result)
+                cut_hfi_masked_tpi = cut_raster_by_shape_id(row[0], row[1], hfi_masked_tpi_ds, raster_options)
                 # Get unique values and their counts
-                tpi_classes, counts = np.unique(hfi_masked_tpi, return_counts=True)
+                tpi_classes, counts = np.unique(cut_hfi_masked_tpi.data_array, return_counts=True)
                 tpi_class_freq_dist = dict(zip(tpi_classes, counts))
 
-            # Drop TPI class 4, this is the no data value from the TPI raster
-            tpi_class_freq_dist.pop(4, None)
-            fire_zone_stats[row[1]] = tpi_class_freq_dist
+                # Drop TPI class 4, this is the no data value from the TPI raster
+                tpi_class_freq_dist.pop(4, None)
+                fire_zone_stats[row[1]] = tpi_class_freq_dist
 
         return fire_zone_stats
 
