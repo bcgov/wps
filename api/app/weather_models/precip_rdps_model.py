@@ -27,14 +27,14 @@ class TemporalPrecip:
         return self.timestamp > other.timestamp
 
 
-async def compute_and_store_precip_rasters(timestamp: datetime):
+async def compute_and_store_precip_rasters(model_run_timestamp: datetime):
     """
     Given a UTC datetime, trigger 36 hours worth of accumulated precip
     difference rasters and store them.
     """
     async with get_client() as (client, bucket):
         for hour in range(0, 36):
-            accumulation_timestamp = timestamp + timedelta(hours=hour)
+            accumulation_timestamp = model_run_timestamp + timedelta(hours=hour)
             (precip_diff_raster, geotransform, projection) = await generate_24_hour_accumulating_precip_raster(accumulation_timestamp)
             key = f"weather_models/{ModelEnum.RDPS.lower()}/{accumulation_timestamp.date().isoformat()}/" + compose_computed_precip_rdps_key(
                 accumulation_end_datetime=accumulation_timestamp
@@ -49,13 +49,13 @@ async def compute_and_store_precip_rasters(timestamp: datetime):
 
             logger.info(
                 "Uploading RDPS 24 hour acc precip raster for date: %s, hour: %s, forecast hour: %s to %s",
-                timestamp.date().isoformat(),
-                timestamp.hour,
-                adjust_forecast_hour(timestamp.hour, hour),
+                model_run_timestamp.date().isoformat(),
+                model_run_timestamp.hour,
+                adjust_forecast_hour(model_run_timestamp.hour, hour),
                 key,
             )
             with tempfile.TemporaryDirectory() as temp_dir:
-                temp_filename = os.path.join(temp_dir, timestamp.date().isoformat() + "precip" + str(hour) + ".tif")
+                temp_filename = os.path.join(temp_dir, model_run_timestamp.date().isoformat() + "precip" + str(hour) + ".tif")
                 # Create temp file
                 driver = gdal.GetDriverByName("GTiff")
                 rows, cols = precip_diff_raster.shape
