@@ -1,5 +1,6 @@
 """Takes a classified HFI image and calculates basic elevation statistics associated with advisory areas per fire zone."""
 
+from dataclasses import dataclass
 from datetime import date, datetime
 from time import perf_counter
 import logging
@@ -210,15 +211,28 @@ def apply_threshold_mask_to_dem(threshold: int, mask_path: str, temp_dir: str):
     return masked_dem_path
 
 
-async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: date) -> Dict[int, Dict[int, int]]:
+@dataclass(frozen=True)
+class FireZoneTPIStats:
+    """
+    Captures fire zone stats of TPI pixels hitting >4K HFI threshold via
+    a dictionary, fire_zone_stats, of {source_identifier: {1: X, 2: Y, 3: Z}}, where 1 = valley bottom, 2 = mid slope, 3 = upper slope
+    and X, Y, Z are pixel counts at each of those elevation classes respectively.
+
+    Also includes the TPI raster's pixel size in metres.
+    """
+
+    fire_zone_stats: Dict[int, Dict[int, int]]
+    pixel_size_metres: int
+
+
+async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: date) -> FireZoneTPIStats:
     """
     Given run parameters, lookup associated snow-masked HFI and static classified TPI geospatial data.
     Cut out each fire zone shape from the above and intersect the TPI and HFI pixels, counting each pixel contributing to the TPI class.
     Capture all fire zone stats keyed by its source_identifier.
 
     :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
-    :return: dictionary of {source_identifier: {1: X, 2: Y, 3: Z}}, where 1 = valley bottom, 2 = mid slope, 3 = upper slope
-    and X, Y, Z are pixel counts at each of those elevation classes respectively.
+    :return: fire zone TPI status
     """
     raster_options = GeospatialOptions(include_geotransform=True, include_projection=True, include_x_size=True, include_y_size=True)
     fire_zone_stats: Dict[int, Dict[int, int]] = {}
@@ -263,7 +277,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
                 tpi_class_freq_dist.pop(4, None)
                 fire_zone_stats[row[1]] = tpi_class_freq_dist
 
-        return fire_zone_stats
+            return FireZoneTPIStats(fire_zone_stats=fire_zone_stats, pixel_size_metres=tpi_result.data_geotransform[1])
 
 
 async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, run_parameters_id: int):
@@ -351,7 +365,7 @@ async def store_elevation_stats(session: AsyncSession, threshold: int, shape_id:
     await save_advisory_elevation_stats(session, advisory_elevation_stats)
 
 
-async def store_elevation_tpi_stats(session: AsyncSession, run_parameters_id: int, fire_zone_stats: Dict[int, Dict[int, int]]):
+async def store_elevation_tpi_stats(session: AsyncSession, run_parameters_id: int, fire_zone_tpi_stats: FireZoneTPIStats):
     """
     Writes elevation TPI statistics to the database.
 
@@ -360,14 +374,14 @@ async def store_elevation_tpi_stats(session: AsyncSession, run_parameters_id: in
     :param fire_zone_stats: Dictionary keying shape id to a dictionary of classified tpi hfi pixel counts
     """
     advisory_tpi_stats_list = []
-    for shape_id, tpi_freq_count in fire_zone_stats:
+    for shape_id, tpi_freq_count in fire_zone_tpi_stats.fire_zone_stats:
         advisory_tpi_stats = AdvisoryTPIStats(
             advisory_shape_id=shape_id,
             run_parameters=run_parameters_id,
             valley_bottom=tpi_freq_count[1],
             mid_slope=tpi_freq_count[2],
             upper_slope=tpi_freq_count[3],
-            pixel_size_metres=2000,
+            pixel_size_metres=fire_zone_tpi_stats.pixel_size_metres,
         )
         advisory_tpi_stats_list.append(advisory_tpi_stats)
 
