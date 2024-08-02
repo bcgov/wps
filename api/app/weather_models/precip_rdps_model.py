@@ -29,7 +29,7 @@ class TemporalPrecip:
 
 async def compute_and_store_precip_rasters(timestamp: datetime):
     """
-    Given a UTC datetime, trigger 24 hours worth of accumulated precip
+    Given a UTC datetime, trigger 36 hours worth of accumulated precip
     difference rasters and store them.
     """
     async with get_client() as (client, bucket):
