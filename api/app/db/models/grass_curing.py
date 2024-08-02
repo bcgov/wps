@@ -15,4 +15,3 @@ class PercentGrassCuring(Base):
     station_code = Column(Integer, nullable=False, index=True)
     percent_grass_curing = Column(Float, nullable=False, index=False)
     for_date = Column(TZTimeStamp, nullable=False, index=True)
-#    trigger
