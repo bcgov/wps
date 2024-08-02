@@ -117,6 +117,13 @@
             "console": "integratedTerminal",
         },
         {
+            "name": "app.jobs.rdps_sfms ",
+            "type": "python",
+            "request": "launch",
+            "module": "app.jobs.rdps_sfms",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Chrome",
             "type": "pwa-chrome",
             "request": "launch",
