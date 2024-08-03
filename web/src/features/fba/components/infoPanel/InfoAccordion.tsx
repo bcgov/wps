@@ -3,7 +3,7 @@ import React from 'react'
 import { Accordion, AccordionDetails, AccordionSummary, Typography } from '@mui/material'
 import { styled, useTheme } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { INFO_PANEL_HEADER_BACKGORUND } from 'app/theme'
+import { INFO_PANEL_HEADER_BACKGROUND } from 'app/theme'
 
 interface InfoAccordionProps {
   accordionDetailBackgroundColour?: string
@@ -13,7 +13,7 @@ interface InfoAccordionProps {
 }
 
 const StyledAccordionSummary = styled(AccordionSummary)(() => ({
-  backgroundColor: INFO_PANEL_HEADER_BACKGORUND,
+  backgroundColor: INFO_PANEL_HEADER_BACKGROUND,
   ['& .MuiAccordionSummary-content']: {
     margin: 0
   }
