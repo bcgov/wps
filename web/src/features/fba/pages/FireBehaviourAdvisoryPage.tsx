@@ -33,6 +33,7 @@ import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
 import ProvincialSummary from 'features/fba/components/infoPanel/ProvincialSummary'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
+import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -239,6 +240,10 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         <Grid container direction={'row'}>
           <InfoPanel ref={sidePanelRef}>
             <ProvincialSummary advisoryThreshold={advisoryThreshold} />
+            <AdvisoryReport 
+              issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
+              forDate={dateOfInterest}
+            />
             <FireZoneUnitSummary
               fireShapeAreas={fireShapeAreas}
               fuelTypeInfo={hfiThresholdsFuelTypes}
