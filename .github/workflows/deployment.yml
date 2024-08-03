@@ -40,24 +40,24 @@ jobs:
           secrets: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
             "ARTIFACTORY_SVCACCT_TOKEN=${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}"  
-      - name: Authenticate and set context
-        uses: redhat-actions/oc-login@v1
-        with:
-          # URL to your OpenShift cluster.
-          # Refer to Step 2.
-          openshift_server_url: ${{ secrets.OPENSHIFT_CLUSTER }}
-          # Authentication Token. Can use username and password instead.
-          # Refer to Step 3.
-          openshift_token: ${{ secrets.OC4_TOOL_TOKEN }}
+      # - name: Authenticate and set context
+      #   uses: redhat-actions/oc-login@v1
+      #   with:
+      #     # URL to your OpenShift cluster.
+      #     # Refer to Step 2.
+      #     openshift_server_url: ${{ secrets.OPENSHIFT_CLUSTER }}
+      #     # Authentication Token. Can use username and password instead.
+      #     # Refer to Step 3.
+      #     openshift_token: ${{ secrets.OC4_TOOL_TOKEN }}
       - name: who am i
         run: |
           oc whoami --show-server
       - name: Push 
         uses: redhat-actions/push-to-registry@v2
         with:
+          image: ${{ steps.build-it.outputs.imageid }}
           tags: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816
-
-
+          password: ${{ secrets.OC4_TOOL_TOKEN }}
 
   build-api-image:
     name: Build API Image
