@@ -49,9 +49,6 @@ jobs:
       #     # Authentication Token. Can use username and password instead.
       #     # Refer to Step 3.
       #     openshift_token: ${{ secrets.OC4_TOOL_TOKEN }}
-      - name: who am i
-        run: |
-          oc whoami --show-server
       - name: Push 
         uses: redhat-actions/push-to-registry@v2
         with:
