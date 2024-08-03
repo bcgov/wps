@@ -53,7 +53,7 @@ jobs:
         uses: redhat-actions/push-to-registry@v2
         with:
           image: ${{ steps.build-it.outputs.imageid }}
-          tags: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816
+          registry: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816
           password: ${{ secrets.OC4_TOOL_TOKEN }}
 
   build-api-image:
