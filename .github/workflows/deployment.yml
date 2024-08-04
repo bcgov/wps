@@ -33,10 +33,12 @@ jobs:
         id: build-it
         uses: docker/build-push-action@v6
         with:
-          push: false
+          push: true
           file: Dockerfile.web
           cache-from: type=gha
+          registry: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816
           cache-to: type=gha,mode=max
+          password: ${{ secrets.OC4_TOOL_TOKEN }}
           secrets: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
             "ARTIFACTORY_SVCACCT_TOKEN=${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}"  
@@ -49,12 +51,12 @@ jobs:
       #     # Authentication Token. Can use username and password instead.
       #     # Refer to Step 3.
       #     openshift_token: ${{ secrets.OC4_TOOL_TOKEN }}
-      - name: Push 
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build-it.outputs.imageid }}
-          registry: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816
-          password: ${{ secrets.OC4_TOOL_TOKEN }}
+      # - name: Push 
+      #   uses: redhat-actions/push-to-registry@v2
+      #   with:
+      #     image: ${{ steps.build-it.outputs.imageid }}
+      #     registry: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816
+      #     password: ${{ secrets.OC4_TOOL_TOKEN }}
 
   build-api-image:
     name: Build API Image
