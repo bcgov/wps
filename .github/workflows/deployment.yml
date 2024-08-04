@@ -36,7 +36,7 @@ jobs:
           push: true
           file: Dockerfile.web
           cache-from: type=gha
-          registry: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816
+          tags: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816:pr-3820
           cache-to: type=gha,mode=max
           password: ${{ secrets.OC4_TOOL_TOKEN }}
           secrets: |
