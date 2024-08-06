@@ -206,35 +206,38 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           </Grid>
         </Grid>
       </Box>
-        <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
-          <InfoPanel>
-            <ProvincialSummary advisoryThreshold={advisoryThreshold} />
-            <AdvisoryReport 
-              issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
-              forDate={dateOfInterest}
-            />
-            <FireZoneUnitSummary
-              fireShapeAreas={fireShapeAreas}
-              fuelTypeInfo={hfiThresholdsFuelTypes}
-              hfiElevationInfo={fireZoneElevationInfo}
-              selectedFireZoneUnit={selectedFireShape}
-            />
-          </InfoPanel>
-          <Grid sx={{ display: 'flex', flex: 1 }} item>
-            <FBAMap
-              forDate={dateOfInterest}
-              runType={runType}
-              selectedFireShape={selectedFireShape}
-              selectedFireCenter={fireCenter}
-              advisoryThreshold={advisoryThreshold}
-              setSelectedFireShape={setSelectedFireShape}
-              fireShapeAreas={fireShapeAreas}
-              showSummaryPanel={showSummaryPanel}
-              snowDate={snowDate}
-              setShowSummaryPanel={setShowSummaryPanel}
-            />
-          </Grid>
-        </Box>
+      <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
+        <InfoPanel>
+          <ProvincialSummary advisoryThreshold={advisoryThreshold} />
+          <AdvisoryReport
+            issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
+            forDate={dateOfInterest}
+            selectedFireZoneUnit={selectedFireShape}
+            fireShapeAreas={fireShapeAreas}
+            advisoryThreshold={advisoryThreshold}
+          />
+          <FireZoneUnitSummary
+            fireShapeAreas={fireShapeAreas}
+            fuelTypeInfo={hfiThresholdsFuelTypes}
+            hfiElevationInfo={fireZoneElevationInfo}
+            selectedFireZoneUnit={selectedFireShape}
+          />
+        </InfoPanel>
+        <Grid sx={{ display: 'flex', flex: 1 }} item>
+          <FBAMap
+            forDate={dateOfInterest}
+            runType={runType}
+            selectedFireShape={selectedFireShape}
+            selectedFireCenter={fireCenter}
+            advisoryThreshold={advisoryThreshold}
+            setSelectedFireShape={setSelectedFireShape}
+            fireShapeAreas={fireShapeAreas}
+            showSummaryPanel={showSummaryPanel}
+            snowDate={snowDate}
+            setShowSummaryPanel={setShowSummaryPanel}
+          />
+        </Grid>
+      </Box>
     </Box>
   )
 }
