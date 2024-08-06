@@ -45,8 +45,9 @@ export const FireCentreFormControl = styled(FormControl)({
   minWidth: 280
 })
 
-export const ForecastActualDropdownFormControl = styled(FireCentreFormControl)({
-  marginLeft: 50
+export const ForecastActualDropdownFormControl = styled(FormControl)({
+  margin: theme.spacing(1),
+  minWidth: 280
 })
 
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
@@ -189,7 +190,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         title={FIRE_BEHAVIOUR_ADVISORY_NAME}
         productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
       />
-      <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={'xl'}>
+      <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={false}>
         <Grid container direction={'row'}>
           <Grid container spacing={1} ref={formControlRef}>
             <Grid item>
@@ -197,7 +198,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
               </StyledFormControl>
             </Grid>
-            <Grid item xs={2}>
+            <Grid item>
               <FireCentreFormControl>
                 <FireCenterDropdown
                   fireCenterOptions={fireCenters}
@@ -236,7 +237,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           </Grid>
         </Grid>
       </Container>
-      <Container sx={{ display: 'flex', flex: 1 }} disableGutters maxWidth={'xl'}>
+      <Container sx={{ display: 'flex', flex: 1 }} disableGutters maxWidth={false}>
         <Grid container direction={'row'}>
           <InfoPanel ref={sidePanelRef}>
             <ProvincialSummary advisoryThreshold={advisoryThreshold} />
