@@ -259,6 +259,13 @@ objects:
             - name: ${APP_NAME}-${SUFFIX}-nats-consumer
               image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
               imagePullPolicy: "Always"
+              resources:
+                requests:
+                  cpu: "250m"
+                  memory: "1024Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "2048Mi"
               command:
                 [
                   "poetry",
