@@ -262,9 +262,13 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
         hfi_masked_tpi = np.multiply(tpi_result.data_array, hfi_result.data_array)
 
         tpi_result.data_array = None
+        del tpi_result.data_array
         tpi_result.data_source = None
+        del tpi_result.data_source
         hfi_result.data_array = None
+        del hfi_result.data_array
         hfi_result.data_source = None
+        del hfi_result.data_source
 
         hfi_masked_tpi_ds = data_array_to_raster(hfi_masked_tpi, hfi_raster_key, output_options)
         async with get_async_write_session_scope() as session:
@@ -276,6 +280,10 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
                 cut_hfi_masked_tpi = cut_raster_by_shape_id(row[0], row[1], hfi_masked_tpi_ds, raster_options)
                 # Get unique values and their counts
                 tpi_classes, counts = np.unique(cut_hfi_masked_tpi.data_array, return_counts=True)
+                cut_hfi_masked_tpi.data_array = None
+                del cut_hfi_masked_tpi.data_array
+                cut_hfi_masked_tpi.data_source = None
+                del cut_hfi_masked_tpi.data_source
                 tpi_class_freq_dist = dict(zip(tpi_classes, counts))
 
                 # Drop TPI class 4, this is the no data value from the TPI raster
