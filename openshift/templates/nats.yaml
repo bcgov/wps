@@ -332,6 +332,11 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.dem_name
+                - name: CLASSIFIED_TPI_DEM_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.classified_tpi_dem_name
               ports:
                 - containerPort: 4222
                   name: client
