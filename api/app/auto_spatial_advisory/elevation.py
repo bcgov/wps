@@ -261,6 +261,11 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
         hfi_result.data_array = np.where(hfi_result.data_array >= 1, 1, 0)
         hfi_masked_tpi = np.multiply(tpi_result.data_array, hfi_result.data_array)
 
+        tpi_result.data_array = None
+        tpi_result.data_source = None
+        hfi_result.data_array = None
+        hfi_result.data_source = None
+
         hfi_masked_tpi_ds = data_array_to_raster(hfi_masked_tpi, hfi_raster_key, output_options)
         async with get_async_write_session_scope() as session:
             stmt = text("SELECT id, source_identifier FROM advisory_shapes;")

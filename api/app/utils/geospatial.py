@@ -104,6 +104,7 @@ def get_raster_data(data_source, options: Optional[GeospatialOptions]) -> Geospa
     """
     (data_geotransform, data_projection, data_x_size, data_y_size) = get_geospatial_metadata(data_source, options)
     data_array = read_raster_data(data_source)
+    data_source = None
     return GeospatialReadResult(
         data_array=data_array, data_source=data_source, data_geotransform=data_geotransform, data_projection=data_projection, data_x_size=data_x_size, data_y_size=data_y_size
     )
