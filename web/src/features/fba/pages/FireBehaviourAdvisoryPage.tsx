@@ -152,84 +152,62 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     document.title = ASA_DOC_TITLE
   }, [])
 
-  const formControlRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<HTMLDivElement>(null)
-  const navRef = useRef<HTMLDivElement>(null)
-  const sidePanelRef = useRef<HTMLDivElement>(null)
-  const [formControlHeight, setFormControlHeight] = useState<number>(0)
-  const [navRefHeight, setNavRefHeight] = useState<number>(0)
-
-  useEffect(() => {
-    if (navRef.current) {
-      setNavRefHeight(navRef.current.clientHeight)
-    }
-  }, [navRef.current?.clientHeight])
-
-  useEffect(() => {
-    if (formControlRef.current) {
-      setFormControlHeight(formControlRef.current.clientHeight)
-    }
-  }, [formControlRef.current?.clientHeight])
-
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader
-        ref={navRef}
         isBeta={true}
         spacing={1}
         title={FIRE_BEHAVIOUR_ADVISORY_NAME}
         productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
       />
-      <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={false}>
-        <Grid container direction={'row'}>
-          <Grid container spacing={1} ref={formControlRef}>
+      <Box sx={{ paddingTop: '0.5em' }}>
+        <Grid container spacing={1}>
+          <Grid item>
+            <StyledFormControl>
+              <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
+            </StyledFormControl>
+          </Grid>
+          <Grid item>
+            <FireCentreFormControl>
+              <FireCenterDropdown
+                fireCenterOptions={fireCenters}
+                selectedFireCenter={fireCenter}
+                setSelectedFireCenter={setFireCenter}
+              />
+            </FireCentreFormControl>
+          </Grid>
+          <ErrorBoundary>
             <Grid item>
-              <StyledFormControl>
-                <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
-              </StyledFormControl>
-            </Grid>
-            <Grid item>
-              <FireCentreFormControl>
-                <FireCenterDropdown
-                  fireCenterOptions={fireCenters}
-                  selectedFireCenter={fireCenter}
-                  setSelectedFireCenter={setFireCenter}
+              <ForecastActualDropdownFormControl>
+                <AdvisoryMetadata
+                  forDate={dateOfInterest}
+                  issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
+                  runType={runType.toString()}
+                  setRunType={setRunType}
                 />
-              </FireCentreFormControl>
+              </ForecastActualDropdownFormControl>
             </Grid>
-            <ErrorBoundary>
-              <Grid item>
-                <ForecastActualDropdownFormControl>
-                  <AdvisoryMetadata
-                    forDate={dateOfInterest}
-                    issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
-                    runType={runType.toString()}
-                    setRunType={setRunType}
+          </ErrorBoundary>
+          <Grid item>
+            <StyledFormControl>
+              <FormControlLabel
+                label="
+                Percentage of combustible land threshold"
+                labelPlacement="top"
+                control={
+                  <AdvisoryThresholdSlider
+                    advisoryThreshold={advisoryThreshold}
+                    setAdvisoryThreshold={setAdvisoryThreshold}
                   />
-                </ForecastActualDropdownFormControl>
-              </Grid>
-            </ErrorBoundary>
-            <Grid item>
-              <StyledFormControl>
-                <FormControlLabel
-                  label="
-                  Percentage of combustible land threshold"
-                  labelPlacement="top"
-                  control={
-                    <AdvisoryThresholdSlider
-                      advisoryThreshold={advisoryThreshold}
-                      setAdvisoryThreshold={setAdvisoryThreshold}
-                    />
-                  }
-                />
-              </StyledFormControl>
-            </Grid>
+                }
+              />
+            </StyledFormControl>
           </Grid>
         </Grid>
-      </Container>
+      </Box>
         <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
-          <InfoPanel ref={sidePanelRef}>
+          <InfoPanel>
             <ProvincialSummary advisoryThreshold={advisoryThreshold} />
             <AdvisoryReport 
               issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
@@ -242,7 +220,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               selectedFireZoneUnit={selectedFireShape}
             />
           </InfoPanel>
-          <Grid sx={{ display: 'flex', flex: 1 }} ref={mapRef} item>
+          <Grid sx={{ display: 'flex', flex: 1 }} item>
             <FBAMap
               forDate={dateOfInterest}
               runType={runType}
