@@ -171,15 +171,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
   }, [formControlRef.current?.clientHeight])
 
-  useEffect(() => {
-    const sidePanelElement = sidePanelRef.current
-    const mapElement = mapRef.current
-    if (sidePanelElement && mapElement && formControlHeight && navRefHeight) {
-      const height = `calc(100vh - ${formControlHeight + navRefHeight}px)`
-      sidePanelElement.style.height = height
-      mapElement.style.height = height
-    }
-  })
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -237,8 +228,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           </Grid>
         </Grid>
       </Container>
-      <Container sx={{ display: 'flex', flex: 1 }} disableGutters maxWidth={false}>
-        <Grid container direction={'row'}>
+        <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
           <InfoPanel ref={sidePanelRef}>
             <ProvincialSummary advisoryThreshold={advisoryThreshold} />
             <AdvisoryReport 
@@ -266,8 +256,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               setShowSummaryPanel={setShowSummaryPanel}
             />
           </Grid>
-        </Grid>
-      </Container>
+        </Box>
     </Box>
   )
 }
