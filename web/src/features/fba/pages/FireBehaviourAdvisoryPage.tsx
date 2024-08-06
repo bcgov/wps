@@ -152,7 +152,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     document.title = ASA_DOC_TITLE
   }, [])
 
-
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader
