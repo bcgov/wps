@@ -6,7 +6,7 @@ Data is stored in S3 storage for a maximum of 7 days
 import asyncio
 import os
 import sys
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 from collections.abc import Generator
 import logging
 import tempfile
@@ -27,6 +27,7 @@ from app.utils.s3 import get_client
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.jobs.env_canada_utils import get_regional_model_run_download_urls
 from app.weather_models.precip_rdps_model import compute_and_store_precip_rasters
+from app.weather_models.rdps_filename_marshaller import model_run_for_hour
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -47,9 +48,7 @@ def get_model_run_hours_to_process() -> Generator[int, None, None]:
 
 
 class RDPSGrib:
-    """Class that orchestrates downloading, storage and retention policy of RDPS grib files.
-    TODO - Implement retention policy
-    """
+    """Class that orchestrates downloading, storage and retention policy of RDPS grib files."""
 
     def __init__(self, session: Session):
         """Prep variables"""
@@ -128,7 +127,7 @@ class RDPSGrib:
 
     async def apply_retention_policy(self, days_to_retain: int):
         """Delete objects from S3 storage and remove records from database that are older than DAYS_TO_RETAIN"""
-        logger.info(f"Applying retention policy to RDPS data downloaded for SFMS. Data in S3 and corresponding database records older than {days_to_retain} are being deleted.")
+        logger.info(f"Applying retention policy to RDPS data downloaded for SFMS. Data in S3 and corresponding database records older than {days_to_retain} days are being deleted.")
         deletion_threshold = self.now - timedelta(days=days_to_retain)
         records_for_deletion = get_rdps_sfms_urls_for_deletion(self.session, deletion_threshold)
         async with get_client() as (client, bucket):
@@ -148,11 +147,15 @@ class RDPSJob:
 
         # grab the start time.
         start_time = time_utils.get_utc_now()
+
+        # start our computing at the utc datetime of the most recent model run
+        model_run_hour = model_run_for_hour(start_time.hour)
+        model_start_time = datetime(start_time.year, start_time.month, start_time.day, model_run_hour, tzinfo=timezone.utc)
         with get_write_session_scope() as session:
             rdps_grib = RDPSGrib(session)
             await rdps_grib.process()
             await rdps_grib.apply_retention_policy(DAYS_TO_RETAIN)
-            await compute_and_store_precip_rasters(start_time)
+            await compute_and_store_precip_rasters(model_start_time)
         # calculate the execution time.
         execution_time = time_utils.get_utc_now() - start_time
         hours, remainder = divmod(execution_time.seconds, 3600)
