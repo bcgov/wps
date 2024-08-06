@@ -1,5 +1,5 @@
 import { Box, FormControl, FormControlLabel, Grid, styled } from '@mui/material'
-import { GeneralHeader, Container, ErrorBoundary } from 'components'
+import { GeneralHeader, ErrorBoundary } from 'components'
 import React, { useEffect, useState, useRef } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
