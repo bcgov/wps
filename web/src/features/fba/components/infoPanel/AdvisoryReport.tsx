@@ -85,7 +85,7 @@ const AdvisoryReport = ({
       return {
         body:
           `Issued on ${issueDate.toLocaleString(DateTime.DATE_MED)} for ${displayForDate}. \n\n` +
-          `There is a fire behaviour ${calculateStatus(zoneDetails)} in effect in the following areas:`,
+          `There is a fire behaviour ${zoneStatus} in effect in the following areas:`,
         zones: [selectedFireZoneUnit.mof_fire_zone_name]
       }
     } else {
