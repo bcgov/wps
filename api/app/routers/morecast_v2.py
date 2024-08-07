@@ -111,7 +111,8 @@ async def save_forecasts(forecasts: MoreCastForecastRequest, response: Response,
 
     async with ClientSession() as client_session:
         try:
-            wf1_forecast_records = await format_as_wf1_post_forecasts(client_session, forecasts_list, username)
+            headers = await get_auth_header(client_session)
+            wf1_forecast_records = await format_as_wf1_post_forecasts(client_session, forecasts_list, username, headers)
             await post_forecasts(client_session, forecasts=wf1_forecast_records)
 
             station_ids = [wfwx_station.stationId for wfwx_station in wf1_forecast_records]
@@ -152,9 +153,9 @@ async def get_yesterdays_actual_dailies(today: date, request: ObservedDailiesFor
     async with ClientSession() as session:
         header = await get_auth_header(session)
 
-        yeserday_dailies = await get_dailies_for_stations_and_date(session, header, time_of_interest, time_of_interest, unique_station_codes)
+        yesterday_dailies = await get_dailies_for_stations_and_date(session, header, time_of_interest, time_of_interest, unique_station_codes)
 
-        return StationDailiesResponse(dailies=yeserday_dailies)
+        return StationDailiesResponse(dailies=yesterday_dailies)
 
 
 @router.post("/observed-dailies/{start_date}/{end_date}", response_model=StationDailiesResponse)
@@ -237,8 +238,8 @@ async def get_determinates_for_date_range(start_date: date, end_date: date, requ
         # for a given date, we need to show the forecast from the wf1 API for one station, and the forecast
         # from our API database for another station. We can check this by testing for the presence of an
         # actual for the given date and station; if an actual exists we use the forecast from our API database.
-        transformed_forceasts_to_add = filter_for_api_forecasts(transformed_forecasts, wf1_actuals)
+        transformed_forecasts_to_add = filter_for_api_forecasts(transformed_forecasts, wf1_actuals)
 
-        wf1_forecasts.extend(transformed_forceasts_to_add)
+        wf1_forecasts.extend(transformed_forecasts_to_add)
 
     return IndeterminateDailiesResponse(actuals=wf1_actuals, forecasts=wf1_forecasts, grass_curing=grass_curing, predictions=predictions)

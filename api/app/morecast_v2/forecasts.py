@@ -87,11 +87,10 @@ async def construct_wf1_forecasts(session: ClientSession, forecast_records: List
     return wf1_forecasts
 
 
-async def format_as_wf1_post_forecasts(session: ClientSession, forecast_records: List[MoreCastForecastInput], username: str) -> List[WF1PostForecast]:
+async def format_as_wf1_post_forecasts(session: ClientSession, forecast_records: List[MoreCastForecastInput], username: str, headers: dict) -> List[WF1PostForecast]:
     """Returns list of forecast records re-formatted in the data structure WF1 API expects"""
-    header = await get_auth_header(session)
     station_codes = [record.station_code for record in forecast_records]
-    stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
+    stations = await get_wfwx_stations_from_station_codes(session, headers, station_codes)
     unique_stations = list(set(stations))
     wf1_post_forecasts = await construct_wf1_forecasts(session, forecast_records, unique_stations, username)
     return wf1_post_forecasts
