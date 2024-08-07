@@ -5,7 +5,6 @@ import percentilesReducer from 'features/percentileCalculator/slices/percentiles
 import cHainesModelRunReducer from 'features/cHaines/slices/cHainesModelRunsSlice'
 import cHainesPredictionReducer from 'features/cHaines/slices/cHainesPredictionsSlice'
 import authReducer from 'features/auth/slices/authenticationSlice'
-import wf1AuthReducer from 'features/auth/slices/wf1AuthenticationSlice'
 import hfiCalculatorDailiesReducer, { HFICalculatorState } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import hfiStationsReducer from 'features/hfiCalculator/slices/stationsSlice'
 import hfiReadyReducer, { HFIReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
@@ -29,7 +28,6 @@ const rootReducer = combineReducers({
   cHainesModelRuns: cHainesModelRunReducer,
   cHainesPredictions: cHainesPredictionReducer,
   authentication: authReducer,
-  wf1Authentication: wf1AuthReducer,
   hfiCalculatorDailies: hfiCalculatorDailiesReducer,
   hfiStations: hfiStationsReducer,
   hfiReady: hfiReadyReducer,
@@ -60,7 +58,6 @@ export const selectPercentiles = (state: RootState) => state.percentiles
 export const selectCHainesModelRuns = (state: RootState) => state.cHainesModelRuns
 export const selectChainesPredictions = (state: RootState) => state.cHainesPredictions
 export const selectAuthentication = (state: RootState) => state.authentication
-export const selectWf1Authentication = (state: RootState) => state.wf1Authentication
 export const selectToken = (state: RootState) => state.authentication.token
 export const selectFireBehaviourCalcResult = (state: RootState) => state.fbaCalculatorResults
 export const selectHFIStations = (state: RootState) => state.hfiStations

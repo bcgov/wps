@@ -26,7 +26,7 @@ import { selectSelectedStations } from 'features/moreCast2/slices/selectedStatio
 import { cloneDeep, groupBy, isEqual, isNull, isUndefined } from 'lodash'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
 import { ROLES } from 'features/auth/roles'
-import { selectAuthentication, selectWf1Authentication } from 'app/rootReducer'
+import { selectAuthentication } from 'app/rootReducer'
 import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
@@ -74,7 +74,6 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   const selectedStations = useSelector(selectSelectedStations)
   const loading = useSelector(selectWeatherIndeterminatesLoading)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
-  const { wf1Token } = useSelector(selectWf1Authentication)
 
   // All MoreCast2Rows derived from WeatherIndeterminates in dataSlice.ts. Updates in response to
   // a change of station group or date range.
@@ -449,9 +448,9 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   }
 
   const handleSaveClick = async () => {
-    if (isForecastValid(visibleRows) && !isUndefined(wf1Token)) {
+    if (isForecastValid(visibleRows)) {
       const rowsToSave: MoreCast2ForecastRow[] = getRowsToSave(visibleRows)
-      const result = await submitMoreCastForecastRecords(wf1Token, rowsToSave)
+      const result = await submitMoreCastForecastRecords(rowsToSave)
       if (result.success) {
         setSnackbarMessage(FORECAST_SAVED_MESSAGE)
         setSnackbarSeverity('success')

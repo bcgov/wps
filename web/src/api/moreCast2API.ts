@@ -176,7 +176,6 @@ export interface MoreCast2ForecastRecord {
 }
 
 export interface MoreCastForecastRequest {
-  wf1Token: string
   forecasts: MoreCast2ForecastRecord[]
 }
 
@@ -203,14 +202,12 @@ export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[
  * @returns True if the response is a 201, otherwise false.
  */
 export async function submitMoreCastForecastRecords(
-  token: string,
   forecasts: MoreCast2ForecastRow[]
 ): Promise<{ success: boolean; errorMessage?: string }> {
   const forecastRecords = marshalMoreCast2ForecastRecords(forecasts)
   const url = `/morecast-v2/forecast`
   try {
     const { status } = await axios.post<MoreCastForecastRequest>(url, {
-      token,
       forecasts: forecastRecords
     })
     return { success: status === 201 }
