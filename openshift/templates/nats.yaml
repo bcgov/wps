@@ -36,6 +36,13 @@ parameters:
     required: true
   - name: POSTGRES_DATABASE
     required: true
+  - name: MEMORY_REQUEST
+    required: true
+    value: 3800Mi
+  - name: MEMORY_LIMIT
+    required: true
+    value: 5000Mi
+
 objects:
   - apiVersion: v1
     kind: ConfigMap
@@ -262,10 +269,10 @@ objects:
               resources:
                 requests:
                   cpu: "250m"
-                  memory: "4096Mi"
+                  memory: ${MEMORY_REQUEST}
                 limits:
                   cpu: "500m"
-                  memory: "8192Mi"
+                  memory: ${MEMORY_LIMIT}
               command:
                 [
                   "poetry",
