@@ -179,12 +179,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <ErrorBoundary>
             <Grid item>
               <ForecastActualDropdownFormControl>
-                <AdvisoryMetadata
-                  forDate={dateOfInterest}
-                  issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
-                  runType={runType.toString()}
-                  setRunType={setRunType}
-                />
+                <AdvisoryMetadata runType={runType.toString()} setRunType={setRunType} />
               </ForecastActualDropdownFormControl>
             </Grid>
           </ErrorBoundary>
