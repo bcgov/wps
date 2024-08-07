@@ -59,6 +59,9 @@ def raster_mul(tpi_raster: gdal.Dataset, hfi_raster: gdal.Dataset, chunk_size=25
     out_raster.SetGeoTransform(geotransform)
     out_raster.SetProjection(projection)
 
+    tpi_raster_band = tpi_raster.GetRasterBand(1)
+    hfi_raster_band = hfi_raster.GetRasterBand(1)
+
     # Process in chunks
     for y in range(0, y_size, chunk_size):
         y_chunk_size = min(chunk_size, y_size - y)
@@ -67,8 +70,8 @@ def raster_mul(tpi_raster: gdal.Dataset, hfi_raster: gdal.Dataset, chunk_size=25
             x_chunk_size = min(chunk_size, x_size - x)
 
             # Read chunks from both rasters
-            tpi_chunk = tpi_raster.GetRasterBand(1).ReadAsArray(x, y, x_chunk_size, y_chunk_size)
-            hfi_chunk = hfi_raster.GetRasterBand(1).ReadAsArray(x, y, x_chunk_size, y_chunk_size)
+            tpi_chunk = tpi_raster_band.ReadAsArray(x, y, x_chunk_size, y_chunk_size)
+            hfi_chunk = hfi_raster_band.ReadAsArray(x, y, x_chunk_size, y_chunk_size)
 
             hfi_chunk[hfi_chunk >= 1] = 1
             hfi_chunk[hfi_chunk < 1] = 0
