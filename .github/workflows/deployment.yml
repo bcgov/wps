@@ -27,8 +27,8 @@ jobs:
   build-web-image:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
       - name: Build
         id: build
         uses: docker/build-push-action@v6
