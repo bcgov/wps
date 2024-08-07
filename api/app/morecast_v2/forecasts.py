@@ -82,7 +82,7 @@ async def construct_wf1_forecasts(session: ClientSession, forecast_records: List
         # Check if an existing daily was retrieved from WF1 and use id and createdBy attributes if present
         observed_daily = next((daily for daily in grouped_dailies[forecast.station_code] if daily.utcTimestamp == forecast_timestamp), None)
         forecast_id = observed_daily.forecast_id if observed_daily is not None else None
-        created_by = username
+        created_by = observed_daily.created_by if observed_daily is not None else username
         wf1_forecasts.append(construct_wf1_forecast(forecast, stations, forecast_id, created_by))
     return wf1_forecasts
 
