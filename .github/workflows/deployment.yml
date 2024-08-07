@@ -25,25 +25,49 @@ jobs:
           EPHEMERAL_STORAGE=True BUCKET=gpdqha DATA_SIZE=5Gi WAL_SIZE=5Gi bash openshift/scripts/oc_provision_crunchy.sh ${SUFFIX} apply
 
   build-web-image:
-    # Declared ahead of build-api-image ; it runs slightly slower than the api build, and putting
-    # it here increases the odds that it get's started 1st, so api and web are slightly more likely
-    # to finish building at the same time.
-    name: Build Web Image
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - name: Set Variables
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
+      - name: Build
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          push: false
+          file: Dockerfile.web
+          # cache-from: type=gha
+          tags: pr-3816
+          # cache-to: type=gha,mode=max
+          # password: ${{ secrets.OC4_TOOL_TOKEN }}
+          secrets: |
+            "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
+            "ARTIFACTORY_SVCACCT_TOKEN=${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}"
+      - name: push it
         shell: bash
         run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          docker image ls 
+          docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
+          echo image is 
+          echo "The Docker image ID is: ${{ steps.build.outputs.imageid }}"
+          echo "The Docker output  is: ${{join(steps.build.outputs.*, '\n')}}"
 
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build wps-web Image
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=web DOCKER_FILE=Dockerfile.web PATH_BC=openshift/templates/build.web.bc.yaml SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" ARTIFACTORY_SVCACCT_TOKEN="${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}" bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+          docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/${{ steps.build.outputs.imageid }}:pr-3816
+      # - name: Authenticate and set context
+      #   uses: redhat-actions/oc-login@v1
+      #   with:
+      #     # URL to your OpenShift cluster.
+      #     # Refer to Step 2.
+      #     openshift_server_url: ${{ secrets.OPENSHIFT_CLUSTER }}
+      #     # Authentication Token. Can use username and password instead.
+      #     # Refer to Step 3.
+      #     openshift_token: ${{ secrets.OC4_TOOL_TOKEN }}
+      # - name: Push
+      #   uses: redhat-actions/push-to-registry@v2
+      #   with:
+      #     image: ${{ steps.build.outputs.imageid }}
+      #     registry: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816
+      #     password: ${{ secrets.OC4_TOOL_TOKEN }}
 
   build-api-image:
     name: Build API Image

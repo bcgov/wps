@@ -1,32 +1,22 @@
-# SUPER IMPORTANT: NODE_OPTIONS="--v8-pool-size=1"
-# A pod running in our openshift cluster, will report a ridiculous amount of cpu's available, as
-# it's reporting on the underlying hardware. Node, in it's wisdom, will try to scale to using a
-# huge amount of cpu's, which in turn results in massive memory usage. It's very important to limit
-# the cpu pool size to something realistic.
-ARG NODE_OPTIONS="--v8-pool-size=4"
-
 # PHASE 1 - build frontend.
-# Pull from local registry - we can't pull from docker due to limits.
-# see https://catalog.redhat.com/software/containers/ubi9/nodejs-20/64770ac7a835530172eee6a9 for
-# details
-FROM registry.access.redhat.com/ubi9/nodejs-20 as static
-
+FROM node:20-alpine AS static
 # Switch to root user for package installs
 USER 0
+WORKDIR /app
 
 COPY web/package.json .
 COPY web/yarn.lock . 
 COPY web/.yarnrc.yml .
-# do install first so it will be cached
-RUN npm install -g --ignore-scripts corepack
 RUN corepack enable
 RUN yarn set version berry
 RUN yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
 RUN yarn config set npmScopes.psu.npmAlwaysAuth true 
-RUN yarn config set npmScopes.psu.npmAuthToken ${ARTIFACTORY_SVCACCT_TOKEN}
+RUN --mount=type=secret,id=ARTIFACTORY_SVCACCT_TOKEN yarn config set npmScopes.psu.npmAuthToken $(cat /run/secrets/ARTIFACTORY_SVCACCT_TOKEN)
+# do yarn install first so it will be cached
 RUN CYPRESS_INSTALL_BINARY=0 yarn install --immutable
 COPY web .
-RUN yarn run build:prod
+RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN) yarn run build:prod 
+
 
 # Remove sourcemaps after they've been uploaded to sentry
 RUN rm build/static/js/**.map
@@ -42,7 +32,7 @@ FROM registry.access.redhat.com/ubi8/nginx-120
 ADD ./openshift/nginx.conf "${NGINX_CONF_PATH}"
 
 # Copy the static content:
-COPY --from=static /opt/app-root/src/build .
+COPY --from=static /app/build .
 
-EXPOSE 3000
+# EXPOSE 3000
 CMD nginx -g "daemon off;"
