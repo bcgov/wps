@@ -276,6 +276,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
             tpi_class_freq_dist.pop(4, None)
             fire_zone_stats[row[1]] = tpi_class_freq_dist
 
+        hfi_masked_tpi = None
         return FireZoneTPIStats(fire_zone_stats=fire_zone_stats, pixel_size_metres=pixel_size_metres)
 
 
