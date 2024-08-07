@@ -257,6 +257,9 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
     resized_hfi_source: gdal.Dataset = warp_to_match_extent(hfi_source, tpi_source, warped_mem_path)
     hfi_masked_tpi = raster_mul(tpi_source, resized_hfi_source)
     resized_hfi_source = None
+    hfi_source = None
+    tpi_source = None
+    gdal.Unlink(warped_mem_path)
 
     fire_zone_stats: Dict[int, Dict[int, int]] = {}
     async with get_async_write_session_scope() as session:
@@ -270,6 +273,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
             # Get unique values and their counts
             tpi_classes, counts = np.unique(cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True)
             cut_hfi_masked_tpi = None
+            gdal.Unlink(output_path)
             tpi_class_freq_dist = dict(zip(tpi_classes, counts))
 
             # Drop TPI class 4, this is the no data value from the TPI raster
