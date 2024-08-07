@@ -39,7 +39,7 @@ async def process_elevation_tpi(run_type: RunType, run_datetime: datetime, for_d
     logger.info("Processing elevation stats %s for run date: %s, for date: %s", run_type, run_datetime, for_date)
     perf_start = perf_counter()
     # Get the id from run_parameters associated with the provided run_type, for_date and for_datetime
-    async with get_async_read_session_scope() as session:
+    async with get_async_write_session_scope() as session:
         run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
         stmt = select(AdvisoryTPIStats).where(AdvisoryTPIStats.run_parameters == run_parameters_id)
@@ -246,7 +246,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
 
     key = f"/vsis3/{bucket}/dem/tpi/{dem_file}"
     tpi_source: gdal.Dataset = gdal.Open(key, gdal.GA_ReadOnly)
-    pixel_size_metres = tpi_source.GetGeoTransform()[1]
+    pixel_size_metres = int(tpi_source.GetGeoTransform()[1])
 
     hfi_raster_filename = get_raster_tif_filename(for_date)
     hfi_raster_key = get_raster_filepath(run_date, run_type, hfi_raster_filename)
@@ -373,13 +373,13 @@ async def store_elevation_tpi_stats(session: AsyncSession, run_parameters_id: in
     :param fire_zone_stats: Dictionary keying shape id to a dictionary of classified tpi hfi pixel counts
     """
     advisory_tpi_stats_list = []
-    for shape_id, tpi_freq_count in fire_zone_tpi_stats.fire_zone_stats:
+    for shape_id, tpi_freq_count in fire_zone_tpi_stats.fire_zone_stats.items():
         advisory_tpi_stats = AdvisoryTPIStats(
-            advisory_shape_id=shape_id,
+            advisory_shape_id=int(shape_id),
             run_parameters=run_parameters_id,
-            valley_bottom=tpi_freq_count[1],
-            mid_slope=tpi_freq_count[2],
-            upper_slope=tpi_freq_count[3],
+            valley_bottom=tpi_freq_count.get(1, 0),
+            mid_slope=tpi_freq_count.get(2, 0),
+            upper_slope=tpi_freq_count.get(3, 0),
             pixel_size_metres=fire_zone_tpi_stats.pixel_size_metres,
         )
         advisory_tpi_stats_list.append(advisory_tpi_stats)

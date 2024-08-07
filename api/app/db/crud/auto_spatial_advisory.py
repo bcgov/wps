@@ -326,7 +326,7 @@ async def save_advisory_elevation_stats(session: AsyncSession, advisory_elevatio
 
 
 async def save_advisory_elevation_tpi_stats(session: AsyncSession, advisory_elevation_stats: List[AdvisoryTPIStats]):
-    session.a(advisory_elevation_stats)
+    session.add_all(advisory_elevation_stats)
 
 
 async def get_zonal_elevation_stats(session: AsyncSession, fire_zone_id: int, run_type: RunType, run_datetime: datetime, for_date: date) -> List[Row]:
