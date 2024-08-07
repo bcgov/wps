@@ -30,7 +30,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build
-        id: build-it
+        id: build
         uses: docker/build-push-action@v6
         with:
           push: false
@@ -49,10 +49,10 @@ jobs:
           docker image ls 
           docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
           echo image is 
-          echo "The Docker image ID is: ${{ steps.build-it.outputs.imageid }}"
-          echo "The Docker output  is: ${{join(steps.build-it.outputs.*, '\n')}}"
+          echo "The Docker image ID is: ${{ steps.build.outputs.imageid }}"
+          echo "The Docker output  is: ${{join(steps.build.outputs.*, '\n')}}"
 
-          docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/${{ steps.build-it.outputs.imageid }}:pr-3816
+          docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/${{ steps.build.outputs.imageid }}:pr-3816
       # - name: Authenticate and set context
       #   uses: redhat-actions/oc-login@v1
       #   with:
@@ -65,7 +65,7 @@ jobs:
       # - name: Push
       #   uses: redhat-actions/push-to-registry@v2
       #   with:
-      #     image: ${{ steps.build-it.outputs.imageid }}
+      #     image: ${{ steps.build.outputs.imageid }}
       #     registry: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816
       #     password: ${{ secrets.OC4_TOOL_TOKEN }}
 
