@@ -7,20 +7,6 @@ from osgeo import gdal
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class GeospatialReadResult:
-    """
-    Raster data array and caller requested metadata
-    """
-
-    data_array: Any
-    data_source: gdal.Dataset
-    data_geotransform: Optional[Any]
-    data_projection: Optional[Any]
-    data_x_size: Optional[int]
-    data_y_size: Optional[int]
-
-
 def warp_to_match_extent(source_raster: gdal.Dataset, raster_to_match: gdal.Dataset, output_path: str) -> gdal.Dataset:
     """
     Warp the source_raster to match the extent and projection of the other raster.
