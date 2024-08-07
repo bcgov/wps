@@ -40,7 +40,7 @@ const AdvisoryText = ({
   const zoneStatus = calculateStatus(zoneDetails)
 
   const forToday = issueDate?.toISODate() === forDate.toISODate()
-  const displayForDate = forToday ? 'today' : forDate.toISODate()
+  const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
 
   return (
     <div data-testid="advisory-text">
