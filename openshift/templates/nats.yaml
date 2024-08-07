@@ -246,6 +246,18 @@ objects:
                   "-c",
                   "/nats-server -sl=ldm=/var/run/nats/nats.pid && /bin/sleep 60",
                 ]
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ${APP_NAME}-${SUFFIX}-nats-consumer-pvc
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
@@ -265,6 +277,10 @@ objects:
           containers:
             - name: ${APP_NAME}-${SUFFIX}-nats-consumer
               image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
+              volumes:
+                - name: nats-consumer-storage
+                  persistentVolumeClaim:
+                    claimName: ${APP_NAME}-${SUFFIX}-nats-consumer-pvc
               imagePullPolicy: "Always"
               resources:
                 requests:
@@ -273,6 +289,9 @@ objects:
                 limits:
                   cpu: "500m"
                   memory: ${MEMORY_LIMIT}
+              volumeMounts:
+                - mountPath: "/"
+                  name: nats-consumer-storage
               command:
                 [
                   "poetry",
