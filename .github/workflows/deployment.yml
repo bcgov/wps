@@ -35,9 +35,9 @@ jobs:
         with:
           push: false
           file: Dockerfile.web
-          cache-from: type=gha
+          # cache-from: type=gha
           tags: pr-3816
-          cache-to: type=gha,mode=max
+          # cache-to: type=gha,mode=max
           # password: ${{ secrets.OC4_TOOL_TOKEN }}
           secrets: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
