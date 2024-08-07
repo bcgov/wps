@@ -49,8 +49,8 @@ jobs:
           docker image ls 
           docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
           echo image is 
-          echo steps.build-it.outputs.imageid
-          echo steps.build-it.outputs
+          echo "The Docker image ID is: ${{ steps.build-it.outputs.imageid }}"
+          echo "The Docker output  is: ${{ steps.build-it.outputs }}"
           docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/${{ steps.build-it.outputs.imageid }}:pr-3816
       # - name: Authenticate and set context
       #   uses: redhat-actions/oc-login@v1
