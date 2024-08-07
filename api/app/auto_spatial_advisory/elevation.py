@@ -247,7 +247,6 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
     key = f"/vsis3/{bucket}/dem/tpi/{dem_file}"
     tpi_source: gdal.Dataset = gdal.Open(key, gdal.GA_ReadOnly)
     pixel_size_metres = tpi_source.GetGeoTransform()[1]
-    print(pixel_size_metres)
 
     hfi_raster_filename = get_raster_tif_filename(for_date)
     hfi_raster_key = get_raster_filepath(run_date, run_type, hfi_raster_filename)
@@ -257,7 +256,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
     warped_mem_path = f"/vsimem/warp_{hfi_raster_filename}"
     resized_hfi_source: gdal.Dataset = warp_to_match_extent(hfi_source, tpi_source, warped_mem_path)
     hfi_masked_tpi = raster_mul(tpi_source, resized_hfi_source)
-    resized_hfi_source.Close()
+    resized_hfi_source = None
 
     fire_zone_stats: Dict[int, Dict[int, int]] = {}
     async with get_async_write_session_scope() as session:
@@ -270,7 +269,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
             cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
             # Get unique values and their counts
             tpi_classes, counts = np.unique(cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True)
-            cut_hfi_masked_tpi.Close()
+            cut_hfi_masked_tpi = None
             tpi_class_freq_dist = dict(zip(tpi_classes, counts))
 
             # Drop TPI class 4, this is the no data value from the TPI raster
