@@ -1,6 +1,7 @@
 import { Box, Tabs, Tab, Grid, Typography } from '@mui/material'
 import { FireShape, FireShapeArea } from 'api/fbaAPI'
 import { INFO_PANEL_CONTENT_BACKGROUND } from 'app/theme'
+import AdvisoryText from 'features/fba/components/infoPanel/AdvisoryText'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
@@ -40,64 +41,6 @@ const AdvisoryReport = ({
     setValue(newValue)
   }
 
-  const calculateStatus = (details: FireShapeArea[]): string | undefined => {
-    const advisoryThresholdDetail = details.find(detail => detail.threshold == 1)
-    const warningThresholdDetail = details.find(detail => detail.threshold == 2)
-    const advisoryPercentage = advisoryThresholdDetail?.elevated_hfi_percentage ?? 0
-    const warningPercentage = warningThresholdDetail?.elevated_hfi_percentage ?? 0
-
-    if (warningPercentage > advisoryThreshold) {
-      return 'Warning'
-    }
-
-    if (advisoryPercentage + warningPercentage > advisoryThreshold) {
-      return 'Advisory'
-    }
-
-    return
-  }
-
-  const composeAdvisoryText = (
-    issueDate: DateTime | null,
-    forDate: DateTime,
-    selectedFireZoneUnit: FireShape | undefined,
-    fireShapeAreas: FireShapeArea[]
-  ) => {
-    if (!issueDate?.isValid) {
-      return {
-        body: 'No advisories issued for today.',
-        zones: []
-      }
-    }
-    if (issueDate?.isValid && selectedFireZoneUnit) {
-      const zoneDetails = fireShapeAreas.filter(area => area.fire_shape_id == selectedFireZoneUnit?.fire_shape_id)
-      const zoneStatus = calculateStatus(zoneDetails)
-      const forToday = issueDate.toISODate() === forDate.toISODate()
-      const displayForDate = forToday ? 'today' : forDate.toISODate()
-
-      if (!zoneStatus) {
-        return {
-          body: `No advisory/warning issued for the selected zone.`,
-          zones: []
-        }
-      }
-
-      return {
-        body:
-          `Issued on ${issueDate.toLocaleString(DateTime.DATE_MED)} for ${displayForDate}. \n\n` +
-          `There is a fire behaviour ${zoneStatus} in effect in the following areas:`,
-        zones: [selectedFireZoneUnit.mof_fire_zone_name]
-      }
-    } else {
-      return {
-        body: `No fire zone selected.`,
-        zones: []
-      }
-    }
-  }
-
-  const advisoryText = composeAdvisoryText(issueDate, forDate, selectedFireZoneUnit, fireShapeAreas)
-
   return (
     <div data-testid="advisory-report">
       <InfoAccordion
@@ -113,28 +56,13 @@ const AdvisoryReport = ({
               </Tabs>
             </Box>
             <TabPanel value={value} index={0}>
-              <Box
-                sx={{
-                  height: 300,
-                  maxWidth: '100%',
-                  overflow: 'auto',
-                  border: '1px solid #ccc',
-                  padding: 2,
-                  borderRadius: 1,
-                  backgroundColor: 'white'
-                }}
-              >
-                <Typography sx={{ whiteSpace: 'pre-wrap' }}>{advisoryText.body}</Typography>
-                {advisoryText.zones.length > 0 && (
-                  <ul>
-                    {advisoryText.zones.map((zone, index) => (
-                      <li key={index}>
-                        <Typography>{zone}</Typography>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Box>
+              <AdvisoryText
+                issueDate={issueDate}
+                forDate={forDate}
+                selectedFireZoneUnit={selectedFireZoneUnit}
+                fireShapeAreas={fireShapeAreas}
+                advisoryThreshold={advisoryThreshold}
+              ></AdvisoryText>
             </TabPanel>
           </Grid>
         </Grid>
