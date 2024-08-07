@@ -29,19 +29,26 @@ jobs:
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Build 
+      - name: Build
         id: build-it
         uses: docker/build-push-action@v6
         with:
-          push: true
+          push: false
           file: Dockerfile.web
           cache-from: type=gha
-          tags: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816:pr-3820
+          tags: pr-3816
           cache-to: type=gha,mode=max
-          password: ${{ secrets.OC4_TOOL_TOKEN }}
+          # password: ${{ secrets.OC4_TOOL_TOKEN }}
           secrets: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
-            "ARTIFACTORY_SVCACCT_TOKEN=${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}"  
+            "ARTIFACTORY_SVCACCT_TOKEN=${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}"
+      - name: push it
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          docker image ls 
+          docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
+          docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/${{ steps.build-it.outputs.imageid }}:pr-3816
       # - name: Authenticate and set context
       #   uses: redhat-actions/oc-login@v1
       #   with:
@@ -51,7 +58,7 @@ jobs:
       #     # Authentication Token. Can use username and password instead.
       #     # Refer to Step 3.
       #     openshift_token: ${{ secrets.OC4_TOOL_TOKEN }}
-      # - name: Push 
+      # - name: Push
       #   uses: redhat-actions/push-to-registry@v2
       #   with:
       #     image: ${{ steps.build-it.outputs.imageid }}
