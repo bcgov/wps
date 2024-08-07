@@ -20,7 +20,7 @@ from app.db.database import get_async_read_session_scope, get_async_write_sessio
 from app.db.models.auto_spatial_advisory import AdvisoryElevationStats, AdvisoryTPIStats
 from app.auto_spatial_advisory.hfi_filepath import get_raster_filepath, get_raster_tif_filename
 from app.utils.s3 import get_client
-from app.utils.geospatial import GeospatialOptions, WarpOptions, cut_raster_by_shape_id, data_array_to_raster, read_raster_into_memory
+from app.utils.geospatial import raster_mul, warp_to_match_extent
 
 
 logger = logging.getLogger(__name__)
@@ -225,72 +225,59 @@ class FireZoneTPIStats:
     pixel_size_metres: int
 
 
-async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: date) -> FireZoneTPIStats:
+async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: date):
     """
     Given run parameters, lookup associated snow-masked HFI and static classified TPI geospatial data.
     Cut out each fire zone shape from the above and intersect the TPI and HFI pixels, counting each pixel contributing to the TPI class.
     Capture all fire zone stats keyed by its source_identifier.
 
-    :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
+    :param run_type: forecast or actual
+    :param run_date: date the computation ran
+    :param for_date: date the computation is for
     :return: fire zone TPI status
     """
-    raster_options = GeospatialOptions(include_geotransform=True, include_projection=True, include_x_size=True, include_y_size=True)
-    fire_zone_stats: Dict[int, Dict[int, int]] = {}
+
+    gdal.SetConfigOption("AWS_SECRET_ACCESS_KEY", config.get("OBJECT_STORE_SECRET"))
+    gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
+    gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
+    gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
+    bucket = config.get("OBJECT_STORE_BUCKET")
+    dem_file = config.get("CLASSIFIED_TPI_DEM_NAME")
+
+    key = f"/vsis3/{bucket}/dem/tpi/{dem_file}"
+    tpi_source: gdal.Dataset = gdal.Open(key, gdal.GA_ReadOnly)
+    pixel_size_metres = tpi_source.GetGeoTransform()[1]
+    print(pixel_size_metres)
 
     hfi_raster_filename = get_raster_tif_filename(for_date)
     hfi_raster_key = get_raster_filepath(run_date, run_type, hfi_raster_filename)
+    hfi_key = f"/vsis3/{bucket}/{hfi_raster_key}"
+    hfi_source: gdal.Dataset = gdal.Open(hfi_key, gdal.GA_ReadOnly)
 
-    async with get_client() as (client, bucket):
-        tpi_result = await read_raster_into_memory(
-            client,
-            bucket,
-            f'dem/tpi/{config.get("CLASSIFIED_TPI_DEM_NAME")}',
-            raster_options,
-        )
-        output_options = GeospatialOptions(
-            warp_options=WarpOptions(
-                source_geotransform=tpi_result.data_geotransform,
-                source_projection=tpi_result.data_projection,
-                source_x_size=tpi_result.data_x_size,
-                source_y_size=tpi_result.data_y_size,
-            )
-        )
-        hfi_result = await read_raster_into_memory(client, bucket, hfi_raster_key, output_options)
+    warped_mem_path = f"/vsimem/warp_{hfi_raster_filename}"
+    resized_hfi_source: gdal.Dataset = warp_to_match_extent(hfi_source, tpi_source, warped_mem_path)
+    hfi_masked_tpi = raster_mul(tpi_source, resized_hfi_source)
+    resized_hfi_source.Close()
 
-        # We only want pixels with HFI >4k as values to intersect with TPI raster
-        hfi_result.data_array = np.where(hfi_result.data_array >= 1, 1, 0)
-        hfi_masked_tpi = np.multiply(tpi_result.data_array, hfi_result.data_array)
+    fire_zone_stats: Dict[int, Dict[int, int]] = {}
+    async with get_async_write_session_scope() as session:
+        stmt = text("SELECT id, source_identifier FROM advisory_shapes;")
+        result = await session.execute(stmt)
 
-        tpi_result.data_array = None
-        del tpi_result.data_array
-        tpi_result.data_source = None
-        del tpi_result.data_source
-        hfi_result.data_array = None
-        del hfi_result.data_array
-        hfi_result.data_source = None
-        del hfi_result.data_source
+        for row in result:
+            output_path = f"/vsimem/firezone_{row[1]}.tif"
+            warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=DB_READ_STRING, cutlineSQL=f"SELECT geom FROM advisory_shapes WHERE id={row[0]}", cropToCutline=True)
+            cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
+            # Get unique values and their counts
+            tpi_classes, counts = np.unique(cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True)
+            cut_hfi_masked_tpi.Close()
+            tpi_class_freq_dist = dict(zip(tpi_classes, counts))
 
-        hfi_masked_tpi_ds = data_array_to_raster(hfi_masked_tpi, hfi_raster_key, output_options)
-        async with get_async_write_session_scope() as session:
-            stmt = text("SELECT id, source_identifier FROM advisory_shapes;")
-            result = await session.execute(stmt)
-            rows = result.all()
+            # Drop TPI class 4, this is the no data value from the TPI raster
+            tpi_class_freq_dist.pop(4, None)
+            fire_zone_stats[row[1]] = tpi_class_freq_dist
 
-            for row in rows:
-                cut_hfi_masked_tpi = cut_raster_by_shape_id(row[0], row[1], hfi_masked_tpi_ds, raster_options)
-                # Get unique values and their counts
-                tpi_classes, counts = np.unique(cut_hfi_masked_tpi.data_array, return_counts=True)
-                cut_hfi_masked_tpi.data_array = None
-                del cut_hfi_masked_tpi.data_array
-                cut_hfi_masked_tpi.data_source = None
-                del cut_hfi_masked_tpi.data_source
-                tpi_class_freq_dist = dict(zip(tpi_classes, counts))
-
-                # Drop TPI class 4, this is the no data value from the TPI raster
-                tpi_class_freq_dist.pop(4, None)
-                fire_zone_stats[row[1]] = tpi_class_freq_dist
-
-            return FireZoneTPIStats(fire_zone_stats=fire_zone_stats, pixel_size_metres=tpi_result.data_geotransform[1])
+        return FireZoneTPIStats(fire_zone_stats=fire_zone_stats, pixel_size_metres=pixel_size_metres)
 
 
 async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, run_parameters_id: int):
