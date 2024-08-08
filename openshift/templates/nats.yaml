@@ -36,6 +36,13 @@ parameters:
     required: true
   - name: POSTGRES_DATABASE
     required: true
+  - name: MEMORY_REQUEST
+    required: true
+    value: 3800Mi
+  - name: MEMORY_LIMIT
+    required: true
+    value: 5000Mi
+
 objects:
   - apiVersion: v1
     kind: ConfigMap
@@ -259,6 +266,13 @@ objects:
             - name: ${APP_NAME}-${SUFFIX}-nats-consumer
               image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
               imagePullPolicy: "Always"
+              resources:
+                requests:
+                  cpu: "250m"
+                  memory: ${MEMORY_REQUEST}
+                limits:
+                  cpu: "500m"
+                  memory: ${MEMORY_LIMIT}
               command:
                 [
                   "poetry",
@@ -332,6 +346,11 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.dem_name
+                - name: CLASSIFIED_TPI_DEM_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.classified_tpi_dem_name
               ports:
                 - containerPort: 4222
                   name: client
