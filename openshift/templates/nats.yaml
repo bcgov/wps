@@ -289,9 +289,6 @@ objects:
                 limits:
                   cpu: "500m"
                   memory: ${MEMORY_LIMIT}
-              volumeMounts:
-                - mountPath: "/"
-                  name: nats-consumer-storage
               command:
                 [
                   "poetry",
