@@ -1,4 +1,3 @@
-
 from datetime import datetime, time, timedelta, timezone
 from urllib.parse import urljoin
 from app import config
@@ -22,38 +21,45 @@ def get_forecasts(db_session: Session, start_time: Optional[datetime], end_time:
 
     result = get_forecasts_in_range(db_session, start_time, end_time, station_codes)
 
-    forecasts: List[MoreCastForecastOutput] = [MoreCastForecastOutput(station_code=forecast.station_code,
-                                                                    for_date=forecast.for_date.timestamp() * 1000,
-                                                                    temp=forecast.temp,
-                                                                    rh=forecast.rh,
-                                                                    precip=forecast.precip,
-                                                                    wind_speed=forecast.wind_speed,
-                                                                    wind_direction=forecast.wind_direction,
-                                                                    grass_curing=forecast.grass_curing,
-                                                                    update_timestamp=int(forecast.update_timestamp.timestamp())) for forecast in result]
+    forecasts: List[MoreCastForecastOutput] = [
+        MoreCastForecastOutput(
+            station_code=forecast.station_code,
+            for_date=forecast.for_date.timestamp() * 1000,
+            temp=forecast.temp,
+            rh=forecast.rh,
+            precip=forecast.precip,
+            wind_speed=forecast.wind_speed,
+            wind_direction=forecast.wind_direction,
+            grass_curing=forecast.grass_curing,
+            update_timestamp=int(forecast.update_timestamp.timestamp()),
+        )
+        for forecast in result
+    ]
     return forecasts
 
 
 def construct_wf1_forecast(forecast: MoreCastForecastInput, stations: List[WFWXWeatherStation], forecast_id: Optional[str], created_by: Optional[str]) -> WF1PostForecast:
     station = next(filter(lambda obj: obj.code == forecast.station_code, stations))
     station_id = station.wfwx_id
-    station_url = urljoin(config.get('WFWX_BASE_URL'), f'wfwx-fireweather-api/v1/stations/{station_id}')
-    wf1_post_forecast = WF1PostForecast(createdBy=created_by,
-                                        id=forecast_id,
-                                        stationId=station_id,
-                                        station=station_url,
-                                        temperature=forecast.temp,
-                                        relativeHumidity=forecast.rh,
-                                        precipitation=forecast.precip,
-                                        windSpeed=forecast.wind_speed,
-                                        windDirection=forecast.wind_direction,
-                                        weatherTimestamp=forecast.for_date,
-                                        recordType=WF1ForecastRecordType(),
-                                        grasslandCuring=forecast.grass_curing)
+    station_url = urljoin(config.get("WFWX_BASE_URL"), f"wfwx-fireweather-api/v1/stations/{station_id}")
+    wf1_post_forecast = WF1PostForecast(
+        createdBy=created_by,
+        id=forecast_id,
+        stationId=station_id,
+        station=station_url,
+        temperature=forecast.temp,
+        relativeHumidity=forecast.rh,
+        precipitation=forecast.precip,
+        windSpeed=forecast.wind_speed,
+        windDirection=forecast.wind_direction,
+        weatherTimestamp=forecast.for_date,
+        recordType=WF1ForecastRecordType(),
+        grasslandCuring=forecast.grass_curing,
+    )
     return wf1_post_forecast
 
 
-async def construct_wf1_forecasts(session: ClientSession, forecast_records: List[MoreCastForecastInput], stations: List[WFWXWeatherStation]) -> List[WF1PostForecast]:
+async def construct_wf1_forecasts(session: ClientSession, forecast_records: List[MoreCastForecastInput], stations: List[WFWXWeatherStation], username: str) -> List[WF1PostForecast]:
     # Fetch existing forecasts from WF1 for the stations and date range in the forecast records
     header = await get_auth_header(session)
     forecast_dates = [datetime.fromtimestamp(f.for_date / 1000, timezone.utc) for f in forecast_records]
@@ -62,8 +68,7 @@ async def construct_wf1_forecasts(session: ClientSession, forecast_records: List
     start_time = vancouver_tz.localize(datetime.combine(min_forecast_date, time.min))
     end_time = vancouver_tz.localize(datetime.combine(max_forecast_date, time.max))
     unique_station_codes = list(set([f.station_code for f in forecast_records]))
-    dailies = await get_forecasts_for_stations_by_date_range(session, header, start_time,
-                                                             end_time, unique_station_codes)
+    dailies = await get_forecasts_for_stations_by_date_range(session, header, start_time, end_time, unique_station_codes)
 
     # Shape the WF1 dailies into a dictionary keyed by station codes for easier consumption
     grouped_dailies = defaultdict(list[StationDailyFromWF1])
@@ -75,36 +80,32 @@ async def construct_wf1_forecasts(session: ClientSession, forecast_records: List
     for forecast in forecast_records:
         forecast_timestamp = datetime.fromtimestamp(forecast.for_date / 1000, timezone.utc)
         # Check if an existing daily was retrieved from WF1 and use id and createdBy attributes if present
-        observed_daily = next(
-            (daily for daily in grouped_dailies[forecast.station_code] if daily.utcTimestamp == forecast_timestamp), None)
+        observed_daily = next((daily for daily in grouped_dailies[forecast.station_code] if daily.utcTimestamp == forecast_timestamp), None)
         forecast_id = observed_daily.forecast_id if observed_daily is not None else None
-        created_by = observed_daily.created_by if observed_daily is not None else None
+        created_by = observed_daily.created_by if observed_daily is not None else username
         wf1_forecasts.append(construct_wf1_forecast(forecast, stations, forecast_id, created_by))
     return wf1_forecasts
 
 
-async def format_as_wf1_post_forecasts(session: ClientSession, forecast_records: List[MoreCastForecastInput]) -> List[WF1PostForecast]:
-    """ Returns list of forecast records re-formatted in the data structure WF1 API expects """
-    header = await get_auth_header(session)
+async def format_as_wf1_post_forecasts(session: ClientSession, forecast_records: List[MoreCastForecastInput], username: str, headers: dict) -> List[WF1PostForecast]:
+    """Returns list of forecast records re-formatted in the data structure WF1 API expects"""
     station_codes = [record.station_code for record in forecast_records]
-    stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
+    stations = await get_wfwx_stations_from_station_codes(session, headers, station_codes)
     unique_stations = list(set(stations))
-    wf1_post_forecasts = await construct_wf1_forecasts(session, forecast_records, unique_stations)
+    wf1_post_forecasts = await construct_wf1_forecasts(session, forecast_records, unique_stations, username)
     return wf1_post_forecasts
 
 
 def actual_exists(forecast: WeatherIndeterminate, actuals: List[WeatherIndeterminate]):
-    """ Returns True if the actuals contain a WeatherIndeterminate with station_code and utc_timestamp that
+    """Returns True if the actuals contain a WeatherIndeterminate with station_code and utc_timestamp that
     matches those of the forecast; otherwise, returns False."""
-    station_code_matches = [actual for actual in actuals if actual.station_code ==
-                            forecast.station_code]
-    utc_timestamp_matches = [station_code_match for station_code_match in station_code_matches
-                             if station_code_match.utc_timestamp == forecast.utc_timestamp]
+    station_code_matches = [actual for actual in actuals if actual.station_code == forecast.station_code]
+    utc_timestamp_matches = [station_code_match for station_code_match in station_code_matches if station_code_match.utc_timestamp == forecast.utc_timestamp]
     return len(utc_timestamp_matches) > 0
 
 
 def filter_for_api_forecasts(forecasts: List[WeatherIndeterminate], actuals: List[WeatherIndeterminate]):
-    """ Returns a list of forecasts where each forecast has a corresponding WeatherIndeterminate in the
+    """Returns a list of forecasts where each forecast has a corresponding WeatherIndeterminate in the
     actuals with a matching station_code and utc_timestamp."""
     filtered_forecasts = []
     for forecast in forecasts:
@@ -132,23 +133,20 @@ def get_fwi_values(actuals: List[WeatherIndeterminate], forecasts: List[WeatherI
         indeterminates_dict[indeterminate.station_code][indeterminate.utc_timestamp.date()] = indeterminate
 
     for idx, indeterminate in enumerate(all_indeterminates):
-        last_indeterminate = indeterminates_dict[indeterminate.station_code].get(
-            indeterminate.utc_timestamp.date() - timedelta(days=1), None)
+        last_indeterminate = indeterminates_dict[indeterminate.station_code].get(indeterminate.utc_timestamp.date() - timedelta(days=1), None)
         if last_indeterminate is not None:
             updated_forecast = calculate_fwi_values(last_indeterminate, indeterminate)
             all_indeterminates[idx] = updated_forecast
 
-    updated_forecasts = [indeterminate for indeterminate in all_indeterminates if indeterminate.determinate ==
-                         WeatherDeterminate.FORECAST]
-    updated_actuals = [
-        indeterminate for indeterminate in all_indeterminates if indeterminate.determinate == WeatherDeterminate.ACTUAL]
+    updated_forecasts = [indeterminate for indeterminate in all_indeterminates if indeterminate.determinate == WeatherDeterminate.FORECAST]
+    updated_actuals = [indeterminate for indeterminate in all_indeterminates if indeterminate.determinate == WeatherDeterminate.ACTUAL]
 
     return updated_actuals, updated_forecasts
 
 
 def calculate_fwi_values(yesterday: WeatherIndeterminate, today: WeatherIndeterminate) -> WeatherIndeterminate:
     """
-    Uses CFFDRS library to calculate Fire Weather Index System values 
+    Uses CFFDRS library to calculate Fire Weather Index System values
 
     :param yesterday: The WeatherIndeterminate from the day before the date to calculate
     :type yesterday: WeatherIndeterminate
@@ -159,7 +157,7 @@ def calculate_fwi_values(yesterday: WeatherIndeterminate, today: WeatherIndeterm
     """
 
     # weather params for calculation date
-    month_to_calculate_for = int(today.utc_timestamp.strftime('%m'))
+    month_to_calculate_for = int(today.utc_timestamp.strftime("%m"))
     latitude = today.latitude
     temp = today.temperature
     rh = today.relative_humidity
@@ -167,32 +165,19 @@ def calculate_fwi_values(yesterday: WeatherIndeterminate, today: WeatherIndeterm
     wind_spd = today.wind_speed
 
     if yesterday.fine_fuel_moisture_code is not None:
-        today.fine_fuel_moisture_code = cffdrs.fine_fuel_moisture_code(ffmc=yesterday.fine_fuel_moisture_code,
-                                                                       temperature=temp,
-                                                                       relative_humidity=rh,
-                                                                       precipitation=precip,
-                                                                       wind_speed=wind_spd)
+        today.fine_fuel_moisture_code = cffdrs.fine_fuel_moisture_code(
+            ffmc=yesterday.fine_fuel_moisture_code, temperature=temp, relative_humidity=rh, precipitation=precip, wind_speed=wind_spd
+        )
     if yesterday.duff_moisture_code is not None:
-        today.duff_moisture_code = cffdrs.duff_moisture_code(dmc=yesterday.duff_moisture_code,
-                                                             temperature=temp,
-                                                             relative_humidity=rh,
-                                                             precipitation=precip,
-                                                             latitude=latitude,
-                                                             month=month_to_calculate_for,
-                                                             latitude_adjust=True
-                                                             )
+        today.duff_moisture_code = cffdrs.duff_moisture_code(
+            dmc=yesterday.duff_moisture_code, temperature=temp, relative_humidity=rh, precipitation=precip, latitude=latitude, month=month_to_calculate_for, latitude_adjust=True
+        )
     if yesterday.drought_code is not None:
-        today.drought_code = cffdrs.drought_code(dc=yesterday.drought_code,
-                                                 temperature=temp,
-                                                 relative_humidity=rh,
-                                                 precipitation=precip,
-                                                 latitude=latitude,
-                                                 month=month_to_calculate_for,
-                                                 latitude_adjust=True
-                                                 )
+        today.drought_code = cffdrs.drought_code(
+            dc=yesterday.drought_code, temperature=temp, relative_humidity=rh, precipitation=precip, latitude=latitude, month=month_to_calculate_for, latitude_adjust=True
+        )
     if today.fine_fuel_moisture_code is not None:
-        today.initial_spread_index = cffdrs.initial_spread_index(ffmc=today.fine_fuel_moisture_code,
-                                                                 wind_speed=today.wind_speed)
+        today.initial_spread_index = cffdrs.initial_spread_index(ffmc=today.fine_fuel_moisture_code, wind_speed=today.wind_speed)
     if today.duff_moisture_code is not None and today.drought_code is not None:
         today.build_up_index = cffdrs.bui_calc(dmc=today.duff_moisture_code, dc=today.drought_code)
     if today.initial_spread_index is not None and today.build_up_index is not None:

@@ -23,7 +23,6 @@ const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/
 const FireBehaviourAdvisoryPage = lazy(() => import('features/fba/pages/FireBehaviourAdvisoryPage'))
 const LandingPage = lazy(() => import('features/landingPage/pages/LandingPage'))
 const MoreCast2Page = lazy(() => import('features/moreCast2/pages/MoreCast2Page'))
-import MoreCast2AuthWrapper from 'features/auth/components/MoreCast2AuthWrapper'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
@@ -86,9 +85,7 @@ const WPSRoutes: React.FunctionComponent = () => {
             path={MORECAST_ROUTE}
             element={
               <AuthWrapper>
-                <MoreCast2AuthWrapper>
-                  <MoreCast2Page />
-                </MoreCast2AuthWrapper>
+                <MoreCast2Page />
               </AuthWrapper>
             }
           />

@@ -52,7 +52,7 @@ describe('moreCast2API', () => {
   })
   it('should call submit endpoint for forecast submission', async () => {
     axios.post = jest.fn().mockResolvedValue({ status: 201 })
-    const res = await submitMoreCastForecastRecords('testToken', [
+    const res = await submitMoreCastForecastRecords([
       buildMorecast2Forecast('1', 1, 'one', DateTime.fromObject({ year: 2021, month: 1, day: 1 })),
       buildMorecast2Forecast('2', 2, 'two', DateTime.fromObject({ year: 2021, month: 1, day: 1 }))
     ])
