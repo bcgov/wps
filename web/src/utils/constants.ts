@@ -63,3 +63,8 @@ export enum FireCentres {
   PRINCE_GEORGE_FC = 'Prince George Fire Centre',
   SOUTHEAST_FC = 'Southeast Fire Centre'
 }
+
+export enum AdvisoryStatus {
+  ADVISORY = 'Advisory',
+  WARNING = 'Warning'
+}
