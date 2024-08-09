@@ -243,7 +243,6 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
     gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
     bucket = config.get("OBJECT_STORE_BUCKET")
     dem_file = config.get("CLASSIFIED_TPI_DEM_NAME")
-
     key = f"/vsis3/{bucket}/dem/tpi/{dem_file}"
     tpi_source: gdal.Dataset = gdal.Open(key, gdal.GA_ReadOnly)
     pixel_size_metres = int(tpi_source.GetGeoTransform()[1])
@@ -278,7 +277,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
 
             # Drop TPI class 4, this is the no data value from the TPI raster
             tpi_class_freq_dist.pop(4, None)
-            fire_zone_stats[row[1]] = tpi_class_freq_dist
+            fire_zone_stats[row[0]] = tpi_class_freq_dist
 
         hfi_masked_tpi = None
         return FireZoneTPIStats(fire_zone_stats=fire_zone_stats, pixel_size_metres=pixel_size_metres)
