@@ -75,7 +75,6 @@ COPY ./api/alembic.ini /app
 # Copy pre-start.sh (it will be run on startup):
 COPY ./api/prestart.sh /app
 COPY ./api/start.sh /app
-COPY ./api/start_sfms.sh /app
 
 # Copy installed Python packages
 COPY --from=builder /home/worker/.cache/pypoetry/virtualenvs /home/worker/.cache/pypoetry/virtualenvs
