@@ -93,13 +93,15 @@ def test_warp_to_match_dimension():
     tpi_ds: gdal.Dataset = get_tpi_raster_wrong_shape()
 
     driver = gdal.GetDriverByName("MEM")
-    out_dataset = driver.Create("memory", hfi_ds.RasterXSize, hfi_ds.RasterYSize, 1, gdal.GDT_Byte)
+    out_dataset: gdal.Dataset = driver.Create("memory", hfi_ds.RasterXSize, hfi_ds.RasterYSize, 1, gdal.GDT_Byte)
 
     warp_to_match_extent(tpi_ds, hfi_ds, out_dataset)
     output_data = out_dataset.GetRasterBand(1).ReadAsArray()
     hfi_data = hfi_ds.GetRasterBand(1).ReadAsArray()
 
     assert hfi_data.shape == output_data.shape
+    assert hfi_ds.RasterXSize == out_dataset.RasterXSize
+    assert hfi_ds.RasterYSize == out_dataset.RasterYSize
 
     hfi_ds = None
     tpi_ds = None
