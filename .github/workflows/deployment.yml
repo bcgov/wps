@@ -41,7 +41,7 @@ jobs:
           push: true
           file: Dockerfile.web
           cache-from: type=gha
-          tags: image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/pr-3816
+          tags: image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/pr-3816/wps-web-pr-3816:pr-3816
           cache-to: type=gha,mode=max
           # password: ${{ secrets.OC4_TOOL_TOKEN }}
           secrets: |
