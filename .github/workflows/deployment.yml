@@ -27,32 +27,26 @@ jobs:
   build-web-image:
     runs-on: ubuntu-latest
     steps:
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: login
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
       - name: Build
         id: build
         uses: docker/build-push-action@v6
         with:
-          push: false
+          push: true
           file: Dockerfile.web
-          # cache-from: type=gha
-          tags: pr-3816
-          # cache-to: type=gha,mode=max
+          cache-from: type=gha
+          tags: image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/pr-3816
+          cache-to: type=gha,mode=max
           # password: ${{ secrets.OC4_TOOL_TOKEN }}
           secrets: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
             "ARTIFACTORY_SVCACCT_TOKEN=${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}"
-      - name: push it
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          docker image ls 
-          docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
-          echo image is 
-          echo "The Docker image ID is: ${{ steps.build.outputs.imageid }}"
-          echo "The Docker output  is: ${{join(steps.build.outputs.*, '\n')}}"
-
-          docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/${{ steps.build.outputs.imageid }}:pr-3816
       # - name: Authenticate and set context
       #   uses: redhat-actions/oc-login@v1
       #   with:
