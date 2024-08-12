@@ -1,9 +1,9 @@
 """Setup database to perform CRUD transactions"""
 
 import logging
+import urllib.parse
 from typing import Generator, AsyncGenerator
 from contextlib import contextmanager, asynccontextmanager
-import urllib.parse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -13,19 +13,19 @@ logger = logging.getLogger(__name__)
 
 write_user = config.get("POSTGRES_WRITE_USER", "wps")
 read_user = config.get("POSTGRES_READ_USER", "wpsread")
-postgres_password = config.get("POSTGRES_PASSWORD", "wps")
+postgres_password = urllib.parse.quote(config.get("POSTGRES_PASSWORD", "wps"), safe="~()*!.")
 postgres_write_host = config.get("POSTGRES_WRITE_HOST", "localhost")
 postgres_read_host = config.get("POSTGRES_READ_HOST", "localhost")
 postgres_port = config.get("POSTGRES_PORT", "5432")
 postgres_database = config.get("POSTGRES_DATABASE", "wps")
 
-DB_WRITE_STRING = f"postgresql://{write_user}:{urllib.parse.quote(postgres_password, safe="~()*!.'")}@{postgres_write_host}:{postgres_port}/{postgres_database}"
+DB_WRITE_STRING = f"postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}"
 
-DB_READ_STRING = f"postgresql://{read_user}:{urllib.parse.quote(postgres_password, safe="~()*!.'")}@{postgres_read_host}:{postgres_port}/{postgres_database}"
+DB_READ_STRING = f"postgresql://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}"
 
-ASYNC_DB_READ_STRING = f"postgresql+asyncpg://{read_user}:{urllib.parse.quote(postgres_password, safe="~()*!.'")}@{postgres_read_host}:{postgres_port}/{postgres_database}"
+ASYNC_DB_READ_STRING = f"postgresql+asyncpg://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}"
 
-ASYNC_DB_WRITE_STRING = f"postgresql+asyncpg://{write_user}:{urllib.parse.quote(postgres_password, safe="~()*!.'")}@{postgres_write_host}:{postgres_port}/{postgres_database}"
+ASYNC_DB_WRITE_STRING = f"postgresql+asyncpg://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}"
 
 # connect to database - defaulting to always use utc timezone
 connect_args = {"options": "-c timezone=utc"}
