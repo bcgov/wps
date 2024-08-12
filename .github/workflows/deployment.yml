@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          oc tag latest image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816:pr-3816
+          oc tag latest e1e498-tools/wps-web-pr-3816:latest
       # - name: Authenticate and set context
       #   uses: redhat-actions/oc-login@v1
       #  oc tag
