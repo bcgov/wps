@@ -32,7 +32,7 @@ const render = () => {
   const root = ReactDOMClient.createRoot(container)
   root.render(
     <Provider store={store}>
-      <App />
+      <div>new smaller app</div>
     </Provider>
   )
 }

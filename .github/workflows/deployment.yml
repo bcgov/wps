@@ -38,7 +38,6 @@ jobs:
           cache-from: type=gha
           tags: wps-web-pr-3816:pr-3816
           cache-to: type=gha,mode=max
-          # password: ${{ secrets.OC4_TOOL_TOKEN }}
           secrets: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
             "ARTIFACTORY_SVCACCT_TOKEN=${{ secrets.ARTIFACTORY_SVCACCT_TOKEN}}"
