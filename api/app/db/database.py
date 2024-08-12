@@ -1,5 +1,6 @@
 """Setup database to perform CRUD transactions"""
 
+import configparser
 import logging
 import urllib.parse
 from typing import Generator, AsyncGenerator
@@ -10,7 +11,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from .. import config
 
 logger = logging.getLogger(__name__)
-
+configparser.ConfigParser(interpolation=None)
 write_user = config.get("POSTGRES_WRITE_USER", "wps")
 read_user = config.get("POSTGRES_READ_USER", "wpsread")
 postgres_password = urllib.parse.quote(config.get("POSTGRES_PASSWORD", "wps"), safe="~()*!.'")
