@@ -36,7 +36,7 @@ jobs:
           push: false
           file: Dockerfile.web
           cache-from: type=gha
-          tags: wps-web-pr-3816:pr-3816
+          tags: wps-web-pr-3835:pr-3835
           cache-to: type=gha,mode=max
           secrets: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          oc tag image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816:pr-3816 wps-web-pr-3816:pr-3816
+          oc tag image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3835:pr-3835 wps-web-pr-3835:pr-3835
 
       # - name: Authenticate and set context
       #   uses: redhat-actions/oc-login@v1
@@ -63,7 +63,7 @@ jobs:
       #   uses: redhat-actions/push-to-registry@v2
       #   with:
       #     image: ${{ steps.build.outputs.imageid }}
-      #     registry: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3816
+      #     registry: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-pr-3835
       #     password: ${{ secrets.OC4_TOOL_TOKEN }}
 
   build-api-image:
