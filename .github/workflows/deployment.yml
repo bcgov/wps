@@ -120,26 +120,6 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           bash openshift/scripts/oc_provision_nats_server_config.sh ${SUFFIX} apply
 
-  deploy-sfms-dev:
-    name: Deploy SFMS API to dev
-    if: github.triggering_actor != 'renovate'
-    needs: [build-api-image, deploy-dev-queue, configure-nats-server-name]
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configure
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" ENVIRONMENT="development" bash openshift/scripts/oc_deploy_sfms.sh ${SUFFIX} apply
-
   deploy-dev:
     name: Deploy to Dev
     if: github.triggering_actor != 'renovate'
@@ -278,7 +258,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_nats.sh ${SUFFIX} apply
+          PROJ_DEV="e1e498-dev" MEMORY_REQUEST=250Mi MEMORY_LIMIT=500Mi bash openshift/scripts/oc_provision_nats.sh ${SUFFIX} apply
 
   scan-dev:
     name: ZAP Baseline Scan Dev
