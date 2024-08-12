@@ -36,7 +36,7 @@ jobs:
           push: false
           file: Dockerfile.web
           # cache-from: type=gha
-          tags: image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/pr-3816/wps-web-pr-3816:pr-3816
+          tags: image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-web-pr-3816:pr-3816
           # cache-to: type=gha,mode=max
           # password: ${{ secrets.OC4_TOOL_TOKEN }}
           secrets: |
@@ -51,7 +51,8 @@ jobs:
           echo image is 
           echo "The Docker image ID is: ${{ steps.build.outputs.imageid }}"
 
-          docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/pr-3816/wps-web-pr-3816:pr-3816
+          docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-web-pr-3816:pr-3816
+
       # - name: Authenticate and set context
       #   uses: redhat-actions/oc-login@v1
       #   with:
