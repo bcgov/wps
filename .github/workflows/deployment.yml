@@ -46,13 +46,8 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          docker image ls 
           docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
-          echo image is 
-          echo "The Docker image ID is: ${{ steps.build.outputs.imageid }}"
-
-          docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-web-pr-3816:pr-3816
-
+          oc tag image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-web-pr-3816:pr-3816 image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-web-pr-3816:pr-3816
       # - name: Authenticate and set context
       #   uses: redhat-actions/oc-login@v1
       #   with:
