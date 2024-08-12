@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 write_user = config.get("POSTGRES_WRITE_USER", "wps")
 read_user = config.get("POSTGRES_READ_USER", "wpsread")
-postgres_password = urllib.parse.quote(config.get("POSTGRES_PASSWORD", "wps"), safe="~()*!.")
+postgres_password = urllib.parse.quote(config.get("POSTGRES_PASSWORD", "wps"), safe="~()*!.'")
 postgres_write_host = config.get("POSTGRES_WRITE_HOST", "localhost")
 postgres_read_host = config.get("POSTGRES_READ_HOST", "localhost")
 postgres_port = config.get("POSTGRES_PORT", "5432")
