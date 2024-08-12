@@ -7,12 +7,13 @@ WORKDIR /app
 COPY web/package.json .
 COPY web/yarn.lock . 
 COPY web/.yarnrc.yml .
-RUN corepack enable \
-    && yarn set version berry \
-    && yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/ \
-    && yarn config set npmScopes.psu.npmAlwaysAuth true \
-    && --mount=type=secret,id=ARTIFACTORY_SVCACCT_TOKEN yarn config set npmScopes.psu.npmAuthToken $(cat /run/secrets/ARTIFACTORY_SVCACCT_TOKEN) \
-    && CYPRESS_INSTALL_BINARY=0 yarn install --immutable
+RUN corepack enable
+RUN yarn set version berry
+RUN yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
+RUN yarn config set npmScopes.psu.npmAlwaysAuth true 
+RUN --mount=type=secret,id=ARTIFACTORY_SVCACCT_TOKEN yarn config set npmScopes.psu.npmAuthToken $(cat /run/secrets/ARTIFACTORY_SVCACCT_TOKEN)
+# do yarn install first so it will be cached
+RUN CYPRESS_INSTALL_BINARY=0 yarn install --immutable
 COPY web .
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
     SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN) \
