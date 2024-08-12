@@ -1,7 +1,6 @@
 """Setup database to perform CRUD transactions"""
 
 import logging
-import urllib
 from typing import Generator, AsyncGenerator
 from contextlib import contextmanager, asynccontextmanager
 import urllib.parse
@@ -20,13 +19,13 @@ postgres_read_host = config.get("POSTGRES_READ_HOST", "localhost")
 postgres_port = config.get("POSTGRES_PORT", "5432")
 postgres_database = config.get("POSTGRES_DATABASE", "wps")
 
-DB_WRITE_STRING = f"postgresql://{write_user}:{urllib.parse.quote(postgres_password)}@{postgres_write_host}:{postgres_port}/{postgres_database}"
+DB_WRITE_STRING = f"postgresql://{write_user}:{urllib.parse.quote(postgres_password, safe="~()*!.'")}@{postgres_write_host}:{postgres_port}/{postgres_database}"
 
-DB_READ_STRING = f"postgresql://{read_user}:{urllib.parse.quote(postgres_password)}@{postgres_read_host}:{postgres_port}/{postgres_database}"
+DB_READ_STRING = f"postgresql://{read_user}:{urllib.parse.quote(postgres_password, safe="~()*!.'")}@{postgres_read_host}:{postgres_port}/{postgres_database}"
 
-ASYNC_DB_READ_STRING = f"postgresql+asyncpg://{read_user}:{urllib.parse.quote(postgres_password)}@{postgres_read_host}:{postgres_port}/{postgres_database}"
+ASYNC_DB_READ_STRING = f"postgresql+asyncpg://{read_user}:{urllib.parse.quote(postgres_password, safe="~()*!.'")}@{postgres_read_host}:{postgres_port}/{postgres_database}"
 
-ASYNC_DB_WRITE_STRING = f"postgresql+asyncpg://{write_user}:{urllib.parse.quote(postgres_password)}@{postgres_write_host}:{postgres_port}/{postgres_database}"
+ASYNC_DB_WRITE_STRING = f"postgresql+asyncpg://{write_user}:{urllib.parse.quote(postgres_password, safe="~()*!.'")}@{postgres_write_host}:{postgres_port}/{postgres_database}"
 
 # connect to database - defaulting to always use utc timezone
 connect_args = {"options": "-c timezone=utc"}
