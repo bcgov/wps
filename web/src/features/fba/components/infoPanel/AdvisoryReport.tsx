@@ -28,10 +28,10 @@ const TabPanel = ({ children, index, value }: TabPanelProps) => {
 }
 
 const AdvisoryReport = ({ issueDate, forDate, advisoryThreshold, selectedFireCenter }: AdvisoryReportProps) => {
-  const [tabNumber, setCurrentTabNumber] = useState(0)
+  const [tabNumber, setTabNumber] = useState(0)
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setCurrentTabNumber(newValue)
+    setTabNumber(newValue)
   }
 
   return (
