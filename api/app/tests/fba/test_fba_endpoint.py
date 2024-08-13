@@ -3,7 +3,6 @@ import pytest
 from fastapi.testclient import TestClient
 from datetime import date, datetime, timezone
 from app.db.models.auto_spatial_advisory import AdvisoryElevationStats, AdvisoryTPIStats, RunParameters
-from app.schemas.fba import FireZoneElevationStats, FireZoneElevationStatsByThreshold
 
 get_fire_centres_url = "/api/fba/fire-centers"
 get_fire_zone_areas_url = "/api/fba/fire-shape-areas/forecast/2022-09-27/2022-09-27"
@@ -76,7 +75,7 @@ def test_get_fire_centres_authorized(client: TestClient):
 @patch("app.routers.fba.get_zonal_elevation_stats", mock_get_elevation_info)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_zone_elevation_info_authorized(client: TestClient):
-    """Allowed to get fire zone tpi stats when authorized"""
+    """Allowed to get fire zone elevation info when authorized"""
     response = client.get(get_fire_zone_elevation_info_url)
     assert response.status_code == 200
     assert response.json()["hfi_elevation_info"][0]["threshold"] == mock_elevation_info[0].threshold
@@ -91,7 +90,7 @@ def test_get_fire_zone_elevation_info_authorized(client: TestClient):
 @patch("app.routers.fba.get_run_datetimes", mock_get_sfms_run_datetimes)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_sfms_run_datetimes_authorized(client: TestClient):
-    """Allowed to get fire zone tpi stats when authorized"""
+    """Allowed to get sfms run datetimes when authorized"""
     response = client.get(get_sfms_run_datetimes_url)
     assert response.status_code == 200
     assert response.json()[0] == datetime(year=2024, month=1, day=1, hour=1, tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
