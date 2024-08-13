@@ -54,9 +54,9 @@ const AdvisoryText = ({ issueDate, forDate, advisoryThreshold, selectedFireCente
     return (
       <>
         {issueDate?.isValid ? (
-          <Typography>Please select a fire center.</Typography>
+          <Typography data-testid="default-message">Please select a fire center.</Typography>
         ) : (
-          <Typography>No advisory data available for today.</Typography>
+          <Typography data-testid="no-data-message">No advisory data available for today.</Typography>
         )}{' '}
       </>
     )
@@ -79,7 +79,7 @@ const AdvisoryText = ({ issueDate, forDate, advisoryThreshold, selectedFireCente
         )}
         {zoneStatusMap[AdvisoryStatus.WARNING].length > 0 && (
           <>
-            <Typography>{`There is a fire behaviour ${AdvisoryStatus.WARNING} in effect in the following areas:`}</Typography>
+            <Typography data-testid="advisory-message-warning">{`There is a fire behaviour ${AdvisoryStatus.WARNING} in effect in the following areas:`}</Typography>
             <ul>
               {zoneStatusMap[AdvisoryStatus.WARNING].map(zone => (
                 <li key={zone}>
@@ -91,7 +91,7 @@ const AdvisoryText = ({ issueDate, forDate, advisoryThreshold, selectedFireCente
         )}
         {zoneStatusMap[AdvisoryStatus.ADVISORY].length > 0 && (
           <>
-            <Typography>{`There is a fire behaviour ${AdvisoryStatus.ADVISORY} in effect in the following areas:`}</Typography>
+            <Typography data-testid="advisory-message-advisory">{`There is a fire behaviour ${AdvisoryStatus.ADVISORY} in effect in the following areas:`}</Typography>
             <ul>
               {zoneStatusMap[AdvisoryStatus.ADVISORY].map(zone => (
                 <li key={zone}>
