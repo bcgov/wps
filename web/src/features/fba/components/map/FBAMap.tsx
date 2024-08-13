@@ -5,6 +5,7 @@ import 'ol/ol.css'
 import * as olpmtiles from 'ol-pmtiles'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
 import { fromLonLat } from 'ol/proj'
+import { boundingExtent } from 'ol/extent'
 import ScaleLine from 'ol/control/ScaleLine'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
@@ -28,7 +29,7 @@ import {
   hfiStyler,
   snowStyler
 } from 'features/fba/components/map/featureStylers'
-import { CENTER_OF_BC } from 'utils/constants'
+import { BC_EXTENT, CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
 import { PMTILES_BUCKET } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
@@ -40,6 +41,7 @@ import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 5.5
+const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 export interface FBAMapProps {
   testId?: string
@@ -189,7 +191,7 @@ const FBAMap = (props: FBAMapProps) => {
       }
     } else if (!props.selectedFireCenter) {
       // reset map view to full province
-      map.getView().animate({ center: fromLonLat(CENTER_OF_BC), zoom: zoom, duration: 800 })
+      map.getView().fit(bcExtent, { duration: 600, padding: [50, 50, 50, 50] })
     }
   }, [props.selectedFireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -264,7 +266,7 @@ const FBAMap = (props: FBAMapProps) => {
     // To the ref above so that it is rendered in that div
     const mapObject = new ol.Map({
       view: new ol.View({
-        zoom,
+        zoom: 5,
         center: fromLonLat(CENTER_OF_BC)
       }),
       layers: [
@@ -289,6 +291,8 @@ const FBAMap = (props: FBAMapProps) => {
     })
     scaleBar.setTarget(scaleRef.current)
     scaleBar.setMap(mapObject)
+
+    mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
 
     setMap(mapObject)
     return () => {

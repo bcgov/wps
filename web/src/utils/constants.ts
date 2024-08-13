@@ -31,7 +31,11 @@ export const PARTIAL_WIDTH = 850
 export const FULL_WIDTH = 1200
 
 // Map center
-export const CENTER_OF_BC = [-125, 54]
+export const CENTER_OF_BC = [-125, 54.5]
+export const BC_EXTENT = [
+  [-139.1, 48.2], // [minLon, minLat]
+  [-114.1, 60.0] // [maxLon, maxLat]]
+]
 
 // Application names
 export const C_HAINES_NAME = 'C-Haines'
