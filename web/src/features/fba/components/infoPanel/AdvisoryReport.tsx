@@ -28,10 +28,10 @@ const TabPanel = ({ children, index, value }: TabPanelProps) => {
 }
 
 const AdvisoryReport = ({ issueDate, forDate, advisoryThreshold, selectedFireCenter }: AdvisoryReportProps) => {
-  const [value, setValue] = useState(0)
+  const [tabNumber, setCurrentTabNumber] = useState(0)
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue)
+    setCurrentTabNumber(newValue)
   }
 
   return (
@@ -44,11 +44,11 @@ const AdvisoryReport = ({ issueDate, forDate, advisoryThreshold, selectedFireCen
         <Grid container justifyContent="center">
           <Grid item sx={{ width: '90%' }}>
             <Box>
-              <Tabs value={value} onChange={handleTabChange}>
+              <Tabs value={tabNumber} onChange={handleTabChange}>
                 <Tab label="BULLETIN" />
               </Tabs>
             </Box>
-            <TabPanel value={value} index={0}>
+            <TabPanel value={tabNumber} index={0}>
               <AdvisoryText
                 issueDate={issueDate}
                 forDate={forDate}
