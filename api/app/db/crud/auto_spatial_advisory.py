@@ -10,6 +10,8 @@ from sqlalchemy.engine.row import Row
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.models.auto_spatial_advisory import (
     AdvisoryFuelStats,
+    CriticalHours,
+    HfiClassificationThresholdEnum,
     Shape,
     ClassifiedHfi,
     HfiClassificationThreshold,
@@ -115,19 +117,30 @@ async def get_all_hfi_thresholds(session: AsyncSession) -> List[HfiClassificatio
 
 async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
     """
-    Retrieve all records from sfms_fuel_types table
+    Retrieve all records from sfms_fuel_types table excluding record IDs.
     """
     logger.info("retrieving SFMS fuel types info...")
-    stmt = select(SFMSFuelType)
-    result = await session.execute(stmt)
+    result = await get_all_sfms_fuel_type_records(session)
 
     fuel_types = []
 
-    for row in result.all():
+    for row in result:
         fuel_type_object = row[0]
         fuel_types.append(SFMSFuelType(fuel_type_id=fuel_type_object.fuel_type_id, fuel_type_code=fuel_type_object.fuel_type_code, description=fuel_type_object.description))
 
     return fuel_types
+
+
+async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuelType]:
+    """
+    Retrieve all records from the sfms_fuel_types table.
+
+    :param session: An async database session.
+    :return: A list of all SFMSFuelType records.
+    """
+    stmt = select(SFMSFuelType)
+    result = await session.execute(stmt)
+    return result.all()
 
 
 async def get_precomputed_high_hfi_fuel_type_areas_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, advisory_shape_id: int) -> List[Row]:
@@ -152,6 +165,14 @@ async def get_precomputed_high_hfi_fuel_type_areas_for_shape(session: AsyncSessi
     logger.info("%f delta count before and after fuel types/high hfi/zone query", delta)
     return all_results
 
+async def get_fuel_type_stats_in_advisory_area(session: AsyncSession, advisory_shape_id: int, run_parameters_id: int):
+    stmt = (
+        select(AdvisoryFuelStats, SFMSFuelType)
+        .join_from(AdvisoryFuelStats, SFMSFuelType, AdvisoryFuelStats.fuel_type == SFMSFuelType.id)
+        .filter(AdvisoryFuelStats.advisory_shape_id == advisory_shape_id, AdvisoryFuelStats.run_parameters == run_parameters_id)
+    )
+    result = await session.execute(stmt)
+    return result.all()
 
 async def get_high_hfi_fuel_types_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, shape_id: int) -> List[Row]:
     """
@@ -243,8 +264,25 @@ async def get_run_datetimes(session: AsyncSession, run_type: RunTypeEnum, for_da
     return result.all()
 
 
-async def get_high_hfi_area(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date) -> List[Row]:
-    """For each fire zone, get the area of HFI polygons in that zone that fall within the
+async def get_most_recent_run_parameters(session: AsyncSession, run_type: RunTypeEnum, for_date: date) -> List[Row]:
+    """
+    Retrieve the most recent sfms run parameters record for the specified run type and for date.
+
+    :param session: Async database read session.
+    :param run_type: Type of run (forecast or actual).
+    :param for_date: The date of interest.
+    :return: The most recent sfms run parameters record for the specified run type and for date, otherwise return None.
+    """
+    stmt = select(RunParameters).where(RunParameters.run_type == run_type.value, RunParameters.for_date == for_date).distinct().order_by(RunParameters.run_datetime.desc()).limit(1)
+    result = await session.execute(stmt)
+    return result.first()
+
+
+async def get_high_hfi_area(session: AsyncSession,
+                            run_type: RunTypeEnum,
+                            run_datetime: datetime,
+                            for_date: date) -> List[Row]:
+    """ For each fire zone, get the area of HFI polygons in that zone that fall within the 
     4000 - 10000 range and the area of HFI polygons that exceed the 10000 threshold.
     """
     stmt = (
@@ -267,7 +305,7 @@ async def store_advisory_fuel_stats(session: AsyncSession, fuel_type_areas: dict
     :param : A dictionary keyed by fuel type code with value representing an area in square meters.
     :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k.
     :param run_parameters_id: The RunParameter object id associated with the run_type, for_date and run_datetime of interest.
-    :param advisory_shape_id: The id of advisory shape (eg. fire zone unit) the fuel type area has been calcualted for.
+    :param advisory_shape_id: The id of advisory shape (eg. fire zone unit) the fuel type area has been calculated for.
     """
     advisory_fuel_stats = []
     for key in fuel_type_areas:
@@ -313,7 +351,6 @@ async def get_run_parameters_id(session: AsyncSession, run_type: RunType, run_da
     stmt = select(RunParameters.id).where(cast(RunParameters.run_type, String) == run_type.value, RunParameters.run_datetime == run_datetime, RunParameters.for_date == for_date)
     result = await session.execute(stmt)
     return result.scalar()
-
 
 async def save_run_parameters(session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date):
     logger.info(f"Writing run parameters. RunType: {run_type.value}; run_datetime: {run_datetime.isoformat()}; for_date: {for_date.isoformat()}")
@@ -389,3 +426,29 @@ async def get_provincial_rollup(session: AsyncSession, run_type: RunTypeEnum, ru
     )
     result = await session.execute(stmt)
     return result.all()
+
+
+async def get_containing_zone(session: AsyncSession, geometry: str, srid: int):
+    geom = func.ST_GeomFromText(geometry, srid)
+    stmt = select(Shape.id).filter(func.ST_Contains(Shape.geom, geom))
+    result = await session.execute(stmt)
+    return result.first()
+
+
+async def save_critical_hours(session: AsyncSession, critical_hours: CriticalHours):
+    session.add(critical_hours)
+
+
+async def get_critical_hours_for_run_parameters(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date):
+    stmt = (
+        select(CriticalHours)
+        .join_from(CriticalHours, RunParameters, CriticalHours.run_parameters == RunParameters.id)
+        .where(
+            RunParameters.run_type == run_type.value,
+            RunParameters.run_datetime == run_datetime,
+            RunParameters.for_date == for_date,
+        )
+        .group_by(CriticalHours.advisory_shape_id)
+    )
+    result = await session.execute(stmt)
+    return result
