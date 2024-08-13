@@ -1,6 +1,6 @@
 import { Box, FormControl, FormControlLabel, Grid, styled } from '@mui/material'
 import { GeneralHeader, ErrorBoundary } from 'components'
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
@@ -30,7 +30,6 @@ import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevatio
 import { StyledFormControl } from 'components/StyledFormControl'
 import { getMostRecentProcessedSnowByDate } from 'api/snow'
 import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
-import ProvincialSummary from 'features/fba/components/infoPanel/ProvincialSummary'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
@@ -60,6 +59,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
+  const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
@@ -149,6 +149,16 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (selectedFireShape?.mof_fire_centre_name) {
+      const matchingFireCenter = fireCenters.find(center => center.name === selectedFireShape.mof_fire_centre_name)
+
+      if (matchingFireCenter) {
+        setFireCenter(matchingFireCenter)
+      }
+    }
+  }, [selectedFireShape, fireCenters])
+
+  useEffect(() => {
     document.title = ASA_DOC_TITLE
   }, [])
 
@@ -173,6 +183,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 fireCenterOptions={fireCenters}
                 selectedFireCenter={fireCenter}
                 setSelectedFireCenter={setFireCenter}
+                setSelectedFireShape={setSelectedFireShape}
+                setZoomSource={setZoomSource}
               />
             </FireCentreFormControl>
           </Grid>
@@ -202,13 +214,11 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       </Box>
       <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
         <InfoPanel>
-          <ProvincialSummary advisoryThreshold={advisoryThreshold} />
           <AdvisoryReport
             issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
             forDate={dateOfInterest}
-            selectedFireZoneUnit={selectedFireShape}
-            fireShapeAreas={fireShapeAreas}
             advisoryThreshold={advisoryThreshold}
+            selectedFireCenter={fireCenter}
           />
           <FireZoneUnitSummary
             fireShapeAreas={fireShapeAreas}
@@ -229,6 +239,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             showSummaryPanel={showSummaryPanel}
             snowDate={snowDate}
             setShowSummaryPanel={setShowSummaryPanel}
+            zoomSource={zoomSource}
+            setZoomSource={setZoomSource}
           />
         </Grid>
       </Box>

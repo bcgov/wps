@@ -1,25 +1,23 @@
 import { Box, Typography } from '@mui/material'
-import { FireShape, FireShapeArea } from 'api/fbaAPI'
+import { FireCenter, FireShapeAreaDetail } from 'api/fbaAPI'
 import { DateTime } from 'luxon'
 import React from 'react'
+import { useSelector } from 'react-redux'
+import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { AdvisoryStatus } from 'utils/constants'
+import { groupBy } from 'lodash'
 
 interface AdvisoryTextProps {
   issueDate: DateTime | null
   forDate: DateTime
-  selectedFireZoneUnit: FireShape | undefined
-  fireShapeAreas: FireShapeArea[]
+  selectedFireCenter?: FireCenter
   advisoryThreshold: number
 }
 
-const AdvisoryText = ({
-  issueDate,
-  forDate,
-  selectedFireZoneUnit,
-  fireShapeAreas,
-  advisoryThreshold
-}: AdvisoryTextProps) => {
-  const calculateStatus = (details: FireShapeArea[]): AdvisoryStatus | undefined => {
+const AdvisoryText = ({ issueDate, forDate, advisoryThreshold, selectedFireCenter }: AdvisoryTextProps) => {
+  const provincialSummary = useSelector(selectProvincialSummary)
+
+  const calculateStatus = (details: FireShapeAreaDetail[]): AdvisoryStatus | undefined => {
     const advisoryThresholdDetail = details.find(detail => detail.threshold == 1)
     const warningThresholdDetail = details.find(detail => detail.threshold == 2)
     const advisoryPercentage = advisoryThresholdDetail?.elevated_hfi_percentage ?? 0
@@ -32,21 +30,89 @@ const AdvisoryText = ({
     if (advisoryPercentage + warningPercentage > advisoryThreshold) {
       return AdvisoryStatus.ADVISORY
     }
-
-    return
   }
 
-  const zoneDetails = fireShapeAreas.filter(area => area.fire_shape_id == selectedFireZoneUnit?.fire_shape_id)
-  const zoneStatus = calculateStatus(zoneDetails)
+  const getZoneStatusMap = (fireZoneUnitDetails: Record<string, FireShapeAreaDetail[]>) => {
+    const zoneStatusMap: Record<AdvisoryStatus, string[]> = {
+      [AdvisoryStatus.ADVISORY]: [],
+      [AdvisoryStatus.WARNING]: []
+    }
 
-  const forToday = issueDate?.toISODate() === forDate.toISODate()
-  const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
+    for (const zoneUnit in fireZoneUnitDetails) {
+      const fireShapeAreaDetails: FireShapeAreaDetail[] = fireZoneUnitDetails[zoneUnit]
+      const status = calculateStatus(fireShapeAreaDetails)
+
+      if (status) {
+        zoneStatusMap[status].push(zoneUnit)
+      }
+    }
+
+    return zoneStatusMap
+  }
+
+  const renderDefaultMessage = () => {
+    return (
+      <>
+        {issueDate?.isValid ? (
+          <Typography>Please select a fire center.</Typography>
+        ) : (
+          <Typography>No advisory data available for today.</Typography>
+        )}{' '}
+      </>
+    )
+  }
+
+  const renderAdvisoryText = () => {
+    const forToday = issueDate?.toISODate() === forDate.toISODate()
+    const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
+
+    const fireCenterSummary = provincialSummary[selectedFireCenter!.name]
+    const groupedFireZoneUnitInfos = groupBy(fireCenterSummary, 'fire_shape_name')
+    const zoneStatusMap = getZoneStatusMap(groupedFireZoneUnitInfos)
+
+    return (
+      <>
+        {issueDate?.isValid && (
+          <Typography
+            sx={{ whiteSpace: 'pre-wrap' }}
+          >{`Issued on ${issueDate?.toLocaleString(DateTime.DATE_MED)} for ${displayForDate}.\n\n`}</Typography>
+        )}
+        {zoneStatusMap[AdvisoryStatus.WARNING].length > 0 && (
+          <>
+            <Typography>{`There is a fire behaviour ${AdvisoryStatus.WARNING} in effect in the following areas:`}</Typography>
+            <ul>
+              {zoneStatusMap[AdvisoryStatus.WARNING].map(zone => (
+                <li key={zone}>
+                  <Typography>{zone}</Typography>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {zoneStatusMap[AdvisoryStatus.ADVISORY].length > 0 && (
+          <>
+            <Typography>{`There is a fire behaviour ${AdvisoryStatus.ADVISORY} in effect in the following areas:`}</Typography>
+            <ul>
+              {zoneStatusMap[AdvisoryStatus.ADVISORY].map(zone => (
+                <li key={zone}>
+                  <Typography>{zone}</Typography>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {zoneStatusMap[AdvisoryStatus.WARNING].length === 0 && zoneStatusMap[AdvisoryStatus.ADVISORY].length === 0 && (
+          <Typography>No advisories or warnings issued for the selected fire center.</Typography>
+        )}
+      </>
+    )
+  }
 
   return (
     <div data-testid="advisory-text">
       <Box
         sx={{
-          height: 300,
+          height: 350,
           maxWidth: '100%',
           overflow: 'auto',
           border: '1px solid #ccc',
@@ -55,24 +121,7 @@ const AdvisoryText = ({
           backgroundColor: 'white'
         }}
       >
-        {!issueDate?.isValid && <Typography>No advisories issued for today.</Typography>}
-        {issueDate?.isValid && !selectedFireZoneUnit && <Typography>No fire zone selected.</Typography>}
-        {selectedFireZoneUnit && issueDate?.isValid && !zoneStatus && (
-          <Typography>No advisory/warning issued for the selected zone.</Typography>
-        )}
-        {zoneStatus && selectedFireZoneUnit && (
-          <>
-            <Typography
-              sx={{ whiteSpace: 'pre-wrap' }}
-            >{`Issued on ${issueDate?.toLocaleString(DateTime.DATE_MED)} for ${displayForDate}.\n\n`}</Typography>
-            <Typography>{`There is a fire behaviour ${zoneStatus} in effect in the following areas:`}</Typography>
-            <ul>
-              <li>
-                <Typography>{selectedFireZoneUnit.mof_fire_zone_name}</Typography>
-              </li>
-            </ul>
-          </>
-        )}
+        {!selectedFireCenter ? renderDefaultMessage() : renderAdvisoryText()}
       </Box>
     </div>
   )

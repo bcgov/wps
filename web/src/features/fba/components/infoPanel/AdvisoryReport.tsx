@@ -1,5 +1,5 @@
-import { Box, Tabs, Tab, Grid, Typography } from '@mui/material'
-import { FireShape, FireShapeArea } from 'api/fbaAPI'
+import { Box, Tabs, Tab, Grid } from '@mui/material'
+import { FireCenter } from 'api/fbaAPI'
 import { INFO_PANEL_CONTENT_BACKGROUND } from 'app/theme'
 import AdvisoryText from 'features/fba/components/infoPanel/AdvisoryText'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
@@ -9,9 +9,8 @@ import React, { useState } from 'react'
 interface AdvisoryReportProps {
   issueDate: DateTime | null
   forDate: DateTime
-  selectedFireZoneUnit: FireShape | undefined
-  fireShapeAreas: FireShapeArea[]
   advisoryThreshold: number
+  selectedFireCenter?: FireCenter
 }
 
 interface TabPanelProps {
@@ -28,13 +27,7 @@ const TabPanel = ({ children, index, value }: TabPanelProps) => {
   )
 }
 
-const AdvisoryReport = ({
-  issueDate,
-  forDate,
-  selectedFireZoneUnit,
-  fireShapeAreas,
-  advisoryThreshold
-}: AdvisoryReportProps) => {
+const AdvisoryReport = ({ issueDate, forDate, advisoryThreshold, selectedFireCenter }: AdvisoryReportProps) => {
   const [value, setValue] = useState(0)
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -59,9 +52,8 @@ const AdvisoryReport = ({
               <AdvisoryText
                 issueDate={issueDate}
                 forDate={forDate}
-                selectedFireZoneUnit={selectedFireZoneUnit}
-                fireShapeAreas={fireShapeAreas}
                 advisoryThreshold={advisoryThreshold}
+                selectedFireCenter={selectedFireCenter}
               ></AdvisoryText>
             </TabPanel>
           </Grid>
