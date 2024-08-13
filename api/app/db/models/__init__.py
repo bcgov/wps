@@ -20,8 +20,18 @@ from app.db.models.weather_models import (
     ModelRunForSFMS,
 )
 from app.db.models.hfi_calc import (FireCentre, FuelType, PlanningArea, PlanningWeatherStation)
-from app.db.models.auto_spatial_advisory import (Shape, ShapeType, HfiClassificationThreshold,
-                                                 ClassifiedHfi, RunTypeEnum, ShapeTypeEnum, FuelType, HighHfiArea, RunParameters)
+from app.db.models.auto_spatial_advisory import (
+    Shape,
+    ShapeType,
+    HfiClassificationThreshold,
+    ClassifiedHfi,
+    RunTypeEnum,
+    ShapeTypeEnum,
+    FuelType,
+    HighHfiArea,
+    RunParameters,
+    CriticalHours,
+)
 from app.db.models.morecast_v2 import MorecastForecastRecord
 from app.db.models.snow import ProcessedSnow, SnowSourceEnum
 from app.db.models.grass_curing import PercentGrassCuring
