@@ -35,15 +35,6 @@ def client():
         yield test_client
 
 
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
-@patch("app.routers.fba.get_fire_centers", mock_get_fire_centres)
-@pytest.mark.usefixtures("mock_jwt_decode")
-def test_get_fire_centres_authorized(client: TestClient):
-    """Allowed to get fire centres when authorized"""
-    response = client.get(get_fire_centres_url)
-    assert response.status_code == 200
-
-
 @pytest.mark.parametrize(
     "endpoint",
     [
@@ -57,6 +48,15 @@ def test_get_endpoints_unauthorized(client: TestClient, endpoint: str):
 
     response = client.get(endpoint)
     assert response.status_code == 401
+
+
+@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
+@patch("app.routers.fba.get_fire_centers", mock_get_fire_centres)
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_get_fire_centres_authorized(client: TestClient):
+    """Allowed to get fire centres when authorized"""
+    response = client.get(get_fire_centres_url)
+    assert response.status_code == 200
 
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
