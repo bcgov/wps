@@ -121,7 +121,7 @@ const AdvisoryText = ({ issueDate, forDate, advisoryThreshold, selectedFireCente
           backgroundColor: 'white'
         }}
       >
-        {!selectedFireCenter ? renderDefaultMessage() : renderAdvisoryText()}
+        {!selectedFireCenter || !issueDate?.isValid ? renderDefaultMessage() : renderAdvisoryText()}
       </Box>
     </div>
   )
