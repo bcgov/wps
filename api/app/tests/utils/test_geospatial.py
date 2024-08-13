@@ -88,6 +88,7 @@ def test_wrong_dimensions():
     tpi_ds = None
 
 
+@pytest.mark.skip(reason="enable once gdal is updated past version 3.4")
 def test_warp_to_match_dimension():
     hfi_ds: gdal.Dataset = gdal.Open(fixture_path, gdal.GA_ReadOnly)
     tpi_ds: gdal.Dataset = get_tpi_raster_wrong_shape()
