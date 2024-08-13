@@ -66,7 +66,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
-  const [showSummaryPanel, setShowSummaryPanel] = useState(true)
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const { mostRecentRunDate } = useSelector(selectRunDates)
   const { fireShapeAreas } = useSelector(selectFireShapeAreas)
@@ -236,9 +235,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             advisoryThreshold={advisoryThreshold}
             setSelectedFireShape={setSelectedFireShape}
             fireShapeAreas={fireShapeAreas}
-            showSummaryPanel={showSummaryPanel}
             snowDate={snowDate}
-            setShowSummaryPanel={setShowSummaryPanel}
             zoomSource={zoomSource}
             setZoomSource={setZoomSource}
           />

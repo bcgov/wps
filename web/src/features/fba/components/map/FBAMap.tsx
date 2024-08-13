@@ -50,9 +50,7 @@ export interface FBAMapProps {
   fireShapeAreas: FireShapeArea[]
   runType: RunType
   advisoryThreshold: number
-  showSummaryPanel: boolean
   snowDate: DateTime | null
-  setShowSummaryPanel: React.Dispatch<React.SetStateAction<boolean>>
   zoomSource?: 'fireCenter' | 'fireShape'
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
 }
