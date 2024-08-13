@@ -44,17 +44,18 @@ def test_get_fire_centres_authorized(client: TestClient):
     assert response.status_code == 200
 
 
-def test_get_fire_centres_unauthorized(client: TestClient):
-    """Forbidden to get fire centres when unauthorized"""
-
-    response = client.get(get_fire_centres_url)
-    assert response.status_code == 401
-
-
-def test_get_fire_zone_areas_unauthorized(client: TestClient):
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        get_fire_centres_url,
+        get_fire_zone_areas_url,
+        get_fire_zone_tpi_stats_url,
+    ],
+)
+def test_get_endpoints_unauthorized(client: TestClient, endpoint: str):
     """Forbidden to get fire zone areas when unauthorized"""
 
-    response = client.get(get_fire_zone_areas_url)
+    response = client.get(endpoint)
     assert response.status_code == 401
 
 
@@ -69,10 +70,3 @@ def test_get_fire_zone_tpi_stats_authorized(client: TestClient):
     assert response.json()["valley_bottom"] == mock_tpi_stats.valley_bottom * mock_tpi_stats.pixel_size_metres
     assert response.json()["mid_slope"] == mock_tpi_stats.mid_slope * mock_tpi_stats.pixel_size_metres
     assert response.json()["upper_slope"] == mock_tpi_stats.upper_slope * mock_tpi_stats.pixel_size_metres
-
-
-def test_get_fire_zone_tpi_stats_unauthorized(client: TestClient):
-    """Forbidden to get fire zone tpi stats when unauthorized"""
-
-    response = client.get(get_fire_zone_tpi_stats_url)
-    assert response.status_code == 401
