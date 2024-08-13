@@ -109,6 +109,7 @@
         "RDPS",
         "reproject",
         "rocketchat",
+        "rollup",
         "sessionmaker",
         "sfms",
         "sqlalchemy",
