@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 def warp_to_match_extent(source_ds: gdal.Dataset, ds_to_match: gdal.Dataset, output_path: str) -> gdal.Dataset:
     """
-    Warp the source_raster to match the extent and projection of the other raster.
+    Warp the source dataset to match the extent and projection of the other dataset.
 
     :param source_ds: the dataset raster to warp
     :param ds_to_match: the reference dataset raster to match the source against
