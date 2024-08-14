@@ -12,17 +12,24 @@ const ElevationFlag = ({ percent }: ElevationFlagProps) => {
     <Grid sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, justifyContent: 'flex-start' }} xs={12}>
       <Box
         sx={{
-          alignItems: 'center',
-          backgroundImage: `linear-gradient(to right, ${FLAG_COLOUR} ${percent}%, #FFFFFF00 ${percent}%)`,
-          border: `1px solid ${FLAG_COLOUR}`,
+          backgroundColor: FLAG_COLOUR,
           clipPath: 'polygon(0 50%, 10% 0, 100% 0, 100% 100%, 10% 100%)',
-          display: 'flex',
           height: '32px',
-          justifyContent: 'center',
+          padding: '1px',
           width: '65%'
-        }}
-      >
-        <Typography sx={{ fontSize: '0.75em' }}>{percent}%</Typography>
+        }}>
+        <Box
+          sx={{
+            alignItems: 'center',
+            backgroundImage: `linear-gradient(to right, ${FLAG_COLOUR} ${percent}%, #FFFFFFFF ${percent}%)`,
+            clipPath: 'polygon(0 50%, 10% 0, 100% 0, 100% 100%, 10% 100%)',
+            display: 'flex',
+            height: '30px',
+            justifyContent: 'center',
+          }}
+        >
+          <Typography sx={{ fontSize: '0.75em' }}>{percent}%</Typography>
+        </Box>
       </Box>
     </Grid>
   )

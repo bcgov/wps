@@ -121,6 +121,12 @@ class FireZoneTPIStats(BaseModel):
     upper_slope: int
 
 
+class FireZoneTPIStatsResponse(BaseModel):
+    """Response for requested fire zones and their TPI stats."""
+
+    stats: list[FireZoneTPIStats]
+
+
 class FireZoneElevationStatsByThreshold(BaseModel):
     """Elevation statistics for a firezone by threshold"""
 
