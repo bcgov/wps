@@ -24,16 +24,17 @@ const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
   return (
     <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }}>
       <Grid container sx={{ minHeight: theme.spacing(19) }} xs={12}>
-        <Grid container xs={4}>
+        <Grid container sx={{ paddingRight: theme.spacing(2) }} xs={4}>
           <Grid sx={{ alignItems: 'center', display: 'flex', height: '25%', justifyContent: 'flex-end' }} xs={12}>
             <Typography
               sx={{
                 fontSize: '0.75em',
                 textAlign: 'right',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                maxWidth: '75%'
               }}
             >
-              Elevation:
+              Topographic Position:
             </Typography>
           </Grid>
           <ElevationLabel label={ElevationOption.Upper} />
@@ -45,7 +46,7 @@ const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
             <TPIMountain />
           </Grid>
         </Grid>
-        <Grid container xs={4}>
+        <Grid container sx={{ paddingLeft: theme.spacing(2) }} xs={4}>
           <Grid sx={{ alignItems: 'center', display: 'flex', height: '25%', justifyContent: 'flex-start' }} xs={12}>
             <Typography
               sx={{
