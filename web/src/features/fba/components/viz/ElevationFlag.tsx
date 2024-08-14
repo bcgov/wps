@@ -9,7 +9,7 @@ interface ElevationFlagProps {
 
 const ElevationFlag = ({ percent }: ElevationFlagProps) => {
   return (
-    <Grid sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, justifyContent: 'flex-start' }} xs={12}>
+    <Grid item sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, justifyContent: 'flex-start' }} xs={12}>
       <Box
         sx={{
           backgroundColor: FLAG_COLOUR,

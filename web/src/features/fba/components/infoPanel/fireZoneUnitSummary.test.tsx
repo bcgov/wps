@@ -3,6 +3,13 @@ import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitS
 import { FireShape } from 'api/fbaAPI'
 import { render } from '@testing-library/react'
 
+const fireZoneTPIStats = {
+  fire_zone_id: 0, 
+  valley_bottom: 0,
+  mid_slope: 100,
+  upper_slope: 0
+}
+
 describe('FireZoneUnitSummary', () => {
   class ResizeObserver {
     observe() {
@@ -21,7 +28,7 @@ describe('FireZoneUnitSummary', () => {
       <FireZoneUnitSummary
         fireShapeAreas={[]}
         fuelTypeInfo={[]}
-        hfiElevationInfo={[]}
+        fireZoneTPIStats={fireZoneTPIStats}
         selectedFireZoneUnit={undefined}
       />
     )
@@ -39,7 +46,7 @@ describe('FireZoneUnitSummary', () => {
       <FireZoneUnitSummary
         fireShapeAreas={[]}
         fuelTypeInfo={[]}
-        hfiElevationInfo={[]}
+        fireZoneTPIStats={fireZoneTPIStats }
         selectedFireZoneUnit={fireShape}
       />
     )
