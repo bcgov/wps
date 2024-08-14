@@ -1,10 +1,6 @@
 import logging
-<<<<<<< HEAD
-from osgeo import gdal
-=======
 from typing import Tuple
 from osgeo import gdal, ogr, osr
->>>>>>> ec740239 (Critical hours job)
 
 
 logger = logging.getLogger(__name__)
