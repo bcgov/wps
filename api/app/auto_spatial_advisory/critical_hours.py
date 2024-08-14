@@ -367,7 +367,7 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
     perf_start = perf_counter()
 
     async with get_async_write_session_scope() as db_session:
-        run_parameters_id = await get_run_parameters_id(db_session, RunTypeEnum(run_type), run_datetime, for_date)
+        run_parameters_id = await get_run_parameters_id(db_session, RunType(run_type), run_datetime, for_date)
         stmt = select(CriticalHours).where(CriticalHours.run_parameters == run_parameters_id)
         exists = (await db_session.execute(stmt)).scalars().first() is not None
 
