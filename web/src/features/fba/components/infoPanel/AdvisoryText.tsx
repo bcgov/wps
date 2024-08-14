@@ -102,7 +102,9 @@ const AdvisoryText = ({ issueDate, forDate, advisoryThreshold, selectedFireCente
           </>
         )}
         {zoneStatusMap[AdvisoryStatus.WARNING].length === 0 && zoneStatusMap[AdvisoryStatus.ADVISORY].length === 0 && (
-          <Typography>No advisories or warnings issued for the selected fire center.</Typography>
+          <Typography data-testid="no-advisory-message">
+            No advisories or warnings issued for the selected fire center.
+          </Typography>
         )}
       </>
     )

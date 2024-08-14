@@ -73,6 +73,27 @@ const warningDetails: FireShapeAreaDetail[] = [
   }
 ]
 
+const noAdvisoryDetails: FireShapeAreaDetail[] = [
+  {
+    fire_shape_id: 20,
+    threshold: 1,
+    combustible_area: 11836638228,
+    elevated_hfi_area: 3716282050,
+    elevated_hfi_percentage: 10,
+    fire_shape_name: 'C2-Central Cariboo Fire Zone',
+    fire_centre_name: 'Cariboo Fire Centre'
+  },
+  {
+    fire_shape_id: 20,
+    threshold: 2,
+    combustible_area: 11836638228,
+    elevated_hfi_area: 2229415672,
+    elevated_hfi_percentage: 2,
+    fire_shape_name: 'C2-Central Cariboo Fire Zone',
+    fire_centre_name: 'Cariboo Fire Centre'
+  }
+]
+
 describe('AdvisoryText', () => {
   const testStore = buildTestStore({
     ...initialState,
@@ -101,6 +122,16 @@ describe('AdvisoryText', () => {
       </Provider>
     )
     const message = getByTestId('default-message')
+    expect(message).toBeInTheDocument()
+  })
+
+  it('should render no data message when the issueDate is invalid selected', () => {
+    const { getByTestId } = render(
+      <Provider store={testStore}>
+        <AdvisoryText issueDate={DateTime.invalid('test')} forDate={forDate} advisoryThreshold={advisoryThreshold} />
+      </Provider>
+    )
+    const message = getByTestId('no-data-message')
     expect(message).toBeInTheDocument()
   })
 
@@ -161,5 +192,28 @@ describe('AdvisoryText', () => {
     const advisoryMessage = queryByTestId('advisory-message-advisory')
     expect(advisoryMessage).toBeInTheDocument()
     expect(warningMessage).toBeInTheDocument()
+  })
+
+  it('should render a no advisories message when there are no advisories/warnings', () => {
+    const noAdvisoryStore = buildTestStore({
+      ...initialState,
+      fireShapeAreaDetails: noAdvisoryDetails
+    })
+    const { queryByTestId } = render(
+      <Provider store={noAdvisoryStore}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+        />
+      </Provider>
+    )
+    const warningMessage = queryByTestId('advisory-message-warning')
+    const advisoryMessage = queryByTestId('advisory-message-advisory')
+    const noAdvisoryMessage = queryByTestId('no-advisory-message')
+    expect(advisoryMessage).not.toBeInTheDocument()
+    expect(warningMessage).not.toBeInTheDocument()
+    expect(noAdvisoryMessage).toBeInTheDocument()
   })
 })
