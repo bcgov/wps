@@ -45,6 +45,11 @@ export const FireCentreFormControl = styled(FormControl)({
   minWidth: 280
 })
 
+export const ForecastActualDropdownFormControl = styled(FormControl)({
+  margin: theme.spacing(1),
+  minWidth: 280
+})
+
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
@@ -55,6 +60,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
+  const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
   const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
@@ -146,6 +152,16 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (selectedFireShape?.mof_fire_centre_name) {
+      const matchingFireCenter = fireCenters.find(center => center.name === selectedFireShape.mof_fire_centre_name)
+
+      if (matchingFireCenter) {
+        setFireCenter(matchingFireCenter)
+      }
+    }
+  }, [selectedFireShape, fireCenters])
+
+  useEffect(() => {
     const selectedFireShapeId = selectedFireShape?.fire_shape_id
     if (isNull(fireZoneTPIStats) || isUndefined(selectedFireShapeId)) {
       setSelectedFireZoneTPIStats(null)
@@ -198,11 +214,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
             </StyledFormControl>
           </Grid>
-          <ErrorBoundary>
-            <Grid item>
-              <ActualForecastControl runType={runType} setRunType={setRunType} />
-            </Grid>
-          </ErrorBoundary>
           <Grid item>
             <FireCentreFormControl>
               <FireCenterDropdown
@@ -214,6 +225,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               />
             </FireCentreFormControl>
           </Grid>
+          <ErrorBoundary>
+            <Grid item>
+              <ForecastActualDropdownFormControl>
+                <AdvisoryMetadata runType={runType.toString()} setRunType={setRunType} />
+              </ForecastActualDropdownFormControl>
+            </Grid>
+          </ErrorBoundary>
           <Grid item>
             <StyledFormControl>
               <FormControlLabel
