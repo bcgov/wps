@@ -1,6 +1,6 @@
 import { Box, FormControl, FormControlLabel, Grid, styled } from '@mui/material'
-import { GeneralHeader, Container, ErrorBoundary } from 'components'
-import React, { useEffect, useState, useRef } from 'react'
+import { GeneralHeader, ErrorBoundary } from 'components'
+import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
@@ -30,9 +30,9 @@ import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevatio
 import { StyledFormControl } from 'components/StyledFormControl'
 import { getMostRecentProcessedSnowByDate } from 'api/snow'
 import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
-import ProvincialSummary from 'features/fba/components/infoPanel/ProvincialSummary'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
+import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -44,8 +44,9 @@ export const FireCentreFormControl = styled(FormControl)({
   minWidth: 280
 })
 
-export const ForecastActualDropdownFormControl = styled(FireCentreFormControl)({
-  marginLeft: 50
+export const ForecastActualDropdownFormControl = styled(FormControl)({
+  margin: theme.spacing(1),
+  minWidth: 280
 })
 
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
@@ -58,13 +59,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
+  const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
-  const [showSummaryPanel, setShowSummaryPanel] = useState(true)
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const { mostRecentRunDate } = useSelector(selectRunDates)
   const { fireShapeAreas } = useSelector(selectFireShapeAreas)
@@ -147,121 +148,99 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (selectedFireShape?.mof_fire_centre_name) {
+      const matchingFireCenter = fireCenters.find(center => center.name === selectedFireShape.mof_fire_centre_name)
+
+      if (matchingFireCenter) {
+        setFireCenter(matchingFireCenter)
+      }
+    }
+  }, [selectedFireShape, fireCenters])
+
+  useEffect(() => {
     document.title = ASA_DOC_TITLE
   }, [])
-
-  const formControlRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<HTMLDivElement>(null)
-  const navRef = useRef<HTMLDivElement>(null)
-  const sidePanelRef = useRef<HTMLDivElement>(null)
-  const [formControlHeight, setFormControlHeight] = useState<number>(0)
-  const [navRefHeight, setNavRefHeight] = useState<number>(0)
-
-  useEffect(() => {
-    if (navRef.current) {
-      setNavRefHeight(navRef.current.clientHeight)
-    }
-  }, [navRef.current?.clientHeight])
-
-  useEffect(() => {
-    if (formControlRef.current) {
-      setFormControlHeight(formControlRef.current.clientHeight)
-    }
-  }, [formControlRef.current?.clientHeight])
-
-  useEffect(() => {
-    const sidePanelElement = sidePanelRef.current
-    const mapElement = mapRef.current
-    if (sidePanelElement && mapElement && formControlHeight && navRefHeight) {
-      const height = `calc(100vh - ${formControlHeight + navRefHeight}px)`
-      sidePanelElement.style.height = height
-      mapElement.style.height = height
-    }
-  })
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader
-        ref={navRef}
         isBeta={true}
         spacing={1}
         title={FIRE_BEHAVIOUR_ADVISORY_NAME}
         productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
       />
-      <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={'xl'}>
-        <Grid container direction={'row'}>
-          <Grid container spacing={1} ref={formControlRef}>
+      <Box sx={{ paddingTop: '0.5em' }}>
+        <Grid container spacing={1}>
+          <Grid item>
+            <StyledFormControl>
+              <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
+            </StyledFormControl>
+          </Grid>
+          <Grid item>
+            <FireCentreFormControl>
+              <FireCenterDropdown
+                fireCenterOptions={fireCenters}
+                selectedFireCenter={fireCenter}
+                setSelectedFireCenter={setFireCenter}
+                setSelectedFireShape={setSelectedFireShape}
+                setZoomSource={setZoomSource}
+              />
+            </FireCentreFormControl>
+          </Grid>
+          <ErrorBoundary>
             <Grid item>
-              <StyledFormControl>
-                <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
-              </StyledFormControl>
+              <ForecastActualDropdownFormControl>
+                <AdvisoryMetadata runType={runType.toString()} setRunType={setRunType} />
+              </ForecastActualDropdownFormControl>
             </Grid>
-            <Grid item xs={2}>
-              <FireCentreFormControl>
-                <FireCenterDropdown
-                  fireCenterOptions={fireCenters}
-                  selectedFireCenter={fireCenter}
-                  setSelectedFireCenter={setFireCenter}
-                />
-              </FireCentreFormControl>
-            </Grid>
-            <ErrorBoundary>
-              <Grid item>
-                <ForecastActualDropdownFormControl>
-                  <AdvisoryMetadata
-                    forDate={dateOfInterest}
-                    issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
-                    runType={runType.toString()}
-                    setRunType={setRunType}
+          </ErrorBoundary>
+          <Grid item>
+            <StyledFormControl>
+              <FormControlLabel
+                label="
+                Percentage of combustible land threshold"
+                labelPlacement="top"
+                control={
+                  <AdvisoryThresholdSlider
+                    advisoryThreshold={advisoryThreshold}
+                    setAdvisoryThreshold={setAdvisoryThreshold}
                   />
-                </ForecastActualDropdownFormControl>
-              </Grid>
-            </ErrorBoundary>
-            <Grid item>
-              <StyledFormControl>
-                <FormControlLabel
-                  label="
-                  Percentage of combustible land threshold"
-                  labelPlacement="top"
-                  control={
-                    <AdvisoryThresholdSlider
-                      advisoryThreshold={advisoryThreshold}
-                      setAdvisoryThreshold={setAdvisoryThreshold}
-                    />
-                  }
-                />
-              </StyledFormControl>
-            </Grid>
+                }
+              />
+            </StyledFormControl>
           </Grid>
         </Grid>
-      </Container>
-      <Container sx={{ display: 'flex', flex: 1 }} disableGutters maxWidth={'xl'}>
-        <Grid container direction={'row'}>
-          <InfoPanel ref={sidePanelRef}>
-            <ProvincialSummary advisoryThreshold={advisoryThreshold} />
-            <FireZoneUnitSummary
-              fireShapeAreas={fireShapeAreas}
-              fuelTypeInfo={hfiThresholdsFuelTypes}
-              hfiElevationInfo={fireZoneElevationInfo}
-              selectedFireZoneUnit={selectedFireShape}
-            />
-          </InfoPanel>
-          <Grid sx={{ display: 'flex', flex: 1 }} ref={mapRef} item>
-            <FBAMap
-              forDate={dateOfInterest}
-              runType={runType}
-              selectedFireShape={selectedFireShape}
-              selectedFireCenter={fireCenter}
-              advisoryThreshold={advisoryThreshold}
-              setSelectedFireShape={setSelectedFireShape}
-              fireShapeAreas={fireShapeAreas}
-              showSummaryPanel={showSummaryPanel}
-              snowDate={snowDate}
-              setShowSummaryPanel={setShowSummaryPanel}
-            />
-          </Grid>
+      </Box>
+      <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
+        <InfoPanel>
+          <AdvisoryReport
+            issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
+            forDate={dateOfInterest}
+            advisoryThreshold={advisoryThreshold}
+            selectedFireCenter={fireCenter}
+          />
+          <FireZoneUnitSummary
+            fireShapeAreas={fireShapeAreas}
+            fuelTypeInfo={hfiThresholdsFuelTypes}
+            hfiElevationInfo={fireZoneElevationInfo}
+            selectedFireZoneUnit={selectedFireShape}
+          />
+        </InfoPanel>
+        <Grid sx={{ display: 'flex', flex: 1 }} item>
+          <FBAMap
+            forDate={dateOfInterest}
+            runType={runType}
+            selectedFireShape={selectedFireShape}
+            selectedFireCenter={fireCenter}
+            advisoryThreshold={advisoryThreshold}
+            setSelectedFireShape={setSelectedFireShape}
+            fireShapeAreas={fireShapeAreas}
+            snowDate={snowDate}
+            zoomSource={zoomSource}
+            setZoomSource={setZoomSource}
+          />
         </Grid>
-      </Container>
+      </Box>
     </Box>
   )
 }

@@ -31,7 +31,11 @@ export const PARTIAL_WIDTH = 850
 export const FULL_WIDTH = 1200
 
 // Map center
-export const CENTER_OF_BC = [-123.3656, 51.4484]
+export const CENTER_OF_BC = [-125, 54.5]
+export const BC_EXTENT = [
+  [-139.1, 48.2], // [minLon, minLat]
+  [-114.1, 60.0] // [maxLon, maxLat]]
+]
 
 // Application names
 export const C_HAINES_NAME = 'C-Haines'
@@ -62,4 +66,9 @@ export enum FireCentres {
   NORTHWEST_FC = 'Northwest Fire Centre',
   PRINCE_GEORGE_FC = 'Prince George Fire Centre',
   SOUTHEAST_FC = 'Southeast Fire Centre'
+}
+
+export enum AdvisoryStatus {
+  ADVISORY = 'Advisory',
+  WARNING = 'Warning'
 }

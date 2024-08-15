@@ -1,5 +1,4 @@
 import React from 'react'
-import CombustibleAreaViz from 'features/fba/components/viz/CombustibleAreaViz'
 import { Grid } from '@mui/material'
 import { isUndefined } from 'lodash'
 import { ElevationInfoByThreshold, FireShape, FireShapeArea, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
@@ -35,11 +34,6 @@ const FireZoneUnitSummary = ({
           direction={'column'}
           sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }}
         >
-          <Grid item>
-            <CombustibleAreaViz
-              fireZoneAreas={fireShapeAreas.filter(area => area.fire_shape_id == selectedFireZoneUnit?.fire_shape_id)}
-            />
-          </Grid>
           <Grid item sx={{ width: '95%' }}>
             <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fuelTypeInfo={fuelTypeInfo} />
           </Grid>

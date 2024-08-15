@@ -5,7 +5,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import FireZoneUnitInfo from 'features/fba/components/infoPanel/FireZoneUnitInfo'
 import { groupBy } from 'lodash'
 import { FireShapeAreaDetail } from 'api/fbaAPI'
-import { INFO_PANEL_CONTENT_BACKGORUND } from 'app/theme'
+import { INFO_PANEL_CONTENT_BACKGROUND } from 'app/theme'
 
 interface FireCentreInfoProps {
   advisoryThreshold: number
@@ -16,7 +16,7 @@ interface FireCentreInfoProps {
 }
 
 const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
-  backgroundColor: INFO_PANEL_CONTENT_BACKGORUND,
+  backgroundColor: INFO_PANEL_CONTENT_BACKGROUND,
   flexDirection: 'row-reverse',
   fontWeight: 'bold',
   margin: '0px',
@@ -47,7 +47,7 @@ const FireCenterInfo = ({
       <StyledAccordionSummary expandIcon={<ExpandMoreIcon />}>{fireCentreName}</StyledAccordionSummary>
       <AccordionDetails
         sx={{
-          backgroundColor: INFO_PANEL_CONTENT_BACKGORUND,
+          backgroundColor: INFO_PANEL_CONTENT_BACKGROUND,
           padding: '0',
           paddingLeft: theme.spacing(2),
           paddingRight: theme.spacing(2)
