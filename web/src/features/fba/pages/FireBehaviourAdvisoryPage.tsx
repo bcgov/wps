@@ -5,7 +5,6 @@ import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
 import {
-  selectFireZoneElevationInfo,
   selectFireZoneTPIStats,
   selectFireCenters,
   selectHFIFuelTypes,
@@ -54,7 +53,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
   const { hfiThresholdsFuelTypes } = useSelector(selectHFIFuelTypes)
-  const { fireZoneElevationInfo } = useSelector(selectFireZoneElevationInfo)
   const { fireZoneTPIStats } = useSelector(selectFireZoneTPIStats)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
