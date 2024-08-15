@@ -146,6 +146,16 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (selectedFireShape?.mof_fire_centre_name) {
+      const matchingFireCenter = fireCenters.find(center => center.name === selectedFireShape.mof_fire_centre_name)
+
+      if (matchingFireCenter) {
+        setFireCenter(matchingFireCenter)
+      }
+    }
+  }, [selectedFireShape, fireCenters])
+
+  useEffect(() => {
     const selectedFireShapeId = selectedFireShape?.fire_shape_id
     if (isNull(fireZoneTPIStats) || isUndefined(selectedFireShapeId)) {
       setSelectedFireZoneTPIStats(null)
