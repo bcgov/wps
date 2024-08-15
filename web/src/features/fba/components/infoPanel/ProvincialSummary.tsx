@@ -6,7 +6,7 @@ import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import { isNull, isUndefined } from 'lodash'
 import { Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { INFO_PANEL_CONTENT_BACKGORUND } from 'app/theme'
+import { INFO_PANEL_CONTENT_BACKGROUND } from 'app/theme'
 import { FireCentres } from 'utils/constants'
 
 interface ProvincialSummaryProps {
@@ -68,7 +68,7 @@ const ProvincialSummary = ({ advisoryThreshold }: ProvincialSummaryProps) => {
   return (
     <div data-testid="provincial-summary">
       <InfoAccordion
-        accordionDetailBackgroundColour={noProvincialSummary ? undefined : INFO_PANEL_CONTENT_BACKGORUND}
+        accordionDetailBackgroundColour={noProvincialSummary ? undefined : INFO_PANEL_CONTENT_BACKGROUND}
         defaultExpanded={true}
         title={'Provincial Summary'}
       >

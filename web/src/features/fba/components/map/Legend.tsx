@@ -143,7 +143,7 @@ const Legend = ({
         subItems={zoneStatusSubItems}
       />
       <LegendItem
-        label="HFI Potential (kW/h)"
+        label="HFI Potential (kW/m)"
         checked={showHFI}
         onChange={() => handleLayerChange('hfiVector', showHFI, setShowHFI)}
         subItems={hfiSubItems}

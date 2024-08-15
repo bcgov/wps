@@ -5,6 +5,7 @@ import 'ol/ol.css'
 import * as olpmtiles from 'ol-pmtiles'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
 import { fromLonLat } from 'ol/proj'
+import { boundingExtent } from 'ol/extent'
 import ScaleLine from 'ol/control/ScaleLine'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
@@ -28,7 +29,7 @@ import {
   hfiStyler,
   snowStyler
 } from 'features/fba/components/map/featureStylers'
-import { CENTER_OF_BC } from 'utils/constants'
+import { BC_EXTENT, CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
 import { PMTILES_BUCKET } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
@@ -39,7 +40,8 @@ import Legend from 'features/fba/components/map/Legend'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
 export const MapContext = React.createContext<ol.Map | null>(null)
 
-const zoom = 6
+const zoom = 5.5
+const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 export interface FBAMapProps {
   testId?: string
@@ -50,9 +52,9 @@ export interface FBAMapProps {
   fireShapeAreas: FireShapeArea[]
   runType: RunType
   advisoryThreshold: number
-  showSummaryPanel: boolean
   snowDate: DateTime | null
-  setShowSummaryPanel: React.Dispatch<React.SetStateAction<boolean>>
+  zoomSource?: 'fireCenter' | 'fireShape'
+  setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
 }
 
 const removeLayerByName = (map: ol.Map, layerName: string) => {
@@ -172,7 +174,7 @@ const FBAMap = (props: FBAMapProps) => {
             mof_fire_centre_name: feature.getProperties().FIRE_CENTR,
             area_sqm: feature.getProperties().Shape_Area
           }
-          props.setShowSummaryPanel(true)
+          props.setZoomSource('fireShape')
           props.setSelectedFireShape(fireZone)
         })
       })
@@ -182,23 +184,14 @@ const FBAMap = (props: FBAMapProps) => {
   useEffect(() => {
     if (!map) return
 
-    if (!props.showSummaryPanel) {
-      props.setSelectedFireShape(undefined)
-    }
-  }, [props.showSummaryPanel]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!map) return
-
-    if (props.selectedFireCenter) {
+    if (props.selectedFireCenter && props.zoomSource === 'fireCenter') {
       const fireCentreExtent = extentsMap.get(props.selectedFireCenter.name)
       if (fireCentreExtent) {
-        map.getView().fit(fireCentreExtent.extent)
+        map.getView().fit(fireCentreExtent.extent, { duration: 400, padding: [50, 50, 50, 50] })
       }
-    } else {
+    } else if (!props.selectedFireCenter) {
       // reset map view to full province
-      map.getView().setCenter(fromLonLat(CENTER_OF_BC))
-      map.getView().setZoom(zoom)
+      map.getView().fit(bcExtent, { duration: 600, padding: [50, 50, 50, 50] })
     }
   }, [props.selectedFireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -273,7 +266,7 @@ const FBAMap = (props: FBAMapProps) => {
     // To the ref above so that it is rendered in that div
     const mapObject = new ol.Map({
       view: new ol.View({
-        zoom,
+        zoom: 5,
         center: fromLonLat(CENTER_OF_BC)
       }),
       layers: [
@@ -299,12 +292,7 @@ const FBAMap = (props: FBAMapProps) => {
     scaleBar.setTarget(scaleRef.current)
     scaleBar.setMap(mapObject)
 
-    if (props.selectedFireCenter) {
-      const fireCentreExtent = extentsMap.get(props.selectedFireCenter.name)
-      if (fireCentreExtent) {
-        mapObject.getView().fit(fireCentreExtent.extent)
-      }
-    }
+    mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
 
     setMap(mapObject)
     return () => {

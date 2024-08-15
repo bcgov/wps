@@ -32,8 +32,8 @@ describe('FBAMap', () => {
           setSelectedFireShape={function (): void {
             throw new Error('Function not implemented.')
           }}
-          showSummaryPanel={true}
-          setShowSummaryPanel={function (): void {
+          zoomSource={undefined}
+          setZoomSource={function (): void {
             throw new Error('Function not implemented.')
           }}
           snowDate={DateTime.now()}
