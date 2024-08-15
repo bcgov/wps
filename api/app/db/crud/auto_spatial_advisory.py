@@ -165,6 +165,7 @@ async def get_precomputed_high_hfi_fuel_type_areas_for_shape(session: AsyncSessi
     logger.info("%f delta count before and after fuel types/high hfi/zone query", delta)
     return all_results
 
+
 async def get_fuel_type_stats_in_advisory_area(session: AsyncSession, advisory_shape_id: int, run_parameters_id: int):
     stmt = (
         select(AdvisoryFuelStats, SFMSFuelType)
@@ -173,6 +174,7 @@ async def get_fuel_type_stats_in_advisory_area(session: AsyncSession, advisory_s
     )
     result = await session.execute(stmt)
     return result.all()
+
 
 async def get_high_hfi_fuel_types_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, shape_id: int) -> List[Row]:
     """
@@ -278,11 +280,8 @@ async def get_most_recent_run_parameters(session: AsyncSession, run_type: RunTyp
     return result.first()
 
 
-async def get_high_hfi_area(session: AsyncSession,
-                            run_type: RunTypeEnum,
-                            run_datetime: datetime,
-                            for_date: date) -> List[Row]:
-    """ For each fire zone, get the area of HFI polygons in that zone that fall within the 
+async def get_high_hfi_area(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date) -> List[Row]:
+    """For each fire zone, get the area of HFI polygons in that zone that fall within the
     4000 - 10000 range and the area of HFI polygons that exceed the 10000 threshold.
     """
     stmt = (
@@ -351,6 +350,7 @@ async def get_run_parameters_id(session: AsyncSession, run_type: RunType, run_da
     stmt = select(RunParameters.id).where(cast(RunParameters.run_type, String) == run_type.value, RunParameters.run_datetime == run_datetime, RunParameters.for_date == for_date)
     result = await session.execute(stmt)
     return result.scalar()
+
 
 async def save_run_parameters(session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date):
     logger.info(f"Writing run parameters. RunType: {run_type.value}; run_datetime: {run_datetime.isoformat()}; for_date: {for_date.isoformat()}")
@@ -435,8 +435,8 @@ async def get_containing_zone(session: AsyncSession, geometry: str, srid: int):
     return result.first()
 
 
-async def save_critical_hours(session: AsyncSession, critical_hours: CriticalHours):
-    session.add(critical_hours)
+async def save_all_critical_hours(session: AsyncSession, critical_hours: List[CriticalHours]):
+    session.add_all(critical_hours)
 
 
 async def get_critical_hours_for_run_parameters(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date):
