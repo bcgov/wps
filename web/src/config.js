@@ -18,3 +18,5 @@ const config = {
   REACT_APP_PMTILES_BUCKET: 'https://My_S3_Bucket',
   REACT_APP_MUI_LICENSE_KEY: 'key'
 }
+
+window.env = config;

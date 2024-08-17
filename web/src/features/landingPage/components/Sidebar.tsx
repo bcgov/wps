@@ -1,3 +1,4 @@
+/// <reference types="vite-plugin-svgr/client" />
 import React from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -15,8 +16,8 @@ import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import SidebarToolList from 'features/landingPage/components/SidebarToolList'
 import Subheading from 'features/landingPage/components/Subheading'
-import { ReactComponent as MsTeamsIcon } from 'features/landingPage/images/msTeams.svg'
-import { ReactComponent as MiroIcon } from 'features/landingPage/images/miro.svg'
+import MsTeamsIcon from 'features/landingPage/images/msTeams.svg?react'
+import MiroIcon from 'features/landingPage/images/miro.svg?react'
 import { MIRO_SPRINT_REVIEW_BOARD_URL, MS_TEAMS_SPRINT_REVIEW_URL } from 'utils/env'
 
 const PREFIX = 'Sidebar'
