@@ -24,18 +24,18 @@ if (import.meta.env.MODE === 'production') {
     API_BASE_URL: window.env.API_BASE_URL ?? `${window.location.protocol}//${window.location.host}/api`,
     RASTER_SERVER_BASE_URL: window.env.RASTER_SERVER_BASE_URL ?? `${window.location.protocol}//${window.location.host}`,
     HIDE_DISCLAIMER: undefined,
-    SM_LOGOUT_URL: window.env.REACT_APP_SM_LOGOUT_URL,
-    KC_AUTH_URL: window.env.REACT_APP_KEYCLOAK_AUTH_URL,
-    KC_REALM: window.env.REACT_APP_KEYCLOAK_REALM,
-    KC_CLIENT: window.env.REACT_APP_KEYCLOAK_CLIENT,
-    WF1_AUTH_URL: window.env.REACT_APP_WF1_AUTH_URL,
+    SM_LOGOUT_URL: window.env.VITE_SM_LOGOUT_URL,
+    KC_AUTH_URL: window.env.VITE_KEYCLOAK_AUTH_URL,
+    KC_REALM: window.env.VITE_KEYCLOAK_REALM,
+    KC_CLIENT: window.env.VITE_KEYCLOAK_CLIENT,
+    WF1_AUTH_URL: window.env.VITE_WF1_AUTH_URL,
     TEST_AUTH: undefined,
-    MS_TEAMS_SPRINT_REVIEW_URL: window.env.REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL,
-    MIRO_SPRINT_REVIEW_BOARD_URL: window.env.REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL,
-    PMTILES_BUCKET: window.env.REACT_APP_PMTILES_BUCKET,
-    MUI_LICENSE: window.env.REACT_APP_MUI_LICENSE_KEY,
-    SENTRY_DSN: window.env.REACT_APP_SENTRY_DSN,
-    SENTRY_ENV: window.env.REACT_APP_SENTRY_ENV
+    MS_TEAMS_SPRINT_REVIEW_URL: window.env.VITE_MS_TEAMS_SPRINT_REVIEW_URL,
+    MIRO_SPRINT_REVIEW_BOARD_URL: window.env.VITE_MIRO_SPRINT_REVIEW_BOARD_URL,
+    PMTILES_BUCKET: window.env.VITE_PMTILES_BUCKET,
+    MUI_LICENSE: window.env.VITE_MUI_LICENSE_KEY,
+    SENTRY_DSN: window.env.VITE_SENTRY_DSN,
+    SENTRY_ENV: window.env.VITE_SENTRY_ENV
   }
 }
 
