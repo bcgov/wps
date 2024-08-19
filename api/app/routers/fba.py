@@ -27,7 +27,6 @@ from app.schemas.fba import (
     FireZoneElevationStatsByThreshold,
     FireZoneElevationStatsListResponse,
     FireZoneTPIStats,
-    FireZoneTPIStatsResponse,
     SFMSFuelType,
     HfiThreshold,
     FireShapeAreaDetail,
@@ -170,17 +169,16 @@ async def get_fire_zone_elevation_stats(fire_zone_id: int, run_type: RunType, ru
         return FireZoneElevationStatsListResponse(hfi_elevation_info=data)
 
 
-@router.get("/fire-zone-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_zone_id}", response_model=FireZoneTPIStatsResponse)
+@router.get("/fire-zone-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_zone_id}", response_model=FireZoneTPIStats)
 async def get_fire_zone_tpi_stats(fire_zone_id: int, run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
     """Return the elevation TPI statistics for each advisory threshold"""
     logger.info("/fba/fire-zone-tpi-stats/")
     async with get_async_read_session_scope() as session:
         stats = await get_zonal_tpi_stats(session, fire_zone_id, run_type, run_datetime, for_date)
         square_metres = math.pow(stats.pixel_size_metres, 2)
-        fire_zone_tpi_stats = FireZoneTPIStats(
+        return FireZoneTPIStats(
             fire_zone_id=fire_zone_id,
             valley_bottom=stats.valley_bottom * square_metres,
             mid_slope=stats.mid_slope * square_metres,
             upper_slope=stats.upper_slope * square_metres,
         )
-        return FireZoneTPIStatsResponse(stats=[fire_zone_tpi_stats])
