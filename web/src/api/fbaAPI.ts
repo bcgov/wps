@@ -63,10 +63,6 @@ export interface FireZoneTPIStats {
   upper_slope: number
 }
 
-export interface FireZoneTPIStatsResponse {
-  stats: FireZoneTPIStats[]
-}
-
 export interface FireShapeAreaListResponse {
   shapes: FireShapeArea[]
 }
@@ -167,7 +163,7 @@ export async function getFireZoneTPIStats(
   run_type: RunType,
   run_datetime: string,
   for_date: string
-): Promise<FireZoneTPIStatsResponse> {
+): Promise<FireZoneTPIStats> {
   const url = `fba/fire-zone-tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
   const { data } = await axios.get(url)
   return data

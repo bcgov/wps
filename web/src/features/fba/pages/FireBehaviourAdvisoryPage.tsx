@@ -160,9 +160,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (isNull(fireZoneTPIStats) || isUndefined(selectedFireShapeId)) {
       setSelectedFireZoneTPIStats(null)
     }
-    const selectedTPIStats = fireZoneTPIStats?.filter(stats => stats.fire_zone_id === selectedFireShapeId)
-    if (!isUndefined(selectedTPIStats) && selectedTPIStats?.length > 0) {
-      setSelectedFireZoneTPIStats(selectedTPIStats[0])
+    if (fireZoneTPIStats?.fire_zone_id === selectedFireShapeId) {
+      setSelectedFireZoneTPIStats(fireZoneTPIStats)
     }
 
   }, [fireZoneTPIStats])

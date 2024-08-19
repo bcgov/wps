@@ -2,13 +2,13 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FireZoneTPIStats, FireZoneTPIStatsResponse, getFireZoneTPIStats } from 'api/fbaAPI'
+import { FireZoneTPIStats, getFireZoneTPIStats } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 interface State {
   loading: boolean
   error: string | null
-  fireZoneTPIStats: FireZoneTPIStats[] | null
+  fireZoneTPIStats: FireZoneTPIStats | null
 }
 
 const initialState: State = {
@@ -30,9 +30,9 @@ const fireZoneTPIStatsSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getFireZoneTPIStatsSuccess(state: State, action: PayloadAction<FireZoneTPIStatsResponse>) {
+    getFireZoneTPIStatsSuccess(state: State, action: PayloadAction<FireZoneTPIStats>) {
       state.error = null
-      state.fireZoneTPIStats = action.payload.stats
+      state.fireZoneTPIStats = action.payload
       state.loading = false
     }
   }
