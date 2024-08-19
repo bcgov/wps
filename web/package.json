@@ -1,6 +1,10 @@
 {
   "name": "wps-web",
   "version": "0.1.0",
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10.7.0"
+  },
   "type": "module",
   "license": "Apache-2.0",
   "licenses": [
@@ -59,7 +63,7 @@
   "scripts": {
     "dev": "vite",
     "preview": "vite preview",
-    "start:cypress": "export $(cat .env.cypress | xargs) && yarn dev",
+    "dev:cypress": "export $(cat .env.cypress | xargs) && yarn dev",
     "build:prod": "tsc -b && vite build",
     "test": "vitest",
     "test:ci": "CI=true npm test",
@@ -68,7 +72,7 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run --browser chrome --config watchForFileChanges=false",
     "cypress:and:server": "start-server-and-test start:cypress 3030 cy:open",
-    "cypress:ci": "start-server-and-test dev http://localhost:3030 'cy:run'",
+    "cypress:ci": "start-server-and-test dev:cypress http://localhost:3030 'cy:run'",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md)\"",
