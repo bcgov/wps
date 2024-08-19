@@ -21,7 +21,7 @@ import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME, PST_UTC_OFFSET } from 'uti
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
-import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
+import ActualForecastControl from 'features/fba/components/ActualForecastControl'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
@@ -40,11 +40,6 @@ export enum RunType {
 }
 
 export const FireCentreFormControl = styled(FormControl)({
-  margin: theme.spacing(1),
-  minWidth: 280
-})
-
-export const ForecastActualDropdownFormControl = styled(FormControl)({
   margin: theme.spacing(1),
   minWidth: 280
 })
@@ -176,6 +171,11 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
             </StyledFormControl>
           </Grid>
+          <ErrorBoundary>
+            <Grid item>
+              <ActualForecastControl runType={runType.toString()} setRunType={setRunType} />
+            </Grid>
+          </ErrorBoundary>
           <Grid item>
             <FireCentreFormControl>
               <FireCenterDropdown
@@ -187,13 +187,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               />
             </FireCentreFormControl>
           </Grid>
-          <ErrorBoundary>
-            <Grid item>
-              <ForecastActualDropdownFormControl>
-                <AdvisoryMetadata runType={runType.toString()} setRunType={setRunType} />
-              </ForecastActualDropdownFormControl>
-            </Grid>
-          </ErrorBoundary>
           <Grid item>
             <StyledFormControl>
               <FormControlLabel
