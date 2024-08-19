@@ -45,11 +45,6 @@ export const FireCentreFormControl = styled(FormControl)({
   minWidth: 280
 })
 
-export const ForecastActualDropdownFormControl = styled(FormControl)({
-  margin: theme.spacing(1),
-  minWidth: 280
-})
-
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
@@ -213,6 +208,11 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
             </StyledFormControl>
           </Grid>
+          <ErrorBoundary>
+            <Grid item>
+              <ActualForecastControl runType={runType} setRunType={setRunType} />
+            </Grid>
+          </ErrorBoundary>
           <Grid item>
             <FireCentreFormControl>
               <FireCenterDropdown
@@ -224,11 +224,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               />
             </FireCentreFormControl>
           </Grid>
-          <ErrorBoundary>
-            <Grid item>
-              <ActualForecastControl runType={runType} setRunType={setRunType} />
-            </Grid>
-          </ErrorBoundary>
           <Grid item>
             <StyledFormControl>
               <FormControlLabel
