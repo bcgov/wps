@@ -105,7 +105,7 @@ def test_get_fire_zone_tpi_stats_authorized(client: TestClient):
     response = client.get(get_fire_zone_tpi_stats_url)
     square_metres = math.pow(mock_tpi_stats.pixel_size_metres, 2)
     assert response.status_code == 200
-    assert response.json()["stats"][0]["fire_zone_id"] == 1
-    assert response.json()["stats"][0]["valley_bottom"] == mock_tpi_stats.valley_bottom * square_metres
-    assert response.json()["stats"][0]["mid_slope"] == mock_tpi_stats.mid_slope * square_metres
-    assert response.json()["stats"][0]["upper_slope"] == mock_tpi_stats.upper_slope * square_metres
+    assert response.json()["fire_zone_id"] == 1
+    assert response.json()["valley_bottom"] == mock_tpi_stats.valley_bottom * square_metres
+    assert response.json()["mid_slope"] == mock_tpi_stats.mid_slope * square_metres
+    assert response.json()["upper_slope"] == mock_tpi_stats.upper_slope * square_metres
