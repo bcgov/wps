@@ -61,7 +61,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
   const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
-  const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
@@ -227,9 +226,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           </Grid>
           <ErrorBoundary>
             <Grid item>
-              <ForecastActualDropdownFormControl>
-                <AdvisoryMetadata runType={runType.toString()} setRunType={setRunType} />
-              </ForecastActualDropdownFormControl>
+              <ActualForecastControl runType={runType} setRunType={setRunType} />
             </Grid>
           </ErrorBoundary>
           <Grid item>
