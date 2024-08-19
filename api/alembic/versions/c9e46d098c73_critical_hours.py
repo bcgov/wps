@@ -1,7 +1,7 @@
 """Critical hours
 
 Revision ID: c9e46d098c73
-Revises: be128a7bb4fd
+Revises: 6910d017b626
 Create Date: 2024-08-12 16:24:00.489375
 
 """
@@ -12,7 +12,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "c9e46d098c73"
-down_revision = "be128a7bb4fd"
+down_revision = "6910d017b626"
 branch_labels = None
 depends_on = None
 
