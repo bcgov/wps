@@ -15,6 +15,21 @@ const run = commands => {
 }
 // Create the intermediate folder and move the reports from cypress and jest inside it
 fs.emptyDirSync(INTERMEDIATE_FOLDER)
+const sourceFile = path.join(CYPRESS_COVERAGE_FOLDER, 'coverage-final.json');
+const destinationFile = path.join(INTERMEDIATE_FOLDER, 'from-cypress.json');
+if (!fs.existsSync(sourceFile)) {
+  console.error(`Source file does not exist: ${sourceFile}`);
+} else {
+  // Check if the destination directory exists
+  if (!fs.existsSync(INTERMEDIATE_FOLDER)) {
+    console.log(`Destination directory does not exist. Creating: ${INTERMEDIATE_FOLDER}`);
+    try {
+      fs.mkdirSync(INTERMEDIATE_FOLDER, { recursive: true });
+    } catch (err) {
+      console.error(`Failed to create directory: ${err}`);
+    }
+  }
+}
 fs.copyFileSync(`${CYPRESS_COVERAGE_FOLDER}/coverage-final.json`, `${INTERMEDIATE_FOLDER}/from-cypress.json`)
 fs.copyFileSync(`${JEST_COVERAGE_FOLDER}/coverage-final.json`, `${INTERMEDIATE_FOLDER}/from-jest.json`)
 fs.emptyDirSync('.nyc_output')
