@@ -74,11 +74,7 @@ web/typings/
 .yarn-integrity
 
 # dotenv environment variables file
-api/app/.env
-api/env/.env.test
-api/app/.env.docker
-web/.env
-tileserv/tools/.env
+**/.env
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
