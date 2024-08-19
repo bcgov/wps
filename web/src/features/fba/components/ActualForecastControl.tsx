@@ -5,8 +5,7 @@ import { isNull } from 'lodash'
 import { theme } from 'app/theme'
 
 export interface ActualForecastControlProps {
-  testId?: string
-  runType: string
+  runType: RunType
   setRunType: React.Dispatch<React.SetStateAction<RunType>>
 }
 const ActualForecastControl = ({ runType, setRunType }: ActualForecastControlProps) => {

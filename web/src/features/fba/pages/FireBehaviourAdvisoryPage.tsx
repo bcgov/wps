@@ -173,7 +173,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           </Grid>
           <ErrorBoundary>
             <Grid item>
-              <ActualForecastControl runType={runType.toString()} setRunType={setRunType} />
+              <ActualForecastControl runType={runType} setRunType={setRunType} />
             </Grid>
           </ErrorBoundary>
           <Grid item>
