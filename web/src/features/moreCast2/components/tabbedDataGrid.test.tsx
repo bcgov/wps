@@ -1,4 +1,4 @@
-import React from 'react'
+import { vi, describe, it, expect } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { Provider } from 'react-redux'
@@ -7,7 +7,7 @@ import { DateRange } from 'components/dateRangePicker/types'
 import store from 'app/store'
 
 const FROM_TO: DateRange = {}
-const SET_FROM_TO: React.Dispatch<React.SetStateAction<DateRange>> = jest.fn()
+const SET_FROM_TO: React.Dispatch<React.SetStateAction<DateRange>> = vi.fn()
 const TABS = [
   'temp-tab-button',
   'rh-tab-button',
@@ -31,7 +31,7 @@ const TABS = [
 // ]
 
 describe('TabbedDataGrid', () => {
-  const fetchWeatherIndeterminatesMock = jest.fn((): void => {})
+  const fetchWeatherIndeterminatesMock = vi.fn((): void => { })
   test('Only temp tab is selected on load', async () => {
     const { getByTestId } = render(
       <Provider store={store}>

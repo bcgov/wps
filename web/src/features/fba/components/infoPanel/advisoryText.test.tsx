@@ -1,4 +1,4 @@
-import React from 'react'
+import { vi, describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
 import { DateTime } from 'luxon'
 import AdvisoryText from 'features/fba/components/infoPanel/AdvisoryText'

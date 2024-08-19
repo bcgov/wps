@@ -1,11 +1,11 @@
 import { render, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
-import React from 'react'
+import { vi, describe, it, expect } from 'vitest'
 
 describe('SelectableButton', () => {
   it('should render the button as selected', () => {
-    const selectHandler = jest.fn()
+    const selectHandler = vi.fn()
     const { getByTestId } = render(
       <SelectableButton dataTestId="temp-tab-button" onClick={selectHandler} selected={true} weatherParam="temp">
         Temp
@@ -17,7 +17,7 @@ describe('SelectableButton', () => {
     expect(selectableButton).toBeEnabled()
   })
   it('should render the button as unselected', () => {
-    const selectHandler = jest.fn()
+    const selectHandler = vi.fn()
     const { getByTestId } = render(
       <SelectableButton dataTestId="temp-tab-button" onClick={selectHandler} selected={false} weatherParam="temp">
         Temp
@@ -30,7 +30,7 @@ describe('SelectableButton', () => {
   })
 
   it('should call the toggle callback when clicked', async () => {
-    const selectHandler = jest.fn()
+    const selectHandler = vi.fn()
     const { getByTestId } = render(
       <SelectableButton dataTestId="temp-tab-button" onClick={selectHandler} selected={false} weatherParam="temp">
         Temp

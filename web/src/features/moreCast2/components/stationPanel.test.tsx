@@ -2,14 +2,14 @@ import { ThemeProvider } from '@mui/material/styles'
 import { render, waitFor, within } from '@testing-library/react'
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { theme } from 'app/theme'
-import React from 'react'
+import { vi, describe, it, expect } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import store from 'app/store'
 
 describe('StationPanel', () => {
   it('should render the panel', () => {
-    const mockSetSelectedStationGroup = jest.fn()
+    const mockSetSelectedStationGroup = vi.fn()
 
     const { getByTestId } = render(
       <Provider store={store}>
@@ -28,7 +28,7 @@ describe('StationPanel', () => {
   })
 
   it('should allow selecting of stations', async () => {
-    const mockSetSelectedStationGroup = jest.fn()
+    const mockSetSelectedStationGroup = vi.fn()
 
     const { getByTestId } = render(
       <Provider store={store}>

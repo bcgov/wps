@@ -2,13 +2,13 @@ import { render, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BasicWFWXStation, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { AdminStationDropdown } from 'features/hfiCalculator/components/stationAdmin/AdminStationDropdown'
-import React from 'react'
+import { vi, describe, it, expect } from 'vitest'
 
 describe('AdminStationDropdown', () => {
   it('should call edit handler callback with station option when submitted', async () => {
     const stationAdminRow: StationAdminRow = { planningAreaId: 1, rowId: 1 }
     const stationOptions: BasicWFWXStation[] = [{ name: 'test', code: 2 }]
-    const handleEditStationMock = jest.fn()
+    const handleEditStationMock = vi.fn()
 
     const { getByTestId } = render(
       <AdminStationDropdown

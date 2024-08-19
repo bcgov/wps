@@ -1,4 +1,4 @@
-import React from 'react'
+import { vi, describe, it, expect } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
@@ -8,8 +8,8 @@ describe('ForecastHeader', () => {
   const mockColumnClickHandlerProps: ColumnClickHandlerProps = {
     colDef: { field: 'testForecast', headerName: 'test' },
     contextMenu: null,
-    updateColumnWithModel: jest.fn(),
-    handleClose: jest.fn()
+    updateColumnWithModel: vi.fn(),
+    handleClose: vi.fn()
   }
 
   const renderForecastHeader = () => {

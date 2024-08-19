@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react'
 import LoggedInStatus from 'features/hfiCalculator/components/stationAdmin/LoggedInStatus'
-import React from 'react'
+import { vi, describe, it, expect } from 'vitest'
 
 describe('LoggedInStatus', () => {
   const idir = 'test@idir'

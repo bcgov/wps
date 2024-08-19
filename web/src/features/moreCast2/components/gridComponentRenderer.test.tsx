@@ -16,8 +16,8 @@ describe('GridComponentRenderer', () => {
   const mockColumnClickHandlerProps: ColumnClickHandlerProps = {
     colDef: null,
     contextMenu: null,
-    updateColumnWithModel: jest.fn(),
-    handleClose: jest.fn()
+    updateColumnWithModel: vi.fn(),
+    handleClose: vi.fn()
   }
 
   it('should render the header with the forecast button', () => {

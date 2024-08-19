@@ -12,8 +12,8 @@ describe('ColDefBuilder', () => {
   const mockColumnClickHandlerProps: ColumnClickHandlerProps = {
     colDef: null,
     contextMenu: null,
-    updateColumnWithModel: jest.fn(),
-    handleClose: jest.fn()
+    updateColumnWithModel: vi.fn(),
+    handleClose: vi.fn()
   }
 
   const colDefBuilder = new ColumnDefBuilder(

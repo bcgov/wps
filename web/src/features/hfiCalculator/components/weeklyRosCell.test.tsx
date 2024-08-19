@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import { buildStationDaily } from 'features/hfiCalculator/components/testHelpers'
-import React from 'react'
+import { vi, describe, it, expect } from 'vitest'
 
 const renderWeeklyRos = (daily: StationDaily, testId: string, error: boolean, isRowSelected: boolean) => {
   return render(

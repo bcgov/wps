@@ -1,6 +1,6 @@
 import { StationGroupMember, getStationGroupsMembers } from 'api/stationAPI'
 import axios from 'api/axios'
-
+import { vi } from 'vitest'
 describe('stationAPI', () => {
   it('should return groups from group endpoint', async () => {
     const mockMemberStation: StationGroupMember = {
@@ -11,7 +11,7 @@ describe('stationAPI', () => {
       station_code: 0,
       station_status: 'ACTIVE'
     }
-    axios.post = jest.fn().mockResolvedValue({ data: { stations: [mockMemberStation] } })
+    axios.post = vi.fn().mockResolvedValue({ data: { stations: [mockMemberStation] } })
     const res = await getStationGroupsMembers(['1'])
     expect(res).toHaveLength(1)
     expect(res[0].id).toBe('1')

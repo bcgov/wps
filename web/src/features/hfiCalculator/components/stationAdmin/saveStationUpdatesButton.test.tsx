@@ -1,11 +1,11 @@
 import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SaveStationUpdatesButton from 'features/hfiCalculator/components/stationAdmin/SaveStationUpdatesButton'
-import React from 'react'
+import { vi, describe, it, expect } from 'vitest'
 
 describe('SaveStationUpdatesButton', () => {
   it('should render button enabled when there is a removed station', () => {
-    const handleSaveMock = jest.fn()
+    const handleSaveMock = vi.fn()
 
     const { getByTestId } = render(
       <SaveStationUpdatesButton
@@ -18,7 +18,7 @@ describe('SaveStationUpdatesButton', () => {
     expect(saveButton).toBeInTheDocument()
   })
   it('should render button enabled when there is an added station with all required fields', () => {
-    const handleSaveMock = jest.fn()
+    const handleSaveMock = vi.fn()
 
     const { getByTestId } = render(
       <SaveStationUpdatesButton
@@ -34,7 +34,7 @@ describe('SaveStationUpdatesButton', () => {
   })
 
   it('should not be enabled when there is no added or removed stations', () => {
-    const handleSaveMock = jest.fn()
+    const handleSaveMock = vi.fn()
 
     const { getByTestId } = render(
       <SaveStationUpdatesButton handleSave={handleSaveMock} addedStations={[]} removedStations={[]} />
@@ -43,7 +43,7 @@ describe('SaveStationUpdatesButton', () => {
     expect(saveButton).toBeDisabled()
   })
   it('should be enabled when an added station has all fields selected', () => {
-    const handleSaveMock = jest.fn()
+    const handleSaveMock = vi.fn()
 
     const { getByTestId } = render(
       <SaveStationUpdatesButton
@@ -58,7 +58,7 @@ describe('SaveStationUpdatesButton', () => {
     expect(saveButton).toBeEnabled()
   })
   it('should not be enabled when an added station has nothing selected', () => {
-    const handleSaveMock = jest.fn()
+    const handleSaveMock = vi.fn()
 
     const { getByTestId } = render(
       <SaveStationUpdatesButton
@@ -71,7 +71,7 @@ describe('SaveStationUpdatesButton', () => {
     expect(saveButton).toBeDisabled()
   })
   it('should not be enabled when an added station name is not selected', () => {
-    const handleSaveMock = jest.fn()
+    const handleSaveMock = vi.fn()
 
     const { getByTestId } = render(
       <SaveStationUpdatesButton
@@ -84,7 +84,7 @@ describe('SaveStationUpdatesButton', () => {
     expect(saveButton).toBeDisabled()
   })
   it('should not be enabled when an added station fuel type is not selected', () => {
-    const handleSaveMock = jest.fn()
+    const handleSaveMock = vi.fn()
 
     const { getByTestId } = render(
       <SaveStationUpdatesButton
@@ -97,7 +97,7 @@ describe('SaveStationUpdatesButton', () => {
     expect(saveButton).toBeDisabled()
   })
   it('should call save callback when clicked', async () => {
-    const handleSaveMock = jest.fn()
+    const handleSaveMock = vi.fn()
 
     const { getByTestId } = render(
       <SaveStationUpdatesButton

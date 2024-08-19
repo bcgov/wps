@@ -1,8 +1,8 @@
-import React from 'react'
+import { vi, describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
 import FireCentreInfo from 'features/fba/components/infoPanel/FireCentreInfo'
 import { FireShapeAreaDetail } from 'api/fbaAPI'
-
+import { vi } from 'vitest'
 describe('FireCentreInfo', () => {
   it('should render', () => {
     const { getByTestId } = render(
@@ -11,7 +11,7 @@ describe('FireCentreInfo', () => {
         expanded={false}
         fireCentreName="foo"
         fireZoneUnitInfos={[]}
-        onChangeExpanded={jest.fn()}
+        onChangeExpanded={vi.fn()}
       />
     )
     const fireCentreInfo = getByTestId('fire-centre-info')
@@ -24,7 +24,7 @@ describe('FireCentreInfo', () => {
         expanded={false}
         fireCentreName="foo"
         fireZoneUnitInfos={[]}
-        onChangeExpanded={jest.fn()}
+        onChangeExpanded={vi.fn()}
       />
     )
     const fireCentreInfo = getByTestId('fire-centre-info')
@@ -49,7 +49,7 @@ describe('FireCentreInfo', () => {
         expanded={true}
         fireCentreName="foo"
         fireZoneUnitInfos={fireShapeAreaDetails}
-        onChangeExpanded={jest.fn()}
+        onChangeExpanded={vi.fn()}
       />
     )
     const fireZoneUnitInfo = getByTestId('fire-zone-unit-info')

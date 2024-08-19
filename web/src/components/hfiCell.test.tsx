@@ -1,7 +1,7 @@
 import { TableContainer, Table, TableBody, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
 import HFICell from 'components/HFICell'
-import React from 'react'
+import { vi, describe, it, expect } from 'vitest'
 
 describe('HFICell', () => {
   it('should render without color when HFI is undefined', () => {

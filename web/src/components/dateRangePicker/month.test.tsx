@@ -2,8 +2,8 @@ import { fireEvent, render, waitFor, within } from '@testing-library/react'
 import { MARKERS } from 'components/dateRangePicker/DateRangePicker'
 import Month from 'components/dateRangePicker/Month'
 import { DateRange, NavigationAction } from 'components/dateRangePicker/types'
-import React from 'react'
-/* eslint-disable @typescript-eslint/no-unused-vars */
+import { vi, describe, it, expect } from 'vitest'
+import { vi } from 'vitest'/* eslint-disable @typescript-eslint/no-unused-vars */
 
 const setup = (
   value: Date,
@@ -41,19 +41,19 @@ const setup = (
 describe('Month', () => {
   const startDate = new Date('2021/2/21')
   const endDate = new Date('2021/2/25')
-  const setValueMock = jest.fn((date: Date): void => {
+  const setValueMock = vi.fn((date: Date): void => {
     /** no op */
   })
-  const inHoverRangeMock = jest.fn((date: Date): boolean => {
+  const inHoverRangeMock = vi.fn((date: Date): boolean => {
     return false
   })
-  const onDayClickMock = jest.fn((date: Date): void => {
+  const onDayClickMock = vi.fn((date: Date): void => {
     /** no op */
   })
-  const onDayHoverMock = jest.fn((date: Date): void => {
+  const onDayHoverMock = vi.fn((date: Date): void => {
     /** no op */
   })
-  const onMonthNavigateMock = jest.fn((marker: symbol, action: NavigationAction): void => {
+  const onMonthNavigateMock = vi.fn((marker: symbol, action: NavigationAction): void => {
     /** no op */
   })
 

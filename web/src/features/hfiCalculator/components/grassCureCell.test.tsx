@@ -1,7 +1,7 @@
 import { TableContainer, Table, TableRow, TableBody } from '@mui/material'
 import { render } from '@testing-library/react'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
-import React from 'react'
+import { vi, describe, it, expect } from 'vitest'
 describe('HFI - GrassCureCell', () => {
   it('should return cell in error state for grass cure fuel type without grass cure set', () => {
     const { getByTestId, queryAllByTestId } = render(
