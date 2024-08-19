@@ -178,18 +178,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [selectedFireShape, fireCenters])
 
   useEffect(() => {
-    const selectedFireShapeId = selectedFireShape?.fire_shape_id
-    if (isNull(fireZoneTPIStats) || isUndefined(selectedFireShapeId)) {
-      setSelectedFireZoneTPIStats(null)
-    }
-    const selectedTPIStats = fireZoneTPIStats?.filter(stats => stats.fire_zone_id === selectedFireShapeId)
-    if (!isUndefined(selectedTPIStats) && selectedTPIStats?.length > 0) {
-      setSelectedFireZoneTPIStats(selectedTPIStats[0])
-    }
-
-  }, [fireZoneTPIStats])
-
-  useEffect(() => {
     document.title = ASA_DOC_TITLE
   }, [])
 
