@@ -4,7 +4,6 @@ import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 import { vi, describe, it, expect } from 'vitest'
-import { describe, expect, test } from 'vitest'
 
 describe('PlanningAreaAdmin', () => {
   const planningArea = { id: 1, name: 'testPlanningArea' }
