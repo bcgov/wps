@@ -2,6 +2,7 @@
 // this adds jest-dom's custom assertions
 import '@testing-library/jest-dom'
 import crypto from 'crypto'
+import { vi } from 'vitest'
 
 Object.defineProperty(global, 'crypto', {
   value: {
@@ -9,7 +10,7 @@ Object.defineProperty(global, 'crypto', {
   }
 })
 
-jest.mock('@mui/x-license-pro', () => ({
+vi.mock('@mui/x-license-pro', () => ({
   ...jest.requireActual('@mui/x-license-pro'),
   useLicenseVerifier: () => 'Valid',
   Watermark: () => null
