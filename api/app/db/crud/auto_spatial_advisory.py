@@ -396,10 +396,7 @@ async def get_zonal_tpi_stats(session: AsyncSession, fire_zone_id: int, run_type
     shape_id = result.scalar()
 
     stmt = select(
-        AdvisoryTPIStats.advisory_shape_id,
-        AdvisoryTPIStats.valley_bottom,
-        AdvisoryTPIStats.mid_slope,
-        AdvisoryTPIStats.upper_slope,
+        AdvisoryTPIStats.advisory_shape_id, AdvisoryTPIStats.valley_bottom, AdvisoryTPIStats.mid_slope, AdvisoryTPIStats.upper_slope, AdvisoryTPIStats.pixel_size_metres
     ).where(AdvisoryTPIStats.advisory_shape_id == shape_id, AdvisoryTPIStats.run_parameters == run_parameters_id)
 
     result = await session.execute(stmt)
