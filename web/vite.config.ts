@@ -15,7 +15,7 @@ export default defineConfig({
     include: 'src/*',
     exclude: ['node_modules', 'test/'],
     extension: ['.js', '.ts'],
-    requireEnv: true,
+    cypress: true
   }),
   sentryVitePlugin({
     org: "bcps-wps",

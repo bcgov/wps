@@ -68,7 +68,6 @@
     "build:prod": "tsc -b && vite build",
     "test": "vitest",
     "test:ci": "CI=true npm test",
-    "coverage": "yarn test -- --coverage --watchAll=false",
     "coverage:ci": "CI=true VITE_KEYCLOAK_CLIENT=wps-web vitest run --coverage",
     "cy:open": "cypress open",
     "cy:run": "cypress run --browser chrome --config watchForFileChanges=false",
