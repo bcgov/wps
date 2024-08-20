@@ -8,7 +8,7 @@ interface InfoPanelProps {
 // A component to host information in a side panel in ASA.
 const InfoPanel = React.forwardRef(({ children }: InfoPanelProps, ref: React.ForwardedRef<HTMLDivElement>) => {
   return (
-    <Grid data-testid="info-panel" item ref={ref} sx={{ minWidth: '500px', maxWidth: '500px', overflowY: 'auto' }}>
+    <Grid data-testid="info-panel" item ref={ref} sx={{ width: '500px', overflowY: 'auto' }}>
       {children}
     </Grid>
   )
