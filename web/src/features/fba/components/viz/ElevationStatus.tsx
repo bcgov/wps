@@ -41,7 +41,7 @@ const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
           <ElevationLabel label={ElevationOption.MID} />
           <ElevationLabel label={ElevationOption.BOTTOM} />
         </Grid>
-        <Grid container sx={{ alignItems: 'flex-end', display: 'flex' }} xs={4}>
+        <Grid container sx={{ alignItems: 'flex-end', display: 'flex' }} xs={4} data-testid='tpi-mountain'>
           <Grid sx={{ display: 'flex', alignItems: 'flex-end', height: '80%', justifyContent: 'center' }} xs={12}>
             <TPIMountain />
           </Grid>
@@ -59,9 +59,9 @@ const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
               Proportion of Advisory Area:
             </Typography>
           </Grid>
-          <ElevationFlag percent={upper} />
-          <ElevationFlag percent={mid} />
-          <ElevationFlag percent={bottom} />
+          <ElevationFlag percent={upper} testId='upper-slope' />
+          <ElevationFlag percent={mid} testId='mid-slope' />
+          <ElevationFlag percent={bottom} testId='valley-bottom' />
         </Grid>
       </Grid>
     </Box>

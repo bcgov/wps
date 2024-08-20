@@ -4,10 +4,11 @@ import { Box, Grid, Typography } from '@mui/material'
 const FLAG_COLOUR = '#CCCCCC'
 
 interface ElevationFlagProps {
+  testId?: string
   percent: number
 }
 
-const ElevationFlag = ({ percent }: ElevationFlagProps) => {
+const ElevationFlag = ({ percent, testId }: ElevationFlagProps) => {
   return (
     <Grid item sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, justifyContent: 'flex-start' }} xs={12}>
       <Box
@@ -28,7 +29,7 @@ const ElevationFlag = ({ percent }: ElevationFlagProps) => {
             justifyContent: 'center',
           }}
         >
-          <Typography sx={{ fontSize: '0.75em' }}>{percent}%</Typography>
+          <Typography sx={{ fontSize: '0.75em' }} data-testid={testId}>{percent}%</Typography>
         </Box>
       </Box>
     </Grid>
