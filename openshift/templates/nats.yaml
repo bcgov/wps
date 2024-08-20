@@ -341,6 +341,11 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: object-store-bucket
+                - name: WFWX_BASE_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.wfwx-base-url
                 - name: WFWX_AUTH_URL
                   valueFrom:
                     configMapKeyRef:
