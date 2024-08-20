@@ -42,7 +42,6 @@ import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
 import { fireZoneExtentsMap } from 'features/fba/fireZoneUnitExtents'
 export const MapContext = React.createContext<ol.Map | null>(null)
 
-const zoom = 5.5
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 export interface FBAMapProps {

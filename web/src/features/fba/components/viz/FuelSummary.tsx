@@ -93,9 +93,6 @@ const FuelSummary = ({ fuelTypeInfo, selectedFireZoneUnit }: FuelSummaryProps) =
 
   return (
     <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }}>
-      <Typography sx={{ fontWeight: 'bold', paddingBottom: theme.spacing(1), textAlign: 'center' }}>
-        HFI Distribution by Fuel Type
-      </Typography>
       {fuelTypeInfoRollup.length === 0 ? (
         <Typography>No fuel type information available.</Typography>
       ) : (
