@@ -237,7 +237,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             selectedFireCenter={fireCenter}
           />
           <FireZoneUnitSummary
-            fireShapeAreas={fireShapeAreas}
             fuelTypeInfo={hfiThresholdsFuelTypes}
             selectedFireZoneUnit={selectedFireShape} 
             fireZoneTPIStats={selectedFireZoneTPIStats} 

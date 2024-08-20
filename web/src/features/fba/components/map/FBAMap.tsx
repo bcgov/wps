@@ -40,7 +40,6 @@ import Legend from 'features/fba/components/map/Legend'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
 export const MapContext = React.createContext<ol.Map | null>(null)
 
-const zoom = 5.5
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 export interface FBAMapProps {

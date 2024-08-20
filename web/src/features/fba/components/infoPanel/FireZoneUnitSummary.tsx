@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Grid, Typography } from '@mui/material'
 import { isNull, isUndefined } from 'lodash'
-import { FireShape, FireShapeArea, FireZoneTPIStats, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
+import { FireShape, FireZoneTPIStats, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 import { useTheme } from '@mui/material/styles'
@@ -11,11 +11,9 @@ interface FireZoneUnitSummaryProps {
   selectedFireZoneUnit: FireShape | undefined
   fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
   fireZoneTPIStats: FireZoneTPIStats | null
-  fireShapeAreas: FireShapeArea[]
 }
 
 const FireZoneUnitSummary = ({
-  fireShapeAreas,
   fuelTypeInfo,
   fireZoneTPIStats,
   selectedFireZoneUnit
@@ -48,12 +46,7 @@ const FireZoneUnitSummary = ({
         >
 
           <Grid item sx={{ paddingBottom: theme.spacing(2), width: '95%' }}>
-            { Object.keys(fuelTypeInfo).length === 0 ? (
-              <Typography>
-                No fuel type information available.
-              </Typography>
-          ): (
-            <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fuelTypeInfo={fuelTypeInfo} />)}
+            <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fuelTypeInfo={fuelTypeInfo} />
           </Grid>
           <Grid item sx={{ width: '95%' }}>
             { isNull(fireZoneTPIStats) ? (

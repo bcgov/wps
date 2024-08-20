@@ -22,7 +22,7 @@ interface ElevationStatusProps {
 const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
   const theme = useTheme()
   return (
-    <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }}>
+    <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }} data-testid="elevation-status">
       <Grid container sx={{ minHeight: theme.spacing(19) }} xs={12}>
         <Grid container sx={{ paddingRight: theme.spacing(2) }} xs={4}>
           <Grid sx={{ alignItems: 'center', display: 'flex', height: '25%', justifyContent: 'flex-end' }} xs={12}>
