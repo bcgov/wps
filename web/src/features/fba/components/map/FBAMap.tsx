@@ -171,7 +171,6 @@ const FBAMap = (props: FBAMapProps) => {
             return
           }
           const zoneExtent = fireZoneExtentsMap.get(feature.getProperties().OBJECTID.toString())
-          console.log(feature.getProperties().OBJECTID)
           if (!isUndefined(zoneExtent)) {
             map.getView().fit(zoneExtent, { duration: 400, padding: [100, 100, 100, 100], maxZoom: 8 })
           }
