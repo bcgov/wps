@@ -136,7 +136,7 @@ const getFireShapeStrokeColor = (fireShapeStatus: FireShapeStatus) => {
     case FireShapeStatus.WARNING:
       return [227, 0, 1, 0.99]
     default:
-      return '#ababab'
+      return '#7f7f7f'
   }
 }
 
