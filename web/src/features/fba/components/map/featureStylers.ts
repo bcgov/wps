@@ -98,12 +98,10 @@ export const fireShapeLineStyler = (
     const selected = !!(selectedFireShape?.fire_shape_id && selectedFireShape.fire_shape_id === fire_shape_id)
     const status = getFireShapeStatus(advisoryThreshold, fireShapes)
 
-    const statusStrokeWidth = status === FireShapeStatus.NONE ? 4 : 8
-
     return new Style({
       stroke: new Stroke({
         color: selected ? getFireShapeStrokeColor(status) : EMPTY_FILL,
-        width: selected ? statusStrokeWidth : 1
+        width: selected ? 8 : 1
       })
     })
   }
@@ -138,7 +136,7 @@ const getFireShapeStrokeColor = (fireShapeStatus: FireShapeStatus) => {
     case FireShapeStatus.WARNING:
       return [227, 0, 1, 0.99]
     default:
-      return 'black'
+      return '#ababab'
   }
 }
 
