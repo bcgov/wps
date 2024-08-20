@@ -44,12 +44,10 @@ export const fireCentreStyler = (selectedFireCenter: FireCenter | undefined) => 
     const fireCenterId = feature.getProperties().MOF_FIRE_CENTRE_NAME
     const isSelected = selectedFireCenter && fireCenterId == selectedFireCenter.name
 
+    const fillColour = isSelected ? new Fill({ color: EMPTY_FILL }) : new Fill({ color: GREY_FILL })
+
     return new Style({
-      fill: selectedFireCenter
-        ? isSelected
-          ? new Fill({ color: EMPTY_FILL })
-          : new Fill({ color: GREY_FILL })
-        : undefined
+      fill: selectedFireCenter ? fillColour : undefined
     })
   }
 }
@@ -100,12 +98,13 @@ export const fireShapeLineStyler = (
     const selected = !!(selectedFireShape?.fire_shape_id && selectedFireShape.fire_shape_id === fire_shape_id)
     const status = getFireShapeStatus(advisoryThreshold, fireShapes)
 
+    const statusStrokeWidth = status === FireShapeStatus.NONE ? 4 : 8
+
     return new Style({
       stroke: new Stroke({
         color: selected ? getFireShapeStrokeColor(status) : EMPTY_FILL,
-        width: selected ? (status === FireShapeStatus.NONE ? 4 : 8) : 1
-      }),
-      fill: new Fill({ color: EMPTY_FILL })
+        width: selected ? statusStrokeWidth : 1
+      })
     })
   }
   return a
