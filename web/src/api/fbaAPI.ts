@@ -56,6 +56,13 @@ export interface FireZoneElevationInfoResponse {
   hfi_elevation_info: ElevationInfoByThreshold[]
 }
 
+export interface FireZoneTPIStats {
+  fire_zone_id: number
+  valley_bottom: number
+  mid_slope: number
+  upper_slope: number
+}
+
 export interface FireShapeAreaListResponse {
   shapes: FireShapeArea[]
 }
@@ -150,6 +157,18 @@ export async function getFireZoneElevationInfo(
   const { data } = await axios.get(url)
   return data
 }
+
+export async function getFireZoneTPIStats(
+  fire_zone_id: number,
+  run_type: RunType,
+  run_datetime: string,
+  for_date: string
+): Promise<FireZoneTPIStats> {
+  const url = `fba/fire-zone-tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
+  const { data } = await axios.get(url)
+  return data
+}
+
 
 export async function getValueAtCoordinate(
   layer: string,
