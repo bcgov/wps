@@ -2,6 +2,7 @@ import asyncio
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 import math
+from typing import Dict, List
 import numpy as np
 import os
 import sys
@@ -213,7 +214,7 @@ async def calculate_critical_hours_for_station_by_fuel_type(
 
 
 async def calculate_critical_hours_by_fuel_type(
-    wfwx_stations, dailies_by_station_id, yesterday_dailies_by_station_id, hourly_observations_by_station_code, fuel_types_by_area, for_date
+    wfwx_stations: List[WFWXWeatherStation], dailies_by_station_id, yesterday_dailies_by_station_id, hourly_observations_by_station_code, fuel_types_by_area, for_date
 ):
     """
     Calculates the critical hours for each fuel type for all stations in a fire zone unit.
@@ -238,6 +239,7 @@ async def calculate_critical_hours_by_fuel_type(
                         wfwx_station, dailies_by_station_id, yesterday_dailies_by_station_id, hourly_observations_by_station_code, fuel_type_enum, for_date
                     )
                     if critical_hours is not None and critical_hours.start is not None and critical_hours.end is not None:
+                        logger.info(f"Storing critical hours for fuel type key: ${fuel_type_key}, start: ${critical_hours.start}, end: ${critical_hours.end}")
                         critical_hours_by_fuel_type[fuel_type_key].append(critical_hours)
                 except Exception as exc:
                     logger.warning(f"An error occurred when calculating critical hours for station code: {wfwx_station.code} and fuel type: {fuel_type_key}: {exc} ")
@@ -254,9 +256,11 @@ def check_station_valid(wfwx_station: WFWXWeatherStation, dailies, hourlies) -> 
     :return: True if the station can be used for critical hours calculations, otherwise false.
     """
     if wfwx_station.wfwx_id not in dailies or wfwx_station.code not in hourlies:
+        logger.info(f"Station with code: ${wfwx_station.code} is missing dailies or hourlies")
         return False
     daily = dailies[wfwx_station.wfwx_id]
     if daily["duffMoistureCode"] is None or daily["droughtCode"] is None or daily["fineFuelMoistureCode"] is None:
+        logger.info(f"Station with code: ${wfwx_station.code} is missing DMC, DC or FFMC")
         return False
     return True
 
@@ -313,7 +317,7 @@ def get_fuel_types_by_area(advisory_fuel_stats):
     return fuel_types_by_area
 
 
-async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dict, stations_by_zone, run_parameters_id: int, for_date: date):
+async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dict, stations_by_zone: Dict[int, List[WFWXWeatherStation]], run_parameters_id: int, for_date: date):
     """
     Calculates critical hours for fire zone units by determining critical hours for each station in the fire zone unit and heuristically determining a reasonable critical start/end time.
 
@@ -380,7 +384,7 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
             all_stations = await get_stations_asynchronously()
             station_codes = list(station.code for station in all_stations)
             stations = await wfwx_api.get_wfwx_stations_from_station_codes(client_session, header, station_codes)
-            stations_by_zone = defaultdict(list)
+            stations_by_zone: Dict[int, List[WFWXWeatherStation]] = defaultdict(list)
             transformer = PointTransformer(4326, 3005)
             for station in stations:
                 (x, y) = transformer.transform_coordinate(station.lat, station.long)
