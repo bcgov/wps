@@ -39,6 +39,7 @@ import { isUndefined, cloneDeep, isNull } from 'lodash'
 import { Box } from '@mui/material'
 import Legend from 'features/fba/components/map/Legend'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
+import { fireZoneExtentsMap } from 'features/fba/fireZoneUnitExtents'
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 5.5
@@ -170,9 +171,10 @@ const FBAMap = (props: FBAMapProps) => {
           if (!feature) {
             return
           }
-          const zoneExtent = feature.getGeometry()?.getExtent()
+          const zoneExtent = fireZoneExtentsMap.get(feature.getProperties().OBJECTID.toString())
+          console.log(feature.getProperties().OBJECTID)
           if (!isUndefined(zoneExtent)) {
-            map.getView().fit(zoneExtent, { duration: 400, padding: [50, 50, 50, 50], maxZoom: 7.4 })
+            map.getView().fit(zoneExtent, { duration: 400, padding: [100, 100, 100, 100], maxZoom: 8 })
           }
           const fireZone: FireShape = {
             fire_shape_id: feature.getProperties().OBJECTID,
