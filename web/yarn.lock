@@ -3102,7 +3102,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@psu/cffdrs_ts@git+https://github.com/cffdrs/cffdrs_ts":
+"@psu/cffdrs_ts@git+https://github.com/cffdrs/cffdrs_ts#b9afdabc89dd4bdf04ccf1e406a4a5d8d552ff51":
   version: 0.1.0
   resolution: "@psu/cffdrs_ts@https://github.com/cffdrs/cffdrs_ts.git#commit=b9afdabc89dd4bdf04ccf1e406a4a5d8d552ff51"
   checksum: 10c0/add6a6b26e397823e9daa630eefcfaa9096755dffec7f5dfb35e10209d1aa88425dcd65d18c4f57c55500635dd1cc89e69a0faef49cf202dcbe01aa8be901526
@@ -17438,7 +17438,7 @@ __metadata:
     "@mui/material": "npm:5.15.20"
     "@mui/x-data-grid-pro": "npm:^6.0.0"
     "@mui/x-date-pickers": "npm:^7.0.0"
-    "@psu/cffdrs_ts": "git+https://github.com/cffdrs/cffdrs_ts"
+    "@psu/cffdrs_ts": "git+https://github.com/cffdrs/cffdrs_ts#b9afdabc89dd4bdf04ccf1e406a4a5d8d552ff51"
     "@reduxjs/toolkit": "npm:^1.8.0"
     "@sentry/cli": "npm:^2.31.2"
     "@sentry/react": "npm:^8.2.1"
