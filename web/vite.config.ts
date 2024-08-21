@@ -10,6 +10,9 @@ export default defineConfig({
     sourcemap: true,
     outDir: 'build',
   },
+  optimizeDeps: {
+    include: ['@emotion/styled'],
+  },
   plugins: [react(), svgr(),
   istanbul({
     include: 'src/*',
