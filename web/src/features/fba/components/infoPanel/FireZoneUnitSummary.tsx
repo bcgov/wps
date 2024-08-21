@@ -1,23 +1,21 @@
 import React from 'react'
-import { Grid } from '@mui/material'
-import { isUndefined } from 'lodash'
-import { ElevationInfoByThreshold, FireShape, FireShapeArea, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
-import ElevationInfoViz from 'features/fba/components/viz/ElevationInfoViz'
+import { Grid, Typography } from '@mui/material'
+import { isNull, isUndefined } from 'lodash'
+import { FireShape, FireZoneTPIStats, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
+import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 import { useTheme } from '@mui/material/styles'
 import FuelSummary from 'features/fba/components/viz/FuelSummary'
 
 interface FireZoneUnitSummaryProps {
   selectedFireZoneUnit: FireShape | undefined
   fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
-  hfiElevationInfo: ElevationInfoByThreshold[]
-  fireShapeAreas: FireShapeArea[]
+  fireZoneTPIStats: FireZoneTPIStats | null
 }
 
 const FireZoneUnitSummary = ({
-  fireShapeAreas,
   fuelTypeInfo,
-  hfiElevationInfo,
+  fireZoneTPIStats,
   selectedFireZoneUnit
 }: FireZoneUnitSummaryProps) => {
   const theme = useTheme()
@@ -34,11 +32,21 @@ const FireZoneUnitSummary = ({
           direction={'column'}
           sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }}
         >
-          <Grid item sx={{ width: '95%' }}>
+
+          <Grid item sx={{ paddingBottom: theme.spacing(2), width: '95%' }}>
             <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fuelTypeInfo={fuelTypeInfo} />
           </Grid>
-          <Grid item>
-            <ElevationInfoViz selectedFireZone={selectedFireZoneUnit} hfiElevationInfo={hfiElevationInfo} />
+          <Grid item sx={{ width: '95%' }}>
+            { isNull(fireZoneTPIStats) ? (
+              <Typography>
+                No elevation information available.
+              </Typography>
+            ) : (
+            <ElevationStatus
+              upper={fireZoneTPIStats.upper_slope}
+              mid={fireZoneTPIStats.mid_slope}
+              bottom={fireZoneTPIStats.valley_bottom}
+            ></ElevationStatus>)}
           </Grid>
         </Grid>
       </InfoAccordion>

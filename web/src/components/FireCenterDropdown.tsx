@@ -1,6 +1,6 @@
 import { TextField, Autocomplete } from '@mui/material'
 import { FireCenter, FireShape } from 'api/fbaAPI'
-import { isEqual } from 'lodash'
+import { isEqual, isNull } from 'lodash'
 import React from 'react'
 
 interface FireCenterDropdownProps {
@@ -18,6 +18,9 @@ const FireCenterDropdown = (props: FireCenterDropdownProps) => {
       props.setSelectedFireShape(undefined)
       props.setSelectedFireCenter(value)
       props.setZoomSource('fireCenter')
+    }
+    if (isNull(value)) {
+      localStorage.removeItem('preferredFireCenter')
     }
   }
 

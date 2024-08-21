@@ -23,11 +23,12 @@ import {
   fireCentreStyler,
   fireCentreLabelStyler,
   fireShapeStyler,
-  fireShapeHighlightStyler,
+  fireShapeLineStyler,
   fireShapeLabelStyler,
   stationStyler,
   hfiStyler,
-  snowStyler
+  snowStyler,
+  fireCentreLineStyler
 } from 'features/fba/components/map/featureStylers'
 import { BC_EXTENT, CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
@@ -38,9 +39,9 @@ import { isUndefined, cloneDeep, isNull } from 'lodash'
 import { Box } from '@mui/material'
 import Legend from 'features/fba/components/map/Legend'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
+import { fireZoneExtentsMap } from 'features/fba/fireZoneUnitExtents'
 export const MapContext = React.createContext<ol.Map | null>(null)
 
-const zoom = 5.5
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 export interface FBAMapProps {
@@ -108,10 +109,19 @@ const FBAMap = (props: FBAMapProps) => {
   const [fireCentreVTL] = useState(
     new VectorTileLayer({
       source: fireCentreVectorSource,
-      style: fireCentreStyler,
-      zIndex: 49
+      style: fireCentreStyler(props.selectedFireCenter),
+      zIndex: 51
     })
   )
+
+  const [fireCentreLineVTL] = useState(
+    new VectorTileLayer({
+      source: fireCentreVectorSource,
+      style: fireCentreLineStyler(props.selectedFireCenter),
+      zIndex: 52
+    })
+  )
+
   const [fireShapeVTL] = useState(
     new VectorTileLayer({
       source: fireShapeVectorSource,
@@ -123,12 +133,8 @@ const FBAMap = (props: FBAMapProps) => {
   const [fireShapeHighlightVTL] = useState(
     new VectorTileLayer({
       source: fireShapeVectorSource,
-      style: fireShapeHighlightStyler(
-        cloneDeep(props.fireShapeAreas),
-        props.advisoryThreshold,
-        props.selectedFireShape
-      ),
-      zIndex: 51,
+      style: fireShapeLineStyler(cloneDeep(props.fireShapeAreas), props.advisoryThreshold, props.selectedFireShape),
+      zIndex: 53,
       properties: { name: 'fireShapeVector' }
     })
   )
@@ -164,9 +170,9 @@ const FBAMap = (props: FBAMapProps) => {
           if (!feature) {
             return
           }
-          const zoneExtent = feature.getGeometry()?.getExtent()
+          const zoneExtent = fireZoneExtentsMap.get(feature.getProperties().OBJECTID.toString())
           if (!isUndefined(zoneExtent)) {
-            map.getView().fit(zoneExtent, { duration: 400, padding: [50, 50, 50, 50], maxZoom: 7.4 })
+            map.getView().fit(zoneExtent, { duration: 400, padding: [100, 100, 100, 100], maxZoom: 8 })
           }
           const fireZone: FireShape = {
             fire_shape_id: feature.getProperties().OBJECTID,
@@ -198,16 +204,21 @@ const FBAMap = (props: FBAMapProps) => {
   useEffect(() => {
     if (!map) return
 
+    fireCentreVTL.setStyle(fireCentreStyler(props.selectedFireCenter))
     fireShapeVTL.setStyle(fireShapeStyler(cloneDeep(props.fireShapeAreas), props.advisoryThreshold, showShapeStatus))
     fireShapeLabelVTL.setStyle(fireShapeLabelStyler(props.selectedFireShape))
     fireShapeHighlightVTL.setStyle(
-      fireShapeHighlightStyler(cloneDeep(props.fireShapeAreas), props.advisoryThreshold, props.selectedFireShape)
+      fireShapeLineStyler(cloneDeep(props.fireShapeAreas), props.advisoryThreshold, props.selectedFireShape)
     )
+    fireCentreLineVTL.setStyle(fireCentreLineStyler(props.selectedFireCenter))
+
     fireShapeVTL.changed()
     fireShapeHighlightVTL.changed()
     fireShapeLabelVTL.changed()
+    fireCentreLineVTL.changed()
+    fireCentreVTL.changed()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedFireShape, props.fireShapeAreas, props.advisoryThreshold])
+  }, [props.selectedFireCenter, props.selectedFireShape, props.fireShapeAreas, props.advisoryThreshold])
 
   useEffect(() => {
     if (!map) return
@@ -274,6 +285,7 @@ const FBAMap = (props: FBAMapProps) => {
           source: baseMapSource
         }),
         fireCentreVTL,
+        fireCentreLineVTL,
         fireShapeVTL,
         fireShapeHighlightVTL,
         fireCentreLabelVTL,
