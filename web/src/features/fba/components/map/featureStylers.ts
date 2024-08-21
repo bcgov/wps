@@ -60,7 +60,7 @@ export const fireCentreLineStyler = (selectedFireCenter: FireCenter | undefined)
     return new Style({
       stroke: new Stroke({
         color: 'black',
-        width: isSelected ? 8 : 1
+        width: isSelected ? 8 : 3
       })
     })
   }

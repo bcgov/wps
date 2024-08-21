@@ -17,10 +17,28 @@ describe('ElevationStatus', () => {
 
     const midSlope = getByTestId('mid-slope')
     expect(midSlope).toBeInTheDocument()
-    expect(midSlope).toHaveTextContent("1%")
+    expect(midSlope).toHaveTextContent("33%")
 
     const upperSlope = getByTestId('upper-slope')
     expect(upperSlope).toBeInTheDocument()
-    expect(upperSlope).toHaveTextContent("2%")
+    expect(upperSlope).toHaveTextContent("67%")
+  })
+
+  it('should render all zero classifications', () => {
+    const { getByTestId } = render(
+        <ElevationStatus bottom={0} mid={0} upper={0} />
+    )
+
+    const valleyBottom = getByTestId('valley-bottom')
+    expect(valleyBottom).toBeInTheDocument()
+    expect(valleyBottom).toHaveTextContent("0%")
+
+    const midSlope = getByTestId('mid-slope')
+    expect(midSlope).toBeInTheDocument()
+    expect(midSlope).toHaveTextContent("0%")
+
+    const upperSlope = getByTestId('upper-slope')
+    expect(upperSlope).toBeInTheDocument()
+    expect(upperSlope).toHaveTextContent("0%")
   })
 })

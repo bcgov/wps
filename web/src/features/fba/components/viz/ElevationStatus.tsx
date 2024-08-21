@@ -21,6 +21,10 @@ interface ElevationStatusProps {
 
 const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
   const theme = useTheme()
+  const total = mid + upper + bottom
+  const mid_percent = mid === 0 ? 0 : Math.round(mid/total*100)
+  const upper_percent = upper  === 0 ? 0 : Math.round(upper/total*100)
+  const bottom_percent = bottom === 0 ? 0 : Math.round(bottom/total*100)
   return (
     <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }} data-testid="elevation-status">
       <Grid container sx={{ minHeight: theme.spacing(19) }} xs={12}>
@@ -59,9 +63,9 @@ const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
               Proportion of Advisory Area:
             </Typography>
           </Grid>
-          <ElevationFlag percent={upper} testId='upper-slope' />
-          <ElevationFlag percent={mid} testId='mid-slope' />
-          <ElevationFlag percent={bottom} testId='valley-bottom' />
+          <ElevationFlag percent={upper_percent} testId='upper-slope' />
+          <ElevationFlag percent={mid_percent} testId='mid-slope' />
+          <ElevationFlag percent={bottom_percent} testId='valley-bottom' />
         </Grid>
       </Grid>
     </Box>
