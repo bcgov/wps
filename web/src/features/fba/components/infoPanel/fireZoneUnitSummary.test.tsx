@@ -85,4 +85,27 @@ describe('FireZoneUnitSummary', () => {
     const fireZoneUnitInfo = getByTestId('elevation-status')
     expect(fireZoneUnitInfo).toBeInTheDocument()
   })
+
+  it('should not render TPI stats all zero', () => {
+    const fireShape: FireShape = {
+      fire_shape_id: 1,
+      mof_fire_zone_name: 'foo',
+      mof_fire_centre_name: 'fizz',
+      area_sqm: 10
+    }
+    const { queryByTestId } = render(
+      <FireZoneUnitSummary
+        fuelTypeInfo={[]}
+        fireZoneTPIStats={{
+          fire_zone_id: 0, 
+          valley_bottom: 0,
+          mid_slope: 0,
+          upper_slope: 0
+        }}
+        selectedFireZoneUnit={fireShape}
+      />
+    )
+    const fireZoneUnitInfo = queryByTestId('elevation-status')
+    expect(fireZoneUnitInfo).not.toBeInTheDocument()
+  })
 })
