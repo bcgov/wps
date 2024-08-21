@@ -11,7 +11,7 @@ export default defineConfig({
     outDir: 'build',
   },
   optimizeDeps: {
-    include: ['@emotion/styled'],
+    include: ['@emotion/styled', '@mui/material'],
   },
   plugins: [react(), svgr(),
   istanbul({
