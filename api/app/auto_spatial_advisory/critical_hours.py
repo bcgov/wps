@@ -142,7 +142,7 @@ def calculate_wind_speed_result(yesterday: dict, raw_daily: dict) -> WindResult:
     return WindResult(ffmc=ffmc, isi=isi, bui=bui, wind_speed=wind_speed, fwi=fwi, status=status)
 
 
-async def calculate_critical_hours_for_station_by_fuel_type(
+def calculate_critical_hours_for_station_by_fuel_type(
     wfwx_station: WFWXWeatherStation,
     dailies_by_station_id: dict,
     yesterday_dailies_by_station_id: dict,
@@ -214,7 +214,7 @@ async def calculate_critical_hours_for_station_by_fuel_type(
     return critical_hours
 
 
-async def calculate_critical_hours_by_fuel_type(
+def calculate_critical_hours_by_fuel_type(
     wfwx_stations: List[WFWXWeatherStation], dailies_by_station_id, yesterday_dailies_by_station_id, hourly_observations_by_station_code, fuel_types_by_area, for_date
 ):
     """
@@ -236,7 +236,7 @@ async def calculate_critical_hours_by_fuel_type(
                 try:
                     # Placing critical hours calculation in a try/except block as failure to calculate critical hours for a single station/fuel type pair
                     # shouldn't prevent us from continuing with other stations and fuel types.
-                    critical_hours = await calculate_critical_hours_for_station_by_fuel_type(
+                    critical_hours = calculate_critical_hours_for_station_by_fuel_type(
                         wfwx_station, dailies_by_station_id, yesterday_dailies_by_station_id, hourly_observations_by_station_code, fuel_type_enum, for_date
                     )
                     if critical_hours is not None and critical_hours.start is not None and critical_hours.end is not None:
@@ -376,7 +376,7 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
         fuel_types_by_area = get_fuel_types_by_area(advisory_fuel_stats)
         wfwx_stations = stations_by_zone[zone_key]
         critical_hours_inputs = await get_dailies_hourlies_for_critical_hours(for_date, header, wfwx_stations)
-        critical_hours_by_fuel_type = await calculate_critical_hours_by_fuel_type(
+        critical_hours_by_fuel_type = calculate_critical_hours_by_fuel_type(
             wfwx_stations,
             critical_hours_inputs.dailies_by_station_id,
             critical_hours_inputs.yesterday_dailies_by_station_id,
