@@ -1,7 +1,10 @@
 import os
 import pytest
+import math
+import numpy as np
 import json
-from app.auto_spatial_advisory.critical_hours import check_station_valid
+from app.auto_spatial_advisory.critical_hours import calculate_representative_hours, check_station_valid, determine_start_time, determine_end_time
+from app.schemas.fba_calc import CriticalHoursHFI
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 
 dirname = os.path.dirname(__file__)
@@ -57,3 +60,49 @@ def test_check_station_invalid_missing_hourly():
         dailies_by_station_id = {raw_dailies[0]["stationId"]: raw_dailies[0]}
         hourlies_by_station_code = {"1": []}
         assert check_station_valid(mock_station, dailies_by_station_id, hourlies_by_station_code) == False
+
+
+@pytest.mark.parametrize(
+    "start_times, expected_start_time",
+    [
+        ([1, 2], 1),
+        ([1, 2, 3], math.floor(np.percentile([1, 2, 3], 25))),
+    ],
+)
+def test_determine_start_time(start_times, expected_start_time):
+    """
+    Given a list of start times, choose them minimum if less than 3, otherwise the 25th percentile
+    """
+    assert determine_start_time(start_times) == expected_start_time
+
+
+@pytest.mark.parametrize(
+    "start_times, expected_start_time",
+    [
+        ([1, 2], 2),
+        ([1, 2, 3], math.ceil(np.percentile([1, 2, 3], 75))),
+    ],
+)
+def test_determine_end_time(start_times, expected_start_time):
+    """
+    Given a list of end times, choose them maximum if less than 3, otherwise the 75th percentile
+    """
+    assert determine_end_time(start_times) == expected_start_time
+
+
+@pytest.mark.parametrize(
+    "critical_hours, expected_start_end",
+    [
+        ([CriticalHoursHFI(start=1, end=2), CriticalHoursHFI(start=1, end=2)], (1, 2)),
+        ([CriticalHoursHFI(start=1, end=2), CriticalHoursHFI(start=2, end=14)], (1, 14)),
+        (
+            [CriticalHoursHFI(start=1, end=1), CriticalHoursHFI(start=2, end=2), CriticalHoursHFI(start=1, end=3)],
+            (math.floor(np.percentile([1, 2, 1], 25)), math.ceil(np.percentile([1, 2, 3], 75))),
+        ),
+    ],
+)
+def test_representative_hours(critical_hours, expected_start_end):
+    """
+    Given a list of critical hours, return the representative critical hours
+    """
+    assert calculate_representative_hours(critical_hours) == expected_start_end

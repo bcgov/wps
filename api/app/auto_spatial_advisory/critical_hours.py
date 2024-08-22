@@ -28,7 +28,7 @@ from app.fire_behaviour import cffdrs
 from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
 from app.hourlies import get_hourly_readings_in_time_interval
-from app.schemas.fba_calc import WindResult
+from app.schemas.fba_calc import CriticalHoursHFI, WindResult
 from app.stations import get_stations_asynchronously
 from app.utils.geospatial import PointTransformer
 from app.utils.time import get_hour_20_from_date, get_julian_date
@@ -62,7 +62,7 @@ def determine_end_time(times: list[float]) -> float:
     return math.ceil(np.percentile(times, 75))
 
 
-def calculate_representative_hours(critical_hours):
+def calculate_representative_hours(critical_hours: List[CriticalHoursHFI]):
     """
     Naively determines start and end times from a list of CriticalHours objects.
 
