@@ -2,13 +2,13 @@ import asyncio
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 import math
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 import numpy as np
 import os
 import sys
 from time import perf_counter
 import logging
-
+from dataclasses import dataclass
 from aiohttp import ClientSession
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,6 +29,7 @@ from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
 from app.hourlies import get_hourly_readings_in_time_interval
 from app.schemas.fba_calc import CriticalHoursHFI, WindResult
+from app.schemas.observations import WeatherStationHourlyReadings
 from app.stations import get_stations_asynchronously
 from app.utils.geospatial import PointTransformer
 from app.utils.time import get_hour_20_from_date, get_julian_date
@@ -265,7 +266,7 @@ def check_station_valid(wfwx_station: WFWXWeatherStation, dailies, hourlies) -> 
     return True
 
 
-async def get_hourly_observations(station_codes, start_time, end_time):
+async def get_hourly_observations(station_codes: List[int], start_time: datetime, end_time: datetime):
     """
     Gets hourly weather observations from WF1.
 
@@ -280,7 +281,7 @@ async def get_hourly_observations(station_codes, start_time, end_time):
     return hourly_observations_by_station_code
 
 
-async def get_dailies_by_station_id(client_session, header, wfwx_stations, time_of_interest):
+async def get_dailies_by_station_id(client_session: ClientSession, header: dict, wfwx_stations: List[WFWXWeatherStation], time_of_interest: datetime):
     """
     Gets daily observations or forecasts from WF1.
 
@@ -296,7 +297,7 @@ async def get_dailies_by_station_id(client_session, header, wfwx_stations, time_
     return dailies_by_station_id
 
 
-def get_fuel_types_by_area(advisory_fuel_stats: List[Tuple[AdvisoryFuelStats, SFMSFuelType]]):
+def get_fuel_types_by_area(advisory_fuel_stats: List[Tuple[AdvisoryFuelStats, SFMSFuelType]]) -> Dict[str, float]:
     """
     Aggregates high HFI area for zone units.
 
@@ -317,6 +318,47 @@ def get_fuel_types_by_area(advisory_fuel_stats: List[Tuple[AdvisoryFuelStats, SF
     return fuel_types_by_area
 
 
+@dataclass(frozen=True)
+class CriticalHoursInputs:
+    """
+    Encapsulates the dailies, yesterday dailies and hourlies for a set of stations required for calculating critical hours.
+    Since daily data comes from WF1 as JSON, we treat the values as Any types for now.
+    """
+
+    dailies_by_station_id: Dict[str, Any]
+    yesterday_dailies_by_station_id: Dict[str, Any]
+    hourly_observations_by_station_code: Dict[int, WeatherStationHourlyReadings]
+
+
+async def get_dailies_hourlies_for_critical_hours(for_date: date, header: dict, wfwx_stations: List[WFWXWeatherStation]) -> CriticalHoursInputs:
+    """
+    Retrieves the inputs required for computing critical hours based on the station list and for date
+
+    :param for_date: date of interest for looking up dailies and hourlies
+    :param header: auth header for requesting data from WF1
+    :param wfwx_stations: list of stations to compute critical hours for
+    :return: critical hours inputs
+    """
+    unique_station_codes = list(set(station.code for station in wfwx_stations))
+    time_of_interest = get_hour_20_from_date(for_date)
+
+    # get the dailies for all the stations
+    async with ClientSession() as client_session:
+        dailies_by_station_id = await get_dailies_by_station_id(client_session, header, wfwx_stations, time_of_interest)
+        # must retrieve the previous day's observed/forecasted FFMC value from WFWX
+        prev_day = time_of_interest - timedelta(days=1)
+        # get the "daily" data for the station for the previous day
+        yesterday_dailies_by_station_id = await get_dailies_by_station_id(client_session, header, wfwx_stations, prev_day)
+        # get hourly observation history from our API (used for calculating morning diurnal FFMC)
+        hourly_observations_by_station_code = await get_hourly_observations(unique_station_codes, time_of_interest - timedelta(days=4), time_of_interest)
+
+        return CriticalHoursInputs(
+            dailies_by_station_id=dailies_by_station_id,
+            yesterday_dailies_by_station_id=yesterday_dailies_by_station_id,
+            hourly_observations_by_station_code=hourly_observations_by_station_code,
+        )
+
+
 async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dict, stations_by_zone: Dict[int, List[WFWXWeatherStation]], run_parameters_id: int, for_date: date):
     """
     Calculates critical hours for fire zone units by determining critical hours for each station in the fire zone unit and heuristically determining a reasonable critical start/end time.
@@ -333,20 +375,14 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
         advisory_fuel_stats = await get_fuel_type_stats_in_advisory_area(db_session, zone_key, run_parameters_id)
         fuel_types_by_area = get_fuel_types_by_area(advisory_fuel_stats)
         wfwx_stations = stations_by_zone[zone_key]
-        unique_station_codes = list(set(station.code for station in wfwx_stations))
-        # get the dailies for all the stations
-        async with ClientSession() as client_session:
-            time_of_interest = get_hour_20_from_date(for_date)
-            dailies_by_station_id = await get_dailies_by_station_id(client_session, header, wfwx_stations, time_of_interest)
-            # must retrieve the previous day's observed/forecasted FFMC value from WFWX
-            prev_day = time_of_interest - timedelta(days=1)
-            # get the "daily" data for the station for the previous day
-            yesterday_dailies_by_station_id = await get_dailies_by_station_id(client_session, header, wfwx_stations, prev_day)
-            # get hourly observation history from our API (used for calculating morning diurnal FFMC)
-            hourly_observations_by_station_code = await get_hourly_observations(unique_station_codes, time_of_interest - timedelta(days=4), time_of_interest)
-
+        critical_hours_inputs = await get_dailies_hourlies_for_critical_hours(for_date, header, wfwx_stations)
         critical_hours_by_fuel_type = await calculate_critical_hours_by_fuel_type(
-            wfwx_stations, dailies_by_station_id, yesterday_dailies_by_station_id, hourly_observations_by_station_code, fuel_types_by_area, for_date
+            wfwx_stations,
+            critical_hours_inputs.dailies_by_station_id,
+            critical_hours_inputs.yesterday_dailies_by_station_id,
+            critical_hours_inputs.hourly_observations_by_station_code,
+            fuel_types_by_area,
+            for_date,
         )
 
         if len(critical_hours_by_fuel_type) > 0:
