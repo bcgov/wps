@@ -2,7 +2,7 @@ import asyncio
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 import math
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import numpy as np
 import os
 import sys
@@ -23,7 +23,7 @@ from app.db.crud.auto_spatial_advisory import (
     save_all_critical_hours,
 )
 from app.db.database import get_async_write_session_scope
-from app.db.models.auto_spatial_advisory import CriticalHours, HfiClassificationThresholdEnum, RunTypeEnum
+from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, CriticalHours, HfiClassificationThresholdEnum, RunTypeEnum, SFMSFuelType
 from app.fire_behaviour import cffdrs
 from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
@@ -296,7 +296,7 @@ async def get_dailies_by_station_id(client_session, header, wfwx_stations, time_
     return dailies_by_station_id
 
 
-def get_fuel_types_by_area(advisory_fuel_stats):
+def get_fuel_types_by_area(advisory_fuel_stats: List[Tuple[AdvisoryFuelStats, SFMSFuelType]]):
     """
     Aggregates high HFI area for zone units.
 
@@ -404,7 +404,7 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
 
 async def start_critical_hours():
     async with get_async_write_session_scope() as db_session:
-        result = await get_most_recent_run_parameters(db_session, RunTypeEnum.forecast, date(2024, 7, 17))
+        result = await get_most_recent_run_parameters(db_session, RunTypeEnum.actual, date(2024, 8, 8))
         await calculate_critical_hours(result[0].run_type, result[0].run_datetime, result[0].for_date)
 
 

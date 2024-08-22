@@ -2,7 +2,7 @@ from datetime import date, datetime
 from enum import Enum
 import logging
 from time import perf_counter
-from typing import List
+from typing import List, Tuple
 from sqlalchemy import and_, select, func, cast, String
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -166,7 +166,7 @@ async def get_precomputed_high_hfi_fuel_type_areas_for_shape(session: AsyncSessi
     return all_results
 
 
-async def get_fuel_type_stats_in_advisory_area(session: AsyncSession, advisory_shape_id: int, run_parameters_id: int):
+async def get_fuel_type_stats_in_advisory_area(session: AsyncSession, advisory_shape_id: int, run_parameters_id: int) -> List[Tuple[AdvisoryFuelStats, SFMSFuelType]]:
     stmt = (
         select(AdvisoryFuelStats, SFMSFuelType)
         .join_from(AdvisoryFuelStats, SFMSFuelType, AdvisoryFuelStats.fuel_type == SFMSFuelType.id)
