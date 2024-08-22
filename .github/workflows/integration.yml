@@ -197,12 +197,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - uses: actions/cache@v4
-        with:
-          path: |
-            **/node_modules
-            ~/.cache/Cypress
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
       - name: enable corepack
         run: corepack enable
       - name: use new yarn
