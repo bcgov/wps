@@ -11,26 +11,34 @@ export default defineConfig({
     outDir: 'build',
   },
   optimizeDeps: {
-    include: ['@emotion/styled', '@mui/material'],
+    include: ['@mui/material/Tooltip', '@emotion/styled', '@mui/material/Unstable_Grid2'],
+
   },
-  plugins: [react(), svgr(),
-  istanbul({
-    include: 'src/*',
-    exclude: ['node_modules', 'test/'],
-    extension: ['.js', '.ts'],
-    cypress: true
-  }),
-  sentryVitePlugin({
-    org: "bcps-wps",
-    project: "frontend",
-    authToken: process.env.SENTRY_AUTH_TOKEN,
-    sourcemaps: {
-      filesToDeleteAfterUpload: ['**/*.map'],
-    },
-  }),
+  plugins: [
+    react({
+      jsxImportSource: "@emotion/react",
+      babel: {
+        plugins: ["@emotion/babel-plugin"],
+      },
+    }),
+    , svgr(),
+    istanbul({
+      include: 'src/*',
+      exclude: ['node_modules', 'test/'],
+      extension: ['.js', '.ts'],
+      cypress: true
+    }),
+    sentryVitePlugin({
+      org: "bcps-wps",
+      project: "frontend",
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      sourcemaps: {
+        filesToDeleteAfterUpload: ['**/*.map'],
+      },
+    }),
   ],
   server: {
-    port: 3030
+    port: 3000
   },
   resolve: {
     alias: {
