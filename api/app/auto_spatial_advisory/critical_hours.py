@@ -39,6 +39,18 @@ from app.wildfire_one.schema_parsers import WFWXWeatherStation
 logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
+class CriticalHoursInputs:
+    """
+    Encapsulates the dailies, yesterday dailies and hourlies for a set of stations required for calculating critical hours.
+    Since daily data comes from WF1 as JSON, we treat the values as Any types for now.
+    """
+
+    dailies_by_station_id: Dict[str, Any]
+    yesterday_dailies_by_station_id: Dict[str, Any]
+    hourly_observations_by_station_code: Dict[int, WeatherStationHourlyReadings]
+
+
 def determine_start_time(times: list[float]) -> float:
     """
     Returns a single start time based on a naive heuristic.
@@ -144,9 +156,7 @@ def calculate_wind_speed_result(yesterday: dict, raw_daily: dict) -> WindResult:
 
 def calculate_critical_hours_for_station_by_fuel_type(
     wfwx_station: WFWXWeatherStation,
-    dailies_by_station_id: dict,
-    yesterday_dailies_by_station_id: dict,
-    hourly_observations_by_station_id: dict,
+    critical_hours_inputs: CriticalHoursInputs,
     fuel_type: FuelTypeEnum,
     for_date: datetime,
 ):
@@ -154,16 +164,14 @@ def calculate_critical_hours_for_station_by_fuel_type(
     Calculate the critical hours for a fuel type - station pair.
 
     :param wfwx_station: The WFWXWeatherStation.
-    :param dailies_by_station_id: Today's weather observations (or forecasts) keyed by station guid.
-    :param yesterday_dailies_by_station_id: Yesterday's weather observations and FWIs keyed by station guid.
-    :param hourly_observations_by_station_id: Hourly observations from the past 4 days keyed by station guid.
+    :param critical_hours_inputs: Dailies, yesterday dailies, hourlies required to calculate critical hours
     :param fuel_type: The fuel type of interest.
     :param for_date: The date critical hours are being calculated for.
     :return: The critical hours for the station and fuel type.
     """
-    raw_daily = dailies_by_station_id[wfwx_station.wfwx_id]
-    raw_observations = hourly_observations_by_station_id[wfwx_station.code]
-    yesterday = yesterday_dailies_by_station_id[wfwx_station.wfwx_id]
+    raw_daily = critical_hours_inputs.dailies_by_station_id[wfwx_station.wfwx_id]
+    raw_observations = critical_hours_inputs.hourly_observations_by_station_code[wfwx_station.code]
+    yesterday = critical_hours_inputs.yesterday_dailies_by_station_id[wfwx_station.wfwx_id]
     last_observed_morning_rh_values = build_hourly_rh_dict(raw_observations.values)
 
     wind_result = calculate_wind_speed_result(yesterday, raw_daily)
@@ -214,9 +222,7 @@ def calculate_critical_hours_for_station_by_fuel_type(
     return critical_hours
 
 
-def calculate_critical_hours_by_fuel_type(
-    wfwx_stations: List[WFWXWeatherStation], dailies_by_station_id, yesterday_dailies_by_station_id, hourly_observations_by_station_code, fuel_types_by_area, for_date
-):
+def calculate_critical_hours_by_fuel_type(wfwx_stations: List[WFWXWeatherStation], critical_hours_inputs: CriticalHoursInputs, fuel_types_by_area, for_date):
     """
     Calculates the critical hours for each fuel type for all stations in a fire zone unit.
 
@@ -230,24 +236,22 @@ def calculate_critical_hours_by_fuel_type(
     """
     critical_hours_by_fuel_type = defaultdict(list)
     for wfwx_station in wfwx_stations:
-        if check_station_valid(wfwx_station, dailies_by_station_id, hourly_observations_by_station_code):
+        if check_station_valid(wfwx_station, critical_hours_inputs):
             for fuel_type_key in fuel_types_by_area.keys():
                 fuel_type_enum = FuelTypeEnum(fuel_type_key.replace("-", ""))
                 try:
                     # Placing critical hours calculation in a try/except block as failure to calculate critical hours for a single station/fuel type pair
                     # shouldn't prevent us from continuing with other stations and fuel types.
-                    critical_hours = calculate_critical_hours_for_station_by_fuel_type(
-                        wfwx_station, dailies_by_station_id, yesterday_dailies_by_station_id, hourly_observations_by_station_code, fuel_type_enum, for_date
-                    )
+                    critical_hours = calculate_critical_hours_for_station_by_fuel_type(wfwx_station, critical_hours_inputs, fuel_type_enum, for_date)
                     if critical_hours is not None and critical_hours.start is not None and critical_hours.end is not None:
-                        logger.info(f"Storing critical hours for fuel type key: ${fuel_type_key}, start: ${critical_hours.start}, end: ${critical_hours.end}")
+                        logger.info(f"Calculated critical hours for fuel type key: {fuel_type_key}, start: {critical_hours.start}, end: {critical_hours.end}")
                         critical_hours_by_fuel_type[fuel_type_key].append(critical_hours)
                 except Exception as exc:
                     logger.warning(f"An error occurred when calculating critical hours for station code: {wfwx_station.code} and fuel type: {fuel_type_key}: {exc} ")
     return critical_hours_by_fuel_type
 
 
-def check_station_valid(wfwx_station: WFWXWeatherStation, dailies, hourlies) -> bool:
+def check_station_valid(wfwx_station: WFWXWeatherStation, critical_hours_inputs: CriticalHoursInputs) -> bool:
     """
     Checks if there is sufficient information to calculate critical hours for the specified station.
 
@@ -256,10 +260,10 @@ def check_station_valid(wfwx_station: WFWXWeatherStation, dailies, hourlies) -> 
     :param hourlies: Hourly observations from yesterday.
     :return: True if the station can be used for critical hours calculations, otherwise false.
     """
-    if wfwx_station.wfwx_id not in dailies or wfwx_station.code not in hourlies:
+    if wfwx_station.wfwx_id not in critical_hours_inputs.dailies_by_station_id or wfwx_station.code not in critical_hours_inputs.hourly_observations_by_station_code:
         logger.info(f"Station with code: ${wfwx_station.code} is missing dailies or hourlies")
         return False
-    daily = dailies[wfwx_station.wfwx_id]
+    daily = critical_hours_inputs.dailies_by_station_id[wfwx_station.wfwx_id]
     if daily["duffMoistureCode"] is None or daily["droughtCode"] is None or daily["fineFuelMoistureCode"] is None:
         logger.info(f"Station with code: ${wfwx_station.code} is missing DMC, DC or FFMC")
         return False
@@ -318,18 +322,6 @@ def get_fuel_types_by_area(advisory_fuel_stats: List[Tuple[AdvisoryFuelStats, SF
     return fuel_types_by_area
 
 
-@dataclass(frozen=True)
-class CriticalHoursInputs:
-    """
-    Encapsulates the dailies, yesterday dailies and hourlies for a set of stations required for calculating critical hours.
-    Since daily data comes from WF1 as JSON, we treat the values as Any types for now.
-    """
-
-    dailies_by_station_id: Dict[str, Any]
-    yesterday_dailies_by_station_id: Dict[str, Any]
-    hourly_observations_by_station_code: Dict[int, WeatherStationHourlyReadings]
-
-
 async def get_dailies_hourlies_for_critical_hours(for_date: date, header: dict, wfwx_stations: List[WFWXWeatherStation]) -> CriticalHoursInputs:
     """
     Retrieves the inputs required for computing critical hours based on the station list and for date
@@ -378,9 +370,7 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
         critical_hours_inputs = await get_dailies_hourlies_for_critical_hours(for_date, header, wfwx_stations)
         critical_hours_by_fuel_type = calculate_critical_hours_by_fuel_type(
             wfwx_stations,
-            critical_hours_inputs.dailies_by_station_id,
-            critical_hours_inputs.yesterday_dailies_by_station_id,
-            critical_hours_inputs.hourly_observations_by_station_code,
+            critical_hours_inputs,
             fuel_types_by_area,
             for_date,
         )
