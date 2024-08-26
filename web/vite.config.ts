@@ -43,6 +43,8 @@ export default defineConfig({
     watch: {
       ignored: [
         path.join(__dirname, 'coverage-cypress/**'),
+        path.join(__dirname, 'cypress/**'),
+        path.join(__dirname, 'finalCoverage/**'),
       ]
     },
   },
