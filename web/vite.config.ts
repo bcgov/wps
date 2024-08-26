@@ -16,6 +16,24 @@ export default defineConfig({
 
   },
   plugins: [
+    {
+      name: 'build-html',
+      apply: 'build',
+      transformIndexHtml: (html) => {
+        return {
+          html,
+          tags: [
+            {
+              tag: 'script',
+              attrs: {
+                src: '/config.js',
+              },
+              injectTo: 'head',
+            },
+          ],
+        }
+      },
+    },
     react({
       jsxImportSource: "@emotion/react",
       babel: {
