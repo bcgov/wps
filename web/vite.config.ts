@@ -12,7 +12,7 @@ export default defineConfig({
     outDir: 'build',
   },
   optimizeDeps: {
-    include: ['@mui/material/Tooltip', '@emotion/styled', '@mui/material/Unstable_Grid2'],
+    include: ['@emotion/styled', '@mui']
 
   },
   plugins: [
