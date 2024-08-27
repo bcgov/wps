@@ -209,10 +209,12 @@ jobs:
         working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn install
+      - name: Change to web directory
+        run: cd ./web
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:
-          start: cd ./web && yarn dev
+          start: yarn dev
           browser: chrome
       - name: Lint (web)
         working-directory: ./web
