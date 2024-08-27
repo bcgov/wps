@@ -182,6 +182,9 @@ jobs:
   lint-and-test-web:
     name: Web - Lint, Test with coverage
     runs-on: ubuntu-22.04
+    container:
+      image: cypress/browsers:node-20.14.0-chrome-126.0.6478.114-1-ff-127.0.1-edge-126.0.2592.61-1
+      options: --user 1001
     strategy:
       matrix:
         node-version: [20.x]
@@ -208,15 +211,17 @@ jobs:
         working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn install
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          start: yarn dev
+          browser: chrome
       - name: Lint (web)
         working-directory: ./web
         run: yarn run lint
       # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
       # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
       # It seems unnecessary at the moment because tests pass anyway
-      - name: Cypress tests with coverage (web)
-        working-directory: ./web
-        run: yarn run cypress:ci
       - name: Unit tests (web)
         working-directory: ./web
         run: yarn run coverage:ci
