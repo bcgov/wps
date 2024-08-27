@@ -16,6 +16,7 @@ describe('AboutDataPopover', () => {
     fireEvent.click(screen.getByTestId('about-data-trigger'))
 
     expect(screen.getByTestId('about-data-content')).toBeVisible()
+    expect(screen.getByTestId('about-data-content')).toHaveTextContent(`${ADVISORY_THRESHOLD}%`)
   })
   it('should close the popover when clicking outside of it', async () => {
     render(<AboutDataPopover advisoryThreshold={ADVISORY_THRESHOLD}></AboutDataPopover>)
@@ -26,5 +27,13 @@ describe('AboutDataPopover', () => {
     await waitFor(() => {
       expect(screen.queryByTestId('popover-title')).not.toBeInTheDocument()
     })
+  })
+  it('should contain the advisory threshold as a percent', () => {
+    render(<AboutDataPopover advisoryThreshold={ADVISORY_THRESHOLD}></AboutDataPopover>)
+
+    fireEvent.click(screen.getByTestId('about-data-trigger'))
+
+    expect(screen.getByTestId('about-data-content')).toBeVisible()
+    expect(screen.getByTestId('about-data-content')).toHaveTextContent(`${ADVISORY_THRESHOLD}%`)
   })
 })
