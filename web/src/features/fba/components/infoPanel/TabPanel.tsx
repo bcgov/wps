@@ -10,7 +10,7 @@ interface TabPanelProps {
 const TabPanel = ({ children, index, value }: TabPanelProps) => {
   return (
     <div hidden={value !== index} id={`tabpanel-${index}`} data-testid={`tabpanel-${index}`}>
-      {value === index && <Box paddingBottom={3}>{children}</Box>}
+      {value === index && <Box border={'1px solid #ccc'}>{children}</Box>}
     </div>
   )
 }
