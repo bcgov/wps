@@ -105,7 +105,15 @@ const FireZoneUnitTabs = ({
         <Grid container justifyContent="center" minHeight={500}>
           <Grid item sx={{ width: '95%' }}>
             <Box>
-              <Tabs value={tabNumber} onChange={handleTabChange}>
+              <Tabs
+                value={tabNumber}
+                onChange={handleTabChange}
+                sx={{
+                  '.MuiTabs-indicator': {
+                    height: '4px'
+                  }
+                }}
+              >
                 {sortedZoneNames.map((key, index) => {
                   const isActive = tabNumber === index
                   return (
@@ -118,7 +126,7 @@ const FireZoneUnitTabs = ({
                           borderTopLeftRadius: '4px',
                           borderTopRightRadius: '4px',
                           border: '1px solid grey',
-                          marginRight: '4px',
+                          marginRight: theme.spacing(0.5),
                           marginTop: theme.spacing(2),
                           fontWeight: 'bold',
                           color: isActive ? 'black' : 'grey',
