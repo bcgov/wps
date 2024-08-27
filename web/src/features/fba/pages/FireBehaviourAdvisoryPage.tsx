@@ -31,9 +31,9 @@ import { fetchfireZoneTPIStats } from 'features/fba/slices/fireZoneTPIStatsSlice
 import { StyledFormControl } from 'components/StyledFormControl'
 import { getMostRecentProcessedSnowByDate } from 'api/snow'
 import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
-import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
+import FireZoneUnitTabs from 'features/fba/components/infoPanel/FireZoneUnitTabs'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -133,7 +133,9 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       dispatch(
         fetchfireZoneElevationInfo(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
       )
-      dispatch(fetchfireZoneTPIStats(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString()))
+      dispatch(
+        fetchfireZoneTPIStats(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
+      )
     }
   }, [mostRecentRunDate, selectedFireShape]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -163,7 +165,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (fireZoneTPIStats?.fire_zone_id === selectedFireShapeId) {
       setSelectedFireZoneTPIStats(fireZoneTPIStats)
     }
-
   }, [fireZoneTPIStats])
 
   useEffect(() => {
@@ -236,10 +237,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             advisoryThreshold={advisoryThreshold}
             selectedFireCenter={fireCenter}
           />
-          <FireZoneUnitSummary
+          <FireZoneUnitTabs
             fuelTypeInfo={hfiThresholdsFuelTypes}
-            selectedFireZoneUnit={selectedFireShape} 
-            fireZoneTPIStats={selectedFireZoneTPIStats} 
+            selectedFireZoneUnit={selectedFireShape}
+            fireZoneTPIStats={selectedFireZoneTPIStats}
+            selectedFireCenter={fireCenter}
+            advisoryThreshold={advisoryThreshold}
+            setSelectedFireShape={setSelectedFireShape}
           />
         </InfoPanel>
         <Grid sx={{ display: 'flex', flex: 1 }} item>

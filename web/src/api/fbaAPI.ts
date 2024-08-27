@@ -17,7 +17,7 @@ export interface FireCenter {
 export interface FireShape {
   fire_shape_id: number
   mof_fire_zone_name: string
-  mof_fire_centre_name?: string
+  mof_fire_centre_name: string
   area_sqm?: number
 }
 
@@ -168,7 +168,6 @@ export async function getFireZoneTPIStats(
   const { data } = await axios.get(url)
   return data
 }
-
 
 export async function getValueAtCoordinate(
   layer: string,

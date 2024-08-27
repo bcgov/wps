@@ -23,7 +23,7 @@ interface FuelSummaryProps {
   selectedFireZoneUnit: FireShape | undefined
 }
 
-// Column definitions for fire zone unit fuel summary table 
+// Column definitions for fire zone unit fuel summary table
 const columns: GridColDef[] = [
   {
     field: 'code',
@@ -112,6 +112,7 @@ const FuelSummary = ({ fuelTypeInfo, selectedFireZoneUnit }: FuelSummaryProps) =
           showCellVerticalBorder
           showColumnVerticalBorder
           sx={{
+            backgroundColor: 'white',
             maxHeight: '147px',
             minHeight: '100px',
             overflow: 'hidden',
