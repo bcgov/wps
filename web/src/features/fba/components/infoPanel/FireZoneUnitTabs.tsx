@@ -109,7 +109,7 @@ const FireZoneUnitTabs = ({
                 {sortedZoneNames.map((key, index) => {
                   const isActive = tabNumber === index
                   return (
-                    <Tooltip title={key} placement="top-start" arrow>
+                    <Tooltip key={key} title={key} placement="top-start" arrow>
                       <Tab
                         key={key}
                         sx={{
