@@ -67,7 +67,7 @@ const FireZoneUnitTabs = ({
       setTabNumber(0)
       setSelectedFireShape(getTabFireShape(0))
     }
-  }, [selectedFireZoneUnit, selectedFireCenter])
+  }, [selectedFireZoneUnit, selectedFireCenter, provincialSummary])
 
   const getTabFireShape = (tabNumber: number): FireShape | undefined => {
     if (sortedZoneNames.length > 0) {
