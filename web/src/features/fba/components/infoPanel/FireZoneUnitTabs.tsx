@@ -1,4 +1,4 @@
-import { Box, Grid, Tab, Tabs } from '@mui/material'
+import { Box, Grid, Tab, Tabs, Tooltip } from '@mui/material'
 import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneThresholdFuelTypeArea, FireZoneTPIStats } from 'api/fbaAPI'
 import { INFO_PANEL_CONTENT_BACKGROUND, theme, TRANSPARENT_COLOUR } from 'app/theme'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
@@ -109,22 +109,24 @@ const FireZoneUnitTabs = ({
                 {sortedZoneNames.map((key, index) => {
                   const isActive = tabNumber === index
                   return (
-                    <Tab
-                      key={key}
-                      sx={{
-                        backgroundColor: calculateStatus(groupedFireZoneUnitInfos[key], advisoryThreshold),
-                        minWidth: 'auto',
-                        borderTopLeftRadius: '4px',
-                        borderTopRightRadius: '4px',
-                        border: '1px solid grey',
-                        marginRight: '4px',
-                        marginTop: theme.spacing(2),
-                        fontWeight: 'bold',
-                        color: isActive ? 'black' : 'grey',
-                        minHeight: '30px'
-                      }}
-                      label={key.split('-')[0]}
-                    />
+                    <Tooltip title={key} placement="top-start" arrow>
+                      <Tab
+                        key={key}
+                        sx={{
+                          backgroundColor: calculateStatus(groupedFireZoneUnitInfos[key], advisoryThreshold),
+                          minWidth: 'auto',
+                          borderTopLeftRadius: '4px',
+                          borderTopRightRadius: '4px',
+                          border: '1px solid grey',
+                          marginRight: '4px',
+                          marginTop: theme.spacing(2),
+                          fontWeight: 'bold',
+                          color: isActive ? 'black' : 'grey',
+                          minHeight: '30px'
+                        }}
+                        label={key.split('-')[0]}
+                      />
+                    </Tooltip>
                   )
                 })}
               </Tabs>
