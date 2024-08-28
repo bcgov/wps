@@ -1,0 +1,18 @@
+FROM cypress/included:cypress-13.14.0-node-20.17.0-chrome-128.0.6613.84-1-ff-129.0.2-edge-128.0.2739.42-1
+# Switch to root user for package installs
+USER 0
+WORKDIR /opt/app
+
+COPY web/package.json .
+COPY web/yarn.lock . 
+COPY web/.yarnrc.yml .
+# do install first so it will be cached
+RUN corepack enable
+RUN yarn set version berry
+RUN yarn install --immutable
+COPY web .
+
+RUN yarn run lint
+RUN yarn run coverage:ci
+RUN yarn cypress:ci
+RUN yarn run finalizeCoverage

@@ -189,41 +189,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
-      - name: Setup kernel for react, increase watchers
-        run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-      - name: enable corepack
-        run: corepack enable
-      - name: use new yarn
-        run: yarn set version berry
-      - name: Setup yarn for scoped artifactory packages
-        working-directory: ./web
-        run: yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/ && yarn config set npmScopes.psu.npmAlwaysAuth true && yarn config set npmScopes.psu.npmAuthToken ${{ secrets.ARTIFACTORY_SVCACCT_TOKEN }}
-      - name: Install node dependencies (web)
-        working-directory: ./web
-        if: steps.yarn-cache.outputs.cache-hit != 'true'
-        run: yarn install
-      - name: Lint (web)
-        working-directory: ./web
-        run: yarn run lint
-      # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
-      # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
-      # It seems unnecessary at the moment because tests pass anyway
-      - name: Cypress tests with coverage (web)
-        working-directory: ./web
-        run: yarn run cypress:ci
-      - name: Unit tests (web)
-        working-directory: ./web
-        run: yarn run coverage:ci
-      - name: Merge and finalize test coverage (web)
-        working-directory: ./web
-        run: yarn run finalizeCoverage
-
+      - name: all
+        run: docker build --progress=plain  -f Dockerfile.test -t myimage .
       - name: Archive coverage report
         uses: actions/upload-artifact@v3
         with:
