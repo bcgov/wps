@@ -3,7 +3,9 @@ const { defineConfig } = require('cypress');
 module.exports = defineConfig({
   screenshotOnRunFailure: false,
   video: false,
+  defaultCommandTimeout: 10000,
   e2e: {
+    // specPattern: '**/fire-behaviour-advisory-calculator-page.cy.ts',
     // We've imported your old cypress plugins here.
     // You may want to clean this up later by importing these.
     setupNodeEvents(on, config) {

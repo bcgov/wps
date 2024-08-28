@@ -1,11 +1,11 @@
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
+import Grid from '@mui/material/Unstable_Grid2'
 import Typography from '@mui/material/Typography'
 import ElevationFlag from 'features/fba/components/viz/ElevationFlag'
 import ElevationLabel from 'features/fba/components/viz/ElevationLabel'
 import TPIMountain from 'features/fba/components/viz/TPIMountain'
 import { Box } from '@mui/material'
-import Grid from '@mui/material/Unstable_Grid2'
 
 enum ElevationOption {
   BOTTOM = 'Valley Bottom',
