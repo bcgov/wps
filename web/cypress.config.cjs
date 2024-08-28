@@ -12,6 +12,6 @@ module.exports = defineConfig({
 
     },
 
-    baseUrl: 'http://localhost:3030',
+    baseUrl: 'http://localhost:3000',
   },
 });

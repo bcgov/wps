@@ -46,14 +46,14 @@ export default defineConfig({
       extension: ['.js', '.ts'],
       cypress: true
     }),
-    sentryVitePlugin({
-      org: "bcps-wps",
-      project: "frontend",
-      authToken: process.env.SENTRY_AUTH_TOKEN,
-      sourcemaps: {
-        filesToDeleteAfterUpload: ['**/*.map'],
-      },
-    }),
+    // sentryVitePlugin({
+    //   org: "bcps-wps",
+    //   project: "frontend",
+    //   authToken: process.env.SENTRY_AUTH_TOKEN,
+    //   sourcemaps: {
+    //     filesToDeleteAfterUpload: ['**/*.map'],
+    //   },
+    // }),
   ],
   server: {
     port: Number(process.env.PORT) || 3000,
