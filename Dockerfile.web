@@ -9,20 +9,17 @@ ARG NODE_OPTIONS="--v8-pool-size=4"
 # Pull from local registry - we can't pull from docker due to limits.
 # see https://catalog.redhat.com/software/containers/ubi9/nodejs-20/64770ac7a835530172eee6a9 for
 # details
-FROM node:20-alpine AS static
+FROM registry.access.redhat.com/ubi9/nodejs-20 as static
 # Switch to root user for package installs
 USER 0
-WORKDIR /app
 
 COPY web/package.json .
 COPY web/yarn.lock . 
 COPY web/.yarnrc.yml .
 # do install first so it will be cached
+RUN npm install -g --ignore-scripts corepack
 RUN corepack enable
 RUN yarn set version berry
-RUN yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
-RUN yarn config set npmScopes.psu.npmAlwaysAuth true 
-RUN yarn config set npmScopes.psu.npmAuthToken ${ARTIFACTORY_SVCACCT_TOKEN}
 RUN CYPRESS_INSTALL_BINARY=0 yarn install --immutable
 COPY web .
 RUN yarn run build:prod
