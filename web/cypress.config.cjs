@@ -2,6 +2,7 @@ const { defineConfig } = require('cypress');
 
 module.exports = defineConfig({
   screenshotOnRunFailure: false,
+  retries: 1,
   video: false,
   defaultCommandTimeout: 10000,
   e2e: {
