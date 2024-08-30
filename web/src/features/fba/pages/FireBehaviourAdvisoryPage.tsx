@@ -26,7 +26,6 @@ import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
-import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import { fetchfireZoneTPIStats } from 'features/fba/slices/fireZoneTPIStatsSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
 import { getMostRecentProcessedSnowByDate } from 'api/snow'
@@ -130,9 +129,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       !isUndefined(selectedFireShape)
     ) {
       dispatch(fetchHighHFIFuels(runType, doiISODate, mostRecentRunDate.toString(), selectedFireShape.fire_shape_id))
-      dispatch(
-        fetchfireZoneElevationInfo(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
-      )
       dispatch(
         fetchfireZoneTPIStats(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
       )
