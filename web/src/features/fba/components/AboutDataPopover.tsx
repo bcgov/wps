@@ -2,7 +2,7 @@ import * as React from 'react'
 import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
 import InfoIcon from '@mui/icons-material/Info'
-import { theme } from 'app/theme'
+import { INFO_PANEL_CONTENT_BACKGROUND, theme } from 'app/theme'
 
 interface AboutDataProps {
   advisoryThreshold: number
@@ -42,7 +42,7 @@ const AboutDataPopover = ({ advisoryThreshold }: AboutDataProps) => {
         }}
         onClose={handlePopoverClose}
         disableRestoreFocus
-        slotProps={{ paper: { sx: { maxWidth: 350, backgroundColor: '#EEEEEE' } } }}
+        slotProps={{ paper: { sx: { maxWidth: 350, backgroundColor: INFO_PANEL_CONTENT_BACKGROUND } } }}
       >
         <Typography
           sx={{
