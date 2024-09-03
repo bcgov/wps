@@ -243,7 +243,6 @@ def calculate_critical_hours_by_fuel_type(wfwx_stations: List[WFWXWeatherStation
                     # Placing critical hours calculation in a try/except block as failure to calculate critical hours for a single station/fuel type pair
                     # shouldn't prevent us from continuing with other stations and fuel types.
 
-                    # TODO: only calculate critical hours by fuel type for stations that have that fuel type
                     critical_hours = calculate_critical_hours_for_station_by_fuel_type(wfwx_station, critical_hours_inputs, fuel_type_enum, for_date)
                     if critical_hours is not None and critical_hours.start is not None and critical_hours.end is not None:
                         logger.info(f"Calculated critical hours for fuel type key: {fuel_type_key}, start: {critical_hours.start}, end: {critical_hours.end}")
