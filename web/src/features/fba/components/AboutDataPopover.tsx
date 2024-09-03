@@ -64,6 +64,10 @@ const AboutDataPopover = ({ advisoryThreshold }: AboutDataProps) => {
               <br />
               <br />A Fire Zone is under a Fire Behaviour Warning if greater than {advisoryThreshold}% of the
               combustible land is forecast to have a Head Fire Intensity greater than 10,000 kW/m.
+              <br />
+              <br />
+              The fuel types chosen for the text bulletin are the three most common fuel types in a zone that meet or
+              exceed the Fire Behaviour Advisory threshold of 4,000 kW/m.
             </li>
           </ul>
         </div>
