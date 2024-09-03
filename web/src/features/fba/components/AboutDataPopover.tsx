@@ -59,13 +59,11 @@ const AboutDataPopover = ({ advisoryThreshold }: AboutDataProps) => {
         >
           <ul style={{ margin: 0 }}>
             <li>
-              A zone is considered to be under advisory or warning if greater than {advisoryThreshold}% of the
-              combustible land in that zone exceeds the corresponding HFI threshold.
+              A Fire Zone is under a Fire Behaviour Advisory if greater than {advisoryThreshold}% of the combustible
+              land (trees, grass, slash) is forecast to have a Head Fire Intensity between 4,000 and 10,000 kW/m.
               <br />
-              <br />
-              Advisory threshold: 4,000 - 9,999 kW/m
-              <br />
-              Warning threshold: &ge; 10,000 kW/m
+              <br />A Fire Zone is under a Fire Behaviour Warning if greater than {advisoryThreshold}% of the
+              combustible land is forecast to have a Head Fire Intensity greater than 10,000 kW/m.
             </li>
           </ul>
         </div>
