@@ -3,7 +3,7 @@ import pytest
 from osgeo import gdal
 import numpy as np
 
-from app.utils.geospatial import raster_mul, warp_to_match_extent
+from app.utils.geospatial import PointTransformer, raster_mul, warp_to_match_extent
 
 fixture_path = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")
 
@@ -106,3 +106,11 @@ def test_warp_to_match_dimension():
 
     hfi_ds = None
     tpi_ds = None
+
+
+def test_point_transformer():
+    transformer = PointTransformer(4326, 3005)
+    (x, y) = transformer.transform_coordinate(50.6733, -120.4817)
+    # verified with https://epsg.io/transform#s_srs=4326&t_srs=3005&x=-120.4817000&y=50.6733000
+    assert np.isclose(x, 1389403.6942941872, rtol=1e-09, atol=1e-09)
+    assert np.isclose(y, 643892.0671027702, rtol=1e-09, atol=1e-09)
