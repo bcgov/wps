@@ -5,14 +5,9 @@ import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { DateTime } from 'luxon'
 import { vi, describe, it, expect } from 'vitest'
 import { Provider } from 'react-redux'
-import { fetch } from 'whatwg-fetch'
 
 describe('FBAMap', () => {
 
-  beforeEach(() => {
-    global.fetch = fetch
-  }
-  )
   it('should render height with height and width properties set', () => {
     class ResizeObserver {
       observe() {
