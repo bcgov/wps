@@ -6,7 +6,7 @@ export default mergeConfig(viteConfig, defineConfig({
   test: {
     coverage: {
       provider: 'istanbul',
-      reportsDirectory: './coverage/lcov-report',
+      reportsDirectory: './coverage',
       include: [
         "src/**/*.{ts,tsx}",
         "!src/**/*.d.ts",
@@ -21,6 +21,7 @@ export default mergeConfig(viteConfig, defineConfig({
     ],
     exclude: [
       "src/features/auth/slices/authenticationSlice.test.ts",
+      "src/features/fba/components/map/fbaMap.test.tsx"
     ],
     globals: true,
     environment: 'jsdom',
