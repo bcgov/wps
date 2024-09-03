@@ -59,8 +59,7 @@
     "react-router-dom": "^6.22.3",
     "recharts": "^2.1.8",
     "typescript": "^5.2.2",
-    "vitest": "^2.0.5",
-    "whatwg-fetch": "^3.6.20"
+    "vitest": "^2.0.5"
   },
   "scripts": {
     "dev": "vite",
@@ -89,7 +88,6 @@
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.2",
-    "@types/jest": "^29.5.12",
     "@types/recharts": "^1.8.23",
     "@vitejs/plugin-react": "^4.3.1",
     "cypress": "^13.13.3",
