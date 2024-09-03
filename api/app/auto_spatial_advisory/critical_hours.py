@@ -355,7 +355,8 @@ async def get_dailies_hourlies_for_critical_hours(for_date: date, header: dict, 
 
 async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dict, stations_by_zone: Dict[int, List[WFWXWeatherStation]], run_parameters_id: int, for_date: date):
     """
-    Calculates critical hours for fire zone units by determining critical hours for each station in the fire zone unit and heuristically determining a reasonable critical start/end time.
+    Calculates critical hours for fire zone units by determining critical hours for each station in the fire zone unit that
+    are under advisory conditions (>4k HFI) and heuristically determining a reasonable critical start/end time.
 
     :param db_session: An async database session.
     :param header: An authorization header for making requests to WF1.

@@ -3,7 +3,7 @@ import pytest
 import math
 import numpy as np
 import json
-from app.auto_spatial_advisory.critical_hours import calculate_representative_hours, check_station_valid, determine_start_time, determine_end_time
+from app.auto_spatial_advisory.critical_hours import CriticalHoursInputs, calculate_representative_hours, check_station_valid, determine_start_time, determine_end_time
 from app.schemas.fba_calc import CriticalHoursHFI
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 
@@ -18,7 +18,15 @@ def test_check_station_valid():
         raw_dailies = json.load(dailies)["_embedded"]["dailies"]
         dailies_by_station_id = {raw_dailies[0]["stationId"]: raw_dailies[0]}
         hourlies_by_station_code = {raw_dailies[0]["stationData"]["stationCode"]: []}
-        assert check_station_valid(mock_station, dailies_by_station_id, hourlies_by_station_code) == True
+        assert (
+            check_station_valid(
+                mock_station,
+                critical_hours_inputs=CriticalHoursInputs(
+                    dailies_by_station_id=dailies_by_station_id, yesterday_dailies_by_station_id={}, hourly_observations_by_station_code=hourlies_by_station_code
+                ),
+            )
+            == True
+        )
 
 
 @pytest.mark.parametrize(
@@ -37,7 +45,15 @@ def test_check_station_invalid_missing_indices(index_key):
         daily[index_key] = None
         dailies_by_station_id = {raw_dailies[0]["stationId"]: daily}
         hourlies_by_station_code = {raw_dailies[0]["stationData"]["stationCode"]: []}
-        assert check_station_valid(mock_station, dailies_by_station_id, hourlies_by_station_code) == False
+        assert (
+            check_station_valid(
+                mock_station,
+                critical_hours_inputs=CriticalHoursInputs(
+                    dailies_by_station_id=dailies_by_station_id, yesterday_dailies_by_station_id={}, hourly_observations_by_station_code=hourlies_by_station_code
+                ),
+            )
+            == False
+        )
 
 
 def test_check_station_invalid_missing_daily():
@@ -48,7 +64,15 @@ def test_check_station_invalid_missing_daily():
         raw_dailies = json.load(dailies)["_embedded"]["dailies"]
         dailies_by_station_id = {"1": raw_dailies[0]}
         hourlies_by_station_code = {raw_dailies[0]["stationData"]["stationCode"]: []}
-        assert check_station_valid(mock_station, dailies_by_station_id, hourlies_by_station_code) == False
+        assert (
+            check_station_valid(
+                mock_station,
+                critical_hours_inputs=CriticalHoursInputs(
+                    dailies_by_station_id=dailies_by_station_id, yesterday_dailies_by_station_id={}, hourly_observations_by_station_code=hourlies_by_station_code
+                ),
+            )
+            == False
+        )
 
 
 def test_check_station_invalid_missing_hourly():
@@ -59,7 +83,15 @@ def test_check_station_invalid_missing_hourly():
         raw_dailies = json.load(dailies)["_embedded"]["dailies"]
         dailies_by_station_id = {raw_dailies[0]["stationId"]: raw_dailies[0]}
         hourlies_by_station_code = {"1": []}
-        assert check_station_valid(mock_station, dailies_by_station_id, hourlies_by_station_code) == False
+        assert (
+            check_station_valid(
+                mock_station,
+                critical_hours_inputs=CriticalHoursInputs(
+                    dailies_by_station_id=dailies_by_station_id, yesterday_dailies_by_station_id={}, hourly_observations_by_station_code=hourlies_by_station_code
+                ),
+            )
+            == False
+        )
 
 
 @pytest.mark.parametrize(
