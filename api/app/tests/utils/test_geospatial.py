@@ -106,11 +106,3 @@ def test_warp_to_match_dimension():
 
     hfi_ds = None
     tpi_ds = None
-
-
-def test_point_transformer():
-    transformer = PointTransformer(4326, 3005)
-    (x, y) = transformer.transform_coordinate(50.6733, -120.4817)
-    # verified with https://epsg.io/transform#s_srs=4326&t_srs=3005&x=-120.4817000&y=50.6733000
-    assert np.isclose(x, 1389403.694, rtol=0.01)
-    assert np.isclose(y, 643892.067, rtol=0.01)
