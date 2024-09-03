@@ -13,14 +13,15 @@ import { useSelector } from 'react-redux'
 interface FireZoneUnitTabs {
   selectedFireZoneUnit: FireShape | undefined
   fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
-  fireZoneTPIStats: FireZoneTPIStats | null
+  setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
+  fireCentreTPIStats: Record<string, FireZoneTPIStats[]> | null
   selectedFireCenter: FireCenter | undefined
   advisoryThreshold: number
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
 }
 
 const calculateStatus = (details: FireShapeAreaDetail[], advisoryThreshold: number) => {
-  let status = 'white'
+  let status = '#DCDCDC'
 
   if (details.length === 0) {
     return status
@@ -44,22 +45,37 @@ const calculateStatus = (details: FireShapeAreaDetail[], advisoryThreshold: numb
 
 const FireZoneUnitTabs = ({
   fuelTypeInfo,
-  fireZoneTPIStats,
   selectedFireZoneUnit,
+  setZoomSource,
   selectedFireCenter,
   advisoryThreshold,
+  fireCentreTPIStats,
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
   const provincialSummary = useSelector(selectProvincialSummary)
   const [tabNumber, setTabNumber] = useState(0)
 
   const fireCenterSummary = selectedFireCenter ? provincialSummary[selectedFireCenter.name] : []
-  const groupedFireZoneUnitInfos = useMemo(() => groupBy(fireCenterSummary, 'fire_shape_name'), [fireCenterSummary])
-  const sortedZoneNames = useMemo(() => Object.keys(groupedFireZoneUnitInfos).sort(), [groupedFireZoneUnitInfos])
+
+  const groupedFireZoneUnits = useMemo(() => groupBy(fireCenterSummary, 'fire_shape_id'), [fireCenterSummary])
+  const sortedGroupedFireZoneUnits = useMemo(
+    () =>
+      Object.values(groupedFireZoneUnits)
+        .map(group => ({
+          fire_shape_id: group[0].fire_shape_id,
+          fire_shape_name: group[0].fire_shape_name,
+          fire_centre_name: group[0].fire_centre_name,
+          fireShapeDetails: group
+        }))
+        .sort((a, b) => a.fire_shape_name.localeCompare(b.fire_shape_name)),
+    [groupedFireZoneUnits]
+  )
 
   useEffect(() => {
     if (selectedFireZoneUnit) {
-      const newIndex = sortedZoneNames.indexOf(selectedFireZoneUnit.mof_fire_zone_name)
+      const newIndex = sortedGroupedFireZoneUnits.findIndex(
+        zone => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id
+      )
       if (newIndex !== -1) {
         setTabNumber(newIndex)
       }
@@ -67,17 +83,16 @@ const FireZoneUnitTabs = ({
       setTabNumber(0)
       setSelectedFireShape(getTabFireShape(0))
     }
-  }, [selectedFireZoneUnit, selectedFireCenter, provincialSummary])
+  }, [selectedFireZoneUnit, sortedGroupedFireZoneUnits])
 
   const getTabFireShape = (tabNumber: number): FireShape | undefined => {
-    if (sortedZoneNames.length > 0) {
-      const selectedTabZone = sortedZoneNames[tabNumber]
-      const selectedFireShapeInfo = groupedFireZoneUnitInfos[selectedTabZone][0]
+    if (sortedGroupedFireZoneUnits.length > 0) {
+      const selectedTabZone = sortedGroupedFireZoneUnits[tabNumber]
 
       const fireShape: FireShape = {
-        fire_shape_id: selectedFireShapeInfo.fire_shape_id,
-        mof_fire_centre_name: selectedFireShapeInfo.fire_centre_name,
-        mof_fire_zone_name: selectedFireShapeInfo.fire_shape_name
+        fire_shape_id: selectedTabZone.fire_shape_id,
+        mof_fire_centre_name: selectedTabZone.fire_centre_name,
+        mof_fire_zone_name: selectedTabZone.fire_shape_name
       }
 
       return fireShape
@@ -89,11 +104,14 @@ const FireZoneUnitTabs = ({
 
     const fireShape = getTabFireShape(newValue)
     setSelectedFireShape(fireShape)
+    setZoomSource('fireShape')
   }
 
   if (isUndefined(selectedFireCenter) || isNull(selectedFireCenter)) {
     return <div data-testid="fire-zone-unit-summary-empty"></div>
   }
+
+  const tpiStatsArray = fireCentreTPIStats?.[selectedFireCenter.name]
 
   return (
     <div data-testid="firezone-summary-tabs">
@@ -114,36 +132,36 @@ const FireZoneUnitTabs = ({
                   }
                 }}
               >
-                {sortedZoneNames.map((key, index) => {
+                {sortedGroupedFireZoneUnits.map((zone, index) => {
                   const isActive = tabNumber === index
+                  const key = zone.fire_shape_id
                   return (
-                    <Tooltip key={key} title={key} placement="top-start" arrow>
+                    <Tooltip key={key} title={zone.fire_shape_name} placement="top-start" arrow>
                       <Tab
                         key={key}
                         sx={{
-                          backgroundColor: calculateStatus(groupedFireZoneUnitInfos[key], advisoryThreshold),
+                          backgroundColor: calculateStatus(zone.fireShapeDetails, advisoryThreshold),
                           minWidth: 'auto',
-                          borderTopLeftRadius: '4px',
-                          borderTopRightRadius: '4px',
-                          border: '1px solid grey',
-                          marginRight: theme.spacing(0.5),
+                          //   border: '0.25px solid grey',
                           marginTop: theme.spacing(2),
                           fontWeight: 'bold',
                           color: isActive ? 'black' : 'grey',
                           minHeight: '30px'
                         }}
-                        label={key.split('-')[0]}
+                        label={zone.fire_shape_name.split('-')[0]}
                       />
                     </Tooltip>
                   )
                 })}
               </Tabs>
             </Box>
-            {sortedZoneNames.map((key, index) => (
-              <TabPanel key={key} value={tabNumber} index={index}>
+            {sortedGroupedFireZoneUnits.map((zone, index) => (
+              <TabPanel key={zone.fire_shape_id} value={tabNumber} index={index}>
                 <FireZoneUnitSummary
                   fuelTypeInfo={fuelTypeInfo}
-                  fireZoneTPIStats={fireZoneTPIStats}
+                  fireZoneTPIStats={
+                    tpiStatsArray ? tpiStatsArray.find(stats => stats.fire_zone_id == zone.fire_shape_id) : undefined
+                  }
                   selectedFireZoneUnit={selectedFireZoneUnit}
                 />
               </TabPanel>

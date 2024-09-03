@@ -21,6 +21,7 @@ import selectedStationGroupsMembersSlice from 'commonSlices/selectedStationGroup
 import dataSlice from 'features/moreCast2/slices/dataSlice'
 import selectedStationsSlice from 'features/moreCast2/slices/selectedStationsSlice'
 import provincialSummarySlice from 'features/fba/slices/provincialSummarySlice'
+import fireCentreTPIStatsSlice from 'features/fba/slices/fireCentreTPIStatsSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -40,6 +41,7 @@ const rootReducer = combineReducers({
   hfiFuelTypes: hfiFuelTypesSlice,
   fireZoneElevationInfo: fireZoneElevationInfoSlice,
   fireZoneTPIStats: fireZoneTPIStatsSlice,
+  fireCentreTPIStats: fireCentreTPIStatsSlice,
   stationGroups: stationGroupsSlice,
   stationGroupsMembers: selectedStationGroupsMembersSlice,
   weatherIndeterminates: dataSlice,
@@ -70,7 +72,7 @@ export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordi
 export const selectHFIFuelTypes = (state: RootState) => state.hfiFuelTypes
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
 export const selectFireZoneTPIStats = (state: RootState) => state.fireZoneTPIStats
-
+export const selectFireCentreTPIStats = (state: RootState) => state.fireCentreTPIStats
 export const selectHFIDailiesLoading = (state: RootState): boolean => state.hfiCalculatorDailies.fireCentresLoading
 export const selectHFICalculatorState = (state: RootState): HFICalculatorState => state.hfiCalculatorDailies
 export const selectHFIStationsLoading = (state: RootState): boolean => state.hfiStations.loading

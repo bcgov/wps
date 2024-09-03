@@ -9,7 +9,8 @@ import {
   selectFireCenters,
   selectHFIFuelTypes,
   selectRunDates,
-  selectFireShapeAreas
+  selectFireShapeAreas,
+  selectFireCentreTPIStats
 } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
@@ -33,6 +34,7 @@ import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import FireZoneUnitTabs from 'features/fba/components/infoPanel/FireZoneUnitTabs'
+import { fetchFireCentreTPIStats } from 'features/fba/slices/fireCentreTPIStatsSlice'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -49,6 +51,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const { fireCenters } = useSelector(selectFireCenters)
   const { hfiThresholdsFuelTypes } = useSelector(selectHFIFuelTypes)
   const { fireZoneTPIStats } = useSelector(selectFireZoneTPIStats)
+  const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
@@ -65,6 +68,10 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const { mostRecentRunDate } = useSelector(selectRunDates)
   const { fireShapeAreas } = useSelector(selectFireShapeAreas)
   const [selectedFireZoneTPIStats, setSelectedFireZoneTPIStats] = useState<FireZoneTPIStats | null>(null)
+  const [selectedFireCentreTPIStats, setSelectedFireCentreTPIStats] = useState<Record<
+    string,
+    FireZoneTPIStats[]
+  > | null>(null)
 
   // Query our API for the most recently processed snow coverage date <= the currently selected date.
   const fetchLastProcessedSnow = async (selectedDate: DateTime) => {
@@ -89,6 +96,16 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       localStorage.setItem('preferredFireCenter', fireCenter?.id.toString())
     }
   }, [fireCenter])
+
+  useEffect(() => {
+    if (selectedFireShape?.mof_fire_centre_name) {
+      const matchingFireCenter = fireCenters.find(center => center.name === selectedFireShape.mof_fire_centre_name)
+
+      if (matchingFireCenter) {
+        setFireCenter(matchingFireCenter)
+      }
+    }
+  }, [selectedFireShape, fireCenters])
 
   const updateDate = (newDate: DateTime) => {
     if (newDate !== dateOfInterest) {
@@ -137,21 +154,24 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
+    if (
+      !isNull(mostRecentRunDate) &&
+      !isNull(doiISODate) &&
+      !isUndefined(mostRecentRunDate) &&
+      !isUndefined(fireCenter) &&
+      !isNull(fireCenter)
+    ) {
+      dispatch(fetchFireCentreTPIStats(fireCenter.name, runType, doiISODate, mostRecentRunDate.toString()))
+    }
+  }, [fireCenter, mostRecentRunDate])
+
+  useEffect(() => {
+    const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
       dispatch(fetchFireShapeAreas(runType, mostRecentRunDate, doiISODate))
       dispatch(fetchProvincialSummary(runType, mostRecentRunDate, doiISODate))
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (selectedFireShape?.mof_fire_centre_name) {
-      const matchingFireCenter = fireCenters.find(center => center.name === selectedFireShape.mof_fire_centre_name)
-
-      if (matchingFireCenter) {
-        setFireCenter(matchingFireCenter)
-      }
-    }
-  }, [selectedFireShape, fireCenters])
 
   useEffect(() => {
     const selectedFireShapeId = selectedFireShape?.fire_shape_id
@@ -164,14 +184,10 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [fireZoneTPIStats])
 
   useEffect(() => {
-    if (selectedFireShape?.mof_fire_centre_name) {
-      const matchingFireCenter = fireCenters.find(center => center.name === selectedFireShape.mof_fire_centre_name)
-
-      if (matchingFireCenter) {
-        setFireCenter(matchingFireCenter)
-      }
+    if (fireCentreTPIStats && Object.keys(fireCentreTPIStats)[0] === fireCenter?.name) {
+      setSelectedFireCentreTPIStats(fireCentreTPIStats)
     }
-  }, [selectedFireShape, fireCenters])
+  }, [fireCentreTPIStats])
 
   useEffect(() => {
     document.title = ASA_DOC_TITLE
@@ -236,7 +252,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <FireZoneUnitTabs
             fuelTypeInfo={hfiThresholdsFuelTypes}
             selectedFireZoneUnit={selectedFireShape}
-            fireZoneTPIStats={selectedFireZoneTPIStats}
+            setZoomSource={setZoomSource}
+            fireCentreTPIStats={selectedFireCentreTPIStats}
             selectedFireCenter={fireCenter}
             advisoryThreshold={advisoryThreshold}
             setSelectedFireShape={setSelectedFireShape}

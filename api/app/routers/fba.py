@@ -16,6 +16,7 @@ from app.db.crud.auto_spatial_advisory import (
     get_run_datetimes,
     get_zonal_elevation_stats,
     get_zonal_tpi_stats,
+    get_centre_tpi_stats,
 )
 from app.db.models.auto_spatial_advisory import RunTypeEnum
 from app.schemas.fba import (
@@ -182,3 +183,26 @@ async def get_fire_zone_tpi_stats(fire_zone_id: int, run_type: RunType, run_date
             mid_slope=stats.mid_slope * square_metres,
             upper_slope=stats.upper_slope * square_metres,
         )
+
+
+@router.get("/fire-centre-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}", response_model=dict[str, List[FireZoneTPIStats]])
+async def get_fire_centre_tpi_stats(fire_centre_name: str, run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
+    """Return the elevation TPI statistics for each advisory threshold for a fire centre"""
+    logger.info("/fba/fire-centre-tpi-stats/")
+    async with get_async_read_session_scope() as session:
+        tpi_stats_for_centre = await get_centre_tpi_stats(session, fire_centre_name, run_type, run_datetime, for_date)
+
+        data = []
+        for row in tpi_stats_for_centre:
+            square_metres = math.pow(row.pixel_size_metres, 2)
+
+            data.append(
+                FireZoneTPIStats(
+                    fire_zone_id=row.source_identifier,
+                    valley_bottom=row.valley_bottom * square_metres,
+                    mid_slope=row.mid_slope * square_metres,
+                    upper_slope=row.upper_slope * square_metres,
+                )
+            )
+
+        return {fire_centre_name: data}

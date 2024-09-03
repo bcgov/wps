@@ -169,6 +169,17 @@ export async function getFireZoneTPIStats(
   return data
 }
 
+export async function getFireCentreTPIStats(
+  fire_centre_name: string,
+  run_type: RunType,
+  run_datetime: string,
+  for_date: string
+): Promise<Record<string, FireZoneTPIStats[]>> {
+  const url = `fba/fire-centre-tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_centre_name}`
+  const { data } = await axios.get(url)
+  return data
+}
+
 export async function getValueAtCoordinate(
   layer: string,
   latitude: number,

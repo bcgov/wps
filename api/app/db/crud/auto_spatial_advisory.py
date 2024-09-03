@@ -366,6 +366,27 @@ async def get_zonal_tpi_stats(session: AsyncSession, fire_zone_id: int, run_type
     return result.first()
 
 
+async def get_centre_tpi_stats(session: AsyncSession, fire_centre_name: str, run_type: RunType, run_datetime: datetime, for_date: date) -> AdvisoryTPIStats:
+    run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+
+    stmt = (
+        select(
+            AdvisoryTPIStats.advisory_shape_id,
+            Shape.source_identifier,
+            AdvisoryTPIStats.valley_bottom,
+            AdvisoryTPIStats.mid_slope,
+            AdvisoryTPIStats.upper_slope,
+            AdvisoryTPIStats.pixel_size_metres,
+        )
+        .join(Shape, Shape.id == AdvisoryTPIStats.advisory_shape_id)
+        .join(FireCentre, FireCentre.id == Shape.fire_centre)
+        .where(FireCentre.name == fire_centre_name, AdvisoryTPIStats.run_parameters == run_parameters_id)
+    )
+
+    result = await session.execute(stmt)
+    return result.all()
+
+
 async def get_provincial_rollup(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date) -> List[Row]:
     logger.info("gathering provincial rollup")
     run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)

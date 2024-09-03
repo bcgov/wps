@@ -9,7 +9,7 @@ import FuelSummary from 'features/fba/components/viz/FuelSummary'
 interface FireZoneUnitSummaryProps {
   selectedFireZoneUnit: FireShape | undefined
   fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
-  fireZoneTPIStats: FireZoneTPIStats | null
+  fireZoneTPIStats: FireZoneTPIStats | undefined
 }
 
 const FireZoneUnitSummary = ({ fuelTypeInfo, fireZoneTPIStats, selectedFireZoneUnit }: FireZoneUnitSummaryProps) => {
@@ -30,7 +30,7 @@ const FireZoneUnitSummary = ({ fuelTypeInfo, fireZoneTPIStats, selectedFireZoneU
           <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fuelTypeInfo={fuelTypeInfo} />
         </Grid>
         <Grid item sx={{ width: '95%' }}>
-          {isNull(fireZoneTPIStats) ||
+          {isUndefined(fireZoneTPIStats) ||
           fireZoneTPIStats.valley_bottom + fireZoneTPIStats.mid_slope + fireZoneTPIStats.upper_slope === 0 ? (
             <Typography>No elevation information available.</Typography>
           ) : (
