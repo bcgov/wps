@@ -14,7 +14,7 @@ let ENV = {
   SENTRY_DSN: process.env.REACT_APP_SENTRY_DSN as string,
   SENTRY_ENV: process.env.REACT_APP_SENTRY_ENV as string
 }
-
+console.log('pmtiles1', ENV.PMTILES_BUCKET)
 // If the app is built using 'npm run build'
 if (process.env.NODE_ENV === 'production') {
   // window.env is set in index.html, populated by env variables.
@@ -36,7 +36,7 @@ if (process.env.NODE_ENV === 'production') {
     SENTRY_ENV: window.env.REACT_APP_SENTRY_ENV
   }
 }
-
+console.log('pmtiles2', ENV.PMTILES_BUCKET)
 export const {
   API_BASE_URL,
   RASTER_SERVER_BASE_URL,
