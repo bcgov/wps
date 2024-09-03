@@ -29,7 +29,7 @@ const AboutDataPopover = ({ advisoryThreshold }: AboutDataProps) => {
         onClick={handlePopoverOpen}
         sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
       >
-        <InfoIcon sx={{ marginRight: theme.spacing(1), color: '#4681f4' }}></InfoIcon>
+        <InfoIcon sx={{ marginRight: theme.spacing(1), color: '#5686E1' }}></InfoIcon>
         About this data
       </Typography>
       <Popover
