@@ -323,7 +323,7 @@ def get_fuel_types_by_area(advisory_fuel_stats: List[Tuple[AdvisoryFuelStats, SF
     return fuel_types_by_area
 
 
-async def get_dailies_hourlies_for_critical_hours(for_date: date, header: dict, wfwx_stations: List[WFWXWeatherStation]) -> CriticalHoursInputs:
+async def get_inputs_for_critical_hours(for_date: date, header: dict, wfwx_stations: List[WFWXWeatherStation]) -> CriticalHoursInputs:
     """
     Retrieves the inputs required for computing critical hours based on the station list and for date
 
@@ -368,7 +368,7 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
         advisory_fuel_stats = await get_fuel_type_stats_in_advisory_area(db_session, zone_key, run_parameters_id)
         fuel_types_by_area = get_fuel_types_by_area(advisory_fuel_stats)
         wfwx_stations = stations_by_zone[zone_key]
-        critical_hours_inputs = await get_dailies_hourlies_for_critical_hours(for_date, header, wfwx_stations)
+        critical_hours_inputs = await get_inputs_for_critical_hours(for_date, header, wfwx_stations)
         critical_hours_by_fuel_type = calculate_critical_hours_by_fuel_type(
             wfwx_stations,
             critical_hours_inputs,
