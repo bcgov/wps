@@ -59,7 +59,8 @@
     "react-router-dom": "^6.22.3",
     "recharts": "^2.1.8",
     "typescript": "^5.2.2",
-    "vitest": "^2.0.5"
+    "vitest": "^2.0.5",
+    "whatwg-fetch": "^3.6.20"
   },
   "scripts": {
     "dev": "vite",
@@ -72,7 +73,7 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run --browser chrome --config watchForFileChanges=false",
     "cypress:and:server": "start-server-and-test start:cypress 3030 cy:open",
-    "cypress:ci": "start-server-and-test dev:cypress http://localhost:3030 'cy:run'",
+    "cypress:ci": "CI=true",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md)\"",
