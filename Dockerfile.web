@@ -15,14 +15,14 @@ COPY web/package.json .
 COPY web/yarn.lock . 
 COPY web/.yarnrc.yml .
 # do install first so it will be cached
-RUN corepack enable
-RUN yarn set version berry
-RUN CYPRESS_INSTALL_BINARY=0 yarn install --immutable
+RUN corepack enable \
+    && yarn set version berry \
+    && CYPRESS_INSTALL_BINARY=0 yarn install --immutable
 COPY web .
-RUN yarn run build:prod
 
 # Remove sourcemaps after they've been uploaded to sentry
-RUN rm build/assets/**.map
+RUN yarn run build:prod && \
+    rm build/assets/**.map
 
 # Switch back to default user
 USER 1001

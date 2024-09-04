@@ -5,9 +5,15 @@ import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
 import crypto from 'crypto'
+import 'whatwg-fetch'
+
 
 afterEach(() => {
   cleanup()
+})
+
+beforeAll(() => {
+  global.fetch = fetch
 })
 
 Object.defineProperty(global, 'crypto', {
