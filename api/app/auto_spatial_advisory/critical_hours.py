@@ -361,7 +361,6 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
     :param stations_by_zone: A dictionary of lists of stations in fire zone units keyed by fire zone unit id.
     :param run_parameters_id: The RunParameters object (ie. the SFMS run).
     :param for_date: The date critical hours are being calculated for.
-    :return: A dictionary of critical hours by fuel type per fire zone unit keyed by fire zone unit id.
     """
     critical_hours_by_zone_and_fuel_type = defaultdict(str, defaultdict(list))
     for zone_key in stations_by_zone.keys():
@@ -381,8 +380,6 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
 
     for zone_id, critical_hours_by_fuel_type in critical_hours_by_zone_and_fuel_type.items():
         await save_critical_hours(db_session, zone_id, critical_hours_by_fuel_type, run_parameters_id)
-
-    return critical_hours_by_zone_and_fuel_type
 
 
 async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, for_date: date):
