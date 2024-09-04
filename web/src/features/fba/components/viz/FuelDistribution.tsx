@@ -1,7 +1,6 @@
 import { Box, Tooltip } from '@mui/material'
 import React from 'react'
 import { getColorByFuelTypeCode } from 'features/fba/components/viz/color'
-import { theme } from 'app/theme'
 
 interface FuelDistributionProps {
   code: string

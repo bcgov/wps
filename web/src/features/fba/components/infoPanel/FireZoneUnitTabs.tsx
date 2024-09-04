@@ -1,6 +1,6 @@
 import { Box, Grid, Tab, Tabs, Tooltip } from '@mui/material'
 import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneThresholdFuelTypeArea, FireZoneTPIStats } from 'api/fbaAPI'
-import { INFO_PANEL_CONTENT_BACKGROUND, theme, TRANSPARENT_COLOUR } from 'app/theme'
+import { INFO_PANEL_CONTENT_BACKGROUND, theme } from 'app/theme'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import TabPanel from 'features/fba/components/infoPanel/TabPanel'

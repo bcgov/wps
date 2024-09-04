@@ -4,7 +4,7 @@ import { FireShape } from 'api/fbaAPI'
 import { render } from '@testing-library/react'
 
 const fireZoneTPIStats = {
-  fire_zone_id: 0, 
+  fire_zone_id: 0,
   valley_bottom: 0,
   mid_slope: 100,
   upper_slope: 0
@@ -25,11 +25,7 @@ describe('FireZoneUnitSummary', () => {
   window.ResizeObserver = ResizeObserver
   it('should not render empty div if selectedFireZoneUnit is undefined', () => {
     const { getByTestId } = render(
-      <FireZoneUnitSummary
-        fuelTypeInfo={[]}
-        fireZoneTPIStats={fireZoneTPIStats}
-        selectedFireZoneUnit={undefined}
-      />
+      <FireZoneUnitSummary fuelTypeInfo={[]} fireZoneTPIStats={fireZoneTPIStats} selectedFireZoneUnit={undefined} />
     )
     const fireZoneUnitInfo = getByTestId('fire-zone-unit-summary-empty')
     expect(fireZoneUnitInfo).toBeInTheDocument()
@@ -42,11 +38,7 @@ describe('FireZoneUnitSummary', () => {
       area_sqm: 10
     }
     const { getByTestId } = render(
-      <FireZoneUnitSummary
-        fuelTypeInfo={[]}
-        fireZoneTPIStats={fireZoneTPIStats}
-        selectedFireZoneUnit={fireShape}
-      />
+      <FireZoneUnitSummary fuelTypeInfo={[]} fireZoneTPIStats={fireZoneTPIStats} selectedFireZoneUnit={fireShape} />
     )
     const fireZoneUnitInfo = getByTestId('fire-zone-unit-summary')
     expect(fireZoneUnitInfo).toBeInTheDocument()
@@ -59,11 +51,7 @@ describe('FireZoneUnitSummary', () => {
       area_sqm: 10
     }
     const { queryByTestId } = render(
-      <FireZoneUnitSummary
-        fuelTypeInfo={[]}
-        fireZoneTPIStats={null}
-        selectedFireZoneUnit={fireShape}
-      />
+      <FireZoneUnitSummary fuelTypeInfo={[]} fireZoneTPIStats={undefined} selectedFireZoneUnit={fireShape} />
     )
     const fireZoneUnitInfo = queryByTestId('elevation-status')
     expect(fireZoneUnitInfo).not.toBeInTheDocument()
@@ -76,11 +64,7 @@ describe('FireZoneUnitSummary', () => {
       area_sqm: 10
     }
     const { getByTestId } = render(
-      <FireZoneUnitSummary
-        fuelTypeInfo={[]}
-        fireZoneTPIStats={fireZoneTPIStats}
-        selectedFireZoneUnit={fireShape}
-      />
+      <FireZoneUnitSummary fuelTypeInfo={[]} fireZoneTPIStats={fireZoneTPIStats} selectedFireZoneUnit={fireShape} />
     )
     const fireZoneUnitInfo = getByTestId('elevation-status')
     expect(fireZoneUnitInfo).toBeInTheDocument()
@@ -97,7 +81,7 @@ describe('FireZoneUnitSummary', () => {
       <FireZoneUnitSummary
         fuelTypeInfo={[]}
         fireZoneTPIStats={{
-          fire_zone_id: 0, 
+          fire_zone_id: 0,
           valley_bottom: 0,
           mid_slope: 0,
           upper_slope: 0

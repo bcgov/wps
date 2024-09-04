@@ -1,6 +1,6 @@
 import React from 'react'
 import { Grid, Typography } from '@mui/material'
-import { isNull, isUndefined } from 'lodash'
+import { isUndefined } from 'lodash'
 import { FireShape, FireZoneTPIStats, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 import { useTheme } from '@mui/material/styles'
