@@ -91,7 +91,7 @@ class PointTransformer:
     Transforms the coordinates of a point from one spatial reference to another.
     """
 
-    def __init__(self, source_srs, target_srs):
+    def __init__(self, source_srs: int, target_srs: int):
         source = osr.SpatialReference()
         source.ImportFromEPSG(source_srs)
         target = osr.SpatialReference()

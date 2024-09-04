@@ -426,7 +426,7 @@ async def get_provincial_rollup(session: AsyncSession, run_type: RunTypeEnum, ru
 
 
 async def get_containing_zone(session: AsyncSession, geometry: str, srid: int):
-    geom = func.ST_GeomFromText(geometry, srid)
+    geom = func.ST_Transform(func.ST_GeomFromText(geometry, srid), 3005)
     stmt = select(Shape.id).filter(func.ST_Contains(Shape.geom, geom))
     result = await session.execute(stmt)
     return result.first()

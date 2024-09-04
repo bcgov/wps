@@ -431,7 +431,7 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
 
 async def start_critical_hours():
     async with get_async_write_session_scope() as db_session:
-        result = await get_most_recent_run_parameters(db_session, RunTypeEnum.actual, date(2024, 8, 8))
+        result = await get_most_recent_run_parameters(db_session, RunTypeEnum.actual, date(2024, 8, 1))
         await calculate_critical_hours(result[0].run_type, result[0].run_datetime, result[0].for_date)
 
 
