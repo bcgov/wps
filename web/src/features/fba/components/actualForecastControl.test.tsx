@@ -13,10 +13,16 @@ describe('ActualForecastControl', () => {
   })
 
   it('should call setRunType with the correct value when a radio button is selected', () => {
-    const { getByTestId } = render(<ActualForecastControl runType={RunType.FORECAST} setRunType={mockSetRunType} />)
+    const { getByTestId, rerender } = render(
+      <ActualForecastControl runType={RunType.FORECAST} setRunType={mockSetRunType} />
+    )
     fireEvent.click(getByTestId('actual-radio'))
     expect(mockSetRunType).toHaveBeenCalledWith(RunType.ACTUAL)
+    expect(mockSetRunType).toHaveBeenCalledTimes(1)
+
+    rerender(<ActualForecastControl runType={RunType.ACTUAL} setRunType={mockSetRunType} />)
     fireEvent.click(getByTestId('forecast-radio'))
+    expect(mockSetRunType).toHaveBeenCalledTimes(2)
     expect(mockSetRunType).toHaveBeenCalledWith(RunType.FORECAST)
   })
 })

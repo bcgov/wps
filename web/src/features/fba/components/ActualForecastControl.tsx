@@ -9,7 +9,7 @@ export interface ActualForecastControlProps {
   setRunType: React.Dispatch<React.SetStateAction<RunType>>
 }
 const ActualForecastControl = ({ runType, setRunType }: ActualForecastControlProps) => {
-  const changeHandler = (_: React.ChangeEvent<{}>, value: string | null) => {
+  const changeHandler = (_: React.ChangeEvent<{}>, value: string) => {
     if (!isNull(value)) {
       setRunType(value as RunType)
     }
