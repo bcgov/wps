@@ -2,6 +2,7 @@ import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import store from 'app/store'
 import ResetForecastButton, { ResetForecastButtonProps } from 'features/moreCast2/components/ResetForecastButton'
+import { vi } from 'vitest'
 
 import { Provider } from 'react-redux'
 

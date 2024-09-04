@@ -1,6 +1,7 @@
 import { render, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
+import { vi } from 'vitest'
 
 describe('FireStartsDropdown', () => {
   const testAreaId = 1

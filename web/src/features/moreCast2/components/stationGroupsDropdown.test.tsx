@@ -2,6 +2,7 @@ import { render, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StationGroup } from 'api/stationAPI'
 import StationGroupDropdown from 'features/moreCast2/components/StationGroupDropdown'
+import { vi } from 'vitest'
 
 describe('StationGroupsDropdown', () => {
   const idir = 'testIdir'

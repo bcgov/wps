@@ -1,6 +1,7 @@
 import { render, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
+import { vi } from 'vitest'
 
 
 describe('SelectableButton', () => {
