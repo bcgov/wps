@@ -1,4 +1,4 @@
-import { vi, describe, it, expect } from 'vitest'
+
 import { Provider } from 'react-redux'
 import { render } from '@testing-library/react'
 import ProvincialSummary, { NO_DATA_MESSAGE } from 'features/fba/components/infoPanel/ProvincialSummary'

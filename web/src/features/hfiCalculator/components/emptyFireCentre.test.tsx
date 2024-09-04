@@ -1,7 +1,7 @@
 import { Table, TableBody } from '@mui/material'
 import { render, waitFor } from '@testing-library/react'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
-import { vi, describe, it, expect } from 'vitest'
+
 describe('EmptyFireCentre', () => {
   it('should render with the default value', async () => {
     const { getByTestId } = render(

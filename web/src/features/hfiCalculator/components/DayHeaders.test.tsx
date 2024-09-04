@@ -5,7 +5,7 @@ import { DateTime } from 'luxon'
 import { range } from 'lodash'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { calculateNumPrepDays } from 'features/hfiCalculator/util'
-import { vi, describe, it, expect } from 'vitest'
+
 import { pstFormatter } from 'utils/date'
 
 const prepCycleIteration = (dateRange: PrepDateRange) => {

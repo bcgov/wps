@@ -1,4 +1,4 @@
-import { vi, describe, it, expect } from 'vitest'
+
 import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
 import { render } from '@testing-library/react'
 

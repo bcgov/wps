@@ -1,7 +1,7 @@
 import { Table, TableBody, TableContainer, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
 import MeanPrepLevelCell from 'features/hfiCalculator/components/MeanPrepLevelCell'
-import { vi, describe, it, expect } from 'vitest'
+
 
 const renderMeanPrepLevel = (prepLevel: number | undefined, invalidForecast: boolean) => {
   return render(

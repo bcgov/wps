@@ -1,4 +1,4 @@
-import { vi, describe, it, expect } from 'vitest'
+import { vi } from 'vitest'
 import { render } from '@testing-library/react'
 import FireCentreInfo from 'features/fba/components/infoPanel/FireCentreInfo'
 import { FireShapeAreaDetail } from 'api/fbaAPI'

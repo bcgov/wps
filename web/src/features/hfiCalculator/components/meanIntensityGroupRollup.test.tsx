@@ -2,7 +2,7 @@ import { TableContainer, Table, TableRow, TableBody } from '@mui/material'
 import { render } from '@testing-library/react'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import { PlanningArea } from 'api/hfiCalculatorAPI'
-import { vi, describe, it, expect } from 'vitest'
+
 describe('Mean Intensity Group Rollup', () => {
   const planningArea: PlanningArea = {
     id: 1,

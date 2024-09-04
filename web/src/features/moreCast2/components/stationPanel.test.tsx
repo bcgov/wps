@@ -2,7 +2,7 @@ import { ThemeProvider } from '@mui/material/styles'
 import { render, waitFor, within } from '@testing-library/react'
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { theme } from 'app/theme'
-import { vi, describe, it, expect } from 'vitest'
+
 import userEvent from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import store from 'app/store'

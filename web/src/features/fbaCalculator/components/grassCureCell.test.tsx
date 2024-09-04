@@ -3,7 +3,7 @@ import GrassCureCell, { GrassCureCellProps } from 'features/fbaCalculator/compon
 import { FBAFuelType, FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { isNull } from 'lodash'
-import { vi, describe, it, expect } from 'vitest'
+
 describe('GrassCureCell', () => {
   const buildProps = (inputRow: FBATableRow, rowId: number, value?: number): GrassCureCellProps => ({
     inputRows: [inputRow],

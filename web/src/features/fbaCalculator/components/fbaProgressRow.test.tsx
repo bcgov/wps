@@ -2,7 +2,7 @@ import React from 'react'
 import { TableContainer, Table, TableHead } from '@mui/material'
 import { render } from '@testing-library/react'
 import { theme } from 'app/theme'
-import { vi, describe, it, expect } from 'vitest'
+
 import FBAProgressRow from 'features/fbaCalculator/components/FBAProgressRow'
 
 describe('FBAProgressRow', () => {

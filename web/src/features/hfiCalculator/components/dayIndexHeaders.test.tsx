@@ -2,7 +2,7 @@ import { Table, TableBody, TableContainer, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
 import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
 import { range } from 'lodash'
-import { vi, describe, it, expect } from 'vitest'
+
 
 describe('DayIndexHeaders', () => {
   it('should render day index headers for each day of the week', () => {

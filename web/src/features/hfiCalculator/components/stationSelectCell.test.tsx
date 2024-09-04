@@ -2,7 +2,7 @@ import { Table, TableBody, TableRow } from '@mui/material'
 import { render, waitFor, screen, within } from '@testing-library/react'
 import { WeatherStation } from 'api/hfiCalculatorAPI'
 import StationSelectCell from 'features/hfiCalculator/components/StationSelectCell'
-import { vi, describe, it, expect } from 'vitest'
+
 describe('StationSelectCell', () => {
   const station: WeatherStation = {
     code: 1,

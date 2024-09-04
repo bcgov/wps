@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { FuelType } from 'api/hfiCalculatorAPI'
 import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { AdminFuelTypesDropdown } from 'features/hfiCalculator/components/stationAdmin/AdminFuelTypesDropdown'
-import { vi, describe, it, expect } from 'vitest'
+
 
 describe('AdminFuelTypesDropdown', () => {
   it('should call edit handler callback with fuel type option when submitted', async () => {

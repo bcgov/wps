@@ -1,7 +1,7 @@
 import { Table, TableBody, TableContainer, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
-import { vi, describe, it, expect } from 'vitest'
+
 
 const renderPrepLevel = (prepLevel: number | undefined) => {
   return render(

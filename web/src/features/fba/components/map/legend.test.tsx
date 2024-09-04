@@ -1,7 +1,7 @@
 import Legend from 'features/fba/components/map/Legend'
 import { render, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { vi, describe, it, expect } from 'vitest'
+
 
 describe('Legend', () => {
   it('should render with the default layer visibility', async () => {

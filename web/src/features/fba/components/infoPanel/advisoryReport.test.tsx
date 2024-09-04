@@ -1,4 +1,3 @@
-import { vi, describe, it, expect } from 'vitest'
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import { render } from '@testing-library/react'
 import { DateTime } from 'luxon'
