@@ -244,7 +244,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             setZoomSource={setZoomSource}
             fireCentreTPIStats={selectedFireCentreTPIStats}
             selectedFireCenter={fireCenter}
-            advisoryThreshold={advisoryThreshold}
+            advisoryThreshold={ADVISORY_THRESHOLD}
             setSelectedFireShape={setSelectedFireShape}
           />
         </InfoPanel>
