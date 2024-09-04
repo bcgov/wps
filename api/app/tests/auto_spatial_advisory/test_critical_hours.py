@@ -103,7 +103,7 @@ def test_check_station_invalid_missing_hourly():
 )
 def test_determine_start_time(start_times, expected_start_time):
     """
-    Given a list of start times, choose them minimum if less than 3, otherwise the 25th percentile
+    Given a list of start times, choose the minimum if less than 3, otherwise the 25th percentile
     """
     assert determine_start_time(start_times) == expected_start_time
 
