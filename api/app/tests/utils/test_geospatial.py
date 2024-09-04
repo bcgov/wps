@@ -3,7 +3,7 @@ import pytest
 from osgeo import gdal
 import numpy as np
 
-from app.utils.geospatial import PointTransformer, raster_mul, warp_to_match_extent
+from app.utils.geospatial import raster_mul, warp_to_match_extent
 
 fixture_path = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")
 

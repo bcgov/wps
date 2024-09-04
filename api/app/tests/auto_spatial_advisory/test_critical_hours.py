@@ -60,10 +60,10 @@ def test_check_station_invalid_missing_daily():
     """
     When a station daily is missing for a station it is invalid
     """
-    with open(dailies_fixture, "r") as dailies:
-        raw_dailies = json.load(dailies)["_embedded"]["dailies"]
-        dailies_by_station_id = {"1": raw_dailies[0]}
-        hourlies_by_station_code = {raw_dailies[0]["stationData"]["stationCode"]: []}
+    with open(hourlies_fixture, "r") as hourlies:
+        raw_hourlies = json.load(hourlies)["_embedded"]["hourlies"]
+        dailies_by_station_id = {}
+        hourlies_by_station_code = {raw_hourlies[0]["stationData"]["stationCode"]: raw_hourlies[0]}
         assert (
             check_station_valid(
                 mock_station,
@@ -82,7 +82,7 @@ def test_check_station_invalid_missing_hourly():
     with open(dailies_fixture, "r") as dailies:
         raw_dailies = json.load(dailies)["_embedded"]["dailies"]
         dailies_by_station_id = {raw_dailies[0]["stationId"]: raw_dailies[0]}
-        hourlies_by_station_code = {"1": []}
+        hourlies_by_station_code = {}
         assert (
             check_station_valid(
                 mock_station,
