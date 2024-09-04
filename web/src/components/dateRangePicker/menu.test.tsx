@@ -2,7 +2,7 @@ import { render } from '@testing-library/react'
 import { format } from 'date-fns'
 import Menu from 'components/dateRangePicker/Menu'
 import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/types'
-import { vi, describe, it, expect } from 'vitest'
+import { vi } from 'vitest'
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 const setup = (

@@ -12,7 +12,6 @@ export default mergeConfig(viteConfig, defineConfig({
         "!src/**/*.d.ts",
         "!src/index.tsx",
         "!src/app/*.{ts,tsx}"
-        // "src/api/moreCast2API.ts"
       ]
 
     },
@@ -20,8 +19,7 @@ export default mergeConfig(viteConfig, defineConfig({
       "src/**/*.{spec,test}.{js,jsx,ts,tsx}",
     ],
     exclude: [
-      "src/features/auth/slices/authenticationSlice.test.ts",
-      "src/features/fba/components/map/fbaMap.test.tsx"
+      "src/features/auth/slices/authenticationSlice.test.ts"
     ],
     globals: true,
     environment: 'jsdom',

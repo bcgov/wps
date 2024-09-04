@@ -7,7 +7,8 @@ import {
 import axios from 'api/axios'
 import { DateTime } from 'luxon'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
-import { vi, describe, it, expect } from 'vitest'
+import { vi } from 'vitest'
+
 describe('moreCast2API', () => {
   const buildMorecast2Forecast = (
     id: string,

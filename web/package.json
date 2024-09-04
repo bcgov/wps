@@ -34,6 +34,7 @@
     "@types/react-plotly.js": "^2.2.4",
     "@types/react-router-dom": "^5.3.0",
     "@types/webpack-env": "^1.15.1",
+    "@types/whatwg-fetch": "^0.0.33",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/coverage-istanbul": "^2.0.5",
@@ -61,27 +62,27 @@
     "react-router-dom": "^6.22.3",
     "recharts": "^2.1.8",
     "typescript": "^5.2.2",
-    "vitest": "^2.0.5"
+    "vitest": "^2.0.5",
+    "whatwg-fetch": "^3.6.20"
   },
   "scripts": {
-    "dev": "vite",
-    "preview": "vite preview",
-    "dev:cypress": "export $(cat .env.cypress | xargs) && yarn dev",
+    "start": "vite",
+    "start:cypress": "export $(cat .env.cypress | xargs) && yarn start",
     "build": "tsc -b && vite build",
     "build:prod": "tsc -b && vite build && yarn sentry:sourcemaps",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org bcps-wps --project frontend ./build && sentry-cli sourcemaps upload --org bcps-wps --project frontend ./build",
     "test": "vitest",
-    "coverage": "yarn run cypress:ci && yarn run coverage:ci && yarn run finalizeCoverage",
     "test:ci": "CI=true npm test",
     "coverage:ci": "CI=true VITE_KEYCLOAK_CLIENT=wps-web vitest run --coverage",
     "cy:open": "cypress open",
     "cy:run": "cypress run --browser chrome --config watchForFileChanges=false",
     "cypress:and:server": "start-server-and-test start:cypress 3030 cy:open",
-    "cypress:ci": "start-server-and-test dev:cypress http://localhost:3030 'cy:run'",
+    "cypress:ci": "start-server-and-test start:cypress http://localhost:3030 'cy:run'",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md)\"",
-    "finalizeCoverage": "yarn node mergeCoverage.cjs"
+    "finalizeCoverage": "yarn node mergeCoverage.cjs",
+    "preview": "vite preview"
   },
   "devDependencies": {
     "@cypress/code-coverage": "^3.10.0",
