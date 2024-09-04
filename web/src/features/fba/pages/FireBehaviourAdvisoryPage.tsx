@@ -1,4 +1,4 @@
-import { Box, FormControl, FormControlLabel, Grid, styled } from '@mui/material'
+import { Box, FormControl, Grid, styled } from '@mui/material'
 import { GeneralHeader, ErrorBoundary } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
@@ -20,7 +20,6 @@ import { FireCenter, FireShape, FireZoneTPIStats } from 'api/fbaAPI'
 import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME, PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
-import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
 import ActualForecastControl from 'features/fba/components/ActualForecastControl'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
@@ -33,6 +32,9 @@ import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
+import AboutDataPopover from 'features/fba/components/AboutDataPopover'
+
+const ADVISORY_THRESHOLD = 20
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -52,7 +54,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
-  const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
   const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
   const [dateOfInterest, setDateOfInterest] = useState(
@@ -119,7 +120,9 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       dispatch(
         fetchfireZoneElevationInfo(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
       )
-      dispatch(fetchfireZoneTPIStats(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString()))
+      dispatch(
+        fetchfireZoneTPIStats(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
+      )
     }
   }, [mostRecentRunDate, selectedFireShape]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -149,7 +152,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (fireZoneTPIStats?.fire_zone_id === selectedFireShapeId) {
       setSelectedFireZoneTPIStats(fireZoneTPIStats)
     }
-
   }, [fireZoneTPIStats])
 
   useEffect(() => {
@@ -175,7 +177,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
       />
       <Box sx={{ paddingTop: '0.5em' }}>
-        <Grid container spacing={1}>
+        <Grid container spacing={1} alignItems={'center'}>
           <Grid item>
             <StyledFormControl>
               <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
@@ -197,20 +199,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               />
             </FireCentreFormControl>
           </Grid>
-          <Grid item>
-            <StyledFormControl>
-              <FormControlLabel
-                label="
-                Percentage of combustible land threshold"
-                labelPlacement="top"
-                control={
-                  <AdvisoryThresholdSlider
-                    advisoryThreshold={advisoryThreshold}
-                    setAdvisoryThreshold={setAdvisoryThreshold}
-                  />
-                }
-              />
-            </StyledFormControl>
+          <Grid item sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
+            <AboutDataPopover advisoryThreshold={ADVISORY_THRESHOLD} />
           </Grid>
         </Grid>
       </Box>
@@ -219,13 +209,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <AdvisoryReport
             issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
             forDate={dateOfInterest}
-            advisoryThreshold={advisoryThreshold}
+            advisoryThreshold={ADVISORY_THRESHOLD}
             selectedFireCenter={fireCenter}
           />
           <FireZoneUnitSummary
             fuelTypeInfo={hfiThresholdsFuelTypes}
-            selectedFireZoneUnit={selectedFireShape} 
-            fireZoneTPIStats={selectedFireZoneTPIStats} 
+            selectedFireZoneUnit={selectedFireShape}
+            fireZoneTPIStats={selectedFireZoneTPIStats}
           />
         </InfoPanel>
         <Grid sx={{ display: 'flex', flex: 1 }} item>
@@ -234,7 +224,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             runType={runType}
             selectedFireShape={selectedFireShape}
             selectedFireCenter={fireCenter}
-            advisoryThreshold={advisoryThreshold}
+            advisoryThreshold={ADVISORY_THRESHOLD}
             setSelectedFireShape={setSelectedFireShape}
             fireShapeAreas={fireShapeAreas}
             zoomSource={zoomSource}
