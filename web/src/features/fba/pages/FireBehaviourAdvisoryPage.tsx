@@ -25,8 +25,7 @@ import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
-import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
-import { fetchfireZoneTPIStats } from 'features/fba/slices/fireZoneTPIStatsSlice'
+import { fetchFireZoneTPIStats } from 'features/fba/slices/fireZoneTPIStatsSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
 import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
@@ -118,10 +117,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     ) {
       dispatch(fetchHighHFIFuels(runType, doiISODate, mostRecentRunDate.toString(), selectedFireShape.fire_shape_id))
       dispatch(
-        fetchfireZoneElevationInfo(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
-      )
-      dispatch(
-        fetchfireZoneTPIStats(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
+        fetchFireZoneTPIStats(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
       )
     }
   }, [mostRecentRunDate, selectedFireShape]) // eslint-disable-line react-hooks/exhaustive-deps

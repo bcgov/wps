@@ -43,7 +43,7 @@ fireZoneTPIStatsSlice.actions
 
 export default fireZoneTPIStatsSlice.reducer
 
-export const fetchfireZoneTPIStats =
+export const fetchFireZoneTPIStats =
   (fire_zone_id: number, runType: RunType, forDate: string, runDatetime: string): AppThunk =>
   async dispatch => {
     try {
