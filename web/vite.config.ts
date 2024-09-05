@@ -39,7 +39,7 @@ export default defineConfig({
     istanbul({
       include: 'src/*',
       exclude: ['node_modules', 'test/'],
-      extension: ['.js', '.ts'],
+      extension: ['.js', '.ts', '.tsx'],
       cypress: true
     })
   ],
