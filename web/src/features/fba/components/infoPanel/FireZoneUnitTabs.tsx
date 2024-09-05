@@ -5,10 +5,9 @@ import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitS
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import TabPanel from 'features/fba/components/infoPanel/TabPanel'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from 'features/fba/components/map/featureStylers'
-import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
-import { groupBy, isNull, isUndefined } from 'lodash'
-import React, { useEffect, useMemo, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useFireZoneUnitDetails } from 'features/fba/hooks/useFireZoneUnitDetails'
+import { isNull, isUndefined } from 'lodash'
+import React, { useEffect, useState } from 'react'
 
 interface FireZoneUnitTabs {
   selectedFireZoneUnit: FireShape | undefined
@@ -52,24 +51,9 @@ const FireZoneUnitTabs = ({
   fireCentreHfiFuelTypes,
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
-  const provincialSummary = useSelector(selectProvincialSummary)
   const [tabNumber, setTabNumber] = useState(0)
 
-  const fireCenterSummary = selectedFireCenter ? provincialSummary[selectedFireCenter.name] : []
-
-  const groupedFireZoneUnits = useMemo(() => groupBy(fireCenterSummary, 'fire_shape_id'), [fireCenterSummary])
-  const sortedGroupedFireZoneUnits = useMemo(
-    () =>
-      Object.values(groupedFireZoneUnits)
-        .map(group => ({
-          fire_shape_id: group[0].fire_shape_id,
-          fire_shape_name: group[0].fire_shape_name,
-          fire_centre_name: group[0].fire_centre_name,
-          fireShapeDetails: group
-        }))
-        .sort((a, b) => a.fire_shape_name.localeCompare(b.fire_shape_name)),
-    [groupedFireZoneUnits]
-  )
+  const sortedGroupedFireZoneUnits = useFireZoneUnitDetails(selectedFireCenter)
 
   useEffect(() => {
     if (selectedFireZoneUnit) {
