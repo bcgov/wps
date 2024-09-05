@@ -19,10 +19,7 @@ RUN corepack enable \
     && yarn set version berry \
     && CYPRESS_INSTALL_BINARY=0 yarn install --immutable
 COPY web .
-
-# Remove sourcemaps after they've been uploaded to sentry
 RUN yarn run build:prod 
-
 
 # Switch back to default user
 USER 1001
