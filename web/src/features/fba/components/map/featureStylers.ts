@@ -9,7 +9,6 @@ import { FireCenter, FireShape, FireShapeArea } from 'api/fbaAPI'
 
 const GREY_FILL = 'rgba(128, 128, 128, 0.8)'
 const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
-const SNOW_FILL = 'rgba(255, 255, 255, 0.75)'
 export const ADVISORY_ORANGE_FILL = 'rgba(255, 147, 38, 0.4)'
 export const ADVISORY_RED_FILL = 'rgba(128, 0, 0, 0.4)'
 
@@ -151,9 +150,29 @@ export const getAdvisoryFillColor = (fireShapeStatus: FireShapeStatus) => {
   }
 }
 
+/**
+ * Given an OpenLayers feature from the fire zone unit label layer, return a label to display on the map.
+ * @param feature The feature of interest from the fire zone unit layer.
+ * @returns A string to be used as a label on the map.
+ */
+const getFireZoneUnitLabel = (feature: RenderFeature | ol.Feature<Geometry>) => {
+  const fireZoneId = feature.getProperties().FIRE_ZONE_
+  let fireZoneUnit = feature.getProperties().FIRE_ZON_1
+  // Fire zone unit labels sometimes include a geographic place name as a reference. eg. Skeena Zone (Kalum).
+  // If present, we want to display the geographic location on the second line of the label.
+  if (fireZoneUnit && fireZoneUnit.indexOf('(') > 0) {
+    const index = fireZoneUnit.indexOf('(')
+    const prefix = fireZoneUnit.substring(0, index).trim()
+    const suffix = fireZoneUnit.substring(index)
+    fireZoneUnit = `${prefix}\n${suffix}` 
+  }
+
+  return `${fireZoneId}-${fireZoneUnit}`
+}
+
 export const fireShapeLabelStyler = (selectedFireShape: FireShape | undefined) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const text = feature.getProperties().FIRE_ZONE.replace(' Fire Zone', '\nFire Zone')
+    const text = getFireZoneUnitLabel(feature)
     const feature_fire_shape_id = feature.getProperties().OBJECTID
     const selected =
       !isUndefined(selectedFireShape) && feature_fire_shape_id === selectedFireShape.fire_shape_id ? true : false
@@ -229,16 +248,4 @@ export const hfiStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style 
     hfiStyle.setFill(new Fill({ color: EMPTY_FILL }))
   }
   return hfiStyle
-}
-
-// A styling function for the snow coverage pmtiles layer.
-export const snowStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-  const snow = feature.get('snow')
-  const snowStyle = new Style({})
-  if (snow === 1) {
-    snowStyle.setFill(new Fill({ color: SNOW_FILL }))
-  } else {
-    snowStyle.setFill(new Fill({ color: EMPTY_FILL }))
-  }
-  return snowStyle
 }
