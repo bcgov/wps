@@ -127,7 +127,6 @@ const FireZoneUnitTabs = ({
                         sx={{
                           backgroundColor: calculateStatus(zone.fireShapeDetails, advisoryThreshold),
                           minWidth: 'auto',
-                          //   border: '0.25px solid grey',
                           marginTop: theme.spacing(2),
                           fontWeight: 'bold',
                           color: isActive ? 'black' : 'grey',
