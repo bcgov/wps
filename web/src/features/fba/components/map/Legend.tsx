@@ -98,9 +98,6 @@ interface LegendProps {
   setShowShapeStatus: React.Dispatch<React.SetStateAction<boolean>>
   showHFI: boolean
   setShowHFI: React.Dispatch<React.SetStateAction<boolean>>
-  showSnow: boolean
-  setShowSnow: React.Dispatch<React.SetStateAction<boolean>>
-  snowDescription: string | null
 }
 
 const Legend = ({
@@ -108,10 +105,7 @@ const Legend = ({
   showShapeStatus,
   setShowShapeStatus,
   showHFI,
-  setShowHFI,
-  showSnow,
-  setShowSnow,
-  snowDescription
+  setShowHFI
 }: LegendProps) => {
   const handleLayerChange = (
     layerName: string,
@@ -148,13 +142,6 @@ const Legend = ({
         onChange={() => handleLayerChange('hfiVector', showHFI, setShowHFI)}
         subItems={hfiSubItems}
       />
-      <LegendItem
-        label="Snow Coverage"
-        checked={showSnow}
-        onChange={() => handleLayerChange('snowVector', showSnow, setShowSnow)}
-        description={snowDescription}
-        renderEmptyDescription={true}
-      ></LegendItem>
     </LegendGrid>
   )
 }

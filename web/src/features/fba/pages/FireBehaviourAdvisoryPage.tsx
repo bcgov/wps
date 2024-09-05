@@ -28,7 +28,6 @@ import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import { fetchfireZoneTPIStats } from 'features/fba/slices/fireZoneTPIStatsSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
-import { getMostRecentProcessedSnowByDate } from 'api/snow'
 import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
@@ -63,21 +62,9 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
-  const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const { mostRecentRunDate } = useSelector(selectRunDates)
   const { fireShapeAreas } = useSelector(selectFireShapeAreas)
   const [selectedFireZoneTPIStats, setSelectedFireZoneTPIStats] = useState<FireZoneTPIStats | null>(null)
-
-  // Query our API for the most recently processed snow coverage date <= the currently selected date.
-  const fetchLastProcessedSnow = async (selectedDate: DateTime) => {
-    const data = await getMostRecentProcessedSnowByDate(selectedDate)
-    if (isNull(data)) {
-      setSnowDate(null)
-    } else {
-      const newSnowDate = data.forDate
-      setSnowDate(newSnowDate)
-    }
-  }
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -119,7 +106,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (!isNull(doiISODate)) {
       dispatch(fetchSFMSRunDates(runType, doiISODate))
     }
-    fetchLastProcessedSnow(dateOfInterest)
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -241,7 +227,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             advisoryThreshold={ADVISORY_THRESHOLD}
             setSelectedFireShape={setSelectedFireShape}
             fireShapeAreas={fireShapeAreas}
-            snowDate={snowDate}
             zoomSource={zoomSource}
             setZoomSource={setZoomSource}
           />
