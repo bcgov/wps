@@ -9,7 +9,6 @@ import { FireCenter, FireShape, FireShapeArea } from 'api/fbaAPI'
 
 const GREY_FILL = 'rgba(128, 128, 128, 0.8)'
 const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
-const SNOW_FILL = 'rgba(255, 255, 255, 0.75)'
 export const ADVISORY_ORANGE_FILL = 'rgba(255, 147, 38, 0.4)'
 export const ADVISORY_RED_FILL = 'rgba(128, 0, 0, 0.4)'
 
@@ -249,16 +248,4 @@ export const hfiStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style 
     hfiStyle.setFill(new Fill({ color: EMPTY_FILL }))
   }
   return hfiStyle
-}
-
-// A styling function for the snow coverage pmtiles layer.
-export const snowStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-  const snow = feature.get('snow')
-  const snowStyle = new Style({})
-  if (snow === 1) {
-    snowStyle.setFill(new Fill({ color: SNOW_FILL }))
-  } else {
-    snowStyle.setFill(new Fill({ color: EMPTY_FILL }))
-  }
-  return snowStyle
 }
