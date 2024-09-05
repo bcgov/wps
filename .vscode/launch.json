@@ -117,10 +117,17 @@
             "console": "integratedTerminal",
         },
         {
-            "name": "app.jobs.rdps_sfms ",
+            "name": "app.jobs.rdps_sfms",
             "type": "python",
             "request": "launch",
             "module": "app.jobs.rdps_sfms",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "local critical hours",
+            "type": "python",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.critical_hours",
             "console": "integratedTerminal"
         },
         {

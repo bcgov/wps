@@ -341,6 +341,61 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: object-store-bucket
+                - name: REDIS_USE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.redis-use
+                - name: REDIS_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.redis-host
+                - name: REDIS_PORT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.redis-port
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: wps-redis
+                      key: database-password
+                - name: REDIS_STATION_CACHE_EXPIRY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.redis-station-cache-expiry
+                - name: REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.redis-hourlies-by-station-code-cache-expiry
+                - name: REDIS_AUTH_CACHE_EXPIRY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.redis-auth-cache-expiry
+                - name: WFWX_BASE_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.wfwx-base-url
+                - name: WFWX_AUTH_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.wfwx-auth-url
+                - name: WFWX_USER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.wfwx-user
+                - name: WFWX_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: wfwx-secret
                 - name: DEM_NAME
                   valueFrom:
                     configMapKeyRef:

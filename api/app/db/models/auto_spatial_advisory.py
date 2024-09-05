@@ -8,6 +8,13 @@ from app.geospatial import NAD83_BC_ALBERS
 from sqlalchemy.dialects import postgresql
 
 
+class HfiClassificationThresholdEnum(enum.Enum):
+    """Enum for the different HFI classification thresholds."""
+
+    ADVISORY = "advisory"
+    WARNING = "warning"
+
+
 class ShapeTypeEnum(enum.Enum):
     """Define different shape types. e.g. "Zone", "Fire Centre" - later we may add
     "Incident"/"Fire", "Custom" etc. etc."""
@@ -203,3 +210,19 @@ class AdvisoryTPIStats(Base):
     mid_slope = Column(Integer, nullable=False, index=False)
     upper_slope = Column(Integer, nullable=False, index=False)
     pixel_size_metres = Column(Integer, nullable=False, index=False)
+
+class CriticalHours(Base):
+    """
+    Critical hours for a fuel type in a firezone unit.
+    """
+
+    __tablename__ = "critical_hours"
+    __table_args__ = {"comment": "Critical hours by firezone unit, fuel type and sfms run parameters."}
+    id = Column(Integer, primary_key=True, index=True)
+    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
+    threshold = Column(postgresql.ENUM("advisory", "warning", name="hficlassificationthresholdenum", create_type=False), nullable=False)
+    run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
+    fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
+    start_hour = Column(Integer, nullable=False)
+    end_hour = Column(Integer, nullable=False)
+
