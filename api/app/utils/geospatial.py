@@ -1,5 +1,6 @@
 import logging
-from osgeo import gdal
+from typing import Tuple
+from osgeo import gdal, ogr, osr
 
 
 logger = logging.getLogger(__name__)
@@ -83,3 +84,21 @@ def raster_mul(tpi_ds: gdal.Dataset, hfi_ds: gdal.Dataset, chunk_size=256) -> gd
             hfi_chunk = None
 
     return out_ds
+
+
+class PointTransformer:
+    """
+    Transforms the coordinates of a point from one spatial reference to another.
+    """
+
+    def __init__(self, source_srs: int, target_srs: int):
+        source = osr.SpatialReference()
+        source.ImportFromEPSG(source_srs)
+        target = osr.SpatialReference()
+        target.ImportFromEPSG(target_srs)
+        self.transform = osr.CoordinateTransformation(source, target)
+
+    def transform_coordinate(self, x: float, y: float) -> Tuple[float, float]:
+        point = ogr.CreateGeometryFromWkt(f"POINT ({x} {y})")
+        point.Transform(self.transform)
+        return (point.GetX(), point.GetY())
