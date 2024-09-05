@@ -11,7 +11,7 @@ export interface GroupedFireZoneUnitDetails {
   fireShapeDetails: FireShapeAreaDetail[]
 }
 
-export const useFireZoneUnitDetails = (selectedFireCenter: FireCenter | undefined): GroupedFireZoneUnitDetails[] => {
+export const useFireCentreDetails = (selectedFireCenter: FireCenter | undefined): GroupedFireZoneUnitDetails[] => {
   const provincialSummary = useSelector(selectProvincialSummary)
 
   return useMemo(() => {

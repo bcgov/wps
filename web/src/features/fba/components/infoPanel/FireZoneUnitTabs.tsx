@@ -5,7 +5,7 @@ import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitS
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import TabPanel from 'features/fba/components/infoPanel/TabPanel'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from 'features/fba/components/map/featureStylers'
-import { useFireZoneUnitDetails } from 'features/fba/hooks/useFireZoneUnitDetails'
+import { useFireCentreDetails } from 'features/fba/hooks/useFireCentreDetails'
 import { isNull, isUndefined } from 'lodash'
 import React, { useEffect, useState } from 'react'
 
@@ -53,7 +53,7 @@ const FireZoneUnitTabs = ({
 }: FireZoneUnitTabs) => {
   const [tabNumber, setTabNumber] = useState(0)
 
-  const sortedGroupedFireZoneUnits = useFireZoneUnitDetails(selectedFireCenter)
+  const sortedGroupedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
 
   useEffect(() => {
     if (selectedFireZoneUnit) {

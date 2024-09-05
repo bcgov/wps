@@ -50,7 +50,7 @@ const columns: GridColDef[] = [
     field: 'area',
     flex: 3,
     headerClassName: 'fuel-summary-header',
-    headerName: 'Proportion of Advisory Area',
+    headerName: 'Distribution > 4k kW/m',
     minWidth: 200,
     sortable: false,
     renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
