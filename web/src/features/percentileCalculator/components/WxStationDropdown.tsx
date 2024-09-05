@@ -59,10 +59,7 @@ const WxStationDropdown = (props: Props) => {
     name: station.properties.name,
     code: station.properties.code
   }))
-  if (7) {
 
-    throw 'jacques error'
-  }
   return (
     <Root className={props.className}>
       <div className={classes.wrapper}>
