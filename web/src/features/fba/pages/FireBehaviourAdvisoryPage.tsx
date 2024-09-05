@@ -5,28 +5,25 @@ import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
 import {
-  selectFireZoneTPIStats,
   selectFireCenters,
-  selectHFIFuelTypes,
   selectRunDates,
   selectFireShapeAreas,
-  selectFireCentreTPIStats
+  selectFireCentreTPIStats,
+  selectFireCentreHFIFuelTypes
 } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
-import { FireCenter, FireShape, FireZoneTPIStats } from 'api/fbaAPI'
+import { FireCenter, FireShape } from 'api/fbaAPI'
 import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME, PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import ActualForecastControl from 'features/fba/components/ActualForecastControl'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
-import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
-import { fetchfireZoneTPIStats } from 'features/fba/slices/fireZoneTPIStatsSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
 import { getMostRecentProcessedSnowByDate } from 'api/snow'
 import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
@@ -35,6 +32,7 @@ import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import FireZoneUnitTabs from 'features/fba/components/infoPanel/FireZoneUnitTabs'
 import { fetchFireCentreTPIStats } from 'features/fba/slices/fireCentreTPIStatsSlice'
 import AboutDataPopover from 'features/fba/components/AboutDataPopover'
+import { fetchFireCentreHfiFuelTypes } from 'features/fba/slices/fireCentreHfiFuelTypesSlice'
 
 const ADVISORY_THRESHOLD = 20
 
@@ -51,9 +49,8 @@ export const FireCentreFormControl = styled(FormControl)({
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-  const { hfiThresholdsFuelTypes } = useSelector(selectHFIFuelTypes)
-  const { fireZoneTPIStats } = useSelector(selectFireZoneTPIStats)
   const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
+  const { fireCentreHfiFuelTypes } = useSelector(selectFireCentreHFIFuelTypes)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
@@ -68,11 +65,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const { mostRecentRunDate } = useSelector(selectRunDates)
   const { fireShapeAreas } = useSelector(selectFireShapeAreas)
-  const [selectedFireZoneTPIStats, setSelectedFireZoneTPIStats] = useState<FireZoneTPIStats | null>(null)
-  const [selectedFireCentreTPIStats, setSelectedFireCentreTPIStats] = useState<Record<
-    string,
-    FireZoneTPIStats[]
-  > | null>(null)
 
   // Query our API for the most recently processed snow coverage date <= the currently selected date.
   const fetchLastProcessedSnow = async (selectedDate: DateTime) => {
@@ -144,25 +136,11 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       !isNull(mostRecentRunDate) &&
       !isNull(doiISODate) &&
       !isUndefined(mostRecentRunDate) &&
-      !isUndefined(selectedFireShape)
-    ) {
-      dispatch(fetchHighHFIFuels(runType, doiISODate, mostRecentRunDate.toString(), selectedFireShape.fire_shape_id))
-      dispatch(
-        fetchfireZoneTPIStats(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
-      )
-    }
-  }, [mostRecentRunDate, selectedFireShape]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const doiISODate = dateOfInterest.toISODate()
-    if (
-      !isNull(mostRecentRunDate) &&
-      !isNull(doiISODate) &&
-      !isUndefined(mostRecentRunDate) &&
       !isUndefined(fireCenter) &&
       !isNull(fireCenter)
     ) {
       dispatch(fetchFireCentreTPIStats(fireCenter.name, runType, doiISODate, mostRecentRunDate.toString()))
+      dispatch(fetchFireCentreHfiFuelTypes(fireCenter.name, runType, doiISODate, mostRecentRunDate.toString()))
     }
   }, [fireCenter, mostRecentRunDate])
 
@@ -173,22 +151,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       dispatch(fetchProvincialSummary(runType, mostRecentRunDate, doiISODate))
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const selectedFireShapeId = selectedFireShape?.fire_shape_id
-    if (isNull(fireZoneTPIStats) || isUndefined(selectedFireShapeId)) {
-      setSelectedFireZoneTPIStats(null)
-    }
-    if (fireZoneTPIStats?.fire_zone_id === selectedFireShapeId) {
-      setSelectedFireZoneTPIStats(fireZoneTPIStats)
-    }
-  }, [fireZoneTPIStats])
-
-  useEffect(() => {
-    if (fireCentreTPIStats && Object.keys(fireCentreTPIStats)[0] === fireCenter?.name) {
-      setSelectedFireCentreTPIStats(fireCentreTPIStats)
-    }
-  }, [fireCentreTPIStats])
 
   useEffect(() => {
     document.title = ASA_DOC_TITLE
@@ -239,10 +201,10 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             selectedFireCenter={fireCenter}
           />
           <FireZoneUnitTabs
-            fuelTypeInfo={hfiThresholdsFuelTypes}
             selectedFireZoneUnit={selectedFireShape}
             setZoomSource={setZoomSource}
-            fireCentreTPIStats={selectedFireCentreTPIStats}
+            fireCentreTPIStats={fireCentreTPIStats}
+            fireCentreHfiFuelTypes={fireCentreHfiFuelTypes}
             selectedFireCenter={fireCenter}
             advisoryThreshold={ADVISORY_THRESHOLD}
             setSelectedFireShape={setSelectedFireShape}

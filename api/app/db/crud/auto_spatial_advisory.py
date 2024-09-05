@@ -130,6 +130,17 @@ async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
     return fuel_types
 
 
+async def get_zone_ids_in_centre(session: AsyncSession, fire_centre_name: str):
+    logger.info(f"retrieving fire zones within {fire_centre_name} from advisory_shapes table")
+
+    stmt = select(Shape.source_identifier).join(FireCentre, FireCentre.id == Shape.fire_centre).where(FireCentre.name == fire_centre_name)
+    result = await session.execute(stmt)
+
+    all_results = result.scalars().all()
+
+    return all_results
+
+
 async def get_precomputed_high_hfi_fuel_type_areas_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, advisory_shape_id: int) -> List[Row]:
     perf_start = perf_counter()
     stmt = (

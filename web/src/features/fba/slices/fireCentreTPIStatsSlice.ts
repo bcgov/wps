@@ -44,11 +44,11 @@ export const { getFireCentreTPIStatsStart, getFireCentreTPIStatsFailed, getFireC
 export default fireCentreTPIStatsSlice.reducer
 
 export const fetchFireCentreTPIStats =
-  (fire_centre_name: string, runType: RunType, forDate: string, runDatetime: string): AppThunk =>
+  (fireCentre: string, runType: RunType, forDate: string, runDatetime: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(getFireCentreTPIStatsStart())
-      const fireCentreTPIStats = await getFireCentreTPIStats(fire_centre_name, runType, forDate, runDatetime)
+      const fireCentreTPIStats = await getFireCentreTPIStats(fireCentre, runType, forDate, runDatetime)
       dispatch(getFireCentreTPIStatsSuccess(fireCentreTPIStats))
     } catch (err) {
       dispatch(getFireCentreTPIStatsFailed((err as Error).toString()))

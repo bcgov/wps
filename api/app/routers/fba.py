@@ -17,6 +17,7 @@ from app.db.crud.auto_spatial_advisory import (
     get_zonal_elevation_stats,
     get_zonal_tpi_stats,
     get_centre_tpi_stats,
+    get_zone_ids_in_centre,
 )
 from app.db.models.auto_spatial_advisory import RunTypeEnum
 from app.schemas.fba import (
@@ -140,6 +141,49 @@ async def get_hfi_fuels_data_for_fire_zone(run_type: RunType, for_date: date, ru
             )
 
         return {zone_id: data}
+
+
+@router.get("/fire-centre-hfi-fuels/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}", response_model=dict[str, dict[int, List[ClassifiedHfiThresholdFuelTypeArea]]])
+async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, run_datetime: datetime, fire_centre_name: str):
+    """
+    Fetch rollup of fuel type/HFI threshold/area data for a specified fire zone.
+    """
+    logger.info("fire-centre-hfi-fuels/%s/%s/%s/%s", run_type.value, for_date, run_datetime, fire_centre_name)
+
+    async with get_async_read_session_scope() as session:
+        # get thresholds data
+        thresholds = await get_all_hfi_thresholds(session)
+        # get fuel type ids data
+        fuel_types = await get_all_sfms_fuel_types(session)
+        # get fire zone id's within a fire centre
+        zone_ids = await get_zone_ids_in_centre(session, fire_centre_name)
+
+        all_zone_data = {}
+        for zone_id in zone_ids:
+            # get HFI/fuels data for specific zone
+            hfi_fuel_type_ids_for_zone = await get_precomputed_high_hfi_fuel_type_areas_for_shape(
+                session, run_type=RunTypeEnum(run_type.value), for_date=for_date, run_datetime=run_datetime, advisory_shape_id=zone_id
+            )
+            zone_data = []
+
+            for record in hfi_fuel_type_ids_for_zone:
+                fuel_type_id = record[1]
+                threshold_id = record[2]
+                # area is stored in square metres in DB. For user convenience, convert to hectares
+                # 1 ha = 10,000 sq.m.
+                area = record[3] / 10000
+                fuel_type_obj = next((ft for ft in fuel_types if ft.fuel_type_id == fuel_type_id), None)
+                threshold_obj = next((th for th in thresholds if th.id == threshold_id), None)
+                zone_data.append(
+                    ClassifiedHfiThresholdFuelTypeArea(
+                        fuel_type=SFMSFuelType(fuel_type_id=fuel_type_obj.fuel_type_id, fuel_type_code=fuel_type_obj.fuel_type_code, description=fuel_type_obj.description),
+                        threshold=HfiThreshold(id=threshold_obj.id, name=threshold_obj.name, description=threshold_obj.description),
+                        area=area,
+                    )
+                )
+            all_zone_data[zone_id] = zone_data
+
+        return {fire_centre_name: all_zone_data}
 
 
 @router.get("/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])

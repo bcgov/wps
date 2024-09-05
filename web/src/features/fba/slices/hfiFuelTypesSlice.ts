@@ -18,7 +18,7 @@ const initialState: State = {
 }
 
 const hfiFuelTypesSlice = createSlice({
-  name: 'runDates',
+  name: 'hfiFuelTypes',
   initialState,
   reducers: {
     getHFIFuelsStart(state: State) {

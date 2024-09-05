@@ -1,5 +1,5 @@
 import { Box, Grid, Tab, Tabs, Tooltip } from '@mui/material'
-import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneThresholdFuelTypeArea, FireZoneTPIStats } from 'api/fbaAPI'
+import { FireCenter, FireCentreHfiFuelsData, FireShape, FireShapeAreaDetail, FireZoneTPIStats } from 'api/fbaAPI'
 import { INFO_PANEL_CONTENT_BACKGROUND, theme } from 'app/theme'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
@@ -12,9 +12,9 @@ import { useSelector } from 'react-redux'
 
 interface FireZoneUnitTabs {
   selectedFireZoneUnit: FireShape | undefined
-  fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
   fireCentreTPIStats: Record<string, FireZoneTPIStats[]> | null
+  fireCentreHfiFuelTypes: FireCentreHfiFuelsData
   selectedFireCenter: FireCenter | undefined
   advisoryThreshold: number
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
@@ -44,12 +44,12 @@ const calculateStatus = (details: FireShapeAreaDetail[], advisoryThreshold: numb
 }
 
 const FireZoneUnitTabs = ({
-  fuelTypeInfo,
   selectedFireZoneUnit,
   setZoomSource,
   selectedFireCenter,
   advisoryThreshold,
   fireCentreTPIStats,
+  fireCentreHfiFuelTypes,
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
   const provincialSummary = useSelector(selectProvincialSummary)
@@ -112,6 +112,7 @@ const FireZoneUnitTabs = ({
   }
 
   const tpiStatsArray = fireCentreTPIStats?.[selectedFireCenter.name]
+  const hfiFuelStats = fireCentreHfiFuelTypes?.[selectedFireCenter.name]
 
   return (
     <div data-testid="firezone-summary-tabs">
@@ -158,7 +159,7 @@ const FireZoneUnitTabs = ({
             {sortedGroupedFireZoneUnits.map((zone, index) => (
               <TabPanel key={zone.fire_shape_id} value={tabNumber} index={index}>
                 <FireZoneUnitSummary
-                  fuelTypeInfo={fuelTypeInfo}
+                  fuelTypeInfo={hfiFuelStats ? { [zone.fire_shape_id]: hfiFuelStats[zone.fire_shape_id] } : {}}
                   fireZoneTPIStats={
                     tpiStatsArray ? tpiStatsArray.find(stats => stats.fire_zone_id == zone.fire_shape_id) : undefined
                   }
