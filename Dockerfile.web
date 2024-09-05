@@ -21,8 +21,8 @@ RUN corepack enable \
 COPY web .
 
 # Remove sourcemaps after they've been uploaded to sentry
-RUN yarn run build:prod && \
-    rm build/assets/**.map
+RUN yarn run build:prod 
+
 
 # Switch back to default user
 USER 1001

@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import svgr from 'vite-plugin-svgr'
 import istanbul from 'vite-plugin-istanbul'
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 export default defineConfig({
   build: {
@@ -36,6 +37,14 @@ export default defineConfig({
       }
     }),
     svgr(),
+    sentryVitePlugin({
+      org: 'bcps-wps',
+      project: 'frontend',
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      sourcemaps: {
+        filesToDeleteAfterUpload: "build/assets/**.map"
+      }
+    }),
     istanbul({
       include: 'src/*',
       exclude: ['node_modules', 'test/'],

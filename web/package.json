@@ -22,8 +22,8 @@
     "@mui/x-date-pickers": "^7.0.0",
     "@psu/cffdrs_ts": "git+https://github.com/cffdrs/cffdrs_ts#b9afdabc89dd4bdf04ccf1e406a4a5d8d552ff51",
     "@reduxjs/toolkit": "^1.8.0",
-    "@sentry/cli": "^2.31.2",
     "@sentry/react": "^8.2.1",
+    "@sentry/vite-plugin": "^2.22.4",
     "@types/esri-leaflet": "^3.0.0",
     "@types/leaflet": "^1.7.0",
     "@types/lodash": "^4.14.173",
@@ -67,7 +67,7 @@
     "start": "vite",
     "start:cypress": "export $(cat .env.cypress | xargs) && yarn start",
     "build": "tsc -b && vite build",
-    "build:prod": "tsc -b && vite build && yarn sentry:sourcemaps",
+    "build:prod": "tsc -b && vite build",
     "test": "VITE_PMTILES_BUCKET=https://nrs.objectstore.gov.bc.ca/gpdqha/psu/pmtiles/ vitest",
     "test:ci": "CI=true npm test",
     "coverage": "npm test -- --coverage --watchAll=false",
@@ -79,7 +79,6 @@
     "lint:fix": "eslint --fix",
     "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md)\"",
     "finalizeCoverage": "yarn node mergeCoverage.cjs",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org bcps-wps --project frontend ./build && sentry-cli sourcemaps upload --org bcps-wps --project frontend ./build",
     "preview": "vite preview"
   },
   "devDependencies": {
