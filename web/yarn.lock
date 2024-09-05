@@ -2284,22 +2284,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/whatwg-fetch@npm:^0.0.33":
-  version: 0.0.33
-  resolution: "@types/whatwg-fetch@npm:0.0.33"
-  dependencies:
-    "@types/whatwg-streams": "npm:*"
-  checksum: 10c0/97f0664b0aeea2b38b8074a356551b9fb64b3581059cc5f2851b32725f45701a14009609f0d70d50892091d015ba6eeb342b3804a942eb5bbe04c94bb50ca030
-  languageName: node
-  linkType: hard
-
-"@types/whatwg-streams@npm:*":
-  version: 0.0.7
-  resolution: "@types/whatwg-streams@npm:0.0.7"
-  checksum: 10c0/f61362bfe9b2e62c8e9504f7a0ab7a8da767766de1e968a19edb47b3ea46d3cdbbde9ab4457b10fc89123c46338f66a4fa9b008964c39004012ee2aba7043524
-  languageName: node
-  linkType: hard
-
 "@types/yargs-parser@npm:*":
   version: 21.0.3
   resolution: "@types/yargs-parser@npm:21.0.3"
@@ -9424,7 +9408,6 @@ __metadata:
     "@types/react-router-dom": "npm:^5.3.0"
     "@types/recharts": "npm:^1.8.23"
     "@types/webpack-env": "npm:^1.15.1"
-    "@types/whatwg-fetch": "npm:^0.0.33"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitejs/plugin-react": "npm:^4.3.1"

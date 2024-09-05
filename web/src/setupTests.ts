@@ -5,7 +5,7 @@ import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
 import crypto from 'crypto'
-import 'whatwg-fetch'
+import { fetch } from 'whatwg-fetch'
 
 
 afterEach(() => {
