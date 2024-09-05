@@ -167,7 +167,7 @@ const getFireZoneUnitLabel = (feature: RenderFeature | ol.Feature<Geometry>) => 
     fireZoneUnit = `${prefix}\n${suffix}` 
   }
 
-  return `${fireZoneId} - ${fireZoneUnit}`
+  return `${fireZoneId}-${fireZoneUnit}`
 }
 
 export const fireShapeLabelStyler = (selectedFireShape: FireShape | undefined) => {
