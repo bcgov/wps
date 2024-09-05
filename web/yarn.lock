@@ -111,7 +111,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/helper-plugin-utils@npm:^7.0.0, @babel/helper-plugin-utils@npm:^7.24.7":
+"@babel/helper-plugin-utils@npm:^7.24.7":
   version: 7.24.8
   resolution: "@babel/helper-plugin-utils@npm:7.24.8"
   checksum: 10c0/0376037f94a3bfe6b820a39f81220ac04f243eaee7193774b983e956c1750883ff236b30785795abbcda43fac3ece74750566830c2daa4d6e3870bb0dff34c2d
@@ -277,17 +277,6 @@ __metadata:
     cypress: "*"
     webpack: ^4 || ^5
   checksum: 10c0/09c25a67d3afae3a5bbc5eb49d6f0b9c150138dce87d748cc33a9760c08b4548f3b466611096760704d67290fc5c50e0ada230e4dad30393ac0261483ff98148
-  languageName: node
-  linkType: hard
-
-"@cypress/instrument-cra@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "@cypress/instrument-cra@npm:1.4.0"
-  dependencies:
-    babel-plugin-istanbul: "npm:6.0.0"
-    debug: "npm:4.2.0"
-    find-yarn-workspace-root: "npm:^2.0.0"
-  checksum: 10c0/b59e9b6e71f41efd724dea30cc7248b10241e9a7eb7262f84c8e32b05d87ca1779ef8f8327a152b72c32fa5b0390b84c333384992264375b2353ffb70c8a6a5c
   languageName: node
   linkType: hard
 
@@ -2899,19 +2888,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-plugin-istanbul@npm:6.0.0":
-  version: 6.0.0
-  resolution: "babel-plugin-istanbul@npm:6.0.0"
-  dependencies:
-    "@babel/helper-plugin-utils": "npm:^7.0.0"
-    "@istanbuljs/load-nyc-config": "npm:^1.0.0"
-    "@istanbuljs/schema": "npm:^0.1.2"
-    istanbul-lib-instrument: "npm:^4.0.0"
-    test-exclude: "npm:^6.0.0"
-  checksum: 10c0/7516fb6189e0e86dfa93b900a7d2cf1fb18c5d405c001f391e2fae7c9f9f04d121e71577fbd6652c86be941c1b245136b573e402fdf2749e0d23eafe1d8237f6
-  languageName: node
-  linkType: hard
-
 "babel-plugin-macros@npm:^3.1.0":
   version: 3.1.0
   resolution: "babel-plugin-macros@npm:3.1.0"
@@ -3663,18 +3639,6 @@ __metadata:
     supports-color:
       optional: true
   checksum: 10c0/3293416bff072389c101697d4611c402a6bacd1900ac20c0492f61a9cdd6b3b29750fc7f5e299f8058469ef60ff8fb79b86395a30374fbd2490113c1c7112285
-  languageName: node
-  linkType: hard
-
-"debug@npm:4.2.0":
-  version: 4.2.0
-  resolution: "debug@npm:4.2.0"
-  dependencies:
-    ms: "npm:2.1.2"
-  peerDependenciesMeta:
-    supports-color:
-      optional: true
-  checksum: 10c0/870bafeb1134af05e964effdd019c847306012d96e2a177db0b65f5409101fe9316a58a163c793f9fc5b9927e896fd2874bf64285d6cabb287ebc99b3caf4454
   languageName: node
   linkType: hard
 
@@ -4710,15 +4674,6 @@ __metadata:
     locate-path: "npm:^6.0.0"
     path-exists: "npm:^4.0.0"
   checksum: 10c0/062c5a83a9c02f53cdd6d175a37ecf8f87ea5bbff1fdfb828f04bfa021441bc7583e8ebc0872a4c1baab96221fb8a8a275a19809fb93fbc40bd69ec35634069a
-  languageName: node
-  linkType: hard
-
-"find-yarn-workspace-root@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "find-yarn-workspace-root@npm:2.0.0"
-  dependencies:
-    micromatch: "npm:^4.0.2"
-  checksum: 10c0/b0d3843013fbdaf4e57140e0165889d09fa61745c9e85da2af86e54974f4cc9f1967e40f0d8fc36a79d53091f0829c651d06607d552582e53976f3cd8f4e5689
   languageName: node
   linkType: hard
 
@@ -6448,7 +6403,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"micromatch@npm:^4.0.2, micromatch@npm:^4.0.4":
+"micromatch@npm:^4.0.4":
   version: 4.0.8
   resolution: "micromatch@npm:4.0.8"
   dependencies:
@@ -9381,7 +9336,6 @@ __metadata:
   resolution: "wps-web@workspace:."
   dependencies:
     "@cypress/code-coverage": "npm:^3.10.0"
-    "@cypress/instrument-cra": "npm:^1.4.0"
     "@emotion/react": "npm:^11.8.2"
     "@emotion/styled": "npm:^11.8.1"
     "@eslint/compat": "npm:^1.1.1"
