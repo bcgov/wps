@@ -39,23 +39,6 @@ export interface FireShapeArea {
   elevated_hfi_percentage: number
 }
 
-export interface ElevationInfo {
-  minimum: number
-  quartile_25: number
-  median: number
-  quartile_75: number
-  maximum: number
-}
-
-export interface ElevationInfoByThreshold {
-  threshold: number
-  elevation_info: ElevationInfo
-}
-
-export interface FireZoneElevationInfoResponse {
-  hfi_elevation_info: ElevationInfoByThreshold[]
-}
-
 export interface FireZoneTPIStats {
   fire_zone_id: number
   valley_bottom: number
@@ -143,17 +126,6 @@ export async function getHFIThresholdsFuelTypesForZone(
   zone_id: number
 ): Promise<Record<number, FireZoneThresholdFuelTypeArea[]>> {
   const url = `fba/hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${zone_id}`
-  const { data } = await axios.get(url)
-  return data
-}
-
-export async function getFireZoneElevationInfo(
-  fire_zone_id: number,
-  run_type: RunType,
-  run_datetime: string,
-  for_date: string
-): Promise<FireZoneElevationInfoResponse> {
-  const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
   const { data } = await axios.get(url)
   return data
 }
