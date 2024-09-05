@@ -11,6 +11,7 @@ export default defineConfig({
     sourcemap: true,
     outDir: 'build'
   },
+  //this is added to avoid error styled_default is not a function read more: https://github.com/vitejs/vite/issues/12423
   optimizeDeps: {
     include: ['@mui/material/Tooltip', '@emotion/styled/base', '@mui/material/Unstable_Grid2']
   },
