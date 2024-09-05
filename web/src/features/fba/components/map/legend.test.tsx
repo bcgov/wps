@@ -8,7 +8,7 @@ describe('Legend', () => {
     const onToggleLayer = vi.fn()
     const setShowZoneStatus = vi.fn()
     const setShowHFI = vi.fn()
-    const setShowSnow = vi.fn()
+
     const { getByTestId } = render(
       <Legend
         onToggleLayer={onToggleLayer}
@@ -16,9 +16,6 @@ describe('Legend', () => {
         setShowHFI={setShowHFI}
         showHFI={false}
         showShapeStatus={true}
-        showSnow={false}
-        setShowSnow={setShowSnow}
-        snowDescription="foo"
       />
     )
     const legendComponent = getByTestId('asa-map-legend')
@@ -39,7 +36,7 @@ describe('Legend', () => {
     const onToggleLayer = vi.fn()
     const setShowZoneStatus = vi.fn()
     const setShowHFI = vi.fn()
-    const setShowSnow = vi.fn()
+
     const { getByTestId } = render(
       <Legend
         onToggleLayer={onToggleLayer}
@@ -47,9 +44,6 @@ describe('Legend', () => {
         setShowHFI={setShowHFI}
         showHFI={false}
         showShapeStatus={true}
-        showSnow={false}
-        setShowSnow={setShowSnow}
-        snowDescription="foo"
       />
     )
 
