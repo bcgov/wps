@@ -11,6 +11,13 @@ export interface GroupedFireZoneUnitDetails {
   fireShapeDetails: FireShapeAreaDetail[]
 }
 
+/**
+ * Hook for grabbing a fire centre from the provincial summary, grouping by unique 'fire_shape_id' and
+ * providing easy access to the shape name, centre, and FireShapeAreaDetails for calculating zone status
+ *
+ * @param selectedFireCenter
+ * @returns
+ */
 export const useFireCentreDetails = (selectedFireCenter: FireCenter | undefined): GroupedFireZoneUnitDetails[] => {
   const provincialSummary = useSelector(selectProvincialSummary)
 
