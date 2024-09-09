@@ -4,13 +4,13 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { getStationGroups, StationGroup } from 'api/stationAPI'
 
-interface State {
+export interface StationGroupsState {
   loading: boolean
   error: string | null
   groups: StationGroup[]
 }
 
-const initialState: State = {
+const initialState: StationGroupsState = {
   loading: false,
   error: null,
   groups: []
@@ -20,15 +20,15 @@ const stationGroupsSlice = createSlice({
   name: 'stationGroups',
   initialState,
   reducers: {
-    getStationGroupsStart(state: State) {
+    getStationGroupsStart(state: StationGroupsState) {
       state.error = null
       state.loading = true
     },
-    getStationGroupsFailed(state: State, action: PayloadAction<string>) {
+    getStationGroupsFailed(state: StationGroupsState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getStationGroupsSuccess(state: State, action: PayloadAction<StationGroup[]>) {
+    getStationGroupsSuccess(state: StationGroupsState, action: PayloadAction<StationGroup[]>) {
       state.error = null
       state.groups = action.payload
       state.loading = false

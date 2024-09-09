@@ -10,14 +10,14 @@ import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { pstFormatter } from 'utils/date'
 
-interface State {
+export interface FBACalcState {
   loading: boolean
   error: string | null
   fireBehaviourResultStations: FBAStation[]
   date: string | null
 }
 
-const initialState: State = {
+const initialState: FBACalcState = {
   loading: false,
   error: null,
   fireBehaviourResultStations: [],
@@ -28,17 +28,17 @@ const fireBehaviourStationsSlice = createSlice({
   name: 'fireBehaviourStations',
   initialState,
   reducers: {
-    getFireBehaviourStationsStart(state: State) {
+    getFireBehaviourStationsStart(state: FBACalcState) {
       state.error = null
       state.loading = true
       state.fireBehaviourResultStations = []
       state.date = null
     },
-    getFireBehaviourStationsFailed(state: State, action: PayloadAction<string>) {
+    getFireBehaviourStationsFailed(state: FBACalcState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getFireBehaviourStationsSuccess(state: State, action: PayloadAction<FBAWeatherStationsResponse>) {
+    getFireBehaviourStationsSuccess(state: FBACalcState, action: PayloadAction<FBAWeatherStationsResponse>) {
       state.error = null
       state.fireBehaviourResultStations = action.payload.stations
       state.date = DateTime.fromFormat(action.payload.date, 'yyyy/MM/dd')

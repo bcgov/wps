@@ -5,13 +5,13 @@ import { logError } from 'utils/error'
 import { FireZoneThresholdFuelTypeArea, getHFIThresholdsFuelTypesForZone } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
-interface State {
+export interface HFIFuelTypeState {
   loading: boolean
   error: string | null
   hfiThresholdsFuelTypes: Record<number, FireZoneThresholdFuelTypeArea[]>
 }
 
-const initialState: State = {
+const initialState: HFIFuelTypeState = {
   loading: false,
   error: null,
   hfiThresholdsFuelTypes: {}
@@ -21,16 +21,19 @@ const hfiFuelTypesSlice = createSlice({
   name: 'hfiFuelTypes',
   initialState,
   reducers: {
-    getHFIFuelsStart(state: State) {
+    getHFIFuelsStart(state: HFIFuelTypeState) {
       state.error = null
       state.loading = true
       state.hfiThresholdsFuelTypes = {}
     },
-    getHFIFuelsFailed(state: State, action: PayloadAction<string>) {
+    getHFIFuelsFailed(state: HFIFuelTypeState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getHFIFuelsStartSuccess(state: State, action: PayloadAction<Record<number, FireZoneThresholdFuelTypeArea[]>>) {
+    getHFIFuelsStartSuccess(
+      state: HFIFuelTypeState,
+      action: PayloadAction<Record<number, FireZoneThresholdFuelTypeArea[]>>
+    ) {
       state.error = null
       state.hfiThresholdsFuelTypes = action.payload
       state.loading = false

@@ -5,13 +5,13 @@ import { logError } from 'utils/error'
 import { FireCentreHfiFuelsData, getHFIThresholdsFuelTypesForCentre } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
-interface State {
+export interface CentreHFIFuelTypeState {
   loading: boolean
   error: string | null
   fireCentreHfiFuelTypes: FireCentreHfiFuelsData
 }
 
-const initialState: State = {
+const initialState: CentreHFIFuelTypeState = {
   loading: false,
   error: null,
   fireCentreHfiFuelTypes: {}
@@ -21,16 +21,16 @@ const fireCentreHfiFuelTypesSlice = createSlice({
   name: 'fireCentreHfiFuelTypes',
   initialState,
   reducers: {
-    getFireCentreHfiFuelTypesStart(state: State) {
+    getFireCentreHfiFuelTypesStart(state: CentreHFIFuelTypeState) {
       state.error = null
       state.fireCentreHfiFuelTypes = {}
       state.loading = true
     },
-    getFireCentreHfiFuelTypesFailed(state: State, action: PayloadAction<string>) {
+    getFireCentreHfiFuelTypesFailed(state: CentreHFIFuelTypeState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getFireCentreHfiFuelTypesSuccess(state: State, action: PayloadAction<FireCentreHfiFuelsData>) {
+    getFireCentreHfiFuelTypesSuccess(state: CentreHFIFuelTypeState, action: PayloadAction<FireCentreHfiFuelsData>) {
       state.error = null
       state.fireCentreHfiFuelTypes = action.payload
       state.loading = false
