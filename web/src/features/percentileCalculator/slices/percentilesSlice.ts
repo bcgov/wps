@@ -4,7 +4,7 @@ import { getPercentiles, PercentilesResponse, YearRange } from 'api/percentileAP
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 
-interface PercentilesState {
+export interface PercentilesState {
   loading: boolean
   error: string | null
   result: PercentilesResponse | null

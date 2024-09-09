@@ -13,7 +13,6 @@ import fireCentersSlice from 'commonSlices/fireCentersSlice'
 import fireShapeAreasSlice from 'features/fba/slices/fireZoneAreasSlice'
 import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
-import fireZoneTPIStatsSlice from 'features/fba/slices/fireZoneTPIStatsSlice'
 import stationGroupsSlice from 'commonSlices/stationGroupsSlice'
 import selectedStationGroupsMembersSlice from 'commonSlices/selectedStationGroupMembers'
 import dataSlice from 'features/moreCast2/slices/dataSlice'
@@ -38,7 +37,6 @@ const rootReducer = combineReducers({
   runDates: runDatesSlice,
   valueAtCoordinate: valueAtCoordinateSlice,
   fireCentreHfiFuelTypes: fireCentreHfiFuelTypesSlice,
-  fireZoneTPIStats: fireZoneTPIStatsSlice,
   fireCentreTPIStats: fireCentreTPIStatsSlice,
   stationGroups: stationGroupsSlice,
   stationGroupsMembers: selectedStationGroupsMembersSlice,
@@ -52,7 +50,6 @@ export type RootState = ReturnType<typeof rootReducer>
 
 export default rootReducer
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export const selectPercentileStations = (state: RootState) => state.percentileStations
 export const selectHFIDailies = (state: RootState) => state.hfiCalculatorDailies
 export const selectFireWeatherStations = (state: RootState) => state.fireWeatherStations
@@ -70,7 +67,6 @@ export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordi
 export const selectHFIFuelTypes = (state: RootState) => state.hfiFuelTypes
 export const selectFireCentreHFIFuelTypes = (state: RootState) => state.fireCentreHfiFuelTypes
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
-export const selectFireZoneTPIStats = (state: RootState) => state.fireZoneTPIStats
 export const selectFireCentreTPIStats = (state: RootState) => state.fireCentreTPIStats
 export const selectHFIDailiesLoading = (state: RootState): boolean => state.hfiCalculatorDailies.fireCentresLoading
 export const selectHFICalculatorState = (state: RootState): HFICalculatorState => state.hfiCalculatorDailies

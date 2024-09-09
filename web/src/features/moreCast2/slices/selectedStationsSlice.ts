@@ -2,11 +2,11 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { StationGroupMember } from 'api/stationAPI'
 import { RootState } from 'app/rootReducer'
 
-interface State {
+export interface SelectedStationState {
   selectedStations: StationGroupMember[]
 }
 
-export const initialState: State = {
+export const initialState: SelectedStationState = {
   selectedStations: []
 }
 
@@ -14,7 +14,7 @@ const selectedStationsSlice = createSlice({
   name: 'selectedStationsSlice',
   initialState,
   reducers: {
-    selectedStationsChanged(state: State, action: PayloadAction<StationGroupMember[]>) {
+    selectedStationsChanged(state: SelectedStationState, action: PayloadAction<StationGroupMember[]>) {
       state.selectedStations = action.payload
     }
   }

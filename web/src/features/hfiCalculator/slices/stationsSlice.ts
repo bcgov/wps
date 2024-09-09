@@ -4,13 +4,13 @@ import { FireCentre, getHFIStations, HFIWeatherStationsResponse } from 'api/hfiC
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 
-interface State {
+export interface StationsState {
   loading: boolean
   error: string | null
   fireCentres: FireCentre[]
 }
 
-const initialState: State = {
+const initialState: StationsState = {
   loading: false,
   error: null,
   fireCentres: []
@@ -20,16 +20,16 @@ const stationsSlice = createSlice({
   name: 'hfiStations',
   initialState,
   reducers: {
-    getHFIStationsStart(state: State) {
+    getHFIStationsStart(state: StationsState) {
       state.error = null
       state.loading = true
       state.fireCentres = []
     },
-    getHFIStationsFailed(state: State, action: PayloadAction<string>) {
+    getHFIStationsFailed(state: StationsState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getHFIStationsSuccess(state: State, action: PayloadAction<HFIWeatherStationsResponse>) {
+    getHFIStationsSuccess(state: StationsState, action: PayloadAction<HFIWeatherStationsResponse>) {
       state.error = null
       state.fireCentres = action.payload.fire_centres
       state.loading = false

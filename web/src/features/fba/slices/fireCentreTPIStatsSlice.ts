@@ -5,13 +5,13 @@ import { logError } from 'utils/error'
 import { FireZoneTPIStats, getFireCentreTPIStats } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
-interface State {
+export interface CentreTPIStatsState {
   loading: boolean
   error: string | null
   fireCentreTPIStats: Record<string, FireZoneTPIStats[]> | null
 }
 
-const initialState: State = {
+const initialState: CentreTPIStatsState = {
   loading: false,
   error: null,
   fireCentreTPIStats: null
@@ -21,16 +21,19 @@ const fireCentreTPIStatsSlice = createSlice({
   name: 'fireCentreTPIStats',
   initialState,
   reducers: {
-    getFireCentreTPIStatsStart(state: State) {
+    getFireCentreTPIStatsStart(state: CentreTPIStatsState) {
       state.error = null
       state.fireCentreTPIStats = null
       state.loading = true
     },
-    getFireCentreTPIStatsFailed(state: State, action: PayloadAction<string>) {
+    getFireCentreTPIStatsFailed(state: CentreTPIStatsState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getFireCentreTPIStatsSuccess(state: State, action: PayloadAction<Record<string, FireZoneTPIStats[]>>) {
+    getFireCentreTPIStatsSuccess(
+      state: CentreTPIStatsState,
+      action: PayloadAction<Record<string, FireZoneTPIStats[]>>
+    ) {
       state.error = null
       state.fireCentreTPIStats = action.payload
       state.loading = false
