@@ -1,10 +1,10 @@
+import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
 import { Box, Grid, Tab, Tabs, Tooltip } from '@mui/material'
-import { FireCenter, FireCentreHfiFuelsData, FireShape, FireShapeAreaDetail, FireZoneTPIStats } from 'api/fbaAPI'
+import { FireCenter, FireCentreHfiFuelsData, FireShape, FireZoneTPIStats } from 'api/fbaAPI'
 import { INFO_PANEL_CONTENT_BACKGROUND, theme } from 'app/theme'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import TabPanel from 'features/fba/components/infoPanel/TabPanel'
-import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from 'features/fba/components/map/featureStylers'
 import { useFireCentreDetails } from 'features/fba/hooks/useFireCentreDetails'
 import { isNull, isUndefined } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -17,29 +17,6 @@ interface FireZoneUnitTabs {
   selectedFireCenter: FireCenter | undefined
   advisoryThreshold: number
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
-}
-
-const calculateStatus = (details: FireShapeAreaDetail[], advisoryThreshold: number) => {
-  let status = '#DCDCDC'
-
-  if (details.length === 0) {
-    return status
-  }
-
-  const advisoryThresholdDetail = details.find(detail => detail.threshold == 1)
-  const warningThresholdDetail = details.find(detail => detail.threshold == 2)
-  const advisoryPercentage = advisoryThresholdDetail?.elevated_hfi_percentage ?? 0
-  const warningPercentage = warningThresholdDetail?.elevated_hfi_percentage ?? 0
-
-  if (advisoryPercentage + warningPercentage > advisoryThreshold) {
-    status = ADVISORY_ORANGE_FILL
-  }
-
-  if (warningPercentage > advisoryThreshold) {
-    status = ADVISORY_RED_FILL
-  }
-
-  return status
 }
 
 const FireZoneUnitTabs = ({
@@ -135,7 +112,7 @@ const FireZoneUnitTabs = ({
                         key={key}
                         data-testid={`zone-${key}-tab`}
                         sx={{
-                          backgroundColor: calculateStatus(zone.fireShapeDetails, advisoryThreshold),
+                          backgroundColor: calculateStatusColour(zone.fireShapeDetails, advisoryThreshold, '#DCDCDC'),
                           minWidth: 'auto',
                           marginTop: theme.spacing(2),
                           fontWeight: 'bold',
