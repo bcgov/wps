@@ -149,17 +149,6 @@ export async function getAllRunDates(run_type: RunType, for_date: string): Promi
   return data
 }
 
-export async function getHFIThresholdsFuelTypesForZone(
-  run_type: RunType,
-  for_date: string,
-  run_datetime: string,
-  zone_id: number
-): Promise<Record<number, FireZoneThresholdFuelTypeArea[]>> {
-  const url = `fba/hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${zone_id}`
-  const { data } = await axios.get(url)
-  return data
-}
-
 export async function getHFIThresholdsFuelTypesForCentre(
   run_type: RunType,
   for_date: string,
