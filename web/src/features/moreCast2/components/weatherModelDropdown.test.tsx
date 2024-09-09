@@ -1,4 +1,4 @@
-import React from 'react'
+import { vi } from 'vitest'
 import { render, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ModelChoice, ModelChoices } from 'api/moreCast2API'
@@ -6,7 +6,7 @@ import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDrop
 
 describe('WeatherModelDropdown', () => {
   it('should call selected model handler when new model selected', async () => {
-    const handleSelectedModelTypeMock = jest.fn()
+    const handleSelectedModelTypeMock = vi.fn()
 
     const { getByTestId } = render(
       <WeatherModelDropdown

@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/react'
 import store from 'app/store'
 import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin/ManageStationsButton'
-import React from 'react'
+
 import { Provider } from 'react-redux'
 
 describe('ManageStationsButton', () => {

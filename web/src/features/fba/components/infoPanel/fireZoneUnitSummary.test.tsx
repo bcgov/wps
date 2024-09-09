@@ -1,4 +1,3 @@
-import React from 'react'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import { FireShape } from 'api/fbaAPI'
 import { render } from '@testing-library/react'

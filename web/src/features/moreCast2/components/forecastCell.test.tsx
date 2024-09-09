@@ -1,7 +1,7 @@
-import React from 'react'
 import { render } from '@testing-library/react'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
+import { vi } from 'vitest'
 
 const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
   row: undefined,
@@ -55,7 +55,7 @@ describe('ForecastCell', () => {
   })
   it('should throw an error when showGreaterThan and showLessThan are both positive', () => {
     // Suppress the console error message for an unhandled error
-    const consoleErrorFn = jest.spyOn(console, 'error').mockImplementation(() => jest.fn())
+    const consoleErrorFn = vi.spyOn(console, 'error').mockImplementation(() => vi.fn())
     expect(() => {
       render(
         <ForecastCell

@@ -2,7 +2,8 @@ import { render, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StationGroup } from 'api/stationAPI'
 import StationGroupDropdown from 'features/moreCast2/components/StationGroupDropdown'
-import React from 'react'
+import { vi } from 'vitest'
+
 describe('StationGroupsDropdown', () => {
   const idir = 'testIdir'
   const stationGroups: StationGroup[] = [
@@ -17,7 +18,7 @@ describe('StationGroupsDropdown', () => {
   ]
 
   it('should render with the default value', async () => {
-    const setSelectedStationGroup = jest.fn()
+    const setSelectedStationGroup = vi.fn()
     const { getByTestId } = render(
       <StationGroupDropdown
         idir={idir}
@@ -33,7 +34,7 @@ describe('StationGroupsDropdown', () => {
     await waitFor(() => expect(setSelectedStationGroup).toHaveBeenCalledTimes(0))
   })
   it('should change value on change and call parent callback', async () => {
-    const setSelectedStationGroup = jest.fn()
+    const setSelectedStationGroup = vi.fn()
     const { getByTestId } = render(
       <StationGroupDropdown
         idir={idir}
@@ -56,7 +57,7 @@ describe('StationGroupsDropdown', () => {
     await waitFor(() => expect(setSelectedStationGroup).toHaveBeenCalledWith(stationGroups[0]))
   })
   it('should show all groups', async () => {
-    const setSelectedStationGroup = jest.fn()
+    const setSelectedStationGroup = vi.fn()
     const { getByTestId, findAllByRole } = render(
       <StationGroupDropdown
         idir={idir}

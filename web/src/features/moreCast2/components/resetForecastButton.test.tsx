@@ -2,13 +2,14 @@ import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import store from 'app/store'
 import ResetForecastButton, { ResetForecastButtonProps } from 'features/moreCast2/components/ResetForecastButton'
-import React from 'react'
+import { vi } from 'vitest'
+
 import { Provider } from 'react-redux'
 
 describe('SaveForecastButton', () => {
-  const mockHandleResetClick = jest.fn()
-  const mockHandleResetButtonConfirm = jest.fn()
-  const mockSetShowResetDialog = jest.fn()
+  const mockHandleResetClick = vi.fn()
+  const mockHandleResetButtonConfirm = vi.fn()
+  const mockSetShowResetDialog = vi.fn()
 
   const defaultProps: ResetForecastButtonProps = {
     enabled: true,

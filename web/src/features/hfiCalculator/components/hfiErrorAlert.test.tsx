@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
-import React from 'react'
+
 
 describe('HFIErrorAlert', () => {
   it('should render an alert', () => {

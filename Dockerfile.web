@@ -6,30 +6,20 @@
 ARG NODE_OPTIONS="--v8-pool-size=4"
 
 # PHASE 1 - build frontend.
-# Pull from local registry - we can't pull from docker due to limits.
-# see https://catalog.redhat.com/software/containers/ubi9/nodejs-20/64770ac7a835530172eee6a9 for
-# details
-FROM registry.access.redhat.com/ubi9/nodejs-20 as static
-
+FROM node:20-alpine AS static
 # Switch to root user for package installs
 USER 0
+WORKDIR /app
 
 COPY web/package.json .
 COPY web/yarn.lock . 
 COPY web/.yarnrc.yml .
 # do install first so it will be cached
-RUN npm install -g --ignore-scripts corepack
-RUN corepack enable
-RUN yarn set version berry
-RUN yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
-RUN yarn config set npmScopes.psu.npmAlwaysAuth true 
-RUN yarn config set npmScopes.psu.npmAuthToken ${ARTIFACTORY_SVCACCT_TOKEN}
-RUN CYPRESS_INSTALL_BINARY=0 yarn install --immutable
+RUN corepack enable \
+    && yarn set version berry \
+    && CYPRESS_INSTALL_BINARY=0 yarn install --immutable
 COPY web .
-RUN yarn run build:prod
-
-# Remove sourcemaps after they've been uploaded to sentry
-RUN rm build/static/js/**.map
+RUN yarn run build:prod 
 
 # Switch back to default user
 USER 1001
@@ -42,7 +32,7 @@ FROM registry.access.redhat.com/ubi8/nginx-120
 ADD ./openshift/nginx.conf "${NGINX_CONF_PATH}"
 
 # Copy the static content:
-COPY --from=static /opt/app-root/src/build .
+COPY --from=static /app/build .
 
 EXPOSE 3000
 CMD nginx -g "daemon off;"
