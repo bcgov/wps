@@ -6,7 +6,6 @@ import { vi } from 'vitest'
 
 const fireCentre1 = 'Centre 1'
 
-// Mock props
 const mockSelectedFireZoneUnitA: FireShape = {
   fire_shape_id: 1,
   mof_fire_centre_name: fireCentre1,
