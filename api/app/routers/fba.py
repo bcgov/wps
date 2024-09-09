@@ -11,7 +11,7 @@ from app.db.crud.auto_spatial_advisory import (
     get_all_sfms_fuel_types,
     get_all_hfi_thresholds,
     get_hfi_area,
-    get_precomputed_high_hfi_fuel_type_areas_for_shape,
+    get_precomputed_stats_for_shape,
     get_provincial_rollup,
     get_run_datetimes,
     get_zonal_elevation_stats,
@@ -21,6 +21,7 @@ from app.db.crud.auto_spatial_advisory import (
 )
 from app.db.models.auto_spatial_advisory import RunTypeEnum
 from app.schemas.fba import (
+    AdvisoryCriticalHours,
     ClassifiedHfiThresholdFuelTypeArea,
     FireCenterListResponse,
     FireShapeAreaListResponse,
@@ -119,7 +120,7 @@ async def get_hfi_fuels_data_for_fire_zone(run_type: RunType, for_date: date, ru
         fuel_types = await get_all_sfms_fuel_types(session)
 
         # get HFI/fuels data for specific zone
-        hfi_fuel_type_ids_for_zone = await get_precomputed_high_hfi_fuel_type_areas_for_shape(
+        hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
             session, run_type=RunTypeEnum(run_type.value), for_date=for_date, run_datetime=run_datetime, advisory_shape_id=zone_id
         )
         data = []
@@ -161,23 +162,22 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
         all_zone_data = {}
         for zone_id in zone_ids:
             # get HFI/fuels data for specific zone
-            hfi_fuel_type_ids_for_zone = await get_precomputed_high_hfi_fuel_type_areas_for_shape(
+            hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
                 session, run_type=RunTypeEnum(run_type.value), for_date=for_date, run_datetime=run_datetime, advisory_shape_id=zone_id
             )
             zone_data = []
 
-            for record in hfi_fuel_type_ids_for_zone:
-                fuel_type_id = record[1]
-                threshold_id = record[2]
+            for shape_id, critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, run_parameters in hfi_fuel_type_ids_for_zone:
                 # area is stored in square metres in DB. For user convenience, convert to hectares
                 # 1 ha = 10,000 sq.m.
-                area = record[3] / 10000
+                area = area / 10000
                 fuel_type_obj = next((ft for ft in fuel_types if ft.fuel_type_id == fuel_type_id), None)
                 threshold_obj = next((th for th in thresholds if th.id == threshold_id), None)
                 zone_data.append(
                     ClassifiedHfiThresholdFuelTypeArea(
                         fuel_type=SFMSFuelType(fuel_type_id=fuel_type_obj.fuel_type_id, fuel_type_code=fuel_type_obj.fuel_type_code, description=fuel_type_obj.description),
                         threshold=HfiThreshold(id=threshold_obj.id, name=threshold_obj.name, description=threshold_obj.description),
+                        critical_hours=AdvisoryCriticalHours(start_time=critical_hour_start, end_time=critical_hour_end),
                         area=area,
                     )
                 )

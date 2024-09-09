@@ -25,9 +25,16 @@ export interface FBAResponse {
   fire_centers: FireCenter[]
 }
 
+export interface AdvisoryCriticalHours {
+  start_time: number
+  end_time: number
+}
+
+
 export interface FireZoneThresholdFuelTypeArea {
   fuel_type: FuelType
   threshold: HfiThreshold
+  critical_hours: AdvisoryCriticalHours
   area: number
 }
 

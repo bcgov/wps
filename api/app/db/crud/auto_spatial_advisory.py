@@ -141,7 +141,7 @@ async def get_zone_ids_in_centre(session: AsyncSession, fire_centre_name: str):
 
     return all_results
 
-  
+
 async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuelType]:
     """
     Retrieve all records from the sfms_fuel_types table.
@@ -154,21 +154,30 @@ async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuel
     return result.all()
 
 
-async def get_precomputed_high_hfi_fuel_type_areas_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, advisory_shape_id: int) -> List[Row]:
+async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, advisory_shape_id: int) -> List[Row]:
     perf_start = perf_counter()
     stmt = (
-        select(AdvisoryFuelStats.advisory_shape_id, AdvisoryFuelStats.fuel_type, AdvisoryFuelStats.threshold, AdvisoryFuelStats.area, AdvisoryFuelStats.run_parameters)
-        .join_from(AdvisoryFuelStats, RunParameters, AdvisoryFuelStats.run_parameters == RunParameters.id)
-        .join_from(AdvisoryFuelStats, Shape, AdvisoryFuelStats.advisory_shape_id == Shape.id)
+        select(
+            AdvisoryFuelStats.advisory_shape_id,
+            CriticalHours.start_hour,
+            CriticalHours.end_hour,
+            AdvisoryFuelStats.fuel_type,
+            AdvisoryFuelStats.threshold,
+            AdvisoryFuelStats.area,
+            AdvisoryFuelStats.run_parameters,
+        )
+        .distinct(AdvisoryFuelStats.fuel_type, AdvisoryFuelStats.run_parameters)  # Keep unique records by fuel_type and run_parameters
+        .join(RunParameters, AdvisoryFuelStats.run_parameters == RunParameters.id)  # Join RunParameters once
+        .join(CriticalHours, CriticalHours.run_parameters == RunParameters.id)  # Join CriticalHours via RunParameters
+        .join(Shape, AdvisoryFuelStats.advisory_shape_id == Shape.id)  # Join Shape
         .where(
             Shape.source_identifier == str(advisory_shape_id),
             RunParameters.run_type == run_type.value,
             RunParameters.run_datetime == run_datetime,
             RunParameters.for_date == for_date,
         )
-        .order_by(AdvisoryFuelStats.fuel_type)
-        .order_by(AdvisoryFuelStats.threshold)
     )
+
     result = await session.execute(stmt)
     all_results = result.all()
     perf_end = perf_counter()

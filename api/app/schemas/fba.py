@@ -92,6 +92,13 @@ class SFMSFuelType(BaseModel):
     description: str
 
 
+class AdvisoryCriticalHours(BaseModel):
+    """Critical Hours for an advisory."""
+
+    start_time: float
+    end_time: float
+
+
 class ClassifiedHfiThresholdFuelTypeArea(BaseModel):
     """Collection of data objects recording the area within an advisory shape
     that meets a particular HfiThreshold for a specific SFMSFuelType
@@ -99,6 +106,7 @@ class ClassifiedHfiThresholdFuelTypeArea(BaseModel):
 
     fuel_type: SFMSFuelType
     threshold: HfiThreshold
+    critical_hours: AdvisoryCriticalHours
     area: float
 
 

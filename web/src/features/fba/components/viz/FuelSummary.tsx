@@ -6,11 +6,12 @@ import { DateTime } from 'luxon'
 import FuelDistribution from 'features/fba/components/viz/FuelDistribution'
 import { DataGridPro, GridColDef, GridColumnHeaderParams, GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { styled, useTheme } from '@mui/material/styles'
+import CriticalHours from 'features/fba/components/viz/CriticalHours'
 
 export interface FuelTypeInfoSummary {
   area: number
-  criticalHoursStart?: DateTime
-  criticalHoursEnd?: DateTime
+  criticalHoursStart?: number
+  criticalHoursEnd?: number
   id: number
   code: string
   description: string
@@ -57,6 +58,18 @@ const columns: GridColDef[] = [
     renderCell: (params: GridRenderCellParams) => {
       return <FuelDistribution code={params.row['code']} percent={params.row['percent']} />
     }
+  },
+  {
+    field: 'criticalHours',
+    flex: 3,
+    headerClassName: 'fuel-summary-header',
+    headerName: 'Critical Hours',
+    minWidth: 120,
+    sortable: false,
+    renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
+    renderCell: (params: GridRenderCellParams) => {
+      return <CriticalHours start={params.row['criticalHoursStart']} end={params.row['criticalHoursEnd']} />
+    }
   }
 ]
 
@@ -87,10 +100,14 @@ const FuelSummary = ({ fuelTypeInfo, selectedFireZoneUnit }: FuelSummaryProps) =
       if (groupedFuelDetail.length) {
         const area = groupedFuelDetail.reduce((acc, { area }) => acc + area, 0)
         const fuelType = groupedFuelDetail[0].fuel_type
+        const startTime = groupedFuelDetail[0].critical_hours.start_time
+        const endTime = groupedFuelDetail[0].critical_hours.end_time
         const fuelInfo: FuelTypeInfoSummary = {
           area,
           code: fuelType.fuel_type_code,
           description: fuelType.description,
+          criticalHoursStart: startTime,
+          criticalHoursEnd: endTime,
           id: fuelType.fuel_type_id,
           percent: totalHFIArea4K ? (area / totalHFIArea4K) * 100 : 0,
           selected: false
