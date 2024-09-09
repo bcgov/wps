@@ -7,7 +7,7 @@ import TabPanel from 'features/fba/components/infoPanel/TabPanel'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from 'features/fba/components/map/featureStylers'
 import { useFireCentreDetails } from 'features/fba/hooks/useFireCentreDetails'
 import { isNull, isUndefined } from 'lodash'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 interface FireZoneUnitTabs {
   selectedFireZoneUnit: FireShape | undefined
@@ -65,7 +65,7 @@ const FireZoneUnitTabs = ({
       }
     } else {
       setTabNumber(0)
-      setSelectedFireShape(getTabFireShape(0))
+      setSelectedFireShape(getTabFireShape(0)) // if no selected FireShape, select the first one in the sorted tabs
     }
   }, [selectedFireZoneUnit, sortedGroupedFireZoneUnits])
 
@@ -91,12 +91,21 @@ const FireZoneUnitTabs = ({
     setZoomSource('fireShape')
   }
 
+  const tpiStatsArray = useMemo(() => {
+    if (selectedFireCenter) {
+      return fireCentreTPIStats?.[selectedFireCenter.name]
+    }
+  }, [fireCentreTPIStats, selectedFireCenter])
+
+  const hfiFuelStats = useMemo(() => {
+    if (selectedFireCenter) {
+      return fireCentreHfiFuelTypes?.[selectedFireCenter?.name]
+    }
+  }, [fireCentreHfiFuelTypes, selectedFireCenter])
+
   if (isUndefined(selectedFireCenter) || isNull(selectedFireCenter)) {
     return <div data-testid="fire-zone-unit-summary-empty"></div>
   }
-
-  const tpiStatsArray = fireCentreTPIStats?.[selectedFireCenter.name]
-  const hfiFuelStats = fireCentreHfiFuelTypes?.[selectedFireCenter.name]
 
   return (
     <div data-testid="firezone-summary-tabs">
@@ -124,6 +133,7 @@ const FireZoneUnitTabs = ({
                     <Tooltip key={key} title={zone.fire_shape_name} placement="top-start" arrow>
                       <Tab
                         key={key}
+                        data-testid={`zone-${key}-tab`}
                         sx={{
                           backgroundColor: calculateStatus(zone.fireShapeDetails, advisoryThreshold),
                           minWidth: 'auto',
