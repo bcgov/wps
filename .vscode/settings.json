@@ -115,6 +115,7 @@
         "sfms",
         "sqlalchemy",
         "starlette",
+        "testid",
         "tobytes",
         "upsampled",
         "uvicorn",

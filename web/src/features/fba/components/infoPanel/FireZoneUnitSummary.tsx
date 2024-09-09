@@ -1,7 +1,7 @@
 import React from 'react'
 import { Grid, Typography } from '@mui/material'
 import { isNull, isUndefined } from 'lodash'
-import { FireShape, FireZoneTPIStats, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
+import { FireShape, FireZoneStats, FireZoneTPIStats } from 'api/fbaAPI'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 import { useTheme } from '@mui/material/styles'
@@ -9,12 +9,12 @@ import FuelSummary from 'features/fba/components/viz/FuelSummary'
 
 interface FireZoneUnitSummaryProps {
   selectedFireZoneUnit: FireShape | undefined
-  fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
+  fireZoneStats: Record<number, FireZoneStats[]>
   fireZoneTPIStats: FireZoneTPIStats | null
 }
 
 const FireZoneUnitSummary = ({
-  fuelTypeInfo,
+  fireZoneStats,
   fireZoneTPIStats,
   selectedFireZoneUnit
 }: FireZoneUnitSummaryProps) => {
@@ -34,7 +34,7 @@ const FireZoneUnitSummary = ({
         >
 
           <Grid item sx={{ paddingBottom: theme.spacing(2), width: '95%' }}>
-            <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fuelTypeInfo={fuelTypeInfo} />
+            <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fireZoneStats={fireZoneStats} />
           </Grid>
           <Grid item sx={{ width: '95%' }}>
             { isNull(fireZoneTPIStats) || fireZoneTPIStats.valley_bottom + fireZoneTPIStats.mid_slope + fireZoneTPIStats.upper_slope === 0 ? (

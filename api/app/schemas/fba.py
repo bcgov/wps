@@ -76,6 +76,13 @@ class HfiThresholdAreaByFuelType(BaseModel):
     area: float
 
 
+class AdvisoryCriticalHours(BaseModel):
+    """Critical hours for advisory in a fire zone"""
+
+    start_hour: float
+    end_hour: float
+
+
 class HfiThreshold(BaseModel):
     """An HFI Classification threshold"""
 
@@ -92,13 +99,14 @@ class SFMSFuelType(BaseModel):
     description: str
 
 
-class ClassifiedHfiThresholdFuelTypeArea(BaseModel):
+class FireZoneStats(BaseModel):
     """Collection of data objects recording the area within an advisory shape
     that meets a particular HfiThreshold for a specific SFMSFuelType
     """
 
     fuel_type: SFMSFuelType
     threshold: HfiThreshold
+    critical_hours: AdvisoryCriticalHours
     area: float
 
 

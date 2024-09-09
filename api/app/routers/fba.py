@@ -14,21 +14,18 @@ from app.db.crud.auto_spatial_advisory import (
     get_precomputed_high_hfi_fuel_type_areas_for_shape,
     get_provincial_rollup,
     get_run_datetimes,
-    get_zonal_elevation_stats,
     get_zonal_tpi_stats,
 )
 from app.db.models.auto_spatial_advisory import RunTypeEnum
 from app.schemas.fba import (
-    ClassifiedHfiThresholdFuelTypeArea,
+    FireZoneStats,
     FireCenterListResponse,
     FireShapeAreaListResponse,
     FireShapeArea,
-    FireZoneElevationStats,
-    FireZoneElevationStatsByThreshold,
-    FireZoneElevationStatsListResponse,
     FireZoneTPIStats,
     SFMSFuelType,
     HfiThreshold,
+    AdvisoryCriticalHours,
     FireShapeAreaDetail,
     ProvincialSummaryResponse,
 )
@@ -103,12 +100,12 @@ async def get_provincial_summary(run_type: RunType, run_datetime: datetime, for_
     return ProvincialSummaryResponse(provincial_summary=fire_shape_area_details)
 
 
-@router.get("/hfi-fuels/{run_type}/{for_date}/{run_datetime}/{zone_id}", response_model=dict[int, List[ClassifiedHfiThresholdFuelTypeArea]])
+@router.get("/zone-stats/{run_type}/{for_date}/{run_datetime}/{zone_id}", response_model=dict[int, List[FireZoneStats]])
 async def get_hfi_fuels_data_for_fire_zone(run_type: RunType, for_date: date, run_datetime: datetime, zone_id: int):
     """
     Fetch rollup of fuel type/HFI threshold/area data for a specified fire zone.
     """
-    logger.info("hfi-fuels/%s/%s/%s/%s", run_type.value, for_date, run_datetime, zone_id)
+    logger.info("zone-stats/%s/%s/%s/%s", run_type.value, for_date, run_datetime, zone_id)
 
     async with get_async_read_session_scope() as session:
         # get thresholds data
@@ -123,17 +120,20 @@ async def get_hfi_fuels_data_for_fire_zone(run_type: RunType, for_date: date, ru
         data = []
 
         for record in hfi_fuel_type_ids_for_zone:
-            fuel_type_id = record[1]
-            threshold_id = record[2]
+            start_hour = record[1]
+            end_hour = record[2]
+            fuel_type_id = record[3]
+            threshold_id = record[4]
             # area is stored in square metres in DB. For user convenience, convert to hectares
             # 1 ha = 10,000 sq.m.
-            area = record[3] / 10000
+            area = record[5] / 10000
             fuel_type_obj = next((ft for ft in fuel_types if ft.fuel_type_id == fuel_type_id), None)
             threshold_obj = next((th for th in thresholds if th.id == threshold_id), None)
             data.append(
-                ClassifiedHfiThresholdFuelTypeArea(
+                FireZoneStats(
                     fuel_type=SFMSFuelType(fuel_type_id=fuel_type_obj.fuel_type_id, fuel_type_code=fuel_type_obj.fuel_type_code, description=fuel_type_obj.description),
                     threshold=HfiThreshold(id=threshold_obj.id, name=threshold_obj.name, description=threshold_obj.description),
+                    critical_hours=AdvisoryCriticalHours(start_hour=start_hour, end_hour=end_hour),
                     area=area,
                 )
             )
@@ -154,19 +154,6 @@ async def get_run_datetimes_for_date_and_runtype(run_type: RunType, for_date: da
             datetimes.append(row.run_datetime)  # type: ignore
 
         return datetimes
-
-
-@router.get("/fire-zone-elevation-info/{run_type}/{for_date}/{run_datetime}/{fire_zone_id}", response_model=FireZoneElevationStatsListResponse)
-async def get_fire_zone_elevation_stats(fire_zone_id: int, run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
-    """Return the elevation statistics for each advisory threshold"""
-    async with get_async_read_session_scope() as session:
-        data = []
-        rows = await get_zonal_elevation_stats(session, fire_zone_id, run_type, run_datetime, for_date)
-        for row in rows:
-            stats = FireZoneElevationStats(minimum=row.minimum, quartile_25=row.quartile_25, median=row.median, quartile_75=row.quartile_75, maximum=row.maximum)
-            stats_by_threshold = FireZoneElevationStatsByThreshold(threshold=row.threshold, elevation_info=stats)
-            data.append(stats_by_threshold)
-        return FireZoneElevationStatsListResponse(hfi_elevation_info=data)
 
 
 @router.get("/fire-zone-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_zone_id}", response_model=FireZoneTPIStats)

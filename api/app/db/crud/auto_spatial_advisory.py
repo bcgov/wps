@@ -146,8 +146,17 @@ async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuel
 async def get_precomputed_high_hfi_fuel_type_areas_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, advisory_shape_id: int) -> List[Row]:
     perf_start = perf_counter()
     stmt = (
-        select(AdvisoryFuelStats.advisory_shape_id, AdvisoryFuelStats.fuel_type, AdvisoryFuelStats.threshold, AdvisoryFuelStats.area, AdvisoryFuelStats.run_parameters)
+        select(
+            AdvisoryFuelStats.advisory_shape_id,
+            CriticalHours.start_hour,
+            CriticalHours.end_hour,
+            AdvisoryFuelStats.fuel_type,
+            AdvisoryFuelStats.threshold,
+            AdvisoryFuelStats.area,
+            AdvisoryFuelStats.run_parameters,
+        )
         .join_from(AdvisoryFuelStats, RunParameters, AdvisoryFuelStats.run_parameters == RunParameters.id)
+        .join_from(CriticalHours, RunParameters, CriticalHours.run_parameters == RunParameters.id)
         .join_from(AdvisoryFuelStats, Shape, AdvisoryFuelStats.advisory_shape_id == Shape.id)
         .where(
             Shape.source_identifier == str(advisory_shape_id),

@@ -2,55 +2,54 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FireZoneThresholdFuelTypeArea, getHFIThresholdsFuelTypesForZone } from 'api/fbaAPI'
+import { FireZoneStats, getZoneStats } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 interface State {
   loading: boolean
   error: string | null
-  hfiThresholdsFuelTypes: Record<number, FireZoneThresholdFuelTypeArea[]>
+  fireZoneStats: Record<number, FireZoneStats[]>
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  hfiThresholdsFuelTypes: {}
+  fireZoneStats: {}
 }
 
-const hfiFuelTypesSlice = createSlice({
-  name: 'runDates',
+const fireZoneStatsSlice = createSlice({
+  name: 'fireZoneStats',
   initialState,
   reducers: {
-    getHFIFuelsStart(state: State) {
+    getFireZoneStatsStart(state: State) {
       state.error = null
       state.loading = true
-      state.hfiThresholdsFuelTypes = {}
     },
-    getHFIFuelsFailed(state: State, action: PayloadAction<string>) {
+    getFireZoneStatsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getHFIFuelsStartSuccess(state: State, action: PayloadAction<Record<number, FireZoneThresholdFuelTypeArea[]>>) {
+    getFireZoneStatsSuccess(state: State, action: PayloadAction<Record<number, FireZoneStats[]>>) {
       state.error = null
-      state.hfiThresholdsFuelTypes = action.payload
+      state.fireZoneStats = action.payload
       state.loading = false
     }
   }
 })
 
-export const { getHFIFuelsStart, getHFIFuelsFailed, getHFIFuelsStartSuccess } = hfiFuelTypesSlice.actions
+export const { getFireZoneStatsStart, getFireZoneStatsFailed, getFireZoneStatsSuccess } = fireZoneStatsSlice.actions
 
-export default hfiFuelTypesSlice.reducer
+export default fireZoneStatsSlice.reducer
 
-export const fetchHighHFIFuels =
+export const fetchZoneStats =
   (runType: RunType, forDate: string, runDatetime: string, zoneID: number): AppThunk =>
   async dispatch => {
     try {
-      dispatch(getHFIFuelsStart())
-      const data = await getHFIThresholdsFuelTypesForZone(runType, forDate, runDatetime, zoneID)
-      dispatch(getHFIFuelsStartSuccess(data))
+      dispatch(getFireZoneStatsStart())
+      const data = await getZoneStats(runType, forDate, runDatetime, zoneID)
+      dispatch(getFireZoneStatsSuccess(data))
     } catch (err) {
-      dispatch(getHFIFuelsFailed((err as Error).toString()))
+      dispatch(getFireZoneStatsFailed((err as Error).toString()))
       logError(err)
     }
   }

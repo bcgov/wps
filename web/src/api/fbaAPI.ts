@@ -39,23 +39,12 @@ export interface FireShapeArea {
   elevated_hfi_percentage: number
 }
 
-export interface ElevationInfo {
-  minimum: number
-  quartile_25: number
-  median: number
-  quartile_75: number
-  maximum: number
+export interface FireZoneStats {
+  fuel_type: FuelType
+  threshold: HfiThreshold
+  critical_hours: AdvisoryCriticalHours
+  area: number
 }
-
-export interface ElevationInfoByThreshold {
-  threshold: number
-  elevation_info: ElevationInfo
-}
-
-export interface FireZoneElevationInfoResponse {
-  hfi_elevation_info: ElevationInfoByThreshold[]
-}
-
 export interface FireZoneTPIStats {
   fire_zone_id: number
   valley_bottom: number
@@ -88,6 +77,11 @@ export interface HfiThreshold {
   id: number
   name: string
   description: string
+}
+
+export interface AdvisoryCriticalHours {
+  start_hour: number
+  end_hour: number
 }
 
 export interface FuelType {
@@ -136,24 +130,13 @@ export async function getAllRunDates(run_type: RunType, for_date: string): Promi
   return data
 }
 
-export async function getHFIThresholdsFuelTypesForZone(
+export async function getZoneStats(
   run_type: RunType,
   for_date: string,
   run_datetime: string,
   zone_id: number
-): Promise<Record<number, FireZoneThresholdFuelTypeArea[]>> {
-  const url = `fba/hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${zone_id}`
-  const { data } = await axios.get(url)
-  return data
-}
-
-export async function getFireZoneElevationInfo(
-  fire_zone_id: number,
-  run_type: RunType,
-  run_datetime: string,
-  for_date: string
-): Promise<FireZoneElevationInfoResponse> {
-  const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
+): Promise<Record<number, FireZoneStats[]>> {
+  const url = `fba/zone-stats/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${zone_id}`
   const { data } = await axios.get(url)
   return data
 }

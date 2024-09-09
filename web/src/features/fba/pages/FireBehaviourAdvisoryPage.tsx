@@ -23,7 +23,7 @@ import { AppDispatch } from 'app/store'
 import ActualForecastControl from 'features/fba/components/ActualForecastControl'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
-import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
+import { fetchZoneStats } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import { fetchfireZoneTPIStats } from 'features/fba/slices/fireZoneTPIStatsSlice'
@@ -49,7 +49,7 @@ export const FireCentreFormControl = styled(FormControl)({
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-  const { hfiThresholdsFuelTypes } = useSelector(selectHFIFuelTypes)
+  const { fireZoneStats } = useSelector(selectHFIFuelTypes)
   const { fireZoneTPIStats } = useSelector(selectFireZoneTPIStats)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
@@ -116,7 +116,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       !isUndefined(mostRecentRunDate) &&
       !isUndefined(selectedFireShape)
     ) {
-      dispatch(fetchHighHFIFuels(runType, doiISODate, mostRecentRunDate.toString(), selectedFireShape.fire_shape_id))
+      dispatch(fetchZoneStats(runType, doiISODate, mostRecentRunDate.toString(), selectedFireShape.fire_shape_id))
       dispatch(
         fetchfireZoneElevationInfo(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
       )
@@ -213,7 +213,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             selectedFireCenter={fireCenter}
           />
           <FireZoneUnitSummary
-            fuelTypeInfo={hfiThresholdsFuelTypes}
+            fuelTypeInfo={fireZoneStats}
             selectedFireZoneUnit={selectedFireShape}
             fireZoneTPIStats={selectedFireZoneTPIStats}
           />

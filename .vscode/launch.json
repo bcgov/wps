@@ -103,6 +103,18 @@
             ]
         },
         {
+            "name": "asa - process all stats",
+            "type": "python",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.local.nats_consumer_local",
+            "console": "integratedTerminal",
+            "args": [
+                "2024-08-01",
+                "2024-08-01",
+                "2024-08-01",
+            ]
+        },
+        {
             "name": "fetch fire zones",
             "type": "python",
             "request": "launch",
