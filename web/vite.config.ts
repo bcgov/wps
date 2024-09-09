@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import svgr from 'vite-plugin-svgr'
 import istanbul from 'vite-plugin-istanbul'
-import { sentryVitePlugin } from "@sentry/vite-plugin";
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 
 export default defineConfig({
   build: {
@@ -43,7 +43,7 @@ export default defineConfig({
       project: 'frontend',
       authToken: process.env.SENTRY_AUTH_TOKEN,
       sourcemaps: {
-        filesToDeleteAfterUpload: "build/assets/**.map"
+        filesToDeleteAfterUpload: 'build/assets/**.map'
       }
     }),
     istanbul({
@@ -65,6 +65,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@': path.resolve(__dirname, './src'),
       app: resolve(__dirname, 'src', 'app'),
       features: resolve(__dirname, 'src', 'features'),
       utils: resolve(__dirname, 'src', 'utils'),

@@ -1,15 +1,18 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import FireZoneUnitTabs from './FireZoneUnitTabs'
-import { FireCenter, FireCentreHfiFuelsData, FireShape, FireZoneTPIStats } from 'api/fbaAPI'
+import { FireCenter, FireCentreHfiFuelsData, FireShape, FireShapeAreaDetail, FireZoneTPIStats } from 'api/fbaAPI'
 import { vi } from 'vitest'
+import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 
 const fireCentre1 = 'Centre 1'
+const zoneA = 'A Zone'
+const zoneB = 'B Zone'
 
 const mockSelectedFireZoneUnitA: FireShape = {
   fire_shape_id: 1,
   mof_fire_centre_name: fireCentre1,
-  mof_fire_zone_name: 'A Zone'
+  mof_fire_zone_name: zoneA
 }
 
 const mockSelectedFireCenter: FireCenter = {
@@ -20,6 +23,34 @@ const mockSelectedFireCenter: FireCenter = {
 
 const mockFireCentreTPIStats: Record<string, FireZoneTPIStats[]> = {
   [fireCentre1]: [{ fire_zone_id: 1, valley_bottom: 10, mid_slope: 90, upper_slope: 10 }]
+}
+
+const getAdvisoryDetails = (
+  fireZoneName: string,
+  fireShapeId: number,
+  advisoryPercent: number,
+  warningPercent: number
+): FireShapeAreaDetail[] => {
+  return [
+    {
+      fire_shape_id: fireShapeId,
+      threshold: 1,
+      combustible_area: 1,
+      elevated_hfi_area: 2,
+      elevated_hfi_percentage: advisoryPercent,
+      fire_shape_name: fireZoneName,
+      fire_centre_name: fireCentre1
+    },
+    {
+      fire_shape_id: fireShapeId,
+      threshold: 2,
+      combustible_area: 1,
+      elevated_hfi_area: 2,
+      elevated_hfi_percentage: warningPercent,
+      fire_shape_name: fireZoneName,
+      fire_centre_name: fireCentre1
+    }
+  ]
 }
 
 const mockFireCentreHfiFuelTypes: FireCentreHfiFuelsData = {
@@ -37,15 +68,15 @@ const mockFireCentreHfiFuelTypes: FireCentreHfiFuelsData = {
 const mockSortedGroupedFireZoneUnits = [
   {
     fire_shape_id: 1,
-    fire_shape_name: 'A Zone',
+    fire_shape_name: zoneA,
     fire_centre_name: fireCentre1,
-    fireShapeDetails: []
+    fireShapeDetails: getAdvisoryDetails(zoneA, 1, 30, 10)
   },
   {
     fire_shape_id: 2,
-    fire_shape_name: 'B Zone',
+    fire_shape_name: zoneB,
     fire_centre_name: fireCentre1,
-    fireShapeDetails: []
+    fireShapeDetails: getAdvisoryDetails(zoneB, 2, 30, 30)
   }
 ]
 
@@ -101,7 +132,7 @@ describe('FireZoneUnitTabs', () => {
     expect(setSelectedFireShapeMock).toHaveBeenCalledWith({
       fire_shape_id: 2,
       mof_fire_centre_name: fireCentre1,
-      mof_fire_zone_name: 'B Zone'
+      mof_fire_zone_name: zoneB
     })
     expect(setZoomSourceMock).toHaveBeenCalledWith('fireShape')
   })
@@ -120,5 +151,13 @@ describe('FireZoneUnitTabs', () => {
 
     const emptyTabs = getByTestId('fire-zone-unit-tabs-empty')
     expect(emptyTabs).toBeInTheDocument()
+  })
+  it('should render tabs with the correct advisory colour', () => {
+    const { getByTestId } = renderComponent()
+
+    const tab1 = getByTestId('zone-1-tab')
+    expect(tab1).toHaveStyle(`backgroundColor: ${ADVISORY_ORANGE_FILL}`)
+    const tab2 = getByTestId('zone-2-tab')
+    expect(tab2).toHaveStyle(`backgroundColor: ${ADVISORY_RED_FILL}`)
   })
 })
