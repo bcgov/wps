@@ -25,7 +25,6 @@ import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchZoneStats } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
-import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import { fetchfireZoneTPIStats } from 'features/fba/slices/fireZoneTPIStatsSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
 import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
@@ -117,9 +116,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       !isUndefined(selectedFireShape)
     ) {
       dispatch(fetchZoneStats(runType, doiISODate, mostRecentRunDate.toString(), selectedFireShape.fire_shape_id))
-      dispatch(
-        fetchfireZoneElevationInfo(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
-      )
       dispatch(
         fetchfireZoneTPIStats(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
       )
@@ -213,7 +209,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             selectedFireCenter={fireCenter}
           />
           <FireZoneUnitSummary
-            fuelTypeInfo={fireZoneStats}
+            fireZoneStats={fireZoneStats}
             selectedFireZoneUnit={selectedFireShape}
             fireZoneTPIStats={selectedFireZoneTPIStats}
           />
