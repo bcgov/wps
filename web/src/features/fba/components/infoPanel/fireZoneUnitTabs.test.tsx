@@ -5,26 +5,6 @@ import { FireCenter, FireCentreHfiFuelsData, FireShape, FireShapeAreaDetail, Fir
 import { vi } from 'vitest'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 
-const fireCentre1 = 'Centre 1'
-const zoneA = 'A Zone'
-const zoneB = 'B Zone'
-
-const mockSelectedFireZoneUnitA: FireShape = {
-  fire_shape_id: 1,
-  mof_fire_centre_name: fireCentre1,
-  mof_fire_zone_name: zoneA
-}
-
-const mockSelectedFireCenter: FireCenter = {
-  id: 1,
-  name: fireCentre1,
-  stations: []
-}
-
-const mockFireCentreTPIStats: Record<string, FireZoneTPIStats[]> = {
-  [fireCentre1]: [{ fire_zone_id: 1, valley_bottom: 10, mid_slope: 90, upper_slope: 10 }]
-}
-
 const getAdvisoryDetails = (
   fireZoneName: string,
   fireShapeId: number,
@@ -51,6 +31,26 @@ const getAdvisoryDetails = (
       fire_centre_name: fireCentre1
     }
   ]
+}
+
+const fireCentre1 = 'Centre 1'
+const zoneA = 'A Zone'
+const zoneB = 'B Zone'
+
+const mockSelectedFireZoneUnitA: FireShape = {
+  fire_shape_id: 1,
+  mof_fire_centre_name: fireCentre1,
+  mof_fire_zone_name: zoneA
+}
+
+const mockSelectedFireCenter: FireCenter = {
+  id: 1,
+  name: fireCentre1,
+  stations: []
+}
+
+const mockFireCentreTPIStats: Record<string, FireZoneTPIStats[]> = {
+  [fireCentre1]: [{ fire_zone_id: 1, valley_bottom: 10, mid_slope: 90, upper_slope: 10 }]
 }
 
 const mockFireCentreHfiFuelTypes: FireCentreHfiFuelsData = {
