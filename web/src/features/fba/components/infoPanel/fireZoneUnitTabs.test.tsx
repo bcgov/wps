@@ -107,6 +107,7 @@ describe('FireZoneUnitTabs', () => {
     const summaryTabs = getByTestId('firezone-summary-tabs')
     expect(summaryTabs).toBeInTheDocument()
   })
+
   it('should render tabs for each zone in a centre', () => {
     const { getByTestId } = renderComponent()
 
@@ -117,12 +118,14 @@ describe('FireZoneUnitTabs', () => {
     const tabs = screen.getAllByRole('tab')
     expect(tabs.length).toBe(2)
   })
+
   it('should select the first zone tab of a fire centre alphabetically if no zone is selected, but not zoom to it', () => {
     renderComponent()
 
     expect(setSelectedFireShapeMock).toHaveBeenCalledWith(mockSelectedFireZoneUnitA)
     expect(setZoomSourceMock).not.toHaveBeenCalled()
   })
+
   it('should switch to a different tab when clicked and set the map zoom source', () => {
     renderComponent()
 
@@ -136,6 +139,7 @@ describe('FireZoneUnitTabs', () => {
     })
     expect(setZoomSourceMock).toHaveBeenCalledWith('fireShape')
   })
+
   it('should render empty if there is no selected Fire Centre', () => {
     const { getByTestId } = render(
       <FireZoneUnitTabs
@@ -152,6 +156,7 @@ describe('FireZoneUnitTabs', () => {
     const emptyTabs = getByTestId('fire-zone-unit-tabs-empty')
     expect(emptyTabs).toBeInTheDocument()
   })
+
   it('should render tabs with the correct advisory colour', () => {
     const { getByTestId } = renderComponent()
 
