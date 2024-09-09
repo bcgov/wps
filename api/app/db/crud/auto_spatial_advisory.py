@@ -158,13 +158,11 @@ async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTy
     perf_start = perf_counter()
     stmt = (
         select(
-            AdvisoryFuelStats.advisory_shape_id,
             CriticalHours.start_hour,
             CriticalHours.end_hour,
             AdvisoryFuelStats.fuel_type,
             AdvisoryFuelStats.threshold,
             AdvisoryFuelStats.area,
-            AdvisoryFuelStats.run_parameters,
         )
         .distinct(AdvisoryFuelStats.fuel_type, AdvisoryFuelStats.run_parameters)  # Keep unique records by fuel_type and run_parameters
         .join(RunParameters, AdvisoryFuelStats.run_parameters == RunParameters.id)  # Join RunParameters once

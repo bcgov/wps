@@ -106,44 +106,6 @@ async def get_provincial_summary(run_type: RunType, run_datetime: datetime, for_
     return ProvincialSummaryResponse(provincial_summary=fire_shape_area_details)
 
 
-@router.get("/hfi-fuels/{run_type}/{for_date}/{run_datetime}/{zone_id}", response_model=dict[int, List[ClassifiedHfiThresholdFuelTypeArea]])
-async def get_hfi_fuels_data_for_fire_zone(run_type: RunType, for_date: date, run_datetime: datetime, zone_id: int):
-    """
-    Fetch rollup of fuel type/HFI threshold/area data for a specified fire zone.
-    """
-    logger.info("hfi-fuels/%s/%s/%s/%s", run_type.value, for_date, run_datetime, zone_id)
-
-    async with get_async_read_session_scope() as session:
-        # get thresholds data
-        thresholds = await get_all_hfi_thresholds(session)
-        # get fuel type ids data
-        fuel_types = await get_all_sfms_fuel_types(session)
-
-        # get HFI/fuels data for specific zone
-        hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
-            session, run_type=RunTypeEnum(run_type.value), for_date=for_date, run_datetime=run_datetime, advisory_shape_id=zone_id
-        )
-        data = []
-
-        for record in hfi_fuel_type_ids_for_zone:
-            fuel_type_id = record[1]
-            threshold_id = record[2]
-            # area is stored in square metres in DB. For user convenience, convert to hectares
-            # 1 ha = 10,000 sq.m.
-            area = record[3] / 10000
-            fuel_type_obj = next((ft for ft in fuel_types if ft.fuel_type_id == fuel_type_id), None)
-            threshold_obj = next((th for th in thresholds if th.id == threshold_id), None)
-            data.append(
-                ClassifiedHfiThresholdFuelTypeArea(
-                    fuel_type=SFMSFuelType(fuel_type_id=fuel_type_obj.fuel_type_id, fuel_type_code=fuel_type_obj.fuel_type_code, description=fuel_type_obj.description),
-                    threshold=HfiThreshold(id=threshold_obj.id, name=threshold_obj.name, description=threshold_obj.description),
-                    area=area,
-                )
-            )
-
-        return {zone_id: data}
-
-
 @router.get("/fire-centre-hfi-fuels/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}", response_model=dict[str, dict[int, List[ClassifiedHfiThresholdFuelTypeArea]]])
 async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, run_datetime: datetime, fire_centre_name: str):
     """
@@ -167,7 +129,7 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
             )
             zone_data = []
 
-            for shape_id, critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, run_parameters in hfi_fuel_type_ids_for_zone:
+            for critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area in hfi_fuel_type_ids_for_zone:
                 # area is stored in square metres in DB. For user convenience, convert to hectares
                 # 1 ha = 10,000 sq.m.
                 area = area / 10000

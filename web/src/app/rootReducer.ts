@@ -13,7 +13,6 @@ import fireCentersSlice from 'commonSlices/fireCentersSlice'
 import fireShapeAreasSlice from 'features/fba/slices/fireZoneAreasSlice'
 import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
-import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
 import fireZoneTPIStatsSlice from 'features/fba/slices/fireZoneTPIStatsSlice'
 import stationGroupsSlice from 'commonSlices/stationGroupsSlice'
 import selectedStationGroupsMembersSlice from 'commonSlices/selectedStationGroupMembers'
@@ -39,7 +38,6 @@ const rootReducer = combineReducers({
   runDates: runDatesSlice,
   valueAtCoordinate: valueAtCoordinateSlice,
   fireCentreHfiFuelTypes: fireCentreHfiFuelTypesSlice,
-  fireZoneElevationInfo: fireZoneElevationInfoSlice,
   fireZoneTPIStats: fireZoneTPIStatsSlice,
   fireCentreTPIStats: fireCentreTPIStatsSlice,
   stationGroups: stationGroupsSlice,
