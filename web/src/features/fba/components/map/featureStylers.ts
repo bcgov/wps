@@ -150,9 +150,29 @@ export const getAdvisoryFillColor = (fireShapeStatus: FireShapeStatus) => {
   }
 }
 
+/**
+ * Given an OpenLayers feature from the fire zone unit label layer, return a label to display on the map.
+ * @param feature The feature of interest from the fire zone unit layer.
+ * @returns A string to be used as a label on the map.
+ */
+const getFireZoneUnitLabel = (feature: RenderFeature | ol.Feature<Geometry>) => {
+  const fireZoneId = feature.getProperties().FIRE_ZONE_
+  let fireZoneUnit = feature.getProperties().FIRE_ZON_1
+  // Fire zone unit labels sometimes include a geographic place name as a reference. eg. Skeena Zone (Kalum).
+  // If present, we want to display the geographic location on the second line of the label.
+  if (fireZoneUnit && fireZoneUnit.indexOf('(') > 0) {
+    const index = fireZoneUnit.indexOf('(')
+    const prefix = fireZoneUnit.substring(0, index).trim()
+    const suffix = fireZoneUnit.substring(index)
+    fireZoneUnit = `${prefix}\n${suffix}` 
+  }
+
+  return `${fireZoneId}-${fireZoneUnit}`
+}
+
 export const fireShapeLabelStyler = (selectedFireShape: FireShape | undefined) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const text = feature.getProperties().FIRE_ZONE.replace(' Fire Zone', '\nFire Zone')
+    const text = getFireZoneUnitLabel(feature)
     const feature_fire_shape_id = feature.getProperties().OBJECTID
     const selected =
       !isUndefined(selectedFireShape) && feature_fire_shape_id === selectedFireShape.fire_shape_id ? true : false
