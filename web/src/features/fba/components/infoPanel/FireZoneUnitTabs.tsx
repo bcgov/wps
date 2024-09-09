@@ -104,7 +104,7 @@ const FireZoneUnitTabs = ({
   }, [fireCentreHfiFuelTypes, selectedFireCenter])
 
   if (isUndefined(selectedFireCenter) || isNull(selectedFireCenter)) {
-    return <div data-testid="fire-zone-unit-summary-empty"></div>
+    return <div data-testid="fire-zone-unit-tabs-empty"></div>
   }
 
   return (
