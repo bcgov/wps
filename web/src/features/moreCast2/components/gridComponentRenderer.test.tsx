@@ -10,14 +10,15 @@ import {
 } from 'features/moreCast2/components/GridComponentRenderer'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { DateTime } from 'luxon'
+import { vi } from 'vitest'
 
 describe('GridComponentRenderer', () => {
   const gridComponentRenderer = new GridComponentRenderer()
   const mockColumnClickHandlerProps: ColumnClickHandlerProps = {
     colDef: null,
     contextMenu: null,
-    updateColumnWithModel: jest.fn(),
-    handleClose: jest.fn()
+    updateColumnWithModel: vi.fn(),
+    handleClose: vi.fn()
   }
 
   it('should render the header with the forecast button', () => {

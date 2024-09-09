@@ -1,10 +1,9 @@
-import React from 'react'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import { FireShape } from 'api/fbaAPI'
 import { render } from '@testing-library/react'
 
 const fireZoneTPIStats = {
-  fire_zone_id: 0, 
+  fire_zone_id: 0,
   valley_bottom: 0,
   mid_slope: 100,
   upper_slope: 0
@@ -97,7 +96,7 @@ describe('FireZoneUnitSummary', () => {
       <FireZoneUnitSummary
         fuelTypeInfo={[]}
         fireZoneTPIStats={{
-          fire_zone_id: 0, 
+          fire_zone_id: 0,
           valley_bottom: 0,
           mid_slope: 0,
           upper_slope: 0

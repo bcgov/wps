@@ -4,7 +4,7 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { ValidatedStationDaily } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
-import React from 'react'
+
 describe('StatusCell', () => {
   const daily: StationDaily = {
     code: 1,

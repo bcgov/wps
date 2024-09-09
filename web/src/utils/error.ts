@@ -1,5 +1,5 @@
 export const logError = (err: unknown): void => {
-  if (process.env.NODE_ENV !== 'test') {
+  if (import.meta.env.MODE !== 'test') {
     console.error(err)
   }
 }

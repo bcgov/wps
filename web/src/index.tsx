@@ -4,9 +4,8 @@ import { Provider } from 'react-redux'
 import App from 'app/App'
 import { SENTRY_DSN, SENTRY_ENV, API_BASE_URL } from 'utils/env'
 
-import 'index.css'
+import './index.css'
 import store from 'app/store'
-import * as serviceWorker from 'serviceWorker'
 import * as Sentry from '@sentry/react'
 
 const render = () => {
@@ -39,7 +38,3 @@ const render = () => {
 
 render()
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister()

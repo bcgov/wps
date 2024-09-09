@@ -2,7 +2,6 @@ import { TableContainer, Table, TableBody, TableRow } from '@mui/material'
 import { render, screen } from '@testing-library/react'
 import StickyCell from 'components/StickyCell'
 import { theme } from 'app/theme'
-import React from 'react'
 
 describe('StickyCell', () => {
   it('should have a sticky position, left and zIndex set', () => {

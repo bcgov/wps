@@ -1,4 +1,4 @@
-import React from 'react'
+
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import { render } from '@testing-library/react'
 

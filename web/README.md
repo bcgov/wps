@@ -67,9 +67,9 @@ It correctly bundles React in production mode and optimizes the build for the be
 
 ## Config
 
-In `openshift/templates/global.config.yaml` there is a template for a global ConfigMap. This template can be applied to the Openshift project from the command line. For example, to apply the global.config template and pass a value for the REACT_APP_KEYCLOAK_REALM parameter, run
+In `openshift/templates/global.config.yaml` there is a template for a global ConfigMap. This template can be applied to the Openshift project from the command line. For example, to apply the global.config template and pass a value for the VITE_KEYCLOAK_REALM parameter, run
 
-`oc -n <openshift-project-name> process -f openshift/templates/global.config.yaml -p REACT_APP_KEYCLOAK_REALM=<realm-name> | oc create -f -`
+`oc -n <openshift-project-name> process -f openshift/templates/global.config.yaml -p VITE_KEYCLOAK_REALM=<realm-name> | oc create -f -`
 
 ## License
 

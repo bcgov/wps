@@ -8,3 +8,4 @@
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+cypress/downloads

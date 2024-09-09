@@ -22,9 +22,9 @@ interface ElevationStatusProps {
 const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
   const theme = useTheme()
   const total = mid + upper + bottom
-  const mid_percent = mid === 0 ? 0 : Math.round(mid/total*100)
-  const upper_percent = upper  === 0 ? 0 : Math.round(upper/total*100)
-  const bottom_percent = bottom === 0 ? 0 : Math.round(bottom/total*100)
+  const mid_percent = mid === 0 ? 0 : Math.round(mid / total * 100)
+  const upper_percent = upper === 0 ? 0 : Math.round(upper / total * 100)
+  const bottom_percent = bottom === 0 ? 0 : Math.round(bottom / total * 100)
   return (
     <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }} data-testid="elevation-status">
       <Grid container sx={{ minHeight: theme.spacing(19) }} xs={12}>

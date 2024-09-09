@@ -2,9 +2,10 @@ import React from 'react'
 import { render, fireEvent } from '@testing-library/react'
 import ActualForecastControl from './ActualForecastControl'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
+import { vi } from 'vitest'
 
 describe('ActualForecastControl', () => {
-  const mockSetRunType = jest.fn()
+  const mockSetRunType = vi.fn()
 
   it('should render the radio button selector with the correct default', () => {
     const { getByTestId } = render(<ActualForecastControl runType={RunType.FORECAST} setRunType={mockSetRunType} />)
