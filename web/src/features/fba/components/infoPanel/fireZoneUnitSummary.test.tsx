@@ -25,7 +25,7 @@ describe('FireZoneUnitSummary', () => {
   it('should not render empty div if selectedFireZoneUnit is undefined', () => {
     const { getByTestId } = render(
       <FireZoneUnitSummary
-        fuelTypeInfo={[]}
+        fireZoneStats={[]}
         fireZoneTPIStats={fireZoneTPIStats}
         selectedFireZoneUnit={undefined}
       />
@@ -42,7 +42,7 @@ describe('FireZoneUnitSummary', () => {
     }
     const { getByTestId } = render(
       <FireZoneUnitSummary
-        fuelTypeInfo={[]}
+        fireZoneStats={[]}
         fireZoneTPIStats={fireZoneTPIStats}
         selectedFireZoneUnit={fireShape}
       />
@@ -59,7 +59,7 @@ describe('FireZoneUnitSummary', () => {
     }
     const { queryByTestId } = render(
       <FireZoneUnitSummary
-        fuelTypeInfo={[]}
+        fireZoneStats={[]}
         fireZoneTPIStats={null}
         selectedFireZoneUnit={fireShape}
       />
@@ -76,7 +76,7 @@ describe('FireZoneUnitSummary', () => {
     }
     const { getByTestId } = render(
       <FireZoneUnitSummary
-        fuelTypeInfo={[]}
+        fireZoneStats={[]}
         fireZoneTPIStats={fireZoneTPIStats}
         selectedFireZoneUnit={fireShape}
       />
@@ -94,7 +94,7 @@ describe('FireZoneUnitSummary', () => {
     }
     const { queryByTestId } = render(
       <FireZoneUnitSummary
-        fuelTypeInfo={[]}
+        fireZoneStats={[]}
         fireZoneTPIStats={{
           fire_zone_id: 0,
           valley_bottom: 0,
