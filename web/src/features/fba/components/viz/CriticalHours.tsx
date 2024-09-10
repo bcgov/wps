@@ -1,4 +1,4 @@
-import { Tooltip, Typography } from '@mui/material'
+import { Typography } from '@mui/material'
 import React from 'react'
 import { isUndefined } from 'lodash'
 
@@ -9,11 +9,9 @@ interface CriticalHoursProps {
 
 const CriticalHours = ({ start, end }: CriticalHoursProps) => {
   return (
-    <Tooltip title={'Critical hours'} placement="right">
       <Typography sx={{ fontSize: '0.75rem' }} data-testid="critical-hours">
         {isUndefined(start) || isUndefined(end) ? "-" : `${start}:00 - ${end}:00`}
       </Typography>
-    </Tooltip>
   )
 }
 
