@@ -165,9 +165,9 @@ async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTy
             AdvisoryFuelStats.area,
         )
         .distinct(AdvisoryFuelStats.fuel_type, AdvisoryFuelStats.run_parameters)
-        .join(RunParameters, AdvisoryFuelStats.run_parameters == RunParameters.id)
-        .join(CriticalHours, CriticalHours.run_parameters == RunParameters.id)
-        .join(Shape, AdvisoryFuelStats.advisory_shape_id == Shape.id)
+        .outerjoin(RunParameters, AdvisoryFuelStats.run_parameters == RunParameters.id)
+        .outerjoin(CriticalHours, CriticalHours.run_parameters == RunParameters.id)
+        .outerjoin(Shape, AdvisoryFuelStats.advisory_shape_id == Shape.id)
         .where(
             Shape.source_identifier == str(advisory_shape_id),
             RunParameters.run_type == run_type.value,

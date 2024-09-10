@@ -12,4 +12,14 @@ describe('CriticalHours', () => {
     expect(element).toBeInTheDocument()
     expect(element).toHaveTextContent("8:00 - 11:00")
   })
+
+  it('should render no critical hours', () => {
+    const { getByTestId } = render(
+        <CriticalHours start={undefined} end={undefined} />
+    )
+
+    const element = getByTestId('critical-hours')
+    expect(element).toBeInTheDocument()
+    expect(element).toHaveTextContent("-")
+  })
 })

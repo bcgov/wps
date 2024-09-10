@@ -95,8 +95,8 @@ class SFMSFuelType(BaseModel):
 class AdvisoryCriticalHours(BaseModel):
     """Critical Hours for an advisory."""
 
-    start_time: float
-    end_time: float
+    start_time: Optional[float]
+    end_time: Optional[float]
 
 
 class ClassifiedHfiThresholdFuelTypeArea(BaseModel):
