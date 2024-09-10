@@ -164,10 +164,10 @@ async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTy
             AdvisoryFuelStats.threshold,
             AdvisoryFuelStats.area,
         )
-        .distinct(AdvisoryFuelStats.fuel_type, AdvisoryFuelStats.run_parameters)  # Keep unique records by fuel_type and run_parameters
-        .join(RunParameters, AdvisoryFuelStats.run_parameters == RunParameters.id)  # Join RunParameters once
-        .join(CriticalHours, CriticalHours.run_parameters == RunParameters.id)  # Join CriticalHours via RunParameters
-        .join(Shape, AdvisoryFuelStats.advisory_shape_id == Shape.id)  # Join Shape
+        .distinct(AdvisoryFuelStats.fuel_type, AdvisoryFuelStats.run_parameters)
+        .join(RunParameters, AdvisoryFuelStats.run_parameters == RunParameters.id)
+        .join(CriticalHours, CriticalHours.run_parameters == RunParameters.id)
+        .join(Shape, AdvisoryFuelStats.advisory_shape_id == Shape.id)
         .where(
             Shape.source_identifier == str(advisory_shape_id),
             RunParameters.run_type == run_type.value,
@@ -180,7 +180,7 @@ async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTy
     all_results = result.all()
     perf_end = perf_counter()
     delta = perf_end - perf_start
-    logger.info("%f delta count before and after fuel types/high hfi/zone query", delta)
+    logger.info("%f delta count before and after advisory stats query", delta)
     return all_results
 
 
