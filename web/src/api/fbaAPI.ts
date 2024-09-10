@@ -160,17 +160,6 @@ export async function getHFIThresholdsFuelTypesForCentre(
   return data
 }
 
-export async function getFireZoneElevationInfo(
-  fire_zone_id: number,
-  run_type: RunType,
-  run_datetime: string,
-  for_date: string
-): Promise<FireZoneElevationInfoResponse> {
-  const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
-  const { data } = await axios.get(url)
-  return data
-}
-
 export async function getFireZoneTPIStats(
   fire_zone_id: number,
   run_type: RunType,

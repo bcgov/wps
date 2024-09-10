@@ -163,19 +163,6 @@ async def get_run_datetimes_for_date_and_runtype(run_type: RunType, for_date: da
         return datetimes
 
 
-@router.get("/fire-zone-elevation-info/{run_type}/{for_date}/{run_datetime}/{fire_zone_id}", response_model=FireZoneElevationStatsListResponse)
-async def get_fire_zone_elevation_stats(fire_zone_id: int, run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
-    """Return the elevation statistics for each advisory threshold"""
-    async with get_async_read_session_scope() as session:
-        data = []
-        rows = await get_zonal_elevation_stats(session, fire_zone_id, run_type, run_datetime, for_date)
-        for row in rows:
-            stats = FireZoneElevationStats(minimum=row.minimum, quartile_25=row.quartile_25, median=row.median, quartile_75=row.quartile_75, maximum=row.maximum)
-            stats_by_threshold = FireZoneElevationStatsByThreshold(threshold=row.threshold, elevation_info=stats)
-            data.append(stats_by_threshold)
-        return FireZoneElevationStatsListResponse(hfi_elevation_info=data)
-
-
 @router.get("/fire-zone-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_zone_id}", response_model=FireZoneTPIStats)
 async def get_fire_zone_tpi_stats(fire_zone_id: int, run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
     """Return the elevation TPI statistics for each advisory threshold"""
