@@ -36,7 +36,7 @@ const columns: GridColDef[] = [
   {
     field: 'code',
     headerClassName: 'fuel-summary-header',
-    headerName: 'Primary Fuels',
+    headerName: 'Fuel Type',
     sortable: false,
     width: 120,
     renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
