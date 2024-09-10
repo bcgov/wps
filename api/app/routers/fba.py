@@ -94,7 +94,7 @@ async def get_provincial_summary(run_type: RunType, run_datetime: datetime, for_
             fire_shape_area_details.append(
                 FireShapeAreaDetail(
                     fire_shape_id=row.source_identifier,
-                    fire_shape_name=row.label,
+                    fire_shape_name=row.placename_label,
                     fire_centre_name=row.fire_centre_name,
                     threshold=row.threshold,
                     combustible_area=row.combustible_area,

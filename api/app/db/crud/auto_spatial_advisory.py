@@ -141,7 +141,7 @@ async def get_zone_ids_in_centre(session: AsyncSession, fire_centre_name: str):
 
     return all_results
 
-  
+
 async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuelType]:
     """
     Retrieve all records from the sfms_fuel_types table.
@@ -443,7 +443,7 @@ async def get_provincial_rollup(session: AsyncSession, run_type: RunTypeEnum, ru
             Shape.id,
             Shape.source_identifier,
             Shape.combustible_area,
-            Shape.label,
+            Shape.placename_label,
             FireCentre.name.label("fire_centre_name"),
             HighHfiArea.id,
             HighHfiArea.advisory_shape_id,
