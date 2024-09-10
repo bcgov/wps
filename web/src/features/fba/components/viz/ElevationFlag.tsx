@@ -18,7 +18,8 @@ const ElevationFlag = ({ percent, testId }: ElevationFlagProps) => {
           height: '32px',
           padding: '1px',
           width: '65%'
-        }}>
+        }}
+      >
         <Box
           sx={{
             alignItems: 'center',
@@ -26,10 +27,12 @@ const ElevationFlag = ({ percent, testId }: ElevationFlagProps) => {
             clipPath: 'polygon(0 50%, 10% 0, 100% 0, 100% 100%, 10% 100%)',
             display: 'flex',
             height: '30px',
-            justifyContent: 'center',
+            justifyContent: 'center'
           }}
         >
-          <Typography sx={{ fontSize: '0.75em' }} data-testid={testId}>{percent}%</Typography>
+          <Typography sx={{ fontSize: '0.75em' }} data-testid={testId}>
+            {percent}%
+          </Typography>
         </Box>
       </Box>
     </Grid>

@@ -6,6 +6,7 @@ import ElevationFlag from 'features/fba/components/viz/ElevationFlag'
 import ElevationLabel from 'features/fba/components/viz/ElevationLabel'
 import TPIMountain from 'features/fba/components/viz/TPIMountain'
 import { Box } from '@mui/material'
+import { FireZoneTPIStats } from '@/api/fbaAPI'
 
 enum ElevationOption {
   BOTTOM = 'Valley Bottom',
@@ -14,17 +15,15 @@ enum ElevationOption {
 }
 
 interface ElevationStatusProps {
-  bottom: number
-  mid: number
-  upper: number
+  tpiStats: Required<FireZoneTPIStats>
 }
 
-const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
+const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
   const theme = useTheme()
-  const total = mid + upper + bottom
-  const mid_percent = mid === 0 ? 0 : Math.round(mid / total * 100)
-  const upper_percent = upper === 0 ? 0 : Math.round(upper / total * 100)
-  const bottom_percent = bottom === 0 ? 0 : Math.round(bottom / total * 100)
+  const total = tpiStats.mid_slope + tpiStats.upper_slope + tpiStats.valley_bottom
+  const mid_percent = tpiStats.mid_slope === 0 ? 0 : Math.round((tpiStats.mid_slope / total) * 100)
+  const upper_percent = tpiStats.upper_slope === 0 ? 0 : Math.round((tpiStats.upper_slope / total) * 100)
+  const bottom_percent = tpiStats.valley_bottom === 0 ? 0 : Math.round((tpiStats.valley_bottom / total) * 100)
   return (
     <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }} data-testid="elevation-status">
       <Grid container sx={{ minHeight: theme.spacing(19) }} xs={12}>
@@ -45,7 +44,7 @@ const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
           <ElevationLabel label={ElevationOption.MID} />
           <ElevationLabel label={ElevationOption.BOTTOM} />
         </Grid>
-        <Grid container sx={{ alignItems: 'flex-end', display: 'flex' }} xs={4} data-testid='tpi-mountain'>
+        <Grid container sx={{ alignItems: 'flex-end', display: 'flex' }} xs={4} data-testid="tpi-mountain">
           <Grid sx={{ display: 'flex', alignItems: 'flex-end', height: '80%', justifyContent: 'center' }} xs={12}>
             <TPIMountain />
           </Grid>
@@ -63,9 +62,9 @@ const ElevationStatus = ({ bottom, mid, upper }: ElevationStatusProps) => {
               Proportion of Advisory Area:
             </Typography>
           </Grid>
-          <ElevationFlag percent={upper_percent} testId='upper-slope' />
-          <ElevationFlag percent={mid_percent} testId='mid-slope' />
-          <ElevationFlag percent={bottom_percent} testId='valley-bottom' />
+          <ElevationFlag percent={upper_percent} testId="upper-slope" />
+          <ElevationFlag percent={mid_percent} testId="mid-slope" />
+          <ElevationFlag percent={bottom_percent} testId="valley-bottom" />
         </Grid>
       </Grid>
     </Box>

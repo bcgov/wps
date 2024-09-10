@@ -58,9 +58,9 @@ export interface FireZoneElevationInfoResponse {
 
 export interface FireZoneTPIStats {
   fire_zone_id: number
-  valley_bottom: number
-  mid_slope: number
-  upper_slope: number
+  valley_bottom?: number
+  mid_slope?: number
+  upper_slope?: number
 }
 
 export interface FireShapeAreaListResponse {

@@ -116,9 +116,9 @@ class FireZoneTPIStats(BaseModel):
     """Classified TPI areas of the fire zone contributing to the HFI >4k. Each area is in square metres."""
 
     fire_zone_id: int
-    valley_bottom: int
-    mid_slope: int
-    upper_slope: int
+    valley_bottom: Optional[int]
+    mid_slope: Optional[int]
+    upper_slope: Optional[int]
 
 
 class FireZoneElevationStatsByThreshold(BaseModel):

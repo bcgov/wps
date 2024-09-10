@@ -1,6 +1,6 @@
 import React from 'react'
 import { Grid, Typography } from '@mui/material'
-import { isUndefined } from 'lodash'
+import { isNull, isUndefined } from 'lodash'
 import { FireShape, FireZoneTPIStats, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 import { useTheme } from '@mui/material/styles'
@@ -10,6 +10,18 @@ interface FireZoneUnitSummaryProps {
   selectedFireZoneUnit: FireShape | undefined
   fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
   fireZoneTPIStats: FireZoneTPIStats | undefined
+}
+
+function hasRequiredFields(stats: FireZoneTPIStats): stats is Required<FireZoneTPIStats> {
+  return (
+    !isUndefined(stats.mid_slope) &&
+    !isNull(stats.mid_slope) &&
+    !isUndefined(stats.upper_slope) &&
+    !isNull(stats.upper_slope) &&
+    !isUndefined(stats.valley_bottom) &&
+    !isNull(stats.valley_bottom) &&
+    stats.mid_slope + stats.upper_slope + stats.mid_slope !== 0
+  )
 }
 
 const FireZoneUnitSummary = ({ fuelTypeInfo, fireZoneTPIStats, selectedFireZoneUnit }: FireZoneUnitSummaryProps) => {
@@ -30,15 +42,10 @@ const FireZoneUnitSummary = ({ fuelTypeInfo, fireZoneTPIStats, selectedFireZoneU
           <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fuelTypeInfo={fuelTypeInfo} />
         </Grid>
         <Grid item sx={{ width: '95%' }}>
-          {!fireZoneTPIStats ||
-          fireZoneTPIStats.valley_bottom + fireZoneTPIStats.mid_slope + fireZoneTPIStats.upper_slope === 0 ? (
-            <Typography>No elevation information available.</Typography>
+          {fireZoneTPIStats && hasRequiredFields(fireZoneTPIStats) ? (
+            <ElevationStatus tpiStats={fireZoneTPIStats}></ElevationStatus>
           ) : (
-            <ElevationStatus
-              upper={fireZoneTPIStats.upper_slope}
-              mid={fireZoneTPIStats.mid_slope}
-              bottom={fireZoneTPIStats.valley_bottom}
-            ></ElevationStatus>
+            <Typography>No elevation information available.</Typography>
           )}
         </Grid>
       </Grid>

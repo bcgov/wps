@@ -2,7 +2,7 @@ from datetime import date, datetime
 from enum import Enum
 import logging
 from time import perf_counter
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 from sqlalchemy import and_, select, func, cast, String
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -400,7 +400,7 @@ async def get_zonal_elevation_stats(session: AsyncSession, fire_zone_id: int, ru
     return await session.execute(stmt)
 
 
-async def get_zonal_tpi_stats(session: AsyncSession, fire_zone_id: int, run_type: RunType, run_datetime: datetime, for_date: date) -> AdvisoryTPIStats:
+async def get_zonal_tpi_stats(session: AsyncSession, fire_zone_id: int, run_type: RunType, run_datetime: datetime, for_date: date) -> Optional[AdvisoryTPIStats]:
     run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
     stmt = select(Shape.id).where(Shape.source_identifier == str(fire_zone_id))
     result = await session.execute(stmt)
