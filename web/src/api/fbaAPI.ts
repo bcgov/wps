@@ -149,6 +149,7 @@ export async function getAllRunDates(run_type: RunType, for_date: string): Promi
   return data
 }
 
+
 export async function getHFIThresholdsFuelTypesForCentre(
   run_type: RunType,
   for_date: string,
@@ -156,6 +157,17 @@ export async function getHFIThresholdsFuelTypesForCentre(
   fire_centre: string
 ): Promise<FireCentreHfiFuelsData> {
   const url = `fba/fire-centre-hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${fire_centre}`
+  const { data } = await axios.get(url)
+  return data
+}
+
+export async function getFireZoneElevationInfo(
+  fire_zone_id: number,
+  run_type: RunType,
+  run_datetime: string,
+  for_date: string
+): Promise<FireZoneElevationInfoResponse> {
+  const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
   const { data } = await axios.get(url)
   return data
 }

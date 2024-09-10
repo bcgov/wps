@@ -6,13 +6,11 @@ import { FireZoneTPIStats, getFireCentreTPIStats } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 export interface CentreTPIStatsState {
-  loading: boolean
   error: string | null
   fireCentreTPIStats: Record<string, FireZoneTPIStats[]> | null
 }
 
-const initialState: CentreTPIStatsState = {
-  loading: false,
+export const initialState: CentreTPIStatsState = {
   error: null,
   fireCentreTPIStats: null
 }
@@ -24,11 +22,9 @@ const fireCentreTPIStatsSlice = createSlice({
     getFireCentreTPIStatsStart(state: CentreTPIStatsState) {
       state.error = null
       state.fireCentreTPIStats = null
-      state.loading = true
     },
     getFireCentreTPIStatsFailed(state: CentreTPIStatsState, action: PayloadAction<string>) {
       state.error = action.payload
-      state.loading = false
     },
     getFireCentreTPIStatsSuccess(
       state: CentreTPIStatsState,
@@ -36,7 +32,6 @@ const fireCentreTPIStatsSlice = createSlice({
     ) {
       state.error = null
       state.fireCentreTPIStats = action.payload
-      state.loading = false
     }
   }
 })

@@ -4,6 +4,16 @@ import FireZoneUnitTabs from './FireZoneUnitTabs'
 import { FireCenter, FireCentreHfiFuelsData, FireShape, FireShapeAreaDetail, FireZoneTPIStats } from 'api/fbaAPI'
 import { vi } from 'vitest'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
+import { combineReducers, configureStore } from '@reduxjs/toolkit'
+import fireCentreTPIStatsSlice, {
+  CentreTPIStatsState,
+  initialState as tpiInitialState
+} from '@/features/fba/slices/fireCentreTPIStatsSlice'
+import fireCentreHfiFuelTypesSlice, {
+  CentreHFIFuelTypeState,
+  initialState as hfiInitialState
+} from '@/features/fba/slices/fireCentreHfiFuelTypesSlice'
+import { Provider } from 'react-redux'
 
 const getAdvisoryDetails = (
   fireZoneName: string,
@@ -33,6 +43,21 @@ const getAdvisoryDetails = (
   ]
 }
 
+const buildTestStore = (hfiInitialState: CentreHFIFuelTypeState, tpiInitialState: CentreTPIStatsState) => {
+  const rootReducer = combineReducers({
+    fireCentreHfiFuelTypes: fireCentreHfiFuelTypesSlice,
+    fireCentreTPIStats: fireCentreTPIStatsSlice
+  })
+  const testStore = configureStore({
+    reducer: rootReducer,
+    preloadedState: {
+      fireCentreHfiFuelTypes: hfiInitialState,
+      fireCentreTPIStats: tpiInitialState
+    }
+  })
+  return testStore
+}
+
 const fireCentre1 = 'Centre 1'
 const zoneA = 'A Zone'
 const zoneB = 'B Zone'
@@ -54,13 +79,13 @@ const mockFireCentreTPIStats: Record<string, FireZoneTPIStats[]> = {
 }
 
 const mockFireCentreHfiFuelTypes: FireCentreHfiFuelsData = {
-  [fireCentre1]: {
-    '1': [
+  'Centre 1': {
+    1: [
       {
         fuel_type: { fuel_type_id: 1, fuel_type_code: 'C', description: 'fuel type' },
         area: 10,
         threshold: { id: 1, name: 'threshold', description: 'description' },
-        critical_hours: { start_time: 9, end_time: 11}
+        critical_hours: {start_time: 8, end_time: 11}
       }
     ]
   }
@@ -88,29 +113,33 @@ vi.mock('features/fba/hooks/useFireCentreDetails', () => ({
 const setSelectedFireShapeMock = vi.fn()
 const setZoomSourceMock = vi.fn()
 
-const renderComponent = () =>
+const renderComponent = (testStore: any) =>
   render(
-    <FireZoneUnitTabs
-      selectedFireZoneUnit={undefined}
-      setZoomSource={setZoomSourceMock}
-      fireCentreTPIStats={mockFireCentreTPIStats}
-      fireCentreHfiFuelTypes={mockFireCentreHfiFuelTypes}
-      selectedFireCenter={mockSelectedFireCenter}
-      advisoryThreshold={20}
-      setSelectedFireShape={setSelectedFireShapeMock}
-    />
+    <Provider store={testStore}>
+      <FireZoneUnitTabs
+        selectedFireZoneUnit={undefined}
+        setZoomSource={setZoomSourceMock}
+        selectedFireCenter={mockSelectedFireCenter}
+        advisoryThreshold={20}
+        setSelectedFireShape={setSelectedFireShapeMock}
+      />
+    </Provider>
   )
 
 describe('FireZoneUnitTabs', () => {
+  const testStore = buildTestStore(
+    { ...hfiInitialState, fireCentreHfiFuelTypes: mockFireCentreHfiFuelTypes },
+    { ...tpiInitialState, fireCentreTPIStats: mockFireCentreTPIStats }
+  )
   it('should render', () => {
-    const { getByTestId } = renderComponent()
+    const { getByTestId } = renderComponent(testStore)
 
     const summaryTabs = getByTestId('firezone-summary-tabs')
     expect(summaryTabs).toBeInTheDocument()
   })
 
   it('should render tabs for each zone in a centre', () => {
-    const { getByTestId } = renderComponent()
+    const { getByTestId } = renderComponent(testStore)
 
     const tab1 = getByTestId('zone-1-tab')
     expect(tab1).toBeInTheDocument()
@@ -121,14 +150,14 @@ describe('FireZoneUnitTabs', () => {
   })
 
   it('should select the first zone tab of a fire centre alphabetically if no zone is selected, but not zoom to it', () => {
-    renderComponent()
+    renderComponent(testStore)
 
     expect(setSelectedFireShapeMock).toHaveBeenCalledWith(mockSelectedFireZoneUnitA)
     expect(setZoomSourceMock).not.toHaveBeenCalled()
   })
 
   it('should switch to a different tab when clicked and set the map zoom source', () => {
-    renderComponent()
+    renderComponent(testStore)
 
     const tab2 = screen.getByTestId('zone-2-tab')
     fireEvent.click(tab2)
@@ -143,15 +172,15 @@ describe('FireZoneUnitTabs', () => {
 
   it('should render empty if there is no selected Fire Centre', () => {
     const { getByTestId } = render(
-      <FireZoneUnitTabs
-        selectedFireZoneUnit={undefined}
-        setZoomSource={setZoomSourceMock}
-        fireCentreTPIStats={{}}
-        fireCentreHfiFuelTypes={{}}
-        selectedFireCenter={undefined}
-        advisoryThreshold={20}
-        setSelectedFireShape={setSelectedFireShapeMock}
-      />
+      <Provider store={testStore}>
+        <FireZoneUnitTabs
+          selectedFireZoneUnit={undefined}
+          setZoomSource={setZoomSourceMock}
+          selectedFireCenter={undefined}
+          advisoryThreshold={20}
+          setSelectedFireShape={setSelectedFireShapeMock}
+        />
+      </Provider>
     )
 
     const emptyTabs = getByTestId('fire-zone-unit-tabs-empty')
@@ -159,7 +188,7 @@ describe('FireZoneUnitTabs', () => {
   })
 
   it('should render tabs with the correct advisory colour', () => {
-    const { getByTestId } = renderComponent()
+    const { getByTestId } = renderComponent(testStore)
 
     const tab1 = getByTestId('zone-1-tab')
     expect(tab1).toHaveStyle(`backgroundColor: ${ADVISORY_ORANGE_FILL}`)

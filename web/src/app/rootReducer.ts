@@ -13,6 +13,8 @@ import fireCentersSlice from 'commonSlices/fireCentersSlice'
 import fireShapeAreasSlice from 'features/fba/slices/fireZoneAreasSlice'
 import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
+import hfiFuelTypesSlice from 'features/fba/slices/fireCentreHfiFuelTypesSlice'
+import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
 import stationGroupsSlice from 'commonSlices/stationGroupsSlice'
 import selectedStationGroupsMembersSlice from 'commonSlices/selectedStationGroupMembers'
 import dataSlice from 'features/moreCast2/slices/dataSlice'
@@ -36,7 +38,9 @@ const rootReducer = combineReducers({
   fireShapeAreas: fireShapeAreasSlice,
   runDates: runDatesSlice,
   valueAtCoordinate: valueAtCoordinateSlice,
+  hfiFuelTypes: hfiFuelTypesSlice,
   fireCentreHfiFuelTypes: fireCentreHfiFuelTypesSlice,
+  fireZoneElevationInfo: fireZoneElevationInfoSlice,
   fireCentreTPIStats: fireCentreTPIStatsSlice,
   stationGroups: stationGroupsSlice,
   stationGroupsMembers: selectedStationGroupsMembersSlice,
@@ -64,7 +68,9 @@ export const selectFireCenters = (state: RootState) => state.fireCenters
 export const selectFireShapeAreas = (state: RootState) => state.fireShapeAreas
 export const selectRunDates = (state: RootState) => state.runDates
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
+export const selectHFIFuelTypes = (state: RootState) => state.hfiFuelTypes
 export const selectFireCentreHFIFuelTypes = (state: RootState) => state.fireCentreHfiFuelTypes
+export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
 export const selectFireCentreTPIStats = (state: RootState) => state.fireCentreTPIStats
 export const selectHFIDailiesLoading = (state: RootState): boolean => state.hfiCalculatorDailies.fireCentresLoading
 export const selectHFICalculatorState = (state: RootState): HFICalculatorState => state.hfiCalculatorDailies

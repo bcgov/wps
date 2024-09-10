@@ -4,13 +4,7 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import {
-  selectFireCenters,
-  selectRunDates,
-  selectFireShapeAreas,
-  selectFireCentreTPIStats,
-  selectFireCentreHFIFuelTypes
-} from 'app/rootReducer'
+import { selectFireCenters, selectRunDates, selectFireShapeAreas } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { theme } from 'app/theme'
@@ -48,8 +42,6 @@ export const FireCentreFormControl = styled(FormControl)({
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-  const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
-  const { fireCentreHfiFuelTypes } = useSelector(selectFireCentreHFIFuelTypes)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
@@ -189,8 +181,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <FireZoneUnitTabs
             selectedFireZoneUnit={selectedFireShape}
             setZoomSource={setZoomSource}
-            fireCentreTPIStats={fireCentreTPIStats}
-            fireCentreHfiFuelTypes={fireCentreHfiFuelTypes}
             selectedFireCenter={fireCenter}
             advisoryThreshold={ADVISORY_THRESHOLD}
             setSelectedFireShape={setSelectedFireShape}

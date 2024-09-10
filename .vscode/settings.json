@@ -65,6 +65,7 @@
         "Behaviour",
         "botocore",
         "cffdrs",
+        "colour",
         "cutline",
         "determinates",
         "excinfo",
