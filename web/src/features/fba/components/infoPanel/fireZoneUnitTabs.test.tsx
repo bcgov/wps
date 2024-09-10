@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import FireZoneUnitTabs from './FireZoneUnitTabs'
-import { FireCenter, FireCentreHfiFuelsData, FireShape, FireShapeAreaDetail, FireZoneTPIStats } from 'api/fbaAPI'
+import { FireCenter, FireCentreHFIStats, FireShape, FireShapeAreaDetail, FireZoneTPIStats } from 'api/fbaAPI'
 import { vi } from 'vitest'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
@@ -9,10 +9,10 @@ import fireCentreTPIStatsSlice, {
   CentreTPIStatsState,
   initialState as tpiInitialState
 } from '@/features/fba/slices/fireCentreTPIStatsSlice'
-import fireCentreHfiFuelTypesSlice, {
-  CentreHFIFuelTypeState,
+import fireCentreHFIFuelStatsSlice, {
+  FireCentreHFIFuelStatsState,
   initialState as hfiInitialState
-} from '@/features/fba/slices/fireCentreHfiFuelTypesSlice'
+} from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
 import { Provider } from 'react-redux'
 
 const getAdvisoryDetails = (
@@ -43,15 +43,15 @@ const getAdvisoryDetails = (
   ]
 }
 
-const buildTestStore = (hfiInitialState: CentreHFIFuelTypeState, tpiInitialState: CentreTPIStatsState) => {
+const buildTestStore = (hfiInitialState: FireCentreHFIFuelStatsState, tpiInitialState: CentreTPIStatsState) => {
   const rootReducer = combineReducers({
-    fireCentreHfiFuelTypes: fireCentreHfiFuelTypesSlice,
+    fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice,
     fireCentreTPIStats: fireCentreTPIStatsSlice
   })
   const testStore = configureStore({
     reducer: rootReducer,
     preloadedState: {
-      fireCentreHfiFuelTypes: hfiInitialState,
+      fireCentreHFIFuelStats: hfiInitialState,
       fireCentreTPIStats: tpiInitialState
     }
   })
@@ -78,7 +78,7 @@ const mockFireCentreTPIStats: Record<string, FireZoneTPIStats[]> = {
   [fireCentre1]: [{ fire_zone_id: 1, valley_bottom: 10, mid_slope: 90, upper_slope: 10 }]
 }
 
-const mockFireCentreHfiFuelTypes: FireCentreHfiFuelsData = {
+const mockFireCentreHFIFuelStats: FireCentreHFIStats = {
   'Centre 1': {
     1: [
       {
@@ -128,7 +128,7 @@ const renderComponent = (testStore: any) =>
 
 describe('FireZoneUnitTabs', () => {
   const testStore = buildTestStore(
-    { ...hfiInitialState, fireCentreHfiFuelTypes: mockFireCentreHfiFuelTypes },
+    { ...hfiInitialState, fireCentreHFIFuelStats: mockFireCentreHFIFuelStats },
     { ...tpiInitialState, fireCentreTPIStats: mockFireCentreTPIStats }
   )
   it('should render', () => {

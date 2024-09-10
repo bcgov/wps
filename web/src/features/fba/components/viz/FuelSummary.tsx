@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { FireShape, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
+import { FireShape, FireZoneFuelStats } from 'api/fbaAPI'
 import { Box, Tooltip, Typography } from '@mui/material'
 import { groupBy, isUndefined } from 'lodash'
-import { DateTime } from 'luxon'
 import FuelDistribution from 'features/fba/components/viz/FuelDistribution'
 import { DataGridPro, GridColDef, GridColumnHeaderParams, GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { styled, useTheme } from '@mui/material/styles'
@@ -20,7 +19,7 @@ export interface FuelTypeInfoSummary {
 }
 
 interface FuelSummaryProps {
-  fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
+  fireZoneFuelStats: Record<number, FireZoneFuelStats[]>
   selectedFireZoneUnit: FireShape | undefined
 }
 
@@ -73,17 +72,17 @@ const columns: GridColDef[] = [
   }
 ]
 
-const FuelSummary = ({ fuelTypeInfo, selectedFireZoneUnit }: FuelSummaryProps) => {
+const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryProps) => {
   const theme = useTheme()
   const [fuelTypeInfoRollup, setFuelTypeInfoRollup] = useState<FuelTypeInfoSummary[]>([])
 
   useEffect(() => {
-    if (isUndefined(fuelTypeInfo) || isUndefined(selectedFireZoneUnit)) {
+    if (isUndefined(fireZoneFuelStats) || isUndefined(selectedFireZoneUnit)) {
       setFuelTypeInfoRollup([])
       return
     }
     const shapeId = selectedFireZoneUnit.fire_shape_id
-    const fuelDetails = fuelTypeInfo[shapeId]
+    const fuelDetails = fireZoneFuelStats[shapeId]
     if (isUndefined(fuelDetails)) {
       setFuelTypeInfoRollup([])
       return
@@ -116,7 +115,7 @@ const FuelSummary = ({ fuelTypeInfo, selectedFireZoneUnit }: FuelSummaryProps) =
       }
     }
     setFuelTypeInfoRollup(rollUp)
-  }, [fuelTypeInfo]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fireZoneFuelStats]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }}>

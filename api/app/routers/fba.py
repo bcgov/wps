@@ -102,12 +102,12 @@ async def get_provincial_summary(run_type: RunType, run_datetime: datetime, for_
     return ProvincialSummaryResponse(provincial_summary=fire_shape_area_details)
 
 
-@router.get("/fire-centre-hfi-fuels/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}", response_model=dict[str, dict[int, List[ClassifiedHfiThresholdFuelTypeArea]]])
+@router.get("/fire-centre-hfi-stats/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}", response_model=dict[str, dict[int, List[ClassifiedHfiThresholdFuelTypeArea]]])
 async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, run_datetime: datetime, fire_centre_name: str):
     """
-    Fetch rollup of fuel type/HFI threshold/area data for a specified fire zone.
+    Fetch fuel type and critical hours data for all fire zones in a fire centre for a given date
     """
-    logger.info("fire-centre-hfi-fuels/%s/%s/%s/%s", run_type.value, for_date, run_datetime, fire_centre_name)
+    logger.info("fire-centre-hfi-stats/%s/%s/%s/%s", run_type.value, for_date, run_datetime, fire_centre_name)
 
     async with get_async_read_session_scope() as session:
         # get thresholds data

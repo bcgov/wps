@@ -31,7 +31,7 @@ export interface AdvisoryCriticalHours {
 }
 
 
-export interface FireZoneThresholdFuelTypeArea {
+export interface FireZoneFuelStats {
   fuel_type: FuelType
   threshold: HfiThreshold
   critical_hours: AdvisoryCriticalHours
@@ -103,9 +103,9 @@ export interface FuelType {
   description: string
 }
 
-export interface FireCentreHfiFuelsData {
+export interface FireCentreHFIStats {
   [fire_centre_name: string]: {
-    [fire_zone_id: number]: FireZoneThresholdFuelTypeArea[]
+    [fire_zone_id: number]: FireZoneFuelStats[]
   }
 }
 
@@ -150,13 +150,13 @@ export async function getAllRunDates(run_type: RunType, for_date: string): Promi
 }
 
 
-export async function getHFIThresholdsFuelTypesForCentre(
+export async function getFireCentreHFIStats(
   run_type: RunType,
   for_date: string,
   run_datetime: string,
   fire_centre: string
-): Promise<FireCentreHfiFuelsData> {
-  const url = `fba/fire-centre-hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${fire_centre}`
+): Promise<FireCentreHFIStats> {
+  const url = `fba/fire-centre-hfi-stats/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${fire_centre}`
   const { data } = await axios.get(url)
   return data
 }
