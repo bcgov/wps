@@ -167,10 +167,7 @@ const FBAMap = (props: FBAMapProps) => {
           if (!feature) {
             return
           }
-          const zoneExtent = fireZoneExtentsMap.get(feature.getProperties().OBJECTID.toString())
-          if (!isUndefined(zoneExtent)) {
-            map.getView().fit(zoneExtent, { duration: 400, padding: [100, 100, 100, 100], maxZoom: 8 })
-          }
+
           const fireZone: FireShape = {
             fire_shape_id: feature.getProperties().OBJECTID,
             mof_fire_zone_name: feature.getProperties().FIRE_ZONE,
@@ -185,6 +182,7 @@ const FBAMap = (props: FBAMapProps) => {
   }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    // zoom to fire center or whole province
     if (!map) return
 
     if (props.selectedFireCenter && props.zoomSource === 'fireCenter') {
@@ -196,7 +194,19 @@ const FBAMap = (props: FBAMapProps) => {
       // reset map view to full province
       map.getView().fit(bcExtent, { duration: 600, padding: [50, 50, 50, 50] })
     }
-  }, [props.selectedFireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [props.selectedFireCenter])
+
+  useEffect(() => {
+    // zoom to fire zone
+    if (!map) return
+
+    if (props.selectedFireShape && props.zoomSource === 'fireShape') {
+      const zoneExtent = fireZoneExtentsMap.get(props.selectedFireShape.fire_shape_id.toString())
+      if (!isUndefined(zoneExtent)) {
+        map.getView().fit(zoneExtent, { duration: 400, padding: [100, 100, 100, 100], maxZoom: 8 })
+      }
+    }
+  }, [props.selectedFireShape])
 
   useEffect(() => {
     if (!map) return

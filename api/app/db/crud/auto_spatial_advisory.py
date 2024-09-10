@@ -131,6 +131,17 @@ async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
     return fuel_types
 
 
+async def get_zone_ids_in_centre(session: AsyncSession, fire_centre_name: str):
+    logger.info(f"retrieving fire zones within {fire_centre_name} from advisory_shapes table")
+
+    stmt = select(Shape.source_identifier).join(FireCentre, FireCentre.id == Shape.fire_centre).where(FireCentre.name == fire_centre_name)
+    result = await session.execute(stmt)
+
+    all_results = result.scalars().all()
+
+    return all_results
+
+  
 async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuelType]:
     """
     Retrieve all records from the sfms_fuel_types table.
@@ -401,6 +412,27 @@ async def get_zonal_tpi_stats(session: AsyncSession, fire_zone_id: int, run_type
 
     result = await session.execute(stmt)
     return result.first()
+
+
+async def get_centre_tpi_stats(session: AsyncSession, fire_centre_name: str, run_type: RunType, run_datetime: datetime, for_date: date) -> AdvisoryTPIStats:
+    run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+
+    stmt = (
+        select(
+            AdvisoryTPIStats.advisory_shape_id,
+            Shape.source_identifier,
+            AdvisoryTPIStats.valley_bottom,
+            AdvisoryTPIStats.mid_slope,
+            AdvisoryTPIStats.upper_slope,
+            AdvisoryTPIStats.pixel_size_metres,
+        )
+        .join(Shape, Shape.id == AdvisoryTPIStats.advisory_shape_id)
+        .join(FireCentre, FireCentre.id == Shape.fire_centre)
+        .where(FireCentre.name == fire_centre_name, AdvisoryTPIStats.run_parameters == run_parameters_id)
+    )
+
+    result = await session.execute(stmt)
+    return result.all()
 
 
 async def get_provincial_rollup(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date) -> List[Row]:

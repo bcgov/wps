@@ -15,12 +15,13 @@ import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
 import hfiFuelTypesSlice from 'features/fba/slices/hfiFuelTypesSlice'
 import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
-import fireZoneTPIStatsSlice from 'features/fba/slices/fireZoneTPIStatsSlice'
 import stationGroupsSlice from 'commonSlices/stationGroupsSlice'
 import selectedStationGroupsMembersSlice from 'commonSlices/selectedStationGroupMembers'
 import dataSlice from 'features/moreCast2/slices/dataSlice'
 import selectedStationsSlice from 'features/moreCast2/slices/selectedStationsSlice'
 import provincialSummarySlice from 'features/fba/slices/provincialSummarySlice'
+import fireCentreTPIStatsSlice from 'features/fba/slices/fireCentreTPIStatsSlice'
+import fireCentreHfiFuelTypesSlice from 'features/fba/slices/fireCentreHfiFuelTypesSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -38,8 +39,9 @@ const rootReducer = combineReducers({
   runDates: runDatesSlice,
   valueAtCoordinate: valueAtCoordinateSlice,
   hfiFuelTypes: hfiFuelTypesSlice,
+  fireCentreHfiFuelTypes: fireCentreHfiFuelTypesSlice,
   fireZoneElevationInfo: fireZoneElevationInfoSlice,
-  fireZoneTPIStats: fireZoneTPIStatsSlice,
+  fireCentreTPIStats: fireCentreTPIStatsSlice,
   stationGroups: stationGroupsSlice,
   stationGroupsMembers: selectedStationGroupsMembersSlice,
   weatherIndeterminates: dataSlice,
@@ -52,7 +54,6 @@ export type RootState = ReturnType<typeof rootReducer>
 
 export default rootReducer
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export const selectPercentileStations = (state: RootState) => state.percentileStations
 export const selectHFIDailies = (state: RootState) => state.hfiCalculatorDailies
 export const selectFireWeatherStations = (state: RootState) => state.fireWeatherStations
@@ -68,9 +69,9 @@ export const selectFireShapeAreas = (state: RootState) => state.fireShapeAreas
 export const selectRunDates = (state: RootState) => state.runDates
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
 export const selectHFIFuelTypes = (state: RootState) => state.hfiFuelTypes
+export const selectFireCentreHFIFuelTypes = (state: RootState) => state.fireCentreHfiFuelTypes
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
-export const selectFireZoneTPIStats = (state: RootState) => state.fireZoneTPIStats
-
+export const selectFireCentreTPIStats = (state: RootState) => state.fireCentreTPIStats
 export const selectHFIDailiesLoading = (state: RootState): boolean => state.hfiCalculatorDailies.fireCentresLoading
 export const selectHFICalculatorState = (state: RootState): HFICalculatorState => state.hfiCalculatorDailies
 export const selectHFIStationsLoading = (state: RootState): boolean => state.hfiStations.loading

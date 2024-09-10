@@ -4,13 +4,13 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FBAResponse, FireCenter, getFBAFireCenters } from 'api/fbaAPI'
 
-interface State {
+export interface FireCentresState {
   loading: boolean
   error: string | null
   fireCenters: FireCenter[]
 }
 
-const initialState: State = {
+const initialState: FireCentresState = {
   loading: false,
   error: null,
   fireCenters: []
@@ -20,16 +20,16 @@ const fireCentersSlice = createSlice({
   name: 'fireCenters',
   initialState,
   reducers: {
-    getFireCentersStart(state: State) {
+    getFireCentersStart(state: FireCentresState) {
       state.error = null
       state.loading = true
       state.fireCenters = []
     },
-    getFireCentersFailed(state: State, action: PayloadAction<string>) {
+    getFireCentersFailed(state: FireCentresState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getFireCentersSuccess(state: State, action: PayloadAction<FBAResponse>) {
+    getFireCentersSuccess(state: FireCentresState, action: PayloadAction<FBAResponse>) {
       state.error = null
       state.fireCenters = action.payload.fire_centers
       state.loading = false

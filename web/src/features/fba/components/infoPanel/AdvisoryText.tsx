@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { AdvisoryStatus } from 'utils/constants'
 import { groupBy } from 'lodash'
+import { calculateStatusText } from '@/features/fba/calculateZoneStatus'
 
 interface AdvisoryTextProps {
   issueDate: DateTime | null
@@ -17,21 +18,6 @@ interface AdvisoryTextProps {
 const AdvisoryText = ({ issueDate, forDate, advisoryThreshold, selectedFireCenter }: AdvisoryTextProps) => {
   const provincialSummary = useSelector(selectProvincialSummary)
 
-  const calculateStatus = (details: FireShapeAreaDetail[]): AdvisoryStatus | undefined => {
-    const advisoryThresholdDetail = details.find(detail => detail.threshold == 1)
-    const warningThresholdDetail = details.find(detail => detail.threshold == 2)
-    const advisoryPercentage = advisoryThresholdDetail?.elevated_hfi_percentage ?? 0
-    const warningPercentage = warningThresholdDetail?.elevated_hfi_percentage ?? 0
-
-    if (warningPercentage > advisoryThreshold) {
-      return AdvisoryStatus.WARNING
-    }
-
-    if (advisoryPercentage + warningPercentage > advisoryThreshold) {
-      return AdvisoryStatus.ADVISORY
-    }
-  }
-
   const getZoneStatusMap = (fireZoneUnitDetails: Record<string, FireShapeAreaDetail[]>) => {
     const zoneStatusMap: Record<AdvisoryStatus, string[]> = {
       [AdvisoryStatus.ADVISORY]: [],
@@ -40,7 +26,7 @@ const AdvisoryText = ({ issueDate, forDate, advisoryThreshold, selectedFireCente
 
     for (const zoneUnit in fireZoneUnitDetails) {
       const fireShapeAreaDetails: FireShapeAreaDetail[] = fireZoneUnitDetails[zoneUnit]
-      const status = calculateStatus(fireShapeAreaDetails)
+      const status = calculateStatusText(fireShapeAreaDetails, advisoryThreshold)
 
       if (status) {
         zoneStatusMap[status].push(zoneUnit)

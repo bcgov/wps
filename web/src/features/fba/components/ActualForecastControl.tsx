@@ -9,9 +9,9 @@ export interface ActualForecastControlProps {
   setRunType: React.Dispatch<React.SetStateAction<RunType>>
 }
 const ActualForecastControl = ({ runType, setRunType }: ActualForecastControlProps) => {
-  const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
+  const changeHandler = (_: React.ChangeEvent<{}>, value: string) => {
     if (!isNull(value)) {
-      setRunType(value)
+      setRunType(value as RunType)
     }
   }
   return (
@@ -38,7 +38,7 @@ const ActualForecastControl = ({ runType, setRunType }: ActualForecastControlPro
       >
         Time Frame
       </FormLabel>
-      <RadioGroup row defaultValue={runType} onChange={changeHandler}>
+      <RadioGroup row value={runType} onChange={changeHandler}>
         <FormControlLabel
           value={RunType.ACTUAL}
           control={

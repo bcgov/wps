@@ -24,11 +24,7 @@ describe('FireZoneUnitSummary', () => {
   window.ResizeObserver = ResizeObserver
   it('should not render empty div if selectedFireZoneUnit is undefined', () => {
     const { getByTestId } = render(
-      <FireZoneUnitSummary
-        fuelTypeInfo={[]}
-        fireZoneTPIStats={fireZoneTPIStats}
-        selectedFireZoneUnit={undefined}
-      />
+      <FireZoneUnitSummary fuelTypeInfo={[]} fireZoneTPIStats={fireZoneTPIStats} selectedFireZoneUnit={undefined} />
     )
     const fireZoneUnitInfo = getByTestId('fire-zone-unit-summary-empty')
     expect(fireZoneUnitInfo).toBeInTheDocument()
@@ -41,11 +37,7 @@ describe('FireZoneUnitSummary', () => {
       area_sqm: 10
     }
     const { getByTestId } = render(
-      <FireZoneUnitSummary
-        fuelTypeInfo={[]}
-        fireZoneTPIStats={fireZoneTPIStats}
-        selectedFireZoneUnit={fireShape}
-      />
+      <FireZoneUnitSummary fuelTypeInfo={[]} fireZoneTPIStats={fireZoneTPIStats} selectedFireZoneUnit={fireShape} />
     )
     const fireZoneUnitInfo = getByTestId('fire-zone-unit-summary')
     expect(fireZoneUnitInfo).toBeInTheDocument()
@@ -58,11 +50,7 @@ describe('FireZoneUnitSummary', () => {
       area_sqm: 10
     }
     const { queryByTestId } = render(
-      <FireZoneUnitSummary
-        fuelTypeInfo={[]}
-        fireZoneTPIStats={null}
-        selectedFireZoneUnit={fireShape}
-      />
+      <FireZoneUnitSummary fuelTypeInfo={[]} fireZoneTPIStats={undefined} selectedFireZoneUnit={fireShape} />
     )
     const fireZoneUnitInfo = queryByTestId('elevation-status')
     expect(fireZoneUnitInfo).not.toBeInTheDocument()
@@ -75,11 +63,7 @@ describe('FireZoneUnitSummary', () => {
       area_sqm: 10
     }
     const { getByTestId } = render(
-      <FireZoneUnitSummary
-        fuelTypeInfo={[]}
-        fireZoneTPIStats={fireZoneTPIStats}
-        selectedFireZoneUnit={fireShape}
-      />
+      <FireZoneUnitSummary fuelTypeInfo={[]} fireZoneTPIStats={fireZoneTPIStats} selectedFireZoneUnit={fireShape} />
     )
     const fireZoneUnitInfo = getByTestId('elevation-status')
     expect(fireZoneUnitInfo).toBeInTheDocument()

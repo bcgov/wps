@@ -4,8 +4,8 @@ import { Box, Tooltip, Typography } from '@mui/material'
 import { groupBy, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import FuelDistribution from 'features/fba/components/viz/FuelDistribution'
-import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro'
-import { useTheme } from '@mui/material/styles'
+import { DataGridPro, GridColDef, GridColumnHeaderParams, GridRenderCellParams } from '@mui/x-data-grid-pro'
+import { styled, useTheme } from '@mui/material/styles'
 
 export interface FuelTypeInfoSummary {
   area: number
@@ -23,14 +23,23 @@ interface FuelSummaryProps {
   selectedFireZoneUnit: FireShape | undefined
 }
 
-// Column definitions for fire zone unit fuel summary table 
+const StyledHeader = styled('div')({
+  whiteSpace: 'normal',
+  wordWrap: 'break-word',
+  textAlign: 'center',
+  fontSize: '0.75rem',
+  fontWeight: '700'
+})
+
+// Column definitions for fire zone unit fuel summary table
 const columns: GridColDef[] = [
   {
     field: 'code',
     headerClassName: 'fuel-summary-header',
     headerName: 'Fuel Type',
     sortable: false,
-    width: 75,
+    width: 120,
+    renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => (
       <Tooltip placement="right" title={params.row['description']}>
         <Typography sx={{ fontSize: '0.75rem' }}>{params.row[params.field]}</Typography>
@@ -44,6 +53,7 @@ const columns: GridColDef[] = [
     headerName: 'Distribution > 4k kW/m',
     minWidth: 200,
     sortable: false,
+    renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => {
       return <FuelDistribution code={params.row['code']} percent={params.row['percent']} />
     }
@@ -112,6 +122,7 @@ const FuelSummary = ({ fuelTypeInfo, selectedFireZoneUnit }: FuelSummaryProps) =
           showCellVerticalBorder
           showColumnVerticalBorder
           sx={{
+            backgroundColor: 'white',
             maxHeight: '147px',
             minHeight: '100px',
             overflow: 'hidden',

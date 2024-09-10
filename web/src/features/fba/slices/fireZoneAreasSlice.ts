@@ -6,13 +6,13 @@ import { FireShapeArea, FireShapeAreaListResponse, getFireShapeAreas } from 'api
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { isNull, isUndefined } from 'lodash'
 
-interface State {
+export interface FireZoneAreasState {
   loading: boolean
   error: string | null
   fireShapeAreas: FireShapeArea[]
 }
 
-const initialState: State = {
+const initialState: FireZoneAreasState = {
   loading: false,
   error: null,
   fireShapeAreas: []
@@ -22,16 +22,16 @@ const fireShapeAreasSlice = createSlice({
   name: 'fireShapeAreas',
   initialState,
   reducers: {
-    getFireShapeAreasStart(state: State) {
+    getFireShapeAreasStart(state: FireZoneAreasState) {
       state.error = null
       state.loading = true
       state.fireShapeAreas = []
     },
-    getFireShapeAreasFailed(state: State, action: PayloadAction<string>) {
+    getFireShapeAreasFailed(state: FireZoneAreasState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getFireShapeAreasSuccess(state: State, action: PayloadAction<FireShapeAreaListResponse>) {
+    getFireShapeAreasSuccess(state: FireZoneAreasState, action: PayloadAction<FireShapeAreaListResponse>) {
       state.error = null
       state.fireShapeAreas = action.payload.shapes
       state.loading = false
