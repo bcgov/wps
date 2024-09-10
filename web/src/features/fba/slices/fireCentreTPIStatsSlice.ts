@@ -10,7 +10,7 @@ export interface CentreTPIStatsState {
   fireCentreTPIStats: Record<string, FireZoneTPIStats[]> | null
 }
 
-const initialState: CentreTPIStatsState = {
+export const initialState: CentreTPIStatsState = {
   error: null,
   fireCentreTPIStats: null
 }

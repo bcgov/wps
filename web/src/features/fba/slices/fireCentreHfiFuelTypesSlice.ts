@@ -10,7 +10,7 @@ export interface CentreHFIFuelTypeState {
   fireCentreHfiFuelTypes: FireCentreHfiFuelsData
 }
 
-const initialState: CentreHFIFuelTypeState = {
+export const initialState: CentreHFIFuelTypeState = {
   error: null,
   fireCentreHfiFuelTypes: {}
 }
