@@ -27,7 +27,7 @@ const FireZoneUnitTabs = ({
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
   const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
-  const { fireCentreHfiFuelTypes } = useSelector(selectFireCentreHFIFuelTypes)
+  const { fireCentreHFIFuelStats } = useSelector(selectFireCentreHFIFuelTypes)
   const [tabNumber, setTabNumber] = useState(0)
 
   const sortedGroupedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
@@ -76,9 +76,9 @@ const FireZoneUnitTabs = ({
 
   const hfiFuelStats = useMemo(() => {
     if (selectedFireCenter) {
-      return fireCentreHfiFuelTypes?.[selectedFireCenter?.name]
+      return fireCentreHFIFuelStats?.[selectedFireCenter?.name]
     }
-  }, [fireCentreHfiFuelTypes, selectedFireCenter])
+  }, [fireCentreHFIFuelStats, selectedFireCenter])
 
   if (isUndefined(selectedFireCenter) || isNull(selectedFireCenter)) {
     return <div data-testid="fire-zone-unit-tabs-empty"></div>
@@ -129,7 +129,7 @@ const FireZoneUnitTabs = ({
             {sortedGroupedFireZoneUnits.map((zone, index) => (
               <TabPanel key={zone.fire_shape_id} value={tabNumber} index={index}>
                 <FireZoneUnitSummary
-                  fuelTypeInfo={hfiFuelStats ? { [zone.fire_shape_id]: hfiFuelStats[zone.fire_shape_id] } : {}}
+                  fireZoneFuelStats={hfiFuelStats ? { [zone.fire_shape_id]: hfiFuelStats[zone.fire_shape_id] } : {}}
                   fireZoneTPIStats={
                     tpiStatsArray ? tpiStatsArray.find(stats => stats.fire_zone_id == zone.fire_shape_id) : undefined
                   }

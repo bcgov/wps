@@ -25,7 +25,7 @@ import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import FireZoneUnitTabs from 'features/fba/components/infoPanel/FireZoneUnitTabs'
 import { fetchFireCentreTPIStats } from 'features/fba/slices/fireCentreTPIStatsSlice'
 import AboutDataPopover from 'features/fba/components/AboutDataPopover'
-import { fetchFireCentreHfiFuelTypes } from 'features/fba/slices/fireCentreHfiFuelTypesSlice'
+import { fetchFireCentreHFIFuelStats } from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
 
 const ADVISORY_THRESHOLD = 20
 
@@ -118,7 +118,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       !isNull(fireCenter)
     ) {
       dispatch(fetchFireCentreTPIStats(fireCenter.name, runType, doiISODate, mostRecentRunDate.toString()))
-      dispatch(fetchFireCentreHfiFuelTypes(fireCenter.name, runType, doiISODate, mostRecentRunDate.toString()))
+      dispatch(fetchFireCentreHFIFuelStats(fireCenter.name, runType, doiISODate, mostRecentRunDate.toString()))
     }
   }, [fireCenter, mostRecentRunDate])
 
