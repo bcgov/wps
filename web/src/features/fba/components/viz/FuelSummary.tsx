@@ -38,7 +38,7 @@ const columns: GridColDef[] = [
     headerClassName: 'fuel-summary-header',
     headerName: 'Fuel Type',
     sortable: false,
-    width: 120,
+    minWidth: 80,
     renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => (
       <Tooltip placement="right" title={params.row['description']}>
@@ -48,10 +48,9 @@ const columns: GridColDef[] = [
   },
   {
     field: 'area',
-    flex: 3,
+    flex: 1,
     headerClassName: 'fuel-summary-header',
     headerName: 'Distribution > 4k kW/m',
-    minWidth: 200,
     sortable: false,
     renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => {
@@ -60,10 +59,9 @@ const columns: GridColDef[] = [
   },
   {
     field: 'criticalHours',
-    flex: 3,
     headerClassName: 'fuel-summary-header',
     headerName: 'Critical Hours',
-    minWidth: 120,
+    minWidth: 110,
     sortable: false,
     renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => {
