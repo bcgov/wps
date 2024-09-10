@@ -1,3 +1,4 @@
+import { selectFireCentreHFIFuelTypes, selectFireCentreTPIStats } from '@/app/rootReducer'
 import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
 import { Box, Grid, Tab, Tabs, Tooltip } from '@mui/material'
 import { FireCenter, FireCentreHfiFuelsData, FireShape, FireZoneTPIStats } from 'api/fbaAPI'
@@ -8,12 +9,11 @@ import TabPanel from 'features/fba/components/infoPanel/TabPanel'
 import { useFireCentreDetails } from 'features/fba/hooks/useFireCentreDetails'
 import { isNull, isUndefined } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
+import { useSelector } from 'react-redux'
 
 interface FireZoneUnitTabs {
   selectedFireZoneUnit: FireShape | undefined
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
-  fireCentreTPIStats: Record<string, FireZoneTPIStats[]> | null
-  fireCentreHfiFuelTypes: FireCentreHfiFuelsData
   selectedFireCenter: FireCenter | undefined
   advisoryThreshold: number
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
@@ -24,10 +24,10 @@ const FireZoneUnitTabs = ({
   setZoomSource,
   selectedFireCenter,
   advisoryThreshold,
-  fireCentreTPIStats,
-  fireCentreHfiFuelTypes,
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
+  const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
+  const { fireCentreHfiFuelTypes } = useSelector(selectFireCentreHFIFuelTypes)
   const [tabNumber, setTabNumber] = useState(0)
 
   const sortedGroupedFireZoneUnits = useFireCentreDetails(selectedFireCenter)

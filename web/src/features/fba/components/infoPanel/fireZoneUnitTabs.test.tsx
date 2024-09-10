@@ -92,8 +92,6 @@ const renderComponent = () =>
     <FireZoneUnitTabs
       selectedFireZoneUnit={undefined}
       setZoomSource={setZoomSourceMock}
-      fireCentreTPIStats={mockFireCentreTPIStats}
-      fireCentreHfiFuelTypes={mockFireCentreHfiFuelTypes}
       selectedFireCenter={mockSelectedFireCenter}
       advisoryThreshold={20}
       setSelectedFireShape={setSelectedFireShapeMock}
@@ -145,8 +143,6 @@ describe('FireZoneUnitTabs', () => {
       <FireZoneUnitTabs
         selectedFireZoneUnit={undefined}
         setZoomSource={setZoomSourceMock}
-        fireCentreTPIStats={{}}
-        fireCentreHfiFuelTypes={{}}
         selectedFireCenter={undefined}
         advisoryThreshold={20}
         setSelectedFireShape={setSelectedFireShapeMock}
