@@ -450,7 +450,7 @@ async def get_provincial_rollup(session: AsyncSession, run_type: RunTypeEnum, ru
             Shape.id,
             Shape.source_identifier,
             Shape.combustible_area,
-            Shape.label,
+            Shape.placename_label,
             FireCentre.name.label("fire_centre_name"),
             HighHfiArea.id,
             HighHfiArea.advisory_shape_id,
