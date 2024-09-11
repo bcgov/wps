@@ -68,16 +68,12 @@ const AdvisoryText = ({
     let endTime: number | undefined = undefined
     for (const fuel of selectedFireZoneUnitTopFuels) {
       if (!isUndefined(fuel.critical_hours.start_time)) {
-        if (isUndefined(startTime)) {
-          startTime = fuel.critical_hours.start_time
-        } else if (fuel.critical_hours.start_time < startTime) {
+        if (isUndefined(startTime) || fuel.critical_hours.start_time < startTime) {
           startTime = fuel.critical_hours.start_time
         }
       }
       if (!isUndefined(fuel.critical_hours.end_time)) {
-        if (isUndefined(endTime)) {
-          endTime = fuel.critical_hours.end_time
-        } else if (fuel.critical_hours.end_time > endTime) {
+        if (isUndefined(endTime) || fuel.critical_hours.end_time > endTime) {
           endTime = fuel.critical_hours.end_time
         }
       }
