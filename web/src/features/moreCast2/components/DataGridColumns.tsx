@@ -83,7 +83,6 @@ export class DataGridColumns {
     tabColumns.push(gcForecastField)
     tabColumns.push(gcCwfisField)
 
-    tabColumns.map(column => column.preProcessEditCellProps)
     return tabColumns
   }
 
