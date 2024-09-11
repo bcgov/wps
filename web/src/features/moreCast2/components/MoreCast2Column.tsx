@@ -1,4 +1,4 @@
-import { GridValueFormatterParams } from '@mui/x-data-grid-pro'
+import { GridEditCellProps, GridPreProcessEditCellProps, GridValueFormatterParams } from '@mui/x-data-grid-pro'
 import { DateTime } from 'luxon'
 import {
   ColDefGenerator,
@@ -136,7 +136,10 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
     readonly headerName: string,
     readonly type: 'string' | 'number',
     readonly precision: number,
-    readonly includeBias: boolean
+    readonly includeBias: boolean,
+    readonly preProcessEditCellProps?: (
+      params: GridPreProcessEditCellProps
+    ) => GridEditCellProps | Promise<GridEditCellProps>
   ) {
     this.colDefBuilder = new ColumnDefBuilder(
       this.field,
@@ -152,28 +155,83 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
   }
   public generateForecastColDef = (columnClickHandlerProps: ColumnClickHandlerProps, headerName?: string) => {
     return {
-      ...this.colDefBuilder.generateForecastColDef(columnClickHandlerProps, headerName ?? this.headerName)
+      ...this.colDefBuilder.generateForecastColDef(
+        columnClickHandlerProps,
+        headerName ?? this.headerName,
+        this.preProcessEditCellProps
+      )
     }
   }
 
   public generateForecastSummaryColDef = (columnClickHandlerProps: ColumnClickHandlerProps) => {
-    return this.colDefBuilder.generateForecastColDef(columnClickHandlerProps)
+    return this.colDefBuilder.generateForecastColDef(columnClickHandlerProps, undefined, this.preProcessEditCellProps)
   }
 
   public generateColDef = () => {
-    return this.colDefBuilder.generateColDefWith(this.field, this.headerName, this.precision)
+    return this.colDefBuilder.generateColDefWith(
+      this.field,
+      this.headerName,
+      this.precision,
+      undefined,
+      this.preProcessEditCellProps
+    )
   }
 
   public generateColDefs = (columnClickHandlerProps: ColumnClickHandlerProps, headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(columnClickHandlerProps, headerName ?? this.headerName, this.includeBias)
+    return this.colDefBuilder.generateColDefs(
+      columnClickHandlerProps,
+      headerName ?? this.headerName,
+      this.includeBias,
+      this.preProcessEditCellProps
+    )
   }
 }
 
-export const tempForecastField = new IndeterminateField('temp', TEMP_HEADER, 'number', 0, true)
-export const rhForecastField = new IndeterminateField('rh', RH_HEADER, 'number', 0, true)
-export const windDirForecastField = new IndeterminateField('windDirection', WIND_DIR_HEADER, 'number', 0, true)
+export const tempForecastField = new IndeterminateField(
+  'temp',
+  TEMP_HEADER,
+  'number',
+  0,
+  true,
+  (params: GridPreProcessEditCellProps) => {
+    const hasError = params.props.value < -60 || params.props.value > 60
+    return { ...params.props, error: hasError }
+  }
+)
+export const rhForecastField = new IndeterminateField(
+  'rh',
+  RH_HEADER,
+  'number',
+  0,
+  true,
+  (params: GridPreProcessEditCellProps) => {
+    const hasError = params.props.value < 0 || params.props.value > 100
+    return { ...params.props, error: hasError }
+  }
+)
+export const windDirForecastField = new IndeterminateField(
+  'windDirection',
+  WIND_DIR_HEADER,
+  'number',
+  0,
+  true,
+  (params: GridPreProcessEditCellProps) => {
+    const hasError = params.props.value < 0 || params.props.value > 360
+    return { ...params.props, error: hasError }
+  }
+)
 export const windSpeedForecastField = new IndeterminateField('windSpeed', WIND_SPEED_HEADER, 'number', 0, true)
-export const precipForecastField = new IndeterminateField('precip', PRECIP_HEADER, 'number', 1, true)
+export const precipForecastField = new IndeterminateField(
+  'precip',
+  PRECIP_HEADER,
+  'number',
+  1,
+  true,
+  (params: GridPreProcessEditCellProps) => {
+    const hasError = params.props.value < 0.0 || params.props.value > 200.0
+    return { ...params.props, error: hasError }
+  }
+)
 export const gcForecastField = new IndeterminateField('grassCuring', GC_HEADER, 'number', 0, false)
 
 export const buiField = new IndeterminateField('buiCalc', 'BUI', 'number', 0, false)
