@@ -44,6 +44,10 @@ async def mock_get_tpi_stats(*_, **__):
     return mock_tpi_stats
 
 
+async def mock_get_tpi_stats_none(*_, **__):
+    return None
+
+
 async def mock_get_fire_centre_info(*_, **__):
     return mock_fire_centre_info
 
@@ -120,6 +124,33 @@ def test_get_sfms_run_datetimes_authorized(client: TestClient):
     response = client.get(get_sfms_run_datetimes_url)
     assert response.status_code == 200
     assert response.json()[0] == datetime(year=2024, month=1, day=1, hour=1, tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
+@patch("app.routers.fba.get_zonal_tpi_stats", mock_get_tpi_stats)
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_get_fire_zone_tpi_stats_authorized(client: TestClient):
+    """Allowed to get fire zone tpi stats when authorized"""
+    response = client.get(get_fire_zone_tpi_stats_url)
+    square_metres = math.pow(mock_tpi_stats.pixel_size_metres, 2)
+    assert response.status_code == 200
+    assert response.json()["fire_zone_id"] == 1
+    assert response.json()["valley_bottom"] == mock_tpi_stats.valley_bottom * square_metres
+    assert response.json()["mid_slope"] == mock_tpi_stats.mid_slope * square_metres
+    assert response.json()["upper_slope"] == mock_tpi_stats.upper_slope * square_metres
+
+
+@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
+@patch("app.routers.fba.get_zonal_tpi_stats", mock_get_tpi_stats_none)
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_get_fire_zone_tpi_stats_authorized_none(client: TestClient):
+    """Returns none for TPI stats when there are no stats available"""
+    response = client.get(get_fire_zone_tpi_stats_url)
+    assert response.status_code == 200
+    assert response.json()["fire_zone_id"] == 1
+    assert response.json()["valley_bottom"] == None
+    assert response.json()["mid_slope"] == None
+    assert response.json()["upper_slope"] == None
 
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)

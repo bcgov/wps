@@ -165,12 +165,12 @@ async def get_fire_zone_tpi_stats(fire_zone_id: int, run_type: RunType, run_date
     logger.info("/fba/fire-zone-tpi-stats/")
     async with get_async_read_session_scope() as session:
         stats = await get_zonal_tpi_stats(session, fire_zone_id, run_type, run_datetime, for_date)
-        square_metres = math.pow(stats.pixel_size_metres, 2)
+        square_metres = math.pow(stats.pixel_size_metres, 2) if stats is not None else None
         return FireZoneTPIStats(
             fire_zone_id=fire_zone_id,
-            valley_bottom=stats.valley_bottom * square_metres,
-            mid_slope=stats.mid_slope * square_metres,
-            upper_slope=stats.upper_slope * square_metres,
+            valley_bottom=stats.valley_bottom * square_metres if stats is not None else None,
+            mid_slope=stats.mid_slope * square_metres if stats is not None else None,
+            upper_slope=stats.upper_slope * square_metres if stats is not None else None,
         )
 
 
