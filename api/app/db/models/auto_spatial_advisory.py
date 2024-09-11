@@ -64,6 +64,7 @@ class Shape(Base):
     combustible_area = Column(Float, nullable=True)
     geom = Column(Geometry("MULTIPOLYGON", spatial_index=False, srid=NAD83_BC_ALBERS), nullable=False)
     label = Column(String, nullable=True, index=False)
+    placename_label = Column(String, nullable=True, index=False)
     fire_centre = Column(Integer, ForeignKey(FireCentre.id), nullable=True, index=True)
 
 
@@ -211,6 +212,7 @@ class AdvisoryTPIStats(Base):
     upper_slope = Column(Integer, nullable=False, index=False)
     pixel_size_metres = Column(Integer, nullable=False, index=False)
 
+
 class CriticalHours(Base):
     """
     Critical hours for a fuel type in a firezone unit.
@@ -225,4 +227,3 @@ class CriticalHours(Base):
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     start_hour = Column(Integer, nullable=False)
     end_hour = Column(Integer, nullable=False)
-
