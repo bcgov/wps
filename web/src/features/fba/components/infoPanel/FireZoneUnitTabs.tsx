@@ -1,4 +1,4 @@
-import { selectFireCentreHFIFuelTypes, selectFireCentreTPIStats } from '@/app/rootReducer'
+import { selectFireCentreHFIFuelStats, selectFireCentreTPIStats } from '@/app/rootReducer'
 import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
 import { Box, Grid, Tab, Tabs, Tooltip } from '@mui/material'
 import { FireCenter, FireShape } from 'api/fbaAPI'
@@ -27,7 +27,7 @@ const FireZoneUnitTabs = ({
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
   const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
-  const { fireCentreHFIFuelStats } = useSelector(selectFireCentreHFIFuelTypes)
+  const { fireCentreHFIFuelStats } = useSelector(selectFireCentreHFIFuelStats)
   const [tabNumber, setTabNumber] = useState(0)
 
   const sortedGroupedFireZoneUnits = useFireCentreDetails(selectedFireCenter)

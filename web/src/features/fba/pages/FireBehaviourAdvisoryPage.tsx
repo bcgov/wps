@@ -177,6 +177,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             forDate={dateOfInterest}
             advisoryThreshold={ADVISORY_THRESHOLD}
             selectedFireCenter={fireCenter}
+            selectedFireZoneUnit={selectedFireShape}
           />
           <FireZoneUnitTabs
             selectedFireZoneUnit={selectedFireShape}
