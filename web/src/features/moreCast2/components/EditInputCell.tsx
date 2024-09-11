@@ -26,18 +26,16 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
   }, [hasFocus])
 
   const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = event.target.value // The new value entered by the user
+    const newValue = event.target.value
     apiRef.current.setEditCellValue({ id, field, value: newValue })
   }
 
   const handleBlur = () => {
-    // Commit the value when focus is lost
     apiRef.current.stopCellEditMode({ id, field })
   }
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {
-      // Just exit edit mode without reverting changes
       apiRef.current.stopCellEditMode({ id, field })
     }
   }
