@@ -1,6 +1,7 @@
 import { FireShapeAreaDetail } from '@/api/fbaAPI'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 import { AdvisoryStatus } from '@/utils/constants'
+import { isUndefined } from 'lodash'
 
 export const calculateStatusColour = (
   details: FireShapeAreaDetail[],
@@ -33,6 +34,10 @@ export const calculateStatusText = (
   details: FireShapeAreaDetail[],
   advisoryThreshold: number
 ): AdvisoryStatus | undefined => {
+  if (isUndefined(details) || details.length === 0) {
+    return undefined
+  }
+  
   const advisoryThresholdDetail = details.find(detail => detail.threshold == 1)
   const warningThresholdDetail = details.find(detail => detail.threshold == 2)
   const advisoryPercentage = advisoryThresholdDetail?.elevated_hfi_percentage ?? 0

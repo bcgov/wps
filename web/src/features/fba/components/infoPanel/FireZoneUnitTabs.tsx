@@ -1,13 +1,13 @@
-import { selectFireCentreHFIFuelTypes, selectFireCentreTPIStats } from '@/app/rootReducer'
+import { selectFireCentreHFIFuelStats, selectFireCentreTPIStats } from '@/app/rootReducer'
 import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
-import { Box, Grid, Tab, Tabs, Tooltip } from '@mui/material'
+import { Box, Grid, Tab, Tabs, Tooltip, Typography } from '@mui/material'
 import { FireCenter, FireShape } from 'api/fbaAPI'
 import { INFO_PANEL_CONTENT_BACKGROUND, theme } from 'app/theme'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import TabPanel from 'features/fba/components/infoPanel/TabPanel'
 import { useFireCentreDetails } from 'features/fba/hooks/useFireCentreDetails'
-import { isNull, isUndefined } from 'lodash'
+import { isEmpty, isNull, isUndefined } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 
@@ -27,7 +27,7 @@ const FireZoneUnitTabs = ({
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
   const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
-  const { fireCentreHFIFuelStats } = useSelector(selectFireCentreHFIFuelTypes)
+  const { fireCentreHFIFuelStats } = useSelector(selectFireCentreHFIFuelStats)
   const [tabNumber, setTabNumber] = useState(0)
 
   const sortedGroupedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
@@ -91,6 +91,11 @@ const FireZoneUnitTabs = ({
         title={selectedFireCenter.name}
         accordionDetailBackgroundColour={INFO_PANEL_CONTENT_BACKGROUND}
       >
+        {isEmpty(sortedGroupedFireZoneUnits) && (
+          <Typography sx={{ paddingLeft: '1rem', paddingTop: '1rem' }}>
+            No advisory data available for the selected date.
+          </Typography>
+        )}
         <Grid container justifyContent="center" minHeight={500}>
           <Grid item sx={{ width: '95%' }}>
             <Box>
