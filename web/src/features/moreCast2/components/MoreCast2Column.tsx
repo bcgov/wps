@@ -222,7 +222,18 @@ export const windDirForecastField = new IndeterminateField(
     return { ...params.props, error: hasError }
   }
 )
-export const windSpeedForecastField = new IndeterminateField('windSpeed', WIND_SPEED_HEADER, 'number', 0, true)
+export const windSpeedForecastField = new IndeterminateField(
+  'windSpeed',
+  WIND_SPEED_HEADER,
+  'number',
+  0,
+  true,
+  (params: GridPreProcessEditCellProps) => {
+    const hasError =
+      params.props.value < 0 || params.props.value > 360 ? 'Wind speed must be between 0 and 120 km/hr' : false
+    return { ...params.props, error: hasError }
+  }
+)
 export const precipForecastField = new IndeterminateField(
   'precip',
   PRECIP_HEADER,

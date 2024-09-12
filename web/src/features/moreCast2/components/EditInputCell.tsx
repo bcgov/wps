@@ -1,18 +1,8 @@
 import { GridRenderEditCellParams, useGridApiContext } from '@mui/x-data-grid-pro'
-import { styled } from '@mui/material/styles'
-import Tooltip, { tooltipClasses, TooltipProps } from '@mui/material/Tooltip'
+import Tooltip from '@mui/material/Tooltip'
 import React, { useRef, useEffect } from 'react'
 import { TextField } from '@mui/material'
 import { theme } from '@/app/theme'
-
-const StyledTooltip = styled(({ className, ...props }: TooltipProps) => (
-  <Tooltip {...props} classes={{ popper: className }} />
-))(({ theme }) => ({
-  [`& .${tooltipClasses.tooltip}`]: {
-    backgroundColor: theme.palette.error.main,
-    color: theme.palette.error.contrastText
-  }
-}))
 
 export const EditInputCell = (props: GridRenderEditCellParams) => {
   const { id, value, field, hasFocus, error } = props
@@ -36,12 +26,27 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {
-      apiRef.current.stopCellEditMode({ id, field })
+      event.stopPropagation()
+      if (!error) {
+        apiRef.current.stopCellEditMode({ id, field })
+      } else {
+        event.stopPropagation()
+      }
     }
   }
 
   return (
-    <StyledTooltip open={!!error} title={error}>
+    <Tooltip
+      title={error || ''}
+      open={!!error}
+      arrow
+      sx={{
+        '& .MuiTooltip-tooltip': {
+          backgroundColor: theme.palette.error.main,
+          color: theme.palette.error.contrastText
+        }
+      }}
+    >
       <TextField
         data-testid="forecast-edit-cell"
         type="number"
@@ -56,6 +61,13 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
             '& fieldset': {
               borderColor: error ? theme.palette.error.main : '#737373',
               borderWidth: '2px'
+            },
+            '&:hover fieldset': {
+              borderColor: error ? theme.palette.error.main : '#737373'
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: error ? theme.palette.error.main : '#737373',
+              borderWidth: '2px'
             }
           }
         }}
@@ -64,6 +76,6 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
       />
-    </StyledTooltip>
+    </Tooltip>
   )
 }
