@@ -68,7 +68,7 @@ export const selectFireCenters = (state: RootState) => state.fireCenters
 export const selectFireShapeAreas = (state: RootState) => state.fireShapeAreas
 export const selectRunDates = (state: RootState) => state.runDates
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
-export const selectFireCentreHFIFuelTypes = (state: RootState) => state.fireCentreHFIFuelStats
+export const selectFireCentreHFIFuelStats = (state: RootState) => state.fireCentreHFIFuelStats
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
 export const selectFireCentreTPIStats = (state: RootState) => state.fireCentreTPIStats
 export const selectHFIDailiesLoading = (state: RootState): boolean => state.hfiCalculatorDailies.fireCentresLoading
