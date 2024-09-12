@@ -99,14 +99,14 @@ const AdvisoryText = ({
         {issueDate?.isValid ? (
           <Typography data-testid="default-message">Please select a fire center.</Typography>
         ) : (
-          <Typography data-testid="no-data-message">No advisory data available for today.</Typography>
+          <Typography data-testid="no-data-message">No advisory data available for the selected date.</Typography>
         )}{' '}
       </>
     )
   }
 
   const renderAdvisoryText = () => {
-    const forToday = issueDate?.toISODate() === forDate.toISODate()
+    const forToday = forDate.toISODate() === DateTime.now().toISODate()
     const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
 
     const fireCenterSummary = provincialSummary[selectedFireCenter!.name]
@@ -133,7 +133,7 @@ const AdvisoryText = ({
         {!isUndefined(zoneStatus) && zoneStatus === AdvisoryStatus.WARNING && (
           <Typography data-testid="advisory-message-warning">{message}</Typography>
         )}
-        {!hasCriticalHours && (
+        {!hasCriticalHours && !isUndefined(zoneStatus) && (
           <Typography data-testid="advisory-message-no-critical-hours" sx={{ paddingTop: '1rem' }}>
             No critical hours available.
           </Typography>
