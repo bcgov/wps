@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { AdvisoryStatus } from 'utils/constants'
-import { isEmpty, isUndefined } from 'lodash'
+import { isEmpty, isNil, isUndefined, take } from 'lodash'
 import { calculateStatusText } from '@/features/fba/calculateZoneStatus'
 
 interface AdvisoryTextProps {
@@ -56,10 +56,7 @@ const AdvisoryText = ({
     const allZoneUnitFuelStats = fireCentreHFIFuelStats?.[selectedFireCenter.name]
     const selectedZoneUnitFuelStats = allZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? []
     const sortedFuelStats = [...selectedZoneUnitFuelStats].sort(sortByArea)
-    let topFuels: FireZoneFuelStats[] = []
-    for (let i = 0; i < 3 && i < sortedFuelStats.length; i++) {
-      topFuels.push(sortedFuelStats[i])
-    }
+    let topFuels = take(sortedFuelStats, 3)
     setSelectedFireZoneUnitTopFuels(topFuels)
   }, [fireCentreHFIFuelStats])
 
@@ -115,8 +112,7 @@ const AdvisoryText = ({
     const fireCenterSummary = provincialSummary[selectedFireCenter!.name]
     const fireZoneUnitInfos = fireCenterSummary?.filter(fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id)
     const zoneStatus = calculateStatusText(fireZoneUnitInfos, advisoryThreshold)
-    const hasCriticalHours =
-      !isUndefined(minStartTime) && !isUndefined(maxEndTime) && selectFireCentreHFIFuelStats.length > 0
+    const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime) && selectFireCentreHFIFuelStats.length > 0
     let message = ''
     if (hasCriticalHours) {
       message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00 for ${getTopFuelsString()}.`
