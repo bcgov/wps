@@ -3,6 +3,7 @@ import Tooltip from '@mui/material/Tooltip'
 import React, { useRef, useEffect } from 'react'
 import { TextField } from '@mui/material'
 import { theme } from '@/app/theme'
+import { isEmpty } from 'lodash'
 
 export const EditInputCell = (props: GridRenderEditCellParams) => {
   const { id, value, field, hasFocus, error } = props
@@ -27,7 +28,7 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {
       event.stopPropagation()
-      if (!error) {
+      if (isEmpty(error)) {
         apiRef.current.stopCellEditMode({ id, field })
       } else {
         event.stopPropagation()
@@ -37,8 +38,9 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
 
   return (
     <Tooltip
+      data-testid="validation-tooltip"
       title={error || ''}
-      open={!!error}
+      open={!isEmpty(error)}
       arrow
       sx={{
         '& .MuiTooltip-tooltip': {
