@@ -1,8 +1,10 @@
 import { render, fireEvent, within } from '@testing-library/react'
+import { useDispatch } from 'react-redux'
 import { GridApiContext, GridCellMode, GridTreeNodeWithRender } from '@mui/x-data-grid-pro'
 import { EditInputCell } from '@/features/moreCast2/components/EditInputCell'
 import { vi } from 'vitest'
 import { GridApiCommunity, GridStateColDef } from '@mui/x-data-grid-pro/internals'
+import { setInputValid } from '@/features/moreCast2/slices/validInputSlice'
 
 const mockSetEditCellValue = vi.fn()
 const mockStopCellEditMode = vi.fn()
@@ -30,7 +32,23 @@ const defaultProps = {
   error: ''
 }
 
-describe('EditInputCell Component', () => {
+// Mock the useDispatch hook
+vi.mock('react-redux', () => ({
+  useDispatch: vi.fn()
+}))
+
+// Mock the setInputValid action creator
+vi.mock('@/features/moreCast2/slices/validInputSlice', () => ({
+  setInputValid: vi.fn().mockReturnValue({ type: 'mock/setInputValid' })
+}))
+const mockDispatch = vi.fn()
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  ;(useDispatch as jest.Mock).mockReturnValue(mockDispatch)
+})
+
+describe('EditInputCell', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -113,5 +131,33 @@ describe('EditInputCell Component', () => {
     const tooltip = getByRole('tooltip')
     expect(tooltip).toBeVisible()
     expect(tooltip).toHaveTextContent('Test error')
+  })
+
+  describe('Dispatch Mocking and Actions', () => {
+    describe('when there is no error', () => {
+      test('should call dispatch with setInputValid action on render', () => {
+        render(
+          <GridApiContext.Provider value={{ current: {} as any }}>
+            <EditInputCell {...defaultProps} />
+          </GridApiContext.Provider>
+        )
+
+        // Check that dispatch was called with the correct action
+        expect(mockDispatch).toHaveBeenCalledWith(setInputValid(true))
+      })
+    })
+
+    describe('when there is an error', () => {
+      test('should call dispatch with setInputValid action with false when error is present', () => {
+        render(
+          <GridApiContext.Provider value={{ current: {} as any }}>
+            <EditInputCell {...defaultProps} error="Test error" />
+          </GridApiContext.Provider>
+        )
+
+        // Check that dispatch was called with the correct action
+        expect(mockDispatch).toHaveBeenCalledWith(setInputValid(false))
+      })
+    })
   })
 })
