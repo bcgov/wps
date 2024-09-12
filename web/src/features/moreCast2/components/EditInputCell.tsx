@@ -41,7 +41,7 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
   }
 
   return (
-    <StyledTooltip open={!!error} title={'Wrong value'}>
+    <StyledTooltip open={!!error} title={error}>
       <TextField
         data-testid="forecast-edit-cell"
         type="number"

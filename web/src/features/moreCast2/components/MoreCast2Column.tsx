@@ -194,7 +194,8 @@ export const tempForecastField = new IndeterminateField(
   0,
   true,
   (params: GridPreProcessEditCellProps) => {
-    const hasError = params.props.value < -60 || params.props.value > 60
+    const hasError =
+      params.props.value < -60 || params.props.value > 60 ? 'Temp must be between -60 and 60 degrees C' : false
     return { ...params.props, error: hasError }
   }
 )
@@ -205,7 +206,7 @@ export const rhForecastField = new IndeterminateField(
   0,
   true,
   (params: GridPreProcessEditCellProps) => {
-    const hasError = params.props.value < 0 || params.props.value > 100
+    const hasError = params.props.value < 0 || params.props.value > 100 ? 'RH must be between 0 and 100' : false
     return { ...params.props, error: hasError }
   }
 )
@@ -216,7 +217,8 @@ export const windDirForecastField = new IndeterminateField(
   0,
   true,
   (params: GridPreProcessEditCellProps) => {
-    const hasError = params.props.value < 0 || params.props.value > 360
+    const hasError =
+      params.props.value < 0 || params.props.value > 360 ? 'Wind direction must be between 0 and 360 degrees' : false
     return { ...params.props, error: hasError }
   }
 )
@@ -228,7 +230,8 @@ export const precipForecastField = new IndeterminateField(
   1,
   true,
   (params: GridPreProcessEditCellProps) => {
-    const hasError = params.props.value < 0.0 || params.props.value > 200.0
+    const hasError =
+      params.props.value < 0.0 || params.props.value > 200.0 ? 'Precip must be between 0 and 200 mm' : false
     return { ...params.props, error: hasError }
   }
 )
