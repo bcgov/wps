@@ -229,7 +229,7 @@ export const windSpeedForecastField = new IndeterminateField(
   true,
   (params: GridPreProcessEditCellProps) => {
     const error =
-      params.props.value < 0 || params.props.value > 360 ? 'Wind speed must be between 0 and 120 degrees' : ''
+      params.props.value < 0 || params.props.value > 120 ? 'Wind speed must be between 0 and 120 degrees' : ''
     return { ...params.props, error }
   }
 )

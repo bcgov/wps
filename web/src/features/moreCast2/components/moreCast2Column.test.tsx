@@ -1,4 +1,4 @@
-import { GridValueFormatterParams } from '@mui/x-data-grid-pro'
+import { GridPreProcessEditCellProps, GridValueFormatterParams } from '@mui/x-data-grid-pro'
 import { DEFAULT_COLUMN_WIDTH } from 'features/moreCast2/components/ColumnDefBuilder'
 import {
   StationForecastField,
@@ -68,6 +68,49 @@ describe('MoreCast2Column', () => {
         })
       )
     })
+    it('should have correct validation logic', () => {
+      expect(
+        tempForecastField.preProcessEditCellProps &&
+          tempForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: 61
+            }
+          })
+      ).toEqual({
+        value: 61,
+        error: 'Temp must be between -60 and 60 degrees C'
+      })
+
+      expect(
+        tempForecastField.preProcessEditCellProps &&
+          tempForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: -61
+            }
+          })
+      ).toEqual({
+        value: -61,
+        error: 'Temp must be between -60 and 60 degrees C'
+      })
+
+      expect(
+        tempForecastField.preProcessEditCellProps &&
+          tempForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: 0
+            }
+          })
+      ).toEqual({
+        value: 0,
+        error: ''
+      })
+    })
   })
   describe('RHForecastField', () => {
     it('should have the desired configuration', () => {
@@ -85,6 +128,49 @@ describe('MoreCast2Column', () => {
           width: DEFAULT_COLUMN_WIDTH
         })
       )
+    })
+    it('should have correct validation logic', () => {
+      expect(
+        rhForecastField.preProcessEditCellProps &&
+          rhForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: 101
+            }
+          })
+      ).toEqual({
+        value: 101,
+        error: 'RH must be between 0 and 100'
+      })
+
+      expect(
+        rhForecastField.preProcessEditCellProps &&
+          rhForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: -1
+            }
+          })
+      ).toEqual({
+        value: -1,
+        error: 'RH must be between 0 and 100'
+      })
+
+      expect(
+        rhForecastField.preProcessEditCellProps &&
+          rhForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: 0
+            }
+          })
+      ).toEqual({
+        value: 0,
+        error: ''
+      })
     })
   })
   describe('WindDirForecastField', () => {
@@ -104,6 +190,49 @@ describe('MoreCast2Column', () => {
         })
       )
     })
+    it('should have correct validation logic', () => {
+      expect(
+        windDirForecastField.preProcessEditCellProps &&
+          windDirForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: 361
+            }
+          })
+      ).toEqual({
+        value: 361,
+        error: 'Wind direction must be between 0 and 360 degrees'
+      })
+
+      expect(
+        windDirForecastField.preProcessEditCellProps &&
+          windDirForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: -1
+            }
+          })
+      ).toEqual({
+        value: -1,
+        error: 'Wind direction must be between 0 and 360 degrees'
+      })
+
+      expect(
+        windDirForecastField.preProcessEditCellProps &&
+          windDirForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: 0
+            }
+          })
+      ).toEqual({
+        value: 0,
+        error: ''
+      })
+    })
   })
   describe('WindSpeedForecastField', () => {
     it('should have the desired configuration', () => {
@@ -122,6 +251,49 @@ describe('MoreCast2Column', () => {
         })
       )
     })
+    it('should have correct validation logic', () => {
+      expect(
+        windSpeedForecastField.preProcessEditCellProps &&
+          windSpeedForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: 121
+            }
+          })
+      ).toEqual({
+        value: 121,
+        error: 'Wind speed must be between 0 and 120 degrees'
+      })
+
+      expect(
+        windSpeedForecastField.preProcessEditCellProps &&
+          windSpeedForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: -1
+            }
+          })
+      ).toEqual({
+        value: -1,
+        error: 'Wind speed must be between 0 and 120 degrees'
+      })
+
+      expect(
+        windSpeedForecastField.preProcessEditCellProps &&
+          windSpeedForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: 0
+            }
+          })
+      ).toEqual({
+        value: 0,
+        error: ''
+      })
+    })
   })
   describe('PrecipForecastField', () => {
     it('should have the desired configuration', () => {
@@ -139,6 +311,49 @@ describe('MoreCast2Column', () => {
           width: DEFAULT_COLUMN_WIDTH
         })
       )
+    })
+    it('should have correct validation logic', () => {
+      expect(
+        precipForecastField.preProcessEditCellProps &&
+          precipForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: 201
+            }
+          })
+      ).toEqual({
+        value: 201,
+        error: 'Precip must be between 0 and 200 mm'
+      })
+
+      expect(
+        precipForecastField.preProcessEditCellProps &&
+          precipForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: -1
+            }
+          })
+      ).toEqual({
+        value: -1,
+        error: 'Precip must be between 0 and 200 mm'
+      })
+
+      expect(
+        precipForecastField.preProcessEditCellProps &&
+          precipForecastField.preProcessEditCellProps({
+            id: '',
+            row: undefined,
+            props: {
+              value: 0
+            }
+          })
+      ).toEqual({
+        value: 0,
+        error: ''
+      })
     })
   })
 })
