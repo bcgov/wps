@@ -45,7 +45,7 @@ const mockDispatch = vi.fn()
 
 beforeEach(() => {
   vi.clearAllMocks()
-  (useDispatch as jest.Mock).mockReturnValue(mockDispatch)
+  ;(useDispatch as jest.Mock).mockReturnValue(mockDispatch)
 })
 
 describe('EditInputCell', () => {
