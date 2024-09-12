@@ -80,7 +80,7 @@ describe('MoreCast2Column', () => {
           })
       ).toEqual({
         value: 61,
-        error: 'Temp must be between -60 and 60 degrees C'
+        error: 'Temp must be between -60°C and 60°C'
       })
 
       expect(
@@ -94,7 +94,7 @@ describe('MoreCast2Column', () => {
           })
       ).toEqual({
         value: -61,
-        error: 'Temp must be between -60 and 60 degrees C'
+        error: 'Temp must be between -60°C and 60°C'
       })
 
       expect(
@@ -263,7 +263,7 @@ describe('MoreCast2Column', () => {
           })
       ).toEqual({
         value: 121,
-        error: 'Wind speed must be between 0 and 120 degrees'
+        error: 'Wind speed must be between 0 and 120 kph'
       })
 
       expect(
@@ -277,7 +277,7 @@ describe('MoreCast2Column', () => {
           })
       ).toEqual({
         value: -1,
-        error: 'Wind speed must be between 0 and 120 degrees'
+        error: 'Wind speed must be between 0 and 120 kph'
       })
 
       expect(
