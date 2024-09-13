@@ -129,10 +129,10 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       sortable: false,
       type: 'number',
       width: width ?? DEFAULT_COLUMN_WIDTH,
-      cellClassName: (params: Pick<GridCellParams, 'field'>) => {
+      cellClassName: (params: Pick<GridCellParams, 'colDef' | 'field'>) => {
         return modelColorClass(params)
       },
-      headerClassName: (params: Pick<GridColumnHeaderParams, 'field'>) => {
+      headerClassName: (params: Pick<GridColumnHeaderParams, 'colDef' | 'field'>) => {
         return modelHeaderColorClass(params)
       },
       renderCell: (params: Pick<GridRenderCellParams, 'formattedValue'>) => {
