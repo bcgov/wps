@@ -252,8 +252,20 @@ objects:
       name: ${APP_NAME}-${SUFFIX}-nats-consumer
       labels:
         app: ${APP_NAME}-${SUFFIX}
+        annotations:
+              image.openshift.io/triggers: |-
+      [
+        {
+          "from": {
+            "kind": "ImageStreamTag",
+            "name": ${IMAGE_NAME}:${IMAGE_TAG},
+            "namespace": ${PROJ_TOOLS}
+          },
+          "fieldPath": "spec.template.spec.containers[0].image"
+        }
+      ]
     spec:
-      replicas: 2
+      replicas: 3
       selector:
         matchLabels:
           app: ${APP_NAME}-${SUFFIX}
