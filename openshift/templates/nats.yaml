@@ -253,7 +253,7 @@ objects:
       labels:
         app: ${APP_NAME}-${SUFFIX}
     spec:
-      replicas: 3
+      replicas: 2
       selector:
         matchLabels:
           app: ${APP_NAME}-${SUFFIX}
