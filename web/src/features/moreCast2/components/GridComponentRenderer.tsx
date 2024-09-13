@@ -92,7 +92,11 @@ export class GridComponentRenderer {
     } else return isNaN(value) ? noDataField : Number(value).toFixed(precision)
   }
 
-  public renderForecastCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>, field: string) => {
+  public renderForecastCellWith = (
+    params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>,
+    field: string,
+    validator?: (value: string) => string
+  ) => {
     // If a single cell in a row contains an Actual, no Forecast will be entered into the row anymore, so we can disable the whole row.
     const isActual = rowContainsActual(params.row)
     // We can disable a cell if an Actual exists or the forDate is before today.
@@ -140,6 +144,7 @@ export class GridComponentRenderer {
           showGreaterThan={showGreaterThan}
           showLessThan={showLessThan}
           value={params.formattedValue}
+          validator={validator}
         />
       )
     }

@@ -137,9 +137,7 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
     readonly type: 'string' | 'number',
     readonly precision: number,
     readonly includeBias: boolean,
-    readonly preProcessEditCellProps?: (
-      params: GridPreProcessEditCellProps
-    ) => GridEditCellProps | Promise<GridEditCellProps>
+    readonly validator?: (value: string) => string
   ) {
     this.colDefBuilder = new ColumnDefBuilder(
       this.field,
@@ -158,23 +156,17 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
       ...this.colDefBuilder.generateForecastColDef(
         columnClickHandlerProps,
         headerName ?? this.headerName,
-        this.preProcessEditCellProps
+        this.validator
       )
     }
   }
 
   public generateForecastSummaryColDef = (columnClickHandlerProps: ColumnClickHandlerProps) => {
-    return this.colDefBuilder.generateForecastColDef(columnClickHandlerProps, undefined, this.preProcessEditCellProps)
+    return this.colDefBuilder.generateForecastColDef(columnClickHandlerProps, undefined, this.validator)
   }
 
   public generateColDef = () => {
-    return this.colDefBuilder.generateColDefWith(
-      this.field,
-      this.headerName,
-      this.precision,
-      undefined,
-      this.preProcessEditCellProps
-    )
+    return this.colDefBuilder.generateColDefWith(this.field, this.headerName, this.precision, undefined, this.validator)
   }
 
   public generateColDefs = (columnClickHandlerProps: ColumnClickHandlerProps, headerName?: string) => {
@@ -182,54 +174,36 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
       columnClickHandlerProps,
       headerName ?? this.headerName,
       this.includeBias,
-      this.preProcessEditCellProps
+      this.validator
     )
   }
 }
 
-export const tempForecastField = new IndeterminateField(
-  'temp',
-  TEMP_HEADER,
-  'number',
-  0,
-  true,
-  (params: GridPreProcessEditCellProps) => {
-    const error = params.props.value < -60 || params.props.value > 60 ? 'Temp must be between -60°C and 60°C' : ''
-    return { ...params.props, error }
-  }
-)
-export const rhForecastField = new IndeterminateField(
-  'rh',
-  RH_HEADER,
-  'number',
-  0,
-  true,
-  (params: GridPreProcessEditCellProps) => {
-    const error = params.props.value < 0 || params.props.value > 100 ? 'RH must be between 0 and 100' : ''
-    return { ...params.props, error }
-  }
-)
+export const tempForecastField = new IndeterminateField('temp', TEMP_HEADER, 'number', 0, true, (value: string) => {
+  return Number(value) < -60 || Number(value) > 60 ? 'Temp must be between -60°C and 60°C' : ''
+})
 export const windDirForecastField = new IndeterminateField(
   'windDirection',
   WIND_DIR_HEADER,
   'number',
   0,
   true,
-  (params: GridPreProcessEditCellProps) => {
-    const error =
-      params.props.value < 0 || params.props.value > 360 ? 'Wind direction must be between 0 and 360 degrees' : ''
-    return { ...params.props, error }
+  (value: string) => {
+    return Number(value) < 0 || Number(value) > 360 ? 'Wind direction must be between 0 and 360 degrees' : ''
   }
 )
+
+export const rhForecastField = new IndeterminateField('rh', RH_HEADER, 'number', 0, true, (value: string) => {
+  return Number(value) < 0 || Number(value) > 100 ? 'RH must be between 0 and 100' : ''
+})
 export const windSpeedForecastField = new IndeterminateField(
   'windSpeed',
   WIND_SPEED_HEADER,
   'number',
   0,
   true,
-  (params: GridPreProcessEditCellProps) => {
-    const error = params.props.value < 0 || params.props.value > 120 ? 'Wind speed must be between 0 and 120 kph' : ''
-    return { ...params.props, error }
+  (value: string) => {
+    return Number(value) < 0 || Number(value) > 120 ? 'Wind speed must be between 0 and 120 kph' : ''
   }
 )
 export const precipForecastField = new IndeterminateField(
@@ -238,9 +212,8 @@ export const precipForecastField = new IndeterminateField(
   'number',
   1,
   true,
-  (params: GridPreProcessEditCellProps) => {
-    const error = params.props.value < 0.0 || params.props.value > 200.0 ? 'Precip must be between 0 and 200 mm' : ''
-    return { ...params.props, error }
+  (value: string) => {
+    return Number(value) < 0.0 || Number(value) > 200.0 ? 'Precip must be between 0 and 200 mm' : ''
   }
 )
 export const gcForecastField = new IndeterminateField('grassCuring', GC_HEADER, 'number', 0, false)

@@ -69,47 +69,15 @@ describe('MoreCast2Column', () => {
       )
     })
     it('should have correct validation logic', () => {
-      expect(
-        tempForecastField.preProcessEditCellProps &&
-          tempForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: 61
-            }
-          })
-      ).toEqual({
-        value: 61,
-        error: 'Temp must be between -60°C and 60°C'
-      })
+      expect(tempForecastField.validator && tempForecastField.validator('61')).toEqual(
+        'Temp must be between -60°C and 60°C'
+      )
 
-      expect(
-        tempForecastField.preProcessEditCellProps &&
-          tempForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: -61
-            }
-          })
-      ).toEqual({
-        value: -61,
-        error: 'Temp must be between -60°C and 60°C'
-      })
+      expect(tempForecastField.validator && tempForecastField.validator('-61')).toEqual(
+        'Temp must be between -60°C and 60°C'
+      )
 
-      expect(
-        tempForecastField.preProcessEditCellProps &&
-          tempForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: 0
-            }
-          })
-      ).toEqual({
-        value: 0,
-        error: ''
-      })
+      expect(tempForecastField.validator && tempForecastField.validator('0')).toEqual('')
     })
   })
   describe('RHForecastField', () => {
@@ -130,47 +98,11 @@ describe('MoreCast2Column', () => {
       )
     })
     it('should have correct validation logic', () => {
-      expect(
-        rhForecastField.preProcessEditCellProps &&
-          rhForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: 101
-            }
-          })
-      ).toEqual({
-        value: 101,
-        error: 'RH must be between 0 and 100'
-      })
+      expect(rhForecastField.validator && rhForecastField.validator('101')).toEqual('RH must be between 0 and 100')
 
-      expect(
-        rhForecastField.preProcessEditCellProps &&
-          rhForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: -1
-            }
-          })
-      ).toEqual({
-        value: -1,
-        error: 'RH must be between 0 and 100'
-      })
+      expect(rhForecastField.validator && rhForecastField.validator('-1')).toEqual('RH must be between 0 and 100')
 
-      expect(
-        rhForecastField.preProcessEditCellProps &&
-          rhForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: 0
-            }
-          })
-      ).toEqual({
-        value: 0,
-        error: ''
-      })
+      expect(rhForecastField.validator && rhForecastField.validator('0')).toEqual('')
     })
   })
   describe('WindDirForecastField', () => {
@@ -191,47 +123,15 @@ describe('MoreCast2Column', () => {
       )
     })
     it('should have correct validation logic', () => {
-      expect(
-        windDirForecastField.preProcessEditCellProps &&
-          windDirForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: 361
-            }
-          })
-      ).toEqual({
-        value: 361,
-        error: 'Wind direction must be between 0 and 360 degrees'
-      })
+      expect(windDirForecastField.validator && windDirForecastField.validator('361')).toEqual(
+        'Wind direction must be between 0 and 360 degrees'
+      )
 
-      expect(
-        windDirForecastField.preProcessEditCellProps &&
-          windDirForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: -1
-            }
-          })
-      ).toEqual({
-        value: -1,
-        error: 'Wind direction must be between 0 and 360 degrees'
-      })
+      expect(windDirForecastField.validator && windDirForecastField.validator('-1')).toEqual(
+        'Wind direction must be between 0 and 360 degrees'
+      )
 
-      expect(
-        windDirForecastField.preProcessEditCellProps &&
-          windDirForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: 0
-            }
-          })
-      ).toEqual({
-        value: 0,
-        error: ''
-      })
+      expect(windDirForecastField.validator && windDirForecastField.validator('0')).toEqual('')
     })
   })
   describe('WindSpeedForecastField', () => {
@@ -252,47 +152,15 @@ describe('MoreCast2Column', () => {
       )
     })
     it('should have correct validation logic', () => {
-      expect(
-        windSpeedForecastField.preProcessEditCellProps &&
-          windSpeedForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: 121
-            }
-          })
-      ).toEqual({
-        value: 121,
-        error: 'Wind speed must be between 0 and 120 kph'
-      })
+      expect(windSpeedForecastField.validator && windSpeedForecastField.validator('121')).toEqual(
+        'Wind speed must be between 0 and 120 kph'
+      )
 
-      expect(
-        windSpeedForecastField.preProcessEditCellProps &&
-          windSpeedForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: -1
-            }
-          })
-      ).toEqual({
-        value: -1,
-        error: 'Wind speed must be between 0 and 120 kph'
-      })
+      expect(windSpeedForecastField.validator && windSpeedForecastField.validator('-1')).toEqual(
+        'Wind speed must be between 0 and 120 kph'
+      )
 
-      expect(
-        windSpeedForecastField.preProcessEditCellProps &&
-          windSpeedForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: 0
-            }
-          })
-      ).toEqual({
-        value: 0,
-        error: ''
-      })
+      expect(windSpeedForecastField.validator && windSpeedForecastField.validator('0')).toEqual('')
     })
   })
   describe('PrecipForecastField', () => {
@@ -313,47 +181,15 @@ describe('MoreCast2Column', () => {
       )
     })
     it('should have correct validation logic', () => {
-      expect(
-        precipForecastField.preProcessEditCellProps &&
-          precipForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: 201
-            }
-          })
-      ).toEqual({
-        value: 201,
-        error: 'Precip must be between 0 and 200 mm'
-      })
+      expect(precipForecastField.validator && precipForecastField.validator('201')).toEqual(
+        'Precip must be between 0 and 200 mm'
+      )
 
-      expect(
-        precipForecastField.preProcessEditCellProps &&
-          precipForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: -1
-            }
-          })
-      ).toEqual({
-        value: -1,
-        error: 'Precip must be between 0 and 200 mm'
-      })
+      expect(precipForecastField.validator && precipForecastField.validator('-1')).toEqual(
+        'Precip must be between 0 and 200 mm'
+      )
 
-      expect(
-        precipForecastField.preProcessEditCellProps &&
-          precipForecastField.preProcessEditCellProps({
-            id: '',
-            row: undefined,
-            props: {
-              value: 0
-            }
-          })
-      ).toEqual({
-        value: 0,
-        error: ''
-      })
+      expect(precipForecastField.validator && precipForecastField.validator('0')).toEqual('')
     })
   })
 })

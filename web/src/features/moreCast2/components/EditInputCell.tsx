@@ -1,5 +1,4 @@
 import { GridRenderEditCellParams, useGridApiContext } from '@mui/x-data-grid-pro'
-import Tooltip from '@mui/material/Tooltip'
 import React, { useRef, useEffect } from 'react'
 import { TextField } from '@mui/material'
 import { theme } from '@/app/theme'
@@ -7,6 +6,7 @@ import { isEmpty } from 'lodash'
 import { AppDispatch } from '@/app/store'
 import { useDispatch } from 'react-redux'
 import { setInputValid } from '@/features/moreCast2/slices/validInputSlice'
+import InvalidCellToolTip from '@/features/moreCast2/components/InvalidCellToolTip'
 
 export const EditInputCell = (props: GridRenderEditCellParams) => {
   const { id, value, field, hasFocus, error } = props
@@ -43,18 +43,7 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
   }
 
   return (
-    <Tooltip
-      data-testid="validation-tooltip"
-      title={error || ''}
-      open={!isEmpty(error)}
-      arrow
-      sx={{
-        '& .MuiTooltip-tooltip': {
-          backgroundColor: theme.palette.error.main,
-          color: theme.palette.error.contrastText
-        }
-      }}
-    >
+    <InvalidCellToolTip error={error}>
       <TextField
         data-testid="forecast-edit-cell"
         type="number"
@@ -84,6 +73,6 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
       />
-    </Tooltip>
+    </InvalidCellToolTip>
   )
 }

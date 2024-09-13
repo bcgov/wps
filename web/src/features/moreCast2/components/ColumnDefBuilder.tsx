@@ -3,7 +3,6 @@ import {
   GridCellParams,
   GridColDef,
   GridColumnHeaderParams,
-  GridEditCellProps,
   GridPreProcessEditCellProps,
   GridRenderCellParams,
   GridRenderEditCellParams,
@@ -51,11 +50,11 @@ export interface ForecastColDefGenerator {
   generateForecastColDef: (
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
-    preProcessEditCellProps?: (params: GridPreProcessEditCellProps) => GridEditCellProps | Promise<GridEditCellProps>
+    validator?: (value: string) => string
   ) => GridColDef
   generateForecastSummaryColDef: (
     columnClickHandlerProps: ColumnClickHandlerProps,
-    preProcessEditCellProps?: (params: GridPreProcessEditCellProps) => GridEditCellProps | Promise<GridEditCellProps>
+    validator?: (value: string) => string
   ) => GridColDef
 }
 
@@ -64,13 +63,13 @@ export interface ColDefGenerator {
   generateColDef: (
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
-    preProcessEditCellProps?: (params: GridPreProcessEditCellProps) => GridEditCellProps | Promise<GridEditCellProps>
+    validator?: (value: string) => string
   ) => GridColDef
   generateColDefs: (
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
     includeBiasFields?: boolean,
-    preProcessEditCellProps?: (params: GridPreProcessEditCellProps) => GridEditCellProps | Promise<GridEditCellProps>
+    validator?: (value: string) => string
   ) => GridColDef[]
 }
 
@@ -96,7 +95,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
   public generateForecastColDef = (
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
-    preProcessEditCellProps?: (params: GridPreProcessEditCellProps) => GridEditCellProps | Promise<GridEditCellProps>
+    validator?: (value: string) => string
   ) => {
     return this.generateForecastColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
@@ -104,13 +103,13 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       this.precision,
       columnClickHandlerProps,
       DEFAULT_FORECAST_COLUMN_WIDTH,
-      preProcessEditCellProps
+      validator
     )
   }
 
   public generateForecastSummaryColDef = (
     columnClickHandlerProps: ColumnClickHandlerProps,
-    preProcessEditCellProps?: (params: GridPreProcessEditCellProps) => GridEditCellProps | Promise<GridEditCellProps>
+    validator?: (value: string) => string
   ) => {
     return this.generateForecastSummaryColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
@@ -118,7 +117,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       this.precision,
       columnClickHandlerProps,
       DEFAULT_FORECAST_SUMMARY_COLUMN_WIDTH,
-      preProcessEditCellProps
+      validator
     )
   }
 
@@ -126,11 +125,11 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
     includeBiasFields = true,
-    preProcessEditCellProps?: (params: GridPreProcessEditCellProps) => GridEditCellProps | Promise<GridEditCellProps>
+    validator?: (value: string) => string
   ) => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDef(columnClickHandlerProps, headerName, preProcessEditCellProps)
+    const forecastColDef = this.generateForecastColDef(columnClickHandlerProps, headerName, validator)
     gridColDefs.push(forecastColDef)
 
     for (const colDef of this.generateNonForecastColDefs(includeBiasFields)) {
@@ -154,7 +153,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     headerName: string,
     precision: number,
     width?: number,
-    preProcessEditCellProps?: (params: GridPreProcessEditCellProps) => GridEditCellProps | Promise<GridEditCellProps>
+    validator?: (value: string) => string
   ) => {
     return {
       field,
@@ -166,7 +165,9 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       type: 'number',
       width: width ?? DEFAULT_COLUMN_WIDTH,
       renderEditCell: this.renderEditCell,
-      preProcessEditCellProps,
+      preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
+        return { ...params.props, error: validator ? validator(params.props.value) : '' }
+      },
       cellClassName: (params: Pick<GridCellParams, 'field'>) => {
         return modelColorClass(params)
       },
@@ -193,7 +194,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     precision: number,
     columnClickHandlerProps: ColumnClickHandlerProps,
     width?: number,
-    preProcessEditCellProps?: (params: GridPreProcessEditCellProps) => GridEditCellProps | Promise<GridEditCellProps>
+    validator?: (value: string) => string
   ) => {
     const isGrassField = field.includes('grass')
     const isCalcField = field.includes('Calc')
@@ -211,7 +212,9 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       type: 'number',
       width: width ?? DEFAULT_FORECAST_COLUMN_WIDTH,
       renderEditCell: this.renderEditCell,
-      preProcessEditCellProps,
+      preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
+        return { ...params.props, error: validator ? validator(params.props.value) : '' }
+      },
       renderHeader: (params: GridColumnHeaderParams) => {
         return isCalcField || isGrassField
           ? this.gridComponentRenderer.renderHeaderWith(params)
@@ -220,7 +223,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       renderCell: (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>) => {
         return isCalcField
           ? this.gridComponentRenderer.renderCellWith(params)
-          : this.gridComponentRenderer.renderForecastCellWith(params, field)
+          : this.gridComponentRenderer.renderForecastCellWith(params, field, validator)
       },
       valueFormatter: (params: Pick<GridValueFormatterParams, 'value'>) => {
         return this.valueFormatterWith(params, precision)
@@ -238,7 +241,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     precision: number,
     columnClickHandlerProps: ColumnClickHandlerProps,
     width?: number,
-    preProcessEditCellProps?: (params: GridPreProcessEditCellProps) => GridEditCellProps | Promise<GridEditCellProps>
+    validator?: (value: string) => string
   ) => {
     const isGrassField = field.includes('grass')
     const isCalcField = field.includes('Calc')
@@ -255,7 +258,9 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       sortable: false,
       type: 'number',
       width: width ?? DEFAULT_FORECAST_SUMMARY_COLUMN_WIDTH,
-      preProcessEditCellProps,
+      preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
+        return { ...params.props, error: validator ? validator(params.props.value) : '' }
+      },
       renderEditCell: this.renderEditCell,
       renderHeader: (params: GridColumnHeaderParams) => {
         return isCalcField || isGrassField
