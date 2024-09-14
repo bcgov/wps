@@ -6984,14 +6984,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ol-pmtiles@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "ol-pmtiles@npm:0.5.0"
+"ol-pmtiles@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "ol-pmtiles@npm:1.0.0"
   dependencies:
-    pmtiles: "npm:^3.0.4"
+    pmtiles: "npm:^3.0.7"
   peerDependencies:
     ol: ">=9.0.0"
-  checksum: 10c0/f7b23ecd3a5f5f0fabe908c24ac99038b8d5e82b9bd221177255c77f99aaa880f6c86034be642f01da7ab6c1987298bd3a6d0098eae402c20d364f63cd3b123c
+  checksum: 10c0/ce5828bf7c21a3c424154f187c29e7c68c6d11d9f2900148745d8981fc26021eba94421d7573362d27181ad3d91486845686f5a6feca8e30e7ce072d30846552
   languageName: node
   linkType: hard
 
@@ -7320,7 +7320,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pmtiles@npm:^3.0.4":
+"pmtiles@npm:^3.0.7":
   version: 3.0.7
   resolution: "pmtiles@npm:3.0.7"
   dependencies:
@@ -9551,7 +9551,7 @@ __metadata:
     match-sorter: "npm:^6.3.1"
     nyc: "npm:^17.0.0"
     ol: "npm:10.0.0"
-    ol-pmtiles: "npm:^0.5.0"
+    ol-pmtiles: "npm:^1.0.0"
     prettier: "npm:^3.3.3"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
