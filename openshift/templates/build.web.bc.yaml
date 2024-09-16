@@ -36,9 +36,6 @@ parameters:
   - name: SENTRY_AUTH_TOKEN
     description: Sentry auth token for uploading source maps
     required: true
-  - name: ARTIFACTORY_SVCACCT_TOKEN
-    description: Arctifactory service account token
-    required: true
 objects:
   - apiVersion: v1
     kind: ImageStream
@@ -85,7 +82,5 @@ objects:
           env:
             - name: "SENTRY_AUTH_TOKEN"
               value: ${SENTRY_AUTH_TOKEN}
-            - name: "ARTIFACTORY_SVCACCT_TOKEN"
-              value: ${ARTIFACTORY_SVCACCT_TOKEN}
           dockerfilePath: ${DOCKER_FILE}
       triggers: []
