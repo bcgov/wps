@@ -216,7 +216,9 @@ export const precipForecastField = new IndeterminateField(
     return Number(value) < 0.0 || Number(value) > 200.0 ? 'Precip must be between 0 and 200 mm' : ''
   }
 )
-export const gcForecastField = new IndeterminateField('grassCuring', GC_HEADER, 'number', 0, false)
+export const gcForecastField = new IndeterminateField('grassCuring', GC_HEADER, 'number', 0, false, (value: string) => {
+  return Number(value) < 0 || Number(value) > 100 ? 'Grass curing must be between 0 and 100' : ''
+})
 
 export const buiField = new IndeterminateField('buiCalc', 'BUI', 'number', 0, false)
 export const isiField = new IndeterminateField('isiCalc', 'ISI', 'number', 1, false)

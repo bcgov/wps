@@ -7,7 +7,8 @@ import {
   rhForecastField,
   windDirForecastField,
   windSpeedForecastField,
-  precipForecastField
+  precipForecastField,
+  gcForecastField
 } from 'features/moreCast2/components/MoreCast2Column'
 import { DateTime } from 'luxon'
 
@@ -190,6 +191,19 @@ describe('MoreCast2Column', () => {
       )
 
       expect(precipForecastField.validator && precipForecastField.validator('0')).toEqual('')
+    })
+  })
+  describe('GrassCuringForecastField', () => {
+    it('should have correct validation logic', () => {
+      expect(gcForecastField.validator && gcForecastField.validator('101')).toEqual(
+        'Grass curing must be between 0 and 100'
+      )
+
+      expect(gcForecastField.validator && gcForecastField.validator('-1')).toEqual(
+        'Grass curing must be between 0 and 100'
+      )
+
+      expect(gcForecastField.validator && gcForecastField.validator('0')).toEqual('')
     })
   })
 })
