@@ -1,4 +1,4 @@
-import { GridEditCellProps, GridPreProcessEditCellProps, GridValueFormatterParams } from '@mui/x-data-grid-pro'
+import { GridPreProcessEditCellProps, GridValueFormatterParams } from '@mui/x-data-grid-pro'
 import { DateTime } from 'luxon'
 import {
   ColDefGenerator,

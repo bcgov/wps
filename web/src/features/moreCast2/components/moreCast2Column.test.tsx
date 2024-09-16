@@ -1,4 +1,4 @@
-import { GridPreProcessEditCellProps, GridValueFormatterParams } from '@mui/x-data-grid-pro'
+import { GridValueFormatterParams } from '@mui/x-data-grid-pro'
 import { DEFAULT_COLUMN_WIDTH } from 'features/moreCast2/components/ColumnDefBuilder'
 import {
   StationForecastField,
