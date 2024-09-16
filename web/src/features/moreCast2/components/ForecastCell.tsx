@@ -1,10 +1,9 @@
-import React from 'react'
-import { Grid, TextField, Tooltip } from '@mui/material'
+import { Grid, Tooltip } from '@mui/material'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle'
 import AddBoxIcon from '@mui/icons-material/AddBox'
-import { MEDIUM_GREY, theme } from 'app/theme'
-import InvalidCellToolTip from '@/features/moreCast2/components/InvalidCellToolTip'
+import { MEDIUM_GREY } from 'app/theme'
+import ValidatedForecastCell from '@/features/moreCast2/components/ValidatedForecastCell'
 
 interface ForecastCellProps {
   disabled: boolean
@@ -34,39 +33,7 @@ const ForecastCell = ({ disabled, label, showGreaterThan, showLessThan, value, v
         )}
       </Grid>
       <Grid item xs={8}>
-        <InvalidCellToolTip error={error}>
-          <TextField
-            data-testid="forecast-cell-text-field"
-            disabled={disabled}
-            size="small"
-            label={label}
-            InputLabelProps={{
-              shrink: true
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: `${theme.palette.common.white}`,
-                '& fieldset': {
-                  borderColor: error ? theme.palette.error.main : '#737373',
-                  borderWidth: '2px'
-                },
-                '&:hover fieldset': {
-                  borderColor: error ? theme.palette.error.main : '#737373'
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: error ? theme.palette.error.main : '#737373',
-                  borderWidth: '2px'
-                }
-              },
-              '& .Mui-disabled': {
-                '& fieldset': {
-                  borderWidth: '1px'
-                }
-              }
-            }}
-            value={value}
-          ></TextField>
-        </InvalidCellToolTip>
+        <ValidatedForecastCell disabled={disabled} label={label} value={value} validator={validator} />
       </Grid>
       <Grid item xs={2} sx={{ marginLeft: 'auto' }}>
         {showGreaterThan && (

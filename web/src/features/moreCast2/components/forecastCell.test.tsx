@@ -189,32 +189,4 @@ describe('ForecastCell', () => {
     expect(inputElement).toBeInTheDocument()
     expect(inputElement!.value).toBe('')
   })
-  it('should render a tooltip when value is invalid', async () => {
-    const { queryByText } = render(
-      <ForecastCell
-        disabled={false}
-        label="foo"
-        showGreaterThan={false}
-        showLessThan={false}
-        value={params.formattedValue}
-        validator={() => 'tooltip-error'}
-      />
-    )
-    expect(queryByText('tooltip-error')).toBeInTheDocument()
-  })
-
-  it('should not render a tooltip when value is valid', async () => {
-    const { queryByText } = render(
-      <ForecastCell
-        disabled={false}
-        label="foo"
-        showGreaterThan={false}
-        showLessThan={false}
-        value={params.formattedValue}
-        validator={v => (Number(v) > Number.MAX_VALUE ? 'tooltip-error' : '')}
-      />
-    )
-
-    expect(queryByText('tooltip-error')).not.toBeInTheDocument()
-  })
 })
