@@ -22,6 +22,7 @@ import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { cloneDeep, isNumber } from 'lodash'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
+import GrassCuringForecastCell from '@/features/moreCast2/components/GrassCuringForecastCell'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -119,20 +120,12 @@ export class GridComponentRenderer {
     // The grass curing 'forecast' field is rendered differently
     if (isGrassField) {
       return (
-        <TextField
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: `${theme.palette.common.white}`
-            }
-          }}
+        <GrassCuringForecastCell
           disabled={isActual || isPreviousDate}
-          size="small"
           label={label}
-          InputLabelProps={{
-            shrink: true
-          }}
           value={params.formattedValue}
-        ></TextField>
+          validator={validator}
+        />
       )
     } else {
       // Forecast fields (except wind direction) have plus and minus icons indicating if the forecast was
