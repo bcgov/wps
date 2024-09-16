@@ -543,16 +543,15 @@ name = "cffdrs"
 version = "0.1.2"
 description = ""
 optional = false
-python-versions = ">=3.10,<4.0"
-files = [
-    {file = "cffdrs-0.1.2-py3-none-any.whl", hash = "sha256:a124e09bb963670bc22cfa25de5e8d4b63f582b24bdeffd4f413afe8da7a8507"},
-    {file = "cffdrs-0.1.2.tar.gz", hash = "sha256:d655ad3b2648ea2200d093c17d2098a1f49fc26617b50a33157baa38dcf8079b"},
-]
+python-versions = ">=3.7"
+files = []
+develop = false
 
 [package.source]
-type = "legacy"
-url = "https://artifacts.developer.gov.bc.ca/artifactory/api/pypi/pe1e-gen-python-local/simple"
-reference = "psu"
+type = "git"
+url = "https://github.com/cffdrs/cffdrs_py.git"
+reference = "HEAD"
+resolved_reference = "c7603073264906242a2c8d46ceecb01d1f539975"
 
 [[package]]
 name = "cffi"
@@ -5917,4 +5916,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10.4,<3.11"
-content-hash = "754870411c09e78230ba1750bb3749588f32cb5a8fbc89857095d817c4581286"
+content-hash = "c2e7265b2a3e10e7a196ef394c3f62cdd65c722a776896ffb8297e189e054355"
