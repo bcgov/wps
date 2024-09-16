@@ -1,7 +1,8 @@
-import { render } from '@testing-library/react'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
 
 const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
   row: undefined,
@@ -216,5 +217,38 @@ describe('ForecastCell', () => {
     )
 
     expect(queryByText('tooltip-error')).not.toBeInTheDocument()
+  })
+
+  it('should render a tooltip only when value is empty and cell is hovered', async () => {
+    const localParams: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
+      row: undefined,
+      formattedValue: ''
+    }
+    const { getByTestId, queryByText } = render(
+      <ForecastCell
+        disabled={false}
+        label="foo"
+        showGreaterThan={false}
+        showLessThan={false}
+        value={localParams.formattedValue}
+        validator={() => 'tooltip-error'}
+      />
+    )
+
+    expect(queryByText('tooltip-error')).not.toBeInTheDocument()
+    const forecastCell = getByTestId('forecast-cell')
+
+    await act(async () => {
+      userEvent.hover(forecastCell)
+    })
+
+    await waitFor(() => expect(queryByText('tooltip-error')).toBeInTheDocument())
+
+    await act(async () => {
+      // Simulate unhovering
+      fireEvent.mouseLeave(forecastCell)
+    })
+
+    await waitFor(() => expect(queryByText('tooltip-error')).not.toBeInTheDocument())
   })
 })

@@ -37,6 +37,7 @@ const ForecastCell = ({ disabled, label, showGreaterThan, showLessThan, value, v
   return (
     <InvalidCellToolTip error={error} hoverOnly={(value as string) === ''} hovered={isHovered}>
       <Grid
+        data-testid="forecast-cell"
         container
         sx={{ justifyContent: 'center', alignItems: 'center' }}
         onMouseEnter={handleMouseEnter}
