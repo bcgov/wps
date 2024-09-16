@@ -37,12 +37,6 @@ parameters:
     description: Dockerfile to use
     required: true
     value: Dockerfile
-  - name: ARTIFACTORY_PYPI_USERNAME
-    description: Username for internal pypi artifactory instance
-    required: true
-  - name: ARTIFACTORY_PYPI_PASSWORD
-    description: Password for internal pypi artifactory instance
-    required: true
 objects:
   - apiVersion: v1
     kind: ImageStream
@@ -86,12 +80,5 @@ objects:
         contextDir: ./
       strategy:
         dockerStrategy:
-          buildArgs:
-            - name: "DOCKER_IMAGE"
-              value: "${{DOCKER_IMAGE}}"
-            - name: "ARTIFACTORY_PYPI_USERNAME"
-              value: "${{ARTIFACTORY_PYPI_USERNAME}}"
-            - name: "ARTIFACTORY_PYPI_PASSWORD"
-              value: "${{ARTIFACTORY_PYPI_PASSWORD}}"
           dockerfilePath: ${DOCKER_FILE}
       triggers: []
