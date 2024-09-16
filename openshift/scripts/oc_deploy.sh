@@ -31,7 +31,7 @@ OBJ_NAME="${APP_NAME}-${SUFFIX}"
 
 # Process a template (mostly variable substition)
 #
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DC} \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DEPLOY} \
  -p SUFFIX=${SUFFIX} \
  -p PROJECT_NAMESPACE=${PROJ_TARGET} \
  -p POSTGRES_USER=wps-crunchydb-${SUFFIX} \
