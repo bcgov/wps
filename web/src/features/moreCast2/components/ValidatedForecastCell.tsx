@@ -14,8 +14,9 @@ interface ValidatedForecastCellProps {
 const ValidatedForecastCell = ({ disabled, label, value, validator }: ValidatedForecastCellProps) => {
   const error = validator ? validator(value as string) : ''
   return (
-    <InvalidCellToolTip error={error}>
+    <InvalidCellToolTip error={error} hoverOnly={(value as string) === ''}>
       <TextField
+        data-testid="validated-forecast-cell"
         disabled={disabled}
         size="small"
         label={label}

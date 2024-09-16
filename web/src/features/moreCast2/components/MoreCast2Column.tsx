@@ -1,4 +1,4 @@
-import { GridPreProcessEditCellProps, GridValueFormatterParams } from '@mui/x-data-grid-pro'
+import { GridValueFormatterParams } from '@mui/x-data-grid-pro'
 import { DateTime } from 'luxon'
 import {
   ColDefGenerator,
@@ -180,6 +180,9 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
 }
 
 export const tempForecastField = new IndeterminateField('temp', TEMP_HEADER, 'number', 0, true, (value: string) => {
+  if (value === '') {
+    return 'Enter a value'
+  }
   return Number(value) < -60 || Number(value) > 60 ? 'Temp must be between -60°C and 60°C' : ''
 })
 export const windDirForecastField = new IndeterminateField(
@@ -194,6 +197,9 @@ export const windDirForecastField = new IndeterminateField(
 )
 
 export const rhForecastField = new IndeterminateField('rh', RH_HEADER, 'number', 0, true, (value: string) => {
+  if (value === '') {
+    return 'Enter a value'
+  }
   return Number(value) < 0 || Number(value) > 100 ? 'RH must be between 0 and 100' : ''
 })
 export const windSpeedForecastField = new IndeterminateField(
@@ -203,6 +209,9 @@ export const windSpeedForecastField = new IndeterminateField(
   0,
   true,
   (value: string) => {
+    if (value === '') {
+      return 'Enter a value'
+    }
     return Number(value) < 0 || Number(value) > 120 ? 'Wind speed must be between 0 and 120 kph' : ''
   }
 )
@@ -213,6 +222,9 @@ export const precipForecastField = new IndeterminateField(
   1,
   true,
   (value: string) => {
+    if (value === '') {
+      return 'Enter a value'
+    }
     return Number(value) < 0.0 || Number(value) > 200.0 ? 'Precip must be between 0 and 200 mm' : ''
   }
 )

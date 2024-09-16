@@ -43,7 +43,7 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
   }
 
   return (
-    <InvalidCellToolTip error={error}>
+    <InvalidCellToolTip error={error} hoverOnly={false}>
       <TextField
         data-testid="forecast-edit-cell"
         type="number"

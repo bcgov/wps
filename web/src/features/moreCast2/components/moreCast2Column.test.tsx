@@ -79,6 +79,8 @@ describe('MoreCast2Column', () => {
       )
 
       expect(tempForecastField.validator && tempForecastField.validator('0')).toEqual('')
+
+      expect(gcForecastField.validator && gcForecastField.validator('')).toEqual('Enter a value')
     })
   })
   describe('RHForecastField', () => {
@@ -104,6 +106,8 @@ describe('MoreCast2Column', () => {
       expect(rhForecastField.validator && rhForecastField.validator('-1')).toEqual('RH must be between 0 and 100')
 
       expect(rhForecastField.validator && rhForecastField.validator('0')).toEqual('')
+
+      expect(gcForecastField.validator && gcForecastField.validator('')).toEqual('Enter a value')
     })
   })
   describe('WindDirForecastField', () => {
@@ -133,6 +137,8 @@ describe('MoreCast2Column', () => {
       )
 
       expect(windDirForecastField.validator && windDirForecastField.validator('0')).toEqual('')
+
+      expect(gcForecastField.validator && gcForecastField.validator('')).toEqual('')
     })
   })
   describe('WindSpeedForecastField', () => {
@@ -162,6 +168,8 @@ describe('MoreCast2Column', () => {
       )
 
       expect(windSpeedForecastField.validator && windSpeedForecastField.validator('0')).toEqual('')
+
+      expect(gcForecastField.validator && gcForecastField.validator('')).toEqual('Enter a value')
     })
   })
   describe('PrecipForecastField', () => {
@@ -191,6 +199,8 @@ describe('MoreCast2Column', () => {
       )
 
       expect(precipForecastField.validator && precipForecastField.validator('0')).toEqual('')
+
+      expect(gcForecastField.validator && gcForecastField.validator('')).toEqual('Enter a value')
     })
   })
   describe('GrassCuringForecastField', () => {
@@ -204,6 +214,8 @@ describe('MoreCast2Column', () => {
       )
 
       expect(gcForecastField.validator && gcForecastField.validator('0')).toEqual('')
+
+      expect(gcForecastField.validator && gcForecastField.validator('')).toEqual('')
     })
   })
 })
