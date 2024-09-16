@@ -205,9 +205,8 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     return groupByWeatherParam(showHideColumnsUngroupedState)
   }
 
-  const [showHideColumnsModel, setShowHideColumnsModel] = useState<Record<string, ColumnVis[]>>(
-    initShowHideColumnsModel()
-  )
+  const [showHideColumnsModel, setShowHideColumnsModel] =
+    useState<Record<string, ColumnVis[]>>(initShowHideColumnsModel())
 
   // Given an array of weather parameters (aka tabs) return a GridColumnVisibilityModel object that
   // contains all weather model columns that are visible for each weather parameter.

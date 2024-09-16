@@ -22,6 +22,7 @@ import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { cloneDeep, isNumber } from 'lodash'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
+import ValidatedForecastCell from '@/features/moreCast2/components/ValidatedForecastCell'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -92,7 +93,11 @@ export class GridComponentRenderer {
     } else return isNaN(value) ? noDataField : Number(value).toFixed(precision)
   }
 
-  public renderForecastCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>, field: string) => {
+  public renderForecastCellWith = (
+    params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>,
+    field: string,
+    validator?: (value: string) => string
+  ) => {
     // If a single cell in a row contains an Actual, no Forecast will be entered into the row anymore, so we can disable the whole row.
     const isActual = rowContainsActual(params.row)
     // We can disable a cell if an Actual exists or the forDate is before today.
@@ -115,20 +120,12 @@ export class GridComponentRenderer {
     // The grass curing 'forecast' field is rendered differently
     if (isGrassField) {
       return (
-        <TextField
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: `${theme.palette.common.white}`
-            }
-          }}
+        <ValidatedForecastCell
           disabled={isActual || isPreviousDate}
-          size="small"
           label={label}
-          InputLabelProps={{
-            shrink: true
-          }}
           value={params.formattedValue}
-        ></TextField>
+          validator={validator}
+        />
       )
     } else {
       // Forecast fields (except wind direction) have plus and minus icons indicating if the forecast was
@@ -140,6 +137,7 @@ export class GridComponentRenderer {
           showGreaterThan={showGreaterThan}
           showLessThan={showLessThan}
           value={params.formattedValue}
+          validator={validator}
         />
       )
     }
