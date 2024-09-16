@@ -168,10 +168,10 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
         return { ...params.props, error: validator ? validator(params.props.value) : '' }
       },
-      cellClassName: (params: Pick<GridCellParams, 'field'>) => {
+      cellClassName: (params: Pick<GridCellParams, 'colDef' | 'field'>) => {
         return modelColorClass(params)
       },
-      headerClassName: (params: Pick<GridColumnHeaderParams, 'field'>) => {
+      headerClassName: (params: Pick<GridColumnHeaderParams, 'colDef' | 'field'>) => {
         return modelHeaderColorClass(params)
       },
       renderCell: (params: Pick<GridRenderCellParams, 'formattedValue'>) => {
