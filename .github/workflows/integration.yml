@@ -63,7 +63,6 @@ jobs:
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
         run: |
-          poetry config http-basic.psu ${{ secrets.ARTIFACTORY_PYPI_USERNAME }} ${{ secrets.ARTIFACTORY_PYPI_PASSWORD }}
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install gdal==$(gdal-config --version)
@@ -139,7 +138,6 @@ jobs:
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
         run: |
-          poetry config http-basic.psu ${{ secrets.ARTIFACTORY_PYPI_USERNAME }} ${{ secrets.ARTIFACTORY_PYPI_PASSWORD }}
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install gdal==$(gdal-config --version)

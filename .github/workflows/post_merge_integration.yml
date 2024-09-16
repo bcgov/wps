@@ -60,9 +60,6 @@ jobs:
         with:
           path: ~/work/wps/wps/api/.venv
           key: ${{ runner.os }}-venv-poetry-1.6.1-${{ hashFiles('**/poetry.lock') }}
-      - name: Configure artifactory creds for poetry
-        working-directory: ./api
-        run: poetry config http-basic.psu ${{ secrets.ARTIFACTORY_PYPI_USERNAME }}  ${{ secrets.ARTIFACTORY_PYPI_PASSWORD }}
       - name: Install python dependencies using poetry (api)
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
@@ -138,9 +135,6 @@ jobs:
         with:
           path: ~/work/wps/wps/api/.venv
           key: ${{ runner.os }}-venv-poetry-1.6.1-${{ hashFiles('**/poetry.lock') }}
-      - name: Configure artifactory creds for poetry
-        working-directory: ./api
-        run: poetry config http-basic.psu ${{ secrets.ARTIFACTORY_PYPI_USERNAME }}  ${{ secrets.ARTIFACTORY_PYPI_PASSWORD }}
       - name: Install python dependencies using poetry (api)
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
@@ -206,9 +200,6 @@ jobs:
         run: corepack enable
       - name: use new yarn
         run: yarn set version berry
-      - name: Setup yarn for scoped artifactory packages
-        working-directory: ./web
-        run: yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/ && yarn config set npmScopes.psu.npmAlwaysAuth true && yarn config set npmScopes.psu.npmAuthToken ${{ secrets.ARTIFACTORY_SVCACCT_TOKEN }}
       - name: Install node dependencies (web)
         working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'
