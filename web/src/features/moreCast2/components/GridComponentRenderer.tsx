@@ -22,7 +22,6 @@ import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { cloneDeep, isNumber } from 'lodash'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
-import GrassCuringForecastCell from '@/features/moreCast2/components/GrassCuringForecastCell'
 import ValidatedForecastCell from '@/features/moreCast2/components/ValidatedForecastCell'
 
 export const NOT_AVAILABLE = 'N/A'
