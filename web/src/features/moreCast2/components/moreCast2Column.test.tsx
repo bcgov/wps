@@ -80,7 +80,7 @@ describe('MoreCast2Column', () => {
 
       expect(tempForecastField.validator && tempForecastField.validator('0')).toEqual('')
 
-      expect(gcForecastField.validator && gcForecastField.validator('')).toEqual('Enter a value')
+      expect(tempForecastField.validator && tempForecastField.validator('')).toEqual('Enter a value')
     })
   })
   describe('RHForecastField', () => {
@@ -107,7 +107,7 @@ describe('MoreCast2Column', () => {
 
       expect(rhForecastField.validator && rhForecastField.validator('0')).toEqual('')
 
-      expect(gcForecastField.validator && gcForecastField.validator('')).toEqual('Enter a value')
+      expect(rhForecastField.validator && rhForecastField.validator('')).toEqual('Enter a value')
     })
   })
   describe('WindDirForecastField', () => {
@@ -169,7 +169,7 @@ describe('MoreCast2Column', () => {
 
       expect(windSpeedForecastField.validator && windSpeedForecastField.validator('0')).toEqual('')
 
-      expect(gcForecastField.validator && gcForecastField.validator('')).toEqual('Enter a value')
+      expect(windSpeedForecastField.validator && windSpeedForecastField.validator('')).toEqual('Enter a value')
     })
   })
   describe('PrecipForecastField', () => {
@@ -200,7 +200,7 @@ describe('MoreCast2Column', () => {
 
       expect(precipForecastField.validator && precipForecastField.validator('0')).toEqual('')
 
-      expect(gcForecastField.validator && gcForecastField.validator('')).toEqual('Enter a value')
+      expect(precipForecastField.validator && precipForecastField.validator('')).toEqual('Enter a value')
     })
   })
   describe('GrassCuringForecastField', () => {

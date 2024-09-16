@@ -5,28 +5,17 @@ import { theme } from '@/app/theme'
 
 export interface InvalidCellToolTipProps {
   error: string
+  hovered?: boolean
   hoverOnly: boolean
   children: React.ReactNode
 }
 
-const InvalidCellToolTip = ({ error, hoverOnly, children }: InvalidCellToolTipProps) => {
-  const [isHovered, setIsHovered] = useState(false)
-
-  const handleMouseEnter = () => {
-    setIsHovered(true)
-  }
-
-  const handleMouseLeave = () => {
-    setIsHovered(false)
-  }
-
-  const open = (!isEmpty(error) && !hoverOnly) || (!isEmpty(error) && hoverOnly && isHovered)
+const InvalidCellToolTip = ({ error, hovered, hoverOnly, children }: InvalidCellToolTipProps) => {
+  const open = (!isEmpty(error) && !hoverOnly) || (!isEmpty(error) && hoverOnly && hovered)
 
   return (
     <Tooltip
       data-testid="validation-tooltip"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       title={error}
       open={open}
       arrow
