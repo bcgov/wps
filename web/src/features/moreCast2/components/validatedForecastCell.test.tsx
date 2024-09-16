@@ -1,7 +1,5 @@
 import { render } from '@testing-library/react'
-import ForecastCell from 'features/moreCast2/components/ForecastCell'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
-import { vi } from 'vitest'
 import ValidatedForecastCell from '@/features/moreCast2/components/ValidatedForecastCell'
 
 const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
