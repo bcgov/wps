@@ -57,12 +57,12 @@ OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 
 # Cancel all previous deployments
 #
-OC_CANCEL_ALL_PREV_DEPLOY="oc -n ${PROJ_TARGET} rollout cancel dc/${OBJ_NAME} || true"
+OC_CANCEL_ALL_PREV_DEPLOY="oc -n ${PROJ_TARGET} rollout undo deploy/${OBJ_NAME} --to-revision=0 || true"
 
 # Deploy and follow the progress
 #
-OC_DEPLOY="oc -n ${PROJ_TARGET} rollout latest dc/${OBJ_NAME}"
-OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=2m dc/${OBJ_NAME}"
+OC_DEPLOY="oc -n ${PROJ_TARGET} rollout latest deploy/${OBJ_NAME}"
+OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=2m deploy/${OBJ_NAME}"
 if [ ! "${APPLY}" ]; then
   OC_CANCEL_ALL_PREV_DEPLOY=""
   OC_DEPLOY="${OC_DEPLOY} --dry-run=client || true" # in case there is no previous rollout
@@ -81,8 +81,8 @@ if [ "${APPLY}" ]; then
   # Check previous deployment statuses before moving onto new deploying
   while [ $count -le $timeout ]; do
     sleep 1
-    PENDINGS="$(oc -n ${PROJ_TARGET} rollout history dc/${OBJ_NAME} | awk '{print $2}' | grep -c Pending || true)"
-    RUNNINGS="$(oc -n ${PROJ_TARGET} rollout history dc/${OBJ_NAME} | awk '{print $2}' | grep -c Running || true)"
+    PENDINGS="$(oc -n ${PROJ_TARGET} rollout history deploy/${OBJ_NAME} | awk '{print $2}' | grep -c Pending || true)"
+    RUNNINGS="$(oc -n ${PROJ_TARGET} rollout history deploy/${OBJ_NAME} | awk '{print $2}' | grep -c Running || true)"
     if [ "${PENDINGS}" == 0 ] && [ "${RUNNINGS}" == 0 ]; then
       # No pending or running replica controllers so exit the while loop
       break 2
