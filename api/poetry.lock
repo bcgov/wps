@@ -550,7 +550,7 @@ develop = false
 [package.source]
 type = "git"
 url = "https://github.com/cffdrs/cffdrs_py.git"
-reference = "HEAD"
+reference = "c760307"
 resolved_reference = "c7603073264906242a2c8d46ceecb01d1f539975"
 
 [[package]]
@@ -5916,4 +5916,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10.4,<3.11"
-content-hash = "c2e7265b2a3e10e7a196ef394c3f62cdd65c722a776896ffb8297e189e054355"
+content-hash = "660a4ee280e9d284b527f1d2a6e63dbe8de1aeaa0d81417e90e672b773d08ee2"
