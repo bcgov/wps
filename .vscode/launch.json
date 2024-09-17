@@ -33,6 +33,12 @@
             "module": "app.jobs.noon_forecasts"
         },
         {
+            "name": "app.jobs.firms",
+            "type": "python",
+            "request": "launch",
+            "module": "app.jobs.firms_fire_footprints"
+        },
+        {
             "name": "app.jobs.hourly_actuals",
             "type": "python",
             "request": "launch",
