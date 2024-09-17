@@ -57,7 +57,7 @@ OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 
 # Cancel all previous deployments
 #
-OC_CANCEL_ALL_PREV_DEPLOY="oc -n ${PROJ_TARGET} rollout undo deploy/${OBJ_NAME} --to-revision=0 || true"
+OC_CANCEL_ALL_PREV_DEPLOY="oc -n ${PROJ_TARGET} scale deploy/${OBJ_NAME} --replicas=0"
 
 # Deploy and follow the progress
 #
