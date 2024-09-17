@@ -10,7 +10,7 @@ import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
-import { FireCenter, FireShape } from 'api/fbaAPI'
+import { FireCenter, FireShape, RunType } from 'api/fbaAPI'
 import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME, PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
@@ -28,11 +28,6 @@ import AboutDataPopover from 'features/fba/components/AboutDataPopover'
 import { fetchFireCentreHFIFuelStats } from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
 
 const ADVISORY_THRESHOLD = 20
-
-export enum RunType {
-  FORECAST = 'FORECAST',
-  ACTUAL = 'ACTUAL'
-}
 
 export const FireCentreFormControl = styled(FormControl)({
   margin: theme.spacing(1),

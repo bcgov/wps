@@ -1,8 +1,8 @@
 import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from '@mui/material'
 import React from 'react'
-import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { isNull } from 'lodash'
 import { theme } from 'app/theme'
+import { RunType } from '@/api/fbaAPI'
 
 export interface ActualForecastControlProps {
   runType: RunType

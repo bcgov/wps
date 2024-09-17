@@ -1,6 +1,10 @@
 import axios, { raster } from 'api/axios'
-import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { DateTime } from 'luxon'
+
+export enum RunType {
+  FORECAST = 'FORECAST',
+  ACTUAL = 'ACTUAL'
+}
 
 export interface FireCenterStation {
   code: number
@@ -29,7 +33,6 @@ export interface AdvisoryCriticalHours {
   start_time?: number
   end_time?: number
 }
-
 
 export interface FireZoneFuelStats {
   fuel_type: FuelType
@@ -148,7 +151,6 @@ export async function getAllRunDates(run_type: RunType, for_date: string): Promi
   const { data } = await axios.get(url)
   return data
 }
-
 
 export async function getFireCentreHFIStats(
   run_type: RunType,
