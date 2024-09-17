@@ -1,12 +1,14 @@
 import UploadIcon from '@mui/icons-material/Upload'
-import { Button, ListItemIcon, ListItemText, MenuItem } from '@mui/material'
+import { Button } from '@mui/material'
 import { isNull } from 'lodash'
 import React, { useRef } from 'react'
-import { useDispatch } from 'react-redux'
 
-export const ImportButton = () => {
+interface ImportButtonProps {
+  setFile: React.Dispatch<React.SetStateAction<File | null>>
+}
+
+export const ImportButton = ({ setFile }: ImportButtonProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const dispatch = useDispatch()
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -15,6 +17,8 @@ export const ImportButton = () => {
       bodyContent.append('file', files[0])
 
       // TODO upload to endpoint
+      console.log(files[0])
+      setFile(files[0])
 
       // Reset the file input
       if (fileInputRef.current) {
@@ -28,7 +32,7 @@ export const ImportButton = () => {
       <input
         ref={fileInputRef}
         hidden
-        accept="text/html,.csv"
+        accept=".shp,.csv,.geojson"
         multiple
         type="file"
         onChange={handleFileInput}
