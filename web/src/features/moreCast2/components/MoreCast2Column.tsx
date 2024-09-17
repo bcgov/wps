@@ -1,4 +1,4 @@
-import { GridValueFormatterParams } from '@mui/x-data-grid-pro'
+import { GridPreProcessEditCellProps, GridValueFormatterParams } from '@mui/x-data-grid-pro'
 import { DateTime } from 'luxon'
 import {
   ColDefGenerator,
@@ -136,7 +136,8 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
     readonly headerName: string,
     readonly type: 'string' | 'number',
     readonly precision: number,
-    readonly includeBias: boolean
+    readonly includeBias: boolean,
+    readonly validator?: (value: string) => string
   ) {
     this.colDefBuilder = new ColumnDefBuilder(
       this.field,
@@ -152,29 +153,72 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
   }
   public generateForecastColDef = (columnClickHandlerProps: ColumnClickHandlerProps, headerName?: string) => {
     return {
-      ...this.colDefBuilder.generateForecastColDef(columnClickHandlerProps, headerName ?? this.headerName)
+      ...this.colDefBuilder.generateForecastColDef(
+        columnClickHandlerProps,
+        headerName ?? this.headerName,
+        this.validator
+      )
     }
   }
 
   public generateForecastSummaryColDef = (columnClickHandlerProps: ColumnClickHandlerProps) => {
-    return this.colDefBuilder.generateForecastColDef(columnClickHandlerProps)
+    return this.colDefBuilder.generateForecastColDef(columnClickHandlerProps, undefined, this.validator)
   }
 
   public generateColDef = () => {
-    return this.colDefBuilder.generateColDefWith(this.field, this.headerName, this.precision)
+    return this.colDefBuilder.generateColDefWith(this.field, this.headerName, this.precision, undefined, this.validator)
   }
 
   public generateColDefs = (columnClickHandlerProps: ColumnClickHandlerProps, headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(columnClickHandlerProps, headerName ?? this.headerName, this.includeBias)
+    return this.colDefBuilder.generateColDefs(
+      columnClickHandlerProps,
+      headerName ?? this.headerName,
+      this.includeBias,
+      this.validator
+    )
   }
 }
 
-export const tempForecastField = new IndeterminateField('temp', TEMP_HEADER, 'number', 0, true)
-export const rhForecastField = new IndeterminateField('rh', RH_HEADER, 'number', 0, true)
-export const windDirForecastField = new IndeterminateField('windDirection', WIND_DIR_HEADER, 'number', 0, true)
-export const windSpeedForecastField = new IndeterminateField('windSpeed', WIND_SPEED_HEADER, 'number', 0, true)
-export const precipForecastField = new IndeterminateField('precip', PRECIP_HEADER, 'number', 1, true)
-export const gcForecastField = new IndeterminateField('grassCuring', GC_HEADER, 'number', 0, false)
+export const tempForecastField = new IndeterminateField('temp', TEMP_HEADER, 'number', 0, true, (value: string) => {
+  return Number(value) < -60 || Number(value) > 60 ? 'Temp must be between -60°C and 60°C' : ''
+})
+export const windDirForecastField = new IndeterminateField(
+  'windDirection',
+  WIND_DIR_HEADER,
+  'number',
+  0,
+  true,
+  (value: string) => {
+    return Number(value) < 0 || Number(value) > 360 ? 'Wind direction must be between 0 and 360 degrees' : ''
+  }
+)
+
+export const rhForecastField = new IndeterminateField('rh', RH_HEADER, 'number', 0, true, (value: string) => {
+  return Number(value) < 0 || Number(value) > 100 ? 'RH must be between 0 and 100' : ''
+})
+export const windSpeedForecastField = new IndeterminateField(
+  'windSpeed',
+  WIND_SPEED_HEADER,
+  'number',
+  0,
+  true,
+  (value: string) => {
+    return Number(value) < 0 || Number(value) > 120 ? 'Wind speed must be between 0 and 120 kph' : ''
+  }
+)
+export const precipForecastField = new IndeterminateField(
+  'precip',
+  PRECIP_HEADER,
+  'number',
+  1,
+  true,
+  (value: string) => {
+    return Number(value) < 0.0 || Number(value) > 200.0 ? 'Precip must be between 0 and 200 mm' : ''
+  }
+)
+export const gcForecastField = new IndeterminateField('grassCuring', GC_HEADER, 'number', 0, false, (value: string) => {
+  return Number(value) < 0 || Number(value) > 100 ? 'Grass curing must be between 0 and 100' : ''
+})
 
 export const buiField = new IndeterminateField('buiCalc', 'BUI', 'number', 0, false)
 export const isiField = new IndeterminateField('isiCalc', 'ISI', 'number', 1, false)
