@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import 'ol/ol.css'
 import { Map, View } from 'ol'
 import TileLayer from 'ol/layer/Tile'
@@ -15,8 +15,7 @@ interface FireMapProps {
 
 export const FireMap: React.FC<FireMapProps> = ({ file }) => {
   const mapRef = useRef<HTMLDivElement>(null)
-  const [map, setMap] = useState<Map | null>(null)
-  const [geojsonLayer, setGeojsonLayer] = useState<VectorLayer | null>(null)
+  const mapInstanceRef = useRef<Map | null>(null)
 
   const handleFile = async (file: File) => {
     const reader = new FileReader()
@@ -34,11 +33,10 @@ export const FireMap: React.FC<FireMapProps> = ({ file }) => {
           source: geojsonSource
         })
 
-        map?.addLayer(layer)
+        mapInstanceRef.current?.addLayer(layer)
 
-        // Zoom the map to fit the GeoJSON layer
         const extent = geojsonSource.getExtent()
-        map?.getView().fit(extent, { size: map.getSize() })
+        mapInstanceRef.current?.getView().fit(extent, { size: mapInstanceRef.current.getSize() })
       } catch (error) {
         console.error('Error reading GeoJSON file:', error)
       }
@@ -47,22 +45,22 @@ export const FireMap: React.FC<FireMapProps> = ({ file }) => {
     reader.readAsText(file)
   }
 
-  // Initialize the map
   useEffect(() => {
-    const initMap = new Map({
-      target: mapRef.current!,
-      layers: [
-        new TileLayer({
-          source: new OSM()
+    if (!mapInstanceRef.current) {
+      const map = new Map({
+        target: mapRef.current!,
+        layers: [
+          new TileLayer({
+            source: new OSM()
+          })
+        ],
+        view: new View({
+          center: fromLonLat(CENTER_OF_BC),
+          zoom: 5
         })
-      ],
-      view: new View({
-        center: fromLonLat(CENTER_OF_BC),
-        zoom: 5
       })
-    })
-
-    setMap(initMap)
+      mapInstanceRef.current = map
+    }
   }, [])
 
   useEffect(() => {
