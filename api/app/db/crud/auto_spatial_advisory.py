@@ -298,6 +298,19 @@ async def get_most_recent_run_parameters(session: AsyncSession, run_type: RunTyp
     return result.first()
 
 
+async def get_run_parameters_by_id(session: AsyncSession, id: int) -> RunParameters:
+    """
+    Retrieve the RunParameters record with the specified id.
+
+    :param session: Async database session.
+    :param id: The id of the RunParameters record.
+    :return: The RunParameters with the specified id.
+    """
+    stmt = select(RunParameters).where(RunParameters.id == id)
+    result = await session.execute(stmt)
+    return result.first()
+
+
 async def get_high_hfi_area(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date) -> List[Row]:
     """For each fire zone, get the area of HFI polygons in that zone that fall within the
     4000 - 10000 range and the area of HFI polygons that exceed the 10000 threshold.

@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 from collections import defaultdict
 from datetime import date, datetime, timedelta
@@ -18,7 +19,7 @@ from app.db.crud.auto_spatial_advisory import (
     get_all_sfms_fuel_type_records,
     get_containing_zone,
     get_fuel_type_stats_in_advisory_area,
-    get_most_recent_run_parameters,
+    get_run_parameters_by_id,
     get_run_parameters_id,
     save_all_critical_hours,
 )
@@ -238,7 +239,11 @@ def calculate_critical_hours_by_fuel_type(wfwx_stations: List[WFWXWeatherStation
     for wfwx_station in wfwx_stations:
         if check_station_valid(wfwx_station, critical_hours_inputs):
             for fuel_type_key in fuel_types_by_area.keys():
-                fuel_type_enum = FuelTypeEnum(fuel_type_key.replace("-", ""))
+                if fuel_type_key.startswith("O"):
+                    # Raster fuel grid doesn't differentiate between O1A and O1B so we default to O1B for now.
+                    fuel_type_enum = FuelTypeEnum.O1B
+                else:
+                    fuel_type_enum = FuelTypeEnum(fuel_type_key.replace("-", ""))
                 try:
                     # Placing critical hours calculation in a try/except block as failure to calculate critical hours for a single station/fuel type pair
                     # shouldn't prevent us from continuing with other stations and fuel types.
@@ -262,11 +267,11 @@ def check_station_valid(wfwx_station: WFWXWeatherStation, critical_hours_inputs:
     :return: True if the station can be used for critical hours calculations, otherwise false.
     """
     if wfwx_station.wfwx_id not in critical_hours_inputs.dailies_by_station_id or wfwx_station.code not in critical_hours_inputs.hourly_observations_by_station_code:
-        logger.info(f"Station with code: ${wfwx_station.code} is missing dailies or hourlies")
+        logger.info(f"Station with code: {wfwx_station.code} is missing dailies or hourlies")
         return False
     daily = critical_hours_inputs.dailies_by_station_id[wfwx_station.wfwx_id]
     if daily["duffMoistureCode"] is None or daily["droughtCode"] is None or daily["fineFuelMoistureCode"] is None:
-        logger.info(f"Station with code: ${wfwx_station.code} is missing DMC, DC or FFMC")
+        logger.info(f"Station with code: {wfwx_station.code} is missing DMC, DC or FFMC")
         return False
     return True
 
@@ -426,20 +431,23 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
 #### - Helper functions for local testing of critical hours calculations.
 
 
-async def start_critical_hours():
+async def start_critical_hours(args: argparse.Namespace):
     async with get_async_write_session_scope() as db_session:
-        result = await get_most_recent_run_parameters(db_session, RunTypeEnum.actual, date(2024, 8, 1))
-        await calculate_critical_hours(result[0].run_type, result[0].run_datetime, result[0].for_date)
+        run_parameters = await get_run_parameters_by_id(db_session, int(args.run_parameters_id))
+        await calculate_critical_hours(run_parameters[0].run_type, run_parameters[0].run_datetime, run_parameters[0].for_date)
 
 
 def main():
     """Kicks off asynchronous calculation of critical hours."""
     try:
         logger.debug("Begin calculating critical hours.")
+        parser = argparse.ArgumentParser(description="Process critical hours from command line")
+        parser.add_argument("-r", "--run_parameters_id", help="The id of the run parameters of interest from the run_parameters table")
+        args = parser.parse_args()
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(start_critical_hours())
+        loop.run_until_complete(start_critical_hours(args))
 
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
