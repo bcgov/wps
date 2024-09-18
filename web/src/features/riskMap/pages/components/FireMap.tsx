@@ -8,6 +8,7 @@ import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { fromLonLat } from 'ol/proj'
 import { CENTER_OF_BC } from '@/utils/constants'
+import { Fill, Stroke, Style } from 'ol/style'
 
 interface FireMapProps {
   file: File | null
@@ -44,9 +45,9 @@ export const FireMap: React.FC<FireMapProps> = ({ file }) => {
 
     reader.readAsText(file)
   }
-  const loadGeoJson = async () => {
+  const loadGeoJSON = async (fileName: string, style: Style) => {
     try {
-      const response = await fetch('/PROT_CURRENT_FIRE_POLYS_SP.geojson')
+      const response = await fetch(fileName)
       const geojsonData = await response.json()
       const geojsonSource = new VectorSource({
         features: new GeoJSON().readFeatures(geojsonData, {
@@ -55,7 +56,8 @@ export const FireMap: React.FC<FireMapProps> = ({ file }) => {
       })
 
       const layer = new VectorLayer({
-        source: geojsonSource
+        source: geojsonSource,
+        style
       })
       mapInstanceRef.current?.addLayer(layer)
     } catch (error) {
@@ -78,7 +80,22 @@ export const FireMap: React.FC<FireMapProps> = ({ file }) => {
         })
       })
       mapInstanceRef.current = map
-      loadGeoJson()
+      loadGeoJSON(
+        '/PROT_CURRENT_FIRE_POLYS_SP.geojson',
+        new Style({
+          fill: new Fill({
+            color: 'rgba(0, 0, 255, 0.6)' // Red fill with 60% opacity
+          })
+        })
+      )
+      loadGeoJSON(
+        '/FirespotArea_canada_c6.1_48.geojson', // Define the style for the polygons with red fill and optional black stroke
+        new Style({
+          fill: new Fill({
+            color: 'rgba(255, 0, 0, 0.6)' // Red fill with 60% opacity
+          })
+        })
+      )
     }
   }, [])
 
