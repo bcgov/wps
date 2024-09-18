@@ -21,7 +21,7 @@ export const RiskMapPage = () => {
         <ImportButton setFile={setFile} />
       </Grid>
       <Grid item>
-        <FireMap file={file} />
+        <FireMap />
       </Grid>
     </Grid>
   )

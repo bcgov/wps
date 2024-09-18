@@ -8,49 +8,31 @@ import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { fromLonLat } from 'ol/proj'
 import { CENTER_OF_BC } from '@/utils/constants'
-import { Fill, Stroke, Style } from 'ol/style'
+import { Fill, Style } from 'ol/style'
+import { buffer, featureCollection } from '@turf/turf'
+import {
+  Point,
+  MultiPoint,
+  LineString,
+  MultiLineString,
+  Polygon,
+  MultiPolygon,
+  Feature,
+  Geometry,
+  GeoJsonProperties
+} from 'geojson'
 
-interface FireMapProps {
-  file: File | null
-}
-
-export const FireMap: React.FC<FireMapProps> = ({ file }) => {
+export const FireMap: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
 
-  const handleFile = async (file: File) => {
-    const reader = new FileReader()
-
-    reader.onload = () => {
-      try {
-        const geojsonData = fetch('FirespotArea_canada_c6.1_48.geojson')
-        const geojsonSource = new VectorSource({
-          features: new GeoJSON().readFeatures(geojsonData, {
-            featureProjection: 'EPSG:3857'
-          })
-        })
-
-        const layer = new VectorLayer({
-          source: geojsonSource
-        })
-
-        mapInstanceRef.current?.addLayer(layer)
-
-        const extent = geojsonSource.getExtent()
-        mapInstanceRef.current?.getView().fit(extent, { size: mapInstanceRef.current.getSize() })
-      } catch (error) {
-        console.error('Error reading GeoJSON file:', error)
-      }
-    }
-
-    reader.readAsText(file)
-  }
-  const loadGeoJSON = async (fileName: string, style: Style) => {
+  const loadGeoJSON = async (fileName: string, style: Style, op?: (data: any) => any) => {
     try {
       const response = await fetch(fileName)
       const geojsonData = await response.json()
+      const data = op ? op(geojsonData) : geojsonData
       const geojsonSource = new VectorSource({
-        features: new GeoJSON().readFeatures(geojsonData, {
+        features: new GeoJSON().readFeatures(data, {
           featureProjection: 'EPSG:3857'
         })
       })
@@ -94,16 +76,25 @@ export const FireMap: React.FC<FireMapProps> = ({ file }) => {
           fill: new Fill({
             color: 'rgba(255, 0, 0, 0.6)' // Red fill with 60% opacity
           })
-        })
+        }),
+        geojsonData =>
+          featureCollection(
+            geojsonData.features.map(
+              (
+                feature:
+                  | Point
+                  | MultiPoint
+                  | LineString
+                  | MultiLineString
+                  | Polygon
+                  | MultiPolygon
+                  | Feature<Geometry, GeoJsonProperties>
+              ) => buffer(feature, 2)
+            )
+          )
       )
     }
   }, [])
-
-  useEffect(() => {
-    if (file) {
-      handleFile(file)
-    }
-  }, [file])
 
   return <div ref={mapRef} style={{ width: '1000px', height: '1000px' }} />
 }
