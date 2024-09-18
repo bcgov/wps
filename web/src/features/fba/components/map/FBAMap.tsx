@@ -1,5 +1,6 @@
 import { PMTilesVectorSource } from 'ol-pmtiles'
 import { Map, View } from 'ol'
+import 'ol/ol.css'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
 import { fromLonLat } from 'ol/proj'
 import { boundingExtent } from 'ol/extent'
