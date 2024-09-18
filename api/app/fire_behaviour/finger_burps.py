@@ -38,10 +38,26 @@ def grow_fire_perimeter(fire_perimeter, hotspots, wind_angle, distance=500):
 
     # Create a GeoDataFrame of the extended 'fingers'
     extended_fingers_gdf = gpd.GeoDataFrame(geometry=extended_fingers, crs="EPSG:3005")
-    extended_fingers_gdf["geometry"] = extended_fingers_gdf["geometry"].apply(remove_holes)
+    # extended_fingers_gdf["geometry"] = extended_fingers_gdf["geometry"].apply(remove_holes)
+    # extended_fingers_gdf.to_file("/Users/breedwar/Downloads/hackathon/hot_spots_buffered.geojson", driver="GeoJSON")
+
+    dissolved_hot_spots = extended_fingers_gdf.union_all()
+    union_gdf = gpd.GeoDataFrame(geometry=[dissolved_hot_spots], crs=extended_fingers_gdf.crs)
+    union_gdf = union_gdf.explode().reset_index(drop=True)
+    # union_gdf.to_file("/Users/breedwar/Downloads/hackathon/hot_spots_union.geojson", driver="GeoJSON")
+
+    # Step 2: Generate convex hulls for each geometry in union_gdf
+    convex_hulls = [geom.convex_hull for geom in union_gdf.geometry]
+
+    # Step 3: Create a new GeoDataFrame with the convex hulls
+    convex_hulls_gdf = gpd.GeoDataFrame(geometry=convex_hulls, crs=extended_fingers_gdf.crs)
+
+    # Optional: Remove holes from each convex hull geometry
+    convex_hulls_gdf["geometry"] = convex_hulls_gdf["geometry"].apply(remove_holes)
+    extended_fingers_gdf.to_file("/Users/breedwar/Downloads/hackathon/hot_spots_buffered.geojson", driver="GeoJSON")
 
     # Combine the extended fingers with the original fire perimeter
-    combined_perimeter = gpd.overlay(fire_perimeter, extended_fingers_gdf, how="union")
+    combined_perimeter = gpd.overlay(fire_perimeter, convex_hulls_gdf, how="union")
 
     # Dissolve to combine all the geometries into one final fire perimeter
     final_fire_perimeter = combined_perimeter.unary_union
@@ -118,4 +134,4 @@ new_fire_perimeter = grow_fire_perimeter(fire_perimeter_gdf, hotspots_gdf, wind_
 # Save the new fire perimeter to a file
 new_fire_perimeter_gdf = gpd.GeoDataFrame(geometry=[new_fire_perimeter], crs="EPSG:3005").to_crs(epsg=4326)
 # new_fire_perimeter_gdf["geometry"] = new_fire_perimeter_gdf["geometry"].apply(remove_holes)
-new_fire_perimeter_gdf.to_file("/Users/breedwar/Downloads/hackathon/new_fire_perimeter3.geojson", driver="GeoJSON")
+new_fire_perimeter_gdf.to_file("/Users/breedwar/Downloads/hackathon/new_fire_perimeter.geojson", driver="GeoJSON")
