@@ -62,6 +62,7 @@
         "APCP",
         "asyncpg",
         "autoflush",
+        "bbox",
         "Behaviour",
         "botocore",
         "cffdrs",

@@ -9,7 +9,6 @@ import GeoJSON from 'ol/format/GeoJSON'
 import { fromLonLat } from 'ol/proj'
 import { CENTER_OF_BC } from '@/utils/constants'
 import { Fill, Style } from 'ol/style'
-import { buffer, featureCollection } from '@turf/turf'
 import {
   Point,
   MultiPoint,
@@ -19,29 +18,46 @@ import {
   MultiPolygon,
   Feature,
   Geometry,
-  GeoJsonProperties
+  GeoJsonProperties,
+  FeatureCollection
 } from 'geojson'
+import { spreadInDirection } from '@/features/riskMap/pages/components/fireSpreader'
 
 export const FireMap: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
 
-  const loadGeoJSON = async (fileName: string, style: Style, op?: (data: any) => any) => {
+  const loadGeoJSON = async (
+    fileName: string,
+    style: Style,
+    spreader?: (
+      feature:
+        | Point
+        | MultiPoint
+        | LineString
+        | MultiLineString
+        | Polygon
+        | MultiPolygon
+        | Feature<Geometry, GeoJsonProperties>
+    ) => VectorLayer[]
+  ) => {
     try {
       const response = await fetch(fileName)
-      const geojsonData = await response.json()
-      const data = op ? op(geojsonData) : geojsonData
-      const geojsonSource = new VectorSource({
-        features: new GeoJSON().readFeatures(data, {
-          featureProjection: 'EPSG:3857'
-        })
-      })
+      const geojsonData: FeatureCollection = await response.json()
+      const layers = spreader
+        ? geojsonData.features.map(feature => spreader(feature))
+        : [
+            new VectorLayer({
+              style,
+              source: new VectorSource({
+                features: new GeoJSON().readFeatures(geojsonData, {
+                  featureProjection: 'EPSG:3857'
+                })
+              })
+            })
+          ]
 
-      const layer = new VectorLayer({
-        source: geojsonSource,
-        style
-      })
-      mapInstanceRef.current?.addLayer(layer)
+      layers.flat().forEach(layer => mapInstanceRef.current?.addLayer(layer))
     } catch (error) {
       console.error('Error loading GeoJSON data:', error)
     }
@@ -62,36 +78,23 @@ export const FireMap: React.FC = () => {
         })
       })
       mapInstanceRef.current = map
+
       loadGeoJSON(
         '/PROT_CURRENT_FIRE_POLYS_SP.geojson',
         new Style({
           fill: new Fill({
-            color: 'rgba(0, 0, 255, 0.6)' // Red fill with 60% opacity
+            color: 'rgba(0, 0, 255, 0.6)' // Blue fill with 60% opacity
           })
         })
       )
       loadGeoJSON(
-        '/FirespotArea_canada_c6.1_48.geojson', // Define the style for the polygons with red fill and optional black stroke
+        '/FirespotArea_canada_c6.1_48.geojson',
         new Style({
           fill: new Fill({
             color: 'rgba(255, 0, 0, 0.6)' // Red fill with 60% opacity
           })
         }),
-        geojsonData =>
-          featureCollection(
-            geojsonData.features.map(
-              (
-                feature:
-                  | Point
-                  | MultiPoint
-                  | LineString
-                  | MultiLineString
-                  | Polygon
-                  | MultiPolygon
-                  | Feature<Geometry, GeoJsonProperties>
-              ) => buffer(feature, 2)
-            )
-          )
+        feature => spreadInDirection(feature, 'north', 1000)
       )
     }
   }, [])
