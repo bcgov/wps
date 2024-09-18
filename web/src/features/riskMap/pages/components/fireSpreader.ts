@@ -1,4 +1,4 @@
-import { bbox, polygon } from '@turf/turf'
+import { bbox, polygon, transformTranslate } from '@turf/turf'
 import GeoJSON from 'ol/format/GeoJSON'
 import {
   Point,
@@ -148,4 +148,18 @@ export const shiftPolygonBoundingBox = (
   ])
 
   return shiftedBboxPolygon
+}
+
+/**
+ * Shift the polygon in a specific direction by a given distance (in meters).
+ * @param feature - A GeoJSON polygon to be shifted.
+ * @param direction - Direction to shift ('north', 'south', 'east', 'west').
+ * @param distance - Distance to shift (in meters).
+ * @returns Shifted polygon as a GeoJSON polygon.
+ */
+export const shiftPolygon = (feature: Feature, bearing: number, distance: number) => {
+  // Use turf.transformTranslate to shift the polygon
+  const shiftedPolygon = transformTranslate(feature, distance, bearing, { units: 'meters' })
+
+  return shiftedPolygon
 }

@@ -13,7 +13,11 @@ import { Feature, FeatureCollection } from 'geojson'
 import { Select, DragBox } from 'ol/interaction'
 import { shiftKeyOnly } from 'ol/events/condition'
 
-import { shiftPolygonBoundingBox, spreadInDirection } from '@/features/riskMap/pages/components/fireSpreader'
+import {
+  shiftPolygon,
+  shiftPolygonBoundingBox,
+  spreadInDirection
+} from '@/features/riskMap/pages/components/fireSpreader'
 import { getCoords, polygon } from '@turf/turf'
 import Polygon from 'ol/geom/Polygon'
 
@@ -76,7 +80,7 @@ export const FireMap: React.FC = () => {
 
         // Loop through each layer on the map
         map.getLayers().forEach(layer => {
-          if (layer.get('name') === HOTSPOT_LAYER) {
+          if (layer.get('name') === FIRE_PERIMETER_LAYER) {
             if (layer instanceof VectorLayer) {
               const vectorSource: VectorSource = layer.getSource()
 
@@ -94,12 +98,12 @@ export const FireMap: React.FC = () => {
                     const lonLatCoordinates = geometry.getCoordinates()[0].map(coord => toLonLat(coord))
                     const turfPolygon = polygon([lonLatCoordinates])
 
-                    // Buffer using Turf.js
-                    const bufferedTurfPolygon = shiftPolygonBoundingBox(turfPolygon, 'north', 1000)
+                    const shifted = shiftPolygon(turfPolygon, 45, 1000)
 
-                    if (bufferedTurfPolygon) {
+                    if (shifted) {
                       // 2. Get the coordinates from the Turf.js polygon
-                      const turfCoordinates = getCoords(bufferedTurfPolygon)[0].map(coord => fromLonLat(coord))
+                      // @ts-ignore
+                      const turfCoordinates = getCoords(shifted)[0].map(coord => fromLonLat(coord))
 
                       // 4. Create an OpenLayers Polygon
                       const bufferedGeometry = new Polygon([turfCoordinates])
