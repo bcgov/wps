@@ -1,13 +1,11 @@
-import * as ol from 'ol'
+import { PMTilesVectorSource } from 'ol-pmtiles'
+import { Map, View } from 'ol'
 import 'ol/ol.css'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import * as olpmtiles from 'ol-pmtiles'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
 import { fromLonLat } from 'ol/proj'
 import { boundingExtent } from 'ol/extent'
 import ScaleLine from 'ol/control/ScaleLine'
-import OLVectorLayer from 'ol/layer/Vector'
+import VectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
@@ -16,8 +14,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectRunDates } from 'app/rootReducer'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
-import Tile from 'ol/layer/Tile'
-import { FireCenter, FireShape, FireShapeArea } from 'api/fbaAPI'
+import TileLayer from 'ol/layer/Tile'
+import { FireCenter, FireShape, FireShapeArea, RunType } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
 import {
   fireCentreStyler,
@@ -32,14 +30,13 @@ import {
 import { BC_EXTENT, CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
 import { PMTILES_BUCKET } from 'utils/env'
-import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
 import { isUndefined, cloneDeep, isNull } from 'lodash'
 import { Box } from '@mui/material'
 import Legend from 'features/fba/components/map/Legend'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
 import { fireZoneExtentsMap } from 'features/fba/fireZoneUnitExtents'
-export const MapContext = React.createContext<ol.Map | null>(null)
+export const MapContext = React.createContext<Map | null>(null)
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
@@ -56,7 +53,7 @@ export interface FBAMapProps {
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
 }
 
-const removeLayerByName = (map: ol.Map, layerName: string) => {
+const removeLayerByName = (map: Map, layerName: string) => {
   const layer = map
     .getLayers()
     .getArray()
@@ -70,21 +67,21 @@ const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const [showShapeStatus, setShowShapeStatus] = useState(true)
   const [showHFI, setShowHFI] = useState(false)
-  const [map, setMap] = useState<ol.Map | null>(null)
+  const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const scaleRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const { mostRecentRunDate } = useSelector(selectRunDates)
 
-  const fireCentreVectorSource = new olpmtiles.PMTilesVectorSource({
+  const fireCentreVectorSource = new PMTilesVectorSource({
     url: `${PMTILES_BUCKET}fireCentres.pmtiles`
   })
-  const fireShapeVectorSource = new olpmtiles.PMTilesVectorSource({
+  const fireShapeVectorSource = new PMTilesVectorSource({
     url: `${PMTILES_BUCKET}fireZoneUnits.pmtiles`
   })
-  const fireCentreLabelVectorSource = new olpmtiles.PMTilesVectorSource({
+  const fireCentreLabelVectorSource = new PMTilesVectorSource({
     url: `${PMTILES_BUCKET}fireCentreLabels.pmtiles`
   })
-  const fireShapeLabelVectorSource = new olpmtiles.PMTilesVectorSource({
+  const fireShapeLabelVectorSource = new PMTilesVectorSource({
     url: `${PMTILES_BUCKET}fireZoneUnitLabels.pmtiles`
   })
 
@@ -235,7 +232,7 @@ const FBAMap = (props: FBAMapProps) => {
       // The runDate for forecasts is the mostRecentRunDate. For Actuals, our API expects the runDate to be
       // the same as the forDate.
       const runDate = props.runType === RunType.FORECAST ? DateTime.fromISO(mostRecentRunDate) : props.forDate
-      const hfiSource = new olpmtiles.PMTilesVectorSource({
+      const hfiSource = new PMTilesVectorSource({
         url: buildPMTilesURL(props.forDate, props.runType, runDate)
       })
 
@@ -261,13 +258,13 @@ const FBAMap = (props: FBAMapProps) => {
 
     // Create the map with the options above and set the target
     // To the ref above so that it is rendered in that div
-    const mapObject = new ol.Map({
-      view: new ol.View({
+    const mapObject = new Map({
+      view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC)
       }),
       layers: [
-        new Tile({
+        new TileLayer({
           source: baseMapSource
         }),
         fireCentreVTL,
@@ -307,7 +304,7 @@ const FBAMap = (props: FBAMapProps) => {
         }
       )
     })
-    const stationsLayer = new OLVectorLayer({
+    const stationsLayer = new VectorLayer({
       source: stationsSource,
       minZoom: 6,
       style: stationStyler,

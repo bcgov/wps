@@ -2,9 +2,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { getAllRunDates, getMostRecentRunDate } from 'api/fbaAPI'
+import { getAllRunDates, getMostRecentRunDate, RunType } from 'api/fbaAPI'
 import { DateTime } from 'luxon'
-import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 export interface RunDateState {
   loading: boolean
