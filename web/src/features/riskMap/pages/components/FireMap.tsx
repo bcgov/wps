@@ -22,7 +22,7 @@ export const FireMap: React.FC<FireMapProps> = ({ file }) => {
 
     reader.onload = () => {
       try {
-        const geojsonData = JSON.parse(reader.result as string)
+        const geojsonData = fetch('FirespotArea_canada_c6.1_48.geojson')
         const geojsonSource = new VectorSource({
           features: new GeoJSON().readFeatures(geojsonData, {
             featureProjection: 'EPSG:3857'
@@ -44,6 +44,24 @@ export const FireMap: React.FC<FireMapProps> = ({ file }) => {
 
     reader.readAsText(file)
   }
+  const loadGeoJson = async () => {
+    try {
+      const response = await fetch('/PROT_CURRENT_FIRE_POLYS_SP.geojson')
+      const geojsonData = await response.json()
+      const geojsonSource = new VectorSource({
+        features: new GeoJSON().readFeatures(geojsonData, {
+          featureProjection: 'EPSG:3857'
+        })
+      })
+
+      const layer = new VectorLayer({
+        source: geojsonSource
+      })
+      mapInstanceRef.current?.addLayer(layer)
+    } catch (error) {
+      console.error('Error loading GeoJSON data:', error)
+    }
+  }
 
   useEffect(() => {
     if (!mapInstanceRef.current) {
@@ -60,6 +78,7 @@ export const FireMap: React.FC<FireMapProps> = ({ file }) => {
         })
       })
       mapInstanceRef.current = map
+      loadGeoJson()
     }
   }, [])
 
