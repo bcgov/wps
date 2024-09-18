@@ -47,6 +47,7 @@ numba = "^0.59.1"
 cffdrs = {git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307"}
 geopandas = "^1.0.1"
 shapely = "^2.0.5"
+bcdata = "^0.12.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
