@@ -18,14 +18,7 @@ import VectorSource from 'ol/source/Vector'
 import { Fill, Stroke, Style } from 'ol/style'
 
 export const spreadInDirection = (
-  feature:
-    | Point
-    | MultiPoint
-    | LineString
-    | MultiLineString
-    | Polygon
-    | MultiPolygon
-    | Feature<Geometry, GeoJsonProperties>,
+  feature: Feature,
   direction: 'north' | 'south' | 'east' | 'west',
   distance: number
 ): VectorLayer[] => {
@@ -86,7 +79,7 @@ export const spreadInDirection = (
  * @param distance - Distance to shift (in meters).
  * @returns Shifted bounding box as a GeoJSON polygon.
  */
-const shiftPolygonBoundingBox = (
+export const shiftPolygonBoundingBox = (
   feature:
     | Point
     | MultiPoint

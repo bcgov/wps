@@ -6,56 +6,40 @@ import VectorLayer from 'ol/layer/Vector'
 import OSM from 'ol/source/OSM'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
-import { fromLonLat } from 'ol/proj'
+import { fromLonLat, toLonLat } from 'ol/proj'
 import { CENTER_OF_BC } from '@/utils/constants'
 import { Fill, Style } from 'ol/style'
-import {
-  Point,
-  MultiPoint,
-  LineString,
-  MultiLineString,
-  Polygon,
-  MultiPolygon,
-  Feature,
-  Geometry,
-  GeoJsonProperties,
-  FeatureCollection
-} from 'geojson'
-import { spreadInDirection } from '@/features/riskMap/pages/components/fireSpreader'
+import { Feature, FeatureCollection } from 'geojson'
+import { Select, DragBox } from 'ol/interaction'
+import { shiftKeyOnly } from 'ol/events/condition'
+
+import { shiftPolygonBoundingBox, spreadInDirection } from '@/features/riskMap/pages/components/fireSpreader'
+import { getCoords, polygon } from '@turf/turf'
+import Polygon from 'ol/geom/Polygon'
+
+const HOTSPOT_LAYER = 'Hotspot_Layer'
+const SPREAD_HOTSPOT_LAYER = 'Spread_Hotspot_Layer'
+const FIRE_PERIMETER_LAYER = 'Fire_Perimeter_Layer'
 
 export const FireMap: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
 
-  const loadGeoJSON = async (
-    fileName: string,
-    style: Style,
-    spreader?: (
-      feature:
-        | Point
-        | MultiPoint
-        | LineString
-        | MultiLineString
-        | Polygon
-        | MultiPolygon
-        | Feature<Geometry, GeoJsonProperties>
-    ) => VectorLayer[]
-  ) => {
+  const loadGeoJSON = async (fileName: string, style: Style, spreader?: (feature: Feature) => VectorLayer[]) => {
     try {
       const response = await fetch(fileName)
       const geojsonData: FeatureCollection = await response.json()
-      const layers = spreader
-        ? geojsonData.features.map(feature => spreader(feature))
-        : [
-            new VectorLayer({
-              style,
-              source: new VectorSource({
-                features: new GeoJSON().readFeatures(geojsonData, {
-                  featureProjection: 'EPSG:3857'
-                })
-              })
-            })
-          ]
+      const firePerimeterLayer = new VectorLayer({
+        style,
+        source: new VectorSource({
+          features: new GeoJSON().readFeatures(geojsonData, {
+            featureProjection: 'EPSG:3857'
+          })
+        })
+      })
+      firePerimeterLayer.set('name', FIRE_PERIMETER_LAYER)
+
+      const layers = spreader ? geojsonData.features.map(feature => spreader(feature)) : [firePerimeterLayer]
 
       layers.flat().forEach(layer => mapInstanceRef.current?.addLayer(layer))
     } catch (error) {
@@ -77,6 +61,61 @@ export const FireMap: React.FC = () => {
           zoom: 5
         })
       })
+      // Enable selection of polygons
+      const select = new Select()
+      map.addInteraction(select)
+
+      // Enable box dragging to select polygons
+      const dragBox = new DragBox({
+        condition: shiftKeyOnly // Hold down shift or control key while dragging
+      })
+      map.addInteraction(dragBox)
+
+      dragBox.on('boxend', () => {
+        const boxExtent = dragBox.getGeometry().getExtent()
+
+        // Loop through each layer on the map
+        map.getLayers().forEach(layer => {
+          if (layer.get('name') === HOTSPOT_LAYER) {
+            if (layer instanceof VectorLayer) {
+              const vectorSource: VectorSource = layer.getSource()
+
+              // Get features in the drag box extent
+              const featuresInExtent = vectorSource.getFeaturesInExtent(boxExtent)
+
+              if (featuresInExtent.length > 0) {
+                console.log('Layer within extent:', layer.get('name'))
+
+                // Optional: Log the features if needed
+                featuresInExtent.forEach(feature => {
+                  const geometry = feature.getGeometry()
+                  if (geometry instanceof Polygon) {
+                    // Convert OpenLayers Polygon to Turf.js Polygon
+                    const lonLatCoordinates = geometry.getCoordinates()[0].map(coord => toLonLat(coord))
+                    const turfPolygon = polygon([lonLatCoordinates])
+
+                    // Buffer using Turf.js
+                    const bufferedTurfPolygon = shiftPolygonBoundingBox(turfPolygon, 'north', 1000)
+
+                    if (bufferedTurfPolygon) {
+                      // 2. Get the coordinates from the Turf.js polygon
+                      const turfCoordinates = getCoords(bufferedTurfPolygon)[0].map(coord => fromLonLat(coord))
+
+                      // 4. Create an OpenLayers Polygon
+                      const bufferedGeometry = new Polygon([turfCoordinates])
+
+                      // Optionally, update the feature with the new buffered geometry
+                      feature.setGeometry(bufferedGeometry)
+                      feature.changed() // Notify OpenLayers that the feature has changed
+                    }
+                  }
+                })
+              }
+            }
+          }
+        })
+      })
+
       mapInstanceRef.current = map
 
       loadGeoJSON(
@@ -94,7 +133,12 @@ export const FireMap: React.FC = () => {
             color: 'rgba(255, 0, 0, 0.6)' // Red fill with 60% opacity
           })
         }),
-        feature => spreadInDirection(feature, 'north', 1000)
+        feature => {
+          const [originalLayer, spreadLayer] = spreadInDirection(feature, 'north', 1000)
+          originalLayer.set('name', HOTSPOT_LAYER)
+          spreadLayer.set('name', SPREAD_HOTSPOT_LAYER)
+          return [originalLayer]
+        }
       )
     }
   }, [])
