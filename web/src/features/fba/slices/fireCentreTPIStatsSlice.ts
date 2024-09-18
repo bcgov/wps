@@ -2,8 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FireZoneTPIStats, getFireCentreTPIStats } from 'api/fbaAPI'
-import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
+import { FireZoneTPIStats, getFireCentreTPIStats, RunType } from 'api/fbaAPI'
 
 export interface CentreTPIStatsState {
   error: string | null

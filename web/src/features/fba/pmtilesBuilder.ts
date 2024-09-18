@@ -1,4 +1,4 @@
-import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
+import { RunType } from '@/api/fbaAPI'
 import { DateTime } from 'luxon'
 import { PMTILES_BUCKET } from 'utils/env'
 

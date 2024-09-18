@@ -2,8 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FireShapeArea, FireShapeAreaListResponse, getFireShapeAreas } from 'api/fbaAPI'
-import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
+import { FireShapeArea, FireShapeAreaListResponse, getFireShapeAreas, RunType } from 'api/fbaAPI'
 import { isNull, isUndefined } from 'lodash'
 
 export interface FireZoneAreasState {
