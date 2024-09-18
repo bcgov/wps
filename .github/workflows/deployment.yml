@@ -192,6 +192,12 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_firms_footprint_cronjob.sh ${SUFFIX} apply
+      
+      - name: BCData Fire Perimeters cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_bc_wildfire_fire_perimeters_cronjob.sh ${SUFFIX} apply
 
       - name: Hourly pruner nightly cronjob
         shell: bash
