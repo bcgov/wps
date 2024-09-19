@@ -21,7 +21,7 @@ parameters:
   - name: PROJ_TOOLS
     value: e1e498-tools
   - name: JOB_NAME
-    value: firms_footprints
+    value: bc_wildfire_fire_perimeters
   - name: IMAGE_REGISTRY
     required: true
     value: image-registry.openshift-image-registry.svc:5000
@@ -63,7 +63,7 @@ objects:
                       "run",
                       "python",
                       "-m",
-                      "app.jobs.firms_fire_footprints",
+                      "app.jobs.bc_wildfire_fire_perimeters",
                     ]
                   env:
                     - name: POSTGRES_READ_USER
