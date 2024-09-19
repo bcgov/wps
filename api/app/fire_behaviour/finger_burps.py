@@ -30,7 +30,7 @@ def extend_hotspot(hotspot, wind_angle, distance):
 
 
 # Function to grow fire perimeter based on wind direction and hotspots
-def grow_fire_perimeter(fire_perimeter, hotspots, wind_angle, distance=500):
+def grow_fire_perimeter(fire_perimeter, hotspots, wind_angle, distance=500, crs=3857):
     """
     Grows the fire perimeter based on wind direction and hotspot positions.
     """
@@ -43,7 +43,7 @@ def grow_fire_perimeter(fire_perimeter, hotspots, wind_angle, distance=500):
         extended_fingers.append(extended_finger)
 
     # Create a GeoDataFrame of the extended 'fingers'
-    extended_fingers_gdf = gpd.GeoDataFrame(geometry=extended_fingers, crs="EPSG:3005")
+    extended_fingers_gdf = gpd.GeoDataFrame(geometry=extended_fingers, crs=f"EPSG:{crs}")
 
     dissolved_hot_spots = extended_fingers_gdf.union_all()
     union_gdf = gpd.GeoDataFrame(geometry=[dissolved_hot_spots], crs=extended_fingers_gdf.crs)
@@ -57,7 +57,7 @@ def grow_fire_perimeter(fire_perimeter, hotspots, wind_angle, distance=500):
 
     # Optional: Remove holes from each convex hull geometry
     convex_hulls_gdf["geometry"] = convex_hulls_gdf["geometry"].apply(remove_holes)
-    extended_fingers_gdf.to_file("/Users/breedwar/Downloads/hackathon/hot_spots_buffered.geojson", driver="GeoJSON")
+    # extended_fingers_gdf.to_file("/Users/breedwar/Downloads/hackathon/hot_spots_buffered.geojson", driver="GeoJSON")
 
     # Combine the extended fingers with the original fire perimeter
     combined_perimeter = gpd.overlay(fire_perimeter, convex_hulls_gdf, how="union")
@@ -83,16 +83,16 @@ def remove_holes(polygon):
 
 
 # Load fire perimeter and hotspots from GeoJSON or shapefiles
-fire_perimeter_gdf = gpd.read_file("/Users/breedwar/Downloads/hackathon/PROT_CURRENT_FIRE_POLYS_SP.geojson")
-fire_perimeter_gdf = fire_perimeter_gdf.to_crs(epsg=3005)
-hotspots_gdf = gpd.read_file("/Users/breedwar/Downloads/hackathon/FirespotArea_canada_c6.1_48.geojson")
-hotspots_gdf = hotspots_gdf.to_crs(epsg=3005)
+# fire_perimeter_gdf = gpd.read_file("/Users/breedwar/Downloads/hackathon/PROT_CURRENT_FIRE_POLYS_SP.geojson")
+# fire_perimeter_gdf = fire_perimeter_gdf.to_crs(epsg=3005)
+# hotspots_gdf = gpd.read_file("/Users/breedwar/Downloads/hackathon/FirespotArea_canada_c6.1_48.geojson")
+# hotspots_gdf = hotspots_gdf.to_crs(epsg=3005)
 
-wind_direction = 270
+# wind_direction = 270
 
-# Grow the fire perimeter based on hotspots and wind direction
-new_fire_perimeter = grow_fire_perimeter(fire_perimeter_gdf, hotspots_gdf, wind_direction, distance=500)
+# # Grow the fire perimeter based on hotspots and wind direction
+# new_fire_perimeter = grow_fire_perimeter(fire_perimeter_gdf, hotspots_gdf, wind_direction, distance=500)
 
-# Save the new fire perimeter to a file
-new_fire_perimeter_gdf = gpd.GeoDataFrame(geometry=[new_fire_perimeter], crs="EPSG:3005").to_crs(epsg=4326)
-new_fire_perimeter_gdf.to_file("/Users/breedwar/Downloads/hackathon/new_fire_perimeter.geojson", driver="GeoJSON")
+# # Save the new fire perimeter to a file
+# new_fire_perimeter_gdf = gpd.GeoDataFrame(geometry=[new_fire_perimeter], crs="EPSG:3005").to_crs(epsg=4326)
+# new_fire_perimeter_gdf.to_file("/Users/breedwar/Downloads/hackathon/new_fire_perimeter.geojson", driver="GeoJSON")

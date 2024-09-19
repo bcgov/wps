@@ -3,10 +3,15 @@
 import io
 import os
 import logging
+import json
+from fastapi.responses import JSONResponse
+import geopandas as gpd
+from shapely.geometry import MultiPolygon, mapping
 from datetime import datetime
 from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends
 from app.auth import authentication_required, sfms_authenticate
+from app.fire_behaviour.finger_burps import grow_fire_perimeter
 from app.schemas.risk import FireShapeFeatures
 from app.utils.s3 import get_client
 from app.utils.time import get_vancouver_now
@@ -115,4 +120,11 @@ async def grow(fire_perimeter: FireShapeFeatures, hotspots: FireShapeFeatures, r
     ```
     """
     logger.info("risk-map/grow")
-    return Response(status_code=200)
+    fire_perimeter_gdf = gpd.GeoDataFrame.from_features(fire_perimeter.model_dump()["features"])
+    fire_perimeter_gdf = fire_perimeter_gdf.set_crs(3857)
+    hotspots_gdf = gpd.GeoDataFrame.from_features(fire_perimeter.model_dump()["features"])
+    hotspots_gdf = hotspots_gdf.set_crs(3857)
+    new_fire_perimeter = grow_fire_perimeter(fire_perimeter_gdf, hotspots_gdf, 270, distance=500)
+    new_fire_perimeter = mapping(new_fire_perimeter)
+
+    return JSONResponse(content=json.dumps(new_fire_perimeter))
