@@ -27,14 +27,6 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
 
-  const getRandomColor = () => {
-    const r = Math.floor(Math.random() * 256) // Random red value
-    const g = Math.floor(Math.random() * 256) // Random green value
-    const b = Math.floor(Math.random() * 256) // Random blue value
-    const a = 0.6 // Fixed alpha for transparency (60% opacity)
-    return `rgba(${r}, ${g}, ${b}, ${a})`
-  }
-
   useEffect(() => {
     if (valuesFile && mapInstanceRef.current) {
       const reader = new FileReader()
@@ -106,48 +98,6 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
           zoom: 5
         })
       })
-
-      // Method to trigger the fetch request
-      const growFire = async () => {
-        try {
-          const url = 'risk-map/grow'
-          const { data } = await axios.post(url, {
-            fire_perimeter: {
-              // @ts-ignore
-              features: firePerimeterData.features
-            },
-            hotspots: {
-              features: hotspots.features
-            }
-          })
-
-          // Set the initial zIndex to a high value
-          let initialZIndex = 45
-
-          data.forEach((firePerimeterDataItem: any) => {
-            const firePerimeterLayer = new VectorLayer({
-              style: new Style({
-                fill: new Fill({
-                  color: getRandomColor()
-                })
-              }),
-              source: new VectorSource({
-                features: new GeoJSON().readFeatures(firePerimeterDataItem, {
-                  featureProjection: 'EPSG:3857'
-                })
-              })
-            })
-
-            // Set a decreasing zIndex for each layer
-            firePerimeterLayer.setZIndex((initialZIndex -= 1))
-
-            // Add the layer to the map
-            map.addLayer(firePerimeterLayer)
-          })
-        } catch (error) {
-          console.error('Error fetching data:', error)
-        }
-      }
 
       map.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
 

@@ -12,6 +12,14 @@ import firePerimeterData from './components/PROT_CURRENT_FIRE_POLYS_SP.json'
 import hotspots from './components/FirespotArea_canada_c6.1_48.json'
 import { GrowFireButton } from '@/features/riskMap/pages/components/GrowFireButton'
 
+const getRandomColor = () => {
+  const r = Math.floor(Math.random() * 256) // Random red value
+  const g = Math.floor(Math.random() * 256) // Random green value
+  const b = Math.floor(Math.random() * 256) // Random blue value
+  const a = 0.6 // Fixed alpha for transparency (60% opacity)
+  return `rgba(${r}, ${g}, ${b}, ${a})`
+}
+
 export const RiskMapPage = () => {
   const [file, setFile] = useState<File | null>(null)
   const [mapInstance, setMapInstance] = useState<Map | null>(null)
@@ -30,20 +38,29 @@ export const RiskMapPage = () => {
         }
       })
 
-      const firePerimeterLayer = new VectorLayer({
-        style: new Style({
-          fill: new Fill({
-            color: 'rgba(255, 222, 0, 0.6)' // Red fill with 60% opacity
-          })
-        }),
-        source: new VectorSource({
-          features: new GeoJSON().readFeatures(data, {
-            featureProjection: 'EPSG:3857'
+      // Set the initial zIndex to a high value
+      let initialZIndex = 45
+
+      data.forEach((firePerimeterDataItem: any) => {
+        const firePerimeterLayer = new VectorLayer({
+          style: new Style({
+            fill: new Fill({
+              color: getRandomColor()
+            })
+          }),
+          source: new VectorSource({
+            features: new GeoJSON().readFeatures(firePerimeterDataItem, {
+              featureProjection: 'EPSG:3857'
+            })
           })
         })
-      })
 
-      mapInstance?.addLayer(firePerimeterLayer)
+        // Set a decreasing zIndex for each layer
+        firePerimeterLayer.setZIndex((initialZIndex -= 1))
+
+        // Add the layer to the map
+        mapInstance?.addLayer(firePerimeterLayer)
+      })
     } catch (error) {
       console.error('Error fetching data:', error)
     }
