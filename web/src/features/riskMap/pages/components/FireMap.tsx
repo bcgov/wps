@@ -1,24 +1,27 @@
 import React, { useEffect, useRef } from 'react'
 import 'ol/ol.css'
-import { Map, View } from 'ol'
+import { Feature, Map, View } from 'ol'
 import TileLayer from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
 import OSM from 'ol/source/OSM'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
-import { fromLonLat } from 'ol/proj'
+import { fromLonLat, toLonLat } from 'ol/proj'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Fill, Style, Text, Stroke } from 'ol/style'
+import { Select } from 'ol/interaction'
 
 import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
 import hotspots from './FirespotArea_canada_c6.1_48.json'
 import { boundingExtent } from 'ol/extent'
+import { Point } from 'ol/geom'
+import { point, distance } from '@turf/turf'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
-const findLayerByName = (map: Map, layerName: string) => {
+const findLayerByName = (map: Map, layerName: string): VectorLayer | undefined => {
   const layers = map.getLayers().getArray()
-  return layers.find(layer => layer.get('name') === layerName)
+  return layers.find(layer => layer.get('layerName') === layerName) as VectorLayer | undefined
 }
 
 export interface FireMapProps {
@@ -119,8 +122,68 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
 
       map.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
 
+      const selectClick = new Select({
+        condition: event => {
+          return event.type === 'singleclick'
+        }
+      })
+
+      selectClick.on('select', event => {
+        if (event.selected.length > 0) {
+          const feature = event.selected[0]
+          const selectedGeometry = feature.getGeometry()
+
+          // Ensure the geometry is a point
+          if (selectedGeometry instanceof Point) {
+            const selectedPointCoords = selectedGeometry.getCoordinates()
+            const lonLatCoords = toLonLat(selectedPointCoords)
+
+            // Find the layer by name
+            const fireLayer = findLayerByName(map, 'firePerimDay4')
+            const source = fireLayer!.getSource()
+
+            // Get all features from the source
+            const features = source!.getFeatures()
+
+            let closestDistance = Infinity
+            let closestFeature = null
+
+            features.forEach((layerFeature: Feature) => {
+              const geometry = layerFeature.getGeometry()
+              if (geometry) {
+                // Get the closest point on the geometry to the clicked point
+                const closestPoint = geometry.getClosestPoint(selectedPointCoords)
+                const closestPointLonLat = toLonLat(closestPoint)
+
+                // Create Turf.js points for distance calculation
+                const turfPointA = point(lonLatCoords)
+                const turfPointB = point(closestPointLonLat)
+                console.log(turfPointA)
+                console.log(turfPointB)
+
+                // Calculate the distance in meters
+                const dist = distance(turfPointA, turfPointB, { units: 'kilometers' })
+
+                if (dist < closestDistance) {
+                  closestDistance = dist
+                  closestFeature = layerFeature
+                }
+              }
+            })
+
+            if (closestFeature) {
+              console.log('Closest feature:', closestFeature)
+              console.log('Distance to closest feature (km):', closestDistance.toPrecision(2))
+            }
+          } else {
+            console.error('Selected feature is not a point geometry.')
+          }
+        }
+      })
+
       mapInstanceRef.current = map
       setMapInstance(map)
+      map.addInteraction(selectClick)
     }
   }, [])
 
