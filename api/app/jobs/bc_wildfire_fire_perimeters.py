@@ -4,6 +4,7 @@ import os
 import sys
 import tempfile
 import bcdata
+import json
 from app.jobs.common_model_fetchers import download
 from app import configure_logging
 import app.utils.time as time_utils
