@@ -7,19 +7,23 @@ import OSM from 'ol/source/OSM'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { fromLonLat } from 'ol/proj'
-import { CENTER_OF_BC } from '@/utils/constants'
+import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Fill, Style } from 'ol/style'
 import axios from 'api/axios'
 
 import { GrowControl } from '@/features/riskMap/pages/components/GrowControl'
 import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
 import hotspots from './FirespotArea_canada_c6.1_48.json'
+import { boundingExtent } from 'ol/extent'
+
+const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 export interface FireMapProps {
   valuesFile: File | null
+  setMapInstance: React.Dispatch<React.SetStateAction<Map | null>>
 }
 
-export const FireMap: React.FC<FireMapProps> = ({ valuesFile }: FireMapProps) => {
+export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
 
@@ -63,8 +67,6 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile }: FireMapProps) =>
   }, [valuesFile, mapInstanceRef.current])
 
   useEffect(() => {
-    console.log(firePerimeterData)
-    console.log(hotspots)
     if (!mapInstanceRef.current) {
       const map = new Map({
         target: mapRef.current!,
@@ -147,11 +149,12 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile }: FireMapProps) =>
         }
       }
 
-      map.addControl(new GrowControl({ apiCallback: growFire }))
+      map.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
 
       mapInstanceRef.current = map
+      setMapInstance(map)
     }
   }, [])
 
-  return <div ref={mapRef} style={{ width: '1000px', height: '1000px' }} />
+  return <div ref={mapRef} style={{ width: '1800px', height: '800px' }} />
 }
