@@ -69,35 +69,6 @@ def get_risk_map_object_store_path(filename: str) -> str:
     return os.path.join("risk_map", "values", unix_timestamp, filename)
 
 
-@router.post("/upload")
-async def upload(file: UploadFile, request: Request, background_tasks: BackgroundTasks, _=Depends(sfms_authenticate)):
-    """
-    Trigger the SFMS process to run on the provided file.
-    The header MUST include the SFMS secret key.
-
-    ```
-    curl -X 'POST' \\
-        'https://psu.nrs.gov.bc.ca/api/risk-map/upload' \\
-        -H 'accept: application/json' \\
-        -H 'Content-Type: multipart/form-data' \\
-        -H 'Secret: secret' \\
-        -F 'file=@hfi20220812.tif;type=image/tiff'
-    ```
-    """
-    logger.info("risk-map/upload/")
-    # Get an async S3 client.
-    async with get_client() as (client, bucket):
-        # We save the Last-modified and Create-time as metadata in the object store - just
-        # in case we need to know about it in the future.
-        key = get_risk_map_object_store_path(file.filename)
-        logger.info('Uploading file "%s" to "%s"', file.filename, key)
-        meta_data = get_meta_data(request)
-        await client.put_object(Bucket=bucket, Key=key, Body=FileLikeObject(file.file), Metadata=meta_data)
-        await file.close()
-        logger.info("Done uploading file")
-    return Response(status_code=200)
-
-
 @router.post("/grow")
 async def grow(fire_perimeter: FireShapeFeatures, hotspots: FireShapeFeatures, request: Request, _=Depends(authentication_required)):
     """

@@ -4,7 +4,7 @@ import { Box, CircularProgress, Grid, Modal, Typography } from '@mui/material'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
-import { Fill, Style } from 'ol/style'
+import { Fill, Stroke, Style, Text } from 'ol/style'
 import { Map } from 'ol'
 import axios from 'api/axios'
 import { useState } from 'react'
@@ -13,18 +13,29 @@ import hotspots from './components/FirespotArea_canada_c6.1_48.json'
 import { GrowFireButton } from '@/features/riskMap/pages/components/GrowFireButton'
 import { theme } from '@/app/theme'
 
-const getRandomColor = () => {
-  const r = Math.floor(Math.random() * 256) // Random red value
-  const g = Math.floor(Math.random() * 256) // Random green value
-  const b = Math.floor(Math.random() * 256) // Random blue value
-  const a = 0.6 // Fixed alpha for transparency (60% opacity)
-  return `rgba(${r}, ${g}, ${b}, ${a})`
-}
-
 export const RiskMapPage = () => {
   const [file, setFile] = useState<File | null>(null)
   const [mapInstance, setMapInstance] = useState<Map | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
+  const [growthDay, setGrowthDay] = useState<number>(0)
+
+  const getGrowthColor = () => {
+    const a = 0.6 // Fixed alpha for transparency (60% opacity)
+    let currentGrowthDay = growthDay
+    setGrowthDay(currentGrowthDay++)
+    switch (currentGrowthDay) {
+      case 0:
+        return `rgba(255, 98, 0, ${a})`
+      case 1:
+        return `rgba(253, 127, 44, ${a})`
+      case 2:
+        return `rgba(253, 147, 70, ${a})`
+      case 3:
+        return `rgba(253, 167, 102, ${a})`
+      default:
+        return `rgba(253, 183, 119, ${a})`
+    }
+  }
 
   // Method to trigger the fetch request
   const growFire = async () => {
@@ -49,7 +60,7 @@ export const RiskMapPage = () => {
         const firePerimeterLayer = new VectorLayer({
           style: new Style({
             fill: new Fill({
-              color: getRandomColor()
+              color: getGrowthColor()
             })
           }),
           source: new VectorSource({
