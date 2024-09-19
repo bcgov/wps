@@ -6,7 +6,8 @@ import logging
 from datetime import datetime
 from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends
-from app.auth import sfms_authenticate
+from app.auth import authentication_required, sfms_authenticate
+from app.schemas.risk import FirePerimeter, Hotspots
 from app.utils.s3 import get_client
 from app.utils.time import get_vancouver_now
 
@@ -90,4 +91,59 @@ async def upload(file: UploadFile, request: Request, background_tasks: Backgroun
         await client.put_object(Bucket=bucket, Key=key, Body=FileLikeObject(file.file), Metadata=meta_data)
         await file.close()
         logger.info("Done uploading file")
+    return Response(status_code=200)
+
+
+@router.post("/grow")
+async def grow(fire_perimeter: FirePerimeter, hotspots: Hotspots, request: Request, _=Depends(authentication_required)):
+    """
+    Trigger the SFMS process to run on the provided file.
+    The header MUST include the SFMS secret key.
+    ```
+        curl -X POST "http://127.0.0.1:8000/risk-map/grow" \
+        -H "Content-Type: application/json" \
+        -d '
+            {
+            fire_perimeter: {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [
+                    [
+                        [-73.9876, 40.7661],
+                        [-73.9876, 40.7791],
+                        [-73.9691, 40.7791],
+                        [-73.9691, 40.7661],
+                        [-73.9876, 40.7661]
+                    ]
+                    ]
+                },
+                "properties": {
+                    "name": "Test Polygon"
+                }
+            },
+            hotspots: [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                        [
+                            [-73.9876, 40.7661],
+                            [-73.9876, 40.7791],
+                            [-73.9691, 40.7791],
+                            [-73.9691, 40.7661],
+                            [-73.9876, 40.7661]
+                        ]
+                        ]
+                    },
+                    "properties": {
+                        "name": "Test Polygon"
+                    }
+                }
+            ]
+        '
+    ```
+    """
+    logger.info("risk-map/grow")
     return Response(status_code=200)
