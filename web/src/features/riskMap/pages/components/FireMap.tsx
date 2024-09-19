@@ -16,6 +16,11 @@ import { boundingExtent } from 'ol/extent'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
+const findLayerByName = (map: Map, layerName: string) => {
+  const layers = map.getLayers().getArray()
+  return layers.find(layer => layer.get('name') === layerName)
+}
+
 export interface FireMapProps {
   valuesFile: File | null
   setMapInstance: React.Dispatch<React.SetStateAction<Map | null>>
