@@ -5,6 +5,7 @@ import os
 import logging
 from fastapi.responses import JSONResponse
 import geopandas as gpd
+from random import randrange
 from datetime import datetime
 from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends
@@ -118,11 +119,21 @@ async def grow(fire_perimeter: FireShapeFeatures, hotspots: FireShapeFeatures, r
     ```
     """
     logger.info("risk-map/grow")
-    fire_perimeter_gdf = gpd.GeoDataFrame.from_features(fire_perimeter.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
-
+    days = 4
+    distance = 500
+    fire_perims = []
+    wind_dir = 90
+    start_perim_gdf = gpd.GeoDataFrame.from_features(fire_perimeter.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
     hotspots_gdf = gpd.GeoDataFrame.from_features(hotspots.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
 
-    new_fire_perimeter = grow_fire_perimeter(fire_perimeter_gdf, hotspots_gdf, 90, distance=500)
-    new_fire_perimeter_gdf = gpd.GeoDataFrame(geometry=[new_fire_perimeter], crs="EPSG:3005").to_crs(epsg=3857)
+    for idx, _ in enumerate(range(days)):
+        prev_prim = start_perim_gdf
+        if len(fire_perims) > 0:
+            prev_prim = fire_perims[idx - 1]
+        new_fire_perimeter = grow_fire_perimeter(prev_prim, hotspots_gdf, wind_angle=wind_dir, distance=distance)
+        new_fire_perimeter_gdf = gpd.GeoDataFrame(geometry=[new_fire_perimeter], crs="EPSG:3005")
+        fire_perims.append(new_fire_perimeter_gdf)
+        distance += randrange(300, 700)
+        wind_dir += randrange(-25, 25)
 
-    return JSONResponse(content=new_fire_perimeter_gdf.to_json())
+    return JSONResponse(content=[perim.to_crs(epsg=3857).to_json() for perim in fire_perims])

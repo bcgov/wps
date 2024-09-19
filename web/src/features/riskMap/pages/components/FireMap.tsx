@@ -23,6 +23,14 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile }: FireMapProps) =>
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
 
+  const getRandomColor = () => {
+    const r = Math.floor(Math.random() * 256) // Random red value
+    const g = Math.floor(Math.random() * 256) // Random green value
+    const b = Math.floor(Math.random() * 256) // Random blue value
+    const a = 0.6 // Fixed alpha for transparency (60% opacity)
+    return `rgba(${r}, ${g}, ${b}, ${a})`
+  }
+
   useEffect(() => {
     if (valuesFile && mapInstanceRef.current) {
       const reader = new FileReader()
@@ -67,26 +75,28 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile }: FireMapProps) =>
           new VectorLayer({
             style: new Style({
               fill: new Fill({
-                color: 'rgba(0, 0, 255, 0.6)' // Blue fill with 60% opacity
+                color: 'rgba(0, 0, 255, 0.8)' // Blue fill with 60% opacity
               })
             }),
             source: new VectorSource({
               features: new GeoJSON().readFeatures(firePerimeterData, {
                 featureProjection: 'EPSG:3857'
               })
-            })
+            }),
+            zIndex: 50
           }),
           new VectorLayer({
             style: new Style({
               fill: new Fill({
-                color: 'rgba(255, 0, 0, 0.6)' // Red fill with 60% opacity
+                color: 'rgba(255, 0, 0, 0.8)' // Red fill with 60% opacity
               })
             }),
             source: new VectorSource({
               features: new GeoJSON().readFeatures(hotspots, {
                 featureProjection: 'EPSG:3857'
               })
-            })
+            }),
+            zIndex: 52
           })
         ],
         view: new View({
@@ -109,20 +119,29 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile }: FireMapProps) =>
             }
           })
 
-          const firePerimeterLayer = new VectorLayer({
-            style: new Style({
-              fill: new Fill({
-                color: 'rgba(255, 222, 0, 0.6)' // Red fill with 60% opacity
-              })
-            }),
-            source: new VectorSource({
-              features: new GeoJSON().readFeatures(data, {
-                featureProjection: 'EPSG:3857'
+          // Set the initial zIndex to a high value
+          let initialZIndex = 45
+
+          data.forEach((firePerimeterDataItem: any) => {
+            const firePerimeterLayer = new VectorLayer({
+              style: new Style({
+                fill: new Fill({
+                  color: getRandomColor()
+                })
+              }),
+              source: new VectorSource({
+                features: new GeoJSON().readFeatures(firePerimeterDataItem, {
+                  featureProjection: 'EPSG:3857'
+                })
               })
             })
-          })
 
-          map.addLayer(firePerimeterLayer)
+            // Set a decreasing zIndex for each layer
+            firePerimeterLayer.setZIndex((initialZIndex -= 1))
+
+            // Add the layer to the map
+            map.addLayer(firePerimeterLayer)
+          })
         } catch (error) {
           console.error('Error fetching data:', error)
         }
