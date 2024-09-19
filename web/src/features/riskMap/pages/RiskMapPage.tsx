@@ -7,17 +7,25 @@ import GeoJSON from 'ol/format/GeoJSON'
 import { Fill, Stroke, Style, Text } from 'ol/style'
 import { Map } from 'ol'
 import axios from 'api/axios'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import firePerimeterData from './components/PROT_CURRENT_FIRE_POLYS_SP.json'
 import hotspots from './components/FirespotArea_canada_c6.1_48.json'
 import { GrowFireButton } from '@/features/riskMap/pages/components/GrowFireButton'
 import { theme } from '@/app/theme'
+import { AppDispatch } from 'app/store'
+
+import DayControl from '@/features/riskMap/pages/components/DayControl'
+import { useDispatch, useSelector } from 'react-redux'
+import { addGrowthLayer } from '@/features/riskMap/slices/fireGrowthSlice'
+import { selectFireGrowthDay } from '@/app/rootReducer'
 
 export const RiskMapPage = () => {
   const [file, setFile] = useState<File | null>(null)
   const [mapInstance, setMapInstance] = useState<Map | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [growthDay, setGrowthDay] = useState<number>(0)
+  const dispatch: AppDispatch = useDispatch()
+  const { day, dayGrowthLayers } = useSelector(selectFireGrowthDay)
 
   const getGrowthColor = () => {
     const a = 0.6 // Fixed alpha for transparency (60% opacity)
@@ -36,6 +44,12 @@ export const RiskMapPage = () => {
         return `rgba(253, 183, 119, ${a})`
     }
   }
+
+  useEffect(() => {
+    if (mapInstance) {
+      mapInstance.addLayer(dayGrowthLayers[day])
+    }
+  }, [day])
 
   // Method to trigger the fetch request
   const growFire = async () => {
@@ -72,9 +86,10 @@ export const RiskMapPage = () => {
 
         firePerimeterLayer.set('layerName', `firePerimDay${index + 1}`)
         firePerimeterLayer.setZIndex((initialZIndex -= 1))
+        dispatch(addGrowthLayer(firePerimeterLayer))
 
         // Add the layer to the map
-        mapInstance?.addLayer(firePerimeterLayer)
+        // mapInstance?.addLayer(firePerimeterLayer)
       })
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -113,7 +128,7 @@ export const RiskMapPage = () => {
         style={{ minHeight: '100vh' }}
       >
         <Grid item>
-          <Typography variant="h5">Choose the values GeoJSON file to generate a risk map</Typography>
+          <Typography variant="h5">Risk Map: Upload values, model fire growth, identify values at risk</Typography>
         </Grid>
         <Grid item>
           <Grid container direction={'row'} spacing={1}>
@@ -122,6 +137,9 @@ export const RiskMapPage = () => {
             </Grid>
             <Grid item>
               <GrowFireButton growFire={growFire} />
+            </Grid>
+            <Grid item>
+              <DayControl />
             </Grid>
           </Grid>
         </Grid>
