@@ -14,7 +14,7 @@ import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
 import hotspots from './FirespotArea_canada_c6.1_48.json'
 import { boundingExtent } from 'ol/extent'
 import { Point } from 'ol/geom'
-import { point, distance } from '@turf/turf'
+import { point, distance, bearing } from '@turf/turf'
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -22,6 +22,12 @@ const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 const findLayerByName = (map: Map, layerName: string): VectorLayer | undefined => {
   const layers = map.getLayers().getArray()
   return layers.find(layer => layer.get('layerName') === layerName) as VectorLayer | undefined
+}
+
+const getCompassDirection = (bearing: number) => {
+  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+  const index = Math.round((((bearing % 360) + 360) % 360) / 45)
+  return directions[index]
 }
 
 export interface FireMapProps {
@@ -34,6 +40,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
   const mapInstanceRef = useRef<Map | null>(null)
   const [open, setOpen] = useState(false)
   const [closestDistance, setClosestDistance] = useState<number | null>(null)
+  const [closestDirection, setClosestDirection] = useState<string>('')
 
   useEffect(() => {
     if (valuesFile && mapInstanceRef.current) {
@@ -145,6 +152,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
 
             let closestDistance = Infinity
             let closestFeature = null
+            let closestBearing = 0
 
             features.forEach((layerFeature: Feature) => {
               const geometry = layerFeature.getGeometry()
@@ -156,16 +164,19 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
                 const turfPointB = point(closestPointLonLat)
 
                 const dist = distance(turfPointA, turfPointB, { units: 'kilometers' })
+                const bearingAngle = bearing(turfPointA, turfPointB)
 
                 if (dist < closestDistance) {
                   closestDistance = dist
                   closestFeature = layerFeature
+                  closestBearing = bearingAngle
                 }
               }
             })
 
             if (closestFeature) {
               setClosestDistance(closestDistance)
+              setClosestDirection(getCompassDirection(closestBearing))
               setOpen(true) // Open the dialog
             }
           } else {
@@ -183,6 +194,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
   const handleClose = () => {
     setOpen(false)
     setClosestDistance(null)
+    setClosestDirection('')
   }
 
   return (
@@ -191,9 +203,10 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Closest Distance</DialogTitle>
         <DialogContent>
-          {closestDistance !== null ? (
+          {closestDistance !== null && closestDirection ? (
             <>
               <p>Closest Distance: {closestDistance.toPrecision(2)} km</p>
+              <p>Direction: {closestDirection}</p>
               <p>
                 Risk Level:
                 <span
