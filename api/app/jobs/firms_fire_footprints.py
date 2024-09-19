@@ -10,10 +10,9 @@ import app.utils.time as time_utils
 from app.utils.s3 import get_client
 
 
-MODIS_URL = "https://firms.modaps.eosdis.nasa.gov/api/kml_fire_footprints/canada/48h/c6.1/FirespotArea_canada_c6.1_48.kmz"
+MODIS_URL = "https://firms.modaps.eosdis.nasa.gov/api/kml_fire_footprints/canada/7/c6.1/FirespotArea_canada_c6.1_48.kmz"
 
 logger = logging.getLogger(__name__)
-
 
 class FIRMSkmz:
     def __init__(self):
