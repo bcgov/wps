@@ -1,7 +1,5 @@
-import UploadIcon from '@mui/icons-material/Upload'
+import WhatshotIcon from '@mui/icons-material/Whatshot'
 import { Button } from '@mui/material'
-import { isNull } from 'lodash'
-import React, { useRef } from 'react'
 
 interface ValuesImportButtonProps {
   growFire: () => Promise<void>
@@ -9,7 +7,7 @@ interface ValuesImportButtonProps {
 
 export const GrowFireButton = ({ growFire }: ValuesImportButtonProps) => {
   return (
-    <Button variant="contained" component="label" startIcon={<UploadIcon />} onClick={() => growFire()}>
+    <Button variant="contained" component="label" startIcon={<WhatshotIcon />} onClick={() => growFire()}>
       Grow Fire
     </Button>
   )
