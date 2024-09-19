@@ -21,8 +21,7 @@ class BCDATAgeojson:
     async def process(self):
         try:
             with tempfile.TemporaryDirectory() as tempdir:
-                current_dir = os.getcwd()
-                os.environ['BCDATA_CACHE'] = os.path.join(current_dir, ".bcdata_cache")
+                os.environ['BCDATA_CACHE'] = os.path.join(tempdir, "bcdata")
                 geojson = bcdata.get_data(DATASET)
                 if geojson:
                     filename = f"{DATASET}.json"
