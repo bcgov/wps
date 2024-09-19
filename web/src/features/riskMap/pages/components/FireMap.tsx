@@ -34,7 +34,7 @@ const growFire = async () => {
       fire_perimeter: {
         features: firePerimeterData.features
       },
-      hostpots: {
+      hotspots: {
         features: hotspots.features
       }
     })

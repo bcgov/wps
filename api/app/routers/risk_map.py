@@ -104,44 +104,13 @@ async def grow(fire_perimeter: FireShapeFeatures, hotspots: FireShapeFeatures, r
         -H "Content-Type: application/json" \
         -d '
             {
-            fire_perimeter: {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                    [
-                        [-73.9876, 40.7661],
-                        [-73.9876, 40.7791],
-                        [-73.9691, 40.7791],
-                        [-73.9691, 40.7661],
-                        [-73.9876, 40.7661]
-                    ]
-                    ]
-                },
-                "properties": {
-                    "name": "Test Polygon"
-                }
+            "fire_perimeter": {
+                "features": [...]
             },
-            hotspots: [
-                {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Polygon",
-                        "coordinates": [
-                        [
-                            [-73.9876, 40.7661],
-                            [-73.9876, 40.7791],
-                            [-73.9691, 40.7791],
-                            [-73.9691, 40.7661],
-                            [-73.9876, 40.7661]
-                        ]
-                        ]
-                    },
-                    "properties": {
-                        "name": "Test Polygon"
-                    }
-                }
-            ]
+            "hotspots": {
+                "features": [...]
+            }
+            }            
         '
     ```
     """
