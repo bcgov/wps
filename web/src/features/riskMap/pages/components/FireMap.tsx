@@ -9,12 +9,12 @@ import GeoJSON from 'ol/format/GeoJSON'
 import { fromLonLat } from 'ol/proj'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Fill, Style } from 'ol/style'
-import axios from 'api/axios'
 
-import { GrowControl } from '@/features/riskMap/pages/components/GrowControl'
 import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
 import hotspots from './FirespotArea_canada_c6.1_48.json'
 import { boundingExtent } from 'ol/extent'
+import { useDispatch } from 'react-redux'
+import { AppDispatch } from '@/app/store'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
