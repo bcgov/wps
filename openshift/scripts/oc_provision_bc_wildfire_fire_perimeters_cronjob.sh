@@ -30,7 +30,7 @@ SCHEDULE="${SCHEDULE:-$((3 + $RANDOM % 54)) 12 * * *}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/bc_wildfire_fire_perimeters.cronjob.yaml \
--p JOB_NAME=firms-${APP_NAME}-${SUFFIX} \
+-p JOB_NAME=bcdata-current-wildfires-${APP_NAME}-${SUFFIX} \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME} \
 -p SUFFIX=${SUFFIX} \
