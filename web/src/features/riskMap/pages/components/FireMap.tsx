@@ -58,7 +58,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
 
   useEffect(() => {
     if (!mapInstanceRef.current) {
-      const labelStyle = (feature: any) => {
+      const firePerimeterStyler = (feature: any) => {
         const labelText = feature.get('FIRE_NUMBER') || '' // Fallback to an empty string if 'name' is undefined
         return new Style({
           fill: new Fill({
@@ -84,7 +84,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
             source: new OSM()
           }),
           new VectorLayer({
-            style: labelStyle,
+            style: firePerimeterStyler,
             source: new VectorSource({
               features: new GeoJSON().readFeatures(firePerimeterData, {
                 featureProjection: 'EPSG:3857'
