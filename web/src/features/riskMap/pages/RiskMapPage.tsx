@@ -45,7 +45,7 @@ export const RiskMapPage = () => {
       // Set the initial zIndex to a high value
       let initialZIndex = 45
 
-      data.forEach((firePerimeterDataItem: any) => {
+      data.forEach((firePerimeterDataItem: any, index: number) => {
         const firePerimeterLayer = new VectorLayer({
           style: new Style({
             fill: new Fill({
@@ -59,7 +59,7 @@ export const RiskMapPage = () => {
           })
         })
 
-        // Set a decreasing zIndex for each layer
+        firePerimeterLayer.set('layerName', `firePerimDay${index + 1}`)
         firePerimeterLayer.setZIndex((initialZIndex -= 1))
 
         // Add the layer to the map
