@@ -12,18 +12,37 @@ import { Fill, Style } from 'ol/style'
 import { Feature, FeatureCollection } from 'geojson'
 import { Select, DragBox } from 'ol/interaction'
 import { shiftKeyOnly } from 'ol/events/condition'
+import { defaults as defaultControls } from 'ol/control'
+import axios, { raster } from 'api/axios'
 
-import {
-  shiftPolygon,
-  shiftPolygonBoundingBox,
-  spreadInDirection
-} from '@/features/riskMap/pages/components/fireSpreader'
+import { shiftPolygon, spreadInDirection } from '@/features/riskMap/pages/components/fireSpreader'
 import { getCoords, polygon } from '@turf/turf'
 import Polygon from 'ol/geom/Polygon'
+import { GrowControl } from '@/features/riskMap/pages/components/GrowControl'
+import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
+import hotspots from './FirespotArea_canada_c6.1_48.json'
 
 const HOTSPOT_LAYER = 'Hotspot_Layer'
 const SPREAD_HOTSPOT_LAYER = 'Spread_Hotspot_Layer'
 const FIRE_PERIMETER_LAYER = 'Fire_Perimeter_Layer'
+
+// Method to trigger the fetch request
+const growFire = async () => {
+  try {
+    const url = `risk-map/grow`
+    const { data } = await axios.post(url, {
+      fire_perimeter: {
+        features: firePerimeterData.features
+      },
+      hostpots: {
+        features: hotspots.features
+      }
+    })
+    return data
+  } catch (error) {
+    console.error('Error fetching data:', error)
+  }
+}
 
 export const FireMap: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null)
@@ -46,14 +65,18 @@ export const FireMap: React.FC = () => {
       const layers = spreader ? geojsonData.features.map(feature => spreader(feature)) : [firePerimeterLayer]
 
       layers.flat().forEach(layer => mapInstanceRef.current?.addLayer(layer))
+      return geojsonData
     } catch (error) {
       console.error('Error loading GeoJSON data:', error)
     }
   }
 
   useEffect(() => {
+    console.log(firePerimeterData)
+    console.log(hotspots)
     if (!mapInstanceRef.current) {
       const map = new Map({
+        controls: defaultControls().extend([new GrowControl({ apiCallback: growFire })]),
         target: mapRef.current!,
         layers: [
           new TileLayer({
@@ -65,6 +88,7 @@ export const FireMap: React.FC = () => {
           zoom: 5
         })
       })
+
       // Enable selection of polygons
       const select = new Select()
       map.addInteraction(select)
@@ -122,7 +146,7 @@ export const FireMap: React.FC = () => {
 
       mapInstanceRef.current = map
 
-      loadGeoJSON(
+      const firePerimeters = loadGeoJSON(
         '/PROT_CURRENT_FIRE_POLYS_SP.geojson',
         new Style({
           fill: new Fill({
@@ -130,7 +154,8 @@ export const FireMap: React.FC = () => {
           })
         })
       )
-      loadGeoJSON(
+
+      const hotspots = loadGeoJSON(
         '/FirespotArea_canada_c6.1_48.geojson',
         new Style({
           fill: new Fill({

@@ -11,9 +11,5 @@ class GeoJSONFeature(BaseModel):
     properties: Dict[str, Any] = None
 
 
-class FirePerimeter(BaseModel):
-    geom: GeoJSONFeature
-
-
-class Hotspots(BaseModel):
-    geoms: List[GeoJSONFeature]
+class FireShapeFeatures(BaseModel):
+    features: List[GeoJSONFeature]

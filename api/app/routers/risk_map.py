@@ -7,7 +7,7 @@ from datetime import datetime
 from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends
 from app.auth import authentication_required, sfms_authenticate
-from app.schemas.risk import FirePerimeter, Hotspots
+from app.schemas.risk import FireShapeFeatures
 from app.utils.s3 import get_client
 from app.utils.time import get_vancouver_now
 
@@ -95,7 +95,7 @@ async def upload(file: UploadFile, request: Request, background_tasks: Backgroun
 
 
 @router.post("/grow")
-async def grow(fire_perimeter: FirePerimeter, hotspots: Hotspots, request: Request, _=Depends(authentication_required)):
+async def grow(fire_perimeter: FireShapeFeatures, hotspots: FireShapeFeatures, request: Request, _=Depends(authentication_required)):
     """
     Trigger the SFMS process to run on the provided file.
     The header MUST include the SFMS secret key.
