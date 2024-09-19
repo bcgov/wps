@@ -8,13 +8,11 @@ import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { fromLonLat } from 'ol/proj'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
-import { Fill, Style } from 'ol/style'
+import { Fill, Style, Text, Stroke } from 'ol/style'
 
 import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
 import hotspots from './FirespotArea_canada_c6.1_48.json'
 import { boundingExtent } from 'ol/extent'
-import { useDispatch } from 'react-redux'
-import { AppDispatch } from '@/app/store'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
@@ -60,6 +58,25 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
 
   useEffect(() => {
     if (!mapInstanceRef.current) {
+      const labelStyle = (feature: any) => {
+        const labelText = feature.get('FIRE_NUMBER') || '' // Fallback to an empty string if 'name' is undefined
+        return new Style({
+          fill: new Fill({
+            color: 'rgba(251,171,96, 0.8)' // Orange
+          }),
+          text: new Text({
+            font: '12px Calibri,sans-serif',
+            text: labelText, // Ensure it's always a string
+            fill: new Fill({
+              color: '#000'
+            }),
+            stroke: new Stroke({
+              color: '#fff',
+              width: 2
+            })
+          })
+        })
+      }
       const map = new Map({
         target: mapRef.current!,
         layers: [
@@ -67,11 +84,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
             source: new OSM()
           }),
           new VectorLayer({
-            style: new Style({
-              fill: new Fill({
-                color: 'rgba(0, 0, 255, 0.8)' // Blue fill with 60% opacity
-              })
-            }),
+            style: labelStyle,
             source: new VectorSource({
               features: new GeoJSON().readFeatures(firePerimeterData, {
                 featureProjection: 'EPSG:3857'
