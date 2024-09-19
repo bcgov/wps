@@ -26,13 +26,15 @@ class BCDATAgeojson:
                 if geojson:
                     filename = f"{DATASET}.json"
                     file_path = os.path.join(tempdir, filename)
+                    with open(file_path, 'w') as f:
+                        json.dump(geojson, f)  
                     today = time_utils.get_utc_now()
                     key = f"fire_perimeter/bcdata/{today}/{filename}"
                     try:
                         async with get_client() as (client, bucket):
                             await client.put_object(Bucket=bucket, Key=key, Body=open(file_path, "rb"))
                     finally:
-                        os.remove(geojson)
+                        os.remove(file_path)
         except Exception as e:
             logger.error("unexpected exception processing %s", exc_info=e)
 
