@@ -8,11 +8,10 @@ import geopandas as gpd
 from random import randrange
 from datetime import datetime
 from tempfile import SpooledTemporaryFile
-from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends
-from app.auth import authentication_required, sfms_authenticate
+from fastapi import APIRouter, Request, Depends
+from app.auth import authentication_required
 from app.fire_behaviour.finger_burps import grow_fire_perimeter
 from app.schemas.risk import FireShapeFeatures
-from app.utils.s3 import get_client
 from app.utils.time import get_vancouver_now
 
 
