@@ -6984,14 +6984,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ol-pmtiles@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "ol-pmtiles@npm:1.0.1"
+"ol-pmtiles@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "ol-pmtiles@npm:1.0.2"
   dependencies:
-    pmtiles: "npm:^3.0.7"
+    pmtiles: "npm:^3.1.0"
   peerDependencies:
     ol: ">=9.0.0"
-  checksum: 10c0/8eabdc9b0e29ecf45447261aa9d3c2273aa1a63ffe401138878623fade23496b3803f74f9566a2e89e070faee3fc330a878fd98eef11a7019fb4eef4060cce9f
+  checksum: 10c0/f2dacac4f0b792ca0cfe55bfe6ece9b6113e848ba0828281c67ac07644ee57a757718a9b2895bdfd65bac163a8d34510c7875e313a3f0340da11ce652e9ca3c0
   languageName: node
   linkType: hard
 
@@ -7320,13 +7320,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pmtiles@npm:^3.0.7":
-  version: 3.0.7
-  resolution: "pmtiles@npm:3.0.7"
+"pmtiles@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "pmtiles@npm:3.1.0"
   dependencies:
     "@types/leaflet": "npm:^1.9.8"
     fflate: "npm:^0.8.0"
-  checksum: 10c0/c054a37f913a704c8caf5aa4bf70bca1dcd7604ef3429786ed05adf5742ccfaf2d88d8fd889de0cf8de6923a34ee9013593cc7777798f77f971ba5c6b7fccb22
+  checksum: 10c0/a00d21cb0aab60045ab48d3cc76724baeb2a0614b7aed1f700f14759abf242ffcbf939feef9b7b6d92ac03909a8007323ab7184a41136953358776dfc1bdaa95
   languageName: node
   linkType: hard
 
@@ -9551,7 +9551,7 @@ __metadata:
     match-sorter: "npm:^6.3.1"
     nyc: "npm:^17.0.0"
     ol: "npm:10.0.0"
-    ol-pmtiles: "npm:^1.0.1"
+    ol-pmtiles: "npm:^1.0.2"
     prettier: "npm:^3.3.3"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
