@@ -1,9 +1,14 @@
 import 'ol/ol.css'
 import Control from 'ol/control/Control'
 
+interface GrowControlOptions {
+  apiCallback: () => void
+  target?: HTMLElement
+}
+
 // Create a custom control class
 export class GrowControl extends Control {
-  constructor(options = { apiCallback: () => {} }) {
+  constructor(options: GrowControlOptions) {
     // Create a button element
     const button = document.createElement('button')
     button.innerHTML = 'G'
