@@ -19,7 +19,7 @@ const fireGrowthSlice = createSlice({
   initialState,
   reducers: {
     incrementDay(state: FireGrowthState) {
-      state.day = state.day < 4 ? state.day + 1 : 1
+      state.day = state.day < 4 ? state.day + 1 : 0
     },
     resetDay(state: FireGrowthState) {
       state.day = 0

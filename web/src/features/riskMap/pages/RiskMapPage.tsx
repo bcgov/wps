@@ -45,9 +45,28 @@ export const RiskMapPage = () => {
     }
   }
 
+  const removeLayerByName = () => {
+    if (mapInstance) {
+      const layers = mapInstance
+        .getLayers()
+        .getArray()
+        .filter(l => (l.getProperties()?.layerName as string).startsWith('firePerimDay'))
+      if (layers) {
+        layers.forEach(layer => mapInstance.removeLayer(layer))
+      }
+    }
+  }
+
   useEffect(() => {
     if (mapInstance) {
-      mapInstance.addLayer(dayGrowthLayers[day])
+      if (day === 0) {
+        removeLayerByName()
+      } else {
+        const layerToAdd = dayGrowthLayers[day]
+        if (layerToAdd) {
+          mapInstance.addLayer(dayGrowthLayers[day])
+        }
+      }
     }
   }, [day])
 

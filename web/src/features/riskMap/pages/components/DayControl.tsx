@@ -17,7 +17,11 @@ const DayControl: React.FC = () => {
 
     if (playing) {
       timer = setInterval(() => {
-        dispatch(incrementDay())
+        if (day === 3) {
+          clearInterval(timer) // Clear interval at end
+        } else {
+          dispatch(incrementDay())
+        }
       }, 1000) // Change day every second (adjust as needed)
     } else if (timer) {
       clearInterval(timer) // Clear interval when paused
