@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import 'ol/ol.css'
 import { Feature, Map, View } from 'ol'
 import TileLayer from 'ol/layer/Tile'
@@ -10,12 +10,12 @@ import { fromLonLat, toLonLat } from 'ol/proj'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Fill, Style, Text, Stroke } from 'ol/style'
 import { Select } from 'ol/interaction'
-
 import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
 import hotspots from './FirespotArea_canada_c6.1_48.json'
 import { boundingExtent } from 'ol/extent'
 import { Point } from 'ol/geom'
 import { point, distance } from '@turf/turf'
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
@@ -32,6 +32,8 @@ export interface FireMapProps {
 export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
+  const [open, setOpen] = useState(false)
+  const [closestDistance, setClosestDistance] = useState<number | null>(null)
 
   useEffect(() => {
     if (valuesFile && mapInstanceRef.current) {
@@ -40,11 +42,11 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
       reader.onload = e => {
         if (e.target && e.target.result) {
           try {
-            const geojsonData = JSON.parse(e.target.result as string) // Parse the file content as JSON
+            const geojsonData = JSON.parse(e.target.result as string)
 
             const vectorSource = new VectorSource({
               features: new GeoJSON().readFeatures(geojsonData, {
-                featureProjection: 'EPSG:3857' // Ensure the correct projection
+                featureProjection: 'EPSG:3857'
               })
             })
 
@@ -52,7 +54,6 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
               source: vectorSource
             })
 
-            // Add the vector layer to the map
             mapInstanceRef.current?.addLayer(vectorLayer)
           } catch (error) {
             console.error('Error parsing GeoJSON data:', error)
@@ -60,21 +61,21 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
         }
       }
 
-      reader.readAsText(valuesFile) // Read the file as text
+      reader.readAsText(valuesFile)
     }
   }, [valuesFile, mapInstanceRef.current])
 
   useEffect(() => {
     if (!mapInstanceRef.current) {
       const firePerimeterStyler = (feature: any) => {
-        const labelText = feature.get('FIRE_NUMBER') || '' // Fallback to an empty string if 'name' is undefined
+        const labelText = feature.get('FIRE_NUMBER') || ''
         return new Style({
           fill: new Fill({
-            color: 'rgba(251,171,96, 0.8)' // Orange
+            color: 'rgba(251,171,96, 0.8)'
           }),
           text: new Text({
             font: '12px Calibri,sans-serif',
-            text: labelText, // Ensure it's always a string
+            text: labelText,
             fill: new Fill({
               color: '#000'
             }),
@@ -85,6 +86,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
           })
         })
       }
+
       const map = new Map({
         target: mapRef.current!,
         layers: [
@@ -103,7 +105,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
           new VectorLayer({
             style: new Style({
               fill: new Fill({
-                color: 'rgba(255, 0, 0, 0.8)' // Red fill with 60% opacity
+                color: 'rgba(255, 0, 0, 0.8)'
               })
             }),
             source: new VectorSource({
@@ -133,16 +135,12 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
           const feature = event.selected[0]
           const selectedGeometry = feature.getGeometry()
 
-          // Ensure the geometry is a point
           if (selectedGeometry instanceof Point) {
             const selectedPointCoords = selectedGeometry.getCoordinates()
             const lonLatCoords = toLonLat(selectedPointCoords)
 
-            // Find the layer by name
             const fireLayer = findLayerByName(map, 'firePerimDay4')
             const source = fireLayer!.getSource()
-
-            // Get all features from the source
             const features = source!.getFeatures()
 
             let closestDistance = Infinity
@@ -151,17 +149,12 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
             features.forEach((layerFeature: Feature) => {
               const geometry = layerFeature.getGeometry()
               if (geometry) {
-                // Get the closest point on the geometry to the clicked point
                 const closestPoint = geometry.getClosestPoint(selectedPointCoords)
                 const closestPointLonLat = toLonLat(closestPoint)
 
-                // Create Turf.js points for distance calculation
                 const turfPointA = point(lonLatCoords)
                 const turfPointB = point(closestPointLonLat)
-                console.log(turfPointA)
-                console.log(turfPointB)
 
-                // Calculate the distance in meters
                 const dist = distance(turfPointA, turfPointB, { units: 'kilometers' })
 
                 if (dist < closestDistance) {
@@ -172,8 +165,8 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
             })
 
             if (closestFeature) {
-              console.log('Closest feature:', closestFeature)
-              console.log('Distance to closest feature (km):', closestDistance.toPrecision(2))
+              setClosestDistance(closestDistance)
+              setOpen(true) // Open the dialog
             }
           } else {
             console.error('Selected feature is not a point geometry.')
@@ -187,5 +180,29 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
     }
   }, [])
 
-  return <div ref={mapRef} style={{ width: '1800px', height: '800px' }} />
+  const handleClose = () => {
+    setOpen(false)
+    setClosestDistance(null)
+  }
+
+  return (
+    <>
+      <div ref={mapRef} style={{ width: '1800px', height: '800px' }} />
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Closest Distance</DialogTitle>
+        <DialogContent>
+          {closestDistance !== null ? (
+            <p>Closest Distance: {closestDistance.toPrecision(2)} km</p>
+          ) : (
+            <p>No distance calculated.</p>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  )
 }
