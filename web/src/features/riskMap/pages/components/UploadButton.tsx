@@ -3,11 +3,11 @@ import { Button } from '@mui/material'
 import { isNull } from 'lodash'
 import React, { useRef } from 'react'
 
-interface ImportButtonProps {
+interface ValuesImportButtonProps {
   setFile: React.Dispatch<React.SetStateAction<File | null>>
 }
 
-export const ImportButton = ({ setFile }: ImportButtonProps) => {
+export const ValuesImportButton = ({ setFile }: ValuesImportButtonProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {

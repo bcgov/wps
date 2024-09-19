@@ -15,9 +15,44 @@ import { GrowControl } from '@/features/riskMap/pages/components/GrowControl'
 import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
 import hotspots from './FirespotArea_canada_c6.1_48.json'
 
-export const FireMap: React.FC = () => {
+export interface FireMapProps {
+  valuesFile: File | null
+}
+
+export const FireMap: React.FC<FireMapProps> = ({ valuesFile }: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
+
+  useEffect(() => {
+    if (valuesFile && mapInstanceRef.current) {
+      const reader = new FileReader()
+
+      reader.onload = e => {
+        if (e.target && e.target.result) {
+          try {
+            const geojsonData = JSON.parse(e.target.result as string) // Parse the file content as JSON
+
+            const vectorSource = new VectorSource({
+              features: new GeoJSON().readFeatures(geojsonData, {
+                featureProjection: 'EPSG:3857' // Ensure the correct projection
+              })
+            })
+
+            const vectorLayer = new VectorLayer({
+              source: vectorSource
+            })
+
+            // Add the vector layer to the map
+            mapInstanceRef.current?.addLayer(vectorLayer)
+          } catch (error) {
+            console.error('Error parsing GeoJSON data:', error)
+          }
+        }
+      }
+
+      reader.readAsText(valuesFile) // Read the file as text
+    }
+  }, [valuesFile, mapInstanceRef.current])
 
   useEffect(() => {
     console.log(firePerimeterData)
@@ -63,7 +98,7 @@ export const FireMap: React.FC = () => {
       // Method to trigger the fetch request
       const growFire = async () => {
         try {
-          const url = `risk-map/grow`
+          const url = 'risk-map/grow'
           const { data } = await axios.post(url, {
             fire_perimeter: {
               // @ts-ignore
