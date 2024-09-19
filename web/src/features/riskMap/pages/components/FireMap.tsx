@@ -192,7 +192,19 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
         <DialogTitle>Closest Distance</DialogTitle>
         <DialogContent>
           {closestDistance !== null ? (
-            <p>Closest Distance: {closestDistance.toPrecision(2)} km</p>
+            <>
+              <p>Closest Distance: {closestDistance.toPrecision(2)} km</p>
+              <p>
+                Risk Level:
+                <span
+                  style={{
+                    color: closestDistance < 5 ? 'red' : closestDistance <= 10 ? 'orange' : 'black'
+                  }}
+                >
+                  {closestDistance < 5 ? ' High Risk' : closestDistance <= 10 ? ' Mid Risk' : ' Low Risk'}
+                </span>
+              </p>
+            </>
           ) : (
             <p>No distance calculated.</p>
           )}
