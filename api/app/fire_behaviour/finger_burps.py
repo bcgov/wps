@@ -30,7 +30,7 @@ def extend_hotspot(hotspot, wind_angle, distance):
 
 
 # Function to grow fire perimeter based on wind direction and hotspots
-def grow_fire_perimeter(fire_perimeter, hotspots, wind_angle, distance=500, crs=3857):
+def grow_fire_perimeter(fire_perimeter, hotspots, wind_angle, distance=500, crs=3005):
     """
     Grows the fire perimeter based on wind direction and hotspot positions.
     """

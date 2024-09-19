@@ -3,10 +3,8 @@
 import io
 import os
 import logging
-import json
 from fastapi.responses import JSONResponse
 import geopandas as gpd
-from shapely.geometry import MultiPolygon, mapping
 from datetime import datetime
 from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends
@@ -120,11 +118,11 @@ async def grow(fire_perimeter: FireShapeFeatures, hotspots: FireShapeFeatures, r
     ```
     """
     logger.info("risk-map/grow")
-    fire_perimeter_gdf = gpd.GeoDataFrame.from_features(fire_perimeter.model_dump()["features"])
-    fire_perimeter_gdf = fire_perimeter_gdf.set_crs(3857)
-    hotspots_gdf = gpd.GeoDataFrame.from_features(fire_perimeter.model_dump()["features"])
-    hotspots_gdf = hotspots_gdf.set_crs(3857)
-    new_fire_perimeter = grow_fire_perimeter(fire_perimeter_gdf, hotspots_gdf, 270, distance=500)
-    new_fire_perimeter = mapping(new_fire_perimeter)
+    fire_perimeter_gdf = gpd.GeoDataFrame.from_features(fire_perimeter.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
 
-    return JSONResponse(content=json.dumps(new_fire_perimeter))
+    hotspots_gdf = gpd.GeoDataFrame.from_features(hotspots.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
+
+    new_fire_perimeter = grow_fire_perimeter(fire_perimeter_gdf, hotspots_gdf, 90, distance=500)
+    new_fire_perimeter_gdf = gpd.GeoDataFrame(geometry=[new_fire_perimeter], crs="EPSG:3005").to_crs(epsg=3857)
+
+    return JSONResponse(content=new_fire_perimeter_gdf.to_json())
