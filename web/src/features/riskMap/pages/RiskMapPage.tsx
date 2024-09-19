@@ -25,13 +25,13 @@ export const RiskMapPage = () => {
     setGrowthDay(currentGrowthDay++)
     switch (currentGrowthDay) {
       case 0:
-        return `rgba(255, 98, 0, ${a})`
+        return `rgba(187, 125, 81, ${a})`
       case 1:
-        return `rgba(253, 127, 44, ${a})`
+        return `rgba(205, 145, 88, ${a})`
       case 2:
-        return `rgba(253, 147, 70, ${a})`
+        return `rgba(221, 166, 95, ${a})`
       case 3:
-        return `rgba(253, 167, 102, ${a})`
+        return `rgba(237, 188, 103, ${a})`
       default:
         return `rgba(253, 183, 119, ${a})`
     }
