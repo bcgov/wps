@@ -1,26 +1,13 @@
 import { render } from '@testing-library/react'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import ValidatedForecastCell from '@/features/moreCast2/components/ValidatedForecastCell'
-import { combineReducers, configureStore } from '@reduxjs/toolkit'
-import morecastInputValidSlice, { initialState, ValidInputState } from '@/features/moreCast2/slices/validInputSlice'
+import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 import { Provider } from 'react-redux'
+import { buildTestStore } from '@/features/moreCast2/components/testHelper.test'
 
 const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
   row: undefined,
   formattedValue: '1'
-}
-
-const buildTestStore = (initialState: ValidInputState) => {
-  const rootReducer = combineReducers({
-    morecastInputValid: morecastInputValidSlice
-  })
-  const testStore = configureStore({
-    reducer: rootReducer,
-    preloadedState: {
-      morecastInputValid: initialState
-    }
-  })
-  return testStore
 }
 
 describe('ValidatedForecastCell', () => {
