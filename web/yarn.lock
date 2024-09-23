@@ -2909,14 +2909,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.7.4":
-  version: 1.7.4
-  resolution: "axios@npm:1.7.4"
+"axios@npm:1.7.6":
+  version: 1.7.6
+  resolution: "axios@npm:1.7.6"
   dependencies:
     follow-redirects: "npm:^1.15.6"
     form-data: "npm:^4.0.0"
     proxy-from-env: "npm:^1.1.0"
-  checksum: 10c0/5ea1a93140ca1d49db25ef8e1bd8cfc59da6f9220159a944168860ad15a2743ea21c5df2967795acb15cbe81362f5b157fdebbea39d53117ca27658bab9f7f17
+  checksum: 10c0/8b4be67056f8f3895ebadbfce0708e5aa9c537a5a68e2da03bec49d35695e29b57f14ce38f20f55bb19946bd89787a839a7c3afa9e58e1152696c208046f8417
   languageName: node
   linkType: hard
 
@@ -3685,10 +3685,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-fns@npm:^3.0.0":
-  version: 3.6.0
-  resolution: "date-fns@npm:3.6.0"
-  checksum: 10c0/0b5fb981590ef2f8e5a3ba6cd6d77faece0ea7f7158948f2eaae7bbb7c80a8f63ae30b01236c2923cf89bb3719c33aeb150c715ea4fe4e86e37dcf06bed42fb6
+"date-fns@npm:^4.0.0":
+  version: 4.1.0
+  resolution: "date-fns@npm:4.1.0"
+  checksum: 10c0/b79ff32830e6b7faa009590af6ae0fb8c3fd9ffad46d930548fbb5acf473773b4712ae887e156ba91a7b3dc30591ce0f517d69fd83bd9c38650fdc03b4e0bac8
   languageName: node
   linkType: hard
 
@@ -6984,14 +6984,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ol-pmtiles@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "ol-pmtiles@npm:0.5.0"
+"ol-pmtiles@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "ol-pmtiles@npm:1.0.2"
   dependencies:
-    pmtiles: "npm:^3.0.4"
+    pmtiles: "npm:^3.1.0"
   peerDependencies:
     ol: ">=9.0.0"
-  checksum: 10c0/f7b23ecd3a5f5f0fabe908c24ac99038b8d5e82b9bd221177255c77f99aaa880f6c86034be642f01da7ab6c1987298bd3a6d0098eae402c20d364f63cd3b123c
+  checksum: 10c0/f2dacac4f0b792ca0cfe55bfe6ece9b6113e848ba0828281c67ac07644ee57a757718a9b2895bdfd65bac163a8d34510c7875e313a3f0340da11ce652e9ca3c0
   languageName: node
   linkType: hard
 
@@ -7320,13 +7320,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pmtiles@npm:^3.0.4":
-  version: 3.0.7
-  resolution: "pmtiles@npm:3.0.7"
+"pmtiles@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "pmtiles@npm:3.1.0"
   dependencies:
     "@types/leaflet": "npm:^1.9.8"
     fflate: "npm:^0.8.0"
-  checksum: 10c0/c054a37f913a704c8caf5aa4bf70bca1dcd7604ef3429786ed05adf5742ccfaf2d88d8fd889de0cf8de6923a34ee9013593cc7777798f77f971ba5c6b7fccb22
+  checksum: 10c0/a00d21cb0aab60045ab48d3cc76724baeb2a0614b7aed1f700f14759abf242ffcbf939feef9b7b6d92ac03909a8007323ab7184a41136953358776dfc1bdaa95
   languageName: node
   linkType: hard
 
@@ -9530,9 +9530,9 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitejs/plugin-react": "npm:^4.3.1"
     "@vitest/coverage-istanbul": "npm:^2.0.5"
-    axios: "npm:1.7.4"
+    axios: "npm:1.7.6"
     cypress: "npm:^13.13.3"
-    date-fns: "npm:^3.0.0"
+    date-fns: "npm:^4.0.0"
     eslint: "npm:^9.7.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-prettier: "npm:^5.1.3"
@@ -9551,7 +9551,7 @@ __metadata:
     match-sorter: "npm:^6.3.1"
     nyc: "npm:^17.0.0"
     ol: "npm:10.0.0"
-    ol-pmtiles: "npm:^0.5.0"
+    ol-pmtiles: "npm:^1.0.2"
     prettier: "npm:^3.3.3"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
