@@ -68,7 +68,7 @@ eval ${OC_PROCESS}
 eval ${OC_PROCESS} | ${OC_APPLY}
 
 # Run the OC_LOG command only if it's not empty
-eval "[ -n \"${OC_LOG}\" ] && ${OC_LOG}"
+eval ${OC_LOG}
 
 # Provide oc command instruction
 #
