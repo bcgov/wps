@@ -56,7 +56,7 @@ OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 [ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
 
 # Deploy and follow the progress
-OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=2m deploy/${OBJ_NAME}"
+OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=2m --all-containers deploy/${OBJ_NAME} "
 if [ ! "${APPLY}" ]; then
   OC_LOG=""
 fi
@@ -68,7 +68,7 @@ eval ${OC_PROCESS}
 eval ${OC_PROCESS} | ${OC_APPLY}
 
 # Run the OC_LOG command only if it's not empty
-[ -n "${OC_LOG}" ] && ${OC_LOG}
+eval "[ -n \"${OC_LOG}\" ] && ${OC_LOG}"
 
 # Provide oc command instruction
 #
