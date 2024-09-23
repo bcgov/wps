@@ -56,7 +56,7 @@ OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 [ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
 
 # Deploy and follow the progress
-OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=2m --all-containers deploy/${OBJ_NAME} "
+OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=2m deploy/${OBJ_NAME} "
 [ "${APPLY}" ] || OC_LOG=""
 
 # Run the OC_PROCESS command
