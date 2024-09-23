@@ -57,19 +57,19 @@ OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 
 # Deploy and follow the progress
 OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=2m --all-containers deploy/${OBJ_NAME} "
-if [ ! "${APPLY}" ]; then
-  OC_LOG=""
-fi
+[ "${APPLY}" ] || OC_LOG=""
 
 # Run the OC_PROCESS command
 eval ${OC_PROCESS}
 
 # Run OC_PROCESS and pipe it to OC_APPLY
-eval ${OC_PROCESS} | ${OC_APPLY}
+eval "${OC_PROCESS} | ${OC_APPLY}"
 
 # Run the OC_LOG command only if it's not empty
-eval ${OC_LOG}
+if [ -n "${OC_LOG}" ]; then
+  eval "${OC_LOG}"
+fi
 
 # Provide oc command instruction
 #
-display_helper "${OC_PROCESS} | ${OC_APPLY}" $OC_LOG
+display_helper "${OC_PROCESS} | ${OC_APPLY}" "${OC_LOG}"
