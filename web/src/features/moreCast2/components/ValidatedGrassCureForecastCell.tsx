@@ -3,23 +3,18 @@ import { TextField } from '@mui/material'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { theme } from 'app/theme'
 import InvalidCellToolTip from '@/features/moreCast2/components/InvalidCellToolTip'
-import { selectMorecastRequiredInputEmpty } from '@/features/moreCast2/slices/validInputSlice'
-import { useSelector } from 'react-redux'
-import { isNil } from 'lodash'
 
-interface ValidatedForecastCellProps {
+interface ValidatedGrassCureForecastCellProps {
   disabled: boolean
   label: string
   value: Pick<GridRenderCellParams, 'formattedValue'>
   validator?: (value: string) => string
 }
 
-const ValidatedForecastCell = ({ disabled, label, value, validator }: ValidatedForecastCellProps) => {
-  const isRequiredInputEmpty = useSelector(selectMorecastRequiredInputEmpty)
-  const invalid = validator ? validator(value as string) : ''
-  const error = (isRequiredInputEmpty.empty && (value as string) === '') || isNil(value) || invalid !== ''
+const ValidatedGrassCureForecastCell = ({ disabled, label, value, validator }: ValidatedGrassCureForecastCellProps) => {
+  const error = validator ? validator(value as string) : ''
   return (
-    <InvalidCellToolTip invalid={invalid}>
+    <InvalidCellToolTip invalid={error}>
       <TextField
         data-testid="validated-forecast-cell"
         disabled={disabled}
@@ -55,4 +50,4 @@ const ValidatedForecastCell = ({ disabled, label, value, validator }: ValidatedF
   )
 }
 
-export default React.memo(ValidatedForecastCell)
+export default React.memo(ValidatedGrassCureForecastCell)

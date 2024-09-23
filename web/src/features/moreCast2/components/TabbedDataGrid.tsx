@@ -1,5 +1,7 @@
 import { AlertColor, Grid, List, Stack, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
+import { useSelector, useDispatch } from 'react-redux'
+import { AppDispatch } from '@/app/store'
 import {
   GridCellParams,
   GridColDef,
@@ -20,7 +22,6 @@ import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSumma
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
 import { selectAllMoreCast2Rows, selectWeatherIndeterminatesLoading } from 'features/moreCast2/slices/dataSlice'
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
 import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 import { cloneDeep, groupBy, isEqual, isNull, isUndefined } from 'lodash'
@@ -29,7 +30,7 @@ import { ROLES } from 'features/auth/roles'
 import { selectAuthentication } from 'app/rootReducer'
 import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
-import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
+import { isForecastRowPredicate, getRowsToSave, isRequiredInputSet } from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import { filterAllVisibleRowsForSimulation, filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
 import { fillStationGrassCuringForward, simulateFireWeatherIndices } from 'features/moreCast2/util'
@@ -37,6 +38,7 @@ import { MoreCastParams, theme } from 'app/theme'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import ResetForecastButton from 'features/moreCast2/components/ResetForecastButton'
 import { getDateTimeNowPST } from 'utils/date'
+import { setRequiredInputEmpty } from '@/features/moreCast2/slices/validInputSlice'
 
 export interface ColumnClickHandlerProps {
   colDef: GridColDef | null
@@ -56,7 +58,7 @@ export const Root = styled('div')({
 
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved and sent to Wildfire One.'
-const FORECAST_WARN_MESSAGE = 'Forecast not submitted. A forecast can only contain N/A values for the Wind Direction.'
+const FORECAST_WARN_MESSAGE = 'Invalid forecast values, check highlighted cells for further information.'
 
 const SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY = 'showHideColumnsModel'
 
@@ -71,6 +73,7 @@ interface TabbedDataGridProps {
 export type handleShowHideChangeType = (weatherParam: keyof MoreCastParams, columnName: string, value: boolean) => void
 
 const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: TabbedDataGridProps) => {
+  const dispatch: AppDispatch = useDispatch()
   const selectedStations = useSelector(selectSelectedStations)
   const loading = useSelector(selectWeatherIndeterminatesLoading)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
@@ -447,8 +450,9 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   }
 
   const handleSaveClick = async () => {
-    if (isForecastValid(visibleRows)) {
-      const rowsToSave: MoreCast2ForecastRow[] = getRowsToSave(visibleRows)
+    const rowsToSave: MoreCast2ForecastRow[] = getRowsToSave(visibleRows)
+
+    if (isRequiredInputSet(rowsToSave)) {
       const result = await submitMoreCastForecastRecords(rowsToSave)
       if (result.success) {
         setSnackbarMessage(FORECAST_SAVED_MESSAGE)
@@ -461,6 +465,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
         setSnackbarOpen(true)
       }
     } else {
+      dispatch(setRequiredInputEmpty({ empty: true }))
       setSnackbarMessage(FORECAST_WARN_MESSAGE)
       setSnackbarSeverity('warning')
       setSnackbarOpen(true)
