@@ -55,28 +55,12 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DEPLOY} \
 OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 [ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
 
-# Select the most recently created pod for the deployment
-SELECTED_POD=$(oc get pods -n ${PROJ_TARGET} -l name=${OBJ_NAME} --sort-by=.metadata.creationTimestamp -o custom-columns=":metadata.name" | tail -n 1)
-
-# Prepare the log command with the selected pod, so we don't logs from old pods that are being terminated
-if [ -n "$SELECTED_POD" ]; then
-    OC_LOG="oc -n ${PROJ_TARGET} logs -f ${SELECTED_POD} --pod-running-timeout=2m --all-containers=true"
-else
-    echo "No pods found for deployment ${OBJ_NAME}."
-    OC_LOG=""
-fi
-
 # Run the OC_PROCESS command
 eval ${OC_PROCESS}
 
 # Run OC_PROCESS and pipe it to OC_APPLY
 eval "${OC_PROCESS} | ${OC_APPLY}"
 
-# Run the OC_LOG command only if it's not empty
-if [ -n "${OC_LOG}" ]; then
-  eval "${OC_LOG}"
-fi
-
 # Provide oc command instruction
 #
-display_helper "${OC_PROCESS} | ${OC_APPLY}" "${OC_LOG}"
+display_helper "${OC_PROCESS} | ${OC_APPLY}"
