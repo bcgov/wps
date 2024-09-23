@@ -102,7 +102,7 @@ objects:
                 "namespace": "${PROJ_TOOLS}"
               },
               "fieldPath": "spec.template.spec.containers[1].image"
-            },
+            }
           ]
     spec:
       replicas: ${{REPLICAS}}
