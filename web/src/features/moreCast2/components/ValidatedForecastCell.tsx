@@ -1,11 +1,9 @@
 import React from 'react'
-import { TextField } from '@mui/material'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
-import { theme } from 'app/theme'
-import InvalidCellToolTip from '@/features/moreCast2/components/InvalidCellToolTip'
 import { selectMorecastRequiredInputEmpty } from '@/features/moreCast2/slices/validInputSlice'
 import { useSelector } from 'react-redux'
 import { isNil } from 'lodash'
+import ValidatedCell from '@/features/moreCast2/components/ValidatedCell'
 
 interface ValidatedForecastCellProps {
   disabled: boolean
@@ -18,41 +16,7 @@ const ValidatedForecastCell = ({ disabled, label, value, validator }: ValidatedF
   const isRequiredInputEmpty = useSelector(selectMorecastRequiredInputEmpty)
   const invalid = validator ? validator(value as string) : ''
   const error = (isRequiredInputEmpty.empty && (value as string) === '') || isNil(value) || invalid !== ''
-  return (
-    <InvalidCellToolTip invalid={invalid}>
-      <TextField
-        data-testid="validated-forecast-cell"
-        disabled={disabled}
-        size="small"
-        label={label}
-        InputLabelProps={{
-          shrink: true
-        }}
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            backgroundColor: `${theme.palette.common.white}`,
-            '& fieldset': {
-              borderColor: error ? theme.palette.error.main : '#737373',
-              borderWidth: '2px'
-            },
-            '&:hover fieldset': {
-              borderColor: error ? theme.palette.error.main : '#737373'
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: error ? theme.palette.error.main : '#737373',
-              borderWidth: '2px'
-            }
-          },
-          '& .Mui-disabled': {
-            '& fieldset': {
-              borderWidth: '1px'
-            }
-          }
-        }}
-        value={value}
-      ></TextField>
-    </InvalidCellToolTip>
-  )
+  return <ValidatedCell disabled={disabled} label={label} value={value} error={error} invalid={invalid} />
 }
 
 export default React.memo(ValidatedForecastCell)
