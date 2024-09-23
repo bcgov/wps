@@ -1,8 +1,6 @@
 import React from 'react'
-import { TextField } from '@mui/material'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
-import { theme } from 'app/theme'
-import InvalidCellToolTip from '@/features/moreCast2/components/InvalidCellToolTip'
+import ValidatedCell from '@/features/moreCast2/components/ValidatedCell'
 
 interface ValidatedGrassCureForecastCellProps {
   disabled: boolean
@@ -13,41 +11,7 @@ interface ValidatedGrassCureForecastCellProps {
 
 const ValidatedGrassCureForecastCell = ({ disabled, label, value, validator }: ValidatedGrassCureForecastCellProps) => {
   const error = validator ? validator(value as string) : ''
-  return (
-    <InvalidCellToolTip invalid={error}>
-      <TextField
-        data-testid="validated-forecast-cell"
-        disabled={disabled}
-        size="small"
-        label={label}
-        InputLabelProps={{
-          shrink: true
-        }}
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            backgroundColor: `${theme.palette.common.white}`,
-            '& fieldset': {
-              borderColor: error ? theme.palette.error.main : '#737373',
-              borderWidth: '2px'
-            },
-            '&:hover fieldset': {
-              borderColor: error ? theme.palette.error.main : '#737373'
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: error ? theme.palette.error.main : '#737373',
-              borderWidth: '2px'
-            }
-          },
-          '& .Mui-disabled': {
-            '& fieldset': {
-              borderWidth: '1px'
-            }
-          }
-        }}
-        value={value}
-      ></TextField>
-    </InvalidCellToolTip>
-  )
+  return <ValidatedCell disabled={disabled} label={label} error={error !== ''} invalid={error} value={value} />
 }
 
 export default React.memo(ValidatedGrassCureForecastCell)

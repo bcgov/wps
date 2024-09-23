@@ -1,9 +1,9 @@
 import { render } from '@testing-library/react'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
-import ValidatedForecastCell from '@/features/moreCast2/components/ValidatedForecastCell'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import morecastInputValidSlice, { initialState, ValidInputState } from '@/features/moreCast2/slices/validInputSlice'
 import { Provider } from 'react-redux'
+import WindDirectionForecastCell from '@/features/moreCast2/components/WindDirectionForecastCell'
 
 const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
   row: undefined,
@@ -23,13 +23,13 @@ const buildTestStore = (initialState: ValidInputState) => {
   return testStore
 }
 
-describe('ValidatedForecastCell', () => {
+describe('WindDirectionForecastCell', () => {
   it('should render a tooltip when value is invalid', async () => {
     const testStore = buildTestStore(initialState)
 
     const { queryByText } = render(
       <Provider store={testStore}>
-        <ValidatedForecastCell
+        <WindDirectionForecastCell
           disabled={false}
           label="foo"
           value={params.formattedValue}
@@ -44,7 +44,7 @@ describe('ValidatedForecastCell', () => {
     const testStore = buildTestStore(initialState)
     const { queryByText } = render(
       <Provider store={testStore}>
-        <ValidatedForecastCell
+        <WindDirectionForecastCell
           disabled={false}
           label="foo"
           value={params.formattedValue}
