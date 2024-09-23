@@ -62,10 +62,10 @@ if [ ! "${APPLY}" ]; then
 fi
 
 # Run the OC_PROCESS command
-${OC_PROCESS}
+eval ${OC_PROCESS}
 
 # Run OC_PROCESS and pipe it to OC_APPLY
-${OC_PROCESS} | ${OC_APPLY}
+eval ${OC_PROCESS} | ${OC_APPLY}
 
 # Run the OC_LOG command only if it's not empty
 [ -n "${OC_LOG}" ] && ${OC_LOG}
