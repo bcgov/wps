@@ -61,6 +61,31 @@ eval ${OC_PROCESS}
 # Run OC_PROCESS and pipe it to OC_APPLY
 eval "${OC_PROCESS} | ${OC_APPLY}"
 
+
+# Log scaling events for the deployment to console
+oc get events -n ${PROJ_TARGET} --field-selector involvedObject.kind=Deployment,involvedObject.name=${OBJ_NAME} --watch &
+
+# Wait for all new replicas to be running and available
+while true; do
+    # Get the number of desired replicas
+    DESIRED_REPLICAS=$(oc get deployment ${OBJ_NAME} -n ${PROJ_TARGET} -o jsonpath='{.status.replicas}')
+    
+    # Get the number of available replicas
+    AVAILABLE_REPLICAS=$(oc get deployment ${OBJ_NAME} -n ${PROJ_TARGET} -o jsonpath='{.status.availableReplicas}')
+
+    # Check if available replicas match desired replicas
+    if [ "$DESIRED_REPLICAS" -eq "$AVAILABLE_REPLICAS" ]; then
+        echo "All ${DESIRED_REPLICAS} replicas are running and available."
+        break
+    fi
+
+    echo "Waiting for all replicas to be available... (Desired: ${DESIRED_REPLICAS}, Available: ${AVAILABLE_REPLICAS})"
+    sleep 5
+done
+
+# Kill the background process of the event logging
+kill %1
+
 # Provide oc command instruction
 #
 display_helper "${OC_PROCESS} | ${OC_APPLY}"
