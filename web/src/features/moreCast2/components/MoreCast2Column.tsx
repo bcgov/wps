@@ -194,7 +194,7 @@ export const windDirForecastField = new IndeterminateField(
 )
 
 export const rhForecastField = new IndeterminateField('rh', RH_HEADER, 'number', 0, true, (value: string) => {
-  return Number(value) < 0 || Number(value) > 100 ? 'RH must be between 0 and 100' : ''
+  return Number(value) < 1 || Number(value) > 100 ? 'RH must be between 1 and 100' : ''
 })
 export const windSpeedForecastField = new IndeterminateField(
   'windSpeed',
@@ -203,7 +203,7 @@ export const windSpeedForecastField = new IndeterminateField(
   0,
   true,
   (value: string) => {
-    return Number(value) < 0 || Number(value) > 120 ? 'Wind speed must be between 0 and 120 kph' : ''
+    return Number(value) < 0 || Number(value) > 99 ? 'Wind speed must be between 0 and 99 kph' : ''
   }
 )
 export const precipForecastField = new IndeterminateField(
