@@ -80,12 +80,9 @@ while true; do
         break
     fi
 
-    echo "Waiting for all replicas to be available... (Desired: ${DESIRED_REPLICAS}, Available: ${AVAILABLE_REPLICAS})"
+    echo "Waiting for all replicas to be available..."
     sleep 10
 done
-
-# Kill the background process of the event logging
-kill %1
 
 # Provide oc command instruction
 #
