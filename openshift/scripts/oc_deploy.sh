@@ -72,6 +72,7 @@ while true; do
     
     # Get the number of available replicas
     AVAILABLE_REPLICAS=$(oc get deployment ${OBJ_NAME} -n ${PROJ_TARGET} -o jsonpath='{.status.availableReplicas}')
+    AVAILABLE_REPLICAS=${AVAILABLE_REPLICAS:-0} 
 
     # Check if available replicas match desired replicas
     if [ "$DESIRED_REPLICAS" -eq "$AVAILABLE_REPLICAS" ]; then
@@ -80,7 +81,7 @@ while true; do
     fi
 
     echo "Waiting for all replicas to be available... (Desired: ${DESIRED_REPLICAS}, Available: ${AVAILABLE_REPLICAS})"
-    sleep 5
+    sleep 10
 done
 
 # Kill the background process of the event logging
