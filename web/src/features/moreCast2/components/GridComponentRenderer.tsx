@@ -23,7 +23,7 @@ import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDat
 import { cloneDeep, isNumber } from 'lodash'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
 import ValidatedGrassCureForecastCell from '@/features/moreCast2/components/ValidatedGrassCureForecastCell'
-import WindDirectionForecastCell from '@/features/moreCast2/components/WindDirectionForecastCell'
+import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/ValidatedWindDirectionForecastCell'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -130,7 +130,7 @@ export class GridComponentRenderer {
       )
     } else if (field.includes('windDirection')) {
       return (
-        <WindDirectionForecastCell
+        <ValidatedWindDirectionForecastCell
           disabled={isActual || isPreviousDate}
           label={label}
           value={params.formattedValue}

@@ -2,7 +2,7 @@ import { render } from '@testing-library/react'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 import { Provider } from 'react-redux'
-import WindDirectionForecastCell from '@/features/moreCast2/components/WindDirectionForecastCell'
+import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/ValidatedWindDirectionForecastCell'
 import { buildTestStore } from '@/features/moreCast2/components/testHelper'
 
 const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
@@ -16,7 +16,7 @@ describe('WindDirectionForecastCell', () => {
 
     const { queryByText } = render(
       <Provider store={testStore}>
-        <WindDirectionForecastCell
+        <ValidatedWindDirectionForecastCell
           disabled={false}
           label="foo"
           value={params.formattedValue}
@@ -31,7 +31,7 @@ describe('WindDirectionForecastCell', () => {
     const testStore = buildTestStore(initialState)
     const { queryByText } = render(
       <Provider store={testStore}>
-        <WindDirectionForecastCell
+        <ValidatedWindDirectionForecastCell
           disabled={false}
           label="foo"
           value={params.formattedValue}

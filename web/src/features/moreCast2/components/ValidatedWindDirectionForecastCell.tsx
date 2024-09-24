@@ -9,7 +9,7 @@ interface ForecastCellProps {
   validator?: (value: string) => string
 }
 
-const WindDirectionForecastCell = ({ disabled, label, value, validator }: ForecastCellProps) => {
+const ValidatedWindDirectionForecastCell = ({ disabled, label, value, validator }: ForecastCellProps) => {
   const error = validator ? validator(value as string) : ''
 
   return (
@@ -21,4 +21,4 @@ const WindDirectionForecastCell = ({ disabled, label, value, validator }: Foreca
   )
 }
 
-export default WindDirectionForecastCell
+export default ValidatedWindDirectionForecastCell
