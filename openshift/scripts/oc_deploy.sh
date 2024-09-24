@@ -84,6 +84,9 @@ while true; do
     sleep 10
 done
 
+# Kill the background process of the event logging
+kill %1
+
 # Provide oc command instruction
 #
 display_helper "${OC_PROCESS} | ${OC_APPLY}"
