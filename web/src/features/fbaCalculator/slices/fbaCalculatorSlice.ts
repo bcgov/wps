@@ -4,7 +4,7 @@ import { FBAStation, FBAWeatherStationsResponse, postFBAStations } from 'api/fba
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FuelTypes } from '../fuelTypes'
-import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
+import { isEmpty, isEqual, isNil, isNull, isUndefined } from 'lodash'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
@@ -60,12 +60,7 @@ export const fetchFireBehaviourStations =
   async dispatch => {
     const fetchableFireStations = fbcInputRows.flatMap(row => {
       const fuelTypeDetails = FuelTypes.lookup(row.fuelType?.value)
-      if (
-        isNull(fuelTypeDetails) ||
-        isUndefined(fuelTypeDetails) ||
-        isUndefined(row.weatherStation) ||
-        isEqual(row.weatherStation, 'undefined')
-      ) {
+      if (isNil(fuelTypeDetails) || isNil(row.weatherStation)) {
         return []
       }
       return {
