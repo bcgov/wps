@@ -1,4 +1,4 @@
-import { buildTestStore } from '@/features/moreCast2/components/testHelper.test'
+import { buildTestStore } from '@/features/moreCast2/components/testHelper'
 import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 import { GridColumnHeaderParams, GridValueSetterParams } from '@mui/x-data-grid-pro'
 import { GridStateColDef } from '@mui/x-data-grid-pro/internals'

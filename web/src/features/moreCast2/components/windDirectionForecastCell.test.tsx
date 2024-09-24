@@ -3,7 +3,7 @@ import { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 import { Provider } from 'react-redux'
 import WindDirectionForecastCell from '@/features/moreCast2/components/WindDirectionForecastCell'
-import { buildTestStore } from '@/features/moreCast2/components/testHelper.test'
+import { buildTestStore } from '@/features/moreCast2/components/testHelper'
 
 const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
   row: undefined,

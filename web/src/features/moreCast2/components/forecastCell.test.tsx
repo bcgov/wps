@@ -4,7 +4,7 @@ import { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { vi } from 'vitest'
 import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 import { Provider } from 'react-redux'
-import { buildTestStore } from '@/features/moreCast2/components/testHelper.test'
+import { buildTestStore } from '@/features/moreCast2/components/testHelper'
 
 const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
   row: undefined,
