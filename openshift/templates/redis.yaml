@@ -60,6 +60,9 @@ spec:
             requests:
               memory: 512Mi
               ephemeral-storage: "512Mi"
+          volumeMounts:
+            - name: wps-redis-data
+              mountPath: /var/lib/redis/data
           readinessProbe:
             exec:
               command:
@@ -84,9 +87,6 @@ spec:
           securityContext:
             capabilities: {}
             privileged: false
-          volumeMounts:
-            - name: wps-redis-data
-              mountPath: /var/lib/redis/data
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
