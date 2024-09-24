@@ -36,7 +36,7 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/coverage-istanbul": "^2.0.5",
-    "axios": "1.7.6",
+    "axios": "1.7.7",
     "date-fns": "^4.0.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",
