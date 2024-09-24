@@ -34,7 +34,10 @@ describe('SaveForecastButton', () => {
       reducer: rootReducer,
       preloadedState: {
         morecastInputValid: {
-          isValid: false
+          isValid: false,
+          isRequiredEmpty: {
+            empty: false
+          }
         }
       }
     })
