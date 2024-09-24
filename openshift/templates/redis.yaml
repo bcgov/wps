@@ -56,7 +56,7 @@ spec:
                   key: database-password
           resources:
             limits:
-              memory: 8Gi
+              memory: 2Gi
               ephemeral-storage: "1Gi"
             requests:
               memory: 512Mi
