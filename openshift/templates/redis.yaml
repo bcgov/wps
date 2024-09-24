@@ -8,7 +8,7 @@ metadata:
         {
           "from": {
             "kind": "ImageStreamTag",
-            "name": "redis:5-el8",
+            "name": "redis:6-el9",
             "namespace": openshift
           },
           "fieldPath": "spec.template.spec.containers[0].image"
@@ -19,7 +19,6 @@ metadata:
   uid: 993faf9d-08fc-47cb-994f-4cb2055da786
   creationTimestamp: "2021-06-18T18:50:06Z"
   generation: 19
-  namespace: e1e498-prod
   labels:
     template: redis-ephemeral-template
     template.openshift.io/template-instance-owner: 31445217-3081-42d2-88f6-97ef32b19ff1
@@ -44,7 +43,7 @@ spec:
       containers:
         - name: redis
           image: >-
-            image-registry.openshift-image-registry.svc:5000/openshift/redis@sha256:0b6f2072bb6ef3d182cd7fbd534bb00d838d23e17c0f0b3e7b3fd6b7ac1901cc
+            image-registry.openshift-image-registry.svc:5000/openshift/redis@sha256:e12fc5970148659b3f3ac9d80799beb36138d559830f36ac2319e6ff606cefc3
           ports:
             - containerPort: 6379
               protocol: TCP
