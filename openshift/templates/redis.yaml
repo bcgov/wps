@@ -57,9 +57,11 @@ spec:
             limits:
               memory: 2Gi
               ephemeral-storage: "1Gi"
+              cpu: 75m
             requests:
               memory: 512Mi
               ephemeral-storage: "512Mi"
+              cpu: 25m
           volumeMounts:
             - name: wps-redis-data
               mountPath: /var/lib/redis/data
