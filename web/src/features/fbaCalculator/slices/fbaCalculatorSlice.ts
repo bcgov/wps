@@ -4,7 +4,7 @@ import { FBAStation, FBAWeatherStationsResponse, postFBAStations } from 'api/fba
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FuelTypes } from '../fuelTypes'
-import { isEmpty, isEqual, isNil, isNull, isUndefined } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
