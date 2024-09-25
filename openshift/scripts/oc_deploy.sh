@@ -31,7 +31,7 @@ OBJ_NAME="${APP_NAME}-${SUFFIX}"
 
 # Process a template (mostly variable substition)
 #
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DC} \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DEPLOY} \
  -p SUFFIX=${SUFFIX} \
  -p PROJECT_NAMESPACE=${PROJ_TARGET} \
  -p POSTGRES_USER=wps-crunchydb-${SUFFIX} \
@@ -55,48 +55,15 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DC} \
 OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 [ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
 
-# Cancel all previous deployments
-#
-OC_CANCEL_ALL_PREV_DEPLOY="oc -n ${PROJ_TARGET} rollout cancel dc/${OBJ_NAME} || true"
+# Run the OC_PROCESS command
+eval ${OC_PROCESS}
 
-# Deploy and follow the progress
-#
-OC_DEPLOY="oc -n ${PROJ_TARGET} rollout latest dc/${OBJ_NAME}"
-OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=2m dc/${OBJ_NAME}"
-if [ ! "${APPLY}" ]; then
-  OC_CANCEL_ALL_PREV_DEPLOY=""
-  OC_DEPLOY="${OC_DEPLOY} --dry-run=client || true" # in case there is no previous rollout
-  OC_LOG=""
-fi
-
-# Execute commands
-#
-eval "${OC_PROCESS}"
+# Run OC_PROCESS and pipe it to OC_APPLY
 eval "${OC_PROCESS} | ${OC_APPLY}"
-if [ "${APPLY}" ]; then
-  echo "canceling previous deployments..."
-  eval "${OC_CANCEL_ALL_PREV_DEPLOY}"
-  count=1
-  timeout=10
-  # Check previous deployment statuses before moving onto new deploying
-  while [ $count -le $timeout ]; do
-    sleep 1
-    PENDINGS="$(oc -n ${PROJ_TARGET} rollout history dc/${OBJ_NAME} | awk '{print $2}' | grep -c Pending || true)"
-    RUNNINGS="$(oc -n ${PROJ_TARGET} rollout history dc/${OBJ_NAME} | awk '{print $2}' | grep -c Running || true)"
-    if [ "${PENDINGS}" == 0 ] && [ "${RUNNINGS}" == 0 ]; then
-      # No pending or running replica controllers so exit the while loop
-      break 2
-    fi
-    count=$(( $count + 1 ))
-  done
-  if [ $count -gt $timeout ]; then
-    echo "\n*** timeout for canceling deployment ***\n"
-    exit 1
-  fi
-fi
-eval "${OC_DEPLOY}"
-eval "${OC_LOG}"
+
+# Wait for rollout to finish
+oc -n ${PROJ_TARGET} rollout status deployment/${OBJ_NAME}
 
 # Provide oc command instruction
 #
-display_helper "${OC_PROCESS} | ${OC_APPLY}" $OC_CANCEL_ALL_PREV_DEPLOY $OC_DEPLOY $OC_LOG
+display_helper "${OC_PROCESS} | ${OC_APPLY}"

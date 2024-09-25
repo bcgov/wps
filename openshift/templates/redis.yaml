@@ -1,0 +1,97 @@
+﻿kind: Deployment
+apiVersion: apps/v1
+metadata:
+  annotations:
+    template.alpha.openshift.io/wait-for-ready: "true"
+    image.openshift.io/triggers: |-
+      [
+        {
+          "from": {
+            "kind": "ImageStreamTag",
+            "name": "redis:6-el9",
+            "namespace": openshift
+          },
+          "fieldPath": "spec.template.spec.containers[0].image"
+        }
+      ]
+  resourceVersion: "3697714227"
+  name: wps-redis
+  uid: 993faf9d-08fc-47cb-994f-4cb2055da786
+  creationTimestamp: "2021-06-18T18:50:06Z"
+  generation: 19
+  labels:
+    template: redis-ephemeral-template
+    template.openshift.io/template-instance-owner: 31445217-3081-42d2-88f6-97ef32b19ff1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: wps-redis
+  strategy:
+    type: Recreate
+    resources: {}
+    activeDeadlineSeconds: 21600
+  template:
+    metadata:
+      labels:
+        name: wps-redis
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: wps-redis-data
+          emptyDir: {}
+      containers:
+        - name: redis
+          image: >-
+            image-registry.openshift-image-registry.svc:5000/openshift/redis@sha256:e12fc5970148659b3f3ac9d80799beb36138d559830f36ac2319e6ff606cefc3
+          ports:
+            - containerPort: 6379
+              protocol: TCP
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wps-redis
+                  key: database-password
+          resources:
+            limits:
+              memory: 2Gi
+              ephemeral-storage: "1Gi"
+              cpu: 75m
+            requests:
+              memory: 512Mi
+              ephemeral-storage: "512Mi"
+              cpu: 25m
+          volumeMounts:
+            - name: wps-redis-data
+              mountPath: /var/lib/redis/data
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - "-i"
+                - "-c"
+                - >-
+                  test "$(redis-cli -h 127.0.0.1 -a $REDIS_PASSWORD ping)" == "PONG"
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 30
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          securityContext:
+            capabilities: {}
+            privileged: false
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
