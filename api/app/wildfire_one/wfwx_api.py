@@ -304,7 +304,8 @@ async def get_dailies_generator(
     # for production, it's more tricky - we don't want to put too much load on the wf1 api, but we don't
     # want stale values either. We default to 5 minutes, or 300 seconds.
     cache_expiry_seconds: Final = int(config.get("REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY", 300))
-    use_cache = check_cache is True and cache_expiry_seconds is not None and config.get("REDIS_USE") == "True"
+    use_cache = check_cache is True and config.get("REDIS_USE") == "True"
+    logger.info(f"Using cache: {use_cache}")
 
     dailies_iterator = fetch_paged_response_generator(
         session,
@@ -346,7 +347,9 @@ async def get_forecasts_for_stations_by_date_range(
     # get station information from the wfwx api
     wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
     # get the daily forecasts for all the stations in the date range
-    raw_dailies = await get_dailies_generator(session, header, wfwx_stations, start_time_of_interest, end_time_of_interest, check_cache)
+    raw_dailies = await get_dailies_generator(
+        session=session, header=header, wfwx_stations=wfwx_stations, time_of_interest=start_time_of_interest, end_time_of_interest=end_time_of_interest, check_cache=check_cache
+    )
 
     forecast_dailies = await mapper(raw_dailies, WF1RecordTypeEnum.FORECAST)
 
