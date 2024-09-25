@@ -68,7 +68,9 @@ async def construct_wf1_forecasts(session: ClientSession, forecast_records: List
     start_time = vancouver_tz.localize(datetime.combine(min_forecast_date, time.min))
     end_time = vancouver_tz.localize(datetime.combine(max_forecast_date, time.max))
     unique_station_codes = list(set([f.station_code for f in forecast_records]))
-    dailies = await get_forecasts_for_stations_by_date_range(session, header, start_time, end_time, unique_station_codes, False)
+    dailies = await get_forecasts_for_stations_by_date_range(
+        session=session, header=header, start_time_of_interest=start_time, end_time_of_interest=end_time, unique_station_codes=unique_station_codes, check_cache=False
+    )
 
     # Shape the WF1 dailies into a dictionary keyed by station codes for easier consumption
     grouped_dailies = defaultdict(list[StationDailyFromWF1])
