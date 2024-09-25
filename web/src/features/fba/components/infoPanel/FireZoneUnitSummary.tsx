@@ -5,6 +5,7 @@ import { FireShape, FireZoneTPIStats, FireZoneFuelStats } from 'api/fbaAPI'
 import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 import { useTheme } from '@mui/material/styles'
 import FuelSummary from 'features/fba/components/viz/FuelSummary'
+import FuelSummaryAlt from '@/features/fba/components/viz/FuelSummaryAlt'
 
 interface FireZoneUnitSummaryProps {
   selectedFireZoneUnit: FireShape | undefined
@@ -43,6 +44,9 @@ const FireZoneUnitSummary = ({
       >
         <Grid item sx={{ paddingBottom: theme.spacing(2), width: '95%' }}>
           <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fireZoneFuelStats={fireZoneFuelStats} />
+        </Grid>
+        <Grid item sx={{ paddingBottom: theme.spacing(2), width: '95%' }}>
+          <FuelSummaryAlt selectedFireZoneUnit={selectedFireZoneUnit} fireZoneFuelStats={fireZoneFuelStats} />
         </Grid>
         <Grid item sx={{ width: '95%' }}>
           {fireZoneTPIStats && hasRequiredFields(fireZoneTPIStats) ? (
