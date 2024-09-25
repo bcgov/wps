@@ -99,11 +99,11 @@ describe('MoreCast2Column', () => {
       )
     })
     it('should have correct validation logic', () => {
-      expect(rhForecastField.validator && rhForecastField.validator('101')).toEqual('RH must be between 0 and 100')
+      expect(rhForecastField.validator && rhForecastField.validator('101')).toEqual('RH must be between 1 and 100')
 
-      expect(rhForecastField.validator && rhForecastField.validator('-1')).toEqual('RH must be between 0 and 100')
+      expect(rhForecastField.validator && rhForecastField.validator('-1')).toEqual('RH must be between 1 and 100')
 
-      expect(rhForecastField.validator && rhForecastField.validator('0')).toEqual('')
+      expect(rhForecastField.validator && rhForecastField.validator('1')).toEqual('')
     })
   })
   describe('WindDirForecastField', () => {
@@ -153,12 +153,12 @@ describe('MoreCast2Column', () => {
       )
     })
     it('should have correct validation logic', () => {
-      expect(windSpeedForecastField.validator && windSpeedForecastField.validator('121')).toEqual(
-        'Wind speed must be between 0 and 120 kph'
+      expect(windSpeedForecastField.validator && windSpeedForecastField.validator('100')).toEqual(
+        'Wind speed must be between 0 and 99 kph'
       )
 
       expect(windSpeedForecastField.validator && windSpeedForecastField.validator('-1')).toEqual(
-        'Wind speed must be between 0 and 120 kph'
+        'Wind speed must be between 0 and 99 kph'
       )
 
       expect(windSpeedForecastField.validator && windSpeedForecastField.validator('0')).toEqual('')
