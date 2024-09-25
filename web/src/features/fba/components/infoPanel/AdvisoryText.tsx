@@ -1,53 +1,96 @@
 import { Box, Typography } from '@mui/material'
-import { FireCenter, FireShapeAreaDetail } from 'api/fbaAPI'
+import { FireCenter, FireShape, FireZoneFuelStats } from 'api/fbaAPI'
 import { DateTime } from 'luxon'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
+import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { AdvisoryStatus } from 'utils/constants'
-import { groupBy } from 'lodash'
+import { isEmpty, isNil, isUndefined, take } from 'lodash'
+import { calculateStatusText } from '@/features/fba/calculateZoneStatus'
 
 interface AdvisoryTextProps {
   issueDate: DateTime | null
   forDate: DateTime
   selectedFireCenter?: FireCenter
   advisoryThreshold: number
+  selectedFireZoneUnit?: FireShape
 }
 
-const AdvisoryText = ({ issueDate, forDate, advisoryThreshold, selectedFireCenter }: AdvisoryTextProps) => {
+const AdvisoryText = ({
+  issueDate,
+  forDate,
+  selectedFireCenter,
+  advisoryThreshold,
+  selectedFireZoneUnit
+}: AdvisoryTextProps) => {
   const provincialSummary = useSelector(selectProvincialSummary)
+  const { fireCentreHFIFuelStats } = useSelector(selectFireCentreHFIFuelStats)
+  const [selectedFireZoneUnitTopFuels, setSelectedFireZoneUnitTopFuels] = useState<FireZoneFuelStats[]>([])
 
-  const calculateStatus = (details: FireShapeAreaDetail[]): AdvisoryStatus | undefined => {
-    const advisoryThresholdDetail = details.find(detail => detail.threshold == 1)
-    const warningThresholdDetail = details.find(detail => detail.threshold == 2)
-    const advisoryPercentage = advisoryThresholdDetail?.elevated_hfi_percentage ?? 0
-    const warningPercentage = warningThresholdDetail?.elevated_hfi_percentage ?? 0
+  const [minStartTime, setMinStartTime] = useState<number | undefined>(undefined)
+  const [maxEndTime, setMaxEndTime] = useState<number | undefined>(undefined)
 
-    if (warningPercentage > advisoryThreshold) {
-      return AdvisoryStatus.WARNING
+  const sortByArea = (a: FireZoneFuelStats, b: FireZoneFuelStats) => {
+    if (a.area > b.area) {
+      return -1
     }
-
-    if (advisoryPercentage + warningPercentage > advisoryThreshold) {
-      return AdvisoryStatus.ADVISORY
+    if (a.area < b.area) {
+      return 1
     }
+    return 0
   }
 
-  const getZoneStatusMap = (fireZoneUnitDetails: Record<string, FireShapeAreaDetail[]>) => {
-    const zoneStatusMap: Record<AdvisoryStatus, string[]> = {
-      [AdvisoryStatus.ADVISORY]: [],
-      [AdvisoryStatus.WARNING]: []
+  useEffect(() => {
+    if (
+      isUndefined(fireCentreHFIFuelStats) ||
+      isEmpty(fireCentreHFIFuelStats) ||
+      isUndefined(selectedFireCenter) ||
+      isUndefined(selectedFireZoneUnit)
+    ) {
+      setSelectedFireZoneUnitTopFuels([])
+      setMinStartTime(undefined)
+      setMaxEndTime(undefined)
+      return
     }
+    const allZoneUnitFuelStats = fireCentreHFIFuelStats?.[selectedFireCenter.name]
+    const selectedZoneUnitFuelStats = allZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? []
+    const sortedFuelStats = [...selectedZoneUnitFuelStats].sort(sortByArea)
+    let topFuels = take(sortedFuelStats, 3)
+    setSelectedFireZoneUnitTopFuels(topFuels)
+  }, [fireCentreHFIFuelStats])
 
-    for (const zoneUnit in fireZoneUnitDetails) {
-      const fireShapeAreaDetails: FireShapeAreaDetail[] = fireZoneUnitDetails[zoneUnit]
-      const status = calculateStatus(fireShapeAreaDetails)
-
-      if (status) {
-        zoneStatusMap[status].push(zoneUnit)
+  useEffect(() => {
+    let startTime: number | undefined = undefined
+    let endTime: number | undefined = undefined
+    for (const fuel of selectedFireZoneUnitTopFuels) {
+      if (!isUndefined(fuel.critical_hours.start_time)) {
+        if (isUndefined(startTime) || fuel.critical_hours.start_time < startTime) {
+          startTime = fuel.critical_hours.start_time
+        }
+      }
+      if (!isUndefined(fuel.critical_hours.end_time)) {
+        if (isUndefined(endTime) || fuel.critical_hours.end_time > endTime) {
+          endTime = fuel.critical_hours.end_time
+        }
       }
     }
+    setMinStartTime(startTime)
+    setMaxEndTime(endTime)
+  }, [selectedFireZoneUnitTopFuels])
 
-    return zoneStatusMap
+  const getTopFuelsString = () => {
+    const topFuelCodes = selectedFireZoneUnitTopFuels.map(topFuel => topFuel.fuel_type.fuel_type_code)
+    switch (topFuelCodes.length) {
+      case 1:
+        return `fuel type ${topFuelCodes[0]}`
+      case 2:
+        return `fuel types ${topFuelCodes[0]} and ${topFuelCodes[1]}`
+      case 3:
+        return `fuel types ${topFuelCodes[0]}, ${topFuelCodes[1]} and ${topFuelCodes[2]}`
+      default:
+        return ''
+    }
   }
 
   const renderDefaultMessage = () => {
@@ -56,19 +99,26 @@ const AdvisoryText = ({ issueDate, forDate, advisoryThreshold, selectedFireCente
         {issueDate?.isValid ? (
           <Typography data-testid="default-message">Please select a fire center.</Typography>
         ) : (
-          <Typography data-testid="no-data-message">No advisory data available for today.</Typography>
+          <Typography data-testid="no-data-message">No advisory data available for the selected date.</Typography>
         )}{' '}
       </>
     )
   }
 
   const renderAdvisoryText = () => {
-    const forToday = issueDate?.toISODate() === forDate.toISODate()
+    const forToday = forDate.toISODate() === DateTime.now().toISODate()
     const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
 
     const fireCenterSummary = provincialSummary[selectedFireCenter!.name]
-    const groupedFireZoneUnitInfos = groupBy(fireCenterSummary, 'fire_shape_name')
-    const zoneStatusMap = getZoneStatusMap(groupedFireZoneUnitInfos)
+    const fireZoneUnitInfos = fireCenterSummary?.filter(fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id)
+    const zoneStatus = calculateStatusText(fireZoneUnitInfos, advisoryThreshold)
+    const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime) && selectFireCentreHFIFuelStats.length > 0
+    let message = ''
+    if (hasCriticalHours) {
+      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00 for ${getTopFuelsString()}.`
+    } else {
+      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}.`
+    }
 
     return (
       <>
@@ -77,33 +127,20 @@ const AdvisoryText = ({ issueDate, forDate, advisoryThreshold, selectedFireCente
             sx={{ whiteSpace: 'pre-wrap' }}
           >{`Issued on ${issueDate?.toLocaleString(DateTime.DATE_MED)} for ${displayForDate}.\n\n`}</Typography>
         )}
-        {zoneStatusMap[AdvisoryStatus.WARNING].length > 0 && (
-          <>
-            <Typography data-testid="advisory-message-warning">{`There is a fire behaviour ${AdvisoryStatus.WARNING} in effect in the following areas:`}</Typography>
-            <ul>
-              {zoneStatusMap[AdvisoryStatus.WARNING].map(zone => (
-                <li key={zone}>
-                  <Typography>{zone}</Typography>
-                </li>
-              ))}
-            </ul>
-          </>
+        {!isUndefined(zoneStatus) && zoneStatus === AdvisoryStatus.ADVISORY && (
+          <Typography data-testid="advisory-message-advisory">{message}</Typography>
         )}
-        {zoneStatusMap[AdvisoryStatus.ADVISORY].length > 0 && (
-          <>
-            <Typography data-testid="advisory-message-advisory">{`There is a fire behaviour ${AdvisoryStatus.ADVISORY} in effect in the following areas:`}</Typography>
-            <ul>
-              {zoneStatusMap[AdvisoryStatus.ADVISORY].map(zone => (
-                <li key={zone}>
-                  <Typography>{zone}</Typography>
-                </li>
-              ))}
-            </ul>
-          </>
+        {!isUndefined(zoneStatus) && zoneStatus === AdvisoryStatus.WARNING && (
+          <Typography data-testid="advisory-message-warning">{message}</Typography>
         )}
-        {zoneStatusMap[AdvisoryStatus.WARNING].length === 0 && zoneStatusMap[AdvisoryStatus.ADVISORY].length === 0 && (
+        {!hasCriticalHours && !isUndefined(zoneStatus) && (
+          <Typography data-testid="advisory-message-no-critical-hours" sx={{ paddingTop: '1rem' }}>
+            No critical hours available.
+          </Typography>
+        )}
+        {isUndefined(zoneStatus) && (
           <Typography data-testid="no-advisory-message">
-            No advisories or warnings issued for the selected fire center.
+            No advisories or warnings issued for the selected fire zone unit.
           </Typography>
         )}
       </>
@@ -123,7 +160,9 @@ const AdvisoryText = ({ issueDate, forDate, advisoryThreshold, selectedFireCente
           backgroundColor: 'white'
         }}
       >
-        {!selectedFireCenter || !issueDate?.isValid ? renderDefaultMessage() : renderAdvisoryText()}
+        {!selectedFireCenter || !issueDate?.isValid || !selectedFireZoneUnit
+          ? renderDefaultMessage()
+          : renderAdvisoryText()}
       </Box>
     </div>
   )

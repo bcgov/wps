@@ -4,7 +4,7 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FeatureCollection } from 'geojson'
 
-interface State {
+export interface CHainesModelState {
   loading: boolean
   error: string | null
   model_runs: ModelRun[]
@@ -22,7 +22,7 @@ interface GeoJSONContext {
   result: FeatureCollection
 }
 
-const initialState: State = {
+const initialState: CHainesModelState = {
   loading: false,
   error: null,
   model_runs: [],
@@ -37,11 +37,11 @@ const cHainesModelRunsSlice = createSlice({
   name: 'c-haines-model-runs',
   initialState: initialState,
   reducers: {
-    getModelRunsStart(state: State) {
+    getModelRunsStart(state: CHainesModelState) {
       state.loading = true
       state.selected_prediction_timestamp = ''
     },
-    getModelRunsSuccess(state: State, action: PayloadAction<ModelRuns>) {
+    getModelRunsSuccess(state: CHainesModelState, action: PayloadAction<ModelRuns>) {
       state.model_runs = action.payload.model_runs
       if (state.model_runs.length > 0) {
         state.selected_model_abbreviation = state.model_runs[0].model.abbrev
@@ -56,11 +56,11 @@ const cHainesModelRunsSlice = createSlice({
       state.loading = false
       state.error = null
     },
-    getModelRunsFailed(state: State, action: PayloadAction<string>) {
+    getModelRunsFailed(state: CHainesModelState, action: PayloadAction<string>) {
       state.loading = false
       state.error = action.payload
     },
-    setSelectedModel(state: State, action: PayloadAction<string>) {
+    setSelectedModel(state: CHainesModelState, action: PayloadAction<string>) {
       state.selected_model_abbreviation = action.payload
       const model_run = state.model_runs.find(instance => instance.model.abbrev === action.payload)
       if (model_run) {
@@ -72,7 +72,7 @@ const cHainesModelRunsSlice = createSlice({
         state.selected_model_run_timestamp = ''
       }
     },
-    setSelectedModelRun(state: State, action: PayloadAction<string>) {
+    setSelectedModelRun(state: CHainesModelState, action: PayloadAction<string>) {
       state.selected_model_run_timestamp = action.payload
       const model_run = state.model_runs.find(
         instance =>
@@ -84,13 +84,13 @@ const cHainesModelRunsSlice = createSlice({
         state.selected_prediction_timestamp = ''
       }
     },
-    setSelectedPrediction(state: State, action: PayloadAction<string>) {
+    setSelectedPrediction(state: CHainesModelState, action: PayloadAction<string>) {
       state.selected_prediction_timestamp = action.payload
     },
-    getPredictionStart(state: State) {
+    getPredictionStart(state: CHainesModelState) {
       state.loading = true
     },
-    getPredictionSuccess(state: State, action: PayloadAction<GeoJSONContext>) {
+    getPredictionSuccess(state: CHainesModelState, action: PayloadAction<GeoJSONContext>) {
       if (!(action.payload.model in state.model_run_predictions)) {
         state.model_run_predictions[action.payload.model] = {}
       }
@@ -101,7 +101,7 @@ const cHainesModelRunsSlice = createSlice({
         action.payload.prediction_timestamp
       ] = action.payload.result
     },
-    getPredictionFailed(state: State, action: PayloadAction<string>) {
+    getPredictionFailed(state: CHainesModelState, action: PayloadAction<string>) {
       state.loading = false
       state.error = action.payload
     }

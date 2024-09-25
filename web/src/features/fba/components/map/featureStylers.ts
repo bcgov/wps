@@ -5,10 +5,10 @@ import CircleStyle from 'ol/style/Circle'
 import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
 import { range, startCase, lowerCase, isUndefined } from 'lodash'
-import { FireShape, FireShapeArea } from 'api/fbaAPI'
+import { FireCenter, FireShape, FireShapeArea } from 'api/fbaAPI'
 
+const GREY_FILL = 'rgba(128, 128, 128, 0.8)'
 const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
-const SNOW_FILL = 'rgba(255, 255, 255, 0.75)'
 export const ADVISORY_ORANGE_FILL = 'rgba(255, 147, 38, 0.4)'
 export const ADVISORY_RED_FILL = 'rgba(128, 0, 0, 0.4)'
 
@@ -38,13 +38,31 @@ export const fireCentreLabelStyler = (feature: RenderFeature | ol.Feature<Geomet
   })
 }
 
-export const fireCentreStyler = (): Style => {
-  return new Style({
-    stroke: new Stroke({
-      color: 'black',
-      width: 3
+export const fireCentreStyler = (selectedFireCenter: FireCenter | undefined) => {
+  return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
+    const fireCenterId = feature.getProperties().MOF_FIRE_CENTRE_NAME
+    const isSelected = selectedFireCenter && fireCenterId == selectedFireCenter.name
+
+    const fillColour = isSelected ? new Fill({ color: EMPTY_FILL }) : new Fill({ color: GREY_FILL })
+
+    return new Style({
+      fill: selectedFireCenter ? fillColour : undefined
     })
-  })
+  }
+}
+
+export const fireCentreLineStyler = (selectedFireCenter: FireCenter | undefined) => {
+  return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
+    const fireCenterId = feature.getProperties().MOF_FIRE_CENTRE_NAME
+    const isSelected = selectedFireCenter && fireCenterId == selectedFireCenter.name
+
+    return new Style({
+      stroke: new Stroke({
+        color: 'black',
+        width: isSelected ? 8 : 3
+      })
+    })
+  }
 }
 
 export const fireShapeStyler = (
@@ -68,7 +86,7 @@ export const fireShapeStyler = (
   return a
 }
 
-export const fireShapeHighlightStyler = (
+export const fireShapeLineStyler = (
   fireShapeAreas: FireShapeArea[],
   advisoryThreshold: number,
   selectedFireShape: FireShape | undefined
@@ -81,10 +99,9 @@ export const fireShapeHighlightStyler = (
 
     return new Style({
       stroke: new Stroke({
-        color: selected ? getFireShapeStrokeColor(status) : [0, 0, 0, 0],
-        width: selected ? 8 : 0
-      }),
-      fill: new Fill({ color: EMPTY_FILL })
+        color: selected ? getFireShapeStrokeColor(status) : EMPTY_FILL,
+        width: selected ? 8 : 1
+      })
     })
   }
   return a
@@ -118,7 +135,7 @@ const getFireShapeStrokeColor = (fireShapeStatus: FireShapeStatus) => {
     case FireShapeStatus.WARNING:
       return [227, 0, 1, 0.99]
     default:
-      return 'black'
+      return '#7f7f7f'
   }
 }
 
@@ -133,9 +150,29 @@ export const getAdvisoryFillColor = (fireShapeStatus: FireShapeStatus) => {
   }
 }
 
+/**
+ * Given an OpenLayers feature from the fire zone unit label layer, return a label to display on the map.
+ * @param feature The feature of interest from the fire zone unit layer.
+ * @returns A string to be used as a label on the map.
+ */
+const getFireZoneUnitLabel = (feature: RenderFeature | ol.Feature<Geometry>) => {
+  const fireZoneId = feature.getProperties().FIRE_ZONE_
+  let fireZoneUnit = feature.getProperties().FIRE_ZON_1
+  // Fire zone unit labels sometimes include a geographic place name as a reference. eg. Skeena Zone (Kalum).
+  // If present, we want to display the geographic location on the second line of the label.
+  if (fireZoneUnit && fireZoneUnit.indexOf('(') > 0) {
+    const index = fireZoneUnit.indexOf('(')
+    const prefix = fireZoneUnit.substring(0, index).trim()
+    const suffix = fireZoneUnit.substring(index)
+    fireZoneUnit = `${prefix}\n${suffix}` 
+  }
+
+  return `${fireZoneId}-${fireZoneUnit}`
+}
+
 export const fireShapeLabelStyler = (selectedFireShape: FireShape | undefined) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const text = feature.getProperties().FIRE_ZONE.replace(' Fire Zone', '\nFire Zone')
+    const text = getFireZoneUnitLabel(feature)
     const feature_fire_shape_id = feature.getProperties().OBJECTID
     const selected =
       !isUndefined(selectedFireShape) && feature_fire_shape_id === selectedFireShape.fire_shape_id ? true : false
@@ -211,16 +248,4 @@ export const hfiStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style 
     hfiStyle.setFill(new Fill({ color: EMPTY_FILL }))
   }
   return hfiStyle
-}
-
-// A styling function for the snow coverage pmtiles layer.
-export const snowStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-  const snow = feature.get('snow')
-  const snowStyle = new Style({})
-  if (snow === 1) {
-    snowStyle.setFill(new Fill({ color: SNOW_FILL }))
-  } else {
-    snowStyle.setFill(new Fill({ color: EMPTY_FILL }))
-  }
-  return snowStyle
 }

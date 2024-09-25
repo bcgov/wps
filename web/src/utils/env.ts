@@ -1,23 +1,21 @@
 let ENV = {
-  API_BASE_URL: process.env.REACT_APP_API_BASE_URL as string,
-  RASTER_SERVER_BASE_URL: process.env.REACT_APP_RASTER_SERVER_BASE_URL as string,
-  HIDE_DISCLAIMER: process.env.REACT_APP_HIDE_DISCLAIMER,
-  SM_LOGOUT_URL: process.env.REACT_APP_SM_LOGOUT_URL as string,
-  KC_AUTH_URL: process.env.REACT_APP_KEYCLOAK_AUTH_URL as string,
-  KC_REALM: process.env.REACT_APP_KEYCLOAK_REALM as string,
-  KC_CLIENT: process.env.REACT_APP_KEYCLOAK_CLIENT as string,
-  WF1_AUTH_URL: process.env.REACT_APP_WF1_AUTH_URL as string,
-  TEST_AUTH: process.env.TEST_AUTH,
-  MS_TEAMS_SPRINT_REVIEW_URL: process.env.REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL as string,
-  MIRO_SPRINT_REVIEW_BOARD_URL: process.env.REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL as string,
-  PMTILES_BUCKET: process.env.REACT_APP_PMTILES_BUCKET as string,
-  MUI_LICENSE: process.env.REACT_APP_MUI_LICENSE_KEY as string,
-  SENTRY_DSN: process.env.REACT_APP_SENTRY_DSN as string,
-  SENTRY_ENV: process.env.REACT_APP_SENTRY_ENV as string
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL as string,
+  RASTER_SERVER_BASE_URL: import.meta.env.VITE_RASTER_SERVER_BASE_URL as string,
+  HIDE_DISCLAIMER: import.meta.env.VITE_HIDE_DISCLAIMER,
+  SM_LOGOUT_URL: import.meta.env.VITE_SM_LOGOUT_URL as string,
+  KC_AUTH_URL: import.meta.env.VITE_KEYCLOAK_AUTH_URL as string,
+  KC_REALM: import.meta.env.VITE_KEYCLOAK_REALM as string,
+  KC_CLIENT: import.meta.env.VITE_KEYCLOAK_CLIENT as string,
+  TEST_AUTH: import.meta.env.VITE_TEST_AUTH,
+  MS_TEAMS_SPRINT_REVIEW_URL: import.meta.env.VITE_MS_TEAMS_SPRINT_REVIEW_URL as string,
+  MIRO_SPRINT_REVIEW_BOARD_URL: import.meta.env.VITE_MIRO_SPRINT_REVIEW_BOARD_URL as string,
+  PMTILES_BUCKET: import.meta.env.VITE_PMTILES_BUCKET as string,
+  MUI_LICENSE: import.meta.env.VITE_MUI_LICENSE_KEY as string,
+  SENTRY_DSN: import.meta.env.VITE_SENTRY_DSN as string,
+  SENTRY_ENV: import.meta.env.VITE_SENTRY_ENV as string
 }
-
 // If the app is built using 'npm run build'
-if (process.env.NODE_ENV === 'production') {
+if (import.meta.env.MODE === 'production') {
   // window.env is set in index.html, populated by env variables.
   ENV = {
     // TODO: Figure out why axios goes to http on gets!
@@ -28,7 +26,6 @@ if (process.env.NODE_ENV === 'production') {
     KC_AUTH_URL: window.env.REACT_APP_KEYCLOAK_AUTH_URL,
     KC_REALM: window.env.REACT_APP_KEYCLOAK_REALM,
     KC_CLIENT: window.env.REACT_APP_KEYCLOAK_CLIENT,
-    WF1_AUTH_URL: window.env.REACT_APP_WF1_AUTH_URL,
     TEST_AUTH: undefined,
     MS_TEAMS_SPRINT_REVIEW_URL: window.env.REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL,
     MIRO_SPRINT_REVIEW_BOARD_URL: window.env.REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL,
@@ -50,7 +47,6 @@ export const {
   SM_LOGOUT_URL,
   MS_TEAMS_SPRINT_REVIEW_URL,
   MIRO_SPRINT_REVIEW_BOARD_URL,
-  WF1_AUTH_URL,
   PMTILES_BUCKET,
   MUI_LICENSE,
   SENTRY_DSN,

@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { ReadyPlanningAreaDetails } from 'api/hfiCalculatorAPI'
 import PlanningAreaReadyToggle from 'features/hfiCalculator/components/PlanningAreaReadyToggle'
 import { DateTime } from 'luxon'
-import React from 'react'
+import { vi } from 'vitest'
+
 
 describe('PlanningAreaReadyToggle', () => {
   const readyDetails: ReadyPlanningAreaDetails = {
@@ -15,7 +16,7 @@ describe('PlanningAreaReadyToggle', () => {
     update_timestamp: DateTime.fromObject({ year: 2021, month: 1, day: 1 }),
     update_user: 'test'
   }
-  const toggleMockFn = jest.fn((): void => {
+  const toggleMockFn = vi.fn((): void => {
     /** no op */
   })
   beforeEach(() => {

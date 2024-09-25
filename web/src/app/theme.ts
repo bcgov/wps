@@ -96,8 +96,8 @@ export const DARK_GREY = '#A7A7A7'
 export const LIGHT_GREY = '#DADADA'
 export const MEDIUM_GREY = '#B5B5B5'
 
-export const INFO_PANEL_HEADER_BACKGROUND = '#e4e4e5'
-export const INFO_PANEL_CONTENT_BACKGROUND = '#f0f0f0'
+export const INFO_PANEL_HEADER_BACKGROUND = '#BFBFBF'
+export const INFO_PANEL_CONTENT_BACKGROUND = '#EEEEEE'
 export const TRANSPARENT_COLOUR = '#0000'
 
 interface WeatherParams {
@@ -134,16 +134,16 @@ export const MORECAST_MODEL_COLORS: ModelDetails = {
 }
 export type MoreCastModelColors = typeof MORECAST_MODEL_COLORS
 
-export const modelColorClass = (params: Pick<GridCellParams | GridColumnHeaderParams, 'field'>) => {
+export const modelColorClass = (params: Pick<GridCellParams | GridColumnHeaderParams, 'colDef' | 'field'>) => {
   if (params.field.includes('Actual')) {
     return ''
   }
   const stringKeys = Object.keys(MORECAST_MODEL_COLORS)
-  const modelKey = stringKeys.find(key => params.field.includes(key.toUpperCase()))
+  const modelKey = stringKeys.find(key => params.colDef.headerName?.startsWith(key.toUpperCase()))
   return modelKey ? modelKey : ''
 }
 
-export const modelHeaderColorClass = (params: Pick<GridCellParams | GridColumnHeaderParams, 'field'>) => {
+export const modelHeaderColorClass = (params: Pick<GridCellParams | GridColumnHeaderParams, 'colDef' | 'field'>) => {
   const modelClass = modelColorClass(params)
   return modelClass === '' ? modelClass : `${modelClass}-header`
 }

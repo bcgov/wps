@@ -2,16 +2,15 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { ElevationInfoByThreshold, FireZoneElevationInfoResponse, getFireZoneElevationInfo } from 'api/fbaAPI'
-import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
+import { ElevationInfoByThreshold, FireZoneElevationInfoResponse, getFireZoneElevationInfo, RunType } from 'api/fbaAPI'
 
-interface State {
+export interface ZoneElevationInfoState {
   loading: boolean
   error: string | null
   fireZoneElevationInfo: ElevationInfoByThreshold[]
 }
 
-const initialState: State = {
+const initialState: ZoneElevationInfoState = {
   loading: false,
   error: null,
   fireZoneElevationInfo: []
@@ -21,16 +20,19 @@ const fireZoneElevationInfoSlice = createSlice({
   name: 'fireZoneElevationInfo',
   initialState,
   reducers: {
-    getFireZoneElevationInfoStart(state: State) {
+    getFireZoneElevationInfoStart(state: ZoneElevationInfoState) {
       state.error = null
       state.fireZoneElevationInfo = []
       state.loading = true
     },
-    getFireZoneElevationInfoFailed(state: State, action: PayloadAction<string>) {
+    getFireZoneElevationInfoFailed(state: ZoneElevationInfoState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getFireZoneElevationInfoStartSuccess(state: State, action: PayloadAction<FireZoneElevationInfoResponse>) {
+    getFireZoneElevationInfoStartSuccess(
+      state: ZoneElevationInfoState,
+      action: PayloadAction<FireZoneElevationInfoResponse>
+    ) {
       state.error = null
       state.fireZoneElevationInfo = action.payload.hfi_elevation_info
       state.loading = false

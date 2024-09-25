@@ -13,13 +13,15 @@ import fireCentersSlice from 'commonSlices/fireCentersSlice'
 import fireShapeAreasSlice from 'features/fba/slices/fireZoneAreasSlice'
 import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
-import hfiFuelTypesSlice from 'features/fba/slices/hfiFuelTypesSlice'
 import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
 import stationGroupsSlice from 'commonSlices/stationGroupsSlice'
 import selectedStationGroupsMembersSlice from 'commonSlices/selectedStationGroupMembers'
 import dataSlice from 'features/moreCast2/slices/dataSlice'
+import morecastInputValidSlice from 'features/moreCast2/slices/validInputSlice'
 import selectedStationsSlice from 'features/moreCast2/slices/selectedStationsSlice'
 import provincialSummarySlice from 'features/fba/slices/provincialSummarySlice'
+import fireCentreTPIStatsSlice from 'features/fba/slices/fireCentreTPIStatsSlice'
+import fireCentreHFIFuelStatsSlice from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -36,13 +38,15 @@ const rootReducer = combineReducers({
   fireShapeAreas: fireShapeAreasSlice,
   runDates: runDatesSlice,
   valueAtCoordinate: valueAtCoordinateSlice,
-  hfiFuelTypes: hfiFuelTypesSlice,
+  fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice,
   fireZoneElevationInfo: fireZoneElevationInfoSlice,
+  fireCentreTPIStats: fireCentreTPIStatsSlice,
   stationGroups: stationGroupsSlice,
   stationGroupsMembers: selectedStationGroupsMembersSlice,
   weatherIndeterminates: dataSlice,
   selectedStations: selectedStationsSlice,
-  provincialSummary: provincialSummarySlice
+  provincialSummary: provincialSummarySlice,
+  morecastInputValid: morecastInputValidSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -50,7 +54,6 @@ export type RootState = ReturnType<typeof rootReducer>
 
 export default rootReducer
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export const selectPercentileStations = (state: RootState) => state.percentileStations
 export const selectHFIDailies = (state: RootState) => state.hfiCalculatorDailies
 export const selectFireWeatherStations = (state: RootState) => state.fireWeatherStations
@@ -65,9 +68,9 @@ export const selectFireCenters = (state: RootState) => state.fireCenters
 export const selectFireShapeAreas = (state: RootState) => state.fireShapeAreas
 export const selectRunDates = (state: RootState) => state.runDates
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
-export const selectHFIFuelTypes = (state: RootState) => state.hfiFuelTypes
+export const selectFireCentreHFIFuelStats = (state: RootState) => state.fireCentreHFIFuelStats
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
-
+export const selectFireCentreTPIStats = (state: RootState) => state.fireCentreTPIStats
 export const selectHFIDailiesLoading = (state: RootState): boolean => state.hfiCalculatorDailies.fireCentresLoading
 export const selectHFICalculatorState = (state: RootState): HFICalculatorState => state.hfiCalculatorDailies
 export const selectHFIStationsLoading = (state: RootState): boolean => state.hfiStations.loading

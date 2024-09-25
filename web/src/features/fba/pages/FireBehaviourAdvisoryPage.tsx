@@ -1,50 +1,35 @@
-import { Box, FormControl, FormControlLabel, Grid, styled } from '@mui/material'
+import { Box, FormControl, Grid, styled } from '@mui/material'
 import { GeneralHeader, ErrorBoundary } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import {
-  selectFireZoneElevationInfo,
-  selectFireCenters,
-  selectHFIFuelTypes,
-  selectRunDates,
-  selectFireShapeAreas
-} from 'app/rootReducer'
+import { selectFireCenters, selectRunDates, selectFireShapeAreas } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
-import { FireCenter, FireShape } from 'api/fbaAPI'
+import { FireCenter, FireShape, RunType } from 'api/fbaAPI'
 import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME, PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
-import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
-import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
+import ActualForecastControl from 'features/fba/components/ActualForecastControl'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
-import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
-import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
-import { getMostRecentProcessedSnowByDate } from 'api/snow'
 import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
-import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
+import FireZoneUnitTabs from 'features/fba/components/infoPanel/FireZoneUnitTabs'
+import { fetchFireCentreTPIStats } from 'features/fba/slices/fireCentreTPIStatsSlice'
+import AboutDataPopover from 'features/fba/components/AboutDataPopover'
+import { fetchFireCentreHFIFuelStats } from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
 
-export enum RunType {
-  FORECAST = 'FORECAST',
-  ACTUAL = 'ACTUAL'
-}
+const ADVISORY_THRESHOLD = 20
 
 export const FireCentreFormControl = styled(FormControl)({
-  margin: theme.spacing(1),
-  minWidth: 280
-})
-
-export const ForecastActualDropdownFormControl = styled(FormControl)({
   margin: theme.spacing(1),
   minWidth: 280
 })
@@ -52,12 +37,9 @@ export const ForecastActualDropdownFormControl = styled(FormControl)({
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-  const { hfiThresholdsFuelTypes } = useSelector(selectHFIFuelTypes)
-  const { fireZoneElevationInfo } = useSelector(selectFireZoneElevationInfo)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
-  const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
   const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
   const [dateOfInterest, setDateOfInterest] = useState(
@@ -66,20 +48,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
-  const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const { mostRecentRunDate } = useSelector(selectRunDates)
   const { fireShapeAreas } = useSelector(selectFireShapeAreas)
-
-  // Query our API for the most recently processed snow coverage date <= the currently selected date.
-  const fetchLastProcessedSnow = async (selectedDate: DateTime) => {
-    const data = await getMostRecentProcessedSnowByDate(selectedDate)
-    if (isNull(data)) {
-      setSnowDate(null)
-    } else {
-      const newSnowDate = data.forDate
-      setSnowDate(newSnowDate)
-    }
-  }
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -93,6 +63,16 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       localStorage.setItem('preferredFireCenter', fireCenter?.id.toString())
     }
   }, [fireCenter])
+
+  useEffect(() => {
+    if (selectedFireShape?.mof_fire_centre_name) {
+      const matchingFireCenter = fireCenters.find(center => center.name === selectedFireShape.mof_fire_centre_name)
+
+      if (matchingFireCenter) {
+        setFireCenter(matchingFireCenter)
+      }
+    }
+  }, [selectedFireShape, fireCenters])
 
   const updateDate = (newDate: DateTime) => {
     if (newDate !== dateOfInterest) {
@@ -121,7 +101,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (!isNull(doiISODate)) {
       dispatch(fetchSFMSRunDates(runType, doiISODate))
     }
-    fetchLastProcessedSnow(dateOfInterest)
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -130,14 +109,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       !isNull(mostRecentRunDate) &&
       !isNull(doiISODate) &&
       !isUndefined(mostRecentRunDate) &&
-      !isUndefined(selectedFireShape)
+      !isUndefined(fireCenter) &&
+      !isNull(fireCenter)
     ) {
-      dispatch(fetchHighHFIFuels(runType, doiISODate, mostRecentRunDate.toString(), selectedFireShape.fire_shape_id))
-      dispatch(
-        fetchfireZoneElevationInfo(selectedFireShape.fire_shape_id, runType, doiISODate, mostRecentRunDate.toString())
-      )
+      dispatch(fetchFireCentreTPIStats(fireCenter.name, runType, doiISODate, mostRecentRunDate.toString()))
+      dispatch(fetchFireCentreHFIFuelStats(fireCenter.name, runType, doiISODate, mostRecentRunDate.toString()))
     }
-  }, [mostRecentRunDate, selectedFireShape]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fireCenter, mostRecentRunDate])
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
@@ -146,16 +124,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       dispatch(fetchProvincialSummary(runType, mostRecentRunDate, doiISODate))
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (selectedFireShape?.mof_fire_centre_name) {
-      const matchingFireCenter = fireCenters.find(center => center.name === selectedFireShape.mof_fire_centre_name)
-
-      if (matchingFireCenter) {
-        setFireCenter(matchingFireCenter)
-      }
-    }
-  }, [selectedFireShape, fireCenters])
 
   useEffect(() => {
     document.title = ASA_DOC_TITLE
@@ -170,12 +138,17 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
       />
       <Box sx={{ paddingTop: '0.5em' }}>
-        <Grid container spacing={1}>
+        <Grid container spacing={1} alignItems={'center'}>
           <Grid item>
             <StyledFormControl>
               <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
             </StyledFormControl>
           </Grid>
+          <ErrorBoundary>
+            <Grid item>
+              <ActualForecastControl runType={runType} setRunType={setRunType} />
+            </Grid>
+          </ErrorBoundary>
           <Grid item>
             <FireCentreFormControl>
               <FireCenterDropdown
@@ -187,27 +160,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               />
             </FireCentreFormControl>
           </Grid>
-          <ErrorBoundary>
-            <Grid item>
-              <ForecastActualDropdownFormControl>
-                <AdvisoryMetadata runType={runType.toString()} setRunType={setRunType} />
-              </ForecastActualDropdownFormControl>
-            </Grid>
-          </ErrorBoundary>
-          <Grid item>
-            <StyledFormControl>
-              <FormControlLabel
-                label="
-                Percentage of combustible land threshold"
-                labelPlacement="top"
-                control={
-                  <AdvisoryThresholdSlider
-                    advisoryThreshold={advisoryThreshold}
-                    setAdvisoryThreshold={setAdvisoryThreshold}
-                  />
-                }
-              />
-            </StyledFormControl>
+          <Grid item sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
+            <AboutDataPopover advisoryThreshold={ADVISORY_THRESHOLD} />
           </Grid>
         </Grid>
       </Box>
@@ -216,14 +170,16 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <AdvisoryReport
             issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
             forDate={dateOfInterest}
-            advisoryThreshold={advisoryThreshold}
+            advisoryThreshold={ADVISORY_THRESHOLD}
             selectedFireCenter={fireCenter}
-          />
-          <FireZoneUnitSummary
-            fireShapeAreas={fireShapeAreas}
-            fuelTypeInfo={hfiThresholdsFuelTypes}
-            hfiElevationInfo={fireZoneElevationInfo}
             selectedFireZoneUnit={selectedFireShape}
+          />
+          <FireZoneUnitTabs
+            selectedFireZoneUnit={selectedFireShape}
+            setZoomSource={setZoomSource}
+            selectedFireCenter={fireCenter}
+            advisoryThreshold={ADVISORY_THRESHOLD}
+            setSelectedFireShape={setSelectedFireShape}
           />
         </InfoPanel>
         <Grid sx={{ display: 'flex', flex: 1 }} item>
@@ -232,10 +188,9 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             runType={runType}
             selectedFireShape={selectedFireShape}
             selectedFireCenter={fireCenter}
-            advisoryThreshold={advisoryThreshold}
+            advisoryThreshold={ADVISORY_THRESHOLD}
             setSelectedFireShape={setSelectedFireShape}
             fireShapeAreas={fireShapeAreas}
-            snowDate={snowDate}
             zoomSource={zoomSource}
             setZoomSource={setZoomSource}
           />

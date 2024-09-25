@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { StationSource, DetailedGeoJsonStation, GeoJsonStation } from 'api/stationAPI'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-interface State {
+export interface StationsState {
   loading: boolean
   error: string | null
   stations: GeoJsonStation[] | DetailedGeoJsonStation[]
@@ -12,7 +12,7 @@ interface State {
   codesOfRetrievedStationData: number[]
 }
 
-const initialState: State = {
+const initialState: StationsState = {
   loading: false,
   error: null,
   stations: [],
@@ -25,30 +25,30 @@ const stationsSlice = createSlice({
   name: 'stations',
   initialState,
   reducers: {
-    getStationsStart(state: State) {
+    getStationsStart(state: StationsState) {
       state.loading = true
     },
-    getStationsFailed(state: State, action: PayloadAction<string>) {
+    getStationsFailed(state: StationsState, action: PayloadAction<string>) {
       state.loading = false
       state.error = action.payload
     },
-    getStationsSuccess(state: State, action: PayloadAction<GeoJsonStation[] | DetailedGeoJsonStation[]>) {
+    getStationsSuccess(state: StationsState, action: PayloadAction<GeoJsonStation[] | DetailedGeoJsonStation[]>) {
       state.error = null
       state.stations = action.payload
-      const stationsByCode: State['stationsByCode'] = {}
+      const stationsByCode: StationsState['stationsByCode'] = {}
       action.payload.forEach(station => {
         stationsByCode[station.properties.code] = station
       })
       state.stationsByCode = stationsByCode
       state.loading = false
     },
-    selectStation(state: State, action: PayloadAction<number>) {
+    selectStation(state: StationsState, action: PayloadAction<number>) {
       const selectedStationsList = state.selectedStationsByCode
       selectedStationsList.push(action.payload)
       const selectedStationsSet = new Set(selectedStationsList)
       state.selectedStationsByCode = Array.from(selectedStationsSet.values())
     },
-    selectStations(state: State, action: PayloadAction<number[]>) {
+    selectStations(state: StationsState, action: PayloadAction<number[]>) {
       state.selectedStationsByCode = []
       state.selectedStationsByCode = action.payload
     }

@@ -1,7 +1,7 @@
 import { TableContainer, Table, TableRow, TableBody } from '@mui/material'
 import { render } from '@testing-library/react'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
-import React from 'react'
+
 describe('IntensityGroupCell', () => {
   it('should return cell with value 1 and color code 1', () => {
     const { getByTestId, getByText } = render(

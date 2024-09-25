@@ -2,18 +2,17 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { getAllRunDates, getMostRecentRunDate } from 'api/fbaAPI'
+import { getAllRunDates, getMostRecentRunDate, RunType } from 'api/fbaAPI'
 import { DateTime } from 'luxon'
-import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
-interface State {
+export interface RunDateState {
   loading: boolean
   error: string | null
   runDates: DateTime[]
   mostRecentRunDate: string | null
 }
 
-const initialState: State = {
+const initialState: RunDateState = {
   loading: false,
   error: null,
   runDates: [],
@@ -24,17 +23,20 @@ const runDatesSlice = createSlice({
   name: 'runDates',
   initialState,
   reducers: {
-    getRunDatesStart(state: State) {
+    getRunDatesStart(state: RunDateState) {
       state.error = null
       state.loading = true
       state.runDates = []
       state.mostRecentRunDate = null
     },
-    getRunDatesFailed(state: State, action: PayloadAction<string>) {
+    getRunDatesFailed(state: RunDateState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getRunDatesSuccess(state: State, action: PayloadAction<{ runDates: DateTime[]; mostRecentRunDate: string }>) {
+    getRunDatesSuccess(
+      state: RunDateState,
+      action: PayloadAction<{ runDates: DateTime[]; mostRecentRunDate: string }>
+    ) {
       state.error = null
       state.runDates = action.payload.runDates
       state.mostRecentRunDate = action.payload.mostRecentRunDate

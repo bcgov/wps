@@ -1,4 +1,3 @@
-import React from 'react'
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import { render } from '@testing-library/react'
 import { DateTime } from 'luxon'
@@ -7,11 +6,16 @@ import provincialSummarySlice, {
   initialState,
   ProvincialSummaryState
 } from 'features/fba/slices/provincialSummarySlice'
+import fireCentreHFIFuelStatsSlice from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
+
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import { Provider } from 'react-redux'
 
 const buildTestStore = (initialState: ProvincialSummaryState) => {
-  const rootReducer = combineReducers({ provincialSummary: provincialSummarySlice })
+  const rootReducer = combineReducers({
+    provincialSummary: provincialSummarySlice,
+    fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice
+  })
   const testStore = configureStore({
     reducer: rootReducer,
     preloadedState: {

@@ -4,20 +4,20 @@ import { FBAStation, FBAWeatherStationsResponse, postFBAStations } from 'api/fba
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FuelTypes } from '../fuelTypes'
-import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { pstFormatter } from 'utils/date'
 
-interface State {
+export interface FBACalcState {
   loading: boolean
   error: string | null
   fireBehaviourResultStations: FBAStation[]
   date: string | null
 }
 
-const initialState: State = {
+const initialState: FBACalcState = {
   loading: false,
   error: null,
   fireBehaviourResultStations: [],
@@ -28,17 +28,17 @@ const fireBehaviourStationsSlice = createSlice({
   name: 'fireBehaviourStations',
   initialState,
   reducers: {
-    getFireBehaviourStationsStart(state: State) {
+    getFireBehaviourStationsStart(state: FBACalcState) {
       state.error = null
       state.loading = true
       state.fireBehaviourResultStations = []
       state.date = null
     },
-    getFireBehaviourStationsFailed(state: State, action: PayloadAction<string>) {
+    getFireBehaviourStationsFailed(state: FBACalcState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getFireBehaviourStationsSuccess(state: State, action: PayloadAction<FBAWeatherStationsResponse>) {
+    getFireBehaviourStationsSuccess(state: FBACalcState, action: PayloadAction<FBAWeatherStationsResponse>) {
       state.error = null
       state.fireBehaviourResultStations = action.payload.stations
       state.date = DateTime.fromFormat(action.payload.date, 'yyyy/MM/dd')
@@ -60,12 +60,7 @@ export const fetchFireBehaviourStations =
   async dispatch => {
     const fetchableFireStations = fbcInputRows.flatMap(row => {
       const fuelTypeDetails = FuelTypes.lookup(row.fuelType?.value)
-      if (
-        isNull(fuelTypeDetails) ||
-        isUndefined(fuelTypeDetails) ||
-        isUndefined(row.weatherStation) ||
-        isEqual(row.weatherStation, 'undefined')
-      ) {
+      if (isNil(fuelTypeDetails) || isNil(row.weatherStation)) {
         return []
       }
       return {

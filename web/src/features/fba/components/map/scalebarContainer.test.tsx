@@ -1,6 +1,7 @@
-import React from 'react'
+
 import { render } from '@testing-library/react'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
+import React from 'react'
 
 describe('ScalebarContainer', () => {
   it('should render', () => {

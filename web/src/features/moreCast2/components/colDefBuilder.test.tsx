@@ -8,12 +8,14 @@ import {
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 import { gcForecastField, tempForecastField } from 'features/moreCast2/components/MoreCast2Column'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
+import { vi } from 'vitest'
+
 describe('ColDefBuilder', () => {
   const mockColumnClickHandlerProps: ColumnClickHandlerProps = {
     colDef: null,
     contextMenu: null,
-    updateColumnWithModel: jest.fn(),
-    handleClose: jest.fn()
+    updateColumnWithModel: vi.fn(),
+    handleClose: vi.fn()
   }
 
   const colDefBuilder = new ColumnDefBuilder(

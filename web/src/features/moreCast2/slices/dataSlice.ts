@@ -25,7 +25,7 @@ import { StationGroupMember } from 'api/stationAPI'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 
 const morecastDraftForecast = new MorecastDraftForecast(localStorage)
-interface State {
+export interface DataState {
   loading: boolean
   error: string | null
   actuals: WeatherIndeterminate[]
@@ -34,7 +34,7 @@ interface State {
   predictions: WeatherIndeterminate[]
 }
 
-export const initialState: State = {
+export const initialState: DataState = {
   loading: false,
   error: null,
   actuals: [],
@@ -47,7 +47,7 @@ const dataSlice = createSlice({
   name: 'DataSlice',
   initialState,
   reducers: {
-    getWeatherIndeterminatesStart(state: State) {
+    getWeatherIndeterminatesStart(state: DataState) {
       state.error = null
       state.actuals = []
       state.forecasts = []
@@ -55,11 +55,11 @@ const dataSlice = createSlice({
       state.predictions = []
       state.loading = true
     },
-    getWeatherIndeterminatesFailed(state: State, action: PayloadAction<string>) {
+    getWeatherIndeterminatesFailed(state: DataState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getWeatherIndeterminatesSuccess(state: State, action: PayloadAction<WeatherIndeterminatePayload>) {
+    getWeatherIndeterminatesSuccess(state: DataState, action: PayloadAction<WeatherIndeterminatePayload>) {
       state.error = null
       state.actuals = action.payload.actuals
       state.forecasts = action.payload.forecasts

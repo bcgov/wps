@@ -92,6 +92,13 @@ class SFMSFuelType(BaseModel):
     description: str
 
 
+class AdvisoryCriticalHours(BaseModel):
+    """Critical Hours for an advisory."""
+
+    start_time: Optional[float]
+    end_time: Optional[float]
+
+
 class ClassifiedHfiThresholdFuelTypeArea(BaseModel):
     """Collection of data objects recording the area within an advisory shape
     that meets a particular HfiThreshold for a specific SFMSFuelType
@@ -99,6 +106,7 @@ class ClassifiedHfiThresholdFuelTypeArea(BaseModel):
 
     fuel_type: SFMSFuelType
     threshold: HfiThreshold
+    critical_hours: AdvisoryCriticalHours
     area: float
 
 
@@ -116,9 +124,9 @@ class FireZoneTPIStats(BaseModel):
     """Classified TPI areas of the fire zone contributing to the HFI >4k. Each area is in square metres."""
 
     fire_zone_id: int
-    valley_bottom: int
-    mid_slope: int
-    upper_slope: int
+    valley_bottom: Optional[int]
+    mid_slope: Optional[int]
+    upper_slope: Optional[int]
 
 
 class FireZoneElevationStatsByThreshold(BaseModel):

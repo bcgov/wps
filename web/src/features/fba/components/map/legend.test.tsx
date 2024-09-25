@@ -1,14 +1,14 @@
 import Legend from 'features/fba/components/map/Legend'
 import { render, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import React from 'react'
+import { vi } from 'vitest'
 
 describe('Legend', () => {
   it('should render with the default layer visibility', async () => {
-    const onToggleLayer = jest.fn()
-    const setShowZoneStatus = jest.fn()
-    const setShowHFI = jest.fn()
-    const setShowSnow = jest.fn()
+    const onToggleLayer = vi.fn()
+    const setShowZoneStatus = vi.fn()
+    const setShowHFI = vi.fn()
+
     const { getByTestId } = render(
       <Legend
         onToggleLayer={onToggleLayer}
@@ -16,9 +16,6 @@ describe('Legend', () => {
         setShowHFI={setShowHFI}
         showHFI={false}
         showShapeStatus={true}
-        showSnow={false}
-        setShowSnow={setShowSnow}
-        snowDescription="foo"
       />
     )
     const legendComponent = getByTestId('asa-map-legend')
@@ -36,10 +33,10 @@ describe('Legend', () => {
   })
 
   it('should call click handlers on checkboxes', async () => {
-    const onToggleLayer = jest.fn()
-    const setShowZoneStatus = jest.fn()
-    const setShowHFI = jest.fn()
-    const setShowSnow = jest.fn()
+    const onToggleLayer = vi.fn()
+    const setShowZoneStatus = vi.fn()
+    const setShowHFI = vi.fn()
+
     const { getByTestId } = render(
       <Legend
         onToggleLayer={onToggleLayer}
@@ -47,9 +44,6 @@ describe('Legend', () => {
         setShowHFI={setShowHFI}
         showHFI={false}
         showShapeStatus={true}
-        showSnow={false}
-        setShowSnow={setShowSnow}
-        snowDescription="foo"
       />
     )
 

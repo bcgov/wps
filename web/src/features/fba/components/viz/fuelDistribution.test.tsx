@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { render } from '@testing-library/react'
 import FuelDistribution from 'features/fba/components/viz/FuelDistribution'
 

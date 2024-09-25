@@ -1,9 +1,9 @@
+import { RunType } from '@/api/fbaAPI'
 import { render } from '@testing-library/react'
 import store from 'app/store'
 import FBAMap from 'features/fba/components/map/FBAMap'
-import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { DateTime } from 'luxon'
-import React from 'react'
+
 import { Provider } from 'react-redux'
 
 describe('FBAMap', () => {
@@ -32,11 +32,10 @@ describe('FBAMap', () => {
           setSelectedFireShape={function (): void {
             throw new Error('Function not implemented.')
           }}
-          zoomSource={undefined}
+          zoomSource={'fireCenter'}
           setZoomSource={function (): void {
             throw new Error('Function not implemented.')
           }}
-          snowDate={DateTime.now()}
         />
       </Provider>
     )

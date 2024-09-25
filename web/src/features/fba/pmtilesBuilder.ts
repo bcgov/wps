@@ -1,4 +1,4 @@
-import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
+import { RunType } from '@/api/fbaAPI'
 import { DateTime } from 'luxon'
 import { PMTILES_BUCKET } from 'utils/env'
 
@@ -15,16 +15,4 @@ export const buildPMTilesURL = (for_date: DateTime, run_type: RunType, run_date:
   })}.pmtiles`
 
   return PMTilesURL
-}
-
-/**
- * Builds the URL for snow coverage pmtiles layers.
- * @param snowDate The target date for snow coverage.
- * @returns A URL to the snow coverage PMTiles stored in S3
- */
-export const buildSnowPMTilesURL = (snowDate: DateTime) => {
-  const snowPMTilesUrl = `${PMTILES_BUCKET}snow/${snowDate.toISODate()}/snowCoverage${snowDate.toISODate({
-    format: 'basic'
-  })}.pmtiles`
-  return snowPMTilesUrl
 }

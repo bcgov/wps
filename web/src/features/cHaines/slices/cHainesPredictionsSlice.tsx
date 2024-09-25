@@ -4,7 +4,7 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FeatureCollection } from 'geojson'
 
-interface State {
+export interface CHainesPredictionState {
   loading: boolean
   error: string | null
   model_runs: Record<string, Record<string, FeatureCollection>>
@@ -16,7 +16,7 @@ interface GeoJSONContext {
   result: FeatureCollection
 }
 
-const initialState: State = {
+const initialState: CHainesPredictionState = {
   loading: false,
   error: null,
   model_runs: {}
@@ -26,13 +26,13 @@ const cHainesPredictionsSlice = createSlice({
   name: 'c-haines-predictions',
   initialState: initialState,
   reducers: {
-    getPredictionStart(state: State) {
+    getPredictionStart(state: CHainesPredictionState) {
       state.loading = true
     },
-    getPredictionSuccess(state: State, action: PayloadAction<GeoJSONContext>) {
+    getPredictionSuccess(state: CHainesPredictionState, action: PayloadAction<GeoJSONContext>) {
       state.model_runs[action.payload.model_run_timestamp][action.payload.prediction_timestamp] = action.payload.result
     },
-    getPredictionFailed(state: State, action: PayloadAction<string>) {
+    getPredictionFailed(state: CHainesPredictionState, action: PayloadAction<string>) {
       state.loading = false
       state.error = action.payload
     }

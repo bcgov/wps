@@ -8,13 +8,13 @@ export interface IValueAtCoordinate {
   value: string | undefined
   description: string
 }
-interface State {
+export interface ValueAtCoordState {
   loading: boolean
   error: string | null
   values: IValueAtCoordinate[]
 }
 
-const initialState: State = {
+const initialState: ValueAtCoordState = {
   loading: false,
   error: null,
   values: []
@@ -24,16 +24,16 @@ const valueAtCoordinateSlice = createSlice({
   name: 'valueAtCoordinate',
   initialState,
   reducers: {
-    getValueAtCoordinateStart(state: State) {
+    getValueAtCoordinateStart(state: ValueAtCoordState) {
       state.error = null
       state.loading = true
       state.values = []
     },
-    getValueAtCoordinateFailed(state: State, action: PayloadAction<string>) {
+    getValueAtCoordinateFailed(state: ValueAtCoordState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getValueAtCoordinateSuccess(state: State, action: PayloadAction<IValueAtCoordinate[]>) {
+    getValueAtCoordinateSuccess(state: ValueAtCoordState, action: PayloadAction<IValueAtCoordinate[]>) {
       state.error = null
       state.values = action.payload
       state.loading = false

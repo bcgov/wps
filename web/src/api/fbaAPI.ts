@@ -1,6 +1,10 @@
 import axios, { raster } from 'api/axios'
-import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { DateTime } from 'luxon'
+
+export enum RunType {
+  FORECAST = 'FORECAST',
+  ACTUAL = 'ACTUAL'
+}
 
 export interface FireCenterStation {
   code: number
@@ -17,7 +21,7 @@ export interface FireCenter {
 export interface FireShape {
   fire_shape_id: number
   mof_fire_zone_name: string
-  mof_fire_centre_name?: string
+  mof_fire_centre_name: string
   area_sqm?: number
 }
 
@@ -25,9 +29,15 @@ export interface FBAResponse {
   fire_centers: FireCenter[]
 }
 
-export interface FireZoneThresholdFuelTypeArea {
+export interface AdvisoryCriticalHours {
+  start_time?: number
+  end_time?: number
+}
+
+export interface FireZoneFuelStats {
   fuel_type: FuelType
   threshold: HfiThreshold
+  critical_hours: AdvisoryCriticalHours
   area: number
 }
 
@@ -54,6 +64,13 @@ export interface ElevationInfoByThreshold {
 
 export interface FireZoneElevationInfoResponse {
   hfi_elevation_info: ElevationInfoByThreshold[]
+}
+
+export interface FireZoneTPIStats {
+  fire_zone_id: number
+  valley_bottom?: number
+  mid_slope?: number
+  upper_slope?: number
 }
 
 export interface FireShapeAreaListResponse {
@@ -87,6 +104,12 @@ export interface FuelType {
   fuel_type_id: number
   fuel_type_code: string
   description: string
+}
+
+export interface FireCentreHFIStats {
+  [fire_centre_name: string]: {
+    [fire_zone_id: number]: FireZoneFuelStats[]
+  }
 }
 
 export async function getFBAFireCenters(): Promise<FBAResponse> {
@@ -129,13 +152,13 @@ export async function getAllRunDates(run_type: RunType, for_date: string): Promi
   return data
 }
 
-export async function getHFIThresholdsFuelTypesForZone(
+export async function getFireCentreHFIStats(
   run_type: RunType,
   for_date: string,
   run_datetime: string,
-  zone_id: number
-): Promise<Record<number, FireZoneThresholdFuelTypeArea[]>> {
-  const url = `fba/hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${zone_id}`
+  fire_centre: string
+): Promise<FireCentreHFIStats> {
+  const url = `fba/fire-centre-hfi-stats/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${fire_centre}`
   const { data } = await axios.get(url)
   return data
 }
@@ -147,6 +170,28 @@ export async function getFireZoneElevationInfo(
   for_date: string
 ): Promise<FireZoneElevationInfoResponse> {
   const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
+  const { data } = await axios.get(url)
+  return data
+}
+
+export async function getFireZoneTPIStats(
+  fire_zone_id: number,
+  run_type: RunType,
+  run_datetime: string,
+  for_date: string
+): Promise<FireZoneTPIStats> {
+  const url = `fba/fire-zone-tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
+  const { data } = await axios.get(url)
+  return data
+}
+
+export async function getFireCentreTPIStats(
+  fire_centre_name: string,
+  run_type: RunType,
+  run_datetime: string,
+  for_date: string
+): Promise<Record<string, FireZoneTPIStats[]>> {
+  const url = `fba/fire-centre-tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_centre_name}`
   const { data } = await axios.get(url)
   return data
 }

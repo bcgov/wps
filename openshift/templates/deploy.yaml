@@ -77,19 +77,40 @@ parameters:
     description: "Number of gunicorn workers"
     value: "4"
 objects:
-  - apiVersion: v1
-    kind: DeploymentConfig
+  - apiVersion: apps/v1
+    kind: Deployment
     metadata:
       labels:
         app: ${APP_NAME}-${SUFFIX}
       name: ${APP_NAME}-${SUFFIX}
+      annotations:
+        # These annotations trigger a new rollout if either the web or api images change
+        image.openshift.io/triggers: |-
+          [
+            {
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "${APP_NAME}-web-${SUFFIX}:${SUFFIX}",
+                "namespace": "${PROJ_TOOLS}"
+              },
+              "fieldPath": "spec.template.spec.containers[0].image"
+            },
+            {
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "${APP_NAME}-api-${SUFFIX}:${SUFFIX}",
+                "namespace": "${PROJ_TOOLS}"
+              },
+              "fieldPath": "spec.template.spec.containers[1].image"
+            }
+          ]
     spec:
       replicas: ${{REPLICAS}}
       selector:
-        name: ${APP_NAME}-${SUFFIX}
+        matchLabels:
+          name: ${APP_NAME}-${SUFFIX}
       strategy:
-        type: Rolling
-      triggers: []
+        type: RollingUpdate
       template:
         metadata:
           labels:
@@ -429,8 +450,8 @@ objects:
       name: vpa-recommender-${SUFFIX}
     spec:
       targetRef:
-        apiVersion: "apps.openshift.io/v1"
-        kind: DeploymentConfig
+        apiVersion: "apps/v1"
+        kind: Deployment
         name: ${APP_NAME}-${SUFFIX}
       updatePolicy:
         updateMode: "Off"

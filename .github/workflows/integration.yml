@@ -63,7 +63,6 @@ jobs:
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
         run: |
-          poetry config http-basic.psu ${{ secrets.ARTIFACTORY_PYPI_USERNAME }} ${{ secrets.ARTIFACTORY_PYPI_PASSWORD }}
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install gdal==$(gdal-config --version)
@@ -139,7 +138,6 @@ jobs:
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
         run: |
-          poetry config http-basic.psu ${{ secrets.ARTIFACTORY_PYPI_USERNAME }} ${{ secrets.ARTIFACTORY_PYPI_PASSWORD }}
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install gdal==$(gdal-config --version)
@@ -175,7 +173,7 @@ jobs:
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
       - name: Archive coverage report (api)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: api-coverage-report
           path: ./api/coverage-reports/coverage-report.xml
@@ -191,8 +189,6 @@ jobs:
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
-      - name: Setup kernel for react, increase watchers
-        run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -207,9 +203,6 @@ jobs:
         run: corepack enable
       - name: use new yarn
         run: yarn set version berry
-      - name: Setup yarn for scoped artifactory packages
-        working-directory: ./web
-        run: yarn config set npmScopes.psu.npmRegistryServer https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/ && yarn config set npmScopes.psu.npmAlwaysAuth true && yarn config set npmScopes.psu.npmAuthToken ${{ secrets.ARTIFACTORY_SVCACCT_TOKEN }}
       - name: Install node dependencies (web)
         working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'
@@ -217,9 +210,6 @@ jobs:
       - name: Lint (web)
         working-directory: ./web
         run: yarn run lint
-      # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
-      # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
-      # It seems unnecessary at the moment because tests pass anyway
       - name: Cypress tests with coverage (web)
         working-directory: ./web
         run: yarn run cypress:ci
@@ -229,9 +219,8 @@ jobs:
       - name: Merge and finalize test coverage (web)
         working-directory: ./web
         run: yarn run finalizeCoverage
-
       - name: Archive coverage report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: web-coverage-report
           path: ./web/finalCoverage
@@ -244,7 +233,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v4
         with:

@@ -205,9 +205,8 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     return groupByWeatherParam(showHideColumnsUngroupedState)
   }
 
-  const [showHideColumnsModel, setShowHideColumnsModel] = useState<Record<string, ColumnVis[]>>(
-    initShowHideColumnsModel()
-  )
+  const [showHideColumnsModel, setShowHideColumnsModel] =
+    useState<Record<string, ColumnVis[]>>(initShowHideColumnsModel())
 
   // Given an array of weather parameters (aka tabs) return a GridColumnVisibilityModel object that
   // contains all weather model columns that are visible for each weather parameter.
@@ -344,19 +343,17 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   /********** End useEffects for managing visibility of column groups *************/
 
   const updateColumnHelper = (editedRows: MoreCast2Row[]) => {
-    // Create a copy of all Morecast2ForecastRows
-    let newRows = cloneDeep(allRows)
-    newRows = newRows.map(newRow => editedRows.find(row => row.id === newRow.id) || newRow)
-
+    // Create a copy of editedRows which will be stored as a draft
+    let draftRows = cloneDeep(editedRows)
     const rowsForSimulation = filterAllVisibleRowsForSimulation(editedRows) ?? []
 
     if (rowsForSimulation.length > 0) {
       const filteredRowsWithIndices = simulateFireWeatherIndices(rowsForSimulation)
-      storedDraftForecast.updateStoredDraftForecasts(filteredRowsWithIndices, getDateTimeNowPST())
-      // Merge the copy of allRows with rows that were updated with simulated indices
-      newRows = newRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)
+      draftRows = draftRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)
     }
-
+    storedDraftForecast.updateStoredDraftForecasts(draftRows, getDateTimeNowPST())
+    let newRows = cloneDeep(allRows)
+    newRows = newRows.map(newRow => draftRows.find(row => row.id === newRow.id) || newRow)
     setAllRows(newRows)
   }
 
@@ -497,13 +494,15 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
   // Handler passed to our datagrids that runs after a row is updated.
   const processRowUpdate = (newRow: MoreCast2Row) => {
-    const filledRows = fillStationGrassCuringForward(newRow, allRows)
+    let filledRows = fillStationGrassCuringForward(newRow, allRows)
     const filteredRows = filterRowsForSimulationFromEdited(newRow, filledRows)
     const filteredRowsWithIndices = simulateFireWeatherIndices(filteredRows)
-    storedDraftForecast.updateStoredDraftForecasts(filteredRowsWithIndices, getDateTimeNowPST())
+    // Merge rows that have been updated (ie. filledRows) with rows that have had indices added and save as a draft
+    filledRows = filledRows.map(filledRow => filteredRowsWithIndices.find(row => row.id === filledRow.id) || filledRow)
+    storedDraftForecast.updateStoredDraftForecasts(filledRows, getDateTimeNowPST())
     let newRows = cloneDeep(allRows)
     // Merge the copy of existing rows with rows that were updated with simulated indices
-    newRows = newRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)
+    newRows = newRows.map(newRow => filledRows.find(row => row.id === newRow.id) || newRow)
     setAllRows(newRows)
     return newRow
   }

@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import { FireShape, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
+import { FireShape, FireZoneFuelStats } from 'api/fbaAPI'
 import { Box, Tooltip, Typography } from '@mui/material'
 import { groupBy, isUndefined } from 'lodash'
-import { DateTime } from 'luxon'
 import FuelDistribution from 'features/fba/components/viz/FuelDistribution'
-import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro'
-import { useTheme } from '@mui/material/styles'
+import { DataGridPro, GridColDef, GridColumnHeaderParams, GridRenderCellParams } from '@mui/x-data-grid-pro'
+import { styled, useTheme } from '@mui/material/styles'
+import CriticalHours from 'features/fba/components/viz/CriticalHours'
 
 export interface FuelTypeInfoSummary {
   area: number
-  criticalHoursStart?: DateTime
-  criticalHoursEnd?: DateTime
+  criticalHoursStart?: number
+  criticalHoursEnd?: number
   id: number
   code: string
   description: string
@@ -19,18 +19,27 @@ export interface FuelTypeInfoSummary {
 }
 
 interface FuelSummaryProps {
-  fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
+  fireZoneFuelStats: Record<number, FireZoneFuelStats[]>
   selectedFireZoneUnit: FireShape | undefined
 }
 
-// Column definitions for fire zone unit fuel summary table 
+const StyledHeader = styled('div')({
+  whiteSpace: 'normal',
+  wordWrap: 'break-word',
+  textAlign: 'center',
+  fontSize: '0.75rem',
+  fontWeight: '700'
+})
+
+// Column definitions for fire zone unit fuel summary table
 const columns: GridColDef[] = [
   {
     field: 'code',
     headerClassName: 'fuel-summary-header',
     headerName: 'Fuel Type',
     sortable: false,
-    width: 75,
+    minWidth: 80,
+    renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => (
       <Tooltip placement="right" title={params.row['description']}>
         <Typography sx={{ fontSize: '0.75rem' }}>{params.row[params.field]}</Typography>
@@ -39,28 +48,39 @@ const columns: GridColDef[] = [
   },
   {
     field: 'area',
-    flex: 3,
+    flex: 1,
     headerClassName: 'fuel-summary-header',
     headerName: 'Distribution > 4k kW/m',
-    minWidth: 200,
     sortable: false,
+    renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => {
       return <FuelDistribution code={params.row['code']} percent={params.row['percent']} />
+    }
+  },
+  {
+    field: 'criticalHours',
+    headerClassName: 'fuel-summary-header',
+    headerName: 'Critical Hours',
+    minWidth: 110,
+    sortable: false,
+    renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
+    renderCell: (params: GridRenderCellParams) => {
+      return <CriticalHours start={params.row['criticalHoursStart']} end={params.row['criticalHoursEnd']} />
     }
   }
 ]
 
-const FuelSummary = ({ fuelTypeInfo, selectedFireZoneUnit }: FuelSummaryProps) => {
+const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryProps) => {
   const theme = useTheme()
   const [fuelTypeInfoRollup, setFuelTypeInfoRollup] = useState<FuelTypeInfoSummary[]>([])
 
   useEffect(() => {
-    if (isUndefined(fuelTypeInfo) || isUndefined(selectedFireZoneUnit)) {
+    if (isUndefined(fireZoneFuelStats) || isUndefined(selectedFireZoneUnit)) {
       setFuelTypeInfoRollup([])
       return
     }
     const shapeId = selectedFireZoneUnit.fire_shape_id
-    const fuelDetails = fuelTypeInfo[shapeId]
+    const fuelDetails = fireZoneFuelStats[shapeId]
     if (isUndefined(fuelDetails)) {
       setFuelTypeInfoRollup([])
       return
@@ -77,10 +97,14 @@ const FuelSummary = ({ fuelTypeInfo, selectedFireZoneUnit }: FuelSummaryProps) =
       if (groupedFuelDetail.length) {
         const area = groupedFuelDetail.reduce((acc, { area }) => acc + area, 0)
         const fuelType = groupedFuelDetail[0].fuel_type
+        const startTime = groupedFuelDetail[0].critical_hours.start_time
+        const endTime = groupedFuelDetail[0].critical_hours.end_time
         const fuelInfo: FuelTypeInfoSummary = {
           area,
           code: fuelType.fuel_type_code,
           description: fuelType.description,
+          criticalHoursStart: startTime,
+          criticalHoursEnd: endTime,
           id: fuelType.fuel_type_id,
           percent: totalHFIArea4K ? (area / totalHFIArea4K) * 100 : 0,
           selected: false
@@ -89,13 +113,10 @@ const FuelSummary = ({ fuelTypeInfo, selectedFireZoneUnit }: FuelSummaryProps) =
       }
     }
     setFuelTypeInfoRollup(rollUp)
-  }, [fuelTypeInfo]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fireZoneFuelStats]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }}>
-      <Typography sx={{ fontWeight: 'bold', paddingBottom: theme.spacing(1), textAlign: 'center' }}>
-        HFI Distribution by Fuel Type
-      </Typography>
       {fuelTypeInfoRollup.length === 0 ? (
         <Typography>No fuel type information available.</Typography>
       ) : (
@@ -115,6 +136,7 @@ const FuelSummary = ({ fuelTypeInfo, selectedFireZoneUnit }: FuelSummaryProps) =
           showCellVerticalBorder
           showColumnVerticalBorder
           sx={{
+            backgroundColor: 'white',
             maxHeight: '147px',
             minHeight: '100px',
             overflow: 'hidden',
