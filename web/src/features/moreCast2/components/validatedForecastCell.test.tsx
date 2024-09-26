@@ -11,10 +11,10 @@ const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
 }
 
 describe('ValidatedForecastCell', () => {
-  it('should render a tooltip when value is invalid', async () => {
+  it('should render a tooltip and be in error state when value is invalid', async () => {
     const testStore = buildTestStore(initialState)
 
-    const { queryByText } = render(
+    const { queryByText, queryByTestId } = render(
       <Provider store={testStore}>
         <ValidatedForecastCell
           disabled={false}
@@ -24,22 +24,38 @@ describe('ValidatedForecastCell', () => {
         />
       </Provider>
     )
+    expect(queryByTestId('validated-forecast-cell-error')).toBeInTheDocument()
+    expect(queryByTestId('validated-forecast-cell')).not.toBeInTheDocument()
     expect(queryByText('tooltip-error')).toBeInTheDocument()
   })
 
-  it('should not render a tooltip when value is valid', async () => {
-    const testStore = buildTestStore(initialState)
-    const { queryByText } = render(
+  it('should render in an error state when value is empty and required', async () => {
+    const testStore = buildTestStore({ ...initialState, isRequiredEmpty: { empty: true } })
+
+    const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
+      row: undefined,
+      formattedValue: ''
+    }
+
+    const { queryByText, queryByTestId } = render(
       <Provider store={testStore}>
-        <ValidatedForecastCell
-          disabled={false}
-          label="foo"
-          value={params.formattedValue}
-          validator={v => (Number(v) > Number.MAX_VALUE ? 'tooltip-error' : '')}
-        />
+        <ValidatedForecastCell disabled={false} label="foo" value={params.formattedValue} />
       </Provider>
     )
+    expect(queryByTestId('validated-forecast-cell-error')).toBeInTheDocument()
+    expect(queryByTestId('validated-forecast-cell')).not.toBeInTheDocument()
+    expect(queryByText('tooltip-error')).not.toBeInTheDocument()
+  })
 
+  it('should not render a tooltip and not be in an error state when value is valid', async () => {
+    const testStore = buildTestStore(initialState)
+    const { queryByText, queryByTestId } = render(
+      <Provider store={testStore}>
+        <ValidatedForecastCell disabled={false} label="foo" value={params.formattedValue} validator={() => ''} />
+      </Provider>
+    )
+    expect(queryByTestId('validated-forecast-cell')).toBeInTheDocument()
+    expect(queryByTestId('validated-forecast-cell-error')).not.toBeInTheDocument()
     expect(queryByText('tooltip-error')).not.toBeInTheDocument()
   })
 })

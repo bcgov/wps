@@ -2,7 +2,7 @@ import { render } from '@testing-library/react'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 import { Provider } from 'react-redux'
-import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/ValidatedWindDirectionForecastCell'
+import ValidatedGrassCureForecastCell from '@/features/moreCast2/components/ValidatedGrassCureForecastCell'
 import { buildTestStore } from '@/features/moreCast2/components/testHelper'
 
 const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
@@ -10,13 +10,13 @@ const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
   formattedValue: '1'
 }
 
-describe('ValidatedWindDirectionForecastCell', () => {
+describe('ValidatedGrassCureForecastCell', () => {
   it('should render a tooltip when value is invalid', async () => {
     const testStore = buildTestStore(initialState)
 
     const { queryByText } = render(
       <Provider store={testStore}>
-        <ValidatedWindDirectionForecastCell
+        <ValidatedGrassCureForecastCell
           disabled={false}
           label="foo"
           value={params.formattedValue}
@@ -31,7 +31,7 @@ describe('ValidatedWindDirectionForecastCell', () => {
     const testStore = buildTestStore(initialState)
     const { queryByText } = render(
       <Provider store={testStore}>
-        <ValidatedWindDirectionForecastCell
+        <ValidatedGrassCureForecastCell
           disabled={false}
           label="foo"
           value={params.formattedValue}
@@ -47,7 +47,7 @@ describe('ValidatedWindDirectionForecastCell', () => {
     const testStore = buildTestStore(initialState)
     const { queryByText } = render(
       <Provider store={testStore}>
-        <ValidatedWindDirectionForecastCell disabled={false} label="foo" value={params.formattedValue} />
+        <ValidatedGrassCureForecastCell disabled={false} label="foo" value={params.formattedValue} />
       </Provider>
     )
 

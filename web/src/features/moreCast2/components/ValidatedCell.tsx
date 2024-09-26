@@ -13,10 +13,11 @@ interface ValidatedCellProps {
 }
 
 const ValidatedGrassCureForecastCell = ({ disabled, label, value, invalid, error }: ValidatedCellProps) => {
+  const testTag = error ? 'validated-forecast-cell-error' : 'validated-forecast-cell'
   return (
     <InvalidCellToolTip invalid={invalid}>
       <TextField
-        data-testid="validated-forecast-cell"
+        data-testid={testTag}
         disabled={disabled}
         size="small"
         label={label}
