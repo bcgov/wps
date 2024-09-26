@@ -85,7 +85,6 @@ objects:
           databases:
             - postgres
             - wps
-      postgresVersion: 14
       instances:
         - name: crunchy
           replicas: 3
