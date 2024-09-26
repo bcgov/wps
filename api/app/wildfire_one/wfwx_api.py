@@ -67,6 +67,15 @@ async def get_auth_header(session: ClientSession) -> dict:
     return header
 
 
+async def get_no_cache_auth_header(session: ClientSession) -> dict:
+    """Get WFWX auth header with explicit no caching"""
+    # Fetch auth header
+    header = await get_auth_header(session)
+    # Add the cache control header
+    header["Cache-Control"] = "no-cache"
+    return header
+
+
 async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """Get a list of stations by code, from WFWX Fireweather API."""
     logger.info("Using WFWX to retrieve stations by code")
