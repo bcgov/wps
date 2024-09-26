@@ -13,7 +13,11 @@ const ValidatedWindDirectionForecastCell = ({ disabled, label, value, validator 
   const error = validator ? validator(value as string) : ''
 
   return (
-    <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
+    <Grid
+      container
+      sx={{ justifyContent: 'center', alignItems: 'center' }}
+      data-testid="validated-winddir-forecast-cell"
+    >
       <Grid item xs={8}>
         <ValidatedCell disabled={disabled} label={label} value={value} error={error !== ''} invalid={error} />
       </Grid>

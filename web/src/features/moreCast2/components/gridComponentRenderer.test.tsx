@@ -183,6 +183,30 @@ describe('GridComponentRenderer', () => {
     expect(renderedCell).toBeDisabled()
   })
 
+  it('should render the wind direction forecast cell', () => {
+    const field = 'windDirectionForecast'
+
+    const { getByTestId } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1 }, formattedValue: 1 }, field)}
+      </Provider>
+    )
+    const renderedCell = getByTestId('validated-winddir-forecast-cell')
+    expect(renderedCell).toBeInTheDocument()
+  })
+
+  it('should render the grass curing forecast cell', () => {
+    const field = 'grassCuringForecast'
+
+    const { getByTestId } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1 }, formattedValue: 1 }, field)}
+      </Provider>
+    )
+    const renderedCell = getByTestId('validated-gc-forecast-cell')
+    expect(renderedCell).toBeInTheDocument()
+  })
+
   it('should set the row correctly', () => {
     const mockValueSetterParams: GridValueSetterParams = {
       value: 2,
