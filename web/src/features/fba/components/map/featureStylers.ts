@@ -14,7 +14,7 @@ export const ADVISORY_RED_FILL = 'rgba(128, 0, 0, 0.4)'
 
 export const ADVISORY_RED_LINE = 'rgba(238, 0, 0, 1)'
 export const ADVISORY_ORANGE_LINE = 'rgba(219, 135, 1, 1)'
-export const ADVISORY_GREY_LINE = 'rgba(127, 127, 127, 1)'
+const ADVISORY_GREY_LINE = 'rgba(127, 127, 127, 1)'
 
 export const HFI_ADVISORY = 'rgba(255, 128, 0, 0.4)'
 export const HFI_WARNING = 'rgba(255, 0, 0, 0.4)'
