@@ -117,7 +117,7 @@ const FireZoneUnitTabs = ({
                         key={key}
                         data-testid={`zone-${key}-tab`}
                         sx={{
-                          backgroundColor: calculateStatusColour(zone.fireShapeDetails, advisoryThreshold, '#DCDCDC'),
+                          backgroundColor: calculateStatusColour(zone.fireShapeDetails, advisoryThreshold, '#FFFFFF'),
                           minWidth: 'auto',
                           marginTop: theme.spacing(2),
                           fontWeight: 'bold',
