@@ -1,3 +1,5 @@
+import { buildTestStore } from '@/features/moreCast2/components/testHelper'
+import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 import { GridColumnHeaderParams, GridValueSetterParams } from '@mui/x-data-grid-pro'
 import { GridStateColDef } from '@mui/x-data-grid-pro/internals'
 import { render } from '@testing-library/react'
@@ -10,6 +12,7 @@ import {
 } from 'features/moreCast2/components/GridComponentRenderer'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { DateTime } from 'luxon'
+import { Provider } from 'react-redux'
 import { vi } from 'vitest'
 
 describe('GridComponentRenderer', () => {
@@ -48,13 +51,15 @@ describe('GridComponentRenderer', () => {
     const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().plus({ days: 2 }) }
     const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Forecast')
     const { getByRole } = render(
-      gridComponentRenderer.renderForecastCellWith(
-        {
-          row: row,
-          formattedValue: formattedValue
-        },
-        field
-      )
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith(
+          {
+            row: row,
+            formattedValue: formattedValue
+          },
+          field
+        )}
+      </Provider>
     )
     const renderedCell = getByRole('textbox')
     expect(renderedCell).toBeInTheDocument()
@@ -67,13 +72,15 @@ describe('GridComponentRenderer', () => {
     const row = { [field]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
     const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Forecast')
     const { getByRole } = render(
-      gridComponentRenderer.renderForecastCellWith(
-        {
-          row: row,
-          formattedValue: formattedValue
-        },
-        field
-      )
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith(
+          {
+            row: row,
+            formattedValue: formattedValue
+          },
+          field
+        )}
+      </Provider>
     )
     const renderedCell = getByRole('textbox')
     expect(renderedCell).toBeInTheDocument()
@@ -87,13 +94,15 @@ describe('GridComponentRenderer', () => {
     const row = { [field]: NaN, [fieldActual]: 2, forDate: DateTime.now() }
     const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Forecast')
     const { getByRole } = render(
-      gridComponentRenderer.renderForecastCellWith(
-        {
-          row: row,
-          formattedValue: formattedValue
-        },
-        field
-      )
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith(
+          {
+            row: row,
+            formattedValue: formattedValue
+          },
+          field
+        )}
+      </Provider>
     )
     const renderedCell = getByRole('textbox')
     expect(renderedCell).toBeInTheDocument()
@@ -107,13 +116,15 @@ describe('GridComponentRenderer', () => {
     const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
     const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Actual')
     const { getByRole } = render(
-      gridComponentRenderer.renderForecastCellWith(
-        {
-          row: row,
-          formattedValue: formattedValue
-        },
-        field
-      )
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith(
+          {
+            row: row,
+            formattedValue: formattedValue
+          },
+          field
+        )}
+      </Provider>
     )
     const renderedCell = getByRole('textbox')
     expect(renderedCell).toBeInTheDocument()
@@ -133,7 +144,9 @@ describe('GridComponentRenderer', () => {
   it('should render the forecast cell as editable with no actual', () => {
     const field = 'tempForecast'
     const { getByRole } = render(
-      gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1 }, formattedValue: 1 }, field)
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1 }, formattedValue: 1 }, field)}
+      </Provider>
     )
     const renderedCell = getByRole('textbox')
     expect(renderedCell).toBeInTheDocument()
@@ -157,12 +170,41 @@ describe('GridComponentRenderer', () => {
     const actualField = `tempActual`
 
     const { getByRole } = render(
-      gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1, [actualField]: 2 }, formattedValue: 1 }, field)
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith(
+          { row: { [field]: 1, [actualField]: 2 }, formattedValue: 1 },
+          field
+        )}
+      </Provider>
     )
     const renderedCell = getByRole('textbox')
     expect(renderedCell).toBeInTheDocument()
     expect(renderedCell).toHaveValue('1')
     expect(renderedCell).toBeDisabled()
+  })
+
+  it('should render the wind direction forecast cell', () => {
+    const field = 'windDirectionForecast'
+
+    const { getByTestId } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1 }, formattedValue: 1 }, field)}
+      </Provider>
+    )
+    const renderedCell = getByTestId('validated-winddir-forecast-cell')
+    expect(renderedCell).toBeInTheDocument()
+  })
+
+  it('should render the grass curing forecast cell', () => {
+    const field = 'grassCuringForecast'
+
+    const { getByTestId } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1 }, formattedValue: 1 }, field)}
+      </Provider>
+    )
+    const renderedCell = getByTestId('validated-gc-forecast-cell')
+    expect(renderedCell).toBeInTheDocument()
   })
 
   it('should set the row correctly', () => {
