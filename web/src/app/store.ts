@@ -1,5 +1,5 @@
 import { configureStore, AnyAction, ThunkAction } from '@reduxjs/toolkit'
-import thunk, { ThunkMiddleware } from 'redux-thunk'
+import { thunk, ThunkMiddleware } from 'redux-thunk'
 import rootReducer, { RootState } from 'app/rootReducer'
 
 const thunkMiddleware: ThunkMiddleware<RootState, AnyAction> = thunk

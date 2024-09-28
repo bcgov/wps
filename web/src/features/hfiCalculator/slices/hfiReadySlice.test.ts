@@ -12,7 +12,7 @@ describe('hfiReadySlice', () => {
   describe('reducer', () => {
     const dummyError = 'an error'
     it('should be initialized with correct state', () => {
-      expect(hfiReadyReducer(undefined, { type: undefined })).toEqual(initialState)
+      expect(hfiReadyReducer(undefined, { type: '' })).toEqual(initialState)
     })
     it('should set loading = true when fetchFuelTypesStart is called', () => {
       expect(hfiReadyReducer(initialState, setHFIReadyStart())).toEqual({
