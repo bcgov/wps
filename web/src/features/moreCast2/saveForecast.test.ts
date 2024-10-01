@@ -202,6 +202,25 @@ describe('saveForecasts', () => {
         ])
       ).toBe(true)
     })
+    it('should return true if all required fields are set and precip has the default value with NULL choice', () => {
+      expect(
+        isRequiredInputSet([
+          {
+            id: '1',
+            forDate: mockForDate,
+            stationCode: 1,
+            stationName: 'one',
+            ...baseRow,
+            precip: { choice: ModelChoice.NULL, value: 0 },
+            rh: { choice: ModelChoice.MANUAL, value: 1 },
+            temp: { choice: ModelChoice.GDPS, value: 1 },
+            windDirection: { choice: ModelChoice.NULL, value: NaN },
+            windSpeed: { choice: ModelChoice.GDPS, value: 1 },
+            grassCuring: { choice: ModelChoice.NULL, value: NaN }
+          }
+        ])
+      ).toBe(true)
+    })
 
     it('should return false if any forecasts have missing forecast fields', () => {
       expect(

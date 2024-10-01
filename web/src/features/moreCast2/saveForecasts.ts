@@ -17,7 +17,7 @@ export const getForecastRows = (rows: MoreCast2Row[]): MoreCast2Row[] => {
 
 export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {
   const forecastRows = getForecastRows(rows)
-  return forecastRows.map(r => ({
+  const rowsToSave = forecastRows.map(r => ({
     id: r.id,
     stationCode: r.stationCode,
     stationName: r.stationName,
@@ -29,11 +29,12 @@ export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {
     windSpeed: r.windSpeedForecast ?? { choice: ModelChoice.NULL, value: NaN },
     grassCuring: r.grassCuringForecast ?? { choice: ModelChoice.NULL, value: NaN }
   }))
+  return rowsToSave
 }
 
 export const isRequiredInputSet = (rowsToSave: MoreCast2ForecastRow[]) => {
   const isNilPredictionItem = (item?: PredictionItem) => {
-    return isNil(item) || isNaN(item.value) || item.choice === ModelChoice.NULL
+    return isNil(item) || isNaN(item.value)
   }
   const res = rowsToSave.every(row => {
     return (
