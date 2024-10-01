@@ -22,8 +22,7 @@ import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { cloneDeep, isNumber } from 'lodash'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
-import ValidatedGrassCureForecastCell from '@/features/moreCast2/components/ValidatedGrassCureForecastCell'
-import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/ValidatedWindDirectionForecastCell'
+import ValidatedForecastCell from '@/features/moreCast2/components/ValidatedForecastCell'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -121,16 +120,7 @@ export class GridComponentRenderer {
     // The grass curing 'forecast' field is rendered differently
     if (isGrassField) {
       return (
-        <ValidatedGrassCureForecastCell
-          disabled={isActual || isPreviousDate}
-          label={label}
-          value={params.formattedValue}
-          validator={validator}
-        />
-      )
-    } else if (field.includes('windDirection')) {
-      return (
-        <ValidatedWindDirectionForecastCell
+        <ValidatedForecastCell
           disabled={isActual || isPreviousDate}
           label={label}
           value={params.formattedValue}
