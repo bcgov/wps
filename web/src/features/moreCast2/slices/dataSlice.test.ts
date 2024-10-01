@@ -89,7 +89,7 @@ describe('dataSlice', () => {
   describe('reducer', () => {
     const dummyError = 'an error'
     it('should be initialized with correct state flags', () => {
-      expect(dataSliceReducer(undefined, { type: undefined })).toEqual(initialState)
+      expect(dataSliceReducer(undefined, { type: '' })).toEqual(initialState)
     })
     it('should set loading = true when getWeatherIndeterminatesStart is called', () => {
       expect(dataSliceReducer(initialState, getWeatherIndeterminatesStart())).toEqual({

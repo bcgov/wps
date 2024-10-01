@@ -1,4 +1,4 @@
-import { render, fireEvent, within } from '@testing-library/react'
+import { render, fireEvent, within, act } from '@testing-library/react'
 import { useDispatch } from 'react-redux'
 import { GridApiContext, GridCellMode, GridTreeNodeWithRender } from '@mui/x-data-grid-pro'
 import { EditInputCell } from '@/features/moreCast2/components/EditInputCell'
@@ -44,8 +44,8 @@ vi.mock('@/features/moreCast2/slices/validInputSlice', () => ({
 const mockDispatch = vi.fn()
 
 beforeEach(() => {
-  vi.clearAllMocks()
-  ;(useDispatch as jest.Mock).mockReturnValue(mockDispatch)
+  vi.clearAllMocks();
+  (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch)
 })
 
 describe('EditInputCell', () => {
@@ -77,7 +77,7 @@ describe('EditInputCell', () => {
     expect(mockSetEditCellValue).toHaveBeenCalledWith({ id: 1, field: 'test', value: '20' })
   })
 
-  test('should call stopCellEditMode on blur', () => {
+  test('should call stopCellEditMode on blur', async () => {
     const { getByTestId } = render(
       <GridApiContext.Provider value={apiMock}>
         <EditInputCell {...defaultProps} id={1} value="10" field="test" hasFocus={false} error="" />
@@ -85,13 +85,14 @@ describe('EditInputCell', () => {
     )
 
     const input = within(getByTestId('forecast-edit-cell')).getByRole('spinbutton') as HTMLInputElement
-    input.focus()
-    fireEvent.blur(input)
-
+    await act(async () => {
+      input.focus()
+      fireEvent.blur(input)
+    })
     expect(mockStopCellEditMode).toHaveBeenCalledWith({ id: 1, field: 'test' })
   })
 
-  test('should handle Escape key press', () => {
+  test('should handle Escape key press', async () => {
     const { getByTestId } = render(
       <GridApiContext.Provider value={apiMock}>
         <EditInputCell {...defaultProps} id={1} value="10" field="test" hasFocus={false} error="" />
@@ -99,13 +100,15 @@ describe('EditInputCell', () => {
     )
 
     const input = within(getByTestId('forecast-edit-cell')).getByRole('spinbutton') as HTMLInputElement
-    input.focus()
-    fireEvent.keyDown(input, { key: 'Escape', code: 'Escape', charCode: 27 })
+    await act(async () => {
+      input.focus()
+      fireEvent.keyDown(input, { key: 'Escape', code: 'Escape', charCode: 27 })
+    })
 
     expect(mockStopCellEditMode).toHaveBeenCalledWith({ id: 1, field: 'test' })
   })
 
-  test('should not call stopCellEditMode when Escape key is pressed and there is an error', () => {
+  test('should not call stopCellEditMode when Escape key is pressed and there is an error', async () => {
     const { getByTestId } = render(
       <GridApiContext.Provider value={{ current: apiMock }}>
         <EditInputCell {...defaultProps} error="Test error" />
@@ -113,9 +116,11 @@ describe('EditInputCell', () => {
     )
 
     const input = within(getByTestId('forecast-edit-cell')).getByRole('spinbutton') as HTMLInputElement
-    input.focus()
-    // Simulate Escape key press
-    fireEvent.keyDown(input, { key: 'Escape', code: 'Escape', charCode: 27 })
+    await act(async () => {
+      input.focus()
+      // Simulate Escape key press
+      fireEvent.keyDown(input, { key: 'Escape', code: 'Escape', charCode: 27 })
+    })
 
     // Verify that stopCellEditMode was not called
     expect(mockStopCellEditMode).not.toHaveBeenCalled()
