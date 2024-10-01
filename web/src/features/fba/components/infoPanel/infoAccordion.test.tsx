@@ -1,6 +1,7 @@
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import { render } from '@testing-library/react'
 import { AdvisoryStatus } from '@/utils/constants'
+import { ADVISORY_ORANGE_FILL, ADVISORY_RED_LINE } from '@/features/fba/components/map/featureStylers'
 
 describe('InfoAccordion', () => {
   it('should render', () => {
@@ -58,7 +59,7 @@ describe('InfoAccordion', () => {
     const fizzDiv = getByTestId('fizz')
     expect(fizzDiv).not.toBeVisible()
   })
-  it('should render an advisory status bar if provided a status', () => {
+  it('should render a red advisory status bar if provided a Warning status', () => {
     const { getByTestId } = render(
       <InfoAccordion defaultExpanded={true} title="foo" advisoryStatus={AdvisoryStatus.WARNING}>
         <div data-testid="fizz">fizz</div>
@@ -66,6 +67,21 @@ describe('InfoAccordion', () => {
     )
     const statusBar = getByTestId('advisory-status-bar')
     expect(statusBar).toBeVisible()
+    expect(statusBar).toHaveStyle(`
+      background: repeating-linear-gradient(135deg, ${ADVISORY_RED_LINE} , ${ADVISORY_RED_LINE} 40px, white 40px, white 70px)
+    `)
+  })
+  it('should render an orange advisory status bar if provided an Advisory status', () => {
+    const { getByTestId } = render(
+      <InfoAccordion defaultExpanded={true} title="foo" advisoryStatus={AdvisoryStatus.ADVISORY}>
+        <div data-testid="fizz">fizz</div>
+      </InfoAccordion>
+    )
+    const statusBar = getByTestId('advisory-status-bar')
+    expect(statusBar).toBeVisible()
+    expect(statusBar).toHaveStyle(`
+      background: repeating-linear-gradient(135deg, ${ADVISORY_ORANGE_FILL} , ${ADVISORY_ORANGE_FILL} 40px, white 40px, white 70px)
+    `)
   })
   it('should not render an advisory status bar if no status is provided or the status is undefined', () => {
     const { queryByTestId } = render(
