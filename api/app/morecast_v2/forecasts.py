@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.db.crud.morecast_v2 import get_forecasts_in_range
 from app.schemas.morecast_v2 import MoreCastForecastOutput, MoreCastForecastInput, StationDailyFromWF1, WF1ForecastRecordType, WF1PostForecast, WeatherIndeterminate, WeatherDeterminate
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
-from app.wildfire_one.wfwx_api import get_auth_header, get_forecasts_for_stations_by_date_range, get_wfwx_stations_from_station_codes
+from app.wildfire_one.wfwx_api import get_forecasts_for_stations_by_date_range, get_no_cache_auth_header, get_wfwx_stations_from_station_codes
 from app.fire_behaviour import cffdrs
 
 
@@ -61,14 +61,16 @@ def construct_wf1_forecast(forecast: MoreCastForecastInput, stations: List[WFWXW
 
 async def construct_wf1_forecasts(session: ClientSession, forecast_records: List[MoreCastForecastInput], stations: List[WFWXWeatherStation], username: str) -> List[WF1PostForecast]:
     # Fetch existing forecasts from WF1 for the stations and date range in the forecast records
-    header = await get_auth_header(session)
+    header = await get_no_cache_auth_header(session)
     forecast_dates = [datetime.fromtimestamp(f.for_date / 1000, timezone.utc) for f in forecast_records]
     min_forecast_date = min(forecast_dates)
     max_forecast_date = max(forecast_dates)
     start_time = vancouver_tz.localize(datetime.combine(min_forecast_date, time.min))
     end_time = vancouver_tz.localize(datetime.combine(max_forecast_date, time.max))
     unique_station_codes = list(set([f.station_code for f in forecast_records]))
-    dailies = await get_forecasts_for_stations_by_date_range(session, header, start_time, end_time, unique_station_codes)
+    dailies = await get_forecasts_for_stations_by_date_range(
+        session=session, header=header, start_time_of_interest=start_time, end_time_of_interest=end_time, unique_station_codes=unique_station_codes, check_cache=False
+    )
 
     # Shape the WF1 dailies into a dictionary keyed by station codes for easier consumption
     grouped_dailies = defaultdict(list[StationDailyFromWF1])

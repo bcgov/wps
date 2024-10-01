@@ -14,20 +14,13 @@
     "jsx": "react-jsx",
     /* Linting */
     "strict": true,
-    "types": [
-      "vite/client",
-      "node"
-    ],
+    "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom"],
     "noUnusedLocals": false,
     // "noUnusedParameters": ,
     "noFallthroughCasesInSwitch": true,
     //from old
     "target": "es2015",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -36,36 +29,16 @@
     "module": "esnext",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "#root/*": [
-        "./*"
-      ],
-      "app/*": [
-        "./src/app/*"
-      ],
-      "utils/*": [
-        "./src/utils/*"
-      ],
-      "api/*": [
-        "./src/api/*"
-      ],
-      "features/*": [
-        "./src/features/*"
-      ],
-      "components/*": [
-        "src/components/*"
-      ],
-      "components": [
-        "./src/components/index"
-      ],
-      "commonSlices/*": [
-        "./src/commonSlices/*"
-      ],
-    },
+      "@/*": ["./src/*"],
+      "#root/*": ["./*"],
+      "app/*": ["./src/app/*"],
+      "utils/*": ["./src/utils/*"],
+      "api/*": ["./src/api/*"],
+      "features/*": ["./src/features/*"],
+      "components/*": ["src/components/*"],
+      "components": ["./src/components/index"],
+      "commonSlices/*": ["./src/commonSlices/*"]
+    }
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

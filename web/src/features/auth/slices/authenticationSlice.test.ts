@@ -53,7 +53,7 @@ describe('authenticationSlice', () => {
     it('should be initialized with correct state', () => {
       expect(
         authReducer(undefined, {
-          type: undefined
+          type: ''
         })
       ).toEqual(initialState)
     })
