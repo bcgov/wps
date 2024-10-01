@@ -1,4 +1,4 @@
-import { calculateStatusColour, calculateStatusText } from '@/features/fba/calculateZoneStatus'
+import { calculateStatusText } from '@/features/fba/calculateZoneStatus'
 import { useFireCentreDetails } from '@/features/fba/hooks/useFireCentreDetails'
 import { Box, Tabs, Tab, Grid } from '@mui/material'
 import { FireCenter, FireShape } from 'api/fbaAPI'
