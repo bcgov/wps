@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 WF1_FORECAST_POST_URL = f"{config.get('WFWX_BASE_URL')}/v1/dailies/daily-bulk"
 WF1_HTTP_ERROR = HTTPException(
-    status_code=status.HTTP_400_BAD_REQUEST,
+    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
     detail="""
         Error submitting forecasts to WF1, please retry.
         All your forecast inputs have been saved as a draft on your browser and can be submitted at a later time.

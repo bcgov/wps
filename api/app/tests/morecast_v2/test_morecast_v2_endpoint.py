@@ -110,7 +110,7 @@ def test_post_forecast_authorized_error(client: TestClient, monkeypatch: pytest.
     monkeypatch.setattr(app.routers.morecast_v2, "format_as_wf1_post_forecasts", mock_format_as_wf1_post_forecasts)
 
     class MockResponse:
-        status = 400
+        status = 500
 
         async def text(self):
             return "Bad Request"
@@ -134,7 +134,7 @@ def test_post_forecast_authorized_error(client: TestClient, monkeypatch: pytest.
     monkeypatch.setattr(app.routers.morecast_v2, "get_auth_header", mock_get_auth_header)
 
     response = client.post(morecast_v2_post_url, json=forecast.model_dump())
-    assert response.status_code == 400
+    assert response.status_code == 500
     assert (
         response.json()["detail"]
         == """
