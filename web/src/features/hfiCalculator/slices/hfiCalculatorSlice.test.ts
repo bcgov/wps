@@ -11,7 +11,7 @@ describe('hfiCalculatorSlice', () => {
   describe('reducer', () => {
     const dummyError = 'an error'
     it('should be initialized with correct state flags', () => {
-      expect(hfiCalculatorDailiesReducer(undefined, { type: undefined })).toEqual(initialState)
+      expect(hfiCalculatorDailiesReducer(undefined, { type: '' })).toEqual(initialState)
     })
     it('should set fuelTypesLoading = true when fetchFuelTypesStart is called', () => {
       expect(hfiCalculatorDailiesReducer(initialState, fetchFuelTypesStart())).toEqual({
