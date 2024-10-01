@@ -1,6 +1,6 @@
-
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import { render } from '@testing-library/react'
+import { AdvisoryStatus } from '@/utils/constants'
 
 describe('InfoAccordion', () => {
   it('should render', () => {
@@ -57,5 +57,23 @@ describe('InfoAccordion', () => {
     )
     const fizzDiv = getByTestId('fizz')
     expect(fizzDiv).not.toBeVisible()
+  })
+  it('should render an advisory status bar if provided a status', () => {
+    const { getByTestId } = render(
+      <InfoAccordion defaultExpanded={true} title="foo" advisoryStatus={AdvisoryStatus.WARNING}>
+        <div data-testid="fizz">fizz</div>
+      </InfoAccordion>
+    )
+    const statusBar = getByTestId('advisory-status-bar')
+    expect(statusBar).toBeVisible()
+  })
+  it('should not render an advisory status bar if no status is provided or the status is undefined', () => {
+    const { queryByTestId } = render(
+      <InfoAccordion defaultExpanded={true} title="foo" advisoryStatus={undefined}>
+        <div data-testid="fizz">fizz</div>
+      </InfoAccordion>
+    )
+    const statusBar = queryByTestId('advisory-status-bar')
+    expect(statusBar).not.toBeInTheDocument()
   })
 })

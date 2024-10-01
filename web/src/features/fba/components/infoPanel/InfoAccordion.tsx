@@ -17,11 +17,19 @@ const getAdvisoryBarColour = (advisoryStatus: AdvisoryStatus) => {
       return INFO_PANEL_CONTENT_BACKGROUND
   }
 }
+interface AdvisoryStatusBarProps {
+  barColour: string
+}
 
-const StripedBar = styled(Box)<{ barColour: string }>(({ barColour }) => ({
-  height: '10px',
-  background: `repeating-linear-gradient(135deg, ${barColour}, ${barColour} 30px, white 30px, white 50px)`
-}))
+const AdvisoryStatusBar = ({ barColour }: AdvisoryStatusBarProps) => (
+  <Box
+    data-testid="advisory-status-bar"
+    sx={{
+      height: '10px',
+      background: `repeating-linear-gradient(135deg, ${barColour}, ${barColour} 40px, white 40px, white 70px)`
+    }}
+  />
+)
 
 interface InfoAccordionProps {
   accordionDetailBackgroundColour?: string
@@ -64,7 +72,9 @@ const InfoAccordion = ({
             {title}
           </Typography>
         </StyledAccordionSummary>
-        {advisoryStatus && <StripedBar barColour={getAdvisoryBarColour(advisoryStatus)} />}
+        {advisoryStatus && (
+          <AdvisoryStatusBar data-testid="advisory-status-bar" barColour={getAdvisoryBarColour(advisoryStatus)} />
+        )}
       </Box>
       <AccordionDetails
         data-testid="info-accordion-details"
