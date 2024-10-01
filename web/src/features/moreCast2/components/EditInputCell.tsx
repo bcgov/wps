@@ -14,9 +14,7 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const dispatch: AppDispatch = useDispatch()
 
-  useEffect(() => {
-    dispatch(setInputValid(isEmpty(error)))
-  }, [])
+  dispatch(setInputValid(isEmpty(error)))
 
   useEffect(() => {
     if (hasFocus && inputRef.current) {
@@ -45,7 +43,7 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
   }
 
   return (
-    <InvalidCellToolTip invalid={error}>
+    <InvalidCellToolTip error={error}>
       <TextField
         data-testid="forecast-edit-cell"
         type="number"

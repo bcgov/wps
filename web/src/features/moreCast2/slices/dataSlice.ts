@@ -634,6 +634,7 @@ export const createEmptyMoreCast2Row = (
     fwiCalcActual: NaN,
     dgrCalcActual: NaN,
 
+    //
     grassCuringActual: NaN,
 
     // GDPS model predictions
