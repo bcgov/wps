@@ -7,7 +7,7 @@ import { INFO_PANEL_CONTENT_BACKGROUND, INFO_PANEL_HEADER_BACKGROUND } from 'app
 import { AdvisoryStatus } from '@/utils/constants'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_LINE } from '@/features/fba/components/map/featureStylers'
 
-const getAdvisoryBarColour = (advisoryStatus: AdvisoryStatus) => {
+const getAdvisoryBarColour = (advisoryStatus: AdvisoryStatus | undefined) => {
   switch (advisoryStatus) {
     case AdvisoryStatus.WARNING:
       return ADVISORY_RED_LINE
@@ -18,24 +18,33 @@ const getAdvisoryBarColour = (advisoryStatus: AdvisoryStatus) => {
   }
 }
 interface AdvisoryStatusBarProps {
-  barColour: string
+  advisoryStatus: AdvisoryStatus | undefined
 }
 
-const AdvisoryStatusBar = ({ barColour }: AdvisoryStatusBarProps) => (
-  <Box
-    data-testid="advisory-status-bar"
-    sx={{
-      height: '10px',
-      background: `repeating-linear-gradient(135deg, ${barColour}, ${barColour} 40px, white 40px, white 70px)`
-    }}
-  />
-)
+const AdvisoryStatusBar = ({ advisoryStatus }: AdvisoryStatusBarProps) => {
+  const barColour = getAdvisoryBarColour(advisoryStatus)
+
+  const advisoryBackground = advisoryStatus
+    ? `repeating-linear-gradient(135deg, ${barColour}, ${barColour} 40px, white 40px, white 70px)`
+    : barColour
+
+  return (
+    <Box
+      data-testid="advisory-status-bar"
+      sx={{
+        height: '10px',
+        background: advisoryBackground
+      }}
+    />
+  )
+}
 
 interface InfoAccordionProps {
   accordionDetailBackgroundColour?: string
   children: React.ReactNode
   defaultExpanded: boolean
   title: string
+  showAdvisoryStatusBar?: boolean
   advisoryStatus?: AdvisoryStatus
 }
 
@@ -52,6 +61,7 @@ const InfoAccordion = ({
   children,
   defaultExpanded,
   title,
+  showAdvisoryStatusBar = false,
   advisoryStatus
 }: InfoAccordionProps) => {
   const theme = useTheme()
@@ -72,8 +82,8 @@ const InfoAccordion = ({
             {title}
           </Typography>
         </StyledAccordionSummary>
-        {advisoryStatus && (
-          <AdvisoryStatusBar data-testid="advisory-status-bar" barColour={getAdvisoryBarColour(advisoryStatus)} />
+        {showAdvisoryStatusBar && (
+          <AdvisoryStatusBar data-testid="advisory-status-bar" advisoryStatus={advisoryStatus} />
         )}
       </Box>
       <AccordionDetails

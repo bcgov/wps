@@ -54,6 +54,7 @@ const AdvisoryReport = ({
         defaultExpanded={true}
         title={'Advisory Report'}
         accordionDetailBackgroundColour={INFO_PANEL_CONTENT_BACKGROUND}
+        showAdvisoryStatusBar={true}
         advisoryStatus={calculateStatusText(fireZoneUnitDetails?.fireShapeDetails || [], advisoryThreshold)}
       >
         <Grid container justifyContent="center">
