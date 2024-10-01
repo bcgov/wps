@@ -4,16 +4,16 @@ import { isEmpty } from 'lodash'
 import { theme } from '@/app/theme'
 
 export interface InvalidCellToolTipProps {
-  invalid: string
+  error: string
   children: React.ReactNode
 }
 
-const InvalidCellToolTip = ({ invalid, children }: InvalidCellToolTipProps) => {
+const InvalidCellToolTip = ({ error, children }: InvalidCellToolTipProps) => {
   return (
     <Tooltip
       data-testid="validation-tooltip"
-      title={invalid}
-      open={!isEmpty(invalid)}
+      title={error}
+      open={!isEmpty(error)}
       arrow
       sx={{
         '& .MuiTooltip-tooltip': {

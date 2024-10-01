@@ -2,9 +2,6 @@ import { render } from '@testing-library/react'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { vi } from 'vitest'
-import { initialState } from '@/features/moreCast2/slices/validInputSlice'
-import { Provider } from 'react-redux'
-import { buildTestStore } from '@/features/moreCast2/components/testHelper'
 
 const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
   row: undefined,
@@ -14,15 +11,13 @@ const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
 describe('ForecastCell', () => {
   it('should have input disabled when disabled prop is true', () => {
     const { container } = render(
-      <Provider store={buildTestStore(initialState)}>
-        <ForecastCell
-          disabled={true}
-          label="foo"
-          showGreaterThan={false}
-          showLessThan={false}
-          value={params.formattedValue}
-        />
-      </Provider>
+      <ForecastCell
+        disabled={true}
+        label="foo"
+        showGreaterThan={false}
+        showLessThan={false}
+        value={params.formattedValue}
+      />
     )
 
     const inputElement = container.querySelector('input')
@@ -31,15 +26,13 @@ describe('ForecastCell', () => {
   })
   it('should have input enabled when disabled prop is false', () => {
     const { container } = render(
-      <Provider store={buildTestStore(initialState)}>
-        <ForecastCell
-          disabled={false}
-          label="foo"
-          showGreaterThan={false}
-          showLessThan={false}
-          value={params.formattedValue}
-        />
-      </Provider>
+      <ForecastCell
+        disabled={false}
+        label="foo"
+        showGreaterThan={false}
+        showLessThan={false}
+        value={params.formattedValue}
+      />
     )
 
     const inputElement = container.querySelector('input')
@@ -48,15 +41,13 @@ describe('ForecastCell', () => {
   })
   it('should show less than icon when showLessThan is true', () => {
     const { queryByTestId } = render(
-      <Provider store={buildTestStore(initialState)}>
-        <ForecastCell
-          disabled={false}
-          label="foo"
-          showGreaterThan={false}
-          showLessThan={true}
-          value={params.formattedValue}
-        />
-      </Provider>
+      <ForecastCell
+        disabled={false}
+        label="foo"
+        showGreaterThan={false}
+        showLessThan={true}
+        value={params.formattedValue}
+      />
     )
 
     const element = queryByTestId('forecast-cell-less-than-icon')
@@ -67,30 +58,26 @@ describe('ForecastCell', () => {
     const consoleErrorFn = vi.spyOn(console, 'error').mockImplementation(() => vi.fn())
     expect(() => {
       render(
-        <Provider store={buildTestStore(initialState)}>
-          <ForecastCell
-            disabled={false}
-            label="foo"
-            showGreaterThan={true}
-            showLessThan={true}
-            value={params.formattedValue}
-          />
-        </Provider>
+        <ForecastCell
+          disabled={false}
+          label="foo"
+          showGreaterThan={true}
+          showLessThan={true}
+          value={params.formattedValue}
+        />
       )
     }).toThrow('ForecastCell cannot show both greater than and less than icons at the same time.')
     consoleErrorFn.mockRestore()
   })
   it('should not show less than icon when showLessThan is false', () => {
     const { queryByTestId } = render(
-      <Provider store={buildTestStore(initialState)}>
-        <ForecastCell
-          disabled={false}
-          label="foo"
-          showGreaterThan={false}
-          showLessThan={false}
-          value={params.formattedValue}
-        />
-      </Provider>
+      <ForecastCell
+        disabled={false}
+        label="foo"
+        showGreaterThan={false}
+        showLessThan={false}
+        value={params.formattedValue}
+      />
     )
 
     const element = queryByTestId('forecast-cell-less-than-icon')
@@ -98,15 +85,13 @@ describe('ForecastCell', () => {
   })
   it('should show greater than icon when showGreaterThan is true', () => {
     const { queryByTestId } = render(
-      <Provider store={buildTestStore(initialState)}>
-        <ForecastCell
-          disabled={false}
-          label="foo"
-          showGreaterThan={true}
-          showLessThan={false}
-          value={params.formattedValue}
-        />
-      </Provider>
+      <ForecastCell
+        disabled={false}
+        label="foo"
+        showGreaterThan={true}
+        showLessThan={false}
+        value={params.formattedValue}
+      />
     )
 
     const element = queryByTestId('forecast-cell-greater-than-icon')
@@ -114,15 +99,13 @@ describe('ForecastCell', () => {
   })
   it('should not show less than icon when showLessThan is false', () => {
     const { queryByTestId } = render(
-      <Provider store={buildTestStore(initialState)}>
-        <ForecastCell
-          disabled={false}
-          label="foo"
-          showGreaterThan={false}
-          showLessThan={false}
-          value={params.formattedValue}
-        />
-      </Provider>
+      <ForecastCell
+        disabled={false}
+        label="foo"
+        showGreaterThan={false}
+        showLessThan={false}
+        value={params.formattedValue}
+      />
     )
 
     const element = queryByTestId('forecast-cell-greater-than-icon')
@@ -130,15 +113,13 @@ describe('ForecastCell', () => {
   })
   it('should not show less than or greater than icons when showLessThan and showGreater than are both false', () => {
     const { queryByTestId } = render(
-      <Provider store={buildTestStore(initialState)}>
-        <ForecastCell
-          disabled={false}
-          label="foo"
-          showGreaterThan={false}
-          showLessThan={false}
-          value={params.formattedValue}
-        />
-      </Provider>
+      <ForecastCell
+        disabled={false}
+        label="foo"
+        showGreaterThan={false}
+        showLessThan={false}
+        value={params.formattedValue}
+      />
     )
 
     const greaterThanElement = queryByTestId('forecast-cell-greater-than-icon')
@@ -148,15 +129,13 @@ describe('ForecastCell', () => {
   })
   it('should not show a label when none specified', () => {
     const { container } = render(
-      <Provider store={buildTestStore(initialState)}>
-        <ForecastCell
-          disabled={false}
-          label=""
-          showGreaterThan={false}
-          showLessThan={false}
-          value={params.formattedValue}
-        />
-      </Provider>
+      <ForecastCell
+        disabled={false}
+        label=""
+        showGreaterThan={false}
+        showLessThan={false}
+        value={params.formattedValue}
+      />
     )
 
     const inputElement = container.querySelector('label')
@@ -164,15 +143,13 @@ describe('ForecastCell', () => {
   })
   it('should show a label when specified', () => {
     const { container } = render(
-      <Provider store={buildTestStore(initialState)}>
-        <ForecastCell
-          disabled={false}
-          label="foo"
-          showGreaterThan={false}
-          showLessThan={false}
-          value={params.formattedValue}
-        />
-      </Provider>
+      <ForecastCell
+        disabled={false}
+        label="foo"
+        showGreaterThan={false}
+        showLessThan={false}
+        value={params.formattedValue}
+      />
     )
 
     const inputElement = container.querySelector('label')
@@ -180,15 +157,13 @@ describe('ForecastCell', () => {
   })
   it('should display the value when provided', () => {
     const { container } = render(
-      <Provider store={buildTestStore(initialState)}>
-        <ForecastCell
-          disabled={false}
-          label="foo"
-          showGreaterThan={false}
-          showLessThan={false}
-          value={params.formattedValue}
-        />
-      </Provider>
+      <ForecastCell
+        disabled={false}
+        label="foo"
+        showGreaterThan={false}
+        showLessThan={false}
+        value={params.formattedValue}
+      />
     )
 
     const inputElement = container.querySelector('input')
@@ -201,15 +176,13 @@ describe('ForecastCell', () => {
       formattedValue: undefined
     }
     const { container } = render(
-      <Provider store={buildTestStore(initialState)}>
-        <ForecastCell
-          disabled={false}
-          label="foo"
-          showGreaterThan={false}
-          showLessThan={false}
-          value={localParams.formattedValue}
-        />
-      </Provider>
+      <ForecastCell
+        disabled={false}
+        label="foo"
+        showGreaterThan={false}
+        showLessThan={false}
+        value={localParams.formattedValue}
+      />
     )
 
     const inputElement = container.querySelector('input')

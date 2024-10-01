@@ -1,6 +1,6 @@
 import { ModelChoice } from 'api/moreCast2API'
-import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
-import { isNil } from 'lodash'
+import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
+import { validForecastPredicate } from 'features/moreCast2/util'
 
 // Forecast rows contain all NaN values in their 'actual' fields
 export const isForecastRowPredicate = (row: MoreCast2Row) =>
@@ -15,9 +15,16 @@ export const getForecastRows = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   return rows ? rows.filter(isForecastRowPredicate) : []
 }
 
+export const isForecastValid = (rows: MoreCast2Row[]) => {
+  const forecastRows = getForecastRows(rows)
+  const validForecastRows = forecastRows.filter(validForecastPredicate)
+  return forecastRows.length === validForecastRows.length
+}
+
 export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {
   const forecastRows = getForecastRows(rows)
-  return forecastRows.map(r => ({
+  const rowsToSave = forecastRows.filter(validForecastPredicate)
+  return rowsToSave.map(r => ({
     id: r.id,
     stationCode: r.stationCode,
     stationName: r.stationName,
@@ -29,20 +36,4 @@ export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {
     windSpeed: r.windSpeedForecast ?? { choice: ModelChoice.NULL, value: NaN },
     grassCuring: r.grassCuringForecast ?? { choice: ModelChoice.NULL, value: NaN }
   }))
-}
-
-export const isRequiredInputSet = (rowsToSave: MoreCast2ForecastRow[]) => {
-  const isNilPredictionItem = (item?: PredictionItem) => {
-    return isNil(item) || isNaN(item.value) || item.choice === ModelChoice.NULL
-  }
-  const res = rowsToSave.every(row => {
-    return (
-      !isNilPredictionItem(row.precip) &&
-      !isNilPredictionItem(row.rh) &&
-      !isNilPredictionItem(row.temp) &&
-      !isNilPredictionItem(row.windSpeed)
-    )
-  })
-
-  return res
 }
