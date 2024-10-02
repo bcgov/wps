@@ -28,6 +28,9 @@ COPY --chown=$USERNAME:$USER_GID ./api/pyproject.toml ./api/poetry.lock /app/
 
 # Install dependencies.
 RUN poetry install --without dev
+
+RUN poetry run python -m pip install numpy
+
 # Get a python binding for gdal that matches the version of gdal we have installed.
 RUN poetry run python -m pip install gdal==$(gdal-config --version)
 
