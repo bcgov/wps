@@ -43,8 +43,8 @@ RUN git clone https://github.com/felt/tippecanoe.git --branch 2.62.5 && cd tippe
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
 
-# Create our worker user
-RUN groupadd --gid $USER_GID $USERNAME \
+# Create our worker user, but only add group if it doesn't exist
+RUN if ! getent group $USER_GID; then groupadd --gid $USER_GID $USERNAME; fi \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
 # When our app is running, we want to allow poetry full access to the workers home directory.

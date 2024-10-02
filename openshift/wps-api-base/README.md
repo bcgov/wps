@@ -14,7 +14,7 @@ oc -n e1e498-tools process -f build.yaml | oc -n e1e498-tools apply -f -
 ## apply template using a specified branch
 
 ```bash
-oc -n e1e498-tools -p GIT_BRANCH=my-branch process -f build.yaml | oc -n e1e498-tools apply -f -
+oc -n e1e498-tools process -p GIT_BRANCH=my-branch process -f build.yaml | oc -n e1e498-tools apply -f -
 ```
 
 ## The image can also be built by kicking off a build in Openshift
