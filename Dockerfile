@@ -29,8 +29,9 @@ COPY --chown=$USERNAME:$USER_GID ./api/pyproject.toml ./api/poetry.lock /app/
 # Install dependencies.
 RUN poetry install --without dev
 
+RUN poetry run python -m pip install -U setuptools wheel
 # Get a python binding for gdal that matches the version of gdal we have installed.
-RUN poetry run python -m pip install gdal==$(gdal-config --version)
+RUN poetry run python -m pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
 
 # Stage 2: Preapre the final image, inclusing copying Python packages from Stage 1.
 FROM ${DOCKER_IMAGE}
