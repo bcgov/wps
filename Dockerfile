@@ -23,8 +23,6 @@ USER $USERNAME
 
 WORKDIR /app
 
-# Make sure we have the latest pip.
-RUN python -m pip install --upgrade pip
 # Copy poetry files.
 COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
 
