@@ -7,8 +7,8 @@ FROM ${DOCKER_IMAGE} AS builder
 
 # We don't want to run our app as root, so we define a worker user.
 ARG USERNAME=worker
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG USER_UID=1010
+ARG USER_GID=1000
 
 # Switch to root
 USER 0
