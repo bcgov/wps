@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:22.04
+ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
 # For the final stage, we use ubuntu:22.04
 # Rationale for using ubuntu:22.04:
 # - It's the latest ubuntu LTS release.
