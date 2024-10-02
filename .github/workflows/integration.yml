@@ -296,7 +296,7 @@ jobs:
           poetry install
       - name: Lint (s3-backup)
         working-directory: ./openshift/s3-backup/docker
-        run: poetry run pylint *.py
+        run: poetry run ruff check *.py
       - name: Unit tests (s3-backup)
         working-directory: ./openshift/s3-backup/docker
         run: |
