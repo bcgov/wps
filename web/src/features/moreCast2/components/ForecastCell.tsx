@@ -19,6 +19,7 @@ const ForecastCell = ({ disabled, label, showGreaterThan, showLessThan, value, v
   if (showGreaterThan && showLessThan) {
     throw Error('ForecastCell cannot show both greater than and less than icons at the same time.')
   }
+
   return (
     <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
       <Grid item xs={2}>
