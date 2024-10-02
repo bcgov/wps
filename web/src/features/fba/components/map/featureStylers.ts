@@ -12,6 +12,10 @@ const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
 export const ADVISORY_ORANGE_FILL = 'rgba(255, 147, 38, 0.4)'
 export const ADVISORY_RED_FILL = 'rgba(128, 0, 0, 0.4)'
 
+export const ADVISORY_RED_LINE = 'rgba(238, 0, 0, 1)'
+export const ADVISORY_ORANGE_LINE = 'rgba(219, 135, 1, 1)'
+const ADVISORY_GREY_LINE = 'rgba(127, 127, 127, 1)'
+
 export const HFI_ADVISORY = 'rgba(255, 128, 0, 0.4)'
 export const HFI_WARNING = 'rgba(255, 0, 0, 0.4)'
 
@@ -131,11 +135,11 @@ const getFireShapeStatus = (advisoryThreshold: number, fireShapeArea?: FireShape
 const getFireShapeStrokeColor = (fireShapeStatus: FireShapeStatus) => {
   switch (fireShapeStatus) {
     case FireShapeStatus.ADVISORY:
-      return '#db8701'
+      return ADVISORY_ORANGE_LINE
     case FireShapeStatus.WARNING:
-      return [227, 0, 1, 0.99]
+      return ADVISORY_RED_LINE
     default:
-      return '#7f7f7f'
+      return ADVISORY_GREY_LINE
   }
 }
 
@@ -164,7 +168,7 @@ const getFireZoneUnitLabel = (feature: RenderFeature | ol.Feature<Geometry>) => 
     const index = fireZoneUnit.indexOf('(')
     const prefix = fireZoneUnit.substring(0, index).trim()
     const suffix = fireZoneUnit.substring(index)
-    fireZoneUnit = `${prefix}\n${suffix}` 
+    fireZoneUnit = `${prefix}\n${suffix}`
   }
 
   return `${fireZoneId}-${fireZoneUnit}`

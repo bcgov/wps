@@ -1,3 +1,5 @@
+import { calculateStatusText } from '@/features/fba/calculateZoneStatus'
+import { useFireCentreDetails } from '@/features/fba/hooks/useFireCentreDetails'
 import { Box, Tabs, Tab, Grid } from '@mui/material'
 import { FireCenter, FireShape } from 'api/fbaAPI'
 import { INFO_PANEL_CONTENT_BACKGROUND } from 'app/theme'
@@ -28,12 +30,23 @@ const TabPanel = ({ children, index, value }: TabPanelProps) => {
   )
 }
 
-const AdvisoryReport = ({ issueDate, forDate, advisoryThreshold, selectedFireCenter, selectedFireZoneUnit }: AdvisoryReportProps) => {
+const AdvisoryReport = ({
+  issueDate,
+  forDate,
+  advisoryThreshold,
+  selectedFireCenter,
+  selectedFireZoneUnit
+}: AdvisoryReportProps) => {
   const [tabNumber, setTabNumber] = useState(0)
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabNumber(newValue)
   }
+
+  const groupedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
+  const fireZoneUnitDetails = groupedFireZoneUnits.find(
+    zone => zone.fire_shape_id === selectedFireZoneUnit?.fire_shape_id
+  )
 
   return (
     <div data-testid="advisory-report">
@@ -41,6 +54,8 @@ const AdvisoryReport = ({ issueDate, forDate, advisoryThreshold, selectedFireCen
         defaultExpanded={true}
         title={'Advisory Report'}
         accordionDetailBackgroundColour={INFO_PANEL_CONTENT_BACKGROUND}
+        showAdvisoryStatusBar={true}
+        advisoryStatus={calculateStatusText(fireZoneUnitDetails?.fireShapeDetails || [], advisoryThreshold)}
       >
         <Grid container justifyContent="center">
           <Grid item sx={{ width: '90%' }}>
