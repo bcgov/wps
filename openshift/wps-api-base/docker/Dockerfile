@@ -12,8 +12,8 @@ FROM ${DOCKER_IMAGE}
 
 # We don't want to run our app as root, so we define a worker user.
 ARG USERNAME=worker
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG USER_UID=1010
+ARG USER_GID=1000
 
 # Tell r-base not to wait for interactive input.
 ENV DEBIAN_FRONTEND=noninteractive
@@ -43,9 +43,8 @@ RUN git clone https://github.com/felt/tippecanoe.git --branch 2.62.5 && cd tippe
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
 
-# Create our worker user, but only add group if it doesn't exist
-RUN if ! getent group $USER_GID; then groupadd --gid $USER_GID $USERNAME; fi \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
+# Add the worker user with UID 1010 and assign them to the existing group with GID 1000
+RUN useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
 # When our app is running, we want to allow poetry full access to the workers home directory.
 # +x : to execute the poetry binary
