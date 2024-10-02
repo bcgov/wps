@@ -24,7 +24,7 @@ USER $USERNAME
 WORKDIR /app
 
 # Copy poetry files.
-COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
+COPY --chown=$USERNAME:$USER_GID ./api/pyproject.toml ./api/poetry.lock /app/
 
 # Install dependencies.
 RUN poetry install --without dev
@@ -36,8 +36,8 @@ FROM ${DOCKER_IMAGE}
 
 # We don't want to run our app as root, so we define a worker user.
 ARG USERNAME=worker
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG USER_UID=1010
+ARG USER_GID=1000
 
 # Switch to root
 USER 0
@@ -48,7 +48,7 @@ RUN chown "$USERNAME" /app
 WORKDIR /app
 
 # Copy poetry files.
-COPY --from=builder --chown=$USERNAME:$USERNAME /app/pyproject.toml /app/poetry.lock /app/
+COPY --from=builder --chown=$USERNAME:$USER_GID /app/pyproject.toml /app/poetry.lock /app/
 
 # Switch back to our non-root user
 USER $USERNAME
