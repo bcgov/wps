@@ -1,13 +1,13 @@
-ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:22.04
-# For the final stage, we use ubuntu:22.04
-# Rationale for using ubuntu:22.04:
+ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
+# For the final stage, we use ubuntu:24.04
+# Rationale for using ubuntu:24.04:
 # - It's the latest ubuntu LTS release.
 # - It generally has a more recent version of gdal than debian.
 # - It generally has a fairly recent version of python.
 # - It has a more recent version of wkhtmltopdf and supporting libraries than debian.
 #
 # When building local, you can pull direct from docker, instead of artifacts.developer.gov.bc.ca:
-# docker build --build-arg DOCKER_IMAGE=ubuntu:22.04 . --tag=wps-api-base:ubuntu.22.04-latest
+# docker build --build-arg DOCKER_IMAGE=ubuntu:24.04 . --tag=wps-api-base:ubuntu.24.04-latest
 FROM ${DOCKER_IMAGE}
 
 # We don't want to run our app as root, so we define a worker user.
@@ -38,7 +38,7 @@ RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.
 RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
 
 # Install tippecanoe for pmtiles
-RUN git clone https://github.com/felt/tippecanoe.git --branch 2.29.0 && cd tippecanoe && make -j && make install && cd ..
+RUN git clone https://github.com/felt/tippecanoe.git --branch 2.62.5 && cd tippecanoe && make -j && make install && cd ..
 
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
