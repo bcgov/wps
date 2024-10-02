@@ -116,9 +116,6 @@ objects:
           # Set the working directory to the user's home directory
           WORKDIR /home/$USERNAME
 
-          # Update pip
-          RUN python3 -m pip install --upgrade pip
-
           # Install poetry
           RUN cat /tmp/install.python-poetry.org | python3 -
       strategy:
