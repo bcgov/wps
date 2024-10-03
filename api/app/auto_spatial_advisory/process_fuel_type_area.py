@@ -14,7 +14,7 @@ from app import config
 from app.auto_spatial_advisory.common import get_s3_key
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.database import DB_READ_STRING, get_async_write_session_scope
-from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType
+from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType, Shape
 from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sfms_fuel_types, get_run_parameters_id, store_advisory_fuel_stats
 
 logger = logging.getLogger(__name__)
@@ -70,7 +70,7 @@ async def calculate_fuel_type_area_by_shape(session: AsyncSession, temp_dir: str
     result = await session.execute(stmt)
     rows = result.all()
     for row in rows:
-        shape_fuel_type_path = intersect_raster_by_advisory_shape(threshold, row[0], row[1], source_path, temp_dir)
+        shape_fuel_type_path = intersect_raster_by_advisory_shape(session, threshold, row[0], row[1], source_path, temp_dir)
         fuel_type_areas = calculate_fuel_type_areas(shape_fuel_type_path, fuel_types)
         await store_advisory_fuel_stats(session, fuel_type_areas, threshold, run_parameters_id, row[0])
 
@@ -99,7 +99,7 @@ def calculate_fuel_type_areas(source_path: str, fuel_types: list[SFMSFuelType]):
     return fuel_type_areas
 
 
-def intersect_raster_by_advisory_shape(threshold: int, advisory_shape_id: int, source_identifier: str, raster_path: str, temp_dir: str):
+async def intersect_raster_by_advisory_shape(session: AsyncSession, threshold: int, advisory_shape_id: int, source_identifier: str, raster_path: str, temp_dir: str):
     """
     Given a raster and a fire shape id, use gdal.Warp to clip out a fire zone from which we can retrieve info.
 
@@ -116,13 +116,13 @@ def intersect_raster_by_advisory_shape(threshold: int, advisory_shape_id: int, s
     tif_srs = osr.SpatialReference(wkt=tif_prj)
     raster = None
 
-    advisory_shape = get_advisory_shape(advisory_shape_id, temp_dir, tif_srs)
+    advisory_shape = await get_advisory_shape(session, advisory_shape_id, temp_dir, tif_srs)
     warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=advisory_shape, cropToCutline=True)
     gdal.Warp(output_path, raster_path, options=warp_options)
     return output_path
 
 
-def get_advisory_shape(advisory_shape_id: int, out_dir: str, projection: osr.SpatialReference) -> str:
+async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, out_dir: str, projection: osr.SpatialReference) -> str:
     """
     Get advisory_shape from database and store it (typically temporarily) in the specified projection for raster
     intersection. The advisory_shape layer returned by ExecuteSQL must be stored somewhere and can't simply be returned
@@ -137,13 +137,29 @@ def get_advisory_shape(advisory_shape_id: int, out_dir: str, projection: osr.Spa
     :return: path to stored advisory shape
     :rtype: str
     """
-    data_source = ogr.Open(DB_READ_STRING)
-    sql = f"SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}"
-    advisory_layer = data_source.ExecuteSQL(sql)
 
-    advisory_shape = reproject_ogr_layer(advisory_layer, out_dir, projection)
+    stmt = select(Shape).filter(Shape.id == advisory_shape_id).first()
+    result = await session.execute(stmt).first()
 
-    data_source = None
+    output_ds = ogr.GetDriverByName("MEM").Create("", 0, 0, 0, ogr.GDT_Unknown)
+    output_layer = output_ds.CreateLayer("output_layer")
+
+    # Define the geometry field in the output layer
+    output_layer.CreateField(ogr.FieldDefn("geom", ogr.OFTGeometry))
+
+    # Step 3: Get the geometry in WKT format
+    geom_wkt = result.geom.wkt
+
+    # Step 4: Create GDAL geometry from WKT
+    geom = ogr.CreateGeometryFromWkt(geom_wkt)
+
+    # Step 5: Create a feature and set its geometry
+    output_feature = ogr.Feature(output_layer.GetLayerDefn())
+    output_feature.SetGeometry(geom)  # Set geometry for the output feature
+    output_layer.CreateFeature(output_feature)  # Add the feature to the output layer
+    output_feature = None  # Free memory
+
+    advisory_shape = reproject_ogr_layer(output_layer, out_dir, projection)
 
     return advisory_shape
 

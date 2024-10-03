@@ -1,6 +1,7 @@
 """
 Nats consumer setup for consuming processing messages
 """
+
 import asyncio
 import json
 import datetime
@@ -78,7 +79,7 @@ async def run():
                 await process_hfi_elevation(run_type, run_date, run_datetime, for_date)
                 await process_high_hfi_area(run_type, run_datetime, for_date)
                 await process_fuel_type_hfi_by_shape(run_type, run_datetime, for_date)
-                await calculate_critical_hours(run_type, run_datetime, for_date)
+                # await calculate_critical_hours(run_type, run_datetime, for_date)
             except Exception as e:
                 logger.error("Error processing HFI message: %s, adding back to queue", msg.data, exc_info=e)
                 background_tasks = BackgroundTasks()

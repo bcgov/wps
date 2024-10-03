@@ -120,13 +120,13 @@ async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
     Retrieve all records from sfms_fuel_types table excluding record IDs.
     """
     logger.info("retrieving SFMS fuel types info...")
-    # result = await get_all_sfms_fuel_type_records(session)
+    result = await get_all_sfms_fuel_type_records(session)
 
     fuel_types = []
 
-    # for row in result:
-    #     fuel_type_object = row[0]
-    # fuel_types.append(SFMSFuelType(fuel_type_id=fuel_type_object.fuel_type_id, fuel_type_code=fuel_type_object.fuel_type_code, description=fuel_type_object.description))
+    for row in result:
+        fuel_type_object = row[0]
+        fuel_types.append(SFMSFuelType(fuel_type_id=fuel_type_object.fuel_type_id, fuel_type_code=fuel_type_object.fuel_type_code, description=fuel_type_object.description))
 
     return fuel_types
 
