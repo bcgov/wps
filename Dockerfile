@@ -21,7 +21,7 @@ WORKDIR /app
 WORKDIR /app
 RUN apt-get install -y software-properties-common && apt-get update
 
-RUN add-apt-repository ppa:ubuntugis/ubuntugis-unstable && apt-get update && apt-get -y install libgdal-dev
+RUN add-apt-repository ppa:ubuntugis/ubuntugis-unstable && apt-get update && apt-get -y install gdal-bin libgdal-dev python3-gdal
 
 # Switch back to our non-root user
 USER $USERNAME
