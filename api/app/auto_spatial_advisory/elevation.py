@@ -241,6 +241,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
     gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
     gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
     gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
+    gdal.SetConfigOption("PG:search_path", "public")
     bucket = config.get("OBJECT_STORE_BUCKET")
     dem_file = config.get("CLASSIFIED_TPI_DEM_NAME")
     key = f"/vsis3/{bucket}/dem/tpi/{dem_file}"
