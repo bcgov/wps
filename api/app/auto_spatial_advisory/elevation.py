@@ -266,19 +266,19 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
         stmt = text("SELECT id, source_identifier FROM advisory_shapes;")
         result = await session.execute(stmt)
 
-        for row in result:
-            output_path = f"/vsimem/firezone_{row[1]}.tif"
-            warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=DB_READ_STRING, cutlineSQL=f"SELECT geom FROM public.advisory_shapes WHERE id={row[0]}", cropToCutline=True)
-            cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
-            # Get unique values and their counts
-            tpi_classes, counts = np.unique(cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True)
-            cut_hfi_masked_tpi = None
-            gdal.Unlink(output_path)
-            tpi_class_freq_dist = dict(zip(tpi_classes, counts))
+        # for row in result:
+        #     output_path = f"/vsimem/firezone_{row[1]}.tif"
+        #     warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=DB_READ_STRING, cutlineSQL=f"SELECT geom FROM public.advisory_shapes WHERE id={row[0]}", cropToCutline=True)
+        #     cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
+        #     # Get unique values and their counts
+        #     tpi_classes, counts = np.unique(cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True)
+        #     cut_hfi_masked_tpi = None
+        #     gdal.Unlink(output_path)
+        #     tpi_class_freq_dist = dict(zip(tpi_classes, counts))
 
-            # Drop TPI class 4, this is the no data value from the TPI raster
-            tpi_class_freq_dist.pop(4, None)
-            fire_zone_stats[row[0]] = tpi_class_freq_dist
+        #     # Drop TPI class 4, this is the no data value from the TPI raster
+        #     tpi_class_freq_dist.pop(4, None)
+        #     fire_zone_stats[row[0]] = tpi_class_freq_dist
 
         hfi_masked_tpi = None
         return FireZoneTPIStats(fire_zone_stats=fire_zone_stats, pixel_size_metres=pixel_size_metres)
