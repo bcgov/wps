@@ -27,7 +27,7 @@ ASYNC_DB_READ_STRING = f"postgresql+asyncpg://{read_user}:{postgres_password}@{p
 ASYNC_DB_WRITE_STRING = f"postgresql+asyncpg://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}"
 
 # connect to database - defaulting to always use utc timezone
-connect_args = {"options": "-c timezone=utc", "server_settings": {"search_path": "public"}, "timeout": 600}
+connect_args = {"options": "-c timezone=utc"}
 
 _write_engine = create_engine(DB_WRITE_STRING, connect_args=connect_args)
 
@@ -37,8 +37,8 @@ _read_engine = create_engine(
 )
 
 # TODO: figure out connection pooling? pre-ping etc.?
-_async_read_engine = create_async_engine(ASYNC_DB_READ_STRING, connect_args={"server_settings": {"search_path": "public"}})
-_async_write_engine = create_async_engine(ASYNC_DB_WRITE_STRING, connect_args={"server_settings": {"search_path": "public"}})
+_async_read_engine = create_async_engine(ASYNC_DB_READ_STRING, connect_args={"timeout": 30})
+_async_write_engine = create_async_engine(ASYNC_DB_WRITE_STRING)
 
 # bind session to database
 # avoid using these variables anywhere outside of context manager - if
