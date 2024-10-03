@@ -23,6 +23,8 @@ USER $USERNAME
 
 WORKDIR /app
 
+RUN add-apt-repository ppa:ubuntugis/ubuntugis-unstable && apt-get update && apt-get -y install libgdal-dev
+
 # Copy poetry files.
 COPY --chown=$USERNAME:$USER_GID ./api/pyproject.toml ./api/poetry.lock /app/
 
