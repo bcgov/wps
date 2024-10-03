@@ -103,6 +103,17 @@
             ]
         },
         {
+            "name": "asa - process stats",
+            "type": "python",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.local.process_stats_local",
+            "console": "integratedTerminal",
+            "args": [
+                "2024-09-01T14:30:00+00:00",
+                "2024-09-01"
+            ]
+        },
+        {
             "name": "fetch fire zones",
             "type": "python",
             "request": "launch",
