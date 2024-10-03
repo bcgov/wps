@@ -71,8 +71,8 @@ objects:
     metadata:
       name: ${APP_NAME}-${SUFFIX}
     spec:
-      image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres-gis:ubi8-14.7-3.2-0
       postgresVersion: 14
+      postGISVersion: "3.2"
       metadata:
         name: ${APP_NAME}-${SUFFIX}
         labels:
