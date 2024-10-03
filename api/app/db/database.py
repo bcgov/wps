@@ -18,16 +18,16 @@ postgres_read_host = config.get("POSTGRES_READ_HOST", "localhost")
 postgres_port = config.get("POSTGRES_PORT", "5432")
 postgres_database = config.get("POSTGRES_DATABASE", "wps")
 
-DB_WRITE_STRING = f"postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}?options=-csearch_path%3Dpublic"
+DB_WRITE_STRING = f"postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}"
 
-DB_READ_STRING = f"postgresql://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}?options=-csearch_path%3Dpublic"
+DB_READ_STRING = f"postgresql://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}"
 
-ASYNC_DB_READ_STRING = f"postgresql+asyncpg://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}?options=-csearch_path%3Dpublic"
+ASYNC_DB_READ_STRING = f"postgresql+asyncpg://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}"
 
-ASYNC_DB_WRITE_STRING = f"postgresql+asyncpg://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}?options=-csearch_path%3Dpublic"
+ASYNC_DB_WRITE_STRING = f"postgresql+asyncpg://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}"
 
 # connect to database - defaulting to always use utc timezone
-connect_args = {"options": "-c timezone=utc"}
+connect_args = {"options": "-c timezone=utc", "server_settings": {"search_path": "public"}, "timeout": 30}
 
 _write_engine = create_engine(DB_WRITE_STRING, connect_args=connect_args)
 
@@ -37,8 +37,8 @@ _read_engine = create_engine(
 )
 
 # TODO: figure out connection pooling? pre-ping etc.?
-_async_read_engine = create_async_engine(ASYNC_DB_READ_STRING, connect_args={"timeout": 30})
-_async_write_engine = create_async_engine(ASYNC_DB_WRITE_STRING)
+_async_read_engine = create_async_engine(ASYNC_DB_READ_STRING, connect_args=connect_args)
+_async_write_engine = create_async_engine(ASYNC_DB_WRITE_STRING, connect_args=connect_args)
 
 # bind session to database
 # avoid using these variables anywhere outside of context manager - if
