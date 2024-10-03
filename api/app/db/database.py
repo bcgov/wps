@@ -37,8 +37,8 @@ _read_engine = create_engine(
 )
 
 # TODO: figure out connection pooling? pre-ping etc.?
-_async_read_engine = create_async_engine(ASYNC_DB_READ_STRING, connect_args=connect_args)
-_async_write_engine = create_async_engine(ASYNC_DB_WRITE_STRING, connect_args=connect_args)
+_async_read_engine = create_async_engine(ASYNC_DB_READ_STRING, connect_args={"server_settings": {"search_path": "public"}})
+_async_write_engine = create_async_engine(ASYNC_DB_WRITE_STRING, connect_args={"server_settings": {"search_path": "public"}})
 
 # bind session to database
 # avoid using these variables anywhere outside of context manager - if
