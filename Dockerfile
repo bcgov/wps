@@ -18,13 +18,13 @@ RUN mkdir /app
 RUN chown "$USERNAME" /app
 WORKDIR /app
 
-# Switch back to our non-root user
-USER $USERNAME
-
 WORKDIR /app
 RUN apt-get install -y software-properties-common && apt-get update
 
 RUN add-apt-repository ppa:ubuntugis/ubuntugis-unstable && apt-get update && apt-get -y install libgdal-dev
+
+# Switch back to our non-root user
+USER $USERNAME
 
 # Copy poetry files.
 COPY --chown=$USERNAME:$USER_GID ./api/pyproject.toml ./api/poetry.lock /app/
