@@ -13,7 +13,7 @@ from sqlalchemy.sql import text
 from app import config
 from app.auto_spatial_advisory.common import get_s3_key
 from app.auto_spatial_advisory.run_type import RunType
-from app.db.database import DB_READ_STRING, GDAL_DB_STRING, get_async_write_session_scope
+from app.db.database import DB_READ_STRING, get_async_write_session_scope
 from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType
 from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sfms_fuel_types, get_run_parameters_id, store_advisory_fuel_stats
 
@@ -137,8 +137,8 @@ def get_advisory_shape(advisory_shape_id: int, out_dir: str, projection: osr.Spa
     :return: path to stored advisory shape
     :rtype: str
     """
-    data_source = ogr.Open(GDAL_DB_STRING)
-    sql = f"SELECT geom FROM public.advisory_shapes WHERE id={advisory_shape_id}"
+    data_source = ogr.Open(DB_READ_STRING)
+    sql = f"SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}"
     advisory_layer = data_source.ExecuteSQL(sql)
 
     advisory_shape = reproject_ogr_layer(advisory_layer, out_dir, projection)
