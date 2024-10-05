@@ -7,7 +7,7 @@ on:
 jobs:
   lint-api:
     name: Python - Lint
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version: [3.10.4]
@@ -75,7 +75,7 @@ jobs:
 
   test-api:
     name: Python - Test with coverage
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         # Match versions for python + R to Ubuntu 22.04 LTS at the time of writing.
@@ -179,7 +179,7 @@ jobs:
           path: ./api/coverage-reports/coverage-report.xml
   lint-and-test-web:
     name: Web - Lint, Test with coverage
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         node-version: [20.x]
@@ -226,7 +226,7 @@ jobs:
           path: ./web/finalCoverage
   upload-code-coverage:
     name: Coverage with CodeCov
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [lint-and-test-web, test-api]
     steps:
       # we need to checkout, so that we have codecov.yml
@@ -244,7 +244,7 @@ jobs:
     name: Backup Prune - Lint and Test
     # We have to use an older ubuntu version, because of the older version of python that the
     # backup script uses.
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version: [3.11.2]
