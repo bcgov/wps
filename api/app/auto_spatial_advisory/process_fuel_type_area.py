@@ -142,7 +142,8 @@ async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, out_
     result = await session.execute(stmt)
     geom = result.first()
 
-    output_ds = ogr.GetDriverByName("Memory").Create("", 0, 0, 0, ogr.GDT_Unknown)
+    driver = ogr.GetDriverByName("Memory")
+    output_ds = driver.CreateDataSource("")
     output_layer = output_ds.CreateLayer("output_layer")
 
     # Define the geometry field in the output layer
