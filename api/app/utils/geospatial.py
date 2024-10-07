@@ -6,6 +6,24 @@ from osgeo import gdal, ogr, osr
 logger = logging.getLogger(__name__)
 
 
+def get_layer_srid(layer):
+    # Get the spatial reference from the layer
+    spatial_ref = layer.GetSpatialRef()
+
+    return get_srid_from_spatial_ref(spatial_ref)
+
+
+def get_srid_from_spatial_ref(spatial_ref):
+    # Attempt to get the SRID for geographic coordinate systems
+    srid = spatial_ref.GetAuthorityCode("GEOGCS")
+
+    # If not found, try for projected coordinate systems
+    if srid is None:
+        srid = spatial_ref.GetAuthorityCode("PROJCS")
+
+    return int(srid) if srid is not None else None
+
+
 def warp_to_match_extent(source_ds: gdal.Dataset, ds_to_match: gdal.Dataset, output_path: str) -> gdal.Dataset:
     """
     Warp the source dataset to match the extent and projection of the other dataset.

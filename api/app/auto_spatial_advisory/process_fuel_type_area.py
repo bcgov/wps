@@ -17,6 +17,7 @@ from app.auto_spatial_advisory.run_type import RunType
 from app.db.database import DB_READ_STRING, get_async_write_session_scope
 from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType, Shape
 from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sfms_fuel_types, get_run_parameters_id, store_advisory_fuel_stats
+from app.utils.geospatial import get_layer_srid, get_srid_from_spatial_ref
 
 logger = logging.getLogger(__name__)
 
@@ -162,9 +163,35 @@ async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, out_
     output_layer.CreateFeature(output_feature)  # Add the feature to the output layer
     output_feature = None  # Free memory
 
-    advisory_shape = reproject_ogr_layer(output_layer, out_dir, projection)
+    source_srid = get_layer_srid(output_layer)
+    target_srid = get_srid_from_spatial_ref(projection)
+    advisory_shape = reproject_layer(output_layer, source_srid, target_srid)
 
     return advisory_shape
+
+
+def reproject_layer(layer, source_srid, target_srid):
+    # Create the source and target spatial references
+    source_srs = osr.SpatialReference()
+    source_srs.ImportFromEPSG(source_srid)
+
+    target_srs = osr.SpatialReference()
+    target_srs.ImportFromEPSG(target_srid)
+
+    # Create the coordinate transformation
+    coordinate_transform = osr.CoordinateTransformation(source_srs, target_srs)
+
+    for feature in layer:
+        geometry = feature.GetGeometryRef()
+        if geometry is not None:
+            # Transform the geometry
+            geometry.Transform(coordinate_transform)
+
+            # Update the feature's geometry if needed
+            feature.SetGeometry(geometry)
+            layer.SetFeature(feature)
+
+    return layer
 
 
 def reproject_ogr_layer(layer: ogr.Layer, out_dir: str, to_projection: osr.SpatialReference) -> str:
