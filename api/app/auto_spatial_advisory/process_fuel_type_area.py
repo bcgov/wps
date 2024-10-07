@@ -6,6 +6,7 @@ import os
 import tempfile
 from datetime import date, datetime
 from osgeo import gdal, ogr, osr
+from geoalchemy2.shape import to_shape
 from time import perf_counter
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -140,7 +141,7 @@ async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, out_
 
     stmt = select(Shape).filter(Shape.id == advisory_shape_id)
     result = await session.execute(stmt)
-    geom = result.first()
+    advisory_shape = result.first()
 
     driver = ogr.GetDriverByName("Memory")
     output_ds = driver.CreateDataSource("")
@@ -150,14 +151,14 @@ async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, out_
     output_layer.CreateField(ogr.FieldDefn("geom", ogr.OFTInteger))
 
     # Step 3: Get the geometry in WKT format
-    geom_wkt = geom.geom.wkt
+    advisory_shape_wkt = to_shape(advisory_shape.geom)
 
     # Step 4: Create GDAL geometry from WKT
-    geom = ogr.CreateGeometryFromWkt(geom_wkt)
+    advisory_shape_geom = ogr.CreateGeometryFromWkt(advisory_shape_wkt.wkt)
 
     # Step 5: Create a feature and set its geometry
     output_feature = ogr.Feature(output_layer.GetLayerDefn())
-    output_feature.SetGeometry(geom)  # Set geometry for the output feature
+    output_feature.SetGeometry(advisory_shape_geom)  # Set geometry for the output feature
     output_layer.CreateFeature(output_feature)  # Add the feature to the output layer
     output_feature = None  # Free memory
 
