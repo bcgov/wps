@@ -141,7 +141,7 @@ async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, out_
 
     stmt = select(Shape).filter(Shape.id == advisory_shape_id)
     result = await session.execute(stmt)
-    advisory_shape = result.first()
+    advisory_shape = result.scalars().first()
 
     driver = ogr.GetDriverByName("Memory")
     output_ds = driver.CreateDataSource("")
