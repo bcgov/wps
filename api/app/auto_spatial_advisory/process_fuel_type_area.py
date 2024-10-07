@@ -147,7 +147,7 @@ async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, out_
     output_layer = output_ds.CreateLayer("output_layer")
 
     # Define the geometry field in the output layer
-    output_layer.CreateField(ogr.FieldDefn("geom", ogr.OFTGeometry))
+    output_layer.CreateField(ogr.FieldDefn("geom", ogr.OFTInteger))
 
     # Step 3: Get the geometry in WKT format
     geom_wkt = geom.geom.wkt
