@@ -70,7 +70,7 @@ async def calculate_fuel_type_area_by_shape(session: AsyncSession, temp_dir: str
     result = await session.execute(stmt)
     rows = result.all()
     for row in rows:
-        shape_fuel_type_path = intersect_raster_by_advisory_shape(session, threshold, row[0], row[1], source_path, temp_dir)
+        shape_fuel_type_path = await intersect_raster_by_advisory_shape(session, threshold, row[0], row[1], source_path, temp_dir)
         fuel_type_areas = calculate_fuel_type_areas(shape_fuel_type_path, fuel_types)
         await store_advisory_fuel_stats(session, fuel_type_areas, threshold, run_parameters_id, row[0])
 
