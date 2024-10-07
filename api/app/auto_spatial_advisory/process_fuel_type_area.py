@@ -138,7 +138,7 @@ async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, out_
     :rtype: str
     """
 
-    stmt = select(Shape).filter(Shape.id == advisory_shape_id).first()
+    stmt = select(Shape).filter(Shape.id == advisory_shape_id)
     result = await session.execute(stmt).first()
 
     output_ds = ogr.GetDriverByName("MEM").Create("", 0, 0, 0, ogr.GDT_Unknown)
