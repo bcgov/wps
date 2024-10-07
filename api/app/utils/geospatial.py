@@ -1,18 +1,22 @@
 import logging
-from typing import Tuple
+from typing import Tuple, Literal
 from osgeo import gdal, ogr, osr
 
 
 logger = logging.getLogger(__name__)
 
 
-def warp_to_match_extent(source_ds: gdal.Dataset, ds_to_match: gdal.Dataset, output_path: str) -> gdal.Dataset:
+GDALResamplingMethod = Literal[gdal.GRA_NearestNeighbour, gdal.GRA_Bilinear, gdal.GRA_Cubic]
+
+
+def warp_to_match_raster(source_ds: gdal.Dataset, ds_to_match: gdal.Dataset, output_path: str, resample_method: GDALResamplingMethod = gdal.GRA_NearestNeighbour) -> gdal.Dataset:  # type: ignore
     """
-    Warp the source dataset to match the extent and projection of the other dataset.
+    Warp the source dataset to match the extent, pixel size, and projection of the other dataset.
 
     :param source_ds: the dataset raster to warp
     :param ds_to_match: the reference dataset raster to match the source against
     :param output_path: output path of the resulting raster
+    :param resample_method: gdal resampling algorithm
     :return: warped raster dataset
     """
     source_geotransform = ds_to_match.GetGeoTransform()
@@ -25,7 +29,7 @@ def warp_to_match_extent(source_ds: gdal.Dataset, ds_to_match: gdal.Dataset, out
     extent = [minx, miny, maxx, maxy]
 
     # Warp to match input option parameters
-    return gdal.Warp(output_path, source_ds, dstSRS=ds_to_match.GetProjection(), outputBounds=extent, xRes=x_res, yRes=y_res, resampleAlg=gdal.GRA_NearestNeighbour)
+    return gdal.Warp(output_path, source_ds, dstSRS=ds_to_match.GetProjection(), outputBounds=extent, xRes=x_res, yRes=y_res, resampleAlg=resample_method)
 
 
 def raster_mul(tpi_ds: gdal.Dataset, hfi_ds: gdal.Dataset, chunk_size=256) -> gdal.Dataset:
