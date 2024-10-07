@@ -139,7 +139,8 @@ async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, out_
     """
 
     stmt = select(Shape).filter(Shape.id == advisory_shape_id)
-    result = await session.execute(stmt).first()
+    result = await session.execute(stmt)
+    geom = result.first()
 
     output_ds = ogr.GetDriverByName("MEM").Create("", 0, 0, 0, ogr.GDT_Unknown)
     output_layer = output_ds.CreateLayer("output_layer")
@@ -148,7 +149,7 @@ async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, out_
     output_layer.CreateField(ogr.FieldDefn("geom", ogr.OFTGeometry))
 
     # Step 3: Get the geometry in WKT format
-    geom_wkt = result.geom.wkt
+    geom_wkt = geom.geom.wkt
 
     # Step 4: Create GDAL geometry from WKT
     geom = ogr.CreateGeometryFromWkt(geom_wkt)
