@@ -118,54 +118,50 @@ async def intersect_raster_by_advisory_shape(session: AsyncSession, threshold: i
     tif_srs = osr.SpatialReference(wkt=tif_prj)
     raster = None
 
-    advisory_shape = await get_advisory_shape(session, advisory_shape_id, temp_dir, tif_srs)
-    warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=advisory_shape, cropToCutline=True)
+    advisory_shape = await get_advisory_shape(session, advisory_shape_id, tif_srs)
+    warp_options = gdal.WarpOptions(format="GTiff", cutlineLayer=advisory_shape, cropToCutline=True)
     gdal.Warp(output_path, raster_path, options=warp_options)
     return output_path
 
 
-async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, out_dir: str, projection: osr.SpatialReference) -> str:
+async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, projection: osr.SpatialReference) -> ogr.Layer:
     """
     Get advisory_shape from database and store it (typically temporarily) in the specified projection for raster
-    intersection. The advisory_shape layer returned by ExecuteSQL must be stored somewhere and can't simply be returned
-    because of the way GDAL connection references are handled (https://gdal.org/api/python_gotchas.html)
+    intersection.
 
     :param advisory_shape_id: advisory_shape_id
     :type advisory_shape_id: int
-    :param out_dir: Output directory of reprojected polygon(s)
-    :type out_dir: str
     :param projection: Spatial reference
     :type projection: osr.SpatialReference
     :return: path to stored advisory shape
-    :rtype: str
+    :rtype: ogr.Layer
     """
 
     stmt = select(Shape).filter(Shape.id == advisory_shape_id)
     result = await session.execute(stmt)
     advisory_shape = result.scalars().first()
 
+    # Create geometry from wkt
+    advisory_shape_wkt = to_shape(advisory_shape.geom)
+    advisory_shape_geom = ogr.CreateGeometryFromWkt(advisory_shape_wkt.wkt)
+
+    # Create in memory output layer with desired projection
     driver = ogr.GetDriverByName("Memory")
     output_ds = driver.CreateDataSource("")
-    output_layer = output_ds.CreateLayer("output_layer")
+    output_layer = output_ds.CreateLayer("output_layer", srs=projection)
 
     # Define the geometry field in the output layer
     output_layer.CreateField(ogr.FieldDefn("geom", ogr.OFTInteger))
 
-    # Step 3: Get the geometry in WKT format
-    advisory_shape_wkt = to_shape(advisory_shape.geom)
-
-    # Step 4: Create GDAL geometry from WKT
-    advisory_shape_geom = ogr.CreateGeometryFromWkt(advisory_shape_wkt.wkt)
-
-    # Step 5: Create a feature and set its geometry
+    # Set the advisory shape as the geometry
     output_feature = ogr.Feature(output_layer.GetLayerDefn())
     output_feature.SetGeometry(advisory_shape_geom)  # Set geometry for the output feature
     output_layer.CreateFeature(output_feature)  # Add the feature to the output layer
     output_feature = None  # Free memory
 
-    source_srid = get_layer_srid(output_layer)
+    # Reproject feature geometries to desired projection
     target_srid = get_srid_from_spatial_ref(projection)
-    advisory_shape = reproject_layer(output_layer, source_srid, target_srid)
+    advisory_shape = reproject_layer(output_layer, 3005, target_srid)
 
     return advisory_shape
 
