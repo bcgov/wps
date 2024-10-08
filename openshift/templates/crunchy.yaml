@@ -139,6 +139,8 @@ objects:
       proxy:
         pgBouncer:
           image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbouncer:ubi8-1.21-0
+          databases:
+            "hippo": port=5432 user=hippo host=hippo-primary.postgres-operator.svc.cluster.local
           affinity:
             podAntiAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
@@ -155,6 +157,7 @@ objects:
               ignore_startup_parameters: options, search_path
               max_prepared_statements: "10"
               max_client_conn: "1000"
+              user: ${APP_NAME}-${SUFFIX}
           port: 5432
           replicas: 1
           resources:
