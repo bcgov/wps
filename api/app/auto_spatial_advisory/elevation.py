@@ -272,6 +272,10 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
             advisory_shape_layer = await get_advisory_shape(session, row[0], hfi_masked_tpi.GetSpatialRef())
             warp_options = gdal.WarpOptions(format="GTiff", cutlineLayer=advisory_shape_layer, cropToCutline=True)
             cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
+
+            # Clean up layer
+            advisory_shape_layer = None
+
             # Get unique values and their counts
             tpi_classes, counts = np.unique(cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True)
             cut_hfi_masked_tpi = None
