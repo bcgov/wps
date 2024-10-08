@@ -1,4 +1,5 @@
-"""Code relating to processing high HFI area per fire zone"""
+""" Code relating to processing high HFI area per fire zone
+"""
 
 import logging
 import numpy as np
@@ -6,7 +7,6 @@ import os
 import tempfile
 from datetime import date, datetime
 from osgeo import gdal, ogr, osr
-from geoalchemy2.shape import to_shape
 from time import perf_counter
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -15,9 +15,8 @@ from app import config
 from app.auto_spatial_advisory.common import get_s3_key
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.database import DB_READ_STRING, get_async_write_session_scope
-from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType, Shape
+from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType
 from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sfms_fuel_types, get_run_parameters_id, store_advisory_fuel_stats
-from app.utils.geospatial import get_layer_srid, get_srid_from_spatial_ref
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +71,7 @@ async def calculate_fuel_type_area_by_shape(session: AsyncSession, temp_dir: str
     result = await session.execute(stmt)
     rows = result.all()
     for row in rows:
-        shape_fuel_type_path = await intersect_raster_by_advisory_shape(session, threshold, row[0], row[1], source_path, temp_dir)
+        shape_fuel_type_path = intersect_raster_by_advisory_shape(threshold, row[0], row[1], source_path, temp_dir)
         fuel_type_areas = calculate_fuel_type_areas(shape_fuel_type_path, fuel_types)
         await store_advisory_fuel_stats(session, fuel_type_areas, threshold, run_parameters_id, row[0])
 
@@ -101,7 +100,7 @@ def calculate_fuel_type_areas(source_path: str, fuel_types: list[SFMSFuelType]):
     return fuel_type_areas
 
 
-async def intersect_raster_by_advisory_shape(session: AsyncSession, threshold: int, advisory_shape_id: int, source_identifier: str, raster_path: str, temp_dir: str):
+def intersect_raster_by_advisory_shape(threshold: int, advisory_shape_id: int, source_identifier: str, raster_path: str, temp_dir: str):
     """
     Given a raster and a fire shape id, use gdal.Warp to clip out a fire zone from which we can retrieve info.
 
@@ -118,85 +117,45 @@ async def intersect_raster_by_advisory_shape(session: AsyncSession, threshold: i
     tif_srs = osr.SpatialReference(wkt=tif_prj)
     raster = None
 
-    advisory_shape = await get_advisory_shape(session, advisory_shape_id, tif_srs)
-    warp_options = gdal.WarpOptions(format="GTiff", cutlineLayer=advisory_shape, cropToCutline=True)
+    advisory_shape = get_advisory_shape(advisory_shape_id, temp_dir, tif_srs)
+    warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=advisory_shape, cropToCutline=True)
     gdal.Warp(output_path, raster_path, options=warp_options)
     return output_path
 
 
-async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, projection: osr.SpatialReference) -> ogr.Layer:
+def get_advisory_shape(advisory_shape_id: int, out_dir: str, projection: osr.SpatialReference) -> str:
     """
     Get advisory_shape from database and store it (typically temporarily) in the specified projection for raster
-    intersection.
+    intersection. The advisory_shape layer returned by ExecuteSQL must be stored somewhere and can't simply be returned
+    because of the way GDAL connection references are handled (https://gdal.org/api/python_gotchas.html)
 
     :param advisory_shape_id: advisory_shape_id
     :type advisory_shape_id: int
+    :param out_dir: Output directory of reprojected polygon(s)
+    :type out_dir: str
     :param projection: Spatial reference
     :type projection: osr.SpatialReference
     :return: path to stored advisory shape
-    :rtype: ogr.Layer
+    :rtype: str
     """
+    data_source = ogr.Open(DB_READ_STRING)
+    sql = f'SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}'
+    advisory_layer = data_source.ExecuteSQL(sql)
 
-    stmt = select(Shape).filter(Shape.id == advisory_shape_id)
-    result = await session.execute(stmt)
-    advisory_shape = result.scalars().first()
+    advisory_shape = reproject_ogr_layer(advisory_layer, out_dir, projection)
 
-    # Create geometry from wkt
-    advisory_shape_wkt = to_shape(advisory_shape.geom)
-    advisory_shape_geom = ogr.CreateGeometryFromWkt(advisory_shape_wkt.wkt)
-
-    # Create in memory output layer with desired projection
-    driver = ogr.GetDriverByName("Memory")
-    output_ds = driver.CreateDataSource("")
-    output_layer = output_ds.CreateLayer("output_layer", srs=projection)
-
-    # Define the geometry field in the output layer
-    output_layer.CreateField(ogr.FieldDefn("geom", ogr.OFTInteger))
-
-    # Set the advisory shape as the geometry
-    output_feature = ogr.Feature(output_layer.GetLayerDefn())
-    output_feature.SetGeometry(advisory_shape_geom)  # Set geometry for the output feature
-    output_layer.CreateFeature(output_feature)  # Add the feature to the output layer
-    output_feature = None  # Free memory
-
-    # Reproject feature geometries to desired projection
-    target_srid = get_srid_from_spatial_ref(projection)
-    advisory_shape = reproject_layer(output_layer, 3005, target_srid)
+    data_source = None
 
     return advisory_shape
-
-
-def reproject_layer(layer, source_srid, target_srid):
-    # Create the source and target spatial references
-    source_srs = osr.SpatialReference()
-    source_srs.ImportFromEPSG(source_srid)
-
-    target_srs = osr.SpatialReference()
-    target_srs.ImportFromEPSG(target_srid)
-
-    # Create the coordinate transformation
-    coordinate_transform = osr.CoordinateTransformation(source_srs, target_srs)
-
-    for feature in layer:
-        geometry = feature.GetGeometryRef()
-        if geometry is not None:
-            # Transform the geometry
-            geometry.Transform(coordinate_transform)
-
-            # Update the feature's geometry if needed
-            feature.SetGeometry(geometry)
-            layer.SetFeature(feature)
-
-    return layer
 
 
 def reproject_ogr_layer(layer: ogr.Layer, out_dir: str, to_projection: osr.SpatialReference) -> str:
     layer_srs = layer.GetSpatialRef()
     coordinate_transform = osr.CoordinateTransformation(layer_srs, to_projection)
 
-    output_path = f"/{out_dir}/reprojected.gpkg"
-    reprojected_ds = ogr.GetDriverByName("GPKG").CreateDataSource(output_path)
-    reprojected_layer = reprojected_ds.CreateLayer("reprojected", srs=to_projection)
+    output_path = f'/{out_dir}/reprojected.gpkg'
+    reprojected_ds = ogr.GetDriverByName('GPKG').CreateDataSource(output_path)
+    reprojected_layer = reprojected_ds.CreateLayer('reprojected', srs=to_projection)
 
     for feature in layer:
         geometry = feature.GetGeometryRef()
@@ -277,11 +236,13 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         hfi_raster = gdal.Open(hfi_key, gdal.GA_ReadOnly)
         hfi_data = hfi_raster.GetRasterBand(1).ReadAsArray()
 
+
         # Retrieve the fuel type raster from s3 storage.
         fuel_type_key = get_fuel_type_s3_key(config.get("OBJECT_STORE_BUCKET"))
         fuel_type_raster = gdal.Open(fuel_type_key, gdal.GA_ReadOnly)
         fuel_type_band = fuel_type_raster.GetRasterBand(1)
         fuel_type_data = fuel_type_band.ReadAsArray()
+
 
         # Properties useful for creating a new GeoTiff
         geotransform = fuel_type_raster.GetGeoTransform()
@@ -293,6 +254,7 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         fuel_types = await get_all_sfms_fuel_types(session)
 
         with tempfile.TemporaryDirectory() as temp_dir:
+            
             for threshold in thresholds:
                 classified_hfi_data = classify_by_threshold(hfi_data, threshold.id)
                 masked_fuel_type_data = np.multiply(fuel_type_data, classified_hfi_data)
