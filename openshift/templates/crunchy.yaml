@@ -154,7 +154,6 @@ objects:
               pool_mode: transaction
               max_prepared_statements: "10"
               max_client_conn: "1000"
-              user: wps-crunchydb-pr-3983
           port: 5432
           replicas: 1
           resources:
