@@ -9,6 +9,6 @@ from datetime import date, datetime
 async def process_stats(run_type: RunType, run_datetime: datetime, run_date: date, for_date: date):
     await process_hfi(run_type, run_date, run_datetime, for_date)
     await process_hfi_elevation(run_type, run_date, run_datetime, for_date)
-    await process_high_hfi_area(run_type, run_datetime, for_date)
-    await process_fuel_type_hfi_by_shape(run_type, run_datetime, for_date)
+    # await process_high_hfi_area(run_type, run_datetime, for_date)
+    # await process_fuel_type_hfi_by_shape(run_type, run_datetime, for_date)
     # await calculate_critical_hours(run_type, run_datetime, for_date)

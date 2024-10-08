@@ -14,6 +14,7 @@ from sqlalchemy.sql import text
 from sqlalchemy.future import select
 from app import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
+from app.auto_spatial_advisory.process_fuel_type_area import get_advisory_shape
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats, save_advisory_elevation_tpi_stats
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
@@ -241,7 +242,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
     gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
     gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
     gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
-    gdal.SetConfigOption("PG:search_path", "public")
+
     bucket = config.get("OBJECT_STORE_BUCKET")
     dem_file = config.get("CLASSIFIED_TPI_DEM_NAME")
     key = f"/vsis3/{bucket}/dem/tpi/{dem_file}"
@@ -266,19 +267,20 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
         stmt = text("SELECT id, source_identifier FROM advisory_shapes;")
         result = await session.execute(stmt)
 
-        # for row in result:
-        #     output_path = f"/vsimem/firezone_{row[1]}.tif"
-        #     warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=DB_READ_STRING, cutlineSQL=f"SELECT geom FROM public.advisory_shapes WHERE id={row[0]}", cropToCutline=True)
-        #     cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
-        #     # Get unique values and their counts
-        #     tpi_classes, counts = np.unique(cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True)
-        #     cut_hfi_masked_tpi = None
-        #     gdal.Unlink(output_path)
-        #     tpi_class_freq_dist = dict(zip(tpi_classes, counts))
+        for row in result:
+            output_path = f"/vsimem/firezone_{row[1]}.tif"
+            advisory_shape_layer = await get_advisory_shape(session, row[0], hfi_masked_tpi.GetSpatialRef())
+            warp_options = gdal.WarpOptions(format="GTiff", cutlineLayer=advisory_shape_layer, cropToCutline=True)
+            cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
+            # Get unique values and their counts
+            tpi_classes, counts = np.unique(cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True)
+            cut_hfi_masked_tpi = None
+            gdal.Unlink(output_path)
+            tpi_class_freq_dist = dict(zip(tpi_classes, counts))
 
-        #     # Drop TPI class 4, this is the no data value from the TPI raster
-        #     tpi_class_freq_dist.pop(4, None)
-        #     fire_zone_stats[row[0]] = tpi_class_freq_dist
+            # Drop TPI class 4, this is the no data value from the TPI raster
+            tpi_class_freq_dist.pop(4, None)
+            fire_zone_stats[row[0]] = tpi_class_freq_dist
 
         hfi_masked_tpi = None
         return FireZoneTPIStats(fire_zone_stats=fire_zone_stats, pixel_size_metres=pixel_size_metres)

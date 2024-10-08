@@ -76,7 +76,7 @@ async def run():
                 run_type, run_date, run_datetime, for_date = parse_nats_message(msg)
                 logger.info("Awaiting process_hfi({}, {}, {})\n".format(run_type, run_date, for_date))
                 await process_hfi(run_type, run_date, run_datetime, for_date)
-                # await process_hfi_elevation(run_type, run_date, run_datetime, for_date)
+                await process_hfi_elevation(run_type, run_date, run_datetime, for_date)
                 # await process_high_hfi_area(run_type, run_datetime, for_date)
                 await process_fuel_type_hfi_by_shape(run_type, run_datetime, for_date)
                 # await calculate_critical_hours(run_type, run_datetime, for_date)
