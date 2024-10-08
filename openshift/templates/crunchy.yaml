@@ -152,10 +152,9 @@ objects:
           config:
             global:
               pool_mode: transaction
-              ignore_startup_parameters: options, search_path
               max_prepared_statements: "10"
               max_client_conn: "1000"
-              auth_user: ${APP_NAME}-${SUFFIX}
+              user: wps-crunchydb-pr-3983
           port: 5432
           replicas: 1
           resources:
