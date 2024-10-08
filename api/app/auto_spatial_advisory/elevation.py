@@ -267,7 +267,9 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
 
         for row in result:
             output_path = f"/vsimem/firezone_{row[1]}.tif"
-            warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName="PG:" + DB_READ_STRING, cutlineSQL=f"SELECT geom FROM advisory_shapes WHERE id={row[0]}", cropToCutline=True)
+            warp_options = gdal.WarpOptions(
+                format="GTiff", cutlineDSName=DB_READ_STRING + "?search_path=public", cutlineSQL=f"SELECT geom FROM advisory_shapes WHERE id={row[0]}", cropToCutline=True
+            )
             cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
             # Get unique values and their counts
             tpi_classes, counts = np.unique(cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True)
@@ -315,7 +317,9 @@ def intersect_raster_by_firezone(threshold: int, advisory_shape_id: int, source_
     :param temp_dir: A temporary location for storing intermediate files
     """
     output_path = os.path.join(temp_dir, f"firezone_{source_identifier}_threshold_{threshold}.tif")
-    warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=DB_READ_STRING, cutlineSQL=f"SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}", cropToCutline=True)
+    warp_options = gdal.WarpOptions(
+        format="GTiff", cutlineDSName=DB_READ_STRING + "?search_path=public", cutlineSQL=f"SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}", cropToCutline=True
+    )
     gdal.Warp(output_path, raster_path, options=warp_options)
     return output_path
 
