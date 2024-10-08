@@ -262,14 +262,13 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
 
     fire_zone_stats: Dict[int, Dict[int, int]] = {}
     async with get_async_write_session_scope() as session:
+        gdal.SetConfigOption("CPL_DEBUG", "ON")
         stmt = text("SELECT id, source_identifier FROM advisory_shapes;")
         result = await session.execute(stmt)
 
         for row in result:
             output_path = f"/vsimem/firezone_{row[1]}.tif"
             cutline_sql = f"SELECT geom FROM advisory_shapes WHERE id={row[0]}"
-            logger.info("Connection string is: %s", DB_READ_STRING)
-            logger.info("SQL query is: %s", cutline_sql)
             warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=DB_READ_STRING, cutlineSQL=cutline_sql, cropToCutline=True)
             cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
             # Get unique values and their counts
