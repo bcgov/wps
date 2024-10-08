@@ -41,7 +41,7 @@ parameters:
     value: 3800Mi
   - name: MEMORY_LIMIT
     required: true
-    value: 5000Mi
+    value: 6000Mi
 
 objects:
   - apiVersion: v1
