@@ -283,7 +283,7 @@ objects:
                   cpu: "250m"
                   memory: ${MEMORY_REQUEST}
                 limits:
-                  cpu: "500m"
+                  cpu: "3000m"
                   memory: ${MEMORY_LIMIT}
               command:
                 [
