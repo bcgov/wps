@@ -8,6 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 class GDALResamplingMethod(Enum):
+    """
+    See api/app/utils/geospatial-interpolation.md for information about which interpolation method to use for your use case
+
+    """
+
     NEAREST_NEIGHBOUR = gdal.GRA_NearestNeighbour
     BILINEAR = gdal.GRA_Bilinear
     CUBIC = gdal.GRA_Cubic
