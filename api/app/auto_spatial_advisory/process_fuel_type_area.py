@@ -1,5 +1,4 @@
-""" Code relating to processing high HFI area per fire zone
-"""
+"""Code relating to processing high HFI area per fire zone"""
 
 import logging
 import numpy as np
@@ -139,7 +138,7 @@ def get_advisory_shape(advisory_shape_id: int, out_dir: str, projection: osr.Spa
     :rtype: str
     """
     data_source = ogr.Open(DB_READ_STRING)
-    sql = f'SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}'
+    sql = f"SELECT geom FROM public.advisory_shapes WHERE id={advisory_shape_id}"
     advisory_layer = data_source.ExecuteSQL(sql)
 
     advisory_shape = reproject_ogr_layer(advisory_layer, out_dir, projection)
@@ -153,9 +152,9 @@ def reproject_ogr_layer(layer: ogr.Layer, out_dir: str, to_projection: osr.Spati
     layer_srs = layer.GetSpatialRef()
     coordinate_transform = osr.CoordinateTransformation(layer_srs, to_projection)
 
-    output_path = f'/{out_dir}/reprojected.gpkg'
-    reprojected_ds = ogr.GetDriverByName('GPKG').CreateDataSource(output_path)
-    reprojected_layer = reprojected_ds.CreateLayer('reprojected', srs=to_projection)
+    output_path = f"/{out_dir}/reprojected.gpkg"
+    reprojected_ds = ogr.GetDriverByName("GPKG").CreateDataSource(output_path)
+    reprojected_layer = reprojected_ds.CreateLayer("reprojected", srs=to_projection)
 
     for feature in layer:
         geometry = feature.GetGeometryRef()
@@ -236,13 +235,11 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         hfi_raster = gdal.Open(hfi_key, gdal.GA_ReadOnly)
         hfi_data = hfi_raster.GetRasterBand(1).ReadAsArray()
 
-
         # Retrieve the fuel type raster from s3 storage.
         fuel_type_key = get_fuel_type_s3_key(config.get("OBJECT_STORE_BUCKET"))
         fuel_type_raster = gdal.Open(fuel_type_key, gdal.GA_ReadOnly)
         fuel_type_band = fuel_type_raster.GetRasterBand(1)
         fuel_type_data = fuel_type_band.ReadAsArray()
-
 
         # Properties useful for creating a new GeoTiff
         geotransform = fuel_type_raster.GetGeoTransform()
@@ -254,7 +251,6 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         fuel_types = await get_all_sfms_fuel_types(session)
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            
             for threshold in thresholds:
                 classified_hfi_data = classify_by_threshold(hfi_data, threshold.id)
                 masked_fuel_type_data = np.multiply(fuel_type_data, classified_hfi_data)
