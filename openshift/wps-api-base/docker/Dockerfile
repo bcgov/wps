@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
+ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/github-docker-remote/osgeo/gdal:ubuntu-small-3.9.2
 # For the final stage, we use ubuntu:24.04
 # Rationale for using ubuntu:24.04:
 # - It's the latest ubuntu LTS release.
@@ -23,7 +23,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # - gdal (for geospatial)
 # - R (for cffdrs)
 # - xfonts-75dpi, xfonts-base (for wkhtmltopdf)
-RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev libudunits2-dev r-base xfonts-base xfonts-75dpi curl git build-essential libsqlite3-dev zlib1g-dev
+RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libudunits2-dev r-base-dev xfonts-base xfonts-75dpi curl git build-essential libsqlite3-dev libpq-dev libtirpc-dev
 
 RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
 RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
@@ -56,9 +56,6 @@ ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
 
 # Set the working directory to the user's home directory
 WORKDIR /home/$USERNAME
-
-# Update pip
-RUN python3 -m pip install --upgrade pip
 
 # Install poetry
 RUN cat /tmp/install.python-poetry.org | python3 -
