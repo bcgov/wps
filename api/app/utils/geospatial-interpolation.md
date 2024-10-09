@@ -38,7 +38,8 @@ When resampling or reprojecting a raster dataset using GDAL, different interpola
 
 #### Use Cases
 
-- **High-quality continuous data**: Ideal for datasets where smoothness and visual quality are important (e.g., satellite imagery, elevation data).
+- **Continuous data**: Ideal for datasets where smoothness and visual quality are important (e.g., satellite imagery, elevation data).
+- **Alters original values**: Alters the original values (which can be undesirable for discrete datasets).
 
 ---
 
