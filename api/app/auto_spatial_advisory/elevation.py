@@ -263,7 +263,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
     fire_zone_stats: Dict[int, Dict[int, int]] = {}
     async with get_async_write_session_scope() as session:
         gdal.SetConfigOption("CPL_DEBUG", "ON")
-        stmt = text("SELECT id, source_identifier FROM advisory_shapes;")
+        stmt = text("SELECT id, source_identifier FROM public.advisory_shapes;")
         result = await session.execute(stmt)
 
         for row in result:

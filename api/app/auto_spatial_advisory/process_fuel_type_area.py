@@ -66,7 +66,7 @@ async def calculate_fuel_type_area_by_shape(session: AsyncSession, temp_dir: str
     :param run_parameters_id: The RunParameter object id associated with the run_type, for_date and run_datetime of interest.
     :param fuel_types: A list of fuel types used in the sfms system.
     """
-    stmt = text("SELECT id, source_identifier FROM advisory_shapes;")
+    stmt = text("SELECT id, source_identifier FROM public.advisory_shapes;")
     result = await session.execute(stmt)
     rows = result.all()
     for row in rows:
