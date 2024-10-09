@@ -3,7 +3,7 @@ import pytest
 from osgeo import gdal
 import numpy as np
 
-from app.utils.geospatial import raster_mul, warp_to_match_extent
+from app.utils.geospatial import raster_mul, warp_to_match_raster
 
 fixture_path = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")
 
@@ -96,7 +96,7 @@ def test_warp_to_match_dimension():
     driver = gdal.GetDriverByName("MEM")
     out_dataset: gdal.Dataset = driver.Create("memory", hfi_ds.RasterXSize, hfi_ds.RasterYSize, 1, gdal.GDT_Byte)
 
-    warp_to_match_extent(tpi_ds, hfi_ds, out_dataset)
+    warp_to_match_raster(tpi_ds, hfi_ds, out_dataset)
     output_data = out_dataset.GetRasterBand(1).ReadAsArray()
     hfi_data = hfi_ds.GetRasterBand(1).ReadAsArray()
 
