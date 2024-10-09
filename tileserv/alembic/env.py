@@ -88,7 +88,6 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        connection.execute("SET search_path TO public;")
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
@@ -96,6 +95,7 @@ def run_migrations_online() -> None:
         )
 
         with context.begin_transaction():
+            context.execute("SET search_path TO public;")
             context.run_migrations()
 
 
