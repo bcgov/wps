@@ -95,7 +95,6 @@ def run_migrations_online() -> None:
         )
 
         with context.begin_transaction():
-            context.execute("SET search_path TO public;")
             context.run_migrations()
 
 
