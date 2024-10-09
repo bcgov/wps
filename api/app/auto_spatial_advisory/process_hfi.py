@@ -92,7 +92,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
         if existing_run is not None:
             logger.info((f"Skipping run, already processed for run_type:{run_type}" f"run_datetime:{run_datetime}," f"for_date:{for_date}"))
             return
-        last_processed_snow = await get_last_processed_snow_by_source(session, SnowSourceEnum.viirs.value)
+        last_processed_snow = await get_last_processed_snow_by_source(session, SnowSourceEnum.viirs)
 
     logger.info("Processing HFI %s for run date: %s, for date: %s", run_type, run_date, for_date)
     perf_start = perf_counter()
