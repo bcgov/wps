@@ -108,5 +108,5 @@ jobs:
       - name: Run poetry command
         # We used to be able to do linting before installing gdal, but it's not possible anymore.
         # We can however place it ahead of the R installs.
-        working-directory: ${{ inputs.poetry_command }}
+        working-directory: ${{ inputs.working_directory }}
         run: ${{ inputs.poetry_command }}
