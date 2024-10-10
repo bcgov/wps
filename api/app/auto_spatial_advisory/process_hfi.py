@@ -112,35 +112,35 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
                 # Create a snow coverage mask from previously downloaded snow data.
                 working_hfi_path = await apply_snow_mask(temp_filename, last_processed_snow[0], temp_dir)
 
-            # raster_filename = get_raster_tif_filename(for_date)
-            # raster_key = get_raster_filepath(run_date, run_type, raster_filename)
-            # logger.info(f"Uploading file {raster_filename} to {raster_key}")
-            # await client.put_object(
-            #     Bucket=bucket,
-            #     Key=raster_key,
-            #     ACL=HFI_GEOSPATIAL_PERMISSIONS,  # We need these to be accessible to everyone
-            #     Body=open(working_hfi_path, "rb"),
-            # )
-            # logger.info("Done uploading %s", raster_key)
+            raster_filename = get_raster_tif_filename(for_date)
+            raster_key = get_raster_filepath(run_date, run_type, raster_filename)
+            logger.info(f"Uploading file {raster_filename} to {raster_key}")
+            await client.put_object(
+                Bucket=bucket,
+                Key=raster_key,
+                ACL=HFI_GEOSPATIAL_PERMISSIONS,  # We need these to be accessible to everyone
+                Body=open(working_hfi_path, "rb"),
+            )
+            logger.info("Done uploading %s", raster_key)
             with polygonize_in_memory(working_hfi_path, "hfi", "hfi") as layer:
                 # We need a geojson file to pass to tippecanoe
-                # temp_geojson = write_geojson(layer, temp_dir)
+                temp_geojson = write_geojson(layer, temp_dir)
 
-                # pmtiles_filename = get_pmtiles_filename(for_date)
-                # temp_pmtiles_filepath = os.path.join(temp_dir, pmtiles_filename)
-                # logger.info(f"Writing pmtiles -- {pmtiles_filename}")
-                # tippecanoe_wrapper(temp_geojson, temp_pmtiles_filepath, min_zoom=HFI_PMTILES_MIN_ZOOM, max_zoom=HFI_PMTILES_MAX_ZOOM)
+                pmtiles_filename = get_pmtiles_filename(for_date)
+                temp_pmtiles_filepath = os.path.join(temp_dir, pmtiles_filename)
+                logger.info(f"Writing pmtiles -- {pmtiles_filename}")
+                tippecanoe_wrapper(temp_geojson, temp_pmtiles_filepath, min_zoom=HFI_PMTILES_MIN_ZOOM, max_zoom=HFI_PMTILES_MAX_ZOOM)
 
-                # key = get_pmtiles_filepath(run_date, run_type, pmtiles_filename)
-                # logger.info(f"Uploading file {pmtiles_filename} to {key}")
+                key = get_pmtiles_filepath(run_date, run_type, pmtiles_filename)
+                logger.info(f"Uploading file {pmtiles_filename} to {key}")
 
-                # await client.put_object(
-                #     Bucket=bucket,
-                #     Key=key,
-                #     ACL=HFI_GEOSPATIAL_PERMISSIONS,  # We need these to be accessible to everyone
-                #     Body=open(temp_pmtiles_filepath, "rb"),
-                # )
-                # logger.info("Done uploading %s", key)
+                await client.put_object(
+                    Bucket=bucket,
+                    Key=key,
+                    ACL=HFI_GEOSPATIAL_PERMISSIONS,  # We need these to be accessible to everyone
+                    Body=open(temp_pmtiles_filepath, "rb"),
+                )
+                logger.info("Done uploading %s", key)
 
                 spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
                 target_srs = osr.SpatialReference()
