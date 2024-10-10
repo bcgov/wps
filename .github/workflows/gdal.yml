@@ -15,4 +15,6 @@ jobs:
     steps:
       - name: Install ubuntu pre-requisites (api)
         run: |
+          apt-get update
+          apt-get -y install libudunits2-dev r-base-dev libproj-dev libgeos-dev libsqlite3-dev libtirpc-dev
           gdal-config --version
