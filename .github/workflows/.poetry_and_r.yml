@@ -3,10 +3,6 @@ name: .Poetry_R
 on:
   workflow_call:
     inputs:
-      python_version:
-        description: python version to use
-        required: true
-        type: string
       poetry_command:
         description: poetry command to run
         required: true
@@ -22,7 +18,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: ${{ inputs.python_version }}
+        python-version: [3.10.4]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
