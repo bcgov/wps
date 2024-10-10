@@ -18,7 +18,6 @@ def classify_hfi(source_path, target_path):
     gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
     gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
     gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
-    gdal.UseExceptions()
 
     # Read the source data.
     source_tiff = gdal.Open(source_path, gdal.GA_ReadOnly)
