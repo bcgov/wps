@@ -5,15 +5,16 @@ from datetime import date, datetime
 from time import perf_counter
 import logging
 import os
+from osgeo import gdal, osr
 import tempfile
 from typing import Dict
 import numpy as np
-from osgeo import gdal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
 from sqlalchemy.future import select
 from app import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
+from app.auto_spatial_advisory.process_fuel_type_area import get_advisory_shape
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats, save_advisory_elevation_tpi_stats
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
@@ -268,8 +269,12 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
 
         for row in result:
             output_path = f"/vsimem/firezone_{row[1]}.tif"
-            cutline_sql = f"SELECT geom FROM public.advisory_shapes WHERE id={row[0]}"
-            warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=DB_READ_STRING, cutlineSQL=cutline_sql, cropToCutline=True)
+
+            input_srs = osr.SpatialReference()
+            input_srs.ImportFromWkt(hfi_masked_tpi.GetProjectionRef())
+            advisory_shape_wkt = await get_advisory_shape(session, row[0], input_srs)
+
+            warp_options = gdal.WarpOptions(format="GTiff", cutlineWKT=advisory_shape_wkt, cropToCutline=True)
             cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
             # Get unique values and their counts
             tpi_classes, counts = np.unique(cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True)
