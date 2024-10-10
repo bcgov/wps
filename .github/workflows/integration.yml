@@ -12,111 +12,21 @@ jobs:
       poetry_command: poetry run ruff app/*.py app/**/*.py
       working_directory: ./api
       setup_r: false
-
+      upload_coverage: false
   test-api:
     name: Python - Test with coverage
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        # Match versions for python + R to Ubuntu 22.04 LTS at the time of writing.
-        python-version: [3.10.4]
-        R: ["4.1.2"]
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          # For sonar-scanner to work properly we can't use a shallow fetch.
-          fetch-depth: 0
-      - name: Install ubuntu pre-requisites (api)
-        # The python gdal and R component relies on libgdal-dev being installed.
-        # cffdrs requires libudunits2-dev
-        # The api uses wkhtmltopdf to generate pdf's.
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install libgdal-dev wkhtmltopdf libudunits2-dev
-      - name: Setup Python ${{ matrix.python-version }} (api)
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Cache poetry installer
-        uses: actions/cache@v4
-        id: cache-poetry-installer
-        env:
-          cache-name: cache-poetry-installer
-        with:
-          path: "~/poetry_installer"
-          key: "poetry-installer-1.6.1"
-      - name: Download poetry installer
-        if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
-        run: |
-          echo
-          mkdir ~/poetry_installer
-          curl -sSL https://install.python-poetry.org > ~/poetry_installer/install-poetry.py
-      - name: Install poetry (api)
-        run: |
-          cd ~/poetry_installer
-          python install-poetry.py --version 1.6.1
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project false
-      # poetry cache folder: /home/runner/.cache/pypoetry
-      - name: Cache poetry
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-poetry
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-1.6.1-cache-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-1.6.1-cache-
-      - name: Cache .venv
-        id: cache-venv
-        uses: actions/cache@v4
-        with:
-          path: ~/work/wps/wps/api/.venv
-          key: ${{ runner.os }}-venv-poetry-1.6.1-${{ hashFiles('**/poetry.lock') }}
-      - name: Install python dependencies using poetry (api)
-        if: steps.cache-venv.outputs.cache-hit != 'true'
-        working-directory: ./api
-        run: |
-          poetry run python -m pip install --upgrade pip
-          poetry install
-          poetry run python -m pip install gdal==$(gdal-config --version)
-      - uses: r-lib/actions/setup-r@v2
-        # r-lib/actions/setup-r@v2 is supposed to install version ${{ matrix.R }}, BUT, it doesn't.
-        # When asking for 4.1.2 - it's installing a new version! Or at least reporting a newer
-        # version.
-        with:
-          r-version: ${{ matrix.R }}
-      - name: Cache /home/runner/work/_temp/Library
-        # When installing cffdrs, a bunch of stuff is downloaded and compiled and placed in
-        # /home/runner/work/_temp/Library ; By caching this folder, subsequent calls to
-        # install cffdrs run much faster.
-        id: cache-r-cffdrs
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/work/_temp/Library
-          key: ${{ runner.os }}-r-${{ matrix.R }}-cffdrs
-      - name: Install R dependencies (api)
-        run: R -e "install.packages('cffdrs')"
-      - name: Unit Test with coverage (api)
-        working-directory: ./api
-        run: |
-          export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
-          export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATH
-          export ORIGINS=testorigin
-          export SFMS_SECRET=secret
-          poetry run coverage run --source=app -m pytest app/tests -x -o log_cli=true --disable-warnings -vvv
-      - name: Create coverage report (api)
-        working-directory: ./api
-        shell: bash
-        run: |
-          poetry run coverage report
-          poetry run coverage xml -o coverage-reports/coverage-report.xml
-      - name: Archive coverage report (api)
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-coverage-report
-          path: ./api/coverage-reports/coverage-report.xml
+    uses: ./.github/workflows/.poetry_and_r.yml
+    with:
+      poetry_command:
+        export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
+        export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATH
+        export ORIGINS=testorigin
+        export SFMS_SECRET=secret
+        poetry run coverage run --source=app -m pytest app/tests -x -o log_cli=true --disable-warnings -vvv
+      working_directory: ./api
+      setup_r: true
+      upload_coverage: true
+
   lint-and-test-web:
     name: Web - Lint, Test with coverage
     runs-on: ubuntu-22.04

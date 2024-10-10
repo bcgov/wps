@@ -15,10 +15,14 @@ on:
         description: whether to setup r or not
         required: true
         type: boolean
+      upload_coverage:
+        description: whether to upload codecov report or not
+        required: true
+        type: boolean
 
 jobs:
-  install-and-cache:
-    name: Install and cache poetry
+  run_poetry_command:
+    name: Run poetry command
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -110,3 +114,16 @@ jobs:
         # We can however place it ahead of the R installs.
         working-directory: ${{ inputs.working_directory }}
         run: ${{ inputs.poetry_command }}
+      - name: Create coverage report (api)
+        if: ${{ inputs.upload_coverage == true }}
+        working-directory: ${{ inputs.working_directory }}
+        shell: bash
+        run: |
+          poetry run coverage report
+          poetry run coverage xml -o coverage-reports/coverage-report.xml
+      - name: Archive coverage report (api)
+        if: ${{ inputs.upload_coverage == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage-report
+          path: ./api/coverage-reports/coverage-report.xml
