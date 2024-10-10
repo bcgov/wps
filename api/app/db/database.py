@@ -18,8 +18,6 @@ postgres_read_host = config.get("POSTGRES_READ_HOST", "localhost")
 postgres_port = config.get("POSTGRES_PORT", "5432")
 postgres_database = config.get("POSTGRES_DATABASE", "wps")
 
-GDAL_DB_STRING = f"PG:host={postgres_write_host} port={postgres_port} dbname={postgres_database} user={write_user} password={postgres_password}"
-
 DB_WRITE_STRING = f"postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}"
 
 DB_READ_STRING = f"postgresql://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}"
