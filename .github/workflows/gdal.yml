@@ -18,7 +18,7 @@ jobs:
       - name: Install ubuntu pre-requisites (api)
         run: |
           apt-get update
-          apt-get -y install libudunits2-dev r-base-dev libproj-dev libgeos-dev libsqlite3-dev libtirpc-dev
+          apt-get -y install libudunits2-dev r-base-dev libproj-dev libgeos-dev libsqlite3-dev libtirpc-dev libpq-dev
           gdal-config --version
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v5
