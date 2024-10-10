@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        # Match versions for python + R to Ubuntu 22.04 LTS at the time of writing.
+        # Match versions for python + R to Ubuntu 24.04 LTS at the time of writing.
         python-version: [3.12.3]
         R: ["4.1.2"]
     steps:
