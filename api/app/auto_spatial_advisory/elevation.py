@@ -269,9 +269,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
         for row in result:
             output_path = f"/vsimem/firezone_{row[1]}.tif"
 
-            input_srs = osr.SpatialReference()
-            input_srs.ImportFromWkt(hfi_masked_tpi.GetProjectionRef())
-            advisory_shape_wkt = await get_advisory_shape(session, row[0], input_srs)
+            advisory_shape_wkt = await get_advisory_shape(session, row[0], hfi_masked_tpi.GetSpatialRef())
 
             warp_options = gdal.WarpOptions(format="GTiff", cutlineWKT=advisory_shape_wkt, cropToCutline=True)
             cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
