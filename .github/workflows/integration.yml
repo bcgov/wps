@@ -17,7 +17,7 @@ jobs:
     name: Python - Test with coverage
     uses: ./.github/workflows/.poetry_and_r.yml
     with:
-      poetry_command:
+      poetry_command: |
         export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
         export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATH
         export ORIGINS=testorigin
