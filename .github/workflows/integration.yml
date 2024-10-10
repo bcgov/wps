@@ -20,7 +20,7 @@ jobs:
         # cffdrs requires libudunits2-dev
         run: |
           apt-get update
-          apt-get -y install libgdal-dev libudunits2-dev r-base-dev libproj-dev libgeos-dev libsqlite3-dev
+          apt-get -y install libudunits2-dev r-base-dev libproj-dev libgeos-dev libsqlite3-dev
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v5
         with:
@@ -98,7 +98,7 @@ jobs:
         # The api uses wkhtmltopdf to generate pdf's.
         run: |
           apt-get update
-          apt-get -y install libgdal-dev wkhtmltopdf libudunits2-dev r-base-dev build-essential libproj-dev libgeos-dev libsqlite3-dev
+          apt-get -y install wkhtmltopdf libudunits2-dev r-base-dev build-essential libproj-dev libgeos-dev libsqlite3-dev
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v5
         with:
@@ -302,7 +302,9 @@ jobs:
           poetry install
       - name: Lint (s3-backup)
         working-directory: ./openshift/s3-backup/docker
-        run: poetry run ruff check *.py
+        run: |
+          export PATH="/github/home/.local/bin:$PATH"
+          poetry run ruff check *.py
       - name: Unit tests (s3-backup)
         working-directory: ./openshift/s3-backup/docker
         run: |
