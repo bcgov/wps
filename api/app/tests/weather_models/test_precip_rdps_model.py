@@ -75,13 +75,15 @@ async def test_generate_24_hour_accumulating_precip_raster_model_hour_ok(mocker:
     ],
 )
 @pytest.mark.anyio
-async def test_generate_24_hour_accumulating_precip_raster_fail(current_time: datetime, today_raster: np.ndarray, yesterday_raster: np.ndarray, mocker: MockerFixture):
+async def test_generate_24_hour_accumulating_precip_raster_no_today_raster(current_time: datetime, today_raster: np.ndarray, yesterday_raster: np.ndarray, mocker: MockerFixture):
     """
     Verify that the appropriate rasters are diffed correctly.
     """
     mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[today_raster, yesterday_raster])
-    with pytest.raises(ValueError):
-        await generate_24_hour_accumulating_precip_raster(current_time)
+    (day_data, day_geotransform, day_projection) = await generate_24_hour_accumulating_precip_raster(current_time)
+    assert day_data is None
+    assert day_geotransform is None
+    assert day_projection is None
 
 
 @pytest.mark.parametrize(
