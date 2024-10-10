@@ -63,6 +63,7 @@ jobs:
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
         run: |
+          export PATH="/github/home/.local/bin:$PATH"
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install -U setuptools wheel
