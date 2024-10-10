@@ -62,9 +62,7 @@ jobs:
       - name: Install python dependencies using poetry (api)
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
-        uses: ghcr.io/osgeo/gdal:ubuntu-small-3.9.2
         run: |
-          apt-get update --fix-missing && apt-get -y install build-essential libproj-dev libgeos-dev libsqlite3-dev 
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install -U setuptools wheel
