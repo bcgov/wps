@@ -8,6 +8,7 @@ jobs:
     name: Install and cache poetry
     runs-on: ubuntu-22.04
     steps:
+      - uses: actions/checkout@v4
       - name: Cache poetry installer
         uses: actions/cache@v4
         id: cache-poetry-installer
