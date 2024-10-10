@@ -159,7 +159,10 @@ jobs:
           path: /home/runner/work/_temp/Library
           key: ${{ runner.os }}-r-${{ matrix.R }}-cffdrs
       - name: Install R dependencies (api)
-        run: R -e "install.packages('cffdrs')"
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install libgdal-dev r-base-dev build-essential libproj-dev libgeos-dev libsqlite3-dev
+          R -e "install.packages('cffdrs')"
       - name: Unit Test with coverage (api)
         working-directory: ./api
         run: |
