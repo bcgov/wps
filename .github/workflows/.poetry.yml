@@ -1,0 +1,44 @@
+name: .Poetry
+
+on:
+  workflow_call:
+
+jobs:
+  install-and-cache:
+    name: Install and cache poetry
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - name: Cache poetry installer
+        uses: actions/cache@v4
+        id: cache-poetry-installer
+        env:
+          cache-name: cache-poetry-installer
+        with:
+          path: "~/poetry_installer"
+          key: "poetry-installer-1.8.3"
+
+      - name: Download poetry installer
+        if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
+        run: |
+          echo
+          mkdir ~/poetry_installer
+          curl -sSL https://install.python-poetry.org > ~/poetry_installer/install-poetry.py
+
+      - name: Install poetry (api)
+        run: |
+          cd ~/poetry_installer
+          python install-poetry.py --version 1.8.3
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project false
+
+      # poetry cache folder: /home/runner/.cache/pypoetry
+      - name: Cache poetry
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-poetry
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-prune-cache-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-prune-cache-
