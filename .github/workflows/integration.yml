@@ -7,9 +7,10 @@ on:
 jobs:
   lint-api:
     name: Lint (api)
-    uses: ./.github/workflows/.poetry.yml
+    uses: ./.github/workflows/.poetry_and_r.yml
     with:
       poetry_command: poetry run ruff app/*.py app/**/*.py
+      working_directory: ./api
 
   test-api:
     name: Python - Test with coverage
