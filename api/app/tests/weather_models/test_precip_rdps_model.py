@@ -25,6 +25,28 @@ def test_difference_identity():
     assert np.allclose(res, np.zeros(precip_raster.shape))
 
 
+def test_negative_precip_diff_raises_value_error():
+    """
+    Verify ValueError raised if raster subtraction contains a negative value.
+    """
+    later_precip = TemporalPrecip(datetime.fromisoformat("2024-06-10T18:42:49"), np.zeros(1))
+    earlier_precip = TemporalPrecip(datetime.fromisoformat("2024-06-09T18:42:49"), np.ones(1))
+    with pytest.raises(ValueError):
+        compute_precip_difference(later_precip, earlier_precip)
+
+
+def test_trivial_negative_precip_diff_returns_zero():
+    """
+    Verify that a negative precip dif between -0.01 and 0 returns 0.
+    """
+    early_array = np.empty(1)
+    early_array[0] = 0.005
+    later_precip = TemporalPrecip(datetime.fromisoformat("2024-06-10T18:42:49"), np.zeros(1))
+    earlier_precip = TemporalPrecip(datetime.fromisoformat("2024-06-09T18:42:49"), early_array)
+    result = compute_precip_difference(later_precip, earlier_precip)
+    assert result[0] == 0
+
+
 @pytest.mark.parametrize(
     "later_datetime,earlier_datetime",
     [
