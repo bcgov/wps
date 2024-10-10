@@ -13,10 +13,6 @@ jobs:
       matrix:
         python-version: [3.12.3]
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
       - name: Install ubuntu pre-requisites (api)
         run: |
-          apt-get update
-          apt-get -y install libudunits2-dev r-base-dev libgdal-dev libproj-dev libgeos-dev libsqlite3-dev libtirpc-dev
           gdal-config --version
