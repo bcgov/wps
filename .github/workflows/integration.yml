@@ -43,6 +43,7 @@ jobs:
         run: |
           cd ~/poetry_installer
           python install-poetry.py --version 1.8.3
+          export PATH="/github/home/.local/bin:$PATH"
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
       - name: Cache poetry
@@ -119,6 +120,7 @@ jobs:
         run: |
           cd ~/poetry_installer
           python install-poetry.py --version 1.8.3
+          export PATH="/github/home/.local/bin:$PATH"
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
       # poetry cache folder: /home/runner/.cache/pypoetry
