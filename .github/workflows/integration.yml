@@ -94,7 +94,7 @@ jobs:
         # The api uses wkhtmltopdf to generate pdf's.
         run: |
           sudo apt-get update
-          sudo apt-get -y install wkhtmltopdf libudunits2-dev r-base-dev build-essential libproj-dev libgeos-dev libsqlite3-dev
+          sudo apt-get -y install wkhtmltopdf libudunits2-dev r-base-dev build-essential libproj-dev libgeos-dev libsqlite3-dev libtirpc-dev
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v5
         with:
