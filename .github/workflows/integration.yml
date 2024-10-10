@@ -8,7 +8,6 @@ jobs:
   lint-api:
     name: Python - Lint
     runs-on: ubuntu-24.04
-    container: ghcr.io/osgeo/gdal:ubuntu-small-3.9.2
     strategy:
       matrix:
         python-version: [3.12.3]
@@ -19,8 +18,8 @@ jobs:
         # The python gdal and R component relies on libgdal-dev being installed.
         # cffdrs requires libudunits2-dev
         run: |
-          apt-get update
-          apt-get -y install libudunits2-dev r-base-dev libproj-dev libgeos-dev libsqlite3-dev
+          sudo apt-get update
+          sudo apt-get -y install libudunits2-dev r-base-dev libproj-dev libgeos-dev libsqlite3-dev
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v5
         with:
@@ -43,7 +42,6 @@ jobs:
         run: |
           cd ~/poetry_installer
           python install-poetry.py --version 1.8.3
-          export PATH="/github/home/.local/bin:$PATH"
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
       - name: Cache poetry
@@ -65,7 +63,6 @@ jobs:
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
         run: |
-          export PATH="/github/home/.local/bin:$PATH"
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install -U setuptools wheel
@@ -80,7 +77,6 @@ jobs:
   test-api:
     name: Python - Test with coverage
     runs-on: ubuntu-24.04
-    container: ghcr.io/osgeo/gdal:ubuntu-small-3.9.2
     strategy:
       matrix:
         # Match versions for python + R to Ubuntu 22.04 LTS at the time of writing.
@@ -97,8 +93,8 @@ jobs:
         # cffdrs requires libudunits2-dev
         # The api uses wkhtmltopdf to generate pdf's.
         run: |
-          apt-get update
-          apt-get -y install wkhtmltopdf libudunits2-dev r-base-dev build-essential libproj-dev libgeos-dev libsqlite3-dev
+          sudo apt-get update
+          sudo apt-get -y install wkhtmltopdf libudunits2-dev r-base-dev build-essential libproj-dev libgeos-dev libsqlite3-dev
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v5
         with:
@@ -121,7 +117,6 @@ jobs:
         run: |
           cd ~/poetry_installer
           python install-poetry.py --version 1.8.3
-          export PATH="/github/home/.local/bin:$PATH"
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
       # poetry cache folder: /home/runner/.cache/pypoetry
@@ -144,7 +139,6 @@ jobs:
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
         run: |
-          export PATH="/github/home/.local/bin:$PATH"
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install -U setuptools wheel
@@ -302,9 +296,7 @@ jobs:
           poetry install
       - name: Lint (s3-backup)
         working-directory: ./openshift/s3-backup/docker
-        run: |
-          export PATH="/github/home/.local/bin:$PATH"
-          poetry run ruff check *.py
+        run: poetry run ruff check *.py
       - name: Unit tests (s3-backup)
         working-directory: ./openshift/s3-backup/docker
         run: |
