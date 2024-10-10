@@ -21,7 +21,7 @@ from app.db.database import get_async_read_session_scope, get_async_write_sessio
 from app.db.models.auto_spatial_advisory import AdvisoryElevationStats, AdvisoryTPIStats
 from app.auto_spatial_advisory.hfi_filepath import get_raster_filepath, get_raster_tif_filename
 from app.utils.s3 import get_client
-from app.utils.geospatial import raster_mul, warp_to_match_extent
+from app.utils.geospatial import raster_mul, warp_to_match_raster
 
 
 logger = logging.getLogger(__name__)
@@ -254,7 +254,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
     hfi_source: gdal.Dataset = gdal.Open(hfi_key, gdal.GA_ReadOnly)
 
     warped_mem_path = f"/vsimem/warp_{hfi_raster_filename}"
-    resized_hfi_source: gdal.Dataset = warp_to_match_extent(hfi_source, tpi_source, warped_mem_path)
+    resized_hfi_source: gdal.Dataset = warp_to_match_raster(hfi_source, tpi_source, warped_mem_path)
     hfi_masked_tpi = raster_mul(tpi_source, resized_hfi_source)
     resized_hfi_source = None
     hfi_source = None
