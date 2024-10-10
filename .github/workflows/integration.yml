@@ -11,6 +11,7 @@ jobs:
     with:
       poetry_command: poetry run ruff app/*.py app/**/*.py
       working_directory: ./api
+      setup_r: false
 
   test-api:
     name: Python - Test with coverage

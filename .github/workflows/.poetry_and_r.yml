@@ -11,6 +11,10 @@ on:
         description: directory to run command in
         required: true
         type: string
+      setup_r:
+        description: whether to setup r or not
+        required: true
+        type: boolean
 
 jobs:
   install-and-cache:
@@ -19,6 +23,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.10.4]
+        R: ["4.1.2"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -83,6 +88,23 @@ jobs:
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install gdal==$(gdal-config --version)
+      - uses: r-lib/actions/setup-r@v2
+        if: ${{ inputs.setup_r }} == true
+        with:
+          r-version: ${{ matrix.R }}
+      - name: Cache /home/runner/work/_temp/Library
+        if: ${{ inputs.setup_r }} == true
+        # When installing cffdrs, a bunch of stuff is downloaded and compiled and placed in
+        # /home/runner/work/_temp/Library ; By caching this folder, subsequent calls to
+        # install cffdrs run much faster.
+        id: cache-r-cffdrs
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/work/_temp/Library
+          key: ${{ runner.os }}-r-${{ matrix.R }}-cffdrs
+      - name: Install R dependencies (api)
+        if: ${{ inputs.setup_r }} == true
+        run: R -e "install.packages('cffdrs')"
       - name: Run poetry command
         # We used to be able to do linting before installing gdal, but it's not possible anymore.
         # We can however place it ahead of the R installs.
