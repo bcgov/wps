@@ -40,6 +40,7 @@ jobs:
           curl -sSL https://install.python-poetry.org > ~/poetry_installer/install-poetry.py
       - name: Install poetry (api)
         run: |
+          export PATH="/github/home/.local/bin:$PATH"
           cd ~/poetry_installer
           python install-poetry.py --version 1.8.3
           poetry config virtualenvs.create true
