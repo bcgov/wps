@@ -8,6 +8,7 @@ jobs:
   lint-api:
     name: Python - Lint
     runs-on: ubuntu-24.04
+    container: ghcr.io/osgeo/gdal:ubuntu-small-3.9.2
     strategy:
       matrix:
         python-version: [3.12.3]
@@ -77,6 +78,7 @@ jobs:
   test-api:
     name: Python - Test with coverage
     runs-on: ubuntu-24.04
+    container: ghcr.io/osgeo/gdal:ubuntu-small-3.9.2
     strategy:
       matrix:
         # Match versions for python + R to Ubuntu 22.04 LTS at the time of writing.
