@@ -19,8 +19,8 @@ jobs:
         # The python gdal and R component relies on libgdal-dev being installed.
         # cffdrs requires libudunits2-dev
         run: |
-          sudo apt-get update
-          sudo apt-get -y install libgdal-dev libudunits2-dev r-base-dev libproj-dev libgeos-dev libsqlite3-dev
+          apt-get update
+          apt-get -y install libgdal-dev libudunits2-dev r-base-dev libproj-dev libgeos-dev libsqlite3-dev
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v5
         with:
@@ -95,8 +95,8 @@ jobs:
         # cffdrs requires libudunits2-dev
         # The api uses wkhtmltopdf to generate pdf's.
         run: |
-          sudo apt-get update
-          sudo apt-get -y install libgdal-dev wkhtmltopdf libudunits2-dev r-base-dev build-essential libproj-dev libgeos-dev libsqlite3-dev
+          apt-get update
+          apt-get -y install libgdal-dev wkhtmltopdf libudunits2-dev r-base-dev build-essential libproj-dev libgeos-dev libsqlite3-dev
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v5
         with:
