@@ -3,9 +3,16 @@ import numpy as np
 import pytest
 from pytest_mock import MockerFixture
 from datetime import datetime, timezone
+from unittest.mock import patch
 from app.tests.utils.raster_reader import read_raster_array
 
-from app.weather_models.precip_rdps_model import TemporalPrecip, compute_precip_difference, get_raster_keys_to_diff, generate_24_hour_accumulating_precip_raster
+from app.weather_models.precip_rdps_model import (
+    TemporalPrecip,
+    compute_and_store_precip_rasters,
+    compute_precip_difference,
+    get_raster_keys_to_diff,
+    generate_24_hour_accumulating_precip_raster,
+)
 from app.weather_models.rdps_filename_marshaller import model_run_for_hour
 
 geotransform = (-4556441.403315245, 10000.0, 0.0, 920682.1411659503, 0.0, -10000.0)
@@ -147,3 +154,14 @@ def test_get_raster_keys_to_diff(timestamp: datetime, expected_yesterday_key, ex
     (yesterday_key, today_key) = get_raster_keys_to_diff(timestamp)
     assert yesterday_key == expected_yesterday_key
     assert today_key == expected_today_key
+
+async def return_none_tuple(timestamp: datetime):
+    return (None, None, None)
+
+
+@patch("app.weather_models.precip_rdps_model.generate_24_hour_accumulating_precip_raster", return_none_tuple)
+@pytest.mark.anyio
+async def test_compute_and_store_precip_rasters_no_today_data(caplog):
+    timestamp = datetime.fromisoformat("2024-06-10T18:42:49+00:00")
+    await compute_and_store_precip_rasters(timestamp)
+    assert "No precip raster data for hour:" in caplog.text
