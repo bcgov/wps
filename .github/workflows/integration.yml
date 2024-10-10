@@ -9,6 +9,7 @@ jobs:
     name: Lint (api)
     uses: ./.github/workflows/.poetry_and_r.yml
     with:
+      python_version: 3.10.4
       poetry_command: poetry run ruff app/*.py app/**/*.py
       working_directory: ./api
 
