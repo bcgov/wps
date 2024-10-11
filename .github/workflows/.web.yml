@@ -5,7 +5,7 @@ on:
 
 jobs:
   lint-and-test-web:
-    name: Web - Lint, Test with coverage
+    name: Run web commands
     runs-on: ubuntu-22.04
     strategy:
       matrix:
