@@ -5,7 +5,7 @@ on:
     inputs:
       python_version:
         description: "Python version to use"
-        required: true
+        required: false
         default: "3.10.4"
       poetry_command:
         description: poetry command to run
