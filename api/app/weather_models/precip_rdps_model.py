@@ -36,6 +36,10 @@ async def compute_and_store_precip_rasters(model_run_timestamp: datetime):
         for hour in range(0, 36):
             accumulation_timestamp = model_run_timestamp + timedelta(hours=hour)
             (precip_diff_raster, geotransform, projection) = await generate_24_hour_accumulating_precip_raster(accumulation_timestamp)
+            if precip_diff_raster is None:
+                # If there is no precip_diff_raster, RDPS precip data is not available. We'll retry the cron job in one hour.
+                logger.warning(f"No precip raster data for hour: {hour} and model run timestamp: {model_run_timestamp.strftime('%Y-%m-%d_%H:%M:%S')}")
+                break
             key = f"weather_models/{ModelEnum.RDPS.lower()}/{accumulation_timestamp.date().isoformat()}/" + compose_computed_precip_rdps_key(
                 accumulation_end_datetime=accumulation_timestamp
             )
@@ -92,7 +96,7 @@ async def generate_24_hour_accumulating_precip_raster(timestamp: datetime):
     (yesterday_key, today_key) = get_raster_keys_to_diff(timestamp)
     (day_data, day_geotransform, day_projection) = await read_into_memory(today_key)
     if day_data is None:
-        raise ValueError("No precip raster data for today_key: %s" % today_key)
+        return (day_data, day_geotransform, day_projection)
     if yesterday_key is None:
         return (day_data, day_geotransform, day_projection)
 

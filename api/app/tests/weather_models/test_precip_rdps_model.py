@@ -3,9 +3,16 @@ import numpy as np
 import pytest
 from pytest_mock import MockerFixture
 from datetime import datetime, timezone
+from unittest.mock import patch
 from app.tests.utils.raster_reader import read_raster_array
 
-from app.weather_models.precip_rdps_model import TemporalPrecip, compute_precip_difference, get_raster_keys_to_diff, generate_24_hour_accumulating_precip_raster
+from app.weather_models.precip_rdps_model import (
+    TemporalPrecip,
+    compute_and_store_precip_rasters,
+    compute_precip_difference,
+    get_raster_keys_to_diff,
+    generate_24_hour_accumulating_precip_raster,
+)
 from app.weather_models.rdps_filename_marshaller import model_run_for_hour
 
 geotransform = (-4556441.403315245, 10000.0, 0.0, 920682.1411659503, 0.0, -10000.0)
@@ -97,13 +104,15 @@ async def test_generate_24_hour_accumulating_precip_raster_model_hour_ok(mocker:
     ],
 )
 @pytest.mark.anyio
-async def test_generate_24_hour_accumulating_precip_raster_fail(current_time: datetime, today_raster: np.ndarray, yesterday_raster: np.ndarray, mocker: MockerFixture):
+async def test_generate_24_hour_accumulating_precip_raster_no_today_raster(current_time: datetime, today_raster: np.ndarray, yesterday_raster: np.ndarray, mocker: MockerFixture):
     """
     Verify that the appropriate rasters are diffed correctly.
     """
     mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[today_raster, yesterday_raster])
-    with pytest.raises(ValueError):
-        await generate_24_hour_accumulating_precip_raster(current_time)
+    (day_data, day_geotransform, day_projection) = await generate_24_hour_accumulating_precip_raster(current_time)
+    assert day_data is None
+    assert day_geotransform is None
+    assert day_projection is None
 
 
 @pytest.mark.parametrize(
@@ -167,3 +176,13 @@ def test_get_raster_keys_to_diff(timestamp: datetime, expected_yesterday_key, ex
     (yesterday_key, today_key) = get_raster_keys_to_diff(timestamp)
     assert yesterday_key == expected_yesterday_key
     assert today_key == expected_today_key
+
+async def return_none_tuple(timestamp: datetime):
+    return (None, None, None)
+
+
+@patch("app.weather_models.precip_rdps_model.generate_24_hour_accumulating_precip_raster", return_none_tuple)
+@pytest.mark.anyio
+async def test_compute_and_store_precip_rasters_no_today_data_does_not_throw():
+    timestamp = datetime.fromisoformat("2024-06-10T18:42:49+00:00")
+    await compute_and_store_precip_rasters(timestamp)
