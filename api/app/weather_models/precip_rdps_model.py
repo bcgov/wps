@@ -143,7 +143,7 @@ def compute_precip_difference(later_precip: TemporalPrecip, earlier_precip: Temp
 def _diff(value_a: float, value_b: float):
     """
     Subtract value_a from value_b.
-    :param value_a: _description_
+    :param value_a: The first value
     :param value_b: _description_
     :raises ValueError: If difference is less than -0.01 (ie. negative precip not allowed)
     :return: Return value_a minus value_b if the value is >= 0. If the difference is slightly negative (-0.01 <= value < 0), due to floating
