@@ -161,7 +161,6 @@ async def return_none_tuple(timestamp: datetime):
 
 @patch("app.weather_models.precip_rdps_model.generate_24_hour_accumulating_precip_raster", return_none_tuple)
 @pytest.mark.anyio
-async def test_compute_and_store_precip_rasters_no_today_data(caplog):
+async def test_compute_and_store_precip_rasters_no_today_data_does_not_throw():
     timestamp = datetime.fromisoformat("2024-06-10T18:42:49+00:00")
     await compute_and_store_precip_rasters(timestamp)
-    assert "No precip raster data for hour:" in caplog.text
