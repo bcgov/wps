@@ -3,10 +3,6 @@ name: .Poetry_R
 on:
   workflow_call:
     inputs:
-      python_version:
-        description: "Python version to use"
-        required: false
-        default: "3.10.4"
       poetry_command:
         description: poetry command to run
         required: true
@@ -30,6 +26,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
+        python-version: [3.10.4]
         R: ["4.1.2"]
     steps:
       - name: Checkout repo
@@ -42,10 +39,10 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install libgdal-dev wkhtmltopdf libudunits2-dev
 
-      - name: Setup Python ${{ inputs.python_version }} (api)
+      - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ inputs.python_version }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Cache poetry installer
         uses: actions/cache@v4
