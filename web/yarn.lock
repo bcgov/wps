@@ -5991,13 +5991,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-sha256@npm:^0.11.0":
-  version: 0.11.0
-  resolution: "js-sha256@npm:0.11.0"
-  checksum: 10c0/90980fe01ca01fbd166751fb16c4caa09c1ab997e8bf77c0764cc05c772c6044946f4c1b3bad266ce78357280d2131d3dc0cf2dd7646e78272996bd4d590aa4f
-  languageName: node
-  linkType: hard
-
 "js-tokens@npm:^3.0.0 || ^4.0.0, js-tokens@npm:^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
@@ -6187,13 +6180,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"keycloak-js@npm:^25.0.0":
-  version: 25.0.2
-  resolution: "keycloak-js@npm:25.0.2"
-  dependencies:
-    js-sha256: "npm:^0.11.0"
-    jwt-decode: "npm:^4.0.0"
-  checksum: 10c0/5e44f55156e192070e373e5a3565d1196dac7a0a78e60dded887296fd1dcd33d534830e33479fbfe965634a956674629ada1ba88ac946ac3e1d29f403c498ad0
+"keycloak-js@npm:^26.0.0":
+  version: 26.0.0
+  resolution: "keycloak-js@npm:26.0.0"
+  checksum: 10c0/51fbc5ba44b9806c551d8ce74a894b2c9711393fa95172724d14ae5daeff512b4c188dc496c1b836734fa0aa251b3e75628a7f1a60c8c904e71b8bd2e85631a9
   languageName: node
   linkType: hard
 
@@ -9526,7 +9516,7 @@ __metadata:
     globals: "npm:^15.8.0"
     jsdom: "npm:^25.0.0"
     jwt-decode: "npm:^4.0.0"
-    keycloak-js: "npm:^25.0.0"
+    keycloak-js: "npm:^26.0.0"
     leaflet: "npm:^1.7.1"
     lodash: "npm:^4.17.21"
     luxon: "npm:^3.0.2"
