@@ -2,6 +2,8 @@ from enum import Enum
 import logging
 from typing import Tuple
 from osgeo import gdal, ogr, osr
+import numpy as np
+from app.utils.s3 import read_into_memory
 
 
 logger = logging.getLogger(__name__)
@@ -117,3 +119,50 @@ class PointTransformer:
         point = ogr.CreateGeometryFromWkt(f"POINT ({x} {y})")
         point.Transform(self.transform)
         return (point.GetX(), point.GetY())
+
+
+async def generate_latitude_array(raster_path: str):
+    (data_array, geotransform, projection, _) = await read_into_memory(raster_path)
+
+    src_srs = osr.SpatialReference()
+    src_srs.ImportFromWkt(projection)
+
+    y_size, x_size = data_array.shape
+
+    tgt_srs = osr.SpatialReference()
+    tgt_srs.ImportFromEPSG(4326)
+
+    transform = osr.CoordinateTransformation(src_srs, tgt_srs)
+
+    # empty array to store latitude values
+    latitudes = np.zeros((y_size, x_size))
+
+    for y in range(y_size):
+        for x in range(x_size):
+            x_coord = geotransform[0] + x * geotransform[1] + y * geotransform[2]
+            y_coord = geotransform[3] + x * geotransform[4] + y * geotransform[5]
+
+            _, lat, _ = transform.TransformPoint(x_coord, y_coord)
+
+            latitudes[y, x] = lat
+
+    return latitudes
+
+
+def export_to_geotiff(values, output_path, geotransform, projection, nodata_value=None):
+    driver = gdal.GetDriverByName("GTiff")
+    rows, cols = values.shape
+    output_dataset = driver.Create(output_path, cols, rows, 1, gdal.GDT_Float32)
+    output_dataset.SetGeoTransform(geotransform)
+    output_dataset.SetProjection(projection)
+
+    output_band = output_dataset.GetRasterBand(1)
+    output_band.WriteArray(values)
+    if nodata_value is not None:
+        output_band.SetNoDataValue(nodata_value)
+
+    output_band.FlushCache()
+    output_dataset = None
+    del output_dataset
+    output_band = None
+    del output_band

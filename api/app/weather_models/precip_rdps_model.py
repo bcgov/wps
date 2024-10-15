@@ -9,7 +9,7 @@ from app import config
 from numba import vectorize
 from app.utils.s3 import get_client, read_into_memory
 from app.weather_models import ModelEnum
-from app.weather_models.rdps_filename_marshaller import SourcePrefix, adjust_forecast_hour, compose_precip_rdps_key, compose_computed_precip_rdps_key
+from app.weather_models.rdps_filename_marshaller import adjust_forecast_hour, compose_rdps_key, compose_computed_precip_rdps_key
 
 logger = logging.getLogger(__name__)
 
@@ -90,11 +90,11 @@ async def generate_24_hour_accumulating_precip_raster(timestamp: datetime):
     and the date for 24 hours before to compute the difference.
     """
     (yesterday_key, today_key) = get_raster_keys_to_diff(timestamp)
-    (day_data, day_geotransform, day_projection) = await read_into_memory(today_key)
+    (day_data, day_geotransform, day_projection, _) = await read_into_memory(today_key)
     if day_data is None:
         raise ValueError("No precip raster data for today_key: %s" % today_key)
     if yesterday_key is None:
-        return (day_data, day_geotransform, day_projection)
+        return (day_data, day_geotransform, day_projection, _)
 
     yesterday_time = timestamp - timedelta(days=1)
     (yesterday_data, _, _) = await read_into_memory(yesterday_key)
@@ -116,10 +116,10 @@ def get_raster_keys_to_diff(timestamp: datetime):
     # From earlier model run, get the keys for 24 hours before timestamp and the timestamp to perform the diff
     earlier_key = f"{key_prefix}/"
     later_key = f"{key_prefix}/"
-    later_key = later_key + compose_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24)
+    later_key = later_key + compose_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24, "precip")
     if target_model_run_date.hour != 0 and target_model_run_date.hour != 12:
         # not a model run hour, return earlier and later keys to take difference
-        earlier_key = earlier_key + compose_precip_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour)
+        earlier_key = earlier_key + compose_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, "precip")
         return (earlier_key, later_key)
 
     # model run hour, just return the model value from 24 hours ago
