@@ -19,6 +19,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4.14"
+
       - name: Clean up - dev (OCP4)
         shell: bash
         run: |
@@ -49,6 +54,11 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4.14"
 
       - name: Clean up dev database
         shell: bash
