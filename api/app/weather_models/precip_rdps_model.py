@@ -36,6 +36,10 @@ async def compute_and_store_precip_rasters(model_run_timestamp: datetime):
         for hour in range(0, 36):
             accumulation_timestamp = model_run_timestamp + timedelta(hours=hour)
             (precip_diff_raster, geotransform, projection) = await generate_24_hour_accumulating_precip_raster(accumulation_timestamp)
+            if precip_diff_raster is None:
+                # If there is no precip_diff_raster, RDPS precip data is not available. We'll retry the cron job in one hour.
+                logger.warning(f"No precip raster data for hour: {hour} and model run timestamp: {model_run_timestamp.strftime('%Y-%m-%d_%H:%M:%S')}")
+                break
             key = f"weather_models/{ModelEnum.RDPS.lower()}/{accumulation_timestamp.date().isoformat()}/" + compose_computed_precip_rdps_key(
                 accumulation_end_datetime=accumulation_timestamp
             )
@@ -92,7 +96,7 @@ async def generate_24_hour_accumulating_precip_raster(timestamp: datetime):
     (yesterday_key, today_key) = get_raster_keys_to_diff(timestamp)
     (day_data, day_geotransform, day_projection) = await read_into_memory(today_key)
     if day_data is None:
-        raise ValueError("No precip raster data for today_key: %s" % today_key)
+        return (day_data, day_geotransform, day_projection)
     if yesterday_key is None:
         return (day_data, day_geotransform, day_projection)
 
@@ -137,7 +141,18 @@ def compute_precip_difference(later_precip: TemporalPrecip, earlier_precip: Temp
 
 
 def _diff(value_a: float, value_b: float):
-    return value_a - value_b
+    """
+    Subtract value_a from value_b.
+    :param value_a: The first value
+    :param value_b: The second value
+    :raises ValueError: If difference is less than -0.01 (ie. negative precip not allowed)
+    :return: Return value_a minus value_b if the value is >= 0. If the difference is slightly negative (-0.01 <= value < 0), due to floating
+    point math for example, return 0. If the value is truly negative, raise an error.
+    """
+    result = value_a - value_b
+    if result < -0.01:
+        raise ValueError("Precip difference cannot be negative")
+    return result if result > 0 else 0
 
 
 vectorized_diff = vectorize(_diff)
