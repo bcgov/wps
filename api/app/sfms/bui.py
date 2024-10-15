@@ -3,7 +3,7 @@ import logging
 import os
 from tempfile import TemporaryDirectory
 from time import perf_counter
-from datetime import datetime
+from datetime import datetime, timezone
 
 import numpy as np
 from osgeo import gdal
@@ -99,20 +99,24 @@ async def calculate_and_store_dc(
 async def calculate_bui():
     set_s3_gdal_config()
     timestamp = get_utc_now()
-    # timestamp = datetime(2024, 10, 15, 23, tzinfo=timezone.utc)
+    timestamp = datetime(2024, 10, 13, 23, tzinfo=timezone.utc)
 
     fwi_input = FWIInput(timestamp)
-    await fwi_input.check_keys_exist()
 
-    # while fwi_input.s3_keys_exist:
-    dmc_ds, dc_ds = fwi_input.open_fwi_datasets()
-    transformed_temp, transformed_rh, transformed_precip = fwi_input.warp_weather_to_match_fwi(dmc_ds)
+    for _ in range(2):
+        await fwi_input.check_keys_exist()
 
-    latitude_array = await generate_latitude_array(fwi_input.dmc_key)
-    month_array = np.full(latitude_array.shape, fwi_input.start_time_utc.month)
+        if fwi_input.s3_keys_exist:
+            dmc_ds, dc_ds = fwi_input.open_fwi_datasets()
+            transformed_temp, transformed_rh, transformed_precip = fwi_input.warp_weather_to_match_fwi(dmc_ds)
 
-    dmc_key = await calculate_and_store_dmc(fwi_input.datetime_to_calculate_utc, dmc_ds, transformed_temp, transformed_rh, transformed_precip, latitude_array, month_array)
-    dc_key = await calculate_and_store_dc(fwi_input.datetime_to_calculate_utc, dc_ds, transformed_temp, transformed_rh, transformed_precip, latitude_array, month_array)
+            latitude_array = generate_latitude_array(dmc_ds)
+            month_array = np.full(latitude_array.shape, fwi_input.datetime_to_calculate_utc.month)
+
+            dmc_key = await calculate_and_store_dmc(fwi_input.datetime_to_calculate_utc, dmc_ds, transformed_temp, transformed_rh, transformed_precip, latitude_array, month_array)
+            dc_key = await calculate_and_store_dc(fwi_input.datetime_to_calculate_utc, dc_ds, transformed_temp, transformed_rh, transformed_precip, latitude_array, month_array)
+
+            fwi_input.increment_day(dmc_key, dc_key)
 
 
 async def main():

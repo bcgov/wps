@@ -121,13 +121,15 @@ class PointTransformer:
         return (point.GetX(), point.GetY())
 
 
-async def generate_latitude_array(raster_path: str):
-    (data_array, geotransform, projection, _) = await read_into_memory(raster_path)
+def generate_latitude_array(raster_dataset: gdal.Dataset):
+    geotransform = raster_dataset.GetGeoTransform()
+    projection = raster_dataset.GetProjection()
 
     src_srs = osr.SpatialReference()
     src_srs.ImportFromWkt(projection)
 
-    y_size, x_size = data_array.shape
+    x_size = raster_dataset.RasterXSize
+    y_size = raster_dataset.RasterYSize
 
     tgt_srs = osr.SpatialReference()
     tgt_srs.ImportFromEPSG(4326)
