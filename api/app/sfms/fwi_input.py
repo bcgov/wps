@@ -47,18 +47,18 @@ class FWIKeyFetcher:
 
         return dc_key
 
-    def get_weather_data_keys(self, model_start_time_utc: datetime, datetime_to_calculate_utc: datetime, prediction_hour: int):
-        temp_key, rh_key, wind_spd_key = self.get_model_data_keys(model_start_time_utc, prediction_hour)
+    def get_weather_data_keys(self, start_time_utc: datetime, datetime_to_calculate_utc: datetime, prediction_hour: int):
+        temp_key, rh_key, wind_spd_key = self.get_model_data_keys(start_time_utc, prediction_hour)
         precip_key = self.get_calculated_precip_key(datetime_to_calculate_utc)
 
         return temp_key, rh_key, wind_spd_key, precip_key
 
-    def get_model_data_keys(self, model_start_time_utc: datetime, prediction_hour: int):
-        weather_model_prefix = f"weather_models/{ModelEnum.RDPS.lower()}/{model_start_time_utc.date().isoformat()}/"
+    def get_model_data_keys(self, start_time_utc: datetime, prediction_hour: int):
+        weather_model_prefix = f"weather_models/{ModelEnum.RDPS.lower()}/{start_time_utc.date().isoformat()}/"
 
-        temp_key = os.path.join(weather_model_prefix, compose_rdps_key(model_start_time_utc, model_start_time_utc.hour, prediction_hour, "temp"))
-        rh_key = os.path.join(weather_model_prefix, compose_rdps_key(model_start_time_utc, model_start_time_utc.hour, prediction_hour, "rh"))
-        wind_spd_key = os.path.join(weather_model_prefix, compose_rdps_key(model_start_time_utc, model_start_time_utc.hour, prediction_hour, "wind_speed"))
+        temp_key = os.path.join(weather_model_prefix, compose_rdps_key(start_time_utc, start_time_utc.hour, prediction_hour, "temp"))
+        rh_key = os.path.join(weather_model_prefix, compose_rdps_key(start_time_utc, start_time_utc.hour, prediction_hour, "rh"))
+        wind_spd_key = os.path.join(weather_model_prefix, compose_rdps_key(start_time_utc, start_time_utc.hour, prediction_hour, "wind_speed"))
 
         return temp_key, rh_key, wind_spd_key
 
@@ -97,8 +97,9 @@ class FWIInput:
 
     def _set_weather_model_keys(self):
         """Set all weather S3 keys."""
-        self.temp_key, self.rh_key, self.wind_spd_key = self.s3_key_fetcher.get_model_data_keys(self.start_time_utc, self.prediction_hour)
-        self.precip_key = self.s3_key_fetcher.get_calculated_precip_key(self.datetime_to_calculate_utc)
+        self.temp_key, self.rh_key, self.wind_spd_key, self.precip_key = self.s3_key_fetcher.get_weather_data_keys(
+            self.start_time_utc, self.datetime_to_calculate_utc, self.prediction_hour
+        )
 
     def _initialize_fwi_keys(self):
         self.dmc_key = self.s3_key_fetcher.get_previous_dmc_key(self.start_time_utc)
