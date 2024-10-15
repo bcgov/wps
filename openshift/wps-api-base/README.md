@@ -27,5 +27,5 @@ VERSION=<dd-mm-yyyy> oc_build.sh
 VERSION=<dd-mm-yyyy> oc_build.sh apply
 
 # now tag the built image as prod
-oc -n e1e498-tools tag wps-api-base:<dd-mm-yyyy> wps-api-base:ubuntu.22.04-latest
+oc -n e1e498-tools tag wps-api-base:<dd-mm-yyyy> wps-api-base:ubuntu.24.04-latest
 ```
