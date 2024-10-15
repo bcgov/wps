@@ -1,21 +1,19 @@
-""" Code relating to processing high HFI area per fire zone
-"""
+"""Code relating to processing high HFI area per fire zone"""
 
 import logging
 import numpy as np
-import os
-import tempfile
 from datetime import date, datetime
 from osgeo import gdal, ogr, osr
 from time import perf_counter
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import text
+from sqlalchemy import func
 from app import config
 from app.auto_spatial_advisory.common import get_s3_key
 from app.auto_spatial_advisory.run_type import RunType
-from app.db.database import DB_READ_STRING, get_async_write_session_scope
-from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType
+from app.db.database import get_async_write_session_scope
+from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType, Shape
 from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sfms_fuel_types, get_run_parameters_id, store_advisory_fuel_stats
 
 logger = logging.getLogger(__name__)
@@ -57,7 +55,7 @@ def classify_by_threshold(source_data: np.array, threshold: int):
     return classified
 
 
-async def calculate_fuel_type_area_by_shape(session: AsyncSession, temp_dir: str, source_path: str, threshold, run_parameters_id: int, fuel_types: list[SFMSFuelType]):
+async def calculate_fuel_type_area_by_shape(session: AsyncSession, masked_fuel_type_ds: gdal.Dataset, threshold, run_parameters_id: int, fuel_types: list[SFMSFuelType]):
     """
     Process masked fuel type layer with each advisory shape (eg fire zone unit).
 
@@ -67,23 +65,22 @@ async def calculate_fuel_type_area_by_shape(session: AsyncSession, temp_dir: str
     :param run_parameters_id: The RunParameter object id associated with the run_type, for_date and run_datetime of interest.
     :param fuel_types: A list of fuel types used in the sfms system.
     """
-    stmt = text("SELECT id, source_identifier FROM advisory_shapes;")
+    stmt = text("SELECT id, source_identifier FROM public.advisory_shapes;")
     result = await session.execute(stmt)
     rows = result.all()
     for row in rows:
-        shape_fuel_type_path = intersect_raster_by_advisory_shape(threshold, row[0], row[1], source_path, temp_dir)
-        fuel_type_areas = calculate_fuel_type_areas(shape_fuel_type_path, fuel_types)
+        intersected_ds: gdal.Dataset = await intersect_raster_by_advisory_shape(session, threshold, row[0], row[1], masked_fuel_type_ds)
+        fuel_type_areas = calculate_fuel_type_areas(intersected_ds, fuel_types)
         await store_advisory_fuel_stats(session, fuel_type_areas, threshold, run_parameters_id, row[0])
 
 
-def calculate_fuel_type_areas(source_path: str, fuel_types: list[SFMSFuelType]):
+def calculate_fuel_type_areas(source: gdal.Dataset, fuel_types: list[SFMSFuelType]):
     """
     Calculates the ground area of the raster layer at the source_path covered by each fuel type.
 
     :param source_path: The path to a fuel type layer that has been masked based on hfi value and clipped to an advisory shape.
     :param fuel_types: A list of fuel types from the sfms system that may be present in the source_path fuel type layer.
     """
-    source = gdal.Open(source_path, gdal.GA_ReadOnly)
     geotransform = source.GetGeoTransform()
     # Get pixel size (aka resolution). Vertical resolution is negative, so we need the absolute value.
     x_res = geotransform[1]
@@ -100,30 +97,26 @@ def calculate_fuel_type_areas(source_path: str, fuel_types: list[SFMSFuelType]):
     return fuel_type_areas
 
 
-def intersect_raster_by_advisory_shape(threshold: int, advisory_shape_id: int, source_identifier: str, raster_path: str, temp_dir: str):
+async def intersect_raster_by_advisory_shape(session: AsyncSession, threshold: int, advisory_shape_id: int, source_identifier: str, masked_fuel_type_ds: gdal.Dataset):
     """
     Given a raster and a fire shape id, use gdal.Warp to clip out a fire zone from which we can retrieve info.
 
     :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k.
     :param advisory_shape_id: The id of the fire zone (aka advisory_shape object) to clip with.
-    :param source_identifier: The source identifer of the advisory shape.
+    :param source_identifier: The source identifier of the advisory shape.
     :param raster_path: The path to the raster to be clipped.
     :param temp_dir: A temporary location for storing intermediate files.
     """
-    output_path = os.path.join(temp_dir, f"advisory_shape_{source_identifier}_threshold_{threshold}.tif")
+    input_srs = osr.SpatialReference()
+    input_srs.ImportFromWkt(masked_fuel_type_ds.GetProjectionRef())
 
-    raster = gdal.Open(raster_path)
-    tif_prj = raster.GetProjection()
-    tif_srs = osr.SpatialReference(wkt=tif_prj)
-    raster = None
-
-    advisory_shape = get_advisory_shape(advisory_shape_id, temp_dir, tif_srs)
-    warp_options = gdal.WarpOptions(format="GTiff", cutlineDSName=advisory_shape, cropToCutline=True)
-    gdal.Warp(output_path, raster_path, options=warp_options)
-    return output_path
+    advisory_shape_wkt = await get_advisory_shape(session, advisory_shape_id, input_srs)
+    warp_options = gdal.WarpOptions(cutlineWKT=advisory_shape_wkt, cropToCutline=True)
+    intersect_ds = gdal.Warp(f"/vsimem/intersect_{source_identifier}_{threshold}.tif", masked_fuel_type_ds, options=warp_options)
+    return intersect_ds
 
 
-def get_advisory_shape(advisory_shape_id: int, out_dir: str, projection: osr.SpatialReference) -> str:
+async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, projection: osr.SpatialReference) -> ogr.Geometry:
     """
     Get advisory_shape from database and store it (typically temporarily) in the specified projection for raster
     intersection. The advisory_shape layer returned by ExecuteSQL must be stored somewhere and can't simply be returned
@@ -138,39 +131,25 @@ def get_advisory_shape(advisory_shape_id: int, out_dir: str, projection: osr.Spa
     :return: path to stored advisory shape
     :rtype: str
     """
-    data_source = ogr.Open(DB_READ_STRING)
-    sql = f'SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}'
-    advisory_layer = data_source.ExecuteSQL(sql)
 
-    advisory_shape = reproject_ogr_layer(advisory_layer, out_dir, projection)
+    stmt = select(func.ST_AsText(Shape.geom)).where(Shape.id == advisory_shape_id)
+    result = await session.execute(stmt)
+    wkt_geom = result.scalar()
+    geometry: ogr.Geometry = ogr.CreateGeometryFromWkt(wkt_geom)
+    source_srs = osr.SpatialReference()
+    source_srs.ImportFromEPSG(3005)
 
-    data_source = None
+    # Set the spatial reference for the geometry
+    geometry.AssignSpatialReference(source_srs)
 
-    return advisory_shape
+    # Perform the transformation
+    transform = osr.CoordinateTransformation(geometry.GetSpatialReference(), projection)
+    geometry.Transform(transform)
 
-
-def reproject_ogr_layer(layer: ogr.Layer, out_dir: str, to_projection: osr.SpatialReference) -> str:
-    layer_srs = layer.GetSpatialRef()
-    coordinate_transform = osr.CoordinateTransformation(layer_srs, to_projection)
-
-    output_path = f'/{out_dir}/reprojected.gpkg'
-    reprojected_ds = ogr.GetDriverByName('GPKG').CreateDataSource(output_path)
-    reprojected_layer = reprojected_ds.CreateLayer('reprojected', srs=to_projection)
-
-    for feature in layer:
-        geometry = feature.GetGeometryRef()
-        geometry.Transform(coordinate_transform)
-        new_feature = ogr.Feature(reprojected_layer.GetLayerDefn())
-        new_feature.SetGeometry(geometry)
-        reprojected_layer.CreateFeature(new_feature)
-        new_feature = None
-
-    reprojected_ds = None
-
-    return output_path
+    return geometry
 
 
-def create_masked_fuel_type_tif(masked_fuel_type_data: list[list[float]], temp_dir: str, threshold: int, geotransform: list[float], projection: str, x_size: int, y_size: int):
+def create_masked_fuel_type_tif(masked_fuel_type_data: list[list[float]], threshold: int, geotransform: list[float], projection: str, x_size: int, y_size: int):
     """
     Creates a new raster (a GeoTiff) file using the provided data and parameters.
 
@@ -182,16 +161,14 @@ def create_masked_fuel_type_tif(masked_fuel_type_data: list[list[float]], temp_d
     :param x_size: The number of pixels in the x direction.
     :param y_size: The number of pixels in the y direction.
     """
-    output_driver = gdal.GetDriverByName("GTiff")
-    masked_fuel_type_path = os.path.join(temp_dir, f"masked_fuel_type_{threshold}.tif")
-    masked_fuel_type = output_driver.Create(masked_fuel_type_path, xsize=x_size, ysize=y_size, bands=1, eType=gdal.GDT_Int16)
+    output_driver: gdal.Driver = gdal.GetDriverByName("MEM")
+    masked_fuel_type: gdal.Dataset = output_driver.Create(f"/vsimem/masked_fuel_type_{threshold}.tif", xsize=x_size, ysize=y_size, bands=1, eType=gdal.GDT_Int16)
     masked_fuel_type.SetGeoTransform(geotransform)
     masked_fuel_type.SetProjection(projection)
-    masked_fuel_type_band = masked_fuel_type.GetRasterBand(1)
+    masked_fuel_type_band: gdal.Band = masked_fuel_type.GetRasterBand(1)
     masked_fuel_type_band.SetNoDataValue(0)
     masked_fuel_type_band.WriteArray(masked_fuel_type_data)
-    masked_fuel_type = None
-    return masked_fuel_type_path
+    return masked_fuel_type
 
 
 async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: datetime, for_date: date):
@@ -236,13 +213,11 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         hfi_raster = gdal.Open(hfi_key, gdal.GA_ReadOnly)
         hfi_data = hfi_raster.GetRasterBand(1).ReadAsArray()
 
-
         # Retrieve the fuel type raster from s3 storage.
         fuel_type_key = get_fuel_type_s3_key(config.get("OBJECT_STORE_BUCKET"))
         fuel_type_raster = gdal.Open(fuel_type_key, gdal.GA_ReadOnly)
         fuel_type_band = fuel_type_raster.GetRasterBand(1)
         fuel_type_data = fuel_type_band.ReadAsArray()
-
 
         # Properties useful for creating a new GeoTiff
         geotransform = fuel_type_raster.GetGeoTransform()
@@ -253,13 +228,11 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         thresholds = await get_all_hfi_thresholds(session)
         fuel_types = await get_all_sfms_fuel_types(session)
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            
-            for threshold in thresholds:
-                classified_hfi_data = classify_by_threshold(hfi_data, threshold.id)
-                masked_fuel_type_data = np.multiply(fuel_type_data, classified_hfi_data)
-                masked_fuel_type_path = create_masked_fuel_type_tif(masked_fuel_type_data, temp_dir, threshold.id, geotransform, projection, x_size, y_size)
-                await calculate_fuel_type_area_by_shape(session, temp_dir, masked_fuel_type_path, threshold.id, run_parameters_id, fuel_types)
+        for threshold in thresholds:
+            classified_hfi_data = classify_by_threshold(hfi_data, threshold.id)
+            masked_fuel_type_data = np.multiply(fuel_type_data, classified_hfi_data)
+            masked_fuel_type_ds = create_masked_fuel_type_tif(masked_fuel_type_data, threshold.id, geotransform, projection, x_size, y_size)
+            await calculate_fuel_type_area_by_shape(session, masked_fuel_type_ds, threshold.id, run_parameters_id, fuel_types)
     # Clean up open gdal objects
     hfi_raster = None
     fuel_type_raster = None

@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:ubuntu.22.04-latest
+ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:02-10-2024
 # To build locally, point to a local base image you've already built (see openshift/wps-api-base)
 # e.g. : docker build --build-arg DOCKER_IMAGE=wps-api-base:my-tag .
 
@@ -7,8 +7,8 @@ FROM ${DOCKER_IMAGE} AS builder
 
 # We don't want to run our app as root, so we define a worker user.
 ARG USERNAME=worker
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG USER_UID=1010
+ARG USER_GID=1000
 
 # Switch to root
 USER 0
@@ -23,23 +23,23 @@ USER $USERNAME
 
 WORKDIR /app
 
-# Make sure we have the latest pip.
-RUN python -m pip install --upgrade pip
 # Copy poetry files.
-COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
+COPY --chown=$USERNAME:$USER_GID ./api/pyproject.toml ./api/poetry.lock /app/
 
 # Install dependencies.
 RUN poetry install --without dev
+
+RUN poetry run python -m pip install -U setuptools wheel
 # Get a python binding for gdal that matches the version of gdal we have installed.
-RUN poetry run python -m pip install gdal==$(gdal-config --version)
+RUN poetry run python -m pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
 
 # Stage 2: Preapre the final image, inclusing copying Python packages from Stage 1.
 FROM ${DOCKER_IMAGE}
 
 # We don't want to run our app as root, so we define a worker user.
 ARG USERNAME=worker
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG USER_UID=1010
+ARG USER_GID=1000
 
 # Switch to root
 USER 0
@@ -50,7 +50,7 @@ RUN chown "$USERNAME" /app
 WORKDIR /app
 
 # Copy poetry files.
-COPY --from=builder --chown=$USERNAME:$USERNAME /app/pyproject.toml /app/poetry.lock /app/
+COPY --from=builder --chown=$USERNAME:$USER_GID /app/pyproject.toml /app/poetry.lock /app/
 
 # Switch back to our non-root user
 USER $USERNAME

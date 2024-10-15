@@ -41,7 +41,7 @@ parameters:
     value: 3800Mi
   - name: MEMORY_LIMIT
     required: true
-    value: 5000Mi
+    value: 6000Mi
 
 objects:
   - apiVersion: v1
@@ -283,7 +283,7 @@ objects:
                   cpu: "250m"
                   memory: ${MEMORY_REQUEST}
                 limits:
-                  cpu: "500m"
+                  cpu: "3000m"
                   memory: ${MEMORY_LIMIT}
               command:
                 [

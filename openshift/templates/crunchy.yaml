@@ -152,7 +152,7 @@ objects:
           config:
             global:
               pool_mode: transaction
-              ignore_startup_parameters: options
+              ignore_startup_parameters: options, extra_float_digits
               max_prepared_statements: "10"
               max_client_conn: "1000"
           port: 5432
