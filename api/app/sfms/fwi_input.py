@@ -92,26 +92,26 @@ class FWIInput:
 
         self.s3_key_fetcher = FWIKeyFetcher(BUCKET)
 
-        self.dmc_key = self.s3_key_fetcher.get_previous_dmc_key(self.start_time_utc)
-        self.dc_key = self.s3_key_fetcher.get_previous_dc_key(self.start_time_utc)
+        self._initialize_fwi_keys()
+        self._set_weather_model_keys()
+
+    def _set_weather_model_keys(self):
+        """Set all weather S3 keys."""
         self.temp_key, self.rh_key, self.wind_spd_key = self.s3_key_fetcher.get_model_data_keys(self.start_time_utc, self.prediction_hour)
         self.precip_key = self.s3_key_fetcher.get_calculated_precip_key(self.datetime_to_calculate_utc)
 
-    # def update_weather_model_keys(self):
-    #     """Update all weather S3 keys."""
-    #     weather_model_prefix = f"weather_models/{ModelEnum.RDPS.lower()}/{self.model_start_time_utc.date().isoformat()}/"
-    #     calculated_weather_prefix = f"weather_models/{ModelEnum.RDPS.lower()}/{self.datetime_to_calculate_utc.date().isoformat()}/"
-    #     self.temp_key = os.path.join(weather_model_prefix, compose_rdps_key(self.model_start_time_utc, self.model_start_time_utc.hour, self.prediction_hour, "temp"))
-    #     self.rh_key = os.path.join(weather_model_prefix, compose_rdps_key(self.model_start_time_utc, self.model_start_time_utc.hour, self.prediction_hour, "rh"))
-    #     self.wind_spd_key = os.path.join(weather_model_prefix, compose_rdps_key(self.model_start_time_utc, self.model_start_time_utc.hour, self.prediction_hour, "wind_speed"))
-    #     self.precip_key = os.path.join(calculated_weather_prefix, compose_computed_precip_rdps_key(self.datetime_to_calculate_utc))
+    def _initialize_fwi_keys(self):
+        self.dmc_key = self.s3_key_fetcher.get_previous_dmc_key(self.start_time_utc)
+        self.dc_key = self.s3_key_fetcher.get_previous_dc_key(self.start_time_utc)
 
-    # def iterate_day(self, previously_calculated_fwi: str):
-    #     """Move to the next day and update keys accordingly."""
-    #     self.datetime_to_calculate_utc += timedelta(days=1)
-    #     self.prediction_hour += 24
-    #     self.update_weather_model_keys()
-    #     self.dmc_key = previously_calculated_fwi
+    def increment_day(self, previously_calculated_dmc: str, previously_calculated_dc: str):
+        """Move to the next day and update keys accordingly."""
+        self.dmc_key = previously_calculated_dmc
+        self.dc_key = previously_calculated_dc
+
+        self.datetime_to_calculate_utc += timedelta(days=1)
+        self.prediction_hour += 24
+        self._set_weather_model_keys()
 
     async def check_keys_exist(self):
         """Asynchronously check if all keys exist."""
