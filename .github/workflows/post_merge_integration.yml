@@ -20,7 +20,7 @@ jobs:
         # cffdrs requires libudunits2-dev
         run: |
           sudo apt-get update
-          sudo apt-get -y install libgdal-dev libudunits2-dev r-base-dev libproj-dev libgeos-dev libsqlite3-dev
+          sudo apt-get -y install libudunits2-dev r-base-dev libgdal-dev libproj-dev libgeos-dev libsqlite3-dev libtirpc-dev
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v5
         with:
