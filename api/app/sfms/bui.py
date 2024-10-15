@@ -3,7 +3,7 @@ import logging
 import os
 from tempfile import TemporaryDirectory
 from time import perf_counter
-from datetime import timezone, datetime
+from datetime import datetime
 
 import numpy as np
 from osgeo import gdal
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 def replace_nodata_with_zero(dataset: gdal.Dataset):
     """Reads the first band of a dataset, replaces NoData values with 0, returns the array and the nodata value."""
-    band = dataset.GetRasterBand(1)
+    band: gdal.Band = dataset.GetRasterBand(1)
     nodata_value = band.GetNoDataValue()
     array = band.ReadAsArray()
 
@@ -77,7 +77,7 @@ async def calculate_and_store_dc(
 
         start = perf_counter()
         dmc_values = vectorized_dc(dmc_array, temp_array, rh_array, precip_array, latitude, month, True)
-        print(perf_counter() - start)
+        logger.info("%f seconds to calculate vectorized dc", perf_counter() - start)
 
         if dmc_nodata_value is not None:
             nodata_mask = dc_ds.GetRasterBand(1).ReadAsArray() == dmc_nodata_value
