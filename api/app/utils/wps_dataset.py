@@ -9,12 +9,12 @@ class WPSDataset:
     A wrapper around gdal datasets for common operations
     """
 
-    def __init__(self, ds_path: str, band=1, chunk_size=256, size=gdal.GDT_Byte):
+    def __init__(self, ds_path: str, band=1, chunk_size=256, datatype=gdal.GDT_Byte):
         self.ds = None
         self.ds_path = ds_path
         self.band = band
         self.chunk_size = chunk_size
-        self.size = size
+        self.datatype = datatype
 
     def __enter__(self):
         self.ds: gdal.Dataset = gdal.Open(self.ds_path)
@@ -45,7 +45,7 @@ class WPSDataset:
 
         # Create the output raster
         driver: gdal.Driver = gdal.GetDriverByName("MEM")
-        out_ds: gdal.Dataset = driver.Create("memory", x_size, y_size, 1, self.size)
+        out_ds: gdal.Dataset = driver.Create("memory", x_size, y_size, 1, self.datatype)
 
         # Set the geotransform and projection
         out_ds.SetGeoTransform(geotransform)
@@ -166,7 +166,7 @@ class WPSDataset:
         array = band.ReadAsArray()
 
         rows, cols = array.shape
-        output_dataset: gdal.Dataset = driver.Create(output_path, cols, rows, 1, self.size)
+        output_dataset: gdal.Dataset = driver.Create(output_path, cols, rows, 1, self.datatype)
         output_dataset.SetGeoTransform(geotransform)
         output_dataset.SetProjection(projection)
 
