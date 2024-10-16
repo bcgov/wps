@@ -47,15 +47,7 @@ from app.wildfire_one.wildfire_fetchers import (
     fetch_stations_by_group_id,
 )
 
-
 logger = logging.getLogger(__name__)
-
-
-def use_wfwx():
-    """Return True if configured to use WFWX"""
-    using_wfwx = config.get("USE_WFWX", "True") == "True"
-    logger.info("USE_WFWX = %s", using_wfwx)
-    return using_wfwx
 
 
 async def get_auth_header(session: ClientSession) -> dict:

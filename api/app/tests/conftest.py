@@ -42,7 +42,6 @@ def anyio_backend():
 def mock_env(monkeypatch):
     """Automatically mock environment variable"""
     monkeypatch.setenv("BASE_URI", "https://python-test-base-uri")
-    monkeypatch.setenv("USE_WFWX", "False")
     monkeypatch.setenv("WFWX_USER", "user")
     monkeypatch.setenv("WFWX_SECRET", "secret")
     monkeypatch.setenv("WFWX_AUTH_URL", "https://wf1/pub/oauth2/v1/oauth/token")

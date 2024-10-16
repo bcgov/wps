@@ -5,11 +5,13 @@ import json
 import importlib
 import logging
 import pytest
+from aiohttp import ClientSession
 from pytest_bdd import scenario, given, then, when, parsers
 from fastapi.testclient import TestClient
 import app.main
-from app.tests import load_sqlalchemy_response_from_json
-from app.tests import load_json_file
+from app.tests import load_json_file, load_sqlalchemy_response_from_json
+from app.tests.common import default_mock_client_get
+from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
 
 logger = logging.getLogger(__name__)
@@ -48,8 +50,16 @@ def given_a_database(monkeypatch, crud_mapping: dict):
 
 
 @when(parsers.parse("I call {endpoint} with {codes}"), converters={'endpoint': str, 'codes': json.loads})
-def when_prediction(database: dict, codes: str, endpoint: str):
+def when_prediction(database: dict, codes: str, endpoint: str, monkeypatch: pytest.MonkeyPatch):
     """ Make call to endpoint """
+
+    def mock_admin_role_function(*_, **__):
+        return MockJWTDecodeWithRole("morecast2_write_forecast")
+
+    decode_fn = "jwt.decode"
+    monkeypatch.setattr(decode_fn, mock_admin_role_function)
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+
     client = TestClient(app.main.app)
     response = client.post(
         endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': codes})

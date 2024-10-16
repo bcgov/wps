@@ -1,0 +1,156 @@
+{
+    "_embedded": {
+        "stations": [
+            {
+                "id": "bfe0a6e2-e10a-0210-e053-259e228e58c7",
+                "displayLabel": "TS EFFINGHAM",
+                "createdBy": "LEGACY_DATA_LOAD",
+                "lastModifiedBy": "WFWX_WEATHER_API",
+                "lastEntityUpdateTimestamp": 1729031486917,
+                "updateDate": "2024-10-15T22:31:26.000+0000",
+                "stationCode": 956,
+                "stationAcronym": "FEH",
+                "stationStatus": {
+                    "id": "ACTIVE",
+                    "displayLabel": "Active",
+                    "displayOrder": 1,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000"
+                },
+                "dataSource": {
+                    "id": "AUTO_CALLR",
+                    "displayLabel": "Auto-Caller",
+                    "displayOrder": 1,
+                    "effectiveDate": "1950-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "createdDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD",
+                    "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+                },
+                "dataLoggerType": {
+                    "id": "FWS12S",
+                    "displayLabel": "FWS12S",
+                    "displayOrder": 6,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "createdDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD",
+                    "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+                },
+                "siteType": {
+                    "id": "WXSTN_GOES",
+                    "displayLabel": "Weather Station - GOES",
+                    "displayOrder": 5,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "createdDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD",
+                    "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+                },
+                "weatherZone": {
+                    "id": 1,
+                    "displayLabel": "Zone 1",
+                    "dangerRegion": 1,
+                    "displayOrder": 1
+                },
+                "stationAccessTypeCode": {
+                    "id": "AIR",
+                    "displayLabel": "Helicopter",
+                    "displayOrder": 2,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "createdDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD",
+                    "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+                },
+                "hourly": true,
+                "pluvioSnowGuage": false,
+                "latitude": 49.17,
+                "longitude": -125.2825,
+                "geometry": {
+                    "crs": {
+                        "type": "name",
+                        "properties": {
+                            "name": "EPSG:4326"
+                        }
+                    },
+                    "coordinates": [
+                        -125.2825,
+                        49.17
+                    ],
+                    "type": "Point"
+                },
+                "elevation": 632,
+                "windspeedAdjRoughness": null,
+                "windspeedHeight": {
+                    "id": "9.0_11.9",
+                    "displayLabel": "9.0 - 11.9 (m)",
+                    "displayOrder": 7,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "createdDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD",
+                    "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+                },
+                "surfaceType": null,
+                "overWinterPrecipAdj": false,
+                "influencingSlope": 20,
+                "installationDate": 1162191600000,
+                "decommissionDate": null,
+                "influencingAspect": null,
+                "owner": {
+                    "id": "a9843bb7-0f44-4a80-8a62-79cca2a5c758",
+                    "displayLabel": "BC Wildfire Service",
+                    "displayOrder": 2,
+                    "ownerName": "BCWS",
+                    "ownerDisplayName": "BC Wildfire Service",
+                    "ownerComment": null,
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATAFIX - WFWX-891",
+                    "effectiveDate": "1950-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000"
+                },
+                "fireCentre": {
+                    "id": 50,
+                    "displayLabel": "Coastal Fire Centre",
+                    "alias": 2,
+                    "expiryDate": "9999-12-31T08:00:00.000+0000"
+                },
+                "zone": {
+                    "id": 55,
+                    "displayLabel": "Mid Island Zone",
+                    "alias": 7,
+                    "fireCentre": "Coastal Fire Centre",
+                    "fireCentreAlias": 2,
+                    "expiryDate": "9999-12-31T08:00:00.000+0000"
+                },
+                "comments": "1st Daily 20061031; 026 New station for BCTS SoG",
+                "ecccFileBaseUrlTemplate": null,
+                "lastProcessedSourceTime": "2024-10-15T15:31:26",
+                "crdStationName": null,
+                "stationAccessDescription": "Confirmed 2024: Last 2 kms of spur road is completely overgrown and has sections of rock slide. Site is now a heli fly in only. Old: Take Highway 4 West from Port Alberni for approx. 45km to Marion Main.  Keep to main for approx 10km to site on left around switchback.",
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/bfe0a6e2-e10a-0210-e053-259e228e58c7"
+                    }
+                }
+            }
+        ]
+    },
+    "_links": {
+        "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1stations/rsql?query=stationCode%3D%3D956"
+        }
+    },
+    "page": {
+        "size": 1000,
+        "totalElements": 1,
+        "totalPages": 1,
+        "number": 0
+    }
+}

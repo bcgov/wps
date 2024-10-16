@@ -6,7 +6,6 @@ Feature: /noon_forecasts/summaries/
         And and contain calculated percentiles for available stations <codes>
         Examples:
             | codes      | status | num_summaries |
-            | []         | 200    | 0             |
             | [999]      | 200    | 0             |
             | [322]      | 200    | 1             |
-            | [209, 322] | 200    | 2             |
+            | [322, 838] | 200    | 2             |
