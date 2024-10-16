@@ -22,7 +22,7 @@ import {
   PERCENTILE_CALC_NAME,
   PERCENTILE_CALC_ROUTE,
   MORE_CAST_2_NAME,
-  MORE_CAST_2_ROUTE
+  MORECAST_ROUTE
 } from 'utils/constants'
 
 const ICON_FONT_SIZE = 'large'
@@ -88,7 +88,7 @@ export const hfiCalcInfo: ToolInfo = {
 
 export const moreCast2Info: ToolInfo = {
   name: MORE_CAST_2_NAME,
-  route: MORE_CAST_2_ROUTE,
+  route: MORECAST_ROUTE,
   description: (
     <Typography>
       A system that enhances how the predictive services team creates weather forecasts and integrates this information
