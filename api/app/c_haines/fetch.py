@@ -1,5 +1,5 @@
-""" Fetch c-haines geojson
-"""
+"""Fetch c-haines geojson"""
+
 from io import StringIO
 from datetime import datetime, timedelta, timezone
 from typing import Iterator, Tuple
@@ -9,8 +9,7 @@ import logging
 
 from app import config
 from app.utils.s3 import get_client
-from app.c_haines.kml import (get_look_at,
-                              get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
+from app.c_haines.kml import get_look_at, get_kml_header, FOLDER_OPEN, FOLDER_CLOSE
 from app.c_haines.object_store import ObjectTypeEnum, generate_object_store_model_run_path
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum
@@ -19,20 +18,20 @@ logger = logging.getLogger(__name__)
 
 
 async def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
-    """ Yield model run XML.
+    """Yield model run XML.
     Yielding allows streaming response to start while kml is being constructed.
     The KML we're making is essentially a list of network links for each prediction.
     """
     # We need to pass the API's url in, so that the KML know where to ask for network links.
-    uri = config.get('BASE_URI')
+    uri = config.get("BASE_URI")
     # Starting serving up the kml.
     yield get_kml_header()
     # Serve up the "look_at" which tells google earth when and where to take you.
-    yield get_look_at(model, model_run_timestamp)
+    yield get_look_at(model.value, model_run_timestamp)
     # Serve up model folder and model run folder.
-    yield f"<name>{model} {model_run_timestamp}</name>\n"
-    yield '<Folder>'  # Open model run folder.
-    yield f'<name>{model} {model_run_timestamp} model run</name>\n'
+    yield f"<name>{model.value} {model_run_timestamp}</name>\n"
+    yield "<Folder>"  # Open model run folder.
+    yield f"<name>{model.value} {model_run_timestamp} model run</name>\n"
 
     # Get an async S3 client.
     async with get_client() as (client, bucket):
@@ -41,65 +40,62 @@ async def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: da
         # List all files in folder (e.g. list all the prediction kml files).
         predictions = await client.list_objects_v2(Bucket=bucket, Prefix=model_run_path)
         # File listing is in the "Contents" entry.
-        if 'Contents' in predictions:
+        if "Contents" in predictions:
             # Iterate through each entry.
-            for prediction in predictions['Contents']:
+            for prediction in predictions["Contents"]:
                 # Filename is in the "Key" entry.
-                object_name = prediction['Key']
+                object_name = prediction["Key"]
                 # Infer timestamp from filename.
-                prediction_timestamp = object_name.split('/')[-1].split('.')[0]
+                prediction_timestamp = object_name.split("/")[-1].split(".")[0]
                 # Construct params for URL.
-                kml_params = {'model_run_timestamp': model_run_timestamp,
-                              'prediction_timestamp': prediction_timestamp,
-                              'response_format': 'KML'}
+                kml_params = {"model_run_timestamp": model_run_timestamp, "prediction_timestamp": prediction_timestamp, "response_format": "KML"}
                 # Create url (remembering to escape & for xml)
-                kml_url = urljoin(uri, f'/api/c-haines/{model}/prediction') + \
-                    '?' + urlencode(kml_params).replace('&', '&amp;')
-                yield '<NetworkLink>\n'
-                yield '<visibility>1</visibility>\n'
-                yield f'<name>{prediction_timestamp}</name>\n'
-                yield '<Link>\n'
-                yield f'<href>{kml_url}</href>\n'
-                yield '</Link>\n'
-                yield '</NetworkLink>\n'
+                kml_url = urljoin(uri, f"/api/c-haines/{model.value}/prediction") + "?" + urlencode(kml_params).replace("&", "&amp;")
+                yield "<NetworkLink>\n"
+                yield "<visibility>1</visibility>\n"
+                yield f"<name>{prediction_timestamp}</name>\n"
+                yield "<Link>\n"
+                yield f"<href>{kml_url}</href>\n"
+                yield "</Link>\n"
+                yield "</NetworkLink>\n"
 
-        yield '</Folder>'  # Close model run folder.
+        yield "</Folder>"  # Close model run folder.
         # Close the KML document.
-        yield '</Document>\n'
-        yield '</kml>\n'
-        logger.info('kml complete')
+        yield "</Document>\n"
+        yield "</kml>\n"
+        logger.info("kml complete")
 
 
 def fetch_network_link_kml() -> str:
-    """ Fetch the kml for the network link """
-    uri = config.get('BASE_URI')
+    """Fetch the kml for the network link"""
+    uri = config.get("BASE_URI")
     writer = StringIO()
     writer.write('<?xml version="1.0" encoding="UTF-8"?>\n')
     writer.write('<kml xmlns="http://www.opengis.net/kml/2.2">\n')
-    writer.write(f'{FOLDER_OPEN}\n')
-    writer.write('<name>C-Haines</name>\n')
+    writer.write(f"{FOLDER_OPEN}\n")
+    writer.write("<name>C-Haines</name>\n")
     visibility = 1
-    for model in ['HRDPS', 'RDPS', 'GDPS']:
-        kml_url = urljoin(uri, f'/api/c-haines/{model}/predictions?response_format=KML')
-        writer.write('<NetworkLink>\n')
+    for model in ["HRDPS", "RDPS", "GDPS"]:
+        kml_url = urljoin(uri, f"/api/c-haines/{model}/predictions?response_format=KML")
+        writer.write("<NetworkLink>\n")
         # we make the 1st one visible.
-        writer.write(f'<visibility>{visibility}</visibility>\n')
-        writer.write(f'<name>{model}</name>\n')
-        writer.write('<Link>\n')
-        writer.write(f'<href>{kml_url}</href>\n')
-        writer.write('</Link>\n')
-        writer.write('</NetworkLink>\n')
+        writer.write(f"<visibility>{visibility}</visibility>\n")
+        writer.write(f"<name>{model}</name>\n")
+        writer.write("<Link>\n")
+        writer.write(f"<href>{kml_url}</href>\n")
+        writer.write("</Link>\n")
+        writer.write("</NetworkLink>\n")
         visibility = 0
-    writer.write(f'{FOLDER_CLOSE}\n')
-    writer.write('</kml>')
+    writer.write(f"{FOLDER_CLOSE}\n")
+    writer.write("</kml>")
     return writer.getvalue()
 
 
 def extract_model_run_prediction_from_path(prediction_path: str) -> Tuple[str, datetime, datetime]:
-    """ Extract model abbreviation, model run timestamp and prediction timestamp from prediction path """
-    name_split = prediction_path.strip('/').split('/')
+    """Extract model abbreviation, model run timestamp and prediction timestamp from prediction path"""
+    name_split = prediction_path.strip("/").split("/")
 
-    prediction_timestamp = datetime.fromisoformat(name_split[-1].rstrip('.json')+'+00:00')
+    prediction_timestamp = datetime.fromisoformat(name_split[-1].rstrip(".json") + "+00:00")
 
     hour = int(name_split[-2])
     day = int(name_split[-3])
@@ -113,8 +109,8 @@ def extract_model_run_prediction_from_path(prediction_path: str) -> Tuple[str, d
 
 
 def extract_model_run_timestamp_from_path(model_run_path: str) -> datetime:
-    """ Take the model run path, and get back the model run datetime """
-    name_split = model_run_path.strip('/').split('/')
+    """Take the model run path, and get back the model run datetime"""
+    name_split = model_run_path.strip("/").split("/")
     hour = int(name_split[-1])
     day = int(name_split[-2])
     month = int(name_split[-3])
@@ -123,13 +119,13 @@ def extract_model_run_timestamp_from_path(model_run_path: str) -> datetime:
 
 
 def extract_model_from_path(model_run_path: str) -> str:
-    """ Take the model run path, and get back the model abbreviation """
-    name_split = model_run_path.strip('/').split('/')
+    """Take the model run path, and get back the model abbreviation"""
+    name_split = model_run_path.strip("/").split("/")
     return name_split[-5]
 
 
 async def fetch_model_runs(model_run_timestamp: datetime):
-    """ Fetch recent model runs."""
+    """Fetch recent model runs."""
     # NOTE: This is a horribly inefficient way of listing model runs - we're making 6 calls just to
     # list model runs.
     result = CHainesModelRuns(model_runs=[])
@@ -139,31 +135,28 @@ async def fetch_model_runs(model_run_timestamp: datetime):
         tasks = []
         # Iterate for date of interest and day before. If you only look for today, you may have an empty
         # list until the latest model runs come in, so better to also list data from the day before.
-        for date in [model_run_timestamp, model_run_timestamp-timedelta(days=1)]:
+        for date in [model_run_timestamp, model_run_timestamp - timedelta(days=1)]:
             # We're interested in all the model runs.
-            for model in ['GDPS', 'RDPS', 'HRDPS']:
+            for model in ["GDPS", "RDPS", "HRDPS"]:
                 # Construct a prefix to search for in S3 (basically path matching).
-                prefix = f'c-haines-polygons/json/{model}/{date.year}/{date.month}/{date.day}/'
+                prefix = f"c-haines-polygons/json/{model}/{date.year}/{date.month}/{date.day}/"
                 logger.info(prefix)
                 # Create the task to go and fetch the listing from S3.
-                tasks.append(asyncio.create_task(client.list_objects_v2(
-                    Bucket=bucket,
-                    Prefix=prefix)))
+                tasks.append(asyncio.create_task(client.list_objects_v2(Bucket=bucket, Prefix=prefix)))
 
         # Run all the tasks at once. (Basically listing folder contents on S3.)
         model_run_prediction_results = await asyncio.gather(*tasks)
         # Iterate through results.
         for prediction_result in model_run_prediction_results:
             # S3 data comes back as a dictionary with "Contents"
-            if 'Contents' in prediction_result:
+            if "Contents" in prediction_result:
                 model_run_predictions = None
                 prev_model_run_timestamp = None
                 # Iterate through all the contents.
-                for prediction in prediction_result['Contents']:
+                for prediction in prediction_result["Contents"]:
                     # The path is stored in the "Key" field. We infer the model, model run timestamp and
                     # prediction timestamp from the path.
-                    model, model_run_timestamp, prediction_timestamp = extract_model_run_prediction_from_path(
-                        prediction['Key'])
+                    model, model_run_timestamp, prediction_timestamp = extract_model_run_prediction_from_path(prediction["Key"])
                     # Check for new model runs to add to our list.
                     if prev_model_run_timestamp != model_run_timestamp:
                         # New model run? Make it and add it to the list.
@@ -171,7 +164,10 @@ async def fetch_model_runs(model_run_timestamp: datetime):
                         model_run_predictions = CHainesModelRunPredictions(
                             model=WeatherPredictionModel(name=model, abbrev=model),
                             model_run_timestamp=model_run_timestamp,
-                            prediction_timestamps=[prediction_timestamp, ])
+                            prediction_timestamps=[
+                                prediction_timestamp,
+                            ],
+                        )
                         result.model_runs.append(model_run_predictions)
                     else:
                         # Already have a model run, just at the prediction

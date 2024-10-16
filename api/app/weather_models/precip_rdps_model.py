@@ -141,7 +141,18 @@ def compute_precip_difference(later_precip: TemporalPrecip, earlier_precip: Temp
 
 
 def _diff(value_a: float, value_b: float):
-    return value_a - value_b
+    """
+    Subtract value_a from value_b.
+    :param value_a: The first value
+    :param value_b: The second value
+    :raises ValueError: If difference is less than -0.01 (ie. negative precip not allowed)
+    :return: Return value_a minus value_b if the value is >= 0. If the difference is slightly negative (-0.01 <= value < 0), due to floating
+    point math for example, return 0. If the value is truly negative, raise an error.
+    """
+    result = value_a - value_b
+    if result < -0.01:
+        raise ValueError("Precip difference cannot be negative")
+    return result if result > 0 else 0
 
 
 vectorized_diff = vectorize(_diff)
