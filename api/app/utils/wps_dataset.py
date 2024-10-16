@@ -1,3 +1,4 @@
+from typing import Optional
 from osgeo import gdal, osr
 import numpy as np
 
@@ -9,15 +10,16 @@ class WPSDataset:
     A wrapper around gdal datasets for common operations
     """
 
-    def __init__(self, ds_path: str, band=1, chunk_size=256, datatype=gdal.GDT_Byte):
-        self.ds = None
+    def __init__(self, ds_path: Optional[str], ds=None, band=1, chunk_size=256, datatype=gdal.GDT_Byte):
+        self.ds = ds
         self.ds_path = ds_path
         self.band = band
         self.chunk_size = chunk_size
         self.datatype = datatype
 
     def __enter__(self):
-        self.ds: gdal.Dataset = gdal.Open(self.ds_path)
+        if self.ds is None:
+            self.ds: gdal.Dataset = gdal.Open(self.ds_path)
         return self
 
     def __exit__(self, *_):
@@ -64,6 +66,10 @@ class WPSDataset:
                 # Read chunks from both rasters
                 self_chunk = self_band.ReadAsArray(x, y, x_chunk_size, y_chunk_size)
                 other_chunk = other_band.ReadAsArray(x, y, x_chunk_size, y_chunk_size)
+                wider_type = np.promote_types(self_chunk.dtype, other_chunk.dtype)
+
+                self_chunk = self_chunk.astype(wider_type)
+                other_chunk = other_chunk.astype(wider_type)
 
                 other_chunk[other_chunk >= 1] = 1
                 other_chunk[other_chunk < 1] = 0
@@ -76,9 +82,9 @@ class WPSDataset:
                 self_chunk = None
                 other_chunk = None
 
-        return WPSDataset(ds=out_ds)
+        return WPSDataset(ds_path=None, ds=out_ds)
 
-    def warp_to_match(self, other, output_path: str, resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR) -> gdal.Dataset:
+    def warp_to_match(self, other, output_path: str, resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR):
         """
         Warp the dataset to match the extent, pixel size, and projection of the other dataset.
 
@@ -97,8 +103,18 @@ class WPSDataset:
         extent = [minx, miny, maxx, maxy]
 
         # Warp to match input option parameters
-        warped_ds = gdal.Warp(output_path, self.ds, dstSRS=other.ds.GetProjection(), outputBounds=extent, xRes=x_res, yRes=y_res, resampleAlg=resample_method.value)
-        return WPSDataset(ds=warped_ds)
+        warped_ds = gdal.Warp(
+            output_path,
+            self.ds,
+            options=gdal.WarpOptions(
+                dstSRS=other.ds.GetProjection(),
+                outputBounds=extent,
+                xRes=x_res,
+                yRes=y_res,
+                resampleAlg=resample_method.value,
+            ),
+        )
+        return WPSDataset(ds_path=None, ds=warped_ds)
 
     def replace_nodata_with(self, new_no_data_value: int):
         """
