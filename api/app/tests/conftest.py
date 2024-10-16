@@ -158,12 +158,6 @@ def mock_session(monkeypatch):
 
 
 @pytest.fixture()
-def mock_env_with_use_wfwx(monkeypatch):
-    """Set environment variable USE_WFWX to 'True'"""
-    monkeypatch.setenv("USE_WFWX", "True")
-
-
-@pytest.fixture()
 def mock_jwt_decode(monkeypatch):
     """Mock pyjwt's decode method"""
 

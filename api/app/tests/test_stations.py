@@ -21,12 +21,6 @@ def test_detailed_stations_scenario():
     """ BDD Scenario. """
 
 
-@given(parsers.parse("USE_WFWX={use_wfwx}"), converters=dict(use_wfwx=str))
-def given_wfwx(monkeypatch, use_wfwx: str):
-    """ Toggle between using wfwx or not """
-    monkeypatch.setenv("USE_WFWX", use_wfwx)
-
-
 @given(parsers.parse("utc_time: {utc_time}"), converters=dict(utc_time=int))
 def given_utc_time(monkeypatch, utc_time: int):
     """ Mock out utc time """
