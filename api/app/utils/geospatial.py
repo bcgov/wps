@@ -1,8 +1,10 @@
 from enum import Enum
 import logging
+import os
 from typing import Tuple
 from osgeo import gdal, ogr, osr
 import numpy as np
+from tempfile import TemporaryDirectory
 from app.utils.s3 import read_into_memory
 
 
@@ -168,3 +170,12 @@ def export_to_geotiff(values, output_path, geotransform, projection, nodata_valu
     del output_dataset
     output_band = None
     del output_band
+
+
+def warp_to_match(key: str, src_ds: gdal.Dataset, reference_ds: gdal.Dataset):
+    """Process and warp the source dataset to match the reference dataset."""
+    with TemporaryDirectory() as tempdir:
+        warped_path = os.path.join(tempdir, f"warp_{os.path.basename(key)}")
+        transformed_ds = warp_to_match_raster(src_ds, reference_ds, warped_path, GDALResamplingMethod.BILINEAR)
+
+        return transformed_ds
