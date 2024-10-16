@@ -199,6 +199,3 @@ class WPSDataset:
 
     def as_gdal_ds(self) -> gdal.Dataset:
         return self.ds
-
-    def close(self):
-        self.ds = None
