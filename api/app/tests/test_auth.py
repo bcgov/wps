@@ -73,8 +73,7 @@ def given_authenticated_user(monkeypatch, endpoint: str, verb: str):
     client = TestClient(app.main.app)
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     if verb == 'post':
-        return client.post(
-            endpoint, headers={'Authorization': 'Bearer token'}, json={"stations": []})
+        return client.post(endpoint, headers={"Authorization": "Bearer token"}, json={"stations": [838]})
     if verb == 'get':
         return client.get(
             endpoint, headers={'Authorization': 'Bearer token'})

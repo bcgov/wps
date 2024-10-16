@@ -77,14 +77,10 @@ async def get_hourly_readings(
     """
     start_time_stamp, end_time_stamp = _get_time_interval(time_of_interest)
 
-    if wfwx_api.use_wfwx():
-        # Limit the number of concurrent connections.
-        async with ClientSession(connector=TCPConnector(limit=10)) as session:
-            header = await wfwx_api.get_auth_header(session)
-            return await wfwx_api.get_hourly_readings(
-                session, header, station_codes, start_time_stamp, end_time_stamp)
-
-    return await fetch_hourly_readings_from_db(station_codes, start_time_stamp, end_time_stamp)
+    # Limit the number of concurrent connections.
+    async with ClientSession(connector=TCPConnector(limit=10)) as session:
+        header = await wfwx_api.get_auth_header(session)
+        return await wfwx_api.get_hourly_readings(session, header, station_codes, start_time_stamp, end_time_stamp)
 
 
 async def get_hourly_readings_in_time_interval(
