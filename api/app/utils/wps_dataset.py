@@ -10,16 +10,17 @@ class WPSDataset:
     A wrapper around gdal datasets for common operations
     """
 
-    def __init__(self, ds_path: Optional[str], ds=None, band=1, chunk_size=256, datatype=gdal.GDT_Byte):
+    def __init__(self, ds_path: Optional[str], ds=None, band=1, chunk_size=256, access=gdal.GA_ReadOnly, datatype=gdal.GDT_Byte):
         self.ds = ds
         self.ds_path = ds_path
         self.band = band
         self.chunk_size = chunk_size
+        self.access = access
         self.datatype = datatype
 
     def __enter__(self):
         if self.ds is None:
-            self.ds: gdal.Dataset = gdal.Open(self.ds_path)
+            self.ds: gdal.Dataset = gdal.Open(self.ds_path, self.access)
         return self
 
     def __exit__(self, *_):
@@ -118,7 +119,7 @@ class WPSDataset:
 
     def replace_nodata_with(self, new_no_data_value: int):
         """
-        Modifies the dataset by replacing the nodata value with the supplied one
+        Modifies the dataset inplace by replacing the nodata value with the supplied one
 
         :param new_no_data_value: the new nodata value
         """

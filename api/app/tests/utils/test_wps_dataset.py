@@ -47,7 +47,7 @@ def test_raster_with_context():
 
 
 def test_raster_set_no_data_value():
-    with WPSDataset(hfi_tif) as wps_ds:
+    with WPSDataset(hfi_tif, access=gdal.GA_Update) as wps_ds:
         assert wps_ds.as_gdal_ds().GetRasterBand(1).GetNoDataValue() == 0
 
         wps_ds.replace_nodata_with(-1)
