@@ -10,6 +10,9 @@ ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/github-docker-remote/osgeo/gdal:u
 # docker build --build-arg DOCKER_IMAGE=ubuntu:24.04 . --tag=wps-api-base:ubuntu.24.04-latest
 FROM ${DOCKER_IMAGE}
 
+# in order to make the image public on GHCR, we need to add this label
+LABEL org.opencontainers.image.source="https://github.com/bcgov/wps"
+
 # We don't want to run our app as root, so we define a worker user.
 ARG USERNAME=worker
 ARG USER_UID=1010
