@@ -1,14 +1,15 @@
 import os
 import numpy as np
 from osgeo import osr, gdal
+import pytest
 
-from app.utils.wps_dataset import WPSDataset
+from app.geospatial.wps_dataset import WPSDataset
 
 hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")
 zero_tif = os.path.join(os.path.dirname(__file__), "zero_layer.tif")
 
 
-def create_test_dataset(filename, width, height, extent, projection, data_type=gdal.GDT_Float32) -> gdal.Dataset:
+def create_test_dataset(filename, width, height, extent, projection, data_type=gdal.GDT_Float32, fill_value=None) -> gdal.Dataset:
     """
     Create a test GDAL dataset.
     """
@@ -32,8 +33,13 @@ def create_test_dataset(filename, width, height, extent, projection, data_type=g
     rng = np.random.default_rng(seed=42)  # Reproducible random generator
     random_data = rng.random((height, width)).astype(np.float32)
 
-    # Write data to the dataset
-    dataset.GetRasterBand(1).WriteArray(random_data)
+    if fill_value is None:
+        # Write data to the dataset
+        dataset.GetRasterBand(1).WriteArray(random_data)
+    else:
+        fill_data = np.full_like(random_data, fill_value)
+        dataset.GetRasterBand(1).WriteArray(fill_data)
+
     return dataset
 
 
@@ -53,6 +59,35 @@ def test_raster_mul():
         raw_ds = output_ds.as_gdal_ds()
         output_values = raw_ds.GetRasterBand(1).ReadAsArray()
         assert np.all(output_values == 0)
+
+
+def test_raster_mul_identity():
+    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    ds_1 = create_test_dataset("test_dataset_1.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=2)
+    ds_2 = create_test_dataset("test_dataset_2.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1)
+
+    with WPSDataset(ds_path=None, ds=ds_1) as wps1_ds, WPSDataset(ds_path=None, ds=ds_2) as wps2_ds:
+        output_ds = wps1_ds * wps2_ds
+        output_values = output_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
+        left_side_values = wps1_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
+        assert np.all(output_values == left_side_values) == True
+
+
+def test_raster_mul_wrong_dimensions():
+    # Dataset 1: 100x100 pixels, extent in EPSG:4326
+    extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    wgs_84_ds = create_test_dataset("test_dataset_1.tif", 1, 1, extent1, 4326)
+
+    # Dataset 2: 200x200 pixels, extent in EPSG:3857
+    extent2 = (-2, 2, -2, 2)
+    mercator_ds = create_test_dataset("test_dataset_2.tif", 2, 2, extent2, 3857)
+
+    with pytest.raises(ValueError):
+        with WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds, WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds:
+            _ = wps1_ds * wps2_ds
+
+    wgs_84_ds = None
+    mercator_ds = None
 
 
 def test_raster_warp():
