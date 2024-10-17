@@ -11,7 +11,7 @@ ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/github-docker-remote/osgeo/gdal:u
 FROM ${DOCKER_IMAGE}
 
 # in order to make the image public on GHCR, we need to add this label
-LABEL org.opencontainers.image.source="https://github.com/compscidr/wps"
+LABEL org.opencontainers.image.source="https://github.com/bcgov/wps"
 
 # We don't want to run our app as root, so we define a worker user.
 ARG USERNAME=worker
