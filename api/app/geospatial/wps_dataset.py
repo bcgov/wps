@@ -46,6 +46,14 @@ class WPSDataset:
         geotransform = self.ds.GetGeoTransform()
         projection = self.ds.GetProjection()
 
+        # Check if projection matches
+        if projection != other.ds.GetProjection():
+            raise ValueError("The projections of the two rasters do not match.")
+
+        # Check if origin matches
+        if geotransform[0] != other.ds.GetGeoTransform()[0] or geotransform[3] != other.ds.GetGeoTransform()[3]:
+            raise ValueError("The origins of the two rasters do not match.")
+
         # Create the output raster
         driver: gdal.Driver = gdal.GetDriverByName("MEM")
         out_ds: gdal.Dataset = driver.Create("memory", x_size, y_size, 1, self.datatype)

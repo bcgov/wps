@@ -87,11 +87,22 @@ def test_raster_mul_identity():
 
 
 def test_raster_mul_wrong_dimensions():
-    extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    wgs_84_ds = create_test_dataset("test_dataset_1.tif", 1, 1, extent1, 4326)
+    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    wgs_84_ds1 = create_test_dataset("test_dataset_1.tif", 1, 1, extent, 4326)
+    wgs_84_ds2 = create_test_dataset("test_dataset_2.tif", 2, 2, extent, 4326)
 
-    extent2 = (-2, 2, -2, 2)
-    mercator_ds = create_test_dataset("test_dataset_2.tif", 2, 2, extent2, 3857)
+    with pytest.raises(ValueError):
+        with WPSDataset(ds_path=None, ds=wgs_84_ds1) as wps1_ds, WPSDataset(ds_path=None, ds=wgs_84_ds2) as wps2_ds:
+            _ = wps1_ds * wps2_ds
+
+    wgs_84_ds1 = None
+    wgs_84_ds2 = None
+
+
+def test_raster_mul_wrong_projections():
+    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    wgs_84_ds = create_test_dataset("test_dataset_1.tif", 1, 1, extent, 4326)
+    mercator_ds = create_test_dataset("test_dataset_2.tif", 1, 1, extent, 3857)
 
     with pytest.raises(ValueError):
         with WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds, WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds:
@@ -99,6 +110,20 @@ def test_raster_mul_wrong_dimensions():
 
     wgs_84_ds = None
     mercator_ds = None
+
+
+def test_raster_mul_wrong_origins():
+    extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    wgs_84_ds1 = create_test_dataset("test_dataset_1.tif", 1, 1, extent1, 4326)
+    extent2 = (-2, 2, -2, 2)  # xmin, xmax, ymin, ymax
+    wgs_84_ds2 = create_test_dataset("test_dataset_2.tif", 1, 1, extent2, 4326)
+
+    with pytest.raises(ValueError):
+        with WPSDataset(ds_path=None, ds=wgs_84_ds1) as wps1_ds, WPSDataset(ds_path=None, ds=wgs_84_ds2) as wps2_ds:
+            _ = wps1_ds * wps2_ds
+
+    wgs_84_ds1 = None
+    wgs_84_ds2 = None
 
 
 def test_raster_warp():
