@@ -2,8 +2,8 @@ name: Publish Base Docker Image to GHCR
 
 on:
   push:
-#    branches:
-#      - main
+    branches:
+      - main
     paths:
       - 'openshift/wps-api-base/docker/Dockerfile'
       - '.github/workflows/publish_docker_base.yml'
@@ -27,5 +27,5 @@ jobs:
         # so we can directly consume that as a base image instead of ubuntu:24.04.
         run: |
           cd openshift/wps-api-base/docker
-          docker build --build-arg DOCKER_IMAGE=ubuntu:24.04 . --tag ghcr.io/compscidr/wps/wps-api-base:latest
-          docker push ghcr.io/compscidr/wps/wps-api-base:latest
+          docker build --build-arg DOCKER_IMAGE=ubuntu:24.04 . --tag ghcr.io/bcgov/wps/wps-api-base:latest
+          docker push ghcr.io/bcgov/wps/wps-api-base:latest
