@@ -24,6 +24,6 @@ jobs:
         # note we can remove the build-arg if we are able to use credentials for artifacts.developer.gov.bc.ca
         # so we can directly consume that as a base image instead of ubuntu:24.04.
         run: |
-          cd openshift/wps-base/docker
+          cd openshift/wps-api-base/docker
           docker build --build-arg DOCKER_IMAGE=ubuntu:24.04 . --tag ghcr.io/compcidr/wps/wps-api-base:latest
           docker push ghcr.io/compscidr/wps/wps-api-base:latest
