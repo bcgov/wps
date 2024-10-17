@@ -19,7 +19,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{github.actor}}
-          password: ${{secrets.GITHUB_TOKEN}}
+          password: ${{secrets.GH_TOKEN}}
       - name: Build Inventory Image
         # note we can remove the build-arg if we are able to use credentials for artifacts.developer.gov.bc.ca
         # so we can directly consume that as a base image instead of ubuntu:24.04.
