@@ -6,7 +6,7 @@ import { DateTime } from 'luxon'
 import { selectAuthentication, selectStationGroups, selectStationGroupsMembers } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
 import { GeneralHeader } from 'components'
-import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
+import { MORE_CAST_DOC_TITLE, MORE_CAST_NAME } from 'utils/constants'
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { DateRange } from 'components/dateRangePicker/types'
 import { fetchStationGroups } from 'commonSlices/stationGroupsSlice'
@@ -78,7 +78,7 @@ const MoreCast2Page = () => {
   }
 
   useEffect(() => {
-    document.title = MORE_CAST_2_DOC_TITLE
+    document.title = MORE_CAST_DOC_TITLE
     dispatch(fetchStationGroups())
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -104,7 +104,7 @@ const MoreCast2Page = () => {
 
   return (
     <Root data-testid="more-cast-2-page">
-      <GeneralHeader isBeta={false} spacing={0.985} title={MORE_CAST_2_NAME} productName={MORE_CAST_2_NAME} />
+      <GeneralHeader isBeta={false} spacing={0.985} title={MORE_CAST_NAME} productName={MORE_CAST_NAME} />
       <Content>
         <SidePanel>
           <StationPanel
