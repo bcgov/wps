@@ -87,11 +87,9 @@ def test_raster_mul_identity():
 
 
 def test_raster_mul_wrong_dimensions():
-    # Dataset 1: 100x100 pixels, extent in EPSG:4326
     extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
     wgs_84_ds = create_test_dataset("test_dataset_1.tif", 1, 1, extent1, 4326)
 
-    # Dataset 2: 200x200 pixels, extent in EPSG:3857
     extent2 = (-2, 2, -2, 2)
     mercator_ds = create_test_dataset("test_dataset_2.tif", 2, 2, extent2, 3857)
 
@@ -124,7 +122,6 @@ def test_raster_warp():
 
 
 def test_export_to_geotiff():
-    # Dataset 1: 100x100 pixels, extent in EPSG:4326
     extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
     ds_1 = create_test_dataset("test_dataset_1.tif", 3, 3, extent1, 4326, data_type=gdal.GDT_Byte, fill_value=1)
 
