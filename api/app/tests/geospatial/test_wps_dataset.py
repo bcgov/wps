@@ -166,3 +166,13 @@ def test_export_to_geotiff():
                 assert np.all(original_values == exported_values) == True
 
     ds_1 = None
+
+
+def test_latitude_array():
+    lats_3005_tif = os.path.join(os.path.dirname(__file__), "3005_lats.tif")
+    lats_4326_tif = os.path.join(os.path.dirname(__file__), "4326_lats.tif")
+    with WPSDataset(ds_path=lats_3005_tif) as lats_3005_ds, WPSDataset(ds_path=lats_4326_tif) as lats_4326_ds:
+        output_ds: WPSDataset = lats_3005_ds.warp_to_match(lats_4326_ds, "/vsimem/test_lats.tif")
+        original_lats = lats_4326_ds.generate_latitude_array()
+        warped_lats = output_ds.generate_latitude_array()
+        assert np.all(original_lats == warped_lats) == True
