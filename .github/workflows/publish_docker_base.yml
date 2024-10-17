@@ -1,0 +1,29 @@
+name: Publish Base Docker Image to GHCR
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'openshift/wps-base/docker/Dockerfile'
+      - 'publish_docker_base.yml'
+jobs:
+  build-and-publish:
+    name: Build and Publish Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: 'Login to GitHub Container Registry'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+      - name: Build Inventory Image
+        # note we can remove the build-arg if we are able to use credentials for artifacts.developer.gov.bc.ca
+        # so we can directly consume that as a base image instead of ubuntu:24.04.
+        run: |
+          cd openshift/wps-base/docker
+          docker build --build-arg DOCKER_IMAGE=ubuntu:24.04 . --tag ghcr.io/bcgov/wps/wps-api-base:latest
+          docker push ghcr.io/bcgov/wps/wps-api-base:latest
