@@ -23,11 +23,9 @@ jobs:
           username: ${{github.actor}}
           password: ${{secrets.GITHUB_TOKEN}}
       - name: Build and Publish Base Image
-        # note we can remove the build-arg if we are able to use credentials for artifacts.developer.gov.bc.ca
-        # so we can directly consume that as a base image instead of ubuntu:24.04.
         run: |
           cd openshift/wps-api-base/docker
-          docker build --build-arg DOCKER_IMAGE=ubuntu:24.04 . --tag ghcr.io/bcgov/wps/wps-api-base:$(date +%m-%d-%Y)
+          docker build . --tag ghcr.io/bcgov/wps/wps-api-base:$(date +%m-%d-%Y)
           docker tag ghcr.io/bcgov/wps/wps-api-base:$(date +%m-%d-%Y) ghcr.io/bcgov/wps/wps-api-base:latest
           docker push ghcr.io/bcgov/wps/wps-api-base:$(date +%m-%d-%Y)
           docker push ghcr.io/bcgov/wps/wps-api-base:latest
