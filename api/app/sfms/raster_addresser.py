@@ -1,10 +1,10 @@
 import os
 import enum
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 from app import config
 from app.weather_models import ModelEnum
-from app.weather_models.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key
+from app.weather_models.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key, model_run_for_hour
 
 
 class WeatherParameter(enum.Enum):
@@ -31,9 +31,31 @@ class RasterKeyAddresser:
 
     def __init__(self):
         self.sfms_calculated_prefix = "sfms/calculated"
-        self.s3_prefix = f"/vsis3/{config.get("OBJECT_STORE_BUCKET")}"
-        self.sfms_upload_prefix = "sfms/uploads/actual/"
+        self.s3_prefix = f"/vsis3/{config.get('OBJECT_STORE_BUCKET')}"
+        self.sfms_upload_prefix = "sfms/uploads/actual"
         self.weather_model_prefix = f"weather_models/{ModelEnum.RDPS.lower()}"
+
+    def determine_last_upload_date(self, start_datetime: datetime) -> datetime.date:
+        """
+        SFMS FWI rasters are uploaded according to local ("America/Vancouver") time. We need to convert whatever time
+        we're using (typically utc) to that timezone so that we know which day to pull data for
+
+        :param datetime: Input datetime
+        :return: Date of the most recent fwi data from sfms
+        """
+        local_datetime = start_datetime.astimezone(ZoneInfo("America/Vancouver"))  # sfms is currently uploaded according to local time
+        day_of_last_actual = (local_datetime - timedelta(days=1)).date()
+
+        if model_run_for_hour(start_datetime.hour) == 0:
+            day_of_last_actual = local_datetime.date()
+
+        return day_of_last_actual
+
+    def get_uploaded_index_key(self, start_datetime: datetime, fwi_param: FWIParameter):
+        assert_all_utc(start_datetime)
+        last_upload_date = self.determine_last_upload_date(start_datetime)
+
+        return f"{self.sfms_upload_prefix}/{last_upload_date}/{fwi_param.value}{last_upload_date.isoformat().replace('-', '')}.tif"
 
     def get_calculated_index_key(self, datetime_to_calculate_utc: datetime, fwi_param: FWIParameter):
         """
@@ -45,7 +67,9 @@ class RasterKeyAddresser:
         :return: the key to the raster artifact in object storage
         """
         assert_all_utc(datetime_to_calculate_utc)
-        return f"{self.sfms_calculated_prefix}/forecast/{datetime_to_calculate_utc.date().isoformat()}/{fwi_param.value}/{datetime_to_calculate_utc.date().isoformat().replace('-', '')}.tif"
+        return (
+            f"{self.sfms_calculated_prefix}/forecast/{datetime_to_calculate_utc.date().isoformat()}/{fwi_param.value}{datetime_to_calculate_utc.date().isoformat().replace('-', '')}.tif"
+        )
 
     def get_model_data_key(self, start_time_utc: datetime, prediction_hour: int, weather_param: WeatherParameter):
         """
@@ -68,7 +92,7 @@ class RasterKeyAddresser:
         :return: the calculated precip key to the raster artifact in object storage
         """
         assert_all_utc(datetime_to_calculate_utc)
-        calculated_weather_prefix = f"{self.sfms_calculated_prefix}/{datetime_to_calculate_utc.date().isoformat()}/"
+        calculated_weather_prefix = f"{self.weather_model_prefix}/{datetime_to_calculate_utc.date().isoformat()}/"
         return os.path.join(calculated_weather_prefix, compose_computed_precip_rdps_key(datetime_to_calculate_utc))
 
     def get_weather_data_keys(self, start_time_utc: datetime, datetime_to_calculate_utc: datetime, prediction_hour: int):
@@ -83,6 +107,9 @@ class RasterKeyAddresser:
         assert_all_utc(start_time_utc, datetime_to_calculate_utc)
         non_precip_keys = tuple([self.get_model_data_key(start_time_utc, prediction_hour, param) for param in WeatherParameter])
         precip_key = self.get_calculated_precip_key(datetime_to_calculate_utc)
-        all_weather_data_keys = non_precip_keys + precip_key
+        all_weather_data_keys = non_precip_keys + (precip_key,)
 
         return all_weather_data_keys
+
+    def gdal_prefix_keys(self, *keys):
+        return tuple(f"{self.s3_prefix}/{key}" for key in keys)

@@ -1,3 +1,4 @@
+import asyncio
 import os
 from tempfile import TemporaryDirectory
 from datetime import datetime, timedelta
@@ -8,7 +9,8 @@ from aiobotocore.client import AioBaseClient
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser, WeatherParameter
 from app.sfms.raster_processor import calculate_dmc, calculate_dc
 from app.utils.geospatial import export_to_geotiff, generate_latitude_array, warp_to_match
-from app.utils.s3 import all_objects_exist, get_client
+from app.utils.s3 import all_objects_exist, get_client, set_s3_gdal_config
+from app.utils.time import get_utc_now
 
 
 class DateRangeProcessor:
@@ -23,20 +25,37 @@ class DateRangeProcessor:
 
     async def process_bui(self):
         raster_addresser = RasterKeyAddresser()
+        set_s3_gdal_config()
+
         async with get_client() as (client, bucket):
             for day in range(self.days):
-                datetime_to_calculate_utc = self.start_datetime + timedelta(days=day)
+                datetime_to_calculate_utc = self.start_datetime.replace(hour=20, minute=0, second=0, microsecond=0) + timedelta(days=day)
                 previous_fwi_datetime = datetime_to_calculate_utc - timedelta(days=1)
-                prediction_hour = day * 24
+                prediction_hour = 20 + (day * 24)
 
                 temp_key, rh_key, _, precip_key = raster_addresser.get_weather_data_keys(self.start_datetime, datetime_to_calculate_utc, prediction_hour)
+
+                weather_keys_exist = await all_objects_exist(temp_key, rh_key, precip_key)
+
+                if not weather_keys_exist:
+                    break
+
                 dc_key = raster_addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DC)
                 dmc_key = raster_addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DMC)
 
-                keys_exist = await all_objects_exist(temp_key, rh_key, precip_key, dc_key, dmc_key)
+                fwi_keys_exist = await all_objects_exist(dc_key, dmc_key)
 
-                if keys_exist == False:
-                    break
+                if not fwi_keys_exist:
+                    dc_key = raster_addresser.get_uploaded_index_key(self.start_datetime, FWIParameter.DC)
+                    dmc_key = raster_addresser.get_uploaded_index_key(self.start_datetime, FWIParameter.DMC)
+
+                    fwi_keys_exist = await all_objects_exist(dc_key, dmc_key)
+
+                    if not fwi_keys_exist:
+                        break
+
+                temp_key, rh_key, precip_key = raster_addresser.gdal_prefix_keys(temp_key, rh_key, precip_key)
+                dc_key, dmc_key = raster_addresser.gdal_prefix_keys(dc_key, dmc_key)
 
                 temp_ds: gdal.Dataset = gdal.Open(temp_key)
                 rh_ds: gdal.Dataset = gdal.Open(rh_key)
@@ -80,3 +99,15 @@ class DateRangeProcessor:
             export_to_geotiff(values, temp_geotiff, transform, projection, no_data_value)
 
             await client.put_object(Bucket=bucket, Key=key, Body=open(temp_geotiff, "rb"))
+
+
+async def main():
+    start_time = get_utc_now()
+    days = 2
+
+    processor = DateRangeProcessor(start_time, days)
+    await processor.process_bui()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
