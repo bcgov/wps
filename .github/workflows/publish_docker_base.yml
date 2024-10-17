@@ -6,7 +6,7 @@ on:
 #      - main
     paths:
       - 'openshift/wps-base/docker/Dockerfile'
-      - 'publish_docker_base.yml'
+      - '.github/workflows/publish_docker_base.yml'
 jobs:
   build-and-publish:
     name: Build and Publish Docker Image
