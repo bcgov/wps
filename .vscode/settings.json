@@ -60,6 +60,7 @@
         "allclose",
         "anyio",
         "APCP",
+        "astype",
         "asyncpg",
         "autoflush",
         "Behaviour",
