@@ -2,6 +2,7 @@ import os
 import numpy as np
 from osgeo import osr, gdal
 import pytest
+import tempfile
 
 from app.geospatial.wps_dataset import WPSDataset
 
@@ -120,3 +121,26 @@ def test_raster_warp():
 
     wgs_84_ds = None
     mercator_ds = None
+
+
+def test_export_to_geotiff():
+    # Dataset 1: 100x100 pixels, extent in EPSG:4326
+    extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    ds_1 = create_test_dataset("test_dataset_1.tif", 3, 3, extent1, 4326, data_type=gdal.GDT_Byte, fill_value=1)
+
+    with WPSDataset(ds_path=None, ds=ds_1) as wps_ds:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = os.path.join(temp_dir, "test_export.tif")
+            wps_ds.export_to_geotiff(temp_path)
+
+            with WPSDataset(ds_path=temp_path) as exported_ds:
+                assert wps_ds.as_gdal_ds().GetProjection() == exported_ds.as_gdal_ds().GetProjection()
+                assert wps_ds.as_gdal_ds().GetGeoTransform() == exported_ds.as_gdal_ds().GetGeoTransform()
+                assert wps_ds.as_gdal_ds().RasterXSize == exported_ds.as_gdal_ds().RasterXSize
+                assert wps_ds.as_gdal_ds().RasterYSize == exported_ds.as_gdal_ds().RasterYSize
+
+                original_values = wps_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
+                exported_values = exported_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
+                assert np.all(original_values == exported_values) == True
+
+    ds_1 = None
