@@ -21,8 +21,8 @@ import {
   HFI_CALC_ROUTE,
   PERCENTILE_CALC_NAME,
   PERCENTILE_CALC_ROUTE,
-  MORE_CAST_2_NAME,
-  MORE_CAST_2_ROUTE
+  MORE_CAST_NAME,
+  MORECAST_ROUTE
 } from 'utils/constants'
 
 const ICON_FONT_SIZE = 'large'
@@ -86,9 +86,9 @@ export const hfiCalcInfo: ToolInfo = {
   isBeta: false
 }
 
-export const moreCast2Info: ToolInfo = {
-  name: MORE_CAST_2_NAME,
-  route: MORE_CAST_2_ROUTE,
+export const moreCastInfo: ToolInfo = {
+  name: MORE_CAST_NAME,
+  route: MORECAST_ROUTE,
   description: (
     <Typography>
       A system that enhances how the predictive services team creates weather forecasts and integrates this information
@@ -135,7 +135,7 @@ export const fbpGoInfo: ToolInfo = {
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of CardTravelSharp.
 export const toolInfos = [
-  moreCast2Info,
+  moreCastInfo,
   fireBehaviourAdvisoryInfo,
   cHainesInfo,
   fireBehaviourCalcInfo,
