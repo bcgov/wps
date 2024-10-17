@@ -14,16 +14,18 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: 'Login to GitHub Container Registry'
+      - name: Login to GitHub Container Registry
+        # this step requires a GH_TOKEN with read:packages write:packages and delete:packages
+        # tested with a classic token with the above permissions
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{github.actor}}
           password: ${{secrets.GH_TOKEN}}
-      - name: Build Inventory Image
+      - name: Build and Publish Base Image
         # note we can remove the build-arg if we are able to use credentials for artifacts.developer.gov.bc.ca
         # so we can directly consume that as a base image instead of ubuntu:24.04.
         run: |
           cd openshift/wps-api-base/docker
-          docker build --build-arg DOCKER_IMAGE=ubuntu:24.04 . --tag ghcr.io/compcidr/wps/wps-api-base:latest
+          docker build --build-arg DOCKER_IMAGE=ubuntu:24.04 . --tag ghcr.io/compscidr/wps/wps-api-base:latest
           docker push ghcr.io/compscidr/wps/wps-api-base:latest
