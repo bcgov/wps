@@ -40,6 +40,8 @@ def create_test_dataset(filename, width, height, extent, projection, data_type=g
         fill_data = np.full_like(random_data, fill_value)
         dataset.GetRasterBand(1).WriteArray(fill_data)
 
+    dataset.GetRasterBand(1).SetNoDataValue(0)
+
     return dataset
 
 
@@ -51,6 +53,16 @@ def test_raster_with_context():
         assert wps_ds.as_gdal_ds() is not None
 
     assert wps_ds.as_gdal_ds() is None
+
+
+def test_raster_set_no_data_value():
+    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    ds_1 = create_test_dataset("test_dataset_no_data_value.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=2)
+    with WPSDataset(ds_path=None, ds=ds_1) as wps_ds:
+        assert wps_ds.as_gdal_ds().GetRasterBand(1).GetNoDataValue() == 0
+
+        wps_ds.replace_nodata_with(-1)
+        assert wps_ds.as_gdal_ds().GetRasterBand(1).GetNoDataValue() == -1
 
 
 def test_raster_mul():
