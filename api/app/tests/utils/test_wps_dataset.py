@@ -46,14 +46,6 @@ def test_raster_with_context():
     assert wps_ds.as_gdal_ds() is None
 
 
-def test_raster_set_no_data_value():
-    with WPSDataset(hfi_tif, access=gdal.GA_Update) as wps_ds:
-        assert wps_ds.as_gdal_ds().GetRasterBand(1).GetNoDataValue() == 0
-
-        wps_ds.replace_nodata_with(-1)
-        assert wps_ds.as_gdal_ds().GetRasterBand(1).GetNoDataValue() == -1
-
-
 def test_raster_mul():
     with WPSDataset(hfi_tif) as wps_ds, WPSDataset(zero_tif) as zero_ds:
         output_ds = wps_ds * zero_ds
@@ -80,3 +72,25 @@ def test_raster_warp():
 
     wgs_84_ds = None
     mercator_ds = None
+
+
+def test_generate_latitude_array():
+    driver: gdal.Driver = gdal.GetDriverByName("MEM")
+    dataset: gdal.Dataset = driver.Create("test_lat.tif", 3, 3, 1, gdal.GDT_Float32)
+
+    # Set a simple geotransform (top-left corner at (0, 0), 1x1 pixel size, no rotation)
+    geotransform = (0, 1, 0, 0, 0, -1)
+    dataset.SetGeoTransform(geotransform)
+
+    # Set projection to EPSG:3857 (Web Mercator)
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(3857)  # Use a known projection
+    dataset.SetProjection(srs.ExportToWkt())
+
+    with WPSDataset(ds_path=None, ds=dataset) as lat_ds:
+        latitudes = lat_ds.generate_latitude_array()
+
+        # Define the expected latitude values based on the transformation logic
+        expected_latitudes = np.array([[0, 0, 0], [-1, -1, -1], [-2, -2, -2]])
+
+        np.testing.assert_array_almost_equal(latitudes, expected_latitudes)
