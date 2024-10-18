@@ -173,6 +173,8 @@ def test_latitude_array():
     lats_4326_tif = os.path.join(os.path.dirname(__file__), "4326_lats.tif")
     with WPSDataset(ds_path=lats_3005_tif) as lats_3005_ds, WPSDataset(ds_path=lats_4326_tif) as lats_4326_ds:
         output_ds: WPSDataset = lats_3005_ds.warp_to_match(lats_4326_ds, "/vsimem/test_lats.tif")
-        original_lats = lats_4326_ds.generate_latitude_array()
+        original_ds = gdal.Open(lats_4326_tif)
+        original_lats = original_ds.GetRasterBand(1).ReadAsArray()
         warped_lats = output_ds.generate_latitude_array()
         assert np.all(original_lats == warped_lats) == True
+        output_ds = None
