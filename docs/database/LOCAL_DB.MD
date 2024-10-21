@@ -1,5 +1,7 @@
 # Local Database
 
+Change to kick off a PR
+
 To access the local copy of the database, you can shell into it by opening a new terminal window and executing `psql -h localhost -p 5432 -U <db-username>` and enter the local database password when prompted.
 
 ## Database Migrations
