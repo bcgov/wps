@@ -125,21 +125,19 @@ class WPSDataset:
         )
         return WPSDataset(ds_path=None, ds=warped_ds)
 
-    def replace_nodata_with(self, new_no_data_value: int):
+    def replace_nodata_with(self, new_no_data_value: int = 0):
         """
-        Modifies the dataset inplace by replacing the nodata value with the supplied one
-
+        Reads the first band of a dataset, replaces NoData values with new_no_data_value, returns the array and the nodata value.
         :param new_no_data_value: the new nodata value
         """
-        band: gdal.Band = self.ds.GetRasterBand(self.band)
+
+        band: gdal.Band = self.ds.GetRasterBand(1)
         nodata_value = band.GetNoDataValue()
         array = band.ReadAsArray()
 
-        if nodata_value is not None:
-            modified_array = np.where(array != nodata_value, array, new_no_data_value)
-            band.WriteArray(modified_array)
-            band.SetNoDataValue(new_no_data_value)
-            band.FlushCache()
+        array[array == nodata_value] = new_no_data_value
+
+        return array, new_no_data_value
 
     def generate_latitude_array(self):
         """

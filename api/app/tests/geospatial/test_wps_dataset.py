@@ -10,7 +10,7 @@ hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")
 zero_tif = os.path.join(os.path.dirname(__file__), "zero_layer.tif")
 
 
-def create_test_dataset(filename, width, height, extent, projection, data_type=gdal.GDT_Float32, fill_value=None) -> gdal.Dataset:
+def create_test_dataset(filename, width, height, extent, projection, data_type=gdal.GDT_Float32, fill_value=None, no_data_value=None) -> gdal.Dataset:
     """
     Create a test GDAL dataset.
     """
@@ -32,18 +32,42 @@ def create_test_dataset(filename, width, height, extent, projection, data_type=g
 
     # Create some test data (e.g., random values)
     rng = np.random.default_rng(seed=42)  # Reproducible random generator
-    random_data = rng.random((height, width)).astype(np.float32)
+    fill_data = rng.random((height, width)).astype(np.float32)
 
-    if fill_value is None:
-        # Write data to the dataset
-        dataset.GetRasterBand(1).WriteArray(random_data)
-    else:
-        fill_data = np.full_like(random_data, fill_value)
-        dataset.GetRasterBand(1).WriteArray(fill_data)
+    if fill_value is not None:
+        fill_data = np.full((height, width), fill_value)
 
     dataset.GetRasterBand(1).SetNoDataValue(0)
+    dataset.GetRasterBand(1).WriteArray(fill_data)
 
     return dataset
+
+
+# def create_test_dataset_with_no_data_value(filename, width, height, extent, projection, data_type=gdal.GDT_Float32, fill_value: int) -> gdal.Dataset:
+#     """
+#     Create a test GDAL dataset.
+#     """
+#     # Create a new GDAL dataset
+#     driver: gdal.Driver = gdal.GetDriverByName("MEM")
+#     dataset: gdal.Dataset = driver.Create(filename, width, height, 1, data_type)
+
+#     # Set the geotransform
+#     xmin, xmax, ymin, ymax = extent
+#     xres = (xmax - xmin) / width
+#     yres = (ymax - ymin) / height
+#     geotransform = (xmin, xres, 0, ymax, 0, -yres)  # Top-left corner
+#     dataset.SetGeoTransform(geotransform)
+
+#     # Set the projection
+#     srs = osr.SpatialReference()
+#     srs.ImportFromEPSG(projection)
+#     dataset.SetProjection(srs.ExportToWkt())
+
+#     rng = np.random.default_rng(seed=42)  # Reproducible random generator
+#     random_data = rng.random((height, width)).astype(np.float32)
+
+#     fill_data = np.full_like(random_data, fill_value)
+#     dataset.GetRasterBand(1).WriteArray(fill_data)
 
 
 def test_raster_with_context():
@@ -57,13 +81,21 @@ def test_raster_with_context():
 
 
 def test_raster_set_no_data_value():
-    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    ds_1 = create_test_dataset("test_dataset_no_data_value.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=2)
-    with WPSDataset(ds_path=None, ds=ds_1) as wps_ds:
-        assert wps_ds.as_gdal_ds().GetRasterBand(1).GetNoDataValue() == 0
+    original_no_data_value = 0
+    driver: gdal.Driver = gdal.GetDriverByName("MEM")
+    dataset: gdal.Dataset = driver.Create("test_dataset_no_data_value.tif", 2, 2, 1, eType=gdal.GDT_Int32)
+    fill_data = np.full((2, 2), 2)
+    fill_data[0, 0] = original_no_data_value
+    dataset.GetRasterBand(1).SetNoDataValue(original_no_data_value)
+    dataset.GetRasterBand(1).WriteArray(fill_data)
 
-        wps_ds.replace_nodata_with(-1)
-        assert wps_ds.as_gdal_ds().GetRasterBand(1).GetNoDataValue() == -1
+    with WPSDataset(ds_path=None, ds=dataset) as wps_ds:
+        original_array = wps_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
+        original_nodata_value = wps_ds.as_gdal_ds().GetRasterBand(1).GetNoDataValue()
+        updated_array, updated_nodata_value = wps_ds.replace_nodata_with(-1)
+
+        assert original_array[0, 0] == original_nodata_value
+        assert updated_array[0, 0] == updated_nodata_value
 
 
 def test_raster_mul():
