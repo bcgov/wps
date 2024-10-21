@@ -16,6 +16,10 @@ class WeatherParameter(enum.Enum):
 class FWIParameter(enum.Enum):
     DC = "dc"
     DMC = "dmc"
+    BUI = "bui"
+    FFMC = "ffmc"
+    ISI = "isi"
+    FWI = "fwi"
 
 
 def assert_all_utc(*datetimes: datetime):
@@ -112,4 +116,10 @@ class RasterKeyAddresser:
         return all_weather_data_keys
 
     def gdal_prefix_keys(self, *keys):
+        """
+        Prefix keys with vsis3/{bucket} for reading from s3 with gdal. GDAL s3 config must be setup for these
+        paths to work with GDAL. Can be set using app/utils/s3.set_s3_gdal_config()
+
+        :return: A tuple of all strings provided, prefixed with vsis3/{bucket}
+        """
         return tuple(f"{self.s3_prefix}/{key}" for key in keys)
