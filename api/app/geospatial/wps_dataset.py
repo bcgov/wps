@@ -97,18 +97,18 @@ class WPSDataset:
         """
         Warp the dataset to match the extent, pixel size, and projection of the other dataset.
 
-        :param ds_to_match: the reference dataset raster to match the source against
+        :param other: the reference WPSDataset raster to match the source against
         :param output_path: output path of the resulting raster
         :param resample_method: gdal resampling algorithm
         :return: warped raster dataset
         """
-        source_geotransform = other.ds.GetGeoTransform()
-        x_res = source_geotransform[1]
-        y_res = -source_geotransform[5]
-        minx = source_geotransform[0]
-        maxy = source_geotransform[3]
-        maxx = minx + source_geotransform[1] * other.ds.RasterXSize
-        miny = maxy + source_geotransform[5] * other.ds.RasterYSize
+        dest_geotransform = other.ds.GetGeoTransform()
+        x_res = dest_geotransform[1]
+        y_res = -dest_geotransform[5]
+        minx = dest_geotransform[0]
+        maxy = dest_geotransform[3]
+        maxx = minx + dest_geotransform[1] * other.ds.RasterXSize
+        miny = maxy + dest_geotransform[5] * other.ds.RasterYSize
         extent = [minx, miny, maxx, maxy]
 
         # Warp to match input option parameters
