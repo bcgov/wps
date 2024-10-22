@@ -33,6 +33,9 @@ COPY --from=static /app/build .
 RUN mkdir -p /tmp/nginx/client_temp
 RUN chmod -R 755 /tmp/nginx
 
+RUN mkdir -p /var/cache/nginx/proxy_temp
+RUN chmod -R 755 /var/cache/nginx/
+
 # Switch back to default user
 USER 1001
 
