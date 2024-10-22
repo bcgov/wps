@@ -7,6 +7,7 @@ import datetime
 from datetime import datetime
 import pytest
 import requests
+from aiohttp import ClientSession
 from sqlalchemy.orm import Session
 from app.jobs import env_canada
 from app.jobs.env_canada_utils import GRIB_LAYERS, get_global_model_run_download_urls
@@ -14,9 +15,9 @@ from app.jobs import common_model_fetchers
 import app.utils.time as time_utils
 from app.weather_models import machine_learning
 import app.db.crud.weather_models
-from app.stations import StationSourceEnum
 from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
                                           PredictionModelRunTimestamp)
+from app.tests.common import default_mock_client_get
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 from app.tests.weather_models.test_models_common import (MockResponse, mock_get_processed_file_count, mock_get_stations)
 
@@ -118,16 +119,15 @@ def mock_get_stations_synchronously(monkeypatch):
 
 
 @pytest.mark.usefixtures('mock_get_processed_file_record')
-def test_process_gdps(mock_download,
-                      mock_database,
-                      mock_get_actuals_left_outer_join_with_predictions,
-                      mock_get_stations_synchronously,
-                      mock_get_processed_file_count):
+def test_process_gdps(
+    mock_download, mock_database, mock_get_actuals_left_outer_join_with_predictions, mock_get_stations_synchronously, mock_get_processed_file_count, monkeypatch: pytest.MonkeyPatch
+):
     """ run main method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     sys.argv = ["argv", "GDPS"]
-    assert env_canada.process_models(StationSourceEnum.TEST) == 1
+    assert env_canada.process_models() == 1
 
 
 def test_for_zero_day_bug(monkeypatch):

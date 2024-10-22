@@ -6,7 +6,7 @@ from app.auth import authentication_required, audit
 from app.utils.time import get_utc_now, get_hour_20
 from app.schemas.stations import (WeatherStationGroupsMemberRequest, WeatherStationsResponse, DetailedWeatherStationsResponse, WeatherStationGroupsResponse,
                                   WeatherStationGroupMembersResponse)
-from app.stations import StationSourceEnum, get_stations_as_geojson, fetch_detailed_stations_as_geojson
+from app.stations import get_stations_as_geojson, fetch_detailed_stations_as_geojson
 from app.wildfire_one import wfwx_api
 
 
@@ -20,11 +20,7 @@ no_cache = "max-age=0"  # don't let the browser cache this
 
 
 @router.get('/details/', response_model=DetailedWeatherStationsResponse)
-async def get_detailed_stations(response: Response,
-                                toi: datetime = None,
-                                source: StationSourceEnum = StationSourceEnum.WILDFIRE_ONE,
-                                __=Depends(audit),
-                                _=Depends(authentication_required)):
+async def get_detailed_stations(response: Response, toi: datetime = None, __=Depends(audit), _=Depends(authentication_required)):
     """ Returns a list of fire weather stations with detailed information.
     -) Unspecified: Use configuration to establish source.
     -) LocalStorage: Read from json file  (ignore configuration).
@@ -40,7 +36,7 @@ async def get_detailed_stations(response: Response,
             toi = get_utc_now()
         else:
             toi = get_hour_20(toi)
-        weather_stations = await fetch_detailed_stations_as_geojson(toi, source)
+        weather_stations = await fetch_detailed_stations_as_geojson(toi)
         return DetailedWeatherStationsResponse(features=weather_stations)
 
     except Exception as exception:
@@ -49,8 +45,7 @@ async def get_detailed_stations(response: Response,
 
 
 @router.get('/', response_model=WeatherStationsResponse)
-async def get_stations(response: Response,
-                       source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
+async def get_stations(response: Response):
     """ Return a list of fire weather stations.
     Stations source can be:
     -) Unspecified: Use configuration to establish source.
@@ -60,7 +55,7 @@ async def get_stations(response: Response,
     try:
         logger.info('/stations/')
 
-        weather_stations = await get_stations_as_geojson(source)
+        weather_stations = await get_stations_as_geojson()
         response.headers["Cache-Control"] = no_cache
 
         return WeatherStationsResponse(features=weather_stations)
