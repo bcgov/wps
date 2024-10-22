@@ -6,7 +6,7 @@
 ARG NODE_OPTIONS="--v8-pool-size=4"
 
 # PHASE 1 - build frontend.
-FROM node:20-alpine AS static
+FROM docker.io/library/node:20-alpine AS static
 # Switch to root user for package installs
 USER 0
 WORKDIR /app
@@ -21,18 +21,27 @@ RUN corepack enable \
 COPY web .
 RUN yarn run build:prod 
 
-# Switch back to default user
-USER 1001
-
 # PHASE 2 - prepare hosting.
-# https://catalog.redhat.com/software/containers/ubi8/nginx-120/6156abfac739c0a4123a86fd
-FROM registry.access.redhat.com/ubi8/nginx-120
+FROM docker.io/library/nginx:stable-alpine
 
-# Add application sources
-ADD ./openshift/nginx.conf "${NGINX_CONF_PATH}"
+# Copy application sources
+COPY ./openshift/nginx.conf /etc/nginx/nginx.conf
 
 # Copy the static content:
 COPY --from=static /app/build .
+
+RUN mkdir -p /tmp/nginx/client_temp
+RUN chmod -R 755 /tmp/nginx
+
+RUN mkdir -p /var/cache/nginx/proxy_temp
+RUN mkdir -p /var/cache/nginx/fastcgi_temp
+RUN mkdir -p /var/cache/nginx/uwsgi_temp
+RUN mkdir -p /var/cache/nginx/scgi_temp
+RUN chmod -R 755 /var/cache/nginx/
+RUN chmod -R 755 /var/run
+
+# Switch back to default user
+USER 1001
 
 EXPOSE 3000
 CMD nginx -g "daemon off;"
