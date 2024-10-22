@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 from tempfile import TemporaryDirectory
 from datetime import datetime, timedelta
@@ -7,13 +8,16 @@ import numpy as np
 from aiobotocore.client import AioBaseClient
 
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser, WeatherParameter
-from app.sfms.raster_processor import calculate_dmc, calculate_dc
-from app.utils.geospatial import export_to_geotiff, generate_latitude_array, warp_to_match
+from app.sfms.raster_processor import calculate_dmc, calculate_dc, calculate_bui
+from app.utils.geospatial import write_to_geotiff_dataset, generate_latitude_array, warp_to_match
 from app.utils.s3 import all_objects_exist, get_client, set_s3_gdal_config
 from app.utils.time import get_utc_now
+from app import configure_logging
+
+logger = logging.getLogger(__name__)
 
 
-class DateRangeProcessor:
+class BUIDateRangeProcessor:
     """
     Encapsulates logic for iterating over a date range and performing some unit of work.
     TODO: either make specific to BUI or generalize it better.
@@ -67,7 +71,6 @@ class DateRangeProcessor:
                 warped_temp_ds = warp_to_match(WeatherParameter.TEMP.value, temp_ds, dmc_ds)
                 warped_rh_ds = warp_to_match(WeatherParameter.RH.value, rh_ds, dmc_ds)
                 warped_precip_ds = warp_to_match("precip", precip_ds, dmc_ds)
-
                 temp_ds = None
                 rh_ds = None
                 precip_ds = None
@@ -78,36 +81,62 @@ class DateRangeProcessor:
                 dmc_values, dmc_nodata_value = calculate_dmc(dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, latitude_array, month_array)
                 dc_values, dc_nodata_value = calculate_dc(dc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, latitude_array, month_array)
 
-                new_dmc_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DMC)
-                await self.store_raster(
-                    client, bucket, new_dmc_key, FWIParameter.DMC, datetime_to_calculate_utc, dmc_ds.GetGeoTransform(), dmc_ds.GetProjection(), dmc_values, dmc_nodata_value
-                )
+                with TemporaryDirectory() as temp_dir:
+                    new_dmc_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DMC)
+                    new_dmc_path = await self.create_and_store_dataset(
+                        temp_dir,
+                        client,
+                        bucket,
+                        new_dmc_key,
+                        FWIParameter.DMC,
+                        datetime_to_calculate_utc,
+                        dmc_ds.GetGeoTransform(),
+                        dmc_ds.GetProjection(),
+                        dmc_values,
+                        dmc_nodata_value,
+                    )
 
-                new_dc_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DC)
-                await self.store_raster(
-                    client, bucket, new_dc_key, FWIParameter.DC, datetime_to_calculate_utc, dc_ds.GetGeoTransform(), dc_ds.GetProjection(), dc_values, dc_nodata_value
-                )
+                    new_dc_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DC)
+                    new_dc_path = await self.create_and_store_dataset(
+                        temp_dir, client, bucket, new_dc_key, FWIParameter.DC, datetime_to_calculate_utc, dc_ds.GetGeoTransform(), dc_ds.GetProjection(), dc_values, dc_nodata_value
+                    )
 
-                dmc_ds = None
-                dc_ds = None
+                    # Explicitly clean up data that's no longer needed
+                    dc_ds = None
+                    warped_precip_ds = None
+                    warped_rh_ds = None
+                    warped_temp_ds = None
+                    del latitude_array
+                    del month_array
 
-    async def store_raster(
-        self, client: AioBaseClient, bucket: str, key: str, fwi_param: FWIParameter, datetime_to_calculate_utc: datetime, transform, projection, values, no_data_value
+                    new_bui_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.BUI)
+                    new_dmc_ds = gdal.Open(new_dmc_path)
+                    new_dc_ds = gdal.Open(new_dc_path)
+                    bui_values, nodata = calculate_bui(new_dmc_ds, new_dc_ds)
+
+                    await self.create_and_store_dataset(
+                        temp_dir, client, bucket, new_bui_key, FWIParameter.BUI, datetime_to_calculate_utc, dmc_ds.GetGeoTransform(), dmc_ds.GetProjection(), bui_values, nodata
+                    )
+
+    async def create_and_store_dataset(
+        self, temp_dir: str, client: AioBaseClient, bucket: str, key: str, fwi_param: FWIParameter, datetime_to_calculate_utc: datetime, transform, projection, values, no_data_value
     ):
-        with TemporaryDirectory() as temp_dir:
-            temp_geotiff = os.path.join(temp_dir, f"{fwi_param.value}{datetime_to_calculate_utc.date().isoformat()}.tif")
-            export_to_geotiff(values, temp_geotiff, transform, projection, no_data_value)
+        temp_geotiff = os.path.join(temp_dir, f"{fwi_param.value}{datetime_to_calculate_utc.date().isoformat()}.tif")
+        write_to_geotiff_dataset(values, temp_geotiff, transform, projection, no_data_value)
 
-            await client.put_object(Bucket=bucket, Key=key, Body=open(temp_geotiff, "rb"))
+        await client.put_object(Bucket=bucket, Key=key, Body=open(temp_geotiff, "rb"))
+
+        return temp_geotiff
 
 
 async def main():
     start_time = get_utc_now()
     days = 2
 
-    processor = DateRangeProcessor(start_time, days)
+    processor = BUIDateRangeProcessor(start_time, days)
     await processor.process_bui()
 
 
 if __name__ == "__main__":
+    configure_logging()
     asyncio.run(main())

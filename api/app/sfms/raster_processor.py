@@ -4,7 +4,7 @@ import numpy as np
 from osgeo import gdal
 
 from app.sfms.bui import replace_nodata_with_zero
-from app.auto_spatial_advisory.sfms import vectorized_dmc, vectorized_dc
+from app.auto_spatial_advisory.sfms import vectorized_dmc, vectorized_dc, vectorized_bui
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +34,25 @@ def calculate_dmc(dmc_ds: gdal.Dataset, temp_ds: gdal.Dataset, rh_ds: gdal.Datas
 
     start = perf_counter()
     dmc_values = vectorized_dmc(dmc_array, temp_array, rh_array, precip_array, latitude, month, True)
-    print(perf_counter() - start)
+    logger.info("%f seconds to calculate vectorized dmc", perf_counter() - start)
 
     if dmc_nodata_value is not None:
         nodata_mask = dmc_ds.GetRasterBand(1).ReadAsArray() == dmc_nodata_value
         dmc_values[nodata_mask] = dmc_nodata_value
 
     return dmc_values, dmc_nodata_value
+
+
+def calculate_bui(dmc_ds: gdal.Dataset, dc_ds: gdal.Dataset):
+    dmc_array, dmc_nodata_value = replace_nodata_with_zero(dmc_ds)
+    dc_array, _ = replace_nodata_with_zero(dc_ds)
+
+    start = perf_counter()
+    bui_values = vectorized_bui(dmc_array, dc_array)
+    logger.info("%f seconds to calculate vectorized bui", perf_counter() - start)
+
+    if dmc_nodata_value is not None:
+        nodata_mask = dmc_ds.GetRasterBand(1).ReadAsArray() == dmc_nodata_value
+        bui_values[nodata_mask] = dmc_nodata_value
+
+    return bui_values, dmc_nodata_value
