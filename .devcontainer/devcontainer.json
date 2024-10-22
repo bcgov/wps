@@ -36,8 +36,9 @@
 		"--network=host",
 		"--platform",
 		"linux/amd64",
-		"--hostname=wps-dev"
+		"--hostname=wps-dev",
 	],
+	"postCreateCommand": "echo 'cd /app' >> ~/.bashrc",
 	// by default the dockerfile sets the shell to /bin/sh - you can use whatever you like here
 	// but if you use bash, it will automatically set you in the /app folder rather than workspace
 	// when the terminal connects

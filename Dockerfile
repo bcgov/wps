@@ -55,9 +55,6 @@ COPY --from=builder --chown=$USERNAME:$USER_GID /app/pyproject.toml /app/poetry.
 # Switch back to our non-root user
 USER $USERNAME
 
-# puts us in the app folder when we open the terminal in vscode instead of the /workspace folder
-RUN echo "cd /app" >> ~/.bashrc
-
 # Copy the app:
 COPY ./api/app /app/app
 # TODO: we need to do this better.
