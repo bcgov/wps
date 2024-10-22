@@ -36,6 +36,7 @@ RUN chmod -R 755 /tmp/nginx
 RUN mkdir -p /var/cache/nginx/proxy_temp
 RUN mkdir -p /var/cache/nginx/fastcgi_temp
 RUN mkdir -p /var/cache/nginx/uwsgi_temp
+RUN mkdir -p /var/cache/nginx/scgi_temp
 RUN chmod -R 755 /var/cache/nginx/
 
 # Switch back to default user
