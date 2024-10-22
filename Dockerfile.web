@@ -38,6 +38,7 @@ RUN mkdir -p /var/cache/nginx/fastcgi_temp
 RUN mkdir -p /var/cache/nginx/uwsgi_temp
 RUN mkdir -p /var/cache/nginx/scgi_temp
 RUN chmod -R 755 /var/cache/nginx/
+RUN chmod -R 755 /var/run
 
 # Switch back to default user
 USER 1001
