@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:02-10-2024
+ARG DOCKER_IMAGE=ghcr.io/bcgov/wps/wps-api-base:10-21-2024
 # To build locally, point to a local base image you've already built (see openshift/wps-api-base)
 # e.g. : docker build --build-arg DOCKER_IMAGE=wps-api-base:my-tag .
 
@@ -54,6 +54,9 @@ COPY --from=builder --chown=$USERNAME:$USER_GID /app/pyproject.toml /app/poetry.
 
 # Switch back to our non-root user
 USER $USERNAME
+
+# puts us in the app folder when we open the terminal in vscode instead of the /workspace folder
+RUN echo "cd /app" >> ~/.bashrc
 
 # Copy the app:
 COPY ./api/app /app/app
