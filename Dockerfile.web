@@ -24,11 +24,14 @@ RUN yarn run build:prod
 # PHASE 2 - prepare hosting.
 FROM docker.io/library/nginx:stable-alpine
 
-# Add application sources
+# Copy application sources
 COPY ./openshift/nginx.conf /etc/nginx/nginx.conf
 
 # Copy the static content:
 COPY --from=static /app/build .
+
+RUN mkdir -p /tmp/nginx/client_temp
+RUN chmod -R 755 /tmp/nginx
 
 # Switch back to default user
 USER 1001
