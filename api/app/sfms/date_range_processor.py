@@ -9,7 +9,7 @@ from aiobotocore.client import AioBaseClient
 
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser, WeatherParameter
 from app.sfms.raster_processor import calculate_dmc, calculate_dc, calculate_bui
-from app.utils.geospatial import write_to_geotiff_dataset, generate_latitude_array, warp_to_match
+from app.utils.geospatial import export_to_geotiff, generate_latitude_array, warp_to_match
 from app.utils.s3 import all_objects_exist, get_client, set_s3_gdal_config
 from app.utils.time import get_utc_now
 from app import configure_logging
@@ -115,7 +115,7 @@ class BUIDateRangeProcessor:
 
     async def create_and_store_dataset(self, temp_dir: str, client: AioBaseClient, bucket: str, key: str, transform, projection, values, no_data_value):
         temp_geotiff = os.path.join(temp_dir, os.path.basename(key))
-        write_to_geotiff_dataset(values, temp_geotiff, transform, projection, no_data_value)
+        export_to_geotiff(values, temp_geotiff, transform, projection, no_data_value)
 
         logger.info(f"Writing {key} to s3")
         await client.put_object(Bucket=bucket, Key=key, Body=open(temp_geotiff, "rb"))
