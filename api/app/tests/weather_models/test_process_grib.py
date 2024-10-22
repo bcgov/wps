@@ -5,7 +5,6 @@ from pyproj import CRS
 import math
 import pytest
 from app.geospatial import NAD83_CRS
-from app.stations import StationSourceEnum
 from app.tests.common import default_mock_client_get
 from app.weather_models import process_grib
 
@@ -37,10 +36,7 @@ def test_read_single_raster_value(monkeypatch: pytest.MonkeyPatch):
     geo_to_raster_transformer = process_grib.get_transformer(NAD83_CRS, crs)
     padf_transform = process_grib.get_dataset_geometry(filename)
 
-    processor = process_grib.GribFileProcessor(StationSourceEnum.UNSPECIFIED,
-                                               padf_transform,
-                                               raster_to_geo_transformer,
-                                               geo_to_raster_transformer)
+    processor = process_grib.GribFileProcessor(padf_transform, raster_to_geo_transformer, geo_to_raster_transformer)
 
     raster_band = dataset.GetRasterBand(1)
     station, value = next(processor.yield_value_for_stations(raster_band))
