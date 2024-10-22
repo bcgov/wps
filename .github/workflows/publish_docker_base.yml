@@ -1,0 +1,31 @@
+name: Publish Base Docker Image to GHCR
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'openshift/wps-api-base/docker/Dockerfile'
+      - '.github/workflows/publish_docker_base.yml'
+jobs:
+  build-and-publish:
+    name: Build and Publish Docker Image
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Login to GitHub Container Registry
+        # this step requires a GH_TOKEN with read:packages write:packages and delete:packages
+        # tested with a classic token with the above permissions
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+      - name: Build and Publish Base Image
+        run: |
+          cd openshift/wps-api-base/docker
+          docker build . --tag ghcr.io/bcgov/wps/wps-api-base:$(date +%m-%d-%Y)
+          docker tag ghcr.io/bcgov/wps/wps-api-base:$(date +%m-%d-%Y) ghcr.io/bcgov/wps/wps-api-base:latest
+          docker push ghcr.io/bcgov/wps/wps-api-base:$(date +%m-%d-%Y)
+          docker push ghcr.io/bcgov/wps/wps-api-base:latest

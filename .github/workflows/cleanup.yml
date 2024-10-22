@@ -9,7 +9,7 @@ on:
 jobs:
   cleanup-non-db:
     name: Delete non-DB resources associated with pr
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Set Variables
         shell: bash
@@ -18,6 +18,11 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4.14"
 
       - name: Clean up - dev (OCP4)
         shell: bash
@@ -40,7 +45,7 @@ jobs:
   cleanup-db:
     name: Delete DB resources associated with PR
     needs: cleanup-non-db
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Set Variables
         shell: bash
@@ -49,6 +54,11 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4.14"
 
       - name: Clean up dev database
         shell: bash

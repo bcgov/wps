@@ -42,7 +42,6 @@ def anyio_backend():
 def mock_env(monkeypatch):
     """Automatically mock environment variable"""
     monkeypatch.setenv("BASE_URI", "https://python-test-base-uri")
-    monkeypatch.setenv("USE_WFWX", "False")
     monkeypatch.setenv("WFWX_USER", "user")
     monkeypatch.setenv("WFWX_SECRET", "secret")
     monkeypatch.setenv("WFWX_AUTH_URL", "https://wf1/pub/oauth2/v1/oauth/token")
@@ -156,12 +155,6 @@ def mock_session(monkeypatch):
     monkeypatch.setattr(app.weather_models.process_grib, "get_prediction_model", mock_get_prediction_model)
 
     monkeypatch.setattr(app.jobs.env_canada, "get_prediction_run", mock_get_prediction_run)
-
-
-@pytest.fixture()
-def mock_env_with_use_wfwx(monkeypatch):
-    """Set environment variable USE_WFWX to 'True'"""
-    monkeypatch.setenv("USE_WFWX", "True")
 
 
 @pytest.fixture()

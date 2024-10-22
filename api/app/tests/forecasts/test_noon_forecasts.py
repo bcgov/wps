@@ -40,7 +40,7 @@ def mock_query_noon_forecast_records(session: Session,
     return forecasts
 
 
-@pytest.mark.usefixtures('mock_env_with_use_wfwx', 'mock_jwt_decode')
+@pytest.mark.usefixtures("mock_jwt_decode")
 @scenario('test_noon_forecasts.feature', 'Get noon_forecasts')
 def test_noon_forecasts():
     """ BDD Scenario. """

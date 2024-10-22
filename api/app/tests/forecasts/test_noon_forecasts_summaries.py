@@ -3,6 +3,7 @@
 from datetime import timedelta, datetime
 import json
 import logging
+from aiohttp import ClientSession
 from typing import List
 from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
@@ -12,6 +13,7 @@ import app.main
 from app.db.models.forecasts import NoonForecast
 import app.utils.time as time_utils
 from app.schemas.stations import StationCodeList
+from app.tests.common import default_mock_client_get
 
 
 logger = logging.getLogger(__name__)
@@ -69,6 +71,7 @@ def given_request(monkeypatch, codes: List):
                         'query_noon_forecast_records', mock_query_noon_forecast_records)
 
     client = TestClient(app.main.app)
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     endpoint = '/api/forecasts/noon/summaries/'
     return client.post(
         endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': codes})

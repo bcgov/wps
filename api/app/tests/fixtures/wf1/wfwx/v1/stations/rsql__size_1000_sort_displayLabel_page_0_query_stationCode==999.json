@@ -1,0 +1,125 @@
+{
+    "_embedded": {
+        "stations": [
+            {
+                "id": "bfe0a6e2-e11f-0210-e053-259e228e58c7",
+                "displayLabel": "ZZ SEEDTREE",
+                "createdBy": "LEGACY_DATA_LOAD",
+                "lastModifiedBy": "LEGACY_DATA_LOAD",
+                "lastEntityUpdateTimestamp": 1618316982000,
+                "updateDate": "2021-04-13T19:29:42.000+0000",
+                "stationCode": 999,
+                "stationAcronym": null,
+                "stationStatus": {
+                    "id": "ARCHIVED",
+                    "displayLabel": "Archived",
+                    "displayOrder": 3,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000"
+                },
+                "dataSource": {
+                    "id": "NON_REPORT",
+                    "displayLabel": "Non-Reporting",
+                    "displayOrder": 7,
+                    "effectiveDate": "1950-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "createdDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD",
+                    "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+                },
+                "dataLoggerType": {
+                    "id": "NONE",
+                    "displayLabel": "None",
+                    "displayOrder": 1,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "createdDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD",
+                    "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+                },
+                "siteType": null,
+                "weatherZone": {
+                    "id": 26,
+                    "displayLabel": "Zone 26",
+                    "dangerRegion": 3,
+                    "displayOrder": 26
+                },
+                "stationAccessTypeCode": null,
+                "hourly": false,
+                "pluvioSnowGuage": false,
+                "latitude": 49.6227778,
+                "longitude": -117.08,
+                "geometry": {
+                    "crs": {
+                        "type": "name",
+                        "properties": {
+                            "name": "EPSG:4326"
+                        }
+                    },
+                    "coordinates": [
+                        -117.08,
+                        49.6227778
+                    ],
+                    "type": "Point"
+                },
+                "elevation": 830,
+                "windspeedAdjRoughness": null,
+                "windspeedHeight": {
+                    "id": "9.0_11.9",
+                    "displayLabel": "9.0 - 11.9 (m)",
+                    "displayOrder": 7,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "createdDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD",
+                    "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+                },
+                "surfaceType": null,
+                "overWinterPrecipAdj": false,
+                "influencingSlope": null,
+                "installationDate": 1041404400000,
+                "decommissionDate": 1041490800000,
+                "influencingAspect": null,
+                "owner": null,
+                "fireCentre": {
+                    "id": 34,
+                    "displayLabel": "Southeast Fire Centre",
+                    "alias": 6,
+                    "expiryDate": "9999-12-31T08:00:00.000+0000"
+                },
+                "zone": {
+                    "id": 40,
+                    "displayLabel": "Kootenay Lake Zone",
+                    "alias": 7,
+                    "fireCentre": "Southeast Fire Centre",
+                    "fireCentreAlias": 6,
+                    "expiryDate": "9999-12-31T08:00:00.000+0000"
+                },
+                "comments": "never operational",
+                "ecccFileBaseUrlTemplate": null,
+                "lastProcessedSourceTime": "2021-04-16T12:00:00",
+                "crdStationName": null,
+                "stationAccessDescription": null,
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/bfe0a6e2-e11f-0210-e053-259e228e58c7"
+                    }
+                }
+            }
+        ]
+    },
+    "_links": {
+        "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1stations/rsql?query=stationCode%3D%3D999"
+        }
+    },
+    "page": {
+        "size": 1000,
+        "totalElements": 1,
+        "totalPages": 1,
+        "number": 0
+    }
+}

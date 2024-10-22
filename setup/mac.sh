@@ -22,8 +22,8 @@ brew install --cask wkhtmltopdf
 
 ### pyenv
 brew install pyenv
-pyenv install 3.10.4
-pyenv global 3.10.4
+pyenv install 3.12.3
+pyenv global 3.12.3
 
 ### poetry
 curl -sSL https://install.python-poetry.org | python -
