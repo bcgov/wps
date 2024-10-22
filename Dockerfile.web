@@ -21,17 +21,25 @@ RUN corepack enable \
 COPY web .
 RUN yarn run build:prod 
 
-# Switch back to default user
-USER 1001
-
 # PHASE 2 - prepare hosting.
 FROM docker.io/library/nginx:stable-alpine
 
+RUN chmod -R a+w /var/lib/nginx
+
+RUN chmod -R a+w /var/log/nginx
+
+RUN chmod -R a+w /var/run
+
+RUN chmod -R a+w /var/cache/nginx
+
 # Add application sources
-ADD ./openshift/nginx.conf /etc/nginx/nginx.conf
+COPY ./openshift/nginx.conf /etc/nginx/nginx.conf
 
 # Copy the static content:
 COPY --from=static /app/build .
+
+# Switch back to default user
+USER 1001
 
 EXPOSE 3000
 CMD nginx -g "daemon off;"
