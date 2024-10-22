@@ -36,7 +36,7 @@ class BUIDateRangeProcessor:
                 datetime_to_calculate_utc = self.start_datetime.replace(hour=20, minute=0, second=0, microsecond=0) + timedelta(days=day)
                 previous_fwi_datetime = datetime_to_calculate_utc - timedelta(days=1)
                 prediction_hour = 20 + (day * 24)
-                logger.info(f"Calculating DMC/DC/BUI for {datetime_to_calculate_utc.date().isoformat()}")
+                logger.info(f"Calculating DMC/DC/BUI for {datetime_to_calculate_utc.isoformat()}")
 
                 temp_key, rh_key, _, precip_key = raster_addresser.get_weather_data_keys(self.start_datetime, datetime_to_calculate_utc, prediction_hour)
 
@@ -117,7 +117,7 @@ class BUIDateRangeProcessor:
         temp_geotiff = os.path.join(temp_dir, os.path.basename(key))
         export_to_geotiff(values, temp_geotiff, transform, projection, no_data_value)
 
-        logger.info(f"Writing {key} to s3")
+        logger.info(f"Writing to s3 -- {key}")
         await client.put_object(Bucket=bucket, Key=key, Body=open(temp_geotiff, "rb"))
 
         return temp_geotiff
