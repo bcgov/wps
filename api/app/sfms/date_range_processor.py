@@ -36,6 +36,7 @@ class BUIDateRangeProcessor:
                 datetime_to_calculate_utc = self.start_datetime.replace(hour=20, minute=0, second=0, microsecond=0) + timedelta(days=day)
                 previous_fwi_datetime = datetime_to_calculate_utc - timedelta(days=1)
                 prediction_hour = 20 + (day * 24)
+                logger.info(f"Calculating DMC/DC/BUI for {datetime_to_calculate_utc.date().isoformat()}")
 
                 temp_key, rh_key, _, precip_key = raster_addresser.get_weather_data_keys(self.start_datetime, datetime_to_calculate_utc, prediction_hour)
 
@@ -88,8 +89,6 @@ class BUIDateRangeProcessor:
                         client,
                         bucket,
                         new_dmc_key,
-                        FWIParameter.DMC,
-                        datetime_to_calculate_utc,
                         dmc_ds.GetGeoTransform(),
                         dmc_ds.GetProjection(),
                         dmc_values,
@@ -97,9 +96,7 @@ class BUIDateRangeProcessor:
                     )
 
                     new_dc_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DC)
-                    new_dc_path = await self.create_and_store_dataset(
-                        temp_dir, client, bucket, new_dc_key, FWIParameter.DC, datetime_to_calculate_utc, dc_ds.GetGeoTransform(), dc_ds.GetProjection(), dc_values, dc_nodata_value
-                    )
+                    new_dc_path = await self.create_and_store_dataset(temp_dir, client, bucket, new_dc_key, dc_ds.GetGeoTransform(), dc_ds.GetProjection(), dc_values, dc_nodata_value)
 
                     # Explicitly clean up data that's no longer needed
                     dc_ds = None
@@ -114,16 +111,13 @@ class BUIDateRangeProcessor:
                     new_dc_ds = gdal.Open(new_dc_path)
                     bui_values, nodata = calculate_bui(new_dmc_ds, new_dc_ds)
 
-                    await self.create_and_store_dataset(
-                        temp_dir, client, bucket, new_bui_key, FWIParameter.BUI, datetime_to_calculate_utc, dmc_ds.GetGeoTransform(), dmc_ds.GetProjection(), bui_values, nodata
-                    )
+                    await self.create_and_store_dataset(temp_dir, client, bucket, new_bui_key, dmc_ds.GetGeoTransform(), dmc_ds.GetProjection(), bui_values, nodata)
 
-    async def create_and_store_dataset(
-        self, temp_dir: str, client: AioBaseClient, bucket: str, key: str, fwi_param: FWIParameter, datetime_to_calculate_utc: datetime, transform, projection, values, no_data_value
-    ):
-        temp_geotiff = os.path.join(temp_dir, f"{fwi_param.value}{datetime_to_calculate_utc.date().isoformat()}.tif")
+    async def create_and_store_dataset(self, temp_dir: str, client: AioBaseClient, bucket: str, key: str, transform, projection, values, no_data_value):
+        temp_geotiff = os.path.join(temp_dir, os.path.basename(key))
         write_to_geotiff_dataset(values, temp_geotiff, transform, projection, no_data_value)
 
+        logger.info(f"Writing {key} to s3")
         await client.put_object(Bucket=bucket, Key=key, Body=open(temp_geotiff, "rb"))
 
         return temp_geotiff
