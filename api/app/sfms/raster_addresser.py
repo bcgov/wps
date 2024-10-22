@@ -39,41 +39,23 @@ class RasterKeyAddresser:
         self.sfms_upload_prefix = "sfms/uploads/actual"
         self.weather_model_prefix = f"weather_models/{ModelEnum.RDPS.lower()}"
 
-    def determine_last_upload_date(self, start_datetime: datetime) -> datetime.date:
-        """
-        SFMS FWI rasters are uploaded according to local ("America/Vancouver") time. We need to convert whatever time
-        we're using (typically utc) to that timezone so that we know which day to pull data for
+    def get_uploaded_index_key(self, datetime_utc: datetime, fwi_param: FWIParameter):
+        assert_all_utc(datetime_utc)
+        iso_date = datetime_utc.date().isoformat()
 
-        :param datetime: Input datetime
-        :return: Date of the most recent fwi data from sfms
-        """
-        local_datetime = start_datetime.astimezone(ZoneInfo("America/Vancouver"))  # sfms is currently uploaded according to local time
-        day_of_last_actual = (local_datetime - timedelta(days=1)).date()
+        return f"{self.sfms_upload_prefix}/{iso_date}/{fwi_param.value}{iso_date.replace('-', '')}.tif"
 
-        if model_run_for_hour(start_datetime.hour) == 0:
-            day_of_last_actual = local_datetime.date()
-
-        return day_of_last_actual
-
-    def get_uploaded_index_key(self, start_datetime: datetime, fwi_param: FWIParameter):
-        assert_all_utc(start_datetime)
-        last_upload_date = self.determine_last_upload_date(start_datetime)
-
-        return f"{self.sfms_upload_prefix}/{last_upload_date}/{fwi_param.value}{last_upload_date.isoformat().replace('-', '')}.tif"
-
-    def get_calculated_index_key(self, datetime_to_calculate_utc: datetime, fwi_param: FWIParameter):
+    def get_calculated_index_key(self, datetime_utc: datetime, fwi_param: FWIParameter):
         """
         Generates the calculated fire weather index key that points to the associated raster artifact in the object store.
         A calculated index is always generated for a future date, so always considered to be a forecast.
 
-        :param datetime_to_calculate_utc: UTC datetime the calculated raster is for
+        :param datetime_utc: UTC datetime the calculated raster is for
         :param index: the fire weather index caller is interested in
         :return: the key to the raster artifact in object storage
         """
-        assert_all_utc(datetime_to_calculate_utc)
-        return (
-            f"{self.sfms_calculated_prefix}/forecast/{datetime_to_calculate_utc.date().isoformat()}/{fwi_param.value}{datetime_to_calculate_utc.date().isoformat().replace('-', '')}.tif"
-        )
+        assert_all_utc(datetime_utc)
+        return f"{self.sfms_calculated_prefix}/forecast/{datetime_utc.date().isoformat()}/{fwi_param.value}{datetime_utc.date().isoformat().replace('-', '')}.tif"
 
     def get_model_data_key(self, start_time_utc: datetime, prediction_hour: int, weather_param: WeatherParameter):
         """
