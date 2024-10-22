@@ -6,6 +6,14 @@
 	"context": "..",
 	// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
 	"dockerFile": "../Dockerfile.vscode",
+	// make sure you don't have any local .venv in wps/api or it won't work
+	// note: we don't use a workspace mount because then you'll only see the files in /api, when
+	// you probably want to see everything. This means you must cd from /workspace to /app in order
+	// to actually run things though. the following mount will at least make the /app folder in the
+	// docker container change when files in api change.
+	"mounts": [
+		"source=${localWorkspaceFolder}/api,target=/app,type=bind"
+	],
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 	// Uncomment the next line to run commands after the container is created - for example installing curl.
@@ -15,5 +23,12 @@
 	// Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.
 	// "mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ],
 	// Uncomment to connect as a non-root user if you've added one. See https://aka.ms/vscode-remote/containers/non-root.
-	"remoteUser": "vscode"
+	"remoteUser": "ubuntu",
+	"containerUser": "ubuntu",
+	// this lets the container access the database container. On linux I had to configure the db
+	// host to localhost for it to work in the .env file in api/app
+	// tested with the database running from the docker-compose file with `docker compose up db`
+	"runArgs": [
+		"--network=host"
+	],
 }
