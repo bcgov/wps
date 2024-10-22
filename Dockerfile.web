@@ -26,7 +26,7 @@ USER 1001
 
 # PHASE 2 - prepare hosting.
 # https://catalog.redhat.com/software/containers/ubi8/nginx-120/6156abfac739c0a4123a86fd
-FROM nginx:stable
+FROM nginx:stable-alpine
 
 # Add application sources
 ADD ./openshift/nginx.conf "${NGINX_CONF_PATH}"
