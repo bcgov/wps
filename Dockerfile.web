@@ -28,7 +28,7 @@ USER 1001
 FROM nginx:stable-alpine
 
 # Add application sources
-ADD ./openshift/nginx.conf "${NGINX_CONF_PATH}"
+ADD ./openshift/nginx.conf /etc/nginx/nginx.conf
 
 # Copy the static content:
 COPY --from=static /app/build .
