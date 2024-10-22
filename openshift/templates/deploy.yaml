@@ -154,7 +154,7 @@ objects:
                 timeoutSeconds: 1
               volumeMounts:
                 - name: config-env
-                  mountPath: "/opt/app-root/src/config.js"
+                  mountPath: "/config.js"
                   subPath: gold.config.js
             #############################################################################
             # API container
