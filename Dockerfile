@@ -70,8 +70,8 @@ COPY ./api/alembic.ini /app
 COPY ./api/prestart.sh /app
 COPY ./api/start.sh /app
 
-# Copy installed Python packages
-COPY --from=builder /home/worker/.cache/pypoetry/virtualenvs /home/worker/.cache/pypoetry/virtualenvs
+# Copy installed Python packages (the chown lets us install the dev packages later without root if we want)
+COPY --from=builder --chown=$USERNAME:$USER_GID /home/worker/.cache/pypoetry/virtualenvs /home/worker/.cache/pypoetry/virtualenvs
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080
