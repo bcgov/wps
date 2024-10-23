@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple, Union
 from osgeo import gdal, osr
 import numpy as np
 
@@ -137,7 +137,7 @@ class WPSDataset:
 
         array[array == nodata_value] = new_no_data_value
 
-        return array, nodata_value
+        return array, new_no_data_value
 
     def generate_latitude_array(self):
         """
@@ -203,6 +203,16 @@ class WPSDataset:
         del output_dataset
         output_band = None
         del output_band
+
+    def get_nodata_mask(self) -> Tuple[Optional[np.ndarray], Optional[Union[float, int]]]:
+        band = self.ds.GetRasterBand(self.band)
+        nodata_value = band.GetNoDataValue()
+
+        if nodata_value is not None:
+            nodata_mask = band.ReadAsArray() == nodata_value
+            return nodata_mask, nodata_value
+
+        return None, None
 
     def as_gdal_ds(self) -> gdal.Dataset:
         return self.ds

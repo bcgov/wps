@@ -85,7 +85,7 @@ class BUIDateRangeProcessor:
 
                     # Create and store DMC dataset
                     new_dmc_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DMC)
-                    new_dmc_path = await self.create_and_store_dataset(
+                    new_dmc_path = await self._create_and_store_dataset(
                         temp_dir,
                         client,
                         bucket,
@@ -98,7 +98,7 @@ class BUIDateRangeProcessor:
 
                     # Create and store DC dataset
                     new_dc_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DC)
-                    new_dc_path = await self.create_and_store_dataset(
+                    new_dc_path = await self._create_and_store_dataset(
                         temp_dir,
                         client,
                         bucket,
@@ -118,7 +118,7 @@ class BUIDateRangeProcessor:
                     bui_values, nodata = calculate_bui(new_dmc_ds, new_dc_ds)
 
                     # Store the new BUI dataset
-                    await self.create_and_store_dataset(
+                    await self._create_and_store_dataset(
                         temp_dir,
                         client,
                         bucket,
@@ -129,7 +129,7 @@ class BUIDateRangeProcessor:
                         nodata,
                     )
 
-    async def create_and_store_dataset(self, temp_dir: str, client: AioBaseClient, bucket: str, key: str, transform, projection, values, no_data_value):
+    async def _create_and_store_dataset(self, temp_dir: str, client: AioBaseClient, bucket: str, key: str, transform, projection, values, no_data_value):
         temp_geotiff = os.path.join(temp_dir, os.path.basename(key))
         export_to_geotiff(values, temp_geotiff, transform, projection, no_data_value)
 
