@@ -94,11 +94,11 @@ async def generate_24_hour_accumulating_precip_raster(timestamp: datetime):
     and the date for 24 hours before to compute the difference.
     """
     (yesterday_key, today_key) = get_raster_keys_to_diff(timestamp)
-    (day_data, day_geotransform, day_projection, _) = await read_into_memory(today_key)
+    (day_data, day_geotransform, day_projection) = await read_into_memory(today_key)
     if day_data is None:
         return (day_data, day_geotransform, day_projection)
     if yesterday_key is None:
-        return (day_data, day_geotransform, day_projection, _)
+        return (day_data, day_geotransform, day_projection)
 
     yesterday_time = timestamp - timedelta(days=1)
     (yesterday_data, _, _) = await read_into_memory(yesterday_key)

@@ -5,7 +5,6 @@ from typing import Tuple
 from osgeo import gdal, ogr, osr
 import numpy as np
 from tempfile import TemporaryDirectory
-from app.utils.s3 import read_into_memory
 
 
 logger = logging.getLogger(__name__)
