@@ -1,4 +1,5 @@
-""" BDD tests for grib file processing """
+"""Tests for grib file processing"""
+
 import os
 import logging
 import pytest
@@ -10,6 +11,7 @@ from app.geospatial import NAD83_CRS
 import app.weather_models.process_grib as process_grib
 
 logger = logging.getLogger(__name__)
+
 
 def open_grib_file(filename: str):
     """Open the dataset."""
@@ -24,9 +26,9 @@ def get_grib_file_path(filename: str):
 
 
 def read_file_contents(filename):
-    """ Given a filename, return json """
+    """Given a filename, return json"""
     dirname = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(dirname, filename), 'r') as file:
+    with open(os.path.join(dirname, filename), "r") as file:
         return file.read()
 
 
