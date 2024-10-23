@@ -1,10 +1,8 @@
 from time import perf_counter
 import logging
 import numpy as np
-from osgeo import gdal
 
 from app.geospatial.wps_dataset import WPSDataset
-from app.sfms.bui import replace_nodata_with_zero
 from app.auto_spatial_advisory.sfms import vectorized_dmc, vectorized_dc, vectorized_bui
 
 logger = logging.getLogger(__name__)
