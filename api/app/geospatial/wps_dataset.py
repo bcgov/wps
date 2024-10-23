@@ -137,7 +137,7 @@ class WPSDataset:
 
         array[array == nodata_value] = new_no_data_value
 
-        return array, new_no_data_value
+        return array, nodata_value
 
     def generate_latitude_array(self):
         """
