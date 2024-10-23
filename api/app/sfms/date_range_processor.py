@@ -52,12 +52,13 @@ class BUIDateRangeProcessor:
                 fwi_keys_exist = await all_objects_exist(dc_key, dmc_key)
 
                 if not fwi_keys_exist:
-                    dc_key = raster_addresser.get_uploaded_index_key(self.start_datetime, FWIParameter.DC)
-                    dmc_key = raster_addresser.get_uploaded_index_key(self.start_datetime, FWIParameter.DMC)
+                    dc_key = raster_addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DC)
+                    dmc_key = raster_addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DMC)
 
                     fwi_keys_exist = await all_objects_exist(dc_key, dmc_key)
 
                     if not fwi_keys_exist:
+                        logging.warning(f"No previous DMC/DC keys found for {previous_fwi_datetime.date().isoformat()}")
                         break
 
                 temp_key, rh_key, precip_key = raster_addresser.gdal_prefix_keys(temp_key, rh_key, precip_key)
@@ -72,18 +73,17 @@ class BUIDateRangeProcessor:
                     dc_ds = stack.enter_context(WPSDataset(dc_key))
                     dmc_ds = stack.enter_context(WPSDataset(dmc_key))
 
-                    # Warp datasets
+                    # Warp weather datasets to match fwi
                     warped_temp_ds = stack.enter_context(temp_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(temp_key)}", GDALResamplingMethod.BILINEAR))
                     warped_rh_ds = stack.enter_context(rh_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(rh_key)}", GDALResamplingMethod.BILINEAR))
                     warped_precip_ds = stack.enter_context(precip_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(precip_key)}", GDALResamplingMethod.BILINEAR))
 
+                    # Create latitude and month arrays needed for calculations
                     latitude_array = dmc_ds.generate_latitude_array()
                     month_array = np.full(latitude_array.shape, datetime_to_calculate_utc.month)
 
-                    dc_values, dc_nodata_value = calculate_dc(dc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, latitude_array, month_array)
-                    dmc_values, dmc_nodata_value = calculate_dmc(dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, latitude_array, month_array)
-
                     # Create and store DMC dataset
+                    dmc_values, dmc_nodata_value = calculate_dmc(dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, latitude_array, month_array)
                     new_dmc_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DMC)
                     new_dmc_path = await self._create_and_store_dataset(
                         temp_dir,
@@ -97,6 +97,7 @@ class BUIDateRangeProcessor:
                     )
 
                     # Create and store DC dataset
+                    dc_values, dc_nodata_value = calculate_dc(dc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, latitude_array, month_array)
                     new_dc_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DC)
                     new_dc_path = await self._create_and_store_dataset(
                         temp_dir,
@@ -111,7 +112,6 @@ class BUIDateRangeProcessor:
 
                     # Open new DMC and DC datasets and calculate BUI
                     new_bui_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.BUI)
-
                     new_dmc_ds = stack.enter_context(WPSDataset(new_dmc_path))
                     new_dc_ds = stack.enter_context(WPSDataset(new_dc_path))
 
@@ -130,6 +130,19 @@ class BUIDateRangeProcessor:
                     )
 
     async def _create_and_store_dataset(self, temp_dir: str, client: AioBaseClient, bucket: str, key: str, transform, projection, values, no_data_value):
+        """
+        Creates a geotiff to temporarily store and write to s3.
+
+        :param temp_dir: temporary directory to write geotiff
+        :param client: async s3 client
+        :param bucket: s3 bucket name
+        :param key: s3 key to store output dataset
+        :param transform: gdal geotransform
+        :param projection: gdal projection
+        :param values: array of values
+        :param no_data_value: array no data value
+        :return: path to temporary written geotiff file
+        """
         temp_geotiff = os.path.join(temp_dir, os.path.basename(key))
         export_to_geotiff(values, temp_geotiff, transform, projection, no_data_value)
 
