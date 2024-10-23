@@ -52,7 +52,7 @@ async def all_objects_exist(*s3_keys: str):
     for key in s3_keys:
         key_exists = await object_exists_v2(key)
         if not key_exists:
-            logger.error(f"{key} cannot be found in s3 bucket {BUCKET}")
+            logger.warning(f"{key} cannot be found in s3 bucket {BUCKET}")
             return False
     return True
 

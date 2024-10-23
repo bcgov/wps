@@ -7,13 +7,12 @@ from tempfile import TemporaryDirectory
 
 import numpy as np
 from aiobotocore.client import AioBaseClient
-from osgeo import gdal
 
 from app import configure_logging
 from app.geospatial.wps_dataset import WPSDataset
-from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser, WeatherParameter
+from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
 from app.sfms.raster_processor import calculate_bui, calculate_dc, calculate_dmc
-from app.utils.geospatial import GDALResamplingMethod, export_to_geotiff, generate_latitude_array, warp_to_match
+from app.utils.geospatial import GDALResamplingMethod, export_to_geotiff
 from app.utils.s3 import all_objects_exist, get_client, set_s3_gdal_config
 from app.utils.time import get_utc_now
 
