@@ -8,7 +8,7 @@ interface ActualCellProps {
   value: Pick<GridRenderCellParams, 'formattedValue'>
 }
 
-const MISSING_ACTUAL_MESSAGE = 'Observation not available from WF1.'
+const MISSING_ACTUAL_MESSAGE = 'Actual not available from WF1.'
 
 const ActualCell = ({ missingActual, value }: ActualCellProps) => {
   const [open, setOpen] = useState<boolean>(false)
