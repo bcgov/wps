@@ -84,8 +84,6 @@ per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" =
     "E501",
 ], "app/tests/fba_calc/test_fba_error.py" = [
     "E501",
-], "app/tests/fba_calc/test_fba_error_redapp.py" = [
-    "E501",
 ], "app/tests/hfi/test_hfi.py" = [
     "F811",
 ], "app/auto_spatial_advisory/nats_consumer.py" = [
