@@ -48,20 +48,18 @@ class BUIDateRangeProcessor:
                     logging.warning(f"No weather keys found for {model_run_for_hour(self.start_datetime.hour):02} model run")
                     break
 
-                dc_key = raster_addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DC)
-                dmc_key = raster_addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DMC)
+                if day == 0:  # if we're running the first day of the calculation, use previously uploaded actuals
+                    dc_key = raster_addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DC)
+                    dmc_key = raster_addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DMC)
+                else:  # otherwise use the last calculated key
+                    dc_key = raster_addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DC)
+                    dmc_key = raster_addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DMC)
 
                 fwi_keys_exist = await all_objects_exist(dc_key, dmc_key)
 
                 if not fwi_keys_exist:
-                    dc_key = raster_addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DC)
-                    dmc_key = raster_addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DMC)
-
-                    fwi_keys_exist = await all_objects_exist(dc_key, dmc_key)
-
-                    if not fwi_keys_exist:
-                        logging.warning(f"No previous DMC/DC keys found for {previous_fwi_datetime.date().isoformat()}")
-                        break
+                    logging.warning(f"No previous DMC/DC keys found for {previous_fwi_datetime.date().isoformat()}")
+                    break
 
                 temp_key, rh_key, precip_key = raster_addresser.gdal_prefix_keys(temp_key, rh_key, precip_key)
                 dc_key, dmc_key = raster_addresser.gdal_prefix_keys(dc_key, dmc_key)
