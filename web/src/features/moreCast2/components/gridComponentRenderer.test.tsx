@@ -133,7 +133,10 @@ describe('GridComponentRenderer', () => {
   })
 
   it('should render the cell with the formatted value', () => {
-    const { getByRole } = render(gridComponentRenderer.renderCellWith({ formattedValue: 1 }))
+    const field = 'tempForecast'
+    const fieldActual = 'tempActual'
+    const row = { [field]: NaN, [fieldActual]: 2, forDate: DateTime.now() }
+    const { getByRole } = render(gridComponentRenderer.renderCellWith({ formattedValue: 1, field: fieldActual, row }))
 
     const renderedCell = getByRole('textbox')
     expect(renderedCell).toBeInTheDocument()

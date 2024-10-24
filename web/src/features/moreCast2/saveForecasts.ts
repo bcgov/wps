@@ -1,10 +1,20 @@
-import { isForecastRow } from 'features/moreCast2/util'
+import { isBeforeToday, isForecastRow } from 'features/moreCast2/util'
 import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { isNil } from 'lodash'
 
+// Forecast rows contain all NaN values in their 'actual' fields and occur earlier than noon standard time today
+export const isForecastRowPredicate = (row: MoreCast2Row) =>
+  isBeforeToday(row.forDate) &&
+  isNaN(row.precipActual) &&
+  isNaN(row.rhActual) &&
+  isNaN(row.tempActual) &&
+  isNaN(row.windDirectionActual) &&
+  isNaN(row.windSpeedActual) &&
+  isNaN(row.grassCuringActual)
+
 export const getForecastRows = (rows: MoreCast2Row[]): MoreCast2Row[] => {
-  return rows ? rows.filter(isForecastRow) : []
+  return rows ? rows.filter(isForecastRowPredicate) : []
 }
 
 export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {
