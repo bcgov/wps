@@ -5,7 +5,6 @@ import { isNil } from 'lodash'
 
 // Forecast rows contain all NaN values in their 'actual' fields and occur earlier than noon standard time today
 export const isForecastRowPredicate = (row: MoreCast2Row) =>
-  !isBeforeToday(row.forDate) &&
   isNaN(row.precipActual) &&
   isNaN(row.rhActual) &&
   isNaN(row.tempActual) &&
@@ -14,7 +13,7 @@ export const isForecastRowPredicate = (row: MoreCast2Row) =>
   isNaN(row.grassCuringActual)
 
 export const getForecastRows = (rows: MoreCast2Row[]): MoreCast2Row[] => {
-  return rows ? rows.filter(isForecastRowPredicate) : []
+  return rows ? rows.filter(row => isForecastRowPredicate(row) && !isBeforeToday(row.forDate)) : []
 }
 
 export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {

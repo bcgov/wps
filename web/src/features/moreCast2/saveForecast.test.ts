@@ -240,8 +240,8 @@ describe('saveForecasts', () => {
       const yesterday = DateTime.now().minus({days: 1})
       const tomorrow = DateTime.now().plus({days: 1})
       const res = getRowsToSave([
-        buildForecast('1', yesterday, 1, 'one', 1, 1),
-        buildForecastWithActuals('2', tomorrow, 2, 'two', 2, 2)
+        buildForecast('1', tomorrow, 1, 'one', 1, 1),
+        buildForecastWithActuals('2', yesterday, 2, 'two', 2, 2)
       ])
       expect(res).toHaveLength(1)
       expect(res[0].id).toBe('1')
