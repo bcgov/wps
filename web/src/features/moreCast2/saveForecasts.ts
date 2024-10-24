@@ -5,7 +5,7 @@ import { isNil } from 'lodash'
 
 // Forecast rows contain all NaN values in their 'actual' fields and occur earlier than noon standard time today
 export const isForecastRowPredicate = (row: MoreCast2Row) =>
-  isBeforeToday(row.forDate) &&
+  !isBeforeToday(row.forDate) &&
   isNaN(row.precipActual) &&
   isNaN(row.rhActual) &&
   isNaN(row.tempActual) &&
