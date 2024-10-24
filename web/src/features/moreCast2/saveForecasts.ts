@@ -1,3 +1,4 @@
+import { isBeforeToday } from 'features/moreCast2/util'
 import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { isNil } from 'lodash'
@@ -12,7 +13,7 @@ export const isForecastRowPredicate = (row: MoreCast2Row) =>
   isNaN(row.grassCuringActual)
 
 export const getForecastRows = (rows: MoreCast2Row[]): MoreCast2Row[] => {
-  return rows ? rows.filter(isForecastRowPredicate) : []
+  return rows ? rows.filter(row => isForecastRowPredicate(row) && !isBeforeToday(row.forDate)) : []
 }
 
 export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {

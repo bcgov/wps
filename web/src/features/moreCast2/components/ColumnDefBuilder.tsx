@@ -174,7 +174,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       headerClassName: (params: Pick<GridColumnHeaderParams, 'colDef' | 'field'>) => {
         return modelHeaderColorClass(params)
       },
-      renderCell: (params: Pick<GridRenderCellParams, 'formattedValue'>) => {
+      renderCell: (params: Pick<GridRenderCellParams, 'formattedValue' | 'field' | 'row'>) => {
         return this.gridComponentRenderer.renderCellWith(params)
       },
       renderHeader: (params: GridColumnHeaderParams) => {
@@ -220,7 +220,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
           ? this.gridComponentRenderer.renderHeaderWith(params)
           : this.gridComponentRenderer.renderForecastHeaderWith(params, columnClickHandlerProps)
       },
-      renderCell: (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>) => {
+      renderCell: (params: Pick<GridRenderCellParams, 'row' | 'formattedValue' | 'field'>) => {
         return isCalcField
           ? this.gridComponentRenderer.renderCellWith(params)
           : this.gridComponentRenderer.renderForecastCellWith(params, field, validator)
@@ -267,7 +267,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
           ? this.gridComponentRenderer.renderHeaderWith(params)
           : this.gridComponentRenderer.renderForecastHeaderWith(params, columnClickHandlerProps)
       },
-      renderCell: (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>) => {
+      renderCell: (params: Pick<GridRenderCellParams, 'row' | 'formattedValue' | 'field'>) => {
         return isCalcField
           ? this.gridComponentRenderer.renderCellWith(params)
           : this.gridComponentRenderer.renderForecastSummaryCellWith(params)

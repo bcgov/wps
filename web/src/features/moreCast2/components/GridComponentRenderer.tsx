@@ -8,7 +8,7 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid-pro'
 import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
-import { createWeatherModelLabel, isBeforeToday, rowContainsActual } from 'features/moreCast2/util'
+import { createWeatherModelLabel, isBeforeToday, isForecastRow, rowContainsActual } from 'features/moreCast2/util'
 import {
   GC_HEADER,
   PRECIP_HEADER,
@@ -24,6 +24,7 @@ import { cloneDeep, isNumber } from 'lodash'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
 import ValidatedGrassCureForecastCell from '@/features/moreCast2/components/ValidatedGrassCureForecastCell'
 import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/ValidatedWindDirectionForecastCell'
+import ActualCell from 'features/moreCast2/components/ActualCell'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -49,14 +50,20 @@ export class GridComponentRenderer {
     }
     return <div data-testid={`${params.colDef.field}-column-header`}>{params.colDef.headerName}</div>
   }
-  public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue'>) => (
-    <TextField
-      sx={{ pointerEvents: 'none', backgroundColor: theme.palette.common.white, borderRadius: 1 }}
-      disabled={true}
-      size="small"
-      value={params.formattedValue}
-    ></TextField>
-  )
+
+  public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue' | 'field' | 'row'>) => {
+    if (!isForecastRow(params.row) && params.field.endsWith('Actual')) {
+      return <ActualCell missingActual={params.formattedValue === NOT_REPORTING} value={params.formattedValue} />
+    }
+    return (
+      <TextField
+        sx={{ pointerEvents: 'none', backgroundColor: theme.palette.common.white, borderRadius: 1 }}
+        disabled={true}
+        size="small"
+        value={params.formattedValue}
+      ></TextField>
+    )
+  }
 
   public getActualField = (field: string) => {
     const actualField = field.replace('Forecast', 'Actual')
