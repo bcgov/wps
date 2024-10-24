@@ -71,6 +71,7 @@ requires = ["poetry>=1.1.11"]
 build-backend = "poetry.masonry.api"
 
 [tool.ruff]
+exclude = ["app/tests/fba_calc/test_fba_error_redapp.py"]
 per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" = [
     "E501",
 ], "alembic/versions/39806f02cdec_wfwx_update_date_part_of_unique_.py" = [
@@ -82,6 +83,8 @@ per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" =
 ], "app/auto_spatial_advisory/db/database/tileserver.py" = [
     "E501",
 ], "app/tests/fba_calc/test_fba_error.py" = [
+    "E501",
+], "app/tests/fba_calc/test_fba_error_redapp.py" = [
     "E501",
 ], "app/tests/hfi/test_hfi.py" = [
     "F811",
