@@ -1,8 +1,7 @@
 import axios from 'api/axios'
 import { isEqual } from 'lodash'
 import { DateTime } from 'luxon'
-import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
-import { isForecastRow } from 'features/moreCast2/util'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 
 
 export enum ModelChoice {
@@ -244,33 +243,4 @@ export async function fetchWeatherIndeterminates(
   }
 
   return payload
-}
-
-export const mapMoreCast2RowsToIndeterminates = (rows: MoreCast2Row[]): WeatherIndeterminate[] => {
-  const mappedIndeterminates = rows.map(r => {
-    const isForecast = isForecastRow(r)
-    return {
-      id: r.id,
-      station_code: r.stationCode,
-      station_name: r.stationName,
-      determinate: isForecast ? WeatherDeterminate.FORECAST : WeatherDeterminate.ACTUAL,
-      latitude: r.latitude,
-      longitude: r.longitude,
-      utc_timestamp: r.forDate.toString(),
-      precipitation: isForecast ? r.precipForecast!.value : r.precipActual,
-      relative_humidity: isForecast ? r.rhForecast!.value : r.rhActual,
-      temperature: isForecast ? r.tempForecast!.value : r.tempActual,
-      wind_direction: isForecast ? r.windDirectionForecast!.value : r.windDirectionActual,
-      wind_speed: isForecast ? r.windSpeedForecast!.value : r.windSpeedActual,
-      fine_fuel_moisture_code: isForecast ? r.ffmcCalcForecast!.value : r.ffmcCalcActual,
-      duff_moisture_code: isForecast ? r.dmcCalcForecast!.value : r.dmcCalcActual,
-      drought_code: isForecast ? r.dcCalcForecast!.value : r.dcCalcActual,
-      initial_spread_index: isForecast ? r.isiCalcForecast!.value : r.isiCalcActual,
-      build_up_index: isForecast ? r.buiCalcForecast!.value : r.buiCalcActual,
-      fire_weather_index: isForecast ? r.fwiCalcForecast!.value : r.fwiCalcActual,
-      danger_rating: isForecast ? null : r.dgrCalcActual,
-      grass_curing: isForecast ? r.grassCuringForecast!.value : r.grassCuringActual
-    }
-  })
-  return mappedIndeterminates
 }
