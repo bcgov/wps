@@ -29,6 +29,7 @@ const ActualCell = ({ missingActual, value }: ActualCellProps) => {
       title={MISSING_ACTUAL_MESSAGE}
     >
       <TextField
+        data-testId="actual-cell"
         sx={{
           backgroundColor: theme.palette.common.white,
           border: '2px',
