@@ -15,6 +15,7 @@ from app.sfms.raster_processor import calculate_bui, calculate_dc, calculate_dmc
 from app.utils.geospatial import GDALResamplingMethod, export_to_geotiff
 from app.utils.s3 import all_objects_exist, get_client, set_s3_gdal_config
 from app.utils.time import get_utc_now
+from app.weather_models.rdps_filename_marshaller import model_run_for_hour
 
 logger = logging.getLogger(__name__)
 
@@ -44,16 +45,17 @@ class BUIDateRangeProcessor:
                 weather_keys_exist = await all_objects_exist(temp_key, rh_key, precip_key)
 
                 if not weather_keys_exist:
+                    logging.warning(f"No weather keys found for {model_run_for_hour(self.start_datetime.hour):02} model run")
                     break
 
-                dc_key = raster_addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DC)
-                dmc_key = raster_addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DMC)
+                dc_key = raster_addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DC)
+                dmc_key = raster_addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DMC)
 
                 fwi_keys_exist = await all_objects_exist(dc_key, dmc_key)
 
                 if not fwi_keys_exist:
-                    dc_key = raster_addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DC)
-                    dmc_key = raster_addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DMC)
+                    dc_key = raster_addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DC)
+                    dmc_key = raster_addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DMC)
 
                     fwi_keys_exist = await all_objects_exist(dc_key, dmc_key)
 
