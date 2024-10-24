@@ -3,7 +3,7 @@ import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { isNil } from 'lodash'
 
-// Forecast rows contain all NaN values in their 'actual' fields and occur earlier than noon standard time today
+// Forecast rows contain all NaN values in their 'actual' fields
 export const isForecastRowPredicate = (row: MoreCast2Row) =>
   isNaN(row.precipActual) &&
   isNaN(row.rhActual) &&
