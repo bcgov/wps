@@ -3,6 +3,7 @@
 from datetime import timezone, datetime
 import logging
 from typing import Optional
+from aiohttp import ClientSession
 from unittest.mock import MagicMock
 import requests
 import pytest
@@ -17,6 +18,7 @@ from app.tests.common import (
     default_aiobotocore_get_session,
     default_mock_requests_get,
     default_mock_requests_post,
+    default_mock_client_get,
     default_mock_requests_session_get,
     default_mock_requests_session_post,
 )
@@ -182,6 +184,14 @@ def mock_requests_session(monkeypatch):
     """Patch all calls to requests.Session.*"""
     monkeypatch.setattr(requests.Session, "get", default_mock_requests_session_get)
     monkeypatch.setattr(requests.Session, "post", default_mock_requests_session_post)
+    return monkeypatch
+
+
+@pytest.fixture()
+def mock_client_session(monkeypatch):
+    """Patch all calls to aiohttp.ClientSession"""
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+    monkeypatch.setattr(ClientSession, "post", default_mock_client_get)
     return monkeypatch
 
 
