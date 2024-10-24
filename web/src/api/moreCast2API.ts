@@ -2,7 +2,8 @@ import axios from 'api/axios'
 import { isEqual } from 'lodash'
 import { DateTime } from 'luxon'
 import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
-import { isForecastRowPredicate } from 'features/moreCast2/saveForecasts'
+import { isForecastRow } from 'features/moreCast2/util'
+
 
 export enum ModelChoice {
   ACTUAL = 'ACTUAL',
@@ -247,7 +248,7 @@ export async function fetchWeatherIndeterminates(
 
 export const mapMoreCast2RowsToIndeterminates = (rows: MoreCast2Row[]): WeatherIndeterminate[] => {
   const mappedIndeterminates = rows.map(r => {
-    const isForecast = isForecastRowPredicate(r)
+    const isForecast = isForecastRow(r)
     return {
       id: r.id,
       station_code: r.stationCode,

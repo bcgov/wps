@@ -4,8 +4,8 @@ import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interface
 import { StationGroupMember } from 'api/stationAPI'
 import { groupBy, isUndefined } from 'lodash'
 import { getDateTimeNowPST } from 'utils/date'
-import { isForecastRowPredicate } from 'features/moreCast2/saveForecasts'
 import { bui, dc, dmc, ffmc, fwi, isi } from '@psu/cffdrs_ts'
+
 
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
@@ -294,7 +294,7 @@ export const simulateFireWeatherIndices = (rows: MoreCast2Row[]): MoreCast2Row[]
     for (let i = 1; i < group.length; i++) {
       const previous = group[i - 1]
       const current = group[i]
-      if (!isForecastRowPredicate(current)) {
+      if (!isForecastRow(current)) {
         // No need to simulate indices for actuals
         continue
       }
@@ -319,9 +319,9 @@ export const calculateFWIs = (previous: MoreCast2Row, current: MoreCast2Row): Mo
   const precip = current.precipForecast
   const windSpeed = current.windSpeedForecast
 
-  const previousFfmc = isForecastRowPredicate(previous) ? previous.ffmcCalcForecast?.value : previous.ffmcCalcActual
-  const previousDmc = isForecastRowPredicate(previous) ? previous.dmcCalcForecast?.value : previous.dmcCalcActual
-  const previousDc = isForecastRowPredicate(previous) ? previous.dcCalcForecast?.value : previous.dcCalcActual
+  const previousFfmc = isForecastRow(previous) ? previous.ffmcCalcForecast?.value : previous.ffmcCalcActual
+  const previousDmc = isForecastRow(previous) ? previous.dmcCalcForecast?.value : previous.dmcCalcActual
+  const previousDc = isForecastRow(previous) ? previous.dcCalcForecast?.value : previous.dcCalcActual
 
   if (previousFfmc) {
     const simulatedFfmc = ffmc(previousFfmc, temp!.value, rh!.value, windSpeed!.value, precip!.value)

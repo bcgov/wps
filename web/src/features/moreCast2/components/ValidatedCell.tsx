@@ -12,7 +12,7 @@ interface ValidatedCellProps {
   value: Pick<GridRenderCellParams, 'formattedValue'>
 }
 
-const ValidatedGrassCureForecastCell = ({ disabled, label, value, invalid, error }: ValidatedCellProps) => {
+const ValidatedCell = ({ disabled, label, value, invalid, error }: ValidatedCellProps) => {
   const testTag = error ? 'validated-forecast-cell-error' : 'validated-forecast-cell'
   return (
     <InvalidCellToolTip invalid={invalid}>
@@ -51,4 +51,4 @@ const ValidatedGrassCureForecastCell = ({ disabled, label, value, invalid, error
   )
 }
 
-export default React.memo(ValidatedGrassCureForecastCell)
+export default React.memo(ValidatedCell)

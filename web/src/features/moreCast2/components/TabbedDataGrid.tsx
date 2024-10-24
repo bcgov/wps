@@ -30,10 +30,10 @@ import { ROLES } from 'features/auth/roles'
 import { selectAuthentication } from 'app/rootReducer'
 import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
-import { isForecastRowPredicate, getRowsToSave, isRequiredInputSet } from 'features/moreCast2/saveForecasts'
+import { getRowsToSave, isRequiredInputSet } from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import { filterAllVisibleRowsForSimulation, filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
-import { fillStationGrassCuringForward, simulateFireWeatherIndices } from 'features/moreCast2/util'
+import { fillStationGrassCuringForward, isForecastRow, simulateFireWeatherIndices } from 'features/moreCast2/util'
 import { MoreCastParams, theme } from 'app/theme'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import ResetForecastButton from 'features/moreCast2/components/ResetForecastButton'
@@ -482,7 +482,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
   // Checks if the displayed rows includes non-Actual rows
   const hasForecastRow = () => {
-    return visibleRows.filter(isForecastRowPredicate).length > 0
+    return visibleRows.filter(isForecastRow).length > 0
   }
 
   const handleShowHideChange: handleShowHideChangeType = (
