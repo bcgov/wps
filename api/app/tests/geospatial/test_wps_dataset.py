@@ -210,3 +210,19 @@ def test_latitude_array():
         warped_lats = output_ds.generate_latitude_array()
         assert np.all(original_lats == warped_lats) == True
         output_ds = None
+
+
+def test_get_nodata_mask():
+    set_no_data_value = 0
+    driver: gdal.Driver = gdal.GetDriverByName("MEM")
+    dataset: gdal.Dataset = driver.Create("test_dataset_no_data_value.tif", 2, 2, 1, eType=gdal.GDT_Int32)
+    fill_data = np.full((2, 2), 2)
+    fill_data[0, 0] = set_no_data_value
+    dataset.GetRasterBand(1).SetNoDataValue(set_no_data_value)
+    dataset.GetRasterBand(1).WriteArray(fill_data)
+
+    with WPSDataset(ds_path=None, ds=dataset) as ds:
+        mask, nodata_value = ds.get_nodata_mask()
+        assert nodata_value == set_no_data_value
+        assert mask[0, 0] == True  # The first pixel should return True as nodata
+        assert mask[0, 1] == False  # Any other pixel should return False
