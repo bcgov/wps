@@ -4,6 +4,8 @@ import numpy as np
 
 from app.utils.geospatial import GDALResamplingMethod
 
+gdal.UseExceptions()
+
 
 class WPSDataset:
     """
