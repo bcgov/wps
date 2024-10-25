@@ -156,9 +156,9 @@ class BUIDateRangeProcessor:
         warped_precip_ds = stack.enter_context(precip_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(precip_key)}", GDALResamplingMethod.BILINEAR))
 
         # close unneeded datasets to reduce memory usage
-        precip_ds.close()
-        rh_ds.close()
-        temp_ds.close()
+        precip_ds.__exit__()
+        rh_ds.__exit__()
+        temp_ds.__exit__()
 
         return dc_ds, dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds
 

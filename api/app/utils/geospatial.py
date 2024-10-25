@@ -120,3 +120,22 @@ class PointTransformer:
         point = ogr.CreateGeometryFromWkt(f"POINT ({x} {y})")
         point.Transform(self.transform)
         return (point.GetX(), point.GetY())
+
+
+def export_to_geotiff(values, output_path, geotransform, projection, nodata_value=None):
+    driver = gdal.GetDriverByName("GTiff")
+    rows, cols = values.shape
+    output_dataset = driver.Create(output_path, cols, rows, 1, gdal.GDT_Float32)
+    output_dataset.SetGeoTransform(geotransform)
+    output_dataset.SetProjection(projection)
+
+    output_band = output_dataset.GetRasterBand(1)
+    output_band.WriteArray(values)
+    if nodata_value is not None:
+        output_band.SetNoDataValue(nodata_value)
+
+    output_band.FlushCache()
+    output_dataset = None
+    del output_dataset
+    output_band = None
+    del output_band

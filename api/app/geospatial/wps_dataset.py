@@ -95,7 +95,7 @@ class WPSDataset:
 
         return WPSDataset(ds_path=None, ds=out_ds)
 
-    def warp_to_match(self, other, output_path: str, resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR):
+    def warp_to_match(self, other: "WPSDataset", output_path: str, resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR):
         """
         Warp the dataset to match the extent, pixel size, and projection of the other dataset.
 
@@ -175,7 +175,7 @@ class WPSDataset:
 
         return latitudes
 
-    def export_to_geotiff(self, output_path):
+    def export_to_geotiff(self, output_path: str):
         """
         Exports the dataset to a geotiff with the given path
 
