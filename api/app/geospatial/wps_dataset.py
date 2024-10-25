@@ -28,6 +28,47 @@ class WPSDataset:
     def __exit__(self, *_):
         self.ds = None
 
+    @classmethod
+    def from_array(
+        cls,
+        array: np.ndarray,
+        geotransform: Tuple[float, float, float, float, float, float],
+        projection: str,
+        nodata_value: Optional[Union[float, int]] = None,
+        datatype=gdal.GDT_Float32,
+    ) -> "WPSDataset":
+        """
+        Create a WPSDataset from a NumPy array, geotransform, and projection.
+
+        :param array: NumPy array representing the raster data
+        :param geotransform: A tuple defining the geotransform
+        :param projection: WKT string of the projection
+        :param nodata_value: Optional nodata value to set for the dataset
+        :param datatype gdal datatype
+        :return: An instance of WPSDataset containing the created dataset
+        """
+        rows, cols = array.shape
+
+        driver: gdal.Driver = gdal.GetDriverByName("MEM")
+        output_dataset: gdal.Dataset = driver.Create("memory", cols, rows, 1, datatype)
+
+        # Set the geotransform and projection
+        output_dataset.SetGeoTransform(geotransform)
+        output_dataset.SetProjection(projection)
+
+        # Write the array to the dataset
+        output_band: gdal.Band = output_dataset.GetRasterBand(1)
+        output_band.WriteArray(array)
+
+        # Set the NoData value if provided
+        if nodata_value is not None:
+            output_band.SetNoDataValue(nodata_value)
+
+        # Flush cache to ensure all data is written
+        output_band.FlushCache()
+
+        return cls(ds_path=None, ds=output_dataset, datatype=datatype)
+
     def __mul__(self, other):
         """
         Multiplies this WPSDataset with the other WPSDataset
