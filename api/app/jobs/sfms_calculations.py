@@ -15,7 +15,7 @@ DAYS_TO_CALCULATE = 2
 
 class SFMSCalcJob:
     async def calculate_bui(self):
-        logger.info(f"Begin SFMS raster calculations -- calculating {DAYS_TO_CALCULATE} days forward")
+        logger.info(f"Begin BUI raster calculations -- calculating {DAYS_TO_CALCULATE} days forward")
 
         start_time = get_utc_now()
 
