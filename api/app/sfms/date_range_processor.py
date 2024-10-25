@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class BUIDateRangeProcessor:
     """
-    Encapsulates logic for iterating over a date range and performing some unit of work.
+    Class for calculating/generating forecasted DMC/DC/BUI rasters for a date range
     """
 
     def __init__(self, start_datetime: datetime, days: int):
