@@ -28,9 +28,9 @@ class BUIDateRangeProcessor:
     def __init__(self, start_datetime: datetime, days: int):
         self.start_datetime = start_datetime
         self.days = days
+        self.addresser = RasterKeyAddresser()
 
     async def process_bui(self):
-        raster_addresser = RasterKeyAddresser()
         set_s3_gdal_config()
 
         async with get_client() as (client, bucket):
@@ -40,43 +40,25 @@ class BUIDateRangeProcessor:
                 prediction_hour = 20 + (day * 24)
                 logger.info(f"Calculating DMC/DC/BUI for {datetime_to_calculate_utc.isoformat()}")
 
-                temp_key, rh_key, _, precip_key = raster_addresser.get_weather_data_keys(self.start_datetime, datetime_to_calculate_utc, prediction_hour)
-
+                temp_key, rh_key, _, precip_key = self.addresser.get_weather_data_keys(self.start_datetime, datetime_to_calculate_utc, prediction_hour)
                 weather_keys_exist = await all_objects_exist(temp_key, rh_key, precip_key)
-
                 if not weather_keys_exist:
                     logging.warning(f"No weather keys found for {model_run_for_hour(self.start_datetime.hour):02} model run")
                     break
 
-                if day == 0:  # if we're running the first day of the calculation, use previously uploaded actuals
-                    dc_key = raster_addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DC)
-                    dmc_key = raster_addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DMC)
-                else:  # otherwise use the last calculated key
-                    dc_key = raster_addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DC)
-                    dmc_key = raster_addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DMC)
-
+                dc_key, dmc_key = self._get_previous_fwi_keys(day, previous_fwi_datetime)
                 fwi_keys_exist = await all_objects_exist(dc_key, dmc_key)
-
                 if not fwi_keys_exist:
                     logging.warning(f"No previous DMC/DC keys found for {previous_fwi_datetime.date().isoformat()}")
                     break
 
-                temp_key, rh_key, precip_key = raster_addresser.gdal_prefix_keys(temp_key, rh_key, precip_key)
-                dc_key, dmc_key = raster_addresser.gdal_prefix_keys(dc_key, dmc_key)
+                temp_key, rh_key, precip_key = self.addresser.gdal_prefix_keys(temp_key, rh_key, precip_key)
+                dc_key, dmc_key = self.addresser.gdal_prefix_keys(dc_key, dmc_key)
 
                 with ExitStack() as stack:
                     temp_dir = stack.enter_context(TemporaryDirectory())
                     # Open datasets within the context manager
-                    temp_ds = stack.enter_context(WPSDataset(temp_key))
-                    rh_ds = stack.enter_context(WPSDataset(rh_key))
-                    precip_ds = stack.enter_context(WPSDataset(precip_key))
-                    dc_ds = stack.enter_context(WPSDataset(dc_key))
-                    dmc_ds = stack.enter_context(WPSDataset(dmc_key))
-
-                    # Warp weather datasets to match fwi
-                    warped_temp_ds = stack.enter_context(temp_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(temp_key)}", GDALResamplingMethod.BILINEAR))
-                    warped_rh_ds = stack.enter_context(rh_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(rh_key)}", GDALResamplingMethod.BILINEAR))
-                    warped_precip_ds = stack.enter_context(precip_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(precip_key)}", GDALResamplingMethod.BILINEAR))
+                    dc_ds, dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds = self._open_and_warp_bui_datasets(stack, temp_dir, dc_key, dmc_key, temp_key, rh_key, precip_key)
 
                     # Create latitude and month arrays needed for calculations
                     latitude_array = dmc_ds.generate_latitude_array()
@@ -84,7 +66,7 @@ class BUIDateRangeProcessor:
 
                     # Create and store DMC dataset
                     dmc_values, dmc_nodata_value = calculate_dmc(dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, latitude_array, month_array)
-                    new_dmc_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DMC)
+                    new_dmc_key = self.addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DMC)
                     new_dmc_path = await self._create_and_store_dataset(
                         temp_dir,
                         client,
@@ -98,7 +80,7 @@ class BUIDateRangeProcessor:
 
                     # Create and store DC dataset
                     dc_values, dc_nodata_value = calculate_dc(dc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, latitude_array, month_array)
-                    new_dc_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DC)
+                    new_dc_key = self.addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DC)
                     new_dc_path = await self._create_and_store_dataset(
                         temp_dir,
                         client,
@@ -111,7 +93,7 @@ class BUIDateRangeProcessor:
                     )
 
                     # Open new DMC and DC datasets and calculate BUI
-                    new_bui_key = raster_addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.BUI)
+                    new_bui_key = self.addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.BUI)
                     new_dmc_ds = stack.enter_context(WPSDataset(new_dmc_path))
                     new_dc_ds = stack.enter_context(WPSDataset(new_dc_path))
 
@@ -128,6 +110,29 @@ class BUIDateRangeProcessor:
                         bui_values,
                         nodata,
                     )
+
+    def _get_previous_fwi_keys(self, day_to_calculate: int, previous_fwi_datetime: datetime):
+        if day_to_calculate == 0:  # if we're running the first day of the calculation, use previously uploaded actuals
+            dc_key = self.addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DC)
+            dmc_key = self.addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DMC)
+        else:  # otherwise use the last calculated key
+            dc_key = self.addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DC)
+            dmc_key = self.addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DMC)
+        return dc_key, dmc_key
+
+    def _open_and_warp_bui_datasets(self, stack: ExitStack, temp_dir: TemporaryDirectory, dc_key: str, dmc_key: str, temp_key: str, rh_key: str, precip_key: str):
+        temp_ds = stack.enter_context(WPSDataset(temp_key))
+        rh_ds = stack.enter_context(WPSDataset(rh_key))
+        precip_ds = stack.enter_context(WPSDataset(precip_key))
+        dc_ds = stack.enter_context(WPSDataset(dc_key))
+        dmc_ds = stack.enter_context(WPSDataset(dmc_key))
+
+        # Warp weather datasets to match fwi
+        warped_temp_ds = stack.enter_context(temp_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(temp_key)}", GDALResamplingMethod.BILINEAR))
+        warped_rh_ds = stack.enter_context(rh_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(rh_key)}", GDALResamplingMethod.BILINEAR))
+        warped_precip_ds = stack.enter_context(precip_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(precip_key)}", GDALResamplingMethod.BILINEAR))
+
+        return dc_ds, dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds
 
     async def _create_and_store_dataset(self, temp_dir: str, client: AioBaseClient, bucket: str, key: str, transform, projection, values, no_data_value):
         """
