@@ -4,6 +4,7 @@ import os
 from contextlib import ExitStack
 from datetime import datetime, timedelta
 from tempfile import TemporaryDirectory
+from typing import Tuple
 
 import numpy as np
 from aiobotocore.client import AioBaseClient
@@ -40,12 +41,14 @@ class BUIDateRangeProcessor:
                 prediction_hour = 20 + (day * 24)
                 logger.info(f"Calculating DMC/DC/BUI for {datetime_to_calculate_utc.isoformat()}")
 
+                # Get and check existence of weather s3 keys
                 temp_key, rh_key, _, precip_key = self.addresser.get_weather_data_keys(self.start_datetime, datetime_to_calculate_utc, prediction_hour)
                 weather_keys_exist = await all_objects_exist(temp_key, rh_key, precip_key)
                 if not weather_keys_exist:
                     logging.warning(f"No weather keys found for {model_run_for_hour(self.start_datetime.hour):02} model run")
                     break
 
+                # get and check existence of fwi s3 keys
                 dc_key, dmc_key = self._get_previous_fwi_keys(day, previous_fwi_datetime)
                 fwi_keys_exist = await all_objects_exist(dc_key, dmc_key)
                 if not fwi_keys_exist:
@@ -111,7 +114,15 @@ class BUIDateRangeProcessor:
                         nodata,
                     )
 
-    def _get_previous_fwi_keys(self, day_to_calculate: int, previous_fwi_datetime: datetime):
+    def _get_previous_fwi_keys(self, day_to_calculate: int, previous_fwi_datetime: datetime) -> Tuple[str, str]:
+        """
+        Based on the day being calculated, decide whether to use previously uploaded actuals from sfms or
+        calculated indices from the previous day's calculations.
+
+        :param day_to_calculate: day of the calculation loop
+        :param previous_fwi_datetime: the datetime previous to the datetime being calculated
+        :return: s3 keys for dc and dmc
+        """
         if day_to_calculate == 0:  # if we're running the first day of the calculation, use previously uploaded actuals
             dc_key = self.addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DC)
             dmc_key = self.addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DMC)
@@ -121,6 +132,18 @@ class BUIDateRangeProcessor:
         return dc_key, dmc_key
 
     def _open_and_warp_bui_datasets(self, stack: ExitStack, temp_dir: TemporaryDirectory, dc_key: str, dmc_key: str, temp_key: str, rh_key: str, precip_key: str):
+        """
+        Open WPSDatasets used to calculate BUI within a context manager, while transforming weather datasets to match the fwi indices datasets
+
+        :param stack: context manager ExitStack
+        :param temp_dir: a temporary directory to store warped datasets in
+        :param dc_key: key to tif file in s3
+        :param dmc_key: key to tif file in s3
+        :param temp_key: key to tif file in s3
+        :param rh_key: key to tif file in s3
+        :param precip_key: key to tif file in s3
+        :return: Opened WPSDatasets (DC, DMC, Temp, RH, Precip)
+        """
         temp_ds = stack.enter_context(WPSDataset(temp_key))
         rh_ds = stack.enter_context(WPSDataset(rh_key))
         precip_ds = stack.enter_context(WPSDataset(precip_key))
@@ -132,9 +155,14 @@ class BUIDateRangeProcessor:
         warped_rh_ds = stack.enter_context(rh_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(rh_key)}", GDALResamplingMethod.BILINEAR))
         warped_precip_ds = stack.enter_context(precip_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(precip_key)}", GDALResamplingMethod.BILINEAR))
 
+        # close unneeded datasets to reduce memory usage
+        precip_ds.close()
+        rh_ds.close()
+        temp_ds.close()
+
         return dc_ds, dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds
 
-    async def _create_and_store_dataset(self, temp_dir: str, client: AioBaseClient, bucket: str, key: str, transform, projection, values, no_data_value):
+    async def _create_and_store_dataset(self, temp_dir: str, client: AioBaseClient, bucket: str, key: str, transform, projection, values, no_data_value) -> str:
         """
         Creates a geotiff to temporarily store and write to s3.
 
