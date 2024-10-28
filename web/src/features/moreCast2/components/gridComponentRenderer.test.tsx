@@ -14,6 +14,7 @@ import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDat
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { vi } from 'vitest'
+import { theme } from 'app/theme'
 
 describe('GridComponentRenderer', () => {
   const gridComponentRenderer = new GridComponentRenderer()
@@ -132,8 +133,29 @@ describe('GridComponentRenderer', () => {
     expect(renderedCell).toBeDisabled()
   })
 
+  it('should render N/R as ActualCell and have red border if no actual for row with forDate earlier than today', () => {
+    const field = 'tempActual'
+    const row = { [field]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
+    const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Actual')
+    const { getByTestId } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderCellWith({
+          row: row,
+          formattedValue: formattedValue,
+          field
+        })}
+      </Provider>
+    )
+    const renderedCell = getByTestId('actual-cell')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveStyle(`borderColor: ${theme.palette.error.main}`)
+  })
+
   it('should render the cell with the formatted value', () => {
-    const { getByRole } = render(gridComponentRenderer.renderCellWith({ formattedValue: 1 }))
+    const field = 'tempForecast'
+    const fieldActual = 'tempActual'
+    const row = { [field]: NaN, [fieldActual]: 2, forDate: DateTime.now() }
+    const { getByRole } = render(gridComponentRenderer.renderCellWith({ formattedValue: 1, field: fieldActual, row }))
 
     const renderedCell = getByRole('textbox')
     expect(renderedCell).toBeInTheDocument()
