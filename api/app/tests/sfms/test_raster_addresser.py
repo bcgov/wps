@@ -1,6 +1,6 @@
 from app.sfms.raster_addresser import RasterKeyAddresser, FWIParameter
 import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 TEST_DATETIME_1 = datetime(2024, 10, 10, 23, tzinfo=timezone.utc)
 TEST_DATE_1_ISO = TEST_DATETIME_1.date().isoformat()
