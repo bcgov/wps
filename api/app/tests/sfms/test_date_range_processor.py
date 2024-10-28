@@ -18,11 +18,10 @@ class TestBUIDateRangeProcessor:
         return BUIDateRangeProcessor(start_datetime, days)
 
     def test_get_previous_fwi_keys_first_day(self, processor):
-        # Test the _get_previous_fwi_keys method for the first day
+        # test the _get_previous_fwi_keys method for the first day
         day = 0
         previous_fwi_datetime = TEST_DATETIME - timedelta(days=1)
 
-        # Call the method
         dc_key, dmc_key = processor._get_previous_fwi_keys(day, previous_fwi_datetime)
 
         # Day 0 fwi keys should come from the sfms uploads dir
@@ -30,11 +29,10 @@ class TestBUIDateRangeProcessor:
         assert "uploads" in dmc_key
 
     def test_get_previous_fwi_keys_following_days(self, processor):
-        # Test the _get_previous_fwi_keys method for the first day
+        # test the _get_previous_fwi_keys method for the second day
         day = 1
         previous_fwi_datetime = TEST_DATETIME - timedelta(days=1)
 
-        # Call the method
         dc_key, dmc_key = processor._get_previous_fwi_keys(day, previous_fwi_datetime)
 
         # Day 1 fwi keys should come from the calculated s3 dir
