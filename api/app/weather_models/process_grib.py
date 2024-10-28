@@ -14,7 +14,7 @@ from affine import Affine
 import rasterio
 from rasterio.io import DatasetReader
 from app.geospatial import NAD83_CRS
-from app.stations import get_stations_synchronously, StationSourceEnum
+from app.stations import get_stations_synchronously
 from app.db.models.weather_models import (
     ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp)
 from app.db.crud.weather_models import (
@@ -137,13 +137,9 @@ class GribFileProcessor():
     """ Instances of this object can be used to process and ingest a grib file.
     """
 
-    def __init__(self,
-                 station_source: StationSourceEnum,
-                 padf_transform=None,
-                 raster_to_geo_transformer=None,
-                 geo_to_raster_transformer=None):
+    def __init__(self, padf_transform=None, raster_to_geo_transformer=None, geo_to_raster_transformer=None):
         # Get list of stations we're interested in, and store it so that we only call it once.
-        self.stations = get_stations_synchronously(station_source)
+        self.stations = get_stations_synchronously()
         self.padf_transform = padf_transform
         self.raster_to_geo_transformer = raster_to_geo_transformer
         self.geo_to_raster_transformer = geo_to_raster_transformer

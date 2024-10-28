@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:02-10-2024
+ARG DOCKER_IMAGE=ghcr.io/bcgov/wps/wps-api-base:10-21-2024
 # To build locally, point to a local base image you've already built (see openshift/wps-api-base)
 # e.g. : docker build --build-arg DOCKER_IMAGE=wps-api-base:my-tag .
 
@@ -70,8 +70,8 @@ COPY ./api/alembic.ini /app
 COPY ./api/prestart.sh /app
 COPY ./api/start.sh /app
 
-# Copy installed Python packages
-COPY --from=builder /home/worker/.cache/pypoetry/virtualenvs /home/worker/.cache/pypoetry/virtualenvs
+# Copy installed Python packages (the chown lets us install the dev packages later without root if we want)
+COPY --from=builder --chown=$USERNAME:$USER_GID /home/worker/.cache/pypoetry/virtualenvs /home/worker/.cache/pypoetry/virtualenvs
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080

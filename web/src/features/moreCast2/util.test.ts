@@ -27,6 +27,9 @@ const TEST_DATETIME = DateTime.fromISO(TEST_DATE)
 const YESTERDAY = DateTime.fromISO(TEST_DATE).plus({ days: -1 })
 const TODAY = DateTime.fromISO(TEST_DATE)
 const TOMORROW = DateTime.fromISO(TEST_DATE).plus({ days: 1 })
+const REAL_YESTERDAY = DateTime.now().minus({day: 1})
+const REAL_TODAY = DateTime.now()
+const REAL_TOMORROW = DateTime.now().plus({day: 1})
 
 describe('createDateInterval', () => {
   it('should return array with single date when fromDate and toDate are the same', () => {
@@ -505,9 +508,9 @@ describe('simulateFireWeatherIndices', () => {
     expect(result[0]).toBe(forecastRow)
   })
   it('should simulate FWIs for all forecast rows', () => {
-    const forecastRowA = buildForecastRowWithIndices(1, YESTERDAY, 438, 89, 87)
-    const forecastRowB = buildValidForecastRow(1, TODAY)
-    const forecastRowC = buildValidForecastRow(1, TOMORROW)
+    const forecastRowA = buildForecastRowWithIndices(1, REAL_YESTERDAY, 438, 89, 87)
+    const forecastRowB = buildValidForecastRow(1, REAL_TODAY)
+    const forecastRowC = buildValidForecastRow(1, REAL_TOMORROW)
     // Change temp for last forecast so fire weather index values will be different than the previous day.
     forecastRowC.tempForecast!.value = 27
     const result = simulateFireWeatherIndices([forecastRowA, forecastRowB, forecastRowC])

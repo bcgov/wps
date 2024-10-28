@@ -29,19 +29,6 @@ weather_stations_file_path = os.path.join(
     dirname, 'data/weather_stations.json')
 
 
-class StationSourceEnum(enum.Enum):
-    """ Station list sources.
-    We currently have two sources for station listing, local json file, or wildfire one api.
-    If the source is unspecified, configuration will govern which is used.
-    """
-    # Configuration wins:
-    UNSPECIFIED = 'unspecified'
-    # Use wildfire one as source, filtering on active stations:
-    WILDFIRE_ONE = 'wildfire_one'
-    # Use static file as source for testing purposes:
-    TEST = 'test'
-
-
 def _get_stations_local() -> List[WeatherStation]:
     """ Get list of stations from local json files.
     """
@@ -106,36 +93,24 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
     return await wfwx_api.get_stations_by_codes(station_codes)
 
 
-async def get_stations_from_source(
-        station_source: StationSourceEnum = StationSourceEnum.WILDFIRE_ONE) -> List[WeatherStation]:
-    """ Get list of stations from some source (ideally WFWX Fireweather API)
-    """
-    if station_source == StationSourceEnum.UNSPECIFIED or station_source == StationSourceEnum.WILDFIRE_ONE:
-        return await get_stations_asynchronously()
-    # Get from local:
-    return _get_stations_local()
+async def get_stations_from_source() -> List[WeatherStation]:
+    """Get list of stations from some source (ideally WFWX Fireweather API)"""
+    return await get_stations_asynchronously()
 
 
-async def fetch_detailed_stations_as_geojson(
-        time_of_interest: datetime,
-        station_source: StationSourceEnum) \
-        -> List[GeoJsonDetailedWeatherStation]:
-    """ Fetch a detailed list of stations. i.e. more than just the fire station name and code,
-    throw some observations and forecast in the mix. """
-    if station_source == StationSourceEnum.UNSPECIFIED or station_source == StationSourceEnum.WILDFIRE_ONE:
-        # Get from wildfire one:
-        logger.info('requesting detailed stations...')
-        result = await get_detailed_stations(time_of_interest)
-        logger.info('detailed stations loaded.')
-        return result
-    return await _get_detailed_stations(time_of_interest)
+async def fetch_detailed_stations_as_geojson(time_of_interest: datetime) -> List[GeoJsonDetailedWeatherStation]:
+    """Fetch a detailed list of stations. i.e. more than just the fire station name and code,
+    throw some observations and forecast in the mix."""
+    logger.info("requesting detailed stations...")
+    result = await get_detailed_stations(time_of_interest)
+    logger.info("detailed stations loaded.")
+    return result
 
 
-async def get_stations_as_geojson(
-        station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED) -> List[GeoJsonWeatherStation]:
+async def get_stations_as_geojson() -> List[GeoJsonWeatherStation]:
     """ Format stations to conform to GeoJson spec """
     geojson_stations = []
-    stations = await get_stations_from_source(station_source)
+    stations = await get_stations_from_source()
     for station in stations:
         geojson_stations.append(
             GeoJsonWeatherStation(properties=WeatherStationProperties(
@@ -154,9 +129,9 @@ async def get_stations_asynchronously():
         return await get_station_data(session, header)
 
 
-def get_stations_synchronously(station_source: StationSourceEnum) -> List[WeatherStation]:
+def get_stations_synchronously() -> List[WeatherStation]:
     """ Get list of stations - in a synchronous/blocking call.
     """
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    return loop.run_until_complete(get_stations_from_source(station_source))
+    return loop.run_until_complete(get_stations_from_source())
