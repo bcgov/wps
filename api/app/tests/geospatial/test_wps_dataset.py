@@ -226,3 +226,22 @@ def test_get_nodata_mask():
         assert nodata_value == set_no_data_value
         assert mask[0, 0] == True  # The first pixel should return True as nodata
         assert mask[0, 1] == False  # Any other pixel should return False
+
+
+def test_from_array():
+    extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    original_ds = create_test_dataset("test_dataset_1.tif", 100, 100, extent1, 4326)
+    original_ds.GetRasterBand(1).SetNoDataValue(-99)
+    og_band = original_ds.GetRasterBand(1)
+    og_array = og_band.ReadAsArray()
+    dtype = og_band.DataType
+    og_transform = original_ds.GetGeoTransform()
+    og_proj = original_ds.GetProjection()
+
+    with WPSDataset.from_array(og_array, og_transform, og_proj, nodata_value=-99, datatype=dtype) as wps:
+        wps_ds = wps.as_gdal_ds()
+        assert wps_ds.ReadAsArray()[1, 2] == og_array[1, 2]
+        assert wps_ds.GetGeoTransform() == og_transform
+        assert wps_ds.GetProjection() == og_proj
+        assert wps_ds.GetRasterBand(1).DataType == dtype
+        assert wps_ds.GetRasterBand(1).GetNoDataValue() == -99
