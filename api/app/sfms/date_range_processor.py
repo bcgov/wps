@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import tempfile
 from contextlib import ExitStack
 from datetime import datetime, timedelta
 from tempfile import TemporaryDirectory
@@ -57,10 +58,8 @@ class BUIDateRangeProcessor:
             temp_key, rh_key, precip_key = self.addresser.gdal_prefix_keys(temp_key, rh_key, precip_key)
             dc_key, dmc_key = self.addresser.gdal_prefix_keys(dc_key, dmc_key)
 
-            with ExitStack() as stack:
-                temp_dir = stack.enter_context(TemporaryDirectory())
-                # Open datasets within the context manager
-                dc_ds, dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds = self._open_and_warp_bui_datasets(stack, temp_dir, dc_key, dmc_key, temp_key, rh_key, precip_key)
+            with tempfile.TemporaryDirectory() as temp_dir:
+                dc_ds, dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds = self._open_and_warp_bui_datasets(temp_dir, dc_key, dmc_key, temp_key, rh_key, precip_key)
 
                 # Create latitude and month arrays needed for calculations
                 latitude_array = dmc_ds.generate_latitude_array()
@@ -94,21 +93,20 @@ class BUIDateRangeProcessor:
 
                 # Open new DMC and DC datasets and calculate BUI
                 new_bui_key = self.addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.BUI)
-                new_dmc_ds = stack.enter_context(WPSDataset(new_dmc_path))
-                new_dc_ds = stack.enter_context(WPSDataset(new_dc_path))
 
-                bui_values, nodata = calculate_bui(new_dmc_ds, new_dc_ds)
+                with WPSDataset(new_dmc_path) as new_dmc_ds, WPSDataset(new_dc_path) as new_dc_ds:
+                    bui_values, nodata = calculate_bui(new_dmc_ds, new_dc_ds)
 
-                # Store the new BUI dataset
-                await self._create_and_store_dataset(
-                    temp_dir,
-                    s3_client,
-                    new_bui_key,
-                    dmc_ds.as_gdal_ds().GetGeoTransform(),
-                    dmc_ds.as_gdal_ds().GetProjection(),
-                    bui_values,
-                    nodata,
-                )
+                    # Store the new BUI dataset
+                    await self._create_and_store_dataset(
+                        temp_dir,
+                        s3_client,
+                        new_bui_key,
+                        dmc_ds.as_gdal_ds().GetGeoTransform(),
+                        dmc_ds.as_gdal_ds().GetProjection(),
+                        bui_values,
+                        nodata,
+                    )
 
     def _get_previous_fwi_keys(self, day_to_calculate: int, previous_fwi_datetime: datetime) -> Tuple[str, str]:
         """
@@ -127,7 +125,7 @@ class BUIDateRangeProcessor:
             dmc_key = self.addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DMC)
         return dc_key, dmc_key
 
-    def _open_and_warp_bui_datasets(self, stack: ExitStack, temp_dir: TemporaryDirectory, dc_key: str, dmc_key: str, temp_key: str, rh_key: str, precip_key: str):
+    def _open_and_warp_bui_datasets(self, temp_dir: TemporaryDirectory, dc_key: str, dmc_key: str, temp_key: str, rh_key: str, precip_key: str):
         """
         Open WPSDatasets used to calculate BUI within a context manager, while transforming weather datasets to match the fwi indices datasets
 
@@ -140,23 +138,18 @@ class BUIDateRangeProcessor:
         :param precip_key: key to tif file in s3
         :return: Opened WPSDatasets (DC, DMC, Temp, RH, Precip)
         """
-        temp_ds = stack.enter_context(WPSDataset(temp_key))
-        rh_ds = stack.enter_context(WPSDataset(rh_key))
-        precip_ds = stack.enter_context(WPSDataset(precip_key))
-        dc_ds = stack.enter_context(WPSDataset(dc_key))
-        dmc_ds = stack.enter_context(WPSDataset(dmc_key))
+        with WPSDataset(temp_key) as temp_ds, WPSDataset(rh_key) as rh_ds, WPSDataset(precip_key) as precip_ds, WPSDataset(dc_key) as dc_ds, WPSDataset(dmc_key) as dmc_ds:
+            # Warp weather datasets to match fwi
+            warped_temp_ds = temp_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(temp_key)}", GDALResamplingMethod.BILINEAR)
+            warped_rh_ds = rh_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(rh_key)}", GDALResamplingMethod.BILINEAR)
+            warped_precip_ds = precip_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(precip_key)}", GDALResamplingMethod.BILINEAR)
 
-        # Warp weather datasets to match fwi
-        warped_temp_ds = stack.enter_context(temp_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(temp_key)}", GDALResamplingMethod.BILINEAR))
-        warped_rh_ds = stack.enter_context(rh_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(rh_key)}", GDALResamplingMethod.BILINEAR))
-        warped_precip_ds = stack.enter_context(precip_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(precip_key)}", GDALResamplingMethod.BILINEAR))
+            # close unneeded datasets to reduce memory usage
+            precip_ds.close()
+            rh_ds.close()
+            temp_ds.close()
 
-        # close unneeded datasets to reduce memory usage
-        precip_ds.__exit__()
-        rh_ds.__exit__()
-        temp_ds.__exit__()
-
-        return dc_ds, dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds
+            return dc_ds, dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds
 
     async def _create_and_store_dataset(self, temp_dir: str, s3_client: S3Client, key: str, transform, projection, values, no_data_value) -> str:
         """

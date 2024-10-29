@@ -43,33 +43,6 @@ def create_test_dataset(filename, width, height, extent, projection, data_type=g
     return dataset
 
 
-# def create_test_dataset_with_no_data_value(filename, width, height, extent, projection, data_type=gdal.GDT_Float32, fill_value: int) -> gdal.Dataset:
-#     """
-#     Create a test GDAL dataset.
-#     """
-#     # Create a new GDAL dataset
-#     driver: gdal.Driver = gdal.GetDriverByName("MEM")
-#     dataset: gdal.Dataset = driver.Create(filename, width, height, 1, data_type)
-
-#     # Set the geotransform
-#     xmin, xmax, ymin, ymax = extent
-#     xres = (xmax - xmin) / width
-#     yres = (ymax - ymin) / height
-#     geotransform = (xmin, xres, 0, ymax, 0, -yres)  # Top-left corner
-#     dataset.SetGeoTransform(geotransform)
-
-#     # Set the projection
-#     srs = osr.SpatialReference()
-#     srs.ImportFromEPSG(projection)
-#     dataset.SetProjection(srs.ExportToWkt())
-
-#     rng = np.random.default_rng(seed=42)  # Reproducible random generator
-#     random_data = rng.random((height, width)).astype(np.float32)
-
-#     fill_data = np.full_like(random_data, fill_value)
-#     dataset.GetRasterBand(1).WriteArray(fill_data)
-
-
 def test_raster_with_context():
     """
     with opens the dataset and closes after the context ends
