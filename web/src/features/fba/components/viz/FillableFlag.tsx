@@ -8,7 +8,7 @@ interface FillableFlagProps {
 const FillableFlag = ({ maskId, percent }: FillableFlagProps) => {
   const fillWidth = (percent / 100) * 120
   return (
-    <svg width="120" height="43" viewBox="0 0 120 43" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="120" height="43" viewBox="0 0 120 43" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
       <defs>
         <mask id={`mask-${maskId}`}>
           <rect x="0" y="0" width={`${fillWidth}`} height="43" fill="white" />
@@ -29,16 +29,3 @@ const FillableFlag = ({ maskId, percent }: FillableFlagProps) => {
 }
 
 export default React.memo(FillableFlag)
-
-{
-  /* <linearGradient id="grad" x1="0%" x2="100%" y1="0%" y2="0%">
-<stop offset="0%" stop-color="black" />
-<stop offset="50%" stop-color="white" />
-</linearGradient> */
-}
-
-{
-  /* <pattern id="pattern" x="0" y="0" width="2" height="43" patternUnits="userSpaceOnUse">
-<rect width="2" height="43" x="0" y="0" fill="black" />
-</pattern> */
-}

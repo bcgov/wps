@@ -25,7 +25,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
   const upper_percent = tpiStats.upper_slope === 0 ? 0 : Math.round((tpiStats.upper_slope / total) * 100)
   const bottom_percent = tpiStats.valley_bottom === 0 ? 0 : Math.round((tpiStats.valley_bottom / total) * 100)
   return (
-    <Grid container xs={12}>
+    <Grid container xs={12} data-testid="elevation-status">
       <Grid container sx={{ height: theme.spacing(6) }} xs={12}>
         <Grid sx={{ paddingLeft: theme.spacing(0.5), paddingRight: theme.spacing(0.5) }} xs={6}>
           <Typography
@@ -62,6 +62,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
             display: 'flex',
             width: '100%'
           }}
+          data-testId="tpi-mountain"
         >
           <Grid sx={{ paddingLeft: theme.spacing(0.5), paddingRight: theme.spacing(0.5) }} container xs={12}>
             <Grid container sx={{ height: theme.spacing(8) }} xs={12}>
