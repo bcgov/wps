@@ -6,6 +6,7 @@ import sys
 from app import configure_logging
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.sfms.date_range_processor import BUIDateRangeProcessor
+from app.sfms.raster_addresser import RasterKeyAddresser
 from app.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ class SFMSCalcJob:
 
         start_time = get_utc_now()
 
-        bui_processor = BUIDateRangeProcessor(start_time, DAYS_TO_CALCULATE)
+        bui_processor = BUIDateRangeProcessor(start_time, DAYS_TO_CALCULATE, RasterKeyAddresser())
         await bui_processor.process_bui()
 
         # calculate the execution time.

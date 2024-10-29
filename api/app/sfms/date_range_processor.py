@@ -26,10 +26,10 @@ class BUIDateRangeProcessor:
     Class for calculating/generating forecasted DMC/DC/BUI rasters for a date range
     """
 
-    def __init__(self, start_datetime: datetime, days: int):
+    def __init__(self, start_datetime: datetime, days: int, addresser: RasterKeyAddresser):
         self.start_datetime = start_datetime
         self.days = days
-        self.addresser = RasterKeyAddresser()
+        self.addresser = addresser
 
     async def process_bui(self):
         set_s3_gdal_config()
@@ -190,7 +190,7 @@ async def main():
     start_time = get_utc_now()
     days = 2
 
-    processor = BUIDateRangeProcessor(start_time, days)
+    processor = BUIDateRangeProcessor(start_time, days, RasterKeyAddresser())
     await processor.process_bui()
 
 
