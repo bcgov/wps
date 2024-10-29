@@ -38,7 +38,6 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
     mock_warped_temp_ds = create_mock_wps_dataset()
     mock_warped_rh_ds = create_mock_wps_dataset()
     mock_warped_precip_ds = create_mock_wps_dataset()
-    mocker.patch.object(bui_date_range_processor, "_open_and_warp_bui_datasets", return_value=(mock_dc_ds, mock_dmc_ds, mock_warped_temp_ds, mock_warped_rh_ds, mock_warped_precip_ds))
 
     # mock s3 client
     mock_s3_client = S3Client()
