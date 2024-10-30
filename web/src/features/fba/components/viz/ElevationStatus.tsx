@@ -4,14 +4,14 @@ import Grid from '@mui/material/Unstable_Grid2'
 import Typography from '@mui/material/Typography'
 import ElevationFlag from 'features/fba/components/viz/ElevationFlag'
 import ElevationLabel from 'features/fba/components/viz/ElevationLabel'
-import TPIMountain from 'features/fba/components/viz/TPIMountain'
 import { Box } from '@mui/material'
 import { FireZoneTPIStats } from '@/api/fbaAPI'
+import Mountain from '@/features/fba/images/mountain.svg'
 
 enum ElevationOption {
   BOTTOM = 'Valley Bottom',
   MID = 'Mid Slope',
-  Upper = 'Upper Slope'
+  UPPER = 'Upper Slope'
 }
 
 interface ElevationStatusProps {
@@ -25,49 +25,62 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
   const upper_percent = tpiStats.upper_slope === 0 ? 0 : Math.round((tpiStats.upper_slope / total) * 100)
   const bottom_percent = tpiStats.valley_bottom === 0 ? 0 : Math.round((tpiStats.valley_bottom / total) * 100)
   return (
-    <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }} data-testid="elevation-status">
-      <Grid container sx={{ minHeight: theme.spacing(19) }} xs={12}>
-        <Grid container sx={{ paddingRight: theme.spacing(2) }} xs={4}>
-          <Grid sx={{ alignItems: 'center', display: 'flex', height: '25%', justifyContent: 'flex-end' }} xs={12}>
-            <Typography
-              sx={{
-                fontSize: '0.75em',
-                textAlign: 'right',
-                fontWeight: 'bold',
-                maxWidth: '75%'
-              }}
-            >
-              Topographic Position:
-            </Typography>
-          </Grid>
-          <ElevationLabel label={ElevationOption.Upper} />
-          <ElevationLabel label={ElevationOption.MID} />
-          <ElevationLabel label={ElevationOption.BOTTOM} />
+    <Grid container xs={12} data-testid="elevation-status">
+      <Grid container sx={{ height: theme.spacing(6) }} xs={12}>
+        <Grid sx={{ paddingLeft: theme.spacing(0.5), paddingRight: theme.spacing(0.5) }} xs={6}>
+          <Typography
+            sx={{
+              color: '#003366',
+              fontWeight: 'bold',
+              textAlign: 'left',
+              width: '50%'
+            }}
+          >
+            Topographic Position:
+          </Typography>
         </Grid>
-        <Grid container sx={{ alignItems: 'flex-end', display: 'flex' }} xs={4} data-testid="tpi-mountain">
-          <Grid sx={{ display: 'flex', alignItems: 'flex-end', height: '80%', justifyContent: 'center' }} xs={12}>
-            <TPIMountain />
-          </Grid>
-        </Grid>
-        <Grid container sx={{ paddingLeft: theme.spacing(2) }} xs={4}>
-          <Grid sx={{ alignItems: 'center', display: 'flex', height: '25%', justifyContent: 'flex-start' }} xs={12}>
-            <Typography
-              sx={{
-                fontSize: '0.75em',
-                textAlign: 'left',
-                fontWeight: 'bold',
-                maxWidth: '75%'
-              }}
-            >
-              Proportion of Advisory Area:
-            </Typography>
-          </Grid>
-          <ElevationFlag percent={upper_percent} testId="upper-slope" />
-          <ElevationFlag percent={mid_percent} testId="mid-slope" />
-          <ElevationFlag percent={bottom_percent} testId="valley-bottom" />
+        <Grid sx={{ display: 'flex', justifyContent: 'flex-end' }} xs={6}>
+          <Typography
+            sx={{
+              color: '#003366',
+              fontWeight: 'bold',
+              textAlign: 'right',
+              width: '65%'
+            }}
+          >
+            Proportion of Advisory Area:
+          </Typography>
         </Grid>
       </Grid>
-    </Box>
+      <Grid xs={12}>
+        <Box
+          sx={{
+            backgroundBlendMode: 'overlay',
+            backgroundColor: 'rgba(255, 255, 255, 0.6)',
+            backgroundImage: `url(${Mountain})`,
+            backgroundRepeat: 'round',
+            display: 'flex',
+            width: '100%'
+          }}
+          data-testId="tpi-mountain"
+        >
+          <Grid sx={{ paddingLeft: theme.spacing(0.5), paddingRight: theme.spacing(0.5) }} container xs={12}>
+            <Grid container sx={{ height: theme.spacing(8) }} xs={12}>
+              <ElevationLabel label={ElevationOption.UPPER} />
+              <ElevationFlag id="upper" percent={upper_percent} testId="upper-slope" />
+            </Grid>
+            <Grid container sx={{ height: theme.spacing(8) }} xs={12}>
+              <ElevationLabel label={ElevationOption.MID} />
+              <ElevationFlag id="mid" percent={mid_percent} testId="mid-slope" />
+            </Grid>
+            <Grid container sx={{ height: theme.spacing(8) }} xs={12}>
+              <ElevationLabel label={ElevationOption.BOTTOM} />
+              <ElevationFlag id="lower" percent={bottom_percent} testId="valley-bottom" />
+            </Grid>
+          </Grid>
+        </Box>
+      </Grid>
+    </Grid>
   )
 }
 

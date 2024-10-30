@@ -1,40 +1,30 @@
 import React from 'react'
-import { Box, Grid, Typography } from '@mui/material'
-
-const FLAG_COLOUR = '#CCCCCC'
+import { Typography } from '@mui/material'
+import Grid from '@mui/material/Unstable_Grid2'
+import Flag from '@/features/fba/components/viz/FillableFlag'
 
 interface ElevationFlagProps {
-  testId?: string
+  id: string
   percent: number
+  testId?: string
 }
 
-const ElevationFlag = ({ percent, testId }: ElevationFlagProps) => {
+const ElevationFlag = ({ id, percent, testId }: ElevationFlagProps) => {
   return (
-    <Grid item sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, justifyContent: 'flex-start' }} xs={12}>
-      <Box
+    <Grid sx={{ alignItems: 'center', display: 'flex', justifyContent: 'flex-end' }} xs={6}>
+      <Flag maskId={id} percent={percent} />
+      <Typography
         sx={{
-          backgroundColor: FLAG_COLOUR,
-          clipPath: 'polygon(0 50%, 10% 0, 100% 0, 100% 100%, 10% 100%)',
-          height: '32px',
-          padding: '1px',
-          width: '65%'
+          fontSize: '1.25em',
+          fontWeight: 'bold',
+          position: 'absolute',
+          right: '60px',
+          textShadow: '-2px 2px 4px #FFF, 2px 2px 4px #FFF, 2px -2px 4px #FFF, -2px -2px 4px #FFF'
         }}
+        data-testid={testId}
       >
-        <Box
-          sx={{
-            alignItems: 'center',
-            backgroundImage: `linear-gradient(to right, ${FLAG_COLOUR} ${percent}%, #FFFFFFFF ${percent}%)`,
-            clipPath: 'polygon(0 50%, 10% 0, 100% 0, 100% 100%, 10% 100%)',
-            display: 'flex',
-            height: '30px',
-            justifyContent: 'center'
-          }}
-        >
-          <Typography sx={{ fontSize: '0.75em' }} data-testid={testId}>
-            {percent}%
-          </Typography>
-        </Box>
-      </Box>
+        {percent}%
+      </Typography>
     </Grid>
   )
 }
