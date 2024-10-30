@@ -10,6 +10,7 @@ from app.geospatial.wps_dataset import WPSDataset
 from app.sfms.date_range_processor import BUIDateRangeProcessor
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
 from app.tests.geospatial.test_wps_dataset import create_test_dataset
+from app.utils.geospatial import GDALResamplingMethod
 from app.utils.s3_client import S3Client
 import uuid
 
@@ -46,6 +47,9 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
     # mock weather index, param datasets used for calculations
     input_datasets = create_mock_wps_datasets(5)
     mock_temp_ds, mock_rh_ds, mock_precip_ds, mock_dc_ds, mock_dmc_ds = input_datasets
+    temp_ds_spy = mocker.spy(mock_temp_ds, "warp_to_match")
+    rh_ds_spy = mocker.spy(mock_rh_ds, "warp_to_match")
+    precip_ds_spy = mocker.spy(mock_precip_ds, "warp_to_match")
 
     @contextmanager
     def mock_input_dataset_context(_: List[str]):
@@ -118,12 +122,28 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
         mocker.call(EXPECTED_FIRST_DAY, FWIParameter.DMC),
         mocker.call(EXPECTED_FIRST_DAY, FWIParameter.DC),
         mocker.call(EXPECTED_FIRST_DAY, FWIParameter.BUI),
-        # second day, previous days' dc and dmc are looked up
+        # second day, previous days' dc and dmc are looked up first
         mocker.call(EXPECTED_FIRST_DAY, FWIParameter.DC),
         mocker.call(EXPECTED_FIRST_DAY, FWIParameter.DMC),
         mocker.call(EXPECTED_SECOND_DAY, FWIParameter.DMC),
         mocker.call(EXPECTED_SECOND_DAY, FWIParameter.DC),
         mocker.call(EXPECTED_SECOND_DAY, FWIParameter.BUI),
+    ]
+
+    # Verify weather inputs are warped to match dmc raster
+    assert temp_ds_spy.call_args_list == [
+        mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
+        mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
+    ]
+
+    assert rh_ds_spy.call_args_list == [
+        mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
+        mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
+    ]
+
+    assert precip_ds_spy.call_args_list == [
+        mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
+        mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
     ]
 
 
