@@ -7,8 +7,8 @@ interface ElevationLabelProps {
 
 const ElevationLabel = ({ label }: ElevationLabelProps) => {
   return (
-    <Grid item sx={{ alignItems: 'center', display: 'flex', height: '25%', justifyContent: 'flex-end' }} xs={12}>
-      <Typography sx={{ fontSize: '0.75em' }}>{label}</Typography>
+    <Grid item sx={{ alignItems: 'center', display: 'flex', justifyContent: 'flex-start' }} xs={6}>
+      <Typography sx={{ fontWeight: 'bold' }}>{label}</Typography>
     </Grid>
   )
 }
