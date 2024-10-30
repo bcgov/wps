@@ -5,8 +5,10 @@ import pytest
 from datetime import datetime, timezone, timedelta
 from osgeo import gdal
 from pytest_mock import MockerFixture
+from unittest.mock import ANY
 
 from app.geospatial.wps_dataset import WPSDataset
+from app.sfms import date_range_processor
 from app.sfms.date_range_processor import BUIDateRangeProcessor
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
 from app.tests.geospatial.test_wps_dataset import create_test_dataset
@@ -42,7 +44,7 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
     get_calculated_index_key_spy = mocker.spy(mock_key_addresser, "get_calculated_index_key")
     bui_date_range_processor = BUIDateRangeProcessor(TEST_DATETIME, 2, mock_key_addresser)
     # mock out storing of dataset
-    mocker.patch.object(bui_date_range_processor, "_create_and_store_dataset", return_value="test_key.tif")
+    create_and_store_spy = mocker.patch.object(bui_date_range_processor, "_create_and_store_dataset", return_value="test_key.tif")
 
     # mock weather index, param datasets used for calculations
     input_datasets = create_mock_wps_datasets(5)
@@ -84,6 +86,11 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
 
     # mock gdal open
     mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
+
+    # calculation spies
+    calculate_dmc_spy = mocker.spy(date_range_processor, "calculate_dmc")
+    calculate_dc_spy = mocker.spy(date_range_processor, "calculate_dc")
+    calculate_bui_spy = mocker.spy(date_range_processor, "calculate_bui")
 
     await bui_date_range_processor.process_bui(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context)
 
@@ -146,10 +153,21 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
         mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
     ]
 
+    for dmc_calls in calculate_dmc_spy.call_args_list:
+        dmc_ds = dmc_calls[0][0]
+        assert dmc_ds == mock_dmc_ds
+        wps_datasets = dmc_calls[0][1:4]  # Extract dataset arguments
+        assert all(isinstance(ds, WPSDataset) for ds in wps_datasets)
 
-# 'weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P020.grib2'
-#'weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P020.grib2'
-#'weather_models/rdps/2024-10-10/12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_20z.tif'
+    for dc_calls in calculate_dc_spy.call_args_list:
+        dc_ds = dc_calls[0][0]
+        assert dc_ds == mock_dc_ds
+        wps_datasets = dc_calls[0][1:4]  # Extract dataset arguments
+        assert all(isinstance(ds, WPSDataset) for ds in wps_datasets)
 
-#'sfms/uploads/actual/2024-10-09/dc20241009.tif'
-# "sfms/uploads/actual/2024-10-09/dmc20241009.tif"
+    assert calculate_bui_spy.call_args_list == [
+        mocker.call(mock_new_dmc_ds, mock_new_dc_ds),
+        mocker.call(mock_new_dmc_ds, mock_new_dc_ds),
+    ]
+
+    assert create_and_store_spy.call_count == 6
