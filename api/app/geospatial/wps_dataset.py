@@ -1,4 +1,5 @@
-from typing import Optional, Tuple, Union
+from contextlib import ExitStack, contextmanager
+from typing import Callable, Iterator, List, Optional, Tuple, Union
 from osgeo import gdal, osr
 import numpy as np
 
@@ -262,3 +263,22 @@ class WPSDataset:
 
     def close(self):
         self.ds = None
+
+
+@contextmanager
+def multi_wps_dataset_context(dataset_paths: List[str]) -> Iterator[List[WPSDataset]]:
+    """
+    Context manager to handle multiple WPSDataset instances.
+
+    :param dataset_paths: List of dataset paths to open as WPSDataset instances
+    :yield: List of WPSDataset instances, one for each path
+    """
+    datasets = [WPSDataset(path) for path in dataset_paths]
+    try:
+        # Enter each dataset's context and yield the list of instances
+        with ExitStack() as stack:
+            yield [stack.enter_context(ds) for ds in datasets]
+    finally:
+        # Close all datasets to ensure cleanup
+        for ds in datasets:
+            ds.close()

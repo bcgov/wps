@@ -2,15 +2,13 @@ import asyncio
 import logging
 import os
 import tempfile
-from contextlib import ExitStack
 from datetime import datetime, timedelta
-from tempfile import TemporaryDirectory
-from typing import Tuple
+from typing import Callable, Tuple, List, Iterator, cast
 
 import numpy as np
 
 from app import configure_logging
-from app.geospatial.wps_dataset import WPSDataset
+from app.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
 from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc
 from app.utils.geospatial import GDALResamplingMethod
@@ -20,6 +18,9 @@ from app.utils.time import get_utc_now
 from app.weather_models.rdps_filename_marshaller import model_run_for_hour
 
 logger = logging.getLogger(__name__)
+
+# Type alias for clarity: the context manager function signature
+MultiDatasetContext = Callable[[List[str]], Iterator[List["WPSDataset"]]]
 
 
 class BUIDateRangeProcessor:
@@ -32,7 +33,7 @@ class BUIDateRangeProcessor:
         self.days = days
         self.addresser = addresser
 
-    async def process_bui(self, s3_client: S3Client):
+    async def process_bui(self, s3_client: S3Client, multi_dataset_context: MultiDatasetContext):
         set_s3_gdal_config()
 
         for day in range(self.days):
@@ -59,7 +60,10 @@ class BUIDateRangeProcessor:
             dc_key, dmc_key = self.addresser.gdal_prefix_keys(dc_key, dmc_key)
 
             with tempfile.TemporaryDirectory() as temp_dir:
-                with WPSDataset(temp_key) as temp_ds, WPSDataset(rh_key) as rh_ds, WPSDataset(precip_key) as precip_ds, WPSDataset(dc_key) as dc_ds, WPSDataset(dmc_key) as dmc_ds:
+                with multi_dataset_context([temp_key, rh_key, precip_key, dc_key, dmc_key]) as datasets:
+                    datasets = cast(List[WPSDataset], datasets)  # Ensure correct type inference
+                    temp_ds, rh_ds, precip_ds, dc_ds, dmc_ds = datasets
+
                     # Warp weather datasets to match fwi
                     warped_temp_ds = temp_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(temp_key)}", GDALResamplingMethod.BILINEAR)
                     warped_rh_ds = rh_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(rh_key)}", GDALResamplingMethod.BILINEAR)
@@ -162,7 +166,7 @@ async def main():
 
     processor = BUIDateRangeProcessor(start_time, days, RasterKeyAddresser())
     async with S3Client() as s3_client:
-        await processor.process_bui(s3_client)
+        await processor.process_bui(s3_client, multi_wps_dataset_context)
 
 
 if __name__ == "__main__":
