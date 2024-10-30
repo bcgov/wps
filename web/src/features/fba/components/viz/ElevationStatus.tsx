@@ -6,7 +6,7 @@ import ElevationFlag from 'features/fba/components/viz/ElevationFlag'
 import ElevationLabel from 'features/fba/components/viz/ElevationLabel'
 import { Box } from '@mui/material'
 import { FireZoneTPIStats } from '@/api/fbaAPI'
-import Mountain from '@/features/fba/images/mountain.svg'
+import Mountain from '/images/mountain.svg'
 
 enum ElevationOption {
   BOTTOM = 'Valley Bottom',
@@ -62,7 +62,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
             display: 'flex',
             width: '100%'
           }}
-          data-testId="tpi-mountain"
+          data-testid="tpi-mountain"
         >
           <Grid sx={{ paddingLeft: theme.spacing(0.5), paddingRight: theme.spacing(0.5) }} container xs={12}>
             <Grid container sx={{ height: theme.spacing(8) }} xs={12}>
