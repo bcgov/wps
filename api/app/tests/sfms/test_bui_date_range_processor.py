@@ -46,7 +46,7 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
     # mock gdal open
     mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
 
-    await bui_date_range_processor.process_bui(mock_s3_client, multi_wps_dataset_context)
+    await bui_date_range_processor.process_bui(mock_s3_client, multi_wps_dataset_context, multi_wps_dataset_context)
     mock_all_objects_exist.assert_called()
 
     mock_dc_ds.close()

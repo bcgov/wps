@@ -33,7 +33,7 @@ class BUIDateRangeProcessor:
         self.days = days
         self.addresser = addresser
 
-    async def process_bui(self, s3_client: S3Client, multi_dataset_context: MultiDatasetContext):
+    async def process_bui(self, s3_client: S3Client, input_dataset_context: MultiDatasetContext, new_dmc_dc_context: MultiDatasetContext):
         set_s3_gdal_config()
 
         for day in range(self.days):
@@ -60,9 +60,9 @@ class BUIDateRangeProcessor:
             dc_key, dmc_key = self.addresser.gdal_prefix_keys(dc_key, dmc_key)
 
             with tempfile.TemporaryDirectory() as temp_dir:
-                with multi_dataset_context([temp_key, rh_key, precip_key, dc_key, dmc_key]) as datasets:
-                    datasets = cast(List[WPSDataset], datasets)  # Ensure correct type inference
-                    temp_ds, rh_ds, precip_ds, dc_ds, dmc_ds = datasets
+                with input_dataset_context([temp_key, rh_key, precip_key, dc_key, dmc_key]) as input_datasets:
+                    input_datasets = cast(List[WPSDataset], input_datasets)  # Ensure correct type inference
+                    temp_ds, rh_ds, precip_ds, dc_ds, dmc_ds = input_datasets
 
                     # Warp weather datasets to match fwi
                     warped_temp_ds = temp_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(temp_key)}", GDALResamplingMethod.BILINEAR)
@@ -105,8 +105,9 @@ class BUIDateRangeProcessor:
 
                     # Open new DMC and DC datasets and calculate BUI
                     new_bui_key = self.addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.BUI)
-
-                    with WPSDataset(new_dmc_path) as new_dmc_ds, WPSDataset(new_dc_path) as new_dc_ds:
+                    with new_dmc_dc_context([new_dmc_path, new_dc_path]) as new_dmc_dc_datasets:
+                        new_ds = cast(List[WPSDataset], new_dmc_dc_datasets)  # Ensure correct type inference
+                        new_dmc_ds, new_dc_ds = new_ds
                         bui_values, nodata = calculate_bui(new_dmc_ds, new_dc_ds)
 
                         # Store the new BUI dataset
@@ -166,7 +167,7 @@ async def main():
 
     processor = BUIDateRangeProcessor(start_time, days, RasterKeyAddresser())
     async with S3Client() as s3_client:
-        await processor.process_bui(s3_client, multi_wps_dataset_context)
+        await processor.process_bui(s3_client, multi_wps_dataset_context, multi_wps_dataset_context)
 
 
 if __name__ == "__main__":
