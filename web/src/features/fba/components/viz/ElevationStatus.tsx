@@ -55,8 +55,6 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
       <Grid xs={12}>
         <Box
           sx={{
-            backgroundBlendMode: 'overlay',
-            backgroundColor: 'rgba(255, 255, 255, 0.6)',
             background: `url(${Mountain})`,
             backgroundRepeat: 'round',
             display: 'flex',
