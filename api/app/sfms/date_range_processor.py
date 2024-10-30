@@ -37,9 +37,7 @@ class BUIDateRangeProcessor:
         set_s3_gdal_config()
 
         for day in range(self.days):
-            datetime_to_calculate_utc = self.start_datetime.replace(hour=20, minute=0, second=0, microsecond=0) + timedelta(days=day)
-            previous_fwi_datetime = datetime_to_calculate_utc - timedelta(days=1)
-            prediction_hour = 20 + (day * 24)
+            datetime_to_calculate_utc, previous_fwi_datetime, prediction_hour = self._get_calculate_dates(day)
             logger.info(f"Calculating DMC/DC/BUI for {datetime_to_calculate_utc.isoformat()}")
 
             # Get and check existence of weather s3 keys
@@ -120,6 +118,18 @@ class BUIDateRangeProcessor:
                             bui_values,
                             nodata,
                         )
+
+    def _get_calculate_dates(self, day: int):
+        """
+        Calculate the UTC date and times based on the provided day offset.
+
+        :param day: The day offset from the start date
+        :return: Tuple of (datetime_to_calculate_utc, previous_fwi_datetime, prediction_hour)
+        """
+        datetime_to_calculate_utc = self.start_datetime.replace(hour=20, minute=0, second=0, microsecond=0) + timedelta(days=day)
+        previous_fwi_datetime = datetime_to_calculate_utc - timedelta(days=1)
+        prediction_hour = 20 + (day * 24)
+        return datetime_to_calculate_utc, previous_fwi_datetime, prediction_hour
 
     def _get_previous_fwi_keys(self, day_to_calculate: int, previous_fwi_datetime: datetime) -> Tuple[str, str]:
         """
