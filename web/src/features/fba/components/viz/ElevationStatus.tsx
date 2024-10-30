@@ -6,7 +6,7 @@ import ElevationFlag from 'features/fba/components/viz/ElevationFlag'
 import ElevationLabel from 'features/fba/components/viz/ElevationLabel'
 import { Box } from '@mui/material'
 import { FireZoneTPIStats } from '@/api/fbaAPI'
-import Mountain from '/images/mountain.svg'
+import Mountain from 'features/fba/images/mountain.svg'
 
 enum ElevationOption {
   BOTTOM = 'Valley Bottom',
@@ -57,7 +57,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
           sx={{
             backgroundBlendMode: 'overlay',
             backgroundColor: 'rgba(255, 255, 255, 0.6)',
-            backgroundImage: `url(${Mountain})`,
+            backgroundImage: `url("${Mountain}")`,
             backgroundRepeat: 'round',
             display: 'flex',
             width: '100%'
