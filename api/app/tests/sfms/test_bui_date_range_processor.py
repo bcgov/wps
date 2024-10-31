@@ -36,22 +36,8 @@ def create_mock_wps_datasets(num: int) -> List[WPSDataset]:
     return [create_mock_wps_dataset() for _ in range(num)]
 
 
-@pytest.mark.anyio
-async def test_bui_date_range_processor(mocker: MockerFixture):
-    mock_key_addresser = RasterKeyAddresser()
-    get_weather_data_key_spy = mocker.spy(mock_key_addresser, "get_weather_data_keys")
-    gdal_prefix_keys_spy = mocker.spy(mock_key_addresser, "gdal_prefix_keys")
-    get_calculated_index_key_spy = mocker.spy(mock_key_addresser, "get_calculated_index_key")
-    bui_date_range_processor = BUIDateRangeProcessor(TEST_DATETIME, 2, mock_key_addresser)
-    # mock out storing of dataset
-    create_and_store_spy = mocker.patch.object(bui_date_range_processor, "_create_and_store_dataset", return_value="test_key.tif")
-
-    # mock weather index, param datasets used for calculations
+def create_mock_input_dataset_context():
     input_datasets = create_mock_wps_datasets(5)
-    mock_temp_ds, mock_rh_ds, mock_precip_ds, mock_dc_ds, mock_dmc_ds = input_datasets
-    temp_ds_spy = mocker.spy(mock_temp_ds, "warp_to_match")
-    rh_ds_spy = mocker.spy(mock_rh_ds, "warp_to_match")
-    precip_ds_spy = mocker.spy(mock_precip_ds, "warp_to_match")
 
     @contextmanager
     def mock_input_dataset_context(_: List[str]):
@@ -64,9 +50,11 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
             for ds in input_datasets:
                 ds.close()
 
-    # mock new dmc and dc datasets
+    return input_datasets, mock_input_dataset_context
+
+
+def create_mock_new_dmc_dc_context():
     new_datasets = create_mock_wps_datasets(2)
-    mock_new_dmc_ds, mock_new_dc_ds = new_datasets
 
     @contextmanager
     def mock_new_dmc_dc_datasets_context(_: List[str]):
@@ -78,6 +66,31 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
             # Close all datasets to ensure cleanup
             for ds in new_datasets:
                 ds.close()
+
+    return new_datasets, mock_new_dmc_dc_datasets_context
+
+
+@pytest.mark.anyio
+async def test_bui_date_range_processor(mocker: MockerFixture):
+    mock_key_addresser = RasterKeyAddresser()
+    # key address spies
+    get_weather_data_key_spy = mocker.spy(mock_key_addresser, "get_weather_data_keys")
+    gdal_prefix_keys_spy = mocker.spy(mock_key_addresser, "gdal_prefix_keys")
+    get_calculated_index_key_spy = mocker.spy(mock_key_addresser, "get_calculated_index_key")
+    bui_date_range_processor = BUIDateRangeProcessor(TEST_DATETIME, 2, mock_key_addresser)
+    # mock/spy dataset storage
+    create_and_store_spy = mocker.patch.object(bui_date_range_processor, "_create_and_store_dataset", return_value="test_key.tif")
+
+    # mock weather index, param datasets used for calculations
+    input_datasets, mock_input_dataset_context = create_mock_input_dataset_context()
+    mock_temp_ds, mock_rh_ds, mock_precip_ds, mock_dc_ds, mock_dmc_ds = input_datasets
+    temp_ds_spy = mocker.spy(mock_temp_ds, "warp_to_match")
+    rh_ds_spy = mocker.spy(mock_rh_ds, "warp_to_match")
+    precip_ds_spy = mocker.spy(mock_precip_ds, "warp_to_match")
+
+    # mock new dmc and dc datasets
+    new_datasets, mock_new_dmc_dc_datasets_context = create_mock_new_dmc_dc_context()
+    mock_new_dmc_ds, mock_new_dc_ds = new_datasets
 
     # mock s3 client
     mock_s3_client = S3Client()
@@ -170,4 +183,40 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
         mocker.call(mock_new_dmc_ds, mock_new_dc_ds),
     ]
 
+    # 3 each day, new dmc, dc and bui rasters
     assert create_and_store_spy.call_count == 6
+
+
+@pytest.mark.parametrize(
+    "side_effect_1, side_effect_2",
+    [
+        (False, False),
+        (True, False),
+        (False, True),
+    ],
+)
+@pytest.mark.anyio
+async def test_no_weather_keys_exist(side_effect_1: bool, side_effect_2: bool, mocker: MockerFixture):
+    mock_s3_client = S3Client()
+
+    mocker.patch.object(mock_s3_client, "all_objects_exist", side_effect=[side_effect_1, side_effect_2])
+
+    # mock gdal open
+    mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
+
+    _, mock_input_dataset_context = create_mock_input_dataset_context()
+
+    _, mock_new_dmc_dc_datasets_context = create_mock_new_dmc_dc_context()
+
+    # calculation spies
+    calculate_dmc_spy = mocker.spy(date_range_processor, "calculate_dmc")
+    calculate_dc_spy = mocker.spy(date_range_processor, "calculate_dc")
+    calculate_bui_spy = mocker.spy(date_range_processor, "calculate_bui")
+
+    bui_date_range_processor = BUIDateRangeProcessor(TEST_DATETIME, 1, RasterKeyAddresser())
+
+    await bui_date_range_processor.process_bui(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context)
+
+    calculate_dmc_spy.assert_not_called()
+    calculate_dc_spy.assert_not_called()
+    calculate_bui_spy.assert_not_called()
