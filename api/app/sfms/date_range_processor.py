@@ -144,17 +144,3 @@ class BUIDateRangeProcessor:
             dc_key = self.addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DC)
             dmc_key = self.addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DMC)
         return dc_key, dmc_key
-
-
-async def main():
-    start_time = get_utc_now()
-    days = 2
-
-    processor = BUIDateRangeProcessor(start_time, days, RasterKeyAddresser())
-    async with S3Client() as s3_client:
-        await processor.process_bui(s3_client, multi_wps_dataset_context, multi_wps_dataset_context)
-
-
-if __name__ == "__main__":
-    configure_logging()
-    asyncio.run(main())
