@@ -201,9 +201,6 @@ async def test_no_weather_keys_exist(side_effect_1: bool, side_effect_2: bool, m
 
     mocker.patch.object(mock_s3_client, "all_objects_exist", side_effect=[side_effect_1, side_effect_2])
 
-    # mock gdal open
-    mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
-
     _, mock_input_dataset_context = create_mock_input_dataset_context()
 
     _, mock_new_dmc_dc_datasets_context = create_mock_new_dmc_dc_context()
