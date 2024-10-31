@@ -586,7 +586,7 @@ const FBATable = (props: FBATableProps) => {
           parentCallback={filterColumnsCallback}
         />
 
-        <FireTable ariaLabel="Fire Behaviour Analysis table" data-testId={props.testId}>
+        <FireTable ariaLabel="Fire Behaviour Analysis table" data-testid={props.testId}>
           <FBATableHead
             toggleSorting={toggleSorting}
             order={order}
