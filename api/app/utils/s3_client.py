@@ -1,6 +1,11 @@
+import os
+import logging
 from typing import Any
 from aiobotocore.session import get_session
 from app import config
+from app.geospatial.wps_dataset import WPSDataset
+
+logger = logging.getLogger(__name__)
 
 
 class S3Client:
@@ -49,3 +54,23 @@ class S3Client:
 
     async def put_object(self, key: str, body: Any):
         await self.client.put_object(Bucket=self.bucket, Key=key, Body=body)
+
+    async def persist_raster_data(self, temp_dir: str, key: str, transform, projection, values, no_data_value) -> str:
+        """
+        Persists a geotiff in s3 based on transform, projection, values and no data value.
+
+        :param temp_dir: temporary directory to write geotiff
+        :param key: s3 key to store output dataset
+        :param transform: gdal geotransform
+        :param projection: gdal projection
+        :param values: array of values
+        :param no_data_value: array no data value
+        :return: path to temporary written geotiff file
+        """
+        temp_geotiff = os.path.join(temp_dir, os.path.basename(key))
+        with WPSDataset.from_array(values, transform, projection, no_data_value) as ds:
+            ds.export_to_geotiff(temp_geotiff)
+
+        logger.info(f"Writing to s3 -- {key}")
+        await self.put_object(key=key, body=open(temp_geotiff, "rb"))
+        return temp_geotiff

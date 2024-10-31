@@ -78,9 +78,8 @@ class BUIDateRangeProcessor:
                     # Create and store DMC dataset
                     dmc_values, dmc_nodata_value = calculate_dmc(dmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, latitude_array, month_array)
                     new_dmc_key = self.addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DMC)
-                    new_dmc_path = await self._create_and_store_dataset(
+                    new_dmc_path = await s3_client.persist_raster_data(
                         temp_dir,
-                        s3_client,
                         new_dmc_key,
                         dmc_ds.as_gdal_ds().GetGeoTransform(),
                         dmc_ds.as_gdal_ds().GetProjection(),
@@ -91,9 +90,8 @@ class BUIDateRangeProcessor:
                     # Create and store DC dataset
                     dc_values, dc_nodata_value = calculate_dc(dc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, latitude_array, month_array)
                     new_dc_key = self.addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.DC)
-                    new_dc_path = await self._create_and_store_dataset(
+                    new_dc_path = await s3_client.persist_raster_data(
                         temp_dir,
-                        s3_client,
                         new_dc_key,
                         dc_ds.as_gdal_ds().GetGeoTransform(),
                         dc_ds.as_gdal_ds().GetProjection(),
@@ -109,9 +107,8 @@ class BUIDateRangeProcessor:
                         bui_values, nodata = calculate_bui(new_dmc_ds, new_dc_ds)
 
                         # Store the new BUI dataset
-                        await self._create_and_store_dataset(
+                        await s3_client.persist_raster_data(
                             temp_dir,
-                            s3_client,
                             new_bui_key,
                             dmc_ds.as_gdal_ds().GetGeoTransform(),
                             dmc_ds.as_gdal_ds().GetProjection(),
@@ -147,28 +144,6 @@ class BUIDateRangeProcessor:
             dc_key = self.addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DC)
             dmc_key = self.addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DMC)
         return dc_key, dmc_key
-
-    async def _create_and_store_dataset(self, temp_dir: str, s3_client: S3Client, key: str, transform, projection, values, no_data_value) -> str:
-        """
-        Creates a geotiff to temporarily store and write to s3.
-
-        :param temp_dir: temporary directory to write geotiff
-        :param client: async s3 client
-        :param bucket: s3 bucket name
-        :param key: s3 key to store output dataset
-        :param transform: gdal geotransform
-        :param projection: gdal projection
-        :param values: array of values
-        :param no_data_value: array no data value
-        :return: path to temporary written geotiff file
-        """
-        temp_geotiff = os.path.join(temp_dir, os.path.basename(key))
-        with WPSDataset.from_array(values, transform, projection, no_data_value) as ds:
-            ds.export_to_geotiff(temp_geotiff)
-
-        logger.info(f"Writing to s3 -- {key}")
-        await s3_client.put_object(key=key, body=open(temp_geotiff, "rb"))
-        return temp_geotiff
 
 
 async def main():
