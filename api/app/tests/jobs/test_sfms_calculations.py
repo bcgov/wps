@@ -1,14 +1,10 @@
 import os
-from unittest.mock import AsyncMock
-from pytest_mock import MockerFixture
-import pytest
 
-from app.utils.s3_client import S3Client
-from app.sfms.date_range_processor import BUIDateRangeProcessor
-from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
-from app.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
-from app.jobs.sfms_calculations import SFMSCalcJob
+import pytest
+from pytest_mock import MockerFixture
+
 from app.jobs import sfms_calculations
+from app.jobs.sfms_calculations import SFMSCalcJob
 
 
 def test_sfms_calc_job_fail(monkeypatch, mocker: MockerFixture):
