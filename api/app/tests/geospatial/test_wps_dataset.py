@@ -5,7 +5,7 @@ import pytest
 import tempfile
 
 from app.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
-from app.tests.dataset_common import create_test_dataset
+from app.tests.dataset_common import create_mock_gdal_dataset, create_test_dataset
 
 hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")
 zero_tif = os.path.join(os.path.dirname(__file__), "zero_layer.tif")
@@ -167,6 +167,15 @@ def test_get_nodata_mask():
         assert nodata_value == set_no_data_value
         assert mask[0, 0] == True  # The first pixel should return True as nodata
         assert mask[0, 1] == False  # Any other pixel should return False
+
+
+def test_get_nodata_mask_empty():
+    dataset: gdal.Dataset = create_mock_gdal_dataset()
+
+    with WPSDataset(ds_path=None, ds=dataset) as ds:
+        mask, nodata_value = ds.get_nodata_mask()
+        assert mask is None
+        assert nodata_value is None
 
 
 def test_from_array():

@@ -31,7 +31,8 @@ def create_test_dataset(filename, width, height, extent, projection, data_type=g
     if fill_value is not None:
         fill_data = np.full((height, width), fill_value)
 
-    dataset.GetRasterBand(1).SetNoDataValue(0)
+    if no_data_value is not None:
+        dataset.GetRasterBand(1).SetNoDataValue(no_data_value)
     dataset.GetRasterBand(1).WriteArray(fill_data)
 
     return dataset
