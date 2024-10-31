@@ -1,5 +1,5 @@
 from contextlib import ExitStack, contextmanager
-from typing import Callable, Iterator, List, Optional, Tuple, Union
+from typing import Iterator, List, Optional, Tuple, Union
 from osgeo import gdal, osr
 import numpy as np
 

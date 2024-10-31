@@ -5,42 +5,10 @@ import pytest
 import tempfile
 
 from app.geospatial.wps_dataset import WPSDataset
+from app.tests.dataset_common import create_test_dataset
 
 hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")
 zero_tif = os.path.join(os.path.dirname(__file__), "zero_layer.tif")
-
-
-def create_test_dataset(filename, width, height, extent, projection, data_type=gdal.GDT_Float32, fill_value=None, no_data_value=None) -> gdal.Dataset:
-    """
-    Create a test GDAL dataset.
-    """
-    # Create a new GDAL dataset
-    driver: gdal.Driver = gdal.GetDriverByName("MEM")
-    dataset: gdal.Dataset = driver.Create(filename, width, height, 1, data_type)
-
-    # Set the geotransform
-    xmin, xmax, ymin, ymax = extent
-    xres = (xmax - xmin) / width
-    yres = (ymax - ymin) / height
-    geotransform = (xmin, xres, 0, ymax, 0, -yres)  # Top-left corner
-    dataset.SetGeoTransform(geotransform)
-
-    # Set the projection
-    srs = osr.SpatialReference()
-    srs.ImportFromEPSG(projection)
-    dataset.SetProjection(srs.ExportToWkt())
-
-    # Create some test data (e.g., random values)
-    rng = np.random.default_rng(seed=42)  # Reproducible random generator
-    fill_data = rng.random((height, width)).astype(np.float32)
-
-    if fill_value is not None:
-        fill_data = np.full((height, width), fill_value)
-
-    dataset.GetRasterBand(1).SetNoDataValue(0)
-    dataset.GetRasterBand(1).WriteArray(fill_data)
-
-    return dataset
 
 
 def test_raster_with_context():

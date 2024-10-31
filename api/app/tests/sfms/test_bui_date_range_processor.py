@@ -3,33 +3,18 @@ from typing import List
 from unittest.mock import AsyncMock
 import pytest
 from datetime import datetime, timezone, timedelta
-from osgeo import gdal
 from pytest_mock import MockerFixture
-from unittest.mock import ANY
-
 from app.geospatial.wps_dataset import WPSDataset
 from app.sfms import date_range_processor
 from app.sfms.date_range_processor import BUIDateRangeProcessor
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
-from app.tests.geospatial.test_wps_dataset import create_test_dataset
+from app.tests.dataset_common import create_mock_gdal_dataset, create_mock_wps_dataset
 from app.utils.geospatial import GDALResamplingMethod
 from app.utils.s3_client import S3Client
-import uuid
 
 TEST_DATETIME = datetime(2024, 10, 10, 10, tzinfo=timezone.utc)
 EXPECTED_FIRST_DAY = TEST_DATETIME.replace(hour=20, minute=0, second=0, microsecond=0)
 EXPECTED_SECOND_DAY = TEST_DATETIME.replace(hour=20, minute=0, second=0, microsecond=0) + timedelta(days=1)
-
-
-def create_mock_gdal_dataset():
-    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    return create_test_dataset(f"{str(uuid.uuid4())}.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1)
-
-
-# Create a mock for the WPSDataset class
-def create_mock_wps_dataset():
-    mock_ds = create_mock_gdal_dataset()
-    return WPSDataset(ds=mock_ds, ds_path=None)
 
 
 def create_mock_wps_datasets(num: int) -> List[WPSDataset]:
