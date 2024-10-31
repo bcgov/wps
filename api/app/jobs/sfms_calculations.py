@@ -7,7 +7,10 @@ from app import configure_logging
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.sfms.date_range_processor import BUIDateRangeProcessor
 from app.sfms.raster_addresser import RasterKeyAddresser
+from app.utils.s3_client import S3Client
 from app.utils.time import get_utc_now
+from app.geospatial.wps_dataset import multi_wps_dataset_context
+
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +24,9 @@ class SFMSCalcJob:
         start_time = get_utc_now()
 
         bui_processor = BUIDateRangeProcessor(start_time, DAYS_TO_CALCULATE, RasterKeyAddresser())
-        await bui_processor.process_bui()
+
+        async with S3Client() as s3_client:
+            await bui_processor.process_bui(s3_client, multi_wps_dataset_context, multi_wps_dataset_context)
 
         # calculate the execution time.
         execution_time = get_utc_now() - start_time
@@ -39,7 +44,7 @@ def main():
         loop.run_until_complete(job.calculate_bui())
     except Exception as e:
         logger.error("An exception occurred while processing DMC/DC/BUI raster calculations", exc_info=e)
-        rc_message = ":scream: Encountered an error while processing RDPS data."
+        rc_message = ":scream: Encountered an error while processing SFMS raster data."
         send_rocketchat_notification(rc_message, e)
         sys.exit(os.EX_SOFTWARE)
 
