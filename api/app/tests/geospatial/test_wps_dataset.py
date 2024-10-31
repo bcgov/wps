@@ -1,10 +1,10 @@
 import os
 import numpy as np
-from osgeo import osr, gdal
+from osgeo import gdal
 import pytest
 import tempfile
 
-from app.geospatial.wps_dataset import WPSDataset
+from app.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
 from app.tests.dataset_common import create_test_dataset
 
 hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")
@@ -186,3 +186,31 @@ def test_from_array():
         assert wps_ds.GetProjection() == og_proj
         assert wps_ds.GetRasterBand(1).DataType == dtype
         assert wps_ds.GetRasterBand(1).GetNoDataValue() == -99
+
+
+def test_multi_wps_dataset_context(mocker):
+    # mock WPSDataset and define the mock dataset paths
+    dataset_paths = ["path1", "path2"]
+    mock_wps_dataset = mocker.patch("app.geospatial.wps_dataset.WPSDataset")
+    mock_datasets = [mocker.MagicMock(), mocker.MagicMock()]
+    mock_wps_dataset.side_effect = mock_datasets  # WPSDataset(path) returns each mock in sequence
+
+    # set each mock to return itself when its context is entered
+    for mock_ds in mock_datasets:
+        mock_ds.__enter__.return_value = mock_ds
+
+    with multi_wps_dataset_context(dataset_paths) as datasets:
+        # check that WPSDataset was called once per path
+        mock_wps_dataset.assert_any_call("path1")
+        mock_wps_dataset.assert_any_call("path2")
+
+        # verify that the yielded datasets are the mocked instances
+        assert datasets == mock_datasets
+
+        # ensure each dataset's context was entered
+        for ds in datasets:
+            ds.__enter__.assert_called_once()
+
+    # ensure each dataset was closed after the context exited
+    for ds in mock_datasets:
+        ds.close.assert_called_once()
