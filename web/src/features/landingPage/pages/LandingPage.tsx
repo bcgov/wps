@@ -52,7 +52,7 @@ const LandingPage: React.FunctionComponent = () => {
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
 
   useEffect(() => {
-    document.title = LANDING_PAGE_DOC_TITLE
+    document.title = 'A title'
   }, [])
 
   return (
