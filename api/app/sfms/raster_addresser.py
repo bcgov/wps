@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 from app import config
 from app.weather_models import ModelEnum
-from app.weather_models.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key, model_run_for_hour
+from app.weather_models.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key
 
 
 class WeatherParameter(enum.Enum):

@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import os
 import tempfile
@@ -7,14 +6,12 @@ from typing import Callable, Tuple, List, Iterator, cast
 
 import numpy as np
 
-from app import configure_logging
-from app.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
+from app.geospatial.wps_dataset import WPSDataset
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
 from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc
 from app.utils.geospatial import GDALResamplingMethod
 from app.utils.s3 import set_s3_gdal_config
 from app.utils.s3_client import S3Client
-from app.utils.time import get_utc_now
 from app.weather_models.rdps_filename_marshaller import model_run_for_hour
 
 logger = logging.getLogger(__name__)
