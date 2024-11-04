@@ -1,11 +1,12 @@
 import math
-import pytest
+
 import numpy as np
-from unittest.mock import MagicMock
-from app.geospatial.wps_dataset import WPSDataset
-from app.sfms.fwi_processor import calculate_dc, calculate_dmc, calculate_bui
-from cffdrs import dmc, dc, bui
+import pytest
+from cffdrs import bui, dc, dmc
 from osgeo import osr
+
+from app.geospatial.wps_dataset import WPSDataset
+from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc
 
 FWI_ARRAY = np.array([[12, 20], [-999, -999]])
 TEST_ARRAY = np.array([[12, 20], [0, 0]])
