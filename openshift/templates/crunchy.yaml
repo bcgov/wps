@@ -71,8 +71,8 @@ objects:
     metadata:
       name: ${APP_NAME}-${SUFFIX}
     spec:
-      postgresVersion: 15
-      postGISVersion: "3.3"
+      postgresVersion: 14
+      postGISVersion: "3.2"
       metadata:
         name: ${APP_NAME}-${SUFFIX}
         labels:
