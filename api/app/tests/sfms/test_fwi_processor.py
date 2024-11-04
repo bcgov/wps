@@ -79,7 +79,7 @@ def test_calculate_dmc_values(sample_datasets, latitude_month):
     _, dmc_ds, temp_ds, rh_ds, precip_ds = sample_datasets
     latitude, month = latitude_month
 
-    dmc_sample = TEST_ARRAY[0, 0]
+    dmc_sample = FWI_ARRAY[0, 0]
     temp_sample = TEST_ARRAY[0, 0]
     rh_sample = TEST_ARRAY[0, 0]
     precip_sample = TEST_ARRAY[0, 0]
@@ -97,7 +97,7 @@ def test_calculate_dc_values(sample_datasets, latitude_month):
     dc_ds, _, temp_ds, rh_ds, precip_ds = sample_datasets
     latitude, month = latitude_month
 
-    dc_sample = TEST_ARRAY[0, 0]
+    dc_sample = FWI_ARRAY[0, 0]
     temp_sample = TEST_ARRAY[0, 0]
     rh_sample = TEST_ARRAY[0, 0]
     precip_sample = TEST_ARRAY[0, 0]
@@ -114,8 +114,8 @@ def test_calculate_dc_values(sample_datasets, latitude_month):
 def test_calculate_bui_values(sample_datasets):
     dc_ds, dmc_ds, *_ = sample_datasets
 
-    dc_sample = TEST_ARRAY[0, 0]
-    dmc_sample = TEST_ARRAY[0, 0]
+    dc_sample = FWI_ARRAY[0, 0]
+    dmc_sample = FWI_ARRAY[0, 0]
 
     bui_values, _ = calculate_bui(dc_ds, dmc_ds)
 
