@@ -10,7 +10,6 @@ from osgeo import gdal
 from app import config
 
 logger = logging.getLogger(__name__)
-BUCKET = config.get("OBJECT_STORE_BUCKET")
 
 
 @asynccontextmanager
@@ -46,14 +45,6 @@ async def object_exists_v2(target_path: str):
     """Check if and object exists in the object store"""
     async with get_client() as (client, bucket):
         return await object_exists(client, bucket, target_path)
-
-
-async def all_objects_exist(*s3_keys: str):
-    for key in s3_keys:
-        key_exists = await object_exists_v2(key)
-        if not key_exists:
-            return False
-    return True
 
 
 async def read_into_memory(key: str):
