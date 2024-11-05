@@ -22,13 +22,15 @@ class SFMSCalcJob:
     async def calculate_bui(self, start_time: datetime):
         logger.info(f"Begin BUI raster calculations -- calculating {DAYS_TO_CALCULATE} days forward")
 
+        start_exec = get_utc_now()
+
         bui_processor = BUIDateRangeProcessor(start_time, DAYS_TO_CALCULATE, RasterKeyAddresser())
 
         async with S3Client() as s3_client:
             await bui_processor.process_bui(s3_client, multi_wps_dataset_context, multi_wps_dataset_context)
 
         # calculate the execution time.
-        execution_time = get_utc_now() - start_time
+        execution_time = get_utc_now() - start_exec
         hours, remainder = divmod(execution_time.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
 
