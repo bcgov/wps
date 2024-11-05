@@ -6,7 +6,6 @@ from pytest_mock import MockerFixture
 
 from app.jobs import sfms_calculations
 from app.jobs.sfms_calculations import SFMSCalcJob
-from app.utils.time import get_utc_now
 
 
 def test_sfms_calc_job_fail_default(monkeypatch, mocker: MockerFixture):
@@ -27,19 +26,24 @@ def test_sfms_calc_job_fail_default(monkeypatch, mocker: MockerFixture):
     assert rocket_chat_spy.call_count == 1
 
 
+def test_sfms_calc_job_cli_arg(monkeypatch, mocker: MockerFixture):
+    calc_spy = mocker.patch.object(SFMSCalcJob, "calculate_bui", return_value=None)
+
+    test_datetime = "2024-10-10 5"
+    monkeypatch.setattr("sys.argv", ["sfms_calculations.py", test_datetime])
+
+    sfms_calculations.main()
+
+    called_args, _ = calc_spy.call_args
+    assert called_args[0] == datetime.strptime(test_datetime, "%Y-%m-%d %H").replace(tzinfo=timezone.utc)
+
+
 @pytest.mark.anyio
-async def test_sfms_calc_job_cli_arg(monkeypatch, mocker: MockerFixture):
-    monkeypatch.setattr(SFMSCalcJob, "calculate_bui", None)
-
-    calc_spy = mocker.spy(SFMSCalcJob, "calculate_bui")
-
-    test_datetime = get_utc_now().strftime("%Y-%m-%d %H")
+async def test_sfms_calc_job_cli_arg_missing_hour(monkeypatch):
+    test_datetime = "2024-10-10"
     monkeypatch.setattr("sys.argv", ["sfms_calculations.py", test_datetime])
 
     with pytest.raises(SystemExit) as excinfo:
         await sfms_calculations.main()
 
-    assert excinfo.value.code == os.EX_SOFTWARE
-
-    called_args, _ = calc_spy.call_args
-    assert called_args[0] == datetime.strptime(test_datetime, "%Y-%m-%d %H").replace(tzinfo=timezone.utc)
+    assert excinfo.value.code == 1
