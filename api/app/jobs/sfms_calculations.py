@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime, timezone
 import logging
 import os
 import sys
@@ -18,10 +19,8 @@ DAYS_TO_CALCULATE = 2
 
 
 class SFMSCalcJob:
-    async def calculate_bui(self):
+    async def calculate_bui(self, start_time: datetime):
         logger.info(f"Begin BUI raster calculations -- calculating {DAYS_TO_CALCULATE} days forward")
-
-        start_time = get_utc_now()
 
         bui_processor = BUIDateRangeProcessor(start_time, DAYS_TO_CALCULATE, RasterKeyAddresser())
 
@@ -37,11 +36,21 @@ class SFMSCalcJob:
 
 
 def main():
+    if len(sys.argv) > 1:
+        try:
+            # command-line arg as 'YYYY-MM-DD HH'
+            start_time = datetime.strptime(sys.argv[1], "%Y-%m-%d %H").replace(tzinfo=timezone.utc)
+        except ValueError:
+            print("Error: Please provide the date and hour in 'YYYY-MM-DD HH' format (as a single string)")
+            sys.exit(1)
+    else:
+        # default to the current datetime
+        start_time = get_utc_now()
     try:
         job = SFMSCalcJob()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(job.calculate_bui())
+        loop.run_until_complete(job.calculate_bui(start_time))
     except Exception as e:
         logger.error("An exception occurred while processing DMC/DC/BUI raster calculations", exc_info=e)
         rc_message = ":scream: Encountered an error while processing SFMS raster data."
