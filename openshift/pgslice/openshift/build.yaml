@@ -20,7 +20,6 @@ parameters:
   - name: GIT_BRANCH
     value: task/partition-weather-station-model-predictions
 objects:
-  #ImageStream is create if it doesn't already exist
   - apiVersion: v1
     kind: ImageStream
     metadata:

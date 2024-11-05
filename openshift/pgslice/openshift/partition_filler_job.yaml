@@ -87,8 +87,8 @@ objects:
                   resources:
                     limits:
                       cpu: "1"
-                      memory: 1024Mi
+                      memory: 256Mi
                     requests:
                       cpu: "500m"
-                      memory: 512Mi
+                      memory: 128Mi
               restartPolicy: OnFailure
