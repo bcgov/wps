@@ -26,7 +26,7 @@ oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/partition_filler_job.yaml \
     -p CRUNCHYDB_USER=wps-crunchydb-${SUFFIX}-pguser-wps-crunchydb-${SUFFIX} \
     -p PROJ_TOOLS=${PROJ_TOOLS} | jq '.items[0]' | oc -n ${PROJ_TARGET} create -f -
 # wait for the job to finish
-oc wait --for=condition=complete ${JOB} --timeout=60s
+oc wait --for=condition=complete ${JOB} --timeout=3600s
 # output the log for debugging
 oc logs -f ${JOB}
 # we're done, so get rid of the job
