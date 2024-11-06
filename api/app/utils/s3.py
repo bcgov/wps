@@ -69,3 +69,10 @@ async def read_into_memory(key: str):
                 return (None, None, None)
             else:
                 raise
+
+
+def set_s3_gdal_config():
+    gdal.SetConfigOption("AWS_SECRET_ACCESS_KEY", config.get("OBJECT_STORE_SECRET"))
+    gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
+    gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
+    gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
