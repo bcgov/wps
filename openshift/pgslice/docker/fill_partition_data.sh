@@ -7,28 +7,28 @@
 if [ -z ${PG_PASSWORD+0} ]
 then
     echo "PG_PASSWORD not specified"
-    echo "Specify a postgress password"
+    echo "Specify a postgres password"
     exit 1
 fi
 
 if [ -z ${PG_HOSTNAME+0} ]
 then
     echo "PG_HOSTNAME not specified"
-    echo "Specify a postgress hostname"
+    echo "Specify a postgres hostname"
     exit 1
 fi
 
 if [ -z ${PG_PORT+0} ]
 then
     echo "PG_PORT not specified"
-    echo "Specify a postgress port"
+    echo "Specify a postgres port"
     exit 1
 fi
 
 if [ -z ${PG_USER+0} ]
 then
     echo "PG_USER not specified"
-    echo "Specify a postgress user"
+    echo "Specify a postgres user"
     exit 1
 fi
 
@@ -42,7 +42,7 @@ fi
 if [ -z ${TABLE+0} ]
 then
     echo "TABLE not specified"
-    echo "Specify a postgress table"
+    echo "Specify a postgres table"
     exit 1
 fi
 

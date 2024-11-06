@@ -32,7 +32,6 @@ parameters:
   - name: "TABLE"
     description: "The table that is partitioned"
     required: true
-    value: "prod"
 objects:
   - kind: Job
     apiVersion: batch/v1
