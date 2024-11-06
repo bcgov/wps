@@ -142,6 +142,13 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "sfms raster processor job",
+            "type": "python",
+            "request": "launch",
+            "module": "app.jobs.sfms_calculations",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Chrome",
             "type": "pwa-chrome",
             "request": "launch",

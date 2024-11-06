@@ -1,8 +1,11 @@
-from typing import Optional
+from contextlib import ExitStack, contextmanager
+from typing import Iterator, List, Optional, Tuple, Union
 from osgeo import gdal, osr
 import numpy as np
 
 from app.utils.geospatial import GDALResamplingMethod
+
+gdal.UseExceptions()
 
 
 class WPSDataset:
@@ -25,6 +28,47 @@ class WPSDataset:
 
     def __exit__(self, *_):
         self.ds = None
+
+    @classmethod
+    def from_array(
+        cls,
+        array: np.ndarray,
+        geotransform: Tuple[float, float, float, float, float, float],
+        projection: str,
+        nodata_value: Optional[Union[float, int]] = None,
+        datatype=gdal.GDT_Float32,
+    ) -> "WPSDataset":
+        """
+        Create a WPSDataset from a NumPy array, geotransform, and projection.
+
+        :param array: NumPy array representing the raster data
+        :param geotransform: A tuple defining the geotransform
+        :param projection: WKT string of the projection
+        :param nodata_value: Optional nodata value to set for the dataset
+        :param datatype gdal datatype
+        :return: An instance of WPSDataset containing the created dataset
+        """
+        rows, cols = array.shape
+
+        driver: gdal.Driver = gdal.GetDriverByName("MEM")
+        output_dataset: gdal.Dataset = driver.Create("memory", cols, rows, 1, datatype)
+
+        # Set the geotransform and projection
+        output_dataset.SetGeoTransform(geotransform)
+        output_dataset.SetProjection(projection)
+
+        # Write the array to the dataset
+        output_band: gdal.Band = output_dataset.GetRasterBand(1)
+        output_band.WriteArray(array)
+
+        # Set the NoData value if provided
+        if nodata_value is not None:
+            output_band.SetNoDataValue(nodata_value)
+
+        # Flush cache to ensure all data is written
+        output_band.FlushCache()
+
+        return cls(ds_path=None, ds=output_dataset, datatype=datatype)
 
     def __mul__(self, other):
         """
@@ -93,7 +137,7 @@ class WPSDataset:
 
         return WPSDataset(ds_path=None, ds=out_ds)
 
-    def warp_to_match(self, other, output_path: str, resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR):
+    def warp_to_match(self, other: "WPSDataset", output_path: str, resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR):
         """
         Warp the dataset to match the extent, pixel size, and projection of the other dataset.
 
@@ -173,7 +217,7 @@ class WPSDataset:
 
         return latitudes
 
-    def export_to_geotiff(self, output_path):
+    def export_to_geotiff(self, output_path: str):
         """
         Exports the dataset to a geotiff with the given path
 
@@ -204,5 +248,37 @@ class WPSDataset:
         output_band = None
         del output_band
 
+    def get_nodata_mask(self) -> Tuple[Optional[np.ndarray], Optional[Union[float, int]]]:
+        band = self.ds.GetRasterBand(self.band)
+        nodata_value = band.GetNoDataValue()
+
+        if nodata_value is not None:
+            nodata_mask = band.ReadAsArray() == nodata_value
+            return nodata_mask, nodata_value
+
+        return None, None
+
     def as_gdal_ds(self) -> gdal.Dataset:
         return self.ds
+
+    def close(self):
+        self.ds = None
+
+
+@contextmanager
+def multi_wps_dataset_context(dataset_paths: List[str]) -> Iterator[List[WPSDataset]]:
+    """
+    Context manager to handle multiple WPSDataset instances.
+
+    :param dataset_paths: List of dataset paths to open as WPSDataset instances
+    :yield: List of WPSDataset instances, one for each path
+    """
+    datasets = [WPSDataset(path) for path in dataset_paths]
+    try:
+        # Enter each dataset's context and yield the list of instances
+        with ExitStack() as stack:
+            yield [stack.enter_context(ds) for ds in datasets]
+    finally:
+        # Close all datasets to ensure cleanup
+        for ds in datasets:
+            ds.close()

@@ -1,73 +1,14 @@
 import os
 import numpy as np
-from osgeo import osr, gdal
+from osgeo import gdal
 import pytest
 import tempfile
 
-from app.geospatial.wps_dataset import WPSDataset
+from app.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
+from app.tests.dataset_common import create_mock_gdal_dataset, create_test_dataset
 
 hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")
 zero_tif = os.path.join(os.path.dirname(__file__), "zero_layer.tif")
-
-
-def create_test_dataset(filename, width, height, extent, projection, data_type=gdal.GDT_Float32, fill_value=None, no_data_value=None) -> gdal.Dataset:
-    """
-    Create a test GDAL dataset.
-    """
-    # Create a new GDAL dataset
-    driver: gdal.Driver = gdal.GetDriverByName("MEM")
-    dataset: gdal.Dataset = driver.Create(filename, width, height, 1, data_type)
-
-    # Set the geotransform
-    xmin, xmax, ymin, ymax = extent
-    xres = (xmax - xmin) / width
-    yres = (ymax - ymin) / height
-    geotransform = (xmin, xres, 0, ymax, 0, -yres)  # Top-left corner
-    dataset.SetGeoTransform(geotransform)
-
-    # Set the projection
-    srs = osr.SpatialReference()
-    srs.ImportFromEPSG(projection)
-    dataset.SetProjection(srs.ExportToWkt())
-
-    # Create some test data (e.g., random values)
-    rng = np.random.default_rng(seed=42)  # Reproducible random generator
-    fill_data = rng.random((height, width)).astype(np.float32)
-
-    if fill_value is not None:
-        fill_data = np.full((height, width), fill_value)
-
-    dataset.GetRasterBand(1).SetNoDataValue(0)
-    dataset.GetRasterBand(1).WriteArray(fill_data)
-
-    return dataset
-
-
-# def create_test_dataset_with_no_data_value(filename, width, height, extent, projection, data_type=gdal.GDT_Float32, fill_value: int) -> gdal.Dataset:
-#     """
-#     Create a test GDAL dataset.
-#     """
-#     # Create a new GDAL dataset
-#     driver: gdal.Driver = gdal.GetDriverByName("MEM")
-#     dataset: gdal.Dataset = driver.Create(filename, width, height, 1, data_type)
-
-#     # Set the geotransform
-#     xmin, xmax, ymin, ymax = extent
-#     xres = (xmax - xmin) / width
-#     yres = (ymax - ymin) / height
-#     geotransform = (xmin, xres, 0, ymax, 0, -yres)  # Top-left corner
-#     dataset.SetGeoTransform(geotransform)
-
-#     # Set the projection
-#     srs = osr.SpatialReference()
-#     srs.ImportFromEPSG(projection)
-#     dataset.SetProjection(srs.ExportToWkt())
-
-#     rng = np.random.default_rng(seed=42)  # Reproducible random generator
-#     random_data = rng.random((height, width)).astype(np.float32)
-
-#     fill_data = np.full_like(random_data, fill_value)
-#     dataset.GetRasterBand(1).WriteArray(fill_data)
 
 
 def test_raster_with_context():
@@ -210,3 +151,75 @@ def test_latitude_array():
         warped_lats = output_ds.generate_latitude_array()
         assert np.all(original_lats == warped_lats) == True
         output_ds = None
+
+
+def test_get_nodata_mask():
+    set_no_data_value = 0
+    driver: gdal.Driver = gdal.GetDriverByName("MEM")
+    dataset: gdal.Dataset = driver.Create("test_dataset_no_data_value.tif", 2, 2, 1, eType=gdal.GDT_Int32)
+    fill_data = np.full((2, 2), 2)
+    fill_data[0, 0] = set_no_data_value
+    dataset.GetRasterBand(1).SetNoDataValue(set_no_data_value)
+    dataset.GetRasterBand(1).WriteArray(fill_data)
+
+    with WPSDataset(ds_path=None, ds=dataset) as ds:
+        mask, nodata_value = ds.get_nodata_mask()
+        assert nodata_value == set_no_data_value
+        assert mask[0, 0] == True  # The first pixel should return True as nodata
+        assert mask[0, 1] == False  # Any other pixel should return False
+
+
+def test_get_nodata_mask_empty():
+    dataset: gdal.Dataset = create_mock_gdal_dataset()
+
+    with WPSDataset(ds_path=None, ds=dataset) as ds:
+        mask, nodata_value = ds.get_nodata_mask()
+        assert mask is None
+        assert nodata_value is None
+
+
+def test_from_array():
+    extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    original_ds = create_test_dataset("test_dataset_1.tif", 100, 100, extent1, 4326)
+    original_ds.GetRasterBand(1).SetNoDataValue(-99)
+    og_band = original_ds.GetRasterBand(1)
+    og_array = og_band.ReadAsArray()
+    dtype = og_band.DataType
+    og_transform = original_ds.GetGeoTransform()
+    og_proj = original_ds.GetProjection()
+
+    with WPSDataset.from_array(og_array, og_transform, og_proj, nodata_value=-99, datatype=dtype) as wps:
+        wps_ds = wps.as_gdal_ds()
+        assert wps_ds.ReadAsArray()[1, 2] == og_array[1, 2]
+        assert wps_ds.GetGeoTransform() == og_transform
+        assert wps_ds.GetProjection() == og_proj
+        assert wps_ds.GetRasterBand(1).DataType == dtype
+        assert wps_ds.GetRasterBand(1).GetNoDataValue() == -99
+
+
+def test_multi_wps_dataset_context(mocker):
+    # mock WPSDataset and define the mock dataset paths
+    dataset_paths = ["path1", "path2"]
+    mock_wps_dataset = mocker.patch("app.geospatial.wps_dataset.WPSDataset")
+    mock_datasets = [mocker.MagicMock(), mocker.MagicMock()]
+    mock_wps_dataset.side_effect = mock_datasets  # WPSDataset(path) returns each mock in sequence
+
+    # set each mock to return itself when its context is entered
+    for mock_ds in mock_datasets:
+        mock_ds.__enter__.return_value = mock_ds
+
+    with multi_wps_dataset_context(dataset_paths) as datasets:
+        # check that WPSDataset was called once per path
+        mock_wps_dataset.assert_any_call("path1")
+        mock_wps_dataset.assert_any_call("path2")
+
+        # verify that the yielded datasets are the mocked instances
+        assert datasets == mock_datasets
+
+        # ensure each dataset's context was entered
+        for ds in datasets:
+            ds.__enter__.assert_called_once()
+
+    # ensure each dataset was closed after the context exited
+    for ds in mock_datasets:
+        ds.close.assert_called_once()
