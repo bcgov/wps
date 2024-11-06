@@ -144,9 +144,9 @@ objects:
                           key: object-store-bucket
                   resources:
                     limits:
-                      cpu: "2"
+                      cpu: "250m"
                       memory: 2048Mi
                     requests:
-                      cpu: "500m"
+                      cpu: "75m"
                       memory: 512Mi
               restartPolicy: OnFailure
