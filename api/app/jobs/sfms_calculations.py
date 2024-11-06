@@ -20,6 +20,10 @@ DAYS_TO_CALCULATE = 2
 
 class SFMSCalcJob:
     async def calculate_bui(self, start_time: datetime):
+        """
+        Entry point for processing SFMS DMC/DC/BUI rasters. To run from a specific date manually in openshift,
+        see openshift/sfms-calculate/README.md
+        """
         logger.info(f"Begin BUI raster calculations -- calculating {DAYS_TO_CALCULATE} days forward")
 
         start_exec = get_utc_now()
@@ -43,7 +47,7 @@ def main():
             # command-line arg as 'YYYY-MM-DD HH'
             start_time = datetime.strptime(sys.argv[1], "%Y-%m-%d %H").replace(tzinfo=timezone.utc)
         except ValueError:
-            print("Error: Please provide the date and hour in 'YYYY-MM-DD HH' format (as a single string)")
+            logger.error("Error: Please provide the date and hour in 'YYYY-MM-DD HH' format (as a single string)")
             sys.exit(1)
     else:
         # default to the current datetime
