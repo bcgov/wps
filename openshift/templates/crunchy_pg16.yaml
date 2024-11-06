@@ -1,0 +1,166 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: ${APP_NAME}-${SUFFIX}
+  annotations:
+    "openshift.io/display-name": ${APP_NAME}-${SUFFIX}
+labels:
+  app.kubernetes.io/part-of: "${APP_NAME}"
+  app: ${APP_NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: |
+      The name of the application for labelling all artifacts.
+    displayName: Application Name
+    required: true
+  - description: Namespace in which database resides
+    displayName: Target Namespace
+    name: TARGET_NAMESPACE
+    required: true
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
+    value: wps-crunchydb-pg16
+    required: true
+  - name: BUCKET
+    description: S3 bucket name
+    required: true
+  - name: DATA_SIZE
+    description: Data PVC size
+    required: true
+  - name: WAL_SIZE
+    description: WAL PVC size
+    required: true
+  - name: CPU_REQUEST
+    description: |
+      Starting amount of CPU the container can use.
+    displayName: CPU REQUEST
+    value: "50m"
+  - name: CPU_LIMIT
+    description: Maximum amount of CPU the container can use.
+    displayName: CPU Limit
+    value: "250m"
+  - name: MEMORY_REQUEST
+    description: Starting amount of memory the container can use.
+    displayName: Memory Request
+    value: 256Mi
+  - name: MEMORY_LIMIT
+    description: Maximum amount of memory the container can use.
+    displayName: Memory Limit
+    value: 1Gi
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: IMAGE_REGISTRY
+    value: image-registry.apps.silver.devops.gov.bc.ca
+  - name: IMAGE_NAMESPACE
+    value: e1e498-tools
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+objects:
+  - apiVersion: v1
+    data:
+      init.sql: |-
+        \c wps\\
+        CREATE EXTENSION postgis;
+    kind: ConfigMap
+    metadata:
+      name: wps-init-sql
+  - apiVersion: postgres-operator.crunchydata.com/v1beta1
+    kind: PostgresCluster
+    metadata:
+      name: ${APP_NAME}-${SUFFIX}
+    spec:
+      postgresVersion: 16
+      postGISVersion: "3.3"
+      metadata:
+        name: ${APP_NAME}-${SUFFIX}
+        labels:
+          app: ${APP_NAME}-${SUFFIX}
+      databaseInitSQL:
+        key: init.sql
+        name: wps-init-sql
+      users:
+        - name: ${APP_NAME}-${SUFFIX}
+          databases:
+            - postgres
+            - wps
+      instances:
+        - name: crunchy
+          replicas: 2
+          resources:
+            requests:
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
+            limits:
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
+          dataVolumeClaimSpec:
+            accessModes:
+              - "ReadWriteOnce"
+            resources:
+              requests:
+                storage: ${DATA_SIZE}
+            storageClassName: netapp-block-standard
+          walVolumeClaimSpec:
+            accessModes:
+              - "ReadWriteOnce"
+            resources:
+              requests:
+                storage: ${WAL_SIZE}
+            storageClassName: netapp-block-standard
+      backups:
+        pgbackrest:
+          image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbackrest:ubi8-2.41-4
+          manual:
+            repoName: repo1
+            options:
+              - --type=full
+          configuration:
+            - secret:
+                name: crunchy-pgbackrest
+                items:
+                  - key: conf
+                    path: s3.conf
+          global:
+            repo1-retention-full: "3"
+            repo1-retention-full-type: count
+            repo1-path: /pgbackrest/${SUFFIX}/repo1
+          repos:
+            - name: repo1
+              schedules:
+                full: "0 1 * * 0"
+                differential: "0 1 * * 1-6"
+              s3:
+                bucket: ${BUCKET}
+                endpoint: nrs.objectstore.gov.bc.ca
+                region: "ca-central-1"
+
+      proxy:
+        pgBouncer:
+          image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbouncer:ubi8-1.21-0
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - podAffinityTerm:
+                    labelSelector:
+                      matchLabels:
+                        postgres-operator.crunchydata.com/cluster: db
+                        postgres-operator.crunchydata.com/role: pgbouncer
+                    topologyKey: kubernetes.io/hostname
+                  weight: 1
+          config:
+            global:
+              pool_mode: transaction
+              ignore_startup_parameters: options, extra_float_digits
+              max_prepared_statements: "10"
+              max_client_conn: "1000"
+          port: 5432
+          replicas: 1
+          resources:
+            limits:
+              cpu: 500m
+              memory: 3Gi
+            requests:
+              cpu: 100m
+              memory: 1Gi

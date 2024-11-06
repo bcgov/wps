@@ -31,7 +31,7 @@ IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE:-${PROJ_TOOLS}}
 EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy_pg16.yaml \
 -p NAME=\"crunchy-${APP_NAME}-${SUFFIX}\" \
 -p SUFFIX=\"${SUFFIX}\" \
 -p TARGET_NAMESPACE=${PROJ_TARGET} \
