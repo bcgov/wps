@@ -1,0 +1,52 @@
+name: Sprint issue metrics
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 21 * * 3"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: issue metrics
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Get dates for last sprint
+        shell: bash
+        run: |
+          # Determine if the current week is an "even" week (biweekly toggle)
+          if [ $(( $(date +%V) % 2 )) -eq 0 ]; then
+
+              # Calculate the first and last day of the 2-week period
+              last_day=$(date -d "this wed" +%Y-%m-%d)
+              first_day=$(date -d "$last_day -13 days" +%Y-%m-%d)
+
+              # Set the date range for the 2-week period
+              echo "$first_day..$last_day"
+              echo "biweekly_period=$first_day..$last_day" >> "$GITHUB_ENV"
+          else
+              echo "Skipping run; not a review week."
+              echo "skip_run=true" >> "$GITHUB_ENV" 
+          fi
+
+      - name: Run issue-metrics tool
+        uses: github/issue-metrics@v3
+        if: ${{ env.skip_run != 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HIDE_LABEL_METRICS: "true"
+          HIDE_AUTHOR: "true"
+          REPORT_TITLE: "Sprint metrics - ${{ env.biweekly_period }}"
+          SEARCH_QUERY: "repo:bcgov/wps is:issue closed:${{ env.biweekly_period }} reason:completed"
+
+      - name: Create issue
+        uses: peter-evans/create-issue-from-file@v5
+        if: ${{ env.skip_run != 'true' }}
+        with:
+          title: Sprint metrics report - ${{ env.biweekly_period }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          content-filepath: ./issue_metrics.md
