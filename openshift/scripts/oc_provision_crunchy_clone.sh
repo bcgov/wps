@@ -5,20 +5,20 @@ source "$(dirname ${0})/common/common"
 #%
 #% OpenShift Deploy Helper
 #%
-#%   Intended for use with a pull request-based pipeline.
+#%   Intended to deploy a once-off standby cluster which replicates from a pgbackrest repo
 #%   Suffixes incl.: pr-###.
 #%
 #% Usage:
 #%
-#%    ${THIS_FILE} [SUFFIX] [apply]
+#%    PROJ_TARGET={namespace-target} BUCKET={your-s3-bucket} ${THIS_FILE} [SUFFIX] [apply]
 #%
 #% Examples:
 #%
 #%   Provide a PR number. Defaults to a dry-run.
-#%   ${THIS_FILE} pr-0
+#%   PROJ_TARGET={namespace-target} BUCKET={your-s3-bucket} ${THIS_FILE} pr-0
 #%
 #%   Apply when satisfied.
-#%   ${THIS_FILE} pr-0 apply
+#%   PROJ_TARGET={namespace-target} BUCKET={your-s3-bucket} ${THIS_FILE} pr-0 apply
 #%
 
 
@@ -31,21 +31,19 @@ IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE:-${PROJ_TOOLS}}
 EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy.yaml \
--p NAME=\"crunchy-${APP_NAME}-pg16-${SUFFIX}\" \
--p SUFFIX=\"${SUFFIX}\" \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy_clone.yaml \
+-p SUFFIX=${SUFFIX} \
 -p TARGET_NAMESPACE=${PROJ_TARGET} \
- ${BUCKET:+ " -p BUCKET=${BUCKET}"} \
- ${DATA_SIZE:+ " -p DATA_SIZE=${DATA_SIZE}"} \
- ${WAL_SIZE:+ " -p WAL_SIZE=${WAL_SIZE}"} \
+-p BUCKET=${BUCKET} \
+-p DATA_SIZE=45Gi \
+-p WAL_SIZE=15Gi \
  ${IMAGE_NAME:+ " -p IMAGE_NAME=${IMAGE_NAME}"} \
  ${IMAGE_TAG:+ " -p IMAGE_TAG=${IMAGE_TAG}"} \
  ${IMAGE_REGISTRY:+ " -p IMAGE_REGISTRY=${IMAGE_REGISTRY}"} \
- ${PVC_SIZE:+ " -p PVC_SIZE=${PVC_SIZE}"} \
- ${CPU_REQUEST:+ "-p CPU_REQUEST=${CPU_REQUEST}"} \
- ${CPU_LIMIT:+ "-p CPU_LIMIT=${CPU_LIMIT}"} \
- ${MEMORY_REQUEST:+ "-p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
- ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"}"
+ -p CPU_REQUEST=75m \
+ -p CPU_LIMIT=2000m \
+ -p MEMORY_REQUEST=2Gi \
+ -p MEMORY_LIMIT=16Gi"
 
 
 # In order to avoid running out of storage quota in our development environment, use
