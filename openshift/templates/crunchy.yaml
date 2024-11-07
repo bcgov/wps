@@ -81,7 +81,7 @@ objects:
         key: init.sql
         name: wps-init-sql
       users:
-        - name: ${APP_NAME}-${SUFFIX}
+        - name: ${APP_NAME}-pg16-${SUFFIX}
           databases:
             - postgres
             - wps
