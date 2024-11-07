@@ -40,7 +40,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HIDE_LABEL_METRICS: "true"
-          HIDE_TIME_TO_CLOSE: "true"
+          HIDE_TIME_TO_ANSWER: "true"
+          HIDE_TIME_TO_FIRST_RESPONSE: "true"
           HIDE_AUTHOR: "true"
           REPORT_TITLE: "Sprint metrics - ${{ env.biweekly_period }}"
           SEARCH_QUERY: "repo:bcgov/wps is:issue closed:${{ env.biweekly_period }}"
