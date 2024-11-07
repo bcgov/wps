@@ -20,7 +20,7 @@ jobs:
         shell: bash
         run: |
           # Determine if the current week is an "even" week (biweekly toggle)
-          if [ $(( $(date +%V) % 2 )) -eq 0 ]; then
+          if [ $(( $(date +%V) % 2 )) -eq 1 ]; then
               # Calculate the first and last day of the 2-week period
               first_day=$(date -d "2 weeks ago" +%Y-%m-%d)
               last_day=$(date +%Y-%m-%d)
@@ -41,6 +41,7 @@ jobs:
 
       - name: Create issue
         uses: peter-evans/create-issue-from-file@v5
+        if: ${{ env.skip_run != 'true' }}
         with:
           title: Sprint metrics report
           token: ${{ secrets.GITHUB_TOKEN }}
