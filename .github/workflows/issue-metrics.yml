@@ -21,14 +21,16 @@ jobs:
         run: |
           # Determine if the current week is an "even" week (biweekly toggle)
           if [ $(( $(date +%V) % 2 )) -eq 1 ]; then
+
               # Calculate the first and last day of the 2-week period
-              first_day=$(date -d "2 weeks ago" +%Y-%m-%d)
-              last_day=$(date +%Y-%m-%d)
+              last_day=$(date -d "last wed" +%Y-%m-%d)
+              first_day=$(date -d "$last_day -13 days" +%Y-%m-%d)
+
               # Set the date range for the 2-week period
               echo "$first_day..$last_day"
               echo "biweekly_period=$first_day..$last_day" >> "$GITHUB_ENV"
           else
-              echo "Skipping run; off-week in biweekly schedule."
+              echo "Skipping run; not a review week."
               echo "skip_run=true" >> "$GITHUB_ENV" 
           fi
 
@@ -38,8 +40,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HIDE_LABEL_METRICS: "true"
-          HIDE_TIME_TO_ANSWER: "true"
-          HIDE_TIME_TO_FIRST_RESPONSE: "true"
           HIDE_TIME_TO_CLOSE: "true"
           HIDE_AUTHOR: "true"
           REPORT_TITLE: "Sprint metrics - ${{ env.biweekly_period }}"
@@ -49,6 +49,6 @@ jobs:
         uses: peter-evans/create-issue-from-file@v5
         if: ${{ env.skip_run != 'true' }}
         with:
-          title: Sprint metrics report
+          title: Sprint metrics report - ${{ env.biweekly_period }}
           token: ${{ secrets.GITHUB_TOKEN }}
           content-filepath: ./issue_metrics.md
