@@ -29,11 +29,12 @@ jobs:
               echo "biweekly_period=$first_day..$last_day" >> "$GITHUB_ENV"
           else
               echo "Skipping run; off-week in biweekly schedule."
-              exit 0
+              echo "skip_run=true" >> "$GITHUB_ENV" 
           fi
 
       - name: Run issue-metrics tool
         uses: github/issue-metrics@v3
+        if: ${{ env.skip_run != 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SEARCH_QUERY: 'repo:bcgov/wps is:issue closed:${{ env.biweekly_period }} -reason:"not planned"'
