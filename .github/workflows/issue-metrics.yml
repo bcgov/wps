@@ -37,7 +37,11 @@ jobs:
         if: ${{ env.skip_run != 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SEARCH_QUERY: 'repo:bcgov/wps is:issue closed:${{ env.biweekly_period }} -reason:"not planned"'
+          HIDE_LABEL_METRICS: "true"
+          HIDE_TIME_TO_ANSWER: "true"
+          HIDE_TIME_TO_FIRST_RESPONSE: "true"
+          REPORT_TITLE: "Sprint metrics - ${{ env.biweekly_period }}"
+          SEARCH_QUERY: "repo:bcgov/wps is:issue closed:${{ env.biweekly_period }}"
 
       - name: Create issue
         uses: peter-evans/create-issue-from-file@v5
