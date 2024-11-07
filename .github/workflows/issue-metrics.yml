@@ -41,7 +41,7 @@ jobs:
           HIDE_TIME_TO_ANSWER: "true"
           HIDE_TIME_TO_FIRST_RESPONSE: "true"
           REPORT_TITLE: "Sprint metrics - ${{ env.biweekly_period }}"
-          SEARCH_QUERY: "repo:bcgov/wps is:issue closed:${{ env.biweekly_period }}"
+          SEARCH_QUERY: 'repo:bcgov/wps is:issue closed:${{ env.biweekly_period }} -reason:"not planned"'
 
       - name: Create issue
         uses: peter-evans/create-issue-from-file@v5
