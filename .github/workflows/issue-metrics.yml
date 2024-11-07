@@ -45,4 +45,4 @@ jobs:
         with:
           title: Sprint metrics report
           token: ${{ secrets.GITHUB_TOKEN }}
-          content-filepath: ./sprint_issue_metrics.md
+          content-filepath: ./issue_metrics.md
