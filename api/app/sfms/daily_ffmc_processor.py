@@ -31,10 +31,10 @@ class DailyFFMCProcessor:
             current_day = self.start_datetime + timedelta(days=day)
             yesterday = current_day - timedelta(days=1)
             yesterday_ffmc_key = self.addresser.get_daily_ffmc(yesterday, RunType.ACTUAL)
-            if s3_client.all_objects_exist(yesterday_ffmc_key) == False:
+            if await s3_client.all_objects_exist(yesterday_ffmc_key) == False:
                 yesterday_ffmc_key = self.addresser.get_calculated_daily_ffmc(yesterday)
 
-            if s3_client.all_objects_exist(yesterday_ffmc_key) == False:
+            if await s3_client.all_objects_exist(yesterday_ffmc_key) == False:
                 logging.warning(f"No ffmc objects found for key: {yesterday_ffmc_key}")
                 return
 
@@ -51,9 +51,9 @@ class DailyFFMCProcessor:
                     # Warp weather datasets to match ffmc
                     warped_temp_ds = temp_forecast_ds.warp_to_match(yesterday_ffmc_ds, f"{temp_dir}/{os.path.basename(temp_forecast_key)}", GDALResamplingMethod.BILINEAR)
                     warped_rh_ds = rh_forecast_ds.warp_to_match(yesterday_ffmc_ds, f"{temp_dir}/{os.path.basename(rh_forecast_key)}", GDALResamplingMethod.BILINEAR)
-                    warped_precip_ds = yesterday_ffmc_ds.warp_to_match(precip_forecast_ds, f"{temp_dir}/{os.path.basename(precip_forecast_key)}", GDALResamplingMethod.BILINEAR)
-                    warped_wind_speed_ds = yesterday_ffmc_ds.warp_to_match(
-                        wind_speed_forecast_ds, f"{temp_dir}/{os.path.basename(wind_speed_forecast_key)}", GDALResamplingMethod.BILINEAR
+                    warped_precip_ds = precip_forecast_ds.warp_to_match(yesterday_ffmc_ds, f"{temp_dir}/{os.path.basename(precip_forecast_key)}", GDALResamplingMethod.BILINEAR)
+                    warped_wind_speed_ds = wind_speed_forecast_ds.warp_to_match(
+                        yesterday_ffmc_ds, f"{temp_dir}/{os.path.basename(wind_speed_forecast_key)}", GDALResamplingMethod.BILINEAR
                     )
 
                     temp_forecast_ds.close()
