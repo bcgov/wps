@@ -1,5 +1,5 @@
-""" Logic pertaining to the generation of c_haines index from GDAL datasets.
-"""
+"""Logic pertaining to the generation of c_haines index from GDAL datasets."""
+
 import logging
 import struct
 from typing import Final, Tuple
@@ -8,8 +8,7 @@ from pyproj import CRS
 from osgeo import gdal
 from affine import Affine
 from app.geospatial import NAD83_CRS
-from app.weather_models.process_grib import (
-    calculate_geographic_coordinate, get_dataset_geometry, get_transformer)
+from app.weather_models.process_grib import calculate_geographic_coordinate, get_dataset_transform, get_transformer
 from app.c_haines import GDALData
 
 
@@ -17,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_c_haines_index(t700: float, t850: float, d850: float) -> float:
-    """ Given temperature and dew points values, calculate c-haines.
+    """Given temperature and dew points values, calculate c-haines.
     Based on original work:
     Graham A. Mills and Lachlan McCaw (2010). Atmospheric Stability Environments
     and Fire Weather in Australia – extending the Haines Index.
@@ -66,7 +65,7 @@ def calculate_c_haines_index(t700: float, t850: float, d850: float) -> float:
 
 
 def read_scanline(band, yoff):
-    """ Read a band scanline (up to the y-offset), returning an array of values.
+    """Read a band scanline (up to the y-offset), returning an array of values.
 
     A raster (image) may consist of multiple bands (e.g. for a colour image, one may have a band for
     red, green, blue, and alpha).
@@ -75,16 +74,13 @@ def read_scanline(band, yoff):
     band, definition: https://gdal.org/user/raster_data_model.html#raster-band
     fetching a raster band: https://gdal.org/tutorials/raster_api_tut.html#fetching-a-raster-band
     """
-    scanline = band.ReadRaster(xoff=0, yoff=yoff,
-                               xsize=band.XSize, ysize=1,
-                               buf_xsize=band.XSize, buf_ysize=1,
-                               buf_type=gdal.GDT_Float32)
-    return struct.unpack('f' * band.XSize, scanline)
+    scanline = band.ReadRaster(xoff=0, yoff=yoff, xsize=band.XSize, ysize=1, buf_xsize=band.XSize, buf_ysize=1, buf_type=gdal.GDT_Float32)
+    return struct.unpack("f" * band.XSize, scanline)
 
 
 def get_geographic_bounding_box() -> Tuple[float]:
-    """ Get the geographical area (the bounding box) that we want to generate data for.
-    Currently hard coded to be an area around B.C. """
+    """Get the geographical area (the bounding box) that we want to generate data for.
+    Currently hard coded to be an area around B.C."""
     # S->N 46->70
     # E->W -110->-140
     top_left_geo = (-140.0, 70.0)
@@ -92,9 +88,9 @@ def get_geographic_bounding_box() -> Tuple[float]:
     return (top_left_geo, bottom_right_geo)
 
 
-class BoundingBoxChecker():
-    """ Class used to check if a given raster coordinate lies within a specified
-    geographic bounding box. """
+class BoundingBoxChecker:
+    """Class used to check if a given raster coordinate lies within a specified
+    geographic bounding box."""
 
     def __init__(self, transform: Affine, raster_to_geo_transformer):
         self.geo_bounding_box = get_geographic_bounding_box()
@@ -103,12 +99,9 @@ class BoundingBoxChecker():
 
     @lru_cache(maxsize=None)
     def is_inside(self, raster_x, raster_y):
-        """ Check if raster coordinate is inside the geographic bounding box """
+        """Check if raster coordinate is inside the geographic bounding box"""
         # Calculate lat/long and check bounds.
-        lon, lat = calculate_geographic_coordinate(
-            (raster_x, raster_y),
-            self.transform,
-            self.raster_to_geo_transformer)
+        lon, lat = calculate_geographic_coordinate((raster_x, raster_y), self.transform, self.raster_to_geo_transformer)
         lon0 = self.geo_bounding_box[0][0]
         lat0 = self.geo_bounding_box[0][1]
         lon1 = self.geo_bounding_box[1][0]
@@ -118,30 +111,26 @@ class BoundingBoxChecker():
         return False
 
 
-class CHainesGenerator():
-    """ Class for generating c_haines data """
+class CHainesGenerator:
+    """Class for generating c_haines data"""
 
     def __init__(self):
         self.bound_checker: BoundingBoxChecker = None
 
     def _prepare_bound_checker(self, grib_tmp_700: gdal.Dataset, grib_tmp_700_filename: str):
-        """ Prepare the boundary checker. """
+        """Prepare the boundary checker."""
         if not self.bound_checker:
-            logger.info('Creating bound checker.')
-            transform: Affine = get_dataset_geometry(grib_tmp_700_filename)
+            logger.info("Creating bound checker.")
+            transform: Affine = get_dataset_transform(grib_tmp_700_filename)
             crs = CRS.from_string(grib_tmp_700.GetProjection())
             # Create a transformer to go from whatever the raster is, to geographic coordinates.
             raster_to_geo_transformer = get_transformer(crs, NAD83_CRS)
             self.bound_checker = BoundingBoxChecker(transform, raster_to_geo_transformer)
         else:
-            logger.info('Re-using bound checker.')
+            logger.info("Re-using bound checker.")
 
-    def calculate_row_data(self,
-                           tmp_700_raster_band: gdal.Band,
-                           tmp_850_raster_band: gdal.Band,
-                           dew_850_raster_band: gdal.Band,
-                           y_row_index: int):
-        """ Calculate a row of c-haines raster data """
+    def calculate_row_data(self, tmp_700_raster_band: gdal.Band, tmp_850_raster_band: gdal.Band, dew_850_raster_band: gdal.Band, y_row_index: int):
+        """Calculate a row of c-haines raster data"""
         c_haines_row: Final = []
         # Read the scanlines.
         row_tmp_700: Final = read_scanline(tmp_700_raster_band, y_row_index)
@@ -150,7 +139,6 @@ class CHainesGenerator():
 
         # Iterate through values in row.
         for x_column_index, (t700, t850, d850) in enumerate(zip(row_tmp_700, row_tmp_850, row_dew_850)):
-
             if self.bound_checker.is_inside(x_column_index, y_row_index):
                 c_haines_row.append(calculate_c_haines_index(t700, t850, d850))
             else:
@@ -158,7 +146,7 @@ class CHainesGenerator():
         return c_haines_row
 
     def generate_c_haines(self, source_data: GDALData):
-        """ Given grib data sources, generate c_haines data. """
+        """Given grib data sources, generate c_haines data."""
 
         # Prepare the boundary checker.
         # Boundary checking is very slow. We have to repeatedly convert a raster coordinate to a geographic
@@ -174,11 +162,9 @@ class CHainesGenerator():
         c_haines_data: Final = []
 
         # Iterate through rows (assuming all the raster bands have the same amount of rows)
-        logger.info('Generating c-haines index data.')
+        logger.info("Generating c-haines index data.")
         for y_row_index in range(tmp_850_raster_band.YSize):
-
-            c_haines_row = self.calculate_row_data(
-                tmp_700_raster_band, tmp_850_raster_band, dew_850_raster_band, y_row_index)
+            c_haines_row = self.calculate_row_data(tmp_700_raster_band, tmp_850_raster_band, dew_850_raster_band, y_row_index)
 
             c_haines_data.append(c_haines_row)
 
