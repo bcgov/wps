@@ -40,7 +40,7 @@ def read_file_contents(filename):
 )
 def test_get_dataset_geometry(filename, origin, pixel_size):
     grib_path = get_grib_file_path(filename)
-    dataset_geometry = process_grib.get_dataset_geometry(grib_path)
+    dataset_geometry = process_grib.get_dataset_transform(grib_path)
     geotransform = dataset_geometry.to_gdal()
     actual_origin = itemgetter(0, 3)(geotransform)
     actual_pixel_size = itemgetter(1, 5)(geotransform)
@@ -65,18 +65,6 @@ def test_get_dataset_geometry(filename, origin, pixel_size):
         ),
     ],
 )
-def test_get_surrounding_grid(filename, raster_coordinate, points, values):
-    dataset = open_grib_file(filename)
-    raster_band = dataset.GetRasterBand(1)
-    x, y = raster_coordinate
-    surrounding_grid = process_grib.get_surrounding_grid(raster_band, x, y)
-    # Check points
-    assert surrounding_grid[0] == points
-    # Check values
-    assert surrounding_grid[1] == values
-    dataset = None
-
-
 @pytest.mark.parametrize(
     "geotransform,wkt_projection_string,geographic_coordinate,raster_coordinate",
     [
