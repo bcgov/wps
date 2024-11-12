@@ -40,41 +40,12 @@ def read_file_contents(filename):
 )
 def test_get_dataset_geometry(filename, origin, pixel_size):
     grib_path = get_grib_file_path(filename)
-    dataset_geometry = process_grib.get_dataset_geometry(grib_path)
+    dataset_geometry = process_grib.get_dataset_transform(grib_path)
     geotransform = dataset_geometry.to_gdal()
     actual_origin = itemgetter(0, 3)(geotransform)
     actual_pixel_size = itemgetter(1, 5)(geotransform)
     assert actual_origin == origin
     assert actual_pixel_size == pixel_size
-
-
-@pytest.mark.parametrize(
-    "filename,raster_coordinate,points,values",
-    [
-        (
-            "CMC_glb_RH_TGL_2_latlon.15x.15_2020071300_P000.grib2",
-            (10, 10),
-            [[10, 10], [11, 10], [11, 11], [10, 11]],
-            [91.99049377441406, 91.99049377441406, 92.24049377441406, 92.24049377441406],
-        ),
-        (
-            "CMC_hrdps_continental_RH_TGL_2_ps2.5km_2020100700_P007-00.grib2",
-            (694, 1262),
-            [[694, 1262], [695, 1262], [695, 1263], [694, 1263]],
-            [44.272186279296875, 42.796443939208984, 44.272186279296875, 44.272186279296875],
-        ),
-    ],
-)
-def test_get_surrounding_grid(filename, raster_coordinate, points, values):
-    dataset = open_grib_file(filename)
-    raster_band = dataset.GetRasterBand(1)
-    x, y = raster_coordinate
-    surrounding_grid = process_grib.get_surrounding_grid(raster_band, x, y)
-    # Check points
-    assert surrounding_grid[0] == points
-    # Check values
-    assert surrounding_grid[1] == values
-    dataset = None
 
 
 @pytest.mark.parametrize(
