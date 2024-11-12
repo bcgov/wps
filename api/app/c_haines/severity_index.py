@@ -29,7 +29,7 @@ from app.c_haines import GDALData
 from app.c_haines.object_store import ObjectTypeEnum, generate_full_object_store_path
 from app.c_haines.kml import save_as_kml_to_s3
 from app import config
-from app.weather_models.process_grib import get_dataset_geometry
+from app.weather_models.process_grib import get_dataset_transform
 
 
 logger = logging.getLogger(__name__)
@@ -401,7 +401,7 @@ class CHainesSeverityGenerator:
             c_haines_data = self.c_haines_generator.generate_c_haines(source_data)
             # Store the projection and geotransform for later.
             projection = source_data.grib_tmp_700.GetProjection()
-            geotransform: Affine = get_dataset_geometry(source_data.grib_tmp_700_filename)
+            geotransform: Affine = get_dataset_transform(source_data.grib_tmp_700_filename)
             # Store the dimensions for later.
             band = source_data.grib_tmp_700.GetRasterBand(1)
             rows = band.YSize
