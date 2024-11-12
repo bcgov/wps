@@ -49,23 +49,6 @@ def test_get_dataset_geometry(filename, origin, pixel_size):
 
 
 @pytest.mark.parametrize(
-    "filename,raster_coordinate,points,values",
-    [
-        (
-            "CMC_glb_RH_TGL_2_latlon.15x.15_2020071300_P000.grib2",
-            (10, 10),
-            [[10, 10], [11, 10], [11, 11], [10, 11]],
-            [91.99049377441406, 91.99049377441406, 92.24049377441406, 92.24049377441406],
-        ),
-        (
-            "CMC_hrdps_continental_RH_TGL_2_ps2.5km_2020100700_P007-00.grib2",
-            (694, 1262),
-            [[694, 1262], [695, 1262], [695, 1263], [694, 1263]],
-            [44.272186279296875, 42.796443939208984, 44.272186279296875, 44.272186279296875],
-        ),
-    ],
-)
-@pytest.mark.parametrize(
     "geotransform,wkt_projection_string,geographic_coordinate,raster_coordinate",
     [
         ([-2099127.494496938, 2500.0, 0.0, -2099388.521499629, 0.0, -2500.0], "CMC_hrdps_continental_ps2.5km_projection_wkt.txt", [-120.4816667, 50.6733333], (472, 819)),
