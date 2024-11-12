@@ -6,7 +6,6 @@ from app.auto_spatial_advisory.run_type import RunType
 from datetime import datetime, timezone, timedelta
 from pytest_mock import MockerFixture
 from app.geospatial.wps_dataset import WPSDataset
-from app.sfms import daily_ffmc_processor
 from app.sfms.daily_ffmc_processor import DailyFFMCProcessor
 from app.sfms.raster_addresser import RasterKeyAddresser, WeatherParameter
 from app.tests.dataset_common import create_mock_gdal_dataset, create_mock_wps_dataset
@@ -91,20 +90,24 @@ async def test_daily_ffmc_processor(mocker: MockerFixture):
             mocker.call(TEST_DATETIME + timedelta(days=1), RunType.FORECAST, WeatherParameter.WIND_SPEED),
         ]
 
-        # Verify weather inputs are warped to match dmc raster
+        # Verify weather inputs are warped to match dmc raster, for first and second day
         assert temp_ds_spy.call_args_list == [
+            mocker.call(mock_yesterday_ffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
             mocker.call(mock_yesterday_ffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
         ]
 
         assert rh_ds_spy.call_args_list == [
             mocker.call(mock_yesterday_ffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
+            mocker.call(mock_yesterday_ffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
         ]
 
         assert precip_ds_spy.call_args_list == [
             mocker.call(mock_yesterday_ffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
+            mocker.call(mock_yesterday_ffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
         ]
 
         assert wind_speed_ds_spy.call_args_list == [
+            mocker.call(mock_yesterday_ffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
             mocker.call(mock_yesterday_ffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
         ]
 
@@ -114,7 +117,7 @@ async def test_daily_ffmc_processor(mocker: MockerFixture):
             wps_datasets = ffmc_calls[0][1:4]  # Extract dataset arguments
             assert all(isinstance(ds, WPSDataset) for ds in wps_datasets)
 
-        # 1 each day
+        # first and second day are persisted
         assert persist_raster_spy.call_count == 2
 
 

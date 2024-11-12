@@ -6,6 +6,7 @@ import sys
 
 from app import configure_logging
 from app.rocketchat_notifications import send_rocketchat_notification
+from app.sfms.daily_ffmc_processor import DailyFFMCProcessor
 from app.sfms.date_range_processor import BUIDateRangeProcessor
 from app.sfms.raster_addresser import RasterKeyAddresser
 from app.utils.s3_client import S3Client
@@ -40,6 +41,27 @@ class SFMSCalcJob:
 
         logger.info(f"BUI processing finished -- time elapsed {hours} hours, {minutes} minutes, {seconds:.2f} seconds")
 
+    async def calculate_daily_ffmc(self, start_time: datetime):
+        """
+        Entry point for processing SFMS daily FFMC rasters. To run from a specific date manually in openshift,
+        see openshift/sfms-calculate/README.md
+        """
+        logger.info("Begin daily FFMC raster calculations -- calculates 2 days forward by default")
+
+        start_exec = get_utc_now()
+
+        daily_ffmc_processor = DailyFFMCProcessor(start_time, RasterKeyAddresser())
+
+        async with S3Client() as s3_client:
+            await daily_ffmc_processor.process_daily_ffmc(s3_client, multi_wps_dataset_context)
+
+        # calculate the execution time.
+        execution_time = get_utc_now() - start_exec
+        hours, remainder = divmod(execution_time.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        logger.info(f"Daily FFMC processing finished -- time elapsed {hours} hours, {minutes} minutes, {seconds:.2f} seconds")
+
 
 def main():
     if len(sys.argv) > 1:
@@ -57,8 +79,9 @@ def main():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(job.calculate_bui(start_time))
+        loop.run_until_complete(job.calculate_daily_ffmc(start_time))
     except Exception as e:
-        logger.error("An exception occurred while processing DMC/DC/BUI raster calculations", exc_info=e)
+        logger.error("An exception occurred while processing SFMS raster calculations", exc_info=e)
         rc_message = ":scream: Encountered an error while processing SFMS raster data."
         send_rocketchat_notification(rc_message, e)
         sys.exit(os.EX_SOFTWARE)

@@ -8,11 +8,15 @@ from app.jobs import sfms_calculations
 from app.jobs.sfms_calculations import SFMSCalcJob
 
 
-def test_sfms_calc_job_fail_default(monkeypatch, mocker: MockerFixture):
+@pytest.mark.parametrize(
+    "raster_function",
+    [("calculate_bui"), ("calculate_daily_ffmc")],
+)
+def test_sfms_calc_job_fail_default(raster_function, monkeypatch, mocker: MockerFixture):
     async def mock_job_error():
         raise OSError("Error")
 
-    monkeypatch.setattr(SFMSCalcJob, "calculate_bui", mock_job_error)
+    monkeypatch.setattr(SFMSCalcJob, raster_function, mock_job_error)
 
     monkeypatch.setattr("sys.argv", ["sfms_calculations.py"])
 
@@ -27,15 +31,16 @@ def test_sfms_calc_job_fail_default(monkeypatch, mocker: MockerFixture):
 
 
 def test_sfms_calc_job_cli_arg(monkeypatch, mocker: MockerFixture):
-    calc_spy = mocker.patch.object(SFMSCalcJob, "calculate_bui", return_value=None)
+    bui_calc_spy = mocker.patch.object(SFMSCalcJob, "calculate_bui", return_value=None)
+    daily_ffmc_calc_spy = mocker.patch.object(SFMSCalcJob, "calculate_daily_ffmc", return_value=None)
 
     test_datetime = "2024-10-10 5"
     monkeypatch.setattr("sys.argv", ["sfms_calculations.py", test_datetime])
 
     sfms_calculations.main()
 
-    called_args, _ = calc_spy.call_args
-    assert called_args[0] == datetime.strptime(test_datetime, "%Y-%m-%d %H").replace(tzinfo=timezone.utc)
+    bui_calc_spy.assert_called_once_with(datetime.strptime(test_datetime, "%Y-%m-%d %H").replace(tzinfo=timezone.utc))
+    daily_ffmc_calc_spy.assert_called_once_with(datetime.strptime(test_datetime, "%Y-%m-%d %H").replace(tzinfo=timezone.utc))
 
 
 @pytest.mark.anyio
