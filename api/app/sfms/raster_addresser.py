@@ -14,6 +14,10 @@ class WeatherParameter(enum.Enum):
     WIND_SPEED = "wind_speed"
     PRECIP = "precipitation"
 
+    @classmethod
+    def non_precip(cls):
+        return [cls.TEMP, cls.RH, cls.WIND_SPEED]
+
 
 class FWIParameter(enum.Enum):
     DC = "dc"
@@ -115,7 +119,7 @@ class RasterKeyAddresser:
         :return: temp, rh, wind speed and precip model data key
         """
         assert_all_utc(start_time_utc, datetime_to_calculate_utc)
-        non_precip_keys = tuple([self.get_model_data_key(start_time_utc, prediction_hour, param) for param in WeatherParameter])
+        non_precip_keys = tuple([self.get_model_data_key(start_time_utc, prediction_hour, param) for param in WeatherParameter.non_precip()])
         precip_key = self.get_calculated_precip_key(datetime_to_calculate_utc)
         all_weather_data_keys = non_precip_keys + (precip_key,)
 
