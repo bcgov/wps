@@ -149,3 +149,16 @@ def test_calculate_daily_values(sample_daily_ffmc_input_datasets):
     static_ffmc = ffmc(previous_ffmc_sample, temp_sample, rh_sample, wind_speed_sample, precip_sample)
 
     assert math.isclose(static_ffmc, daily_ffmc_values[0, 0], abs_tol=0.01)
+
+
+def test_calculate_ffmc_masked_correctly(sample_daily_ffmc_input_datasets):
+    previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps = sample_daily_ffmc_input_datasets
+
+    daily_ffmc_values, nodata_value = calculate_ffmc(previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps)
+
+    # validate output shape and nodata masking
+    assert daily_ffmc_values.shape == (2, 2)
+    assert daily_ffmc_values[1, 0] == nodata_value
+    assert daily_ffmc_values[1, 1] == nodata_value
+    assert daily_ffmc_values[0, 0] != nodata_value
+    assert daily_ffmc_values[0, 1] != nodata_value
