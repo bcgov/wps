@@ -68,7 +68,7 @@ def calculate_ffmc(previous_ffmc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPS
     ffmc_values = vectorized_ffmc(previous_ffmc_array, temp_array, rh_array, precip_array, wind_speed_array)
     logger.info("%f seconds to calculate vectorized ffmc", perf_counter() - start)
 
-    nodata_mask, nodata_value = previous_ffmc_array.get_nodata_mask()
+    nodata_mask, nodata_value = previous_ffmc_ds.get_nodata_mask()
     if nodata_mask is not None:
         ffmc_values[nodata_mask] = nodata_value
 
