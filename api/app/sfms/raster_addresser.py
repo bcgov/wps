@@ -3,7 +3,6 @@ import enum
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from app import config
-from app.db.models.auto_spatial_advisory import RunTypeEnum
 from app.weather_models import ModelEnum
 from app.weather_models.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key
 
