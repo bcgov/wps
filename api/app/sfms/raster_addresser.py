@@ -1,6 +1,6 @@
 import os
 import enum
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from app import config
 from app.weather_models import ModelEnum
