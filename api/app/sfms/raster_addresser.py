@@ -75,18 +75,6 @@ class RasterKeyAddresser:
         weather_model_date_prefix = f"{self.weather_model_prefix}/{start_time_utc.date().isoformat()}/"
         return os.path.join(weather_model_date_prefix, compose_rdps_key(start_time_utc, start_time_utc.hour, prediction_hour, weather_param.value))
 
-    def get_daily_model_data_key(self, timestamp: datetime, run_type: RunTypeEnum, weather_param: WeatherParameter):
-        """
-        Generates the model data key that points to the associated raster artifact in the object store.
-        The model is always assumed to be RDPS.
-
-        :param timestamp: UTC date time when the model run started
-        :param prediction_hour: the prediction hour offset from the start time
-        """
-        assert_all_utc(timestamp)
-        iso_date = timestamp.date().isoformat()
-        return f"sfms/uploads/{run_type.value}/{iso_date}/{weather_param.value}{iso_date.replace('-', '')}.tif"
-
     def get_calculated_precip_key(self, datetime_to_calculate_utc: datetime):
         """
         Generates the calculated precip key that points to the associated raster artifact in the object store.
