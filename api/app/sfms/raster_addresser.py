@@ -99,16 +99,6 @@ class RasterKeyAddresser:
         calculated_weather_prefix = f"{self.weather_model_prefix}/{datetime_to_calculate_utc.date().isoformat()}/"
         return os.path.join(calculated_weather_prefix, compose_computed_precip_rdps_key(datetime_to_calculate_utc))
 
-    def get_daily_ffmc(self, timestamp: datetime, run_type: RunTypeEnum):
-        assert_all_utc(timestamp)
-        iso_date = timestamp.date().isoformat()
-        return f"sfms/uploads/{run_type.value}/{iso_date}/fine_fuel_moisture_code{iso_date.replace('-', '')}.tif"
-
-    def get_calculated_daily_ffmc(self, timestamp: datetime):
-        assert_all_utc(timestamp)
-        iso_date = timestamp.date().isoformat()
-        return f"sfms/uploads/calculated/{iso_date}/fine_fuel_moisture_code{iso_date.replace('-', '')}.tif"
-
     def get_weather_data_keys(self, start_time_utc: datetime, datetime_to_calculate_utc: datetime, prediction_hour: int):
         """
         Generates all model data keys that point to their associated raster artifacts in the object store.

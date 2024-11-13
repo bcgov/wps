@@ -5,8 +5,8 @@ import pytest
 from datetime import datetime, timezone, timedelta
 from pytest_mock import MockerFixture
 from app.geospatial.wps_dataset import WPSDataset
-from app.sfms import date_range_processor
-from app.sfms.date_range_processor import BUIDateRangeProcessor
+from app.sfms import daily_fwi_processor
+from app.sfms.daily_fwi_processor import DailyFWIProcessor
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
 from app.tests.dataset_common import create_mock_gdal_dataset, create_mock_wps_dataset
 from app.utils.geospatial import GDALResamplingMethod
@@ -22,7 +22,7 @@ def create_mock_wps_datasets(num: int) -> List[WPSDataset]:
 
 
 def create_mock_input_dataset_context():
-    input_datasets = create_mock_wps_datasets(5)
+    input_datasets = create_mock_wps_datasets(7)
 
     @contextmanager
     def mock_input_dataset_context(_: List[str]):
@@ -62,14 +62,15 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
     get_weather_data_key_spy = mocker.spy(mock_key_addresser, "get_weather_data_keys")
     gdal_prefix_keys_spy = mocker.spy(mock_key_addresser, "gdal_prefix_keys")
     get_calculated_index_key_spy = mocker.spy(mock_key_addresser, "get_calculated_index_key")
-    bui_date_range_processor = BUIDateRangeProcessor(TEST_DATETIME, 2, mock_key_addresser)
+    bui_date_range_processor = DailyFWIProcessor(TEST_DATETIME, 2, mock_key_addresser)
     # mock/spy dataset storage
 
     # mock weather index, param datasets used for calculations
     input_datasets, mock_input_dataset_context = create_mock_input_dataset_context()
-    mock_temp_ds, mock_rh_ds, mock_precip_ds, mock_dc_ds, mock_dmc_ds = input_datasets
+    mock_temp_ds, mock_rh_ds, mock_precip_ds, mock_wind_speed_ds, mock_dc_ds, mock_dmc_ds, mock_ffmc_ds = input_datasets
     temp_ds_spy = mocker.spy(mock_temp_ds, "warp_to_match")
     rh_ds_spy = mocker.spy(mock_rh_ds, "warp_to_match")
+    wind_speed_ds_spy = mocker.spy(mock_wind_speed_ds, "warp_to_match")
     precip_ds_spy = mocker.spy(mock_precip_ds, "warp_to_match")
 
     # mock new dmc and dc datasets
@@ -80,9 +81,10 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
     mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
 
     # calculation spies
-    calculate_dmc_spy = mocker.spy(date_range_processor, "calculate_dmc")
-    calculate_dc_spy = mocker.spy(date_range_processor, "calculate_dc")
-    calculate_bui_spy = mocker.spy(date_range_processor, "calculate_bui")
+    calculate_dmc_spy = mocker.spy(daily_fwi_processor, "calculate_dmc")
+    calculate_dc_spy = mocker.spy(daily_fwi_processor, "calculate_dc")
+    calculate_bui_spy = mocker.spy(daily_fwi_processor, "calculate_bui")
+    calculate_ffmc_spy = mocker.spy(daily_fwi_processor, "calculate_ffmc")
 
     async with S3Client() as mock_s3_client:
         # mock s3 client
@@ -90,7 +92,7 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=mock_all_objects_exist)
         persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data", return_value="test_key.tif")
 
-        await bui_date_range_processor.process_bui(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context)
+        await bui_date_range_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context)
 
         # Verify weather model keys and actual keys are checked for both days
         assert mock_all_objects_exist.call_count == 4
@@ -107,6 +109,7 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
             mocker.call(
                 "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P020.grib2",
                 "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P020.grib2",
+                "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P020.grib2",
                 "weather_models/rdps/2024-10-10/12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_20z.tif",
             ),
             # first day uploads
@@ -115,6 +118,7 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
             mocker.call(
                 "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P044.grib2",
                 "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P044.grib2",
+                "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P044.grib2",
                 "weather_models/rdps/2024-10-11/12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241011_20z.tif",
             ),
             # second day uploads
@@ -126,12 +130,15 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
             # first day
             mocker.call(EXPECTED_FIRST_DAY, FWIParameter.DMC),
             mocker.call(EXPECTED_FIRST_DAY, FWIParameter.DC),
+            mocker.call(EXPECTED_FIRST_DAY, FWIParameter.FFMC),
             mocker.call(EXPECTED_FIRST_DAY, FWIParameter.BUI),
             # second day, previous days' dc and dmc are looked up first
             mocker.call(EXPECTED_FIRST_DAY, FWIParameter.DC),
             mocker.call(EXPECTED_FIRST_DAY, FWIParameter.DMC),
+            mocker.call(EXPECTED_FIRST_DAY, FWIParameter.FFMC),
             mocker.call(EXPECTED_SECOND_DAY, FWIParameter.DMC),
             mocker.call(EXPECTED_SECOND_DAY, FWIParameter.DC),
+            mocker.call(EXPECTED_SECOND_DAY, FWIParameter.FFMC),
             mocker.call(EXPECTED_SECOND_DAY, FWIParameter.BUI),
         ]
 
@@ -142,6 +149,11 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
         ]
 
         assert rh_ds_spy.call_args_list == [
+            mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
+            mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
+        ]
+
+        assert wind_speed_ds_spy.call_args_list == [
             mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
             mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
         ]
@@ -163,13 +175,19 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
             wps_datasets = dc_calls[0][1:4]  # Extract dataset arguments
             assert all(isinstance(ds, WPSDataset) for ds in wps_datasets)
 
+        for ffmc_calls in calculate_ffmc_spy.call_args_list:
+            ffmc_ds = ffmc_calls[0][0]
+            assert ffmc_ds == mock_ffmc_ds
+            wps_datasets = ffmc_calls[0][1:4]  # Extract dataset arguments
+            assert all(isinstance(ds, WPSDataset) for ds in wps_datasets)
+
         assert calculate_bui_spy.call_args_list == [
             mocker.call(mock_new_dmc_ds, mock_new_dc_ds),
             mocker.call(mock_new_dmc_ds, mock_new_dc_ds),
         ]
 
-        # 3 each day, new dmc, dc and bui rasters
-        assert persist_raster_spy.call_count == 6
+        # 4 each day, new dmc, dc and bui rasters
+        assert persist_raster_spy.call_count == 8
 
 
 @pytest.mark.parametrize(
@@ -191,13 +209,13 @@ async def test_no_weather_keys_exist(side_effect_1: bool, side_effect_2: bool, m
     _, mock_new_dmc_dc_datasets_context = create_mock_new_dmc_dc_context()
 
     # calculation spies
-    calculate_dmc_spy = mocker.spy(date_range_processor, "calculate_dmc")
-    calculate_dc_spy = mocker.spy(date_range_processor, "calculate_dc")
-    calculate_bui_spy = mocker.spy(date_range_processor, "calculate_bui")
+    calculate_dmc_spy = mocker.spy(daily_fwi_processor, "calculate_dmc")
+    calculate_dc_spy = mocker.spy(daily_fwi_processor, "calculate_dc")
+    calculate_bui_spy = mocker.spy(daily_fwi_processor, "calculate_bui")
 
-    bui_date_range_processor = BUIDateRangeProcessor(TEST_DATETIME, 1, RasterKeyAddresser())
+    bui_date_range_processor = DailyFWIProcessor(TEST_DATETIME, 1, RasterKeyAddresser())
 
-    await bui_date_range_processor.process_bui(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context)
+    await bui_date_range_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context)
 
     calculate_dmc_spy.assert_not_called()
     calculate_dc_spy.assert_not_called()

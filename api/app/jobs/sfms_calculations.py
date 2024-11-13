@@ -7,7 +7,7 @@ import sys
 from app import configure_logging
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.sfms.daily_ffmc_processor import DailyFFMCProcessor
-from app.sfms.date_range_processor import BUIDateRangeProcessor
+from app.sfms.daily_fwi_processor import DailyFWIProcessor
 from app.sfms.raster_addresser import RasterKeyAddresser
 from app.utils.s3_client import S3Client
 from app.utils.time import get_utc_now
@@ -29,10 +29,10 @@ class SFMSCalcJob:
 
         start_exec = get_utc_now()
 
-        bui_processor = BUIDateRangeProcessor(start_time, DAYS_TO_CALCULATE, RasterKeyAddresser())
+        daily_processor = DailyFWIProcessor(start_time, DAYS_TO_CALCULATE, RasterKeyAddresser())
 
         async with S3Client() as s3_client:
-            await bui_processor.process_bui(s3_client, multi_wps_dataset_context, multi_wps_dataset_context)
+            await daily_processor.process(s3_client, multi_wps_dataset_context, multi_wps_dataset_context)
 
         # calculate the execution time.
         execution_time = get_utc_now() - start_exec
