@@ -111,6 +111,7 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
                 "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P020.grib2",
                 "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P020.grib2",
                 "weather_models/rdps/2024-10-10/12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_20z.tif",
+                "sfms/uploads/actual/2024-10-09/ffmc20241009.tif",
             ),
             # first day uploads
             mocker.call("sfms/uploads/actual/2024-10-09/dc20241009.tif", "sfms/uploads/actual/2024-10-09/dmc20241009.tif"),
@@ -120,6 +121,7 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
                 "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P044.grib2",
                 "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P044.grib2",
                 "weather_models/rdps/2024-10-11/12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241011_20z.tif",
+                "sfms/calculated/forecast/2024-10-10/ffmc20241010.tif",
             ),
             # second day uploads
             mocker.call("sfms/calculated/forecast/2024-10-10/dc20241010.tif", "sfms/calculated/forecast/2024-10-10/dmc20241010.tif"),
