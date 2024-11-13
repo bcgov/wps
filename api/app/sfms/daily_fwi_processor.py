@@ -51,7 +51,7 @@ class DailyFWIProcessor:
                 logging.warning(f"No previous DMC/DC keys found for {previous_fwi_datetime.date().isoformat()}")
                 break
 
-            temp_key, rh_key, wind_speed_key, precip_key = self.addresser.gdal_prefix_keys(temp_key, rh_key, wind_speed_key, precip_key)
+            temp_key, rh_key, wind_speed_key, precip_key, ffmc_key = self.addresser.gdal_prefix_keys(temp_key, rh_key, wind_speed_key, precip_key, ffmc_key)
             dc_key, dmc_key = self.addresser.gdal_prefix_keys(dc_key, dmc_key)
 
             with tempfile.TemporaryDirectory() as temp_dir:
