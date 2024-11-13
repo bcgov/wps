@@ -56,13 +56,13 @@ def create_mock_new_dmc_dc_context():
 
 
 @pytest.mark.anyio
-async def test_bui_date_range_processor(mocker: MockerFixture):
+async def test_daily_fwi_processor(mocker: MockerFixture):
     mock_key_addresser = RasterKeyAddresser()
     # key address spies
     get_weather_data_key_spy = mocker.spy(mock_key_addresser, "get_weather_data_keys")
     gdal_prefix_keys_spy = mocker.spy(mock_key_addresser, "gdal_prefix_keys")
     get_calculated_index_key_spy = mocker.spy(mock_key_addresser, "get_calculated_index_key")
-    bui_date_range_processor = DailyFWIProcessor(TEST_DATETIME, 2, mock_key_addresser)
+    fwi_processor = DailyFWIProcessor(TEST_DATETIME, 2, mock_key_addresser)
     # mock/spy dataset storage
 
     # mock weather index, param datasets used for calculations
@@ -92,7 +92,7 @@ async def test_bui_date_range_processor(mocker: MockerFixture):
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=mock_all_objects_exist)
         persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data", return_value="test_key.tif")
 
-        await bui_date_range_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context)
+        await fwi_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context)
 
         # Verify weather model keys and actual keys are checked for both days
         assert mock_all_objects_exist.call_count == 4
@@ -212,11 +212,13 @@ async def test_no_weather_keys_exist(side_effect_1: bool, side_effect_2: bool, m
     calculate_dmc_spy = mocker.spy(daily_fwi_processor, "calculate_dmc")
     calculate_dc_spy = mocker.spy(daily_fwi_processor, "calculate_dc")
     calculate_bui_spy = mocker.spy(daily_fwi_processor, "calculate_bui")
+    calculate_ffmc_spy = mocker.spy(daily_fwi_processor, "calculate_ffmc")
 
-    bui_date_range_processor = DailyFWIProcessor(TEST_DATETIME, 1, RasterKeyAddresser())
+    fwi_processor = DailyFWIProcessor(TEST_DATETIME, 1, RasterKeyAddresser())
 
-    await bui_date_range_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context)
+    await fwi_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context)
 
     calculate_dmc_spy.assert_not_called()
     calculate_dc_spy.assert_not_called()
     calculate_bui_spy.assert_not_called()
+    calculate_ffmc_spy.assert_not_called()
