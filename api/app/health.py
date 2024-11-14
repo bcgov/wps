@@ -19,10 +19,12 @@ def crunchydb_cluster_health_check():
     ]
     # form URL by concatenating all substrings in parts[], making sure there's exactly 1 / between each part
     url = url_join(parts)
+    logger.info(f"Health url: {url}")
     header = {
         'Authorization': 'Bearer ' + config.get('STATUS_CHECKER_SECRET')
     }
     resp = requests.get(url, headers=header, timeout=10)
+    logger.info(f"Status code from health check: {resp.status_code}")
     resp_json = resp.json()
     # NOTE: In Openshift parlance "replica" refers to how many of one pod we have, in CrunchyDB's managed
     # Patroni, a "Replica" refers to a read only copy of of the Leader.
