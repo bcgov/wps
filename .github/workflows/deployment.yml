@@ -26,7 +26,7 @@ jobs:
       - name: Deploy PostGIS instance
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
           EPHEMERAL_STORAGE=True BUCKET=gpdqha DATA_SIZE=5Gi WAL_SIZE=5Gi bash openshift/scripts/oc_provision_crunchy.sh ${SUFFIX} apply
 
   build-web-image:
@@ -116,7 +116,7 @@ jobs:
       - name: Configure
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
           bash openshift/scripts/oc_provision_nats_server_config.sh ${SUFFIX} apply
 
   deploy-dev:
@@ -148,81 +148,81 @@ jobs:
       - name: Deploy API to Dev
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
           MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" ENVIRONMENT="development" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
       ## TODO: re-enable once crunchy is deployed: https://app.zenhub.com/workspaces/bcws---agile-psu-5e321393e038fba5bbe203b8/issues/gh/bcgov/wps/2340
       - name: Hourly actuals cronjob
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
           bash openshift/scripts/oc_provision_wfwx_hourly_actuals_cronjob.sh ${SUFFIX} apply
 
       # - name: Noon forecasts cronjob
       #   shell: bash
       #   run: |
-      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
       #     bash openshift/scripts/oc_provision_wfwx_noon_forecasts_cronjob.sh ${SUFFIX} apply
 
       - name: Environment Canada GDPS cronjob
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_DEV="e1e498-test" bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
 
       - name: Environment Canada HRDPS cronjob
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_DEV="e1e498-test" bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
 
       # - name: Environment Canada RDPS cronjob
       #   shell: bash
       #   run: |
-      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-      #     PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
+      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+      #     PROJ_DEV="e1e498-test" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
       - name: NOAA GFS cronjob
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_noaa_gfs_cronjob.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_DEV="e1e498-test" bash openshift/scripts/oc_provision_noaa_gfs_cronjob.sh ${SUFFIX} apply
 
       - name: NOAA NAM cronjob
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_DEV="e1e498-test" bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} apply
 
       - name: VIIRS SNOW cronjob
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_viirs_snow_cronjob.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_DEV="e1e498-test" bash openshift/scripts/oc_provision_viirs_snow_cronjob.sh ${SUFFIX} apply
 
       - name: GRASS CURING cronjob
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_grass_curing_cronjob.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_DEV="e1e498-test" bash openshift/scripts/oc_provision_grass_curing_cronjob.sh ${SUFFIX} apply
 
       - name: RDPS SFMS cronjob
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_rdps_sfms_cronjob.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_DEV="e1e498-test" bash openshift/scripts/oc_provision_rdps_sfms_cronjob.sh ${SUFFIX} apply
 
       - name: SFMS Raster Calculations cronjob
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_sfms_calculations_cronjob.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_DEV="e1e498-test" bash openshift/scripts/oc_provision_sfms_calculations_cronjob.sh ${SUFFIX} apply
 
       - name: Hourly pruner nightly cronjob
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_hourly_prune_cronjob.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_DEV="e1e498-test" bash openshift/scripts/oc_provision_hourly_prune_cronjob.sh ${SUFFIX} apply
 
   # TODO: Delete once pmtiles has run for some time
   # deploy-tileserv:
@@ -244,8 +244,8 @@ jobs:
   #     - name: Tileserv
   #       shell: bash
   #       run: |
-  #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-  #         PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_tileserv.sh ${SUFFIX} apply
+  #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+  #         PROJ_DEV="e1e498-test" bash openshift/scripts/oc_provision_tileserv.sh ${SUFFIX} apply
 
   deploy-dev-queue:
     name: Deploy Message Queue to Dev
@@ -272,8 +272,8 @@ jobs:
       - name: NATS Message Queue
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" MEMORY_REQUEST=250Mi MEMORY_LIMIT=500Mi bash openshift/scripts/oc_provision_nats.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_DEV="e1e498-test" MEMORY_REQUEST=250Mi MEMORY_LIMIT=500Mi bash openshift/scripts/oc_provision_nats.sh ${SUFFIX} apply
 
   scan-dev:
     name: ZAP Baseline Scan Dev
@@ -285,7 +285,7 @@ jobs:
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.13.0
         with:
-          target: "https://wps-pr-${{ github.event.number }}-e1e498-dev.apps.silver.devops.gov.bc.ca"
+          target: "https://wps-pr-${{ github.event.number }}-e1e498-test.apps.silver.devops.gov.bc.ca"
           rules_file_name: ".zap/rules.tsv"
           # Do not return failure on warnings - TODO: this has to be resolved!
           cmd_options: "-I"
@@ -333,5 +333,5 @@ jobs:
       - name: C-Haines Cronjob
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_c_haines_cronjob.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_TARGET="e1e498-test" PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-test" bash openshift/scripts/oc_provision_c_haines_cronjob.sh ${SUFFIX} apply
