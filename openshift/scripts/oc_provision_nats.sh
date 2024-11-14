@@ -31,7 +31,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_NATS} \
  -p POSTGRES_DATABASE=wps \
  ${MEMORY_REQUEST:+ "-p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
  ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"} \
- -p CRUNCHYDB_USER=wps-crunchydb-${SUFFIX}-pguser-wps-crunchydb-${SUFFIX} \
+ -p CRUNCHYDB_USER=wps-crunchydb-test15-pguser-wps-crunchydb-test15 \
  -p APP_NAME=${APP_NAME}"
 
 # Apply a template (apply or use --dry-run=client)
