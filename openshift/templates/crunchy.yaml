@@ -81,7 +81,7 @@ objects:
         key: init.sql
         name: wps-init-sql
       users:
-        - name: ${APP_NAME}-${SUFFIX}
+        - name: wps-crunchydb-test15
           databases:
             - postgres
             - wps
