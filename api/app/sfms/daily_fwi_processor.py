@@ -8,7 +8,7 @@ import numpy as np
 
 from app.geospatial.wps_dataset import WPSDataset
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
-from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc
+from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc
 from app.utils.geospatial import GDALResamplingMethod
 from app.utils.s3 import set_s3_gdal_config
 from app.utils.s3_client import S3Client
@@ -20,9 +20,9 @@ logger = logging.getLogger(__name__)
 MultiDatasetContext = Callable[[List[str]], Iterator[List["WPSDataset"]]]
 
 
-class BUIDateRangeProcessor:
+class DailyFWIProcessor:
     """
-    Class for calculating/generating forecasted DMC/DC/BUI rasters for a date range
+    Class for calculating/generating forecasted daily FWI rasters for a date range
     """
 
     def __init__(self, start_datetime: datetime, days: int, addresser: RasterKeyAddresser):
@@ -30,7 +30,7 @@ class BUIDateRangeProcessor:
         self.days = days
         self.addresser = addresser
 
-    async def process_bui(self, s3_client: S3Client, input_dataset_context: MultiDatasetContext, new_dmc_dc_context: MultiDatasetContext):
+    async def process(self, s3_client: S3Client, input_dataset_context: MultiDatasetContext, new_dmc_dc_context: MultiDatasetContext):
         set_s3_gdal_config()
 
         for day in range(self.days):
@@ -38,30 +38,31 @@ class BUIDateRangeProcessor:
             logger.info(f"Calculating DMC/DC/BUI for {datetime_to_calculate_utc.isoformat()}")
 
             # Get and check existence of weather s3 keys
-            temp_key, rh_key, _, precip_key = self.addresser.get_weather_data_keys(self.start_datetime, datetime_to_calculate_utc, prediction_hour)
+            temp_key, rh_key, wind_speed_key, precip_key = self.addresser.get_weather_data_keys(self.start_datetime, datetime_to_calculate_utc, prediction_hour)
             weather_keys_exist = await s3_client.all_objects_exist(temp_key, rh_key, precip_key)
             if not weather_keys_exist:
                 logging.warning(f"No weather keys found for {model_run_for_hour(self.start_datetime.hour):02} model run")
                 break
 
             # get and check existence of fwi s3 keys
-            dc_key, dmc_key = self._get_previous_fwi_keys(day, previous_fwi_datetime)
+            dc_key, dmc_key, ffmc_key = self._get_previous_fwi_keys(day, previous_fwi_datetime)
             fwi_keys_exist = await s3_client.all_objects_exist(dc_key, dmc_key)
             if not fwi_keys_exist:
                 logging.warning(f"No previous DMC/DC keys found for {previous_fwi_datetime.date().isoformat()}")
                 break
 
-            temp_key, rh_key, precip_key = self.addresser.gdal_prefix_keys(temp_key, rh_key, precip_key)
+            temp_key, rh_key, wind_speed_key, precip_key, ffmc_key = self.addresser.gdal_prefix_keys(temp_key, rh_key, wind_speed_key, precip_key, ffmc_key)
             dc_key, dmc_key = self.addresser.gdal_prefix_keys(dc_key, dmc_key)
 
             with tempfile.TemporaryDirectory() as temp_dir:
-                with input_dataset_context([temp_key, rh_key, precip_key, dc_key, dmc_key]) as input_datasets:
+                with input_dataset_context([temp_key, rh_key, wind_speed_key, precip_key, dc_key, dmc_key, ffmc_key]) as input_datasets:
                     input_datasets = cast(List[WPSDataset], input_datasets)  # Ensure correct type inference
-                    temp_ds, rh_ds, precip_ds, dc_ds, dmc_ds = input_datasets
+                    temp_ds, rh_ds, wind_speed_ds, precip_ds, dc_ds, dmc_ds, ffmc_ds = input_datasets
 
                     # Warp weather datasets to match fwi
                     warped_temp_ds = temp_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(temp_key)}", GDALResamplingMethod.BILINEAR)
                     warped_rh_ds = rh_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(rh_key)}", GDALResamplingMethod.BILINEAR)
+                    warped_wind_speed_ds = wind_speed_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(wind_speed_key)}", GDALResamplingMethod.BILINEAR)
                     warped_precip_ds = precip_ds.warp_to_match(dmc_ds, f"{temp_dir}/{os.path.basename(precip_key)}", GDALResamplingMethod.BILINEAR)
 
                     # close unneeded datasets to reduce memory usage
@@ -94,6 +95,18 @@ class BUIDateRangeProcessor:
                         dc_ds.as_gdal_ds().GetProjection(),
                         dc_values,
                         dc_nodata_value,
+                    )
+
+                    # Create and store FFMC dataset
+                    ffmc_values, ffmc_no_data_value = calculate_ffmc(ffmc_ds, warped_temp_ds, warped_rh_ds, warped_wind_speed_ds, warped_precip_ds)
+                    new_ffmc_key = self.addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.FFMC)
+                    await s3_client.persist_raster_data(
+                        temp_dir,
+                        new_ffmc_key,
+                        dc_ds.as_gdal_ds().GetGeoTransform(),
+                        dc_ds.as_gdal_ds().GetProjection(),
+                        ffmc_values,
+                        ffmc_no_data_value,
                     )
 
                     # Open new DMC and DC datasets and calculate BUI
@@ -137,7 +150,10 @@ class BUIDateRangeProcessor:
         if day_to_calculate == 0:  # if we're running the first day of the calculation, use previously uploaded actuals
             dc_key = self.addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DC)
             dmc_key = self.addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.DMC)
+            ffmc_key = self.addresser.get_uploaded_index_key(previous_fwi_datetime, FWIParameter.FFMC)
         else:  # otherwise use the last calculated key
             dc_key = self.addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DC)
             dmc_key = self.addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.DMC)
-        return dc_key, dmc_key
+            ffmc_key = self.addresser.get_calculated_index_key(previous_fwi_datetime, FWIParameter.FFMC)
+
+        return dc_key, dmc_key, ffmc_key

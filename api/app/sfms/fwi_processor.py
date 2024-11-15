@@ -3,7 +3,7 @@ import logging
 import numpy as np
 
 from app.geospatial.wps_dataset import WPSDataset
-from app.auto_spatial_advisory.sfms import vectorized_dmc, vectorized_dc, vectorized_bui
+from app.auto_spatial_advisory.sfms import vectorized_dmc, vectorized_dc, vectorized_bui, vectorized_ffmc
 
 logger = logging.getLogger(__name__)
 
@@ -55,3 +55,21 @@ def calculate_bui(dmc_ds: WPSDataset, dc_ds: WPSDataset):
         bui_values[nodata_mask] = nodata_value
 
     return bui_values, nodata_value
+
+
+def calculate_ffmc(previous_ffmc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset, wind_speed_ds: WPSDataset):
+    previous_ffmc_array, _ = previous_ffmc_ds.replace_nodata_with(0)
+    temp_array, _ = temp_ds.replace_nodata_with(0)
+    rh_array, _ = rh_ds.replace_nodata_with(0)
+    precip_array, _ = precip_ds.replace_nodata_with(0)
+    wind_speed_array, _ = wind_speed_ds.replace_nodata_with(0)
+
+    start = perf_counter()
+    ffmc_values = vectorized_ffmc(previous_ffmc_array, temp_array, rh_array, precip_array, wind_speed_array)
+    logger.info("%f seconds to calculate vectorized ffmc", perf_counter() - start)
+
+    nodata_mask, nodata_value = previous_ffmc_ds.get_nodata_mask()
+    if nodata_mask is not None:
+        ffmc_values[nodata_mask] = nodata_value
+
+    return ffmc_values, nodata_value

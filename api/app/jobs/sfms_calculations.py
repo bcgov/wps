@@ -6,7 +6,7 @@ import sys
 
 from app import configure_logging
 from app.rocketchat_notifications import send_rocketchat_notification
-from app.sfms.date_range_processor import BUIDateRangeProcessor
+from app.sfms.daily_fwi_processor import DailyFWIProcessor
 from app.sfms.raster_addresser import RasterKeyAddresser
 from app.utils.s3_client import S3Client
 from app.utils.time import get_utc_now
@@ -19,7 +19,7 @@ DAYS_TO_CALCULATE = 2
 
 
 class SFMSCalcJob:
-    async def calculate_bui(self, start_time: datetime):
+    async def calculate_daily_fwi(self, start_time: datetime):
         """
         Entry point for processing SFMS DMC/DC/BUI rasters. To run from a specific date manually in openshift,
         see openshift/sfms-calculate/README.md
@@ -28,17 +28,17 @@ class SFMSCalcJob:
 
         start_exec = get_utc_now()
 
-        bui_processor = BUIDateRangeProcessor(start_time, DAYS_TO_CALCULATE, RasterKeyAddresser())
+        daily_processor = DailyFWIProcessor(start_time, DAYS_TO_CALCULATE, RasterKeyAddresser())
 
         async with S3Client() as s3_client:
-            await bui_processor.process_bui(s3_client, multi_wps_dataset_context, multi_wps_dataset_context)
+            await daily_processor.process(s3_client, multi_wps_dataset_context, multi_wps_dataset_context)
 
         # calculate the execution time.
         execution_time = get_utc_now() - start_exec
         hours, remainder = divmod(execution_time.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
 
-        logger.info(f"BUI processing finished -- time elapsed {hours} hours, {minutes} minutes, {seconds:.2f} seconds")
+        logger.info(f"Daily FWI processing finished -- time elapsed {hours} hours, {minutes} minutes, {seconds:.2f} seconds")
 
 
 def main():
@@ -56,9 +56,9 @@ def main():
         job = SFMSCalcJob()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(job.calculate_bui(start_time))
+        loop.run_until_complete(job.calculate_daily_fwi(start_time))
     except Exception as e:
-        logger.error("An exception occurred while processing DMC/DC/BUI raster calculations", exc_info=e)
+        logger.error("An exception occurred while processing SFMS raster calculations", exc_info=e)
         rc_message = ":scream: Encountered an error while processing SFMS raster data."
         send_rocketchat_notification(rc_message, e)
         sys.exit(os.EX_SOFTWARE)

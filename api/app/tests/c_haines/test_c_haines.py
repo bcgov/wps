@@ -1,222 +1,172 @@
-""" Test c_haines code.
-"""
-import json
 import gzip
+import json
+import pytest
+import numpy as np
 from datetime import datetime
-from typing import List
-from pytest_bdd import scenario, given, when, then, parsers
-import numpy
+
+from app.c_haines.c_haines_index import CHainesGenerator, calculate_c_haines_index
 from app.c_haines.severity_index import (
-    generate_severity_data, open_gdal, make_model_run_base_url, make_model_run_filename,
-    make_model_run_download_urls, re_project_and_classify_geojson)
-from app.weather_models import ModelEnum
-from app.c_haines.c_haines_index import calculate_c_haines_index, CHainesGenerator
+    generate_severity_data,
+    make_model_run_base_url,
+    make_model_run_download_urls,
+    make_model_run_filename,
+    open_gdal,
+    re_project_and_classify_geojson,
+)
 from app.tests import get_complete_filename
 
 
-@scenario(
-    'test_c_haines.feature',
-    'Calculate c-haines')
-def test_extract_origin_and_pixel_information():
-    """ BDD Scenario. """
-
-
-@then(parsers.parse('With {t_850} {t_700} and {dp_850}, I expect {c_haines}'),
-      converters={'t_850': float, 't_700': float, 'dp_850': float, 'c_haines': float})
-def with_temperature_and_dewpoint_values(t_850, t_700, dp_850, c_haines):
-    """ Open the dataset. """
+@pytest.mark.parametrize(
+    "t_850, t_700, dp_850, c_haines",
+    [(27.5, 12, -1, 4.416666666666667), (13.4, 0, 2.4, 4.5)],
+)
+def test_calculate_c_haines(t_850, t_700, dp_850, c_haines):
     calculated = calculate_c_haines_index(t_700, t_850, dp_850)
     assert calculated == c_haines
 
 
-@scenario(
-    'test_c_haines.feature',
-    'Calculate severity')
-def test_calculate_mask_and_severity():
-    """ BDD Scenario. """
+@pytest.mark.parametrize(
+    "c_haines_data, expected_mask_data, expected_severity_data",
+    [
+        ([[0, 1, 2, 3.9]], [[0, 0, 0, 0]], [[0, 0, 0, 0]]),
+        ([[4, 5, 6, 7.9]], [[1, 1, 1, 1]], [[1, 1, 1, 1]]),
+        ([[8, 9, 10, 10.9]], [[1, 1, 1, 1]], [[2, 2, 2, 2]]),
+        ([[11, 12]], [[1, 1]], [[3, 3]]),
+    ],
+)
+def test_calculate_severity(c_haines_data, expected_mask_data, expected_severity_data):
+    result = generate_severity_data(c_haines_data)
+    assert np.array_equal(result[1], expected_mask_data)
+    assert np.array_equal(result[0], expected_severity_data)
 
 
-@given(parsers.parse('c_haines_data: {c_haines_data}'),
-       converters={'c_haines_data': json.loads},
-       target_fixture='collector')
-def given_data(c_haines_data):
-    """ Given data in some scenario, create a collector. """
-    return {'c_haines_data': c_haines_data}
+@pytest.mark.parametrize(
+    "tmp_700, tmp_850, dew_850, c_haines_data",
+    [
+        (
+            "CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021012618_P048-00.grib2",
+            "CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021012618_P048-00.grib2",
+            "CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021012618_P048-00.grib2",
+            "c_haines_data.json.gz",
+        ),
+    ],
+)
+def test_c_haines_generator(tmp_700, tmp_850, dew_850, c_haines_data):
+    tmp_700_path = get_complete_filename(__file__, tmp_700)
+    tmp_850_path = get_complete_filename(__file__, tmp_850)
+    dew_850_path = get_complete_filename(__file__, dew_850)
+    c_haines_path = get_complete_filename(__file__, c_haines_data)
 
-
-@when('generating severity')
-def generate_data(collector: dict):
-    """ Generate a result, and stick it in the collector. """
-    result = generate_severity_data(collector['c_haines_data'])
-    collector['severity_data'] = result[0]
-    collector['mask_data'] = result[1]
-
-
-@then(parsers.parse('We expect mask_data: {mask_data}'), converters={'mask_data': json.loads})
-def then_expect_mask_data(mask_data: List, collector: dict):
-    """ Assert that mask is as expected """
-    assert (numpy.array(collector['mask_data']) == numpy.array(mask_data)).all()
-
-
-@then(parsers.parse('We expect severity_data: {severity_data}'), converters={'severity_data': json.loads})
-def then_expect_severity_data(severity_data: List, collector: dict):
-    """ Assert that severity is as expected """
-    assert (numpy.array(collector['severity_data']) == numpy.array(severity_data)).all()
-
-
-@scenario(
-    'test_c_haines.feature',
-    'Generate c-haines data')
-def test_generate_c_haines():
-    """ BDD Scenario. """
-
-
-@given(parsers.parse("{tmp_700}, {tmp_850} and {dew_850}"),
-       converters={'tmp_700': str, 'tmp_850': str, 'dew_850': str},
-       target_fixture='collector')
-def given_grib_files(tmp_700, tmp_850, dew_850):
-    """ Given grib files for calculating c-haines. """
-    return {
-        'tmp_700': get_complete_filename(__file__, tmp_700),
-        'tmp_850': get_complete_filename(__file__, tmp_850),
-        'dew_850': get_complete_filename(__file__, dew_850)}
-
-
-@when("We generate c-haines")
-def generate_c_haines(collector):
-    """ Generate c-haines data using grib files. """
-    with open_gdal(collector['tmp_700'], collector['tmp_850'], collector['dew_850']) as gdal_data:
+    with open_gdal(tmp_700_path, tmp_850_path, dew_850_path) as input_data:
         generator = CHainesGenerator()
-        # Generate c-haines data. It's pretty slow.
-        collector['data'] = generator.generate_c_haines(gdal_data)
+
+        generated_c_haines = generator.generate_c_haines(input_data)
+
+    with gzip.open(c_haines_path, "rt") as c_haines_file:
+        expected_c_haines = json.load(c_haines_file)
+
+    assert np.array_equal(generated_c_haines, expected_c_haines)
 
 
-@then(parsers.parse("We expect c_haines_data: {c_haines_data}"), converters={'c_haines_data': str})
-def check_c_haines(collector, c_haines_data):
-    """ Compare the c-haines data against expected data.
-
-    This data generated with this code:
-
-    import json
-    import gzip
-    from app.c_haines.severity_index import open_gdal
-    from app.c_haines.c_haines_index import CHainesGenerator
-
-    with open_gdal(tmp_700, tmp_850, dew_850) as gdal_data:
-        generator = CHainesGenerator()
-        data = generator.generate_c_haines(gdal_data)
-        with gzip.open('data.json.gz', 'wt') as f:
-            json.dump(data, f)
-    """
-    filename = get_complete_filename(__file__, c_haines_data)
-    with gzip.open(filename, 'rt') as c_haines_data_file:
-        data = json.load(c_haines_data_file)
-    assert (numpy.array(collector['data']) == numpy.array(data)).all()
+@pytest.mark.parametrize(
+    "model, model_run_start, forecast_hour, expected_result",
+    [
+        ("GDPS", "00", "120", "https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/120/"),
+        ("RDPS", "12", "010", "https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/010/"),
+        ("HRDPS", "00", "001", "https://dd.weather.gc.ca/model_hrdps/continental/grib2/00/001/"),
+    ],
+)
+def test_generate_url(model, model_run_start, forecast_hour, expected_result):
+    assert make_model_run_base_url(model, model_run_start, forecast_hour) == expected_result
 
 
-@ scenario(
-    'test_c_haines.feature',
-    'Make model run base url')
-def test_make_model_run_base_url():
-    """ BDD Scenario. """
+@pytest.mark.parametrize(
+    "model, level, date, model_run_start, forecast_hour, expected_result",
+    [
+        ("HRDPS", "DEPR_ISBL", "2021012618", "048", "00", "CMC_hrdps_continental_DEPR_ISBL_ps2.5km_2021012618048_P00-00.grib2"),
+        ("RDPS", "DEPR_ISBL", "2021012618", "0", "12", "CMC_reg_DEPR_ISBL_ps10km_20210126180_P12.grib2"),
+        ("GDPS", "DEPR_ISBL", "2021012618", "0", "13", "CMC_glb_DEPR_ISBL_latlon.15x.15_20210126180_P13.grib2"),
+    ],
+)
+def test_generate_file_name(model, level, date, model_run_start, forecast_hour, expected_result):
+    assert make_model_run_filename(model, level, date, model_run_start, forecast_hour) == expected_result
 
 
-@then(parsers.parse("make_model_run_base_url({model}, {model_run_start}, {forecast_hour}) == {result}"))
-def make_model_run_base_url_expect_result(model, model_run_start, forecast_hour, result):
-    """ Check base url """
-    assert make_model_run_base_url(model, model_run_start, forecast_hour) == result
+@pytest.mark.parametrize(
+    "model, now, model_run_hour, prediction_hour, expected_urls, expected_model_run_timestamp, expected_prediction_timestamp",
+    [
+        (
+            "HRDPS",
+            "2021-03-11T16:46:11.600781",
+            12,
+            240,
+            {
+                "TMP_ISBL_0700": "https://dd.weather.gc.ca/model_hrdps/continental/grib2/12/240/CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021031112_P240-00.grib2",
+                "TMP_ISBL_0850": "https://dd.weather.gc.ca/model_hrdps/continental/grib2/12/240/CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021031112_P240-00.grib2",
+                "DEPR_ISBL_0850": "https://dd.weather.gc.ca/model_hrdps/continental/grib2/12/240/CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021031112_P240-00.grib2",
+            },
+            "2021-03-11 12:00:00+00:00",
+            "2021-03-21 12:00:00+00:00",
+        ),
+        (
+            "RDPS",
+            "2021-04-11T16:46:11.600781",
+            12,
+            240,
+            {
+                "TMP_ISBL_700": "https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/240/CMC_reg_TMP_ISBL_700_ps10km_2021041112_P240.grib2",
+                "TMP_ISBL_850": "https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/240/CMC_reg_TMP_ISBL_850_ps10km_2021041112_P240.grib2",
+                "DEPR_ISBL_850": "https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/240/CMC_reg_DEPR_ISBL_850_ps10km_2021041112_P240.grib2",
+            },
+            "2021-04-11 12:00:00+00:00",
+            "2021-04-21 12:00:00+00:00",
+        ),
+        (
+            "GDPS",
+            "2021-05-11T16:46:11.600781",
+            00,
+            6,
+            {
+                "TMP_ISBL_700": "https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/006/CMC_glb_TMP_ISBL_700_latlon.15x.15_2021051100_P006.grib2",
+                "TMP_ISBL_850": "https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/006/CMC_glb_TMP_ISBL_850_latlon.15x.15_2021051100_P006.grib2",
+                "DEPR_ISBL_850": "https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/006/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2021051100_P006.grib2",
+            },
+            "2021-05-11 00:00:00+00:00",
+            "2021-05-11 06:00:00+00:00",
+        ),
+    ],
+)
+def test_generate_urls_and_timestamps(model, now, model_run_hour, prediction_hour, expected_urls, expected_model_run_timestamp, expected_prediction_timestamp):
+    now = datetime.fromisoformat(now)
+    urls, model_run_timestamp, prediction_timestamp = make_model_run_download_urls(model, now, model_run_hour, prediction_hour)
+
+    assert urls == expected_urls
+    assert model_run_timestamp == datetime.fromisoformat(expected_model_run_timestamp)
+    assert prediction_timestamp == datetime.fromisoformat(expected_prediction_timestamp)
 
 
-@scenario(
-    'test_c_haines.feature',
-    'Make model run filename')
-def test_make_model_run_filename():
-    """ BDD Scenario. """
-
-
-@then(parsers.parse("make_model_run_filename({model}, {level}, {date}, {model_run_start}, {forecast_hour}) == {result}"))
-def make_model_run_filename_expect_result(model, level, date, model_run_start, forecast_hour, result):
-    """ Check base url """
-    assert make_model_run_filename(model, level, date, model_run_start, forecast_hour) == result
-
-
-@scenario(
-    'test_c_haines.feature',
-    'Make model run download urls')
-def test_make_model_download_urls():
-    """ BDD Scenario. """
-
-
-@given(parsers.parse("We run make_model_run_download_urls({model}, {now}, {model_run_hour}, {prediction_hour})"),
-       converters={'model': str, 'now': datetime.fromisoformat,
-                   'model_run_hour': int, 'prediction_hour': int},
-       target_fixture='collector')
-def run_make_model_run_download_urls(
-        model: ModelEnum, now: datetime, model_run_hour: int, prediction_hour: int):
-    """ Collect url's """
-    urls, model_run_timestamp, prediction_timestamp = make_model_run_download_urls(
-        model, now, model_run_hour, prediction_hour)
-    return {
-        'urls': urls,
-        'model_run_timestamp': model_run_timestamp,
-        'prediction_timestamp': prediction_timestamp
-    }
-
-
-@then(parsers.parse("{urls} are as expected"), converters={'urls': json.loads})
-def make_model_run_download_urls_expect_result(
-        collector: dict, urls: dict):
-    """ Assert that result matches expected result """
-    assert urls == collector['urls']
-
-
-@then(parsers.parse("model_run_timestamp: {model_run_timestamp} is as expected"),
-      converters={'model_run_timestamp': datetime.fromisoformat})
-def make_model_run_download_model_run_timestamp_expect_result(collector: dict,
-                                                              model_run_timestamp: datetime):
-    """ Assert that result matches expected result """
-    assert model_run_timestamp == collector['model_run_timestamp']
-
-
-@then(parsers.parse("prediction_timestamp: {prediction_timestamp} is as expected"),
-      converters={'prediction_timestamp': datetime.fromisoformat})
-def make_model_run_download_prediction_timestamp_expect_result(collector: dict,
-                                                               prediction_timestamp: datetime):
-    """ Assert that result matches expected result """
-    assert prediction_timestamp == collector['prediction_timestamp']
-
-
-@scenario(
-    'test_c_haines.feature',
-    'Re-project')
-def test_re_project():
-    """ BDD Scenario. """
-
-
-@given(parsers.parse("{input_geojson} with {source_projection} and {expected_output_geojson}"),
-       converters={'input_geojson': str, 'source_projection': str, 'expected_output_geojson': str},
-       target_fixture='collector')
-def prepare_input(input_geojson: str, source_projection: str, expected_output_geojson: str):
-    """ Collect url's """
-    return {
-        'input_geojson': input_geojson,
-        'source_projection': source_projection,
-        'expected_output_geojson': expected_output_geojson
-    }
-
-
-@then("Compare expected geojson with actual")
-def compare_expected_output(collector: dict):
-    """ Assert that result matches expected result """
-
-    input_geojson = get_complete_filename(__file__, collector['input_geojson'])
-    source_projection = collector['source_projection']
+@pytest.mark.parametrize(
+    "input_geojson, expected_output_geojson, source_projection",
+    [
+        (
+            "test_re_project_gdps_input.json",
+            "test_re_project_gdps_expected_output.json",
+            'GEOGCS["Coordinate System imported from GRIB file",DATUM["unnamed",SPHEROID["Sphere",6371229,0]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AXIS["Latitude",NORTH],AXIS["Longitude",EAST]]',
+        ),
+        (
+            "test_re_project_rdps_input.json",
+            "test_re_project_rdps_expected_output.json",
+            'PROJCS["unnamed",GEOGCS["Coordinate System imported from GRIB file",DATUM["unnamed",SPHEROID["Sphere",6371229,0]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]]],PROJECTION["Polar_Stereographic"],PARAMETER["latitude_of_origin",60],PARAMETER["central_meridian",249],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["Metre",1],AXIS["Easting",SOUTH],AXIS["Northing",SOUTH]]',
+        ),
+    ],
+)
+def test_reproject_geojson(input_geojson, expected_output_geojson, source_projection):
+    input_geojson = get_complete_filename(__file__, input_geojson)
+    expected_output_geojson = get_complete_filename(__file__, expected_output_geojson)
 
     dict_out = re_project_and_classify_geojson(input_geojson, source_projection)
 
-    expected_output_geojson = get_complete_filename(__file__, collector['expected_output_geojson'])
-
     with open(expected_output_geojson) as expected_output_file:
         expected_json = json.load(expected_output_file)
-        # silly chain for comparison:  not a json dict-> json string -> json dict
+
         assert json.loads(json.dumps(dict_out)) == expected_json
