@@ -1813,19 +1813,21 @@ files = [
 
 [[package]]
 name = "jsonpickle"
-version = "3.3.0"
-description = "Python library for serializing arbitrary object graphs into JSON"
+version = "4.0.0"
+description = "jsonpickle encodes/decodes any Python object to/from JSON"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "jsonpickle-3.3.0-py3-none-any.whl", hash = "sha256:287c12143f35571ab00e224fa323aa4b090d5a7f086f5f494d7ee9c7eb1a380a"},
-    {file = "jsonpickle-3.3.0.tar.gz", hash = "sha256:ab467e601e5b1a1cd76f1819d014795165da071744ef30bf3786e9bc549de25a"},
+    {file = "jsonpickle-4.0.0-py3-none-any.whl", hash = "sha256:53730b9e094bc41f540bfdd25eaf6e6cf43811590e9e1477abcec44b866ddcd9"},
+    {file = "jsonpickle-4.0.0.tar.gz", hash = "sha256:fc670852b204d77601b08f8f9333149ac37ab6d3fe4e6ed3b578427291f63736"},
 ]
 
 [package.extras]
-docs = ["furo", "rst.linker (>=1.9)", "sphinx"]
-packaging = ["build", "twine"]
-testing = ["bson", "ecdsa", "feedparser", "gmpy2", "numpy", "pandas", "pymongo", "pytest (>=3.5,!=3.7.3)", "pytest-benchmark", "pytest-benchmark[histogram]", "pytest-checkdocs (>=1.2.3)", "pytest-cov", "pytest-enabler (>=1.0.1)", "pytest-ruff (>=0.2.1)", "scikit-learn", "scipy", "scipy (>=1.9.3)", "simplejson", "sqlalchemy", "ujson"]
+cov = ["pytest-cov"]
+dev = ["black", "pyupgrade"]
+docs = ["furo", "rst.linker (>=1.9)", "sphinx (>=3.5)"]
+packaging = ["build", "setuptools (>=61.2)", "setuptools-scm[toml] (>=6.0)", "twine"]
+testing = ["PyYAML", "atheris (>=2.3.0,<2.4.0)", "bson", "ecdsa", "feedparser", "gmpy2", "numpy", "pandas", "pymongo", "pytest (>=6.0,!=8.1.*)", "pytest-benchmark", "pytest-benchmark[histogram]", "pytest-checkdocs (>=1.2.3)", "pytest-enabler (>=1.0.1)", "pytest-ruff (>=0.2.1)", "scikit-learn", "scipy", "scipy (>=1.9.3)", "simplejson", "sqlalchemy", "ujson"]
 
 [[package]]
 name = "jsonpointer"
@@ -5452,4 +5454,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12.3"
-content-hash = "7e39ed285da1c29436dd04eb5a1505fe4f3cbf93424afdc52b82a142863a51c1"
+content-hash = "60f689bb24afba88c42a2dfce41ab2bf332322a8cbee773ada136f25bfe9a19d"
