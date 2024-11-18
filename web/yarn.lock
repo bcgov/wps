@@ -6475,13 +6475,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"match-sorter@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "match-sorter@npm:7.0.0"
+"match-sorter@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "match-sorter@npm:8.0.0"
   dependencies:
     "@babel/runtime": "npm:^7.23.8"
     remove-accents: "npm:0.5.0"
-  checksum: 10c0/4774e6ef29e94c87e9ebed9c9197e769760797a3fba18fed8096c88d7ace67ca13603ac371aea8f7e2c9346594a1879d8c8e1e34fdf3d8d93b87fb1b5a50eca2
+  checksum: 10c0/eb475c73ff85611ff0bda595f01b3d5083d15f449a2a22173d39752ff3a0eb7fba06b49c7c89d3dc0ea752f6fb36dc71ce4a59177553bce9255a69ad2dafc06d
   languageName: node
   linkType: hard
 
@@ -9530,7 +9530,7 @@ __metadata:
     leaflet: "npm:^1.7.1"
     lodash: "npm:^4.17.21"
     luxon: "npm:^3.0.2"
-    match-sorter: "npm:^7.0.0"
+    match-sorter: "npm:^8.0.0"
     nyc: "npm:^17.0.0"
     ol: "npm:10.0.0"
     ol-pmtiles: "npm:^1.0.2"
