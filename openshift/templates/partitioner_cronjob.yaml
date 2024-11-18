@@ -1,9 +1,9 @@
 kind: "Template"
 apiVersion: "template.openshift.io/v1"
 metadata:
-  name: partition-filler-job-template
+  name: partitioner-job-template
   annotations:
-    description: "Job to fill partitioned tables with data from original table."
+    description: "Cronjob to partition tables 1 month into the future."
     tags: "job,sfms"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
@@ -33,26 +33,34 @@ parameters:
     description: "The table that is partitioned"
     required: true
 objects:
-  - kind: Job
+  - kind: CronJob
     apiVersion: batch/v1
     metadata:
-      name: partition-filler-${NAME}-${SUFFIX}
+      name: partitioner-${NAME}-${SUFFIX}
     spec:
       parallelism: 1
       completions: 1
       activeDeadlineSeconds: 3600
       backoffLimit: 6
+      # Run every month on day 1 at 00:00
+      schedule: 0 0 1 * *
+      # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
+      # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
+      # If we were to use Forbid, and a cronjob gets stuck, then we'd stop gathering data until someone
+      # noticed. We don't want that.
+      concurrencyPolicy: "Replace"
       template:
         metadata:
-          name: partition-filler-${NAME}-${SUFFIX}
+          name: partitioner-${NAME}-${SUFFIX}
         spec:
           template:
             spec:
               containers:
-                - name: partition-filler-${NAME}-${SUFFIX}
+                - name: partitioner-${NAME}-${SUFFIX}
                   image: "image-registry.openshift-image-registry.svc:5000/${PROJ_TOOLS}/pgslice:${TAG_NAME}"
                   imagePullPolicy: "Always"
-                  command: ["bash", "fill_partition_data.sh", "${PG_DATABASE}"]
+                  command:
+                    ["bash", "partition_and_archive.sh", "${PG_DATABASE}"]
                   env:
                     - name: PG_USER
                       valueFrom:
@@ -76,6 +84,26 @@ objects:
                           key: pgbouncer-port
                     - name: PG_DATABASE
                       value: ${PG_DATABASE}
+                    - name: AWS_HOSTNAME
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-server
+                    - name: AWS_ACCESS_KEY
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-user-id
+                    - name: AWS_SECRET_KEY
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-secret
+                    - name: AWS_BUCKET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-bucket
                     - name: SUFFIX
                       value: ${SUFFIX}
                   resources:

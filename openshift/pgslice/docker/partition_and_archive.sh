@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Fills recently partitioned tables with data from the origin table and swaps in the partition
+# Adds a new partition for the next month, fills and swaps any partitions
 #
 # usage example:
-# PG_PASSWORD=wps PG_HOSTNAME=localhost PG_PORT=5432 PG_USER=wps PG_DATABASE=wps TABLE=table ./fill_partition_data.sh
+# PG_PASSWORD=wps PG_HOSTNAME=localhost PG_PORT=5432 PG_USER=wps PG_DATABASE=wps TABLE=table ./partition_and_archive.sh
 
 # From http://redsymbol.net/articles/unofficial-bash-strict-mode/ 
 # Exits execution if any command fails for safety
@@ -54,6 +54,8 @@ then
 fi
 
 export PGSLICE_URL = "postgresql://${PG_USER}:${PG_PASSWORD}@${PG_HOSTNAME}:${PG_PORT}/${PG_DATABASE}"
+# Add partitions to the intermediate table (assumes it already exists)
+pgslice add_partitions $TABLE --intermediate --future 1
 # Fill the partitions with data from the original table
 pgslice fill $TABLE
 # Analyze for query planner
@@ -62,3 +64,6 @@ pgslice analyze $TABLE
 pgslice swap $TABLE
 # Fill the rest (rows inserted between the first fill and the swap)
 pgslice fill $TABLE --swapped
+# Dump any retired tables to S3 and drop
+pg_dump -c -Fc -t ${TABLE}_retired $PGSLICE_URL | gzip | AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}" AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}" aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/retired/${TABLE}_retired.dump.gz"
+psql -c "DROP TABLE ${TABLE}_retired" $PGSLICE_URL
