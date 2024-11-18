@@ -66,6 +66,8 @@ objects:
         GRANT CREATE ON SCHEMA public TO "${APP_NAME}-${SUFFIX}";
     kind: ConfigMap
     metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
       name: wps-init-sql-${SUFFIX}
   - apiVersion: postgres-operator.crunchydata.com/v1beta1
     kind: PostgresCluster
