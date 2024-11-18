@@ -128,7 +128,7 @@ objects:
           global:
             repo1-retention-full: "3"
             repo1-retention-full-type: count
-            repo1-path: /pgbackrest/16-${SUFFIX}/repo1
+            repo1-path: /pgbackrest/${SUFFIX}/repo1
           repos:
             - name: repo1
               schedules:
