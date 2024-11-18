@@ -35,7 +35,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/c_haines.cronjob.ya
 -p SUFFIX=${SUFFIX} \
 -p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${APP_NAME}} \
 -p POSTGRES_USER=wps-crunchydb-${SUFFIX} \
--p CRUNCHYDB_USER=wps-crunchydb-pg16-${SUFFIX}-pguser-wps-crunchydb-pg16-${SUFFIX} \
+-p CRUNCHYDB_USER=wps-crunchydb-16-${SUFFIX}-pguser-wps-crunchydb-16-${SUFFIX} \
 ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"}"
 
 # Apply template (apply or use --dry-run)
