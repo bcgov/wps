@@ -63,9 +63,12 @@ objects:
       init.sql: |-
         \c wps\\
         CREATE EXTENSION postgis;
+        GRANT CREATE ON SCHEMA public TO "${APP_NAME}-${SUFFIX}";
     kind: ConfigMap
     metadata:
-      name: wps-init-sql
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+      name: wps-init-sql-${SUFFIX}
   - apiVersion: postgres-operator.crunchydata.com/v1beta1
     kind: PostgresCluster
     metadata:
@@ -79,7 +82,7 @@ objects:
           app: ${APP_NAME}-${SUFFIX}
       databaseInitSQL:
         key: init.sql
-        name: wps-init-sql
+        name: wps-init-sql-${SUFFIX}
       users:
         - name: ${APP_NAME}-${SUFFIX}
           databases:
