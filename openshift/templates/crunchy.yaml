@@ -19,7 +19,7 @@ parameters:
     required: true
   - name: APP_NAME
     description: Application name (wps - wildfire predictive services)
-    value: wps-crunchydb
+    value: wps-crunchydb-16
     required: true
   - name: BUCKET
     description: S3 bucket name
@@ -71,7 +71,7 @@ objects:
     metadata:
       name: ${APP_NAME}-${SUFFIX}
     spec:
-      postgresVersion: 14
+      postgresVersion: 16
       postGISVersion: "3.3"
       metadata:
         name: ${APP_NAME}-${SUFFIX}
@@ -87,7 +87,7 @@ objects:
             - wps
       instances:
         - name: crunchy
-          replicas: 3
+          replicas: 2
           resources:
             requests:
               cpu: ${CPU_REQUEST}
