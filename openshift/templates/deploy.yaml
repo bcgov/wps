@@ -258,7 +258,7 @@ objects:
                       name: ${GLOBAL_NAME}
                       key: env.openshift-namespace-api
                 - name: PATRONI_CLUSTER_NAME
-                  value: wps-crunchydb-${SUFFIX}
+                  value: wps-crunchydb-16-${SUFFIX}
                 - name: PROJECT_NAMESPACE
                   value: ${PROJECT_NAMESPACE}
                 - name: ROCKET_URL_POST_MESSAGE
