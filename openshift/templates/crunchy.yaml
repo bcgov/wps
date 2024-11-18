@@ -63,7 +63,7 @@ objects:
       init.sql: |-
         \c wps\\
         CREATE EXTENSION postgis;
-        GRANT CREATE ON SCHEMA public TO ${APP_NAME}-${SUFFIX}
+        GRANT CREATE ON SCHEMA public TO ${APP_NAME}-${SUFFIX};
     kind: ConfigMap
     metadata:
       name: wps-init-sql-${SUFFIX}
