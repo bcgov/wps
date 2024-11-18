@@ -2,13 +2,13 @@ import logging
 import os
 import tempfile
 from datetime import datetime, timedelta
-from typing import Callable, Tuple, List, Iterator, cast
+from typing import Callable, Iterator, List, Tuple, cast
 
 import numpy as np
 
 from app.geospatial.wps_dataset import WPSDataset
+from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_isi
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
-from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc
 from app.utils.geospatial import GDALResamplingMethod
 from app.utils.s3 import set_s3_gdal_config
 from app.utils.s3_client import S3Client
@@ -30,25 +30,25 @@ class DailyFWIProcessor:
         self.days = days
         self.addresser = addresser
 
-    async def process(self, s3_client: S3Client, input_dataset_context: MultiDatasetContext, new_dmc_dc_context: MultiDatasetContext):
+    async def process(self, s3_client: S3Client, input_dataset_context: MultiDatasetContext, new_dmc_dc_context: MultiDatasetContext, new_ffmc_context: MultiDatasetContext):
         set_s3_gdal_config()
 
         for day in range(self.days):
             datetime_to_calculate_utc, previous_fwi_datetime, prediction_hour = self._get_calculate_dates(day)
-            logger.info(f"Calculating DMC/DC/BUI for {datetime_to_calculate_utc.isoformat()}")
+            logger.info(f"Calculating daily FWI rasters for {datetime_to_calculate_utc.isoformat()}")
 
             # Get and check existence of weather s3 keys
             temp_key, rh_key, wind_speed_key, precip_key = self.addresser.get_weather_data_keys(self.start_datetime, datetime_to_calculate_utc, prediction_hour)
             weather_keys_exist = await s3_client.all_objects_exist(temp_key, rh_key, precip_key)
             if not weather_keys_exist:
-                logging.warning(f"No weather keys found for {model_run_for_hour(self.start_datetime.hour):02} model run")
+                logging.warning(f"Missing weather keys for {model_run_for_hour(self.start_datetime.hour):02} model run")
                 break
 
             # get and check existence of fwi s3 keys
             dc_key, dmc_key, ffmc_key = self._get_previous_fwi_keys(day, previous_fwi_datetime)
             fwi_keys_exist = await s3_client.all_objects_exist(dc_key, dmc_key)
             if not fwi_keys_exist:
-                logging.warning(f"No previous DMC/DC keys found for {previous_fwi_datetime.date().isoformat()}")
+                logging.warning(f"No previous DMC/DC/FFMC keys found for {previous_fwi_datetime.date().isoformat()}")
                 break
 
             temp_key, rh_key, wind_speed_key, precip_key, ffmc_key = self.addresser.gdal_prefix_keys(temp_key, rh_key, wind_speed_key, precip_key, ffmc_key)
@@ -100,7 +100,7 @@ class DailyFWIProcessor:
                     # Create and store FFMC dataset
                     ffmc_values, ffmc_no_data_value = calculate_ffmc(ffmc_ds, warped_temp_ds, warped_rh_ds, warped_wind_speed_ds, warped_precip_ds)
                     new_ffmc_key = self.addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.FFMC)
-                    await s3_client.persist_raster_data(
+                    new_ffmc_path = await s3_client.persist_raster_data(
                         temp_dir,
                         new_ffmc_key,
                         dc_ds.as_gdal_ds().GetGeoTransform(),
@@ -124,6 +124,23 @@ class DailyFWIProcessor:
                             dmc_ds.as_gdal_ds().GetProjection(),
                             bui_values,
                             nodata,
+                        )
+
+                    # Open new FFMC dataset and calculate ISI
+                    new_isi_key = self.addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.ISI)
+                    with new_ffmc_context([new_ffmc_path]) as new_ffmc_dataset_context:
+                        new_ffmc_ds = cast(List[WPSDataset], new_ffmc_dataset_context)[0]  # Ensure correct type inference
+
+                        isi_values, isi_nodata = calculate_isi(new_ffmc_ds, warped_wind_speed_ds)
+
+                        # Store the new ISI dataset
+                        await s3_client.persist_raster_data(
+                            temp_dir,
+                            new_isi_key,
+                            new_ffmc_ds.as_gdal_ds().GetGeoTransform(),
+                            new_ffmc_ds.as_gdal_ds().GetProjection(),
+                            isi_values,
+                            isi_nodata,
                         )
 
     def _get_calculate_dates(self, day: int):

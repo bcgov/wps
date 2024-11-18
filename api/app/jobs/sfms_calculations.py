@@ -1,17 +1,16 @@
 import asyncio
-from datetime import datetime, timezone
 import logging
 import os
 import sys
+from datetime import datetime, timezone
 
 from app import configure_logging
+from app.geospatial.wps_dataset import multi_wps_dataset_context
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.sfms.daily_fwi_processor import DailyFWIProcessor
 from app.sfms.raster_addresser import RasterKeyAddresser
 from app.utils.s3_client import S3Client
 from app.utils.time import get_utc_now
-from app.geospatial.wps_dataset import multi_wps_dataset_context
-
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +30,7 @@ class SFMSCalcJob:
         daily_processor = DailyFWIProcessor(start_time, DAYS_TO_CALCULATE, RasterKeyAddresser())
 
         async with S3Client() as s3_client:
-            await daily_processor.process(s3_client, multi_wps_dataset_context, multi_wps_dataset_context)
+            await daily_processor.process(s3_client, multi_wps_dataset_context, multi_wps_dataset_context, multi_wps_dataset_context)
 
         # calculate the execution time.
         execution_time = get_utc_now() - start_exec
