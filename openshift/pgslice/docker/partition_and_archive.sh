@@ -10,6 +10,9 @@
 
 set -euxo pipefail
 
+# We can extend this later on to be a list of tables
+TABLE=weather_station_model_predictions
+
 # variable checks
 if [ -z ${PG_PASSWORD+0} ]
 then
@@ -43,13 +46,6 @@ if [ -z ${PG_DATABASE+0} ]
 then
     echo "PG_DATABASE not specified"
     echo "Specify a postgres database"
-    exit 1
-fi
-
-if [ -z ${TABLE+0} ]
-then
-    echo "TABLE not specified"
-    echo "Specify a postgres table"
     exit 1
 fi
 

@@ -29,8 +29,12 @@ parameters:
     required: true
   - name: CRUNCHYDB_USER
     required: true
+  - name: SCHEDULE
+    required: true
   - name: "TABLE"
     description: "The table that is partitioned"
+    required: true
+  - name: APP_LABEL
     required: true
 objects:
   - kind: CronJob
@@ -38,20 +42,18 @@ objects:
     metadata:
       name: partitioner-${NAME}-${SUFFIX}
     spec:
-      parallelism: 1
-      completions: 1
-      activeDeadlineSeconds: 3600
-      backoffLimit: 6
       # Run every month on day 1 at 00:00
-      schedule: 0 0 1 * *
+      schedule: ${SCHEDULE}
       # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
       # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
       # If we were to use Forbid, and a cronjob gets stuck, then we'd stop gathering data until someone
       # noticed. We don't want that.
       concurrencyPolicy: "Replace"
-      template:
+      jobTemplate:
         metadata:
-          name: partitioner-${NAME}-${SUFFIX}
+          labels:
+            cronjob: partitioner-${NAME}-${SUFFIX}
+            app: ${APP_LABEL}
         spec:
           template:
             spec:

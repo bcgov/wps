@@ -29,9 +29,6 @@ parameters:
     required: true
   - name: CRUNCHYDB_USER
     required: true
-  - name: "TABLE"
-    description: "The table that is partitioned"
-    required: true
 objects:
   - kind: Job
     apiVersion: batch/v1
