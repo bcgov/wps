@@ -16,3 +16,12 @@ Runs `fill`, `analyze` and `swap` for a newly partitioned table where the origin
 ```bash
 oc -n e1e498-tools start-build pgslice --follow
 ```
+
+### Tag image for prod
+
+```bash
+# tag this image with todays' date so we can revert to it again
+oc -n e1e498-tools tag pgslice:dev pgslice:<yyyy-mm-dd>
+# tag it for production
+oc -n e1e498-tools tag pgslice:dev s3-backup:prod
+```
