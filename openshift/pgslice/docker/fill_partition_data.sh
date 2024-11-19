@@ -49,7 +49,7 @@ then
     exit 1
 fi
 
-export PGSLICE_URL = "postgresql://${PG_USER}:${PG_PASSWORD}@${PG_HOSTNAME}:${PG_PORT}/${PG_DATABASE}"
+export PGSLICE_URL="postgresql://${PG_USER}:${PG_PASSWORD}@${PG_HOSTNAME}:${PG_PORT}/${PG_DATABASE}"
 # Fill the partitions with data from the original table
 pgslice fill $TABLE
 # Analyze for query planner
