@@ -236,6 +236,27 @@ Executing `make docker-build-dev` followed by `make docker-run-dev` will build a
 
 #### Natively
 
+As of Nov 2024 the version of postgis installed with brew doesn't work with postgresql@16. postgis is specifically
+linked to the original postgres cask (aka postgres@14). If you choose to use postgresql@16 installed via brew, you
+will need to compile postgis yourself. The alternative is to use [Postgres.app](https://postgresapp.com/).
+
+After installing Postgres.app, run the following commands in a terminal (taken from the mac.sh setup script):
+
+```bash
+psql -d postgres -c "create database wps;"
+psql -d wps -c "create extension postgis;"
+psql -d wps -c "
+CREATE USER wps;
+CREATE USER wpsread;
+ALTER USER wps WITH LOGIN;
+ALTER USER wpsread WITH LOGIN;
+ALTER USER wps WITH SUPERUSER;
+grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;
+"
+```
+
+If you have chosen to `brew install postgresql@16` and compile `postgis` locally, follow the instructions below:
+
 If you're running Postgresql natively for the first time:
 
 ```bash
