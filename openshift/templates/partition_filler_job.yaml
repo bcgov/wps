@@ -20,7 +20,7 @@ parameters:
     value: wps-global
   - name: PROJ_TOOLS
     value: e1e498-tools
-  - name: "TAG_NAME"
+  - name: TAG_NAME
     displayName: "Environment TAG name"
     description: "The TAG name for the docker image"
     required: true
