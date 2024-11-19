@@ -49,7 +49,8 @@ then
     exit 1
 fi
 
-PGSLICE_URL=postgresql://${PG_USER}:${PG_PASSWORD}@${PG_HOSTNAME}:${PG_PORT}/${PG_DATABASE}
+RAW_PG_URL=postgresql://${PG_USER}:${PG_PASSWORD}@${PG_HOSTNAME}:${PG_PORT}/${PG_DATABASE}
+PGSLICE_URL=$(jq -rn --arg str $RAW_PG_URL '$str | @uri')
 # Fill the partitions with data from the original table
 pgslice fill $TABLE --url $PGSLICE_URL
 # Analyze for query planner
