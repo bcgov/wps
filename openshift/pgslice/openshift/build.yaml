@@ -1,0 +1,64 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: pgslice
+labels:
+  app: pgslice
+  phase: build
+  app.kubernetes.io/name: pgslice
+  app.kubernetes.io/managed-by: template
+parameters:
+  - name: NAME
+    value: pgslice
+  - name: VERSION
+    description: Output version
+    required: true
+    value: "latest"
+  - name: GIT_URL
+    value: https://github.com/bcgov/wps.git
+  - name: GIT_BRANCH
+    value: main
+objects:
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: pgslice
+        common: "true"
+      name: pgslice
+    spec:
+      lookupPolicy:
+        local: false
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: pgslice
+      name: pgslice
+    spec:
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "512Mi"
+        requests:
+          # we might as well start high!
+          cpu: "500m"
+          memory: "256Mi"
+      completionDeadlineSeconds: 600 # 10 minutes.
+      output:
+        to:
+          kind: ImageStreamTag
+          name: pgslice:${VERSION}
+      source:
+        type: Git
+        git:
+          uri: ${GIT_URL}
+          ref: origin/${GIT_BRANCH}
+        contextDir: openshift/pgslice/docker
+      strategy:
+        type: Docker

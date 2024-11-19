@@ -1,0 +1,84 @@
+kind: "Template"
+apiVersion: "template.openshift.io/v1"
+metadata:
+  name: partition-filler-job-template
+  annotations:
+    description: "Job to fill partitioned tables with data from original table."
+    tags: "job,sfms"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+  - name: TAG_NAME
+    displayName: "Environment TAG name"
+    description: "The TAG name for the docker image"
+    required: true
+    value: "prod"
+  - name: PG_DATABASE
+    required: true
+    value: "wps"
+  - name: CRUNCHYDB_USER
+    required: true
+objects:
+  - kind: Job
+    apiVersion: batch/v1
+    metadata:
+      name: partition-filler-${NAME}-${SUFFIX}
+    spec:
+      parallelism: 1
+      completions: 1
+      activeDeadlineSeconds: 3600
+      backoffLimit: 6
+      template:
+        metadata:
+          name: partition-filler-${NAME}-${SUFFIX}
+        spec:
+          containers:
+            - name: partition-filler-${NAME}-${SUFFIX}
+              image: "image-registry.openshift-image-registry.svc:5000/${PROJ_TOOLS}/pgslice:${TAG_NAME}"
+              imagePullPolicy: "Always"
+              command: ["bash", "fill_partition_data.sh", "${PG_DATABASE}"]
+              env:
+                - name: PG_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: user
+                - name: PG_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: password
+                - name: PG_HOSTNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-host
+                - name: PG_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-port
+                - name: PG_DATABASE
+                  value: ${PG_DATABASE}
+                - name: SUFFIX
+                  value: ${SUFFIX}
+              resources:
+                limits:
+                  cpu: "1"
+                  memory: 256Mi
+                requests:
+                  cpu: "500m"
+                  memory: 128Mi
+          restartPolicy: OnFailure
