@@ -90,7 +90,7 @@ objects:
             - wps
       instances:
         - name: crunchy
-          replicas: 2
+          replicas: 3
           resources:
             requests:
               cpu: ${CPU_REQUEST}
