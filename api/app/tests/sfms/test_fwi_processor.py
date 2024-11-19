@@ -1,30 +1,44 @@
 import math
+from dataclasses import dataclass
 
 import numpy as np
 import pytest
-from cffdrs import bui, dc, dmc, ffmc
+from cffdrs import bui, dc, dmc, ffmc, isi
 from osgeo import osr
 
 from app.geospatial.wps_dataset import WPSDataset
-from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc
+from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_isi
 
 FWI_ARRAY = np.array([[12, 20], [-999, -999]])
-TEST_ARRAY = np.array([[12, 20], [0, 0]])
+WEATHER_ARRAY = np.array([[12, 20], [0, 0]])
+
+
+@dataclass
+class InputDatasets:
+    dc: WPSDataset
+    dmc: WPSDataset
+    ffmc: WPSDataset
+    temp: WPSDataset
+    rh: WPSDataset
+    precip: WPSDataset
+    wind_speed: WPSDataset
 
 
 @pytest.fixture
-def sample_bui_input_datasets():
+def input_datasets():
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(3005)
     transform = (-2, 1, 0, 2, 0, -1)
 
-    dc_wps = WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999)
-    dmc_wps = WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999)
-    temp_wps = WPSDataset.from_array(TEST_ARRAY, transform, srs.ExportToWkt())
-    rh_wps = WPSDataset.from_array(TEST_ARRAY, transform, srs.ExportToWkt())
-    precip_wps = WPSDataset.from_array(TEST_ARRAY, transform, srs.ExportToWkt())
-
-    return dc_wps, dmc_wps, temp_wps, rh_wps, precip_wps
+    return InputDatasets(
+        dc=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
+        dmc=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
+        ffmc=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
+        temp=WPSDataset.from_array(WEATHER_ARRAY, transform, srs.ExportToWkt()),
+        rh=WPSDataset.from_array(WEATHER_ARRAY, transform, srs.ExportToWkt()),
+        precip=WPSDataset.from_array(WEATHER_ARRAY, transform, srs.ExportToWkt()),
+        wind_speed=WPSDataset.from_array(WEATHER_ARRAY, transform, srs.ExportToWkt()),
+    )
 
 
 @pytest.fixture
@@ -34,23 +48,11 @@ def latitude_month():
     return latitude, month
 
 
-@pytest.fixture
-def sample_daily_ffmc_input_datasets():
-    srs = osr.SpatialReference()
-    srs.ImportFromEPSG(3005)
-    transform = (-2, 1, 0, 2, 0, -1)
-
-    previous_ffmc_wps = WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999)
-    temp_wps = WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999)
-    rh_wps = WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999)
-    wind_speed_wps = WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999)
-    precip_wps = WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999)
-
-    return previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps
-
-
-def test_calculate_dc_masked_correctly(sample_bui_input_datasets, latitude_month):
-    dc_ds, _, temp_ds, rh_ds, precip_ds = sample_bui_input_datasets
+def test_calculate_dc_masked_correctly(input_datasets, latitude_month):
+    dc_ds = input_datasets.dc
+    temp_ds = input_datasets.temp
+    rh_ds = input_datasets.rh
+    precip_ds = input_datasets.precip
     latitude, month = latitude_month
 
     dc_values, nodata_value = calculate_dc(dc_ds, temp_ds, rh_ds, precip_ds, latitude, month)
@@ -63,8 +65,11 @@ def test_calculate_dc_masked_correctly(sample_bui_input_datasets, latitude_month
     assert dc_values[0, 1] != nodata_value
 
 
-def test_calculate_dmc_masked_correctly(sample_bui_input_datasets, latitude_month):
-    _, dmc_ds, temp_ds, rh_ds, precip_ds = sample_bui_input_datasets
+def test_calculate_dmc_masked_correctly(input_datasets, latitude_month):
+    dmc_ds = input_datasets.dmc
+    temp_ds = input_datasets.temp
+    rh_ds = input_datasets.rh
+    precip_ds = input_datasets.precip
     latitude, month = latitude_month
 
     dmc_values, nodata_value = calculate_dmc(dmc_ds, temp_ds, rh_ds, precip_ds, latitude, month)
@@ -77,8 +82,9 @@ def test_calculate_dmc_masked_correctly(sample_bui_input_datasets, latitude_mont
     assert dmc_values[0, 1] != nodata_value
 
 
-def test_calculate_bui_masked_correctly(sample_bui_input_datasets):
-    dc_ds, dmc_ds, _, _, _ = sample_bui_input_datasets
+def test_calculate_bui_masked_correctly(input_datasets):
+    dc_ds = input_datasets.dc
+    dmc_ds = input_datasets.dmc
 
     bui_values, nodata_value = calculate_bui(dmc_ds, dc_ds)
 
@@ -90,14 +96,17 @@ def test_calculate_bui_masked_correctly(sample_bui_input_datasets):
     assert bui_values[0, 1] != nodata_value
 
 
-def test_calculate_dmc_values(sample_bui_input_datasets, latitude_month):
-    _, dmc_ds, temp_ds, rh_ds, precip_ds = sample_bui_input_datasets
+def test_calculate_dmc_values(input_datasets, latitude_month):
+    dmc_ds = input_datasets.dmc
+    temp_ds = input_datasets.temp
+    rh_ds = input_datasets.rh
+    precip_ds = input_datasets.precip
     latitude, month = latitude_month
 
     dmc_sample = FWI_ARRAY[0, 0]
-    temp_sample = TEST_ARRAY[0, 0]
-    rh_sample = TEST_ARRAY[0, 0]
-    precip_sample = TEST_ARRAY[0, 0]
+    temp_sample = WEATHER_ARRAY[0, 0]
+    rh_sample = WEATHER_ARRAY[0, 0]
+    precip_sample = WEATHER_ARRAY[0, 0]
     lat_sample = latitude[0, 0]
     month_sample = int(month[0, 0])
 
@@ -108,14 +117,17 @@ def test_calculate_dmc_values(sample_bui_input_datasets, latitude_month):
     assert math.isclose(static_dmc, dmc_values[0, 0], abs_tol=0.01)
 
 
-def test_calculate_dc_values(sample_bui_input_datasets, latitude_month):
-    dc_ds, _, temp_ds, rh_ds, precip_ds = sample_bui_input_datasets
+def test_calculate_dc_values(input_datasets, latitude_month):
+    dc_ds = input_datasets.dc
+    temp_ds = input_datasets.temp
+    rh_ds = input_datasets.rh
+    precip_ds = input_datasets.precip
     latitude, month = latitude_month
 
     dc_sample = FWI_ARRAY[0, 0]
-    temp_sample = TEST_ARRAY[0, 0]
-    rh_sample = TEST_ARRAY[0, 0]
-    precip_sample = TEST_ARRAY[0, 0]
+    temp_sample = WEATHER_ARRAY[0, 0]
+    rh_sample = WEATHER_ARRAY[0, 0]
+    precip_sample = WEATHER_ARRAY[0, 0]
     lat_sample = latitude[0, 0]
     month_sample = int(month[0, 0])
 
@@ -126,8 +138,9 @@ def test_calculate_dc_values(sample_bui_input_datasets, latitude_month):
     assert math.isclose(static_dmc, dc_values[0, 0], abs_tol=0.01)
 
 
-def test_calculate_bui_values(sample_bui_input_datasets):
-    dc_ds, dmc_ds, *_ = sample_bui_input_datasets
+def test_calculate_bui_values(input_datasets):
+    dc_ds = input_datasets.dc
+    dmc_ds = input_datasets.dmc
 
     dc_sample = FWI_ARRAY[0, 0]
     dmc_sample = FWI_ARRAY[0, 0]
@@ -139,8 +152,26 @@ def test_calculate_bui_values(sample_bui_input_datasets):
     assert math.isclose(static_bui, bui_values[0, 0], abs_tol=0.01)
 
 
-def test_calculate_daily_values(sample_daily_ffmc_input_datasets):
-    previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps = sample_daily_ffmc_input_datasets
+def test_calculate_isi_values(input_datasets):
+    ffmc_ds = input_datasets.ffmc
+    wind_speed_ds = input_datasets.wind_speed
+
+    ffmc_sample = FWI_ARRAY[0, 0]
+    wind_sample = WEATHER_ARRAY[0, 0]
+
+    isi_values, _ = calculate_isi(ffmc_ds, wind_speed_ds)
+
+    static_isi = isi(ffmc_sample, wind_sample)
+
+    assert math.isclose(static_isi, isi_values[0, 0], abs_tol=0.01)
+
+
+def test_calculate_ffmc_values(input_datasets):
+    previous_ffmc_wps = input_datasets.ffmc
+    temp_wps = input_datasets.temp
+    rh_wps = input_datasets.rh
+    precip_wps = input_datasets.precip
+    wind_speed_wps = input_datasets.wind_speed
 
     previous_ffmc_sample = temp_sample = rh_sample = precip_sample = wind_speed_sample = FWI_ARRAY[0, 0]
 
@@ -151,8 +182,12 @@ def test_calculate_daily_values(sample_daily_ffmc_input_datasets):
     assert math.isclose(static_ffmc, daily_ffmc_values[0, 0], abs_tol=0.01)
 
 
-def test_calculate_ffmc_masked_correctly(sample_daily_ffmc_input_datasets):
-    previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps = sample_daily_ffmc_input_datasets
+def test_calculate_ffmc_masked_correctly(input_datasets):
+    previous_ffmc_wps = input_datasets.ffmc
+    temp_wps = input_datasets.temp
+    rh_wps = input_datasets.rh
+    precip_wps = input_datasets.precip
+    wind_speed_wps = input_datasets.wind_speed
 
     daily_ffmc_values, nodata_value = calculate_ffmc(previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps)
 

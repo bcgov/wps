@@ -19,7 +19,7 @@ parameters:
     required: true
   - name: APP_NAME
     description: Application name (wps - wildfire predictive services)
-    value: wps-crunchydb
+    value: wps-crunchydb-16
     required: true
   - name: BUCKET
     description: S3 bucket name
@@ -63,15 +63,18 @@ objects:
       init.sql: |-
         \c wps\\
         CREATE EXTENSION postgis;
+        GRANT CREATE ON SCHEMA public TO "${APP_NAME}-${SUFFIX}";
     kind: ConfigMap
     metadata:
-      name: wps-init-sql
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+      name: wps-init-sql-${SUFFIX}
   - apiVersion: postgres-operator.crunchydata.com/v1beta1
     kind: PostgresCluster
     metadata:
       name: ${APP_NAME}-${SUFFIX}
     spec:
-      postgresVersion: 14
+      postgresVersion: 16
       postGISVersion: "3.3"
       metadata:
         name: ${APP_NAME}-${SUFFIX}
@@ -79,7 +82,7 @@ objects:
           app: ${APP_NAME}-${SUFFIX}
       databaseInitSQL:
         key: init.sql
-        name: wps-init-sql
+        name: wps-init-sql-${SUFFIX}
       users:
         - name: ${APP_NAME}-${SUFFIX}
           databases:
@@ -87,7 +90,7 @@ objects:
             - wps
       instances:
         - name: crunchy
-          replicas: 3
+          replicas: 2
           resources:
             requests:
               cpu: ${CPU_REQUEST}
