@@ -110,9 +110,9 @@ objects:
                       value: ${SUFFIX}
                   resources:
                     limits:
-                      cpu: "1"
+                      cpu: "512m"
                       memory: 256Mi
                     requests:
-                      cpu: "500m"
+                      cpu: "256m"
                       memory: 128Mi
               restartPolicy: OnFailure
