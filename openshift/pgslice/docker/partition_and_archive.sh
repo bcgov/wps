@@ -62,5 +62,5 @@ pgslice swap $TABLE --url $PGSLICE_URL
 # Fill the rest (rows inserted between the first fill and the swap)
 pgslice fill $TABLE --swapped --url $PGSLICE_URL
 # Dump any retired tables to S3 and drop
-pg_dump -c -Fc -t ${TABLE}_retired $PGSLICE_URL | gzip | AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}" AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}" aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/retired/${TABLE}_retired.dump.gz"
+pg_dump -c -Fc -t ${TABLE}_retired $PGSLICE_URL | gzip | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/retired/${TABLE}_retired.dump.gz"
 psql -c "DROP TABLE ${TABLE}_retired" $PGSLICE_URL
