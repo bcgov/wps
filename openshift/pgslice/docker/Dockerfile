@@ -1,7 +1,7 @@
 FROM artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
 
 RUN apt-get update && \
-    apt-get install -y libpq-dev ruby-full && \
+    apt-get install -y build-essential libpq-dev ruby-full && \
     gem install pgslice
 
 # Download the Amazon CLI installer.
