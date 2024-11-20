@@ -1,6 +1,7 @@
 FROM artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
 
 RUN apt-get update && \
+    apt-get install -y ruby-full && \
     gem install pgslice
 
 # Download the Amazon CLI installer.
