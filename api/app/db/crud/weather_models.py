@@ -197,7 +197,6 @@ def get_latest_station_prediction(session: Session, station_codes: List[int], da
             WeatherStationModelPrediction.bias_adjusted_precip_24h,
             WeatherStationModelPrediction.wdir_tgl_10,
             WeatherStationModelPrediction.wind_tgl_10,
-            WeatherStationModelPrediction.update_date,
         )
         .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id)
         .join(PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id)
