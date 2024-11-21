@@ -49,12 +49,13 @@ then
     exit 1
 fi
 
-export PGSLICE_URL="postgresql://${PG_USER}:${PG_PASSWORD}@${PG_HOSTNAME}:${PG_PORT}/${PG_DATABASE}"
+ENCODED_PASS=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${PG_PASSWORD}'))")
+PGSLICE_URL=postgresql://${PG_USER}:${ENCODED_PASS}@${PG_HOSTNAME}:${PG_PORT}/${PG_DATABASE}
 # Fill the partitions with data from the original table
-pgslice fill $TABLE
+pgslice fill $TABLE --url $PGSLICE_URL
 # Analyze for query planner
-pgslice analyze $TABLE
+pgslice analyze $TABLE --url $PGSLICE_URL
 # Swap the intermediate table with the original table
-pgslice swap $TABLE
+pgslice swap $TABLE --url $PGSLICE_URL
 # Fill the rest (rows inserted between the first fill and the swap)
-pgslice fill $TABLE --swapped
+pgslice fill $TABLE --swapped --url $PGSLICE_URL
