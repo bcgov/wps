@@ -5,6 +5,7 @@ import logging
 from typing import List
 import datetime
 from datetime import time
+from time import perf_counter
 from collections import defaultdict
 import pytz
 from sqlalchemy.orm import Session
@@ -115,6 +116,7 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
 async def fetch_latest_model_run_predictions_by_station_code_and_date_range(
     session: Session, station_codes: List[int], start_time: datetime.datetime, end_time: datetime.datetime
 ) -> List[WeatherIndeterminate]:
+    cffdrs_start = perf_counter()
     results: List[WeatherIndeterminate] = []
     days = get_days_from_range(start_time, end_time)
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
@@ -140,7 +142,6 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(
             bias_adjusted_precip_24h,
             wind_dir,
             wind_speed,
-            update_date,
         ) in daily_result:
             # Create two WeatherIndeterminates, one for model predictions and one for bias corrected predictions
             results.append(
@@ -169,7 +170,13 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(
                     wind_direction=bias_adjusted_wdir,
                 )
             )
-    return post_process_fetched_predictions(results)
+    post_processed_results = post_process_fetched_predictions(results)
+    cffdrs_end = perf_counter()
+    delta = cffdrs_end - cffdrs_start
+    # Any delta below 100 milliseconds is just noise in the logs.
+    if delta > 0.1:
+        logger.info("%f delta count before and after latest prediction model query", delta)
+    return post_processed_results
 
 
 def post_process_fetched_predictions(weather_indeterminates: List[WeatherIndeterminate]):
