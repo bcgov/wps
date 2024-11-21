@@ -221,7 +221,7 @@ def test_calculate_fwi_masked_correctly(input_datasets):
     isi_ds = input_datasets.isi
     bui_ds = input_datasets.bui
 
-    fwi_values, nodata_value = calculate_isi(isi_ds, bui_ds)
+    fwi_values, nodata_value = calculate_fwi(isi_ds, bui_ds)
 
     # validate output shape and nodata masking
     assert fwi_values.shape == (2, 2)
