@@ -126,20 +126,7 @@ def get_station_model_predictions(
     return query
 
 
-def get_latest_station_model_prediction_per_day(session: Session, station_codes: List[int], model: str, day_start: datetime.datetime, day_end: datetime.datetime):
-    """
-    All weather station model predictions for:
-     - a given day
-     - a given model
-     - each station in the given list
-    ordered by update_timestamp
-
-    This is done by joining the predictions on their runs,
-    that are filtered by the day and the 20:00UTC predictions.
-
-    In turn prediction runs are filtered via a join
-    on runs that are for the selected model.
-    """
+def get_latest_model_predictions_subquery(session: Session, station_codes: List[int], day_start: datetime.datetime, day_end: datetime.datetime):
     subquery = (
         session.query(
             func.max(WeatherStationModelPrediction.prediction_timestamp).label("latest_prediction"),
@@ -155,6 +142,25 @@ def get_latest_station_model_prediction_per_day(session: Session, station_codes:
         .group_by(WeatherStationModelPrediction.station_code, func.date(WeatherStationModelPrediction.prediction_timestamp).label("unique_day"))
         .subquery("latest")
     )
+
+    return subquery
+
+
+def get_latest_station_model_prediction_per_day(session: Session, station_codes: List[int], model: str, day_start: datetime.datetime, day_end: datetime.datetime):
+    """
+    All weather station model predictions for:
+     - a given day
+     - a given model
+     - each station in the given list
+    ordered by update_timestamp
+
+    This is done by joining the predictions on their runs,
+    that are filtered by the day and the 20:00UTC predictions.
+
+    In turn prediction runs are filtered via a join
+    on runs that are for the selected model.
+    """
+    subquery = get_latest_model_predictions_subquery(session, station_codes, day_start, day_end)
 
     result = (
         session.query(
@@ -180,7 +186,7 @@ def get_latest_station_model_prediction_per_day(session: Session, station_codes:
     return result
 
 
-def get_latest_station_prediction_mat_view(session: Session, station_codes: List[int], day_start: datetime.datetime, day_end: datetime.datetime):
+def get_latest_station_prediction(session: Session, station_codes: List[int], day_start: datetime.datetime, day_end: datetime.datetime):
     logger.info("Getting data from materialized view.")
     result = (
         session.query(
@@ -199,7 +205,7 @@ def get_latest_station_prediction_mat_view(session: Session, station_codes: List
             WeatherStationModelPrediction.wind_tgl_10,
             WeatherStationModelPrediction.update_date,
         )
-        .join(PredictionModel, PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id)
+        .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id)
         .join(PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id)
         .filter(
             WeatherStationModelPrediction.station_code.in_(station_codes),
@@ -223,21 +229,7 @@ def get_latest_station_prediction_per_day(session: Session, station_codes: List[
     In turn prediction runs are filtered via a join
     on runs that are for the selected model.
     """
-    subquery = (
-        session.query(
-            func.max(WeatherStationModelPrediction.prediction_timestamp).label("latest_prediction"),
-            WeatherStationModelPrediction.station_code,
-            func.date(WeatherStationModelPrediction.prediction_timestamp).label("unique_day"),
-        )
-        .filter(
-            WeatherStationModelPrediction.station_code.in_(station_codes),
-            WeatherStationModelPrediction.prediction_timestamp >= day_start,
-            WeatherStationModelPrediction.prediction_timestamp <= day_end,
-            func.date_part("hour", WeatherStationModelPrediction.prediction_timestamp) == 20,
-        )
-        .group_by(WeatherStationModelPrediction.station_code, func.date(WeatherStationModelPrediction.prediction_timestamp).label("unique_day"))
-        .subquery("latest")
-    )
+    subquery = get_latest_model_predictions_subquery(session, station_codes, day_start, day_end)
 
     result = (
         session.query(
