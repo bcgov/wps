@@ -61,6 +61,14 @@ pgslice analyze $TABLE --url $PGSLICE_URL
 pgslice swap $TABLE --url $PGSLICE_URL
 # Fill the rest (rows inserted between the first fill and the swap)
 pgslice fill $TABLE --swapped --url $PGSLICE_URL
+
+
 # Dump any retired tables to S3 and drop
-pg_dump -c -Fc -t ${TABLE}_retired $PGSLICE_URL | gzip | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/retired/${TABLE}_retired.dump.gz"
+# borrowing a lot from https://github.com/BCDevOps/backup-container
+_timestamp=`date +\%Y-\%m-\%d_%H-%M-%S`
+_datestamp=`date +\%Y/\%m`
+_target_filename="${PG_HOSTNAME}_${TABLE}_retired_${_timestamp}.sql.gz"
+_target_folder="${PG_HOSTNAME}_${PG_DATABASE}/${_datestamp}"
+
+pg_dump -c -Fc -t ${TABLE}_retired $PGSLICE_URL | gzip | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/retired/${_target_folder}/${_target_filename}"
 psql -c "DROP TABLE ${TABLE}_retired" $PGSLICE_URL
