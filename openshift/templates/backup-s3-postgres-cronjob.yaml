@@ -166,7 +166,7 @@ objects:
                           key: object-store-bucket
               restartPolicy: "Never"
               terminationGracePeriodSeconds: 30
-              activeDeadlineSeconds: 1600
+              activeDeadlineSeconds: 3000
               dnsPolicy: "ClusterFirst"
               serviceAccountName: "${JOB_SERVICE_ACCOUNT}"
               serviceAccount: "${JOB_SERVICE_ACCOUNT}"
