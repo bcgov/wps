@@ -20,7 +20,7 @@ DAYS_TO_CALCULATE = 2
 class SFMSCalcJob:
     async def calculate_daily_fwi(self, start_time: datetime):
         """
-        Entry point for processing SFMS DMC/DC/BUI rasters. To run from a specific date manually in openshift,
+        Entry point for processing SFMS daily FWI rasters. To run from a specific date manually in openshift,
         see openshift/sfms-calculate/README.md
         """
         logger.info(f"Begin BUI raster calculations -- calculating {DAYS_TO_CALCULATE} days forward")
@@ -30,7 +30,7 @@ class SFMSCalcJob:
         daily_processor = DailyFWIProcessor(start_time, DAYS_TO_CALCULATE, RasterKeyAddresser())
 
         async with S3Client() as s3_client:
-            await daily_processor.process(s3_client, multi_wps_dataset_context, multi_wps_dataset_context, multi_wps_dataset_context)
+            await daily_processor.process(s3_client, multi_wps_dataset_context, multi_wps_dataset_context, multi_wps_dataset_context, multi_wps_dataset_context)
 
         # calculate the execution time.
         execution_time = get_utc_now() - start_exec

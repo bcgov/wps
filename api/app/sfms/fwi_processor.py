@@ -3,7 +3,7 @@ from time import perf_counter
 
 import numpy as np
 
-from app.auto_spatial_advisory.sfms import vectorized_bui, vectorized_dc, vectorized_dmc, vectorized_ffmc, vectorized_isi
+from app.auto_spatial_advisory.sfms import vectorized_bui, vectorized_dc, vectorized_dmc, vectorized_ffmc, vectorized_fwi, vectorized_isi
 from app.geospatial.wps_dataset import WPSDataset
 
 logger = logging.getLogger(__name__)
@@ -74,6 +74,21 @@ def calculate_ffmc(previous_ffmc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPS
         ffmc_values[nodata_mask] = nodata_value
 
     return ffmc_values, nodata_value
+
+
+def calculate_fwi(isi_ds: WPSDataset, bui_ds: WPSDataset):
+    isi_array, _ = isi_ds.replace_nodata_with(0)
+    bui_array, _ = bui_ds.replace_nodata_with(0)
+
+    start = perf_counter()
+    fwi_values = vectorized_fwi(isi_array, bui_array)
+    logger.info("%f seconds to calculate vectorized fwi", perf_counter() - start)
+
+    nodata_mask, nodata_value = isi_ds.get_nodata_mask()
+    if nodata_mask is not None:
+        fwi_values[nodata_mask] = nodata_value
+
+    return fwi_values, nodata_value
 
 
 def calculate_isi(ffmc_ds: WPSDataset, wind_speed_ds: WPSDataset):

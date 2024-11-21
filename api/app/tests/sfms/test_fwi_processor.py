@@ -3,11 +3,11 @@ from dataclasses import dataclass
 
 import numpy as np
 import pytest
-from cffdrs import bui, dc, dmc, ffmc, isi
+from cffdrs import bui, dc, dmc, ffmc, fwi, isi
 from osgeo import osr
 
 from app.geospatial.wps_dataset import WPSDataset
-from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_isi
+from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_fwi, calculate_isi
 
 FWI_ARRAY = np.array([[12, 20], [-999, -999]])
 WEATHER_ARRAY = np.array([[12, 20], [0, 0]])
@@ -15,9 +15,11 @@ WEATHER_ARRAY = np.array([[12, 20], [0, 0]])
 
 @dataclass
 class InputDatasets:
+    bui: WPSDataset
     dc: WPSDataset
     dmc: WPSDataset
     ffmc: WPSDataset
+    isi: WPSDataset
     temp: WPSDataset
     rh: WPSDataset
     precip: WPSDataset
@@ -31,9 +33,11 @@ def input_datasets():
     transform = (-2, 1, 0, 2, 0, -1)
 
     return InputDatasets(
+        bui=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
         dc=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
         dmc=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
         ffmc=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
+        isi=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
         temp=WPSDataset.from_array(WEATHER_ARRAY, transform, srs.ExportToWkt()),
         rh=WPSDataset.from_array(WEATHER_ARRAY, transform, srs.ExportToWkt()),
         precip=WPSDataset.from_array(WEATHER_ARRAY, transform, srs.ExportToWkt()),
@@ -152,6 +156,20 @@ def test_calculate_bui_values(input_datasets):
     assert math.isclose(static_bui, bui_values[0, 0], abs_tol=0.01)
 
 
+def test_calculate_isi_masked_correctly(input_datasets):
+    ffmc_ds = input_datasets.ffmc
+    windspeed_ds = input_datasets.wind_speed
+
+    isi_values, nodata_value = calculate_isi(ffmc_ds, windspeed_ds)
+
+    # validate output shape and nodata masking
+    assert isi_values.shape == (2, 2)
+    assert isi_values[1, 0] == nodata_value
+    assert isi_values[1, 1] == nodata_value
+    assert isi_values[0, 0] != nodata_value
+    assert isi_values[0, 1] != nodata_value
+
+
 def test_calculate_isi_values(input_datasets):
     ffmc_ds = input_datasets.ffmc
     wind_speed_ds = input_datasets.wind_speed
@@ -197,3 +215,31 @@ def test_calculate_ffmc_masked_correctly(input_datasets):
     assert daily_ffmc_values[1, 1] == nodata_value
     assert daily_ffmc_values[0, 0] != nodata_value
     assert daily_ffmc_values[0, 1] != nodata_value
+
+
+def test_calculate_fwi_masked_correctly(input_datasets):
+    isi_ds = input_datasets.isi
+    bui_ds = input_datasets.bui
+
+    fwi_values, nodata_value = calculate_fwi(isi_ds, bui_ds)
+
+    # validate output shape and nodata masking
+    assert fwi_values.shape == (2, 2)
+    assert fwi_values[1, 0] == nodata_value
+    assert fwi_values[1, 1] == nodata_value
+    assert fwi_values[0, 0] != nodata_value
+    assert fwi_values[0, 1] != nodata_value
+
+
+def test_calculate_fwi_values(input_datasets):
+    isi_ds = input_datasets.isi
+    bui_ds = input_datasets.bui
+
+    isi_sample = FWI_ARRAY[0, 0]
+    bui_sample = FWI_ARRAY[0, 0]
+
+    fwi_values, _ = calculate_fwi(isi_ds, bui_ds)
+
+    static_fwi = fwi(isi_sample, bui_sample)
+
+    assert math.isclose(static_fwi, fwi_values[0, 0], abs_tol=0.01)
