@@ -7,7 +7,7 @@ from typing import Callable, Iterator, List, Tuple, cast
 import numpy as np
 
 from app.geospatial.wps_dataset import WPSDataset
-from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_isi
+from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_fwi, calculate_isi
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
 from app.utils.geospatial import GDALResamplingMethod
 from app.utils.s3 import set_s3_gdal_config
@@ -30,7 +30,14 @@ class DailyFWIProcessor:
         self.days = days
         self.addresser = addresser
 
-    async def process(self, s3_client: S3Client, input_dataset_context: MultiDatasetContext, new_dmc_dc_context: MultiDatasetContext, new_ffmc_context: MultiDatasetContext):
+    async def process(
+        self,
+        s3_client: S3Client,
+        input_dataset_context: MultiDatasetContext,
+        new_dmc_dc_context: MultiDatasetContext,
+        new_ffmc_context: MultiDatasetContext,
+        new_isi_bui_context: MultiDatasetContext,
+    ):
         set_s3_gdal_config()
 
         for day in range(self.days):
@@ -114,16 +121,16 @@ class DailyFWIProcessor:
                     with new_dmc_dc_context([new_dmc_path, new_dc_path]) as new_dmc_dc_datasets:
                         new_ds = cast(List[WPSDataset], new_dmc_dc_datasets)  # Ensure correct type inference
                         new_dmc_ds, new_dc_ds = new_ds
-                        bui_values, nodata = calculate_bui(new_dmc_ds, new_dc_ds)
+                        bui_values, bui_nodata = calculate_bui(new_dmc_ds, new_dc_ds)
 
                         # Store the new BUI dataset
-                        await s3_client.persist_raster_data(
+                        new_bui_path = await s3_client.persist_raster_data(
                             temp_dir,
                             new_bui_key,
                             dmc_ds.as_gdal_ds().GetGeoTransform(),
                             dmc_ds.as_gdal_ds().GetProjection(),
                             bui_values,
-                            nodata,
+                            bui_nodata,
                         )
 
                     # Open new FFMC dataset and calculate ISI
@@ -134,13 +141,25 @@ class DailyFWIProcessor:
                         isi_values, isi_nodata = calculate_isi(new_ffmc_ds, warped_wind_speed_ds)
 
                         # Store the new ISI dataset
-                        await s3_client.persist_raster_data(
+                        new_isi_path = await s3_client.persist_raster_data(
                             temp_dir,
                             new_isi_key,
                             new_ffmc_ds.as_gdal_ds().GetGeoTransform(),
                             new_ffmc_ds.as_gdal_ds().GetProjection(),
                             isi_values,
                             isi_nodata,
+                        )
+
+                    # Open new ISI and BUI datasets to calculate FWI
+                    new_fwi_key = self.addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.FWI)
+                    with new_isi_bui_context([new_isi_path, new_bui_path]) as new_isi_bui_datasets:
+                        new_ds = cast(List[WPSDataset], new_isi_bui_datasets)  # Ensure correct type inference
+                        new_isi_ds, new_bui_ds = new_ds
+
+                        fwi_values, fwi_nodata = calculate_fwi(new_isi_ds, new_bui_ds)
+
+                        await s3_client.persist_raster_data(
+                            temp_dir, new_fwi_key, new_isi_ds.as_gdal_ds().GetGeoTransform(), new_isi_ds.as_gdal_ds().GetProjection(), fwi_values, fwi_nodata
                         )
 
     def _get_calculate_dates(self, day: int):

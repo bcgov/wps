@@ -83,6 +83,10 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
     new_datasets, mock_new_ffmc_datasets_context = create_mock_new_ds_context(1)
     mock_new_ffmc_ds = new_datasets[0]
 
+    # mock the isi and bui datasets
+    new_datasets, mock_new_isi_bui_datasets_context = create_mock_new_ds_context(2)
+    mock_new_isi_ds, mock_new_bui_ds = new_datasets
+
     # mock gdal open
     mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
 
@@ -92,6 +96,7 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
     calculate_bui_spy = mocker.spy(daily_fwi_processor, "calculate_bui")
     calculate_ffmc_spy = mocker.spy(daily_fwi_processor, "calculate_ffmc")
     calculate_isi_spy = mocker.spy(daily_fwi_processor, "calculate_isi")
+    calculate_fwi_spy = mocker.spy(daily_fwi_processor, "calculate_fwi")
 
     async with S3Client() as mock_s3_client:
         # mock s3 client
@@ -99,7 +104,7 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=mock_all_objects_exist)
         persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data", return_value="test_key.tif")
 
-        await fwi_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context, mock_new_ffmc_datasets_context)
+        await fwi_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context, mock_new_ffmc_datasets_context, mock_new_isi_bui_datasets_context)
 
         # Verify weather model keys and actual keys are checked for both days
         assert mock_all_objects_exist.call_count == 4
@@ -142,6 +147,7 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
             mocker.call(EXPECTED_FIRST_DAY, FWIParameter.FFMC),
             mocker.call(EXPECTED_FIRST_DAY, FWIParameter.BUI),
             mocker.call(EXPECTED_FIRST_DAY, FWIParameter.ISI),
+            mocker.call(EXPECTED_FIRST_DAY, FWIParameter.FWI),
             # second day, previous days' dc and dmc are looked up first
             mocker.call(EXPECTED_FIRST_DAY, FWIParameter.DC),
             mocker.call(EXPECTED_FIRST_DAY, FWIParameter.DMC),
@@ -151,6 +157,7 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
             mocker.call(EXPECTED_SECOND_DAY, FWIParameter.FFMC),
             mocker.call(EXPECTED_SECOND_DAY, FWIParameter.BUI),
             mocker.call(EXPECTED_SECOND_DAY, FWIParameter.ISI),
+            mocker.call(EXPECTED_SECOND_DAY, FWIParameter.FWI),
         ]
 
         # Verify weather inputs are warped to match dmc raster
@@ -192,6 +199,7 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
             wps_datasets = ffmc_calls[0][1:4]  # Extract dataset arguments
             assert all(isinstance(ds, WPSDataset) for ds in wps_datasets)
 
+
         assert calculate_bui_spy.call_args_list == [
             mocker.call(mock_new_dmc_ds, mock_new_dc_ds),
             mocker.call(mock_new_dmc_ds, mock_new_dc_ds),
@@ -203,8 +211,13 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
             wps_datasets = isi_calls.args  # Extract dataset arguments
             assert all(isinstance(ds, WPSDataset) for ds in wps_datasets)
 
+        assert calculate_fwi_spy.call_args_list == [
+            mocker.call(mock_new_isi_ds, mock_new_bui_ds),
+            mocker.call(mock_new_isi_ds, mock_new_bui_ds),
+        ]
+
         # 5 each day, new dmc, dc, ffmc, bui, and isi rasters
-        assert persist_raster_spy.call_count == 10
+        assert persist_raster_spy.call_count == 12
 
 
 @pytest.mark.parametrize(
@@ -225,6 +238,7 @@ async def test_no_weather_keys_exist(side_effect_1: bool, side_effect_2: bool, m
 
     _, mock_new_dmc_dc_datasets_context = create_mock_new_ds_context(2)
     _, mock_new_ffmc_dataset_context = create_mock_new_ds_context(1)
+    _, mock_new_isi_bui_datasets_context = create_mock_new_ds_context(2)
 
     # calculation spies
     calculate_dmc_spy = mocker.spy(daily_fwi_processor, "calculate_dmc")
@@ -232,13 +246,15 @@ async def test_no_weather_keys_exist(side_effect_1: bool, side_effect_2: bool, m
     calculate_bui_spy = mocker.spy(daily_fwi_processor, "calculate_bui")
     calculate_ffmc_spy = mocker.spy(daily_fwi_processor, "calculate_ffmc")
     calculate_isi_spy = mocker.spy(daily_fwi_processor, "calculate_isi")
+    calculate_fwi_spy = mocker.spy(daily_fwi_processor, "calculate_fwi")
 
     fwi_processor = DailyFWIProcessor(TEST_DATETIME, 1, RasterKeyAddresser())
 
-    await fwi_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context, mock_new_ffmc_dataset_context)
+    await fwi_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context, mock_new_ffmc_dataset_context, mock_new_isi_bui_datasets_context)
 
     calculate_dmc_spy.assert_not_called()
     calculate_dc_spy.assert_not_called()
     calculate_bui_spy.assert_not_called()
     calculate_ffmc_spy.assert_not_called()
     calculate_isi_spy.assert_not_called()
+    calculate_fwi_spy.assert_not_called()
