@@ -170,11 +170,11 @@ def test_get_endpoints_unauthorized(
             crown_base_height=crown_base_height,
         )
 
-    error = check_metric(
-        "ROS",
-        fuel_type,
-        python_fba.ros,
-        java_fbp.ros_eq,
-        ros_margin_of_error,
-        f"""({index}) input- isi:{isi}; bui:{bui}; wind_speed:{wind_speed}; ffmc:{ffmc}; """ f"""java - isi:{java_fbp.isi}""",
-    )
+        error = check_metric(
+            "ROS",
+            fuel_type,
+            python_fba.ros,
+            java_fbp.ros_eq,
+            ros_margin_of_error,
+            f"""({index}) input- isi:{isi}; bui:{bui}; wind_speed:{wind_speed}; ffmc:{ffmc}; """ f"""java - isi:{java_fbp.isi}""",
+        )
