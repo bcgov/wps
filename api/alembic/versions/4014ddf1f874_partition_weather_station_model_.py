@@ -17,6 +17,7 @@ depends_on = None
 
 def upgrade():
     # ### drop table that's now partitioned ###
+    op.execute("DROP MATERIALIZED VIEW morecast_2_materialized_view")
     op.drop_table("weather_station_model_predictions_retired")
 
 
