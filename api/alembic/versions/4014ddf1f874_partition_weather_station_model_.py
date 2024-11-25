@@ -17,8 +17,8 @@ depends_on = None
 
 def upgrade():
     # ### drop table that's now partitioned ###
-    op.execute("DROP MATERIALIZED VIEW morecast_2_materialized_view")
-    op.drop_table("weather_station_model_predictions_retired")
+    op.execute("DROP MATERIALIZED VIEW IF EXISTS morecast_2_materialized_view")
+    op.drop_table("weather_station_model_predictions_retired", if_exists=True)
 
 
 def downgrade():
