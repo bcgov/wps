@@ -51,24 +51,29 @@ fi
 
 ENCODED_PASS=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${PG_PASSWORD}'))")
 PGSLICE_URL=postgresql://${PG_USER}:${ENCODED_PASS}@${PG_HOSTNAME}:${PG_PORT}/${PG_DATABASE}
-# Add partitions to the intermediate table (assumes it already exists)
-pgslice add_partitions $TABLE --intermediate --future 1 --url $PGSLICE_URL
-# Fill the partitions with data from the original table
-pgslice fill $TABLE --url $PGSLICE_URL
-# Analyze for query planner
-pgslice analyze $TABLE --url $PGSLICE_URL
-# Swap the intermediate table with the original table
-pgslice swap $TABLE --url $PGSLICE_URL
-# Fill the rest (rows inserted between the first fill and the swap)
-pgslice fill $TABLE --swapped --url $PGSLICE_URL
 
+# Add new partition for next month
+NEXT_MONTH_DATE=$(date -d "$(date +%Y-%m-01) next month" +%Y%m)
+FIRST_DAY_NEXT_MONTH=$(date -d "$(date +%Y-%m-01) next month" +%Y-%m-%d)
+LAST_DAY_NEXT_MONTH=$(date -d "$(date +%Y-%m-01) next month +1 month -1 day" +%Y-%m-%d)
+echo "Creating new partition for dates: $FIRST_DAY_NEXT_MONTH to $LAST_DAY_NEXT_MONTH"
 
-# Dump any retired tables to S3 and drop
-# borrowing a lot from https://github.com/BCDevOps/backup-container
-_timestamp=`date +\%Y-\%m-\%d_%H-%M-%S`
-_datestamp=`date +\%Y/\%m`
-_target_filename="${PG_HOSTNAME}_${TABLE}_retired_${_timestamp}.sql.gz"
-_target_folder="${PG_HOSTNAME}_${PG_DATABASE}/${_datestamp}"
+NEW_PARTITION_COMMAND="CREATE TABLE ${TABLE}_${DATE} PARTITION OF $TABLE FOR VALUES FROM ('$FIRST_DAY_NEXT_MONTH') TO ('$LAST_DAY_NEXT_MONTH');"
+psql -c "$NEW_PARTITION_COMMAND" $PGSLICE_URL
 
-pg_dump -c -Fc -t ${TABLE}_retired $PGSLICE_URL | gzip | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/retired/${_target_folder}/${_target_filename}"
-psql -c "DROP TABLE ${TABLE}_retired" $PGSLICE_URL
+# Mark tables from 3 months ago to 6 months ago as retired if they exist, then detach and dump them to object store
+# Borrowing a lot from https://github.com/BCDevOps/backup-container
+for i in {3..6}; do
+    DATE=$(date -d "$(date +%Y-%m-01) -$i months" +%Y%m)
+    PARTITION_TABLE="weather_station_model_predictions_${DATE}"
+    DETACH_COMMAND="ALTER TABLE weather_station_model_predictions DETACH PARTITION ${PARTITION_TABLE} IF EXISTS;"
+    echo "Detaching partition: ${PARTITION_TABLE}"
+    psql -c "$DETACH_COMMAND" $PGSLICE_URL
+    
+    echo "Dumping partition: ${PARTITION_TABLE}"
+    _datestamp=`date +\%Y/\%m`
+    _target_filename="${PG_HOSTNAME}_${PARTITION_TABLE}_retired_${DATE}.sql.gz"
+    _target_folder="${PG_HOSTNAME}_${PG_DATABASE}/${_datestamp}"
+    pg_dump -c -Fc -t ${PARTITION_TABLE} $PGSLICE_URL | gzip | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/retired/${_target_folder}/${_target_filename}"
+    psql -c "DROP TABLE ${PARTITION_TABLE}" $PGSLICE_URL
+done
