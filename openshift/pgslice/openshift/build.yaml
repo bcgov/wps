@@ -18,7 +18,7 @@ parameters:
   - name: GIT_URL
     value: https://github.com/bcgov/wps.git
   - name: GIT_BRANCH
-    value: main
+    value: task/rolling-partition-archiving
 objects:
   - apiVersion: v1
     kind: ImageStream
