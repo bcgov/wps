@@ -8,7 +8,6 @@ from unittest.mock import MagicMock
 import requests
 import pytest
 from pytest_mock import MockerFixture
-from pytest_bdd import then, parsers
 from app.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
 import app.utils.s3
 from app.utils.time import get_pst_tz, get_utc_now
@@ -29,7 +28,6 @@ import app.weather_models.process_grib
 from app.schemas.shared import WeatherDataRequest
 import app.wildfire_one.wildfire_fetchers
 import app.utils.redis
-from app.tests import load_json_file
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +172,7 @@ def mock_sentry(monkeypatch):
     """Mock sentrys' set_user function"""
 
     def mock_sentry(*args, **kwargs):
+        """No-op"""
         pass
 
     monkeypatch.setattr("app.auth.set_user", mock_sentry)
@@ -199,30 +198,3 @@ def mock_client_session(monkeypatch):
 def spy_access_logging(mocker: MockerFixture):
     """Spies on access audting logging for tests"""
     return mocker.spy(auth, "create_api_access_audit_log")
-
-
-@then(parsers.parse("the response status code is {status}"), converters={"status": int})
-def assert_status_code(response, status: int):
-    """Assert that we receive the expected status code"""
-    assert response["response"].status_code == status
-
-
-@then("the response isn't cached")
-def then_response_not_cached(response):
-    """Check that the response isn't being cached"""
-    if response["response"].status_code == 200:
-        assert response["response"].headers.get("cache-control", None) == "max-age=0"
-
-
-@then(parsers.parse("the response is {response_json}"), converters={"response_json": load_json_file(__file__)})
-def then_response(response, response_json: dict):
-    """Check entire response"""
-    if response_json is not None:
-        # it's very useful having this code hang around:
-        # import json
-        # from app.tests import get_complete_filename
-        # actual = response['response'].json()
-        # actual_filename = get_complete_filename(__file__, 'actual.json')
-        # with open(actual_filename, 'w', encoding="utf-8") as file_pointer:
-        #     json.dump(actual, file_pointer, indent=2)
-        assert response["response"].json() == response_json
