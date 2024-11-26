@@ -80,7 +80,17 @@ for i in {3..6}; do
     DETACH_COMMAND="
     DO \$BODY\$
     BEGIN
-        IF EXISTS (SELECT 1 FROM pg_catalog.pg_partitions WHERE schemaname = 'public' AND tablename = '${PARTITION_TABLE}') THEN
+        IF EXISTS (
+        	SELECT 1
+	        FROM pg_inherits
+	        JOIN pg_class parent ON pg_inherits.inhparent = parent.oid
+	        JOIN pg_class child ON pg_inherits.inhrelid = child.oid
+	        JOIN pg_namespace ns_parent ON parent.relnamespace = ns_parent.oid
+	        JOIN pg_namespace ns_child ON child.relnamespace = ns_child.oid
+	        WHERE ns_child.nspname = 'public' 
+	          AND child.relname = '${PARTITION_TABLE}'
+	          AND parent.relname = 'weather_station_model_predictions'
+        ) THEN
             EXECUTE 'ALTER TABLE weather_station_model_predictions DETACH PARTITION ${PARTITION_TABLE}';
         END IF;
     END \$BODY\$;"
