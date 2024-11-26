@@ -78,12 +78,12 @@ for i in {3..6}; do
     DATE=$(date -d "$(date +%Y-%m-01) -$i months" +%Y%m)
     PARTITION_TABLE="weather_station_model_predictions_${DATE}"
     DETACH_COMMAND="
-    DO $$ 
+    DO \$BODY\$
     BEGIN
         IF EXISTS (SELECT 1 FROM pg_catalog.pg_partitions WHERE schemaname = 'public' AND tablename = '${PARTITION_TABLE}') THEN
             EXECUTE 'ALTER TABLE weather_station_model_predictions DETACH PARTITION ${PARTITION_TABLE}';
         END IF;
-    END $$;"
+    END \$BODY\$;"
 
     echo "Detaching partition: ${PARTITION_TABLE}"
     psql -c "$DETACH_COMMAND" $PGSLICE_URL
