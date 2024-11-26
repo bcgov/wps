@@ -58,17 +58,6 @@ FIRST_DAY_NEXT_MONTH=$(date -d "$(date +%Y-%m-01) next month" +%Y-%m-%d)
 LAST_DAY_NEXT_MONTH=$(date -d "$(date +%Y-%m-01) next month +1 month -1 day" +%Y-%m-%d)
 echo "Creating new partition for dates: $FIRST_DAY_NEXT_MONTH to $LAST_DAY_NEXT_MONTH"
 
-NEW_PARTITION="${TABLE}_${NEXT_MONTH_DATE}"
-DETACH_COMMAND="
-DO $$ 
-BEGIN
-    IF EXISTS (SELECT 1 FROM pg_catalog.pg_partitions WHERE schemaname = 'public' AND tablename = 'weather_station_model_predictions_202408') THEN
-        EXECUTE 'DROP PARTITION FOR (PARTITION weather_station_model_predictions_202408)';
-    END IF;
-END $$;
-"
-
-
 NEW_PARTITION_COMMAND="CREATE TABLE ${TABLE}_${NEXT_MONTH_DATE} PARTITION OF $TABLE FOR VALUES FROM ('$FIRST_DAY_NEXT_MONTH') TO ('$LAST_DAY_NEXT_MONTH');"
 psql -c "$NEW_PARTITION_COMMAND" "$PGSLICE_URL"
 
