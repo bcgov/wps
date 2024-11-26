@@ -58,7 +58,7 @@ FIRST_DAY_NEXT_MONTH=$(date -d "$(date +%Y-%m-01) next month" +%Y-%m-%d)
 LAST_DAY_NEXT_MONTH=$(date -d "$(date +%Y-%m-01) next month +1 month -1 day" +%Y-%m-%d)
 echo "Creating new partition for dates: $FIRST_DAY_NEXT_MONTH to $LAST_DAY_NEXT_MONTH"
 
-NEW_PARTITION_COMMAND="CREATE TABLE ${TABLE}_${DATE} PARTITION OF $TABLE FOR VALUES FROM ('$FIRST_DAY_NEXT_MONTH') TO ('$LAST_DAY_NEXT_MONTH');"
+NEW_PARTITION_COMMAND="CREATE TABLE ${TABLE}_${NEXT_MONTH_DATE} PARTITION OF $TABLE FOR VALUES FROM ('$FIRST_DAY_NEXT_MONTH') TO ('$LAST_DAY_NEXT_MONTH');"
 psql -c "$NEW_PARTITION_COMMAND" $PGSLICE_URL
 
 # Mark tables from 3 months ago to 6 months ago as retired if they exist, then detach and dump them to object store
