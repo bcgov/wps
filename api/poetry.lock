@@ -1337,16 +1337,6 @@ all = ["GeoAlchemy2", "SQLAlchemy (>=1.3)", "folium", "geopy", "mapclassify", "m
 dev = ["black", "codecov", "pre-commit", "pytest (>=3.1.0)", "pytest-cov", "pytest-xdist"]
 
 [[package]]
-name = "glob2"
-version = "0.7"
-description = "Version of the glob module that can capture patterns and supports recursive wildcards"
-optional = false
-python-versions = "*"
-files = [
-    {file = "glob2-0.7.tar.gz", hash = "sha256:85c3dbd07c8aa26d63d7aacee34fa86e9a91a3873bc30bf62ec46e531f92ab8c"},
-]
-
-[[package]]
 name = "greenlet"
 version = "3.1.1"
 description = "Lightweight in-process concurrent programming"
@@ -2961,37 +2951,6 @@ files = [
 ]
 
 [[package]]
-name = "parse"
-version = "1.20.2"
-description = "parse() is the opposite of format()"
-optional = false
-python-versions = "*"
-files = [
-    {file = "parse-1.20.2-py2.py3-none-any.whl", hash = "sha256:967095588cb802add9177d0c0b6133b5ba33b1ea9007ca800e526f42a85af558"},
-    {file = "parse-1.20.2.tar.gz", hash = "sha256:b41d604d16503c79d81af5165155c0b20f6c8d6c559efa66b4b695c3e5a0a0ce"},
-]
-
-[[package]]
-name = "parse-type"
-version = "0.6.3"
-description = "Simplifies to build parse types based on the parse module"
-optional = false
-python-versions = "!=3.0.*,!=3.1.*,>=2.7"
-files = [
-    {file = "parse_type-0.6.3-py2.py3-none-any.whl", hash = "sha256:8d94a52e0197fbad63fee8f70df16e6ed689e5e4f105b705c9afa7a30397a5aa"},
-    {file = "parse_type-0.6.3.tar.gz", hash = "sha256:8e99d2f52fab2f0f1f3d68ba9d026060140bf0e53680aada0111fb27b2f0e93a"},
-]
-
-[package.dependencies]
-parse = {version = ">=1.18.0", markers = "python_version >= \"3.0\""}
-six = ">=1.15"
-
-[package.extras]
-develop = ["build (>=0.5.1)", "coverage (>=4.4)", "pylint", "pytest (<5.0)", "pytest (>=5.0)", "pytest-cov", "pytest-html (>=1.19.0)", "ruff", "setuptools", "tox (>=2.8,<4.0)", "twine (>=1.13.0)", "virtualenv (<20.22.0)", "virtualenv (>=20.0.0)"]
-docs = ["Sphinx (>=1.6)", "sphinx-bootstrap-theme (>=0.6.0)"]
-testing = ["pytest (<5.0)", "pytest (>=5.0)", "pytest-html (>=1.19.0)"]
-
-[[package]]
 name = "parso"
 version = "0.8.4"
 description = "A Python Parser"
@@ -3373,17 +3332,6 @@ files = [
 
 [package.extras]
 tests = ["pytest"]
-
-[[package]]
-name = "py"
-version = "1.11.0"
-description = "library with cross-python path, ini-parsing, io, code, log facilities"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-files = [
-    {file = "py-1.11.0-py2.py3-none-any.whl", hash = "sha256:607c53218732647dff4acdfcd50cb62615cedf612e72d1724fb1a0cc6405b378"},
-    {file = "py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
-]
 
 [[package]]
 name = "pycares"
@@ -3833,25 +3781,6 @@ pluggy = ">=0.12,<2.0"
 
 [package.extras]
 testing = ["argcomplete", "attrs (>=19.2.0)", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
-
-[[package]]
-name = "pytest-bdd"
-version = "5.0.0"
-description = "BDD for pytest"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "pytest-bdd-5.0.0.tar.gz", hash = "sha256:fab7093ed3d5e51ee0c68de093c90e4f40de345bd9a54a188b2991ce2a2a39cf"},
-    {file = "pytest_bdd-5.0.0-py3-none-any.whl", hash = "sha256:c7cf12209606421f61f36b5dc63beccd0c82d29446c0592cf68af2dad0a9761d"},
-]
-
-[package.dependencies]
-glob2 = "*"
-Mako = "*"
-parse = "*"
-parse-type = "*"
-py = "*"
-pytest = ">=4.3"
 
 [[package]]
 name = "pytest-cov"
@@ -5436,4 +5365,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12.3"
-content-hash = "5d293116c8192574399365177425e65ba354e68815bfbeb6776b4a256ca2fed5"
+content-hash = "56a5b4a2de2a671277112ad94fed6d98e8cc66bd89d1c29678d83cb9c403e291"
