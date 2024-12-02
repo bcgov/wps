@@ -9,7 +9,7 @@ import { PMTILES_BUCKET } from 'utils/env'
 
 import React, { useEffect, useRef, useState } from 'react'
 
-import { styleFuelGrid } from '@/features/psuInsights/components/map/psuFeatureStyler'
+import { styleFuelGrid } from '@/features/psuInsights/components/map/psuFeatureStylers'
 import { Box } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'

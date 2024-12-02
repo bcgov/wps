@@ -22,11 +22,17 @@ const rasterValueToFuelTypeCode = new Map([
   [14, 'M-1/M-2']
 ])
 
-const getColorForRasterValue = (rasterValue: number) => {
+const getColorForRasterValue = (rasterValue: number): string => {
   const fuelTypeCode = rasterValueToFuelTypeCode.get(rasterValue)
   return fuelTypeCode ? colorByFuelTypeCode.get(fuelTypeCode) : null
 }
 
+/**
+ * Takes rgb values as input, and assigns a transparency (alpha) value to them to make them rgba values
+ * @param color rgb or rgba colour string ex. rgb(1, 2, 3) or rgba(1, 2, 3, 0.2)
+ * @param alpha number value between 0 and 1
+ * @returns rgba value with alpha set ex. rgba(1, 2, 3, 0.5)
+ */
 export const setTransparency = (color: string, alpha: number): string => {
   if (!color) return 'rgba(0, 0, 0, 0)'
   const rgbMatch = color.match(/\d+/g)
@@ -41,10 +47,10 @@ export const styleFuelGrid = () => {
   const style = (feature: RenderFeature | ol.Feature<Geometry>) => {
     const fuelTypeInt = feature.getProperties().fuel
     const fillColour = getColorForRasterValue(fuelTypeInt)
-    const fillColourTransparency = setTransparency(fillColour, 0.7)
+    const fillRGBA = setTransparency(fillColour, 0.7)
 
     return new Style({
-      fill: new Fill({ color: fillColourTransparency })
+      fill: new Fill({ color: fillRGBA })
     })
   }
   return style
