@@ -1,5 +1,5 @@
 // A Map of fuel type codes to the colour typically used in BCWS
-const colorByFuelTypeCode = new Map()
+export const colorByFuelTypeCode = new Map()
 colorByFuelTypeCode.set('C-1', 'rgb(209, 255, 115)')
 colorByFuelTypeCode.set('C-2', 'rgb(34, 102, 51)')
 colorByFuelTypeCode.set('C-3', 'rgb(131, 199, 149)')
