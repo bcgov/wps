@@ -47,7 +47,7 @@ export const styleFuelGrid = () => {
   const style = (feature: RenderFeature | ol.Feature<Geometry>) => {
     const fuelTypeInt = feature.getProperties().fuel
     const fillColour = getColorForRasterValue(fuelTypeInt)
-    const fillRGBA = setTransparency(fillColour, 0.7)
+    const fillRGBA = setTransparency(fillColour, 0.6)
 
     return new Style({
       fill: new Fill({ color: fillRGBA })
