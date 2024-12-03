@@ -22,9 +22,9 @@ const rasterValueToFuelTypeCode = new Map([
   [14, 'M-1/M-2']
 ])
 
-const getColorForRasterValue = (rasterValue: number): string => {
+export const getColorForRasterValue = (rasterValue: number): string | undefined => {
   const fuelTypeCode = rasterValueToFuelTypeCode.get(rasterValue)
-  return fuelTypeCode ? colorByFuelTypeCode.get(fuelTypeCode) : null
+  return fuelTypeCode ? colorByFuelTypeCode.get(fuelTypeCode) : undefined
 }
 
 /**
@@ -33,7 +33,7 @@ const getColorForRasterValue = (rasterValue: number): string => {
  * @param alpha number value between 0 and 1
  * @returns rgba value with alpha set ex. rgba(1, 2, 3, 0.5)
  */
-export const setTransparency = (color: string, alpha: number): string => {
+export const setTransparency = (color: string | undefined, alpha: number): string => {
   if (!color) return 'rgba(0, 0, 0, 0)'
   const rgbMatch = color.match(/\d+/g)
   if (!rgbMatch || rgbMatch.length < 3) {
