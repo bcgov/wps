@@ -141,8 +141,8 @@ export const psuInsightsInfo: ToolInfo = {
   description: (
     <Typography>
       A visualization tool providing an interactive map-based interface to analyze and understand critical
-      wildfire-related data. The tool offers a comprehensive view of key datasets, allowing users to visualize, explore,
-      and extract valuable information.
+      wildfire-related data. The tool offers a comprehensive view of key datasets, allowing users to visualize and
+      explore valuable information.
     </Typography>
   ),
   icon: <InsightsIcon color="primary" fontSize={ICON_FONT_SIZE} />,
