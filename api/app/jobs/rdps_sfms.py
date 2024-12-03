@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 
 DAYS_TO_RETAIN = 7
-MAX_MODEL_RUN_HOUR = 37
+MAX_MODEL_RUN_HOUR = 45
 GRIB_LAYERS = {"temp": "TMP_TGL_2", "rh": "RH_TGL_2", "precip": "APCP_SFC_0", "wind_speed": "WIND_TGL_10"}
 
 

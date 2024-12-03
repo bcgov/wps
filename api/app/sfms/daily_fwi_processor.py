@@ -46,7 +46,7 @@ class DailyFWIProcessor:
 
             # Get and check existence of weather s3 keys
             temp_key, rh_key, wind_speed_key, precip_key = self.addresser.get_weather_data_keys(self.start_datetime, datetime_to_calculate_utc, prediction_hour)
-            weather_keys_exist = await s3_client.all_objects_exist(temp_key, rh_key, precip_key)
+            weather_keys_exist = await s3_client.all_objects_exist(temp_key, rh_key, wind_speed_key, precip_key)
             if not weather_keys_exist:
                 logging.warning(f"Missing weather keys for {model_run_for_hour(self.start_datetime.hour):02} model run")
                 break
@@ -76,6 +76,7 @@ class DailyFWIProcessor:
                     precip_ds.close()
                     rh_ds.close()
                     temp_ds.close()
+                    wind_speed_ds.close()
                     # Create latitude and month arrays needed for calculations
                     latitude_array = dmc_ds.generate_latitude_array()
                     month_array = np.full(latitude_array.shape, datetime_to_calculate_utc.month)

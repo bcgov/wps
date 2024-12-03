@@ -144,3 +144,18 @@ def compose_computed_precip_rdps_key(accumulation_end_datetime: datetime):
     """Compose and return a computed RDPS url given the datetime that precip is being accumulated to."""
     model_hour = model_run_for_hour(accumulation_end_datetime.hour)
     return f"{model_hour:02d}/precip/{compose_computed_rdps_filename(accumulation_end_datetime)}"
+
+
+def compose_rdps_key_hffmc(model_run_start: datetime, offset_hour: int, weather_parameter: str):
+    """Compose and return a computed RDPS url given a forecast start date and hour offset."""
+    model_hour = model_run_for_hour(model_run_start.hour)
+    return f"{model_hour:02d}/{weather_parameter}/{compose_rdps_filename_hffmc(model_run_start, offset_hour, weather_parameter)}"
+
+
+def compose_rdps_filename_hffmc(model_run_start: datetime, offset_hour: int, weather_parameter: str):
+    key_params = get_weather_key_params(weather_parameter)
+    file_ext = ".grib2"
+    return (
+        f"{SourcePrefix.CMC.value}{DELIMITER}{REG}{DELIMITER}{key_params.variable}{DELIMITER}{key_params.level_type}{DELIMITER}{key_params.level}{DELIMITER}{PS10KM}{DELIMITER}"
+        f"{model_run_start.date().isoformat().replace('-','')}{model_run_start.hour:02d}{DELIMITER}P{offset_hour:03d}{file_ext}"
+    )
