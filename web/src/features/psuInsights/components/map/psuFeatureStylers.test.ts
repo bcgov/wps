@@ -30,4 +30,9 @@ describe('getColorForRasterValue', () => {
     const colour = getColorForRasterValue(rasterValue)
     expect(colour).toBe('rgb(209, 255, 115)')
   })
+  it('should return undefined if no colour is found', () => {
+    const rasterValue = 1000
+    const colour = getColorForRasterValue(rasterValue)
+    expect(colour).toBe(undefined)
+  })
 })

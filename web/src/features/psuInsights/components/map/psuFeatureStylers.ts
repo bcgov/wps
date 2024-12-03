@@ -35,11 +35,13 @@ export const getColorForRasterValue = (rasterValue: number): string | undefined 
  */
 export const setTransparency = (color: string | undefined, alpha: number): string => {
   if (!color) return 'rgba(0, 0, 0, 0)'
-  const rgbMatch = color.match(/\d+/g)
+
+  const rgbMatch = color.match(/\d+/g)?.map(Number)
   if (!rgbMatch || rgbMatch.length < 3) {
-    throw new Error(`Invalid color format: ${color}`)
+    throw new Error(`Invalid color format: "${color}"`)
   }
-  const [r, g, b] = rgbMatch.map(Number)
+
+  const [r, g, b] = rgbMatch
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
