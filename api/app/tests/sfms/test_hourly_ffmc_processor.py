@@ -87,17 +87,13 @@ async def test_hourly_ffmc_processor(mocker: MockerFixture):
         assert mock_all_objects_exist.call_count == num_hours_to_process + 1
 
         # Verify retrivel of hffmc
-        assert get_uploaded_hffmc_key_spy.call_args_list == [mocker.call(TEST_DATETIME)]
+        assert get_uploaded_hffmc_key_spy.call_args_list == [mocker.call(RDPS_MODEL_RUN_DATETIME)]
 
         # Verify the arguments for each call for get_weather_data_keys
         assert get_weather_data_keys_hffmc_spy.call_args_list == [
             mocker.call(RDPS_MODEL_RUN_DATETIME, 0),
             mocker.call(RDPS_MODEL_RUN_DATETIME, 1),
         ]
-
-        for x in gdal_prefix_keys_spy.call_args:
-            for y in x:
-                print(y)
 
         # Verify the arguments for each call for gdal_prefix_keys
         assert gdal_prefix_keys_spy.call_args_list == [
@@ -107,14 +103,14 @@ async def test_hourly_ffmc_processor(mocker: MockerFixture):
                 "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P000.grib2",
                 "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P000.grib2",
                 "weather_models/rdps/2024-10-10/00/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_00z.tif",
-                "sfms/uploads/hourlies/2024-10-10/fine_fuel_moisture_code2024101004.tif",
+                "sfms/uploads/hourlies/2024-10-09/fine_fuel_moisture_code2024100916.tif",
             ),
             mocker.call(
                 "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P001.grib2",
                 "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P001.grib2",
                 "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P001.grib2",
                 "weather_models/rdps/2024-10-10/00/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_01z.tif",
-                "sfms/calculated/hourlies/2024-10-10/fine_fuel_moisture_code2024101000.tif",
+                "sfms/calculated/hourlies/2024-10-09/fine_fuel_moisture_code2024100917.tif",
             ),
         ]
 
