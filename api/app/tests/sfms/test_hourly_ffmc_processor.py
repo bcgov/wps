@@ -6,8 +6,8 @@ from pytest_mock import MockerFixture
 
 from app.geospatial.wps_dataset import WPSDataset
 from app.sfms import hourly_ffmc_processor
-from app.sfms.hourly_ffmc_processor import HFFMC_HOURS, HourlyFFMCProcessor
-from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
+from app.sfms.hourly_ffmc_processor import HourlyFFMCProcessor
+from app.sfms.raster_addresser import RasterKeyAddresser
 from app.tests.dataset_common import create_mock_gdal_dataset, create_mock_input_dataset_context, create_mock_new_ds_context
 from app.utils.geospatial import GDALResamplingMethod
 from app.utils.s3_client import S3Client

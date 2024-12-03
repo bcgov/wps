@@ -193,7 +193,7 @@ def test_calculate_ffmc_values(input_datasets):
 
     previous_ffmc_sample = temp_sample = rh_sample = precip_sample = wind_speed_sample = FWI_ARRAY[0, 0]
 
-    daily_ffmc_values, _ = calculate_ffmc(previous_ffmc_wps, temp_wps, rh_wps, wind_speed_wps, precip_wps)
+    daily_ffmc_values, _ = calculate_ffmc(previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps)
 
     static_ffmc = ffmc(previous_ffmc_sample, temp_sample, rh_sample, wind_speed_sample, precip_sample)
 
@@ -207,7 +207,7 @@ def test_calculate_ffmc_masked_correctly(input_datasets):
     precip_wps = input_datasets.precip
     wind_speed_wps = input_datasets.wind_speed
 
-    daily_ffmc_values, nodata_value = calculate_ffmc(previous_ffmc_wps, temp_wps, rh_wps, wind_speed_wps, precip_wps)
+    daily_ffmc_values, nodata_value = calculate_ffmc(previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps)
 
     # validate output shape and nodata masking
     assert daily_ffmc_values.shape == (2, 2)
