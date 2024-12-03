@@ -77,7 +77,7 @@ class HourlyFFMCProcessor:
                     warped_precip_ds = precip_ds.warp_to_match(hffmc_ds, f"{temp_dir}/{os.path.basename(precip_key)}", GDALResamplingMethod.BILINEAR)
 
                     # Create and store new hFFMC dataset
-                    hffmc_values, hffmc_no_data_value = calculate_ffmc(hffmc_ds, warped_temp_ds, warped_rh_ds, warped_wind_speed_ds, warped_precip_ds)
+                    hffmc_values, hffmc_no_data_value = calculate_ffmc(hffmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, warped_wind_speed_ds)
                     new_hffmc_datetime = rdps_model_run_start + timedelta(hours=hour)
                     hffmc_key = self.addresser.get_calculated_hffmc_index_key(new_hffmc_datetime)
                     geotransform = hffmc_ds.as_gdal_ds().GetGeoTransform()

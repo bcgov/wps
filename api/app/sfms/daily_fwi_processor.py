@@ -106,7 +106,7 @@ class DailyFWIProcessor:
                     )
 
                     # Create and store FFMC dataset
-                    ffmc_values, ffmc_no_data_value = calculate_ffmc(ffmc_ds, warped_temp_ds, warped_rh_ds, warped_wind_speed_ds, warped_precip_ds)
+                    ffmc_values, ffmc_no_data_value = calculate_ffmc(ffmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, warped_wind_speed_ds)
                     new_ffmc_key = self.addresser.get_calculated_index_key(datetime_to_calculate_utc, FWIParameter.FFMC)
                     new_ffmc_path = await s3_client.persist_raster_data(
                         temp_dir,
