@@ -28,7 +28,7 @@ const getColorForRasterValue = (rasterValue: number): string => {
 }
 
 /**
- * Takes rgb values as input, and assigns a transparency (alpha) value to them to make them rgba values
+ * Takes rgb or rgba values as input, sets or updates the alpha value, and returns a new rgba value
  * @param color rgb or rgba colour string ex. rgb(1, 2, 3) or rgba(1, 2, 3, 0.2)
  * @param alpha number value between 0 and 1
  * @returns rgba value with alpha set ex. rgba(1, 2, 3, 0.5)
