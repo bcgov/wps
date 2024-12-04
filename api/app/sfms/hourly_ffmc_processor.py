@@ -32,16 +32,13 @@ class HourlyFFMCProcessor:
     async def process(self, s3_client: S3Client, input_dataset_context: MultiDatasetContext, hours_to_process: int = MAX_MODEL_RUN_HOUR):
         set_s3_gdal_config()
 
-        # 1 - Determine starting hFFMC (4am or 4pm) from SFMS and get key, confirm exists, if not, exit
-        # 2 - Determine what would be last key of run and check if exists, if exists, exit
-        # 3 - Get all weather variable keys and check if last one exists, if not, exit
-        # 4 - Use seed hFFMC plus:
-        #       - rh, temp and wind speed from RDPS model run hour n = 000
-        #       - computed precip at n = 0Z or 12Z
-        # 5 - Use newly calculated hFFMC to calculate next hFFMC using:
-        #       -  rh, temp and wind speed from RDPS model run hour n + 1
-        #       - computed precip at n + 1
-        # hFFMC files from SFMS use PST datetimes
+        # hFFMC general process
+        # 1. cron job kicks off the job and we use current UTC time as start time
+        # 2. Create HourlyFFMCProcessor with the start time and begin processing
+        # 3. Use job start time to determine most recent RDPS model run start time (date and 00z or 12z)
+        # 4. Use most recent RDPS model run start time to determine most recent hFFMC key to use as source which is always one hour before the RDPS start time (04 or 16 PDT)
+        # 5. Start calculating hFFMC from model run hour 0 through to 47. Save the calculated hFFMCs to S3. Most recently calculated hFFMC is used as input to the next hour's hFFMC calculation.
+        # 6. hFFMC rasters are saved to S3 with PDT based keys.
 
         # Determine most recent RDPS model run
         rdps_model_run_hour = model_run_for_hour(self.start_datetime.hour)
