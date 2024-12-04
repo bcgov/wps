@@ -33,7 +33,7 @@ class HourlyFFMCProcessor:
         set_s3_gdal_config()
 
         # hFFMC general process
-        # 1. cron job kicks off the job and we use current UTC time as start time
+        # 1. Cron job kicks off the job and we use current UTC time as start time
         # 2. Create HourlyFFMCProcessor with the start time and begin processing
         # 3. Use job start time to determine most recent RDPS model run start time (date and 00z or 12z)
         # 4. Use most recent RDPS model run start time to determine most recent hFFMC key to use as source which is always one hour before the RDPS start time (04 or 16 PDT)
