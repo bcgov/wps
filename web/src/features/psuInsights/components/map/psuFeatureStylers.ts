@@ -22,37 +22,18 @@ const rasterValueToFuelTypeCode = new Map([
   [14, 'M-1/M-2']
 ])
 
-export const getColorForRasterValue = (rasterValue: number): string | undefined => {
+export const getColorForRasterValue = (rasterValue: number): string => {
   const fuelTypeCode = rasterValueToFuelTypeCode.get(rasterValue)
-  return fuelTypeCode ? colorByFuelTypeCode.get(fuelTypeCode) : undefined
-}
-
-/**
- * Takes rgb or rgba values as input, sets or updates the alpha value, and returns a new rgba value
- * @param color rgb or rgba colour string ex. rgb(1, 2, 3) or rgba(1, 2, 3, 0.2)
- * @param alpha number value between 0 and 1
- * @returns rgba value with alpha set ex. rgba(1, 2, 3, 0.5)
- */
-export const setTransparency = (color: string | undefined, alpha: number): string => {
-  if (!color) return 'rgba(0, 0, 0, 0)'
-
-  const rgbMatch = color.match(/\d+/g)?.map(Number)
-  if (!rgbMatch || rgbMatch.length < 3) {
-    throw new Error(`Invalid color format: "${color}"`)
-  }
-
-  const [r, g, b] = rgbMatch
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  return fuelTypeCode ? colorByFuelTypeCode.get(fuelTypeCode) : 'rgba(0, 0, 0, 0)'
 }
 
 export const styleFuelGrid = () => {
   const style = (feature: RenderFeature | ol.Feature<Geometry>) => {
     const fuelTypeInt = feature.getProperties().fuel
     const fillColour = getColorForRasterValue(fuelTypeInt)
-    const fillRGBA = setTransparency(fillColour, 0.6)
 
     return new Style({
-      fill: new Fill({ color: fillRGBA })
+      fill: new Fill({ color: fillColour })
     })
   }
   return style

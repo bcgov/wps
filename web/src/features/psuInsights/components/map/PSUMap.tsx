@@ -32,7 +32,8 @@ const PSUMap = () => {
     new VectorTileLayer({
       source: fuelGridVectorSource,
       style: styleFuelGrid(),
-      zIndex: 51
+      zIndex: 51,
+      opacity: 0.6
     })
   )
 
