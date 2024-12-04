@@ -125,6 +125,13 @@ class RasterKeyAddresser:
         return f"{self.smfs_hourly_upload_prefix}/{iso_date}/fine_fuel_moisture_code{iso_date.replace('-', '')}{datetime_pdt.hour:02d}.tif"
 
     def get_weather_data_keys_hffmc(self, rdps_model_run_start: datetime, offset_hour):
+        """
+        Gets temp, rh, wind speed and calculated accumulated precip for the specified RDPS model run start date and hour.
+
+        :param rdps_model_run_start: The RDPS model run start date and time.
+        :param offset_hour: The hour offset from the RDPS model run start hour.
+        :return: Keys to rasters in S3 storage for temp, rh, wind speed and calculated precip rasters.
+        """
         assert_all_utc(rdps_model_run_start)
         non_precip_keys = tuple(self.get_model_data_key_hffmc(rdps_model_run_start, offset_hour, param) for param in WeatherParameter)
         datetime_to_calculate_utc = rdps_model_run_start + timedelta(hours=offset_hour)
@@ -132,10 +139,18 @@ class RasterKeyAddresser:
         all_weather_data_keys = non_precip_keys + (precip_key,)
         return all_weather_data_keys
 
-    def get_model_data_key_hffmc(self, start_time_utc: datetime, offset_hour: int, weather_param: WeatherParameter):
-        assert_all_utc(start_time_utc)
-        weather_model_date_prefix = f"{self.weather_model_prefix}/{start_time_utc.date().isoformat()}/"
-        return os.path.join(weather_model_date_prefix, compose_rdps_key_hffmc(start_time_utc, offset_hour, weather_param.value))
+    def get_model_data_key_hffmc(self, rdps_model_run_start: datetime, offset_hour: int, weather_param: WeatherParameter):
+        """
+        Gets a S3 key for the weather parameter of interest for the specified RDPS model run start date and time at the provided offset.
+
+        :param rdps_model_run_start: The RDPS model run start date and time.
+        :param offset_hour: The hour offset from the RDPS model run start hour.
+        :param weather_param: The weather parameter of interest (temp, rh, or wind speed).
+        :return: A key to a raster in S3 storage.
+        """
+        assert_all_utc(rdps_model_run_start)
+        weather_model_date_prefix = f"{self.weather_model_prefix}/{rdps_model_run_start.date().isoformat()}/"
+        return os.path.join(weather_model_date_prefix, compose_rdps_key_hffmc(rdps_model_run_start, offset_hour, weather_param.value))
 
     def get_calculated_hffmc_index_key(self, datetime_utc: datetime):
         """

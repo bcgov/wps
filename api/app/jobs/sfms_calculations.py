@@ -22,7 +22,7 @@ DAYS_TO_CALCULATE = 2
 class SFMSCalcJob:
     async def calculate_fwi_rasters(self, start_time: datetime) -> None:
         """
-        Entry point for processing SFMS daily FWI rasters and hFFMC raster. To run from a specific date manually in openshift,
+        Entry point for processing SFMS daily FWI rasters and hFFMC rasters. To run from a specific date manually in openshift,
         see openshift/sfms-calculate/README.md
 
         :param start_time: The RDPS model run time to use for processing.
