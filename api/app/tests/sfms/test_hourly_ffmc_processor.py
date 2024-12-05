@@ -110,7 +110,7 @@ async def test_hourly_ffmc_processor(mocker: MockerFixture):
                 "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P001.grib2",
                 "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P001.grib2",
                 "weather_models/rdps/2024-10-10/00/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_01z.tif",
-                "sfms/calculated/hourlies/2024-10-09/fine_fuel_moisture_code2024100917.tif",
+                "sfms/calculated/hourlies/2024-10-10/fine_fuel_moisture_code2024101000.tif",
             ),
         ]
 
