@@ -38,7 +38,7 @@ class HourlyFFMCProcessor:
         # 3. Use job start time to determine most recent RDPS model run start time (date and 00z or 12z)
         # 4. Use most recent RDPS model run start time to determine most recent hFFMC key to use as source which is always one hour before the RDPS start time (04 or 16 PDT)
         # 5. Start calculating hFFMC from model run hour 0 through to 47. Save the calculated hFFMCs to S3. Most recently calculated hFFMC is used as input to the next hour's hFFMC calculation.
-        # 6. hFFMC rasters are saved to S3 with PDT based keys.
+        # 6. hFFMC rasters are saved to S3 with UTC based keys.
 
         # Determine most recent RDPS model run
         rdps_model_run_hour = model_run_for_hour(self.start_datetime.hour)
