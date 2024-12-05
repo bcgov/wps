@@ -65,8 +65,12 @@ def calculate_ffmc(previous_ffmc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPS
     precip_array, _ = precip_ds.replace_nodata_with(0)
     wind_speed_array, _ = wind_speed_ds.replace_nodata_with(0)
 
+    # Due to warping of the rh dataset, rh values can exceed 100 which breaks the ffmc calculation.
+    # Set rh values greater than 100 to the max allowable which is 100.
+    rh_array[rh_array > 100] = 100
+
     start = perf_counter()
-    ffmc_values = vectorized_ffmc(previous_ffmc_array, temp_array, rh_array, precip_array, wind_speed_array)
+    ffmc_values = vectorized_ffmc(previous_ffmc_array, temp_array, rh_array, wind_speed_array, precip_array)
     logger.info("%f seconds to calculate vectorized ffmc", perf_counter() - start)
 
     nodata_mask, nodata_value = previous_ffmc_ds.get_nodata_mask()

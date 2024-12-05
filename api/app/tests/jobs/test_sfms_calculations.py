@@ -28,6 +28,7 @@ def test_sfms_calc_job_fail_default(monkeypatch, mocker: MockerFixture):
 
 def test_sfms_calc_job_cli_arg(monkeypatch, mocker: MockerFixture):
     daily_fwi_calc_spy = mocker.patch.object(SFMSCalcJob, "calculate_daily_fwi", return_value=None)
+    hffmc_calc_spy = mocker.patch.object(SFMSCalcJob, "calculate_hffmc", return_value=None)
 
     test_datetime = "2024-10-10 5"
     monkeypatch.setattr("sys.argv", ["sfms_calculations.py", test_datetime])
@@ -35,6 +36,7 @@ def test_sfms_calc_job_cli_arg(monkeypatch, mocker: MockerFixture):
     sfms_calculations.main()
 
     daily_fwi_calc_spy.assert_called_once_with(datetime.strptime(test_datetime, "%Y-%m-%d %H").replace(tzinfo=timezone.utc))
+    hffmc_calc_spy.assert_called_once_with(datetime.strptime(test_datetime, "%Y-%m-%d %H").replace(tzinfo=timezone.utc))
 
 
 @pytest.mark.anyio

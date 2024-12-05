@@ -1,6 +1,4 @@
-from contextlib import ExitStack, contextmanager
 from datetime import datetime, timedelta, timezone
-from typing import List
 from unittest.mock import AsyncMock
 
 import pytest
@@ -10,51 +8,13 @@ from app.geospatial.wps_dataset import WPSDataset
 from app.sfms import daily_fwi_processor
 from app.sfms.daily_fwi_processor import DailyFWIProcessor
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
-from app.tests.dataset_common import create_mock_gdal_dataset, create_mock_wps_dataset
+from app.tests.dataset_common import create_mock_gdal_dataset, create_mock_input_dataset_context, create_mock_new_ds_context
 from app.utils.geospatial import GDALResamplingMethod
 from app.utils.s3_client import S3Client
 
 TEST_DATETIME = datetime(2024, 10, 10, 10, tzinfo=timezone.utc)
 EXPECTED_FIRST_DAY = TEST_DATETIME.replace(hour=20, minute=0, second=0, microsecond=0)
 EXPECTED_SECOND_DAY = TEST_DATETIME.replace(hour=20, minute=0, second=0, microsecond=0) + timedelta(days=1)
-
-
-def create_mock_wps_datasets(num: int) -> List[WPSDataset]:
-    return [create_mock_wps_dataset() for _ in range(num)]
-
-
-def create_mock_input_dataset_context():
-    input_datasets = create_mock_wps_datasets(7)
-
-    @contextmanager
-    def mock_input_dataset_context(_: List[str]):
-        try:
-            # Enter each dataset's context and yield the list of instances
-            with ExitStack() as stack:
-                yield [stack.enter_context(ds) for ds in input_datasets]
-        finally:
-            # Close all datasets to ensure cleanup
-            for ds in input_datasets:
-                ds.close()
-
-    return input_datasets, mock_input_dataset_context
-
-
-def create_mock_new_ds_context(number_of_datasets: int):
-    new_datasets = create_mock_wps_datasets(number_of_datasets)
-
-    @contextmanager
-    def mock_new_datasets_context(_: List[str]):
-        try:
-            # Enter each dataset's context and yield the list of instances
-            with ExitStack() as stack:
-                yield [stack.enter_context(ds) for ds in new_datasets]
-        finally:
-            # Close all datasets to ensure cleanup
-            for ds in new_datasets:
-                ds.close()
-
-    return new_datasets, mock_new_datasets_context
 
 
 @pytest.mark.anyio
@@ -64,11 +24,11 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
     get_weather_data_key_spy = mocker.spy(mock_key_addresser, "get_weather_data_keys")
     gdal_prefix_keys_spy = mocker.spy(mock_key_addresser, "gdal_prefix_keys")
     get_calculated_index_key_spy = mocker.spy(mock_key_addresser, "get_calculated_index_key")
+    
     fwi_processor = DailyFWIProcessor(TEST_DATETIME, 2, mock_key_addresser)
-    # mock/spy dataset storage
 
     # mock weather index, param datasets used for calculations
-    input_datasets, mock_input_dataset_context = create_mock_input_dataset_context()
+    input_datasets, mock_input_dataset_context = create_mock_input_dataset_context(7)
     mock_temp_ds, mock_rh_ds, mock_precip_ds, mock_wind_speed_ds, mock_dc_ds, mock_dmc_ds, mock_ffmc_ds = input_datasets
     temp_ds_spy = mocker.spy(mock_temp_ds, "warp_to_match")
     rh_ds_spy = mocker.spy(mock_rh_ds, "warp_to_match")
@@ -234,7 +194,7 @@ async def test_no_weather_keys_exist(side_effect_1: bool, side_effect_2: bool, m
 
     mocker.patch.object(mock_s3_client, "all_objects_exist", side_effect=[side_effect_1, side_effect_2])
 
-    _, mock_input_dataset_context = create_mock_input_dataset_context()
+    _, mock_input_dataset_context = create_mock_input_dataset_context(7)
 
     _, mock_new_dmc_dc_datasets_context = create_mock_new_ds_context(2)
     _, mock_new_ffmc_dataset_context = create_mock_new_ds_context(1)
