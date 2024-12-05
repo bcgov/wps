@@ -62,8 +62,8 @@ objects:
     metadata:
       name: wps-crunchydb-standby
     spec:
-      postgresVersion: 14
-      postGISVersion: "3.2"
+      postgresVersion: 16
+      postGISVersion: "3.3"
       metadata:
         name: wps-crunchydb-standby
         labels:
