@@ -16,6 +16,7 @@ RDPS_MODEL_RUN_00_START = datetime(2024, 10, 10, 0, tzinfo=timezone.utc)
 RDPS_MODEL_RUN_12_START = datetime(2024, 10, 10, 12, tzinfo=timezone.utc)
 HOUR_OFFSET = 3
 HFFMC_DATETIME = datetime(2024, 10, 10, 5, tzinfo=timezone.utc)
+HFFMC_DATETIME_ISO = HFFMC_DATETIME.date().isoformat()
 
 
 @pytest.fixture
@@ -65,4 +66,4 @@ def test_get_model_data_key_hffmc(raster_key_addresser):
 
 def test_get_calculated_hffmc_index_key(raster_key_addresser: RasterKeyAddresser):
     result = raster_key_addresser.get_calculated_hffmc_index_key(HFFMC_DATETIME)
-    assert result == "sfms/calculated/hourlies/2024-10-09/fine_fuel_moisture_code2024100922.tif"
+    assert result == f"sfms/calculated/hourlies/{HFFMC_DATETIME_ISO}/fine_fuel_moisture_code{HFFMC_DATETIME_ISO.replace('-','')}{HFFMC_DATETIME.hour:02d}.tif"
