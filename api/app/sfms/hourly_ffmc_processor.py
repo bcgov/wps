@@ -59,7 +59,7 @@ class HourlyFFMCProcessor:
                 temp_key, rh_key, wind_speed_key, precip_key = self.addresser.get_weather_data_keys_hffmc(rdps_model_run_start, hour)
                 weather_keys_exist = await s3_client.all_objects_exist(temp_key, rh_key, wind_speed_key, precip_key)
                 if not weather_keys_exist:
-                    logging.warning(f"Missing weather keys for model run: {rdps_model_run_start}")
+                    logging.warning(f"Missing weather keys for model run: {rdps_model_run_start} and hour {hour}")
                     break
 
                 # Prefix our S3 keys for access via gdal

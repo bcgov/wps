@@ -160,7 +160,6 @@ class RasterKeyAddresser:
         :return: An S3 key for hFFMC using PDT time.
         """
         assert_all_utc(datetime_utc)
-        datetime_pdt = convert_utc_to_pdt(datetime_utc)
-        iso_date = datetime_pdt.date().isoformat()
+        iso_date = datetime_utc.date().isoformat()
         weather_param_prefix = "fine_fuel_moisture_code"
-        return f"{self.sfms_calculated_prefix}/hourlies/{iso_date}/{weather_param_prefix}{iso_date.replace('-', '')}{datetime_pdt.hour:02d}.tif"
+        return f"{self.sfms_calculated_prefix}/hourlies/{iso_date}/{weather_param_prefix}{iso_date.replace('-', '')}{datetime_utc.hour:02d}.tif"
