@@ -65,17 +65,19 @@ More details here: <https://access.crunchydata.com/documentation/postgres-operat
 
 In the event that the cluster can't be restored from pgbackrest you can create a new cluster and restore using a pg_dump from S3.
 
-##### Deploy new cluster to test
+##### Deploy new cluster
 
    ```
    oc login
    PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=45Gi bash ./oc_provision_crunchy.sh <suffix> apply
    ```
 
-##### Set superuser permissions on new cluster via OpenShift web GUI
+##### Set superuser permissions in new cluster via OpenShift web GUI
 
-Login to the OpenShift UI and use `patronictl list` to identify the new cluster's leader pod. Access the terminal of the leader pod and execute:
-   `psql -c 'ALTER ROLE "<wps-crunchydb-username>" SUPERUSER'`
+Login to the OpenShift UI and use `patronictl list` to identify the new cluster's leader pod. The role to update will be something like `wps-crunchydb-16-<suffix>`. You can confirm the role by exploring the pg_roles table with:
+`psql -c "SELECT * FROM pg_roles"`.
+Access the terminal of the leader pod and execute:
+`psql -c 'ALTER ROLE "<wps-crunchydb-username>" SUPERUSER'`
 
 ##### Setup port forwarding from your local machine to the new cluster
 
@@ -105,7 +107,7 @@ PGPASSWORD=$PGPASSWORD psql -U $PGUSER -d wps -h localhost < wps-crunchydb-sql-d
 
 This step is required as pgbouncer will not connect to the cluster/database with a superuser.
 Login to the OpenShift UI and use `patronictl list` to identify the new cluster's leader pod. Access the terminal of the leader pod and execute:
-   `psql -c 'ALTER ROLE "<wps-crunchydb-username>" NOSUPERUSER'`
+`psql -c 'ALTER ROLE "<wps-crunchydb-username>" NOSUPERUSER'`
 
 ##### Update the prod deployment to use the new crunchydb cluster and pguser secret
 
