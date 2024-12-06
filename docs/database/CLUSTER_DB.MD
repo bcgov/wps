@@ -68,7 +68,7 @@ In the event that the cluster can't be restored from pgbackrest you can create a
 ##### Deploy new cluster
 
    ```
-   oc login
+   oc login --token=<your-token> --server=<openshift-api-url>
    PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=45Gi bash ./oc_provision_crunchy.sh <suffix> apply
    ```
 
