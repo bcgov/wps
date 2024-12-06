@@ -46,6 +46,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy_standby.yam
  -p MEMORY_LIMIT=16Gi"
 
 
+
 # In order to avoid running out of storage quota in our development environment, use
 # ephemeral storage by removing the pvc request from the template.
 if [ "$EPHEMERAL_STORAGE" = "True" ]
