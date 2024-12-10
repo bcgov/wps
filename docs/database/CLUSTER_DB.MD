@@ -49,7 +49,7 @@ Source: https://access.crunchydata.com/documentation/postgres-operator/latest/ar
 When the repo-standby is spun, it reads and applies the WAL in order to replicate the state of the database and runs as it's own cluster, separate from the primary.
 
 Spin up the Repo-Standby Cluster with:
-`PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> DATE=<YYYY-MM-DD> bash openshift/scripts/oc_provision_crunchy_standby.sh <suffix> apply`
+`PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> bash openshift/scripts/oc_provision_crunchy_standby.sh <suffix> apply`
 
 - Anecdotally, spinning up a standby cluster for a 15GB database took about 5 minutes
 
