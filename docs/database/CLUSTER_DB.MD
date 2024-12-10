@@ -59,4 +59,62 @@ Once a standby is stood up, it can be promoted to be the primary cluster. **Note
 
 Promote the standby cluster by editing the [crunchy_standby.yaml](../../openshift/templates/crunchy_standby.yaml) to set the `standby` field to `false`.
 
-More details here: https://access.crunchydata.com/documentation/postgres-operator/latest/architecture/disaster-recovery#promoting-a-standby-cluster
+More details here: <https://access.crunchydata.com/documentation/postgres-operator/latest/architecture/disaster-recovery#promoting-a-standby-cluster>
+
+## Cluster Restore From pg_dump
+
+In the event that the cluster can't be restored from pgbackrest you can create a new cluster and restore using a pg_dump from S3.
+
+##### Deploy new cluster
+
+   ```
+   oc login --token=<your-token> --server=<openshift-api-url>
+   PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=45Gi bash ./oc_provision_crunchy.sh <suffix> apply
+   ```
+
+##### Set superuser permissions in new cluster via OpenShift web GUI
+
+Login to the OpenShift UI and use `patronictl list` to identify the new cluster's leader pod. The role to update will be something like `wps-crunchydb-16-<suffix>`. You can confirm the role by exploring the pg_roles table with:
+`psql -c "SELECT * FROM pg_roles"`.
+Access the terminal of the leader pod and execute:
+`psql -c 'ALTER ROLE "<wps-crunchydb-username>" SUPERUSER'`
+
+##### Setup port forwarding from your local machine to the new cluster
+
+Use the OpenShift UI to determine the name of the secret the CrunchyDB Operator generated following creation of the empty cluster (eg. wps-crunchydb-16-\<suffix>-pguser-wps-crunchydb-16-\<suffix>). Ensure you have stopped your local postgres instance if it is listening on port 5432.
+
+```
+PG_CLUSTER_PRIMARY_POD=<wps-crunchydb-leader-pod-name>
+PGPASSWORD=$(oc get secrets -n <namespace-license-plate> "<wps-crunchydb-pguser-secret-name>" -o go-template='{{.data.password | base64decode}}')
+PGUSER=$(oc get secrets -n <namespace-license-plate> "<wps-crunchydb-pguser-secret-name>" -o go-template='{{.data.user | base64decode}}')
+PGDATABASE=$(oc get secrets -n <namespace-license-plate> "<wps-crunchydb-pguser-secret-name>" -o go-template='{{.data.dbname | base64decode}}')
+oc -n <namespace-license-plate>  port-forward "${PG_CLUSTER_PRIMARY_POD}" 5432:5432
+```
+  
+##### Restore sql dump into new cluster in another shell
+
+Download the latest SQL dump from S3 storage and unzip it.
+
+```
+PG_CLUSTER_PRIMARY_POD=<wps-crunchydb-leader-pod-name>
+PGPASSWORD=$(oc get secrets -n <namespace-license-plate> "<wps-crunchydb-pguser-secret-name>" -o go-template='{{.data.password | base64decode}}')
+PGUSER=$(oc get secrets -n <namespace-license-plate> "<wps-crunchydb-pguser-secret-name>" -o go-template='{{.data.user | base64decode}}')
+PGDATABASE=$(oc get secrets -n <namespace-license-plate> "<wps-crunchydb-pguser-secret-name>" -o go-template='{{.data.dbname | base64decode}}')
+PGPASSWORD=$PGPASSWORD psql -U $PGUSER -d wps -h localhost < wps-crunchydb-sql-dump-name.sql
+```
+
+##### Remove superuser privileges from pguser
+
+This step is required as pgbouncer will not connect to the cluster/database with a superuser.
+Login to the OpenShift UI and use `patronictl list` to identify the new cluster's leader pod. Access the terminal of the leader pod and execute:
+`psql -c 'ALTER ROLE "<wps-crunchydb-username>" NOSUPERUSER'`
+
+##### Update the prod deployment to use the new crunchydb cluster and pguser secret
+
+Create a PR with the following changes:
+
+- Update `CRUNCHYDB_USER` to the new crunchydb pguser secret in all scripts in openshift/scripts.
+- Update `PATRONI_CLUSTER_NAME` in `deploy.yaml`.
+
+Deploy the PR once approved.
+See [database upgrade PR](https://github.com/bcgov/wps/pull/4100) for reference.
