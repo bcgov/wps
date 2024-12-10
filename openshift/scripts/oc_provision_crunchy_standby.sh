@@ -25,6 +25,9 @@ source "$(dirname ${0})/common/common"
 # Target project override for Dev or Prod deployments
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
+
+# Set DATE to today's date if it isn't set
+DATE=${DATE:-$(date +"%Y-%m-%d")}
  
 # Prepare names for crunchy ephemeral instance for this PR.
 IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE:-${PROJ_TOOLS}}
@@ -35,7 +38,8 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy_standby.yam
 -p SUFFIX=${SUFFIX} \
 -p TARGET_NAMESPACE=${PROJ_TARGET} \
 -p BUCKET=${BUCKET} \
--p DATA_SIZE=45Gi \
+-p DATE=${DATE} \
+-p DATA_SIZE=65Gi \
 -p WAL_SIZE=15Gi \
  ${IMAGE_NAME:+ " -p IMAGE_NAME=${IMAGE_NAME}"} \
  ${IMAGE_TAG:+ " -p IMAGE_TAG=${IMAGE_TAG}"} \

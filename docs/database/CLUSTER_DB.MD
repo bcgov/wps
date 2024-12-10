@@ -49,7 +49,7 @@ Source: https://access.crunchydata.com/documentation/postgres-operator/latest/ar
 When the repo-standby is spun, it reads and applies the WAL in order to replicate the state of the database and runs as it's own cluster, separate from the primary.
 
 Spin up the Repo-Standby Cluster with:
-`PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> bash openshift/scripts/oc_provision_crunchy_standby.sh <suffix> apply`
+`PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> DATE=<YYYY-MM-DD> bash openshift/scripts/oc_provision_crunchy_standby.sh <suffix> apply`
 
 - Anecdotally, spinning up a standby cluster for a 15GB database took about 5 minutes
 
@@ -61,16 +61,24 @@ Promote the standby cluster by editing the [crunchy_standby.yaml](../../openshif
 
 More details here: <https://access.crunchydata.com/documentation/postgres-operator/latest/architecture/disaster-recovery#promoting-a-standby-cluster>
 
+### Setting secrets
+
+The promoted standby cluster created it's own secrets for connecting to pgbouncer and it has created a new user in the database with the same name as the cluster. Ex. if the standby cluster is named "wps-crunchy-16-2024-12-10", the user will have the same name.
+Once the standby has been promoted, the easiest way to update user privileges is to reassign table ownership from the old user to the new user.
+`REASSIGN OWNED BY "<old-user>" TO "<new-user>";`
+
+Once this is done, the deployment using the crunchy secrets will need to be updated. This can be done by manually editing the deployment YAML and changing all config that referenced the original crunchy secrets to the newly promoted standby cluster secrets. Once this is done, new pods should roll out successfully.
+
 ## Cluster Restore From pg_dump
 
 In the event that the cluster can't be restored from pgbackrest you can create a new cluster and restore using a pg_dump from S3.
 
 ##### Deploy new cluster
 
-   ```
-   oc login --token=<your-token> --server=<openshift-api-url>
-   PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=45Gi bash ./oc_provision_crunchy.sh <suffix> apply
-   ```
+```
+oc login --token=<your-token> --server=<openshift-api-url>
+PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=45Gi bash ./oc_provision_crunchy.sh <suffix> apply
+```
 
 ##### Set superuser permissions in new cluster via OpenShift web GUI
 
@@ -90,7 +98,7 @@ PGUSER=$(oc get secrets -n <namespace-license-plate> "<wps-crunchydb-pguser-secr
 PGDATABASE=$(oc get secrets -n <namespace-license-plate> "<wps-crunchydb-pguser-secret-name>" -o go-template='{{.data.dbname | base64decode}}')
 oc -n <namespace-license-plate>  port-forward "${PG_CLUSTER_PRIMARY_POD}" 5432:5432
 ```
-  
+
 ##### Restore sql dump into new cluster in another shell
 
 Download the latest SQL dump from S3 storage and unzip it.
