@@ -56,8 +56,8 @@ Spin up the Repo-Standby Cluster with:
 ### Promoting a Standby Cluster
 
 Once a standby is stood up, it can be promoted to be the primary cluster. **Note: only do this if the existing primary has been shut down first.**
-You can shutdown the primary cluster with this command:
-`kubectl patch postgrescluster/<cluster-name> --type merge --patch '{"spec":{"shutdown": true}}'`
+You can shutdown the primary cluster with this command:  
+`kubectl patch postgrescluster/<cluster-name> --type merge --patch '{"spec":{"shutdown": true}}'`  
 You can determine that the cluster is fully shutdown when there are no StatefulSet pods running for that cluster.
 
 Promote the standby cluster by editing the [crunchy_standby.yaml](../../openshift/templates/crunchy_standby.yaml) to set the `standby` field to `false`.
@@ -68,8 +68,8 @@ More details here: <https://access.crunchydata.com/documentation/postgres-operat
 ### Setting secrets
 
 The promoted standby cluster created it's own secrets for connecting to pgbouncer and it has created a new user in the database with the same name as the cluster. Ex. if the standby cluster is named "wps-crunchy-16-2024-12-10", the user will have the same name.
-Once the standby has been promoted, the easiest way to update user privileges is to reassign table ownership from the old user to the new user.
-`REASSIGN OWNED BY "<old-user>" TO "<new-user>";`
+Once the standby has been promoted, the easiest way to update user privileges is to reassign table ownership from the old user to the new user.  
+`REASSIGN OWNED BY "<old-user>" TO "<new-user>";`  
 Use `\du` in psql to see users in the database.
 
 Once this is done, the deployment using the crunchy secrets and cluster references will need to be updated. This can be done by manually editing the deployment YAML in the Openshift UI and changing all config that referenced the original crunchy cluster to the newly promoted standby cluster secrets. Once this is done, new pods should roll out successfully.
