@@ -34,6 +34,7 @@ EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy.yaml \
 -p NAME=\"crunchy-${APP_NAME}-${SUFFIX}\" \
 -p SUFFIX=\"${SUFFIX}\" \
+-p CRUNCHY_NAME=\"${CRUNCHY_NAME}\" \
 -p TARGET_NAMESPACE=${PROJ_TARGET} \
  ${BUCKET:+ " -p BUCKET=${BUCKET}"} \
  ${DATA_SIZE:+ " -p DATA_SIZE=${DATA_SIZE}"} \
