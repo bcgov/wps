@@ -136,8 +136,6 @@ Login to the OpenShift UI and use `patronictl list` to identify the new cluster'
 
 Create a PR with the following changes:
 
-- Update `CRUNCHYDB_USER` to the new crunchydb pguser secret in all scripts in openshift/scripts.
+- Update `CRUNCHY_NAME` in `envars` file to the new crunchydb cluster name (excluding the suffix)
 - Update `PATRONI_CLUSTER_NAME` in `deploy.yaml`.
 
-Deploy the PR once approved.
-See [database upgrade PR](https://github.com/bcgov/wps/pull/4100) for reference.
