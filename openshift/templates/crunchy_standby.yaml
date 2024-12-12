@@ -1,12 +1,12 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: ${APP_NAME}-${DATE}
+  name: ${CRUNCHY_NAME}-${DATE}
   annotations:
-    "openshift.io/display-name": ${APP_NAME}-${DATE}
+    "openshift.io/display-name": ${CRUNCHY_NAME}-${DATE}
 labels:
-  app.kubernetes.io/part-of: ${APP_NAME}-${DATE}
-  app: ${APP_NAME}-${DATE}
+  app.kubernetes.io/part-of: ${CRUNCHY_NAME}-${DATE}
+  app: ${CRUNCHY_NAME}-${DATE}
 parameters:
   - description: Namespace in which database resides
     displayName: Target Namespace
@@ -15,9 +15,8 @@ parameters:
   - name: BUCKET
     description: S3 bucket name
     required: true
-  - name: APP_NAME
+  - name: CRUNCHY_NAME
     description: Application name (wps - wildfire predictive services)
-    value: wps-crunchydb-16
     required: true
   - name: DATE
     description: Date the standby was created
@@ -67,14 +66,14 @@ objects:
   - apiVersion: postgres-operator.crunchydata.com/v1beta1
     kind: PostgresCluster
     metadata:
-      name: ${APP_NAME}-${DATE}
+      name: ${CRUNCHY_NAME}-${DATE}
     spec:
       postgresVersion: 16
       postGISVersion: "3.3"
       metadata:
-        name: ${APP_NAME}-${DATE}
+        name: ${CRUNCHY_NAME}-${DATE}
         labels:
-          app: ${APP_NAME}-${DATE}
+          app: ${CRUNCHY_NAME}-${DATE}
       databaseInitSQL:
         key: init.sql
         name: wps-init-sql
