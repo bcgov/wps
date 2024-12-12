@@ -1,12 +1,12 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: ${APP_NAME}-${SUFFIX}
+  name: ${CRUNCHY_NAME}-${SUFFIX}
   annotations:
-    "openshift.io/display-name": ${APP_NAME}-${SUFFIX}
+    "openshift.io/display-name": ${CRUNCHY_NAME}-${SUFFIX}
 labels:
-  app.kubernetes.io/part-of: "${APP_NAME}"
-  app: ${APP_NAME}-${SUFFIX}
+  app.kubernetes.io/part-of: "${CRUNCHY_NAME}"
+  app: ${CRUNCHY_NAME}-${SUFFIX}
 parameters:
   - name: NAME
     description: |
@@ -17,10 +17,9 @@ parameters:
     displayName: Target Namespace
     name: TARGET_NAMESPACE
     required: true
-  - name: APP_NAME
+  - name: CRUNCHY_NAME
     description: Application name (wps - wildfire predictive services)
     required: true
-    value: wps-crunchydb-16
   - name: BUCKET
     description: S3 bucket name
     required: true
@@ -63,28 +62,28 @@ objects:
       init.sql: |-
         \c wps\\
         CREATE EXTENSION postgis;
-        GRANT CREATE ON SCHEMA public TO "${APP_NAME}-${SUFFIX}";
+        GRANT CREATE ON SCHEMA public TO "${CRUNCHY_NAME}-${SUFFIX}";
     kind: ConfigMap
     metadata:
       labels:
-        app: ${APP_NAME}-${SUFFIX}
+        app: ${CRUNCHY_NAME}-${SUFFIX}
       name: wps-init-sql-${SUFFIX}
   - apiVersion: postgres-operator.crunchydata.com/v1beta1
     kind: PostgresCluster
     metadata:
-      name: ${APP_NAME}-${SUFFIX}
+      name: ${CRUNCHY_NAME}-${SUFFIX}
     spec:
       postgresVersion: 16
       postGISVersion: "3.3"
       metadata:
-        name: ${APP_NAME}-${SUFFIX}
+        name: ${CRUNCHY_NAME}-${SUFFIX}
         labels:
-          app: ${APP_NAME}-${SUFFIX}
+          app: ${CRUNCHY_NAME}-${SUFFIX}
       databaseInitSQL:
         key: init.sql
         name: wps-init-sql-${SUFFIX}
       users:
-        - name: ${APP_NAME}-${SUFFIX}
+        - name: ${CRUNCHY_NAME}-${SUFFIX}
           databases:
             - postgres
             - wps

@@ -41,7 +41,7 @@ OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
 
 OC_CLEAN_CRUNCHY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
     PostgresCluster \
-    -o name -l app=${CRUNCHY_PREFIX}-${SUFFIX}"
+    -o name -l app=${CRUNCHY_NAME}-${SUFFIX}"
 
 OC_CLEAN_CONFIGMAPS="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
     configmaps \
