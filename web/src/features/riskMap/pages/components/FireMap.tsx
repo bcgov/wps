@@ -16,6 +16,12 @@ import { boundingExtent } from 'ol/extent'
 import { Point } from 'ol/geom'
 import { point, distance, bearing } from '@turf/turf'
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material'
+import { getDetailedStations, StationSource } from 'api/stationAPI'
+import { selectFireWeatherStations } from 'app/rootReducer'
+import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch } from '@/app/store'
+import CircleStyle from 'ol/style/Circle'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
@@ -41,6 +47,35 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
   const [open, setOpen] = useState(false)
   const [closestDistance, setClosestDistance] = useState<number | null>(null)
   const [closestDirection, setClosestDirection] = useState<string>('')
+  const { stations } = useSelector(selectFireWeatherStations)
+  const dispatch: AppDispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const stationLayer = new VectorLayer({
+      style: () =>
+        new Style({
+          image: new CircleStyle({
+            radius: 4,
+            fill: new Fill({ color: 'black' }),
+            stroke: new Stroke({ color: 'black', width: 1 })
+          })
+        }),
+      source: new VectorSource({
+        features: new GeoJSON().readFeatures(
+          { type: 'FeatureCollection', features: stations },
+          {
+            featureProjection: 'EPSG:3857'
+          }
+        )
+      }),
+      zIndex: 99
+    })
+    mapInstanceRef.current?.addLayer(stationLayer)
+  }, [stations])
 
   useEffect(() => {
     if (valuesFile && mapInstanceRef.current) {
