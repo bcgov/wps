@@ -36,7 +36,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/env_canada_gdps.cro
 -p SUFFIX=${SUFFIX} \
 -p SCHEDULE=\"${SCHEDULE}\" \
 -p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${APP_NAME}} \
--p CRUNCHYDB_USER=wps-crunchydb-${SUFFIX}-pguser-wps-crunchydb-${SUFFIX} \
+-p CRUNCHYDB_USER=wps-crunchydb-16-${SUFFIX}-pguser-wps-crunchydb-16-${SUFFIX} \
 ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
 ${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"}"
 

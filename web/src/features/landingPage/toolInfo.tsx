@@ -4,6 +4,7 @@ import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import PercentIcon from '@mui/icons-material/Percent'
 import PublicIcon from '@mui/icons-material/Public'
+import InsightsIcon from '@mui/icons-material/Insights'
 import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
@@ -21,8 +22,10 @@ import {
   HFI_CALC_ROUTE,
   PERCENTILE_CALC_NAME,
   PERCENTILE_CALC_ROUTE,
-  MORE_CAST_2_NAME,
-  MORE_CAST_2_ROUTE
+  MORE_CAST_NAME,
+  MORECAST_ROUTE,
+  PSU_INSIGHTS_NAME,
+  PSU_INSIGHTS_ROUTE
 } from 'utils/constants'
 
 const ICON_FONT_SIZE = 'large'
@@ -86,9 +89,9 @@ export const hfiCalcInfo: ToolInfo = {
   isBeta: false
 }
 
-export const moreCast2Info: ToolInfo = {
-  name: MORE_CAST_2_NAME,
-  route: MORE_CAST_2_ROUTE,
+export const moreCastInfo: ToolInfo = {
+  name: MORE_CAST_NAME,
+  route: MORECAST_ROUTE,
   description: (
     <Typography>
       A system that enhances how the predictive services team creates weather forecasts and integrates this information
@@ -132,11 +135,26 @@ export const fbpGoInfo: ToolInfo = {
   isBeta: false
 }
 
+export const psuInsightsInfo: ToolInfo = {
+  name: PSU_INSIGHTS_NAME,
+  route: PSU_INSIGHTS_ROUTE,
+  description: (
+    <Typography>
+      A visualization tool providing an interactive map-based interface to analyze and understand critical
+      wildfire-related data. The tool offers a comprehensive view of key datasets, allowing users to visualize and
+      explore valuable information.
+    </Typography>
+  ),
+  icon: <InsightsIcon color="primary" fontSize={ICON_FONT_SIZE} />,
+  isBeta: true
+}
+
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of CardTravelSharp.
 export const toolInfos = [
-  moreCast2Info,
+  moreCastInfo,
   fireBehaviourAdvisoryInfo,
+  ...(import.meta.env.MODE === 'development' ? [psuInsightsInfo] : []),
   cHainesInfo,
   fireBehaviourCalcInfo,
   hfiCalcInfo,

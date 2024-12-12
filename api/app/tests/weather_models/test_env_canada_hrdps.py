@@ -7,6 +7,7 @@ from typing import Optional
 import pytest
 import requests
 import datetime
+from aiohttp import ClientSession
 from sqlalchemy.orm import Session
 from pytest_mock import MockerFixture
 from app.jobs.env_canada_utils import HRDPS_GRIB_LAYERS, get_high_res_model_run_download_urls
@@ -17,9 +18,9 @@ import app.jobs.env_canada
 import app.jobs.common_model_fetchers
 import app.weather_models.process_grib
 from app.weather_models import ProjectionEnum
-from app.stations import StationSourceEnum
 from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
                                           PredictionModelRunTimestamp)
+from app.tests.common import default_mock_client_get
 from app.tests.weather_models.test_env_canada_gdps import MockResponse
 
 
@@ -97,12 +98,13 @@ def test_get_hrdps_download_urls():
 
 
 @pytest.mark.usefixtures('mock_get_processed_file_record')
-def test_process_hrdps(mock_download, mock_database):
+def test_process_hrdps(mock_download, mock_database, monkeypatch: pytest.MonkeyPatch):
     """ run process method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     sys.argv = ["argv", "HRDPS"]
-    assert app.jobs.env_canada.process_models(StationSourceEnum.TEST) == 1
+    assert app.jobs.env_canada.process_models() == 1
 
 
 def test_main_fail(mocker: MockerFixture, monkeypatch):

@@ -17,7 +17,8 @@ import {
   FIRE_BEHAVIOUR_ADVISORY_ROUTE,
   LANDING_PAGE_ROUTE,
   MORE_CAST_2_ROUTE,
-  RISK_MAP_ROUTER
+  RISK_MAP_ROUTER,
+  PSU_INSIGHTS_ROUTE
 } from 'utils/constants'
 import { NoMatchPage } from 'features/NoMatchPage'
 const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/FireBehaviourCalculatorPage'))
@@ -26,6 +27,7 @@ const LandingPage = lazy(() => import('features/landingPage/pages/LandingPage'))
 const MoreCast2Page = lazy(() => import('features/moreCast2/pages/MoreCast2Page'))
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 import { RiskMapPage } from '@/features/riskMap/pages/RiskMapPage'
+import { PSUInsightsPage } from '@/features/psuInsights/pages/PSUInsightsPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
@@ -88,6 +90,14 @@ const WPSRoutes: React.FunctionComponent = () => {
             element={
               <AuthWrapper>
                 <MoreCast2Page />
+              </AuthWrapper>
+            }
+          />
+          <Route
+            path={PSU_INSIGHTS_ROUTE}
+            element={
+              <AuthWrapper>
+                <PSUInsightsPage />
               </AuthWrapper>
             }
           />

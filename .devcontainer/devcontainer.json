@@ -5,15 +5,45 @@
 	// Sets the run context to one level up instead of the .devcontainer folder.
 	"context": "..",
 	// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-	"dockerFile": "../Dockerfile.vscode",
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-	// Uncomment the next line to run commands after the container is created - for example installing curl.
-	// "postCreateCommand": "apt-get update && apt-get install -y curl",
-	// Uncomment when using a ptrace-based debugger like C++, Go, and Rust
-	// "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
-	// Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.
-	// "mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ],
-	// Uncomment to connect as a non-root user if you've added one. See https://aka.ms/vscode-remote/containers/non-root.
-	"remoteUser": "vscode"
+	"dockerFile": "../Dockerfile",
+	// make sure you don't have any local .venv in wps/api or it won't work
+	// note: we don't use a workspace mount because then you'll only see the files in /api, when
+	// you probably want to see everything. This means you must cd from /workspace to /app in order
+	// to actually run things though. the following mount will at least make the /app folder in the
+	// docker container change when files in api change.
+	"mounts": [
+		"source=${localWorkspaceFolder}/api,target=/app,type=bind"
+	],
+	"remoteUser": "worker",
+	"containerUser": "worker",
+	"updateRemoteUserUID": false, // without this you wind up as ubuntu user
+	// this lets the container access the database container. On linux I had to configure the db
+	// host to localhost for it to work in the .env file in api/app
+	// tested with the database running from the docker-compose file with `docker compose up db`
+	"forwardPorts": [
+		8080
+	],
+	"runArgs": [
+		"--network=host",
+		"--platform",
+		"linux/amd64",
+		"--hostname=wps-dev",
+	],
+	// sets us in the correct location, and install dev requirements like pytest
+	"postCreateCommand": "echo 'cd /app' >> ~/.bashrc && cd /app && poetry install",
+	// by default the dockerfile sets the shell to /bin/sh - you can use whatever you like here
+	// but if you use bash, it will automatically set you in the /app folder rather than workspace
+	// when the terminal connects
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"terminal.integrated.profiles.linux": {
+					"bash": {
+						"path": "/bin/bash"
+					}
+				}
+			}
+		}
+	}
 }

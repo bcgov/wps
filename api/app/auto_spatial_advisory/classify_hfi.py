@@ -1,5 +1,5 @@
-""" Proof of concept, run classification on HFI GeoTiff
-"""
+"""Proof of concept, run classification on HFI GeoTiff"""
+
 import os
 import numpy as np
 from osgeo import gdal
@@ -14,10 +14,10 @@ def classify_hfi(source_path, target_path):
     NOTE: This could be done in memory!
     """
 
-    gdal.SetConfigOption('AWS_SECRET_ACCESS_KEY', config.get('OBJECT_STORE_SECRET'))
-    gdal.SetConfigOption('AWS_ACCESS_KEY_ID', config.get('OBJECT_STORE_USER_ID'))
-    gdal.SetConfigOption('AWS_S3_ENDPOINT', config.get('OBJECT_STORE_SERVER'))
-    gdal.SetConfigOption('AWS_VIRTUAL_HOSTING', 'FALSE')
+    gdal.SetConfigOption("AWS_SECRET_ACCESS_KEY", config.get("OBJECT_STORE_SECRET"))
+    gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
+    gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
+    gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
 
     # Read the source data.
     source_tiff = gdal.Open(source_path, gdal.GA_ReadOnly)
@@ -33,8 +33,7 @@ def classify_hfi(source_path, target_path):
         os.remove(target_path)
     output_driver = gdal.GetDriverByName("GTiff")
     # Create an object with the same dimensions as the input, but with 8 bit unsigned values.
-    target_tiff = output_driver.Create(target_path, xsize=source_band.XSize,
-                                       ysize=source_band.YSize, bands=1, eType=gdal.GDT_Byte)
+    target_tiff = output_driver.Create(target_path, xsize=source_band.XSize, ysize=source_band.YSize, bands=1, eType=gdal.GDT_Byte)
     # Set the geotransform and projection to the same as the input.
     target_tiff.SetGeoTransform(source_tiff.GetGeoTransform())
     target_tiff.SetProjection(source_tiff.GetProjection())

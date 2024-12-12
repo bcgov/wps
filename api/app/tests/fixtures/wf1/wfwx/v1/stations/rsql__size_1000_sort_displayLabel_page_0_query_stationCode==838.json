@@ -1,0 +1,146 @@
+{
+    "_embedded": {
+        "stations": [
+            {
+                "id": "bfe0a6e2-e2e0-0210-e053-259e228e58c7",
+                "displayLabel": "AKOKLI CREEK",
+                "createdBy": "LEGACY_DATA_LOAD",
+                "lastModifiedBy": "WFWX_WEATHER_API",
+                "lastEntityUpdateTimestamp": 1729030874379,
+                "updateDate": "2024-10-15T22:21:14.000+0000",
+                "stationCode": 838,
+                "stationAcronym": "FAE",
+                "stationStatus": {
+                    "id": "ACTIVE",
+                    "displayLabel": "Active",
+                    "displayOrder": 1,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000"
+                },
+                "dataSource": {
+                    "id": "AUTO_CALLR",
+                    "displayLabel": "Auto-Caller",
+                    "displayOrder": 1,
+                    "effectiveDate": "1950-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "createdDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD",
+                    "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+                },
+                "dataLoggerType": {
+                    "id": "FWS12S",
+                    "displayLabel": "FWS12S",
+                    "displayOrder": 6,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "createdDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD",
+                    "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+                },
+                "siteType": {
+                    "id": "WXSTN_UHF",
+                    "displayLabel": "Weather Station - UHF",
+                    "displayOrder": 7,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "createdDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD",
+                    "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+                },
+                "weatherZone": {
+                    "id": 26,
+                    "displayLabel": "Zone 26",
+                    "dangerRegion": 3,
+                    "displayOrder": 26
+                },
+                "stationAccessTypeCode": null,
+                "hourly": true,
+                "pluvioSnowGuage": false,
+                "latitude": 49.4358,
+                "longitude": -116.7464,
+                "geometry": {
+                    "crs": {
+                        "type": "name",
+                        "properties": {
+                            "name": "EPSG:4326"
+                        }
+                    },
+                    "coordinates": [
+                        -116.7464,
+                        49.4358
+                    ],
+                    "type": "Point"
+                },
+                "elevation": 821,
+                "windspeedAdjRoughness": 1.0,
+                "windspeedHeight": {
+                    "id": "9.0_11.9",
+                    "displayLabel": "9.0 - 11.9 (m)",
+                    "displayOrder": 7,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "createdDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD",
+                    "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+                },
+                "surfaceType": null,
+                "overWinterPrecipAdj": false,
+                "influencingSlope": 40,
+                "installationDate": 1041318000000,
+                "decommissionDate": null,
+                "influencingAspect": null,
+                "owner": {
+                    "id": "a9843bb7-0f44-4a80-8a62-79cca2a5c758",
+                    "displayLabel": "BC Wildfire Service",
+                    "displayOrder": 2,
+                    "ownerName": "BCWS",
+                    "ownerDisplayName": "BC Wildfire Service",
+                    "ownerComment": null,
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATAFIX - WFWX-891",
+                    "effectiveDate": "1950-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000"
+                },
+                "fireCentre": {
+                    "id": 34,
+                    "displayLabel": "Southeast Fire Centre",
+                    "alias": 6,
+                    "expiryDate": "9999-12-31T08:00:00.000+0000"
+                },
+                "zone": {
+                    "id": 40,
+                    "displayLabel": "Kootenay Lake Zone",
+                    "alias": 7,
+                    "fireCentre": "Southeast Fire Centre",
+                    "fireCentreAlias": 6,
+                    "expiryDate": "9999-12-31T08:00:00.000+0000"
+                },
+                "comments": "1st Daily 20030625;",
+                "ecccFileBaseUrlTemplate": null,
+                "lastProcessedSourceTime": "2024-10-15T15:21:14",
+                "crdStationName": null,
+                "stationAccessDescription": "Drive north of Crestion 42.9kms past the highway 3 3A junction (on highway 3A).  Take the Akokli Creek road on the right.  At 2km, left.  At 3kms, right.  At 3.6kms pull off.  Trail to station starts on right, down the hill.  You can see the station.",
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/bfe0a6e2-e2e0-0210-e053-259e228e58c7"
+                    }
+                }
+            }
+        ]
+    },
+    "_links": {
+        "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1stations/rsql?query=stationCode%3D%3D838"
+        }
+    },
+    "page": {
+        "size": 1000,
+        "totalElements": 1,
+        "totalPages": 1,
+        "number": 0
+    }
+}

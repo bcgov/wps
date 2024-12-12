@@ -10,7 +10,7 @@ const Root = styled('div', {
   name: `${PREFIX}-links`
 })({
   backgroundColor: theme.palette.primary.main,
-  minHeight: '80px'
+  minHeight: '30px'
 })
 
 const FooterLinks = styled('div', {

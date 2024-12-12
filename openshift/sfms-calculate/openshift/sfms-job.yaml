@@ -1,0 +1,94 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: sfms-fwi-calc-job
+  annotations:
+    description: "Template for SFMS FWI Calculation Job"
+parameters:
+  - name: DATE
+    description: "Date argument for the Python script - YYYY-MM-DD"
+    required: true
+  - name: HOUR
+    description: "Hour argument for the Python script - HH"
+    required: true
+    value: "20"
+  - name: IMAGE_NAME
+    description: "Docker image to use for the job"
+    required: true
+objects:
+  - kind: Job
+    apiVersion: batch/v1
+    metadata:
+      name: sfms-fwi-calc-job-${DATE}-${HOUR}
+    spec:
+      parallelism: 1
+      completions: 1
+      backoffLimit: 6
+      template:
+        spec:
+          containers:
+            - name: sfms-fwi-calc-container
+              image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-${IMAGE_NAME}:${IMAGE_NAME}
+              command:
+                - poetry
+                - run
+                - python
+                - "-m"
+                - app.jobs.sfms_calculations
+                - "${DATE} ${HOUR}"
+              env:
+                - name: ROCKET_URL_POST_MESSAGE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: wps-global
+                      key: rocket.chat-url-post-message
+                - name: ROCKET_CHANNEL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: wps-global
+                      key: rocket.chat-channel
+                - name: ROCKET_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: wps-global
+                      key: rocket.chat-user-id-secret
+                - name: ROCKET_AUTH_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: wps-global
+                      key: rocket.chat-auth-token-secret
+                - name: OBJECT_STORE_SERVER
+                  valueFrom:
+                    secretKeyRef:
+                      name: wps-global
+                      key: object-store-server
+                - name: OBJECT_STORE_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: wps-global
+                      key: object-store-user-id
+                - name: OBJECT_STORE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: wps-global
+                      key: object-store-secret
+                - name: OBJECT_STORE_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: wps-global
+                      key: object-store-bucket
+              resources:
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+                requests:
+                  cpu: 500m
+                  memory: 512Mi
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              imagePullPolicy: Always
+          restartPolicy: OnFailure
+          terminationGracePeriodSeconds: 30
+          dnsPolicy: ClusterFirst
+          securityContext: {}
+          schedulerName: default-scheduler

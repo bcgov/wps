@@ -10,7 +10,7 @@ from alembic import context
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option('sqlalchemy.url', db.DATABASE_URL.replace('%', '%%'))
+config.set_main_option("sqlalchemy.url", db.DATABASE_URL.replace("%", "%%"))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -30,7 +30,7 @@ target_metadata = models.Base.metadata
 
 
 def exclude_tables_from_config(config_):
-    """ There are tables (e.g. spatial_ref_sys created by postgis), that must be ignored. """
+    """There are tables (e.g. spatial_ref_sys created by postgis), that must be ignored."""
     tables_ = config_.get("tables", None)
     if tables_ is not None:
         tables = tables_.split(",")
@@ -38,12 +38,11 @@ def exclude_tables_from_config(config_):
 
 
 # load tables to be excluded
-exclude_tables = exclude_tables_from_config(
-    config.get_section('alembic:exclude'))
+exclude_tables = exclude_tables_from_config(config.get_section("alembic:exclude"))
 
 
 def include_object(object, name, type_, reflected, compare_to):
-    """ any tables not in the ignore list, are to be included """
+    """any tables not in the ignore list, are to be included"""
     if type_ == "table" and name in exclude_tables:
         return False
     else:
@@ -68,7 +67,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        include_object=include_object
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -90,7 +89,9 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata, include_object=include_object
+            connection=connection,
+            target_metadata=target_metadata,
+            include_object=include_object,
         )
 
         with context.begin_transaction():

@@ -8,7 +8,7 @@ labels:
   phase: build
   app.kubernetes.io/name: wps-api-base
   app.kubernetes.io/managed-by: template
-  app.kubernetes.io/version: "ubuntu.22.04"
+  app.kubernetes.io/version: "ubuntu.24.04"
 parameters:
   - name: NAME
     value: wps-api-base
@@ -57,22 +57,14 @@ objects:
           name: ${NAME}${SUFFIX}:${VERSION}
       source:
         dockerfile: |
-          ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:22.04
-          # For the final stage, we use ubuntu:22.04
-          # Rationale for using ubuntu:22.04:
-          # - It's the latest ubuntu LTS release.
-          # - It generally has a more recent version of gdal than debian.
-          # - It generally has a fairly recent version of python.
-          # - It has a more recent version of wkhtmltopdf and supporting libraries than debian.
-          #
-          # When building local, you can pull direct from docker, instead of artifacts.developer.gov.bc.ca:
-          # docker build --build-arg DOCKER_IMAGE=ubuntu:22.04 . --tag=wps-api-base:ubuntu.22.04-latest
-          FROM ${DOCKER_IMAGE}
+          FROM ghcr.io/osgeo/gdal:ubuntu-small-3.9.2
+          # in order to make the image public on GHCR, we need to add this label
+          LABEL org.opencontainers.image.source="https://github.com/bcgov/wps"
 
           # We don't want to run our app as root, so we define a worker user.
           ARG USERNAME=worker
-          ARG USER_UID=1000
-          ARG USER_GID=$USER_UID
+          ARG USER_UID=1010
+          ARG USER_GID=1000
 
           # Tell r-base not to wait for interactive input.
           ENV DEBIAN_FRONTEND=noninteractive
@@ -82,7 +74,8 @@ objects:
           # - gdal (for geospatial)
           # - R (for cffdrs)
           # - xfonts-75dpi, xfonts-base (for wkhtmltopdf)
-          RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev libudunits2-dev r-base xfonts-base xfonts-75dpi curl git build-essential libsqlite3-dev zlib1g-dev
+          # - tippecanoe for generating pmtiles
+          RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libudunits2-dev r-base-dev xfonts-base xfonts-75dpi curl git build-essential libproj-dev libgeos-dev libsqlite3-dev libpq-dev libtirpc-dev
 
           RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
           RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
@@ -97,14 +90,13 @@ objects:
           RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
 
           # Install tippecanoe for pmtiles
-          RUN git clone https://github.com/felt/tippecanoe.git --branch 2.29.0 && cd tippecanoe && make -j && make install && cd ..
+          RUN git clone https://github.com/felt/tippecanoe.git --branch 2.62.5 && cd tippecanoe && make -j && make install && cd ..
 
           # Install cffdrs
           RUN R -e "install.packages('cffdrs')"
 
-          # Create our worker user
-          RUN groupadd --gid $USER_GID $USERNAME \
-              && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
+          # Add the worker user with UID 1010 and assign them to the existing group with GID 1000
+          RUN useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
           # When our app is running, we want to allow poetry full access to the workers home directory.
           # +x : to execute the poetry binary
@@ -116,9 +108,6 @@ objects:
 
           # Set the working directory to the user's home directory
           WORKDIR /home/$USERNAME
-
-          # Update pip
-          RUN python3 -m pip install --upgrade pip
 
           # Install poetry
           RUN cat /tmp/install.python-poetry.org | python3 -

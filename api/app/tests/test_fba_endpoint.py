@@ -1,36 +1,27 @@
-""" BDD tests for API /hfi-calc/ """
-from pytest_bdd import scenario, given, then, parsers
+import json
+
 import pytest
-from starlette.testclient import TestClient
 from aiohttp import ClientSession
-from app.tests.common import default_mock_client_get
+from starlette.testclient import TestClient
+
 import app.main
-from app.tests import load_json_file
-import app.routers.hfi_calc
+from app.tests import get_complete_filename
+from app.tests.common import default_mock_client_get
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@scenario('test_fba_endpoint.feature', 'Get fire centres with their stations')
-def test_fba_fire_centers():
-    """ BDD Scenario. """
+@pytest.mark.parametrize("status, expected_fire_centers", [(200, "test_fba_endpoint_fire_centers.json")])
+def test_fba_endpoint_fire_centers(status, expected_fire_centers, monkeypatch):
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
 
-
-@given('I request all fire centres', target_fixture='response')
-def given_fba_fire_centers_request(monkeypatch):
-    """ Make /fba/ request using mocked out ClientSession.
-    """
-    monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
-
-    # Create API client and get the response.
     client = TestClient(app.main.app)
-    headers = {'Content-Type': 'application/json',
-               'Authorization': 'Bearer token'}
+    headers = {"Content-Type": "application/json", "Authorization": "Bearer token"}
 
-    return dict(response=client.get('/api/fba/fire-centers/', headers=headers))
+    response = client.get("/api/fba/fire-centers/", headers=headers)
 
+    response_filename = get_complete_filename(__file__, expected_fire_centers)
+    with open(response_filename) as res_file:
+        expected_response = json.load(res_file)
 
-@then(parsers.parse('the response contains the list of {expected_fire_centers}'),
-      converters={'expected_fire_centers': load_json_file(__file__)})
-def assert_fire_centers_list(response, expected_fire_centers):
-    """ Assert that the fire centers returned are what is from the middleware """
-    assert response['response'].json() == expected_fire_centers
+    assert response.status_code == status
+    assert response.json() == expected_response

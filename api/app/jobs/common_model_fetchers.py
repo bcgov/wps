@@ -14,7 +14,6 @@ from app.db.crud.weather_models import (
     get_weather_station_model_prediction,
     delete_weather_station_model_predictions,
     delete_model_run_predictions,
-    refresh_morecast2_materialized_view,
 )
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum
@@ -23,7 +22,7 @@ from app.schemas.stations import WeatherStation
 from app import config, configure_logging
 import app.utils.time as time_utils
 from app.utils.redis import create_redis
-from app.stations import get_stations_synchronously, StationSourceEnum
+from app.stations import get_stations_synchronously
 from app.db.models.weather_models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunPrediction
 import app.db.database
 from app.db.crud.observations import get_accumulated_precipitation
@@ -179,10 +178,10 @@ def accumulate_nam_precipitation(nam_cumulative_precip: float, prediction: Model
 class ModelValueProcessor:
     """Iterate through model runs that have completed, and calculate the interpolated weather predictions."""
 
-    def __init__(self, session, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
+    def __init__(self, session):
         """Prepare variables we're going to use throughout"""
         self.session = session
-        self.stations = get_stations_synchronously(station_source)
+        self.stations = get_stations_synchronously()
         self.station_count = len(self.stations)
 
     def _process_model_run(self, model_run: PredictionModelRunTimestamp, model_type: ModelEnum):
@@ -390,14 +389,10 @@ class ModelValueProcessor:
         """Entry point to start processing model runs that have not yet had their predictions interpolated"""
         # Get model runs that are complete (fully downloaded), but not yet interpolated.
         query = get_prediction_model_run_timestamp_records(self.session, complete=True, interpolated=False, model_type=model_type)
-        model_processed = False
         for model_run, model in query:
-            model_processed = True
             logger.info("model %s", model)
             logger.info("model_run %s", model_run)
             # Process the model run.
             self._process_model_run(model_run, model_type)
             # Mark the model run as interpolated.
             self._mark_model_run_interpolated(model_run)
-        if model_processed:
-            refresh_morecast2_materialized_view(self.session)

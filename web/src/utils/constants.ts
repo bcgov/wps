@@ -25,6 +25,7 @@ export const FBP_GO_ROUTE = 'https://psu.nrs.gov.bc.ca/fbp-go'
 export const FIRE_BEHAVIOR_CALC_ROUTE = '/fire-behaviour-calculator'
 export const FIRE_BEHAVIOUR_ADVISORY_ROUTE = '/auto-spatial-advisory'
 export const MORE_CAST_2_ROUTE = '/morecast-2'
+export const PSU_INSIGHTS_ROUTE = '/insights'
 export const LANDING_PAGE_ROUTE = '/'
 
 // ExpandableContainer widths
@@ -44,8 +45,9 @@ export const FBP_GO_NAME = 'FBP Go'
 export const FIRE_BEHAVIOUR_ADVISORY_NAME = 'Auto Spatial Advisory'
 export const FIRE_BEHAVIOUR_CALC_NAME = 'FireBat'
 export const HFI_CALC_NAME = 'HFI Calculator'
-export const MORE_CAST_2_NAME = 'MoreCast'
+export const MORE_CAST_NAME = 'MoreCast'
 export const PERCENTILE_CALC_NAME = 'Percentile Calculator'
+export const PSU_INSIGHTS_NAME = 'PSU Insights'
 
 // UI constants
 export const HEADER_HEIGHT = 56
@@ -57,8 +59,9 @@ export const ASA_DOC_TITLE = 'Automated Spatial Advisory | BCWS PSU'
 export const C_HAINES_DOC_TITLE = 'C-Haines | BCWS PSU'
 export const FIREBAT_DOC_TITLE = 'FireBat | BCWS PSU'
 export const HFI_CALC_DOC_TITLE = 'HFI Calculator | BCWS PSU'
-export const MORE_CAST_2_DOC_TITLE = 'MoreCast | BCWS PSU'
+export const MORE_CAST_DOC_TITLE = 'MoreCast | BCWS PSU'
 export const PERCENTILE_CALC_DOC_TITLE = 'Percentile Calculator | BCWS PSU'
+export const PSU_INSIGHTS_DOC_TITLE = 'PSU Insights | BCWS PSU'
 
 export enum FireCentres {
   CARIBOO_FC = 'Cariboo Fire Centre',

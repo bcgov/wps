@@ -6,7 +6,6 @@ https://eccc-msc.github.io/open-data/msc-data/nwp_rdps/readme_rdps-datamart_en/#
 from datetime import datetime
 import enum
 from typing import Literal
-from app.weather_models import ModelEnum
 from dataclasses import dataclass
 
 
@@ -121,10 +120,10 @@ def compose_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast
     )
 
 
-def compose_precip_rdps_key(forecast_start_date: datetime, run_hour: int, forecast_hour: int):
+def compose_rdps_key(forecast_start_date: datetime, run_hour: int, forecast_hour: int, weather_parameter: str):
     """Compose and return a computed RDPS url given a forecast start date, run hour and forecast hour."""
     model_hour = model_run_for_hour(run_hour)
-    return f"{model_hour:02d}/precip/{compose_rdps_filename(forecast_start_date, run_hour, forecast_hour, 'precip')}"
+    return f"{model_hour:02d}/{weather_parameter}/{compose_rdps_filename(forecast_start_date, run_hour, forecast_hour, weather_parameter)}"
 
 
 def compose_computed_rdps_filename(accumulation_end_datetime: datetime) -> str:
@@ -145,3 +144,18 @@ def compose_computed_precip_rdps_key(accumulation_end_datetime: datetime):
     """Compose and return a computed RDPS url given the datetime that precip is being accumulated to."""
     model_hour = model_run_for_hour(accumulation_end_datetime.hour)
     return f"{model_hour:02d}/precip/{compose_computed_rdps_filename(accumulation_end_datetime)}"
+
+
+def compose_rdps_key_hffmc(model_run_start: datetime, offset_hour: int, weather_parameter: str):
+    """Compose and return a computed RDPS url given a forecast start date and hour offset."""
+    model_hour = model_run_for_hour(model_run_start.hour)
+    return f"{model_hour:02d}/{weather_parameter}/{compose_rdps_filename_hffmc(model_run_start, offset_hour, weather_parameter)}"
+
+
+def compose_rdps_filename_hffmc(model_run_start: datetime, offset_hour: int, weather_parameter: str):
+    key_params = get_weather_key_params(weather_parameter)
+    file_ext = ".grib2"
+    return (
+        f"{SourcePrefix.CMC.value}{DELIMITER}{REG}{DELIMITER}{key_params.variable}{DELIMITER}{key_params.level_type}{DELIMITER}{key_params.level}{DELIMITER}{PS10KM}{DELIMITER}"
+        f"{model_run_start.date().isoformat().replace('-','')}{model_run_start.hour:02d}{DELIMITER}P{offset_hour:03d}{file_ext}"
+    )

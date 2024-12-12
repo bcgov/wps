@@ -8,7 +8,7 @@ on:
 jobs:
   prepare-dev-database:
     name: Prepare Dev Database
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Set Variables
         shell: bash
@@ -17,6 +17,11 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4.14"
 
       - name: Deploy PostGIS instance
         shell: bash
@@ -29,7 +34,7 @@ jobs:
     # it here increases the odds that it get's started 1st, so api and web are slightly more likely
     # to finish building at the same time.
     name: Build Web Image
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Set Variables
         shell: bash
@@ -38,6 +43,11 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4.14"
 
       - name: Build wps-web Image
         shell: bash
@@ -47,7 +57,7 @@ jobs:
 
   build-api-image:
     name: Build API Image
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Set Variables
         shell: bash
@@ -56,6 +66,11 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4.14"
 
       - name: Build wps-api Image
         shell: bash
@@ -83,7 +98,7 @@ jobs:
 
   configure-nats-server-name:
     name: Configure nats server name
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Set Variables
         shell: bash
@@ -92,6 +107,11 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4.14"
 
       - name: Configure
         shell: bash
@@ -110,7 +130,7 @@ jobs:
         deploy-dev-queue,
         configure-nats-server-name,
       ]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Set Variables
         shell: bash
@@ -120,11 +140,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4.14"
+
       - name: Deploy API to Dev
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" USE_WFWX="True" ENVIRONMENT="development" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+          MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" ENVIRONMENT="development" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
       ## TODO: re-enable once crunchy is deployed: https://app.zenhub.com/workspaces/bcws---agile-psu-5e321393e038fba5bbe203b8/issues/gh/bcgov/wps/2340
       - name: Hourly actuals cronjob
@@ -199,11 +224,23 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_bc_wildfire_fire_perimeters_cronjob.sh ${SUFFIX} apply
 
+      - name: SFMS Raster Calculations cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_sfms_calculations_cronjob.sh ${SUFFIX} apply
+
       - name: Hourly pruner nightly cronjob
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_hourly_prune_cronjob.sh ${SUFFIX} apply
+
+      - name: Partitioner cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" SCHEDULE="0 0 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
 
   # TODO: Delete once pmtiles has run for some time
   # deploy-tileserv:
@@ -231,7 +268,7 @@ jobs:
   deploy-dev-queue:
     name: Deploy Message Queue to Dev
     if: github.triggering_actor != 'renovate'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     # We need
     # - the image to be built before we can deploy.
     # - we need the tileserv database up so we can write to it
@@ -245,6 +282,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4.14"
+
       - name: NATS Message Queue
         shell: bash
         run: |
@@ -254,12 +296,12 @@ jobs:
   scan-dev:
     name: ZAP Baseline Scan Dev
     needs: [deploy-dev]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
       - name: ZAP Scan
-        uses: zaproxy/action-baseline@v0.13.0
+        uses: zaproxy/action-baseline@v0.14.0
         with:
           target: "https://wps-pr-${{ github.event.number }}-e1e498-dev.apps.silver.devops.gov.bc.ca"
           rules_file_name: ".zap/rules.tsv"
@@ -269,7 +311,7 @@ jobs:
   run-schemathesis:
     name: Schemathesis Fuzzing
     if: github.triggering_actor != 'renovate'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [deploy-dev]
 
     steps:
@@ -286,7 +328,7 @@ jobs:
   deploy-c-haines:
     name: Deploy c-haines cronjob
     if: github.triggering_actor != 'renovate'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     # We need
     # - the image to be built before we can deploy.
     # - the database to be there (so we can write to it).
@@ -300,6 +342,11 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4.14"
 
       - name: C-Haines Cronjob
         shell: bash

@@ -1,10 +1,10 @@
-""" BDD tests for grib file processing """
+"""Tests for grib file processing"""
+
 import os
 import logging
-import json
+import pytest
 from operator import itemgetter
 from affine import Affine
-from pytest_bdd import scenario, given, then, when, parsers
 from pyproj import CRS
 from osgeo import gdal
 from app.geospatial import NAD83_CRS
@@ -13,135 +13,77 @@ import app.weather_models.process_grib as process_grib
 logger = logging.getLogger(__name__)
 
 
-def read_file_contents(filename):
-    """ Given a filename, return json """
+def open_grib_file(filename: str):
+    """Open the dataset."""
+    grib_path = get_grib_file_path(filename)
+    return gdal.Open(grib_path)
+
+
+def get_grib_file_path(filename: str):
     dirname = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(dirname, filename), 'r') as file:
+    grib_path = os.path.join(dirname, filename)
+    return grib_path
+
+
+def read_file_contents(filename):
+    """Given a filename, return json"""
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(dirname, filename), "r") as file:
         return file.read()
 
 
-@scenario(
-    'test_grib_processing.feature',
-    'Extract origin and pixel information')
-def test_extract_origin_and_pixel_information():
-    """ BDD Scenario. """
+@pytest.mark.parametrize(
+    "filename,origin,pixel_size",
+    [
+        ("CMC_glb_RH_TGL_2_latlon.15x.15_2020071300_P000.grib2", (-180.075, 90.075), (0.15000000000000002, -0.15)),
+    ],
+)
+def test_get_dataset_geometry(filename, origin, pixel_size):
+    grib_path = get_grib_file_path(filename)
+    dataset_geometry = process_grib.get_dataset_transform(grib_path)
+    geotransform = dataset_geometry.to_gdal()
+    actual_origin = itemgetter(0, 3)(geotransform)
+    actual_pixel_size = itemgetter(1, 5)(geotransform)
+    assert actual_origin == origin
+    assert actual_pixel_size == pixel_size
 
 
-@given(parsers.parse('a grib file: {filename}'), target_fixture='grib_file', converters={'filename': str})
-def given_grib_file(filename):
-    """ Open the dataset. """
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    full_path = os.path.join(dirname, filename)
-    return dict(dataset=gdal.Open(full_path), filename=full_path)
-
-
-@when('I extract the geometry')
-def when_extract_geometry(grib_file):
-    """ extract geometry """
-    grib_file['geometry'] = process_grib.get_dataset_geometry(
-        grib_file['filename'])
-
-
-@then(parsers.parse('I expect origin: {origin}'), converters={'origin': json.loads})
-def assert_origin(grib_file, origin):
-    """ assert that origin matches expected """
-    actual_origin = itemgetter(0, 3)(grib_file['geometry'].to_gdal())
-    logger.warning('actual: %s ; expected %s', actual_origin, origin)
-    # This fails when using gdal-2.2.3! Be sure to use a more recent version.
-    assert origin == list(actual_origin)
-
-
-@then(parsers.parse('I expect pixels: {pixels}'), converters={'pixels': json.loads})
-def assert_pixels(grib_file, pixels):
-    """ assert that pixels match expected """
-    actual_pixels = itemgetter(1, 5)(grib_file['geometry'].to_gdal())
-    assert list(actual_pixels) == pixels
-
-
-@scenario(
-    'test_grib_processing.feature',
-    'Extract the surrounding grid')
-def test_surrounding_grid():
-    """ BDD Scenario. """
-
-
-@when(parsers.parse('I get the surrounding grid for {raster_coordinate}'), converters={'raster_coordinate': json.loads})
-def get_surrounding_grid(grib_file, raster_coordinate):
-    """ get grid surrounding given coordinate """
-    # Get the band with data.
-    raster_band = grib_file['dataset'].GetRasterBand(1)
-    x, y = raster_coordinate
-    # Get the surrounding grid.
-    surrounding_grid = process_grib.get_surrounding_grid(raster_band, x, y)
-    grib_file['points'] = surrounding_grid[0]
-    grib_file['values'] = surrounding_grid[1]
-
-
-@then(parsers.parse('I expect points: {points}'), converters={'points': json.loads})
-def assert_points(grib_file, points):
-    """ assert that expected points are found """
-    actual_points = grib_file['points']
-    expected_points = points
-    assert actual_points == expected_points
-
-
-@then(parsers.parse('I expect values: {values}'), converters={'values': json.loads})
-def assert_values(grib_file, values):
-    """ assert values match """
-    actual_values = grib_file['values']
-    expected_values = values
-    assert actual_values == expected_values
-
-
-@scenario(
-    'test_grib_processing.feature',
-    'Calculate raster coordinates')
-def test_calculate_raster_coordinates():
-    """ BDD Scenario. """
-
-
-@given(parsers.parse('a GDAL {geotransform} and {wkt_projection_string}'), target_fixture='data', converters={'geotransform': json.loads, 'wkt_projection_string': read_file_contents})
-def given_geotransform_and_projection_string(geotransform, wkt_projection_string):
-    """ return dict with geotransform and projection_string loaded from WKT file """
-    return dict(geotransform=geotransform, wkt_projection_string=wkt_projection_string)
-
-
-@when(parsers.parse('I calculate the raster coordinate for {geographic_coordinate}'), converters={'geographic_coordinate': json.loads})
-def when_calculate_raster_coordinate(data, geographic_coordinate):
-    """ calculate the raster coordinate """
-    longitude, latitude = geographic_coordinate
-    proj_crs = CRS.from_string(data['wkt_projection_string'])
+@pytest.mark.parametrize(
+    "geotransform,wkt_projection_string,geographic_coordinate,raster_coordinate",
+    [
+        ([-2099127.494496938, 2500.0, 0.0, -2099388.521499629, 0.0, -2500.0], "CMC_hrdps_continental_ps2.5km_projection_wkt.txt", [-120.4816667, 50.6733333], (472, 819)),
+        ([-2099127.494496938, 2500.0, 0.0, -2099388.521499629, 0.0, -2500.0], "CMC_hrdps_continental_ps2.5km_projection_wkt.txt", [-116.7464000, 49.4358000], (572, 897)),
+        ([-2099127.494496938, 2500.0, 0.0, -2099388.521499629, 0.0, -2500.0], "CMC_hrdps_continental_ps2.5km_projection_wkt.txt", [-123.2732667, 52.0837700], (409, 736)),
+        ([-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15], "CMC_glb_latlon.15x.15_projection_wkt.txt", [-120.4816667, 50.6733333], (397, 262)),
+        ([-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15], "CMC_glb_latlon.15x.15_projection_wkt.txt", [-116.7464000, 49.4358000], (422, 270)),
+        ([-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15], "CMC_glb_latlon.15x.15_projection_wkt.txt", [-123.2732667, 52.0837700], (378, 253)),
+    ],
+)
+def test_calculate_raster_coordinates(geotransform, wkt_projection_string, geographic_coordinate, raster_coordinate):
+    wkt_string = read_file_contents(wkt_projection_string)
+    proj_crs = CRS.from_string(wkt_string)
     transformer = process_grib.get_transformer(NAD83_CRS, proj_crs)
-    padf_transform = Affine.from_gdal(*data['geotransform'])
-    data['raster_coordinate'] = process_grib.calculate_raster_coordinate(
-        longitude, latitude, padf_transform, transformer)
+    padf_transform = Affine.from_gdal(*geotransform)
+    longitude, latitude = geographic_coordinate
+    expected_raster_coordinate = process_grib.calculate_raster_coordinate(longitude, latitude, padf_transform, transformer)
+    assert expected_raster_coordinate == raster_coordinate
 
 
-@then(parsers.parse('I expect raster coordinates: {raster_coordinate}'), converters={'raster_coordinate': json.loads})
-def assert_raster_coordinates(data, raster_coordinate):
-    """ assert that raster_coordinate matches expected value """
-    assert list(data['raster_coordinate']) == raster_coordinate
-
-
-@scenario(
-    'test_grib_processing.feature',
-    'Calculate geographic coordinates')
-def test_calculate_geographic_coordinates():
-    """ BDD Scenario for testing calculation of geographic coordinates """
-
-
-@when(parsers.parse('I calculate the geographic coordinate for {raster_coordinate}'), converters={'raster_coordinate': json.loads})
-def calculate_geographic_coordinate(data, raster_coordinate):
-    """ calculate the geographic coordinate """
-    proj_crs = CRS.from_string(data['wkt_projection_string'])
+@pytest.mark.parametrize(
+    "geotransform,wkt_projection_string,raster_coordinate,geographic_coordinate",
+    [
+        ([-2099127.494496938, 2500.0, 0.0, -2099388.521499629, 0.0, -2500.0], "CMC_hrdps_continental_ps2.5km_projection_wkt.txt", [472, 819], (-120.49716122617183, 50.67953463749049)),
+        ([-2099127.494496938, 2500.0, 0.0, -2099388.521499629, 0.0, -2500.0], "CMC_hrdps_continental_ps2.5km_projection_wkt.txt", [572, 897], (-116.7609172273627, 49.43970905337442)),
+        ([-2099127.494496938, 2500.0, 0.0, -2099388.521499629, 0.0, -2500.0], "CMC_hrdps_continental_ps2.5km_projection_wkt.txt", [409, 736], (-123.28555732697632, 52.084540312301314)),
+        ([-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15], "CMC_glb_latlon.15x.15_projection_wkt.txt", [370, 330], (-124.57499999999999, 40.575)),
+        ([-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15], "CMC_glb_latlon.15x.15_projection_wkt.txt", [315, 455], (-132.825, 21.825000000000003)),
+        ([-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15], "CMC_glb_latlon.15x.15_projection_wkt.txt", [427, 245], (-116.02499999999998, 53.325)),
+    ],
+)
+def test_calculate_geographic_coordinate(geotransform, wkt_projection_string, raster_coordinate, geographic_coordinate):
+    wkt_string = read_file_contents(wkt_projection_string)
+    proj_crs = CRS.from_string(wkt_string)
     transformer = process_grib.get_transformer(proj_crs, NAD83_CRS)
-    padf_transform = Affine.from_gdal(*data['geotransform'])
-    data['geographic_coordinate'] = \
-        process_grib.calculate_geographic_coordinate(
-        raster_coordinate, padf_transform, transformer)
-
-
-@then(parsers.parse('I expect the geographic_coordinate {geographic_coordinate}'), converters={'geographic_coordinate': json.loads})
-def assert_geographic_coordinate(data, geographic_coordinate):
-    """ assert that geographic_coordinate matches the expected value """
-    assert list(data['geographic_coordinate']) == geographic_coordinate
+    padf_transform = Affine.from_gdal(*geotransform)
+    calculated_geographic_coordinate = process_grib.calculate_geographic_coordinate(raster_coordinate, padf_transform, transformer)
+    assert calculated_geographic_coordinate == geographic_coordinate

@@ -103,9 +103,20 @@
             "module": "app.auto_spatial_advisory.local.process_hfi_local",
             "console": "integratedTerminal",
             "args": [
-                "2022-10-13",
-                "2022-10-13",
-                "2022-10-13"
+                "2024-09-01",
+                "2024-09-01",
+                "2024-09-01"
+            ]
+        },
+        {
+            "name": "asa - process stats",
+            "type": "python",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.local.process_stats_local",
+            "console": "integratedTerminal",
+            "args": [
+                "2024-09-01T14:30:00+00:00",
+                "2024-09-01"
             ]
         },
         {
@@ -135,6 +146,16 @@
             "request": "launch",
             "module": "app.auto_spatial_advisory.critical_hours",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "sfms raster processor job",
+            "type": "python",
+            "request": "launch",
+            "module": "app.jobs.sfms_calculations",
+            "console": "integratedTerminal",
+            "args": [
+                "2024-10-23 12"
+            ]
         },
         {
             "name": "Chrome",

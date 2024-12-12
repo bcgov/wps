@@ -114,7 +114,7 @@ export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
               aria-label="apply"
               onClick={handleApplyAndClose}
               variant="extended"
-              data-testId="apply-btn"
+              data-testid="apply-btn"
             >
               Apply
             </Fab>

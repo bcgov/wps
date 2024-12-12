@@ -22,8 +22,8 @@ brew install --cask wkhtmltopdf
 
 ### pyenv
 brew install pyenv
-pyenv install 3.10.4
-pyenv global 3.10.4
+pyenv install 3.12.3
+pyenv global 3.12.3
 
 ### poetry
 curl -sSL https://install.python-poetry.org | python -
@@ -39,22 +39,22 @@ r -e 'install.packages(c("rgdal","sf", "units"),,"https://mac.R-project.org")'
 r -e "install.packages('cffdrs', repos = 'http://cran.us.r-project.org')"
 echo "finished installing r packages"
 
-### postgres
-echo "installing and configuring postgres"
-brew install postgresql
-brew services start postgresql
-brew install postgis
-psql -d postgres -c "create database wps;"
-psql -d wps -c "create extension postgis;"
-psql -d wps -c "
-CREATE USER wps;
-CREATE USER wpsread;
-ALTER USER wps WITH LOGIN;
-ALTER USER wpsread WITH LOGIN;
-ALTER USER wps WITH SUPERUSER;
-grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;
-"
-echo "finished installing and configuration postgres, run migrations in poetry shell"
+### postgres - Nov 2024 - Commenting out the postgres setup. See MANUAL.md for reasons and manual postgres setup.
+# echo "installing and configuring postgres"
+# brew install postgresql
+# brew services start postgresql
+# brew install postgis
+# psql -d postgres -c "create database wps;"
+# psql -d wps -c "create extension postgis;"
+# psql -d wps -c "
+# CREATE USER wps;
+# CREATE USER wpsread;
+# ALTER USER wps WITH LOGIN;
+# ALTER USER wpsread WITH LOGIN;
+# ALTER USER wps WITH SUPERUSER;
+# grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;
+# "
+# echo "finished installing and configuration postgres, run migrations in poetry shell"
 
 ### redis
 brew install redis

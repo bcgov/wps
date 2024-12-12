@@ -34,7 +34,7 @@ MODULE_NAME=web bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 # Using pmtiles now, TODO: remove once pmtiles is satisfactory in prod over sometime
 # MODULE_NAME=tileserv bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 echo Provision database
-PROJ_TARGET=${PROJ_TARGET} BUCKET=lwzrin CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=45Gi WAL_SIZE=15Gi bash $(dirname ${0})/oc_provision_crunchy.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} BUCKET=lwzrin CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=15Gi bash $(dirname ${0})/oc_provision_crunchy.sh prod ${RUN_TYPE}
 # TODO: remove once crunchydb satisfactory in prod for sometime
 # CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi PVC_SIZE=45Gi PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_db.sh prod ${RUN_TYPE}
 # Using pmtiles now, TODO: remove once pmtiles is satisfactory in prod over sometime
@@ -43,7 +43,7 @@ PROJ_TARGET=${PROJ_TARGET} BUCKET=lwzrin CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_
 echo Provision NATS
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_nats.sh prod ${RUN_TYPE}
 echo Deploy API
-MODULE_NAME=api GUNICORN_WORKERS=8 CPU_REQUEST=100m CPU_LIMIT=500m MEMORY_REQUEST=6Gi MEMORY_LIMIT=8Gi REPLICAS=3 PROJ_TARGET=${PROJ_TARGET} VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca USE_WFWX="True" ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy.sh prod ${RUN_TYPE}
+MODULE_NAME=api GUNICORN_WORKERS=8 CPU_REQUEST=100m CPU_LIMIT=500m MEMORY_REQUEST=6Gi MEMORY_LIMIT=8Gi REPLICAS=3 PROJ_TARGET=${PROJ_TARGET} VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy.sh prod ${RUN_TYPE}
 echo Env Canada Subscriber
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_gdps_cronjob.sh prod ${RUN_TYPE}
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_hrdps_cronjob.sh prod ${RUN_TYPE} 
@@ -59,10 +59,14 @@ echo Grass Curing
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_grass_curing_cronjob.sh prod ${RUN_TYPE}
 echo RDPS for SFMS
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_rdps_sfms_cronjob.sh prod ${RUN_TYPE}
+echo SFMS Raster Calculations
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_calculations_cronjob.sh prod ${RUN_TYPE}
 echo BC FireWeather cronjobs
 echo "Run forecast at 8h30 PDT and 16h30 PDT (so before and after noon)"
 PROJ_TARGET=${PROJ_TARGET} SCHEDULE="30 * * * *" bash $(dirname ${0})/oc_provision_wfwx_noon_forecasts_cronjob.sh prod ${RUN_TYPE}
 PROJ_TARGET=${PROJ_TARGET} SCHEDULE="15 * * * *" bash $(dirname ${0})/oc_provision_wfwx_hourly_actuals_cronjob.sh prod ${RUN_TYPE}
+echo "Configure partitioner to run every month on day 1 at 00:00"
+PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 0 1 * *" bash $(dirname ${0})/oc_provision_partitioner_cronjob.sh prod ${RUN_TYPE}
 echo Configure backups
 PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=1000m CPU_LIMIT=2000m bash $(dirname ${0})/oc_provision_backup_s3_postgres_cronjob.sh prod ${RUN_TYPE}
 echo Configure hourly pruner

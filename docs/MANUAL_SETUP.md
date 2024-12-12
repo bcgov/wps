@@ -63,20 +63,20 @@ brew install --cask wkhtmltopdf
 
 ##### Poetry
 
-Try to match the latest version of python in our production environment (as of writing, API is on 3.10.4)
+Try to match the latest version of python in our production environment (as of writing, API is on 3.12.3)
 
 ```bash
 brew update
 brew install pyenv
-pyenv install 3.10.4
-pyenv local 3.10.4
+pyenv install 3.12.3
+pyenv local 3.12.3
 curl -sSL https://install.python-poetry.org | python -
 ```
 
 ##### Install project python requirements
 
-`poetry env use 3.10.4` doesn't actually honor the minor version, if you have more than one version
-of 3.10, and you want 3.10.4 exactly, you have to find the location of the 3.10.4 binary and point
+`poetry env use 3.12.3` doesn't actually honor the minor version, if you have more than one version
+of 3.10, and you want 3.12.3 exactly, you have to find the location of the 3.12.3 binary and point
 to that.
 
 ```bash
@@ -84,7 +84,7 @@ pyenv which python
 ```
 
 ```bash
-poetry env use [path to python 3.10.4, get this by running 'pyenv which python']
+poetry env use [path to python 3.12.3, get this by running 'pyenv which python']
 poetry run python -m pip install --upgrade pip
 ```
 
@@ -111,7 +111,7 @@ python -m pip install gdal==$(gdal-config --version)
 python -m pip install pygdal==3.0.4.10
 ```
 
-**N.B.: If `poetry env use [version]` returns an `EnvCommandError` saying something like "pyenv: python3.10: command not found", but `pyenv versions` shows that 3.10.4 is installed, you must first run `pyenv shell 3.10.4` and then re-run `poetry env use [path to python 3.10.4]`.**
+**N.B.: If `poetry env use [version]` returns an `EnvCommandError` saying something like "pyenv: python3.10: command not found", but `pyenv versions` shows that 3.12.3 is installed, you must first run `pyenv shell 3.12.3` and then re-run `poetry env use [path to python 3.12.3]`.**
 
 ##### Troubleshooting
 
@@ -235,6 +235,27 @@ To shell into the Docker container for the database, execute `make docker-shell-
 Executing `make docker-build-dev` followed by `make docker-run-dev` will build and run the Docker container needed to run the application locally. Running the dev container will also spin up a local Postgres service and will create a local copy of the wps database with the necessary schemas.
 
 #### Natively
+
+As of Nov 2024 the version of postgis installed with brew doesn't work with postgresql@16. postgis is specifically
+linked to the original postgres cask (aka postgres@14). If you choose to use postgresql@16 installed via brew, you
+will need to compile postgis yourself. The alternative is to use [Postgres.app](https://postgresapp.com/).
+
+After installing Postgres.app, run the following commands in a terminal (taken from the mac.sh setup script):
+
+```bash
+psql -d postgres -c "create database wps;"
+psql -d wps -c "create extension postgis;"
+psql -d wps -c "
+CREATE USER wps;
+CREATE USER wpsread;
+ALTER USER wps WITH LOGIN;
+ALTER USER wpsread WITH LOGIN;
+ALTER USER wps WITH SUPERUSER;
+grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;
+"
+```
+
+If you have chosen to `brew install postgresql@16` and compile `postgis` locally, follow the instructions below:
 
 If you're running Postgresql natively for the first time:
 
