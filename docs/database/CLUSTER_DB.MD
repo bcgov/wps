@@ -53,7 +53,7 @@ Spin up the Repo-Standby Cluster with:
 
 - Anecdotally, spinning up a standby cluster for a 15GB database took about 5 minutes
 
-### Promoting a Standby Cluster
+##### Promoting a Standby Cluster
 
 Once a standby is stood up, it can be promoted to be the primary cluster. **Note: only do this if the existing primary has been shut down first.**
 You can shutdown the primary cluster with this command:  
@@ -65,24 +65,19 @@ You can determine that promotion has completed when the logs of the standby Stat
 
 More details here: <https://access.crunchydata.com/documentation/postgres-operator/latest/architecture/disaster-recovery#promoting-a-standby-cluster>
 
-### Setting secrets
+##### Database user privileges
 
-The promoted standby cluster created it's own secrets for connecting to pgbouncer and it has created a new user in the database with the same name as the cluster. Ex. if the standby cluster is named "wps-crunchy-16-2024-12-10", the user will have the same name (this user won't be created until the standby is promoted).
-Once the standby has been promoted, the easiest way to update user privileges is to reassign table ownership from the old user to the new user.  
+The promoted standby cluster created it's own secrets for connecting to pgbouncer and it has created a new user in the database with the same name as the cluster. Ex. if the standby cluster is named "wps-crunchy-16-20241210", the user will have the same name (this user won't be created until the standby is promoted).
+Once the standby has been promoted, the easiest way to update user privileges is to reassign table ownership from the old user to the new user:  
 `REASSIGN OWNED BY "<old-user>" TO "<new-user>";`  
 Use `\du` in psql to see users in the database.
 
-Once this is done, the deployment using the crunchy secrets and cluster references will need to be updated. This can be done by manually editing the deployment YAML in the Openshift UI and changing all config that referenced the original crunchy cluster to the newly promoted standby cluster secrets. Once this is done, new pods should roll out successfully.
+##### Update the prod deployment to use the new crunchydb cluster and pguser secret
 
-- Change to name of new cluster secret
-  - POSTGRES_READ_USER
-  - POSTGRES_WRITE_USER
-  - POSTGRES_PASSWORD
-  - POSTGRES_WRITE_HOST
-  - POSTGRES_READ_HOST
-  - POSTGRES_PORT
-- Change to name of new cluster
-  - PATRONI_CLUSTER_NAME
+Create a PR with the following changes:
+
+- Update `CRUNCHY_NAME` in `envars` file to the new crunchydb cluster name (excluding the suffix)
+- Update `PATRONI_CLUSTER_NAME` in `deploy.yaml`.
 
 ## Cluster Restore From pg_dump
 
