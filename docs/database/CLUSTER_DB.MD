@@ -67,7 +67,7 @@ More details here: <https://access.crunchydata.com/documentation/postgres-operat
 
 ### Setting secrets
 
-The promoted standby cluster created it's own secrets for connecting to pgbouncer and it has created a new user in the database with the same name as the cluster. Ex. if the standby cluster is named "wps-crunchy-16-2024-12-10", the user will have the same name.
+The promoted standby cluster created it's own secrets for connecting to pgbouncer and it has created a new user in the database with the same name as the cluster. Ex. if the standby cluster is named "wps-crunchy-16-2024-12-10", the user will have the same name (this user won't be created until the standby is promoted).
 Once the standby has been promoted, the easiest way to update user privileges is to reassign table ownership from the old user to the new user.  
 `REASSIGN OWNED BY "<old-user>" TO "<new-user>";`  
 Use `\du` in psql to see users in the database.
@@ -138,4 +138,3 @@ Create a PR with the following changes:
 
 - Update `CRUNCHY_NAME` in `envars` file to the new crunchydb cluster name (excluding the suffix)
 - Update `PATRONI_CLUSTER_NAME` in `deploy.yaml`.
-
