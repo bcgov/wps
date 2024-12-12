@@ -32,7 +32,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/partitioner.cronjob
 -p SUFFIX=${SUFFIX} \
 -p SCHEDULE=\"${SCHEDULE}\" \
 -p PG_DATABASE=${POSTGRES_DATABASE:-${APP_NAME}} \
--p CRUNCHYDB_USER=wps-crunchydb-16-${SUFFIX}-pguser-wps-crunchydb-16-${SUFFIX} \
+-p CRUNCHYDB_USER=${CRUNCHY_PREFIX}-${SUFFIX}-pguser-${CRUNCHY_PREFIX}-${SUFFIX} \
 ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"}"
 
 # Apply template (apply or use --dry-run)

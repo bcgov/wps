@@ -29,10 +29,10 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 # Prepare variables for backups
 JOB_NAME="backup-postgres-${APP_NAME}-${SUFFIX}"
 IMAGE_NAMESPACE=${PROJ_TOOLS}
-CLUSTER_NAME="wps-crunchydb-16-${SUFFIX}"
+CLUSTER_NAME="${CRUNCHY_PREFIX}-${SUFFIX}"
 
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-postgres-cronjob.yaml \
-    -p CRUNCHYDB_USER=wps-crunchydb-16-${SUFFIX}-pguser-wps-crunchydb-16-${SUFFIX} \
+    -p CRUNCHYDB_USER=${CRUNCHY_PREFIX}-${SUFFIX}-pguser-${CRUNCHY_PREFIX}-${SUFFIX} \
     -p JOB_NAME=${JOB_NAME} \
     -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \
     -p APP_LABEL=${APP_NAME}-${SUFFIX} \
