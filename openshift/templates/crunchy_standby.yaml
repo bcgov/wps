@@ -1,12 +1,12 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: ${CRUNCHY_NAME}-${DATE}
+  name: ${CRUNCHY_NAME}-${DATE}-${SUFFIX}
   annotations:
-    "openshift.io/display-name": ${CRUNCHY_NAME}-${DATE}
+    "openshift.io/display-name": ${CRUNCHY_NAME}-${DATE}-${SUFFIX}
 labels:
-  app.kubernetes.io/part-of: ${CRUNCHY_NAME}-${DATE}
-  app: ${CRUNCHY_NAME}-${DATE}
+  app.kubernetes.io/part-of: ${CRUNCHY_NAME}-${DATE}-${SUFFIX}
+  app: ${CRUNCHY_NAME}-${DATE}-${SUFFIX}
 parameters:
   - description: Namespace in which database resides
     displayName: Target Namespace
@@ -66,14 +66,14 @@ objects:
   - apiVersion: postgres-operator.crunchydata.com/v1beta1
     kind: PostgresCluster
     metadata:
-      name: ${CRUNCHY_NAME}-${DATE}
+      name: ${CRUNCHY_NAME}-${DATE}-${SUFFIX}
     spec:
       postgresVersion: 16
       postGISVersion: "3.3"
       metadata:
-        name: ${CRUNCHY_NAME}-${DATE}
+        name: ${CRUNCHY_NAME}-${DATE}-${SUFFIX}
         labels:
-          app: ${CRUNCHY_NAME}-${DATE}
+          app: ${CRUNCHY_NAME}-${DATE}-${SUFFIX}
       databaseInitSQL:
         key: init.sql
         name: wps-init-sql
