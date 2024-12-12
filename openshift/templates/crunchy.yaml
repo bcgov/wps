@@ -19,8 +19,8 @@ parameters:
     required: true
   - name: APP_NAME
     description: Application name (wps - wildfire predictive services)
-    value: wps-crunchydb-16
     required: true
+    value: wps-crunchydb-16
   - name: BUCKET
     description: S3 bucket name
     required: true
