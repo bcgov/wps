@@ -11,18 +11,24 @@ import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Fill, Style, Text, Stroke } from 'ol/style'
 import { Select } from 'ol/interaction'
 import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
-import hotspots from './FirespotArea_canada_c6.1_48.json'
+import hotspotPoints from './hotspot_points.json'
 import { boundingExtent } from 'ol/extent'
-import { Point } from 'ol/geom'
-import { point, distance, bearing } from '@turf/turf'
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material'
+import { point, distance, bearing, feature } from '@turf/turf'
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box } from '@mui/material'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from '@/app/store'
 import CircleStyle from 'ol/style/Circle'
+import { FeatureCollection, MultiPolygon, Geometry, Point as GeoJSONPoint } from 'geojson'
+import { buffer, pointsWithinPolygon } from '@turf/turf'
+import { firePerimeterStyler } from '@/features/riskMap/pages/components/fireMapStylers'
+import { ErrorBoundary } from '@/components'
+import { Point } from 'ol/geom'
+// import { parse } from 'csv-parse'
 
+export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 const findLayerByName = (map: Map, layerName: string): VectorLayer | undefined => {
@@ -44,11 +50,57 @@ export interface FireMapProps {
 export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
+  const [map, setMap] = useState<Map | null>(null)
   const [open, setOpen] = useState(false)
   const [closestDistance, setClosestDistance] = useState<number | null>(null)
   const [closestDirection, setClosestDirection] = useState<string>('')
   const { stations } = useSelector(selectFireWeatherStations)
   const dispatch: AppDispatch = useDispatch()
+
+  const firePerimeterLayer = new VectorLayer({
+    style: firePerimeterStyler,
+    source: new VectorSource({
+      features: new GeoJSON().readFeatures(firePerimeterData, {
+        featureProjection: 'EPSG:3857'
+      })
+    }),
+    zIndex: 50,
+    properties: { name: 'firePerimeter' }
+  })
+
+  const hotspotsGeojson = new GeoJSON().readFeatures(hotspotPoints, {
+    featureProjection: 'EPSG:3857'
+  })
+
+  const hotspotFeatureCollection: FeatureCollection<GeoJSONPoint> = {
+    type: 'FeatureCollection',
+    features: hotspotsGeojson.map(feature => {
+      const geojsonFeature = new GeoJSON().writeFeatureObject(feature)
+
+      if (geojsonFeature.geometry.type !== 'Point') {
+        throw new Error('Non-Point geometry detected')
+      }
+
+      return geojsonFeature as GeoJSON.Feature<GeoJSONPoint>
+    })
+  }
+
+  const hotspotsLayer = new VectorLayer({
+    style: new Style({
+      image: new CircleStyle({
+        radius: 5,
+        fill: new Fill({
+          color: 'rgba(255, 0, 0, 0.8)'
+        }),
+        stroke: new Stroke({ color: 'red', width: 1 })
+      })
+    }),
+    source: new VectorSource({
+      features: hotspotsGeojson
+    }),
+    zIndex: 52,
+    properties: { name: 'hotspots' }
+  })
 
   useEffect(() => {
     dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified))
@@ -109,54 +161,14 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
 
   useEffect(() => {
     if (!mapInstanceRef.current) {
-      const firePerimeterStyler = (feature: any) => {
-        const labelText = feature.get('FIRE_NUMBER') || ''
-        return new Style({
-          fill: new Fill({
-            color: 'rgba(251,171,96, 0.8)'
-          }),
-          text: new Text({
-            font: '12px Calibri,sans-serif',
-            text: labelText,
-            fill: new Fill({
-              color: '#000'
-            }),
-            stroke: new Stroke({
-              color: '#fff',
-              width: 2
-            })
-          })
-        })
-      }
-
       const map = new Map({
         target: mapRef.current!,
         layers: [
           new TileLayer({
             source: new OSM()
           }),
-          new VectorLayer({
-            style: firePerimeterStyler,
-            source: new VectorSource({
-              features: new GeoJSON().readFeatures(firePerimeterData, {
-                featureProjection: 'EPSG:3857'
-              })
-            }),
-            zIndex: 50
-          }),
-          new VectorLayer({
-            style: new Style({
-              fill: new Fill({
-                color: 'rgba(255, 0, 0, 0.8)'
-              })
-            }),
-            source: new VectorSource({
-              features: new GeoJSON().readFeatures(hotspots, {
-                featureProjection: 'EPSG:3857'
-              })
-            }),
-            zIndex: 52
-          })
+          firePerimeterLayer,
+          hotspotsLayer
         ],
         view: new View({
           center: fromLonLat(CENTER_OF_BC),
@@ -174,9 +186,26 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
 
       selectClick.on('select', event => {
         if (event.selected.length > 0) {
-          const feature = event.selected[0]
-          const selectedGeometry = feature.getGeometry()
+          const selectedFeature = event.selected[0]
 
+          console.log(selectedFeature)
+          // map.forEachFeatureAtPixel(event.mapBrowserEvent.pixel, (feature, layer) => {
+          //   if (layer.getProperties().name === 'firePerimeter') {
+          //     const fireGeom = selectedFeature.getGeometry()
+          //     if (fireGeom) {
+          //       const firePolygon = new GeoJSON().writeFeatureObject(selectedFeature)
+          //       console.log('buffering')
+          //       const bufferedFirePolygon = buffer(firePolygon, 2, { units: 'kilometers' })
+          //       console.log('calculating')
+          //       const filteredHotspots = pointsWithinPolygon(hotspotFeatureCollection, bufferedFirePolygon!)
+          //       console.log(filteredHotspots)
+          //     }
+          //   }
+          // })
+
+          // --------------------
+
+          const selectedGeometry = selectedFeature.getGeometry()
           if (selectedGeometry instanceof Point) {
             const selectedPointCoords = selectedGeometry.getCoordinates()
             const lonLatCoords = toLonLat(selectedPointCoords)
@@ -222,6 +251,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
 
       mapInstanceRef.current = map
       setMapInstance(map)
+      setMap(map)
       map.addInteraction(selectClick)
     }
   }, [])
@@ -233,36 +263,47 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
   }
 
   return (
-    <>
-      <div ref={mapRef} style={{ width: '1800px', height: '800px' }} />
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Closest Distance</DialogTitle>
-        <DialogContent>
-          {closestDistance !== null && closestDirection ? (
-            <>
-              <p>Closest Distance: {closestDistance.toPrecision(2)} km</p>
-              <p>Direction: {closestDirection}</p>
-              <p>
-                Risk Level:
-                <span
-                  style={{
-                    color: closestDistance < 5 ? 'red' : closestDistance <= 10 ? 'orange' : 'black'
-                  }}
-                >
-                  {closestDistance < 5 ? ' High Risk' : closestDistance <= 10 ? ' Mid Risk' : ' Low Risk'}
-                </span>
-              </p>
-            </>
-          ) : (
-            <p>No distance calculated.</p>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+    <ErrorBoundary>
+      <MapContext.Provider value={map}>
+        <Box
+          ref={mapRef}
+          data-testid="risk-map"
+          sx={{
+            display: 'flex',
+            flex: 1,
+            position: 'relative'
+          }}
+        >
+          <Dialog open={open} onClose={handleClose} sx={{ position: 'absolute', zIndex: '1', bottom: '0.5rem' }}>
+            <DialogTitle>Closest Distance</DialogTitle>
+            <DialogContent>
+              {closestDistance !== null && closestDirection ? (
+                <>
+                  <p>Closest Distance: {closestDistance.toPrecision(2)} km</p>
+                  <p>Direction: {closestDirection}</p>
+                  <p>
+                    Risk Level:
+                    <span
+                      style={{
+                        color: closestDistance < 5 ? 'red' : closestDistance <= 10 ? 'orange' : 'black'
+                      }}
+                    >
+                      {closestDistance < 5 ? ' High Risk' : closestDistance <= 10 ? ' Mid Risk' : ' Low Risk'}
+                    </span>
+                  </p>
+                </>
+              ) : (
+                <p>No distance calculated.</p>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose} color="primary">
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Box>
+      </MapContext.Provider>
+    </ErrorBoundary>
   )
 }

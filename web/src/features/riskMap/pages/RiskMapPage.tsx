@@ -18,6 +18,11 @@ import DayControl from '@/features/riskMap/pages/components/DayControl'
 import { useDispatch, useSelector } from 'react-redux'
 import { addGrowthLayer } from '@/features/riskMap/slices/fireGrowthSlice'
 import { selectFireGrowthDay } from '@/app/rootReducer'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { DateTime } from 'luxon'
+import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
+import { GeneralHeader } from '@/components'
 
 export const RiskMapPage = () => {
   const [file, setFile] = useState<File | null>(null)
@@ -26,6 +31,7 @@ export const RiskMapPage = () => {
   const [growthDay, setGrowthDay] = useState<number>(0)
   const dispatch: AppDispatch = useDispatch()
   const { day, dayGrowthLayers } = useSelector(selectFireGrowthDay)
+  const [dateOfInterest, setDateOfInterest] = useState<DateTime | null>(DateTime.now().setZone('America/Vancouver'))
 
   const getGrowthColor = () => {
     const a = 0.6 // Fixed alpha for transparency (60% opacity)
@@ -45,30 +51,30 @@ export const RiskMapPage = () => {
     }
   }
 
-  const removeLayerByName = () => {
-    if (mapInstance) {
-      const layers = mapInstance
-        .getLayers()
-        .getArray()
-        .filter(l => (l.getProperties()?.layerName as string).startsWith('firePerimDay'))
-      if (layers) {
-        layers.forEach(layer => mapInstance.removeLayer(layer))
-      }
-    }
-  }
+  // const removeLayerByName = () => {
+  //   if (mapInstance) {
+  //     const layers = mapInstance
+  //       .getLayers()
+  //       .getArray()
+  //       .filter(l => (l.getProperties()?.layerName as string).startsWith('firePerimDay'))
+  //     if (layers) {
+  //       layers.forEach(layer => mapInstance.removeLayer(layer))
+  //     }
+  //   }
+  // }
 
-  useEffect(() => {
-    if (mapInstance) {
-      if (day === 0) {
-        removeLayerByName()
-      } else {
-        const layerToAdd = dayGrowthLayers[day]
-        if (layerToAdd) {
-          mapInstance.addLayer(dayGrowthLayers[day])
-        }
-      }
-    }
-  }, [day])
+  // useEffect(() => {
+  //   if (mapInstance) {
+  //     if (day === 0) {
+  //       removeLayerByName()
+  //     } else {
+  //       const layerToAdd = dayGrowthLayers[day]
+  //       if (layerToAdd) {
+  //         mapInstance.addLayer(dayGrowthLayers[day])
+  //       }
+  //     }
+  //   }
+  // }, [day])
 
   // Method to trigger the fetch request
   const growFire = async () => {
@@ -116,17 +122,16 @@ export const RiskMapPage = () => {
     }
   }
   return (
-    <>
-      <Modal open={loading}>
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* <Modal open={loading}>
         <Box>
           <Grid
             container
             direction={'column'}
             sx={{
               display: 'flex',
-              justifyContent: 'center',
               alignItems: 'center',
-              height: '100vh' // Full viewport height
+              height: '100vh'
             }}
           >
             <Grid item>
@@ -137,35 +142,40 @@ export const RiskMapPage = () => {
             </Grid>
           </Grid>
         </Box>
-      </Modal>
-      <Grid
-        container
-        spacing={1}
-        direction={'column'}
-        justifyContent="center"
-        alignItems="center"
-        style={{ minHeight: '100vh' }}
-      >
-        <Grid item>
-          <Typography variant="h5">Risk Map: Upload values, model fire growth, identify values at risk</Typography>
-        </Grid>
-        <Grid item>
-          <Grid container direction={'row'} spacing={1}>
-            <Grid item>
-              <ValuesImportButton setFile={setFile} />
-            </Grid>
-            <Grid item>
-              <GrowFireButton growFire={growFire} />
-            </Grid>
-            <Grid item>
-              <DayControl />
-            </Grid>
+      </Modal> */}
+      <GeneralHeader isBeta={true} spacing={1} title={'Risk Map'} productName={'Risk Map'} />
+      <Box sx={{ padding: '0.5em' }}>
+        <Grid container spacing={1} alignItems="center">
+          <Grid item>
+            <LocalizationProvider dateAdapter={AdapterLuxon}>
+              <DatePicker
+                label="Date of Interest"
+                value={dateOfInterest}
+                onChange={newValue => {
+                  if (newValue) {
+                    setDateOfInterest(newValue.setZone('America/Vancouver'))
+                  }
+                }}
+              />
+            </LocalizationProvider>
+          </Grid>
+          <Grid item>
+            <ValuesImportButton setFile={setFile} />
+          </Grid>
+          <Grid item>
+            <GrowFireButton growFire={growFire} />
+          </Grid>
+          <Grid item>
+            <DayControl />
           </Grid>
         </Grid>
-        <Grid item>
+      </Box>
+
+      <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
+        <Grid sx={{ display: 'flex', flex: 1 }} item>
           <FireMap valuesFile={file} setMapInstance={setMapInstance} />
         </Grid>
-      </Grid>
-    </>
+      </Box>
+    </Box>
   )
 }
