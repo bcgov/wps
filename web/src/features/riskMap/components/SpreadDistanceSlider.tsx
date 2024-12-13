@@ -1,3 +1,4 @@
+import { Box } from '@mui/material'
 import Slider from '@mui/material/Slider'
 import Typography from '@mui/material/Typography'
 import React from 'react'
@@ -9,17 +10,32 @@ interface DistanceSliderProps {
 
 const DistanceSlider = ({ spreadDistance, setSpreadDistance }: DistanceSliderProps) => {
   return (
-    <>
-      <Typography gutterBottom>Fire Spread Distance: {spreadDistance} m</Typography>
+    <Box
+      sx={{
+        marginLeft: '2rem',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      <Typography
+        gutterBottom
+        sx={{
+          width: '250px',
+          display: 'inline-block'
+        }}
+      >
+        Fire Spread Distance: {spreadDistance} m
+      </Typography>
       <Slider
         value={spreadDistance}
         onChange={(event, newValue) => setSpreadDistance(newValue as number)}
-        min={0}
+        min={100}
         max={5000}
         step={10}
-        valueLabelDisplay="auto"
+        valueLabelDisplay="off"
+        sx={{ width: '200px' }}
       />
-    </>
+    </Box>
   )
 }
 
