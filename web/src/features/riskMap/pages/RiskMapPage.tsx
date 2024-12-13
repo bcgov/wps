@@ -1,28 +1,28 @@
 import { FireMap } from '@/features/riskMap/components/FireMap'
+import { GrowFireButton } from '@/features/riskMap/components/GrowFireButton'
 import { ValuesImportButton } from '@/features/riskMap/components/UploadButton'
-import { Box, CircularProgress, Grid, Modal, Typography } from '@mui/material'
+import { Box, Grid } from '@mui/material'
+import axios from 'api/axios'
+import { AppDispatch } from 'app/store'
+import { Map } from 'ol'
+import GeoJSON from 'ol/format/GeoJSON'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
-import GeoJSON from 'ol/format/GeoJSON'
 import { Fill, Style } from 'ol/style'
-import { Map } from 'ol'
-import axios from 'api/axios'
-import { useEffect, useState } from 'react'
-import firePerimeterData from '../components/PROT_CURRENT_FIRE_POLYS_SP.json'
+import { useState } from 'react'
 import hotspots from '../components/FirespotArea_canada_c6.1_48.json'
-import { GrowFireButton } from '@/features/riskMap/components/GrowFireButton'
-import { theme } from '@/app/theme'
-import { AppDispatch } from 'app/store'
+import firePerimeterData from '../components/PROT_CURRENT_FIRE_POLYS_SP.json'
 
-import DayControl from '@/features/riskMap/components/DayControl'
-import { useDispatch, useSelector } from 'react-redux'
-import { addGrowthLayer } from '@/features/riskMap/slices/fireGrowthSlice'
 import { selectFireGrowthDay } from '@/app/rootReducer'
+import { GeneralHeader } from '@/components'
+import DayControl from '@/features/riskMap/components/DayControl'
+import DistanceSlider from '@/features/riskMap/components/SpreadDistanceSlider'
+import { addGrowthLayer } from '@/features/riskMap/slices/fireGrowthSlice'
+import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DateTime } from 'luxon'
-import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
-import { GeneralHeader } from '@/components'
+import { useDispatch, useSelector } from 'react-redux'
 
 export const RiskMapPage = () => {
   const [file, setFile] = useState<File | null>(null)
@@ -32,6 +32,7 @@ export const RiskMapPage = () => {
   const dispatch: AppDispatch = useDispatch()
   const { day, dayGrowthLayers } = useSelector(selectFireGrowthDay)
   const [dateOfInterest, setDateOfInterest] = useState<DateTime | null>(DateTime.now().setZone('America/Vancouver'))
+  const [spreadDistance, setSpreadDistance] = useState(500)
 
   const getGrowthColor = () => {
     const a = 0.6 // Fixed alpha for transparency (60% opacity)
@@ -167,6 +168,9 @@ export const RiskMapPage = () => {
           </Grid>
           <Grid item>
             <DayControl />
+          </Grid>
+          <Grid item>
+            <DistanceSlider spreadDistance={spreadDistance} setSpreadDistance={setSpreadDistance} />
           </Grid>
         </Grid>
       </Box>
