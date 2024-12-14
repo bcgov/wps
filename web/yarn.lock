@@ -2206,13 +2206,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:18.3.3":
+"@types/react@npm:*":
   version: 18.3.3
   resolution: "@types/react@npm:18.3.3"
   dependencies:
     "@types/prop-types": "npm:*"
     csstype: "npm:^3.0.2"
   checksum: 10c0/fe455f805c5da13b89964c3d68060cebd43e73ec15001a68b34634604a78140e6fc202f3f61679b9d809dde6d7a7c2cb3ed51e0fd1462557911db09879b55114
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:19.0.1":
+  version: 19.0.1
+  resolution: "@types/react@npm:19.0.1"
+  dependencies:
+    csstype: "npm:^3.0.2"
+  checksum: 10c0/25eb69114abb9a6d5fc4414ee584388275bbc9ac32976449cf58b95fe9880efe6b3f936c3842be9bed8c571546a9752e8d3e2095288381e9c809269f5f574f2e
   languageName: node
   linkType: hard
 
@@ -7670,12 +7679,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^18.3.1":
-  version: 18.3.1
-  resolution: "react@npm:18.3.1"
-  dependencies:
-    loose-envify: "npm:^1.1.0"
-  checksum: 10c0/283e8c5efcf37802c9d1ce767f302dd569dd97a70d9bb8c7be79a789b9902451e0d16334b05d73299b20f048cbc3c7d288bbbde10b701fa194e2089c237dbea3
+"react@npm:^19.0.0":
+  version: 19.0.0
+  resolution: "react@npm:19.0.0"
+  checksum: 10c0/9cad8f103e8e3a16d15cb18a0d8115d8bd9f9e1ce3420310aea381eb42aa0a4f812cf047bb5441349257a05fba8a291515691e3cb51267279b2d2c3253f38471
   languageName: node
   linkType: hard
 
@@ -9529,7 +9536,7 @@ __metadata:
     "@types/leaflet": "npm:^1.7.0"
     "@types/lodash": "npm:^4.14.173"
     "@types/luxon": "npm:^3.0.2"
-    "@types/react": "npm:18.3.3"
+    "@types/react": "npm:19.0.1"
     "@types/react-dom": "npm:^18.3.0"
     "@types/react-plotly.js": "npm:^2.2.4"
     "@types/react-router-dom": "npm:^5.3.0"
@@ -9562,7 +9569,7 @@ __metadata:
     ol: "npm:10.0.0"
     ol-pmtiles: "npm:^1.0.2"
     prettier: "npm:^3.3.3"
-    react: "npm:^18.3.1"
+    react: "npm:^19.0.0"
     react-dom: "npm:^18.3.1"
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:^7.0.0"
