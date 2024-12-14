@@ -53,7 +53,7 @@ export interface FBAMapProps {
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
 }
 
-const removeLayerByName = (map: Map, layerName: string) => {
+export const removeLayerByName = (map: Map, layerName: string) => {
   const layer = map
     .getLayers()
     .getArray()

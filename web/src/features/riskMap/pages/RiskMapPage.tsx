@@ -9,7 +9,7 @@ import GeoJSON from 'ol/format/GeoJSON'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { Fill, Style } from 'ol/style'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import hotspots from '../components/FirespotArea_canada_c6.1_48.json'
 import firePerimeterData from '../components/PROT_CURRENT_FIRE_POLYS_SP.json'
 
@@ -23,6 +23,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
+import { fetchHotSpots } from '@/features/riskMap/slices/hotSpotsSlice'
 
 export const RiskMapPage = () => {
   const [file, setFile] = useState<File | null>(null)
@@ -31,7 +32,7 @@ export const RiskMapPage = () => {
   const [growthDay, setGrowthDay] = useState<number>(0)
   const dispatch: AppDispatch = useDispatch()
   const { day, dayGrowthLayers } = useSelector(selectFireGrowthDay)
-  const [dateOfInterest, setDateOfInterest] = useState<DateTime | null>(DateTime.now().setZone('America/Vancouver'))
+  const [dateOfInterest, setDateOfInterest] = useState<DateTime>(DateTime.now().setZone('America/Vancouver'))
   const [spreadDistance, setSpreadDistance] = useState(500)
 
   const getGrowthColor = () => {
@@ -122,6 +123,11 @@ export const RiskMapPage = () => {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    dispatch(fetchHotSpots(dateOfInterest))
+  }, [dateOfInterest])
+
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* <Modal open={loading}>
@@ -177,7 +183,7 @@ export const RiskMapPage = () => {
 
       <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
         <Grid sx={{ display: 'flex', flex: 1 }} item>
-          <FireMap valuesFile={file} setMapInstance={setMapInstance} />
+          <FireMap valuesFile={file} setMapInstance={setMapInstance} dateOfInterest={dateOfInterest} />
         </Grid>
       </Box>
     </Box>

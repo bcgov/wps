@@ -1,32 +1,30 @@
-import React, { useEffect, useRef, useState } from 'react'
-import 'ol/ol.css'
+import { AppDispatch } from '@/app/store'
+import { ErrorBoundary } from '@/components'
+import { removeLayerByName } from '@/features/fba/components/map/FBAMap'
+import { firePerimeterStyler } from '@/features/riskMap/components/fireMapStylers'
+import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
+import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
+import { bearing, distance, point } from '@turf/turf'
+import { getDetailedStations, StationSource } from 'api/stationAPI'
+import { selectFireWeatherStations, selectHotSpots } from 'app/rootReducer'
+import { DateTime } from 'luxon'
 import { Feature, Map, View } from 'ol'
+import { boundingExtent } from 'ol/extent'
+import GeoJSON from 'ol/format/GeoJSON'
+import { Point } from 'ol/geom'
+import { Select } from 'ol/interaction'
 import TileLayer from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
+import 'ol/ol.css'
+import { fromLonLat, toLonLat } from 'ol/proj'
 import OSM from 'ol/source/OSM'
 import VectorSource from 'ol/source/Vector'
-import GeoJSON from 'ol/format/GeoJSON'
-import { fromLonLat, toLonLat } from 'ol/proj'
-import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
-import { Fill, Style, Text, Stroke } from 'ol/style'
-import { Select } from 'ol/interaction'
-import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
-import hotspotPoints from './hotspot_points.json'
-import { boundingExtent } from 'ol/extent'
-import { point, distance, bearing, feature } from '@turf/turf'
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box } from '@mui/material'
-import { getDetailedStations, StationSource } from 'api/stationAPI'
-import { selectFireWeatherStations } from 'app/rootReducer'
-import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
-import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch } from '@/app/store'
+import { Fill, Stroke, Style } from 'ol/style'
 import CircleStyle from 'ol/style/Circle'
-import { FeatureCollection, MultiPolygon, Geometry, Point as GeoJSONPoint } from 'geojson'
-import { buffer, pointsWithinPolygon } from '@turf/turf'
-import { firePerimeterStyler } from '@/features/riskMap/components/fireMapStylers'
-import { ErrorBoundary } from '@/components'
-import { Point } from 'ol/geom'
-// import { parse } from 'csv-parse'
+import React, { useEffect, useRef, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
 
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -45,11 +43,13 @@ const getCompassDirection = (bearing: number) => {
 export interface FireMapProps {
   valuesFile: File | null
   setMapInstance: React.Dispatch<React.SetStateAction<Map | null>>
+  dateOfInterest: DateTime
 }
 
-export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: FireMapProps) => {
+export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, dateOfInterest }: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
+  const { hotSpotPoints } = useSelector(selectHotSpots)
   const [map, setMap] = useState<Map | null>(null)
   const [open, setOpen] = useState(false)
   const [closestDistance, setClosestDistance] = useState<number | null>(null)
@@ -68,39 +68,39 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
     properties: { name: 'firePerimeter' }
   })
 
-  const hotspotsGeojson = new GeoJSON().readFeatures(hotspotPoints, {
-    featureProjection: 'EPSG:3857'
-  })
+  // const hotspotsGeojson = new GeoJSON().readFeatures(hotspotPoints, {
+  //   featureProjection: 'EPSG:3857'
+  // })
 
-  const hotspotFeatureCollection: FeatureCollection<GeoJSONPoint> = {
-    type: 'FeatureCollection',
-    features: hotspotsGeojson.map(feature => {
-      const geojsonFeature = new GeoJSON().writeFeatureObject(feature)
+  // const hotspotFeatureCollection: FeatureCollection<GeoJSONPoint> = {
+  //   type: 'FeatureCollection',
+  //   features: hotspotsGeojson.map(feature => {
+  //     const geojsonFeature = new GeoJSON().writeFeatureObject(feature)
 
-      if (geojsonFeature.geometry.type !== 'Point') {
-        throw new Error('Non-Point geometry detected')
-      }
+  //     if (geojsonFeature.geometry.type !== 'Point') {
+  //       throw new Error('Non-Point geometry detected')
+  //     }
 
-      return geojsonFeature as GeoJSON.Feature<GeoJSONPoint>
-    })
-  }
+  //     return geojsonFeature as GeoJSON.Feature<GeoJSONPoint>
+  //   })
+  // }
 
-  const hotspotsLayer = new VectorLayer({
-    style: new Style({
-      image: new CircleStyle({
-        radius: 5,
-        fill: new Fill({
-          color: 'rgba(255, 0, 0, 0.8)'
-        }),
-        stroke: new Stroke({ color: 'red', width: 1 })
-      })
-    }),
-    source: new VectorSource({
-      features: hotspotsGeojson
-    }),
-    zIndex: 52,
-    properties: { name: 'hotspots' }
-  })
+  // const hotspotsLayer = new VectorLayer({
+  //   style: new Style({
+  //     image: new CircleStyle({
+  //       radius: 5,
+  //       fill: new Fill({
+  //         color: 'rgba(255, 0, 0, 0.8)'
+  //       }),
+  //       stroke: new Stroke({ color: 'red', width: 1 })
+  //     })
+  //   }),
+  //   source: new VectorSource({
+  //     features: hotspotsGeojson
+  //   }),
+  //   zIndex: 52,
+  //   properties: { name: 'hotspots' }
+  // })
 
   useEffect(() => {
     dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified))
@@ -128,6 +128,36 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
     })
     mapInstanceRef.current?.addLayer(stationLayer)
   }, [stations])
+
+  useEffect(() => {
+    if (!map) return
+    const layerName = 'hotSpots'
+    removeLayerByName(map, layerName)
+
+    if (hotSpotPoints) {
+      const hotSpotsGeojson = new GeoJSON().readFeatures(hotSpotPoints, {
+        featureProjection: 'EPSG:3857'
+      })
+
+      const hotSpotsLayer = new VectorLayer({
+        style: new Style({
+          image: new CircleStyle({
+            radius: 5,
+            fill: new Fill({
+              color: 'rgba(255, 0, 0, 0.8)'
+            }),
+            stroke: new Stroke({ color: 'red', width: 1 })
+          })
+        }),
+        source: new VectorSource({
+          features: hotSpotsGeojson
+        }),
+        zIndex: 52,
+        properties: { name: layerName }
+      })
+      map.addLayer(hotSpotsLayer)
+    }
+  })
 
   useEffect(() => {
     if (valuesFile && mapInstanceRef.current) {
@@ -167,8 +197,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance }: 
           new TileLayer({
             source: new OSM()
           }),
-          firePerimeterLayer,
-          hotspotsLayer
+          firePerimeterLayer
         ],
         view: new View({
           center: fromLonLat(CENTER_OF_BC),
