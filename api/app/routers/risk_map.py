@@ -68,6 +68,15 @@ def get_risk_map_object_store_path(filename: str) -> str:
     return os.path.join("risk_map", "values", unix_timestamp, filename)
 
 
+@router.get("/weather")
+async def weather(fire_perimeter: FireShapeFeatures, hotspots: FireShapeFeatures, request: Request, _=Depends(authentication_required)):
+    logger.info("risk-map/grow")
+    start_perim_gdf = gpd.GeoDataFrame.from_features(fire_perimeter.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
+    hotspots_gdf = gpd.GeoDataFrame.from_features(hotspots.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
+
+    pass
+
+
 @router.post("/grow")
 async def grow(fire_perimeter: FireShapeFeatures, hotspots: FireShapeFeatures, request: Request, _=Depends(authentication_required)):
     """
