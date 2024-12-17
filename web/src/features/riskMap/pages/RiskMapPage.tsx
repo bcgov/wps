@@ -1,7 +1,7 @@
 import { FireMap } from '@/features/riskMap/components/FireMap'
 import { GrowFireButton } from '@/features/riskMap/components/GrowFireButton'
 import { ValuesImportButton } from '@/features/riskMap/components/UploadButton'
-import { Box, Grid } from '@mui/material'
+import { Box, CircularProgress, Grid, Modal, Typography } from '@mui/material'
 import axios from 'api/axios'
 import { AppDispatch } from 'app/store'
 import { Map } from 'ol'
@@ -10,12 +10,11 @@ import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { Fill, Style } from 'ol/style'
 import { useEffect, useState } from 'react'
-import hotspots from '../components/FirespotArea_canada_c6.1_48.json'
 import firePerimeterData from '../components/PROT_CURRENT_FIRE_POLYS_SP.json'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
 
-import { selectFireGrowthDay } from '@/app/rootReducer'
+import { selectFireGrowthDay, selectHotSpots } from '@/app/rootReducer'
 import { GeneralHeader } from '@/components'
 import DayControl from '@/features/riskMap/components/DayControl'
 import DistanceSlider from '@/features/riskMap/components/SpreadDistanceSlider'
@@ -27,6 +26,7 @@ import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchHotSpots } from '@/features/riskMap/slices/hotSpotsSlice'
 import { fetchRepresentativeStations } from '@/features/riskMap/slices/representativeStationSlice'
+import { theme } from '@/app/theme'
 
 export const RiskMapPage = () => {
   const [file, setFile] = useState<File | null>(null)
@@ -34,6 +34,7 @@ export const RiskMapPage = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [growthDay, setGrowthDay] = useState<number>(0)
   const dispatch: AppDispatch = useDispatch()
+  const { hotSpotPoints } = useSelector(selectHotSpots)
   const { day, dayGrowthLayers } = useSelector(selectFireGrowthDay)
   const [dateOfInterest, setDateOfInterest] = useState<DateTime>(DateTime.now().setZone('America/Vancouver'))
   const [spreadDistance, setSpreadDistance] = useState(500)
@@ -56,30 +57,33 @@ export const RiskMapPage = () => {
     }
   }
 
-  // const removeLayerByName = () => {
-  //   if (mapInstance) {
-  //     const layers = mapInstance
-  //       .getLayers()
-  //       .getArray()
-  //       .filter(l => (l.getProperties()?.layerName as string).startsWith('firePerimDay'))
-  //     if (layers) {
-  //       layers.forEach(layer => mapInstance.removeLayer(layer))
-  //     }
-  //   }
-  // }
+  const removeLayerByName = () => {
+    if (mapInstance) {
+      const layers = mapInstance
+        .getLayers()
+        .getArray()
+        .filter(l => {
+          const name = l.get('name')
+          return name?.startsWith('firePerimDay')
+        })
+      if (layers) {
+        layers.forEach(layer => mapInstance.removeLayer(layer))
+      }
+    }
+  }
 
-  // useEffect(() => {
-  //   if (mapInstance) {
-  //     if (day === 0) {
-  //       removeLayerByName()
-  //     } else {
-  //       const layerToAdd = dayGrowthLayers[day]
-  //       if (layerToAdd) {
-  //         mapInstance.addLayer(dayGrowthLayers[day])
-  //       }
-  //     }
-  //   }
-  // }, [day])
+  useEffect(() => {
+    if (mapInstance) {
+      if (day === 0) {
+        removeLayerByName()
+      } else {
+        const layerToAdd = dayGrowthLayers[day]
+        if (layerToAdd) {
+          mapInstance.addLayer(dayGrowthLayers[day])
+        }
+      }
+    }
+  }, [day])
 
   // Method to trigger the fetch request
   const growFire = async () => {
@@ -92,7 +96,7 @@ export const RiskMapPage = () => {
           features: firePerimeterData.features
         },
         hotspots: {
-          features: hotspots.features
+          features: hotSpotPoints.features
         },
         time_of_interest: dateOfInterest.toISO()
       })
@@ -112,10 +116,9 @@ export const RiskMapPage = () => {
             features: new GeoJSON().readFeatures(firePerimeterDataItem, {
               featureProjection: 'EPSG:3857'
             })
-          })
+          }),
+          properties: { name: `firePerimDay${index + 1}` }
         })
-
-        firePerimeterLayer.set('layerName', `firePerimDay${index + 1}`)
         firePerimeterLayer.setZIndex((initialZIndex -= 1))
         dispatch(addGrowthLayer(firePerimeterLayer))
 
@@ -136,7 +139,7 @@ export const RiskMapPage = () => {
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* <Modal open={loading}>
+      <Modal open={loading}>
         <Box>
           <Grid
             container
@@ -155,7 +158,7 @@ export const RiskMapPage = () => {
             </Grid>
           </Grid>
         </Box>
-      </Modal> */}
+      </Modal>
       <GeneralHeader isBeta={true} spacing={1} title={'Risk Map'} productName={'Risk Map'} />
       <Box sx={{ padding: '0.5em' }}>
         <Grid container spacing={1} alignItems="center">
