@@ -12,7 +12,7 @@ import { DateTime } from 'luxon'
 import { Feature, Map, View } from 'ol'
 import { boundingExtent } from 'ol/extent'
 import GeoJSON from 'ol/format/GeoJSON'
-import { Point } from 'ol/geom'
+import { Geometry, Point } from 'ol/geom'
 import { DragBox, Select } from 'ol/interaction'
 import TileLayer from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
@@ -22,7 +22,7 @@ import OSM from 'ol/source/OSM'
 import VectorSource from 'ol/source/Vector'
 import { Fill, Stroke, Style } from 'ol/style'
 import CircleStyle from 'ol/style/Circle'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
 import { partition } from 'lodash'
@@ -58,6 +58,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
 
   const [map, setMap] = useState<Map | null>(null)
   const [open, setOpen] = useState(false)
+  const [featureSelection, setFeatureSelection] = useState<Feature<Geometry>[]>([])
   const [closestDistance, setClosestDistance] = useState<number | null>(null)
   const [closestDirection, setClosestDirection] = useState<string>('')
   const { stations } = useSelector(selectFireWeatherStations)
@@ -79,6 +80,11 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
   useEffect(() => {
     dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const memoizedSelectedFeatures = useMemo(() => [...featureSelection], [featureSelection])
+  useEffect(() => {
+    console.log(memoizedSelectedFeatures.map(feat => feat.getProperties()['FIRE_NUMBER']))
+  }, [memoizedSelectedFeatures])
 
   useEffect(() => {
     if (stations.length !== 0 || repStations.length !== 0) {
@@ -223,9 +229,8 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
 
       // a normal select interaction to handle click
       const select = new Select({
-        style: function (feature) {
-          const color = feature.get('COLOR_BIO') || '#eeeeee'
-          selectedStyle.getFill()?.setColor(color)
+        style: function () {
+          selectedStyle.getFill()?.setColor('#eeeeee')
           return selectedStyle
         }
       })
@@ -241,7 +246,16 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
       map.addInteraction(dragBox)
 
       dragBox.on('boxend', function () {
-        collectFeaturesWithin(dragBox, map, firePerimeterSource, selectedFeatures)
+        const featureSelection = collectFeaturesWithin(dragBox, map, firePerimeterSource, selectedFeatures)
+        if (featureSelection) {
+          setFeatureSelection(featureSelection)
+        }
+      })
+
+      // clear selection when drawing a new box and when clicking on the map
+      dragBox.on('boxstart', function () {
+        selectedFeatures.clear()
+        setFeatureSelection([])
       })
 
       const selectClick = new Select({

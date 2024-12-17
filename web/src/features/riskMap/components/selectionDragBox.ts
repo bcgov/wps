@@ -59,5 +59,6 @@ export const collectFeaturesWithin = (
     } else {
       selectedFeatures.extend(boxFeatures)
     }
+    return [...selectedFeatures.getArray()]
   }
 }
