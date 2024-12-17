@@ -33,7 +33,7 @@ const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 const findLayerByName = (map: Map, layerName: string): VectorLayer | undefined => {
   const layers = map.getLayers().getArray()
-  return layers.find(layer => layer.get('layerName') === layerName) as VectorLayer | undefined
+  return layers.find(layer => layer.get('name') === layerName) as VectorLayer | undefined
 }
 
 const getCompassDirection = (bearing: number) => {
@@ -174,7 +174,8 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
             })
 
             const vectorLayer = new VectorLayer({
-              source: vectorSource
+              source: vectorSource,
+              properties: { name: 'uploadedValues' }
             })
 
             mapInstanceRef.current?.addLayer(vectorLayer)
@@ -215,16 +216,51 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
       selectClick.on('select', event => {
         if (event.selected.length > 0) {
           const selectedFeature = event.selected[0]
-          let handled = false
           map.forEachFeatureAtPixel(event.mapBrowserEvent.pixel, (feature, layer) => {
-            if (layer.getProperties()['name'] === 'representativeStationLayer') {
+            if (layer.get('name') === 'representativeStationLayer') {
               console.log(feature.getProperties())
-              handled = true
+            }
+            if (layer.get('name') === 'uploadedValues' && findLayerByName(map, 'firePerimDay4')) {
+              const selectedGeometry = selectedFeature.getGeometry() as Point
+
+              const selectedPointCoords = selectedGeometry?.getCoordinates()
+              const lonLatCoords = toLonLat(selectedPointCoords)
+
+              const fireLayer = findLayerByName(map, 'firePerimDay4')
+              const source = fireLayer!.getSource()
+              const features = source!.getFeatures()
+
+              let closestDistance = Infinity
+              let closestFeature = null
+              let closestBearing = 0
+
+              features.forEach((layerFeature: Feature) => {
+                const geometry = layerFeature.getGeometry()
+                if (geometry) {
+                  const closestPoint = geometry.getClosestPoint(selectedPointCoords)
+                  const closestPointLonLat = toLonLat(closestPoint)
+
+                  const turfPointA = point(lonLatCoords)
+                  const turfPointB = point(closestPointLonLat)
+
+                  const dist = distance(turfPointA, turfPointB, { units: 'kilometers' })
+                  const bearingAngle = bearing(turfPointA, turfPointB)
+
+                  if (dist < closestDistance) {
+                    closestDistance = dist
+                    closestFeature = layerFeature
+                    closestBearing = bearingAngle
+                  }
+                }
+              })
+
+              if (closestFeature) {
+                setClosestDistance(closestDistance)
+                setClosestDirection(getCompassDirection(closestBearing))
+                setOpen(true) // Open the dialog
+              }
             }
           })
-          if (handled) {
-            return
-          }
           //   if (layer.getProperties().name === 'firePerimeter') {
           //     const fireGeom = selectedFeature.getGeometry()
           //     if (fireGeom) {
@@ -239,48 +275,6 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
           // })
 
           // --------------------
-
-          const selectedGeometry = selectedFeature.getGeometry()
-          if (selectedGeometry instanceof Point) {
-            const selectedPointCoords = selectedGeometry.getCoordinates()
-            const lonLatCoords = toLonLat(selectedPointCoords)
-
-            const fireLayer = findLayerByName(map, 'firePerimDay4')
-            const source = fireLayer!.getSource()
-            const features = source!.getFeatures()
-
-            let closestDistance = Infinity
-            let closestFeature = null
-            let closestBearing = 0
-
-            features.forEach((layerFeature: Feature) => {
-              const geometry = layerFeature.getGeometry()
-              if (geometry) {
-                const closestPoint = geometry.getClosestPoint(selectedPointCoords)
-                const closestPointLonLat = toLonLat(closestPoint)
-
-                const turfPointA = point(lonLatCoords)
-                const turfPointB = point(closestPointLonLat)
-
-                const dist = distance(turfPointA, turfPointB, { units: 'kilometers' })
-                const bearingAngle = bearing(turfPointA, turfPointB)
-
-                if (dist < closestDistance) {
-                  closestDistance = dist
-                  closestFeature = layerFeature
-                  closestBearing = bearingAngle
-                }
-              }
-            })
-
-            if (closestFeature) {
-              setClosestDistance(closestDistance)
-              setClosestDirection(getCompassDirection(closestBearing))
-              setOpen(true) // Open the dialog
-            }
-          } else {
-            console.error('Selected feature is not a point geometry.')
-          }
         }
       })
 
