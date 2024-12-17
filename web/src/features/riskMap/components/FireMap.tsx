@@ -10,7 +10,7 @@ import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { selectFireWeatherStations, selectHotSpots, selectRepStations } from 'app/rootReducer'
 import { DateTime } from 'luxon'
 import { Feature, Map, View } from 'ol'
-import { boundingExtent, getWidth } from 'ol/extent'
+import { boundingExtent } from 'ol/extent'
 import GeoJSON from 'ol/format/GeoJSON'
 import { Point } from 'ol/geom'
 import { DragBox, Select } from 'ol/interaction'
@@ -28,6 +28,7 @@ import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
 import { partition } from 'lodash'
 import { decorateRepStations } from '@/features/riskMap/components/representativeStations'
 import { platformModifierKeyOnly } from 'ol/events/condition'
+import { collectFeaturesWithin } from '@/features/riskMap/components/selectionDragBox'
 
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -240,57 +241,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
       map.addInteraction(dragBox)
 
       dragBox.on('boxend', function () {
-        const boxExtent = dragBox.getGeometry().getExtent()
-
-        // if the extent crosses the antimeridian process each world separately
-        const worldExtent = map.getView().getProjection().getExtent()
-        const worldWidth = getWidth(worldExtent)
-        const startWorld = Math.floor((boxExtent[0] - worldExtent[0]) / worldWidth)
-        const endWorld = Math.floor((boxExtent[2] - worldExtent[0]) / worldWidth)
-
-        for (let world = startWorld; world <= endWorld; ++world) {
-          const left = Math.max(boxExtent[0] - world * worldWidth, worldExtent[0])
-          const right = Math.min(boxExtent[2] - world * worldWidth, worldExtent[2])
-          const extent = [left, boxExtent[1], right, boxExtent[3]]
-
-          const boxFeatures = firePerimeterSource
-            .getFeaturesInExtent(extent)
-            .filter(
-              feature =>
-                !selectedFeatures.getArray().includes(feature) && feature.getGeometry()?.intersectsExtent(extent)
-            )
-
-          // features that intersect the box geometry are added to the
-          // collection of selected features
-
-          // if the view is not obliquely rotated the box geometry and
-          // its extent are equalivalent so intersecting features can
-          // be added directly to the collection
-          const rotation = map.getView().getRotation()
-          const oblique = rotation % (Math.PI / 2) !== 0
-
-          // when the view is obliquely rotated the box extent will
-          // exceed its geometry so both the box and the candidate
-          // feature geometries are rotated around a common anchor
-          // to confirm that, with the box geometry aligned with its
-          // extent, the geometries intersect
-          if (oblique) {
-            const anchor = [0, 0]
-            const geometry = dragBox.getGeometry().clone()
-            geometry.translate(-world * worldWidth, 0)
-            geometry.rotate(-rotation, anchor)
-            const extent = geometry.getExtent()
-            boxFeatures.forEach(function (feature) {
-              const geometry = feature.getGeometry().clone()
-              geometry.rotate(-rotation, anchor)
-              if (geometry.intersectsExtent(extent)) {
-                selectedFeatures.push(feature)
-              }
-            })
-          } else {
-            selectedFeatures.extend(boxFeatures)
-          }
-        }
+        collectFeaturesWithin(dragBox, map, firePerimeterSource, selectedFeatures)
       })
 
       const selectClick = new Select({
