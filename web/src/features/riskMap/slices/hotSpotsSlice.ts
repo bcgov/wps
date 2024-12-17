@@ -1,5 +1,4 @@
 import { getHotSpots } from '@/api/riskMapAPI'
-import { RootState } from '@/app/rootReducer'
 import { hotSpotCSVToGeoJSON } from '@/features/riskMap/spatialOperations'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'

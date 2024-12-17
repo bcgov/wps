@@ -7,7 +7,7 @@ import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
 import { bearing, distance, point } from '@turf/turf'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
-import { selectFireWeatherStations, selectHotSpots } from 'app/rootReducer'
+import { selectFireWeatherStations, selectHotSpots, selectRepStations } from 'app/rootReducer'
 import { DateTime } from 'luxon'
 import { Feature, Map, View } from 'ol'
 import { boundingExtent } from 'ol/extent'
@@ -25,6 +25,8 @@ import CircleStyle from 'ol/style/Circle'
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
+import { partition } from 'lodash'
+import { decorateRepStations } from '@/features/riskMap/components/representativeStations'
 
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -50,6 +52,8 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
   const { hotSpotPoints } = useSelector(selectHotSpots)
+  const { repStations } = useSelector(selectRepStations)
+
   const [map, setMap] = useState<Map | null>(null)
   const [open, setOpen] = useState(false)
   const [closestDistance, setClosestDistance] = useState<number | null>(null)
@@ -68,66 +72,61 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
     properties: { name: 'firePerimeter' }
   })
 
-  // const hotspotsGeojson = new GeoJSON().readFeatures(hotspotPoints, {
-  //   featureProjection: 'EPSG:3857'
-  // })
-
-  // const hotspotFeatureCollection: FeatureCollection<GeoJSONPoint> = {
-  //   type: 'FeatureCollection',
-  //   features: hotspotsGeojson.map(feature => {
-  //     const geojsonFeature = new GeoJSON().writeFeatureObject(feature)
-
-  //     if (geojsonFeature.geometry.type !== 'Point') {
-  //       throw new Error('Non-Point geometry detected')
-  //     }
-
-  //     return geojsonFeature as GeoJSON.Feature<GeoJSONPoint>
-  //   })
-  // }
-
-  // const hotspotsLayer = new VectorLayer({
-  //   style: new Style({
-  //     image: new CircleStyle({
-  //       radius: 5,
-  //       fill: new Fill({
-  //         color: 'rgba(255, 0, 0, 0.8)'
-  //       }),
-  //       stroke: new Stroke({ color: 'red', width: 1 })
-  //     })
-  //   }),
-  //   source: new VectorSource({
-  //     features: hotspotsGeojson
-  //   }),
-  //   zIndex: 52,
-  //   properties: { name: 'hotspots' }
-  // })
-
   useEffect(() => {
     dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const stationLayer = new VectorLayer({
-      style: () =>
-        new Style({
-          image: new CircleStyle({
-            radius: 4,
-            fill: new Fill({ color: 'black' }),
-            stroke: new Stroke({ color: 'black', width: 1 })
-          })
+    if (stations.length !== 0 || repStations.length !== 0) {
+      const repStationCodes = repStations.map(repStation => repStation.station_code)
+      const [rStations, nonRStations] = partition(stations, station =>
+        repStationCodes.includes(station.properties.code)
+      )
+      const res = decorateRepStations(rStations, repStations)
+      const stationLayer = new VectorLayer({
+        style: () =>
+          new Style({
+            image: new CircleStyle({
+              radius: 4,
+              fill: new Fill({ color: 'black' }),
+              stroke: new Stroke({ color: 'black', width: 1 })
+            })
+          }),
+        source: new VectorSource({
+          features: new GeoJSON().readFeatures(
+            { type: 'FeatureCollection', features: nonRStations },
+            {
+              featureProjection: 'EPSG:3857'
+            }
+          )
         }),
-      source: new VectorSource({
-        features: new GeoJSON().readFeatures(
-          { type: 'FeatureCollection', features: stations },
-          {
-            featureProjection: 'EPSG:3857'
-          }
-        )
-      }),
-      zIndex: 99
-    })
-    mapInstanceRef.current?.addLayer(stationLayer)
-  }, [stations])
+        zIndex: 99,
+        properties: { name: 'stationLayer' }
+      })
+      const repStationLayer = new VectorLayer({
+        style: () =>
+          new Style({
+            image: new CircleStyle({
+              radius: 4,
+              fill: new Fill({ color: 'purple' }),
+              stroke: new Stroke({ color: 'purple', width: 1 })
+            })
+          }),
+        source: new VectorSource({
+          features: new GeoJSON().readFeatures(
+            { type: 'FeatureCollection', features: res },
+            {
+              featureProjection: 'EPSG:3857'
+            }
+          )
+        }),
+        zIndex: 100,
+        properties: { name: 'representativeStationLayer' }
+      })
+      mapInstanceRef.current?.addLayer(stationLayer)
+      mapInstanceRef.current?.addLayer(repStationLayer)
+    }
+  }, [stations, repStations])
 
   useEffect(() => {
     if (!map) return
@@ -216,9 +215,16 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
       selectClick.on('select', event => {
         if (event.selected.length > 0) {
           const selectedFeature = event.selected[0]
-
-          console.log(selectedFeature)
-          // map.forEachFeatureAtPixel(event.mapBrowserEvent.pixel, (feature, layer) => {
+          let handled = false
+          map.forEachFeatureAtPixel(event.mapBrowserEvent.pixel, (feature, layer) => {
+            if (layer.getProperties()['name'] === 'representativeStationLayer') {
+              console.log(feature.getProperties())
+              handled = true
+            }
+          })
+          if (handled) {
+            return
+          }
           //   if (layer.getProperties().name === 'firePerimeter') {
           //     const fireGeom = selectedFeature.getGeometry()
           //     if (fireGeom) {

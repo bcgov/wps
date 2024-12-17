@@ -11,6 +11,12 @@ export interface Station {
   core_season: FireSeason
 }
 
+export interface FirePerimeterStation {
+  type: string
+  properties: FirePerimeterProperties
+  geometry: StationGeometry
+}
+
 export interface GeoJsonStation {
   type: string
   properties: StationProperties
@@ -38,6 +44,12 @@ export interface StationProperties {
   name: string
   ecodivision_name: string | null
   core_season: FireSeason
+}
+
+export interface FirePerimeterProperties {
+  code: number
+  name: string
+  fire_numbers: string[]
 }
 
 export interface StationGeometry {

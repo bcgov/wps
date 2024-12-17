@@ -11,7 +11,8 @@ from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, Request, Depends
 from app.auth import authentication_required
 from app.fire_behaviour.finger_burps import grow_fire_perimeter
-from app.schemas.risk import FireShapeFeatures
+from app.risk_map.rep_station import get_fire_perimeter_representative_stations, get_hotspots_nearest_station
+from app.schemas.risk import FireShapeStations, GrowInput
 from app.utils.time import get_vancouver_now
 
 
@@ -68,17 +69,19 @@ def get_risk_map_object_store_path(filename: str) -> str:
     return os.path.join("risk_map", "values", unix_timestamp, filename)
 
 
-@router.get("/weather")
-async def weather(fire_perimeter: FireShapeFeatures, hotspots: FireShapeFeatures, request: Request, _=Depends(authentication_required)):
+@router.post("/weather", response_model=FireShapeStations)
+async def weather(_=Depends(authentication_required)):
     logger.info("risk-map/grow")
-    start_perim_gdf = gpd.GeoDataFrame.from_features(fire_perimeter.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
-    hotspots_gdf = gpd.GeoDataFrame.from_features(hotspots.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
+    dirname = os.path.dirname(__file__)
+    fire_perims_path = os.path.join(dirname, "PROT_CURRENT_FIRE_POLYS_SP.json")
+    start_perim_gdf = gpd.read_file(fire_perims_path)
+    representation_stations = await get_fire_perimeter_representative_stations(start_perim_gdf)
 
     pass
 
 
 @router.post("/grow")
-async def grow(fire_perimeter: FireShapeFeatures, hotspots: FireShapeFeatures, request: Request, _=Depends(authentication_required)):
+async def grow(grow: GrowInput, request: Request, _=Depends(authentication_required)):
     """
     Trigger the SFMS process to run on the provided file.
     The header MUST include the SFMS secret key.
@@ -92,7 +95,8 @@ async def grow(fire_perimeter: FireShapeFeatures, hotspots: FireShapeFeatures, r
             },
             "hotspots": {
                 "features": [...]
-            }
+            },
+            time_of_interest: datetime
             }            
         '
     ```
@@ -102,8 +106,9 @@ async def grow(fire_perimeter: FireShapeFeatures, hotspots: FireShapeFeatures, r
     distance = 500
     fire_perims = []
     wind_dir = 90
-    start_perim_gdf = gpd.GeoDataFrame.from_features(fire_perimeter.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
-    hotspots_gdf = gpd.GeoDataFrame.from_features(hotspots.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
+    start_perim_gdf = gpd.GeoDataFrame.from_features(grow.fire_perimeter.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
+    hotspots_gdf = gpd.GeoDataFrame.from_features(grow.hotspots.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
+    hotspots_gdf = await get_hotspots_nearest_station(hotspots_gdf, grow.time_of_interest)
 
     for idx, _ in enumerate(range(days)):
         prev_prim = start_perim_gdf

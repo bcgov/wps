@@ -41,7 +41,6 @@ export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 export interface FBAMapProps {
-  testId?: string
   selectedFireCenter: FireCenter | undefined
   selectedFireShape: FireShape | undefined
   forDate: DateTime

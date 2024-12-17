@@ -12,6 +12,8 @@ import { Fill, Style } from 'ol/style'
 import { useEffect, useState } from 'react'
 import hotspots from '../components/FirespotArea_canada_c6.1_48.json'
 import firePerimeterData from '../components/PROT_CURRENT_FIRE_POLYS_SP.json'
+import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
+import { getDetailedStations, StationSource } from 'api/stationAPI'
 
 import { selectFireGrowthDay } from '@/app/rootReducer'
 import { GeneralHeader } from '@/components'
@@ -24,6 +26,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchHotSpots } from '@/features/riskMap/slices/hotSpotsSlice'
+import { fetchRepresentativeStations } from '@/features/riskMap/slices/representativeStationSlice'
 
 export const RiskMapPage = () => {
   const [file, setFile] = useState<File | null>(null)
@@ -90,7 +93,8 @@ export const RiskMapPage = () => {
         },
         hotspots: {
           features: hotspots.features
-        }
+        },
+        time_of_interest: dateOfInterest.toISO()
       })
       setLoading(false)
 
@@ -125,6 +129,8 @@ export const RiskMapPage = () => {
   }
 
   useEffect(() => {
+    dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified))
+    dispatch(fetchRepresentativeStations())
     dispatch(fetchHotSpots(dateOfInterest))
   }, [dateOfInterest])
 

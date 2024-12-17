@@ -24,6 +24,7 @@ import fireCentreTPIStatsSlice from 'features/fba/slices/fireCentreTPIStatsSlice
 import fireCentreHFIFuelStatsSlice from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
 import fireGrowthSlice from 'features/riskMap/slices/fireGrowthSlice'
 import hotSpotsSlice from 'features/riskMap/slices/hotSpotsSlice'
+import repStationsSlice from 'features/riskMap/slices/representativeStationSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -50,7 +51,8 @@ const rootReducer = combineReducers({
   provincialSummary: provincialSummarySlice,
   morecastInputValid: morecastInputValidSlice,
   fireGrowth: fireGrowthSlice,
-  hotSpots: hotSpotsSlice
+  hotSpots: hotSpotsSlice,
+  repStationsSlice: repStationsSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -86,3 +88,4 @@ export const selectStationGroups = (state: RootState) => state.stationGroups
 export const selectStationGroupsMembers = (state: RootState) => state.stationGroupsMembers
 export const selectFireGrowthDay = (state: RootState) => state.fireGrowth
 export const selectHotSpots = (state: RootState) => state.hotSpots
+export const selectRepStations = (state: RootState) => state.repStationsSlice
