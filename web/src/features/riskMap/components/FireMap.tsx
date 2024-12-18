@@ -53,7 +53,6 @@ export interface FireMapProps {
 
 export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, dateOfInterest }: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
-  const overlayRef = useRef<HTMLDivElement | null>(null)
   const mapInstanceRef = useRef<Map | null>(null)
   const { hotSpotPoints } = useSelector(selectHotSpots)
   const { repStations } = useSelector(selectRepStations)
