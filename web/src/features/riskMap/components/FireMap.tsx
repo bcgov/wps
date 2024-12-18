@@ -25,10 +25,11 @@ import CircleStyle from 'ol/style/Circle'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
-import { partition } from 'lodash'
+import { groupBy, partition } from 'lodash'
 import { decorateRepStations } from '@/features/riskMap/components/representativeStations'
 import { platformModifierKeyOnly } from 'ol/events/condition'
 import { collectFeaturesWithin } from '@/features/riskMap/components/selectionDragBox'
+import { DetailsDrawer } from '@/features/riskMap/components/DetailsDrawer'
 
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -52,12 +53,14 @@ export interface FireMapProps {
 
 export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, dateOfInterest }: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
+  const overlayRef = useRef<HTMLDivElement | null>(null)
   const mapInstanceRef = useRef<Map | null>(null)
   const { hotSpotPoints } = useSelector(selectHotSpots)
   const { repStations } = useSelector(selectRepStations)
 
   const [map, setMap] = useState<Map | null>(null)
   const [open, setOpen] = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(false)
   const [featureSelection, setFeatureSelection] = useState<Feature<Geometry>[]>([])
   const [closestDistance, setClosestDistance] = useState<number | null>(null)
   const [closestDirection, setClosestDirection] = useState<string>('')
@@ -83,8 +86,13 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
 
   const memoizedSelectedFeatures = useMemo(() => [...featureSelection], [featureSelection])
   useEffect(() => {
-    console.log(memoizedSelectedFeatures.map(feat => feat.getProperties()['FIRE_NUMBER']))
-  }, [memoizedSelectedFeatures])
+    if (repStations.length > 0 && memoizedSelectedFeatures.length > 0) {
+      const selectedFires = memoizedSelectedFeatures.map(feat => feat.getProperties()['FIRE_NUMBER'])
+      console.log(selectedFires)
+      const repStationsByFireNumber = groupBy(repStations, repStation => repStation.fire_number)
+      console.log(selectedFires.map(sf => repStationsByFireNumber[sf][0]))
+    }
+  }, [memoizedSelectedFeatures, repStations])
 
   useEffect(() => {
     if (stations.length !== 0 || repStations.length !== 0) {
@@ -245,11 +253,12 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
 
       map.addInteraction(dragBox)
 
-      dragBox.on('boxend', function () {
+      dragBox.on('boxend', function (event) {
         const featureSelection = collectFeaturesWithin(dragBox, map, firePerimeterSource, selectedFeatures)
         if (featureSelection) {
           setFeatureSelection(featureSelection)
         }
+        setDetailsOpen(true)
       })
 
       // clear selection when drawing a new box and when clicking on the map
@@ -354,6 +363,13 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
             position: 'relative'
           }}
         >
+          <DetailsDrawer
+            repStations={repStations}
+            featureSelection={featureSelection}
+            setOpen={setDetailsOpen}
+            open={detailsOpen}
+          />
+
           <Dialog open={open} onClose={handleClose} sx={{ position: 'absolute', zIndex: '1', bottom: '0.5rem' }}>
             <DialogTitle>Closest Distance</DialogTitle>
             <DialogContent>

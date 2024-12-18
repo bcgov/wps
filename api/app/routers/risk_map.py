@@ -77,7 +77,7 @@ async def weather(_=Depends(authentication_required)):
     start_perim_gdf = gpd.read_file(fire_perims_path)
     representation_stations = await get_fire_perimeter_representative_stations(start_perim_gdf)
 
-    pass
+    return FireShapeStations(representative_stations=representation_stations)
 
 
 @router.post("/grow")
