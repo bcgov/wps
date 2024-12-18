@@ -5,7 +5,7 @@ import { firePerimeterStyler } from '@/features/riskMap/components/fireMapStyler
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
-import { bearing, distance, point } from '@turf/turf'
+import { bearing, distance, point, buffer } from '@turf/turf'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { selectFireWeatherStations, selectHotSpots, selectRepStations } from 'app/rootReducer'
 import { DateTime } from 'luxon'
@@ -151,26 +151,36 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
     removeLayerByName(map, layerName)
 
     if (hotSpotPoints) {
-      const hotSpotsGeojson = new GeoJSON().readFeatures(hotSpotPoints, {
-        featureProjection: 'EPSG:3857'
+      const features = new GeoJSON().readFeatures(hotSpotPoints)
+      const geoJSON = new GeoJSON().writeFeaturesObject(features, {
+        featureProjection: 'EPSG:3857', // From OpenLayers map projection
+        dataProjection: 'EPSG:4326' // To Turf.js expected projection
+      })
+
+      const buffered = buffer(geoJSON, 200, { units: 'kilometers' })
+      const bufferedFeature = new GeoJSON().readFeatures(buffered, {
+        dataProjection: 'EPSG:4326', // Turf.js output
+        featureProjection: 'EPSG:3857' // Map projection
       })
 
       const hotSpotsLayer = new VectorLayer({
         style: new Style({
-          image: new CircleStyle({
-            radius: 5,
-            fill: new Fill({
-              color: 'rgba(255, 0, 0, 0.8)'
-            }),
-            stroke: new Stroke({ color: 'red', width: 1 })
+          fill: new Fill({
+            color: 'rgba(0, 255, 0, 0.5)' // Semi-transparent green
+          }),
+          stroke: new Stroke({
+            color: '#FF0000', // Red border
+            width: 3
           })
         }),
         source: new VectorSource({
-          features: hotSpotsGeojson
+          features: bufferedFeature
         }),
         zIndex: 52,
         properties: { name: layerName }
       })
+      console.log(hotSpotsLayer.getSource()?.getFeatures())
+      console.log(hotSpotsLayer.getVisible())
       map.addLayer(hotSpotsLayer)
     }
   })
