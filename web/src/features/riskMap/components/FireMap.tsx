@@ -153,14 +153,12 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
     if (hotSpotPoints) {
       const features = new GeoJSON().readFeatures(hotSpotPoints)
       const geoJSON = new GeoJSON().writeFeaturesObject(features, {
-        featureProjection: 'EPSG:3857', // From OpenLayers map projection
-        dataProjection: 'EPSG:4326' // To Turf.js expected projection
+        featureProjection: 'EPSG:4326'
       })
 
-      const buffered = buffer(geoJSON, 200, { units: 'kilometers' })
+      const buffered = buffer(geoJSON, 20, { units: 'kilometers' })
       const bufferedFeature = new GeoJSON().readFeatures(buffered, {
-        dataProjection: 'EPSG:4326', // Turf.js output
-        featureProjection: 'EPSG:3857' // Map projection
+        featureProjection: 'EPSG:3857'
       })
 
       const hotSpotsLayer = new VectorLayer({
