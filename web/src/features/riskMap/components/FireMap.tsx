@@ -49,9 +49,15 @@ export interface FireMapProps {
   valuesFile: File | null
   setMapInstance: React.Dispatch<React.SetStateAction<Map | null>>
   dateOfInterest: DateTime
+  spreadDistance: number
 }
 
-export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, dateOfInterest }: FireMapProps) => {
+export const FireMap: React.FC<FireMapProps> = ({
+  valuesFile,
+  setMapInstance,
+  dateOfInterest,
+  spreadDistance
+}: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
   const { hotSpotPoints } = useSelector(selectHotSpots)
@@ -156,7 +162,7 @@ export const FireMap: React.FC<FireMapProps> = ({ valuesFile, setMapInstance, da
         featureProjection: 'EPSG:4326'
       })
 
-      const buffered = buffer(geoJSON, 20, { units: 'kilometers' })
+      const buffered = buffer(geoJSON, spreadDistance, { units: 'meters' })
       const bufferedFeature = new GeoJSON().readFeatures(buffered, {
         featureProjection: 'EPSG:3857'
       })

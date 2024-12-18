@@ -192,7 +192,12 @@ export const RiskMapPage = () => {
 
       <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
         <Grid sx={{ display: 'flex', flex: 1 }} item>
-          <FireMap valuesFile={file} setMapInstance={setMapInstance} dateOfInterest={dateOfInterest} />
+          <FireMap
+            valuesFile={file}
+            setMapInstance={setMapInstance}
+            dateOfInterest={dateOfInterest}
+            spreadDistance={spreadDistance}
+          />
         </Grid>
       </Box>
     </Box>
