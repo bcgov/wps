@@ -1,13 +1,11 @@
-import { AppDispatch } from '@/app/store'
 import { ErrorBoundary } from '@/components'
 import { removeLayerByName } from '@/features/fba/components/map/FBAMap'
 import { firePerimeterStyler } from '@/features/riskMap/components/fireMapStylers'
-import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
+import { closestFeatureStats } from '@/features/riskMap/components/featureDistance'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
 import { bearing, distance, point, buffer } from '@turf/turf'
-import { getDetailedStations, StationSource } from 'api/stationAPI'
-import { selectFireWeatherStations, selectHotSpots, selectRepStations } from 'app/rootReducer'
+import { selectHotSpots, selectRepStations } from 'app/rootReducer'
 import { DateTime } from 'luxon'
 import { Feature, Map, View } from 'ol'
 import { boundingExtent } from 'ol/extent'
@@ -21,12 +19,9 @@ import { fromLonLat, toLonLat } from 'ol/proj'
 import OSM from 'ol/source/OSM'
 import VectorSource from 'ol/source/Vector'
 import { Fill, Stroke, Style } from 'ol/style'
-import CircleStyle from 'ol/style/Circle'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { useEffect, useRef, useState } from 'react'
+import { useSelector } from 'react-redux'
 import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
-import { groupBy, partition } from 'lodash'
-import { decorateRepStations } from '@/features/riskMap/components/representativeStations'
 import { platformModifierKeyOnly } from 'ol/events/condition'
 import { collectFeaturesWithin } from '@/features/riskMap/components/selectionDragBox'
 import { DetailsDrawer } from '@/features/riskMap/components/DetailsDrawer'
@@ -69,8 +64,6 @@ export const FireMap: React.FC<FireMapProps> = ({
   const [featureSelection, setFeatureSelection] = useState<Feature<Geometry>[]>([])
   const [closestDistance, setClosestDistance] = useState<number | null>(null)
   const [closestDirection, setClosestDirection] = useState<string>('')
-  const { stations } = useSelector(selectFireWeatherStations)
-  const dispatch: AppDispatch = useDispatch()
 
   const firePerimeterSource = new VectorSource({
     features: new GeoJSON().readFeatures(firePerimeterData, {
@@ -84,72 +77,6 @@ export const FireMap: React.FC<FireMapProps> = ({
     zIndex: 50,
     properties: { name: 'firePerimeter' }
   })
-
-  useEffect(() => {
-    dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const memoizedSelectedFeatures = useMemo(() => [...featureSelection], [featureSelection])
-  useEffect(() => {
-    if (repStations.length > 0 && memoizedSelectedFeatures.length > 0) {
-      const selectedFires = memoizedSelectedFeatures.map(feat => feat.getProperties()['FIRE_NUMBER'])
-      console.log(selectedFires)
-      const repStationsByFireNumber = groupBy(repStations, repStation => repStation.fire_number)
-      console.log(selectedFires.map(sf => repStationsByFireNumber[sf][0]))
-    }
-  }, [memoizedSelectedFeatures, repStations])
-
-  useEffect(() => {
-    if (stations.length !== 0 || repStations.length !== 0) {
-      const repStationCodes = repStations.map(repStation => repStation.station_code)
-      const [rStations, nonRStations] = partition(stations, station =>
-        repStationCodes.includes(station.properties.code)
-      )
-      const res = decorateRepStations(rStations, repStations)
-      const stationLayer = new VectorLayer({
-        style: () =>
-          new Style({
-            image: new CircleStyle({
-              radius: 4,
-              fill: new Fill({ color: 'black' }),
-              stroke: new Stroke({ color: 'black', width: 1 })
-            })
-          }),
-        source: new VectorSource({
-          features: new GeoJSON().readFeatures(
-            { type: 'FeatureCollection', features: nonRStations },
-            {
-              featureProjection: 'EPSG:3857'
-            }
-          )
-        }),
-        zIndex: 99,
-        properties: { name: 'stationLayer' }
-      })
-      const repStationLayer = new VectorLayer({
-        style: () =>
-          new Style({
-            image: new CircleStyle({
-              radius: 4,
-              fill: new Fill({ color: 'purple' }),
-              stroke: new Stroke({ color: 'purple', width: 1 })
-            })
-          }),
-        source: new VectorSource({
-          features: new GeoJSON().readFeatures(
-            { type: 'FeatureCollection', features: res },
-            {
-              featureProjection: 'EPSG:3857'
-            }
-          )
-        }),
-        zIndex: 100,
-        properties: { name: 'representativeStationLayer' }
-      })
-      mapInstanceRef.current?.addLayer(stationLayer)
-      mapInstanceRef.current?.addLayer(repStationLayer)
-    }
-  }, [stations, repStations])
 
   useEffect(() => {
     if (!map) return
@@ -170,7 +97,7 @@ export const FireMap: React.FC<FireMapProps> = ({
       const hotSpotsLayer = new VectorLayer({
         style: new Style({
           fill: new Fill({
-            color: 'rgba(0, 255, 0, 0.5)' // Semi-transparent green
+            color: 'rgba(255, 0, 13, 0.27)' // Semi-transparent green
           }),
           stroke: new Stroke({
             color: '#FF0000', // Red border
@@ -183,8 +110,6 @@ export const FireMap: React.FC<FireMapProps> = ({
         zIndex: 52,
         properties: { name: layerName }
       })
-      console.log(hotSpotsLayer.getSource()?.getFeatures())
-      console.log(hotSpotsLayer.getVisible())
       map.addLayer(hotSpotsLayer)
     }
   })
@@ -206,6 +131,7 @@ export const FireMap: React.FC<FireMapProps> = ({
 
             const vectorLayer = new VectorLayer({
               source: vectorSource,
+              zIndex: 1000,
               properties: { name: 'uploadedValues' }
             })
 
@@ -238,23 +164,8 @@ export const FireMap: React.FC<FireMapProps> = ({
 
       map.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
 
-      const selectedStyle = new Style({
-        fill: new Fill({
-          color: 'rgba(255, 255, 255, 0.6)'
-        }),
-        stroke: new Stroke({
-          color: 'rgba(255, 255, 255, 0.7)',
-          width: 2
-        })
-      })
-
       // a normal select interaction to handle click
-      const select = new Select({
-        style: function () {
-          selectedStyle.getFill()?.setColor('#eeeeee')
-          return selectedStyle
-        }
-      })
+      const select = new Select()
       map.addInteraction(select)
 
       const selectedFeatures = select.getFeatures()
@@ -293,43 +204,20 @@ export const FireMap: React.FC<FireMapProps> = ({
             if (layer.get('name') === 'representativeStationLayer') {
               console.log(feature.getProperties())
             }
-            if (layer.get('name') === 'uploadedValues' && findLayerByName(map, 'firePerimDay4')) {
+            if (layer.get('name') === 'uploadedValues' && findLayerByName(map, 'hotSpots')) {
               const selectedGeometry = selectedFeature.getGeometry() as Point
 
               const selectedPointCoords = selectedGeometry?.getCoordinates()
-              const lonLatCoords = toLonLat(selectedPointCoords)
 
-              const fireLayer = findLayerByName(map, 'firePerimDay4')
-              const source = fireLayer!.getSource()
+              const hotspotsLayer = findLayerByName(map, 'hotSpots')
+              const source = hotspotsLayer!.getSource()
               const features = source!.getFeatures()
 
-              let closestDistance = Infinity
-              let closestFeature = null
-              let closestBearing = 0
+              const closestResult = closestFeatureStats(features, selectedPointCoords)
 
-              features.forEach((layerFeature: Feature) => {
-                const geometry = layerFeature.getGeometry()
-                if (geometry) {
-                  const closestPoint = geometry.getClosestPoint(selectedPointCoords)
-                  const closestPointLonLat = toLonLat(closestPoint)
-
-                  const turfPointA = point(lonLatCoords)
-                  const turfPointB = point(closestPointLonLat)
-
-                  const dist = distance(turfPointA, turfPointB, { units: 'kilometers' })
-                  const bearingAngle = bearing(turfPointA, turfPointB)
-
-                  if (dist < closestDistance) {
-                    closestDistance = dist
-                    closestFeature = layerFeature
-                    closestBearing = bearingAngle
-                  }
-                }
-              })
-
-              if (closestFeature) {
-                setClosestDistance(closestDistance)
-                setClosestDirection(getCompassDirection(closestBearing))
+              if (closestResult.closestFeature) {
+                setClosestDistance(closestResult.closestDistance)
+                setClosestDirection(getCompassDirection(closestResult.closestBearing))
                 setOpen(true) // Open the dialog
               }
             }
