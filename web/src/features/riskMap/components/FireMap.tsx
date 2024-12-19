@@ -4,18 +4,18 @@ import { firePerimeterStyler } from '@/features/riskMap/components/fireMapStyler
 import { closestFeatureStats } from '@/features/riskMap/components/featureDistance'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
-import { bearing, distance, point, buffer } from '@turf/turf'
+import { buffer } from '@turf/turf'
 import { selectHotSpots, selectRepStations } from 'app/rootReducer'
 import { DateTime } from 'luxon'
 import { Feature, Map, View } from 'ol'
 import { boundingExtent } from 'ol/extent'
 import GeoJSON from 'ol/format/GeoJSON'
-import { Geometry, Point } from 'ol/geom'
+import { Geometry, Point, Polygon } from 'ol/geom'
 import { DragBox, Select } from 'ol/interaction'
 import TileLayer from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
 import 'ol/ol.css'
-import { fromLonLat, toLonLat } from 'ol/proj'
+import { fromLonLat } from 'ol/proj'
 import OSM from 'ol/source/OSM'
 import VectorSource from 'ol/source/Vector'
 import { Fill, Stroke, Style } from 'ol/style'
@@ -64,8 +64,24 @@ export const FireMap: React.FC<FireMapProps> = ({
   const [open, setOpen] = useState(false)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [featureSelection, setFeatureSelection] = useState<Feature<Geometry>[]>([])
+  const [valuesFeatures, setValuesFeatures] = useState<Feature<Geometry>[]>([])
   const [closestDistance, setClosestDistance] = useState<number | null>(null)
   const [closestDirection, setClosestDirection] = useState<string>('')
+
+  // Create a vector layer to hold the selection boxes
+  const boxLayerSource = new VectorSource()
+  const boxLayer = new VectorLayer({
+    source: boxLayerSource,
+    style: new Style({
+      stroke: new Stroke({
+        color: 'blue',
+        width: 2
+      }),
+      fill: new Fill({
+        color: 'rgba(0, 0, 255, 0.2)'
+      })
+    })
+  })
 
   const firePerimeterSource = new VectorSource({
     features: new GeoJSON().readFeatures(firePerimeterData, {
@@ -125,14 +141,13 @@ export const FireMap: React.FC<FireMapProps> = ({
         if (e.target && e.target.result) {
           try {
             const geojsonData = JSON.parse(e.target.result as string)
-
-            const vectorSource = new VectorSource()
-            const geojsonFormat = new GeoJSON()
-
-            const parsedFeatures = geojsonFormat.readFeatures(geojsonData, {
+            const valuesGeoJson = new GeoJSON().readFeatures(geojsonData, {
               featureProjection: 'EPSG:3857'
             })
-            vectorSource.addFeatures(parsedFeatures)
+            const vectorSource = new VectorSource({
+              features: valuesGeoJson
+            })
+            vectorSource.addFeatures(valuesGeoJson)
 
             const vectorLayer = new VectorLayer({
               source: vectorSource,
@@ -142,7 +157,7 @@ export const FireMap: React.FC<FireMapProps> = ({
 
             mapInstanceRef.current?.addLayer(vectorLayer)
 
-            const featureDetails = parsedFeatures.map(feature => {
+            const featureDetails = valuesGeoJson.map(feature => {
               const geometry = feature.getGeometry()
               const geometryType = geometry?.getType()
               return {
@@ -153,6 +168,7 @@ export const FireMap: React.FC<FireMapProps> = ({
               }
             })
             setUploadedFeatureDetails(featureDetails)
+            setValuesFeatures(valuesGeoJson)
           } catch (error) {
             console.error('Error parsing GeoJSON data:', error)
           }
@@ -162,6 +178,10 @@ export const FireMap: React.FC<FireMapProps> = ({
       reader.readAsText(valuesFile)
     }
   }, [valuesFile, mapInstanceRef.current])
+
+  useEffect(() => {
+    console.log('yes')
+  }, [valuesFeatures, featureSelection])
 
   useEffect(() => {
     if (!mapInstanceRef.current) {
@@ -181,6 +201,8 @@ export const FireMap: React.FC<FireMapProps> = ({
 
       map.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
 
+      map.addLayer(boxLayer)
+
       // a normal select interaction to handle click
       const select = new Select()
       map.addInteraction(select)
@@ -195,16 +217,40 @@ export const FireMap: React.FC<FireMapProps> = ({
       map.addInteraction(dragBox)
 
       dragBox.on('boxend', function (event) {
-        const featureSelection = collectFeaturesWithin(dragBox, map, firePerimeterSource, selectedFeatures)
-        if (featureSelection) {
-          setFeatureSelection(featureSelection)
+        const hotspotsLayer = findLayerByName(map, 'hotSpots')
+        const source = hotspotsLayer!.getSource()
+        if (source) {
+          const newSelectedFeatures = collectFeaturesWithin(dragBox, map, source, selectedFeatures)
+          if (newSelectedFeatures) {
+            console.log(newSelectedFeatures)
+            setFeatureSelection(newSelectedFeatures)
+          }
+          setDetailsOpen(true)
         }
-        setDetailsOpen(true)
+
+        // Get the geometry of the drag box
+        const boxGeometry = dragBox.getGeometry()
+
+        // Create a new feature with the box geometry
+        const boxFeature = new Feature({
+          geometry: new Polygon(boxGeometry.getCoordinates())
+        })
+
+        // Add the feature to the vector layer
+        boxLayerSource.addFeature(boxFeature)
       })
 
       // clear selection when drawing a new box and when clicking on the map
       dragBox.on('boxstart', function () {
         selectedFeatures.clear()
+        boxLayerSource.clear() // Clear all rendered boxes
+        // setFeatureSelection([])
+      })
+
+      // Clear boxes on double click
+      map.on('dblclick', () => {
+        selectedFeatures.clear()
+        boxLayerSource.clear() // Clear all rendered boxes
         setFeatureSelection([])
       })
 
@@ -282,8 +328,8 @@ export const FireMap: React.FC<FireMapProps> = ({
           }}
         >
           <DetailsDrawer
-            repStations={repStations}
-            featureSelection={featureSelection}
+            values={valuesFeatures}
+            hotspots={featureSelection}
             setOpen={setDetailsOpen}
             open={detailsOpen}
           />
