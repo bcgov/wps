@@ -147,7 +147,6 @@ export const FireMap: React.FC<FireMapProps> = ({
             const vectorSource = new VectorSource({
               features: valuesGeoJson
             })
-            vectorSource.addFeatures(valuesGeoJson)
 
             const vectorLayer = new VectorLayer({
               source: vectorSource,
