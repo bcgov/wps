@@ -29,15 +29,19 @@ import { fetchRepresentativeStations } from '@/features/riskMap/slices/represent
 import { theme } from '@/app/theme'
 
 export const RiskMapPage = () => {
-  const [file, setFile] = useState<File | null>(null)
-  const [mapInstance, setMapInstance] = useState<Map | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
-  const [growthDay, setGrowthDay] = useState<number>(0)
   const dispatch: AppDispatch = useDispatch()
   const { hotSpotPoints } = useSelector(selectHotSpots)
   const { day, dayGrowthLayers } = useSelector(selectFireGrowthDay)
+
+  const [mapInstance, setMapInstance] = useState<Map | null>(null)
+  const [loading, setLoading] = useState<boolean>(false)
+
   const [dateOfInterest, setDateOfInterest] = useState<DateTime>(DateTime.now().setZone('America/Vancouver'))
+  const [growthDay, setGrowthDay] = useState<number>(0)
   const [spreadDistance, setSpreadDistance] = useState(500)
+
+  const [file, setFile] = useState<File | null>(null)
+  const [uploadedFeatureDetails, setUploadedFeatureDetails] = useState<string | null>(null)
 
   const getGrowthColor = () => {
     const a = 0.6 // Fixed alpha for transparency (60% opacity)
@@ -197,6 +201,7 @@ export const RiskMapPage = () => {
             setMapInstance={setMapInstance}
             dateOfInterest={dateOfInterest}
             spreadDistance={spreadDistance}
+            setUploadedFeatureDetails={setUploadedFeatureDetails}
           />
         </Grid>
       </Box>

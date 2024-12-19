@@ -45,13 +45,15 @@ export interface FireMapProps {
   setMapInstance: React.Dispatch<React.SetStateAction<Map | null>>
   dateOfInterest: DateTime
   spreadDistance: number
+  setUploadedFeatureDetails: React.Dispatch<React.SetStateAction<any>>
 }
 
 export const FireMap: React.FC<FireMapProps> = ({
   valuesFile,
   setMapInstance,
   dateOfInterest,
-  spreadDistance
+  spreadDistance,
+  setUploadedFeatureDetails
 }: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
@@ -114,6 +116,7 @@ export const FireMap: React.FC<FireMapProps> = ({
     }
   })
 
+  // uploaded values layer manager
   useEffect(() => {
     if (valuesFile && mapInstanceRef.current) {
       const reader = new FileReader()
@@ -123,11 +126,13 @@ export const FireMap: React.FC<FireMapProps> = ({
           try {
             const geojsonData = JSON.parse(e.target.result as string)
 
-            const vectorSource = new VectorSource({
-              features: new GeoJSON().readFeatures(geojsonData, {
-                featureProjection: 'EPSG:3857'
-              })
+            const vectorSource = new VectorSource()
+            const geojsonFormat = new GeoJSON()
+
+            const parsedFeatures = geojsonFormat.readFeatures(geojsonData, {
+              featureProjection: 'EPSG:3857'
             })
+            vectorSource.addFeatures(parsedFeatures)
 
             const vectorLayer = new VectorLayer({
               source: vectorSource,
@@ -136,6 +141,18 @@ export const FireMap: React.FC<FireMapProps> = ({
             })
 
             mapInstanceRef.current?.addLayer(vectorLayer)
+
+            const featureDetails = parsedFeatures.map(feature => {
+              const geometry = feature.getGeometry()
+              const geometryType = geometry?.getType()
+              return {
+                id: feature.getId(),
+                properties: feature.getProperties(),
+                geometryType: geometryType,
+                extent: geometry?.getExtent()
+              }
+            })
+            setUploadedFeatureDetails(featureDetails)
           } catch (error) {
             console.error('Error parsing GeoJSON data:', error)
           }
