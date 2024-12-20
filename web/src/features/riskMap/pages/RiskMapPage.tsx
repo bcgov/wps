@@ -41,7 +41,6 @@ export const RiskMapPage = () => {
   const [spreadDistance, setSpreadDistance] = useState(500)
 
   const [file, setFile] = useState<File | null>(null)
-  const [uploadedFeatureDetails, setUploadedFeatureDetails] = useState<string | null>(null)
 
   const getGrowthColor = () => {
     const a = 0.6 // Fixed alpha for transparency (60% opacity)
@@ -201,7 +200,6 @@ export const RiskMapPage = () => {
             setMapInstance={setMapInstance}
             dateOfInterest={dateOfInterest}
             spreadDistance={spreadDistance}
-            setUploadedFeatureDetails={setUploadedFeatureDetails}
           />
         </Grid>
       </Box>

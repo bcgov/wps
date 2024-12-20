@@ -45,15 +45,13 @@ export interface FireMapProps {
   setMapInstance: React.Dispatch<React.SetStateAction<Map | null>>
   dateOfInterest: DateTime
   spreadDistance: number
-  setUploadedFeatureDetails: React.Dispatch<React.SetStateAction<any>>
 }
 
 export const FireMap: React.FC<FireMapProps> = ({
   valuesFile,
   setMapInstance,
   dateOfInterest,
-  spreadDistance,
-  setUploadedFeatureDetails
+  spreadDistance
 }: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
@@ -67,6 +65,7 @@ export const FireMap: React.FC<FireMapProps> = ({
   const [valuesFeatures, setValuesFeatures] = useState<Feature<Geometry>[]>([])
   const [closestDistance, setClosestDistance] = useState<number | null>(null)
   const [closestDirection, setClosestDirection] = useState<string>('')
+  const [uploadedFeatureDetails, setUploadedFeatureDetails] = useState<any | null>(null)
 
   // Create a vector layer to hold the selection boxes
   const boxLayerSource = new VectorSource()
@@ -130,7 +129,7 @@ export const FireMap: React.FC<FireMapProps> = ({
       })
       map.addLayer(hotSpotsLayer)
     }
-  })
+  }, [spreadDistance, hotSpotPoints])
 
   // uploaded values layer manager
   useEffect(() => {
@@ -156,17 +155,6 @@ export const FireMap: React.FC<FireMapProps> = ({
 
             mapInstanceRef.current?.addLayer(vectorLayer)
 
-            const featureDetails = valuesGeoJson.map(feature => {
-              const geometry = feature.getGeometry()
-              const geometryType = geometry?.getType()
-              return {
-                id: feature.getId(),
-                properties: feature.getProperties(),
-                geometryType: geometryType,
-                extent: geometry?.getExtent()
-              }
-            })
-            setUploadedFeatureDetails(featureDetails)
             setValuesFeatures(valuesGeoJson)
           } catch (error) {
             console.error('Error parsing GeoJSON data:', error)
@@ -176,7 +164,30 @@ export const FireMap: React.FC<FireMapProps> = ({
 
       reader.readAsText(valuesFile)
     }
-  }, [valuesFile, mapInstanceRef.current])
+  }, [valuesFile, featureSelection, mapInstanceRef.current])
+
+  // create and set featureDetails
+  useEffect(() => {
+    if (!map) return
+
+    const hotSpotsLayer = findLayerByName(map, 'hotSpots')
+    const source = hotSpotsLayer?.getSource()
+    const hotSpotFeatures = source?.getFeatures()
+    if (!hotSpotFeatures) return
+
+    const featureDetails = valuesFeatures.map(feature => {
+      const geometry = feature.getGeometry() as Point
+      const geometryType = geometry?.getType()
+      return {
+        id: feature.getId(),
+        properties: feature.getProperties(),
+        geometryType: geometryType,
+        extent: geometry?.getExtent(),
+        riskDetails: closestFeatureStats(hotSpotFeatures, geometry.getCoordinates())
+      }
+    })
+    setUploadedFeatureDetails(featureDetails)
+  }, [valuesFeatures, hotSpotPoints, spreadDistance, map])
 
   useEffect(() => {
     console.log('yes')
