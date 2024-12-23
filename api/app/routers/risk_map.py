@@ -12,7 +12,7 @@ from fastapi import APIRouter, Request, Depends
 from app.auth import authentication_required
 from app.fire_behaviour.finger_burps import grow_fire_perimeter
 from app.risk_map.rep_station import get_fire_perimeter_representative_stations, get_hotspots_nearest_station
-from app.schemas.risk import FireShapeStations, GrowInput
+from app.schemas.risk import FireShapeStations, GrowInput, ComputeInput
 from app.utils.time import get_vancouver_now
 
 
@@ -78,6 +78,17 @@ async def weather(_=Depends(authentication_required)):
     representation_stations = await get_fire_perimeter_representative_stations(start_perim_gdf)
 
     return FireShapeStations(representative_stations=representation_stations)
+
+
+@router.post("/compute")
+async def grow(compute_input: ComputeInput, _=Depends(authentication_required)):
+    """
+    Compute risk stats
+    """
+
+    logger.info("risk-map/compute")
+    values_gdf = gpd.GeoDataFrame.from_features(compute_input.values.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
+    hotspots_gdf = gpd.GeoDataFrame.from_features(compute_input.hotspots.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
 
 
 @router.post("/grow")

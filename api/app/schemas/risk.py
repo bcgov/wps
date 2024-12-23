@@ -22,6 +22,11 @@ class GrowInput(BaseModel):
     time_of_interest: datetime
 
 
+class ComputeInput(BaseModel):
+    values: FireShapeFeatures
+    hotspots: FireShapeFeatures
+
+
 class FireShapeStation(BaseModel):
     """
     Representative station for a fire perimeter

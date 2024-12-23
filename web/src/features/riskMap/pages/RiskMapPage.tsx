@@ -4,7 +4,7 @@ import { ValuesImportButton } from '@/features/riskMap/components/UploadButton'
 import { Box, CircularProgress, Grid, Modal, Typography } from '@mui/material'
 import axios from 'api/axios'
 import { AppDispatch } from 'app/store'
-import { Map } from 'ol'
+import { Feature, Map } from 'ol'
 import GeoJSON from 'ol/format/GeoJSON'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
@@ -27,6 +27,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchHotSpots } from '@/features/riskMap/slices/hotSpotsSlice'
 import { fetchRepresentativeStations } from '@/features/riskMap/slices/representativeStationSlice'
 import { theme } from '@/app/theme'
+import { Geometry } from 'ol/geom'
+import { ComputeRiskButton } from '@/features/riskMap/components/ComputeRisk'
 
 export const RiskMapPage = () => {
   const dispatch: AppDispatch = useDispatch()
@@ -41,6 +43,7 @@ export const RiskMapPage = () => {
   const [spreadDistance, setSpreadDistance] = useState(500)
 
   const [file, setFile] = useState<File | null>(null)
+  const [values, setValues] = useState<Feature<Geometry>[]>([])
 
   const getGrowthColor = () => {
     const a = 0.6 // Fixed alpha for transparency (60% opacity)
@@ -134,6 +137,27 @@ export const RiskMapPage = () => {
     }
   }
 
+  const computeRisk = async () => {
+    try {
+      setLoading(true)
+      const url = 'risk-map/compute'
+      const { data } = await axios.post(url, {
+        values: {
+          // @ts-ignore
+          features: values.features
+        },
+        hotspots: {
+          features: hotSpotPoints.features
+        }
+      })
+      setLoading(false)
+      console.log(data)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified))
     dispatch(fetchRepresentativeStations())
@@ -179,10 +203,13 @@ export const RiskMapPage = () => {
             </LocalizationProvider>
           </Grid>
           <Grid item>
-            <ValuesImportButton setFile={setFile} />
+            <ValuesImportButton setFile={setFile} setValues={setValues} />
           </Grid>
           <Grid item>
             <GrowFireButton growFire={growFire} />
+          </Grid>
+          <Grid item>
+            <ComputeRiskButton computeRisk={computeRisk} />
           </Grid>
           <Grid item>
             <DayControl />

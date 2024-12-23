@@ -1,13 +1,17 @@
 import UploadIcon from '@mui/icons-material/Upload'
 import { Button } from '@mui/material'
 import { isNull } from 'lodash'
+import GeoJSON from 'ol/format/GeoJSON'
 import React, { useRef } from 'react'
+import { Feature } from 'ol'
+import { Geometry } from 'ol/geom'
 
 interface ValuesImportButtonProps {
   setFile: React.Dispatch<React.SetStateAction<File | null>>
+  setValues: React.Dispatch<React.SetStateAction<Feature<Geometry>[]>>
 }
 
-export const ValuesImportButton = ({ setFile }: ValuesImportButtonProps) => {
+export const ValuesImportButton = ({ setFile, setValues }: ValuesImportButtonProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,6 +23,24 @@ export const ValuesImportButton = ({ setFile }: ValuesImportButtonProps) => {
       // TODO upload to endpoint
       console.log(files[0])
       setFile(files[0])
+
+      const reader = new FileReader()
+
+      reader.onload = e => {
+        if (e.target && e.target.result) {
+          try {
+            const geojsonData = JSON.parse(e.target.result as string)
+            const valuesGeoJson = new GeoJSON().readFeatures(geojsonData, {
+              featureProjection: 'EPSG:3857'
+            })
+            setValues(geojsonData)
+          } catch (error) {
+            console.error('Error parsing GeoJSON data:', error)
+          }
+        }
+      }
+
+      reader.readAsText(files[0])
 
       // Reset the file input
       if (fileInputRef.current) {
