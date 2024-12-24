@@ -11,8 +11,8 @@ from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, Request, Depends
 from app.auth import authentication_required
 from app.fire_behaviour.finger_burps import grow_fire_perimeter
-from app.risk_map.rep_station import get_fire_perimeter_representative_stations, get_hotspots_nearest_station
-from app.schemas.risk import FireShapeStations, GrowInput, ComputeInput
+from app.risk_map.rep_station import calculate_values_risk, get_fire_perimeter_representative_stations, get_hotspots_nearest_station
+from app.schemas.risk import FireShapeStations, GrowInput, ComputeInput, RiskOutput, RiskOutputResponse
 from app.utils.time import get_vancouver_now
 
 
@@ -80,8 +80,8 @@ async def weather(_=Depends(authentication_required)):
     return FireShapeStations(representative_stations=representation_stations)
 
 
-@router.post("/compute")
-async def grow(compute_input: ComputeInput, _=Depends(authentication_required)):
+@router.post("/compute", response_model=RiskOutputResponse)
+async def compute(compute_input: ComputeInput, _=Depends(authentication_required)):
     """
     Compute risk stats
     """
@@ -89,6 +89,9 @@ async def grow(compute_input: ComputeInput, _=Depends(authentication_required)):
     logger.info("risk-map/compute")
     values_gdf = gpd.GeoDataFrame.from_features(compute_input.values.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
     hotspots_gdf = gpd.GeoDataFrame.from_features(compute_input.hotspots.model_dump()["features"], crs="EPSG:4326").to_crs(epsg=3005)
+    res = calculate_values_risk(values_gdf, hotspots_gdf)
+    risk_outputs = [RiskOutput(id=row["id"], name=row["Name"], distance=row["distance"], bearing=row["bearing"], direction=row["direction"]) for _, row in res.iterrows()]
+    return RiskOutputResponse(risk_outputs=risk_outputs)
 
 
 @router.post("/grow")

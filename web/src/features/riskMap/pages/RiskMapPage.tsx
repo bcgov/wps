@@ -13,7 +13,6 @@ import { useEffect, useState } from 'react'
 import firePerimeterData from '../components/PROT_CURRENT_FIRE_POLYS_SP.json'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
-
 import { selectFireGrowthDay, selectHotSpots } from '@/app/rootReducer'
 import { GeneralHeader } from '@/components'
 import DayControl from '@/features/riskMap/components/DayControl'

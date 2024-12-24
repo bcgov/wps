@@ -33,6 +33,7 @@ export const ValuesImportButton = ({ setFile, setValues }: ValuesImportButtonPro
             const valuesGeoJson = new GeoJSON().readFeatures(geojsonData, {
               featureProjection: 'EPSG:3857'
             })
+            geojsonData.features.forEach((feat, idx) => (feat['properties']['id'] = idx))
             setValues(geojsonData)
           } catch (error) {
             console.error('Error parsing GeoJSON data:', error)

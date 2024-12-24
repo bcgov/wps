@@ -16,6 +16,18 @@ class FireShapeFeatures(BaseModel):
     features: List[GeoJSONFeature]
 
 
+class RiskOutput(BaseModel):
+    id: int
+    name: str
+    distance: float
+    bearing: float
+    direction: str
+
+
+class RiskOutputResponse(BaseModel):
+    risk_outputs: List[RiskOutput]
+
+
 class GrowInput(BaseModel):
     fire_perimeter: FireShapeFeatures
     hotspots: FireShapeFeatures
