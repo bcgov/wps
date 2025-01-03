@@ -228,7 +228,7 @@ export const RiskMapPage = () => {
         </Grid>
       </Box>
 
-      <Box sx={{ display: 'flex', flexGrow: 1, width: '100%' }}>
+      <Box sx={{ display: 'flex', flexGrow: 1, width: '100%', overflow: 'hidden' }}>
         {riskDetails.length > 0 && (
           <RiskPanel>
             <RiskTable valueDetails={riskDetails} setSelectedID={setSelectedID}></RiskTable>
