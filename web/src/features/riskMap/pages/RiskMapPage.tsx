@@ -28,6 +28,7 @@ import { fetchRepresentativeStations } from '@/features/riskMap/slices/represent
 import { theme } from '@/app/theme'
 import { Geometry } from 'ol/geom'
 import { ComputeRiskButton } from '@/features/riskMap/components/ComputeRisk'
+import { convertFeaturesToGeoJSON, getFeaturesFromLayer } from '@/features/riskMap/mapFunctions'
 
 export const RiskMapPage = () => {
   const dispatch: AppDispatch = useDispatch()
@@ -139,11 +140,12 @@ export const RiskMapPage = () => {
   const computeRisk = async () => {
     try {
       setLoading(true)
+      const valueFeatures = getFeaturesFromLayer(mapInstance, 'uploadedValues')
+      const valueJsonFeatures = convertFeaturesToGeoJSON(valueFeatures)
       const url = 'risk-map/compute'
       const { data } = await axios.post(url, {
         values: {
-          // @ts-ignore
-          features: values.features
+          features: valueJsonFeatures.features
         },
         hotspots: {
           features: hotSpotPoints.features

@@ -4,7 +4,7 @@ import { firePerimeterStyler } from '@/features/riskMap/components/fireMapStyler
 import { closestFeatureStats } from '@/features/riskMap/components/featureDistance'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
-import { buffer } from '@turf/turf'
+import { buffer, feature } from '@turf/turf'
 import { selectHotSpots, selectRepStations } from 'app/rootReducer'
 import { DateTime } from 'luxon'
 import { Feature, Map, View } from 'ol'
@@ -143,6 +143,11 @@ export const FireMap: React.FC<FireMapProps> = ({
             const valuesGeoJson = new GeoJSON().readFeatures(geojsonData, {
               featureProjection: 'EPSG:3857'
             })
+
+            valuesGeoJson.forEach((feature, index) => {
+              feature.setProperties({ id: index })
+            })
+
             const vectorSource = new VectorSource({
               features: valuesGeoJson
             })
@@ -274,6 +279,8 @@ export const FireMap: React.FC<FireMapProps> = ({
         if (event.selected.length > 0) {
           const selectedFeature = event.selected[0]
           map.forEachFeatureAtPixel(event.mapBrowserEvent.pixel, (feature, layer) => {
+            console.log(feature.getProperties())
+
             if (layer.get('name') === 'representativeStationLayer') {
               console.log(feature.getProperties())
             }
