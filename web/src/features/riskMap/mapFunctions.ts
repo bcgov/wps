@@ -3,6 +3,7 @@ import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { Feature } from 'ol'
 import GeoJSON, { GeoJSONFeatureCollection } from 'ol/format/GeoJSON'
+import { getCenter } from 'ol/extent'
 
 export const getFeaturesFromLayer = (mapInstance: Map | null, layerName: string): Feature[] => {
   if (!mapInstance) {
@@ -35,4 +36,35 @@ export const convertFeaturesToGeoJSON = (features: Feature[]): GeoJSONFeatureCol
     dataProjection: 'EPSG:4326',
     featureProjection: 'EPSG:3857'
   })
+}
+
+export const findLayerByName = (map: Map, layerName: string): VectorLayer | undefined => {
+  const layers = map.getLayers().getArray()
+  return layers.find(layer => layer.get('name') === layerName) as VectorLayer | undefined
+}
+
+export const zoomToFeatureWithBuffer = (map: Map, id: number, bufferKm: number) => {
+  const valuesLayer = findLayerByName(map, 'uploadedValues')
+  const feature = valuesLayer?.getSource()?.getFeatureById(id)
+
+  if (feature) {
+    const geometry = feature.getGeometry()
+
+    if (geometry) {
+      const extent = geometry.getExtent()
+      const center = getCenter(extent)
+
+      const buffer = bufferKm * 1000 // Convert km to meters
+      const bufferedExtent = [center[0] - buffer, center[1] - buffer, center[0] + buffer, center[1] + buffer]
+
+      const view = map.getView()
+
+      if (view) {
+        view.fit(bufferedExtent, {
+          duration: 500,
+          padding: [50, 50, 50, 50]
+        })
+      }
+    }
+  }
 }

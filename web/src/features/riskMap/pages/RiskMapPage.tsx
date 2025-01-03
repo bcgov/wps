@@ -44,6 +44,7 @@ export const RiskMapPage = () => {
   const [growthDay, setGrowthDay] = useState<number>(0)
   const [spreadDistance, setSpreadDistance] = useState(500)
   const [riskDetails, setRiskDetails] = useState([])
+  const [selectedID, setSelectedID] = useState<number | null>(null)
 
   const [file, setFile] = useState<File | null>(null)
   const [values, setValues] = useState<Feature<Geometry>[]>([])
@@ -230,7 +231,7 @@ export const RiskMapPage = () => {
       <Box sx={{ display: 'flex', flexGrow: 1, width: '100%' }}>
         {riskDetails.length > 0 && (
           <RiskPanel>
-            <RiskTable open={true} valueDetails={riskDetails}></RiskTable>
+            <RiskTable valueDetails={riskDetails} setSelectedID={setSelectedID}></RiskTable>
           </RiskPanel>
         )}
         <FireMap
@@ -238,6 +239,7 @@ export const RiskMapPage = () => {
           setMapInstance={setMapInstance}
           dateOfInterest={dateOfInterest}
           spreadDistance={spreadDistance}
+          selectedID={selectedID}
         />
       </Box>
     </Box>

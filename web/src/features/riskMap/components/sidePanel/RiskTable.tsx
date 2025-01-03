@@ -2,13 +2,13 @@ import { DataGridPro, GridColDef, GridRowParams } from '@mui/x-data-grid-pro'
 
 interface RiskTableProps {
   valueDetails: any[]
-  open: boolean
+  setSelectedID: React.Dispatch<React.SetStateAction<number | null>>
 }
 
 const columns: GridColDef[] = [
   { field: 'id', headerName: 'ID', width: 100 },
   { field: 'name', headerName: 'Value', width: 130 },
-  { field: 'closestDistance', headerName: 'Distance (km)', width: 130 },
+  { field: 'closestDistance', headerName: 'Distance (km)', width: 130, sortComparator: (v1, v2) => v1 - v2 },
   { field: 'closestBearing', headerName: 'Hotspot Direction', width: 10 },
   {
     field: 'risk',
@@ -24,12 +24,13 @@ const getCompassDirection = (bearing: number) => {
   return directions[index]
 }
 
-const handleRowClick = (params: GridRowParams) => {
-  const rowId = params.row.id
-  console.log(rowId)
-}
+export const RiskTable = ({ valueDetails, setSelectedID }: RiskTableProps) => {
+  const handleRowClick = (params: GridRowParams) => {
+    const rowId = params.row.id
+    setSelectedID(rowId)
+    console.log(rowId)
+  }
 
-export const RiskTable = ({ open, valueDetails }: RiskTableProps) => {
   const res = valueDetails.map(item => {
     return {
       id: item.id,

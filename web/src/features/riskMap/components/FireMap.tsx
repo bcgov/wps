@@ -25,14 +25,10 @@ import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
 import { platformModifierKeyOnly } from 'ol/events/condition'
 import { collectFeaturesWithin } from '@/features/riskMap/components/selectionDragBox'
 import { DetailsDrawer } from '@/features/riskMap/components/DetailsDrawer'
+import { findLayerByName, zoomToFeatureWithBuffer } from '@/features/riskMap/mapFunctions'
 
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
-
-const findLayerByName = (map: Map, layerName: string): VectorLayer | undefined => {
-  const layers = map.getLayers().getArray()
-  return layers.find(layer => layer.get('name') === layerName) as VectorLayer | undefined
-}
 
 const getCompassDirection = (bearing: number) => {
   const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
@@ -45,13 +41,15 @@ export interface FireMapProps {
   setMapInstance: React.Dispatch<React.SetStateAction<Map | null>>
   dateOfInterest: DateTime
   spreadDistance: number
+  selectedID: number | null
 }
 
 export const FireMap: React.FC<FireMapProps> = ({
   valuesFile,
   setMapInstance,
   dateOfInterest,
-  spreadDistance
+  spreadDistance,
+  selectedID
 }: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
@@ -146,6 +144,7 @@ export const FireMap: React.FC<FireMapProps> = ({
 
             valuesGeoJson.forEach((feature, index) => {
               feature.setProperties({ id: index })
+              feature.setId(index)
             })
 
             const vectorSource = new VectorSource({
@@ -187,16 +186,18 @@ export const FireMap: React.FC<FireMapProps> = ({
         id: feature.getId(),
         properties: feature.getProperties(),
         geometryType: geometryType,
-        extent: geometry?.getExtent(),
-        riskDetails: closestFeatureStats(hotSpotFeatures, geometry.getCoordinates())
+        extent: geometry?.getExtent()
+        // riskDetails: closestFeatureStats(hotSpotFeatures, geometry.getCoordinates())
       }
     })
     setUploadedFeatureDetails(featureDetails)
   }, [valuesFeatures, hotSpotPoints, spreadDistance, map])
 
   useEffect(() => {
-    console.log('yes')
-  }, [valuesFeatures, featureSelection])
+    if (!selectedID || !map) return
+
+    zoomToFeatureWithBuffer(map, selectedID, 6)
+  }, [selectedID])
 
   useEffect(() => {
     if (!mapInstanceRef.current) {
