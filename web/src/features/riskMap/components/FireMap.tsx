@@ -1,13 +1,17 @@
 import { ErrorBoundary } from '@/components'
 import { removeLayerByName } from '@/features/fba/components/map/FBAMap'
-import { firePerimeterStyler } from '@/features/riskMap/components/fireMapStylers'
+import { DetailsDrawer } from '@/features/riskMap/components/DetailsDrawer'
 import { closestFeatureStats } from '@/features/riskMap/components/featureDistance'
+import { firePerimeterStyler } from '@/features/riskMap/components/fireMapStylers'
+import { collectFeaturesWithin } from '@/features/riskMap/components/selectionDragBox'
+import { findLayerByName, zoomToFeatureWithBuffer } from '@/features/riskMap/mapFunctions'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
-import { buffer, feature } from '@turf/turf'
+import { buffer } from '@turf/turf'
 import { selectHotSpots, selectRepStations } from 'app/rootReducer'
 import { DateTime } from 'luxon'
 import { Feature, Map, View } from 'ol'
+import { platformModifierKeyOnly } from 'ol/events/condition'
 import { boundingExtent } from 'ol/extent'
 import GeoJSON from 'ol/format/GeoJSON'
 import { Geometry, Point, Polygon } from 'ol/geom'
@@ -22,10 +26,6 @@ import { Fill, Stroke, Style } from 'ol/style'
 import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
-import { platformModifierKeyOnly } from 'ol/events/condition'
-import { collectFeaturesWithin } from '@/features/riskMap/components/selectionDragBox'
-import { DetailsDrawer } from '@/features/riskMap/components/DetailsDrawer'
-import { findLayerByName, zoomToFeatureWithBuffer } from '@/features/riskMap/mapFunctions'
 
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -63,7 +63,6 @@ export const FireMap: React.FC<FireMapProps> = ({
   const [valuesFeatures, setValuesFeatures] = useState<Feature<Geometry>[]>([])
   const [closestDistance, setClosestDistance] = useState<number | null>(null)
   const [closestDirection, setClosestDirection] = useState<string>('')
-  const [uploadedFeatureDetails, setUploadedFeatureDetails] = useState<any | null>(null)
 
   // Create a vector layer to hold the selection boxes
   const boxLayerSource = new VectorSource()
@@ -169,29 +168,6 @@ export const FireMap: React.FC<FireMapProps> = ({
       reader.readAsText(valuesFile)
     }
   }, [valuesFile, featureSelection, mapInstanceRef.current])
-
-  // create and set featureDetails
-  useEffect(() => {
-    if (!map) return
-
-    const hotSpotsLayer = findLayerByName(map, 'hotSpots')
-    const source = hotSpotsLayer?.getSource()
-    const hotSpotFeatures = source?.getFeatures()
-    if (!hotSpotFeatures) return
-
-    const featureDetails = valuesFeatures.map(feature => {
-      const geometry = feature.getGeometry() as Point
-      const geometryType = geometry?.getType()
-      return {
-        id: feature.getId(),
-        properties: feature.getProperties(),
-        geometryType: geometryType,
-        extent: geometry?.getExtent()
-        // riskDetails: closestFeatureStats(hotSpotFeatures, geometry.getCoordinates())
-      }
-    })
-    setUploadedFeatureDetails(featureDetails)
-  }, [valuesFeatures, hotSpotPoints, spreadDistance, map])
 
   useEffect(() => {
     if (!selectedID || !map) return
