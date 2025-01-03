@@ -29,6 +29,8 @@ import { theme } from '@/app/theme'
 import { Geometry } from 'ol/geom'
 import { ComputeRiskButton } from '@/features/riskMap/components/ComputeRisk'
 import { convertFeaturesToGeoJSON, getFeaturesFromLayer } from '@/features/riskMap/mapFunctions'
+import RiskTable from '@/features/riskMap/components/sidePanel/RiskTable'
+import RiskPanel from '@/features/riskMap/components/sidePanel/RiskPanel'
 
 export const RiskMapPage = () => {
   const dispatch: AppDispatch = useDispatch()
@@ -41,6 +43,7 @@ export const RiskMapPage = () => {
   const [dateOfInterest, setDateOfInterest] = useState<DateTime>(DateTime.now().setZone('America/Vancouver'))
   const [growthDay, setGrowthDay] = useState<number>(0)
   const [spreadDistance, setSpreadDistance] = useState(500)
+  const [riskDetails, setRiskDetails] = useState([])
 
   const [file, setFile] = useState<File | null>(null)
   const [values, setValues] = useState<Feature<Geometry>[]>([])
@@ -152,6 +155,7 @@ export const RiskMapPage = () => {
         }
       })
       setLoading(false)
+      setRiskDetails(data.risk_outputs)
       console.log(data)
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -187,7 +191,9 @@ export const RiskMapPage = () => {
           </Grid>
         </Box>
       </Modal>
+
       <GeneralHeader isBeta={true} spacing={1} title={'Risk Map'} productName={'Risk Map'} />
+
       <Box sx={{ padding: '0.5em' }}>
         <Grid container spacing={1} alignItems="center">
           <Grid item>
@@ -221,15 +227,18 @@ export const RiskMapPage = () => {
         </Grid>
       </Box>
 
-      <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
-        <Grid sx={{ display: 'flex', flex: 1 }} item>
-          <FireMap
-            valuesFile={file}
-            setMapInstance={setMapInstance}
-            dateOfInterest={dateOfInterest}
-            spreadDistance={spreadDistance}
-          />
-        </Grid>
+      <Box sx={{ display: 'flex', flexGrow: 1, width: '100%' }}>
+        {riskDetails.length > 0 && (
+          <RiskPanel>
+            <RiskTable open={true} valueDetails={riskDetails}></RiskTable>
+          </RiskPanel>
+        )}
+        <FireMap
+          valuesFile={file}
+          setMapInstance={setMapInstance}
+          dateOfInterest={dateOfInterest}
+          spreadDistance={spreadDistance}
+        />
       </Box>
     </Box>
   )

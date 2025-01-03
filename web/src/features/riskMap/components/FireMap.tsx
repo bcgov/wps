@@ -340,8 +340,8 @@ export const FireMap: React.FC<FireMapProps> = ({
           data-testid="risk-map"
           sx={{
             display: 'flex',
-            flex: 1,
-            position: 'relative'
+            flexGrow: 1,
+            height: '100%'
           }}
         >
           <DetailsDrawer
