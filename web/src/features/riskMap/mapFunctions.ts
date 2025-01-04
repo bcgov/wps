@@ -1,7 +1,6 @@
-import { Map } from 'ol'
+import { Map, Feature } from 'ol'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
-import { Feature } from 'ol'
 import GeoJSON, { GeoJSONFeatureCollection } from 'ol/format/GeoJSON'
 import { getCenter } from 'ol/extent'
 
@@ -54,7 +53,7 @@ export const zoomToFeatureWithBuffer = (map: Map, id: number, bufferKm: number) 
       const extent = geometry.getExtent()
       const center = getCenter(extent)
 
-      const buffer = bufferKm * 1000 // Convert km to meters
+      const buffer = bufferKm * 1000
       const bufferedExtent = [center[0] - buffer, center[1] - buffer, center[0] + buffer, center[1] + buffer]
 
       const view = map.getView()
