@@ -6,7 +6,7 @@ interface RiskTableProps {
 }
 
 const columns: GridColDef[] = [
-  { field: 'id', headerName: 'ID', width: 100 },
+  // { field: 'id', headerName: 'ID', width: 100 },
   { field: 'name', headerName: 'Value', width: 130 },
   { field: 'closestDistance', headerName: 'Distance (km)', width: 130, sortComparator: (v1, v2) => v1 - v2 },
   { field: 'closestBearing', headerName: 'Hotspot Direction', width: 10 },
@@ -54,7 +54,16 @@ export const RiskTable = ({ valueDetails, setSelectedID }: RiskTableProps) => {
         }
       }}
       pageSizeOptions={[5, 10]}
-      sx={{ border: 0, overflow: 'auto' }}
+      sx={{
+        border: 0,
+        overflow: 'auto',
+        '.MuiDataGrid-cell:focus': {
+          outline: 'none'
+        },
+        '& .MuiDataGrid-row:hover': {
+          cursor: 'pointer'
+        }
+      }}
     />
   )
 }

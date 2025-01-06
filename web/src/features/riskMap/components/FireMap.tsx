@@ -2,7 +2,7 @@ import { ErrorBoundary } from '@/components'
 import { removeLayerByName } from '@/features/fba/components/map/FBAMap'
 import { DetailsDrawer } from '@/features/riskMap/components/DetailsDrawer'
 import { closestFeatureStats } from '@/features/riskMap/components/featureDistance'
-import { firePerimeterStyler } from '@/features/riskMap/components/fireMapStylers'
+import { firePerimeterStyler, highlightFeature, resetLayerStyle } from '@/features/riskMap/components/fireMapStylers'
 import { collectFeaturesWithin } from '@/features/riskMap/components/selectionDragBox'
 import { findLayerByName, zoomToFeatureWithBuffer } from '@/features/riskMap/mapFunctions'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
@@ -171,6 +171,9 @@ export const FireMap: React.FC<FireMapProps> = ({
 
   useEffect(() => {
     if (!selectedID || !map) return
+
+    resetLayerStyle(map, 'uploadedValues')
+    highlightFeature(map, 'uploadedValues', selectedID)
 
     zoomToFeatureWithBuffer(map, selectedID, 6)
   }, [selectedID])
