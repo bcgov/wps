@@ -2,7 +2,30 @@ import { Map, Feature } from 'ol'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON, { GeoJSONFeatureCollection } from 'ol/format/GeoJSON'
-import { getCenter } from 'ol/extent'
+import { getCenter, intersects } from 'ol/extent'
+
+export const getFeaturesInViewport = (map: Map | null, layerName: string) => {
+  if (!map) {
+    console.error('Map instance is not available.')
+    return []
+  }
+  // Get the current extent of the map
+  const extent = map.getView().calculateExtent(map.getSize())
+
+  const layer = findLayerByName(map, layerName)
+
+  // Get features from the vector layer
+  const source = layer?.getSource()
+  const features = source?.getFeatures()
+
+  // Filter features that intersect with the extent
+  const featuresInViewport = features?.filter(feature => {
+    const geometry = feature.getGeometry()
+    return geometry && intersects(extent, geometry.getExtent())
+  })
+
+  return featuresInViewport ? featuresInViewport : []
+}
 
 export const getFeaturesFromLayer = (mapInstance: Map | null, layerName: string): Feature[] => {
   if (!mapInstance) {

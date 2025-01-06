@@ -45,8 +45,8 @@ export const RiskMapPage = () => {
   const [spreadDistance, setSpreadDistance] = useState(500)
   const [riskDetails, setRiskDetails] = useState([])
   const [selectedID, setSelectedID] = useState<number | null>(null)
-
   const [values, setValues] = useState<Feature<Geometry>[]>([])
+  const [withinViewport, setWithinViewPort] = useState<boolean>(false)
 
   const getGrowthColor = () => {
     const a = 0.6 // Fixed alpha for transparency (60% opacity)

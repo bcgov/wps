@@ -1,20 +1,18 @@
 import { ErrorBoundary } from '@/components'
 import { removeLayerByName } from '@/features/fba/components/map/FBAMap'
-import { DetailsDrawer } from '@/features/riskMap/components/DetailsDrawer'
 import { closestFeatureStats } from '@/features/riskMap/components/featureDistance'
 import { firePerimeterStyler, highlightFeature, resetLayerStyle } from '@/features/riskMap/components/fireMapStylers'
-import { collectFeaturesWithin } from '@/features/riskMap/components/selectionDragBox'
 import { findLayerByName, zoomToFeatureWithBuffer } from '@/features/riskMap/mapFunctions'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
 import { buffer } from '@turf/turf'
-import { selectHotSpots, selectRepStations } from 'app/rootReducer'
+import { selectHotSpots } from 'app/rootReducer'
 import { DateTime } from 'luxon'
 import { Feature, Map, View } from 'ol'
 import { platformModifierKeyOnly } from 'ol/events/condition'
 import { boundingExtent } from 'ol/extent'
 import GeoJSON from 'ol/format/GeoJSON'
-import { Geometry, Point, Polygon } from 'ol/geom'
+import { Geometry, Point } from 'ol/geom'
 import { DragBox, Select } from 'ol/interaction'
 import TileLayer from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
@@ -54,13 +52,9 @@ export const FireMap: React.FC<FireMapProps> = ({
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<Map | null>(null)
   const { hotSpotPoints } = useSelector(selectHotSpots)
-  const { repStations } = useSelector(selectRepStations)
 
   const [map, setMap] = useState<Map | null>(null)
   const [open, setOpen] = useState(false)
-  const [detailsOpen, setDetailsOpen] = useState(false)
-  const [featureSelection, setFeatureSelection] = useState<Feature<Geometry>[]>([])
-  const [valuesFeatures, setValuesFeatures] = useState<Feature<Geometry>[]>([])
   const [closestDistance, setClosestDistance] = useState<number | null>(null)
   const [closestDirection, setClosestDirection] = useState<string>('')
 
@@ -187,42 +181,11 @@ export const FireMap: React.FC<FireMapProps> = ({
 
       map.addInteraction(dragBox)
 
-      dragBox.on('boxend', function (event) {
-        const hotspotsLayer = findLayerByName(map, 'hotSpots')
-        const source = hotspotsLayer!.getSource()
-        if (source) {
-          const newSelectedFeatures = collectFeaturesWithin(dragBox, map, source, selectedFeatures)
-          if (newSelectedFeatures) {
-            console.log(newSelectedFeatures)
-            setFeatureSelection(newSelectedFeatures)
-          }
-          setDetailsOpen(true)
-        }
-
-        // Get the geometry of the drag box
-        const boxGeometry = dragBox.getGeometry()
-
-        // Create a new feature with the box geometry
-        const boxFeature = new Feature({
-          geometry: new Polygon(boxGeometry.getCoordinates())
-        })
-
-        // Add the feature to the vector layer
-        boxLayerSource.addFeature(boxFeature)
-      })
-
       // clear selection when drawing a new box and when clicking on the map
       dragBox.on('boxstart', function () {
         selectedFeatures.clear()
         boxLayerSource.clear() // Clear all rendered boxes
         // setFeatureSelection([])
-      })
-
-      // Clear boxes on double click
-      map.on('dblclick', () => {
-        selectedFeatures.clear()
-        boxLayerSource.clear() // Clear all rendered boxes
-        setFeatureSelection([])
       })
 
       const selectClick = new Select({
@@ -300,13 +263,6 @@ export const FireMap: React.FC<FireMapProps> = ({
             height: '100%'
           }}
         >
-          <DetailsDrawer
-            values={valuesFeatures}
-            hotspots={featureSelection}
-            setOpen={setDetailsOpen}
-            open={detailsOpen}
-          />
-
           <Dialog open={open} onClose={handleClose} sx={{ position: 'absolute', zIndex: '1', bottom: '0.5rem' }}>
             <DialogTitle>Closest Distance</DialogTitle>
             <DialogContent>
