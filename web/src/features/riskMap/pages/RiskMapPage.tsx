@@ -236,7 +236,6 @@ export const RiskMapPage = () => {
         <FireMap
           values={values}
           setMapInstance={setMapInstance}
-          dateOfInterest={dateOfInterest}
           spreadDistance={spreadDistance}
           selectedID={selectedID}
         />

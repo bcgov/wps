@@ -4,10 +4,9 @@ import { closestFeatureStats } from '@/features/riskMap/components/featureDistan
 import { firePerimeterStyler, highlightFeature, resetLayerStyle } from '@/features/riskMap/components/fireMapStylers'
 import { findLayerByName, zoomToFeatureWithBuffer } from '@/features/riskMap/mapFunctions'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
+import { Box } from '@mui/material'
 import { buffer } from '@turf/turf'
 import { selectHotSpots } from 'app/rootReducer'
-import { DateTime } from 'luxon'
 import { Feature, Map, View } from 'ol'
 import { platformModifierKeyOnly } from 'ol/events/condition'
 import { boundingExtent } from 'ol/extent'
@@ -37,7 +36,6 @@ const getCompassDirection = (bearing: number) => {
 export interface FireMapProps {
   values: Feature<Geometry>[]
   setMapInstance: React.Dispatch<React.SetStateAction<Map | null>>
-  dateOfInterest: DateTime
   spreadDistance: number
   selectedID: number | null
 }
@@ -45,7 +43,6 @@ export interface FireMapProps {
 export const FireMap: React.FC<FireMapProps> = ({
   values,
   setMapInstance,
-  dateOfInterest,
   spreadDistance,
   selectedID
 }: FireMapProps) => {
@@ -54,9 +51,6 @@ export const FireMap: React.FC<FireMapProps> = ({
   const { hotSpotPoints } = useSelector(selectHotSpots)
 
   const [map, setMap] = useState<Map | null>(null)
-  const [open, setOpen] = useState(false)
-  const [closestDistance, setClosestDistance] = useState<number | null>(null)
-  const [closestDirection, setClosestDirection] = useState<string>('')
 
   // Create a vector layer to hold the selection boxes
   const boxLayerSource = new VectorSource()
@@ -215,9 +209,9 @@ export const FireMap: React.FC<FireMapProps> = ({
               const closestResult = closestFeatureStats(features, selectedPointCoords)
 
               if (closestResult.closestFeature) {
-                setClosestDistance(closestResult.closestDistance)
-                setClosestDirection(getCompassDirection(closestResult.closestBearing))
-                setOpen(true) // Open the dialog
+                // setClosestDistance(closestResult.closestDistance)
+                // setClosestDirection(getCompassDirection(closestResult.closestBearing))
+                // setOpen(true) // Open the dialog
               }
             }
           })
@@ -245,12 +239,6 @@ export const FireMap: React.FC<FireMapProps> = ({
     }
   }, [])
 
-  const handleClose = () => {
-    setOpen(false)
-    setClosestDistance(null)
-    setClosestDirection('')
-  }
-
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
@@ -262,36 +250,7 @@ export const FireMap: React.FC<FireMapProps> = ({
             flexGrow: 1,
             height: '100%'
           }}
-        >
-          <Dialog open={open} onClose={handleClose} sx={{ position: 'absolute', zIndex: '1', bottom: '0.5rem' }}>
-            <DialogTitle>Closest Distance</DialogTitle>
-            <DialogContent>
-              {closestDistance !== null && closestDirection ? (
-                <>
-                  <p>Closest Distance: {closestDistance.toPrecision(2)} km</p>
-                  <p>Direction: {closestDirection}</p>
-                  <p>
-                    Risk Level:
-                    <span
-                      style={{
-                        color: closestDistance < 5 ? 'red' : closestDistance <= 10 ? 'orange' : 'black'
-                      }}
-                    >
-                      {closestDistance < 5 ? ' High Risk' : closestDistance <= 10 ? ' Mid Risk' : ' Low Risk'}
-                    </span>
-                  </p>
-                </>
-              ) : (
-                <p>No distance calculated.</p>
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleClose} color="primary">
-                Close
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </Box>
+        />
       </MapContext.Provider>
     </ErrorBoundary>
   )
