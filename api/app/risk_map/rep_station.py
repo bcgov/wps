@@ -2,12 +2,15 @@
 Includes functions for representative stations for fires
 """
 
+import math
+
+import geopandas
+import pyproj
+from shapely.geometry import Point
+
 from app.schemas.risk import FireShapeStation
 from app.stations import get_detailed_stations, get_stations_as_geojson
-from shapely.geometry import Point
-import geopandas
-import math
-import numpy as np
+from app.utils.geospatial import PointTransformer
 
 
 async def get_stations_detailed_gdf(time_of_interest):
@@ -76,19 +79,17 @@ async def get_hotspots_nearest_station(hotspot_gdf, time_of_interest):
 
 
 # Function to calculate bearing (same as before)
-def calculate_bearing(point1, point2):
+def calculate_bearing(point1, point2, transformer):
     if not isinstance(point1, Point) or not isinstance(point2, Point):
         return None
 
-    lon1, lat1 = np.radians(point1.x), np.radians(point1.y)
-    lon2, lat2 = np.radians(point2.x), np.radians(point2.y)
+    lat1, lon1 = transformer.transform_coordinate(point1.x, point1.y)
+    lat2, lon2 = transformer.transform_coordinate(point2.x, point2.y)
+    geodesic = pyproj.Geod(ellps="WGS84")
+    fwd_azimuth, _, _ = geodesic.inv(lon1, lat1, lon2, lat2)
 
-    delta_lon = lon2 - lon1
-    x = np.sin(delta_lon) * np.cos(lat2)
-    y = np.cos(lat1) * np.sin(lat2) - np.sin(lat1) * np.cos(lat2) * np.cos(delta_lon)
-
-    bearing = np.degrees(np.arctan2(x, y))
-    return (bearing + 360) % 360  # Normalize to 0-360 degrees
+    normalized_bearing = (fwd_azimuth + 360) % 360  # Normalize to 0-360 degrees
+    return normalized_bearing
 
 
 def get_direction(bearing):
@@ -104,8 +105,9 @@ def calculate_values_risk(values_gdf, hotspots_gdf):
     # compute centroid of hotspot to calculate direction
     values_nearest_gdf["hotspot_centroid"] = values_nearest_gdf["geometry_right"].apply(lambda geom: geom.centroid if not geom.is_empty else geom)
 
+    transformer = PointTransformer(3005, 4326)
     # compute bearing
-    values_nearest_gdf["bearing"] = values_nearest_gdf.apply(lambda row: calculate_bearing(row["geometry"], row["hotspot_centroid"]), axis=1)
+    values_nearest_gdf["bearing"] = values_nearest_gdf.apply(lambda row: calculate_bearing(row["geometry"], row["hotspot_centroid"], transformer), axis=1)
     values_nearest_gdf["bearing"]
 
     # compute direction from bearing
