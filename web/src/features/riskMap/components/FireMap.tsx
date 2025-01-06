@@ -37,7 +37,7 @@ const getCompassDirection = (bearing: number) => {
 }
 
 export interface FireMapProps {
-  valuesFile: File | null
+  values: Feature<Geometry>[]
   setMapInstance: React.Dispatch<React.SetStateAction<Map | null>>
   dateOfInterest: DateTime
   spreadDistance: number
@@ -45,7 +45,7 @@ export interface FireMapProps {
 }
 
 export const FireMap: React.FC<FireMapProps> = ({
-  valuesFile,
+  values,
   setMapInstance,
   dateOfInterest,
   spreadDistance,
@@ -130,44 +130,20 @@ export const FireMap: React.FC<FireMapProps> = ({
 
   // uploaded values layer manager
   useEffect(() => {
-    if (valuesFile && mapInstanceRef.current) {
-      const reader = new FileReader()
+    if (values && values.length > 0) {
+      const vectorSource = new VectorSource({
+        features: values
+      })
 
-      reader.onload = e => {
-        if (e.target && e.target.result) {
-          try {
-            const geojsonData = JSON.parse(e.target.result as string)
-            const valuesGeoJson = new GeoJSON().readFeatures(geojsonData, {
-              featureProjection: 'EPSG:3857'
-            })
+      const vectorLayer = new VectorLayer({
+        source: vectorSource,
+        zIndex: 1000,
+        properties: { name: 'uploadedValues' }
+      })
 
-            valuesGeoJson.forEach((feature, index) => {
-              feature.setProperties({ id: index })
-              feature.setId(index)
-            })
-
-            const vectorSource = new VectorSource({
-              features: valuesGeoJson
-            })
-
-            const vectorLayer = new VectorLayer({
-              source: vectorSource,
-              zIndex: 1000,
-              properties: { name: 'uploadedValues' }
-            })
-
-            mapInstanceRef.current?.addLayer(vectorLayer)
-
-            setValuesFeatures(valuesGeoJson)
-          } catch (error) {
-            console.error('Error parsing GeoJSON data:', error)
-          }
-        }
-      }
-
-      reader.readAsText(valuesFile)
+      mapInstanceRef.current?.addLayer(vectorLayer)
     }
-  }, [valuesFile, featureSelection, mapInstanceRef.current])
+  }, [values])
 
   useEffect(() => {
     if (!selectedID || !map) return

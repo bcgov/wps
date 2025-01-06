@@ -46,7 +46,6 @@ export const RiskMapPage = () => {
   const [riskDetails, setRiskDetails] = useState([])
   const [selectedID, setSelectedID] = useState<number | null>(null)
 
-  const [file, setFile] = useState<File | null>(null)
   const [values, setValues] = useState<Feature<Geometry>[]>([])
 
   const getGrowthColor = () => {
@@ -211,7 +210,7 @@ export const RiskMapPage = () => {
             </LocalizationProvider>
           </Grid>
           <Grid item>
-            <ValuesImportButton setFile={setFile} setValues={setValues} />
+            <ValuesImportButton setValues={setValues} />
           </Grid>
           <Grid item>
             <GrowFireButton growFire={growFire} />
@@ -235,7 +234,7 @@ export const RiskMapPage = () => {
           </RiskPanel>
         )}
         <FireMap
-          valuesFile={file}
+          values={values}
           setMapInstance={setMapInstance}
           dateOfInterest={dateOfInterest}
           spreadDistance={spreadDistance}

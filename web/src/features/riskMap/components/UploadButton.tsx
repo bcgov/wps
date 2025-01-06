@@ -7,11 +7,10 @@ import { Feature } from 'ol'
 import { Geometry } from 'ol/geom'
 
 interface ValuesImportButtonProps {
-  setFile: React.Dispatch<React.SetStateAction<File | null>>
   setValues: React.Dispatch<React.SetStateAction<Feature<Geometry>[]>>
 }
 
-export const ValuesImportButton = ({ setFile, setValues }: ValuesImportButtonProps) => {
+export const ValuesImportButton = ({ setValues }: ValuesImportButtonProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,10 +18,6 @@ export const ValuesImportButton = ({ setFile, setValues }: ValuesImportButtonPro
     if (!isNull(files)) {
       const bodyContent = new FormData()
       bodyContent.append('file', files[0])
-
-      // TODO upload to endpoint
-      console.log(files[0])
-      setFile(files[0])
 
       const reader = new FileReader()
 
@@ -33,8 +28,13 @@ export const ValuesImportButton = ({ setFile, setValues }: ValuesImportButtonPro
             const valuesGeoJson = new GeoJSON().readFeatures(geojsonData, {
               featureProjection: 'EPSG:3857'
             })
-            geojsonData.features.forEach((feat, idx) => (feat['properties']['id'] = idx))
-            setValues(geojsonData)
+
+            valuesGeoJson.forEach((feature, index) => {
+              feature.setProperties({ id: index })
+              feature.setId(index)
+            })
+
+            setValues(valuesGeoJson)
           } catch (error) {
             console.error('Error parsing GeoJSON data:', error)
           }
