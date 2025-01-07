@@ -1,4 +1,4 @@
-import { ModelSkillEnum, RankedModelSkillSummaryData, WeatherParamEnum } from '@/api/skillAPI'
+import { ModelSkillEnum, ModelSkillSummaryData, RankedModelSkillSummaryData, WeatherParamEnum } from '@/api/skillAPI'
 import { DateRange } from '@/components/dateRangePicker/types'
 import SkillSelectionPanel2 from '@/features/moreCast2/components/skill2/SkillSelectionPanel2'
 import SkillVisuals from '@/features/moreCast2/components/skill2/SkillVisuals'
@@ -13,6 +13,8 @@ import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from 'app/store'
+import { selectSkillData } from '@/features/moreCast2/slices/skillDataSlice'
+import { selectSelectedStations } from '@/features/moreCast2/slices/selectedStationsSlice'
 
 interface SkillContainerProps {
   fromTo: DateRange
@@ -21,10 +23,13 @@ interface SkillContainerProps {
 const SkillContainer = ({ fromTo }: SkillContainerProps) => {
   const dispatch: AppDispatch = useDispatch()
   const [rankedModelSkillData, setRankedModelSkillData] = useState<RankedModelSkillSummaryData[]>([])
+  const selectedModels = useSelector(selectSelectedModelByDate)
+  const skillData = useSelector(selectSkillData)
+  const selectedStations = useSelector(selectSelectedStations)
+  const [selectedStationCodes, setSelectedStationCodes] = useState<number[]>([])
   const [forecastDatesInRange, setForecastDatesInRange] = useState<DateTime[]>([])
   const [selectedForecastIndex, setSelectedForecastIndex] = useState<string>('')
   const [weatherParameter, setWeatherParameter] = useState<WeatherParamEnum>(WeatherParamEnum.TEMP)
-  const selectedModels = useSelector(selectSelectedModelByDate)
 
   const selectedModelSorter = (a: SelectedModelByDate, b: SelectedModelByDate) => {
     if (a.date < b.date) {
@@ -74,17 +79,16 @@ const SkillContainer = ({ fromTo }: SkillContainerProps) => {
     return dateTimeArray
   }
 
-  const addSelectedModelByDate = (selected: ModelSkillEnum) => {
-    const forecastDate = forecastDatesInRange[parseInt(selectedForecastIndex)]
+  const updateSelectedModelByDate = (selected: ModelSkillEnum, date: DateTime) => {
+    // If we have a model selected for this date replace it
     const selectedModelByDate = {
       adjustment: 0,
-      date: forecastDate,
+      date,
       model: selected,
       weatherParameter
     }
-    // If we have a model selected for this date replace it
     const index = selectedModels.findIndex(selectedModel => {
-      return selectedModel.date.startOf('day').toMillis() === forecastDate.startOf('day').toMillis()
+      return selectedModel.date.startOf('day').toMillis() === date.startOf('day').toMillis()
     })
     let newSelectedModels: SelectedModelByDate[]
     if (index === -1) {
@@ -96,10 +100,101 @@ const SkillContainer = ({ fromTo }: SkillContainerProps) => {
     newSelectedModels = newSelectedModels.sort(selectedModelSorter)
     dispatch(selectedModelByDateChanged(newSelectedModels))
   }
-  const handleDeleteSelectedModel = (date: DateTime) => {
-    const newSelectedModels = selectedModels.filter(model => model.date !== date)
-    dispatch(selectedModelByDateChanged(newSelectedModels))
+
+  const calculateRMSE = (data: number[]) => {
+    let sum = 0
+    data.forEach(d => (sum += d * d))
+    return Math.sqrt(sum)
   }
+
+  const filterSkillData = (): ModelSkillSummaryData[] => {
+    const weatherParamSkillData = skillData.find(x => x.weatherParam === weatherParameter)
+    if (isNil(weatherParamSkillData)) {
+      return []
+    }
+    const daySkillData = weatherParamSkillData.daySkillData.find(
+      daySkill => daySkill.day === parseInt(selectedForecastIndex)
+    )
+    if (isNil(daySkillData)) {
+      return []
+    }
+    const modelSkillData: ModelSkillSummaryData[] = []
+    for (const modelSkill of daySkillData.modelSkillData) {
+      const filteredStationData = modelSkill.stationSkillData.filter(stationSkill =>
+        selectedStationCodes.includes(stationSkill.stationCode)
+      )
+      const aggregateSkillData: number[] = []
+      filteredStationData.forEach(station => aggregateSkillData.push(...station.skillData))
+      if (aggregateSkillData.length === 0) {
+        continue
+      }
+      const rmse = calculateRMSE(aggregateSkillData)
+      modelSkillData.push({
+        data: aggregateSkillData,
+        model: modelSkill.model,
+        rmse
+      })
+    }
+    // const modelSkillData = daySkillData.modelSkillData.map(modelSkill => {
+    //   const filteredStationData = modelSkill.stationSkillData.filter(stationSkill =>
+    //     selectedStationCodes.includes(stationSkill.stationCode)
+    //   )
+    //   const aggregateSkillData: number[] = []
+    //   filteredStationData.forEach(station => aggregateSkillData.push(...station.skillData))
+    //   const rmse = calculateRMSE(aggregateSkillData)
+    //   return {
+    //     data: aggregateSkillData,
+    //     model: modelSkill.model,
+    //     rmse
+    //   }
+    // })
+    return modelSkillData
+  }
+
+  const filterSkillDataByIndex = (index: number): ModelSkillSummaryData[] => {
+    const weatherParamSkillData = skillData.find(x => x.weatherParam === weatherParameter)
+    if (isNil(weatherParamSkillData)) {
+      return []
+    }
+    const daySkillData = weatherParamSkillData.daySkillData.find(daySkill => daySkill.day === index)
+    if (isNil(daySkillData)) {
+      return []
+    }
+    const modelSkillData: ModelSkillSummaryData[] = []
+    for (const modelSkill of daySkillData.modelSkillData) {
+      const filteredStationData = modelSkill.stationSkillData.filter(stationSkill =>
+        selectedStationCodes.includes(stationSkill.stationCode)
+      )
+      const aggregateSkillData: number[] = []
+      filteredStationData.forEach(station => aggregateSkillData.push(...station.skillData))
+      if (aggregateSkillData.length === 0) {
+        continue
+      }
+      const rmse = calculateRMSE(aggregateSkillData)
+      modelSkillData.push({
+        data: aggregateSkillData,
+        model: modelSkill.model,
+        rmse
+      })
+    }
+    return modelSkillData
+  }
+
+  const getRankedModelSkillData = (modelSkillData: ModelSkillSummaryData[]): RankedModelSkillSummaryData[] => {
+    const orderedModelSkillData = [...modelSkillData]
+    orderedModelSkillData.sort((a, b) => {
+      return a.rmse - b.rmse
+    })
+    const rankedModelSkillData = orderedModelSkillData.map((data, index) => {
+      return { ...data, rank: index + 1 }
+    })
+    return rankedModelSkillData
+  }
+
+  useEffect(() => {
+    const newSelectedStationCodes = selectedStations.map(station => station.station_code)
+    setSelectedStationCodes(newSelectedStationCodes)
+  }, [selectedStations])
 
   useEffect(() => {
     const index = forecastDatesInRange.length > 0 ? '0' : ''
@@ -114,6 +209,16 @@ const SkillContainer = ({ fromTo }: SkillContainerProps) => {
     setForecastDatesInRange(newDatesInRange)
   }, [fromTo])
 
+  useEffect(() => {
+    if (isNil(skillData)) {
+      console.log('NILNilNIL')
+      return
+    }
+    const skillDataForSelectedStations = filterSkillData()
+    const newRankedModelSkillData = getRankedModelSkillData(skillDataForSelectedStations)
+    setRankedModelSkillData(newRankedModelSkillData)
+  }, [skillData, selectedStationCodes, selectedForecastIndex])
+
   const handleForecastDateChange = (param: SelectChangeEvent) => {
     const target = param?.target?.value
     setSelectedForecastIndex(target)
@@ -124,7 +229,26 @@ const SkillContainer = ({ fromTo }: SkillContainerProps) => {
     setWeatherParameter(target)
   }
 
-  const handleAutoSelectModels = () => {}
+  const handleAutoSelectModels = () => {
+    const newSelectedModels = []
+    for (let i = 0; i < forecastDatesInRange.length; i++) {
+      const filteredModelSkillData = filterSkillDataByIndex(i)
+      const rankedSkillData = getRankedModelSkillData(filteredModelSkillData)
+      newSelectedModels.push({
+        adjustment: 0,
+        date: forecastDatesInRange[i],
+        model: rankedSkillData[0].model,
+        weatherParameter
+      })
+    }
+    newSelectedModels.sort(selectedModelSorter)
+    dispatch(selectedModelByDateChanged(newSelectedModels))
+  }
+
+  const handleDeleteSelectedModel = (date: DateTime) => {
+    const newSelectedModels = selectedModels.filter(model => model.date !== date)
+    dispatch(selectedModelByDateChanged(newSelectedModels))
+  }
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -165,14 +289,14 @@ const SkillContainer = ({ fromTo }: SkillContainerProps) => {
               })}
             </Select>
           </FormControl>
-          <Button onClick={handleAutoSelectModels} variant="contained">
+          <Button onClick={handleAutoSelectModels} sx={{ margin: '8px 8px 8px 16px' }} variant="contained">
             {' '}
             Auto Select Models
           </Button>
         </Box>
         <SkillVisuals
           forecastDate={forecastDatesInRange[parseInt(selectedForecastIndex)]}
-          selectedForecastIndex={parseInt(selectedForecastIndex)}
+          rankedModelSkillData={rankedModelSkillData}
           weatherParameter={weatherParameter}
         />
         <SkillSelectionPanel2 deleteSelectedModel={handleDeleteSelectedModel} />
