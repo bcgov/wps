@@ -17,9 +17,6 @@ import { selectFireGrowthDay, selectHotSpots } from '@/app/rootReducer'
 import { GeneralHeader } from '@/components'
 import DistanceSlider from '@/features/riskMap/components/SpreadDistanceSlider'
 import { addGrowthLayer } from '@/features/riskMap/slices/fireGrowthSlice'
-import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchHotSpots } from '@/features/riskMap/slices/hotSpotsSlice'
@@ -31,6 +28,8 @@ import { convertFeaturesToGeoJSON, getFeaturesFromLayer } from '@/features/riskM
 import RiskTable from '@/features/riskMap/components/sidePanel/RiskTable'
 import RiskPanel from '@/features/riskMap/components/sidePanel/RiskPanel'
 import { FilterViewportToggle } from '@/features/riskMap/components/FilterViewPortToggle'
+import MoreCast2DateRangePicker from '@/features/moreCast2/components/MoreCast2DateRangePicker'
+import { DateRange } from '@/components/dateRangePicker/types'
 
 export const RiskMapPage = () => {
   const dispatch: AppDispatch = useDispatch()
@@ -40,7 +39,10 @@ export const RiskMapPage = () => {
   const [mapInstance, setMapInstance] = useState<Map | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
 
-  const [dateOfInterest, setDateOfInterest] = useState<DateTime>(DateTime.now().setZone('America/Vancouver'))
+  const [dateRangeOfInterest, setDateRangeOfInterest] = useState<DateRange>({
+    startDate: DateTime.now().setZone('America/Vancouver').toJSDate(),
+    endDate: DateTime.now().setZone('America/Vancouver').toJSDate()
+  })
   const [growthDay, setGrowthDay] = useState<number>(0)
   const [spreadDistance, setSpreadDistance] = useState(500)
   const [riskDetails, setRiskDetails] = useState([])
@@ -108,7 +110,7 @@ export const RiskMapPage = () => {
         hotspots: {
           features: hotSpotPoints.features
         },
-        time_of_interest: dateOfInterest.toISO()
+        time_of_interest: dateRangeOfInterest.endDate
       })
       setLoading(false)
 
@@ -167,8 +169,8 @@ export const RiskMapPage = () => {
   useEffect(() => {
     dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified))
     dispatch(fetchRepresentativeStations())
-    dispatch(fetchHotSpots(dateOfInterest))
-  }, [dateOfInterest])
+    dispatch(fetchHotSpots(dateRangeOfInterest))
+  }, [dateRangeOfInterest])
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -198,17 +200,23 @@ export const RiskMapPage = () => {
       <Box sx={{ padding: '0.5em' }}>
         <Grid container spacing={1} alignItems="center">
           <Grid item>
-            <LocalizationProvider dateAdapter={AdapterLuxon}>
-              <DatePicker
+            {/* <LocalizationProvider dateAdapter={AdapterLuxon}> */}
+            {/* <DateRangePicker
+                slots={{ field: SingleInputDateRangeField }}
                 label="Date of Interest"
-                value={dateOfInterest}
-                onChange={newValue => {
+                defaultValue={[dateRangeOfInterest[0], dateRangeOfInterest[1]]}
+                shouldDisableDate={shouldDisableDate}
+                onChange={(newValue: [DateTime | null, DateTime | null]) => {
                   if (newValue) {
-                    setDateOfInterest(newValue.setZone('America/Vancouver'))
+                    const [startDate, endDate] = newValue
+                    if (startDate && endDate) {
+                      setDateOfInterest([startDate.setZone('America/Vancouver'), endDate.setZone('America/Vancouver')])
+                    }
                   }
                 }}
               />
-            </LocalizationProvider>
+            </LocalizationProvider> */}
+            <MoreCast2DateRangePicker dateRange={dateRangeOfInterest} setDateRange={setDateRangeOfInterest} />
           </Grid>
           <Grid item>
             <ValuesImportButton setValues={setValues} />

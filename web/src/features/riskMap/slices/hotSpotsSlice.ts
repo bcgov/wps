@@ -1,8 +1,8 @@
 import { getHotSpots } from '@/api/riskMapAPI'
+import { DateRange } from '@/components/dateRangePicker/types'
 import { hotSpotCSVToGeoJSON } from '@/features/riskMap/spatialOperations'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
-import { DateTime } from 'luxon'
 
 export interface HotSpotsState {
   loading: boolean
@@ -42,14 +42,29 @@ export const { getHotSpotsStart, getHotSpotsFailed, getHotSpotsSuccess } = hotSp
 export default hotSpotsSlice.reducer
 
 export const fetchHotSpots =
-  (dateOfInterest: DateTime): AppThunk =>
+  (dateRangeOfInterest: DateRange): AppThunk =>
   async dispatch => {
     try {
       dispatch(getHotSpotsStart())
-      const hotSpotsData = await getHotSpots(dateOfInterest)
+
+      const hotSpotsData = await getHotSpots(dateRangeOfInterest.startDate!, getDifferenceInDays(dateRangeOfInterest))
       const hotSpotGeoJSON = hotSpotCSVToGeoJSON(hotSpotsData)
       dispatch(getHotSpotsSuccess(hotSpotGeoJSON))
     } catch (err) {
       dispatch(getHotSpotsFailed((err as Error).toString()))
     }
   }
+
+function getDifferenceInDays(dateRange: DateRange): number {
+  const { startDate, endDate } = dateRange
+
+  if (startDate && endDate) {
+    // Calculate the difference in milliseconds
+    const diffInMs = endDate.getTime() - startDate.getTime()
+
+    // Convert milliseconds to days
+    return Math.floor(diffInMs / (1000 * 60 * 60 * 24))
+  }
+
+  return 1
+}
