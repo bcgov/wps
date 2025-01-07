@@ -2,6 +2,8 @@ import { DataGridPro, GridColDef, GridRowParams } from '@mui/x-data-grid-pro'
 
 interface RiskTableProps {
   valueDetails: any[]
+  withinViewport: boolean
+  filteredValueIds: number[]
   setSelectedID: React.Dispatch<React.SetStateAction<number | null>>
 }
 
@@ -24,14 +26,11 @@ const getCompassDirection = (bearing: number) => {
   return directions[index]
 }
 
-export const RiskTable = ({ valueDetails, setSelectedID }: RiskTableProps) => {
-  const handleRowClick = (params: GridRowParams) => {
-    const rowId = params.row.id
-    setSelectedID(rowId)
-    console.log(rowId)
-  }
-
-  const res = valueDetails.map(item => {
+const getValueDetails = (valueDetails, withinViewPort: boolean, filteredValueIds: number[]) => {
+  const displayValues = withinViewPort
+    ? valueDetails.filter(valDetail => filteredValueIds.includes(valDetail.id))
+    : valueDetails
+  return displayValues.map(item => {
     return {
       id: item.id,
       name: item.name,
@@ -40,6 +39,16 @@ export const RiskTable = ({ valueDetails, setSelectedID }: RiskTableProps) => {
       risk: item.distance / 1000 < 5 ? 3 : item.distance <= 10 ? 2 : 1
     }
   })
+}
+
+export const RiskTable = ({ valueDetails, setSelectedID, withinViewport, filteredValueIds }: RiskTableProps) => {
+  const handleRowClick = (params: GridRowParams) => {
+    const rowId = params.row.id
+    setSelectedID(rowId)
+    console.log(rowId)
+  }
+
+  const res = getValueDetails(valueDetails, withinViewport, filteredValueIds)
 
   return (
     <DataGridPro

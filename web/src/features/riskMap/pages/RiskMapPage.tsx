@@ -15,7 +15,6 @@ import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { selectFireGrowthDay, selectHotSpots } from '@/app/rootReducer'
 import { GeneralHeader } from '@/components'
-import DayControl from '@/features/riskMap/components/DayControl'
 import DistanceSlider from '@/features/riskMap/components/SpreadDistanceSlider'
 import { addGrowthLayer } from '@/features/riskMap/slices/fireGrowthSlice'
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
@@ -31,6 +30,7 @@ import { ComputeRiskButton } from '@/features/riskMap/components/ComputeRisk'
 import { convertFeaturesToGeoJSON, getFeaturesFromLayer } from '@/features/riskMap/mapFunctions'
 import RiskTable from '@/features/riskMap/components/sidePanel/RiskTable'
 import RiskPanel from '@/features/riskMap/components/sidePanel/RiskPanel'
+import { FilterViewportToggle } from '@/features/riskMap/components/FilterViewPortToggle'
 
 export const RiskMapPage = () => {
   const dispatch: AppDispatch = useDispatch()
@@ -46,6 +46,7 @@ export const RiskMapPage = () => {
   const [riskDetails, setRiskDetails] = useState([])
   const [selectedID, setSelectedID] = useState<number | null>(null)
   const [values, setValues] = useState<Feature<Geometry>[]>([])
+  const [filteredValueIds, setFilteredValueIds] = useState<number[]>([])
   const [withinViewport, setWithinViewPort] = useState<boolean>(false)
 
   const getGrowthColor = () => {
@@ -219,10 +220,10 @@ export const RiskMapPage = () => {
             <ComputeRiskButton computeRisk={computeRisk} />
           </Grid>
           <Grid item>
-            <DayControl />
+            <DistanceSlider spreadDistance={spreadDistance} setSpreadDistance={setSpreadDistance} />
           </Grid>
           <Grid item>
-            <DistanceSlider spreadDistance={spreadDistance} setSpreadDistance={setSpreadDistance} />
+            <FilterViewportToggle withinViewport={withinViewport} setWithinViewPort={setWithinViewPort} />
           </Grid>
         </Grid>
       </Box>
@@ -230,12 +231,18 @@ export const RiskMapPage = () => {
       <Box sx={{ display: 'flex', flexGrow: 1, width: '100%', overflow: 'hidden' }}>
         {riskDetails.length > 0 && (
           <RiskPanel>
-            <RiskTable valueDetails={riskDetails} setSelectedID={setSelectedID}></RiskTable>
+            <RiskTable
+              valueDetails={riskDetails}
+              setSelectedID={setSelectedID}
+              withinViewport={withinViewport}
+              filteredValueIds={filteredValueIds}
+            ></RiskTable>
           </RiskPanel>
         )}
         <FireMap
           values={values}
           setMapInstance={setMapInstance}
+          setFilteredValues={setFilteredValueIds}
           spreadDistance={spreadDistance}
           selectedID={selectedID}
         />

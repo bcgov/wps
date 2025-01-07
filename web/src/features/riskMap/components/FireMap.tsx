@@ -2,17 +2,16 @@ import { ErrorBoundary } from '@/components'
 import { removeLayerByName } from '@/features/fba/components/map/FBAMap'
 import { closestFeatureStats } from '@/features/riskMap/components/featureDistance'
 import { firePerimeterStyler, highlightFeature, resetLayerStyle } from '@/features/riskMap/components/fireMapStylers'
-import { findLayerByName, zoomToFeatureWithBuffer } from '@/features/riskMap/mapFunctions'
+import { findLayerByName, getFeatureIdsInViewport, zoomToFeatureWithBuffer } from '@/features/riskMap/mapFunctions'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { Box } from '@mui/material'
 import { buffer } from '@turf/turf'
 import { selectHotSpots } from 'app/rootReducer'
 import { Feature, Map, View } from 'ol'
-import { platformModifierKeyOnly } from 'ol/events/condition'
 import { boundingExtent } from 'ol/extent'
 import GeoJSON from 'ol/format/GeoJSON'
 import { Geometry, Point } from 'ol/geom'
-import { DragBox, Select } from 'ol/interaction'
+import { Select } from 'ol/interaction'
 import TileLayer from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
 import 'ol/ol.css'
@@ -27,15 +26,10 @@ import firePerimeterData from './PROT_CURRENT_FIRE_POLYS_SP.json'
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
-const getCompassDirection = (bearing: number) => {
-  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
-  const index = Math.round((((bearing % 360) + 360) % 360) / 45)
-  return directions[index]
-}
-
 export interface FireMapProps {
   values: Feature<Geometry>[]
   setMapInstance: React.Dispatch<React.SetStateAction<Map | null>>
+  setFilteredValues: React.Dispatch<React.SetStateAction<number[]>>
   spreadDistance: number
   selectedID: number | null
 }
@@ -43,6 +37,7 @@ export interface FireMapProps {
 export const FireMap: React.FC<FireMapProps> = ({
   values,
   setMapInstance,
+  setFilteredValues,
   spreadDistance,
   selectedID
 }: FireMapProps) => {
@@ -166,20 +161,17 @@ export const FireMap: React.FC<FireMapProps> = ({
       const select = new Select()
       map.addInteraction(select)
 
-      const selectedFeatures = select.getFeatures()
+      // Attach a listener to detect when the map stops moving
+      map.on('moveend', () => {
+        const filtered = getFeatureIdsInViewport(map, 'uploadedValues')
 
-      // a DragBox interaction used to select features by drawing boxes
-      const dragBox = new DragBox({
-        condition: platformModifierKeyOnly
+        setFilteredValues(filtered)
       })
 
-      map.addInteraction(dragBox)
-
-      // clear selection when drawing a new box and when clicking on the map
-      dragBox.on('boxstart', function () {
-        selectedFeatures.clear()
-        boxLayerSource.clear() // Clear all rendered boxes
-        // setFeatureSelection([])
+      // Optional: React to zoom level changes specifically
+      map.getView().on('change:resolution', () => {
+        const filtered = getFeatureIdsInViewport(map, 'uploadedValues')
+        setFilteredValues(filtered)
       })
 
       const selectClick = new Select({

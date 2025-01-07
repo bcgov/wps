@@ -4,7 +4,7 @@ import VectorSource from 'ol/source/Vector'
 import GeoJSON, { GeoJSONFeatureCollection } from 'ol/format/GeoJSON'
 import { getCenter, intersects } from 'ol/extent'
 
-export const getFeaturesInViewport = (map: Map | null, layerName: string) => {
+export const getFeatureIdsInViewport = (map: Map | null, layerName: string) => {
   if (!map) {
     console.error('Map instance is not available.')
     return []
@@ -24,7 +24,7 @@ export const getFeaturesInViewport = (map: Map | null, layerName: string) => {
     return geometry && intersects(extent, geometry.getExtent())
   })
 
-  return featuresInViewport ? featuresInViewport : []
+  return featuresInViewport ? featuresInViewport?.map(feat => feat.getProperties()['id']) : []
 }
 
 export const getFeaturesFromLayer = (mapInstance: Map | null, layerName: string): Feature[] => {
