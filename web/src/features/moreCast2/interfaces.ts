@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import { ModelType } from 'api/moreCast2API'
+import { WeatherParamEnum } from '@/api/skillAPI'
 
 export interface PredictionItem {
   choice: ModelType
@@ -147,4 +148,11 @@ export interface ForecastMorecast2Row extends BaseRow {
 export interface DraftMorecast2Rows {
   rows: MoreCast2Row[]
   lastEdited: DateTime
+}
+
+export interface SelectedModelByDate {
+  adjustment: number
+  date: DateTime
+  model: string
+  weatherParameter: WeatherParamEnum
 }
