@@ -221,9 +221,9 @@ export const RiskMapPage = () => {
           <Grid item>
             <ValuesImportButton setValues={setValues} />
           </Grid>
-          <Grid item>
+          {/* <Grid item>
             <GrowFireButton growFire={growFire} />
-          </Grid>
+          </Grid> */}
           <Grid item>
             <ComputeRiskButton computeRisk={computeRisk} />
           </Grid>
