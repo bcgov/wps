@@ -1,7 +1,8 @@
 import geopandas as gpd
-from shapely.geometry import Polygon, MultiPolygon, LineString, MultiLineString
-from shapely.affinity import translate
 import numpy as np
+from shapely.affinity import translate
+from shapely.geometry import LineString, MultiLineString, MultiPolygon, Polygon
+from shapely.ops import unary_union
 
 
 # Function to extend a hotspot in a given wind direction
@@ -96,3 +97,45 @@ def remove_holes(polygon):
 # # Save the new fire perimeter to a file
 # new_fire_perimeter_gdf = gpd.GeoDataFrame(geometry=[new_fire_perimeter], crs="EPSG:3005").to_crs(epsg=4326)
 # new_fire_perimeter_gdf.to_file("/Users/breedwar/Downloads/hackathon/new_fire_perimeter.geojson", driver="GeoJSON")
+
+
+def get_hotspots_within_boundary_or_outside_fire(fire_perimeter_gdf, hotspots_gdf, buffer_distance):
+    """
+    Identify hotspots that are:
+    1. Near the fire boundary and inside the fire perimeter.
+    2. Not within the fire perimeter.
+
+    Parameters:
+    - fire_perimeter_gdf (GeoDataFrame): GeoDataFrame containing fire perimeter polygons.
+    - hotspots_gdf (GeoDataFrame): GeoDataFrame containing hotspot points.
+    - buffer_distance (float): Distance (in CRS units) to buffer around the hotspots.
+
+    Returns:
+    - GeoDataFrame: Filtered GeoDataFrame with hotspots that satisfy the specified conditions.
+    """
+    # Ensure CRS matches between fire perimeter and hotspots
+    if fire_perimeter_gdf.crs != hotspots_gdf.crs:
+        hotspots_gdf = hotspots_gdf.to_crs(fire_perimeter_gdf.crs)
+
+    # Step 1: Get the fire perimeter boundaries and full fire perimeter
+    fire_boundary = fire_perimeter_gdf.boundary.unary_union
+    fire_perimeter = fire_perimeter_gdf.unary_union
+
+    # Step 2: Buffer the hotspots
+    hotspots_gdf["buffered_geometry"] = hotspots_gdf.geometry.buffer(buffer_distance)
+
+    # Step 3: Determine if hotspots are near the boundary
+    hotspots_gdf["near_boundary"] = hotspots_gdf["buffered_geometry"].intersects(fire_boundary)
+
+    # Step 4: Determine if hotspots are within the fire perimeter
+    hotspots_gdf["within_fire"] = hotspots_gdf.geometry.within(fire_perimeter)
+
+    # Step 5: Select hotspots that are either:
+    # 1. Near the fire boundary and within the fire perimeter, OR
+    # 2. Not within the fire perimeter
+    selected_hotspots = hotspots_gdf[(hotspots_gdf["near_boundary"] & hotspots_gdf["within_fire"]) | (~hotspots_gdf["within_fire"])].copy()
+
+    # Drop the temporary buffered geometry column
+    selected_hotspots.drop(columns=["buffered_geometry"], inplace=True)
+
+    return selected_hotspots
