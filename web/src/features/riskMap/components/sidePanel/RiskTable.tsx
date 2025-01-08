@@ -36,7 +36,7 @@ const getValueDetails = (valueDetails, withinViewPort: boolean, filteredValueIds
       name: item.name,
       closestDistance: (item.distance / 1000).toPrecision(3),
       closestBearing: getCompassDirection(item.bearing),
-      risk: item.distance / 1000 < 5 ? 3 : item.distance <= 10 ? 2 : 1
+      risk: item.distance / 1000 < 5 ? 3 : item.distance / 1000 <= 10 ? 2 : 1
     }
   })
 }
@@ -63,6 +63,11 @@ export const RiskTable = ({ valueDetails, setSelectedID, withinViewport, filtere
         }
       }}
       pageSizeOptions={[5, 10]}
+      getRowClassName={params => {
+        if (params.row.risk === 3) return 'highRisk'
+        if (params.row.risk === 2) return 'medRisk'
+        return 'lowRisk'
+      }}
       sx={{
         border: 0,
         overflow: 'auto',
@@ -71,6 +76,12 @@ export const RiskTable = ({ valueDetails, setSelectedID, withinViewport, filtere
         },
         '& .MuiDataGrid-row:hover': {
           cursor: 'pointer'
+        },
+        '& .MuiDataGrid-row': {
+          '&.Mui-selected': { backgroundColor: 'rgba(211, 211, 211, 0.6) !important' },
+          '&.highRisk': { backgroundColor: 'rgba(255, 0, 0, 0.1)' }, // Light red
+          '&.medRisk': { backgroundColor: 'rgba(255, 165, 0, 0.1)' }, // Light orange
+          '&.lowRisk': { backgroundColor: 'rgba(0, 255, 0, 0.1)' } // Light green
         }
       }}
     />
