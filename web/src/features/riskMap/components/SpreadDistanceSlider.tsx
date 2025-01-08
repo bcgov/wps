@@ -30,8 +30,8 @@ const DistanceSlider = ({ spreadDistance, setSpreadDistance }: DistanceSliderPro
         value={spreadDistance}
         onChange={(event, newValue) => setSpreadDistance(newValue as number)}
         min={100}
-        max={5000}
-        step={10}
+        max={10000}
+        step={250}
         valueLabelDisplay="off"
         sx={{ width: '200px' }}
       />
