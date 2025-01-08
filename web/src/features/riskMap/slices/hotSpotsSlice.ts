@@ -1,4 +1,4 @@
-import { getHotSpots } from '@/api/riskMapAPI'
+import { getHotSpots } from '@/api/hotspotAPI'
 import { DateRange } from '@/components/dateRangePicker/types'
 import { hotSpotCSVToGeoJSON } from '@/features/riskMap/spatialOperations'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'

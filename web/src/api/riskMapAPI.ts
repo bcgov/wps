@@ -1,8 +1,32 @@
-import axios from 'axios'
-import { FIRMS_KEY } from 'utils/env'
+import axios from 'api/axios'
+import { Geometry } from 'ol/geom'
+import { Feature } from 'ol'
 
-export async function getHotSpots(dateOfInterest: Date, daysAfter: number): Promise<string> {
-  const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${FIRMS_KEY}/MODIS_NRT/-139,48,-114,60/${daysAfter}/${dateOfInterest.toISOString().slice(0, 10)}`
-  const { data } = await axios.get(url)
+export interface RiskOutput {
+  id: number
+  name: string
+  distance: number
+  bearing: number
+  direction: string
+}
+
+export interface RiskOutputResponse {
+  risk_outputs: RiskOutput[]
+}
+
+export interface FireShapeFeatures {
+  features: Feature<Geometry>[]
+}
+
+export async function computeRisk(values: FireShapeFeatures, hotspots: FireShapeFeatures): Promise<RiskOutputResponse> {
+  const url = 'risk-map/compute'
+  const { data } = await axios.post(url, {
+    values: {
+      features: values.features
+    },
+    hotspots: {
+      features: hotspots.features
+    }
+  })
   return data
 }

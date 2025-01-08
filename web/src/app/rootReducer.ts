@@ -24,6 +24,7 @@ import fireCentreTPIStatsSlice from 'features/fba/slices/fireCentreTPIStatsSlice
 import fireCentreHFIFuelStatsSlice from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
 import fireGrowthSlice from 'features/riskMap/slices/fireGrowthSlice'
 import hotSpotsSlice from 'features/riskMap/slices/hotSpotsSlice'
+import riskSlice from 'features/riskMap/slices/riskSlice'
 import repStationsSlice from 'features/riskMap/slices/representativeStationSlice'
 
 const rootReducer = combineReducers({
@@ -52,6 +53,7 @@ const rootReducer = combineReducers({
   morecastInputValid: morecastInputValidSlice,
   fireGrowth: fireGrowthSlice,
   hotSpots: hotSpotsSlice,
+  riskOutputs: riskSlice,
   repStationsSlice: repStationsSlice
 })
 
@@ -89,3 +91,4 @@ export const selectStationGroupsMembers = (state: RootState) => state.stationGro
 export const selectFireGrowthDay = (state: RootState) => state.fireGrowth
 export const selectHotSpots = (state: RootState) => state.hotSpots
 export const selectRepStations = (state: RootState) => state.repStationsSlice
+export const selectRiskOutputs = (state: RootState) => state.riskOutputs
