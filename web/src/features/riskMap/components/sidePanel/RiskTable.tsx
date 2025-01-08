@@ -22,7 +22,7 @@ const columns: GridColDef[] = [
 
 const getCompassDirection = (bearing: number) => {
   const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
-  const index = Math.round((((bearing % 360) + 360) % 360) / 45)
+  const index = Math.round((((bearing % 360) + 360) % 360) / 45) % 8
   return directions[index]
 }
 

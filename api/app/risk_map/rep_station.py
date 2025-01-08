@@ -94,7 +94,7 @@ def calculate_bearing(point1, point2, transformer):
 
 def get_direction(bearing):
     directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
-    index = math.floor((((bearing % 360) + 360) % 360) / 45)
+    index = math.floor((((bearing % 360) + 360) % 360) / 45) % 8
     return directions[index]
 
 

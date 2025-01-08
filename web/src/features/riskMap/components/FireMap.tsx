@@ -134,7 +134,7 @@ export const FireMap: React.FC<FireMapProps> = ({
     resetLayerStyle(map, 'uploadedValues')
     highlightFeature(map, 'uploadedValues', selectedID)
 
-    zoomToFeatureWithBuffer(map, selectedID, 6)
+    zoomToFeatureWithBuffer(map, selectedID, 15)
   }, [selectedID])
 
   useEffect(() => {
