@@ -69,7 +69,12 @@ const SkillPanel2 = ({ forecastDate, modelSkillStats }: SkillPanel2Props) => {
     setSkillTabValue(newValue)
   }
   const addSelectedModelByDate = (selected: ModelSkillEnum) => {
-    const selectedModelByDate = { date: forecastDate, model: selected }
+    const selectedModelByDate = {
+      adjustment: 0,
+      date: forecastDate,
+      model: selected,
+      weatherParameter: WeatherParamEnum.TEMP
+    }
     // If we have a model selected for this date replace it
     const index = selectedModels.findIndex(selectedModel => {
       return selectedModel.date.startOf('day').toMillis() === forecastDate.startOf('day').toMillis()

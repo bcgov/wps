@@ -344,6 +344,8 @@ def weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
             fire_centre=StationFireCentre(id=station['fireCentre']['id'],
                                           display_label=station['fireCentre']['displayLabel']),
             fire_zone=fire_zone,
+            latitude=station['latitude'],
+            longitude=station['longitude'],
             station_code=station['stationCode'],
             station_status=station['stationStatus']['id']
         )

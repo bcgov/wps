@@ -6,6 +6,7 @@ import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
 import { range, startCase, lowerCase, isUndefined } from 'lodash'
 import { FireCenter, FireShape, FireShapeArea } from 'api/fbaAPI'
+import { MORECAST_MODEL_COLORS } from 'app/theme'
 
 const GREY_FILL = 'rgba(128, 128, 128, 0.8)'
 const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
@@ -213,6 +214,21 @@ const stationTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text 
   })
 }
 
+const selectedStationTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
+  const text = startCase(lowerCase(feature.get('displayLabel')))
+  return new Text({
+    overflow: true,
+    fill: new Fill({ color: 'black' }),
+    stroke: new Stroke({ color: 'white', width: 2 }),
+    font: '14px sans-serif',
+    text: text,
+    textBaseline: 'middle',
+    textAlign: 'left',
+    offsetX: 20,
+    offsetY: 0
+  })
+}
+
 export const stationStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
   // NOTE: quick hack to make station styler correspond with theisian polygons - this code needs to be fixed
   // once we have the polygon implementation in place.
@@ -229,6 +245,35 @@ export const stationStyler = (feature: RenderFeature | ol.Feature<Geometry>): St
     })
   }
   return new Style({})
+}
+
+const getCircleStyleByModel = (model: string | undefined) => {
+  let fillColor = '#64646470'
+  let strokeColor = '#00000070'
+  const modelArray = ['hrdps', 'rdps', 'gdps', 'nam', 'gfs']
+  const randomModel = modelArray[Math.floor(Math.random() * modelArray.length)]
+
+  if (model) {
+    fillColor = MORECAST_MODEL_COLORS[randomModel].mapbg
+    strokeColor = MORECAST_MODEL_COLORS[randomModel].border
+  }
+  return new CircleStyle({
+    radius: 15,
+    fill: new Fill({
+      color: fillColor
+    }),
+    stroke: new Stroke({
+      color: strokeColor,
+      width: 2
+    })
+  })
+}
+
+export const selectedStationStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
+  return new Style({
+    image: getCircleStyleByModel(feature.get('model')),
+    text: selectedStationTextStyler(feature)
+  })
 }
 
 /**

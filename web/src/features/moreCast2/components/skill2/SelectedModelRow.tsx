@@ -40,6 +40,7 @@ const SelectedModelRow = ({ selectedModel, deleteSelectedModel, updateSelectedMo
             handleSelectedModelChanged(event)
           }}
           size="small"
+          inputProps={{ step: 0.5 }}
           sx={{ width: '75px' }}
           value={selectedModel.adjustment ?? 0.0}
         ></TextField>

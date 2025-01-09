@@ -100,6 +100,8 @@ class WeatherStationGroupMember(BaseModel):
     display_label: str
     fire_centre: StationFireCentre
     fire_zone: Optional[FireZone] = None
+    latitude: Optional[float]
+    longitude: Optional[float]
     station_code: int
     station_status: str
 

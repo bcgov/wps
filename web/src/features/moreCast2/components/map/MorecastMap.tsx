@@ -13,7 +13,6 @@ import { PMTILES_BUCKET } from 'utils/env'
 
 import React, { useEffect, useRef, useState } from 'react'
 
-import { styleFuelGrid } from '@/features/psuInsights/components/map/psuFeatureStylers'
 import { Box } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
@@ -26,24 +25,27 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import {
   fireCentreStyler,
   fireCentreLabelStyler,
-  fireShapeStyler,
-  fireShapeLineStyler,
   fireShapeLabelStyler,
-  stationStyler,
-  hfiStyler,
-  fireCentreLineStyler
+  fireCentreLineStyler,
+  selectedStationStyler
 } from 'features/fba/components/map/featureStylers'
 import { AppDispatch } from '@/app/store'
 import { selectSelectedStations } from '@/features/moreCast2/slices/selectedStationsSlice'
+import { ModelSkillStats } from '@/api/skillAPI'
 
 const MapContext = React.createContext<Map | null>(null)
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
-const MorecastMap = () => {
+interface MorecastMapProps {
+  selectedModelSkillStats: ModelSkillStats[]
+}
+
+const MorecastMap = ({ selectedModelSkillStats }: MorecastMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const selectedStations = useSelector(selectSelectedStations)
   const [map, setMap] = useState<Map | null>(null)
+  const [selectedStationFeatures, setSelectedStationFeatures] = useState<any[]>([])
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const dispatch: AppDispatch = useDispatch()
 
@@ -75,24 +77,7 @@ const MorecastMap = () => {
       zIndex: 52
     })
   )
-
-  //   const [fireShapeVTL] = useState(
-  //     new VectorTileLayer({
-  //       source: fireShapeVectorSource,
-  //       style: fireShapeStyler(cloneDeep(props.fireShapeAreas), props.advisoryThreshold, showShapeStatus),
-  //       zIndex: 50,
-  //       properties: { name: 'fireShapeVector' }
-  //     })
-  //   )
-  //   const [fireShapeHighlightVTL] = useState(
-  //     new VectorTileLayer({
-  //       source: fireShapeVectorSource,
-  //       style: fireShapeLineStyler(cloneDeep(props.fireShapeAreas), props.advisoryThreshold, props.selectedFireShape),
-  //       zIndex: 53,
-  //       properties: { name: 'fireShapeVector' }
-  //     })
-  //   )
-  // Seperate layer for polygons and for labels, to avoid duplicate labels.
+  // Separate layer for polygons and for labels, to avoid duplicate labels.
   const [fireCentreLabelVTL] = useState(
     new VectorTileLayer({
       source: fireCentreLabelVectorSource,
@@ -101,7 +86,7 @@ const MorecastMap = () => {
       maxZoom: 6
     })
   )
-  // Seperate layer for polygons and for labels, to avoid duplicate labels.
+  // Separate layer for polygons and for labels, to avoid duplicate labels.
   const [fireShapeLabelVTL] = useState(
     new VectorTileLayer({
       declutter: true,
@@ -109,6 +94,25 @@ const MorecastMap = () => {
       style: fireShapeLabelStyler(undefined),
       zIndex: 99,
       minZoom: 6
+    })
+  )
+
+  const [selectedStationsSource, setSelectedStationSource] = useState<VectorSource>(
+    new VectorSource({
+      features: new GeoJSON().readFeatures(
+        { type: 'FeatureCollection', features: selectedStationFeatures },
+        {
+          featureProjection: 'EPSG:3857'
+        }
+      )
+    })
+  )
+
+  const [selectedStationsLayer, setSelectedStationsLayer] = useState<VectorLayer>(
+    new VectorLayer({
+      source: selectedStationsSource,
+      style: selectedStationStyler,
+      zIndex: 102
     })
   )
 
@@ -122,7 +126,8 @@ const MorecastMap = () => {
         fireCentreVTL,
         fireCentreLineVTL,
         fireCentreLabelVTL,
-        fireShapeLabelVTL
+        fireShapeLabelVTL,
+        selectedStationsLayer
       ],
       controls: defaultControls(),
       view: new View({
@@ -140,28 +145,112 @@ const MorecastMap = () => {
     }
   }, [])
 
+  // useEffect(() => {
+  //   const stationsSource = new VectorSource({
+  //     features: new GeoJSON().readFeatures(
+  //       { type: 'FeatureCollection', features: stations },
+  //       {
+  //         featureProjection: 'EPSG:3857'
+  //       }
+  //     )
+  //   })
+  //   const stationsLayer = new VectorLayer({
+  //     source: stationsSource,
+  //     minZoom: 6,
+  //     style: stationStyler,
+  //     zIndex: 51
+  //   })
+
+  //   // map?.addLayer(stationsLayer)
+  // }, [stations])
+
   useEffect(() => {
-    const stationsSource = new VectorSource({
+    const newSelectedStationFeatures = selectedStations.map(selectedStation => {
+      return {
+        geometry: {
+          coordinates: [selectedStation.longitude, selectedStation.latitude],
+          type: 'Point'
+        },
+        properties: {
+          displayLabel: selectedStation.display_label,
+          model: 'hrdps',
+          stationCode: selectedStation.station_code
+        },
+        type: 'Feature'
+      }
+    })
+    setSelectedStationFeatures(newSelectedStationFeatures)
+  }, [selectedStations, selectedModelSkillStats])
+
+  useEffect(() => {
+    const newSelectedStationsSource = new VectorSource({
       features: new GeoJSON().readFeatures(
-        { type: 'FeatureCollection', features: stations },
+        { type: 'FeatureCollection', features: selectedStationFeatures },
         {
           featureProjection: 'EPSG:3857'
         }
       )
     })
-    const stationsLayer = new VectorLayer({
-      source: stationsSource,
-      minZoom: 6,
-      style: stationStyler,
-      zIndex: 51
-    })
+    setSelectedStationSource(newSelectedStationsSource)
+    selectedStationsLayer.setSource(newSelectedStationsSource)
+  }, [selectedStationFeatures])
 
-    map?.addLayer(stationsLayer)
-  }, [stations])
+  // useEffect(() => {
+  //   // map?.removeLayer(selectedStationsLayer)
+  //   const newSelectedStationsLayer = new VectorLayer({
+  //     source: selectedStationsSource,
+  //     style: selectedStationStyler,
+  //     zIndex: 51
+  //   })
+  //   setSelectedStationsLayer(newSelectedStationsLayer)
+  // }, [selectedStationsSource])
 
-useEffect(() => {
-  console.log(selectedStations)
-}, [selectedStations])
+  // useEffect(() => {
+  //   map?.addLayer(selectedStationsLayer)
+  // }, [selectedStationsLayer])
+
+  // useEffect(() => {
+  //   const newSelectedStationFeatures = selectedStations.map(selectedStation => {
+  //     return {
+  //       geometry: {
+  //         coordinates: [selectedStation.longitude, selectedStation.latitude],
+  //         type: 'Point'
+  //       },
+  //       properties: { displayLabel: selectedStation.display_label, stationCode: selectedStation.station_code },
+  //       type: 'Feature'
+  //     }
+  //   })
+  //   const selectedStationsSource = new VectorSource({
+  //     features: new GeoJSON().readFeatures(
+  //       { type: 'FeatureCollection', features: newSelectedStationFeatures },
+  //       {
+  //         featureProjection: 'EPSG:3857'
+  //       }
+  //     )
+  //   })
+  //   const selectedStationsLayer = new VectorLayer({
+  //     source: selectedStationsSource,
+  //     style: selectedStationStyler,
+  //     zIndex: 51
+  //   })
+  //   setSelectedStationFeatures(newSelectedStationFeatures)
+  //   console.log(selectedStations)
+  //   // map?.addLayer(selectedStationsLayer)
+  // }, [selectedStations])
+
+  // useEffect(() => {
+  //   selectedStationsLayer.setMap(null)
+  //   const newSelectedStationsLayer = new VectorLayer({
+  //     source: selectedStationsSource,
+  //     style: selectedStationStyler,
+  //     zIndex: 102
+  //   })
+  //   setSelectedStationsLayer(newSelectedStationsLayer)
+  // }, [selectedStationFeatures])
+
+  // useEffect(() => {
+  //   selectedStationsLayer.setMap(map)
+  // }, [selectedStationsLayer])
 
   return (
     <ErrorBoundary>

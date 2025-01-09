@@ -34,7 +34,7 @@ const SkillStats = ({ addSelectedModel, rankedModelSkillStats }: SkillStatsProps
           <Typography fontWeight="bold">Rank</Typography>
         </Grid>
         <Grid item xs={3}>
-          <Typography fontWeight="bold">Action</Typography>
+          <Typography fontWeight="bold"></Typography>
         </Grid>
         {rankedModelSkillStats.map(stat => {
           return <ModelSkillGridItem2 addSelectedModel={addSelectedModel} key={stat.model} stats={stat} />

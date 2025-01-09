@@ -1,11 +1,10 @@
 import { ModelSkillStats, WeatherParamEnum, WeatherParamSkillStats } from '@/api/skillAPI'
 import { DateRange } from '@/components/dateRangePicker/types'
 import MorecastMap from '@/features/moreCast2/components/map/MorecastMap'
-import SkillPanel from '@/features/moreCast2/components/skill/SkillPanel'
 import SkillPanel2 from '@/features/moreCast2/components/skill/Skillpanel2'
 import { Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material'
 import { isNil } from 'lodash'
-import { DateTime, type DateTimeMaybeValid } from 'luxon'
+import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { selectSkillStats } from '@/features/moreCast2/slices/skillStatsSlice'
@@ -127,7 +126,7 @@ const MorecastMapPanel = ({ fromTo }: MorecastMapPanelProps) => {
 
   return (
     <Box sx={{ display: 'flex', flexGrow: 1 }}>
-      <MorecastMap />
+      <MorecastMap selectedModelSkillStats={selectedModelSkillStats} />
       <Box
         sx={{ borderLeft: '1px solid #0e3367', borderTop: '1px solid #0e3367', minWidth: '450px', maxWidth: '450px' }}
       >

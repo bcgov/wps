@@ -83,7 +83,7 @@ async def get_weather_model_skill(start_date: date, days: int, request: Stations
     # ]
     # samples = {ModelEnum.HRDPS: dict(zip(range(0, days), (get_empty_weather_variable_dict() for x in range(0, days))))}
     samples = create_empty_skill_samples_dict(days)
-    for model, prediction_timestamp, model_run_timestamp, forecast_temp, actual_temp, station_code in results:
+    for model, prediction_timestamp, model_run_timestamp, forecast_temp, actual_temp, bias_temp, station_code in results:
         diff = prediction_timestamp - model_run_timestamp
         if diff.days < days and forecast_temp is not None and actual_temp is not None:
             # samples[model][diff.days]["temp"].append(forecast_temp - actual_temp)

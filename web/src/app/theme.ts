@@ -123,14 +123,15 @@ interface ModelDetails {
   [key: string]: {
     bg: string
     border: string
+    mapbg: string
   }
 }
 export const MORECAST_MODEL_COLORS: ModelDetails = {
-  nam: { bg: 'rgba(255, 20, 147, 0.1)', border: 'rgba(255, 20, 147, 1)' },
-  gfs: { bg: 'rgba(205, 133, 63, 0.1)', border: 'rgba(205, 133, 63, 1)' },
-  gdps: { bg: 'rgba(0, 0, 255, 0.1)', border: 'rgba(0, 0, 255, 1)' },
-  rdps: { bg: 'rgba(56, 152, 52, 0.1)', border: 'rgba(56, 152, 52, 1)' },
-  hrdps: { bg: 'rgba(7, 79, 0, 0.1)', border: 'rgba(7, 79, 0, 1)' }
+  nam: { bg: 'rgba(255, 20, 147, 0.1)', border: 'rgba(255, 20, 147, 1)', mapbg: 'rgba(255, 20, 147, 0.3' },
+  gfs: { bg: 'rgba(205, 133, 63, 0.1)', border: 'rgba(205, 133, 63, 1)', mapbg: 'rgba(205, 133, 63, 0.3' },
+  gdps: { bg: 'rgba(0, 0, 255, 0.1)', border: 'rgba(0, 0, 255, 1)', mapbg: 'rgba(0, 0, 255, 0.3' },
+  rdps: { bg: 'rgba(56, 152, 52, 0.1)', border: 'rgba(56, 152, 52, 1)', mapbg: 'rgba(56, 152, 52, 0.3' },
+  hrdps: { bg: 'rgba(7, 79, 0, 0.1)', border: 'rgba(7, 79, 0, 1)', mapbg: 'rgba(7, 79, 0, 0.3' }
 }
 export type MoreCastModelColors = typeof MORECAST_MODEL_COLORS
 

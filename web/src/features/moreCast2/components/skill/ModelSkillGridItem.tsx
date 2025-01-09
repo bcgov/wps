@@ -19,7 +19,7 @@ const ModelSkillGridItem = ({ addSelectedModel, stats }: ModelSkillGridItemProps
         {stats.rank}
       </Grid>
       <Grid item xs={3}>
-        <Button size="small" variant="contained" onClick={() => addSelectedModel(stats.model)}>
+        <Button size="small" variant="outlined" onClick={() => addSelectedModel(stats.model)}>
           Select
         </Button>
       </Grid>

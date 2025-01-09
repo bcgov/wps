@@ -82,6 +82,8 @@ export interface StationGroupMember {
   display_label: string
   fire_centre: StationFireCentre
   fire_zone: FireZone
+  latitude: number
+  longitude: number
   station_code: number
   station_status: string
 }
