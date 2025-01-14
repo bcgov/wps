@@ -26,11 +26,11 @@ const getCompassDirection = (bearing: number) => {
   return directions[index]
 }
 
-const getValueDetails = (valueDetails, withinViewPort: boolean, filteredValueIds: number[]) => {
+const getValueDetails = (valueDetails: any, withinViewPort: boolean, filteredValueIds: number[]) => {
   const displayValues = withinViewPort
-    ? valueDetails.filter(valDetail => filteredValueIds.includes(valDetail.id))
+    ? valueDetails.filter((valDetail: any) => filteredValueIds.includes(valDetail.id))
     : valueDetails
-  return displayValues.map(item => {
+  return displayValues.map((item: any) => {
     return {
       id: item.id,
       name: item.name,
