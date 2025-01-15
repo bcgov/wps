@@ -26,8 +26,8 @@ export default function Page() {
         url="pmtiles://https://nrs.objectstore.gov.bc.ca/lwzrin/psu/pmtiles/fireZoneUnits.pmtiles"
       >
         <LineLayer
-          id="border-fire-ones"
-          sourceLayerID="tippecanoe_input"
+          id="border-fire-zones"
+          sourceLayerID="bc_bndy_fire_zone_units_4326"
           style={{ lineColor: "black" }}
         />
       </VectorSource>
