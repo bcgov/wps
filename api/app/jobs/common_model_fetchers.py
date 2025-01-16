@@ -1,31 +1,33 @@
-import os
-from typing import List
 import logging
-import requests
-import numpy
+import os
 from datetime import datetime, timedelta, timezone
+from typing import List
+
+import numpy
+import requests
 from pyproj import Geod
 from sqlalchemy.orm import Session
+
+import app.db.database
+import app.utils.time as time_utils
+from app import config, configure_logging
+from app.db.crud.observations import get_accumulated_precipitation
 from app.db.crud.weather_models import (
-    get_processed_file_record,
-    get_processed_file_count,
-    get_prediction_model_run_timestamp_records,
-    get_model_run_predictions_for_station,
-    get_weather_station_model_prediction,
-    delete_weather_station_model_predictions,
     delete_model_run_predictions,
+    delete_weather_station_model_predictions,
+    get_model_run_predictions_for_station,
+    get_prediction_model_run_timestamp_records,
+    get_processed_file_count,
+    get_processed_file_record,
+    get_weather_station_model_prediction,
 )
-from app.weather_models.machine_learning import StationMachineLearning
+from app.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp, ProcessedModelRunUrl, WeatherStationModelPrediction
+from app.schemas.stations import WeatherStation
+from app.stations import get_stations_synchronously
+from app.utils.redis import create_redis
 from app.weather_models import ModelEnum
 from app.weather_models.interpolate import construct_interpolated_noon_prediction, interpolate_between_two_points
-from app.schemas.stations import WeatherStation
-from app import config, configure_logging
-import app.utils.time as time_utils
-from app.utils.redis import create_redis
-from app.stations import get_stations_synchronously
-from app.db.models.weather_models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunPrediction
-import app.db.database
-from app.db.crud.observations import get_accumulated_precipitation
+from app.weather_models.machine_learning import StationMachineLearning
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -140,10 +142,11 @@ def flag_file_as_processed(url: str, session: Session):
     session.commit()
 
 
-def check_if_model_run_complete(session: Session, urls):
+def check_if_model_run_complete(session: Session, urls, expected_count: int = None):
     """Check if a particular model run is complete"""
     actual_count = get_processed_file_count(session, urls)
-    expected_count = len(urls)
+    if not expected_count:
+        expected_count = len(urls)
     logger.info("we have processed %s/%s files", actual_count, expected_count)
     return actual_count == expected_count and actual_count > 0
 

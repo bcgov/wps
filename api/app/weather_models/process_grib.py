@@ -1,22 +1,23 @@
 """Read a grib file, and store values relevant to weather stations in database."""
 
-from datetime import datetime
-import math
-import struct
 import logging
 import logging.config
-from typing import List, Tuple, Optional
-from sqlalchemy.orm import Session
+import math
+import struct
+from datetime import datetime
+from typing import List, Optional, Tuple
+
+from affine import Affine
 from osgeo import gdal
 from pyproj import CRS, Transformer
-from affine import Affine
+from sqlalchemy.orm import Session
+
+from app.db.crud.weather_models import get_or_create_prediction_run, get_prediction_model
+from app.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp
 from app.geospatial import NAD83_CRS
 from app.stations import get_stations_synchronously
-from app.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp
-from app.db.crud.weather_models import get_prediction_model, get_or_create_prediction_run
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.wind_direction_utils import calculate_wind_dir_from_u_v, calculate_wind_speed_from_u_v
-
 
 logger = logging.getLogger(__name__)
 
@@ -174,12 +175,12 @@ class GribFileProcessor:
 
         return variable_name
 
-    def store_prediction_value(self, station_code: int, value: float, preduction_model_run: PredictionModelRunTimestamp, grib_info: ModelRunInfo, session: Session):
+    def store_prediction_value(self, station_code: int, value: float, prediction_model_run: PredictionModelRunTimestamp, grib_info: ModelRunInfo, session: Session):
         """Store the values around the area of interest."""
         # Load the record if it exists.
         prediction = (
             session.query(ModelRunPrediction)
-            .filter(ModelRunPrediction.prediction_model_run_timestamp_id == preduction_model_run.id)
+            .filter(ModelRunPrediction.prediction_model_run_timestamp_id == prediction_model_run.id)
             .filter(ModelRunPrediction.prediction_timestamp == grib_info.prediction_timestamp)
             .filter(ModelRunPrediction.station_code == station_code)
             .first()
@@ -187,7 +188,7 @@ class GribFileProcessor:
         if not prediction:
             # Record doesn't exist, so we create it.
             prediction = ModelRunPrediction()
-            prediction.prediction_model_run_timestamp_id = preduction_model_run.id
+            prediction.prediction_model_run_timestamp_id = prediction_model_run.id
             prediction.prediction_timestamp = grib_info.prediction_timestamp
             prediction.station_code = station_code
 

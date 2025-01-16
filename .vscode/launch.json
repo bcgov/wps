@@ -48,6 +48,12 @@
             ]
         },
         {
+            "name": "app.jobs.ecmwf",
+            "type": "python",
+            "request": "launch",
+            "module": "app.jobs.ecmwf",
+        },
+        {
             "name": "app.jobs.env_canada RDPS",
             "type": "python",
             "request": "launch",
