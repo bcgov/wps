@@ -2156,7 +2156,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/leaflet@npm:*, @types/leaflet@npm:^1.7.0, @types/leaflet@npm:^1.9.8":
+"@types/leaflet@npm:*, @types/leaflet@npm:^1.7.0":
   version: 1.9.12
   resolution: "@types/leaflet@npm:1.9.12"
   dependencies:
@@ -4738,7 +4738,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fflate@npm:^0.8.0":
+"fflate@npm:^0.8.2":
   version: 0.8.2
   resolution: "fflate@npm:0.8.2"
   checksum: 10c0/03448d630c0a583abea594835a9fdb2aaf7d67787055a761515bf4ed862913cfd693b4c4ffd5c3f3b355a70cf1e19033e9ae5aedcca103188aaff91b8bd6e293
@@ -7076,14 +7076,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ol-pmtiles@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "ol-pmtiles@npm:1.0.2"
+"ol-pmtiles@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "ol-pmtiles@npm:2.0.0"
   dependencies:
-    pmtiles: "npm:^3.1.0"
+    pmtiles: "npm:^4.2.1"
   peerDependencies:
     ol: ">=9.0.0"
-  checksum: 10c0/f2dacac4f0b792ca0cfe55bfe6ece9b6113e848ba0828281c67ac07644ee57a757718a9b2895bdfd65bac163a8d34510c7875e313a3f0340da11ce652e9ca3c0
+  checksum: 10c0/e28dd98e6203f1af7c77943b0fc9587c5ea509e8f2a598be7cd071717d5e87a134b9403cd0e2be7befc983deac143f550d41bec99e5e1c432c964a96e4c933c4
   languageName: node
   linkType: hard
 
@@ -7412,13 +7412,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pmtiles@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "pmtiles@npm:3.1.0"
+"pmtiles@npm:^4.2.1":
+  version: 4.2.1
+  resolution: "pmtiles@npm:4.2.1"
   dependencies:
-    "@types/leaflet": "npm:^1.9.8"
-    fflate: "npm:^0.8.0"
-  checksum: 10c0/a00d21cb0aab60045ab48d3cc76724baeb2a0614b7aed1f700f14759abf242ffcbf939feef9b7b6d92ac03909a8007323ab7184a41136953358776dfc1bdaa95
+    fflate: "npm:^0.8.2"
+  checksum: 10c0/2f950170aa6c15eb7ed972249cf6575bcce28ee75b921e30c6a0af35102fc87d5c2387f86d7b59f9f174195e87c30b838c35124e94723564cb91ae6867f355ee
   languageName: node
   linkType: hard
 
@@ -9685,7 +9684,7 @@ __metadata:
     match-sorter: "npm:^8.0.0"
     nyc: "npm:^17.0.0"
     ol: "npm:10.0.0"
-    ol-pmtiles: "npm:^1.0.2"
+    ol-pmtiles: "npm:^2.0.0"
     prettier: "npm:^3.3.3"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
