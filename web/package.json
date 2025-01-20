@@ -35,7 +35,7 @@
     "@types/webpack-env": "^1.15.1",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "@vitest/coverage-istanbul": "^2.0.5",
+    "@vitest/coverage-istanbul": "^3.0.0",
     "axios": "1.7.7",
     "date-fns": "^4.0.0",
     "eslint-config-prettier": "^9.1.0",
