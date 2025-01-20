@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 import tempfile
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from herbie import Herbie
 from sqlalchemy.orm import Session

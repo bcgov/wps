@@ -1,5 +1,4 @@
 import os
-import tempfile
 
 import numpy as np
 import pandas as pd
@@ -14,7 +13,7 @@ from app.db.models.weather_models import ModelRunPrediction, PredictionModel, Pr
 from app.geospatial import NAD83_CRS
 from app.stations import get_stations_synchronously
 from app.weather_models import ModelEnum
-from app.weather_models.process_grib import ModelRunInfo, PredictionModelNotFound, convert_mps_to_kph, get_transformer
+from app.weather_models.process_grib import ModelRunInfo, convert_mps_to_kph, get_transformer
 
 gdal.UseExceptions()
 
@@ -50,6 +49,10 @@ def calculate_relative_humidity(temp: float, dew_temp: float) -> float:
     :param dew_temp: Dew point temperature in Kelvin.
     :return: Relative humidity
     """
+    if temp < 0 or dew_temp < 0:
+        raise ValueError("Temperature and dew point must be in Kelvin and non-negative.")
+    if dew_temp > temp:
+        raise ValueError("Dew point cannot exceed air temperature.")
     # Convert temperature and dew point from Kelvin to Celsius
     temp_c = temp - 273.15
     dew_temp_c = dew_temp - 273.15
