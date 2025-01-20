@@ -374,7 +374,7 @@ class ModelValueProcessor:
             # NAM model requires manual calculation of cumulative precip
             if model_type == ModelEnum.NAM:
                 nam_cumulative_precip, prediction.apcp_sfc_0 = accumulate_nam_precipitation(nam_cumulative_precip, prediction, model_run.prediction_run_timestamp.hour)
-            if prev_prediction is not None and prev_prediction.prediction_timestamp.hour == 18 and prediction.prediction_timestamp.hour == 21:
+            if prev_prediction is not None and prev_prediction.prediction_timestamp.hour == 18 and prediction.prediction_timestamp.hour in (21, 0):
                 noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction, SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION)
                 self._process_prediction(noon_prediction, station, model_run, machine, True)
             self._process_prediction(prediction, station, model_run, machine, False)

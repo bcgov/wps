@@ -66,16 +66,10 @@ class HerbieGribProcessor:
         self.prediction_model: PredictionModel = None
         self.working_dir = working_directory
 
-    def process_grib_file(self, herbie_instance: Herbie, grib_info: ModelRunInfo, session: Session):
+    def process_grib_file(self, herbie_instance: Herbie, grib_info: ModelRunInfo, prediction_run: PredictionModelRunTimestamp, session: Session):
         if not self.geo_to_raster_transformer:
             self.set_transformer(herbie_instance)
         self.stations_df = self.get_stations_dataframe()
-
-        self.prediction_model = get_prediction_model(session, grib_info.model_enum, grib_info.projection)
-        if not self.prediction_model:
-            raise PredictionModelNotFound("Could not find this prediction model in the database", grib_info.model_enum, grib_info.projection)
-
-        prediction_run = get_or_create_prediction_run(session, self.prediction_model, grib_info.model_run_timestamp)
 
         if grib_info.model_enum.value == "ECMWF":
             self.process_ecmwf_grib_file(session, herbie_instance, grib_info, prediction_run)

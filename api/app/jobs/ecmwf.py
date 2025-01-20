@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from herbie import Herbie
 from sqlalchemy.orm import Session
@@ -10,10 +10,10 @@ from sqlalchemy.orm import Session
 import app.db.database
 import app.utils.time as time_utils
 from app import configure_logging
-from app.db.crud.weather_models import get_prediction_model, get_prediction_run, get_processed_file_record, update_prediction_run
-from app.jobs.common_model_fetchers import CompletedWithSomeExceptions, check_if_model_run_complete, flag_file_as_processed
+from app.db.crud.weather_models import get_or_create_prediction_run, get_prediction_model, get_prediction_run, get_processed_file_record, update_prediction_run
+from app.jobs.common_model_fetchers import CompletedWithSomeExceptions, ModelValueProcessor, check_if_model_run_complete, flag_file_as_processed
 from app.weather_models import ModelEnum, ProjectionEnum
-from app.weather_models.process_grib import ModelRunInfo
+from app.weather_models.process_grib import ModelRunInfo, PredictionModelNotFound
 from app.weather_models.process_grib_herbie import HerbieGribProcessor
 
 # If running as its own process, configure logging appropriately.
@@ -68,6 +68,15 @@ class ECMWF:
 
         model_datetime = self.now.replace(hour=model_run_hour, minute=0, second=0, microsecond=0)
 
+        self.prediction_model = get_prediction_model(self.session, self.model_type, self.projection)
+        if not self.prediction_model:
+            raise PredictionModelNotFound("Could not find this prediction model in the database", self.model_type, self.projection)
+
+        prediction_run = get_or_create_prediction_run(self.session, self.prediction_model, model_datetime)
+        if prediction_run.complete:
+            logger.info(f"Prediction run {model_datetime} already completed")
+            return
+
         for prediction_hour in get_ecmwf_forecast_hours():
             model_info = ModelRunInfo(
                 model_enum=self.model_type,
@@ -91,7 +100,7 @@ class ECMWF:
                         logger.info(f"file already processed {url}")
                     else:
                         logger.info(f"processing {url}")
-                        self.grib_processor.process_grib_file(H, model_info, self.session)
+                        self.grib_processor.process_grib_file(H, model_info, prediction_run, self.session)
                         # Flag the file as processed
                         flag_file_as_processed(url, self.session)
                         self.files_processed += 1
@@ -112,7 +121,7 @@ class ECMWF:
     def process(self):
         for hour in get_model_run_hours(self.model_type):
             try:
-                self.process_model_run(12)
+                self.process_model_run(0)
             except Exception as exception:
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
@@ -127,8 +136,12 @@ def process_models():
         ecmwf = ECMWF(session, temp_dir)
         ecmwf.process()
 
+        # interpolate and machine learn everything that needs interpolating.
+        model_value_processor = ModelValueProcessor(session)
+        model_value_processor.process(ModelEnum.ECMWF)
+
     # calculate the execution time.
-    execution_time = datetime.datetime.now() - start_time
+    execution_time = datetime.now() - start_time
     hours, remainder = divmod(execution_time.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
 
