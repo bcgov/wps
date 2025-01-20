@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'ca.bc.gov.asago',
+  appId: 'io.ionic.starter',
   appName: 'asa-go',
   webDir: 'dist'
 };

@@ -152,3 +152,11 @@ renv
 # Node Version Management
 web/.nvmrc
 node_modules
+
+
+# expo mobile dev
+.expo
+build
+Pods
+.xcode.env.local
+*.xcuserstate
