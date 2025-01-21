@@ -629,6 +629,27 @@ files = [
 pycparser = "*"
 
 [[package]]
+name = "cfgrib"
+version = "0.9.15.0"
+description = "Python interface to map GRIB files to the NetCDF Common Data Model following the CF Convention using ecCodes."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "cfgrib-0.9.15.0-py3-none-any.whl", hash = "sha256:469cfd25dc173863795e596263b3b6b5ea1402b1715f2b7b1d4b995b40b32c18"},
+    {file = "cfgrib-0.9.15.0.tar.gz", hash = "sha256:d455034e19b9560a75d008ba9d09b2d4e65762adfb2e911f28b841f4b9c6b47f"},
+]
+
+[package.dependencies]
+attrs = ">=19.2"
+click = "*"
+eccodes = ">=0.9.8"
+numpy = "*"
+
+[package.extras]
+tests = ["dask[array]", "flake8", "pytest", "pytest-cov", "scipy", "xarray (>=0.15)"]
+xarray = ["xarray (>=0.15)"]
+
+[[package]]
 name = "charset-normalizer"
 version = "3.3.2"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
@@ -1052,6 +1073,45 @@ files = [
 ]
 
 [[package]]
+name = "eccodes"
+version = "2.39.1"
+description = "Python interface to the ecCodes GRIB and BUFR decoder/encoder"
+optional = false
+python-versions = "*"
+files = [
+    {file = "eccodes-2.39.1-cp310-cp310-macosx_13_0_arm64.whl", hash = "sha256:64e71f850a7dbead9ed54549b17e112682a9affb39d98043634fe42946cb973f"},
+    {file = "eccodes-2.39.1-cp310-cp310-macosx_13_0_x86_64.whl", hash = "sha256:a6fc372fdbb980b0097a7bb236eac10fc8c4f6f6924243632a726f7d6f998742"},
+    {file = "eccodes-2.39.1-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:cb1d72405490ea54a5ccb0e6165f06e0c3615ea2c65590c65799829b077f4900"},
+    {file = "eccodes-2.39.1-cp310-cp310-win_amd64.whl", hash = "sha256:d31cdff7ba720b515d7916935c3b9eae5fb502427ee43042cd50cc8e315e4088"},
+    {file = "eccodes-2.39.1-cp311-cp311-macosx_13_0_arm64.whl", hash = "sha256:774b8d558e0ccdfb2cc26e77b65436d76cb2872d911b5c46ba4c81b4a7687406"},
+    {file = "eccodes-2.39.1-cp311-cp311-macosx_13_0_x86_64.whl", hash = "sha256:6dc9cff3670e06854230f8e5b9a527505616a47dde41dcd302cb1b762391fd38"},
+    {file = "eccodes-2.39.1-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:491fd109210695ac72424b9d01d6d6c1a5aca58b2ad718ac573df6b23095da63"},
+    {file = "eccodes-2.39.1-cp311-cp311-win_amd64.whl", hash = "sha256:6639f386fc3e23e1590ebc80c3926195c3bbde12b85e75146537b6eee1e05073"},
+    {file = "eccodes-2.39.1-cp312-cp312-macosx_13_0_arm64.whl", hash = "sha256:754406f57d0e3ac36db8b7d7873ba905d9f8d0fb0f52372b5b0fef39b3ecc72c"},
+    {file = "eccodes-2.39.1-cp312-cp312-macosx_13_0_x86_64.whl", hash = "sha256:0f933cc52ce0a5ab84d094b218fa1914cbe23426b834c1dfd198bb45a034577b"},
+    {file = "eccodes-2.39.1-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:2f62ce4c33184c463b02826add35b693680e13aa9023b89bb9ccf7964f14f317"},
+    {file = "eccodes-2.39.1-cp312-cp312-win_amd64.whl", hash = "sha256:f50595f76c8a7ba3514cdf49f5974f0a739c55d390a950ed549261693c084d27"},
+    {file = "eccodes-2.39.1-cp313-cp313-macosx_13_0_arm64.whl", hash = "sha256:aea3f3183fa284e9ad3905652ebd694123ed7e50f85212829ea53995086310c9"},
+    {file = "eccodes-2.39.1-cp313-cp313-macosx_13_0_x86_64.whl", hash = "sha256:ee6c387b0f2184b70aa8dc2ff915aa2ffedd945e34d748a1b144348e86c843ac"},
+    {file = "eccodes-2.39.1-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:53f478d267f4bb4059b8aad1a0418dbc475d29d5303086907d27330d6d4005db"},
+    {file = "eccodes-2.39.1-cp313-cp313-win_amd64.whl", hash = "sha256:1f536aa4b6ffadcbc9431e6d44719dade6f4ed144e31b7583c88833768f289b3"},
+    {file = "eccodes-2.39.1-cp38-cp38-manylinux_2_28_x86_64.whl", hash = "sha256:15db5ac45c9bd98231f09a605cffa1ed9df93a14eb1198c06c2129877a4ef35f"},
+    {file = "eccodes-2.39.1-cp38-cp38-win_amd64.whl", hash = "sha256:90bea9f86b673dd3e00a53c431376fe90884b6366fb69e4f51777097938efb50"},
+    {file = "eccodes-2.39.1-cp39-cp39-macosx_13_0_arm64.whl", hash = "sha256:9967c42554f44a2e0d512317157bd00be2e7deba71bfdaebc527d846b5233e8f"},
+    {file = "eccodes-2.39.1-cp39-cp39-macosx_13_0_x86_64.whl", hash = "sha256:bb3e6c4c5cd696fe9d842295f4d308417f74592c97f663a378b9097be06c656c"},
+    {file = "eccodes-2.39.1-cp39-cp39-manylinux_2_28_x86_64.whl", hash = "sha256:1cda1e479533333287e0f81c6d06d46975f68ea0cba65f1d3a1ffc432da2ed27"},
+    {file = "eccodes-2.39.1-cp39-cp39-win_amd64.whl", hash = "sha256:89169c5d505511b83cbf951e900664b2cde8c8d095c190c9e376c70b9ee2e87c"},
+    {file = "eccodes-2.39.1-py3-none-any.whl", hash = "sha256:8faa901c5e681e51f490ae037437501780272a23855d93cc4acd70c74b05ffde"},
+    {file = "eccodes-2.39.1.tar.gz", hash = "sha256:c9e4695e1cbfa3a85c548cd6a3073e2277d71413529a89b0ea62b0f299416e20"},
+]
+
+[package.dependencies]
+attrs = "*"
+cffi = "*"
+findlibs = "*"
+numpy = "*"
+
+[[package]]
 name = "execnet"
 version = "2.1.1"
 description = "execnet: rapid multi-Python deployment"
@@ -1112,6 +1172,16 @@ files = [
 
 [package.extras]
 devel = ["colorama", "json-spec", "jsonschema", "pylint", "pytest", "pytest-benchmark", "pytest-cache", "validictory"]
+
+[[package]]
+name = "findlibs"
+version = "0.0.5"
+description = "A packages to search for shared libraries on various platforms"
+optional = false
+python-versions = "*"
+files = [
+    {file = "findlibs-0.0.5.tar.gz", hash = "sha256:7a801571e999d0ee83f9b92cbb598c21f861ee26ca9dba74cea8958ba4335e7e"},
+]
 
 [[package]]
 name = "fonttools"
@@ -1439,6 +1509,31 @@ files = [
     {file = "h11-0.14.0-py3-none-any.whl", hash = "sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761"},
     {file = "h11-0.14.0.tar.gz", hash = "sha256:8f19fbbe99e72420ff35c00b27a34cb9937e902a8b810e2c88300c6f0a3b699d"},
 ]
+
+[[package]]
+name = "herbie-data"
+version = "2024.8.0"
+description = "Download numerical weather prediction GRIB2 model data."
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "herbie_data-2024.8.0-py3-none-any.whl", hash = "sha256:196ecc028dca71c99ffb7452d8a443a64b57c27605f70ac08f5810f3d606088b"},
+    {file = "herbie_data-2024.8.0.tar.gz", hash = "sha256:83831205ea415b6f245d829cc13a162263074035e5e365c38f239ee04e3d6c14"},
+]
+
+[package.dependencies]
+cfgrib = "*"
+numpy = "*"
+pandas = "*"
+pygrib = "*"
+requests = "*"
+toml = "*"
+xarray = "*"
+
+[package.extras]
+docs = ["autodocsumm", "ipython", "linkify-it-py", "myst-parser", "nbconvert", "nbsphinx", "pydata-sphinx-theme", "recommonmark", "sphinx", "sphinx-autosummary-accessors", "sphinx-copybutton", "sphinx-design", "sphinx-markdown-tables", "sphinxcontrib-mermaid"]
+extras = ["cartopy", "metpy", "scikit-learn"]
+test = ["pytest", "ruff"]
 
 [[package]]
 name = "hiredis"
@@ -3637,6 +3732,36 @@ files = [
 windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
+name = "pygrib"
+version = "2.1.6"
+description = "Python module for reading/writing GRIB files"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pygrib-2.1.6-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:354028fcfc5f29dbebe16da2df3c8cf41383818cf27a43adfa6cc1a4e43c249b"},
+    {file = "pygrib-2.1.6-cp310-cp310-macosx_14_0_arm64.whl", hash = "sha256:06b3fb25889225a599a908fdb8d4590ab30a2738048d877725f90b6a2a777983"},
+    {file = "pygrib-2.1.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:37ce2c761489b68f2642c739a488470b58aacf13c96bdae671dd35730960e94e"},
+    {file = "pygrib-2.1.6-cp311-cp311-macosx_11_0_x86_64.whl", hash = "sha256:d6b912cc528c3a87e4f9f990d5c1e57a54f61835dad5b8daac6adb048faf5c5a"},
+    {file = "pygrib-2.1.6-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:dc7fcb20bd5e2a94e1b7501bed45d418eadc6e325bed5f4de37a254409b5a5fe"},
+    {file = "pygrib-2.1.6-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:69a42b44ae395280b08f62e598b696444446759ae4954db42ad2d01ee2c94d8b"},
+    {file = "pygrib-2.1.6-cp312-cp312-macosx_11_0_x86_64.whl", hash = "sha256:fa4613eef98b26bf9a8719869f656aa15362f700311aec777b2190deb1060a1d"},
+    {file = "pygrib-2.1.6-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:332d29bbc16749375b24c8d9bd01180c0a9eda471df86b2073432fba3339d658"},
+    {file = "pygrib-2.1.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d368c359acacae4061ebcdfe635fb826f21fbc1f6c2227a269c870d9e8b49e70"},
+    {file = "pygrib-2.1.6-cp313-cp313-macosx_11_0_x86_64.whl", hash = "sha256:3cf2d87ad30449726d9279ca8cfa4afbdc83670750a4dfb5d965e3fc55d3aa8d"},
+    {file = "pygrib-2.1.6-cp313-cp313-macosx_14_0_arm64.whl", hash = "sha256:00f84e99372c6cf51f6a67e26c394dc3371ec356906e5aa9177f12372d92b228"},
+    {file = "pygrib-2.1.6-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:56d70f492e1a298429a94662c5003c6959d8cc1b078173312fa9cf3bf36a14b8"},
+    {file = "pygrib-2.1.6-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:31e2f06b91bbd4efcc142a68605102563b7e3599336d9a409dde7016266d5cf7"},
+    {file = "pygrib-2.1.6-cp39-cp39-macosx_14_0_arm64.whl", hash = "sha256:ac216dd2fae9a4f13487d4aff16b2e9ae3d513042c11608761dc944f8f98bbb3"},
+    {file = "pygrib-2.1.6-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:78950045e02ff7e84ba19bf41ba5f778e0f17dcc0cf26ae83c6cfded1857515a"},
+    {file = "pygrib-2.1.6.tar.gz", hash = "sha256:047980aeb010ef457999950bcc8e46556910316cb77fe78c0bd1b3520aa920f0"},
+]
+
+[package.dependencies]
+numpy = "*"
+packaging = "*"
+pyproj = "*"
+
+[[package]]
 name = "pyjnius"
 version = "1.6.1"
 description = "A Python module to access Java classes as Python classes using JNI."
@@ -5013,6 +5138,17 @@ doc = ["sphinx", "sphinx_rtd_theme"]
 test = ["pytest", "ruff"]
 
 [[package]]
+name = "toml"
+version = "0.10.2"
+description = "Python Library for Tom's Obvious, Minimal Language"
+optional = false
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+files = [
+    {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
+    {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
+]
+
+[[package]]
 name = "tornado"
 version = "6.4.2"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
@@ -5332,6 +5468,31 @@ files = [
 ]
 
 [[package]]
+name = "xarray"
+version = "2025.1.1"
+description = "N-D labeled arrays and datasets in Python"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "xarray-2025.1.1-py3-none-any.whl", hash = "sha256:8a69d17c1e4ad09664fd0bc2dbb398e7368eda25bd19456fb919a6eb6490fb72"},
+    {file = "xarray-2025.1.1.tar.gz", hash = "sha256:1a3011d00ca92a94ba31b297c2eccd310b87a7dacf5acc8d0468385d4a834342"},
+]
+
+[package.dependencies]
+numpy = ">=1.24"
+packaging = ">=23.2"
+pandas = ">=2.1"
+
+[package.extras]
+accel = ["bottleneck", "flox", "numba (>=0.54)", "numbagg", "opt_einsum", "scipy"]
+complete = ["xarray[accel,etc,io,parallel,viz]"]
+dev = ["hypothesis", "jinja2", "mypy", "pre-commit", "pytest", "pytest-cov", "pytest-env", "pytest-timeout", "pytest-xdist", "ruff (>=0.8.0)", "sphinx", "sphinx_autosummary_accessors", "xarray[complete]"]
+etc = ["sparse"]
+io = ["cftime", "fsspec", "h5netcdf", "netCDF4", "pooch", "pydap", "scipy", "zarr"]
+parallel = ["dask[complete]"]
+viz = ["cartopy", "matplotlib", "nc-time-axis", "seaborn"]
+
+[[package]]
 name = "yarl"
 version = "1.18.3"
 description = "Yet another URL library"
@@ -5430,4 +5591,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12.3"
-content-hash = "ec39c811cb06de9cc40177f8c9525b8e46785244fc40bd12355369598c8a768c"
+content-hash = "e96a66758b47c64cadf8d588c8f1363f4c6ab7ddc79583bd9cf2d5b510764407"

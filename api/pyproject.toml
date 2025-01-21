@@ -46,6 +46,7 @@ numba = "^0.59.1"
 cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307" }
 geopandas = "^1.0.1"
 shapely = "^2.0.5"
+herbie-data = "^2024.8.0"
 
 
 [tool.poetry.group.dev.dependencies]
