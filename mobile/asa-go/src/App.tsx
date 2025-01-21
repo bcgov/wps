@@ -5,6 +5,8 @@ import { DateTime } from "luxon";
 import FBAMap from "@/FBAMap";
 import { FireCenter, FireShape, RunType } from "@/api/fbaAPI";
 import { PST_UTC_OFFSET } from "@/utils/constants";
+import { AppHeader } from "@/AppHeader";
+import { ASATabs } from "@/ASATabs";
 
 const App = () => {
   const [fireCenter] = useState<FireCenter | undefined>(undefined);
@@ -34,6 +36,7 @@ const App = () => {
         overflow: "hidden",
       }}
     >
+      <AppHeader />
       <FBAMap
         selectedFireCenter={fireCenter}
         selectedFireShape={selectedFireShape}
@@ -45,6 +48,7 @@ const App = () => {
         advisoryThreshold={0}
         setZoomSource={setZoomSource}
       />
+      <ASATabs />
     </Box>
   );
 };
