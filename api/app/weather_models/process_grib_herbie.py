@@ -80,18 +80,7 @@ class HerbieGribProcessor:
     def process_ecmwf_grib_file(self, session: Session, herbie_instance: Herbie, grib_info: ModelRunInfo, prediction_run: PredictionModelRunTimestamp):
         weather_params = [TEMP, PRECIP, DEW_TEMP, WIND]
 
-        # merge all necessary data into a single xarray dataset
-        datasets = []
-        for param in weather_params:
-            if param == WIND:
-                ds = herbie_instance.xarray(param, save_dir=self.working_dir).herbie.with_wind()
-            else:
-                ds = herbie_instance.xarray(param, save_dir=self.working_dir, remove_grib=True)
-            datasets.append(ds)
-        weather_ds = xr.merge(datasets, compat="override")
-
-        # extract data for each station
-        station_data = weather_ds.herbie.pick_points(self.stations_df, method="nearest")
+        station_data = self.select_station_data(herbie_instance, self.stations_df, weather_params)
 
         # calculate rh, convert wind, temp, and precip units
         station_data[RH_FIELD] = xr.apply_ufunc(calculate_relative_humidity, station_data[TEMP_FIELD], station_data[DEW_FIELD])
@@ -102,9 +91,25 @@ class HerbieGribProcessor:
         # name variables according to ModelRunPrediction table
         renamed_station_data = self.get_variable_names(station_data, grib_info)
 
-        station_data = renamed_station_data.swap_dims({"point": "point_code"})
+        self.store_prediction_values(renamed_station_data, prediction_run, grib_info, session)
 
-        self.store_prediction_values(station_data, prediction_run, grib_info, session)
+    def select_station_data(self, herbie_instance: Herbie, stations: pd.DataFrame, weather_params: list[str]) -> xr.Dataset:
+        datasets = []
+
+        for param in weather_params:
+            if param == WIND:
+                ds = herbie_instance.xarray(param, save_dir=self.working_dir).herbie.with_wind()
+            else:
+                ds = herbie_instance.xarray(param, save_dir=self.working_dir)
+            datasets.append(ds)
+        weather_ds = xr.merge(datasets, compat="override")
+
+        # extract data for each station
+        station_data = weather_ds.herbie.pick_points(stations, method="nearest")
+
+        station_data = station_data.swap_dims({"point": "point_code"})
+
+        return station_data
 
     def store_prediction_values(self, dataset: xr.Dataset, prediction_run: PredictionModelRunTimestamp, grib_info: ModelRunInfo, session: Session):
         for station in self.stations:

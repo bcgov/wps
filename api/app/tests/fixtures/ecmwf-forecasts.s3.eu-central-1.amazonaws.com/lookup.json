@@ -1,0 +1,9 @@
+{
+   "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/20250114/00z/ifs/0p25/oper/20250114000000-0h-oper-fc.index": {
+      "get": {
+         "None": {
+            "None": "20250114/20250114000000-0h-oper-fc.index"
+         }
+      }
+   }
+}
