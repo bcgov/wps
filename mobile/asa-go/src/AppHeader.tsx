@@ -35,17 +35,6 @@ export const AppHeader = () => {
             ASA
           </Typography>
         </Grid>
-        <Grid>
-          <Typography
-            variant="h2"
-            sx={{
-              color: theme.palette.primary.contrastText,
-              fontSize: "1.7rem",
-            }}
-          >
-            ASA
-          </Typography>
-        </Grid>
       </Grid>
     </Box>
   );
