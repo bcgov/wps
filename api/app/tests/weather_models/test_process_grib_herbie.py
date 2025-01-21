@@ -72,7 +72,7 @@ def test_calculate_relative_humidity_invalid_inputs(temp, dew_temp):
         calculate_relative_humidity(temp, dew_temp)
 
 
-def test_select_station_data_values(monkeypatch, mock_herbie_download_grib, mock_herbie_find_grib):
+def test_select_station_data_values(monkeypatch, mock_herbie_find_grib):
     """Value verified with gdallocationinfo cli - gdallocationinfo subset_d5ef1aeb__20250114000000-0h-oper-fc.grib2 -wgs84 -126.928233 50.132417"""
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     date = datetime(2025, 1, 14)

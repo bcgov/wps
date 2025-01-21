@@ -56,7 +56,6 @@ class ECMWF:
         self.session = session
         self.model_type = ModelEnum.ECMWF
         self.projection = ProjectionEnum.ECMWF_LATLON
-        self.files_downloaded = 0
         self.files_processed = 0
         self.exception_count = 0
         self.grib_processor = HerbieGribProcessor(working_directory)
@@ -92,8 +91,6 @@ class ECMWF:
                     logger.info(f"grib file not found for {model_info.prediction_timestamp} ")
                     continue
 
-                self.files_downloaded += 1
-
                 try:
                     processed_file_record = get_processed_file_record(self.session, url)
                     if processed_file_record:
@@ -104,7 +101,7 @@ class ECMWF:
                         # Flag the file as processed
                         flag_file_as_processed(url, self.session)
                         self.files_processed += 1
-                    processed_urls.append(url)
+                        processed_urls.append(url)
 
                 except Exception as exception:
                     self.exception_count += 1
@@ -146,6 +143,9 @@ def process_models():
     minutes, seconds = divmod(remainder, 60)
 
     logger.info(f"{ecmwf.files_processed} files processed, time taken {hours} hours, {minutes} minutes, {seconds} seconds")
+    if ecmwf.exception_count > 0:
+        raise CompletedWithSomeExceptions()
+    return ecmwf.files_processed
 
 
 def main():
