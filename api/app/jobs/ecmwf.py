@@ -121,7 +121,7 @@ class ECMWF:
     def process(self):
         for hour in get_model_run_hours(self.model_type):
             try:
-                self.process_model_run(0)
+                self.process_model_run(hour)
             except Exception as exception:
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1

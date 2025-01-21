@@ -1,10 +1,8 @@
 import os
 from datetime import datetime
-from tempfile import TemporaryDirectory
 
 import numpy as np
 import pytest
-import xarray as xr
 from aiohttp import ClientSession
 from herbie import Herbie
 from osgeo import gdal
@@ -27,6 +25,23 @@ def mock_herbie_download_grib(monkeypatch):
         return grib_file
 
     monkeypatch.setattr(Herbie, 'download', herbie_download)
+
+
+@pytest.fixture
+def mock_herbie_find_grib(monkeypatch):
+    """fixture for herbie download and xarray"""
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    grib_file = os.path.join(dirname, 'ifs', '20250114', 'subset_d5ef1aeb__20250114000000-0h-oper-fc.grib2')
+    index_file = 'https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/20250114/00z/ifs/0p25/oper/20250114000000-0h-oper-fc.index'
+
+    def herbie_find_grib(*args, **kwargs):
+        return grib_file, 'aws'
+
+    def herbie_find_index(*args, **kwargs):
+        return index_file, 'aws'
+
+    monkeypatch.setattr(Herbie, 'find_grib', herbie_find_grib)
+    monkeypatch.setattr(Herbie, 'find_idx', herbie_find_index)
 
 
 @pytest.mark.parametrize(
@@ -57,7 +72,8 @@ def test_calculate_relative_humidity_invalid_inputs(temp, dew_temp):
         calculate_relative_humidity(temp, dew_temp)
 
 
-def test_select_station_data_values(monkeypatch, mock_herbie_download_grib):
+def test_select_station_data_values(monkeypatch, mock_herbie_download_grib, mock_herbie_find_grib):
+    """Value verified with gdallocationinfo cli - gdallocationinfo subset_d5ef1aeb__20250114000000-0h-oper-fc.grib2 -wgs84 -126.928233 50.132417"""
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     date = datetime(2025, 1, 14)
     cwd = os.path.dirname(__file__)
@@ -77,6 +93,6 @@ def test_select_station_data_values(monkeypatch, mock_herbie_download_grib):
     herbie_value = station_data.sel(point_code=station_code)[TEMP_FIELD].item()
 
     gdallocationinfo_value = 1.47487792968752  # gdal converts values to celsius somehow
-    herbie_value_celsius = herbie_value - 273.15
+    herbie_value_celsius = herbie_value - 273.15  # ecmwf contains values in Kelvin
 
     assert herbie_value_celsius == pytest.approx(gdallocationinfo_value, 0.01)
