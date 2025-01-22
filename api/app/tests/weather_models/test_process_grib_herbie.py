@@ -3,6 +3,7 @@ from datetime import datetime
 
 import numpy as np
 import pytest
+import xarray as xr
 from aiohttp import ClientSession
 from herbie import Herbie
 from osgeo import gdal
@@ -47,29 +48,33 @@ def mock_herbie_find_grib(monkeypatch):
 @pytest.mark.parametrize(
     "temp, dew_temp, expected",
     [
-        (300.15, 293.15, 65.56),  # Normal case, temp and dew_temp in Kelvin
-        (273.15, 273.15, 100.0),  # Saturated air (temp == dew_temp)
-        (303.15, 283.15, 28.94),  # Higher temperature, lower dew_temp
-        (250.15, 250.15, 100.0),  # Cold, saturated air
-        (310.15, 280.15, 15.96),  # Hot and dry conditions
+        ([300.15], [293.15], [65.56]),  # Normal case, temp and dew_temp in Kelvin
+        ([273.15], [273.15], [100.0]),  # Saturated air (temp == dew_temp)
+        ([303.15], [283.15], [28.94]),  # Higher temperature, lower dew_temp
+        ([250.15], [250.15], [100.0]),  # Cold, saturated air
+        ([310.15], [280.15], [15.96]),  # Hot and dry conditions
     ],
 )
 def test_calculate_relative_humidity(temp, dew_temp, expected):
-    result = calculate_relative_humidity(temp, dew_temp)
+    temp_da = xr.DataArray(temp, dims=["data"])
+    dew_temp_da = xr.DataArray(dew_temp, dims=["data"])
+    result = calculate_relative_humidity(temp_da, dew_temp_da)
     assert np.isclose(result, expected, atol=0.01), f"Expected {expected}, got {result}"
 
 
 @pytest.mark.parametrize(
     "temp, dew_temp",
     [
-        (-10.0, 263.15),  # Invalid: temperature in Kelvin cannot be negative
-        (273.15, -5.0),  # Invalid: dew temperature in Kelvin cannot be negative
-        (200.0, 300.0),  # Invalid: dew point cannot exceed air temperature
+        ([-10.0], [263.15]),  # Invalid: temperature in Kelvin cannot be negative
+        ([273.15], [-5.0]),  # Invalid: dew temperature in Kelvin cannot be negative
+        ([200.0], [300.0]),  # Invalid: dew point cannot exceed air temperature
     ],
 )
 def test_calculate_relative_humidity_invalid_inputs(temp, dew_temp):
+    temp_da = xr.DataArray(temp, dims=["data"])
+    dew_temp_da = xr.DataArray(dew_temp, dims=["data"])
     with pytest.raises(ValueError):
-        calculate_relative_humidity(temp, dew_temp)
+        calculate_relative_humidity(temp_da, dew_temp_da)
 
 
 @pytest.mark.skip(reason="herbie bug")
