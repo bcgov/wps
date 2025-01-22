@@ -23,7 +23,6 @@ def test_convert_mps_to_kph_zero_wind_speed():
     assert kilometres_per_hour_speed == 0
 
 
-@pytest.mark.skip(reason="herbie bug")
 def test_read_single_raster_value(monkeypatch: pytest.MonkeyPatch):
     """
     Verified with gdallocationinfo CMC_reg_RH_TGL_2_ps10km_2020110500_P034.grib2 -wgs84 -120.4816667 50.6733333
