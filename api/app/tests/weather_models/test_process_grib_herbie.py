@@ -19,9 +19,7 @@ from app.weather_models.process_grib_herbie import TEMP, TEMP_FIELD, calculate_r
 def mock_herbie_download_grib(monkeypatch):
     """fixture for herbie download and xarray"""
     dirname = os.path.dirname(os.path.realpath(__file__))
-    grib_file = os.path.join(
-        dirname, "ifs", "20250114", "subset_d5ef1aeb__20250114000000-0h-oper-fc.grib2"
-    )
+    grib_file = os.path.join(dirname, "ifs", "20250114", "subset_d5ef1aeb__20250114000000-0h-oper-fc.grib2")
 
     def herbie_download(*args, **kwargs):
         return grib_file
@@ -33,9 +31,7 @@ def mock_herbie_download_grib(monkeypatch):
 def mock_herbie_find_grib(monkeypatch):
     """fixture for herbie download and xarray"""
     dirname = os.path.dirname(os.path.realpath(__file__))
-    grib_file = os.path.join(
-        dirname, "ifs", "20250114", "subset_d5ef1aeb__20250114000000-0h-oper-fc.grib2"
-    )
+    grib_file = os.path.join(dirname, "ifs", "20250114", "subset_d5ef1aeb__20250114000000-0h-oper-fc.grib2")
     index_file = "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/20250114/00z/ifs/0p25/oper/20250114000000-0h-oper-fc.index"
 
     def herbie_find_grib(*args, **kwargs):

@@ -61,10 +61,7 @@ def calculate_relative_humidity(temp: xr.DataArray, dew_temp: xr.DataArray) -> x
     temp_c = temp - 273.15
     dew_temp_c = dew_temp - 273.15
 
-    rh = 100 * (
-        np.exp((17.625 * dew_temp_c) / (dew_temp_c + 243.04))
-        / np.exp((17.625 * temp_c) / (temp_c + 243.04))
-    )
+    rh = 100 * (np.exp((17.625 * dew_temp_c) / (dew_temp_c + 243.04)) / np.exp((17.625 * temp_c) / (temp_c + 243.04)))
 
     return rh
 
@@ -178,10 +175,7 @@ class HerbieGribProcessor:
 
     def get_stations_dataframe(self):
         stations_df = pd.DataFrame(
-            [
-                station.model_dump(include={"code", "name", "lat", "long"})
-                for station in self.stations
-            ]
+            [station.model_dump(include={"code", "name", "lat", "long"}) for station in self.stations]
         ).rename(columns={"lat": "latitude", "long": "longitude"})
 
         stations_df[["longitude", "latitude"]] = stations_df.apply(
