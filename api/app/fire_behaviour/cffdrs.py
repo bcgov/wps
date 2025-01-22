@@ -429,10 +429,7 @@ def surface_fuel_consumption(
     #        SFC: Surface Fuel Consumption (kg/m^2)
     """
     if fuel_type is None or bui is None or ffmc is None:
-        message = (
-            PARAMS_ERROR_MESSAGE
-            + f"_SFCcalc; fuel_type: {fuel_type.value}, bui: {bui}, ffmc: {ffmc}"
-        )
+        message = PARAMS_ERROR_MESSAGE + f"_SFCcalc; fuel_type: {fuel_type.value}, bui: {bui}, ffmc: {ffmc}"
         raise CFFDRSException(message)
     if pc is None:
         pc = NULL
@@ -532,9 +529,7 @@ def length_to_breadth_ratio(fuel_type: FuelTypeEnum, wind_speed: float):
     raise CFFDRSException("Failed to calculate LB")
 
 
-def length_to_breadth_ratio_t(
-    fuel_type: FuelTypeEnum, lb: float, time_since_ignition: float, cfb: float
-):
+def length_to_breadth_ratio_t(fuel_type: FuelTypeEnum, lb: float, time_since_ignition: float, cfb: float):
     """Computes L/B ratio by delegating to cffdrs R package
 
     # Description:
@@ -561,9 +556,7 @@ def length_to_breadth_ratio_t(
     #   LBt: Length to Breadth ratio at time since ignition
     #
     """
-    result = CFFDRS.instance().cffdrs._LBtcalc(
-        FUELTYPE=fuel_type.value, LB=lb, HR=time_since_ignition, CFB=cfb
-    )
+    result = CFFDRS.instance().cffdrs._LBtcalc(FUELTYPE=fuel_type.value, LB=lb, HR=time_since_ignition, CFB=cfb)
     if isinstance(result[0], float):
         return result[0]
     raise CFFDRSException("Failed to calculate LBt")
@@ -774,9 +767,7 @@ def fire_weather_index(isi: float, bui: float):
     raise CFFDRSException("Failed to calculate fwi")
 
 
-def crown_fraction_burned(
-    fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: float, cbh: float
-) -> float:
+def crown_fraction_burned(fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: float, cbh: float) -> float:
     """Computes Crown Fraction Burned (CFB) by delegating to cffdrs R package.
     Value returned will be between 0-1.
 
@@ -794,21 +785,15 @@ def crown_fraction_burned(
     if cbh is None:
         cbh = NULL
     if cbh is None or fmc is None:
-        message = (
-            PARAMS_ERROR_MESSAGE + f"_CFBcalc; fuel_type: {fuel_type.value}, cbh: {cbh}, fmc: {fmc}"
-        )
+        message = PARAMS_ERROR_MESSAGE + f"_CFBcalc; fuel_type: {fuel_type.value}, cbh: {cbh}, fmc: {fmc}"
         raise CFFDRSException(message)
-    result = CFFDRS.instance().cffdrs._CFBcalc(
-        FUELTYPE=fuel_type.value, FMC=fmc, SFC=sfc, ROS=ros, CBH=cbh
-    )
+    result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=fuel_type.value, FMC=fmc, SFC=sfc, ROS=ros, CBH=cbh)
     if isinstance(result[0], float):
         return result[0]
     raise CFFDRSException("Failed to calculate CFB")
 
 
-def total_fuel_consumption(
-    fuel_type: FuelTypeEnum, cfb: float, sfc: float, pc: float, pdf: float, cfl: float
-):
+def total_fuel_consumption(fuel_type: FuelTypeEnum, cfb: float, sfc: float, pc: float, pdf: float, cfl: float):
     """Computes Total Fuel Consumption (TFC), which is a required input to calculate Head Fire Intensity.
     TFC is calculated by delegating to cffdrs R package.
 
@@ -826,9 +811,7 @@ def total_fuel_consumption(
     #        CFC: Crown Fuel Consumption (kg/m^2)
     """
     if cfb is None or cfl is None:
-        message = (
-            PARAMS_ERROR_MESSAGE + f"_TFCcalc; fuel_type: {fuel_type.value}, cfb: {cfb}, cfl: {cfl}"
-        )
+        message = PARAMS_ERROR_MESSAGE + f"_TFCcalc; fuel_type: {fuel_type.value}, cfb: {cfb}, cfl: {cfl}"
         raise CFFDRSException(message)
     # According to fbp.Rd in cffdrs R package, Crown Fuel Load (CFL) can use default value of 1.0
     # without causing major impacts on final output.
@@ -836,9 +819,7 @@ def total_fuel_consumption(
         pc = NULL
     if pdf is None:
         pdf = NULL
-    result = CFFDRS.instance().cffdrs._TFCcalc(
-        FUELTYPE=fuel_type.value, CFL=cfl, CFB=cfb, SFC=sfc, PC=pc, PDF=pdf
-    )
+    result = CFFDRS.instance().cffdrs._TFCcalc(FUELTYPE=fuel_type.value, CFL=cfl, CFB=cfb, SFC=sfc, PC=pc, PDF=pdf)
     if isinstance(result[0], float):
         return result[0]
     raise CFFDRSException("Failed to calculate TFC")
@@ -858,9 +839,7 @@ def head_fire_intensity(
     first makes method calls to calculate the necessary intermediary values.
     """
 
-    tfc = total_fuel_consumption(
-        fuel_type, cfb, sfc, percentage_conifer, percentage_dead_balsam_fir, cfl
-    )
+    tfc = total_fuel_consumption(fuel_type, cfb, sfc, percentage_conifer, percentage_dead_balsam_fir, cfl)
     # Args:
     #   FC:   Fuel Consumption (kg/m^2)
     #   ROS:  Rate of Spread (m/min)
@@ -991,9 +970,7 @@ def get_ffmc_for_target_hfi(
     """
     # start off using the actual FFMC value
     experimental_ffmc = ffmc
-    experimental_sfc = surface_fuel_consumption(
-        fuel_type, bui, experimental_ffmc, percentage_conifer
-    )
+    experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
     experimental_isi = initial_spread_index(experimental_ffmc, wind_speed)
     experimental_ros = rate_of_spread(
         fuel_type,
@@ -1027,16 +1004,12 @@ def get_ffmc_for_target_hfi(
             break
         if experimental_ffmc <= 0.1:
             break
-        if (
-            error_hfi > 0
-        ):  # if the error value is a positive number, make experimental FFMC value bigger
+        if error_hfi > 0:  # if the error value is a positive number, make experimental FFMC value bigger
             experimental_ffmc = min(101, experimental_ffmc + ((101 - experimental_ffmc) / 2))
         else:  # if the error value is a negative number, need to make experimental FFMC value smaller
             experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc) / 2))
         experimental_isi = initial_spread_index(experimental_ffmc, wind_speed)
-        experimental_sfc = surface_fuel_consumption(
-            fuel_type, bui, experimental_ffmc, percentage_conifer
-        )
+        experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
         experimental_ros = rate_of_spread(
             fuel_type,
             experimental_isi,
