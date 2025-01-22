@@ -24,12 +24,12 @@ WIND = ":10[u|v]:"  # Wind components (u and v) at 10 meters.
 PRECIP = ":tp:"  # Total precipitation
 
 # ECMWF weather fields
-TEMP_FIELD = 't2m'
-WDIR_FIELD = 'wdir10'
-WS_FIELD = 'si10'
-PRECIP_FIELD = 'tp'
-DEW_FIELD = 'd2m'
-RH_FIELD = 'rh'  # this is calculated by us
+TEMP_FIELD = "t2m"
+WDIR_FIELD = "wdir10"
+WS_FIELD = "si10"
+PRECIP_FIELD = "tp"
+DEW_FIELD = "d2m"
+RH_FIELD = "rh"  # this is calculated by us
 
 # ModelRunPrediction weather parameter fields
 DB_WEATHER_FIELDS = {
