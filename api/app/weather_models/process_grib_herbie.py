@@ -9,7 +9,11 @@ from pyproj import CRS
 from sqlalchemy.orm import Session
 
 from app.db.crud.weather_models import get_or_create_prediction_run, get_prediction_model
-from app.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp
+from app.db.models.weather_models import (
+    ModelRunPrediction,
+    PredictionModel,
+    PredictionModelRunTimestamp,
+)
 from app.geospatial import NAD83_CRS
 from app.stations import get_stations_synchronously
 from app.weather_models import ModelEnum
@@ -41,7 +45,7 @@ DB_WEATHER_FIELDS = {
 }
 
 
-def calculate_relative_humidity(temp: float, dew_temp: float) -> float:
+def calculate_relative_humidity(temp: xr.DataArray, dew_temp: xr.DataArray) -> xr.DataArray:
     """
     Calculate relative humidity (RH) from air temperature and dew point temperature.
 
@@ -49,15 +53,18 @@ def calculate_relative_humidity(temp: float, dew_temp: float) -> float:
     :param dew_temp: Dew point temperature in Kelvin.
     :return: Relative humidity
     """
-    if temp < 0 or dew_temp < 0:
+    if (temp < 0).any() or (dew_temp < 0).any():
         raise ValueError("Temperature and dew point must be in Kelvin and non-negative.")
-    if dew_temp > temp:
+    if (dew_temp > temp).any():
         raise ValueError("Dew point cannot exceed air temperature.")
     # Convert temperature and dew point from Kelvin to Celsius
     temp_c = temp - 273.15
     dew_temp_c = dew_temp - 273.15
 
-    rh = 100 * (np.exp((17.625 * dew_temp_c) / (dew_temp_c + 243.04)) / np.exp((17.625 * temp_c) / (temp_c + 243.04)))
+    rh = 100 * (
+        np.exp((17.625 * dew_temp_c) / (dew_temp_c + 243.04))
+        / np.exp((17.625 * temp_c) / (temp_c + 243.04))
+    )
 
     return rh
 
@@ -69,7 +76,13 @@ class HerbieGribProcessor:
         self.prediction_model: PredictionModel = None
         self.working_dir = working_directory
 
-    def process_grib_file(self, herbie_instance: Herbie, grib_info: ModelRunInfo, prediction_run: PredictionModelRunTimestamp, session: Session):
+    def process_grib_file(
+        self,
+        herbie_instance: Herbie,
+        grib_info: ModelRunInfo,
+        prediction_run: PredictionModelRunTimestamp,
+        session: Session,
+    ):
         if not self.geo_to_raster_transformer:
             self.set_transformer(herbie_instance)
         self.stations_df = self.get_stations_dataframe()
@@ -77,13 +90,21 @@ class HerbieGribProcessor:
         if grib_info.model_enum.value == "ECMWF":
             self.process_ecmwf_grib_file(session, herbie_instance, grib_info, prediction_run)
 
-    def process_ecmwf_grib_file(self, session: Session, herbie_instance: Herbie, grib_info: ModelRunInfo, prediction_run: PredictionModelRunTimestamp):
+    def process_ecmwf_grib_file(
+        self,
+        session: Session,
+        herbie_instance: Herbie,
+        grib_info: ModelRunInfo,
+        prediction_run: PredictionModelRunTimestamp,
+    ):
         weather_params = [TEMP, PRECIP, DEW_TEMP, WIND]
 
         station_data = self.select_station_data(herbie_instance, self.stations_df, weather_params)
 
         # calculate rh, convert wind, temp, and precip units
-        station_data[RH_FIELD] = xr.apply_ufunc(calculate_relative_humidity, station_data[TEMP_FIELD], station_data[DEW_FIELD])
+        station_data[RH_FIELD] = xr.apply_ufunc(
+            calculate_relative_humidity, station_data[TEMP_FIELD], station_data[DEW_FIELD]
+        )
         station_data[WS_FIELD] = xr.apply_ufunc(convert_mps_to_kph, station_data[WS_FIELD])
         station_data[TEMP_FIELD] = station_data[TEMP_FIELD] - 273.15  # Kelvin to Celsius
         station_data[PRECIP_FIELD] = station_data[PRECIP_FIELD] * 1000  # m to mm
@@ -93,7 +114,9 @@ class HerbieGribProcessor:
 
         self.store_prediction_values(renamed_station_data, prediction_run, grib_info, session)
 
-    def select_station_data(self, herbie_instance: Herbie, stations: pd.DataFrame, weather_params: list[str]) -> xr.Dataset:
+    def select_station_data(
+        self, herbie_instance: Herbie, stations: pd.DataFrame, weather_params: list[str]
+    ) -> xr.Dataset:
         datasets = []
 
         for param in weather_params:
@@ -111,7 +134,13 @@ class HerbieGribProcessor:
 
         return station_data
 
-    def store_prediction_values(self, dataset: xr.Dataset, prediction_run: PredictionModelRunTimestamp, grib_info: ModelRunInfo, session: Session):
+    def store_prediction_values(
+        self,
+        dataset: xr.Dataset,
+        prediction_run: PredictionModelRunTimestamp,
+        grib_info: ModelRunInfo,
+        session: Session,
+    ):
         for station in self.stations:
             prediction = (
                 session.query(ModelRunPrediction)
@@ -148,7 +177,12 @@ class HerbieGribProcessor:
             return renamed_dataset
 
     def get_stations_dataframe(self):
-        stations_df = pd.DataFrame([station.model_dump(include={"code", "name", "lat", "long"}) for station in self.stations]).rename(columns={"lat": "latitude", "long": "longitude"})
+        stations_df = pd.DataFrame(
+            [
+                station.model_dump(include={"code", "name", "lat", "long"})
+                for station in self.stations
+            ]
+        ).rename(columns={"lat": "latitude", "long": "longitude"})
 
         stations_df[["longitude", "latitude"]] = stations_df.apply(
             lambda row: self.geo_to_raster_transformer.transform(row["longitude"], row["latitude"]),
@@ -158,7 +192,9 @@ class HerbieGribProcessor:
         return stations_df
 
     def set_transformer(self, herbie_instance: Herbie):
-        grib = herbie_instance.download(TEMP, verbose=False, save_dir=self.working_dir)  # Any variable can be used to get the model projection
+        grib = herbie_instance.download(
+            TEMP, verbose=False, save_dir=self.working_dir
+        )  # Any variable can be used to get the model projection
         dataset = gdal.Open(grib)
 
         wkt = dataset.GetProjection()
