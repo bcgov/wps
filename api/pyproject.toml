@@ -71,7 +71,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.ruff]
 exclude = ["app/tests/fba_calc/test_fba_error_redapp.py"]
-per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" = [
+lint.per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" = [
     "E501",
 ], "alembic/versions/39806f02cdec_wfwx_update_date_part_of_unique_.py" = [
     "E501",
@@ -99,4 +99,4 @@ per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" =
     "F811",
 ] }
 line-length = 185
-ignore = ["E712", "F401"]
+lint.ignore = ["E712", "F401"]
