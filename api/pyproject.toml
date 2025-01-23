@@ -3,6 +3,7 @@ name = "wps-api"
 version = "0.1.0"
 description = "Wildfire Predictive Services Unit API"
 authors = ["Sybrand Strauss <sybrand.strauss@gov.bc.ca>"]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.12.3"
@@ -24,7 +25,7 @@ scipy = "^1"
 geoalchemy2 = "^0"
 aiofiles = "^24.0.0"
 jinja2 = "^3"
-numpy = "^1.21.1"
+numpy = "2.1"
 aiobotocore = "^2.0.0"
 rpy2 = "^3.4.5"
 redis = "^5.0.0"
@@ -42,7 +43,7 @@ httpx = "^0.27.0"
 orjson = "^3.9.0"
 greenlet = "^3.0.0"
 sentry-sdk = { extras = ["fastapi"], version = "^2.0.1" }
-numba = "^0.59.1"
+numba = "0.61"
 cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307" }
 geopandas = "^1.0.1"
 shapely = "^2.0.5"
@@ -70,7 +71,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.ruff]
 exclude = ["app/tests/fba_calc/test_fba_error_redapp.py"]
-per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" = [
+lint.per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" = [
     "E501",
 ], "alembic/versions/39806f02cdec_wfwx_update_date_part_of_unique_.py" = [
     "E501",
@@ -98,4 +99,4 @@ per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" =
     "F811",
 ] }
 line-length = 185
-ignore = ["E712", "F401"]
+lint.ignore = ["E712", "F401"]
