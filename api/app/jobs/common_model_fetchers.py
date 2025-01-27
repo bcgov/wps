@@ -5,6 +5,7 @@ import requests
 import numpy
 from datetime import datetime, timedelta, timezone
 from pyproj import Geod
+import numpy as np
 from sqlalchemy.orm import Session
 from app.db.crud.weather_models import (
     get_processed_file_record,
@@ -277,7 +278,7 @@ class ModelValueProcessor:
         if prediction.apcp_sfc_0 is None:
             station_prediction.apcp_sfc_0 = 0.0
         else:
-            station_prediction.apcp_sfc_0 = prediction.apcp_sfc_0
+            station_prediction.apcp_sfc_0 = prediction.apcp_sfc_0.item() if isinstance(prediction.apcp_sfc_0, np.float64) else prediction.apcp_sfc_0
         # Calculate the delta_precipitation and 24 hour precip based on station's previous prediction_timestamp
         # for the same model run
         self.session.flush()
