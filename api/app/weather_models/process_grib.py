@@ -2,7 +2,6 @@
 
 from datetime import datetime
 import math
-import struct
 import logging
 import logging.config
 from typing import List, Tuple, Optional
@@ -10,6 +9,7 @@ from sqlalchemy.orm import Session
 from osgeo import gdal
 from pyproj import CRS, Transformer
 from affine import Affine
+import numpy as np
 from app.geospatial import NAD83_CRS
 from app.stations import get_stations_synchronously
 from app.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp
@@ -192,6 +192,7 @@ class GribFileProcessor:
             prediction.station_code = station_code
 
         variable_name = self.get_variable_name(grib_info)
+        value = value.item() if isinstance(value, np.float64) else value
         setattr(prediction, variable_name, value)
         session.add(prediction)
         session.commit()
