@@ -14,10 +14,10 @@ mock_station = WFWXWeatherStation(wfwx_id="bb7cb089-286a-4734-e053-1d09228eeca8"
 
 
 def test_check_station_valid():
-    with open(dailies_fixture, "r") as dailies:
+    with open(dailies_fixture, "r") as dailies, open(hourlies_fixture, "r") as hourlies:
         raw_dailies = json.load(dailies)["_embedded"]["dailies"]
         dailies_by_station_id = {raw_dailies[0]["stationId"]: raw_dailies[0]}
-        hourlies_by_station_code = {raw_dailies[0]["stationData"]["stationCode"]: []}
+        hourlies_by_station_code = json.load(hourlies)
         assert (
             check_station_valid(
                 mock_station,
@@ -39,12 +39,12 @@ def test_check_station_invalid_missing_indices(index_key):
 
     :param index_key: DMC, DC or FFMC key for WF1 daily
     """
-    with open(dailies_fixture, "r") as dailies:
+    with open(dailies_fixture, "r") as dailies, open(hourlies_fixture, "r") as hourlies:
         raw_dailies = json.load(dailies)["_embedded"]["dailies"]
         daily = raw_dailies[0]
         daily[index_key] = None
         dailies_by_station_id = {raw_dailies[0]["stationId"]: daily}
-        hourlies_by_station_code = {raw_dailies[0]["stationData"]["stationCode"]: []}
+        hourlies_by_station_code = json.load(hourlies)
         assert (
             check_station_valid(
                 mock_station,
@@ -61,9 +61,8 @@ def test_check_station_invalid_missing_daily():
     When a station daily is missing for a station it is invalid
     """
     with open(hourlies_fixture, "r") as hourlies:
-        raw_hourlies = json.load(hourlies)["_embedded"]["hourlies"]
         dailies_by_station_id = {}
-        hourlies_by_station_code = {raw_hourlies[0]["stationData"]["stationCode"]: raw_hourlies[0]}
+        hourlies_by_station_code = json.load(hourlies)
         assert (
             check_station_valid(
                 mock_station,
