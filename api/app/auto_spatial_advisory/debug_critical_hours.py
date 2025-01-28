@@ -42,11 +42,11 @@ async def calculate_critical_hours():
     critical_hours_inputs = zone_critical_hours.critical_hours_inputs
 
     # this object contain the previously calculated and saved results
-    critical_hours_by_zone_and_fuel_type = zone_critical_hours.critical_hours_by_zone_and_fuel_type
-    previous_zone_results = critical_hours_by_zone_and_fuel_type[ZONE_NUMBER]
+    # critical_hours_by_zone_and_fuel_type = zone_critical_hours.critical_hours_by_zone_and_fuel_type
+    # previous_zone_results = critical_hours_by_zone_and_fuel_type[ZONE_NUMBER]
 
     # start debugging
-    critical_hours_by_fuel_type = calculate_critical_hours_by_fuel_type(wfwx_stations, critical_hours_inputs, fuel_types_by_area, for_date)
+    calculate_critical_hours_by_fuel_type(wfwx_stations, critical_hours_inputs, fuel_types_by_area, for_date)
 
 
 if __name__ == "__main__":
