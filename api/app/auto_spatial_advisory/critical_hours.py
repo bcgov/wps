@@ -171,9 +171,7 @@ async def apply_retention_policy(client: AioBaseClient, bucket: str):
                     for obj in res_objects["Contents"]:
                         s3_key = obj["Key"]
                         await client.delete_object(Bucket=bucket, Key=s3_key)
-                print(f"Deleted folder {folder_name}")
-    else:
-        print("No folders found")
+                logger.info(f"Deleted folder {folder_name}")
 
 
 def calculate_wind_speed_result(yesterday: dict, raw_daily: dict) -> WindResult:
@@ -448,9 +446,12 @@ async def store_critical_hours_inputs_outputs(data: dict, for_date: date, run_pa
 
         json_data = json.dumps(to_jsonable_python(data), indent=2)
 
+        key = f"critical_hours/{for_date.isoformat()}/{run_parameters_id}_critical_hours.json"
+        logger.info(f"Writing {key} to s3")
+
         await client.put_object(
             Bucket=bucket,
-            Key=f"critical_hours/{for_date.isoformat()}/{run_parameters_id}_critical_hours.json",
+            Key=key,
             Body=io.BytesIO(json_data.encode("utf-8")),
         )
 
