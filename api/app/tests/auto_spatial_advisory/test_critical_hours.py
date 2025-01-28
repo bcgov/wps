@@ -10,7 +10,7 @@ from app.wildfire_one.schema_parsers import WFWXWeatherStation
 dirname = os.path.dirname(__file__)
 dailies_fixture = os.path.join(dirname, "wf1-dailies.json")
 hourlies_fixture = os.path.join(dirname, "wf1-hourlies.json")
-mock_station = WFWXWeatherStation(wfwx_id="bb7cb089-286a-4734-e053-1d09228eeca8", code=169, name="UPPER FULTON", latitude=55.03395, longitude=-126.799667, elevation=900, zone_code=45)
+mock_station = WFWXWeatherStation(wfwx_id="bb7cb089-286a-4734-e053-1d09228eeca8", code=169, name="UPPER FULTON", latitude=55.03395, longitude=-126.799667, elevation=900, zone_code="45")
 
 
 def test_check_station_valid():

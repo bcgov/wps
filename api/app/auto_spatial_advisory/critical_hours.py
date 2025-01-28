@@ -1,18 +1,23 @@
 import argparse
 import asyncio
-from collections import defaultdict
-from datetime import date, datetime, timedelta
-import math
-from typing import Dict, List, Tuple, Any
-import numpy as np
-import os
-import sys
-from time import perf_counter
 import logging
-from dataclasses import dataclass
+import math
+import os
+import io
+import json
+import sys
+from collections import defaultdict
+from datetime import date, datetime, timedelta, timezone
+from time import perf_counter
+from typing import Any, Dict, List, Tuple
+
+import numpy as np
 from aiohttp import ClientSession
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from aiobotocore.client import AioBaseClient
+
 from app import configure_logging
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.crud.auto_spatial_advisory import (
@@ -33,23 +38,32 @@ from app.schemas.fba_calc import CriticalHoursHFI, WindResult
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.stations import get_stations_asynchronously
 from app.utils.geospatial import PointTransformer
+from app.utils.s3 import get_client
 from app.utils.time import get_hour_20_from_date, get_julian_date
 from app.wildfire_one import wfwx_api
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
+from pydantic_core import to_jsonable_python
 
 logger = logging.getLogger(__name__)
 
+DAYS_TO_RETAIN = 21
 
-@dataclass(frozen=True)
-class CriticalHoursInputs:
+
+class CriticalHoursInputs(BaseModel):
     """
-    Encapsulates the dailies, yesterday dailies and hourlies for a set of stations required for calculating critical hours.
-    Since daily data comes from WF1 as JSON, we treat the values as Any types for now.
+    Encapsulates the dailies, yesterday dailies, and hourlies for a set of stations required for calculating critical hours.
     """
 
     dailies_by_station_id: Dict[str, Any]
     yesterday_dailies_by_station_id: Dict[str, Any]
     hourly_observations_by_station_code: Dict[int, WeatherStationHourlyReadings]
+
+
+class CriticalHoursInputOutput(BaseModel):
+    fuel_types_by_area: Dict[str, float]
+    wfwx_stations: List[WFWXWeatherStation]
+    critical_hours_inputs: CriticalHoursInputs
+    critical_hours_by_zone_and_fuel_type: Dict[int, Dict[str, List]]
 
 
 def determine_start_time(times: list[float]) -> float:
@@ -130,6 +144,36 @@ async def save_critical_hours(db_session: AsyncSession, zone_unit_id: int, criti
         )
         critical_hours_to_save.append(critical_hours_record)
     await save_all_critical_hours(db_session, critical_hours_to_save)
+
+
+async def apply_retention_policy(client: AioBaseClient, bucket: str):
+    today = datetime.now(timezone.utc).date()
+    retention_date = today - timedelta(days=DAYS_TO_RETAIN)
+
+    prefix = "critical_hours/"
+
+    res = await client.list_objects_v2(Bucket=bucket, Prefix=prefix, Delimiter="/")
+
+    if "CommonPrefixes" in res:
+        for folder in res["CommonPrefixes"]:
+            folder_name = folder["Prefix"].split("/")[-2]  # folder name (YYYY-MM-DD)
+
+            try:
+                folder_date = datetime.strptime(folder_name, "%Y-%m-%d").date()
+            except ValueError:
+                continue
+
+            # Check if the folder is older than 14 days
+            if folder_date < retention_date:
+                # Delete the objects in this folder
+                res_objects = await client.list_objects_v2(Bucket=bucket, Prefix=folder["Prefix"])
+                if "Contents" in res_objects:
+                    for obj in res_objects["Contents"]:
+                        s3_key = obj["Key"]
+                        await client.delete_object(Bucket=bucket, Key=s3_key)
+                print(f"Deleted folder {folder_name}")
+    else:
+        print("No folders found")
 
 
 def calculate_wind_speed_result(yesterday: dict, raw_daily: dict) -> WindResult:
@@ -368,6 +412,7 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
     :param for_date: The date critical hours are being calculated for.
     """
     critical_hours_by_zone_and_fuel_type = defaultdict(str, defaultdict(list))
+    critical_hours_inputs_by_zone = {}
     for zone_key in stations_by_zone.keys():
         advisory_fuel_stats = await get_fuel_type_stats_in_advisory_area(db_session, zone_key, run_parameters_id)
         fuel_types_by_area = get_fuel_types_by_area(advisory_fuel_stats)
@@ -383,8 +428,31 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
         if len(critical_hours_by_fuel_type) > 0:
             critical_hours_by_zone_and_fuel_type[zone_key] = critical_hours_by_fuel_type
 
+            critical_hours_input_output = CriticalHoursInputOutput(
+                fuel_types_by_area=fuel_types_by_area,
+                wfwx_stations=wfwx_stations,
+                critical_hours_inputs=critical_hours_inputs,
+                critical_hours_by_zone_and_fuel_type=critical_hours_by_zone_and_fuel_type,
+            )
+            critical_hours_inputs_by_zone[zone_key] = critical_hours_input_output
+
+    await store_critical_hours_inputs_outputs(critical_hours_inputs_by_zone, for_date, run_parameters_id)
+
     for zone_id, critical_hours_by_fuel_type in critical_hours_by_zone_and_fuel_type.items():
         await save_critical_hours(db_session, zone_id, critical_hours_by_fuel_type, run_parameters_id)
+
+
+async def store_critical_hours_inputs_outputs(data: dict, for_date: date, run_parameters_id: int):
+    async with get_client() as (client, bucket):
+        await apply_retention_policy(client, bucket)
+
+        json_data = json.dumps(to_jsonable_python(data), indent=2)
+
+        await client.put_object(
+            Bucket=bucket,
+            Key=f"critical_hours/{for_date.isoformat()}/{run_parameters_id}_critical_hours.json",
+            Body=io.BytesIO(json_data.encode("utf-8")),
+        )
 
 
 async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, for_date: date):
