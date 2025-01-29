@@ -31,13 +31,13 @@ class WF1RecordTypeEnum(enum.Enum):
 class WFWXWeatherStation(BaseModel):
     """A WFWX station includes a code and WFWX API-specific ID"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True)  # allows populating by alias name
 
     wfwx_id: str
     code: int
     name: str
-    lat: float = Field(..., alias="latitude")
-    long: float = Field(..., alias="longitude")
+    lat: float = Field(alias="latitude")
+    long: float = Field(alias="longitude")
     elevation: int
     zone_code: Optional[str]
 

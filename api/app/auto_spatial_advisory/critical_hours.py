@@ -410,7 +410,7 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
     :param for_date: The date critical hours are being calculated for.
     """
     critical_hours_by_zone_and_fuel_type = defaultdict(str, defaultdict(list))
-    critical_hours_inputs_by_zone = {}
+    critical_hours_inputs_by_zone: Dict[int, CriticalHoursInputOutput] = {}
     for zone_key in stations_by_zone.keys():
         advisory_fuel_stats = await get_fuel_type_stats_in_advisory_area(db_session, zone_key, run_parameters_id)
         fuel_types_by_area = get_fuel_types_by_area(advisory_fuel_stats)
@@ -440,20 +440,22 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
         await save_critical_hours(db_session, zone_id, critical_hours_by_fuel_type, run_parameters_id)
 
 
-async def store_critical_hours_inputs_outputs(data: dict, for_date: date, run_parameters_id: int):
+async def store_critical_hours_inputs_outputs(critical_hours_data: Dict[int, CriticalHoursInputOutput], for_date: date, run_parameters_id: int):
     async with get_client() as (client, bucket):
         await apply_retention_policy(client, bucket)
 
-        json_data = json.dumps(to_jsonable_python(data), indent=2)
+        if critical_hours_data:
+            json_data = json.dumps(to_jsonable_python(critical_hours_data), indent=2)
 
-        key = f"critical_hours/{for_date.isoformat()}/{run_parameters_id}_critical_hours.json"
-        logger.info(f"Writing {key} to s3")
+            # json input/output stored by {for_date}/{run_parameter_id}_critical_hours.json
+            key = f"critical_hours/{for_date.isoformat()}/{run_parameters_id}_critical_hours.json"
 
-        await client.put_object(
-            Bucket=bucket,
-            Key=key,
-            Body=io.BytesIO(json_data.encode("utf-8")),
-        )
+            logger.info(f"Writing {key} to s3")
+            await client.put_object(
+                Bucket=bucket,
+                Key=key,
+                Body=io.BytesIO(json_data.encode("utf-8")),
+            )
 
 
 async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, for_date: date):

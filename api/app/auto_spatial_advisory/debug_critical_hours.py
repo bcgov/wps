@@ -8,7 +8,7 @@ from app.auto_spatial_advisory.critical_hours import CriticalHoursInputOutput, c
 from app.utils.s3 import get_client, object_exists_v2
 
 
-class CriticalHoursByZoneAndFuelTypeWrapper(BaseModel):
+class CriticalHoursIOByZone(BaseModel):
     critical_hours_by_zone: Dict[int, CriticalHoursInputOutput]
 
 
@@ -27,26 +27,27 @@ async def get_json_from_s3():
             res = await client.get_object(Bucket=bucket, Key=key)
             body = await res["Body"].read()
             json_content = json.loads(body.decode("utf-8"))
-            critical_hours = CriticalHoursByZoneAndFuelTypeWrapper(critical_hours_by_zone=json_content)
-            return critical_hours.critical_hours_by_zone
+            critical_hours_io = CriticalHoursIOByZone(critical_hours_by_zone=json_content)
+            return critical_hours_io.critical_hours_by_zone
         else:
             print("Critical hours json not found")
 
 
 async def calculate_critical_hours():
-    critical_hours = await get_json_from_s3()
-    zone_critical_hours = critical_hours[ZONE_NUMBER]
+    critical_hours_io = await get_json_from_s3()
+    if critical_hours_io:
+        zone_critical_hours = critical_hours_io[ZONE_NUMBER]
 
-    wfwx_stations = zone_critical_hours.wfwx_stations
-    fuel_types_by_area = zone_critical_hours.fuel_types_by_area
-    critical_hours_inputs = zone_critical_hours.critical_hours_inputs
+        wfwx_stations = zone_critical_hours.wfwx_stations
+        fuel_types_by_area = zone_critical_hours.fuel_types_by_area
+        critical_hours_inputs = zone_critical_hours.critical_hours_inputs
 
-    # this object contain the previously calculated and saved results
-    # critical_hours_by_zone_and_fuel_type = zone_critical_hours.critical_hours_by_zone_and_fuel_type
-    # previous_zone_results = critical_hours_by_zone_and_fuel_type[ZONE_NUMBER]
+        # this object contain the previously calculated and saved results
+        # critical_hours_by_zone_and_fuel_type = zone_critical_hours.critical_hours_by_zone_and_fuel_type
+        # previous_zone_results = critical_hours_by_zone_and_fuel_type[ZONE_NUMBER]
 
-    # start debugging
-    calculate_critical_hours_by_fuel_type(wfwx_stations, critical_hours_inputs, fuel_types_by_area, for_date)
+        # start debugging
+        calculate_critical_hours_by_fuel_type(wfwx_stations, critical_hours_inputs, fuel_types_by_area, for_date)
 
 
 if __name__ == "__main__":
