@@ -18,6 +18,7 @@ import {
   fireShapeLineStyler,
   fireShapeLabelStyler,
   fireCentreLineStyler,
+  hfiStyler,
 } from "@/featureStylers";
 import { DateTime } from "luxon";
 import { PMTILES_BUCKET } from "utils/env";
@@ -28,6 +29,9 @@ import ScalebarContainer from "@/ScaleBarContainer";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import { CENTER_OF_BC } from "@/utils/constants";
 import { extentsMap } from "@/fireCentreExtents";
+import { PMTilesFileVectorSource } from "@/utils/pmtiles";
+import { PMTilesCache } from "@/utils/PMTilesCache";
+import { Filesystem } from "@capacitor/filesystem";
 export const MapContext = React.createContext<Map | null>(null);
 
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
@@ -48,16 +52,6 @@ export interface FBAMapProps {
     React.SetStateAction<"fireCenter" | "fireShape" | undefined>
   >;
 }
-
-// const removeLayerByName = (map: Map, layerName: string) => {
-//   const layer = map
-//     .getLayers()
-//     .getArray()
-//     .find((l) => l.getProperties()?.name === layerName);
-//   if (layer) {
-//     map.removeLayer(layer);
-//   }
-// };
 
 const FBAMap = (props: FBAMapProps) => {
   const [showShapeStatus] = useState(true);
@@ -82,27 +76,6 @@ const FBAMap = (props: FBAMapProps) => {
   const fireShapeLabelVectorSource = new PMTilesVectorSource({
     url: `${PMTILES_BUCKET}fireZoneUnitLabels.pmtiles`,
   });
-
-  // const handleToggleLayer = (layerName: string, isVisible: boolean) => {
-  //   if (map) {
-  //     const layer = map
-  //       .getLayers()
-  //       .getArray()
-  //       .find((l) => l.getProperties()?.name === layerName);
-
-  //     if (layerName === "fireShapeVector") {
-  //       fireShapeVTL.setStyle(
-  //         fireShapeStyler(
-  //           cloneDeep(props.fireShapeAreas),
-  //           props.advisoryThreshold,
-  //           isVisible
-  //         )
-  //       );
-  //     } else if (layer) {
-  //       layer.setVisible(isVisible);
-  //     }
-  //   }
-  // };
 
   const [fireCentreVTL] = useState(
     new VectorTileLayer({
@@ -260,33 +233,6 @@ const FBAMap = (props: FBAMapProps) => {
     props.advisoryThreshold,
   ]);
 
-  // useEffect(() => {
-  //   if (!map) return;
-  //   const layerName = "hfiVector";
-  //   removeLayerByName(map, layerName);
-  //   if (!isNull(mostRecentRunDate)) {
-  //     // The runDate for forecasts is the mostRecentRunDate. For Actuals, our API expects the runDate to be
-  //     // the same as the forDate.
-  //     const runDate =
-  //       props.runType === RunType.FORECAST
-  //         ? DateTime.fromISO(mostRecentRunDate)
-  //         : props.forDate;
-  //     const hfiSource = new PMTilesVectorSource({
-  //       url: buildPMTilesURL(props.forDate, props.runType, runDate),
-  //     });
-
-  //     const latestHFILayer = new VectorTileLayer({
-  //       source: hfiSource,
-  //       style: hfiStyler,
-  //       zIndex: 100,
-  //       minZoom: 4,
-  //       properties: { name: layerName },
-  //       visible: showHFI,
-  //     });
-  //     map.addLayer(latestHFILayer);
-  //   }
-  // }, [showHFI, mostRecentRunDate]); // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
     // return statement of which this map's target is set to.
@@ -306,8 +252,6 @@ const FBAMap = (props: FBAMapProps) => {
         new TileLayer({
           source: baseMapSource,
         }),
-        fireCentreVTL,
-        fireCentreLineVTL,
         fireShapeVTL,
         fireShapeHighlightVTL,
         fireCentreLabelVTL,
@@ -329,29 +273,31 @@ const FBAMap = (props: FBAMapProps) => {
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] });
 
     setMap(mapObject);
+
+    const load = async () => {
+      const fireCentreFileVectorSource = await PMTilesFileVectorSource.create(
+        new PMTilesCache(Filesystem),
+        {
+          filename: "hfi.pmtiles",
+          for_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
+          run_type: RunType.FORECAST,
+          run_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
+        }
+      );
+      if (mapObject) {
+        const fileLayer = new VectorTileLayer({
+          source: fireCentreFileVectorSource,
+          style: hfiStyler,
+          zIndex: 52,
+        });
+        mapObject.addLayer(fileLayer);
+      }
+    };
+    load();
     return () => {
       mapObject.setTarget("");
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // useEffect(() => {
-  //   const stationsSource = new VectorSource({
-  //     features: new GeoJSON().readFeatures(
-  //       { type: "FeatureCollection", features: stations },
-  //       {
-  //         featureProjection: "EPSG:3857",
-  //       }
-  //     ),
-  //   });
-  //   const stationsLayer = new VectorLayer({
-  //     source: stationsSource,
-  //     minZoom: 6,
-  //     style: stationStyler,
-  //     zIndex: 51,
-  //   });
-
-  //   map?.addLayer(stationsLayer);
-  // }, [stations]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <MapContext.Provider value={map}>

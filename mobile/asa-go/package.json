@@ -10,9 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@capacitor/android": "^7.0.0",
+    "@capacitor/android": "7.0.0",
     "@capacitor/app": "7.0.0",
     "@capacitor/core": "7.0.0",
+    "@capacitor/filesystem": "^7.0.0",
     "@capacitor/haptics": "7.0.0",
     "@capacitor/ios": "7.0.0",
     "@capacitor/keyboard": "7.0.0",
@@ -27,6 +28,7 @@
     "luxon": "^3.5.0",
     "ol": "^10.3.1",
     "ol-pmtiles": "^2.0.0",
+    "pmtiles": "^4.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

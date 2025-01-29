@@ -84,9 +84,9 @@
     "@babel/helper-string-parser" "^7.25.9"
     "@babel/helper-validator-identifier" "^7.25.9"
 
-"@capacitor/android@^7.0.0":
+"@capacitor/android@7.0.0":
   version "7.0.0"
-  resolved "https://registry.npmjs.org/@capacitor/android/-/android-7.0.0.tgz"
+  resolved "https://registry.yarnpkg.com/@capacitor/android/-/android-7.0.0.tgz#232439e19c037301fa0a49a20675325d4929469a"
   integrity sha512-T7WMJPGlzEzNFI3s3lA8F2H6XyYzQM8OwgIfPKOAbawc6Fq669ABKIpfNPzsQHR1kVxH3cMHYSkDaPMgJyDdXQ==
 
 "@capacitor/app@7.0.0":
@@ -123,6 +123,11 @@
   integrity sha512-JMJxPi/tHeOR/I87/P0kc1DUKrj+XfXlYTnNZ8sCp4LA/MPLkTOzpZm3cga7fTY0nWaSqLll2xalrC0psQBfuA==
   dependencies:
     tslib "^2.1.0"
+
+"@capacitor/filesystem@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/filesystem/-/filesystem-7.0.0.tgz#3823c5a63dfa2992db401832db1dbe6063f1b1a7"
+  integrity sha512-xMzLq+ZaqYBAincYOKF1eNy/3UWwx1XM6TuvWBTVQTHeRsURzqwwbqBKtfkhbRzk5wnXEprWZz5k5iFo2s2BXw==
 
 "@capacitor/haptics@7.0.0":
   version "7.0.0"
@@ -2178,7 +2183,7 @@ plist@^3.1.0:
 
 pmtiles@^4.2.1:
   version "4.2.1"
-  resolved "https://registry.npmjs.org/pmtiles/-/pmtiles-4.2.1.tgz"
+  resolved "https://registry.yarnpkg.com/pmtiles/-/pmtiles-4.2.1.tgz#e403e018cafd91ed573c7aa3defd800a236f2012"
   integrity sha512-Z73aph49f7KpU7JPb+zDWr+62wPv9jF3p+tvvL26/XeECnzUHnQ0nGopXGPYnq+OQXqyaXZPrsNdKxSD+2HlLA==
   dependencies:
     fflate "^0.8.2"
@@ -2608,7 +2613,7 @@ util-deprecate@^1.0.1:
   resolved "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz"
   integrity sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==
 
-vite@^6.0.9:
+vite@^6.0.5:
   version "6.0.11"
   resolved "https://registry.yarnpkg.com/vite/-/vite-6.0.11.tgz#224497e93e940b34c3357c9ebf2ec20803091ed8"
   integrity sha512-4VL9mQPKoHy4+FE0NnRE/kbY51TOfaknxAjt3fJbGJxhIpBZiqVzlZDEesWWsuREXHwNdAoOFZ9MkPEVXczHwg==
