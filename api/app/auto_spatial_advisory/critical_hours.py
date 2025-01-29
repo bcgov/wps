@@ -52,6 +52,7 @@ DAYS_TO_RETAIN = 21
 class CriticalHoursInputs(BaseModel):
     """
     Encapsulates the dailies, yesterday dailies, and hourlies for a set of stations required for calculating critical hours.
+    Since daily data comes from WF1 as JSON, we treat the values as Any types for now.
     """
 
     dailies_by_station_id: Dict[str, Any]
@@ -163,7 +164,6 @@ async def apply_retention_policy(client: AioBaseClient, bucket: str):
             except ValueError:
                 continue
 
-            # Check if the folder is older than 14 days
             if folder_date < retention_date:
                 # Delete the objects in this folder
                 res_objects = await client.list_objects_v2(Bucket=bucket, Prefix=folder["Prefix"])
