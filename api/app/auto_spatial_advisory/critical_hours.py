@@ -445,17 +445,20 @@ async def store_critical_hours_inputs_outputs(critical_hours_data: Dict[int, Cri
         await apply_retention_policy(client, bucket)
 
         if critical_hours_data:
-            json_data = json.dumps(to_jsonable_python(critical_hours_data), indent=2)
+            try:
+                json_data = json.dumps(to_jsonable_python(critical_hours_data), indent=2)
 
-            # json input/output stored by {for_date}/{run_parameter_id}_critical_hours.json
-            key = f"critical_hours/{for_date.isoformat()}/{run_parameters_id}_critical_hours.json"
+                # json input/output stored by {for_date}/{run_parameter_id}_critical_hours.json
+                key = f"critical_hours/{for_date.isoformat()}/{run_parameters_id}_critical_hours.json"
 
-            logger.info(f"Writing {key} to s3")
-            await client.put_object(
-                Bucket=bucket,
-                Key=key,
-                Body=io.BytesIO(json_data.encode("utf-8")),
-            )
+                logger.info(f"Writing {key} to s3")
+                await client.put_object(
+                    Bucket=bucket,
+                    Key=key,
+                    Body=io.BytesIO(json_data.encode("utf-8")),
+                )
+            except Exception as e:
+                logger.error(f"Error converting critical hours data to json - {e}")
 
 
 async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, for_date: date):
