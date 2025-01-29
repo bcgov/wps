@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aiobotocore.client import AioBaseClient
 
 from app import configure_logging
+from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.crud.auto_spatial_advisory import (
     get_all_sfms_fuel_type_records,
@@ -65,6 +66,10 @@ class CriticalHoursInputOutput(BaseModel):
     wfwx_stations: List[WFWXWeatherStation]
     critical_hours_inputs: CriticalHoursInputs
     critical_hours_by_zone_and_fuel_type: Dict[int, Dict[str, List]]
+
+
+class CriticalHoursIOByZone(BaseModel):
+    critical_hours_by_zone: Dict[int, CriticalHoursInputOutput]
 
 
 def determine_start_time(times: list[float]) -> float:
@@ -508,7 +513,22 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
 async def start_critical_hours(args: argparse.Namespace):
     async with get_async_write_session_scope() as db_session:
         run_parameters = await get_run_parameters_by_id(db_session, int(args.run_parameters_id))
-        await calculate_critical_hours(run_parameters[0].run_type, run_parameters[0].run_datetime, run_parameters[0].for_date)
+
+        if not run_parameters:
+            return
+
+        critical_hours_json = await get_critical_hours_json_from_s3(run_parameters)
+        if not critical_hours_json:
+            await calculate_critical_hours(run_parameters[0].run_type, run_parameters[0].run_datetime, run_parameters[0].for_date)
+            return
+
+        critical_hours_data = CriticalHoursIOByZone(critical_hours_by_zone=critical_hours_json).critical_hours_by_zone
+        zones = [int(args.fire_zone)] if args.fire_zone else critical_hours_data.keys()
+
+        for zone in zones:
+            zone_data = critical_hours_data.get(zone)
+            if zone_data:
+                calculate_critical_hours_by_fuel_type(zone_data.wfwx_stations, zone_data.critical_hours_inputs, zone_data.fuel_types_by_area, run_parameters[0].for_date)
 
 
 def main():
@@ -517,6 +537,7 @@ def main():
         logger.debug("Begin calculating critical hours.")
         parser = argparse.ArgumentParser(description="Process critical hours from command line")
         parser.add_argument("-r", "--run_parameters_id", help="The id of the run parameters of interest from the run_parameters table")
+        parser.add_argument("-z", "--fire_zone", help="Fire zone to process if there is data stored in s3")
         args = parser.parse_args()
 
         loop = asyncio.new_event_loop()
