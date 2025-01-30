@@ -2,11 +2,11 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FireZoneTPIStats, getFireCentreTPIStats, RunType } from 'api/fbaAPI'
+import { FireCentreTPIResponse, FireZoneTPIStats, getFireCentreTPIStats, RunType } from 'api/fbaAPI'
 
 export interface CentreTPIStatsState {
   error: string | null
-  fireCentreTPIStats: Record<string, FireZoneTPIStats[]> | null
+  fireCentreTPIStats: FireCentreTPIResponse | null
 }
 
 export const initialState: CentreTPIStatsState = {
@@ -24,10 +24,11 @@ const fireCentreTPIStatsSlice = createSlice({
     },
     getFireCentreTPIStatsFailed(state: CentreTPIStatsState, action: PayloadAction<string>) {
       state.error = action.payload
+      state.fireCentreTPIStats = null
     },
     getFireCentreTPIStatsSuccess(
       state: CentreTPIStatsState,
-      action: PayloadAction<Record<string, FireZoneTPIStats[]>>
+      action: PayloadAction<FireCentreTPIResponse>
     ) {
       state.error = null
       state.fireCentreTPIStats = action.payload

@@ -7,7 +7,7 @@ import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitS
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import TabPanel from 'features/fba/components/infoPanel/TabPanel'
 import { useFireCentreDetails } from 'features/fba/hooks/useFireCentreDetails'
-import { isEmpty, isNull, isUndefined } from 'lodash'
+import { isEmpty, isNil, isNull, isUndefined } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 
@@ -69,8 +69,8 @@ const FireZoneUnitTabs = ({
   }
 
   const tpiStatsArray = useMemo(() => {
-    if (selectedFireCenter) {
-      return fireCentreTPIStats?.[selectedFireCenter.name]
+    if (selectedFireCenter && !isNil(fireCentreTPIStats)) {
+      return fireCentreTPIStats?.firezone_tpi_stats
     }
   }, [fireCentreTPIStats, selectedFireCenter])
 
