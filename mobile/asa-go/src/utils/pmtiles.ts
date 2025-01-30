@@ -22,7 +22,7 @@ export type PMTilesFileVectorOptions = VectorTileSourceOptions & {
 export class PMTilesFileVectorSource extends VectorTileSource {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  pmtiles_: PMTiles;
+  private pmtiles_: PMTiles;
 
   tileLoadFunction = (tile: Tile, url: string) => {
     const vtile = tile as unknown as VectorTile;
@@ -43,7 +43,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
       .getZxy(z, x, y)
       .then((tile_result) => {
         if (tile_result) {
-          const format = new MVT(); // Create the MVT format (or use the one from the tile)
+          const format = new MVT(); // Create the MVT format
           const features = format.readFeatures(tile_result.data, {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
@@ -53,7 +53,6 @@ export class PMTilesFileVectorSource extends VectorTileSource {
             featureProjection: vtile.projection,
           });
 
-          // Set features and state to LOADED on the existing tile object
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           vtile.setFeatures(features); // Set the features on the tile (which can now handle vector data)
@@ -84,7 +83,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     super({
       ...options,
       state: "loading",
-      url: "pmtiles://{z}/{x}/{y}",
+      url: "pmtiles://{z}/{x}/{y}", // only used for parsing out the z, x, y parameters when tile loading
       format: options.format || new MVT(),
     });
   }
@@ -106,7 +105,6 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     try {
       console.log(`Attempting to read ${options.filename}`);
 
-      // Initialize PMTiles with the Object URL
       this.pmtiles_ = await pmtilesCache.load(
         options.for_date,
         options.run_type,

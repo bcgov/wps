@@ -1,6 +1,11 @@
 import { RunType } from "@/api/fbaAPI";
 import { fetchPMTiles } from "@/api/pmtilesAPI";
-import { Directory, Encoding, FilesystemPlugin } from "@capacitor/filesystem";
+import {
+  Directory,
+  Encoding,
+  FilesystemPlugin,
+  ReadFileResult,
+} from "@capacitor/filesystem";
 import { DateTime } from "luxon";
 import { FileSource, PMTiles } from "pmtiles";
 
@@ -51,6 +56,7 @@ export class PMTilesCache {
   };
 
   private readonly serialize = async (blob: Blob) => {
+    // Mobile devices require string data
     const base64Data = await this.blobToBase64(blob);
     return base64Data;
   };
@@ -65,13 +71,39 @@ export class PMTilesCache {
     run_date: DateTime,
     filename: string
   ) => {
-    await this.downloadAndStorePMTiles(for_date, run_type, run_date, filename);
-    const file = await this.fileSystem.readFile({
-      path: filename,
-      directory: Directory.Data,
-      encoding: Encoding.UTF8,
-    });
+    try {
+      const cachedFilename = `${for_date.toISODate()}_${run_type}_${run_date.toISODate()}_${filename}`;
+      const res = await this.fileSystem.stat({
+        directory: Directory.Data,
+        path: cachedFilename,
+      });
+      console.log(res);
+      const file = await this.fileSystem.readFile({
+        path: cachedFilename,
+        directory: Directory.Data,
+        encoding: Encoding.UTF8,
+      });
 
+      return this.toPMTiles(file, filename);
+    } catch (e) {
+      console.log("Error reading file, attempting to re-fetch", e);
+      await this.downloadAndStorePMTiles(
+        for_date,
+        run_type,
+        run_date,
+        filename
+      );
+      const file = await this.fileSystem.readFile({
+        path: filename,
+        directory: Directory.Data,
+        encoding: Encoding.UTF8,
+      });
+
+      return this.toPMTiles(file, filename);
+    }
+  };
+
+  private toPMTiles(file: ReadFileResult, filename: string) {
     const deserialized = this.deserialize(file.data as string);
 
     // Initialize PMTiles with local blob
@@ -79,5 +111,5 @@ export class PMTilesCache {
       new FileSource(new File([deserialized], filename))
     );
     return pmtiles;
-  };
+  }
 }
