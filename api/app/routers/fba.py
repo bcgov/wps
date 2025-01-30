@@ -27,7 +27,6 @@ from app.schemas.fba import (
     FireCentreTPIResponse,
     FireShapeAreaListResponse,
     FireShapeArea,
-    FireZoneTPIArea,
     FireZoneTPIStats,
     SFMSFuelType,
     HfiThreshold,
