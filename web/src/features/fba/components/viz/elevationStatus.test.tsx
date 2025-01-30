@@ -5,7 +5,17 @@ import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 describe('ElevationStatus', () => {
   it('should render all classifications and svg', () => {
     const { getByTestId } = render(
-      <ElevationStatus tpiStats={{ fire_zone_id: 1, valley_bottom: 0, mid_slope: 1, upper_slope: 2 }} />
+      <ElevationStatus
+        tpiStats={{
+          fire_zone_id: 1,
+          valley_bottom_hfi: 0,
+          valley_bottom_tpi: 10,
+          mid_slope_hfi: 1,
+          mid_slope_tpi: 3,
+          upper_slope_hfi: 2,
+          upper_slope_tpi: 3
+        }}
+      />
     )
 
     const tpiMountain = getByTestId('tpi-mountain')
@@ -26,7 +36,17 @@ describe('ElevationStatus', () => {
 
   it('should render all zero classifications', () => {
     const { getByTestId } = render(
-      <ElevationStatus tpiStats={{ fire_zone_id: 1, valley_bottom: 0, mid_slope: 0, upper_slope: 0 }} />
+      <ElevationStatus
+        tpiStats={{
+          fire_zone_id: 1,
+          valley_bottom_hfi: 0,
+          mid_slope_hfi: 0,
+          upper_slope_hfi: 0,
+          valley_bottom_tpi: 1,
+          mid_slope_tpi: 1,
+          upper_slope_tpi: 1
+        }}
+      />
     )
 
     const valleyBottom = getByTestId('valley-bottom')
