@@ -29,7 +29,7 @@ import ScalebarContainer from "@/ScaleBarContainer";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import { CENTER_OF_BC } from "@/utils/constants";
 import { extentsMap } from "@/fireCentreExtents";
-import { PMTilesFileVectorSource } from "@/utils/pmtiles";
+import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
 import { PMTilesCache } from "@/utils/PMTilesCache";
 import { Filesystem } from "@capacitor/filesystem";
 export const MapContext = React.createContext<Map | null>(null);
@@ -275,15 +275,16 @@ const FBAMap = (props: FBAMapProps) => {
     setMap(mapObject);
 
     const load = async () => {
-      const fireCentreFileVectorSource = await PMTilesFileVectorSource.create(
-        new PMTilesCache(Filesystem),
-        {
-          filename: "hfi.pmtiles",
-          for_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
-          run_type: RunType.FORECAST,
-          run_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
-        }
-      );
+      const fireCentreFileVectorSource =
+        await PMTilesFileVectorSource.createHFILayer(
+          new PMTilesCache(Filesystem),
+          {
+            filename: "hfi.pmtiles",
+            for_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
+            run_type: RunType.FORECAST,
+            run_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
+          }
+        );
       if (mapObject) {
         const fileLayer = new VectorTileLayer({
           source: fireCentreFileVectorSource,

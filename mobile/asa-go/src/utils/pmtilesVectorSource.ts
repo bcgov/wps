@@ -11,13 +11,18 @@ import { MVT } from "ol/format";
 import { PMTilesCache } from "@/utils/PMTilesCache";
 import { DateTime } from "luxon";
 import { RunType } from "@/api/fbaAPI";
+import { isUndefined } from "lodash";
 
 export type PMTilesFileVectorOptions = VectorTileSourceOptions & {
   filename: string;
-  for_date: DateTime;
-  run_type: RunType;
-  run_date: DateTime;
 };
+
+export type HFIPMTilesFileVectorOptions = VectorTileSourceOptions &
+  PMTilesFileVectorOptions & {
+    for_date: DateTime;
+    run_type: RunType;
+    run_date: DateTime;
+  };
 
 export class PMTilesFileVectorSource extends VectorTileSource {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -89,28 +94,77 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   // Static async factory method
-  static async create(
+  static async createStaticLayer(
     pmtilesCache: PMTilesCache,
     options: PMTilesFileVectorOptions
   ) {
     const instance = new PMTilesFileVectorSource(options);
 
     // Perform asynchronous initialization (e.g., loading PMTiles)
-    await instance.init(pmtilesCache, options);
+    await instance.initStaticLayer(pmtilesCache, options);
 
     return instance;
   }
 
-  async init(pmtilesCache: PMTilesCache, options: PMTilesFileVectorOptions) {
+  async initStaticLayer(
+    pmtilesCache: PMTilesCache,
+    options: PMTilesFileVectorOptions
+  ) {
     try {
       console.log(`Attempting to read ${options.filename}`);
 
-      this.pmtiles_ = await pmtilesCache.load(
+      const pmtiles = await pmtilesCache.loadPMTiles(options.filename);
+
+      if (!isUndefined(pmtiles)) {
+        this.pmtiles_ = pmtiles;
+      } else {
+        throw Error("Unable to initialize pmtiles");
+      }
+      const header = await this.pmtiles_.getHeader();
+
+      this.tileGrid = createXYZ({
+        maxZoom: header.maxZoom,
+        minZoom: header.minZoom,
+        tileSize: 512,
+      });
+
+      this.setTileLoadFunction(this.tileLoadFunction);
+      this.setState("ready");
+    } catch (error) {
+      console.error("Error loading PMTiles file:", error);
+      this.setState("error");
+    }
+  }
+
+  static async createHFILayer(
+    pmtilesCache: PMTilesCache,
+    options: HFIPMTilesFileVectorOptions
+  ) {
+    const instance = new PMTilesFileVectorSource(options);
+
+    await instance.initHFILayer(pmtilesCache, options);
+
+    return instance;
+  }
+
+  async initHFILayer(
+    pmtilesCache: PMTilesCache,
+    options: HFIPMTilesFileVectorOptions
+  ) {
+    try {
+      console.log(`Attempting to read ${options.filename}`);
+
+      const pmtiles = await pmtilesCache.loadHFIPMTiles(
         options.for_date,
         options.run_type,
         options.run_date,
         options.filename
       );
+      if (!isUndefined(pmtiles)) {
+        this.pmtiles_ = pmtiles;
+      } else {
+        throw Error("Unable to initialize pmtiles");
+      }
       const header = await this.pmtiles_.getHeader();
 
       this.tileGrid = createXYZ({

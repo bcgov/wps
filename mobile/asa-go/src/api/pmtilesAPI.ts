@@ -9,7 +9,7 @@ import { DateTime } from "luxon";
  * @param run_date The date of the run to process. (when was the hfi file created?)
  * @returns pmtiles blob
  */
-export const fetchPMTiles = async (
+export const fetchHFIPMTiles = async (
   for_date: DateTime,
   run_type: RunType,
   run_date: DateTime
@@ -19,6 +19,15 @@ export const fetchPMTiles = async (
       format: "basic",
     }
   )}.pmtiles`;
+
+  const response = await fetch(PMTilesURL);
+  const blob = await response.blob();
+
+  return blob;
+};
+
+export const fetchStaticPMTiles = async (filename: string): Promise<Blob> => {
+  const PMTilesURL = `${PMTILES_BUCKET}${filename}`;
 
   const response = await fetch(PMTilesURL);
   const blob = await response.blob();
