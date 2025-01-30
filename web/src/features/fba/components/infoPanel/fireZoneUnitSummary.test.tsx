@@ -4,9 +4,12 @@ import { render } from '@testing-library/react'
 
 const fireZoneTPIStats = {
   fire_zone_id: 0,
-  valley_bottom: 0,
-  mid_slope: 100,
-  upper_slope: 0
+  valley_bottom_hfi: 0,
+  valley_bottom_tpi: 0,
+  mid_slope_hfi: 100,
+  mid_slope_tpi: 100,
+  upper_slope_hfi: 0,
+  upper_slope_tpi: 0
 }
 
 describe('FireZoneUnitSummary', () => {
