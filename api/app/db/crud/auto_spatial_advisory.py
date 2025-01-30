@@ -455,9 +455,15 @@ async def get_centre_tpi_stats(session: AsyncSession, fire_centre_name: str, run
     result = await session.execute(stmt)
     return result.all()
 
+async def get_fire_zone_tpi_fuel_areas(session: AsyncSession, fire_zone_id):
+    stmt = select(TPIFuelArea).join(Shape, Shape.id == TPIFuelArea.advisory_shape_id).where(Shape.source_identifier == fire_zone_id)
+    result = await session.execute(stmt)
+    return result.all()
+
+
 async def get_fire_centre_tpi_fuel_areas(session: AsyncSession, fire_centre_name: str):
     stmt = (
-        select(TPIFuelArea, Shape.source_identifier)
+        select(TPIFuelArea.tpi_class, TPIFuelArea.fuel_area, Shape.source_identifier)
         .join(Shape, Shape.id == TPIFuelArea.advisory_shape_id)
         .join(FireCentre, FireCentre.id == Shape.fire_centre)
         .where(FireCentre.name == fire_centre_name)
