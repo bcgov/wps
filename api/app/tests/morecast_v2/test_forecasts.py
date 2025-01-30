@@ -133,8 +133,8 @@ forecast_indeterminate_2 = WeatherIndeterminate(
 )
 
 wfwx_weather_stations = [
-    WFWXWeatherStation(wfwx_id="1", code=1, name="station1", latitude=12.1, longitude=12.1, elevation=123, zone_code=1),
-    WFWXWeatherStation(wfwx_id="2", code=2, name="station2", latitude=12.2, longitude=12.2, elevation=123.2, zone_code=2),
+    WFWXWeatherStation(wfwx_id="1", code=1, name="station1", latitude=12.1, longitude=12.1, elevation=123, zone_code="1"),
+    WFWXWeatherStation(wfwx_id="2", code=2, name="station2", latitude=12.2, longitude=12.2, elevation=122, zone_code="2"),
 ]
 
 station_1_daily_from_wf1 = StationDailyFromWF1(created_by="test", forecast_id="f1", station_code=1, station_name="station1", utcTimestamp=start_time)
