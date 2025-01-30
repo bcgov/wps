@@ -68,9 +68,17 @@ export interface FireZoneElevationInfoResponse {
 
 export interface FireZoneTPIStats {
   fire_zone_id: number
-  valley_bottom?: number
-  mid_slope?: number
-  upper_slope?: number
+  valley_bottom_hfi?: number
+  valley_bottom_tpi?: number
+  mid_slope_hfi?: number
+  mid_slope_tpi?: number
+  upper_slope_hfi?: number
+  upper_slope_tpi?: number
+}
+
+export interface FireCentreTPIResponse {
+  fire_centre_name: string
+  firezone_tpi_stats: FireZoneTPIStats[]
 }
 
 export interface FireShapeAreaListResponse {
@@ -174,23 +182,12 @@ export async function getFireZoneElevationInfo(
   return data
 }
 
-export async function getFireZoneTPIStats(
-  fire_zone_id: number,
-  run_type: RunType,
-  run_datetime: string,
-  for_date: string
-): Promise<FireZoneTPIStats> {
-  const url = `fba/fire-zone-tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
-  const { data } = await axios.get(url)
-  return data
-}
-
 export async function getFireCentreTPIStats(
   fire_centre_name: string,
   run_type: RunType,
   run_datetime: string,
   for_date: string
-): Promise<Record<string, FireZoneTPIStats[]>> {
+): Promise<FireCentreTPIResponse> {
   const url = `fba/fire-centre-tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_centre_name}`
   const { data } = await axios.get(url)
   return data

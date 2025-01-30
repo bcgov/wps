@@ -20,10 +20,12 @@ interface ElevationStatusProps {
 
 const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
   const theme = useTheme()
-  const total = tpiStats.mid_slope + tpiStats.upper_slope + tpiStats.valley_bottom
-  const mid_percent = tpiStats.mid_slope === 0 ? 0 : Math.round((tpiStats.mid_slope / total) * 100)
-  const upper_percent = tpiStats.upper_slope === 0 ? 0 : Math.round((tpiStats.upper_slope / total) * 100)
-  const bottom_percent = tpiStats.valley_bottom === 0 ? 0 : Math.round((tpiStats.valley_bottom / total) * 100)
+  const mid_percent =
+    tpiStats.mid_slope_tpi === 0 ? 0 : Math.round((tpiStats.mid_slope_hfi / tpiStats.mid_slope_tpi) * 100)
+  const upper_percent =
+    tpiStats.upper_slope_tpi === 0 ? 0 : Math.round((tpiStats.upper_slope_hfi / tpiStats.upper_slope_tpi) * 100)
+  const bottom_percent =
+    tpiStats.valley_bottom_tpi === 0 ? 0 : Math.round((tpiStats.valley_bottom_hfi / tpiStats.valley_bottom_tpi) * 100)
   return (
     <Grid container xs={12} data-testid="elevation-status">
       <Grid container sx={{ height: theme.spacing(6) }} xs={12}>
