@@ -113,60 +113,6 @@ const fetchAndStoreHFIPMTiles = (
 
 export class PMTilesCache {
   constructor(private readonly fileSystem: FilesystemPlugin) {}
-  // private readonly downloadAndStorePMTiles = async (
-  //   for_date: DateTime,
-  //   run_type: RunType,
-  //   run_date: DateTime,
-  //   filename: string
-  // ) => {
-  //   try {
-  //     const blob = await fetchHFIPMTiles(for_date, run_type, run_date);
-  //     const serialized = await this.serialize(blob);
-
-  //     await this.fileSystem.writeFile({
-  //       path: filename,
-  //       data: serialized,
-  //       directory: Directory.Data,
-  //       encoding: Encoding.UTF8,
-  //     });
-
-  //     console.log(`PMTiles stored: ${filename}`);
-  //   } catch (error) {
-  //     console.error("Error storing PMTiles:", error);
-  //   }
-  // };
-
-  // private readonly blobToBase64 = async (blob: Blob): Promise<string> => {
-  //   return new Promise((resolve, reject) => {
-  //     const reader = new FileReader();
-  //     reader.readAsDataURL(blob);
-  //     reader.onload = () => resolve(reader.result as string);
-  //     reader.onerror = reject;
-  //   });
-  // };
-
-  // private readonly base64ToBlob = (
-  //   base64: string,
-  //   contentType = "application/octet-stream"
-  // ) => {
-  //   const byteCharacters = atob(base64.split(",")[1]); // Remove Base64 prefix
-  //   const byteNumbers = new Array(byteCharacters.length)
-  //     .fill(0)
-  //     .map((_, i) => byteCharacters.charCodeAt(i));
-  //   const byteArray = new Uint8Array(byteNumbers);
-  //   return new Blob([byteArray], { type: contentType });
-  // };
-
-  // private readonly serialize = async (blob: Blob) => {
-  //   // Mobile devices require string data
-  //   const base64Data = await this.blobToBase64(blob);
-  //   return base64Data;
-  // };
-
-  // private readonly deserialize = (text: string): Blob => {
-  //   return this.base64ToBlob(text);
-  // };
-
   public readonly loadPMTiles = async (
     filename: string,
     fetchAndStoreCallback?: () => Promise<PMTiles | undefined>
