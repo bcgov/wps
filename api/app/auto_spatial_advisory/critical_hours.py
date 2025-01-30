@@ -61,7 +61,7 @@ class CriticalHoursInputs(BaseModel):
     hourly_observations_by_station_code: Dict[int, WeatherStationHourlyReadings]
 
 
-class CriticalHoursInputOutput(BaseModel):
+class CriticalHoursIO(BaseModel):
     fuel_types_by_area: Dict[str, float]
     wfwx_stations: List[WFWXWeatherStation]
     critical_hours_inputs: CriticalHoursInputs
@@ -69,7 +69,7 @@ class CriticalHoursInputOutput(BaseModel):
 
 
 class CriticalHoursIOByZone(BaseModel):
-    critical_hours_by_zone: Dict[int, CriticalHoursInputOutput]
+    critical_hours_by_zone: Dict[int, CriticalHoursIO]
 
 
 def determine_start_time(times: list[float]) -> float:
@@ -415,7 +415,7 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
     :param for_date: The date critical hours are being calculated for.
     """
     critical_hours_by_zone_and_fuel_type = defaultdict(str, defaultdict(list))
-    critical_hours_inputs_by_zone: Dict[int, CriticalHoursInputOutput] = {}
+    critical_hours_inputs_by_zone: Dict[int, CriticalHoursIO] = {}
     for zone_key in stations_by_zone.keys():
         advisory_fuel_stats = await get_fuel_type_stats_in_advisory_area(db_session, zone_key, run_parameters_id)
         fuel_types_by_area = get_fuel_types_by_area(advisory_fuel_stats)
@@ -431,7 +431,7 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
         if len(critical_hours_by_fuel_type) > 0:
             critical_hours_by_zone_and_fuel_type[zone_key] = critical_hours_by_fuel_type
 
-            critical_hours_input_output = CriticalHoursInputOutput(
+            critical_hours_input_output = CriticalHoursIO(
                 fuel_types_by_area=fuel_types_by_area,
                 wfwx_stations=wfwx_stations,
                 critical_hours_inputs=critical_hours_inputs,
@@ -445,7 +445,7 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
         await save_critical_hours(db_session, zone_id, critical_hours_by_fuel_type, run_parameters_id)
 
 
-async def store_critical_hours_inputs_outputs(critical_hours_data: Dict[int, CriticalHoursInputOutput], for_date: date, run_parameters_id: int):
+async def store_critical_hours_inputs_outputs(critical_hours_data: Dict[int, CriticalHoursIO], for_date: date, run_parameters_id: int):
     async with get_client() as (client, bucket):
         await apply_retention_policy(client, bucket)
 
@@ -457,10 +457,13 @@ async def store_critical_hours_inputs_outputs(critical_hours_data: Dict[int, Cri
                 key = f"critical_hours/{for_date.isoformat()}/{run_parameters_id}_critical_hours.json"
 
                 logger.info(f"Writing {key} to s3")
-                await client.put_object(
-                    Bucket=bucket,
-                    Key=key,
-                    Body=io.BytesIO(json_data.encode("utf-8")),
+                (
+                    await client.put_object(
+                        Bucket=bucket,
+                        Key=key,
+                        Body=json_data,
+                        ContentType="application/json",
+                    )
                 )
             except Exception as e:
                 logger.error(f"Error converting critical hours data to json - {e}")
