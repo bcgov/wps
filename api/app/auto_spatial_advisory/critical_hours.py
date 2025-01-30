@@ -154,6 +154,7 @@ async def save_critical_hours(db_session: AsyncSession, zone_unit_id: int, criti
 async def apply_retention_policy(client: AioBaseClient, bucket: str):
     today = datetime.now(timezone.utc).date()
     retention_date = today - timedelta(days=DAYS_TO_RETAIN)
+    logger.info(f"Applying critical hours s3 retention policy. Data older than {DAYS_TO_RETAIN} days is being deleted.")
 
     prefix = "critical_hours/"
 
@@ -166,6 +167,7 @@ async def apply_retention_policy(client: AioBaseClient, bucket: str):
             try:
                 folder_date = datetime.strptime(folder_name, "%Y-%m-%d").date()
             except ValueError:
+                logger.error(f"{folder["Prefix"]} - {folder_name} - could not be parsed to datetime object")
                 continue
 
             if folder_date < retention_date:
