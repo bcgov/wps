@@ -3,7 +3,6 @@ import asyncio
 import logging
 import math
 import os
-import io
 import json
 import sys
 from collections import defaultdict
