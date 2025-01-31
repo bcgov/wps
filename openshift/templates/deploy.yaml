@@ -301,6 +301,11 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: object-store-bucket
+                - name: CLASSIFIED_TPI_DEM_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.classified_tpi_dem_name
                 - name: REDIS_HOST
                   valueFrom:
                     configMapKeyRef:
