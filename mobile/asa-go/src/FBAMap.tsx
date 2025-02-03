@@ -20,7 +20,6 @@ import {
 import { DateTime } from "luxon";
 import { isUndefined, cloneDeep } from "lodash";
 import { Box } from "@mui/material";
-// import Legend from "@/Legend";
 import ScalebarContainer from "@/ScaleBarContainer";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import { CENTER_OF_BC } from "@/utils/constants";
@@ -36,17 +35,9 @@ export interface FBAMapProps {
   testId?: string;
   selectedFireCenter: FireCenter | undefined;
   selectedFireShape: FireShape | undefined;
-  forDate: DateTime;
-  setSelectedFireShape: React.Dispatch<
-    React.SetStateAction<FireShape | undefined>
-  >;
   fireShapeAreas: FireShapeArea[];
-  runType: RunType;
   advisoryThreshold: number;
   zoomSource?: "fireCenter" | "fireShape";
-  setZoomSource: React.Dispatch<
-    React.SetStateAction<"fireCenter" | "fireShape" | undefined>
-  >;
 }
 
 const FBAMap = (props: FBAMapProps) => {
@@ -74,6 +65,7 @@ const FBAMap = (props: FBAMapProps) => {
       // reset map view to full province
       map.getView().fit(bcExtent, { duration: 600, padding: [50, 50, 50, 50] });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedFireCenter]);
 
   useEffect(() => {
@@ -92,6 +84,7 @@ const FBAMap = (props: FBAMapProps) => {
         });
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedFireShape]);
 
   useEffect(() => {
