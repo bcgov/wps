@@ -1,213 +1,157 @@
 {
-    "_embedded": {
-        "hourlies": [
+    "169": {
+        "values": [
             {
-                "id": "bb7cb092-4427-4734-e053-1d09228eeca8",
-                "station": "https://t1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bb7cb089-286a-4734-e053-1d09228eeca8",
-                "stationId": "bb7cb089-286a-4734-e053-1d09228eeca8",
-                "stationData": {
-                    "id": "bb7cb089-286a-4734-e053-1d09228eeca8",
-                    "displayLabel": "UPPER FULTON",
-                    "createdBy": "LEGACY_DATA_LOAD",
-                    "lastModifiedBy": "DATAFIX - WFWX-892",
-                    "lastEntityUpdateTimestamp": 1613486000000,
-                    "updateDate": "2021-12-07T18:37:45.000+0000",
-                    "stationCode": 169,
-                    "stationAcronym": "FUF",
-                    "stationStatus": {
-                        "id": "ACTIVE",
-                        "displayLabel": "Active",
-                        "displayOrder": 1,
-                        "effectiveDate": "2000-01-01T08:00:00.000+0000",
-                        "expiryDate": "9999-12-31T08:00:00.000+0000"
-                    },
-                    "dataSource": {
-                        "id": "HRLY_POLL",
-                        "displayLabel": "Hourly Polling",
-                        "displayOrder": 2,
-                        "effectiveDate": "1950-01-01T08:00:00.000+0000",
-                        "expiryDate": "9999-12-31T08:00:00.000+0000",
-                        "createdBy": "DATA_LOAD",
-                        "createdDate": "2020-02-25T08:00:00.000+0000",
-                        "lastModifiedBy": "DATA_LOAD",
-                        "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
-                    },
-                    "dataLoggerType": {
-                        "id": "FWS12S",
-                        "displayLabel": "FWS12S",
-                        "displayOrder": 6,
-                        "effectiveDate": "2000-01-01T08:00:00.000+0000",
-                        "expiryDate": "9999-12-31T08:00:00.000+0000",
-                        "createdBy": "DATA_LOAD",
-                        "createdDate": "2020-02-25T08:00:00.000+0000",
-                        "lastModifiedBy": "DATA_LOAD",
-                        "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
-                    },
-                    "siteType": {
-                        "id": "WXSTN_UHF",
-                        "displayLabel": "Weather Station - UHF",
-                        "displayOrder": 7,
-                        "effectiveDate": "2000-01-01T08:00:00.000+0000",
-                        "expiryDate": "9999-12-31T08:00:00.000+0000",
-                        "createdBy": "DATA_LOAD",
-                        "createdDate": "2020-02-25T08:00:00.000+0000",
-                        "lastModifiedBy": "DATA_LOAD",
-                        "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
-                    },
-                    "weatherZone": {
-                        "id": 13,
-                        "displayLabel": "Zone 13",
-                        "dangerRegion": 1,
-                        "displayOrder": 13
-                    },
-                    "stationAccessTypeCode": {
-                        "id": "4WD",
-                        "displayLabel": "4 Wheel Drive",
-                        "displayOrder": 1,
-                        "effectiveDate": "2000-01-01T08:00:00.000+0000",
-                        "expiryDate": "9999-12-31T08:00:00.000+0000",
-                        "createdBy": "DATA_LOAD",
-                        "createdDate": "2020-02-25T08:00:00.000+0000",
-                        "lastModifiedBy": "DATA_LOAD",
-                        "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
-                    },
-                    "hourly": true,
-                    "pluvioSnowGuage": false,
-                    "latitude": 55.03395,
-                    "longitude": -126.799667,
-                    "geometry": {
-                        "crs": {
-                            "type": "name",
-                            "properties": {
-                                "name": "EPSG:4326"
-                            }
-                        },
-                        "coordinates": [
-                            -126.799667,
-                            55.03395
-                        ],
-                        "type": "Point"
-                    },
-                    "elevation": 900,
-                    "windspeedAdjRoughness": 1.0,
-                    "windspeedHeight": {
-                        "id": "9.0_11.9",
-                        "displayLabel": "9.0 - 11.9 (m)",
-                        "displayOrder": 7,
-                        "effectiveDate": "2000-01-01T08:00:00.000+0000",
-                        "expiryDate": "9999-12-31T08:00:00.000+0000",
-                        "createdBy": "DATA_LOAD",
-                        "createdDate": "2020-02-25T08:00:00.000+0000",
-                        "lastModifiedBy": "DATA_LOAD",
-                        "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
-                    },
-                    "surfaceType": null,
-                    "overWinterPrecipAdj": false,
-                    "influencingSlope": 5,
-                    "installationDate": 672562800000,
-                    "decommissionDate": null,
-                    "influencingAspect": null,
-                    "owner": {
-                        "id": "a9843bb7-0f44-4a80-8a62-79cca2a5c758",
-                        "displayLabel": "BC Wildfire Service",
-                        "displayOrder": 2,
-                        "ownerName": "BCWS",
-                        "ownerDisplayName": "BC Wildfire Service",
-                        "ownerComment": null,
-                        "createdBy": "DATA_LOAD",
-                        "lastModifiedBy": "DATAFIX - WFWX-891",
-                        "effectiveDate": "1950-01-01T08:00:00.000+0000",
-                        "expiryDate": "9999-12-31T08:00:00.000+0000"
-                    },
-                    "fireCentre": {
-                        "id": 42,
-                        "displayLabel": "Northwest Fire Centre",
-                        "alias": 3,
-                        "expiryDate": "9999-12-31T08:00:00.000+0000"
-                    },
-                    "zone": {
-                        "id": 45,
-                        "displayLabel": "Bulkley Zone",
-                        "alias": 3,
-                        "fireCentre": "Northwest Fire Centre",
-                        "fireCentreAlias": 3,
-                        "expiryDate": "9999-12-31T08:00:00.000+0000"
-                    },
-                    "comments": "1st Daily 19860610;",
-                    "ecccFileBaseUrlTemplate": null,
-                    "lastProcessedSourceTime": null,
-                    "crdStationName": null,
-                    "stationAccessDescription": "Proceed North from Smithers on the Babine Lake Rd 37.5km to the3000Road just before you get to Chapman Lake - Turn Left (NW) onto the 3000Rd - Proceed for 21.3km -WALK IN FROM HERE (Site is quad accessible) - Take Left (W) onto a secondary Rd into a plantation for 400meters - Station is on the South side of the Rd  ***SITE TURN OFF FROM THE UPPER FULTON IS APROX 0.5KM PAST THE FULTON RIVER BRIDGE (FIRST MAIN TURNOFFTO THE WEST)"
-                },
-                "createdBy": "LEGACY_DATA_LOAD",
-                "lastModifiedBy": "WFWX-787",
-                "lastEntityUpdateTimestamp": 1455753994000,
-                "updateDate": "2022-08-23T23:20:53.000+0000",
-                "archive": false,
-                "weatherTimestamp": 1455753600000,
-                "temperature": -0.9,
-                "dewPoint": -2.1,
-                "relativeHumidity": 92.0,
-                "windSpeed": 0.0,
-                "adjustedWindSpeed": 0.0,
-                "hourlyMeasurementTypeCode": {
-                    "id": "ACTUAL",
-                    "displayLabel": "Actual",
-                    "displayOrder": 1,
-                    "createdBy": "DATA_LOAD",
-                    "lastModifiedBy": "DATA_LOAD"
-                },
-                "windDirection": 160.0,
-                "barometricPressure": 0.0,
-                "precipitation": 0.0,
-                "observationValidInd": true,
-                "observationValidComment": null,
-                "batterySupplyCurrent": null,
-                "batterySupplyVoltage": null,
-                "fuelStickMoisture": null,
-                "fuelStickTemperature": null,
-                "precipPluvio1Status": null,
-                "precipPluvio1Total": null,
-                "precipPluvio2Status": null,
-                "precipPluvio2Total": null,
-                "precipRitStatus": null,
-                "precipRitTotal": null,
-                "precipRgt": 0.0,
-                "precipPC2Status": null,
-                "precipPC2": null,
-                "rn1PC2": null,
-                "relativeHumidityHourlyAvg": 0.0,
-                "rn1Pluvio1": null,
-                "rn1Pluvio2": null,
-                "rn1Rit": null,
-                "snowDepth": null,
-                "snowDepthQuality": 0.0,
-                "solarRadiationCm3": 0.0,
-                "solarRadiationLicor": null,
-                "solarSupplyCurrent": null,
-                "solarSupplyVoltage": null,
-                "temperatureHourlyAverage": 0.0,
-                "windSpeedHourlyAverage": 0.0,
-                "windDirectionHourlyAverage": 0.0,
-                "windSpeedMax10Minute": 0.0,
-                "windGust": 0.0,
-                "calculate": true,
-                "businessKey": "1455753600000-bb7cb089-286a-4734-e053-1d09228eeca8",
-                "fineFuelMoistureCode": 17.648,
-                "initialSpreadIndex": 0.0,
-                "fireWeatherIndex": 0.0,
-                "_links": {
-                    "self": {
-                        "href": "https://t1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/hourlies/bb7cb092-4427-4734-e053-1d09228eeca8"
-                    },
-                    "hourly": {
-                        "href": "https://t1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/hourlies/bb7cb092-4427-4734-e053-1d09228eeca8"
-                    },
-                    "station": {
-                        "href": "https://t1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bb7cb089-286a-4734-e053-1d09228eeca8"
-                    }
-                }
+                "datetime": "2024-08-10T20:00:00Z",
+                "temperature": 25.6,
+                "relative_humidity": 46,
+                "wind_speed": 7.8,
+                "wind_direction": 162,
+                "barometric_pressure": null,
+                "precipitation": 0,
+                "dewpoint": 13.13539205277556,
+                "ffmc": 90.856,
+                "isi": 7.179,
+                "fwi": 26.433,
+                "observation_valid": true,
+                "observation_valid_comment": null
+            },
+            {
+                "datetime": "2024-08-10T21:00:00Z",
+                "temperature": 26.2,
+                "relative_humidity": 44,
+                "wind_speed": 7.9,
+                "wind_direction": 171,
+                "barometric_pressure": null,
+                "precipitation": 0,
+                "dewpoint": 12.980449971064633,
+                "ffmc": 91.313,
+                "isi": 7.7,
+                "fwi": 28.125,
+                "observation_valid": true,
+                "observation_valid_comment": null
+            },
+            {
+                "datetime": "2024-08-10T22:00:00Z",
+                "temperature": 26.7,
+                "relative_humidity": 40,
+                "wind_speed": 9.6,
+                "wind_direction": 181,
+                "barometric_pressure": null,
+                "precipitation": 0,
+                "dewpoint": 11.938867668518197,
+                "ffmc": 92.117,
+                "isi": 9.401,
+                "fwi": 32.187,
+                "observation_valid": true,
+                "observation_valid_comment": null
+            },
+            {
+                "datetime": "2024-08-10T23:00:00Z",
+                "temperature": 27,
+                "relative_humidity": 39,
+                "wind_speed": 5.4,
+                "wind_direction": 255,
+                "barometric_pressure": null,
+                "precipitation": 0,
+                "dewpoint": 11.814811379078277,
+                "ffmc": 92.393,
+                "isi": 7.91,
+                "fwi": 28.646,
+                "observation_valid": true,
+                "observation_valid_comment": null
+            },
+            {
+                "datetime": "2024-08-11T00:00:00Z",
+                "temperature": 26.8,
+                "relative_humidity": 38,
+                "wind_speed": 7.7,
+                "wind_direction": 218,
+                "barometric_pressure": null,
+                "precipitation": 0,
+                "dewpoint": 11.234493784803282,
+                "ffmc": 92.526,
+                "isi": 9.05,
+                "fwi": 31.376,
+                "observation_valid": true,
+                "observation_valid_comment": null
+            },
+            {
+                "datetime": "2024-08-11T01:00:00Z",
+                "temperature": 26,
+                "relative_humidity": 44,
+                "wind_speed": 6.2,
+                "wind_direction": 266,
+                "barometric_pressure": null,
+                "precipitation": 0,
+                "dewpoint": 12.798533277113846,
+                "ffmc": 91.303,
+                "isi": 7.057,
+                "fwi": 26.49,
+                "observation_valid": true,
+                "observation_valid_comment": null
+            },
+            {
+                "datetime": "2024-08-11T02:00:00Z",
+                "temperature": 24,
+                "relative_humidity": 51,
+                "wind_speed": 4.1,
+                "wind_direction": 308,
+                "barometric_pressure": null,
+                "precipitation": 0,
+                "dewpoint": 13.294677693604264,
+                "ffmc": 89.76,
+                "isi": 5.093,
+                "fwi": 21.057,
+                "observation_valid": true,
+                "observation_valid_comment": null
+            },
+            {
+                "datetime": "2024-08-11T03:00:00Z",
+                "temperature": 22.2,
+                "relative_humidity": 59,
+                "wind_speed": 3.8,
+                "wind_direction": 311,
+                "barometric_pressure": null,
+                "precipitation": 0,
+                "dewpoint": 13.906351124805148,
+                "ffmc": 88.089,
+                "isi": 3.947,
+                "fwi": 17.481,
+                "observation_valid": true,
+                "observation_valid_comment": null
+            },
+            {
+                "datetime": "2024-08-11T04:00:00Z",
+                "temperature": 20,
+                "relative_humidity": 68,
+                "wind_speed": 6.3,
+                "wind_direction": 332,
+                "barometric_pressure": null,
+                "precipitation": 0,
+                "dewpoint": 14.011475035208884,
+                "ffmc": 86.126,
+                "isi": 3.386,
+                "fwi": 15.579,
+                "observation_valid": true,
+                "observation_valid_comment": null
             }
-        ]
+        ],
+        "station": {
+            "zone_code": "V6",
+            "code": 1142,
+            "name": "14G (CRD)",
+            "lat": 48.494444,
+            "long": -123.613889,
+            "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+            "core_season": {
+                "start_month": 5,
+                "start_day": 15,
+                "end_month": 8,
+                "end_day": 31
+            },
+            "elevation": 485,
+            "wfwx_station_uuid": "bb7cb089-286a-4734-e053-1d09228eeca8"
+        }
     }
 }
