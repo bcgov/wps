@@ -52,7 +52,7 @@ def prepare_masked_tif(temp_dir: str) -> str:
     masked_fuel_type_band.WriteArray(masked_tpi_data)
     fuel_ds = None
     tpi_ds = None
-    masked_tpi_dataset
+    masked_tpi_dataset = None
     return output_path
 
 
