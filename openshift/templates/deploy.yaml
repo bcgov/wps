@@ -306,6 +306,11 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.classified_tpi_dem_name
+                - name: CLASSIFIED_TPI_DEM_FUEL_MASKED_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.classified_tpi_dem_fuel_masked_name
                 - name: REDIS_HOST
                   valueFrom:
                     configMapKeyRef:
