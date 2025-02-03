@@ -50,7 +50,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
               width: '65%'
             }}
           >
-            Proportion of Advisory Area:
+            Portion under advisory:
           </Typography>
         </Grid>
       </Grid>
