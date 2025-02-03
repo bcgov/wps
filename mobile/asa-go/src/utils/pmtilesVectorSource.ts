@@ -8,7 +8,7 @@ import { createXYZ } from "ol/tilegrid";
 import TileState from "ol/TileState";
 import { PMTiles } from "pmtiles";
 import { MVT } from "ol/format";
-import { PMTilesCache } from "@/utils/pmtilesCache";
+import { IPMTilesCache } from "@/utils/pmtilesCache";
 import { DateTime } from "luxon";
 import { RunType } from "@/api/fbaAPI";
 import { isUndefined } from "lodash";
@@ -95,7 +95,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
 
   // Static async factory method
   static async createStaticLayer(
-    pmtilesCache: PMTilesCache,
+    pmtilesCache: IPMTilesCache,
     options: PMTilesFileVectorOptions
   ) {
     const instance = new PMTilesFileVectorSource(options);
@@ -107,7 +107,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   async initStaticLayer(
-    pmtilesCache: PMTilesCache,
+    pmtilesCache: IPMTilesCache,
     options: PMTilesFileVectorOptions
   ) {
     try {
@@ -141,7 +141,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   static async createHFILayer(
-    pmtilesCache: PMTilesCache,
+    pmtilesCache: IPMTilesCache,
     options: HFIPMTilesFileVectorOptions
   ) {
     const instance = new PMTilesFileVectorSource(options);
@@ -152,7 +152,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   async initHFILayer(
-    pmtilesCache: PMTilesCache,
+    pmtilesCache: IPMTilesCache,
     options: HFIPMTilesFileVectorOptions
   ) {
     try {

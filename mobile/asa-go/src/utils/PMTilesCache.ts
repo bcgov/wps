@@ -111,7 +111,20 @@ const fetchAndStoreHFIPMTiles = (
   };
 };
 
-export class PMTilesCache {
+export interface IPMTilesCache {
+  loadPMTiles: (
+    filename: string,
+    fetchAndStoreCallback?: () => Promise<PMTiles | undefined>
+  ) => Promise<PMTiles | undefined>;
+  loadHFIPMTiles: (
+    for_date: DateTime,
+    run_type: RunType,
+    run_date: DateTime,
+    filename: string
+  ) => Promise<PMTiles | undefined>;
+}
+
+export class PMTilesCache implements IPMTilesCache {
   constructor(private readonly fileSystem: FilesystemPlugin) {}
   public readonly loadPMTiles = async (
     filename: string,
