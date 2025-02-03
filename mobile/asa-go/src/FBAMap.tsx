@@ -26,7 +26,7 @@ import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import { CENTER_OF_BC } from "@/utils/constants";
 import { extentsMap } from "@/fireCentreExtents";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
-import { PMTilesCache } from "@/utils/PMTilesCache";
+import { PMTilesCache } from "@/utils/pmtilesCache";
 import { Filesystem } from "@capacitor/filesystem";
 export const MapContext = React.createContext<Map | null>(null);
 

@@ -8,7 +8,7 @@ import { createXYZ } from "ol/tilegrid";
 import TileState from "ol/TileState";
 import { PMTiles } from "pmtiles";
 import { MVT } from "ol/format";
-import { PMTilesCache } from "@/utils/PMTilesCache";
+import { PMTilesCache } from "@/utils/pmtilesCache";
 import { DateTime } from "luxon";
 import { RunType } from "@/api/fbaAPI";
 import { isUndefined } from "lodash";
@@ -115,25 +115,29 @@ export class PMTilesFileVectorSource extends VectorTileSource {
 
       const pmtiles = await pmtilesCache.loadPMTiles(options.filename);
 
-      if (!isUndefined(pmtiles)) {
-        this.pmtiles_ = pmtiles;
-      } else {
-        throw Error("Unable to initialize pmtiles");
-      }
-      const header = await this.pmtiles_.getHeader();
-
-      this.tileGrid = createXYZ({
-        maxZoom: header.maxZoom,
-        minZoom: header.minZoom,
-        tileSize: 512,
-      });
-
-      this.setTileLoadFunction(this.tileLoadFunction);
-      this.setState("ready");
+      await this.initTileGrid(pmtiles);
     } catch (error) {
       console.error("Error loading PMTiles file:", error);
       this.setState("error");
     }
+  }
+
+  async initTileGrid(pmtiles?: PMTiles) {
+    if (!isUndefined(pmtiles)) {
+      this.pmtiles_ = pmtiles;
+    } else {
+      throw Error("Unable to initialize pmtiles");
+    }
+    const header = await this.pmtiles_.getHeader();
+
+    this.tileGrid = createXYZ({
+      maxZoom: header.maxZoom,
+      minZoom: header.minZoom,
+      tileSize: 512,
+    });
+
+    this.setTileLoadFunction(this.tileLoadFunction);
+    this.setState("ready");
   }
 
   static async createHFILayer(
@@ -160,21 +164,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
         options.run_date,
         options.filename
       );
-      if (!isUndefined(pmtiles)) {
-        this.pmtiles_ = pmtiles;
-      } else {
-        throw Error("Unable to initialize pmtiles");
-      }
-      const header = await this.pmtiles_.getHeader();
-
-      this.tileGrid = createXYZ({
-        maxZoom: header.maxZoom,
-        minZoom: header.minZoom,
-        tileSize: 512,
-      });
-
-      this.setTileLoadFunction(this.tileLoadFunction);
-      this.setState("ready");
+      await this.initTileGrid(pmtiles);
     } catch (error) {
       console.error("Error loading PMTiles file:", error);
       this.setState("error");
