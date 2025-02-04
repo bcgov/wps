@@ -10,9 +10,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.orm.session import Session
 import geoalchemy2
-import pdb
-
-from app.db.crud.auto_spatial_advisory import get_fuel_info_by_zone_unit
+from app.auto_spatial_advisory.process_fuel_type_areas_per_zone import calculate_fuel_type_areas_per_zone
 
 
 # revision identifiers, used by Alembic.
@@ -49,50 +47,32 @@ def get_fire_zone_unit_shape_type_id(session: Session):
 
 
 def get_fire_zone_units(session: Session, fire_zone_type_id: int):
-    statement = sa.select(shape_table.c.id).where(shape_table.c.shape_type == fire_zone_type_id).order_by(shape_table.c.id)
-    result = session.execute(statement).scalars().all()
+    statement = shape_table.select().where(shape_table.c.shape_type == fire_zone_type_id)
+    result = session.execute(statement).fetchall()
     return result
+
+def get_sfms_fuel_types(session: Session):
+    statement = sa.select(sfms_fuel_types.c.id, sfms_fuel_types.c.fuel_type_id).where(sfms_fuel_types.c.fuel_type_id > 0, sfms_fuel_types.c.fuel_type_id < 99)
+    results = session.execute(statement)
+    lookup = {}
+    for item in results:
+        lookup[item[1]] = item[0]
+    return lookup
 
 
 def upgrade():
     session = Session(bind=op.get_bind())
     fire_zone_shape_type_id = get_fire_zone_unit_shape_type_id(session)
-    zone_unit_ids = get_fire_zone_units(session, fire_zone_shape_type_id)
-
-    for zone_id in zone_unit_ids:
-        print(f"Processing zone: {zone_id}")
-        stmt = (
-            sa.select(sfms_fuel_types.c.fuel_type_id, advisory_fuel_types.c.geom.ST_Union().ST_Intersection(shape_table.c.geom.ST_Union()).ST_Area())
-            .join_from(advisory_fuel_types, shape_table, sa.func.ST_INTERSECTS(advisory_fuel_types.c.geom, shape_table.c.geom))
-            .join(sfms_fuel_types, sfms_fuel_types.c.fuel_type_id == advisory_fuel_types.c.fuel_type_id)
-            .where(shape_table.c.id == zone_id, advisory_fuel_types.c.fuel_type_id > 0, advisory_fuel_types.c.fuel_type_id < 99)
-            .group_by(sfms_fuel_types.c.fuel_type_id)
-        )
-        results = session.execute(stmt)
-
-        for result in results:
-            print(f"Saving result for fuel_type: {result[0]}")
-            values = {"advisory_shape_id": zone_id, "fuel_type": result[0], "fuel_area": result[1]}
-            insert_statement = advisory_shape_fuels.insert().values(values)
-            session.execute(insert_statement)
-        session.commit()
-
-    # for item in result:
-    #     pdb.set_trace()
-    #     print(item)
-
-    #     result = get_fuel_info_by_zone_unit(session, 67)
-    #     pdb.set_trace()
-    #     for item in result:
-    #         pdb.set_trace()
-    #         print(item)
-    #     # pdb.set_trace()
-    #     # # statement = advisory_shape_fuels.select(advisory_shape_fuels.c.fuel_type_id, sfms_fuel_types.c.fuel_type_)
-    #     # print("Something")
-    # pdb.set_trace()
+    zone_units = get_fire_zone_units(session, fire_zone_shape_type_id)
+    sfms_fuel_type_lookup = get_sfms_fuel_types(session)
+    fuel_areas = calculate_fuel_type_areas_per_zone(zone_units, sfms_fuel_type_lookup)
+    for advisory_shape_id, sfms_fuel_type, fuel_area in fuel_areas:
+        stmt = sa.insert(advisory_shape_fuels).values(advisory_shape_id=advisory_shape_id, fuel_type=sfms_fuel_type, fuel_area=fuel_area)
+        session.execute(stmt)
 
 
 def downgrade():
     session = Session(bind=op.get_bind())
     delete_statement = advisory_shape_fuels.delete()
     session.execute(delete_statement)
+

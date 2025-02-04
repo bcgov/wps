@@ -1,7 +1,7 @@
 """Fuel type areas in fire zone units
 
 Revision ID: d1d57c17e40e
-Revises: c5bea0920d53
+Revises: fa4b3ecb57fe
 Create Date: 2024-09-13 13:25:47.895080
 
 """
@@ -12,7 +12,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "d1d57c17e40e"
-down_revision = "c5bea0920d53"
+down_revision = "fa4b3ecb57fe"
 branch_labels = None
 depends_on = None
 
@@ -45,3 +45,4 @@ def downgrade():
     op.drop_index(op.f("ix_advisory_shape_fuels_fuel_type"), table_name="advisory_shape_fuels")
     op.drop_index(op.f("ix_advisory_shape_fuels_advisory_shape_id"), table_name="advisory_shape_fuels")
     op.drop_table("advisory_shape_fuels")
+

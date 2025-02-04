@@ -162,10 +162,10 @@ async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTy
     stmt = (
         select(CriticalHours.start_hour, CriticalHours.end_hour, AdvisoryFuelStats.fuel_type, AdvisoryFuelStats.threshold, AdvisoryFuelStats.area, AdvisoryShapeFuels.fuel_area)
         .distinct(AdvisoryFuelStats.fuel_type, AdvisoryFuelStats.run_parameters)
-        .outerjoin(RunParameters, AdvisoryFuelStats.run_parameters == RunParameters.id)
-        .outerjoin(CriticalHours, CriticalHours.run_parameters == RunParameters.id)
-        .outerjoin(Shape, AdvisoryFuelStats.advisory_shape_id == Shape.id)
-        .outerjoin(AdvisoryShapeFuels, and_(AdvisoryShapeFuels.fuel_type == AdvisoryFuelStats.fuel_type, AdvisoryShapeFuels.advisory_shape_id == Shape.id))
+        .join(RunParameters, AdvisoryFuelStats.run_parameters == RunParameters.id)
+        .join(CriticalHours, CriticalHours.run_parameters == RunParameters.id)
+        .join(Shape, AdvisoryFuelStats.advisory_shape_id == Shape.id)
+        .join(AdvisoryShapeFuels, and_(AdvisoryShapeFuels.fuel_type == AdvisoryFuelStats.fuel_type, AdvisoryShapeFuels.advisory_shape_id == Shape.id))
         .where(
             Shape.source_identifier == str(advisory_shape_id),
             RunParameters.run_type == run_type.value,
