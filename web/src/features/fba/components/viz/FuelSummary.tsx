@@ -85,8 +85,7 @@ const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryPro
       setFuelTypeInfoRollup([])
       return
     }
-    // Sum the total area with HFI > 4000 for all fuel types
-    const totalHFIArea4K = fuelDetails.reduce((acc, { area }) => acc + area, 0)
+
     const rollUp: FuelTypeInfoSummary[] = []
     // We receive HFI area per fuel type per HFI threshold (4-10K and >10K), so group by fuel type.
     // Iterate through the groups adding the area for both HFI thresholds we're interested in all

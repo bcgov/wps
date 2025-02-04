@@ -1,4 +1,3 @@
-import pdb
 import argparse
 import asyncio
 import logging
@@ -337,7 +336,6 @@ async def get_hourly_observations(station_codes: List[int], start_time: datetime
     hourly_observations = await get_hourly_readings_in_time_interval(station_codes, start_time, end_time)
     # also turn hourly obs data into a dict indexed by station id
     if hourly_observations is None:
-        pdb.set_trace()
         return []
     hourly_observations_by_station_code = {raw_hourly.station.code: raw_hourly for raw_hourly in hourly_observations}
     return hourly_observations_by_station_code

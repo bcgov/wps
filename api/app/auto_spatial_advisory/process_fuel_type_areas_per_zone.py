@@ -1,6 +1,6 @@
 from typing import Dict
 from geoalchemy2.shape import to_shape
-from osgeo import gdal
+from osgeo import gdal, osr
 import numpy as np
 from app import config
 from app.utils.geospatial import prepare_wkt_geom_for_gdal
@@ -33,12 +33,16 @@ def calculate_fuel_type_areas_per_zone(zones, fuel_type_lookup: Dict[int, int]):
     fuel_raster_key = f"/vsis3/{bucket}/sfms/static/{fuel_raster_name}"
     fuel_raster_ds: gdal.Dataset = gdal.Open(fuel_raster_key, gdal.GA_ReadOnly)
     pixel_size = fuel_raster_ds.GetGeoTransform()[1]
+    # We're using fire zone units from the advisory_shapes table to clip out shapes from the fuel raster.
+    # We need to manually specify the spatial reference of the advisory_shapes table in the gdal.WarpOptions below.
+    source_srs = osr.SpatialReference()
+    source_srs.ImportFromEPSG(3005)
 
     for zone in zones:
         zone_wkb = zone.geom
         shapely_zone_geom = to_shape(zone_wkb)
         zone_wkt = shapely_zone_geom.wkt
-        zone_geom = prepare_wkt_geom_for_gdal(zone_wkt)
+        zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, source_srs)
 
         # Use gdal.Warp to clip out our fire zone unit from the masked tpi raster
         warp_options = gdal.WarpOptions(cutlineWKT=zone_geom, cutlineSRS=zone_geom.GetSpatialReference(), cropToCutline=True)
@@ -48,6 +52,6 @@ def calculate_fuel_type_areas_per_zone(zones, fuel_type_lookup: Dict[int, int]):
         intersected_data: np.ndarray = intersected_band.ReadAsArray()
         intersected_ds = None
         fuel_type_area_data = calculate_fuel_type_area_for_zone(zone.id, intersected_data, pixel_size)
-        for fuel_type_area in fuel_type_area_data:
-            yield (fuel_type_area[0], fuel_type_lookup[fuel_type_area[1]], fuel_type_area[2])
+        for advisory_shape_id, fuel_type_id, fuel_area in fuel_type_area_data:
+            yield (advisory_shape_id, fuel_type_lookup[fuel_type_id], fuel_area)
     fuel_raster_ds = None

@@ -177,8 +177,6 @@ async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTy
     result = await session.execute(stmt)
     all_results = result.all()
     perf_end = perf_counter()
-    if advisory_shape_id == 39:
-        print("Something")
     delta = perf_end - perf_start
     logger.info("%f delta count before and after advisory stats query", delta)
     return all_results

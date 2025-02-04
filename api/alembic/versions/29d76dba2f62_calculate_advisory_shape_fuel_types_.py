@@ -67,7 +67,7 @@ def upgrade():
     sfms_fuel_type_lookup = get_sfms_fuel_types(session)
     fuel_areas = calculate_fuel_type_areas_per_zone(zone_units, sfms_fuel_type_lookup)
     for advisory_shape_id, sfms_fuel_type, fuel_area in fuel_areas:
-        stmt = sa.insert(advisory_shape_fuels).values(advisory_shape_id=advisory_shape_id, fuel_type=sfms_fuel_type, fuel_area=fuel_area)
+        stmt = sa.insert(advisory_shape_fuels).values(advisory_shape_id=advisory_shape_id, fuel_type=sfms_fuel_type, fuel_area=fuel_area.item())
         session.execute(stmt)
 
 
