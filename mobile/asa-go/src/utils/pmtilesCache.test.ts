@@ -1,3 +1,4 @@
+import { RunType } from "@/api/fbaAPI";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PluginListenerHandle } from "@capacitor/core";
 import {
@@ -24,6 +25,7 @@ import {
   WriteFileOptions,
   WriteFileResult,
 } from "@capacitor/filesystem";
+import { DateTime } from "luxon";
 
 import sinon from "sinon";
 
@@ -115,6 +117,21 @@ describe("pmtilesCache", () => {
     stubRead.resolves({ data: btoa("mocked file content") });
     const testCache = new PMTilesCache(mockFs);
     testCache.loadPMTiles("test.pmtiles");
+    sinon.assert.calledOnce(stubRead);
+  });
+
+  it("should attempt to load stored hfi pmtiles first then fallback to requesting them", async () => {
+    const mockFs = new MockFilesystem();
+
+    const stubRead = sandbox.stub(mockFs, "readFile");
+    stubRead.resolves({ data: btoa("mocked file content") });
+    const testCache = new PMTilesCache(mockFs);
+    testCache.loadHFIPMTiles(
+      DateTime.fromISO("2016-05-25T09:08:34.123"),
+      RunType.FORECAST,
+      DateTime.fromISO("2016-05-25T09:08:34.123"),
+      "test.pmtiles"
+    );
     sinon.assert.calledOnce(stubRead);
   });
 });
