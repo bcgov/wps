@@ -134,11 +134,6 @@ export class PMTilesCache implements IPMTilesCache {
       fetchAndStoreCallback ??
       fetchAndStoreStaticPMTiles(filename, this.fileSystem);
     try {
-      const res = await this.fileSystem.stat({
-        directory: Directory.Data,
-        path: filename,
-      });
-      console.log(res);
       const file = await this.fileSystem.readFile({
         path: filename,
         directory: Directory.Data,
