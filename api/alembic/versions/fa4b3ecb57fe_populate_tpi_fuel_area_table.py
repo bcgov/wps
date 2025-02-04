@@ -56,8 +56,8 @@ def upgrade():
     fire_zone_shape_type_id = get_fire_zone_unit_shape_type_id(session)
     zone_units = get_fire_zone_units(session, fire_zone_shape_type_id)
     tpi_area = calculate_masked_tpi_areas(zone_units)
-    for tuple in tpi_area:
-        stmt = sa.insert(tpi_area_table).values(advisory_shape_id=tuple[0], tpi_class=tuple[1].name, fuel_area=tuple[2].item())
+    for advisory_shape_id, tpi_class, fuel_area in tpi_area:
+        stmt = sa.insert(tpi_area_table).values(advisory_shape_id=advisory_shape_id, tpi_class=tpi_class.name, fuel_area=fuel_area.item())
         session.execute(stmt)
 
 

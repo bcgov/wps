@@ -22,7 +22,7 @@ def calculate_tpi_area_data_for_zone(advisory_shape_id: int, data: np.ndarray, p
             yield (advisory_shape_id, tpi_enum, fuel_area)
 
 
-def prepare_wkt_geom_for_gdal(wkt_geom: str):
+def prepare_wkt_geom_for_gdal(wkt_geom: str, source_srs: osr.SpatialReference):
     """
     Given a wkt geometry as a string, convert it to an ogr.Geometry that can be used by gdal.
 
@@ -30,8 +30,6 @@ def prepare_wkt_geom_for_gdal(wkt_geom: str):
     :return: An osr.Geometry.
     """
     geometry: ogr.Geometry = ogr.CreateGeometryFromWkt(wkt_geom)
-    source_srs = osr.SpatialReference()
-    source_srs.ImportFromEPSG(3005)
     geometry.AssignSpatialReference(source_srs)
     transform = osr.CoordinateTransformation(geometry.GetSpatialReference(), source_srs)
     geometry.Transform(transform)
@@ -47,12 +45,13 @@ def calculate_masked_tpi_areas(zones):
     masked_tpi_key = f"/vsis3/{bucket}/dem/tpi/{config.get("CLASSIFIED_TPI_DEM_FUEL_MASKED_NAME")}"
     masked_tpi_ds: gdal.Dataset = gdal.Open(masked_tpi_key, gdal.GA_ReadOnly)
     masked_tpi_pixel_size = masked_tpi_ds.GetGeoTransform()[1]
+    masked_tpi_srs = masked_tpi_ds.GetSpatialRef()
 
     for zone in zones:
         zone_wkb = zone.geom
         shapely_zone_geom = to_shape(zone_wkb)
         zone_wkt = shapely_zone_geom.wkt
-        zone_geom = prepare_wkt_geom_for_gdal(zone_wkt)
+        zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, masked_tpi_srs)
 
         # Use gdal.Warp to clip out our fire zone unit from the masked tpi raster
         warp_options = gdal.WarpOptions(cutlineWKT=zone_geom, cutlineSRS=zone_geom.GetSpatialReference(), cropToCutline=True)
