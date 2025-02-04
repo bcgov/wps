@@ -23,6 +23,7 @@ from app.db.models.auto_spatial_advisory import (
     AdvisoryElevationStats,
     AdvisoryTPIStats,
     ShapeType,
+    TPIFuelArea,
 )
 from app.db.models.hfi_calc import FireCentre
 
@@ -451,6 +452,22 @@ async def get_centre_tpi_stats(session: AsyncSession, fire_centre_name: str, run
         .where(FireCentre.name == fire_centre_name, AdvisoryTPIStats.run_parameters == run_parameters_id)
     )
 
+    result = await session.execute(stmt)
+    return result.all()
+
+async def get_fire_zone_tpi_fuel_areas(session: AsyncSession, fire_zone_id):
+    stmt = select(TPIFuelArea).join(Shape, Shape.id == TPIFuelArea.advisory_shape_id).where(Shape.source_identifier == fire_zone_id)
+    result = await session.execute(stmt)
+    return result.all()
+
+
+async def get_fire_centre_tpi_fuel_areas(session: AsyncSession, fire_centre_name: str):
+    stmt = (
+        select(TPIFuelArea.tpi_class, TPIFuelArea.fuel_area, Shape.source_identifier)
+        .join(Shape, Shape.id == TPIFuelArea.advisory_shape_id)
+        .join(FireCentre, FireCentre.id == Shape.fire_centre)
+        .where(FireCentre.name == fire_centre_name)
+    )
     result = await session.execute(stmt)
     return result.all()
 

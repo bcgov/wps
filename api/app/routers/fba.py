@@ -10,6 +10,8 @@ from app.db.database import get_async_read_session_scope
 from app.db.crud.auto_spatial_advisory import (
     get_all_sfms_fuel_types,
     get_all_hfi_thresholds,
+    get_fire_centre_tpi_fuel_areas,
+    get_fire_zone_tpi_fuel_areas,
     get_hfi_area,
     get_precomputed_stats_for_shape,
     get_provincial_rollup,
@@ -18,11 +20,12 @@ from app.db.crud.auto_spatial_advisory import (
     get_centre_tpi_stats,
     get_zone_ids_in_centre,
 )
-from app.db.models.auto_spatial_advisory import RunTypeEnum
+from app.db.models.auto_spatial_advisory import RunTypeEnum, TPIClassEnum
 from app.schemas.fba import (
     AdvisoryCriticalHours,
     ClassifiedHfiThresholdFuelTypeArea,
     FireCenterListResponse,
+    FireCentreTPIResponse,
     FireShapeAreaListResponse,
     FireShapeArea,
     FireZoneTPIStats,
@@ -166,32 +169,64 @@ async def get_fire_zone_tpi_stats(fire_zone_id: int, run_type: RunType, run_date
     async with get_async_read_session_scope() as session:
         stats = await get_zonal_tpi_stats(session, fire_zone_id, run_type, run_datetime, for_date)
         square_metres = math.pow(stats.pixel_size_metres, 2) if stats is not None else None
+        tpi_fuel_stats = await get_fire_zone_tpi_fuel_areas(session, fire_zone_id)
+        valley_bottom_tpi = None
+        mid_slope_tpi = None
+        upper_slope_tpi = None
+
+        for tpi_fuel_stat in tpi_fuel_stats:
+            if tpi_fuel_stat.tpi_class == TPIClassEnum.valley_bottom:
+                valley_bottom_tpi = tpi_fuel_stat.fuel_area
+            elif tpi_fuel_stat.tpi_class == TPIClassEnum.mid_slope:
+                mid_slope_tpi = tpi_fuel_stat.fuel_area
+            elif tpi_fuel_stat.tpi_class == TPIClassEnum.upper_slope:
+                upper_slope_tpi = tpi_fuel_stat.fuel_area
         return FireZoneTPIStats(
             fire_zone_id=fire_zone_id,
-            valley_bottom=stats.valley_bottom * square_metres if stats is not None else None,
-            mid_slope=stats.mid_slope * square_metres if stats is not None else None,
-            upper_slope=stats.upper_slope * square_metres if stats is not None else None,
+            valley_bottom_hfi=stats.valley_bottom * square_metres if stats is not None else None,
+            valley_bottom_tpi=valley_bottom_tpi,
+            mid_slope_hfi=stats.mid_slope * square_metres if stats is not None else None,
+            mid_slope_tpi=mid_slope_tpi,
+            upper_slope_hfi=stats.upper_slope * square_metres if stats is not None else None,
+            upper_slope_tpi=upper_slope_tpi,
         )
 
 
-@router.get("/fire-centre-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}", response_model=dict[str, List[FireZoneTPIStats]])
+@router.get("/fire-centre-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}", response_model=FireCentreTPIResponse)
 async def get_fire_centre_tpi_stats(fire_centre_name: str, run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
     """Return the elevation TPI statistics for each advisory threshold for a fire centre"""
     logger.info("/fba/fire-centre-tpi-stats/")
     async with get_async_read_session_scope() as session:
         tpi_stats_for_centre = await get_centre_tpi_stats(session, fire_centre_name, run_type, run_datetime, for_date)
+        tpi_fuel_stats = await get_fire_centre_tpi_fuel_areas(session, fire_centre_name)
 
-        data = []
+        hfi_tpi_areas_by_zone = []
         for row in tpi_stats_for_centre:
+            fire_zone_id = row.source_identifier
             square_metres = math.pow(row.pixel_size_metres, 2)
+            tpi_fuel_stats_for_zone = [stats for stats in tpi_fuel_stats if stats[2] == fire_zone_id]
+            valley_bottom_tpi = None
+            mid_slope_tpi = None
+            upper_slope_tpi = None
 
-            data.append(
+            for tpi_fuel_stat in tpi_fuel_stats_for_zone:
+                if tpi_fuel_stat[0] == TPIClassEnum.valley_bottom:
+                    valley_bottom_tpi = tpi_fuel_stat[1]
+                elif tpi_fuel_stat[0] == TPIClassEnum.mid_slope:
+                    mid_slope_tpi = tpi_fuel_stat[1]
+                elif tpi_fuel_stat[0] == TPIClassEnum.upper_slope:
+                    upper_slope_tpi = tpi_fuel_stat[1]
+
+            hfi_tpi_areas_by_zone.append(
                 FireZoneTPIStats(
-                    fire_zone_id=row.source_identifier,
-                    valley_bottom=row.valley_bottom * square_metres,
-                    mid_slope=row.mid_slope * square_metres,
-                    upper_slope=row.upper_slope * square_metres,
+                    fire_zone_id=fire_zone_id,
+                    valley_bottom_hfi=row.valley_bottom * square_metres,
+                    valley_bottom_tpi=valley_bottom_tpi,
+                    mid_slope_hfi=row.mid_slope * square_metres,
+                    mid_slope_tpi=mid_slope_tpi,
+                    upper_slope_hfi=row.upper_slope * square_metres,
+                    upper_slope_tpi=upper_slope_tpi,
                 )
             )
 
-        return {fire_centre_name: data}
+    return FireCentreTPIResponse(fire_centre_name=fire_centre_name, firezone_tpi_stats=hfi_tpi_areas_by_zone)
