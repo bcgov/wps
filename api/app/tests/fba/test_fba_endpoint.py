@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from datetime import date, datetime, timezone
 from collections import namedtuple
-from app.db.models.auto_spatial_advisory import AdvisoryTPIStats, HfiClassificationThreshold, RunParameters, SFMSFuelType
+from app.db.models.auto_spatial_advisory import AdvisoryTPIStats, HfiClassificationThreshold, RunParameters, SFMSFuelType, TPIFuelArea, TPIClassEnum
 
 mock_fire_centre_name = "PGFireCentre"
 
@@ -12,12 +12,15 @@ get_fire_centres_url = "/api/fba/fire-centers"
 get_fire_zone_areas_url = "/api/fba/fire-shape-areas/forecast/2022-09-27/2022-09-27"
 get_fire_zone_tpi_stats_url = "/api/fba/fire-zone-tpi-stats/forecast/2022-09-27/2022-09-27/1"
 get_fire_centre_info_url = "/api/fba/fire-centre-hfi-stats/forecast/2022-09-27/2022-09-27/Kamloops%20Fire%20Centre"
-get_fire_zone_elevation_info_url = "/api/fba/fire-zone-elevation-info/forecast/2022-09-27/2022-09-27/1"
 get_fire_centre_tpi_stats_url = f"/api/fba/fire-centre-tpi-stats/forecast/2024-08-10/2024-08-10/{mock_fire_centre_name}"
 get_sfms_run_datetimes_url = "/api/fba/sfms-run-datetimes/forecast/2022-09-27"
 
 decode_fn = "jwt.decode"
 mock_tpi_stats = AdvisoryTPIStats(id=1, advisory_shape_id=1, valley_bottom=1, mid_slope=2, upper_slope=3, pixel_size_metres=50)
+mock_tpi_fuel_area_1 = TPIFuelArea(id=1, advisory_shape_id=1, tpi_class=TPIClassEnum.valley_bottom, fuel_area=1)
+mock_tpi_fuel_area_2 = TPIFuelArea(id=2, advisory_shape_id=1, tpi_class=TPIClassEnum.mid_slope, fuel_area=2)
+mock_tpi_fuel_area_3 = TPIFuelArea(id=3, advisory_shape_id=1, tpi_class=TPIClassEnum.upper_slope, fuel_area=3)
+mock_tpi_fuel_areas = [mock_tpi_fuel_area_1, mock_tpi_fuel_area_2, mock_tpi_fuel_area_3]
 mock_fire_centre_info = [(9.0, 11.0, 1, 1, 50)]
 mock_sfms_run_datetimes = [
     RunParameters(id=1, run_type="forecast", run_datetime=datetime(year=2024, month=1, day=1, hour=1, tzinfo=timezone.utc), for_date=date(year=2024, month=1, day=2))
@@ -26,6 +29,11 @@ mock_sfms_run_datetimes = [
 CentreHFIFuelResponse = namedtuple("CentreHFIFuelResponse", ["advisory_shape_id", "source_identifier", "valley_bottom", "mid_slope", "upper_slope", "pixel_size_metres"])
 mock_centre_tpi_stats_1 = CentreHFIFuelResponse(advisory_shape_id=1, source_identifier=1, valley_bottom=1, mid_slope=2, upper_slope=3, pixel_size_metres=2)
 mock_centre_tpi_stats_2 = CentreHFIFuelResponse(advisory_shape_id=2, source_identifier=2, valley_bottom=1, mid_slope=2, upper_slope=3, pixel_size_metres=2)
+
+CentreTPIFuelAreasResponse = namedtuple("CentreTPIFuelAreasResponse", ["tpi_class", "fuel_area", "source_identifier"])
+mock_centre_tpi_fuel_area_1 = CentreTPIFuelAreasResponse(tpi_class=TPIClassEnum.valley_bottom, fuel_area=1, source_identifier=1)
+mock_centre_tpi_fuel_area_2 = CentreTPIFuelAreasResponse(tpi_class=TPIClassEnum.mid_slope, fuel_area=2, source_identifier=1)
+mock_centre_tpi_fuel_area_3 = CentreTPIFuelAreasResponse(tpi_class=TPIClassEnum.upper_slope, fuel_area=3, source_identifier=1)
 
 
 async def mock_get_fire_centres(*_, **__):
@@ -43,9 +51,16 @@ async def mock_get_auth_header(*_, **__):
 async def mock_get_tpi_stats(*_, **__):
     return mock_tpi_stats
 
+async def mock_get_fire_zone_tpi_fuel_areas(*_, **__):
+    return mock_tpi_fuel_areas
+
 
 async def mock_get_tpi_stats_none(*_, **__):
     return None
+
+
+async def mock_get_fire_zone_tpi_fuel_areas_none(*_, **__):
+    return []
 
 
 async def mock_get_fire_centre_info(*_, **__):
@@ -54,6 +69,10 @@ async def mock_get_fire_centre_info(*_, **__):
 
 async def mock_get_centre_tpi_stats(*_, **__):
     return [mock_centre_tpi_stats_1, mock_centre_tpi_stats_2]
+
+
+async def mock_get_fire_centre_tpi_fuel_areas(*_, **__):
+    return [mock_centre_tpi_fuel_area_1, mock_centre_tpi_fuel_area_2, mock_centre_tpi_fuel_area_3]
 
 
 async def mock_get_sfms_run_datetimes(*_, **__):
@@ -128,6 +147,7 @@ def test_get_sfms_run_datetimes_authorized(client: TestClient):
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_zonal_tpi_stats", mock_get_tpi_stats)
+@patch("app.routers.fba.get_fire_zone_tpi_fuel_areas", mock_get_fire_zone_tpi_fuel_areas)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_zone_tpi_stats_authorized(client: TestClient):
     """Allowed to get fire zone tpi stats when authorized"""
@@ -135,38 +155,54 @@ def test_get_fire_zone_tpi_stats_authorized(client: TestClient):
     square_metres = math.pow(mock_tpi_stats.pixel_size_metres, 2)
     assert response.status_code == 200
     assert response.json()["fire_zone_id"] == 1
-    assert response.json()["valley_bottom"] == mock_tpi_stats.valley_bottom * square_metres
-    assert response.json()["mid_slope"] == mock_tpi_stats.mid_slope * square_metres
-    assert response.json()["upper_slope"] == mock_tpi_stats.upper_slope * square_metres
+    assert response.json()["valley_bottom_hfi"] == mock_tpi_stats.valley_bottom * square_metres
+    assert response.json()["mid_slope_hfi"] == mock_tpi_stats.mid_slope * square_metres
+    assert response.json()["upper_slope_hfi"] == mock_tpi_stats.upper_slope * square_metres
+    assert response.json()["valley_bottom_tpi"] == mock_tpi_fuel_area_1.fuel_area
+    assert response.json()["mid_slope_tpi"] == mock_tpi_fuel_area_2.fuel_area
+    assert response.json()["upper_slope_tpi"] == mock_tpi_fuel_area_3.fuel_area
 
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_zonal_tpi_stats", mock_get_tpi_stats_none)
+@patch("app.routers.fba.get_fire_zone_tpi_fuel_areas", mock_get_fire_zone_tpi_fuel_areas_none)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_zone_tpi_stats_authorized_none(client: TestClient):
     """Returns none for TPI stats when there are no stats available"""
     response = client.get(get_fire_zone_tpi_stats_url)
     assert response.status_code == 200
     assert response.json()["fire_zone_id"] == 1
-    assert response.json()["valley_bottom"] == None
-    assert response.json()["mid_slope"] == None
-    assert response.json()["upper_slope"] == None
+    assert response.json()["valley_bottom_hfi"] is None
+    assert response.json()["mid_slope_hfi"] is None
+    assert response.json()["upper_slope_hfi"] is None
+    assert response.json()["valley_bottom_tpi"] is None
+    assert response.json()["mid_slope_tpi"] is None
+    assert response.json()["upper_slope_tpi"] is None
 
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_centre_tpi_stats", mock_get_centre_tpi_stats)
+@patch("app.routers.fba.get_fire_centre_tpi_fuel_areas", mock_get_fire_centre_tpi_fuel_areas)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_centre_tpi_stats_authorized(client: TestClient):
     """Allowed to get fire zone tpi stats when authorized"""
     response = client.get(get_fire_centre_tpi_stats_url)
     square_metres = math.pow(mock_centre_tpi_stats_2.pixel_size_metres, 2)
     assert response.status_code == 200
-    assert response.json()[mock_fire_centre_name][0]["fire_zone_id"] == 1
-    assert response.json()[mock_fire_centre_name][0]["valley_bottom"] == mock_centre_tpi_stats_1.valley_bottom * square_metres
-    assert response.json()[mock_fire_centre_name][0]["mid_slope"] == mock_centre_tpi_stats_1.mid_slope * square_metres
-    assert response.json()[mock_fire_centre_name][0]["upper_slope"] == mock_centre_tpi_stats_1.upper_slope * square_metres
+    json_response = response.json()
+    assert json_response["fire_centre_name"] == mock_fire_centre_name
+    assert json_response["firezone_tpi_stats"][0]["fire_zone_id"] == 1
+    assert json_response["firezone_tpi_stats"][0]["valley_bottom_hfi"] == mock_centre_tpi_stats_1.valley_bottom * square_metres
+    assert json_response["firezone_tpi_stats"][0]["mid_slope_hfi"] == mock_centre_tpi_stats_1.mid_slope * square_metres
+    assert json_response["firezone_tpi_stats"][0]["upper_slope_hfi"] == mock_centre_tpi_stats_1.upper_slope * square_metres
+    assert json_response["firezone_tpi_stats"][0]["valley_bottom_tpi"] == mock_centre_tpi_fuel_area_1.fuel_area
+    assert json_response["firezone_tpi_stats"][0]["mid_slope_tpi"] == mock_centre_tpi_fuel_area_2.fuel_area
+    assert json_response["firezone_tpi_stats"][0]["upper_slope_tpi"] == mock_centre_tpi_fuel_area_3.fuel_area
 
-    assert response.json()[mock_fire_centre_name][1]["fire_zone_id"] == 2
-    assert response.json()[mock_fire_centre_name][1]["valley_bottom"] == mock_centre_tpi_stats_2.valley_bottom * square_metres
-    assert response.json()[mock_fire_centre_name][1]["mid_slope"] == mock_centre_tpi_stats_2.mid_slope * square_metres
-    assert response.json()[mock_fire_centre_name][1]["upper_slope"] == mock_centre_tpi_stats_2.upper_slope * square_metres
+    assert json_response["firezone_tpi_stats"][1]["fire_zone_id"] == 2
+    assert json_response["firezone_tpi_stats"][1]["valley_bottom_hfi"] == mock_centre_tpi_stats_2.valley_bottom * square_metres
+    assert json_response["firezone_tpi_stats"][1]["mid_slope_hfi"] == mock_centre_tpi_stats_2.mid_slope * square_metres
+    assert json_response["firezone_tpi_stats"][1]["upper_slope_hfi"] == mock_centre_tpi_stats_2.upper_slope * square_metres
+    assert json_response["firezone_tpi_stats"][1]["valley_bottom_tpi"] is None
+    assert json_response["firezone_tpi_stats"][1]["mid_slope_tpi"] is None
+    assert json_response["firezone_tpi_stats"][1]["upper_slope_tpi"] is None

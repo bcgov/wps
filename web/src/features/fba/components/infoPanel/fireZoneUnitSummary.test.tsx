@@ -4,9 +4,12 @@ import { render } from '@testing-library/react'
 
 const fireZoneTPIStats = {
   fire_zone_id: 0,
-  valley_bottom: 0,
-  mid_slope: 100,
-  upper_slope: 0
+  valley_bottom_hfi: 0,
+  valley_bottom_tpi: 0,
+  mid_slope_hfi: 100,
+  mid_slope_tpi: 100,
+  upper_slope_hfi: 0,
+  upper_slope_tpi: 0
 }
 
 describe('FireZoneUnitSummary', () => {
@@ -63,32 +66,13 @@ describe('FireZoneUnitSummary', () => {
       area_sqm: 10
     }
     const { getByTestId } = render(
-      <FireZoneUnitSummary fireZoneFuelStats={[]} fireZoneTPIStats={fireZoneTPIStats} selectedFireZoneUnit={fireShape} />
-    )
-    const fireZoneUnitInfo = getByTestId('elevation-status')
-    expect(fireZoneUnitInfo).toBeInTheDocument()
-  })
-
-  it('should not render TPI stats all zero', () => {
-    const fireShape: FireShape = {
-      fire_shape_id: 1,
-      mof_fire_zone_name: 'foo',
-      mof_fire_centre_name: 'fizz',
-      area_sqm: 10
-    }
-    const { queryByTestId } = render(
       <FireZoneUnitSummary
         fireZoneFuelStats={[]}
-        fireZoneTPIStats={{
-          fire_zone_id: 0,
-          valley_bottom: 0,
-          mid_slope: 0,
-          upper_slope: 0
-        }}
+        fireZoneTPIStats={fireZoneTPIStats}
         selectedFireZoneUnit={fireShape}
       />
     )
-    const fireZoneUnitInfo = queryByTestId('elevation-status')
-    expect(fireZoneUnitInfo).not.toBeInTheDocument()
+    const fireZoneUnitInfo = getByTestId('elevation-status')
+    expect(fireZoneUnitInfo).toBeInTheDocument()
   })
 })

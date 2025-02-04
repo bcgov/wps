@@ -32,7 +32,6 @@ async def process_elevation_tpi(run_type: RunType, run_datetime: datetime, for_d
     """
     Create new elevation statistics records for the given parameters.
 
-    :param hfi_s3_key: the object store key pointing to the hfi tif to intersect with tpi layer
     :param run_type: The type of run to process. (is it a forecast or actual run?)
     :param run_datetime: The date and time of the run to process. (when was the hfi file created?)
     :param for_date: The date of the hfi to process. (when is the hfi for?)
