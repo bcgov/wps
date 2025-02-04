@@ -133,8 +133,8 @@ def test_get_fire_center_info_authorized(client: TestClient):
     assert response.json()["Kamloops Fire Centre"]["1"][0]["threshold"]["id"] == 1
     assert response.json()["Kamloops Fire Centre"]["1"][0]["critical_hours"]["start_time"] == 9.0
     assert response.json()["Kamloops Fire Centre"]["1"][0]["critical_hours"]["end_time"] == 11.0
-    assert response.json()["Kamloops Fire Centre"]["1"][0]["fuel_area"] == 0.01
-    assert response.json()["Kamloops Fire Centre"]["1"][0]["area"] == 0.005
+    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"][0]["fuel_area"], 0.01)
+    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"][0]["area"], 0.005)
 
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
