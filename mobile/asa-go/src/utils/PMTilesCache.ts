@@ -125,7 +125,10 @@ export interface IPMTilesCache {
 }
 
 export class PMTilesCache implements IPMTilesCache {
-  constructor(private readonly fileSystem: FilesystemPlugin) {}
+  constructor(
+    private readonly fileSystem: FilesystemPlugin,
+    private retries: number = 3
+  ) {}
   public readonly loadPMTiles = async (
     filename: string,
     fetchAndStoreCallback?: () => Promise<PMTiles | undefined>
@@ -142,6 +145,10 @@ export class PMTilesCache implements IPMTilesCache {
 
       return toPMTiles(file, filename);
     } catch (e) {
+      if (this.retries === 0) {
+        return;
+      }
+      this.retries--;
       console.log("Error reading file, attempting to re-fetch", e);
       const pmTiles = await fetchAndStore();
       return pmTiles;
