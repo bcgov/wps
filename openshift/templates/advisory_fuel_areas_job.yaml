@@ -37,7 +37,7 @@ objects:
                 - "-m"
                 - app.jobs.fuel_type_areas_per_zone
               env:
-               - name: PG_USER
+                - name: PG_USER
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
