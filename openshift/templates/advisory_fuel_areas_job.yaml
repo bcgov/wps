@@ -14,21 +14,8 @@ parameters:
   - name: GLOBAL_NAME
     description: Name of global Module
     value: wps-global
-  - name: PROJ_TOOLS
-    value: e1e498-tools
-  - name: TAG_NAME
-    displayName: "Environment TAG name"
-    description: "The TAG name for the docker image"
-    required: true
-    value: "prod"
-  - name: PG_DATABASE
-    required: true
-    value: "wps"
   - name: CRUNCHYDB_USER
     required: true
-  - name: IMAGE_NAME
-    description: "Docker image to use for the job"
-    required: true 
 objects:
   - kind: Job
     apiVersion: batch/v1
@@ -42,7 +29,7 @@ objects:
         spec:
           containers:
             - name: advisory-fuel-areas-container
-              image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-${IMAGE_NAME}:${IMAGE_NAME}
+              image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-${SUFFIX}:${SUFFIX}
               command:
                 - poetry
                 - run
@@ -70,8 +57,6 @@ objects:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
                       key: pgbouncer-port
-                - name: PG_DATABASE
-                  value: ${PG_DATABASE}
                 - name: SUFFIX
                   value: ${SUFFIX}
                 - name: ROCKET_URL_POST_MESSAGE

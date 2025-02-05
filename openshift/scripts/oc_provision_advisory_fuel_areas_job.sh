@@ -23,9 +23,7 @@ JOB="job/advisory-fuel-areas-${SUFFIX}"
 # create the job
 oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/advisory_fuel_areas_job.yaml \
     -p SUFFIX=${SUFFIX} \
-    -p PG_DATABASE=${PG_DATABASE} \
     -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \
-    -p PROJ_TOOLS=${PROJ_TOOLS} | jq '.items[0]' | oc -n ${PROJ_TARGET} create -f -
 # wait for the job to finish
 oc wait --for=condition=complete ${JOB} --timeout=3600s
 # output the log for debugging
