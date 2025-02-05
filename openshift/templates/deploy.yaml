@@ -103,6 +103,7 @@ objects:
             }
           ]
     spec:
+      progressDeadlineSeconds: 900
       replicas: ${{REPLICAS}}
       selector:
         matchLabels:
