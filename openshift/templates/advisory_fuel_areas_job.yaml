@@ -38,7 +38,7 @@ objects:
                 - app.jobs.fuel_type_areas_per_zone
               env:
                 - name: POSTGRES_DATABASE
-                  value: wps
+                  value: ${NAME}
                 - name: POSTGRES_WRITE_USER
                   valueFrom:
                     secretKeyRef:
