@@ -10,12 +10,12 @@ parameters:
     value: wps
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
-    required: true
+    value: pr-4249
   - name: GLOBAL_NAME
     description: Name of global Module
     value: wps-global
   - name: CRUNCHYDB_USER
-    required: true
+    value: wps-crunchydb-16-pr-4249-pguser-wps-crunchydb-16-pr-4249
 objects:
   - kind: Job
     apiVersion: batch/v1
@@ -37,22 +37,24 @@ objects:
                 - "-m"
                 - app.jobs.fuel_type_areas_per_zone
               env:
-                - name: PG_USER
+                - name: POSTGRES_DATABASE
+                  value: wps
+                - name: POSTGRES_WRITE_USER
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
                       key: user
-                - name: PG_PASSWORD
+                - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
                       key: password
-                - name: PG_HOSTNAME
+                - name: POSTGRES_WRITE_HOST
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
                       key: pgbouncer-host
-                - name: PG_PORT
+                - name: POSTGRES_PORT
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
