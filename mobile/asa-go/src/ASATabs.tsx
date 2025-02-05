@@ -1,10 +1,7 @@
 import Grid from "@mui/material/Grid2";
-import { Box, IconButton } from "@mui/material";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import ArticleIcon from "@mui/icons-material/Article";
-import ThunderstormIcon from "@mui/icons-material/Thunderstorm";
+import { Box } from "@mui/material";
 import { theme } from "@/theme";
+import { Counter } from "@/Counter";
 
 export const ASATabs = () => {
   return (
@@ -24,24 +21,7 @@ export const ASATabs = () => {
         }}
       >
         <Grid>
-          <IconButton sx={{ paddingLeft: 7, color: "white" }} size="large">
-            <LocationOnIcon />
-          </IconButton>
-        </Grid>
-        <Grid>
-          <IconButton sx={{ color: "white" }}>
-            <AccountCircleIcon />
-          </IconButton>
-        </Grid>
-        <Grid>
-          <IconButton sx={{ color: "white" }}>
-            <ArticleIcon />
-          </IconButton>
-        </Grid>
-        <Grid>
-          <IconButton sx={{ color: "white" }}>
-            <ThunderstormIcon />
-          </IconButton>
+          <Counter />
         </Grid>
       </Grid>
     </Box>
