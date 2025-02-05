@@ -145,13 +145,18 @@ export class PMTilesCache implements IPMTilesCache {
 
       return toPMTiles(file, filename);
     } catch (e) {
-      if (this.retries === 0) {
-        return;
-      }
-      this.retries--;
       console.log("Error reading file, attempting to re-fetch", e);
-      const pmTiles = await fetchAndStore();
-      return pmTiles;
+      while (this.retries-- > 0) {
+        try {
+          const pmTiles = await fetchAndStore();
+          return pmTiles;
+        } catch (error) {
+          console.log(
+            `Re-fetch attempted, ${this.retries + 1} retries left:`,
+            error
+          );
+        }
+      }
     }
   };
 
@@ -159,18 +164,19 @@ export class PMTilesCache implements IPMTilesCache {
     for_date: DateTime,
     run_type: RunType,
     run_date: DateTime,
-    filename: string
+    filename: string,
+    fetchAndStoreCallback?: () => Promise<PMTiles | undefined>
   ) => {
     const cachedFilename = `${for_date.toISODate()}_${run_type}_${run_date.toISODate()}_${filename}`;
-    return this.loadPMTiles(
-      cachedFilename,
+    const fetchAndStore =
+      fetchAndStoreCallback ??
       fetchAndStoreHFIPMTiles(
         for_date,
         run_type,
         run_date,
         cachedFilename,
         this.fileSystem
-      )
-    );
+      );
+    return this.loadPMTiles(cachedFilename, fetchAndStore);
   };
 }

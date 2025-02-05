@@ -110,7 +110,7 @@ describe("pmtilesCache", () => {
     sandbox.restore();
   });
 
-  it("should attempt to load stored static pmtiles first then fallback to requesting them", async () => {
+  it("should attempt to load stored static pmtiles", async () => {
     const mockFs = new MockFilesystem();
 
     const stubRead = sandbox.stub(mockFs, "readFile");
@@ -120,7 +120,16 @@ describe("pmtilesCache", () => {
     sinon.assert.calledOnce(stubRead);
   });
 
-  it("should attempt to load stored hfi pmtiles first then fallback to requesting them", async () => {
+  it("should attempt to load stored static pmtiles first then fallback to requesting them", async () => {
+    const mockFs = new MockFilesystem();
+
+    const stubFetch = sandbox.stub().rejects(new Error("Fetch failed"));
+    const testCache = new PMTilesCache(mockFs);
+    await testCache.loadPMTiles("test.pmtiles", stubFetch);
+    sinon.assert.calledThrice(stubFetch);
+  });
+
+  it("should attempt to load stored hfi pmtiles", async () => {
     const mockFs = new MockFilesystem();
 
     const stubRead = sandbox.stub(mockFs, "readFile");
@@ -133,5 +142,20 @@ describe("pmtilesCache", () => {
       "test.pmtiles"
     );
     sinon.assert.calledOnce(stubRead);
+  });
+
+  it("should attempt to load stored hfi pmtiles first then fallback to requesting them", async () => {
+    const mockFs = new MockFilesystem();
+
+    const stubFetch = sandbox.stub().rejects(new Error("Fetch failed"));
+    const testCache = new PMTilesCache(mockFs);
+    await testCache.loadHFIPMTiles(
+      DateTime.fromISO("2016-05-25T09:08:34.123"),
+      RunType.FORECAST,
+      DateTime.fromISO("2016-05-25T09:08:34.123"),
+      "test.pmtiles",
+      stubFetch
+    );
+    sinon.assert.calledThrice(stubFetch);
   });
 });
