@@ -16,6 +16,8 @@ source "$(dirname ${0})/common/common"
 #%
 #%   PROJ_TARGET=e1e498-dev PG_DATABASE=wps TABLE=table ${THIS_FILE} pr-0
 
+PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
+
 JOB="job/advisory-fuel-areas-${SUFFIX}"
 
 # create the job
