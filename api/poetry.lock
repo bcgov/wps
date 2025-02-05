@@ -1074,35 +1074,35 @@ files = [
 
 [[package]]
 name = "eccodes"
-version = "2.39.1"
+version = "2.39.2"
 description = "Python interface to the ecCodes GRIB and BUFR decoder/encoder"
 optional = false
 python-versions = "*"
 files = [
-    {file = "eccodes-2.39.1-cp310-cp310-macosx_13_0_arm64.whl", hash = "sha256:64e71f850a7dbead9ed54549b17e112682a9affb39d98043634fe42946cb973f"},
-    {file = "eccodes-2.39.1-cp310-cp310-macosx_13_0_x86_64.whl", hash = "sha256:a6fc372fdbb980b0097a7bb236eac10fc8c4f6f6924243632a726f7d6f998742"},
-    {file = "eccodes-2.39.1-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:cb1d72405490ea54a5ccb0e6165f06e0c3615ea2c65590c65799829b077f4900"},
-    {file = "eccodes-2.39.1-cp310-cp310-win_amd64.whl", hash = "sha256:d31cdff7ba720b515d7916935c3b9eae5fb502427ee43042cd50cc8e315e4088"},
-    {file = "eccodes-2.39.1-cp311-cp311-macosx_13_0_arm64.whl", hash = "sha256:774b8d558e0ccdfb2cc26e77b65436d76cb2872d911b5c46ba4c81b4a7687406"},
-    {file = "eccodes-2.39.1-cp311-cp311-macosx_13_0_x86_64.whl", hash = "sha256:6dc9cff3670e06854230f8e5b9a527505616a47dde41dcd302cb1b762391fd38"},
-    {file = "eccodes-2.39.1-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:491fd109210695ac72424b9d01d6d6c1a5aca58b2ad718ac573df6b23095da63"},
-    {file = "eccodes-2.39.1-cp311-cp311-win_amd64.whl", hash = "sha256:6639f386fc3e23e1590ebc80c3926195c3bbde12b85e75146537b6eee1e05073"},
-    {file = "eccodes-2.39.1-cp312-cp312-macosx_13_0_arm64.whl", hash = "sha256:754406f57d0e3ac36db8b7d7873ba905d9f8d0fb0f52372b5b0fef39b3ecc72c"},
-    {file = "eccodes-2.39.1-cp312-cp312-macosx_13_0_x86_64.whl", hash = "sha256:0f933cc52ce0a5ab84d094b218fa1914cbe23426b834c1dfd198bb45a034577b"},
-    {file = "eccodes-2.39.1-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:2f62ce4c33184c463b02826add35b693680e13aa9023b89bb9ccf7964f14f317"},
-    {file = "eccodes-2.39.1-cp312-cp312-win_amd64.whl", hash = "sha256:f50595f76c8a7ba3514cdf49f5974f0a739c55d390a950ed549261693c084d27"},
-    {file = "eccodes-2.39.1-cp313-cp313-macosx_13_0_arm64.whl", hash = "sha256:aea3f3183fa284e9ad3905652ebd694123ed7e50f85212829ea53995086310c9"},
-    {file = "eccodes-2.39.1-cp313-cp313-macosx_13_0_x86_64.whl", hash = "sha256:ee6c387b0f2184b70aa8dc2ff915aa2ffedd945e34d748a1b144348e86c843ac"},
-    {file = "eccodes-2.39.1-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:53f478d267f4bb4059b8aad1a0418dbc475d29d5303086907d27330d6d4005db"},
-    {file = "eccodes-2.39.1-cp313-cp313-win_amd64.whl", hash = "sha256:1f536aa4b6ffadcbc9431e6d44719dade6f4ed144e31b7583c88833768f289b3"},
-    {file = "eccodes-2.39.1-cp38-cp38-manylinux_2_28_x86_64.whl", hash = "sha256:15db5ac45c9bd98231f09a605cffa1ed9df93a14eb1198c06c2129877a4ef35f"},
-    {file = "eccodes-2.39.1-cp38-cp38-win_amd64.whl", hash = "sha256:90bea9f86b673dd3e00a53c431376fe90884b6366fb69e4f51777097938efb50"},
-    {file = "eccodes-2.39.1-cp39-cp39-macosx_13_0_arm64.whl", hash = "sha256:9967c42554f44a2e0d512317157bd00be2e7deba71bfdaebc527d846b5233e8f"},
-    {file = "eccodes-2.39.1-cp39-cp39-macosx_13_0_x86_64.whl", hash = "sha256:bb3e6c4c5cd696fe9d842295f4d308417f74592c97f663a378b9097be06c656c"},
-    {file = "eccodes-2.39.1-cp39-cp39-manylinux_2_28_x86_64.whl", hash = "sha256:1cda1e479533333287e0f81c6d06d46975f68ea0cba65f1d3a1ffc432da2ed27"},
-    {file = "eccodes-2.39.1-cp39-cp39-win_amd64.whl", hash = "sha256:89169c5d505511b83cbf951e900664b2cde8c8d095c190c9e376c70b9ee2e87c"},
-    {file = "eccodes-2.39.1-py3-none-any.whl", hash = "sha256:8faa901c5e681e51f490ae037437501780272a23855d93cc4acd70c74b05ffde"},
-    {file = "eccodes-2.39.1.tar.gz", hash = "sha256:c9e4695e1cbfa3a85c548cd6a3073e2277d71413529a89b0ea62b0f299416e20"},
+    {file = "eccodes-2.39.2-cp310-cp310-macosx_13_0_arm64.whl", hash = "sha256:332d5d3316cf2a4c18e016bb579ea5a1434022c1cfcdc252d03fb58f7f10d3fe"},
+    {file = "eccodes-2.39.2-cp310-cp310-macosx_13_0_x86_64.whl", hash = "sha256:d03fca192e5edefc75803106b0e7910b27c2398dfc8da5af510bba7888dd8596"},
+    {file = "eccodes-2.39.2-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:2c3771e39c2e4704c8347e07facbd4c8ced3ca8cf745e5f99d06c469f39a5d82"},
+    {file = "eccodes-2.39.2-cp310-cp310-win_amd64.whl", hash = "sha256:a408e9026ca4303e3606cc7331faf6279d662627e6316001fa81354a2a685403"},
+    {file = "eccodes-2.39.2-cp311-cp311-macosx_13_0_arm64.whl", hash = "sha256:4b7b3c91e8a63e3b5b2f1bec38dedb9cc50f7414f5850c80811583ec2c1cd7c9"},
+    {file = "eccodes-2.39.2-cp311-cp311-macosx_13_0_x86_64.whl", hash = "sha256:1bb0262916e3c44360866772a7a005bf6a5aec5dbb2e125cf18df894fa646912"},
+    {file = "eccodes-2.39.2-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:3ece73efc5d516a0c5bccd30ccd6ed7bfc666307305af01816e458144ca412d8"},
+    {file = "eccodes-2.39.2-cp311-cp311-win_amd64.whl", hash = "sha256:c30982f62413db3ba219408e84a55e76dde88d2adc1fd5e9d2b46a3e09e45751"},
+    {file = "eccodes-2.39.2-cp312-cp312-macosx_13_0_arm64.whl", hash = "sha256:e5dae49082a2cd8da297a9a99302cedf715ded3b6f4e71fc8385a4039ea6a06e"},
+    {file = "eccodes-2.39.2-cp312-cp312-macosx_13_0_x86_64.whl", hash = "sha256:06f4d1dc6cc0811c3369627bc9cccb8759d5b272c788d99abef800655d700811"},
+    {file = "eccodes-2.39.2-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:c8b7f036118a8f1440443e22a32ed2c05244a7793aaeb33e168221b00ef915c2"},
+    {file = "eccodes-2.39.2-cp312-cp312-win_amd64.whl", hash = "sha256:70b4d83104806dbc5661f1cfb946fe848166f6b21c1bcee577193437714087d3"},
+    {file = "eccodes-2.39.2-cp313-cp313-macosx_13_0_arm64.whl", hash = "sha256:47bd87426ae9fc5a6680de0edc04af21931eb41fc06ef351c2ca8ae00f6ba7ee"},
+    {file = "eccodes-2.39.2-cp313-cp313-macosx_13_0_x86_64.whl", hash = "sha256:b587871b841d13efb6adeb3ff400bc90171f0cc238a28805c7c83c918a83b5d9"},
+    {file = "eccodes-2.39.2-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:c545bd50d03856d60c9cfc8450ae54ca7d6150035bb5fbd0cac371fdcfbdf324"},
+    {file = "eccodes-2.39.2-cp313-cp313-win_amd64.whl", hash = "sha256:30d24d13dae6288f82a19b7b1ff5b77eaa14dc9664ad216297530d072967b5f1"},
+    {file = "eccodes-2.39.2-cp38-cp38-manylinux_2_28_x86_64.whl", hash = "sha256:3878ff0fcc146772579eb09a7d044592a85586b13ed44fe55e1b0ba5bb5f66d2"},
+    {file = "eccodes-2.39.2-cp38-cp38-win_amd64.whl", hash = "sha256:af6384e3f6eb5fd814fa7ac9a9a714de52783e27986918e8b5a35e610fbc4298"},
+    {file = "eccodes-2.39.2-cp39-cp39-macosx_13_0_arm64.whl", hash = "sha256:1d5c03badfe85be6e2dd059c25630be2c91bdeeae833a75ec3ff8dc5a9ae0d0c"},
+    {file = "eccodes-2.39.2-cp39-cp39-macosx_13_0_x86_64.whl", hash = "sha256:1f3f954e67d267cddd789b7472fd98546dee1b5fba3a254b02ffb1798bfa73ae"},
+    {file = "eccodes-2.39.2-cp39-cp39-manylinux_2_28_x86_64.whl", hash = "sha256:26f3be41552940e71a49beab386cf68396aac5ea3021555483c31fd8dd92a3c6"},
+    {file = "eccodes-2.39.2-cp39-cp39-win_amd64.whl", hash = "sha256:271665c6a06f56a644586c4c300910248335159626649eecfafbaf73e8fedf74"},
+    {file = "eccodes-2.39.2-py3-none-any.whl", hash = "sha256:2ee546f5738fbfc776b7d8fa1e6e12389570083fcfe7ca740b4540de1ab8c4fc"},
+    {file = "eccodes-2.39.2.tar.gz", hash = "sha256:f556c0d54ed3e74595740c4928c7cb56776c497de65c6eb4670567cadab14fcc"},
 ]
 
 [package.dependencies]
@@ -5485,13 +5485,13 @@ files = [
 
 [[package]]
 name = "xarray"
-version = "2025.1.1"
+version = "2025.1.2"
 description = "N-D labeled arrays and datasets in Python"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "xarray-2025.1.1-py3-none-any.whl", hash = "sha256:8a69d17c1e4ad09664fd0bc2dbb398e7368eda25bd19456fb919a6eb6490fb72"},
-    {file = "xarray-2025.1.1.tar.gz", hash = "sha256:1a3011d00ca92a94ba31b297c2eccd310b87a7dacf5acc8d0468385d4a834342"},
+    {file = "xarray-2025.1.2-py3-none-any.whl", hash = "sha256:a7ad6a36c6e0becd67f8aff6a7808d20e4bdcd344debb5205f0a34b1a4a7f8d6"},
+    {file = "xarray-2025.1.2.tar.gz", hash = "sha256:e7675c79ac69d274dd3b3c5450ce57176928d2792947576251ed1c7df1783224"},
 ]
 
 [package.dependencies]
@@ -5607,4 +5607,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12.3"
-content-hash = "0187b3087da80cb59d967818c7b4fa92b13fc3cbd6f000285eed725a50c0b41d"
+content-hash = "48e79df8bf3536340b9da28767262dfa182b21855c13139bf1d0ca72b852c628"
