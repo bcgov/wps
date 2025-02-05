@@ -116,17 +116,21 @@ describe("pmtilesCache", () => {
     const stubRead = sandbox.stub(mockFs, "readFile");
     stubRead.resolves({ data: btoa("mocked file content") });
     const testCache = new PMTilesCache(mockFs);
-    testCache.loadPMTiles("test.pmtiles");
+    await testCache.loadPMTiles("test.pmtiles");
     sinon.assert.calledOnce(stubRead);
   });
 
   it("should attempt to load stored static pmtiles first then fallback to requesting them", async () => {
     const mockFs = new MockFilesystem();
+    const stubRead = sandbox
+      .stub(mockFs, "readFile")
+      .rejects(new Error("Read failed"));
 
     const stubFetch = sandbox.stub().rejects(new Error("Fetch failed"));
     const testCache = new PMTilesCache(mockFs);
     await testCache.loadPMTiles("test.pmtiles", stubFetch);
     sinon.assert.calledThrice(stubFetch);
+    sinon.assert.callOrder(stubRead, stubFetch, stubFetch, stubFetch);
   });
 
   it("should attempt to load stored hfi pmtiles", async () => {
@@ -135,7 +139,7 @@ describe("pmtilesCache", () => {
     const stubRead = sandbox.stub(mockFs, "readFile");
     stubRead.resolves({ data: btoa("mocked file content") });
     const testCache = new PMTilesCache(mockFs);
-    testCache.loadHFIPMTiles(
+    await testCache.loadHFIPMTiles(
       DateTime.fromISO("2016-05-25T09:08:34.123"),
       RunType.FORECAST,
       DateTime.fromISO("2016-05-25T09:08:34.123"),
@@ -146,6 +150,9 @@ describe("pmtilesCache", () => {
 
   it("should attempt to load stored hfi pmtiles first then fallback to requesting them", async () => {
     const mockFs = new MockFilesystem();
+    const stubRead = sandbox
+      .stub(mockFs, "readFile")
+      .rejects(new Error("Read failed"));
 
     const stubFetch = sandbox.stub().rejects(new Error("Fetch failed"));
     const testCache = new PMTilesCache(mockFs);
@@ -157,5 +164,6 @@ describe("pmtilesCache", () => {
       stubFetch
     );
     sinon.assert.calledThrice(stubFetch);
+    sinon.assert.callOrder(stubRead, stubFetch, stubFetch, stubFetch);
   });
 });
