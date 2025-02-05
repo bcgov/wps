@@ -20,7 +20,7 @@ objects:
   - kind: Job
     apiVersion: batch/v1
     metadata:
-      name: name: advisory-fuel-areas-${NAME}-${SUFFIX}
+      name: advisory-fuel-areas-${NAME}-${SUFFIX}
     spec:
       parallelism: 1
       completions: 1

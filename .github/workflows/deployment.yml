@@ -151,6 +151,12 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" ENVIRONMENT="development" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
+      - name: Advisory fuel areas job
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_advisory_fuel_areas_job.sh ${SUFFIX} apply
+          
       ## TODO: re-enable once crunchy is deployed: https://app.zenhub.com/workspaces/bcws---agile-psu-5e321393e038fba5bbe203b8/issues/gh/bcgov/wps/2340
       - name: Hourly actuals cronjob
         shell: bash
@@ -229,12 +235,6 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" SCHEDULE="0 0 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
-
-      - name: Advisory fuel areas job
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_advisory_fuel_areas_job.sh ${SUFFIX} apply
 
   # TODO: Delete once pmtiles has run for some time
   # deploy-tileserv:
