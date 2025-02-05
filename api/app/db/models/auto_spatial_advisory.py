@@ -30,6 +30,11 @@ class RunTypeEnum(enum.Enum):
     forecast = "forecast"
     actual = "actual"
 
+class TPIClassEnum(enum.Enum):
+    valley_bottom = 1
+    mid_slope = 2
+    upper_slope = 3
+
 
 class ShapeType(Base):
     """Identify some kind of area type, e.g. "Zone", or "Fire" """
@@ -227,3 +232,15 @@ class CriticalHours(Base):
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     start_hour = Column(Integer, nullable=False)
     end_hour = Column(Integer, nullable=False)
+
+class TPIFuelArea(Base):
+    """
+    Combustible area in each TPI class per fire zone unit.
+    """
+
+    __tablename__ = "tpi_fuel_area"
+    __table_args__ = {"comment": "Combustible area in each TPI class per fire zone unit."}
+    id = Column(Integer, primary_key=True, index=True)
+    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
+    tpi_class = Column(Enum(TPIClassEnum), nullable=False)
+    fuel_area = Column(Float, nullable=False)

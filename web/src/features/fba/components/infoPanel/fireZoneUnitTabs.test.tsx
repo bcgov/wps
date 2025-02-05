@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import FireZoneUnitTabs from './FireZoneUnitTabs'
-import { FireCenter, FireCentreHFIStats, FireShape, FireShapeAreaDetail, FireZoneTPIStats } from 'api/fbaAPI'
+import { FireCenter, FireCentreHFIStats, FireCentreTPIResponse, FireShape, FireShapeAreaDetail } from 'api/fbaAPI'
 import { vi } from 'vitest'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
@@ -74,8 +74,19 @@ const mockSelectedFireCenter: FireCenter = {
   stations: []
 }
 
-const mockFireCentreTPIStats: Record<string, FireZoneTPIStats[]> = {
-  [fireCentre1]: [{ fire_zone_id: 1, valley_bottom: 10, mid_slope: 90, upper_slope: 10 }]
+const mockFireCentreTPIStats: FireCentreTPIResponse = {
+  fire_centre_name: 'test_name',
+  firezone_tpi_stats: [
+    {
+      fire_zone_id: 1,
+      valley_bottom_hfi: 10,
+      valley_bottom_tpi: 11,
+      mid_slope_hfi: 90,
+      mid_slope_tpi: 91,
+      upper_slope_hfi: 10,
+      upper_slope_tpi: 11
+    }
+  ]
 }
 
 const mockFireCentreHFIFuelStats: FireCentreHFIStats = {

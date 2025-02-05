@@ -167,24 +167,8 @@ forecast_indeterminate_2 = WeatherIndeterminate(
 )
 
 wfwx_weather_stations = [
-    WFWXWeatherStation(
-        wfwx_id="1",
-        code=1,
-        name="station1",
-        latitude=12.1,
-        longitude=12.1,
-        elevation=123,
-        zone_code=1,
-    ),
-    WFWXWeatherStation(
-        wfwx_id="2",
-        code=2,
-        name="station2",
-        latitude=12.2,
-        longitude=12.2,
-        elevation=123.2,
-        zone_code=2,
-    ),
+    WFWXWeatherStation(wfwx_id="1", code=1, name="station1", latitude=12.1, longitude=12.1, elevation=123, zone_code="1"),
+    WFWXWeatherStation(wfwx_id="2", code=2, name="station2", latitude=12.2, longitude=12.2, elevation=122, zone_code="2"),
 ]
 
 station_1_daily_from_wf1 = StationDailyFromWF1(
@@ -280,9 +264,7 @@ def test_construct_wf1_forecast_update():
     return_value=[station_1_daily_from_wf1],
 )
 async def test_construct_wf1_forecasts_new(_, mock_get):
-    result = await construct_wf1_forecasts(
-        mock_get, [morecast_input_1, morecast_input_2], wfwx_weather_stations, "user"
-    )
+    result = await construct_wf1_forecasts(mock_get, [morecast_input_1, morecast_input_2], wfwx_weather_stations, "user")
     assert len(result) == 2
     # existing forecast
     assert_wf1_forecast(
@@ -297,9 +279,7 @@ async def test_construct_wf1_forecasts_new(_, mock_get):
     assert_wf1_forecast(result[1], morecast_input_2, None, "user", station_2_url, "2")
 
 
-def build_weather_indeterminate(
-    station_code: int, station_name: str, determinate: WeatherDeterminate, utc_timestamp: datetime
-):
+def build_weather_indeterminate(station_code: int, station_name: str, determinate: WeatherDeterminate, utc_timestamp: datetime):
     return WeatherIndeterminate(
         station_code=station_code,
         station_name=station_name,

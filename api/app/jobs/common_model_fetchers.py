@@ -6,6 +6,7 @@ from typing import List
 import numpy
 import requests
 from pyproj import Geod
+import numpy as np
 from sqlalchemy.orm import Session
 
 import app.db.database
@@ -175,6 +176,10 @@ def accumulate_nam_precipitation(nam_cumulative_precip: float, prediction: Model
     if prediction.prediction_timestamp.hour % nam_accumulation_interval == 0:
         # If we're on an 'accumulation interval', update the cumulative precip
         cumulative_precip = current_precip
+
+    cumulative_precip = cumulative_precip.item() if isinstance(cumulative_precip, np.float64) else cumulative_precip
+    current_precip = current_precip.item() if isinstance(current_precip, np.float64) else current_precip
+
     return (cumulative_precip, current_precip)
 
 
@@ -264,7 +269,8 @@ class ModelValueProcessor:
         if prediction.tmp_tgl_2 is None:
             logger.warning("tmp_tgl_2 is None for ModelRunPrediction.id == %s", prediction.id)
         else:
-            station_prediction.tmp_tgl_2 = prediction.tmp_tgl_2
+            temp = prediction.tmp_tgl_2.item() if isinstance(prediction.tmp_tgl_2, np.float64) else prediction.tmp_tgl_2
+            station_prediction.tmp_tgl_2 = temp
 
         # 2020 Dec 10, Sybrand: Encountered situation where rh_tgl_2 was None, add this workaround for it.
         # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
@@ -274,13 +280,15 @@ class ModelValueProcessor:
             logger.warning("rh_tgl_2 is None for ModelRunPrediction.id == %s", prediction.id)
             station_prediction.rh_tgl_2 = None
         else:
-            station_prediction.rh_tgl_2 = prediction.rh_tgl_2
+            rh = prediction.rh_tgl_2.item() if isinstance(prediction.rh_tgl_2, np.float64) else prediction.rh_tgl_2
+            station_prediction.rh_tgl_2 = rh
         # Check that apcp_sfc_0 is None, since accumulated precipitation
         # does not exist for 00 hour.
         if prediction.apcp_sfc_0 is None:
-            station_prediction.apcp_sfc_0 = 0.0
+            station_prediction.apcp_sfc_0 = float(0.0)
         else:
-            station_prediction.apcp_sfc_0 = prediction.apcp_sfc_0
+            apcp = prediction.apcp_sfc_0.item() if isinstance(prediction.apcp_sfc_0, np.float64) else prediction.apcp_sfc_0
+            station_prediction.apcp_sfc_0 = apcp
         # Calculate the delta_precipitation and 24 hour precip based on station's previous prediction_timestamp
         # for the same model run
         self.session.flush()
@@ -289,10 +297,12 @@ class ModelValueProcessor:
 
         # Get the closest wind speed
         if prediction.wind_tgl_10 is not None:
-            station_prediction.wind_tgl_10 = prediction.wind_tgl_10
+            wind_tgl_10 = prediction.wind_tgl_10.item() if isinstance(prediction.wind_tgl_10, np.float64) else prediction.wind_tgl_10
+            station_prediction.wind_tgl_10 = wind_tgl_10
         # Get the closest wind direcion
         if prediction.wdir_tgl_10 is not None:
-            station_prediction.wdir_tgl_10 = prediction.wdir_tgl_10
+            wdir_tgl_10 = prediction.wdir_tgl_10.item() if isinstance(prediction.wdir_tgl_10, np.float64) else prediction.wdir_tgl_10
+            station_prediction.wdir_tgl_10 = wdir_tgl_10
 
         if prediction_is_interpolated:
             # Dealing with a numerical weather model that only has predictions at 3 hour intervals,

@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.db.crud.weather_models import get_or_create_prediction_run, get_prediction_model
 from app.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp
+import numpy as np
 from app.geospatial import NAD83_CRS
 from app.stations import get_stations_synchronously
 from app.weather_models import ModelEnum, ProjectionEnum
@@ -193,6 +194,7 @@ class GribFileProcessor:
             prediction.station_code = station_code
 
         variable_name = self.get_variable_name(grib_info)
+        value = value.item() if isinstance(value, np.float64) else value
         setattr(prediction, variable_name, value)
         session.add(prediction)
         session.commit()

@@ -145,7 +145,13 @@
             "type": "python",
             "request": "launch",
             "module": "app.auto_spatial_advisory.critical_hours",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "args": [
+                "-r",
+                "3517"
+                // "-z",
+                // "85"
+            ]
         },
         {
             "name": "sfms raster processor job",

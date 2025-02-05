@@ -1,0 +1,7 @@
+{
+  "name": "asa-go",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
