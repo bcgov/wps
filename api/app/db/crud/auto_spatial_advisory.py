@@ -516,16 +516,3 @@ async def get_critical_hours_for_run_parameters(session: AsyncSession, run_type:
     result = await session.execute(stmt)
     return result
 
-def get_fuel_info_by_zone_unit(session: Session, shape_id: int):
-    # , FuelType.geom.ST_Union().ST_Intersection(Shape.geom.ST_Union()).ST_Area)
-    # FuelType.geom.ST_Union().ST_Intersection(Shape.geom).ST_Area()
-    stmt = (
-        select(SFMSFuelType.fuel_type_code, SFMSFuelType.fuel_type_id, FuelType.geom.ST_Union().ST_Intersection(Shape.geom.ST_Union()).ST_Area())
-        .join_from(FuelType, Shape, func.ST_INTERSECTS(FuelType.geom, Shape.geom))
-        .join(SFMSFuelType, SFMSFuelType.fuel_type_id == FuelType.fuel_type_id)
-        .where(Shape.id == shape_id, FuelType.fuel_type_id > 0, FuelType.fuel_type_id < 99)
-        .group_by(SFMSFuelType.fuel_type_code, SFMSFuelType.fuel_type_id)
-    )
-
-    result = session.execute(stmt)
-    return result.all()
