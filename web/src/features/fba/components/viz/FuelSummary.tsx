@@ -50,7 +50,7 @@ const columns: GridColDef[] = [
     field: 'area',
     flex: 1,
     headerClassName: 'fuel-summary-header',
-    headerName: 'Distribution > 4k kW/m',
+    headerName: 'Portion under advisory',
     sortable: false,
     renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => {
@@ -85,11 +85,10 @@ const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryPro
       setFuelTypeInfoRollup([])
       return
     }
-    // Sum the total area with HFI > 4000 for all fuel types
-    const totalHFIArea4K = fuelDetails.reduce((acc, { area }) => acc + area, 0)
+
     const rollUp: FuelTypeInfoSummary[] = []
-    // We receive HFI area per fuel type per HFI threshold (4-10K and >10K), so group fuel type.
-    // Iterate through the groups adding the area for both HFI thresholds' we're interested in all
+    // We receive HFI area per fuel type per HFI threshold (4-10K and >10K), so group by fuel type.
+    // Iterate through the groups adding the area for both HFI thresholds we're interested in all
     // HFI > 4,000.
     const groupedFuelDetails = groupBy(fuelDetails, 'fuel_type.fuel_type_id')
     for (const key in groupedFuelDetails) {
@@ -99,6 +98,7 @@ const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryPro
         const fuelType = groupedFuelDetail[0].fuel_type
         const startTime = groupedFuelDetail[0].critical_hours.start_time
         const endTime = groupedFuelDetail[0].critical_hours.end_time
+        const fuel_area = groupedFuelDetail[0].fuel_area
         const fuelInfo: FuelTypeInfoSummary = {
           area,
           code: fuelType.fuel_type_code,
@@ -106,7 +106,7 @@ const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryPro
           criticalHoursStart: startTime,
           criticalHoursEnd: endTime,
           id: fuelType.fuel_type_id,
-          percent: totalHFIArea4K ? (area / totalHFIArea4K) * 100 : 0,
+          percent: fuel_area ? (area / fuel_area) * 100 : 0,
           selected: false
         }
         rollUp.push(fuelInfo)

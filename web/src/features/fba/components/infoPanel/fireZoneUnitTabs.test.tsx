@@ -96,7 +96,8 @@ const mockFireCentreHFIFuelStats: FireCentreHFIStats = {
         fuel_type: { fuel_type_id: 1, fuel_type_code: 'C', description: 'fuel type' },
         area: 10,
         threshold: { id: 1, name: 'threshold', description: 'description' },
-        critical_hours: {start_time: 8, end_time: 11}
+        critical_hours: { start_time: 8, end_time: 11 },
+        fuel_area: 20
       }
     ]
   }

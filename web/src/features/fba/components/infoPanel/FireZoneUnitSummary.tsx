@@ -4,7 +4,7 @@ import { isNil, isUndefined } from 'lodash'
 import { FireShape, FireZoneTPIStats, FireZoneFuelStats } from 'api/fbaAPI'
 import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 import { useTheme } from '@mui/material/styles'
-import FuelSummary from 'features/fba/components/viz/FuelSummary'
+import FuelSummary from '@/features/fba/components/viz/FuelSummary'
 
 interface FireZoneUnitSummaryProps {
   selectedFireZoneUnit: FireShape | undefined

@@ -310,7 +310,8 @@ const missingCriticalHoursStartFuelStatsState: FireCentreHFIFuelStatsState = {
             start_time: undefined,
             end_time: 13
           },
-          area: 4000
+          area: 4000,
+          fuel_area: 8000
         }
       ]
     }
@@ -337,7 +338,8 @@ const missingCriticalHoursEndFuelStatsState: FireCentreHFIFuelStatsState = {
             start_time: 9,
             end_time: undefined
           },
-          area: 4000
+          area: 4000,
+          fuel_area: 8000
         }
       ]
     }

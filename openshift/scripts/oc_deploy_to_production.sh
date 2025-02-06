@@ -44,6 +44,8 @@ echo Provision NATS
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_nats.sh prod ${RUN_TYPE}
 echo Deploy API
 MODULE_NAME=api GUNICORN_WORKERS=8 CPU_REQUEST=100m CPU_LIMIT=500m MEMORY_REQUEST=6Gi MEMORY_LIMIT=8Gi REPLICAS=3 PROJ_TARGET=${PROJ_TARGET} VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy.sh prod ${RUN_TYPE}
+echo Advisory Fuel Area
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_advisory_fuel_areas_job.sh prod ${RUN_TYPE}
 echo Env Canada Subscriber
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_gdps_cronjob.sh prod ${RUN_TYPE}
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_hrdps_cronjob.sh prod ${RUN_TYPE} 

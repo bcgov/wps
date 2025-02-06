@@ -233,6 +233,7 @@ class CriticalHours(Base):
     start_hour = Column(Integer, nullable=False)
     end_hour = Column(Integer, nullable=False)
 
+
 class TPIFuelArea(Base):
     """
     Combustible area in each TPI class per fire zone unit.
@@ -243,4 +244,16 @@ class TPIFuelArea(Base):
     id = Column(Integer, primary_key=True, index=True)
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
     tpi_class = Column(Enum(TPIClassEnum), nullable=False)
+    fuel_area = Column(Float, nullable=False)
+
+class AdvisoryShapeFuels(Base):
+    """
+    Fuel types and their areas in fire zone units.
+    """
+
+    __tablename__ = "advisory_shape_fuels"
+    __table_args__ = {"comment": "Fuel types and their areas in fire zone units."}
+    id = Column(Integer, primary_key=True, index=True)
+    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
+    fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     fuel_area = Column(Float, nullable=False)

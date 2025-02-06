@@ -21,7 +21,7 @@ mock_tpi_fuel_area_1 = TPIFuelArea(id=1, advisory_shape_id=1, tpi_class=TPIClass
 mock_tpi_fuel_area_2 = TPIFuelArea(id=2, advisory_shape_id=1, tpi_class=TPIClassEnum.mid_slope, fuel_area=2)
 mock_tpi_fuel_area_3 = TPIFuelArea(id=3, advisory_shape_id=1, tpi_class=TPIClassEnum.upper_slope, fuel_area=3)
 mock_tpi_fuel_areas = [mock_tpi_fuel_area_1, mock_tpi_fuel_area_2, mock_tpi_fuel_area_3]
-mock_fire_centre_info = [(9.0, 11.0, 1, 1, 50)]
+mock_fire_centre_info = [(9.0, 11.0, 1, 1, 50, 100)]
 mock_sfms_run_datetimes = [
     RunParameters(id=1, run_type="forecast", run_datetime=datetime(year=2024, month=1, day=1, hour=1, tzinfo=timezone.utc), for_date=date(year=2024, month=1, day=2))
 ]
@@ -133,6 +133,8 @@ def test_get_fire_center_info_authorized(client: TestClient):
     assert response.json()["Kamloops Fire Centre"]["1"][0]["threshold"]["id"] == 1
     assert response.json()["Kamloops Fire Centre"]["1"][0]["critical_hours"]["start_time"] == 9.0
     assert response.json()["Kamloops Fire Centre"]["1"][0]["critical_hours"]["end_time"] == 11.0
+    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"][0]["fuel_area"], 0.01)
+    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"][0]["area"], 0.005)
 
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)

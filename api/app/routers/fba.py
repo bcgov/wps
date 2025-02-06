@@ -128,10 +128,11 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
             )
             zone_data = []
 
-            for critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area in hfi_fuel_type_ids_for_zone:
+            for critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, fuel_area in hfi_fuel_type_ids_for_zone:
                 # area is stored in square metres in DB. For user convenience, convert to hectares
                 # 1 ha = 10,000 sq.m.
                 area = area / 10000
+                fuel_area = fuel_area / 10000
                 fuel_type_obj = next((ft for ft in fuel_types if ft.fuel_type_id == fuel_type_id), None)
                 threshold_obj = next((th for th in thresholds if th.id == threshold_id), None)
                 zone_data.append(
@@ -140,6 +141,7 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
                         threshold=HfiThreshold(id=threshold_obj.id, name=threshold_obj.name, description=threshold_obj.description),
                         critical_hours=AdvisoryCriticalHours(start_time=critical_hour_start, end_time=critical_hour_end),
                         area=area,
+                        fuel_area=fuel_area,
                     )
                 )
             all_zone_data[zone_id] = zone_data

@@ -39,6 +39,7 @@ export interface FireZoneFuelStats {
   threshold: HfiThreshold
   critical_hours: AdvisoryCriticalHours
   area: number
+  fuel_area: number
 }
 
 export interface FireShapeArea {
