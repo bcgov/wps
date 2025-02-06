@@ -21,6 +21,8 @@ objects:
     apiVersion: batch/v1
     metadata:
       name: advisory-fuel-areas-${NAME}-${SUFFIX}
+      labels:
+        app: ${NAME}-${SUFFIX}
     spec:
       parallelism: 1
       completions: 1
