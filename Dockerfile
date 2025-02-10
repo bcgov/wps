@@ -26,6 +26,9 @@ WORKDIR /app
 # Copy poetry files.
 COPY --chown=$USERNAME:$USER_GID ./api/pyproject.toml ./api/poetry.lock /app/
 
+# Copy required local package
+COPY ./common /common
+
 # Install dependencies.
 RUN poetry install --without dev
 
