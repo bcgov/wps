@@ -1,9 +1,38 @@
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 
 import { theme } from "@/theme";
+import { HamburgerMenu } from "@/components/HamburgerMenu";
+import { RunType, FireCenter, FireShape } from "@/api/fbaAPI";
+import { DateTime } from "luxon";
 
-export const AppHeader = () => {
+export interface AppHeaderProps {
+  runType: RunType;
+  setRunType: React.Dispatch<React.SetStateAction<RunType>>;
+  date: DateTime;
+  updateDate: (d: DateTime) => void;
+  selectedFireCenter?: FireCenter;
+  fireCenterOptions: FireCenter[];
+  setSelectedFireCenter: React.Dispatch<
+    React.SetStateAction<FireCenter | undefined>
+  >;
+  setSelectedFireShape: React.Dispatch<
+    React.SetStateAction<FireShape | undefined>
+  >;
+  setZoomSource: React.Dispatch<
+    React.SetStateAction<"fireCenter" | "fireShape" | undefined>
+  >;
+}
+export const AppHeader = ({
+  runType,
+  setRunType,
+  date,
+  updateDate,
+  fireCenterOptions,
+  setSelectedFireShape,
+  setSelectedFireCenter,
+  setZoomSource,
+}: AppHeaderProps) => {
   return (
     <Box
       sx={{
@@ -25,15 +54,18 @@ export const AppHeader = () => {
         }}
       >
         <Grid>
-          <Typography
-            variant="h2"
-            sx={{
-              color: theme.palette.primary.contrastText,
-              fontSize: "1.7rem",
-            }}
-          >
-            ASA
-          </Typography>
+          <Grid>
+            <HamburgerMenu
+              runType={runType}
+              setRunType={setRunType}
+              date={date}
+              updateDate={updateDate}
+              fireCenterOptions={fireCenterOptions}
+              setSelectedFireCenter={setSelectedFireCenter}
+              setSelectedFireShape={setSelectedFireShape}
+              setZoomSource={setZoomSource}
+            />
+          </Grid>
         </Grid>
       </Grid>
     </Box>

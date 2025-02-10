@@ -1,64 +1,69 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { AppThunk } from 'app/store'
-import { logError } from 'utils/error'
-import { getAllRunDates, getMostRecentRunDate, RunType } from 'api/fbaAPI'
-import { DateTime } from 'luxon'
+import { AppThunk } from "@/store";
+import { getAllRunDates, getMostRecentRunDate, RunType } from "api/fbaAPI";
+import { DateTime } from "luxon";
 
 export interface RunDateState {
-  loading: boolean
-  error: string | null
-  runDates: DateTime[]
-  mostRecentRunDate: string | null
+  loading: boolean;
+  error: string | null;
+  runDates: DateTime[];
+  mostRecentRunDate: string | null;
 }
 
 const initialState: RunDateState = {
   loading: false,
   error: null,
   runDates: [],
-  mostRecentRunDate: null
-}
+  mostRecentRunDate: null,
+};
 
 const runDatesSlice = createSlice({
-  name: 'runDates',
+  name: "runDates",
   initialState,
   reducers: {
     getRunDatesStart(state: RunDateState) {
-      state.error = null
-      state.loading = true
-      state.runDates = []
-      state.mostRecentRunDate = null
+      state.error = null;
+      state.loading = true;
+      state.runDates = [];
+      state.mostRecentRunDate = null;
     },
     getRunDatesFailed(state: RunDateState, action: PayloadAction<string>) {
-      state.error = action.payload
-      state.loading = false
+      state.error = action.payload;
+      state.loading = false;
     },
     getRunDatesSuccess(
       state: RunDateState,
       action: PayloadAction<{ runDates: DateTime[]; mostRecentRunDate: string }>
     ) {
-      state.error = null
-      state.runDates = action.payload.runDates
-      state.mostRecentRunDate = action.payload.mostRecentRunDate
-      state.loading = false
-    }
-  }
-})
+      state.error = null;
+      state.runDates = action.payload.runDates;
+      state.mostRecentRunDate = action.payload.mostRecentRunDate;
+      state.loading = false;
+    },
+  },
+});
 
-export const { getRunDatesStart, getRunDatesFailed, getRunDatesSuccess } = runDatesSlice.actions
+export const { getRunDatesStart, getRunDatesFailed, getRunDatesSuccess } =
+  runDatesSlice.actions;
 
-export default runDatesSlice.reducer
+export default runDatesSlice.reducer;
 
 export const fetchSFMSRunDates =
   (runType: RunType, forDate: string): AppThunk =>
-  async dispatch => {
+  async (dispatch) => {
     try {
-      dispatch(getRunDatesStart())
-      const runDates = await getAllRunDates(runType, forDate)
-      const mostRecentRunDate = await getMostRecentRunDate(runType, forDate)
-      dispatch(getRunDatesSuccess({ runDates: runDates, mostRecentRunDate: mostRecentRunDate }))
+      dispatch(getRunDatesStart());
+      const runDates = await getAllRunDates(runType, forDate);
+      const mostRecentRunDate = await getMostRecentRunDate(runType, forDate);
+      dispatch(
+        getRunDatesSuccess({
+          runDates: runDates,
+          mostRecentRunDate: mostRecentRunDate,
+        })
+      );
     } catch (err) {
-      dispatch(getRunDatesFailed((err as Error).toString()))
-      logError(err)
+      dispatch(getRunDatesFailed((err as Error).toString()));
+      console.log(err);
     }
-  }
+  };
