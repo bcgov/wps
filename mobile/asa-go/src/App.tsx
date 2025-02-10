@@ -3,8 +3,8 @@ import { Box } from "@mui/material";
 
 import FBAMap from "@/FBAMap";
 import { FireCenter, FireShape } from "@/api/fbaAPI";
-import { AppHeader } from "@/AppHeader";
-import { ASATabs } from "@/ASATabs";
+import { AppHeader } from "@/components/AppHeader";
+import { ASATabs } from "@/components/ASATabs";
 
 const App = () => {
   const [fireCenter] = useState<FireCenter | undefined>(undefined);

@@ -1,7 +1,7 @@
 import Grid from "@mui/material/Grid2";
 import { Box } from "@mui/material";
 import { theme } from "@/theme";
-import { Counter } from "@/Counter";
+import { Counter } from "@/components/Counter";
 
 export const ASATabs = () => {
   return (

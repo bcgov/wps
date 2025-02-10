@@ -20,7 +20,7 @@ import {
 import { DateTime } from "luxon";
 import { isUndefined, cloneDeep } from "lodash";
 import { Box } from "@mui/material";
-import ScalebarContainer from "@/ScaleBarContainer";
+import ScalebarContainer from "@/components/ScaleBarContainer";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import { CENTER_OF_BC } from "@/utils/constants";
 import { extentsMap } from "@/fireCentreExtents";
