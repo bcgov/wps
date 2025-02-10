@@ -5,7 +5,7 @@ import logging
 import numpy
 import tempfile
 from osgeo import gdal, ogr
-from app import config
+from common import config
 from numba import vectorize
 from app.utils.s3 import get_client, read_into_memory
 from app.weather_models import ModelEnum

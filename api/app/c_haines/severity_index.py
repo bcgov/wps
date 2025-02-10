@@ -28,7 +28,7 @@ from app.c_haines.c_haines_index import CHainesGenerator
 from app.c_haines import GDALData
 from app.c_haines.object_store import ObjectTypeEnum, generate_full_object_store_path
 from app.c_haines.kml import save_as_kml_to_s3
-from app import config
+from common import config
 from app.weather_models.process_grib import get_dataset_transform
 
 

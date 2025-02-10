@@ -2,7 +2,7 @@ import logging
 import os
 import numpy as np
 from osgeo import gdal
-from app import config
+from common import config
 from app.db.models.snow import ProcessedSnow
 
 SNOW_COVERAGE_WARPED_NAME = 'snow_coverage_warped.tif'

@@ -2,7 +2,7 @@ import os
 import enum
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
-from app import config
+from common import config
 from app.utils.time import convert_utc_to_pdt
 from app.weather_models import ModelEnum
 from app.weather_models.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key, compose_rdps_key_hffmc

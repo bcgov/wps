@@ -1,6 +1,6 @@
 from datetime import datetime, time, timedelta, timezone
 from urllib.parse import urljoin
-from app import config
+from common import config
 
 from aiohttp import ClientSession
 from collections import defaultdict

@@ -6,7 +6,7 @@ from typing import Optional
 from datetime import datetime, date, timedelta, timezone
 import jnius_config
 # import jnius - importing jnius on this level causes an segmentation fault.
-from app import config
+from common import config
 
 jnius_config.set_classpath(config.get('CLASSPATH'))
 

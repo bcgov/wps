@@ -2,7 +2,7 @@
 from typing import List, Tuple
 from abc import abstractmethod, ABC
 
-from app import config
+from common import config
 
 
 class BuildQuery(ABC):

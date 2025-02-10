@@ -6,7 +6,7 @@ from datetime import datetime
 import logging
 import asyncio
 from aiohttp import ClientSession, TCPConnector
-from app import config
+from common import config
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.db.crud.hfi_calc import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual

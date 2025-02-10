@@ -1,7 +1,7 @@
 """ Central location to instantiate redis for easier mocking in unit tests.
 """
 from redis import StrictRedis
-from app import config
+from common import config
 
 
 def _create_redis():

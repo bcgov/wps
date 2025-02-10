@@ -5,7 +5,7 @@ from typing import Generator, Tuple
 import logging
 from osgeo import ogr, osr, gdal
 from shapely import wkt, wkb
-from app import config
+from common import config
 from app.db.models.auto_spatial_advisory import FuelType
 from app.db.database import get_async_write_session_scope
 from app.db.crud.auto_spatial_advisory import save_fuel_type

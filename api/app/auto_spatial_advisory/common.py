@@ -2,7 +2,7 @@
 Common functionality for ASA
 """
 from datetime import date
-from app import config
+from common import config
 from app.auto_spatial_advisory.run_type import RunType
 
 

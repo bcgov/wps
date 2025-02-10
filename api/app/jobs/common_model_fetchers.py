@@ -20,13 +20,14 @@ from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum
 from app.weather_models.interpolate import construct_interpolated_noon_prediction, interpolate_between_two_points
 from app.schemas.stations import WeatherStation
-from app import config, configure_logging
+from app import configure_logging
 import app.utils.time as time_utils
 from app.utils.redis import create_redis
 from app.stations import get_stations_synchronously
 from app.db.models.weather_models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunPrediction
 import app.db.database
 from app.db.crud.observations import get_accumulated_precipitation
+from common import config
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":

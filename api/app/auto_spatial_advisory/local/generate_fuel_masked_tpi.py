@@ -4,7 +4,7 @@ import numpy as np
 import tempfile
 from osgeo import gdal
 
-from app import config
+from common import config
 from app.auto_spatial_advisory.process_fuel_type_area import get_fuel_type_s3_key
 from app.utils.geospatial import GDALResamplingMethod, warp_to_match_raster
 from app.utils.s3 import set_s3_gdal_config

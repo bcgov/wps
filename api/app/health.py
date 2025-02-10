@@ -2,7 +2,8 @@
 """
 import logging
 import requests
-from app import config, url_join
+from app import url_join
+from common import config
 
 logger = logging.getLogger(__name__)
 

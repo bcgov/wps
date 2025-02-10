@@ -7,7 +7,7 @@ from contextlib import contextmanager, asynccontextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from .. import config
+from common import config
 
 logger = logging.getLogger(__name__)
 write_user = config.get("POSTGRES_WRITE_USER", "wps")

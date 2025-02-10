@@ -1,6 +1,6 @@
 
 import json
-from app import config
+from common import config
 from botocore.session import get_session
 
 

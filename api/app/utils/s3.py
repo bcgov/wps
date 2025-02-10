@@ -7,7 +7,7 @@ from aiobotocore.client import AioBaseClient
 from aiobotocore.session import get_session
 from botocore.exceptions import ClientError
 from osgeo import gdal
-from app import config
+from common import config
 
 logger = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ import logging
 from typing import List
 from aiohttp import ClientSession
 from fastapi import status, HTTPException
-from app import config
+from common import config
 from app.schemas.morecast_v2 import WF1PostForecast
 from app.wildfire_one.wfwx_api import get_auth_header
 

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import text
 from sqlalchemy import func
-from app import config
+from common import config
 from app.auto_spatial_advisory.common import get_s3_key
 from app.auto_spatial_advisory.run_type import RunType
 from app.db.database import get_async_write_session_scope

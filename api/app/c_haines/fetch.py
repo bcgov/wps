@@ -7,7 +7,7 @@ from urllib.parse import urljoin, urlencode
 import asyncio
 import logging
 
-from app import config
+from common import config
 from app.utils.s3 import get_client
 from app.c_haines.kml import get_look_at, get_kml_header, FOLDER_OPEN, FOLDER_CLOSE
 from app.c_haines.object_store import ObjectTypeEnum, generate_object_store_model_run_path

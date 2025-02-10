@@ -1,13 +1,13 @@
-""" Configuration related code
-"""
-import logging
+"""Configuration related code"""
+
 from decouple import config
+import logging
 
 logger = logging.getLogger(__name__)
 
 
 def get(key, default=None) -> str:
-    """ Use decouple.config to retreive values, logging a warning if the value is not found.
+    """Use decouple.config to retrieve values, logging a warning if the value is not found.
 
     - Using decouple.config in only one module, makes it easier to stub out calls to os.getenv. (No need to
         stub it out per module, can just stub it once.)
@@ -16,5 +16,5 @@ def get(key, default=None) -> str:
     """
     value = config(key, default)
     if value is None:
-        logger.warning('Expected environment variable (%s) not set.', key)
+        logger.warning("Expected environment variable (%s) not set.", key)
     return value

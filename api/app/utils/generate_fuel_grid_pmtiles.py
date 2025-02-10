@@ -1,6 +1,6 @@
 from tempfile import TemporaryDirectory
 
-from app import config
+from common import config
 from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
 from app.utils.polygonize import polygonize_in_memory
 from app.utils.s3 import set_s3_gdal_config

@@ -3,7 +3,7 @@
 import os
 import numpy as np
 from osgeo import gdal
-from app import config
+from common import config
 
 
 def classify_hfi(source_path, target_path):

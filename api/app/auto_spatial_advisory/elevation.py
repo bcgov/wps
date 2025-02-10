@@ -12,7 +12,7 @@ import numpy as np
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
 from sqlalchemy.future import select
-from app import config
+from common import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.process_fuel_type_area import get_advisory_shape
 from app.auto_spatial_advisory.run_type import RunType

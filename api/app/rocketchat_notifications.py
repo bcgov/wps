@@ -7,7 +7,7 @@ import traceback
 import logging
 import threading
 import requests
-from app import config
+from common import config
 
 logger = logging.getLogger(__name__)
 

@@ -2,7 +2,7 @@ import os
 import logging
 from typing import Any
 from aiobotocore.session import get_session
-from app import config
+from common import config
 from app.geospatial.wps_dataset import WPSDataset
 
 logger = logging.getLogger(__name__)

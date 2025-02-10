@@ -7,7 +7,7 @@ from osgeo import gdal
 import numpy as np
 import os
 from app.utils.s3 import get_client
-from app import config
+from common import config
 
 
 async def generate():
