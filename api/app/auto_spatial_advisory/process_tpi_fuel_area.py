@@ -3,6 +3,7 @@ from geoalchemy2.shape import to_shape
 from osgeo import gdal, ogr, osr
 from app import config
 from app.db.models.auto_spatial_advisory import TPIClassEnum
+from app.utils.geospatial import prepare_wkt_geom_for_gdal
 from app.utils.s3 import set_s3_gdal_config
 
 
@@ -20,20 +21,6 @@ def calculate_tpi_area_data_for_zone(advisory_shape_id: int, data: np.ndarray, p
             tpi_enum = TPIClassEnum(value)
             fuel_area = count * pixel_size * pixel_size
             yield (advisory_shape_id, tpi_enum, fuel_area)
-
-
-def prepare_wkt_geom_for_gdal(wkt_geom: str, source_srs: osr.SpatialReference):
-    """
-    Given a wkt geometry as a string, convert it to an ogr.Geometry that can be used by gdal.
-
-    :param wkt_geom: The wky geometry string.
-    :return: An osr.Geometry.
-    """
-    geometry: ogr.Geometry = ogr.CreateGeometryFromWkt(wkt_geom)
-    geometry.AssignSpatialReference(source_srs)
-    transform = osr.CoordinateTransformation(geometry.GetSpatialReference(), source_srs)
-    geometry.Transform(transform)
-    return geometry
 
 
 def calculate_masked_tpi_areas(zones):
