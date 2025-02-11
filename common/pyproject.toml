@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "common"
+version = "0.1.0"
+description = ""
+authors = ["BCWS PSU Agile Team <BCWS.PredictiveServices@gov.bc.ca>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+python-decouple = "^3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+	
