@@ -9,7 +9,7 @@ import math
 from app.schemas.forecasts import NoonForecast, NoonForecastResponse, NoonForecastValue
 from app.schemas.stations import StationCodeList
 from common.db import database
-from app.db.crud.forecasts import query_noon_forecast_records
+from common.db.crud.forecasts import query_noon_forecast_records
 import common.db.models
 
 

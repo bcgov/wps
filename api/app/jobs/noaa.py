@@ -9,7 +9,7 @@ import logging
 import tempfile
 from sqlalchemy.orm import Session
 from urllib.parse import parse_qs, urlsplit
-from app.db.crud.weather_models import (
+from common.db.crud.weather_models import (
     get_processed_file_record,
     get_prediction_model,
     get_prediction_run,

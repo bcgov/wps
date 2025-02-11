@@ -8,7 +8,7 @@ from collections import defaultdict
 from app.utils.time import vancouver_tz
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
-from app.db.crud.morecast_v2 import get_forecasts_in_range
+from common.db.crud.morecast_v2 import get_forecasts_in_range
 from app.schemas.morecast_v2 import MoreCastForecastOutput, MoreCastForecastInput, StationDailyFromWF1, WF1ForecastRecordType, WF1PostForecast, WeatherIndeterminate, WeatherDeterminate
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import get_forecasts_for_stations_by_date_range, get_no_cache_auth_header, get_wfwx_stations_from_station_codes

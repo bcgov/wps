@@ -13,7 +13,7 @@ from pytest_mock import MockerFixture
 from app.jobs.env_canada_utils import HRDPS_GRIB_LAYERS, get_high_res_model_run_download_urls
 import app.utils.time as time_utils
 from common.db import database
-import app.db.crud.weather_models
+import common.db.crud.weather_models
 import app.jobs.env_canada
 import app.jobs.common_model_fetchers
 import app.weather_models.process_grib
@@ -57,7 +57,7 @@ def mock_database(monkeypatch):
     monkeypatch.setattr(app.jobs.common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_hrdps_prediction_model_run_timestamp_records)
     monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
-    monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
+    monkeypatch.setattr(common.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
 @pytest.fixture()

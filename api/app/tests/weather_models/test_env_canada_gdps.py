@@ -14,7 +14,7 @@ from app.jobs.env_canada_utils import GRIB_LAYERS, get_global_model_run_download
 from app.jobs import common_model_fetchers
 import app.utils.time as time_utils
 from app.weather_models import machine_learning
-import app.db.crud.weather_models
+import common.db.crud.weather_models
 from common.db.models.weather_models import PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp
 from app.tests.common import default_mock_client_get
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
@@ -74,7 +74,7 @@ def mock_database(monkeypatch):
     monkeypatch.setattr(common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_gdps_prediction_model_run_timestamp_records)
     monkeypatch.setattr(common_model_fetchers, 'get_processed_file_record', mock_get_processed_file_record)
-    monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
+    monkeypatch.setattr(common.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
 @pytest.fixture()
@@ -109,7 +109,7 @@ def test_get_gdps_download_urls():
 
 @pytest.fixture()
 def mock_get_processed_file_count(monkeypatch):
-    monkeypatch.setattr(app.db.crud.weather_models, 'get_processed_file_count', mock_get_processed_file_count)
+    monkeypatch.setattr(common.db.crud.weather_models, 'get_processed_file_count', mock_get_processed_file_count)
 
 
 @pytest.fixture()

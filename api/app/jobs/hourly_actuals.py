@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from common.db import database
 import app.utils.time
 from app import configure_logging
-from app.db.crud.observations import save_hourly_actual
+from common.db.crud.observations import save_hourly_actual
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.wildfire_one import wfwx_api
 

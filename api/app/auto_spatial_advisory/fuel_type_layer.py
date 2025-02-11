@@ -8,7 +8,7 @@ from shapely import wkt, wkb
 from common import config
 from common.db.models.auto_spatial_advisory import FuelType
 from common.db.database import get_async_write_session_scope
-from app.db.crud.auto_spatial_advisory import save_fuel_type
+from common.db.crud.auto_spatial_advisory import save_fuel_type
 from app.geospatial import NAD83_BC_ALBERS
 from app.utils.polygonize import polygonize_in_memory
 

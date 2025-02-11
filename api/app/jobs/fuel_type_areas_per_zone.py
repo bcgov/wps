@@ -7,7 +7,7 @@ import logging
 import numpy as np
 
 from app import config, configure_logging
-from app.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_type_id, get_fire_zone_units
+from common.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_type_id, get_fire_zone_units
 from common.db.database import get_async_write_session_scope
 from common.db.models.auto_spatial_advisory import AdvisoryShapeFuels
 from app.rocketchat_notifications import send_rocketchat_notification

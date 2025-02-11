@@ -36,15 +36,20 @@ from app.auth import (
     # auth_with_set_ready_state_required,
 )
 from app.schemas.shared import (FuelType)
-from app.db.crud.hfi_calc import (get_fuel_type_by_id,
-                                  get_most_recent_updated_hfi_request,
-                                  get_most_recent_updated_hfi_request_for_current_date,
-                                  get_latest_hfi_ready_records, get_stations_for_affected_planning_areas,
-                                  get_stations_for_removal,
-                                  store_hfi_request,
-                                  get_fire_centre_stations,
-                                  toggle_ready, save_hfi_stations, unready_planning_areas)
-from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
+from common.db.crud.hfi_calc import (
+    get_fuel_type_by_id,
+    get_most_recent_updated_hfi_request,
+    get_most_recent_updated_hfi_request_for_current_date,
+    get_latest_hfi_ready_records,
+    get_stations_for_affected_planning_areas,
+    get_stations_for_removal,
+    store_hfi_request,
+    get_fire_centre_stations,
+    toggle_ready,
+    save_hfi_stations,
+    unready_planning_areas,
+)
+from common.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import common.db.models.hfi_calc
 from common.db.database import get_read_session_scope, get_write_session_scope
 

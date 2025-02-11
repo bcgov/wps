@@ -20,7 +20,7 @@ from aiobotocore.client import AioBaseClient
 from app import configure_logging
 from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
 from app.auto_spatial_advisory.run_type import RunType
-from app.db.crud.auto_spatial_advisory import (
+from common.db.crud.auto_spatial_advisory import (
     get_all_sfms_fuel_type_records,
     get_containing_zone,
     get_fuel_type_stats_in_advisory_area,

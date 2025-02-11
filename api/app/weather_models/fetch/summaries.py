@@ -11,7 +11,7 @@ from app.schemas.weather_models import (
     WeatherModelPredictionSummaryValues,
     WeatherPredictionModel)
 from common.db import database
-from app.db.crud.weather_models import get_station_model_predictions_order_by_prediction_timestamp
+from common.db.crud.weather_models import get_station_model_predictions_order_by_prediction_timestamp
 from common.db.models.weather_models import PredictionModel, WeatherStationModelPrediction
 
 

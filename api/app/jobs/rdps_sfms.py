@@ -12,7 +12,7 @@ import logging
 import tempfile
 from sqlalchemy.orm import Session
 from common.db.database import get_write_session_scope
-from app.db.crud.weather_models import (
+from common.db.crud.weather_models import (
     create_model_run_for_sfms,
     create_saved_model_run_for_sfms_url,
     get_saved_model_run_for_sfms,

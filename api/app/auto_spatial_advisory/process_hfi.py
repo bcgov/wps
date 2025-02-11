@@ -11,8 +11,8 @@ from osgeo import ogr, osr
 from app.auto_spatial_advisory.common import get_s3_key
 from common.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 from common.db.database import get_async_read_session_scope, get_async_write_session_scope
-from app.db.crud.auto_spatial_advisory import save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters, get_run_parameters_id
-from app.db.crud.snow import get_last_processed_snow_by_source
+from common.db.crud.auto_spatial_advisory import save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters, get_run_parameters_id
+from common.db.crud.snow import get_last_processed_snow_by_source
 from common.db.models.snow import SnowSourceEnum
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType

@@ -10,7 +10,7 @@ import shutil
 import sys
 import tempfile
 from app import configure_logging
-from app.db.crud.snow import get_last_processed_snow_by_source, save_processed_snow
+from common.db.crud.snow import get_last_processed_snow_by_source, save_processed_snow
 from common.db.database import get_async_read_session_scope, get_async_write_session_scope
 from common.db.models.snow import ProcessedSnow, SnowSourceEnum
 from app.rocketchat_notifications import send_rocketchat_notification

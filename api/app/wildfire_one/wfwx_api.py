@@ -8,7 +8,7 @@ import asyncio
 from aiohttp import ClientSession, TCPConnector
 from common import config
 from app.data.ecodivision_seasons import EcodivisionSeasons
-from app.db.crud.hfi_calc import get_fire_centre_station_codes
+from common.db.crud.hfi_calc import get_fire_centre_station_codes
 from common.db.models.observations import HourlyActual
 from common.db.models.forecasts import NoonForecast
 from app.schemas.morecast_v2 import StationDailyFromWF1

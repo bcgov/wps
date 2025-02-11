@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from pyproj import Geod
 import numpy as np
 from sqlalchemy.orm import Session
-from app.db.crud.weather_models import (
+from common.db.crud.weather_models import (
     get_processed_file_record,
     get_processed_file_count,
     get_prediction_model_run_timestamp_records,
@@ -26,7 +26,7 @@ from app.utils.redis import create_redis
 from app.stations import get_stations_synchronously
 from common.db.models.weather_models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunPrediction
 from common.db import database
-from app.db.crud.observations import get_accumulated_precipitation
+from common.db.crud.observations import get_accumulated_precipitation
 from common import config
 
 # If running as its own process, configure logging appropriately.

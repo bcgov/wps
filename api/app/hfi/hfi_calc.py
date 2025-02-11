@@ -26,10 +26,7 @@ from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import (get_auth_header, get_stations_by_codes,
                                        get_wfwx_stations_from_station_codes,
                                        get_raw_dailies_in_range_generator)
-from app.db.crud.hfi_calc import (get_fire_weather_stations,
-                                  get_fire_centre_fire_start_ranges,
-                                  get_fire_start_lookup,
-                                  get_fuel_types)
+from common.db.crud.hfi_calc import get_fire_weather_stations, get_fire_centre_fire_start_ranges, get_fire_start_lookup, get_fuel_types
 
 logger = logging.getLogger(__name__)
 

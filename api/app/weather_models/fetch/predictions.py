@@ -13,7 +13,7 @@ from common.db import database
 from app.schemas.morecast_v2 import WeatherIndeterminate
 from app.schemas.weather_models import WeatherStationModelPredictionValues, WeatherModelPredictionValues, WeatherModelRun, ModelRunPredictions, WeatherStationModelRunsPredictions
 from common.db.models.weather_models import WeatherStationModelPrediction
-from app.db.crud.weather_models import (
+from common.db.crud.weather_models import (
     get_latest_station_model_prediction_per_day,
     get_station_model_predictions,
     get_station_model_prediction_from_previous_model_run,

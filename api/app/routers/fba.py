@@ -7,7 +7,7 @@ from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from common.db.database import get_async_read_session_scope
-from app.db.crud.auto_spatial_advisory import (
+from common.db.crud.auto_spatial_advisory import (
     get_all_sfms_fuel_types,
     get_all_hfi_thresholds,
     get_fire_centre_tpi_fuel_areas,

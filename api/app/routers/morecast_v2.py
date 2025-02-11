@@ -9,8 +9,8 @@ from datetime import date, datetime, time, timedelta, timezone
 from fastapi import APIRouter, Response, Depends, status, HTTPException
 from fastapi.responses import ORJSONResponse
 from app.auth import auth_with_forecaster_role_required, audit, authentication_required
-from app.db.crud.grass_curing import get_percent_grass_curing_by_station_for_date_range
-from app.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_for_date, save_all_forecasts
+from common.db.crud.grass_curing import get_percent_grass_curing_by_station_for_date_range
+from common.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_for_date, save_all_forecasts
 from common.db.database import get_read_session_scope, get_write_session_scope
 from common.db.models.morecast_v2 import MorecastForecastRecord
 from app.morecast_v2.forecasts import filter_for_api_forecasts, get_forecasts, get_fwi_values

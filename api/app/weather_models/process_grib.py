@@ -13,7 +13,7 @@ import numpy as np
 from app.geospatial import NAD83_CRS
 from app.stations import get_stations_synchronously
 from common.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp
-from app.db.crud.weather_models import get_prediction_model, get_or_create_prediction_run
+from common.db.crud.weather_models import get_prediction_model, get_or_create_prediction_run
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.wind_direction_utils import calculate_wind_dir_from_u_v, calculate_wind_speed_from_u_v
 

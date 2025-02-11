@@ -11,7 +11,7 @@ from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.stations import DetailedWeatherStationProperties, GeoJsonDetailedWeatherStation, WeatherStationGeometry
-from app.db.crud.stations import _get_noon_date
+from common.db.crud.stations import _get_noon_date
 from app.wildfire_one.query_builders import BuildQuery
 from common import config
 from app.wildfire_one.schema_parsers import parse_hourly, parse_station

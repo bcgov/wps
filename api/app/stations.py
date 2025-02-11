@@ -18,7 +18,7 @@ from app.schemas.stations import (WeatherStation,
                                   DetailedWeatherStationProperties,
                                   WeatherStationGeometry)
 from common.db import database
-from app.db.crud.stations import get_noon_forecast_observation_union
+from common.db.crud.stations import get_noon_forecast_observation_union
 from app.wildfire_one import wfwx_api
 from app.wildfire_one.wfwx_api import get_auth_header, get_detailed_stations, get_station_data
 

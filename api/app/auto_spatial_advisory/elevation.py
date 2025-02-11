@@ -16,7 +16,7 @@ from common import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.process_fuel_type_area import get_advisory_shape
 from app.auto_spatial_advisory.run_type import RunType
-from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats, save_advisory_elevation_tpi_stats
+from common.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats, save_advisory_elevation_tpi_stats
 from common.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
 from common.db.models.auto_spatial_advisory import AdvisoryElevationStats, AdvisoryTPIStats
 from app.auto_spatial_advisory.hfi_filepath import get_raster_filepath, get_raster_tif_filename

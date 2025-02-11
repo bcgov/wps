@@ -7,7 +7,7 @@ from aiohttp.client import ClientSession
 
 from aiohttp.connector import TCPConnector
 from common.db import database
-from app.db.crud.observations import get_hourly_actuals
+from common.db.crud.observations import get_hourly_actuals
 import app.stations
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
 from app.utils.dewpoint import compute_dewpoint

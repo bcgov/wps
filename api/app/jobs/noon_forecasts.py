@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from aiohttp.client import ClientSession
 from app import configure_logging
 from common.db import database
-from app.db.crud.forecasts import save_noon_forecast
+from common.db.crud.forecasts import save_noon_forecast
 from app.wildfire_one import wfwx_api
 import app.utils.time
 from app.rocketchat_notifications import send_rocketchat_notification
