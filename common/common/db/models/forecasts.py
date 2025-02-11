@@ -1,26 +1,26 @@
 
-""" Class models that reflect resources and map to database tables relating to forecasts made by weather
+"""Class models that reflect resources and map to database tables relating to forecasts made by weather
 forecasters.
 """
+
 import math
-from sqlalchemy import (Column, Integer, Float, Boolean, UniqueConstraint)
-from app.db.models import Base
-from app.db.models.common import TZTimeStamp
+from sqlalchemy import Column, Integer, Float, Boolean, UniqueConstraint
+from common.db.models import Base
+from common.db.models.common import TZTimeStamp
 import app.utils.time as time_utils
 
 
 class NoonForecast(Base):
-    """ Class representing table structure of 'noon_forecasts' table in DB.
+    """Class representing table structure of 'noon_forecasts' table in DB.
     Default float values of math.nan are used for the weather variables that are
     sometimes null (None), because Postgres evaluates None != None, so the unique
     constraint doesn't work on records with >=1 None values. But math.nan == math.nan
     """
-    __tablename__ = 'noon_forecasts'
+
+    __tablename__ = "noon_forecasts"
     __table_args__ = (
-        UniqueConstraint('weather_date',
-                         'wfwx_update_date',
-                         'station_code'),
-        {'comment': 'The noon_forecast for a weather station and weather date.'}
+        UniqueConstraint("weather_date", "wfwx_update_date", "station_code"),
+        {"comment": "The noon_forecast for a weather station and weather date."},
     )
     id = Column(Integer, primary_key=True)
     weather_date = Column(TZTimeStamp, nullable=False, index=True)
@@ -43,16 +43,17 @@ class NoonForecast(Base):
     isi = Column(Float, nullable=False, default=math.nan)
     bui = Column(Float, nullable=False, default=math.nan)
     fwi = Column(Float, nullable=False, default=math.nan)
-    created_at = Column(TZTimeStamp, nullable=False,
-                        default=time_utils.get_utc_now(), index=True)
+    created_at = Column(
+        TZTimeStamp, nullable=False, default=time_utils.get_utc_now(), index=True
+    )
     wfwx_update_date = Column(TZTimeStamp, nullable=False, index=True)
 
     def __str__(self):
         return (
-            'station_code:{self.station_code}, '
-            'weather_date:{self.weather_date}, '
-            'created_at:{self.created_at}, '
-            'wfwx_update_date:{self.wfwx_update_date}, '
-            'temp={self.temperature}, '
-            'ffmc={self.ffmc}'
+            "station_code:{self.station_code}, "
+            "weather_date:{self.weather_date}, "
+            "created_at:{self.created_at}, "
+            "wfwx_update_date:{self.wfwx_update_date}, "
+            "temp={self.temperature}, "
+            "ffmc={self.ffmc}"
         ).format(self=self)

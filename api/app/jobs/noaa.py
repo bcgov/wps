@@ -22,7 +22,7 @@ from app import configure_logging
 import app.utils.time as time_utils
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
-import app.db.database
+from common.db import database
 from app.rocketchat_notifications import send_rocketchat_notification
 
 # If running as its own process, configure logging appropriately.
@@ -354,7 +354,7 @@ def process_models():
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    with app.db.database.get_write_session_scope() as session:
+    with database.get_write_session_scope() as session:
         noaa = NOAA(session, model_type)
         noaa.process()
 

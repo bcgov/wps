@@ -15,8 +15,7 @@ from app.jobs import common_model_fetchers
 import app.utils.time as time_utils
 from app.weather_models import machine_learning
 import app.db.crud.weather_models
-from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
-                                          PredictionModelRunTimestamp)
+from common.db.models.weather_models import PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp
 from app.tests.common import default_mock_client_get
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 from app.tests.weather_models.test_models_common import (MockResponse, mock_get_processed_file_count, mock_get_stations)

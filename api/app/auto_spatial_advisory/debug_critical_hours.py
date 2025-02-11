@@ -1,5 +1,5 @@
 import json
-from app.db.models.auto_spatial_advisory import RunParameters
+from common.db.models.auto_spatial_advisory import RunParameters
 from app.utils.s3 import get_client, object_exists_v2
 
 

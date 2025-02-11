@@ -1,8 +1,7 @@
 from datetime import datetime
 from app.schemas.stations import WeatherStation, Season
 from shapely import wkt
-from app.db.models.weather_models import (ProcessedModelRunUrl,
-                                          ModelRunGridSubsetPrediction)
+from common.db.models.weather_models import ProcessedModelRunUrl, ModelRunGridSubsetPrediction
 
 
 class MockResponse:

@@ -1,7 +1,7 @@
 import pytest
 from app.weather_models.interpolate import construct_interpolated_noon_prediction, SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION, interpolate_between_two_points, interpolate_wind_direction
 from datetime import datetime
-from app.db.models.weather_models import ModelRunPrediction
+from common.db.models.weather_models import ModelRunPrediction
 import math
 
 

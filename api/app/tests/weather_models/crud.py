@@ -1,8 +1,8 @@
 """ Some crud responses used to mock our calls to app.db.crud
 """
 from datetime import datetime
-from app.db.models.weather_models import ModelRunPrediction, WeatherStationModelPrediction
-from app.db.models.observations import HourlyActual
+from common.db.models.weather_models import ModelRunPrediction, WeatherStationModelPrediction
+from common.db.models.observations import HourlyActual
 
 
 class MockActualPrecip:

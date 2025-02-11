@@ -7,8 +7,8 @@ from statistics import mean
 from aiohttp.client import ClientSession
 from sqlalchemy.orm import Session
 import app
-from app.db.database import get_read_session_scope
-from app.db.models.hfi_calc import FuelType as FuelTypeModel
+from common.db.database import get_read_session_scope
+from common.db.models.hfi_calc import FuelType as FuelTypeModel
 from app.fire_behaviour.cffdrs import CFFDRSException
 from app.fire_behaviour.prediction import (
     FireBehaviourPredictionInputError, calculate_fire_behaviour_prediction, FireBehaviourPrediction)

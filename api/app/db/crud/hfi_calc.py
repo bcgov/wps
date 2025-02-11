@@ -5,10 +5,9 @@ from sqlalchemy.engine import Row
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, insert, update
-from app.db.database import get_read_session_scope
+from common.db.database import get_read_session_scope
 from app.schemas.hfi_calc import DateRange, HFIAdminRemovedStation, HFIAdminStationUpdateRequest, HFIResultRequest
-from app.db.models.hfi_calc import (FireCentre, FuelType, HFIReady, PlanningArea, PlanningWeatherStation, HFIRequest,
-                                    FireStartRange, FireCentreFireStartRange, FireStartLookup)
+from common.db.models.hfi_calc import FireCentre, FuelType, HFIReady, PlanningArea, PlanningWeatherStation, HFIRequest, FireStartRange, FireCentreFireStartRange, FireStartLookup
 from app.utils.time import get_utc_now
 
 

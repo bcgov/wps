@@ -45,8 +45,8 @@ from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_fire_centre_stations,
                                   toggle_ready, save_hfi_stations, unready_planning_areas)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
-import app.db.models.hfi_calc
-from app.db.database import get_read_session_scope, get_write_session_scope
+import common.db.models.hfi_calc
+from common.db.database import get_read_session_scope, get_write_session_scope
 
 
 logger = logging.getLogger(__name__)
@@ -165,7 +165,7 @@ def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
     return False
 
 
-def fuel_type_model_to_schema(fuel_type_record: app.db.models.hfi_calc.FuelType) -> FuelType:
+def fuel_type_model_to_schema(fuel_type_record: common.db.models.hfi_calc.FuelType) -> FuelType:
     """ Parse a database model record into a schema record. """
     return FuelType(id=fuel_type_record.id, description=fuel_type_record.description,
                     abbrev=fuel_type_record.abbrev,
@@ -391,7 +391,7 @@ async def get_all_ready_records(
         if hfi_request is None:
             return HFIAllReadyStatesResponse(ready_states=[])
         ready_states: List[HFIReadyState] = []
-        ready_records: List[app.db.models.hfi_calc.HFIReady] = get_latest_hfi_ready_records(session, hfi_request.id)
+        ready_records: List[common.db.models.hfi_calc.HFIReady] = get_latest_hfi_ready_records(session, hfi_request.id)
         for record in ready_records:
             ready_states.append(HFIReadyState(planning_area_id=record.planning_area_id,
                                               hfi_request_id=record.hfi_request_id,

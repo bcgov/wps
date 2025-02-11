@@ -7,7 +7,7 @@ from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from app.weather_models import ModelEnum, ProjectionEnum
-from app.db.models.weather_models import (
+from common.db.models.weather_models import (
     ProcessedModelRunUrl,
     PredictionModel,
     PredictionModelRunTimestamp,

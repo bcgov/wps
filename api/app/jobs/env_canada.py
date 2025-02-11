@@ -21,7 +21,7 @@ from app.weather_models import ModelEnum, ProjectionEnum
 from app import configure_logging
 import app.utils.time as time_utils
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
-import app.db.database
+from common.db import database
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.jobs.env_canada_utils import adjust_model_day, get_model_run_urls
 
@@ -255,7 +255,7 @@ def process_models():
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    with app.db.database.get_write_session_scope() as session:
+    with database.get_write_session_scope() as session:
         env_canada = EnvCanada(session, model_type)
         env_canada.process()
 

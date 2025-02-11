@@ -1,7 +1,7 @@
 import logging
 import math
-from app.db.models.observations import HourlyActual
-from app.db.models.weather_models import ModelRunPrediction
+from common.db.models.observations import HourlyActual
+from common.db.models.weather_models import ModelRunPrediction
 from app.weather_models.linear_model import LinearModel
 from app.weather_models.regression_model import RegressionModelBase
 from app.weather_models.wind_direction_utils import compute_u_v

@@ -6,7 +6,7 @@ from datetime import date, datetime
 from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
-from app.db.database import get_async_read_session_scope
+from common.db.database import get_async_read_session_scope
 from app.db.crud.auto_spatial_advisory import (
     get_all_sfms_fuel_types,
     get_all_hfi_thresholds,
@@ -20,7 +20,7 @@ from app.db.crud.auto_spatial_advisory import (
     get_centre_tpi_stats,
     get_zone_ids_in_centre,
 )
-from app.db.models.auto_spatial_advisory import RunTypeEnum, TPIClassEnum
+from common.db.models.auto_spatial_advisory import RunTypeEnum, TPIClassEnum
 from app.schemas.fba import (
     AdvisoryCriticalHours,
     ClassifiedHfiThresholdFuelTypeArea,

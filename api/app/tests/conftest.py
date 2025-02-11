@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import requests
 import pytest
 from pytest_mock import MockerFixture
-from app.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
+from common.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
 import app.utils.s3
 from app.utils.time import get_pst_tz, get_utc_now
 from app import auth
@@ -21,7 +21,7 @@ from app.tests.common import (
     default_mock_requests_session_get,
     default_mock_requests_session_post,
 )
-import app.db.database
+import common.db.database
 from app.weather_models import ModelEnum, ProjectionEnum
 import app.jobs.env_canada
 import app.weather_models.process_grib
@@ -138,8 +138,8 @@ def mock_get_pst_today_start_and_end(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_session(monkeypatch):
     """Ensure that all unit tests mock out the database session by default!"""
-    monkeypatch.setattr(app.db.database, "_get_write_session", MagicMock())
-    monkeypatch.setattr(app.db.database, "_get_read_session", MagicMock())
+    monkeypatch.setattr(common.db.database, "_get_write_session", MagicMock())
+    monkeypatch.setattr(common.db.database, "_get_read_session", MagicMock())
 
     prediction_model = PredictionModel(id=1, abbreviation="GDPS", projection="latlon.15x.15", name="Global Deterministic Prediction System")
 

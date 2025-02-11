@@ -1,7 +1,7 @@
 from datetime import datetime
 import logging
 from scipy.interpolate import interp1d
-from app.db.models.weather_models import ModelRunPrediction
+from common.db.models.weather_models import ModelRunPrediction
 
 
 SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_10", "apcp_sfc_0")

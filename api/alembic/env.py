@@ -3,8 +3,8 @@
 from logging.config import fileConfig
 import sqlalchemy
 from alembic import context
-from app.db.database import DB_WRITE_STRING
-from app.db.models import Base
+from common.db.database import DB_WRITE_STRING
+from common.db.models import Base
 
 
 # this is the Alembic Config object, which provides

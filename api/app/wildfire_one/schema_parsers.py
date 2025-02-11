@@ -7,13 +7,13 @@ from datetime import datetime, timezone
 from typing import Generator, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-from app.db.models.observations import HourlyActual
+from common.db.models.observations import HourlyActual
 from app.schemas.morecast_v2 import MoreCastForecastOutput, StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate
 from app.schemas.stations import WeatherStationGroup, WeatherStation, WeatherStationGroupMember, FireZone, StationFireCentre
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
-from app.db.models.forecasts import NoonForecast
+from common.db.models.forecasts import NoonForecast
 from app.utils.time import get_utc_now
 from app.wildfire_one.util import is_station_valid, is_station_fire_zone_valid, get_zone_code_prefix
 from app.wildfire_one.validation import get_valid_flags

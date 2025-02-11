@@ -2,7 +2,7 @@ import numpy as np
 from geoalchemy2.shape import to_shape
 from osgeo import gdal, ogr, osr
 from common import config
-from app.db.models.auto_spatial_advisory import TPIClassEnum
+from common.db.models.auto_spatial_advisory import TPIClassEnum
 from app.utils.geospatial import prepare_wkt_geom_for_gdal
 from app.utils.s3 import set_s3_gdal_config
 

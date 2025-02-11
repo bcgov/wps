@@ -7,7 +7,7 @@ Create Date: 2023-09-26 16:14:01.658515
 """
 from alembic import op
 import sqlalchemy as sa
-from app.db.models.common import TZTimeStamp
+from common.db.models.common import TZTimeStamp
 
 
 # revision identifiers, used by Alembic.

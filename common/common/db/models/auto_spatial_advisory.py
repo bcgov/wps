@@ -1,9 +1,19 @@
 import enum
-from sqlalchemy import Integer, Date, String, Float, Column, Index, ForeignKey, Enum, UniqueConstraint
-from app.db.models.common import TZTimeStamp
+from sqlalchemy import (
+    Integer,
+    Date,
+    String,
+    Float,
+    Column,
+    Index,
+    ForeignKey,
+    Enum,
+    UniqueConstraint,
+)
+from common.db.models.common import TZTimeStamp
 from geoalchemy2 import Geometry
-from app.db.models import Base
-from app.db.models.hfi_calc import FireCentre
+from common.db.models import Base
+from common.db.models.hfi_calc import FireCentre
 from app.geospatial import NAD83_BC_ALBERS
 from sqlalchemy.dialects import postgresql
 
@@ -30,6 +40,7 @@ class RunTypeEnum(enum.Enum):
     forecast = "forecast"
     actual = "actual"
 
+
 class TPIClassEnum(enum.Enum):
     valley_bottom = 1
     mid_slope = 2
@@ -40,7 +51,9 @@ class ShapeType(Base):
     """Identify some kind of area type, e.g. "Zone", or "Fire" """
 
     __tablename__ = "advisory_shape_types"
-    __table_args__ = {"comment": "Identify kind of advisory area (e.g. Zone, Fire etc.)"}
+    __table_args__ = {
+        "comment": "Identify kind of advisory area (e.g. Zone, Fire etc.)"
+    }
 
     id = Column(Integer, primary_key=True)
     name = Column(Enum(ShapeTypeEnum), nullable=False, unique=True, index=True)
@@ -55,7 +68,9 @@ class Shape(Base):
         # that for any given type of area, it has to be unique for the kind of thing that
         # it is. e.g. a zone has some id.
         UniqueConstraint("source_identifier", "shape_type"),
-        {"comment": "Record identifying some area of interest with respect to advisories"},
+        {
+            "comment": "Record identifying some area of interest with respect to advisories"
+        },
     )
 
     id = Column(Integer, primary_key=True)
@@ -67,7 +82,10 @@ class Shape(Base):
     # Have to make this column nullable to start because the table already exists. Will be
     # modified in subsequent migration to nullable=False
     combustible_area = Column(Float, nullable=True)
-    geom = Column(Geometry("MULTIPOLYGON", spatial_index=False, srid=NAD83_BC_ALBERS), nullable=False)
+    geom = Column(
+        Geometry("MULTIPOLYGON", spatial_index=False, srid=NAD83_BC_ALBERS),
+        nullable=False,
+    )
     label = Column(String, nullable=True, index=False)
     placename_label = Column(String, nullable=True, index=False)
     fire_centre = Column(Integer, ForeignKey(FireCentre.id), nullable=True, index=True)
@@ -98,9 +116,13 @@ class ClassifiedHfi(Base):
     """
 
     __tablename__ = "advisory_classified_hfi"
-    __table_args__ = {"comment": "HFI classification for some forecast/advisory run on some day, for some date"}
+    __table_args__ = {
+        "comment": "HFI classification for some forecast/advisory run on some day, for some date"
+    }
     id = Column(Integer, primary_key=True, index=True)
-    threshold = Column(Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False, index=True)
+    threshold = Column(
+        Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False, index=True
+    )
     run_type = Column(Enum(RunTypeEnum), nullable=False, index=True)
     run_datetime = Column(TZTimeStamp, nullable=False)
     for_date = Column(Date, nullable=False)
@@ -140,9 +162,16 @@ class RunParameters(Base):
     """Combination of type of run (actual vs forecast), run datetime and for date."""
 
     __tablename__ = "run_parameters"
-    __table_args__ = (UniqueConstraint("run_type", "run_datetime", "for_date"), {"comment": "A combination of run type, run datetime and for date."})
+    __table_args__ = (
+        UniqueConstraint("run_type", "run_datetime", "for_date"),
+        {"comment": "A combination of run type, run datetime and for date."},
+    )
     id = Column(Integer, primary_key=True, index=True)
-    run_type = Column(postgresql.ENUM("actual", "forecast", name="runtypeenum", create_type=False), nullable=False, index=True)
+    run_type = Column(
+        postgresql.ENUM("actual", "forecast", name="runtypeenum", create_type=False),
+        nullable=False,
+        index=True,
+    )
     run_datetime = Column(TZTimeStamp, nullable=False, index=True)
     for_date = Column(Date, nullable=False, index=True)
 
@@ -159,8 +188,12 @@ class HighHfiArea(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False)
-    threshold = Column(Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False)
-    run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
+    threshold = Column(
+        Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False
+    )
+    run_parameters = Column(
+        Integer, ForeignKey(RunParameters.id), nullable=False, index=True
+    )
     area = Column(Float, nullable=False)
 
 
@@ -173,9 +206,15 @@ class AdvisoryElevationStats(Base):
     __tablename__ = "advisory_elevation_stats"
     __table_args__ = {"comment": "Elevation stats per fire shape by advisory threshold"}
     id = Column(Integer, primary_key=True, index=True)
-    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
-    threshold = Column(Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False)
-    run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
+    advisory_shape_id = Column(
+        Integer, ForeignKey(Shape.id), nullable=False, index=True
+    )
+    threshold = Column(
+        Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False
+    )
+    run_parameters = Column(
+        Integer, ForeignKey(RunParameters.id), nullable=False, index=True
+    )
     minimum = Column(Float, nullable=False)
     quartile_25 = Column(Float, nullable=False)
     median = Column(Float, nullable=False)
@@ -190,11 +229,22 @@ class AdvisoryFuelStats(Base):
     """
 
     __tablename__ = "advisory_fuel_stats"
-    __table_args__ = (UniqueConstraint("advisory_shape_id", "threshold", "run_parameters", "fuel_type"), {"comment": "Fuel type stats per fire shape by advisory threshold"})
+    __table_args__ = (
+        UniqueConstraint(
+            "advisory_shape_id", "threshold", "run_parameters", "fuel_type"
+        ),
+        {"comment": "Fuel type stats per fire shape by advisory threshold"},
+    )
     id = Column(Integer, primary_key=True, index=True)
-    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
-    threshold = Column(Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False)
-    run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
+    advisory_shape_id = Column(
+        Integer, ForeignKey(Shape.id), nullable=False, index=True
+    )
+    threshold = Column(
+        Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False
+    )
+    run_parameters = Column(
+        Integer, ForeignKey(RunParameters.id), nullable=False, index=True
+    )
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     area = Column(Float, nullable=False)
 
@@ -210,8 +260,12 @@ class AdvisoryTPIStats(Base):
     __tablename__ = "advisory_tpi_stats"
     __table_args__ = {"comment": "Elevation TPI stats per fire shape"}
     id = Column(Integer, primary_key=True, index=True)
-    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
-    run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
+    advisory_shape_id = Column(
+        Integer, ForeignKey(Shape.id), nullable=False, index=True
+    )
+    run_parameters = Column(
+        Integer, ForeignKey(RunParameters.id), nullable=False, index=True
+    )
     valley_bottom = Column(Integer, nullable=False, index=False)
     mid_slope = Column(Integer, nullable=False, index=False)
     upper_slope = Column(Integer, nullable=False, index=False)
@@ -224,11 +278,25 @@ class CriticalHours(Base):
     """
 
     __tablename__ = "critical_hours"
-    __table_args__ = {"comment": "Critical hours by firezone unit, fuel type and sfms run parameters."}
+    __table_args__ = {
+        "comment": "Critical hours by firezone unit, fuel type and sfms run parameters."
+    }
     id = Column(Integer, primary_key=True, index=True)
-    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
-    threshold = Column(postgresql.ENUM("advisory", "warning", name="hficlassificationthresholdenum", create_type=False), nullable=False)
-    run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
+    advisory_shape_id = Column(
+        Integer, ForeignKey(Shape.id), nullable=False, index=True
+    )
+    threshold = Column(
+        postgresql.ENUM(
+            "advisory",
+            "warning",
+            name="hficlassificationthresholdenum",
+            create_type=False,
+        ),
+        nullable=False,
+    )
+    run_parameters = Column(
+        Integer, ForeignKey(RunParameters.id), nullable=False, index=True
+    )
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     start_hour = Column(Integer, nullable=False)
     end_hour = Column(Integer, nullable=False)
@@ -240,11 +308,16 @@ class TPIFuelArea(Base):
     """
 
     __tablename__ = "tpi_fuel_area"
-    __table_args__ = {"comment": "Combustible area in each TPI class per fire zone unit."}
+    __table_args__ = {
+        "comment": "Combustible area in each TPI class per fire zone unit."
+    }
     id = Column(Integer, primary_key=True, index=True)
-    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
+    advisory_shape_id = Column(
+        Integer, ForeignKey(Shape.id), nullable=False, index=True
+    )
     tpi_class = Column(Enum(TPIClassEnum), nullable=False)
     fuel_area = Column(Float, nullable=False)
+
 
 class AdvisoryShapeFuels(Base):
     """
@@ -254,6 +327,8 @@ class AdvisoryShapeFuels(Base):
     __tablename__ = "advisory_shape_fuels"
     __table_args__ = {"comment": "Fuel types and their areas in fire zone units."}
     id = Column(Integer, primary_key=True, index=True)
-    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
+    advisory_shape_id = Column(
+        Integer, ForeignKey(Shape.id), nullable=False, index=True
+    )
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     fuel_area = Column(Float, nullable=False)

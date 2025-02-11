@@ -6,7 +6,7 @@ import os
 import json
 from pytest_mock import MockerFixture
 from app.hfi.hfi_calc import calculate_hfi_results, calculate_mean_intensity, calculate_max_intensity_group, calculate_prep_level, validate_date_range, validate_station_daily
-import app.db.models.hfi_calc as hfi_calc_models
+import common.db.models.hfi_calc as hfi_calc_models
 from app.schemas.hfi_calc import (
     DailyResult,
     DateRange,

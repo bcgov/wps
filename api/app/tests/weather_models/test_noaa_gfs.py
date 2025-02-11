@@ -9,9 +9,7 @@ import app.utils.time as time_utils
 import pytest
 import requests
 from geoalchemy2.shape import from_shape
-from app.db.models.weather_models import (PredictionModel,
-                                          PredictionModelGridSubset, PredictionModelRunTimestamp,
-                                          ProcessedModelRunUrl)
+from common.db.models.weather_models import PredictionModel, PredictionModelGridSubset, PredictionModelRunTimestamp, ProcessedModelRunUrl
 from app.jobs import noaa
 import app.db.crud.weather_models
 

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from sqlalchemy.orm.session import Session
 from app.auto_spatial_advisory.run_type import RunType
-from app.db.models.auto_spatial_advisory import (
+from common.db.models.auto_spatial_advisory import (
     AdvisoryFuelStats,
     AdvisoryShapeFuels,
     CriticalHours,
@@ -27,7 +27,7 @@ from app.db.models.auto_spatial_advisory import (
     ShapeType,
     TPIFuelArea,
 )
-from app.db.models.hfi_calc import FireCentre
+from common.db.models.hfi_calc import FireCentre
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ async def get_combustible_area(session: AsyncSession):
 
     ```python
     from app.db.crud.auto_spatial_advisory import get_combustible_area
-    from app.db.database import get_async_read_session_scope
+    from common.db.database import get_async_read_session_scope
 
     async with get_async_read_session_scope() as session:
     result = await get_combustible_area(session)

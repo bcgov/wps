@@ -12,8 +12,8 @@ from sqlalchemy import func
 from common import config
 from app.auto_spatial_advisory.common import get_s3_key
 from app.auto_spatial_advisory.run_type import RunType
-from app.db.database import get_async_write_session_scope
-from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType, Shape
+from common.db.database import get_async_write_session_scope
+from common.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType, Shape
 from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sfms_fuel_types, get_run_parameters_id, store_advisory_fuel_stats
 
 logger = logging.getLogger(__name__)

@@ -4,7 +4,7 @@ from typing import List
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 from datetime import date, datetime, time
-from app.db.models.morecast_v2 import MorecastForecastRecord
+from common.db.models.morecast_v2 import MorecastForecastRecord
 
 
 def save_all_forecasts(session: Session, forecasts: List[MorecastForecastRecord]):

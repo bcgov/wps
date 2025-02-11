@@ -3,7 +3,7 @@
 from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models.snow import ProcessedSnow, SnowSourceEnum
+from common.db.models.snow import ProcessedSnow, SnowSourceEnum
 
 
 async def save_processed_snow(session: AsyncSession, processed_snow: ProcessedSnow):

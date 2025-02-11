@@ -2,7 +2,7 @@ import pytest
 from starlette.testclient import TestClient
 from sqlalchemy.orm import Session
 import app.main
-from app.db.models.hfi_calc import PlanningWeatherStation, FireCentre, FuelType, PlanningArea
+from common.db.models.hfi_calc import PlanningWeatherStation, FireCentre, FuelType, PlanningArea
 import app.routers.hfi_calc
 
 

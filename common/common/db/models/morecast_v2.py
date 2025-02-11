@@ -1,14 +1,20 @@
-from app.db.models import Base
-from sqlalchemy import (Column, Float, Integer, String, Sequence)
-from app.db.models.common import TZTimeStamp
+from common.db.models import Base
+from sqlalchemy import Column, Float, Integer, String, Sequence
+from common.db.models.common import TZTimeStamp
 
 
 class MorecastForecastRecord(Base):
-    """ A forecast created within Morecast v2 """
-    __tablename__ = 'morecast_forecast'
+    """A forecast created within Morecast v2"""
 
-    id = Column(Integer, Sequence('morecast_forecast_id_seq'),
-                primary_key=True, nullable=False, index=True)
+    __tablename__ = "morecast_forecast"
+
+    id = Column(
+        Integer,
+        Sequence("morecast_forecast_id_seq"),
+        primary_key=True,
+        nullable=False,
+        index=True,
+    )
     station_code = Column(Integer, nullable=False, index=True)
     for_date = Column(TZTimeStamp, nullable=False, index=True)
     temp = Column(Float, nullable=False, index=True)

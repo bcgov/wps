@@ -9,10 +9,10 @@ from time import perf_counter
 from collections import defaultdict
 import pytz
 from sqlalchemy.orm import Session
-import app.db.database
+from common.db import database
 from app.schemas.morecast_v2 import WeatherIndeterminate
 from app.schemas.weather_models import WeatherStationModelPredictionValues, WeatherModelPredictionValues, WeatherModelRun, ModelRunPredictions, WeatherStationModelRunsPredictions
-from app.db.models.weather_models import WeatherStationModelPrediction
+from common.db.models.weather_models import WeatherStationModelPrediction
 from app.db.crud.weather_models import (
     get_latest_station_model_prediction_per_day,
     get_station_model_predictions,
@@ -62,7 +62,7 @@ async def fetch_model_run_predictions_by_station_code_and_date_range(
     Predictions are grouped by station and model run.
     """
     # send the query (ordered by prediction date.)
-    with app.db.database.get_read_session_scope() as session:
+    with database.get_read_session_scope() as session:
         historic_predictions = get_station_model_predictions(session, station_codes, model, start_time, end_time)
 
         return await marshall_predictions(session, model, station_codes, historic_predictions)
@@ -75,7 +75,7 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
     days = get_days_from_range(start_time, end_time)
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
 
-    with app.db.database.get_read_session_scope() as session:
+    with database.get_read_session_scope() as session:
         for day in days:
             day_results = []
             vancouver_tz = pytz.timezone("America/Vancouver")

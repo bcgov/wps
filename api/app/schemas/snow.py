@@ -2,7 +2,8 @@
 
 from datetime import datetime
 from pydantic import BaseModel
-from app.db.models.snow import SnowSourceEnum
+from common.db.models.snow import SnowSourceEnum
+
 
 class ProcessedSnowModel(BaseModel):
     """ The content of a processed snow object"""

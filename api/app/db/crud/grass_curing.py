@@ -5,7 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
-from app.db.models.grass_curing import PercentGrassCuring
+from common.db.models.grass_curing import PercentGrassCuring
+
 
 async def save_percent_grass_curing(session: AsyncSession, percent_grass_curing: PercentGrassCuring):
     """ Add a new PercentGrassCuring record.

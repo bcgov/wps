@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 import pytest
 import app
 import json
-from app.db.models.hfi_calc import HFIRequest, HFIReady
+from common.db.models.hfi_calc import HFIRequest, HFIReady
 from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
 request_json = {

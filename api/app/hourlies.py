@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from aiohttp.client import ClientSession
 
 from aiohttp.connector import TCPConnector
-import app.db.database
+from common.db import database
 from app.db.crud.observations import get_hourly_actuals
 import app.stations
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
@@ -30,7 +30,7 @@ async def fetch_hourly_readings_from_db(
     """ Fetch the hourly readings from the database.
     """
     stations = await wfwx_api.get_stations_by_codes(station_codes)
-    with app.db.database.get_read_session_scope() as session:
+    with database.get_read_session_scope() as session:
         readings = get_hourly_actuals(session, station_codes, date_from, date_to)
         station_readings = None
         result = []

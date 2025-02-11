@@ -5,9 +5,8 @@ from typing import List
 from sqlalchemy import and_, select, text
 from sqlalchemy.sql import func
 from sqlalchemy.orm import Session
-from app.db.models.weather_models import (ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp,
-                                          WeatherStationModelPrediction)
-from app.db.models.observations import HourlyActual
+from common.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp, WeatherStationModelPrediction
+from common.db.models.observations import HourlyActual
 
 
 def get_hourly_actuals(

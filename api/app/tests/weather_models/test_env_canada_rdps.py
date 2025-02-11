@@ -14,8 +14,7 @@ import app.weather_models.process_grib
 import app.jobs.env_canada
 import app.jobs.common_model_fetchers
 import app.db.crud.weather_models
-from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
-                                          PredictionModelRunTimestamp)
+from common.db.models.weather_models import PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp
 from app.tests.common import default_mock_client_get
 from app.tests.weather_models.test_env_canada_gdps import (MockResponse)
 

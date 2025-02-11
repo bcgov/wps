@@ -10,8 +10,8 @@ from app.schemas.stations import StationCodeList
 import app.main
 from app.tests.common import default_mock_client_get
 import app.wildfire_one
-import app.db.database
-from app.db.models.forecasts import NoonForecast
+from common.db import database
+from common.db.models.forecasts import NoonForecast
 
 
 def mock_query_noon_forecast_records(session: Session, station_codes: StationCodeList, start_date: datetime, end_date: datetime):

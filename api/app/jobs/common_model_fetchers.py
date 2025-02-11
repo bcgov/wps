@@ -24,8 +24,8 @@ from app import configure_logging
 import app.utils.time as time_utils
 from app.utils.redis import create_redis
 from app.stations import get_stations_synchronously
-from app.db.models.weather_models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunPrediction
-import app.db.database
+from common.db.models.weather_models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunPrediction
+from common.db import database
 from app.db.crud.observations import get_accumulated_precipitation
 from common import config
 
@@ -154,7 +154,7 @@ def apply_data_retention_policy():
     """
     We can't keep data forever, we just don't have the space.
     """
-    with app.db.database.get_write_session_scope() as session:
+    with database.get_write_session_scope() as session:
         # Currently we're using 19 days of data for machine learning, so
         # keeping 21 days (3 weeks) of historic data is sufficient, howeever, we keep
         # a years' worth of prediction data for historical skill scoring.

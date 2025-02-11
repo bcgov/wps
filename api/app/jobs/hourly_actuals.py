@@ -7,7 +7,7 @@ import sys
 from datetime import datetime, timedelta
 from aiohttp.client import ClientSession
 from sqlalchemy.exc import IntegrityError
-import app.db.database
+from common.db import database
 import app.utils.time
 from app import configure_logging
 from app.db.crud.observations import save_hourly_actual
@@ -49,7 +49,7 @@ class HourlyActualsJob():
 
             logger.info('Retrieved %s hourly actuals', len(hourly_actuals))
 
-        with app.db.database.get_write_session_scope() as session:
+        with database.get_write_session_scope() as session:
             for hourly_actual in hourly_actuals:
                 try:
                     save_hourly_actual(session, hourly_actual)

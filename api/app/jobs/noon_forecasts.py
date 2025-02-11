@@ -9,7 +9,7 @@ import logging.config
 from sqlalchemy.exc import IntegrityError
 from aiohttp.client import ClientSession
 from app import configure_logging
-import app.db.database
+from common.db import database
 from app.db.crud.forecasts import save_noon_forecast
 from app.wildfire_one import wfwx_api
 import app.utils.time
@@ -33,7 +33,7 @@ class NoonForecastJob():
                 session, header, self.now)
             logger.info('Retrieved %s noon forecasts', len(noon_forecasts))
 
-        with app.db.database.get_write_session_scope() as session:
+        with database.get_write_session_scope() as session:
             for noon_forecast in noon_forecasts:
                 try:
                     save_noon_forecast(session, noon_forecast)

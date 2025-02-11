@@ -12,9 +12,9 @@ import tempfile
 import xml.etree.ElementTree as ET
 from app import configure_logging
 from app.db.crud.grass_curing import get_last_percent_grass_curing_for_date, save_percent_grass_curing
-from app.db.database import get_async_read_session_scope, get_async_write_session_scope
+from common.db.database import get_async_read_session_scope, get_async_write_session_scope
 from app.geospatial import WGS84
-from app.db.models.grass_curing import PercentGrassCuring
+from common.db.models.grass_curing import PercentGrassCuring
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.stations import get_stations_asynchronously
 

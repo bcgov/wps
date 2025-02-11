@@ -28,8 +28,8 @@ from app.db.crud.auto_spatial_advisory import (
     get_run_parameters_id,
     save_all_critical_hours,
 )
-from app.db.database import get_async_write_session_scope
-from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, CriticalHours, HfiClassificationThresholdEnum, RunTypeEnum, SFMSFuelType
+from common.db.database import get_async_write_session_scope
+from common.db.models.auto_spatial_advisory import AdvisoryFuelStats, CriticalHours, HfiClassificationThresholdEnum, RunTypeEnum, SFMSFuelType
 from app.fire_behaviour import cffdrs
 from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
