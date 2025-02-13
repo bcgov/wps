@@ -2,8 +2,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { CssBaseline } from "@mui/material";
 import { ThemeProvider, StyledEngineProvider } from "@mui/material/styles";
-import App from "./App.tsx";
+import { Provider } from "react-redux";
+import { store } from "@/store";
 import { theme } from "@/theme.ts";
+import App from "@/App.tsx";
 
 const render = () => {
   const container = document.getElementById("root");
@@ -14,12 +16,14 @@ const render = () => {
   const root = createRoot(container);
   root.render(
     <StrictMode>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <StyledEngineProvider injectFirst>
-          <App />
-        </StyledEngineProvider>
-      </ThemeProvider>
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <StyledEngineProvider injectFirst>
+            <App />
+          </StyledEngineProvider>
+        </ThemeProvider>
+      </Provider>
     </StrictMode>
   );
 };
