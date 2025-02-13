@@ -5,7 +5,7 @@ from dateutil import parser
 import os
 import json
 import importlib
-from app.db.models.common import TZTimeStamp
+from wps_shared.db.models.common import TZTimeStamp
 
 
 def get_complete_filename(module_path: str, filename: str):

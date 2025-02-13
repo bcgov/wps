@@ -8,7 +8,7 @@ Create Date: 2022-07-27 10:36:13.488851
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.orm.session import Session
-from app.utils.time import get_utc_now
+from wps_shared.utils.time import get_utc_now
 
 
 # revision identifiers, used by Alembic.

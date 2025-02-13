@@ -3,8 +3,9 @@
 import os
 from datetime import date
 from typing import Final
-from app.schemas.auto_spatial_advisory import SFMSFile, SFMSRunType
-from app.utils.time import get_hour_20, get_vancouver_now
+from wps_shared.schemas.auto_spatial_advisory import SFMSFile, SFMSRunType
+from wps_shared.utils.time import get_hour_20, get_vancouver_now
+
 
 def is_hfi_file(filename: str) -> bool:
     "Returns true if filename starts with 'hfi'"

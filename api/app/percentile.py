@@ -5,12 +5,12 @@ import os
 import logging
 from statistics import mean
 from fastapi import HTTPException, status
-import app.schemas.percentiles
+import wps_shared.schemas.percentiles
 
 logger = logging.getLogger(__name__)
 
 
-def get_precalculated_percentiles(request: app.schemas.percentiles.PercentileRequest):
+def get_precalculated_percentiles(request: wps_shared.schemas.percentiles.PercentileRequest):
     """ Return the pre calculated percentile response
     """
     # NOTE: percentile is ignored, all responses overridden to match
@@ -30,18 +30,14 @@ def get_precalculated_percentiles(request: app.schemas.percentiles.PercentileReq
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail='The year range is not currently supported.')
 
-    response = app.schemas.percentiles.CalculatedResponse(
-        percentile=90,
-        year_range=app.schemas.percentiles.YearRange(
-            start=year_range_start, end=year_range_end)
-    )
+    response = wps_shared.schemas.percentiles.CalculatedResponse(percentile=90, year_range=wps_shared.schemas.percentiles.YearRange(start=year_range_start, end=year_range_end))
 
     bui = []
     isi = []
     ffmc = []
     for code in request.stations:
         filename = os.path.join(foldername, f"{code}.json")
-        summary = app.schemas.percentiles.StationSummary.parse_file(filename)
+        summary = wps_shared.schemas.percentiles.StationSummary.parse_file(filename)
 
         if summary.bui and summary.isi and summary.ffmc:
             bui.append(summary.bui)
@@ -50,7 +46,7 @@ def get_precalculated_percentiles(request: app.schemas.percentiles.PercentileReq
 
         response.stations[code] = summary
 
-    response.mean_values = app.schemas.percentiles.MeanValues()
+    response.mean_values = wps_shared.schemas.percentiles.MeanValues()
     response.mean_values.bui = mean(bui) if bui else None
     response.mean_values.isi = mean(isi) if isi else None
     response.mean_values.ffmc = mean(ffmc) if ffmc else None

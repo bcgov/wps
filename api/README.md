@@ -21,7 +21,7 @@ You will need an environment file. See: `.env.example`. Contact current maintain
 Assumes:
 
 - Installation section above is completed
-- `app/.env` is correctly configured
+- `.env` is correctly configured in the project root
 
 Run API with:
 

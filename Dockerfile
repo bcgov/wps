@@ -26,6 +26,8 @@ WORKDIR /app
 # Copy poetry files.
 COPY --chown=$USERNAME:$USER_GID ./api/pyproject.toml ./api/poetry.lock /app/
 
+COPY ./wps_shared /wps_shared
+
 # Install dependencies.
 RUN poetry install --without dev
 

@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm.session import Session
 from sqlalchemy.dialects import postgresql
 
-from app.utils.time import get_utc_now
+from wps_shared.utils.time import get_utc_now
 
 
 # revision identifiers, used by Alembic.

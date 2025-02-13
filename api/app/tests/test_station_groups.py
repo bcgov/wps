@@ -22,7 +22,7 @@ async def test_get_station_groups_unauthorized(anyio_backend, async_client: Asyn
     assert response.status_code == 401
 
 
-@patch('app.wildfire_one.wfwx_api.get_station_groups', return_value=[])
+@patch("wps_shared.wildfire_one.wfwx_api.get_station_groups", return_value=[])
 @pytest.mark.usefixtures("mock_jwt_decode")
 @pytest.mark.anyio
 async def test_get_station_groups_authorized(anyio_backend, async_client: AsyncClient):
@@ -38,7 +38,7 @@ async def test_get_station_groups_members_unauthorized(anyio_backend, async_clie
     assert response.status_code == 401
 
 
-@patch('app.wildfire_one.wfwx_api.get_stations_by_group_ids', return_value=[])
+@patch("wps_shared.wildfire_one.wfwx_api.get_stations_by_group_ids", return_value=[])
 @pytest.mark.usefixtures("mock_jwt_decode")
 @pytest.mark.anyio
 async def test_get_station_groups_members_authorized(anyio_backend, async_client: AsyncClient):

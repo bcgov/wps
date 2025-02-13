@@ -9,19 +9,19 @@ from time import perf_counter
 from collections import defaultdict
 import pytz
 from sqlalchemy.orm import Session
-import app.db.database
-from app.schemas.morecast_v2 import WeatherIndeterminate
-from app.schemas.weather_models import WeatherStationModelPredictionValues, WeatherModelPredictionValues, WeatherModelRun, ModelRunPredictions, WeatherStationModelRunsPredictions
-from app.db.models.weather_models import WeatherStationModelPrediction
-from app.db.crud.weather_models import (
+import wps_shared.db.database
+from wps_shared.schemas.morecast_v2 import WeatherIndeterminate
+from wps_shared.schemas.weather_models import WeatherStationModelPredictionValues, WeatherModelPredictionValues, WeatherModelRun, ModelRunPredictions, WeatherStationModelRunsPredictions
+from wps_shared.db.models.weather_models import WeatherStationModelPrediction
+from wps_shared.db.crud.weather_models import (
     get_latest_station_model_prediction_per_day,
     get_station_model_predictions,
     get_station_model_prediction_from_previous_model_run,
     get_latest_station_prediction,
 )
-import app.stations
-from app.utils.time import get_days_from_range
-from app.weather_models import ModelEnum
+import wps_shared.stations
+from wps_shared.utils.time import get_days_from_range
+from wps_shared.weather_models import ModelEnum
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ async def fetch_model_run_predictions_by_station_code_and_date_range(
     Predictions are grouped by station and model run.
     """
     # send the query (ordered by prediction date.)
-    with app.db.database.get_read_session_scope() as session:
+    with wps_shared.db.database.get_read_session_scope() as session:
         historic_predictions = get_station_model_predictions(session, station_codes, model, start_time, end_time)
 
         return await marshall_predictions(session, model, station_codes, historic_predictions)
@@ -73,9 +73,9 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
 ) -> List[WeatherStationModelRunsPredictions]:
     results = []
     days = get_days_from_range(start_time, end_time)
-    stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
+    stations = {station.code: station for station in await wps_shared.stations.get_stations_by_codes(station_codes)}
 
-    with app.db.database.get_read_session_scope() as session:
+    with wps_shared.db.database.get_read_session_scope() as session:
         for day in days:
             day_results = []
             vancouver_tz = pytz.timezone("America/Vancouver")
@@ -119,7 +119,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(
     cffdrs_start = perf_counter()
     results: List[WeatherIndeterminate] = []
     days = get_days_from_range(start_time, end_time)
-    stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
+    stations = {station.code: station for station in await wps_shared.stations.get_stations_by_codes(station_codes)}
     active_station_codes = stations.keys()
     for day in days:
         vancouver_tz = pytz.timezone("America/Vancouver")
@@ -226,7 +226,7 @@ async def marshall_predictions(session: Session, model: ModelEnum, station_codes
 
     # Re-structure the data, grouping data by station and model run.
     # NOTE: It means looping through twice, but the code reads easier this way.
-    stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
+    stations = {station.code: station for station in await wps_shared.stations.get_stations_by_codes(station_codes)}
     response = []
     for station_code, predictions in station_predictions.items():
         model_run_dict = {}

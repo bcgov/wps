@@ -2,8 +2,8 @@ import logging
 import os
 import numpy as np
 from osgeo import gdal
-from app import config
-from app.db.models.snow import ProcessedSnow
+from wps_shared import config
+from wps_shared.db.models.snow import ProcessedSnow
 
 SNOW_COVERAGE_WARPED_NAME = 'snow_coverage_warped.tif'
 SNOW_COVERAGE_MASK_NAME = 'snow_coverage_mask.tif'

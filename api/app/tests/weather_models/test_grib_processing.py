@@ -7,7 +7,7 @@ from operator import itemgetter
 from affine import Affine
 from pyproj import CRS
 from osgeo import gdal
-from app.geospatial import NAD83_CRS
+from wps_shared.geospatial.geospatial import NAD83_CRS
 import app.weather_models.process_grib as process_grib
 
 logger = logging.getLogger(__name__)

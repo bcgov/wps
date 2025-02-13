@@ -10,7 +10,7 @@ from rpy2.rinterface import NULL
 import pandas as pd
 import app.utils.r_importer
 from app.utils.singleton import Singleton
-from app.schemas.fba_calc import FuelTypeEnum
+from wps_shared.schemas.fba_calc import FuelTypeEnum
 
 
 logger = logging.getLogger(__name__)

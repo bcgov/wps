@@ -12,10 +12,8 @@ to be set
 import sys
 import asyncio
 from datetime import date, datetime
-from app import configure_logging
-
-
-from app.auto_spatial_advisory.run_type import RunType
+from wps_shared.logging import configure_logging
+from wps_shared.run_type import RunType
 from .. import process_stats
 
 if __name__ == "__main__":

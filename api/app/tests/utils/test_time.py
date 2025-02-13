@@ -1,5 +1,5 @@
 from datetime import datetime
-from app.utils.time import get_utc_datetime, get_days_from_range
+from wps_shared.utils.time import get_utc_datetime, get_days_from_range
 import pytz
 
 

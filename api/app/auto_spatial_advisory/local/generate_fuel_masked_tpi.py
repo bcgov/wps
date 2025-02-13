@@ -4,11 +4,11 @@ import numpy as np
 import tempfile
 from osgeo import gdal
 
-from app import config
+from wps_shared import config
 from app.auto_spatial_advisory.process_fuel_type_area import get_fuel_type_s3_key
-from app.utils.geospatial import GDALResamplingMethod, warp_to_match_raster
-from app.utils.s3 import set_s3_gdal_config
-from app.utils.s3_client import S3Client
+from wps_shared.geospatial.geospatial import GDALResamplingMethod, warp_to_match_raster
+from wps_shared.utils.s3 import set_s3_gdal_config
+from wps_shared.utils.s3_client import S3Client
 
 
 def prepare_masked_tif(temp_dir: str) -> str:

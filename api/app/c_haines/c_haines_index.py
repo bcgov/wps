@@ -7,7 +7,7 @@ from functools import lru_cache
 from pyproj import CRS
 from osgeo import gdal
 from affine import Affine
-from app.geospatial import NAD83_CRS
+from wps_shared.geospatial.geospatial import NAD83_CRS
 from app.weather_models.process_grib import calculate_geographic_coordinate, get_dataset_transform, get_transformer
 from app.c_haines import GDALData
 

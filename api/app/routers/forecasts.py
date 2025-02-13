@@ -4,8 +4,8 @@ import logging
 from datetime import timedelta
 from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
-from app.schemas.forecasts import NoonForecastResponse, NoonForecastSummariesResponse
-from app.schemas.shared import WeatherDataRequest
+from wps_shared.schemas.forecasts import NoonForecastResponse, NoonForecastSummariesResponse
+from wps_shared.schemas.shared import WeatherDataRequest
 from app.forecasts.noon_forecasts import fetch_noon_forecasts
 from app.forecasts.noon_forecasts_summaries import fetch_noon_forecasts_summaries
 

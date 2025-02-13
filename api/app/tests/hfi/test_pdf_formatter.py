@@ -14,16 +14,20 @@ from app.hfi.pdf_data_formatter import (get_date_range_string,
                                         response_2_prep_cycle_jinja_format)
 from app.hfi.pdf_generator import build_mappings
 from app.hfi.pdf_template import get_template
-from app.schemas.hfi_calc import (DailyResult, DateRange,
-                                  FireCentre,
-                                  HFIResultResponse,
-                                  StationDaily, StationInfo,
-                                  StationPDFData,
-                                  WeatherStation,
-                                  WeatherStationProperties,
-                                  FireStartRange)
-from app.schemas.hfi_calc import HFIResultResponse
-from app.schemas.shared import FuelType
+from wps_shared.schemas.hfi_calc import (
+    DailyResult,
+    DateRange,
+    FireCentre,
+    HFIResultResponse,
+    StationDaily,
+    StationInfo,
+    StationPDFData,
+    WeatherStation,
+    WeatherStationProperties,
+    FireStartRange,
+)
+from wps_shared.schemas.hfi_calc import HFIResultResponse
+from wps_shared.schemas.shared import FuelType
 
 test_hfi_result = os.path.join(os.path.dirname(__file__), 'test_hfi_result.json')
 test_fcs = os.path.join(os.path.dirname(__file__), 'test_fire_centres.json')
