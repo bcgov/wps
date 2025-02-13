@@ -59,7 +59,9 @@ def polygonize_in_memory(geotiff_filename, layer, field) -> ogr.Layer:
     del dst_ds, dst_layer
 
 
-def polygonize_geotiff_to_shapefile(raster_source_filename, vector_dest_filename):
+def polygonize_geotiff_to_shapefile(
+    raster_source_filename: str, vector_dest_filename: str
+):
     """
     TODO: Automate this.
     At the moment this function isn't used as part of any automated process,
@@ -70,9 +72,9 @@ def polygonize_geotiff_to_shapefile(raster_source_filename, vector_dest_filename
     <vector_dest_filename>.shp, and inserts polygonized contents of source
     file into destination file.
     """
-    if raster_source_filename[-3:] != ".tif":
+    if not raster_source_filename.endswith(".tif"):
         return f"{raster_source_filename} is an invalid file format for raster source"
-    if vector_dest_filename[-3:] != ".shp":
+    if not vector_dest_filename.endswith(".shp"):
         vector_dest_filename += ".shp"
 
     source_data = gdal.Open(raster_source_filename, gdal.GA_ReadOnly)

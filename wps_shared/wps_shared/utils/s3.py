@@ -1,7 +1,7 @@
 """Utils to help with s3"""
 
 import logging
-from typing import Generator, Tuple
+from typing import AsyncGenerator, Tuple
 from contextlib import asynccontextmanager
 from aiobotocore.client import AioBaseClient
 from aiobotocore.session import get_session
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def get_client() -> Generator[Tuple[AioBaseClient, str], None, None]:
+async def get_client() -> AsyncGenerator[Tuple[AioBaseClient, str], None, None]:
     """Return AioBaseClient client and bucket"""
     server = config.get("OBJECT_STORE_SERVER")
     user_id = config.get("OBJECT_STORE_USER_ID")

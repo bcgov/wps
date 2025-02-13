@@ -1,11 +1,10 @@
 """ Validation functions that indicate sound response or clean them to our specific standards"""
 import math
-from typing import Union
 from wps_shared.schemas.observations import WeatherReading
 from wps_shared.schemas.forecasts import NoonForecast
 
 
-def get_valid_flags(record: Union[WeatherReading, NoonForecast]):
+def get_valid_flags(record: WeatherReading | NoonForecast):
     """ Validate fields and return flags indiciating their validity """
     temp_valid = record.temperature is not None
     rh_valid = record.relative_humidity is not None and validate_metric(

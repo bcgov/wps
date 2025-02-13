@@ -238,7 +238,7 @@ async def get_daily_actuals_for_stations_between_dates(session: ClientSession, h
     end_timestamp = math.floor(end_datetime.timestamp() * 1000)
 
     cache_expiry_seconds: Final = int(config.get("REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY", 300))
-    use_cache = cache_expiry_seconds is not None and config.get("REDIS_USE") == "True"
+    use_cache = config.get("REDIS_USE") == "True"
 
     # Iterate through "raw" hourlies data.
     dailies_iterator = fetch_paged_response_generator(

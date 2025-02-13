@@ -91,13 +91,14 @@ class WeatherModelRun(BaseModel):
 class WeatherModelPrediction(BaseModel):
     """ Weather model prediction for a particular weather station. """
     station: WeatherStation
-    model_run: WeatherModelRun = None
+    model_run: Optional[WeatherModelRun] = None
     values: List[WeatherModelPredictionValues] = []
 
 
 class ModelRunPredictions(BaseModel):
     """ Predictions for a model run """
-    model_run: WeatherModelRun = None
+
+    model_run: Optional[WeatherModelRun] = None
     values: List[WeatherModelPredictionValues] = []
 
 
