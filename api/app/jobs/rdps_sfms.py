@@ -11,8 +11,8 @@ from collections.abc import Generator
 import logging
 import tempfile
 from sqlalchemy.orm import Session
-from app.db.database import get_write_session_scope
-from app.db.crud.weather_models import (
+from wps_shared.db.database import get_write_session_scope
+from wps_shared.db.crud.weather_models import (
     create_model_run_for_sfms,
     create_saved_model_run_for_sfms_url,
     get_saved_model_run_for_sfms,
@@ -20,11 +20,11 @@ from app.db.crud.weather_models import (
     delete_rdps_sfms_urls,
 )
 from app.jobs.common_model_fetchers import CompletedWithSomeExceptions, download
-from app.weather_models import ModelEnum
-from app import configure_logging
-import app.utils.time as time_utils
-from app.utils.s3 import get_client
-from app.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.weather_models import ModelEnum
+from wps_shared.logging import configure_logging
+import wps_shared.utils.time as time_utils
+from wps_shared.utils.s3 import get_client
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from app.jobs.env_canada_utils import get_regional_model_run_download_urls
 from app.weather_models.precip_rdps_model import compute_and_store_precip_rasters
 from app.weather_models.rdps_filename_marshaller import model_run_for_hour

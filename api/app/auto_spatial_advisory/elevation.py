@@ -12,16 +12,16 @@ import numpy as np
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
 from sqlalchemy.future import select
-from app import config
+from wps_shared import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.process_fuel_type_area import get_advisory_shape
-from app.auto_spatial_advisory.run_type import RunType
-from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats, save_advisory_elevation_tpi_stats
-from app.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
-from app.db.models.auto_spatial_advisory import AdvisoryElevationStats, AdvisoryTPIStats
+from wps_shared.run_type import RunType
+from wps_shared.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats, save_advisory_elevation_tpi_stats
+from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
+from wps_shared.db.models.auto_spatial_advisory import AdvisoryElevationStats, AdvisoryTPIStats
 from app.auto_spatial_advisory.hfi_filepath import get_raster_filepath, get_raster_tif_filename
-from app.utils.s3 import get_client
-from app.utils.geospatial import raster_mul, warp_to_match_raster
+from wps_shared.utils.s3 import get_client
+from wps_shared.geospatial.geospatial import raster_mul, warp_to_match_raster
 
 
 logger = logging.getLogger(__name__)

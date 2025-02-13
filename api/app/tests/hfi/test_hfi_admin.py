@@ -1,7 +1,7 @@
 from datetime import datetime
-from app.db.models.hfi_calc import PlanningWeatherStation
+from wps_shared.db.models.hfi_calc import PlanningWeatherStation
 from app.hfi.hfi_admin import add_stations, get_next_order, get_next_order_by_planning_area, get_unique_planning_area_ids, remove_stations, update_station_ordering
-from app.schemas.hfi_calc import HFIAdminAddedStation
+from wps_shared.schemas.hfi_calc import HFIAdminAddedStation
 
 timestamp = datetime.fromisoformat("2019-06-10T18:42:49")
 

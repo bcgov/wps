@@ -1,5 +1,5 @@
 from typing import Optional
-from app.wildfire_one.util import is_station_valid
+from wps_shared.wildfire_one.util import is_station_valid
 
 
 def build_station(status: str, lat: Optional[int], long: Optional[int]):

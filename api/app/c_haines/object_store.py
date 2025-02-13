@@ -3,7 +3,7 @@
 import os
 from enum import Enum
 from datetime import datetime
-from app.weather_models import ModelEnum
+from wps_shared.weather_models import ModelEnum
 
 
 class ObjectTypeEnum(Enum):

@@ -6,8 +6,8 @@ from datetime import date, datetime
 from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
-from app.db.database import get_async_read_session_scope
-from app.db.crud.auto_spatial_advisory import (
+from wps_shared.db.database import get_async_read_session_scope
+from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_sfms_fuel_types,
     get_all_hfi_thresholds,
     get_fire_centre_tpi_fuel_areas,
@@ -20,8 +20,8 @@ from app.db.crud.auto_spatial_advisory import (
     get_centre_tpi_stats,
     get_zone_ids_in_centre,
 )
-from app.db.models.auto_spatial_advisory import RunTypeEnum, TPIClassEnum
-from app.schemas.fba import (
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum, TPIClassEnum
+from wps_shared.schemas.fba import (
     AdvisoryCriticalHours,
     ClassifiedHfiThresholdFuelTypeArea,
     FireCenterListResponse,
@@ -35,7 +35,7 @@ from app.schemas.fba import (
     ProvincialSummaryResponse,
 )
 from app.auth import authentication_required, audit
-from app.wildfire_one.wfwx_api import get_auth_header, get_fire_centers
+from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_fire_centers
 from app.auto_spatial_advisory.process_hfi import RunType
 
 logger = logging.getLogger(__name__)

@@ -9,13 +9,10 @@ from app.fire_behaviour.advisory import (FBACalculatorWeatherStation, FireBehavi
                                          calculate_fire_behaviour_advisory)
 from app.fire_behaviour.wind_speed import calculate_wind_speed_result
 from app.hourlies import get_hourly_readings_in_time_interval
-from app.schemas.fba_calc import (StationListRequest, StationRequest,
-                                  StationsListResponse, StationResponse)
-from app.utils.time import get_hour_20_from_date
-from app.wildfire_one.schema_parsers import WFWXWeatherStation
-from app.wildfire_one.wfwx_api import (get_auth_header,
-                                       get_dailies_generator,
-                                       get_wfwx_stations_from_station_codes)
+from wps_shared.schemas.fba_calc import StationListRequest, StationRequest, StationsListResponse, StationResponse
+from wps_shared.utils.time import get_hour_20_from_date
+from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
+from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_dailies_generator, get_wfwx_stations_from_station_codes
 from app.fire_behaviour.prediction import build_hourly_rh_dict
 
 

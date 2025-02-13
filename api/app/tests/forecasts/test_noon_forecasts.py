@@ -6,12 +6,12 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
-from app.schemas.stations import StationCodeList
+from wps_shared.schemas.stations import StationCodeList
 import app.main
 from app.tests.common import default_mock_client_get
 import app.wildfire_one
-import app.db.database
-from app.db.models.forecasts import NoonForecast
+import wps_shared.db.database
+from wps_shared.db.models.forecasts import NoonForecast
 
 
 def mock_query_noon_forecast_records(session: Session, station_codes: StationCodeList, start_date: datetime, end_date: datetime):

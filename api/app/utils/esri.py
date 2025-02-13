@@ -5,7 +5,7 @@ import urllib.parse
 import urllib.request
 import json
 import logging
-from app.geospatial import NAD83_BC_ALBERS
+from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
 
 logger = logging.getLogger(__name__)
 

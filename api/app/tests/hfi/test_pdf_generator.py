@@ -5,10 +5,9 @@ import hashlib
 from jinja2 import Environment, FunctionLoader
 from app.hfi.pdf_generator import generate_pdf, get_pdf_filename, generate_html
 from app.hfi.pdf_template import get_template
-from app.schemas.hfi_calc import (FireCentre,
-                                  HFIResultResponse)
-from app.schemas.hfi_calc import HFIResultResponse
-from app.schemas.shared import FuelType
+from wps_shared.schemas.hfi_calc import FireCentre, HFIResultResponse
+from wps_shared.schemas.hfi_calc import HFIResultResponse
+from wps_shared.schemas.shared import FuelType
 
 test_hfi_result = os.path.join(os.path.dirname(__file__), 'test_hfi_result.json')
 test_fcs = os.path.join(os.path.dirname(__file__), 'test_fire_centres.json')

@@ -5,7 +5,7 @@ import pytest
 from pytest_mock import MockerFixture
 from app.jobs import noon_forecasts
 from app.tests.jobs.job_fixtures import mock_wfwx_stations, mock_wfwx_response
-from app.wildfire_one import wfwx_api
+from wps_shared.wildfire_one import wfwx_api
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +16,9 @@ def mock_noon_forecasts(mocker: MockerFixture):
     wfwx_hourlies = mock_wfwx_response()
     future_wfwx_stations = mock_wfwx_stations()
 
-    mocker.patch('app.wildfire_one.wfwx_api.wfwx_station_list_mapper', return_value=future_wfwx_stations)
-    mocker.patch('app.wildfire_one.wfwx_api.get_noon_forecasts_all_stations',
-                 return_value=wfwx_hourlies)
-    mocker.patch('app.wildfire_one.wildfire_fetchers.fetch_paged_response_generator',
-                 return_value=iter(wfwx_hourlies))
+    mocker.patch("wps_shared.wildfire_one.wfwx_api.wfwx_station_list_mapper", return_value=future_wfwx_stations)
+    mocker.patch("wps_shared.wildfire_one.wfwx_api.get_noon_forecasts_all_stations", return_value=wfwx_hourlies)
+    mocker.patch("wps_shared.wildfire_one.wildfire_fetchers.fetch_paged_response_generator", return_value=iter(wfwx_hourlies))
 
 
 def test_noon_forecasts_bot(monkeypatch, mocker: MockerFixture, mock_noon_forecasts):

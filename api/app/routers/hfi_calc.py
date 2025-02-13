@@ -11,21 +11,25 @@ from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
                                        get_cached_hydrated_fire_centres,
                                        put_cached_hydrated_fire_centres)
 from app.hfi.hfi_admin import get_unique_planning_area_ids, update_stations
-from app.utils.time import get_pst_now, get_utc_now
+from wps_shared.utils.time import get_pst_now, get_utc_now
 from app.hfi.hfi_calc import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
 from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (HFIAdminStationUpdateRequest, HFIAllReadyStatesResponse,
-                                  HFIResultRequest,
-                                  HFIResultResponse,
-                                  FireStartRange, HFIReadyState,
-                                  StationInfo,
-                                  DateRange,
-                                  FuelTypesResponse,
-                                  HFIWeatherStationsResponse)
+from wps_shared.schemas.hfi_calc import (
+    HFIAdminStationUpdateRequest,
+    HFIAllReadyStatesResponse,
+    HFIResultRequest,
+    HFIResultResponse,
+    FireStartRange,
+    HFIReadyState,
+    StationInfo,
+    DateRange,
+    FuelTypesResponse,
+    HFIWeatherStationsResponse,
+)
 from app.auth import (
     auth_with_station_admin_role_required,
     authentication_required,
@@ -35,18 +39,23 @@ from app.auth import (
     # auth_with_set_fuel_type_role_required,
     # auth_with_set_ready_state_required,
 )
-from app.schemas.shared import (FuelType)
-from app.db.crud.hfi_calc import (get_fuel_type_by_id,
-                                  get_most_recent_updated_hfi_request,
-                                  get_most_recent_updated_hfi_request_for_current_date,
-                                  get_latest_hfi_ready_records, get_stations_for_affected_planning_areas,
-                                  get_stations_for_removal,
-                                  store_hfi_request,
-                                  get_fire_centre_stations,
-                                  toggle_ready, save_hfi_stations, unready_planning_areas)
-from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
-import app.db.models.hfi_calc
-from app.db.database import get_read_session_scope, get_write_session_scope
+from wps_shared.schemas.shared import FuelType
+from wps_shared.db.crud.hfi_calc import (
+    get_fuel_type_by_id,
+    get_most_recent_updated_hfi_request,
+    get_most_recent_updated_hfi_request_for_current_date,
+    get_latest_hfi_ready_records,
+    get_stations_for_affected_planning_areas,
+    get_stations_for_removal,
+    store_hfi_request,
+    get_fire_centre_stations,
+    toggle_ready,
+    save_hfi_stations,
+    unready_planning_areas,
+)
+from wps_shared.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
+import wps_shared.db.models.hfi_calc
+from wps_shared.db.database import get_read_session_scope, get_write_session_scope
 
 
 logger = logging.getLogger(__name__)
@@ -165,7 +174,7 @@ def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
     return False
 
 
-def fuel_type_model_to_schema(fuel_type_record: app.db.models.hfi_calc.FuelType) -> FuelType:
+def fuel_type_model_to_schema(fuel_type_record: wps_shared.db.models.hfi_calc.FuelType) -> FuelType:
     """ Parse a database model record into a schema record. """
     return FuelType(id=fuel_type_record.id, description=fuel_type_record.description,
                     abbrev=fuel_type_record.abbrev,
@@ -391,7 +400,7 @@ async def get_all_ready_records(
         if hfi_request is None:
             return HFIAllReadyStatesResponse(ready_states=[])
         ready_states: List[HFIReadyState] = []
-        ready_records: List[app.db.models.hfi_calc.HFIReady] = get_latest_hfi_ready_records(session, hfi_request.id)
+        ready_records: List[wps_shared.db.models.hfi_calc.HFIReady] = get_latest_hfi_ready_records(session, hfi_request.id)
         for record in ready_records:
             ready_states.append(HFIReadyState(planning_area_id=record.planning_area_id,
                                               hfi_request_id=record.hfi_request_id,

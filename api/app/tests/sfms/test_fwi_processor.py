@@ -6,7 +6,7 @@ import pytest
 from cffdrs import bui, dc, dmc, ffmc, fwi, isi
 from osgeo import osr
 
-from app.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_fwi, calculate_isi
 
 FWI_ARRAY = np.array([[12, 20], [-999, -999]])

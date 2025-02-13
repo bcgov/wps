@@ -1,4 +1,4 @@
-from app.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
+from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
 from datetime import datetime
 from app.weather_models.fetch.predictions import post_process_fetched_predictions
 

@@ -4,8 +4,8 @@ import math
 import numpy as np
 import json
 from app.auto_spatial_advisory.critical_hours import CriticalHoursInputs, calculate_representative_hours, check_station_valid, determine_start_time, determine_end_time
-from app.schemas.fba_calc import CriticalHoursHFI
-from app.wildfire_one.schema_parsers import WFWXWeatherStation
+from wps_shared.schemas.fba_calc import CriticalHoursHFI
+from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 
 dirname = os.path.dirname(__file__)
 dailies_fixture = os.path.join(dirname, "wf1-dailies.json")

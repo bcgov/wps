@@ -1,9 +1,9 @@
 from tempfile import TemporaryDirectory
 
-from app import config
+from wps_shared import config
 from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
-from app.utils.polygonize import polygonize_in_memory
-from app.utils.s3 import set_s3_gdal_config
+from wps_shared.utils.polygonize import polygonize_in_memory
+from wps_shared.utils.s3 import set_s3_gdal_config
 
 
 def generate_fuel_pmtiles(fuel_grid_path: str, output_path: str):

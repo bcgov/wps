@@ -4,7 +4,7 @@ from osgeo import gdal
 from pyproj import CRS
 import math
 import pytest
-from app.geospatial import NAD83_CRS
+from wps_shared.geospatial.geospatial import NAD83_CRS
 from app.tests.common import default_mock_client_get
 from app.weather_models import process_grib
 

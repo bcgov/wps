@@ -9,7 +9,7 @@ Create Date: 2024-09-10 12:54:07.552418
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.orm.session import Session
-from app.db.models.auto_spatial_advisory import Shape
+from wps_shared.db.models.auto_spatial_advisory import Shape
 from sqlalchemy import update
 from app.utils.zone_units import get_zone_units_geojson
 

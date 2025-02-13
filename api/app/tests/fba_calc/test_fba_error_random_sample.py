@@ -6,9 +6,9 @@ from datetime import datetime, timezone as dt_tz
 import random
 from typing import Final
 import logging
-from app import configure_logging
-from app.schemas.fba_calc import FuelTypeEnum
-from app.utils.time import get_hour_20_from_date
+from wps_shared.logging import configure_logging
+from wps_shared.schemas.fba_calc import FuelTypeEnum
+from wps_shared.utils.time import get_hour_20_from_date
 from app.fire_behaviour.advisory import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.fire_behaviour.cffdrs import fire_weather_index, initial_spread_index, bui_calc
 from app.utils.redapp import FBPCalculateStatisticsCOM

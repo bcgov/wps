@@ -18,8 +18,8 @@ from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
 from app.auto_spatial_advisory.process_high_hfi_area import process_high_hfi_area
 from app.auto_spatial_advisory.process_fuel_type_area import process_fuel_type_hfi_by_shape
 from app.nats_publish import publish
-from app import configure_logging
-from app.utils.time import get_utc_datetime
+from wps_shared.logging import configure_logging
+from wps_shared.utils.time import get_utc_datetime
 
 logger = logging.getLogger(__name__)
 

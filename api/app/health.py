@@ -2,9 +2,14 @@
 """
 import logging
 import requests
-from app import config, url_join
+from wps_shared import config
 
 logger = logging.getLogger(__name__)
+
+
+def url_join(parts):
+    """Take various parts of a url and join them"""
+    return "/".join(map(lambda part: part.strip("/"), parts))
 
 
 def crunchydb_cluster_health_check():

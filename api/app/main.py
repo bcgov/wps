@@ -9,13 +9,14 @@ from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 import sentry_sdk
 from starlette.applications import Starlette
-from app import schemas, configure_logging
+from wps_shared import schemas
+from wps_shared.logging import configure_logging
 from app.percentile import get_precalculated_percentiles
 from app.auth import authentication_required, audit
-from app import config
+from wps_shared import config
 from app import health
 from app import hourlies
-from app.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from app.routers import fba, forecasts, weather_models, c_haines, stations, hfi_calc, fba_calc, sfms, morecast_v2
 from app.fire_behaviour.cffdrs import CFFDRS
 

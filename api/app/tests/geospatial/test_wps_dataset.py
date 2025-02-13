@@ -4,7 +4,7 @@ from osgeo import gdal
 import pytest
 import tempfile
 
-from app.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
+from wps_shared.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
 from app.tests.dataset_common import create_mock_gdal_dataset, create_test_dataset
 
 hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")
@@ -200,7 +200,7 @@ def test_from_array():
 def test_multi_wps_dataset_context(mocker):
     # mock WPSDataset and define the mock dataset paths
     dataset_paths = ["path1", "path2"]
-    mock_wps_dataset = mocker.patch("app.geospatial.wps_dataset.WPSDataset")
+    mock_wps_dataset = mocker.patch("wps_shared.geospatial.wps_dataset.WPSDataset")
     mock_datasets = [mocker.MagicMock(), mocker.MagicMock()]
     mock_wps_dataset.side_effect = mock_datasets  # WPSDataset(path) returns each mock in sequence
 

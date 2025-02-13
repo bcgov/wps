@@ -4,9 +4,9 @@ https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5b
 """
 import logging
 import asyncio
-from app import configure_logging
-from app.utils.s3 import get_client
-from app.weather_models import ModelEnum, ProjectionEnum
+from wps_shared.logging import configure_logging
+from wps_shared.utils.s3 import get_client
+from wps_shared.weather_models import ModelEnum, ProjectionEnum
 from app.c_haines.severity_index import CHainesSeverityGenerator
 
 logger = logging.getLogger(__name__)

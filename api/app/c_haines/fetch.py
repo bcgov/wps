@@ -7,12 +7,12 @@ from urllib.parse import urljoin, urlencode
 import asyncio
 import logging
 
-from app import config
-from app.utils.s3 import get_client
+from wps_shared import config
+from wps_shared.utils.s3 import get_client
 from app.c_haines.kml import get_look_at, get_kml_header, FOLDER_OPEN, FOLDER_CLOSE
 from app.c_haines.object_store import ObjectTypeEnum, generate_object_store_model_run_path
-from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
-from app.weather_models import ModelEnum
+from wps_shared.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
+from wps_shared.weather_models import ModelEnum
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,7 @@
-""" Some crud responses used to mock our calls to app.db.crud
-"""
+"""Some crud responses used to mock our calls to wps_shared.db.crud"""
 from datetime import datetime
-from app.db.models.weather_models import ModelRunPrediction, WeatherStationModelPrediction
-from app.db.models.observations import HourlyActual
+from wps_shared.db.models.weather_models import ModelRunPrediction, WeatherStationModelPrediction
+from wps_shared.db.models.observations import HourlyActual
 
 
 class MockActualPrecip:
@@ -15,8 +14,7 @@ class MockActualPrecip:
 
 
 def get_actuals_left_outer_join_with_predictions(*args):
-    """ Fixed response as replacement for app.db.crud.observations.get_actuals_left_outer_join_with_predictions
-    """
+    """Fixed response as replacement for wps_shared.db.crud.observations.get_actuals_left_outer_join_with_predictions"""
     result = [
         # day 1
         [HourlyActual(
@@ -100,8 +98,7 @@ def get_actuals_left_outer_join_with_predictions(*args):
     return result
 
 def get_accumulated_precip_by_24h_interval(*args):
-    """ Fixed response as replacement for app.db.crud.observations.get_accumulated_precip_by_24h_interval
-    """
+    """Fixed response as replacement for wps_shared.db.crud.observations.get_accumulated_precip_by_24h_interval"""
     return [
         MockActualPrecip(
             day=datetime(2023,10,10,20,0,0),

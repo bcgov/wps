@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "wps-shared"
+version = "0.1.0"
+description = ""
+authors = ["Darren Boss <darren.boss@gov.bc.ca>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.12.3"
+sqlalchemy = "^2"
+aiohttp = "^3"
+requests = "^2"
+python-decouple = "^3"
+geopandas = "^1.0.1"
+shapely = "^2.0.5"
+pydantic = "^2.10.6"
+aiobotocore = "^2.0.0"
+geoalchemy2 = "^0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

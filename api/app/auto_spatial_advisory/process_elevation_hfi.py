@@ -4,7 +4,7 @@ import logging
 from datetime import date, datetime
 from time import perf_counter
 from app.auto_spatial_advisory.elevation import process_elevation_tpi
-from app.auto_spatial_advisory.run_type import RunType
+from wps_shared.run_type import RunType
 
 logger = logging.getLogger(__name__)
 

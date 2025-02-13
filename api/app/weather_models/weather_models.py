@@ -1,8 +1,8 @@
 import logging
 import math
 from typing import List
-from app.db.models.observations import HourlyActual
-from app.db.models.weather_models import ModelRunPrediction
+from wps_shared.db.models.observations import HourlyActual
+from wps_shared.db.models.weather_models import ModelRunPrediction
 from app.weather_models.interpolate import construct_interpolated_noon_prediction
 from app.weather_models.linear_model import LinearModel
 from app.weather_models.precip_model import PrecipModel

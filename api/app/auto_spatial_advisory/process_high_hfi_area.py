@@ -7,10 +7,10 @@ from datetime import date, datetime
 from sqlalchemy.future import select
 from time import perf_counter
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.auto_spatial_advisory.run_type import RunType
-from app.db.database import get_async_write_session_scope
-from app.db.models.auto_spatial_advisory import HighHfiArea
-from app.db.crud.auto_spatial_advisory import get_run_parameters_id, calculate_high_hfi_areas, save_high_hfi_area
+from wps_shared.run_type import RunType
+from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.models.auto_spatial_advisory import HighHfiArea
+from wps_shared.db.crud.auto_spatial_advisory import get_run_parameters_id, calculate_high_hfi_areas, save_high_hfi_area
 
 
 logger = logging.getLogger(__name__)

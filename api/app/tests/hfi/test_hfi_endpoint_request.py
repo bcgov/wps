@@ -13,7 +13,8 @@ import app.main
 import app.routers.hfi_calc
 from app.tests.common import default_mock_client_get
 from app.tests import load_json_file
-from app.db.models.hfi_calc import PlanningWeatherStation, FuelType, FireCentre, PlanningArea, HFIRequest, FireStartRange, FireStartLookup
+from wps_shared.db.models.hfi_calc import PlanningWeatherStation, FuelType, FireCentre, PlanningArea, HFIRequest, FireStartRange, FireStartLookup
+import wps_shared.db.crud.hfi_calc
 
 
 def _setup_mock(monkeypatch: pytest.MonkeyPatch):
@@ -102,7 +103,7 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
             return HFIRequest(fire_centre_id=1, prep_start_day=date(2020, 5, 21), prep_end_day=date(2020, 5, 25), request=request)
 
     monkeypatch.setattr(app.hfi.hfi_calc, "get_fire_weather_stations", mock_get_fire_weather_stations)
-    monkeypatch.setattr(app.db.crud.hfi_calc, "get_all_stations", mock_get_all_stations)
+    monkeypatch.setattr(wps_shared.db.crud.hfi_calc, "get_all_stations", mock_get_all_stations)
     monkeypatch.setattr(app.hfi.hfi_calc, "get_fire_centre_fire_start_ranges", mock_get_fire_centre_fire_start_ranges)
     monkeypatch.setattr(app.hfi.hfi_calc, "get_fuel_types", mock_get_fuel_types)
     monkeypatch.setattr(app.hfi.hfi_calc, "get_fire_start_lookup", mock_get_fire_start_lookup)

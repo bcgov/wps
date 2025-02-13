@@ -1,8 +1,8 @@
 import pytest
 import logging
 from datetime import date
-from app.schemas.fba_calc import FuelTypeEnum
-from app.utils.time import get_hour_20_from_date
+from wps_shared.schemas.fba_calc import FuelTypeEnum
+from wps_shared.utils.time import get_hour_20_from_date
 from app.fire_behaviour.advisory import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
 from app.tests.fba_calc import check_metric, acceptable_margin_of_error, fire_size_acceptable_margin_of_error

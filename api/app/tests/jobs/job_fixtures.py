@@ -1,6 +1,6 @@
 """ Fixtures for job tests """
 import asyncio
-from app.wildfire_one.wfwx_api import WFWXWeatherStation
+from wps_shared.wildfire_one.wfwx_api import WFWXWeatherStation
 
 
 class MockWFWXHourlyResponse(object):

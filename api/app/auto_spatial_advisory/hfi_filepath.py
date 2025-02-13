@@ -1,5 +1,5 @@
 import os
-from app.auto_spatial_advisory.run_type import RunType
+from wps_shared.run_type import RunType
 from datetime import date
 
 

@@ -8,9 +8,10 @@ from unittest.mock import MagicMock
 import requests
 import pytest
 from pytest_mock import MockerFixture
-from app.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
-import app.utils.s3
-from app.utils.time import get_pst_tz, get_utc_now
+from wps_shared.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
+import wps_shared.utils.s3
+from wps_shared.utils.time import get_pst_tz, get_utc_now
+import wps_shared.utils.time
 from app import auth
 from app.tests.common import (
     MockJWTDecode,
@@ -21,13 +22,13 @@ from app.tests.common import (
     default_mock_requests_session_get,
     default_mock_requests_session_post,
 )
-import app.db.database
-from app.weather_models import ModelEnum, ProjectionEnum
+import wps_shared.db.database
+from wps_shared.weather_models import ModelEnum, ProjectionEnum
 import app.jobs.env_canada
 import app.weather_models.process_grib
-from app.schemas.shared import WeatherDataRequest
-import app.wildfire_one.wildfire_fetchers
-import app.utils.redis
+from wps_shared.schemas.shared import WeatherDataRequest
+import wps_shared.wildfire_one.wildfire_fetchers
+import wps_shared.utils.redis
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ def mock_env(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_aiobotocore_get_session(monkeypatch):
     """Patch the session by default"""
-    monkeypatch.setattr(app.utils.s3, "get_session", default_aiobotocore_get_session)
+    monkeypatch.setattr(wps_shared.utils.s3, "get_session", default_aiobotocore_get_session)
 
 
 @pytest.fixture(autouse=True)
@@ -99,12 +100,12 @@ def mock_redis(monkeypatch):
     def create_mock_redis():
         return MockRedis()
 
-    monkeypatch.setattr(app.utils.redis, "_create_redis", create_mock_redis)
+    monkeypatch.setattr(wps_shared.utils.redis, "_create_redis", create_mock_redis)
 
 
 @pytest.fixture(autouse=True)
 def mock_get_now(monkeypatch):
-    """Patch all calls to app.util.time: get_utc_now and get_pst_now"""
+    """Patch all calls to wps_shared.util.time: get_utc_now and get_pst_now"""
     # May 21, 2020
     timestamp = 1590076213962 / 1000
 
@@ -119,8 +120,8 @@ def mock_get_now(monkeypatch):
     def mock_pst_now():
         return datetime.fromtimestamp(timestamp, tz=get_pst_tz())
 
-    monkeypatch.setattr(app.utils.time, "_get_utc_now", mock_utc_now)
-    monkeypatch.setattr(app.utils.time, "_get_pst_now", mock_pst_now)
+    monkeypatch.setattr(wps_shared.utils.time, "_get_utc_now", mock_utc_now)
+    monkeypatch.setattr(wps_shared.utils.time, "_get_pst_now", mock_pst_now)
 
 
 @pytest.fixture(autouse=True)
@@ -132,14 +133,14 @@ def mock_get_pst_today_start_and_end(monkeypatch):
         end = datetime.fromtimestamp(1624060800, tz=get_pst_tz())
         return start, end
 
-    monkeypatch.setattr(app.utils.time, "get_pst_today_start_and_end", mock_get_pst_today)
+    monkeypatch.setattr(wps_shared.utils.time, "get_pst_today_start_and_end", mock_get_pst_today)
 
 
 @pytest.fixture(autouse=True)
 def mock_session(monkeypatch):
     """Ensure that all unit tests mock out the database session by default!"""
-    monkeypatch.setattr(app.db.database, "_get_write_session", MagicMock())
-    monkeypatch.setattr(app.db.database, "_get_read_session", MagicMock())
+    monkeypatch.setattr(wps_shared.db.database, "_get_write_session", MagicMock())
+    monkeypatch.setattr(wps_shared.db.database, "_get_read_session", MagicMock())
 
     prediction_model = PredictionModel(id=1, abbreviation="GDPS", projection="latlon.15x.15", name="Global Deterministic Prediction System")
 

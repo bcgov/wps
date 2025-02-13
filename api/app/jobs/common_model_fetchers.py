@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from pyproj import Geod
 import numpy as np
 from sqlalchemy.orm import Session
-from app.db.crud.weather_models import (
+from wps_shared.db.crud.weather_models import (
     get_processed_file_record,
     get_processed_file_count,
     get_prediction_model_run_timestamp_records,
@@ -17,16 +17,17 @@ from app.db.crud.weather_models import (
     delete_model_run_predictions,
 )
 from app.weather_models.machine_learning import StationMachineLearning
-from app.weather_models import ModelEnum
+from wps_shared.weather_models import ModelEnum
 from app.weather_models.interpolate import construct_interpolated_noon_prediction, interpolate_between_two_points
-from app.schemas.stations import WeatherStation
-from app import config, configure_logging
-import app.utils.time as time_utils
-from app.utils.redis import create_redis
-from app.stations import get_stations_synchronously
-from app.db.models.weather_models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunPrediction
-import app.db.database
-from app.db.crud.observations import get_accumulated_precipitation
+from wps_shared.schemas.stations import WeatherStation
+from wps_shared.logging import configure_logging
+import wps_shared.utils.time as time_utils
+from wps_shared.utils.redis import create_redis
+from wps_shared import config
+from wps_shared.stations import get_stations_synchronously
+from wps_shared.db.models.weather_models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunPrediction
+import wps_shared.db.database
+from wps_shared.db.crud.observations import get_accumulated_precipitation
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -153,7 +154,7 @@ def apply_data_retention_policy():
     """
     We can't keep data forever, we just don't have the space.
     """
-    with app.db.database.get_write_session_scope() as session:
+    with wps_shared.db.database.get_write_session_scope() as session:
         # Currently we're using 19 days of data for machine learning, so
         # keeping 21 days (3 weeks) of historic data is sufficient, howeever, we keep
         # a years' worth of prediction data for historical skill scoring.

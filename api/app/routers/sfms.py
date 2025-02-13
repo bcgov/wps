@@ -8,12 +8,12 @@ from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends, Header
 from app.auth import sfms_authenticate
 from app.nats_publish import publish
-from app.schemas.sfms import HourlyTIF, HourlyTIFs
-from app.utils.s3 import get_client
-from app import config
+from wps_shared.schemas.sfms import HourlyTIF, HourlyTIFs
+from wps_shared.utils.s3 import get_client
+from wps_shared import config
 from app.utils.sfms import get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_ffmc_file, is_hfi_file
 from app.auto_spatial_advisory.nats_config import stream_name, subjects, sfms_file_subject
-from app.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
+from wps_shared.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
 
 
 logger = logging.getLogger(__name__)

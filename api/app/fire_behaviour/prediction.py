@@ -7,12 +7,12 @@ from typing import List
 import logging
 import pandas as pd
 from app.fire_behaviour.fuel_types import is_grass_fuel_type
-from app.schemas.fba_calc import FuelTypeEnum
-from app.schemas.observations import WeatherReading
-from app.schemas.fba_calc import CriticalHoursHFI
+from wps_shared.schemas.fba_calc import FuelTypeEnum
+from wps_shared.schemas.observations import WeatherReading
+from wps_shared.schemas.fba_calc import CriticalHoursHFI
 from app.utils.singleton import Singleton
 from app.fire_behaviour import cffdrs, c7b
-from app.utils.time import convert_utc_to_pdt, get_julian_date_now
+from wps_shared.utils.time import convert_utc_to_pdt, get_julian_date_now
 
 logger = logging.getLogger(__name__)
 

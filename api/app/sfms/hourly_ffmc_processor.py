@@ -7,14 +7,14 @@ from typing import List, cast
 
 from app.weather_models.rdps_filename_marshaller import model_run_for_hour
 
-from app.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from app.jobs.rdps_sfms import MAX_MODEL_RUN_HOUR
 from app.sfms.daily_fwi_processor import MultiDatasetContext
 from app.sfms.fwi_processor import calculate_ffmc
 from app.sfms.raster_addresser import RasterKeyAddresser
-from app.utils.geospatial import GDALResamplingMethod
-from app.utils.s3 import set_s3_gdal_config
-from app.utils.s3_client import S3Client
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
+from wps_shared.utils.s3 import set_s3_gdal_config
+from wps_shared.utils.s3_client import S3Client
 
 
 logger = logging.getLogger(__name__)

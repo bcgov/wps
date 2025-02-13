@@ -6,8 +6,8 @@ import pytest
 from fastapi import HTTPException
 from pytest_mock import MockFixture
 
-from app.wildfire_one.query_builders import BuildQueryAllForecastsByAfterStart, BuildQueryAllHourliesByRange, BuildQueryDailiesByStationCode, BuildQueryStationGroups
-from app.wildfire_one.wfwx_api import WFWXWeatherStation, get_wfwx_stations_from_station_codes
+from wps_shared.wildfire_one.query_builders import BuildQueryAllForecastsByAfterStart, BuildQueryAllHourliesByRange, BuildQueryDailiesByStationCode, BuildQueryStationGroups
+from wps_shared.wildfire_one.wfwx_api import WFWXWeatherStation, get_wfwx_stations_from_station_codes
 from app.wildfire_one.wfwx_post_api import post_forecasts
 
 
@@ -62,8 +62,8 @@ def mock_responses(mocker: MockFixture):
         """Returns mocked WFWXWeatherStations codes."""
         return all_station_codes
 
-    mocker.patch("app.db.crud.hfi_calc.get_all_stations", mock_get_fire_centre_station_codes)
-    mocker.patch("app.wildfire_one.wfwx_api.get_station_data", mock_get_stations)
+    mocker.patch("wps_shared.db.crud.hfi_calc.get_all_stations", mock_get_fire_centre_station_codes)
+    mocker.patch("wps_shared.wildfire_one.wfwx_api.get_station_data", mock_get_stations)
 
 
 def test_get_ids_from_station_codes_no_stations(mock_responses):

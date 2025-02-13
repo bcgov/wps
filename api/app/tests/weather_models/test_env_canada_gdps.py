@@ -12,11 +12,10 @@ from sqlalchemy.orm import Session
 from app.jobs import env_canada
 from app.jobs.env_canada_utils import GRIB_LAYERS, get_global_model_run_download_urls
 from app.jobs import common_model_fetchers
-import app.utils.time as time_utils
+import wps_shared.utils.time as time_utils
 from app.weather_models import machine_learning
-import app.db.crud.weather_models
-from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
-                                          PredictionModelRunTimestamp)
+import wps_shared.db.crud.weather_models
+from wps_shared.db.models.weather_models import PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp
 from app.tests.common import default_mock_client_get
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 from app.tests.weather_models.test_models_common import (MockResponse, mock_get_processed_file_count, mock_get_stations)
@@ -75,7 +74,7 @@ def mock_database(monkeypatch):
     monkeypatch.setattr(common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_gdps_prediction_model_run_timestamp_records)
     monkeypatch.setattr(common_model_fetchers, 'get_processed_file_record', mock_get_processed_file_record)
-    monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
+    monkeypatch.setattr(wps_shared.db.crud.weather_models, "get_prediction_run", mock_get_prediction_run)
 
 
 @pytest.fixture()
@@ -110,7 +109,7 @@ def test_get_gdps_download_urls():
 
 @pytest.fixture()
 def mock_get_processed_file_count(monkeypatch):
-    monkeypatch.setattr(app.db.crud.weather_models, 'get_processed_file_count', mock_get_processed_file_count)
+    monkeypatch.setattr(wps_shared.db.crud.weather_models, "get_processed_file_count", mock_get_processed_file_count)
 
 
 @pytest.fixture()

@@ -4,13 +4,13 @@ from typing import List
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
-from app.schemas.stations import StationCodeList
+from wps_shared.schemas.stations import StationCodeList
 import app.main
 from app.tests.common import default_mock_client_get
 import app.wildfire_one
-import app.db.database
-from app.db.models.forecasts import NoonForecast
-import app.utils.time as time_utils
+import wps_shared.db.database
+from wps_shared.db.models.forecasts import NoonForecast
+import wps_shared.utils.time as time_utils
 
 
 noon = time_utils.get_utc_now().replace(hour=20, minute=0, second=0, microsecond=0)

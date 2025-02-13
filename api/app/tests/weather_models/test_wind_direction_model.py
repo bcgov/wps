@@ -3,8 +3,8 @@
 import pytest
 from datetime import datetime
 from pytest_mock import MockerFixture
-from app.db.models.observations import HourlyActual
-from app.db.models.weather_models import ModelRunPrediction
+from wps_shared.db.models.observations import HourlyActual
+from wps_shared.db.models.weather_models import ModelRunPrediction
 from app.weather_models.linear_model import LinearModel
 from app.weather_models.sample import Samples
 from app.weather_models.wind_direction_model import WindDirectionModel

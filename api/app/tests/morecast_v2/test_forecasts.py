@@ -3,10 +3,10 @@ from typing import Optional
 from unittest.mock import Mock, patch
 import pytest
 from math import isclose
-from app.db.models.morecast_v2 import MorecastForecastRecord
+from wps_shared.db.models.morecast_v2 import MorecastForecastRecord
 from app.morecast_v2.forecasts import actual_exists, construct_wf1_forecast, construct_wf1_forecasts, filter_for_api_forecasts, get_forecasts, get_fwi_values
-from app.schemas.morecast_v2 import StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate, WF1ForecastRecordType, WF1PostForecast, MoreCastForecastInput
-from app.wildfire_one.schema_parsers import WFWXWeatherStation
+from wps_shared.schemas.morecast_v2 import StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate, WF1ForecastRecordType, WF1PostForecast, MoreCastForecastInput
+from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 
 start_time = datetime(2022, 1, 1, tzinfo=timezone.utc)
 end_time = datetime(2022, 1, 2, tzinfo=timezone.utc)

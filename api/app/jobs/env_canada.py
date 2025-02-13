@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 import logging
 import tempfile
 from sqlalchemy.orm import Session
-from app.db.crud.weather_models import (
+from wps_shared.db.crud.weather_models import (
     get_processed_file_record,
     get_prediction_model,
     get_prediction_run,
@@ -17,12 +17,12 @@ from app.db.crud.weather_models import (
 from app.jobs.common_model_fetchers import (CompletedWithSomeExceptions, ModelValueProcessor, UnhandledPredictionModelType,
                                             apply_data_retention_policy,
                                             check_if_model_run_complete, download, flag_file_as_processed)
-from app.weather_models import ModelEnum, ProjectionEnum
-from app import configure_logging
-import app.utils.time as time_utils
+from wps_shared.weather_models import ModelEnum, ProjectionEnum
+from wps_shared.logging import configure_logging
+import wps_shared.utils.time as time_utils
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
-import app.db.database
-from app.rocketchat_notifications import send_rocketchat_notification
+import wps_shared.db.database
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from app.jobs.env_canada_utils import adjust_model_day, get_model_run_urls
 
 # If running as its own process, configure logging appropriately.
@@ -255,7 +255,7 @@ def process_models():
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    with app.db.database.get_write_session_scope() as session:
+    with wps_shared.db.database.get_write_session_scope() as session:
         env_canada = EnvCanada(session, model_type)
         env_canada.process()
 

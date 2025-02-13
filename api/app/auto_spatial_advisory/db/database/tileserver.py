@@ -5,7 +5,7 @@ from typing import AsyncGenerator
 from contextlib import asynccontextmanager
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from app import config
+from wps_shared import config
 
 tileserver_read_user = config.get('TILESERVER_READ_USER', 'tileserv')
 tileserver_write_user = config.get('TILESERVER_WRITE_USER', 'tileserv')

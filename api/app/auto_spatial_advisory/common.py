@@ -2,8 +2,8 @@
 Common functionality for ASA
 """
 from datetime import date
-from app import config
-from app.auto_spatial_advisory.run_type import RunType
+from wps_shared import config
+from wps_shared.run_type import RunType
 
 
 def get_s3_key(run_type: RunType, run_date: date, for_date: date):

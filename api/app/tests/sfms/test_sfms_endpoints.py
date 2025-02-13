@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from fastapi.testclient import TestClient
 from app.utils.sfms import get_hourly_filename, get_prefix
 from app.routers.sfms import get_target_filename
-from app import config
+from wps_shared import config
 
 from app.main import app
 

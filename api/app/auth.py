@@ -5,8 +5,8 @@ from fastapi.security import OAuth2PasswordBearer
 import jwt
 from jwt import InvalidTokenError
 from sentry_sdk import set_user
-from app import config
-from app.db.crud.api_access_audits import create_api_access_audit_log
+from wps_shared import config
+from wps_shared.db.crud.api_access_audits import create_api_access_audit_log
 
 logger = logging.getLogger(__name__)
 

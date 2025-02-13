@@ -1,7 +1,7 @@
 """ Very basic (temporary?) unit test for FWI """
 import unittest
 from app.utils.redapp import FWICalculateDailyStatisticsCOM
-from app.utils.time import get_utc_now
+from wps_shared.utils.time import get_utc_now
 
 
 class BasicFWITestCase(unittest.TestCase):

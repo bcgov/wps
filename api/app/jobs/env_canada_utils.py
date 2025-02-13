@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Generator
 from app.jobs.common_model_fetchers import UnhandledPredictionModelType
-from app.weather_models import ModelEnum
+from wps_shared.weather_models import ModelEnum
 
 GRIB_LAYERS = ("TMP_TGL_2", "RH_TGL_2", "APCP_SFC_0", "WDIR_TGL_10", "WIND_TGL_10")
 HRDPS_GRIB_LAYERS = ("TMP_AGL-2m", "APCP_Sfc", "WDIR_AGL-10m", "WIND_AGL-10m", "RH_AGL-2m")

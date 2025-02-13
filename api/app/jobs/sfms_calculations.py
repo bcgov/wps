@@ -4,15 +4,15 @@ import os
 import sys
 from datetime import datetime, timezone
 
-from app import configure_logging
-from app.geospatial.wps_dataset import multi_wps_dataset_context
+from wps_shared.logging import configure_logging
+from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from app.jobs.rdps_sfms import MAX_MODEL_RUN_HOUR
-from app.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from app.sfms.daily_fwi_processor import DailyFWIProcessor
 from app.sfms.hourly_ffmc_processor import HourlyFFMCProcessor
 from app.sfms.raster_addresser import RasterKeyAddresser
-from app.utils.s3_client import S3Client
-from app.utils.time import get_utc_now
+from wps_shared.utils.s3_client import S3Client
+from wps_shared.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
 

@@ -14,7 +14,7 @@ Create Date: 2022-06-20 10:36:49.172370
 """
 from alembic import op
 
-from app.utils.time import get_utc_now
+from wps_shared.utils.time import get_utc_now
 
 # revision identifiers, used by Alembic.
 revision = '9cfbe9f618e4'

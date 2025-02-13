@@ -4,14 +4,11 @@ import json
 import logging
 from collections import defaultdict
 from datetime import datetime
-import app.stations
-import app.db.database
-from app.db.crud.forecasts import query_noon_forecast_records
-from app.schemas.forecasts import (
-    NoonForecastSummariesResponse,
-    NoonForecastSummary, NoonForecastSummaryValues
-)
-from app.schemas.stations import WeatherStation, StationCodeList
+import wps_shared.stations
+import wps_shared.db.database
+from wps_shared.db.crud.forecasts import query_noon_forecast_records
+from wps_shared.schemas.forecasts import NoonForecastSummariesResponse, NoonForecastSummary, NoonForecastSummaryValues
+from wps_shared.schemas.stations import WeatherStation, StationCodeList
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +51,7 @@ async def fetch_noon_forecasts_summaries(station_codes: StationCodeList,
                                          ) -> NoonForecastSummariesResponse:
     """ Fetch noon forecasts from the database and parse them,
     then calculate min&max and put them in NoonForecastSummariesResponse """
-    with app.db.database.get_read_session_scope() as session:
+    with wps_shared.db.database.get_read_session_scope() as session:
         records = query_noon_forecast_records(
             session, station_codes, start_date, end_date)
 
@@ -64,7 +61,7 @@ async def fetch_noon_forecasts_summaries(station_codes: StationCodeList,
             records_by_station[code].append(record)
 
     response = NoonForecastSummariesResponse()
-    stations = await app.stations.get_stations_by_codes(station_codes)
+    stations = await wps_shared.stations.get_stations_by_codes(station_codes)
     for station in stations:
         summary = create_noon_forecast_summary(station, records_by_station)
         response.summaries.append(summary)

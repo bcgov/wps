@@ -4,7 +4,7 @@ import asyncio
 import pytest
 import requests
 from aiobotocore.client import AioBaseClient
-from app import configure_logging
+from wps_shared.logging import configure_logging
 import app.c_haines.worker
 import app.c_haines.kml
 from app.tests.common import MockResponse

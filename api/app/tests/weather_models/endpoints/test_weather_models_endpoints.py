@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
 import pytest
 import app.routers.weather_models
-from app.schemas.shared import StationsRequest
-from app.weather_models import ModelEnum
+from wps_shared.schemas.shared import StationsRequest
+from wps_shared.weather_models import ModelEnum
 
 model_data_request = StationsRequest(stations=[1, 2])
 

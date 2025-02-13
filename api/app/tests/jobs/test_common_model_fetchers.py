@@ -1,7 +1,7 @@
 from datetime import datetime
 import numpy
 from app.jobs.common_model_fetchers import accumulate_nam_precipitation
-from app.db.models.weather_models import ModelRunGridSubsetPrediction
+from wps_shared.db.models.weather_models import ModelRunGridSubsetPrediction
 
 
 ZERO_HOUR_TIMESTAMP = datetime(2023, 9, 7, 0, 0, 0)
