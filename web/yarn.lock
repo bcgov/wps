@@ -2714,6 +2714,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"acorn@npm:^8.14.0":
+  version: 8.14.0
+  resolution: "acorn@npm:8.14.0"
+  bin:
+    acorn: bin/acorn
+  checksum: 10c0/6d4ee461a7734b2f48836ee0fbb752903606e576cc100eb49340295129ca0b452f3ba91ddd4424a1d4406a98adfb2ebb6bd0ff4c49d7a0930c10e462719bbfd7
+  languageName: node
+  linkType: hard
+
 "agent-base@npm:6":
   version: 6.0.2
   resolution: "agent-base@npm:6.0.2"
@@ -4523,6 +4532,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-visitor-keys@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "eslint-visitor-keys@npm:4.2.0"
+  checksum: 10c0/2ed81c663b147ca6f578312919483eb040295bbab759e5a371953456c636c5b49a559883e2677112453728d66293c0a4c90ab11cab3428cf02a0236d2e738269
+  languageName: node
+  linkType: hard
+
 "eslint@npm:^9.7.0":
   version: 9.9.0
   resolution: "eslint@npm:9.9.0"
@@ -4580,6 +4596,17 @@ __metadata:
     acorn-jsx: "npm:^5.3.2"
     eslint-visitor-keys: "npm:^4.0.0"
   checksum: 10c0/52e6feaa77a31a6038f0c0e3fce93010a4625701925b0715cd54a2ae190b3275053a0717db698697b32653788ac04845e489d6773b508d6c2e8752f3c57470a0
+  languageName: node
+  linkType: hard
+
+"espree@npm:^10.3.0":
+  version: 10.3.0
+  resolution: "espree@npm:10.3.0"
+  dependencies:
+    acorn: "npm:^8.14.0"
+    acorn-jsx: "npm:^5.3.2"
+    eslint-visitor-keys: "npm:^4.2.0"
+  checksum: 10c0/272beeaca70d0a1a047d61baff64db04664a33d7cfb5d144f84bc8a5c6194c6c8ebe9cc594093ca53add88baa23e59b01e69e8a0160ab32eac570482e165c462
   languageName: node
   linkType: hard
 
@@ -9278,19 +9305,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite-plugin-istanbul@npm:^6.0.2":
-  version: 6.0.2
-  resolution: "vite-plugin-istanbul@npm:6.0.2"
+"vite-plugin-istanbul@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "vite-plugin-istanbul@npm:7.0.0"
   dependencies:
     "@istanbuljs/load-nyc-config": "npm:^1.1.0"
-    espree: "npm:^10.0.1"
-    istanbul-lib-instrument: "npm:^6.0.2"
-    picocolors: "npm:^1.0.0"
+    espree: "npm:^10.3.0"
+    istanbul-lib-instrument: "npm:^6.0.3"
+    picocolors: "npm:^1.1.1"
     source-map: "npm:^0.7.4"
-    test-exclude: "npm:^6.0.0"
+    test-exclude: "npm:^7.0.1"
   peerDependencies:
     vite: ">=4 <=6"
-  checksum: 10c0/120d84cd44af99ec7cce298768d8504ad4481439322d3ec724d7e8313e87fc5b214cbeaf827ba94fa145bb2367067b6f1d65c7387e30cced43658df9f7fc5fe8
+  checksum: 10c0/fbf5212227996579643b127c2a8ddb18bed3e8f45a0c4785ed20439e8a9300dcdc0212ca583e2d7c41a7b892b46dea61f07847ea5825805b63ff61c7ee79e0ce
   languageName: node
   linkType: hard
 
@@ -9697,7 +9724,7 @@ __metadata:
     ts-sinon: "npm:^2.0.2"
     typescript: "npm:^5.2.2"
     vite: "npm:^6.0.0"
-    vite-plugin-istanbul: "npm:^6.0.2"
+    vite-plugin-istanbul: "npm:^7.0.0"
     vite-plugin-svgr: "npm:^4.2.0"
     vitest: "npm:^3.0.0"
     whatwg-fetch: "npm:^3.6.20"

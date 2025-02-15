@@ -99,7 +99,7 @@
     "start-server-and-test": "^2.0.0",
     "ts-sinon": "^2.0.2",
     "vite": "^6.0.0",
-    "vite-plugin-istanbul": "^6.0.2",
+    "vite-plugin-istanbul": "^7.0.0",
     "vite-plugin-svgr": "^4.2.0"
   },
   "nyc": {
