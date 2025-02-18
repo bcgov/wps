@@ -8,7 +8,7 @@ Create Date: 2024-05-23 09:39:44.787270
 from alembic import op
 from datetime import datetime
 from sqlalchemy.orm.session import Session
-from app.db.models.auto_spatial_advisory import AdvisoryFuelStats, RunParameters
+from wps_shared.db.models.auto_spatial_advisory import AdvisoryFuelStats, RunParameters
 
 # revision identifiers, used by Alembic.
 revision = 'd392e4a5a499'

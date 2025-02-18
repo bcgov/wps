@@ -6,8 +6,8 @@ import os
 import json
 from pytest_mock import MockerFixture
 from app.hfi.hfi_calc import calculate_hfi_results, calculate_mean_intensity, calculate_max_intensity_group, calculate_prep_level, validate_date_range, validate_station_daily
-import app.db.models.hfi_calc as hfi_calc_models
-from app.schemas.hfi_calc import (
+import wps_shared.db.models.hfi_calc as hfi_calc_models
+from wps_shared.schemas.hfi_calc import (
     DailyResult,
     DateRange,
     FireCentre,
@@ -21,9 +21,9 @@ from app.schemas.hfi_calc import (
     WeatherStationProperties,
     required_daily_fields,
 )
-from app.schemas.shared import FuelType
-from app.utils.time import get_pst_now, get_utc_now
-from app.wildfire_one.schema_parsers import WFWXWeatherStation
+from wps_shared.schemas.shared import FuelType
+from wps_shared.utils.time import get_pst_now, get_utc_now
+from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 from starlette.testclient import TestClient
 from app.main import app as starlette_app
 import app.routers.hfi_calc

@@ -7,29 +7,29 @@ from statistics import mean
 from aiohttp.client import ClientSession
 from sqlalchemy.orm import Session
 import app
-from app.db.database import get_read_session_scope
-from app.db.models.hfi_calc import FuelType as FuelTypeModel
+from wps_shared.db.database import get_read_session_scope
+from wps_shared.db.models.hfi_calc import FuelType as FuelTypeModel
 from app.fire_behaviour.cffdrs import CFFDRSException
 from app.fire_behaviour.prediction import (
     FireBehaviourPredictionInputError, calculate_fire_behaviour_prediction, FireBehaviourPrediction)
-from app.schemas.hfi_calc import (DailyResult, DateRange,
-                                  FireStartRange, HFIResultRequest,
-                                  PlanningAreaResult,
-                                  StationDaily, StationInfo,
-                                  ValidatedStationDaily,
-                                  required_daily_fields)
-from app.schemas.hfi_calc import (WeatherStationProperties,
-                                  FuelType as FuelTypeSchema, FireCentre, PlanningArea, WeatherStation)
+from wps_shared.schemas.hfi_calc import (
+    DailyResult,
+    DateRange,
+    FireStartRange,
+    HFIResultRequest,
+    PlanningAreaResult,
+    StationDaily,
+    StationInfo,
+    ValidatedStationDaily,
+    required_daily_fields,
+)
+from wps_shared.schemas.hfi_calc import WeatherStationProperties, FuelType as FuelTypeSchema, FireCentre, PlanningArea, WeatherStation
 from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
-from app.utils.time import get_hour_20_from_date, get_pst_now
-from app.wildfire_one.schema_parsers import WFWXWeatherStation
-from app.wildfire_one.wfwx_api import (get_auth_header, get_stations_by_codes,
-                                       get_wfwx_stations_from_station_codes,
-                                       get_raw_dailies_in_range_generator)
-from app.db.crud.hfi_calc import (get_fire_weather_stations,
-                                  get_fire_centre_fire_start_ranges,
-                                  get_fire_start_lookup,
-                                  get_fuel_types)
+from wps_shared.utils.time import get_hour_20_from_date, get_pst_now
+from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
+from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_stations_by_codes, get_wfwx_stations_from_station_codes, get_raw_dailies_in_range_generator
+from wps_shared.db.crud.hfi_calc import get_fire_weather_stations, get_fire_centre_fire_start_ranges, get_fire_start_lookup, get_fuel_types
+import wps_shared.utils.time
 
 logger = logging.getLogger(__name__)
 
@@ -221,9 +221,8 @@ async def calculate_latest_hfi_results(
     # ensure we have valid start and end dates
     valid_date_range = validate_date_range(request.date_range)
     # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
-    start_timestamp = int(app.utils.time.get_hour_20_from_date(
-        valid_date_range.start_date).timestamp() * 1000)
-    end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_date_range.end_date).timestamp() * 1000)
+    start_timestamp = int(wps_shared.utils.time.get_hour_20_from_date(valid_date_range.start_date).timestamp() * 1000)
+    end_timestamp = int(wps_shared.utils.time.get_hour_20_from_date(valid_date_range.end_date).timestamp() * 1000)
 
     async with ClientSession() as session:
         header = await get_auth_header(session)

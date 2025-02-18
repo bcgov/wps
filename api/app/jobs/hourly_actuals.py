@@ -7,12 +7,12 @@ import sys
 from datetime import datetime, timedelta
 from aiohttp.client import ClientSession
 from sqlalchemy.exc import IntegrityError
-import app.db.database
-import app.utils.time
-from app import configure_logging
-from app.db.crud.observations import save_hourly_actual
-from app.rocketchat_notifications import send_rocketchat_notification
-from app.wildfire_one import wfwx_api
+import wps_shared.db.database
+import wps_shared.utils.time
+from wps_shared.logging import configure_logging
+from wps_shared.db.crud.observations import save_hourly_actual
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.wildfire_one import wfwx_api
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class HourlyActualsJob():
     """ Job that downloads the hourly actuals from the wildfire website and stores it in a database. """
 
     def __init__(self):
-        self.now = app.utils.time.get_pst_now()
+        self.now = wps_shared.utils.time.get_pst_now()
 
     def _get_start_date(self) -> datetime:
         """ Return time N hour ago. E.g. if it's 17h15 now, we'd get YYYYMMDD16. The intention is that
@@ -49,7 +49,7 @@ class HourlyActualsJob():
 
             logger.info('Retrieved %s hourly actuals', len(hourly_actuals))
 
-        with app.db.database.get_write_session_scope() as session:
+        with wps_shared.db.database.get_write_session_scope() as session:
             for hourly_actual in hourly_actuals:
                 try:
                     save_hourly_actual(session, hourly_actual)

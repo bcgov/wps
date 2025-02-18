@@ -8,12 +8,12 @@ import logging
 import logging.config
 from sqlalchemy.exc import IntegrityError
 from aiohttp.client import ClientSession
-from app import configure_logging
-import app.db.database
-from app.db.crud.forecasts import save_noon_forecast
-from app.wildfire_one import wfwx_api
-import app.utils.time
-from app.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.logging import configure_logging
+import wps_shared.db.database
+from wps_shared.db.crud.forecasts import save_noon_forecast
+from wps_shared.wildfire_one import wfwx_api
+import wps_shared.utils.time
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class NoonForecastJob():
     """ Implementation of class to process noon forecasts. """
 
     def __init__(self):
-        self.now = app.utils.time.get_utc_now()
+        self.now = wps_shared.utils.time.get_utc_now()
 
     async def run_wfwx(self):
         """ Entry point for running the bot """
@@ -33,7 +33,7 @@ class NoonForecastJob():
                 session, header, self.now)
             logger.info('Retrieved %s noon forecasts', len(noon_forecasts))
 
-        with app.db.database.get_write_session_scope() as session:
+        with wps_shared.db.database.get_write_session_scope() as session:
             for noon_forecast in noon_forecasts:
                 try:
                     save_noon_forecast(session, noon_forecast)

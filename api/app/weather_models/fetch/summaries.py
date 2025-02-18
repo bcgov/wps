@@ -4,15 +4,12 @@ import datetime
 import logging
 from typing import List, Union
 from numpy import percentile
-import app.stations
-from app.weather_models import ModelEnum
-from app.schemas.weather_models import (
-    WeatherModelPredictionSummary,
-    WeatherModelPredictionSummaryValues,
-    WeatherPredictionModel)
-import app.db.database
-from app.db.crud.weather_models import get_station_model_predictions_order_by_prediction_timestamp
-from app.db.models.weather_models import PredictionModel, WeatherStationModelPrediction
+import wps_shared.stations
+from wps_shared.weather_models import ModelEnum
+from wps_shared.schemas.weather_models import WeatherModelPredictionSummary, WeatherModelPredictionSummaryValues, WeatherPredictionModel
+import wps_shared.db.database
+from wps_shared.db.crud.weather_models import get_station_model_predictions_order_by_prediction_timestamp
+from wps_shared.db.models.weather_models import PredictionModel, WeatherStationModelPrediction
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +25,7 @@ def _build_query_to_get_predictions(
     model.
     """
     # Build the query:
-    with app.db.database.get_read_session_scope() as session:
+    with wps_shared.db.database.get_read_session_scope() as session:
         # We are only interested in the last 5 days.
         back_5_days = time_of_interest - datetime.timedelta(days=5)
         response = get_station_model_predictions_order_by_prediction_timestamp(
@@ -108,9 +105,7 @@ class ModelPredictionSummaryBuilder():
             time_of_interest: datetime) -> List[WeatherModelPredictionSummary]:
         """ Given a model and station codes, return list of weather summaries. """
         # Get list of stations.
-        self.stations = {
-            station.code: station for station in await
-            app.stations.get_stations_by_codes(station_codes)}
+        self.stations = {station.code: station for station in await wps_shared.stations.get_stations_by_codes(station_codes)}
 
         # Build database query
         new_query = _build_query_to_get_predictions(station_codes, model, time_of_interest)

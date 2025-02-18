@@ -5,15 +5,13 @@ import logging
 from datetime import datetime, timezone
 from app.jobs import common_model_fetchers
 from app.tests.weather_models.test_models_common import MockResponse, shape, mock_get_model_run_predictions
-import app.utils.time as time_utils
+import wps_shared.utils.time as time_utils
 import pytest
 import requests
 from geoalchemy2.shape import from_shape
-from app.db.models.weather_models import (PredictionModel,
-                                          PredictionModelGridSubset, PredictionModelRunTimestamp,
-                                          ProcessedModelRunUrl)
+from wps_shared.db.models.weather_models import PredictionModel, PredictionModelGridSubset, PredictionModelRunTimestamp, ProcessedModelRunUrl
 from app.jobs import noaa
-import app.db.crud.weather_models
+import wps_shared.db.crud.weather_models
 
 
 logger = logging.getLogger(__name__)
@@ -61,7 +59,7 @@ def mock_database(monkeypatch):
     monkeypatch.setattr(common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_gfs_prediction_model_run_timestamp_records)
     monkeypatch.setattr(common_model_fetchers, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
-    monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
+    monkeypatch.setattr(wps_shared.db.crud.weather_models, "get_prediction_run", mock_get_prediction_run)
 
 
 @pytest.fixture()

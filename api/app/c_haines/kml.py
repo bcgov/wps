@@ -8,10 +8,10 @@ import logging
 from pyproj import Transformer, Proj
 from shapely.ops import transform
 from shapely.geometry import shape, Polygon
-from app.utils.s3 import object_exists
-from app.geospatial import WGS84
-from app.weather_models import ModelEnum
-from app.utils.s3 import get_client
+from wps_shared.utils.s3 import object_exists
+from wps_shared.geospatial.geospatial import WGS84
+from wps_shared.weather_models import ModelEnum
+from wps_shared.utils.s3 import get_client
 from app.c_haines import get_severity_string, SeverityEnum
 from app.c_haines.object_store import (ObjectTypeEnum,
                                        generate_full_object_store_path)

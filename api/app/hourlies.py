@@ -6,12 +6,12 @@ from datetime import datetime, timedelta
 from aiohttp.client import ClientSession
 
 from aiohttp.connector import TCPConnector
-import app.db.database
-from app.db.crud.observations import get_hourly_actuals
-import app.stations
-from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
-from app.utils.dewpoint import compute_dewpoint
-from app.wildfire_one import wfwx_api
+import wps_shared.db.database
+from wps_shared.db.crud.observations import get_hourly_actuals
+import wps_shared.stations
+from wps_shared.schemas.observations import WeatherStationHourlyReadings, WeatherReading
+from wps_shared.utils.dewpoint import compute_dewpoint
+from wps_shared.wildfire_one import wfwx_api
 
 
 def get(value: object, condition: bool = True):
@@ -30,7 +30,7 @@ async def fetch_hourly_readings_from_db(
     """ Fetch the hourly readings from the database.
     """
     stations = await wfwx_api.get_stations_by_codes(station_codes)
-    with app.db.database.get_read_session_scope() as session:
+    with wps_shared.db.database.get_read_session_scope() as session:
         readings = get_hourly_actuals(session, station_codes, date_from, date_to)
         station_readings = None
         result = []

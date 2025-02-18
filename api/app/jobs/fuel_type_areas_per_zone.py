@@ -6,13 +6,14 @@ import asyncio
 import logging
 import numpy as np
 
-from app import config, configure_logging
-from app.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_type_id, get_fire_zone_units
-from app.db.database import get_async_write_session_scope
-from app.db.models.auto_spatial_advisory import AdvisoryShapeFuels
-from app.rocketchat_notifications import send_rocketchat_notification
-from app.utils.geospatial import prepare_wkt_geom_for_gdal
-from app.utils.s3 import set_s3_gdal_config
+from wps_shared.logging import configure_logging
+from wps_shared.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_type_id, get_fire_zone_units
+from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.models.auto_spatial_advisory import AdvisoryShapeFuels
+from wps_shared import config
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal
+from wps_shared.utils.s3 import set_s3_gdal_config
 
 
 logger = logging.getLogger(__name__)

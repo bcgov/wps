@@ -1,8 +1,8 @@
 """ Unit testing for WFWX API validation """
 import math
 from datetime import datetime
-from app.schemas.observations import WeatherReading
-from app.wildfire_one.validation import validate_metric, get_valid_flags
+from wps_shared.schemas.observations import WeatherReading
+from wps_shared.wildfire_one.validation import validate_metric, get_valid_flags
 
 
 def test_validate_metric_below():

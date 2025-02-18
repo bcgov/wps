@@ -10,7 +10,7 @@ from typing import Generator, Tuple
 import logging
 from osgeo import gdal, ogr
 from geoalchemy2.shape import to_shape
-from app import config
+from wps_shared import config
 
 
 logger = logging.getLogger(__name__)

@@ -16,19 +16,19 @@ from shapely.ops import transform
 from shapely.geometry import shape, mapping
 from aiobotocore.client import AioBaseClient
 from affine import Affine
-from app.utils.s3 import object_exists, object_exists_v2
-import app.utils.time as time_utils
-from app.weather_models import ModelEnum, ProjectionEnum
-from app.geospatial import WGS84
+from wps_shared.utils.s3 import object_exists, object_exists_v2
+import wps_shared.utils.time as time_utils
+from wps_shared.weather_models import ModelEnum, ProjectionEnum
+from wps_shared.geospatial.geospatial import WGS84
 from app.jobs.env_canada import get_model_run_hours, adjust_model_day, download, UnhandledPredictionModelType
 from app.jobs.env_canada_utils import get_file_date_part
-from app.utils.s3 import get_client
+from wps_shared.utils.s3 import get_client
 from app.c_haines import get_severity_string
 from app.c_haines.c_haines_index import CHainesGenerator
 from app.c_haines import GDALData
 from app.c_haines.object_store import ObjectTypeEnum, generate_full_object_store_path
 from app.c_haines.kml import save_as_kml_to_s3
-from app import config
+from wps_shared import config
 from app.weather_models.process_grib import get_dataset_transform
 
 

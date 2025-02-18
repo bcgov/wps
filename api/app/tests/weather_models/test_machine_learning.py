@@ -1,11 +1,11 @@
 from datetime import datetime
 import pytest
-from app.db.models.observations import HourlyActual
+from wps_shared.db.models.observations import HourlyActual
 from app.weather_models import machine_learning
 from app.tests.weather_models.crud import (get_actuals_left_outer_join_with_predictions,
                                            get_accumulated_precip_by_24h_interval,
                                            get_predicted_daily_precip)
-from app.db.models.weather_models import ModelRunPrediction, PredictionModel
+from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModel
 from app.weather_models.machine_learning import StationMachineLearning
 import math
 

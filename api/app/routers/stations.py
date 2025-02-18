@@ -3,11 +3,16 @@ import logging
 from datetime import datetime
 from fastapi import APIRouter, Response, Depends
 from app.auth import authentication_required, audit
-from app.utils.time import get_utc_now, get_hour_20
-from app.schemas.stations import (WeatherStationGroupsMemberRequest, WeatherStationsResponse, DetailedWeatherStationsResponse, WeatherStationGroupsResponse,
-                                  WeatherStationGroupMembersResponse)
-from app.stations import get_stations_as_geojson, fetch_detailed_stations_as_geojson
-from app.wildfire_one import wfwx_api
+from wps_shared.utils.time import get_utc_now, get_hour_20
+from wps_shared.schemas.stations import (
+    WeatherStationGroupsMemberRequest,
+    WeatherStationsResponse,
+    DetailedWeatherStationsResponse,
+    WeatherStationGroupsResponse,
+    WeatherStationGroupMembersResponse,
+)
+from wps_shared.stations import get_stations_as_geojson, fetch_detailed_stations_as_geojson
+from wps_shared.wildfire_one import wfwx_api
 
 
 logger = logging.getLogger(__name__)

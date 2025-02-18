@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from datetime import date, datetime, timezone
 from collections import namedtuple
-from app.db.models.auto_spatial_advisory import AdvisoryTPIStats, HfiClassificationThreshold, RunParameters, SFMSFuelType, TPIFuelArea, TPIClassEnum
+from wps_shared.db.models.auto_spatial_advisory import AdvisoryTPIStats, HfiClassificationThreshold, RunParameters, SFMSFuelType, TPIFuelArea, TPIClassEnum
 
 mock_fire_centre_name = "PGFireCentre"
 

@@ -6,8 +6,8 @@ import asyncio
 from osgeo import gdal
 import numpy as np
 import os
-from app.utils.s3 import get_client
-from app import config
+from wps_shared.utils.s3 import get_client
+from wps_shared import config
 
 
 async def generate():

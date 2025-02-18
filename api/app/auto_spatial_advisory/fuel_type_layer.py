@@ -5,12 +5,12 @@ from typing import Generator, Tuple
 import logging
 from osgeo import ogr, osr, gdal
 from shapely import wkt, wkb
-from app import config
-from app.db.models.auto_spatial_advisory import FuelType
-from app.db.database import get_async_write_session_scope
-from app.db.crud.auto_spatial_advisory import save_fuel_type
-from app.geospatial import NAD83_BC_ALBERS
-from app.utils.polygonize import polygonize_in_memory
+from wps_shared import config
+from wps_shared.db.models.auto_spatial_advisory import FuelType
+from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.crud.auto_spatial_advisory import save_fuel_type
+from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
+from wps_shared.utils.polygonize import polygonize_in_memory
 
 
 logger = logging.getLogger(__name__)

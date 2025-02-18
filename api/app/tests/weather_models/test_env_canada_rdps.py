@@ -9,13 +9,12 @@ from aiohttp import ClientSession
 from typing import Optional
 from sqlalchemy.orm import Session
 from app.jobs.env_canada_utils import GRIB_LAYERS, get_regional_model_run_download_urls
-import app.utils.time as time_utils
+import wps_shared.utils.time as time_utils
 import app.weather_models.process_grib
 import app.jobs.env_canada
 import app.jobs.common_model_fetchers
-import app.db.crud.weather_models
-from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
-                                          PredictionModelRunTimestamp)
+import wps_shared.db.crud.weather_models
+from wps_shared.db.models.weather_models import PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp
 from app.tests.common import default_mock_client_get
 from app.tests.weather_models.test_env_canada_gdps import (MockResponse)
 
@@ -55,7 +54,7 @@ def mock_database(monkeypatch):
     monkeypatch.setattr(app.jobs.common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_rdps_prediction_model_run_timestamp_records)
     monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
-    monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
+    monkeypatch.setattr(wps_shared.db.crud.weather_models, "get_prediction_run", mock_get_prediction_run)
 
 
 @pytest.fixture()

@@ -8,14 +8,21 @@ import copy
 import operator
 from typing import List, Dict
 
-from app.schemas.hfi_calc import (DailyTablePlanningAreaPDFData, DailyResult, DateRange,
-                                  HFIResultResponse,
-                                  PlanningArea, PlanningAreaResult,
-                                  PrepTablePlanningAreaPDFData,
-                                  StationDaily, StationInfo,
-                                  StationPDFData, ValidatedStationDaily,
-                                  WeatherStation)
-from app.schemas.shared import FuelType
+from wps_shared.schemas.hfi_calc import (
+    DailyTablePlanningAreaPDFData,
+    DailyResult,
+    DateRange,
+    HFIResultResponse,
+    PlanningArea,
+    PlanningAreaResult,
+    PrepTablePlanningAreaPDFData,
+    StationDaily,
+    StationInfo,
+    StationPDFData,
+    ValidatedStationDaily,
+    WeatherStation,
+)
+from wps_shared.schemas.shared import FuelType
 
 
 def response_2_prep_cycle_jinja_format(result: HFIResultResponse,

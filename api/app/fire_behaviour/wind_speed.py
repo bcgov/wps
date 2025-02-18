@@ -1,7 +1,7 @@
 
 
 from app.fire_behaviour import cffdrs
-from app.schemas.fba_calc import StationRequest, WindResult
+from wps_shared.schemas.fba_calc import StationRequest, WindResult
 
 """
 If user has not specified wind speed, use the values retrieved from WFWX, always re-calculate FFMC & ISI
