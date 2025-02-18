@@ -22,7 +22,7 @@
     "@mui/x-date-pickers": "^7.0.0",
     "@psu/cffdrs_ts": "git+https://github.com/cffdrs/cffdrs_ts#b9afdabc89dd4bdf04ccf1e406a4a5d8d552ff51",
     "@reduxjs/toolkit": "^2.2.7",
-    "@sentry/react": "^8.2.1",
+    "@sentry/react": "^9.0.0",
     "@sentry/vite-plugin": "^3.0.0",
     "@types/esri-leaflet": "^3.0.0",
     "@types/leaflet": "^1.7.0",
@@ -99,7 +99,7 @@
     "start-server-and-test": "^2.0.0",
     "ts-sinon": "^2.0.2",
     "vite": "^6.0.0",
-    "vite-plugin-istanbul": "^6.0.2",
+    "vite-plugin-istanbul": "^7.0.0",
     "vite-plugin-svgr": "^4.2.0"
   },
   "nyc": {
