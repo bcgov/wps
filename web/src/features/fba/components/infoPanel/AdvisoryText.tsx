@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { AdvisoryStatus } from 'utils/constants'
-import { isEmpty, isNil, isUndefined, take } from 'lodash'
+import { isEmpty, isNil, isUndefined } from 'lodash'
 import { calculateStatusText } from '@/features/fba/calculateZoneStatus'
 
 interface AdvisoryTextProps {
@@ -30,6 +30,7 @@ const AdvisoryText = ({
 
   const [minStartTime, setMinStartTime] = useState<number | undefined>(undefined)
   const [maxEndTime, setMaxEndTime] = useState<number | undefined>(undefined)
+  const [highHFIFuelsByProportion, setHighHFIFuelsByProportion] = useState<FireZoneFuelStats[]>([])
 
   const sortByArea = (a: FireZoneFuelStats, b: FireZoneFuelStats) => {
     if (a.area > b.area) {
@@ -39,6 +40,31 @@ const AdvisoryText = ({
       return 1
     }
     return 0
+  }
+
+  // Return a list of fuel stats for which greater than 90% of the area of each fuel type has high HFI.
+  const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
+    const topFuelsByProportion = zoneUnitFuelStats.filter(fuelStats => {
+      return fuelStats.area / fuelStats.fuel_area >= 0.9
+    })
+    return topFuelsByProportion
+  }
+
+  // Return a list of fuel types that cumulatively account for more than 75% of total area with high HFI.
+  const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
+    const totalHighHFIArea = zoneUnitFuelStats.reduce((total, stats) => total + stats.area, 0)
+    const sortedFuelStats = [...zoneUnitFuelStats].sort(sortByArea)
+    const topFuelsByArea = []
+    let highHFIArea = 0
+    for (const stats of sortedFuelStats) {
+      highHFIArea += stats.area
+      if (highHFIArea / totalHighHFIArea > 0.75) {
+        topFuelsByArea.push(stats)
+        return topFuelsByArea
+      }
+      topFuelsByArea.push(stats)
+    }
+    return topFuelsByArea
   }
 
   useEffect(() => {
@@ -51,14 +77,17 @@ const AdvisoryText = ({
       setSelectedFireZoneUnitTopFuels([])
       setMinStartTime(undefined)
       setMaxEndTime(undefined)
+      setHighHFIFuelsByProportion([])
       return
     }
     const allZoneUnitFuelStats = fireCentreHFIFuelStats?.[selectedFireCenter.name]
     const selectedZoneUnitFuelStats = allZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? []
     const sortedFuelStats = [...selectedZoneUnitFuelStats].sort(sortByArea)
-    let topFuels = take(sortedFuelStats, 3)
+    const topFuels = getTopFuelsByArea(sortedFuelStats)
     setSelectedFireZoneUnitTopFuels(topFuels)
-  }, [fireCentreHFIFuelStats])
+    const topFuelsByProportion = getTopFuelsByProportion(selectedZoneUnitFuelStats)
+    setHighHFIFuelsByProportion(topFuelsByProportion)
+  }, [fireCentreHFIFuelStats, selectedFireZoneUnit])
 
   useEffect(() => {
     let startTime: number | undefined = undefined
@@ -79,17 +108,39 @@ const AdvisoryText = ({
     setMaxEndTime(endTime)
   }, [selectedFireZoneUnitTopFuels])
 
+  const getCommaSeparatedString = (array: string[]): string => {
+    // Slice off the last two items and join then with ' and ' to create a new string. Then take the first n-2 items and
+    // deconstruct them into a new array along with the new string. Finally, join the items in the new array with ', '.
+    const joinedFuelTypes = [...array.slice(0, -2), array.slice(-2).join(' and ')].join(', ')
+    return joinedFuelTypes
+  }
+
   const getTopFuelsString = () => {
     const topFuelCodes = selectedFireZoneUnitTopFuels.map(topFuel => topFuel.fuel_type.fuel_type_code)
+    const zoneStatus = getZoneStatus()?.toLowerCase()
     switch (topFuelCodes.length) {
-      case 1:
-        return `fuel type ${topFuelCodes[0]}`
-      case 2:
-        return `fuel types ${topFuelCodes[0]} and ${topFuelCodes[1]}`
-      case 3:
-        return `fuel types ${topFuelCodes[0]}, ${topFuelCodes[1]} and ${topFuelCodes[2]}`
-      default:
+      case 0:
         return ''
+      case 1:
+        return `Fuel type ${topFuelCodes[0]} accounts for >=75% of the area under ${zoneStatus}`
+      case 2:
+        return `Fuel types ${topFuelCodes[0]} and ${topFuelCodes[1]} account for >=75% of the area under ${zoneStatus}.`
+      default:
+        return `Fuel types ${getCommaSeparatedString(topFuelCodes)} account for >=75% of the area under ${zoneStatus}.`
+    }
+  }
+
+  const getHighProportionFuelsString = (): string => {
+    const array = highHFIFuelsByProportion.map(fuel_type => fuel_type.fuel_type.fuel_type_code)
+    switch (array.length) {
+      case 0:
+        return ''
+      case 1:
+        return `Fuel type ${array[0]} is under advisory in >=90% of the areas it occurs in the fire zone.`
+      case 2:
+        return `Fuel types ${array[0]} and ${array[1]} are under advisory in >=90% of the areas they occur in the fire zone.`
+      default:
+        return `Fuel types ${getCommaSeparatedString(array)} are under advisory in >=90% of the areas they occur in the fire zone.`
     }
   }
 
@@ -100,24 +151,28 @@ const AdvisoryText = ({
           <Typography data-testid="default-message">Please select a fire center.</Typography>
         ) : (
           <Typography data-testid="no-data-message">No advisory data available for the selected date.</Typography>
-        )}{' '}
+        )}
       </>
     )
+  }
+
+  const getZoneStatus = () => {
+    const fireCenterSummary = provincialSummary[selectedFireCenter!.name]
+    const fireZoneUnitInfos = fireCenterSummary?.filter(fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id)
+    const zoneStatus = calculateStatusText(fireZoneUnitInfos, advisoryThreshold)
+    return zoneStatus
   }
 
   const renderAdvisoryText = () => {
     const forToday = forDate.toISODate() === DateTime.now().toISODate()
     const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
-
-    const fireCenterSummary = provincialSummary[selectedFireCenter!.name]
-    const fireZoneUnitInfos = fireCenterSummary?.filter(fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id)
-    const zoneStatus = calculateStatusText(fireZoneUnitInfos, advisoryThreshold)
+    const zoneStatus = getZoneStatus()
     const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime) && selectFireCentreHFIFuelStats.length > 0
     let message = ''
     if (hasCriticalHours) {
-      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00 for ${getTopFuelsString()}.`
+      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00. ${getTopFuelsString()}.\n\n`
     } else {
-      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}.`
+      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}.\n\n`
     }
 
     return (
@@ -128,15 +183,22 @@ const AdvisoryText = ({
           >{`Issued on ${issueDate?.toLocaleString(DateTime.DATE_MED)} for ${displayForDate}.\n\n`}</Typography>
         )}
         {!isUndefined(zoneStatus) && zoneStatus === AdvisoryStatus.ADVISORY && (
-          <Typography data-testid="advisory-message-advisory">{message}</Typography>
+          <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-advisory">
+            {message}
+          </Typography>
         )}
         {!isUndefined(zoneStatus) && zoneStatus === AdvisoryStatus.WARNING && (
-          <Typography data-testid="advisory-message-warning">{message}</Typography>
+          <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-warning">
+            {message}
+          </Typography>
+        )}
+        {!isUndefined(zoneStatus) && (
+          <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-proportion">
+            {getHighProportionFuelsString()}
+          </Typography>
         )}
         {!hasCriticalHours && !isUndefined(zoneStatus) && (
-          <Typography data-testid="advisory-message-no-critical-hours" sx={{ paddingTop: '1rem' }}>
-            No critical hours available.
-          </Typography>
+          <Typography data-testid="advisory-message-no-critical-hours">No critical hours available.</Typography>
         )}
         {isUndefined(zoneStatus) && (
           <Typography data-testid="no-advisory-message">
