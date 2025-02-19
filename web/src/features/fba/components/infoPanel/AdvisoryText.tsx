@@ -52,10 +52,7 @@ const AdvisoryText = ({
 
   // Return a list of fuel types that cummulatively account for more than 75% of total area with high HFI.
   const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
-    let totalHighHFIArea = 0
-    zoneUnitFuelStats.forEach(stats => {
-      totalHighHFIArea += stats.area
-    })
+    const totalHighHFIArea = zoneUnitFuelStats.reduce((total, stats) => total + stats.area, 0)
     const topFuelsByArea = []
     let highHFIArea = 0
     for (const stats of zoneUnitFuelStats) {
@@ -87,7 +84,9 @@ const AdvisoryText = ({
     const sortedFuelStats = [...selectedZoneUnitFuelStats].sort(sortByArea)
     const topFuels = getTopFuelsByArea(sortedFuelStats)
     setSelectedFireZoneUnitTopFuels(topFuels)
-  }, [fireCentreHFIFuelStats])
+    const topFuelsByProportion = getTopFuelsByProportion(selectedZoneUnitFuelStats)
+    setHighHFIFuelsByProportion(topFuelsByProportion)
+  }, [fireCentreHFIFuelStats, selectedFireZoneUnit])
 
   useEffect(() => {
     let startTime: number | undefined = undefined
@@ -108,21 +107,6 @@ const AdvisoryText = ({
     setMaxEndTime(endTime)
   }, [selectedFireZoneUnitTopFuels])
 
-  useEffect(() => {
-    if (
-      isUndefined(fireCentreHFIFuelStats) ||
-      isEmpty(fireCentreHFIFuelStats) ||
-      isUndefined(selectedFireCenter) ||
-      isUndefined(selectedFireZoneUnit)
-    ) {
-      setHighHFIFuelsByProportion([])
-      return
-    }
-    const allZoneUnitFuelStats = fireCentreHFIFuelStats?.[selectedFireCenter.name]
-    const selectedZoneUnitFuelStats = allZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? []
-    const topFuelsByProportion = getTopFuelsByProportion(selectedZoneUnitFuelStats)
-    setHighHFIFuelsByProportion(topFuelsByProportion)
-  }, [selectedFireZoneUnit, fireCentreHFIFuelStats])
 
   const getCommaSeparatedString = (array: string[]): string => {
     // Optional one line...const joinedFuelTypes = [...array.slice(0,-2), array.slice(-2).join(' and ')].join(', ')
