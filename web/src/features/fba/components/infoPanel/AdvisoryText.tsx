@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { AdvisoryStatus } from 'utils/constants'
-import { isEmpty, isNil, isUndefined, take } from 'lodash'
+import { isEmpty, isNil, isUndefined } from 'lodash'
 import { calculateStatusText } from '@/features/fba/calculateZoneStatus'
 
 interface AdvisoryTextProps {
@@ -124,6 +124,14 @@ const AdvisoryText = ({
     setHighHFIFuelsByProportion(topFuelsByProportion)
   }, [selectedFireZoneUnit, fireCentreHFIFuelStats])
 
+  const getCommaSeparatedString = (array: string[]): string => {
+    // Optional one line...const joinedFuelTypes = [...array.slice(0,-2), array.slice(-2).join(' and ')].join(', ')
+    const lastTwoJoinedByAnd = array.slice(-2).join(' and ')
+    const allButLastTwo = array.slice(0, -2)
+    const joinedByComma = [...allButLastTwo, lastTwoJoinedByAnd].join(', ')
+    return joinedByComma
+  }
+
   const getTopFuelsString = () => {
     const topFuelCodes = selectedFireZoneUnitTopFuels.map(topFuel => topFuel.fuel_type.fuel_type_code)
     const zoneStatus = getZoneStatus()?.toLowerCase()
@@ -135,10 +143,7 @@ const AdvisoryText = ({
       case 2:
         return `Fuel types ${topFuelCodes[0]} and ${topFuelCodes[1]} account for >=75% of the area under ${zoneStatus}.`
       default:
-        const lastTwoJoinedByAnd = topFuelCodes.slice(-2).join(' and ')
-        const allButLastTwo = topFuelCodes.slice(0, -2)
-        const joinedByComma = [...allButLastTwo, lastTwoJoinedByAnd].join(', ')
-        return `Fuel types ${joinedByComma} account for >=75% of the area under ${zoneStatus}.`
+        return `Fuel types ${getCommaSeparatedString(topFuelCodes)} account for >=75% of the area under ${zoneStatus}.`
     }
   }
 
@@ -152,11 +157,7 @@ const AdvisoryText = ({
       case 2:
         return `Fuel types ${array[0]} and ${array[1]} are under advisory in >=90% of the areas they occur in the fire zone.`
       default:
-        // Optional one line...const joinedFuelTypes = [...array.slice(0,-2), array.slice(-2).join(' and ')].join(', ')
-        const lastTwoJoinedByAnd = array.slice(-2).join(' and ')
-        const allButLastTwo = array.slice(0, -2)
-        const joinedByComma = [...allButLastTwo, lastTwoJoinedByAnd].join(', ')
-        return `Fuel types ${joinedByComma} are under advisory in >=90% of the areas they occur in the fire zone.`
+        return `Fuel types ${getCommaSeparatedString(array)} are under advisory in >=90% of the areas they occur in the fire zone.`
     }
   }
 
