@@ -50,7 +50,7 @@ const AdvisoryText = ({
     return topFuelsByProportion
   }
 
-  // Return a list of fuel types that cummulatively account for more than 75% of total area with high HFI.
+  // Return a list of fuel types that cumulatively account for more than 75% of total area with high HFI.
   const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
     const totalHighHFIArea = zoneUnitFuelStats.reduce((total, stats) => total + stats.area, 0)
     const sortedFuelStats = [...zoneUnitFuelStats].sort(sortByArea)
@@ -108,13 +108,11 @@ const AdvisoryText = ({
     setMaxEndTime(endTime)
   }, [selectedFireZoneUnitTopFuels])
 
-
   const getCommaSeparatedString = (array: string[]): string => {
-    // Optional one line...const joinedFuelTypes = [...array.slice(0,-2), array.slice(-2).join(' and ')].join(', ')
-    const lastTwoJoinedByAnd = array.slice(-2).join(' and ')
-    const allButLastTwo = array.slice(0, -2)
-    const joinedByComma = [...allButLastTwo, lastTwoJoinedByAnd].join(', ')
-    return joinedByComma
+    // Slice off the last two items and join then with ' and ' to create a new string. Then take the first n-2 items and
+    // deconstruct them into a new array along with the new string. Finally, join the items in the new array with ', '.
+    const joinedFuelTypes = [...array.slice(0, -2), array.slice(-2).join(' and ')].join(', ')
+    return joinedFuelTypes
   }
 
   const getTopFuelsString = () => {
