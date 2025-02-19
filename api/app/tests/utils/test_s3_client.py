@@ -3,9 +3,9 @@ import os
 import tempfile
 import pytest
 from osgeo import gdal
-from app.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from app.tests.dataset_common import create_mock_gdal_dataset
-from app.utils.s3_client import S3Client
+from wps_shared.utils.s3_client import S3Client
 from pytest_mock import MockerFixture
 
 

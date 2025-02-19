@@ -2,7 +2,7 @@
 import logging
 from typing import List
 from shapely.geometry import Point, Polygon
-from app.schemas.stations import WeatherStation
+from wps_shared.schemas.stations import WeatherStation
 
 
 logger = logging.getLogger(__name__)

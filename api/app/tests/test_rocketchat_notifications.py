@@ -1,6 +1,6 @@
 """Tests for rocketchat_notifications.py"""
 
-from app.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
 
 
 def test_rocketchat_notifications():

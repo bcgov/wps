@@ -9,7 +9,7 @@ import logging
 import tempfile
 from sqlalchemy.orm import Session
 from urllib.parse import parse_qs, urlsplit
-from app.db.crud.weather_models import (
+from wps_shared.db.crud.weather_models import (
     get_processed_file_record,
     get_prediction_model,
     get_prediction_run,
@@ -18,12 +18,12 @@ from app.db.crud.weather_models import (
 from app.jobs.common_model_fetchers import (CompletedWithSomeExceptions, ModelValueProcessor,
                                             apply_data_retention_policy, check_if_model_run_complete,
                                             download, flag_file_as_processed)
-from app import configure_logging
-import app.utils.time as time_utils
-from app.weather_models import ModelEnum, ProjectionEnum
+from wps_shared.logging import configure_logging
+import wps_shared.utils.time as time_utils
+from wps_shared.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
-import app.db.database
-from app.rocketchat_notifications import send_rocketchat_notification
+import wps_shared.db.database
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -354,7 +354,7 @@ def process_models():
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    with app.db.database.get_write_session_scope() as session:
+    with wps_shared.db.database.get_write_session_scope() as session:
         noaa = NOAA(session, model_type)
         noaa.process()
 

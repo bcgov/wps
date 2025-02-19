@@ -4,13 +4,13 @@ from unittest.mock import AsyncMock
 import pytest
 from pytest_mock import MockerFixture
 
-from app.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from app.sfms import daily_fwi_processor
 from app.sfms.daily_fwi_processor import DailyFWIProcessor
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
 from app.tests.dataset_common import create_mock_gdal_dataset, create_mock_input_dataset_context, create_mock_new_ds_context
-from app.utils.geospatial import GDALResamplingMethod
-from app.utils.s3_client import S3Client
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
+from wps_shared.utils.s3_client import S3Client
 
 TEST_DATETIME = datetime(2024, 10, 10, 10, tzinfo=timezone.utc)
 EXPECTED_FIRST_DAY = TEST_DATETIME.replace(hour=20, minute=0, second=0, microsecond=0)

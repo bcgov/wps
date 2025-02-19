@@ -5,8 +5,8 @@ import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse, Response
 from starlette.responses import RedirectResponse
-from app.utils.s3 import get_client
-from app.weather_models import ModelEnum
+from wps_shared.utils.s3 import get_client
+from wps_shared.weather_models import ModelEnum
 from app.c_haines.object_store import generate_full_object_store_path, ObjectTypeEnum
 from app.c_haines.fetch import fetch_model_runs, fetch_model_run_kml_streamer, fetch_network_link_kml, extract_model_run_timestamp_from_path
 

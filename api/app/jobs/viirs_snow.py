@@ -9,15 +9,16 @@ import requests
 import shutil
 import sys
 import tempfile
-from app import config, configure_logging
-from app.db.crud.snow import get_last_processed_snow_by_source, save_processed_snow
-from app.db.database import get_async_read_session_scope, get_async_write_session_scope
-from app.db.models.snow import ProcessedSnow, SnowSourceEnum
-from app.rocketchat_notifications import send_rocketchat_notification
-from app.utils.polygonize import polygonize_in_memory
+from wps_shared.logging import configure_logging
+from wps_shared.db.crud.snow import get_last_processed_snow_by_source, save_processed_snow
+from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
+from wps_shared.db.models.snow import ProcessedSnow, SnowSourceEnum
+from wps_shared import config
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.utils.polygonize import polygonize_in_memory
 from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
-from app.utils.s3 import get_client
-from app.utils.time import vancouver_tz
+from wps_shared.utils.s3 import get_client
+from wps_shared.utils.time import vancouver_tz
 
 logger = logging.getLogger(__name__)
 

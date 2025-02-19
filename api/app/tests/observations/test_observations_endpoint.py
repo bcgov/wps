@@ -1,8 +1,8 @@
 from starlette.testclient import TestClient
 import pytest
-from app.schemas.observations import WeatherStationHourlyReadings
-from app.schemas.stations import WeatherStation
-from app.wildfire_one import wfwx_api
+from wps_shared.schemas.observations import WeatherStationHourlyReadings
+from wps_shared.schemas.stations import WeatherStation
+from wps_shared.wildfire_one import wfwx_api
 
 
 @pytest.fixture()

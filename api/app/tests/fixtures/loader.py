@@ -5,7 +5,7 @@ import json
 import logging
 from urllib.parse import urlsplit
 from pathlib import Path
-from app import config
+from wps_shared import config
 
 
 logger = logging.getLogger(__name__)

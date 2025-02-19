@@ -3,7 +3,7 @@
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
     "python.testing.promptToConfigure": true,
-    "python.envFile": "${workspaceFolder}/.env",
+    "python.envFile": "${workspaceFolder}/.env.python",
     "files.exclude": {
         ".github": false,
         "**/.pytest_cache": true,

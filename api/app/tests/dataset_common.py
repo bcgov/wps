@@ -3,7 +3,7 @@ import numpy as np
 from osgeo import osr, gdal
 from typing import List
 import uuid
-from app.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import WPSDataset
 
 
 def create_test_dataset(filename, width, height, extent, projection, data_type=gdal.GDT_Float32, fill_value=None, no_data_value=None) -> gdal.Dataset:

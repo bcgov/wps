@@ -6,12 +6,12 @@ from typing import Callable, Iterator, List, Tuple, cast
 
 import numpy as np
 
-from app.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_fwi, calculate_isi
 from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
-from app.utils.geospatial import GDALResamplingMethod
-from app.utils.s3 import set_s3_gdal_config
-from app.utils.s3_client import S3Client
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
+from wps_shared.utils.s3 import set_s3_gdal_config
+from wps_shared.utils.s3_client import S3Client
 from app.weather_models.rdps_filename_marshaller import model_run_for_hour
 
 logger = logging.getLogger(__name__)

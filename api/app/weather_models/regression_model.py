@@ -4,8 +4,8 @@ from sklearn.linear_model import LinearRegression
 from typing import Dict, List, Protocol
 from collections import defaultdict
 from abc import abstractmethod
-from app.db.models.observations import HourlyActual
-from app.db.models.weather_models import ModelRunPrediction
+from wps_shared.db.models.observations import HourlyActual
+from wps_shared.db.models.weather_models import ModelRunPrediction
 from app.weather_models.linear_model import LinearModel
 from app.weather_models.sample import Samples
 

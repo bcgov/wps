@@ -1,7 +1,7 @@
 import math
 from app.fire_behaviour.fuel_types import FuelTypeEnum
 from app.fire_behaviour.wind_speed import calculate_wind_speed_result
-from app.schemas.fba_calc import StationRequest
+from wps_shared.schemas.fba_calc import StationRequest
 
 
 def test_wind_speed_result_no_wind_speed():

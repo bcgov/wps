@@ -1,7 +1,7 @@
 """ Variables for SFMS+NATS. """
 from typing import Final
 import logging
-from app import config
+from wps_shared import config
 
 logger = logging.getLogger(__name__)
 
