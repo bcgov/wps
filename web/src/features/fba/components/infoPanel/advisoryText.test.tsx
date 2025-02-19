@@ -187,9 +187,11 @@ describe('AdvisoryText', () => {
     )
     const warningMessage = queryByTestId('advisory-message-warning')
     const advisoryMessage = queryByTestId('advisory-message-advisory')
+    const proportionMessage = queryByTestId('advisory-message-proportion')
     const noAdvisoryMessage = queryByTestId('no-advisory-message')
     expect(advisoryMessage).not.toBeInTheDocument()
     expect(warningMessage).not.toBeInTheDocument()
+    expect(proportionMessage).not.toBeInTheDocument()
     expect(noAdvisoryMessage).toBeInTheDocument()
   })
 
@@ -211,7 +213,9 @@ describe('AdvisoryText', () => {
     )
     const advisoryMessage = queryByTestId('advisory-message-advisory')
     const warningMessage = queryByTestId('advisory-message-warning')
+    const proportionMessage = queryByTestId('advisory-message-proportion')
     expect(advisoryMessage).not.toBeInTheDocument()
+    expect(proportionMessage).toBeInTheDocument()
     expect(warningMessage).toBeInTheDocument()
   })
 
@@ -229,7 +233,9 @@ describe('AdvisoryText', () => {
     )
     const advisoryMessage = queryByTestId('advisory-message-advisory')
     const warningMessage = queryByTestId('advisory-message-warning')
+    const proportionMessage = queryByTestId('advisory-message-proportion')
     expect(advisoryMessage).toBeInTheDocument()
+    expect(proportionMessage).toBeInTheDocument()
     expect(warningMessage).not.toBeInTheDocument()
   })
 
