@@ -53,9 +53,10 @@ const AdvisoryText = ({
   // Return a list of fuel types that cummulatively account for more than 75% of total area with high HFI.
   const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
     const totalHighHFIArea = zoneUnitFuelStats.reduce((total, stats) => total + stats.area, 0)
+    const sortedFuelStats = [...zoneUnitFuelStats].sort(sortByArea)
     const topFuelsByArea = []
     let highHFIArea = 0
-    for (const stats of zoneUnitFuelStats) {
+    for (const stats of sortedFuelStats) {
       highHFIArea += stats.area
       if (highHFIArea / totalHighHFIArea > 0.75) {
         topFuelsByArea.push(stats)
