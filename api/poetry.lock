@@ -5287,7 +5287,7 @@ description = ""
 optional = false
 python-versions = ">=3.12.3"
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
 aiobotocore = "^2.0.0"
@@ -5482,4 +5482,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12.3"
-content-hash = "ec87ef37fddf383e3055b2bda4130cfc4b066cdcb2406cb28b82c0d132bd863c"
+content-hash = "57432dc48138d9c934c4a27e47ba7fd3085400f63c888a2c5d5d358e3ed3d29f"

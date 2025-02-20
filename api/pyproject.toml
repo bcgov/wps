@@ -47,7 +47,7 @@ numba = "0.61"
 cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307" }
 geopandas = "^1.0.1"
 shapely = "^2.0.5"
-wps-shared = {path = "../wps_shared"}
+wps-shared = {path = "../wps_shared", develop=true}
 
 
 [tool.poetry.group.dev.dependencies]
