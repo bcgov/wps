@@ -13,7 +13,7 @@ from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_type_id, get_fire_zone_units, get_run_parameters_by_id, get_run_parameters_id, get_table_srid
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import HfiClassificationThresholdEnum, HFIMinWindSpeed, Shape
-from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal
+from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal, rasters_match
 from wps_shared.logging import configure_logging
 from wps_shared.run_type import RunType
 
@@ -82,6 +82,9 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
 
     all_hfi_min_wind_speeds_to_save: list[HFIMinWindSpeed] = []
     with gdal.Open(wind_speed_key) as wind_ds, gdal.Open(hfi_key) as hfi_ds:
+        if not rasters_match(wind_ds, hfi_ds):
+            logger.error(f"{wind_speed_key} and {hfi_key} do not match.")
+            return
         for zone in zone_units:
             zone_wkb = zone.geom
             shapely_geom = to_shape(zone_wkb)
