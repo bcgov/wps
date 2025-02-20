@@ -122,11 +122,11 @@ const AdvisoryText = ({
       case 0:
         return ''
       case 1:
-        return `Fuel type ${topFuelCodes[0]} accounts for >=75% of the area under ${zoneStatus}`
+        return `Fuel type ${topFuelCodes[0]} is the most prevalent fuel type under ${zoneStatus} that you will encounter.`
       case 2:
-        return `Fuel types ${topFuelCodes[0]} and ${topFuelCodes[1]} account for >=75% of the area under ${zoneStatus}`
+        return `Fuel types ${topFuelCodes[0]} and ${topFuelCodes[1]} are the most prevalent fuel types under ${zoneStatus} that you will encounter.`
       default:
-        return `Fuel types ${getCommaSeparatedString(topFuelCodes)} account for >=75% of the area under ${zoneStatus}`
+        return `Fuel types ${getCommaSeparatedString(topFuelCodes)} are the most prevalent fuel types under ${zoneStatus} that you will encounter.`
     }
   }
 
@@ -136,11 +136,11 @@ const AdvisoryText = ({
       case 0:
         return ''
       case 1:
-        return `Fuel type ${array[0]} is under advisory in >=90% of the areas it occurs in the fire zone.`
+        return `Also watch our for fuel type ${array[0]} which occupies a small portion of the zone but is expected to be under advisory conditions wherever it occurs.`
       case 2:
-        return `Fuel types ${array[0]} and ${array[1]} are under advisory in >=90% of the areas they occur in the fire zone.`
+        return `Also watch our for fuel types ${array[0]} and ${array[1]} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.`
       default:
-        return `Fuel types ${getCommaSeparatedString(array)} are under advisory in >=90% of the areas they occur in the fire zone.`
+        return `Also watch our for fuel types ${getCommaSeparatedString(array)} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.`
     }
   }
 
@@ -170,7 +170,7 @@ const AdvisoryText = ({
     const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime) && selectFireCentreHFIFuelStats.length > 0
     let message = ''
     if (hasCriticalHours) {
-      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00. ${getTopFuelsString()}.\n\n`
+      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00. ${getTopFuelsString()}\n\n`
     } else {
       message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}.\n\n`
     }
