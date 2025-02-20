@@ -107,6 +107,10 @@ poetry install
 poetry shell
 # we can't include gdal in poetry as we have little control over the version of gdal available on different platforms - we must match whatever version of gdal is available on the system in question.
 python -m pip install gdal==$(gdal-config --version)
+
+# Install the wps_shared package in editable mode using pip to allow changes in the wps_shared package to be reflected immediately in the api package.
+python -m pip install -e ../wps_shared
+
 # on ubuntu, you may have to install pygdal, with the correct version specified.
 python -m pip install pygdal==3.0.4.10
 ```
