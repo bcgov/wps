@@ -261,10 +261,10 @@ class AdvisoryShapeFuels(Base):
     fuel_area = Column(Float, nullable=False)
 
 
-class HFIMinWindSpeed(Base):
+class AdvisoryHFIWindSpeed(Base):
     """Minimum wind speed for each HFI class, per fire zone."""
 
-    __tablename__ = "hfi_wind_speed"
+    __tablename__ = "advisory_hfi_wind_speed"
     __table_args__ = {
         "comment": "Minimum wind speed for each HFI class, per fire zone. hfi_wind_speed refers to the minimum "
         "wind speed in a fire zone that coincides with hfi pixels meeting or exceeding a certain threshold."

@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_type_id, get_fire_zone_units, get_run_parameters_by_id, get_run_parameters_id, get_table_srid
 from wps_shared.db.database import get_async_write_session_scope
-from wps_shared.db.models.auto_spatial_advisory import HfiClassificationThresholdEnum, HFIMinWindSpeed, Shape
+from wps_shared.db.models.auto_spatial_advisory import HfiClassificationThresholdEnum, AdvisoryHFIWindSpeed, Shape
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal, rasters_match
 from wps_shared.logging import configure_logging
 from wps_shared.run_type import RunType
@@ -44,7 +44,7 @@ async def process_hfi_min_wind_speed(run_type: RunType, run_datetime: datetime, 
 
     async with get_async_write_session_scope() as session:
         run_parameters_id = await get_run_parameters_id(session, RunType(run_type), run_datetime, for_date)
-        stmt = select(HFIMinWindSpeed).where(HFIMinWindSpeed.run_parameters == run_parameters_id)
+        stmt = select(AdvisoryHFIWindSpeed).where(AdvisoryHFIWindSpeed.run_parameters == run_parameters_id)
         exists = (await session.execute(stmt)).scalars().first() is not None
 
         if exists:
@@ -80,7 +80,7 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
     wind_speed_key = get_wind_spd_s3_key(run_type, run_datetime, for_date)
     hfi_key = get_hfi_s3_key(run_type, run_datetime.date(), for_date)
 
-    all_hfi_min_wind_speeds_to_save: list[HFIMinWindSpeed] = []
+    all_hfi_min_wind_speeds_to_save: list[AdvisoryHFIWindSpeed] = []
     with gdal.Open(wind_speed_key) as wind_ds, gdal.Open(hfi_key) as hfi_ds:
         if not rasters_match(wind_ds, hfi_ds):
             logger.error(f"{wind_speed_key} and {hfi_key} do not match.")
@@ -136,12 +136,12 @@ def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.n
     return min_wind_speeds
 
 
-def create_hfi_wind_speed_record(zone_unit_id: int, hfi_min_wind_speeds: dict[HfiClassificationThresholdEnum, float | None], run_parameters_id: int) -> list[HFIMinWindSpeed]:
+def create_hfi_wind_speed_record(zone_unit_id: int, hfi_min_wind_speeds: dict[HfiClassificationThresholdEnum, float | None], run_parameters_id: int) -> list[AdvisoryHFIWindSpeed]:
     """
     Creates a list of HFIMinWindSpeed records for a given fire zone.
     """
     return [
-        HFIMinWindSpeed(
+        AdvisoryHFIWindSpeed(
             advisory_shape_id=zone_unit_id,
             threshold=hfi_class.value,
             run_parameters=run_parameters_id,
@@ -151,7 +151,7 @@ def create_hfi_wind_speed_record(zone_unit_id: int, hfi_min_wind_speeds: dict[Hf
     ]
 
 
-async def save_all_hfi_wind_speeds(session: AsyncSession, hfi_wind_speeds: list[HFIMinWindSpeed]):
+async def save_all_hfi_wind_speeds(session: AsyncSession, hfi_wind_speeds: list[AdvisoryHFIWindSpeed]):
     session.add_all(hfi_wind_speeds)
 
 
