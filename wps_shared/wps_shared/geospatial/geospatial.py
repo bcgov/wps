@@ -145,3 +145,38 @@ def prepare_wkt_geom_for_gdal(wkt_geom: str, source_srs: osr.SpatialReference, t
         geometry.Transform(transform)
 
     return geometry
+
+
+def rasters_match(raster1: gdal.Dataset, raster2: gdal.Dataset) -> bool:
+    """
+    Compares two rasters to check if they match in pixel size, extents, and projection.
+
+    :param raster1: Opened gdal dataset for a raster.
+    :param raster2: Opened gdal dataset for a raster.
+    :return: True if rasters match in pixel size, extents, and projection; False otherwise.
+    """
+    # Get raster properties
+    geotransform1 = raster1.GetGeoTransform()
+    geotransform2 = raster2.GetGeoTransform()
+
+    projection1 = raster1.GetProjection()
+    projection2 = raster2.GetProjection()
+
+    cols1, rows1 = raster1.RasterXSize, raster1.RasterYSize
+    cols2, rows2 = raster2.RasterXSize, raster2.RasterYSize
+
+    # Check pixel size (resolution)
+    pixel_size_match = geotransform1[1] == geotransform2[1] and geotransform1[5] == geotransform2[5]
+
+    # Check extent (origin and size)
+    extent_match = (
+        geotransform1[0] == geotransform2[0]  # Top-left X
+        and geotransform1[3] == geotransform2[3]  # Top-left Y
+        and cols1 == cols2
+        and rows1 == rows2
+    )
+
+    # Check projection
+    projection_match = projection1 == projection2
+
+    return pixel_size_match and extent_match and projection_match
