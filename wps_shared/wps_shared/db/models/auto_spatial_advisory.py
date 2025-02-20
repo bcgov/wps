@@ -30,6 +30,7 @@ class RunTypeEnum(enum.Enum):
     forecast = "forecast"
     actual = "actual"
 
+
 class TPIClassEnum(enum.Enum):
     valley_bottom = 1
     mid_slope = 2
@@ -246,6 +247,7 @@ class TPIFuelArea(Base):
     tpi_class = Column(Enum(TPIClassEnum), nullable=False)
     fuel_area = Column(Float, nullable=False)
 
+
 class AdvisoryShapeFuels(Base):
     """
     Fuel types and their areas in fire zone units.
@@ -257,3 +259,19 @@ class AdvisoryShapeFuels(Base):
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     fuel_area = Column(Float, nullable=False)
+
+
+class HFIMinWindSpeed(Base):
+    """Minimum wind speed for each HFI class, per fire zone."""
+
+    __tablename__ = "hfi_wind_speed"
+    __table_args__ = {
+        "comment": "Minimum wind speed for each HFI class, per fire zone. hfi_wind_speed refers to the minimum "
+        "wind speed in a fire zone that coincides with hfi pixels meeting or exceeding a certain threshold."
+    }
+
+    id = Column(Integer, primary_key=True, index=True)
+    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
+    threshold = Column(postgresql.ENUM("advisory", "warning", name="hficlassificationthresholdenum", create_type=False), nullable=False)
+    run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
+    min_wind_speed = Column(Float, nullable=True)

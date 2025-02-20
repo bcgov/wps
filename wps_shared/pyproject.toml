@@ -21,3 +21,7 @@ geoalchemy2 = "^0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 185
+lint.ignore = ["E712", "F401"]

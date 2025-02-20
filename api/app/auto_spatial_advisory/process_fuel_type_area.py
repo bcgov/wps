@@ -10,7 +10,7 @@ from sqlalchemy.future import select
 from sqlalchemy.sql import text
 from sqlalchemy import func
 from wps_shared import config
-from app.auto_spatial_advisory.common import get_s3_key
+from app.auto_spatial_advisory.common import get_hfi_s3_key
 from wps_shared.run_type import RunType
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType, Shape
@@ -209,7 +209,7 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
             return
 
         # Retrieve the appropriate hfi raster from s3 storage
-        hfi_key = get_s3_key(run_type, run_datetime.date(), for_date)
+        hfi_key = get_hfi_s3_key(run_type, run_datetime.date(), for_date)
         hfi_raster = gdal.Open(hfi_key, gdal.GA_ReadOnly)
         hfi_data = hfi_raster.GetRasterBand(1).ReadAsArray()
 

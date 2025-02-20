@@ -127,15 +127,21 @@ class PointTransformer:
         return (point.GetX(), point.GetY())
 
 
-def prepare_wkt_geom_for_gdal(wkt_geom: str, source_srs: osr.SpatialReference):
+def prepare_wkt_geom_for_gdal(wkt_geom: str, source_srs: osr.SpatialReference, target_srs_wkt: osr.SpatialReference = None):
     """
-    Given a wkt geometry as a string, convert it to an ogr.Geometry that can be used by gdal.
+    Given a wkt geometry as a string, convert it to an ogr.Geometry that can be used by gdal. Reproject if desired
     :param wkt_geom: The wky geometry string.
     :param source_srs: The spatial reference to assign to the geometry.
     :return: An osr.Geometry.
     """
+
     geometry: ogr.Geometry = ogr.CreateGeometryFromWkt(wkt_geom)
     geometry.AssignSpatialReference(source_srs)
-    transform = osr.CoordinateTransformation(geometry.GetSpatialReference(), source_srs)
-    geometry.Transform(transform)
+
+    if target_srs_wkt:
+        target_srs = osr.SpatialReference()
+        target_srs.ImportFromWkt(target_srs_wkt)
+        transform = osr.CoordinateTransformation(source_srs, target_srs)
+        geometry.Transform(transform)
+
     return geometry

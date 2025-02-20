@@ -8,7 +8,7 @@ import tempfile
 from shapely import wkb, wkt
 from shapely.validation import make_valid
 from osgeo import ogr, osr
-from app.auto_spatial_advisory.common import get_s3_key
+from app.auto_spatial_advisory.common import get_hfi_s3_key
 from wps_shared.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.crud.auto_spatial_advisory import save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters, get_run_parameters_id
@@ -97,7 +97,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
     logger.info("Processing HFI %s for run date: %s, for date: %s", run_type, run_date, for_date)
     perf_start = perf_counter()
 
-    hfi_key = get_s3_key(run_type, run_date, for_date)
+    hfi_key = get_hfi_s3_key(run_type, run_date, for_date)
     logger.info(f"Key to HFI in object storage: {hfi_key}")
     async with get_client() as (client, bucket):
         with tempfile.TemporaryDirectory() as temp_dir:

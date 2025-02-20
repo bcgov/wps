@@ -58,7 +58,7 @@ class FuelTypeAreasJob:
             shape_type_id = await get_fire_zone_unit_shape_type_id(session)
             zones = await get_fire_zone_units(session, shape_type_id)
             for zone in zones:
-                zone_wkb = zone[0].geom
+                zone_wkb = zone.geom
                 shapely_zone_geom = to_shape(zone_wkb)
                 zone_wkt = shapely_zone_geom.wkt
                 zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, source_srs)
@@ -70,7 +70,7 @@ class FuelTypeAreasJob:
                 intersected_band: gdal.Band = intersected_ds.GetRasterBand(1)
                 intersected_data: np.ndarray = intersected_band.ReadAsArray()
                 intersected_ds = None
-                fuel_type_area_data = self._calculate_fuel_type_area_for_zone(zone[0].id, intersected_data, pixel_size)
+                fuel_type_area_data = self._calculate_fuel_type_area_for_zone(zone.id, intersected_data, pixel_size)
                 for advisory_shape_id, fuel_type_id, fuel_area in fuel_type_area_data:
                     self._save_fuel_type_area(session, advisory_shape_id, fuel_type_id, fuel_area)
         fuel_raster_ds = None

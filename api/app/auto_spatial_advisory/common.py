@@ -1,12 +1,13 @@
 """
 Common functionality for ASA
 """
+
 from datetime import date
 from wps_shared import config
 from wps_shared.run_type import RunType
 
 
-def get_s3_key(run_type: RunType, run_date: date, for_date: date):
+def get_hfi_s3_key(run_type: RunType, run_date: date, for_date: date):
     bucket = config.get("OBJECT_STORE_BUCKET")
     # TODO what really has to happen, is that we grab the most recent prediction for the given date,
     # but this method doesn't even belong here, it's just a shortcut for now!
