@@ -120,9 +120,6 @@ def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.n
     :raises ValueError: _description_
     :return: _description_
     """
-    if wind_speed_array.shape != hfi_array.shape:
-        raise ValueError(f"wind_speed_array and hfi_array must have the same shape. Got {wind_speed_array.shape} and {hfi_array.shape}.")
-
     hfi_classes = {
         HfiClassificationThresholdEnum.ADVISORY: (hfi_array >= 4000) & (hfi_array < 10000),
         HfiClassificationThresholdEnum.WARNING: (hfi_array >= 10000),
