@@ -124,9 +124,9 @@ const AdvisoryText = ({
       case 1:
         return `Fuel type ${topFuelCodes[0]} accounts for >=75% of the area under ${zoneStatus}`
       case 2:
-        return `Fuel types ${topFuelCodes[0]} and ${topFuelCodes[1]} account for >=75% of the area under ${zoneStatus}.`
+        return `Fuel types ${topFuelCodes[0]} and ${topFuelCodes[1]} account for >=75% of the area under ${zoneStatus}`
       default:
-        return `Fuel types ${getCommaSeparatedString(topFuelCodes)} account for >=75% of the area under ${zoneStatus}.`
+        return `Fuel types ${getCommaSeparatedString(topFuelCodes)} account for >=75% of the area under ${zoneStatus}`
     }
   }
 
