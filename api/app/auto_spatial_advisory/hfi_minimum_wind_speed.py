@@ -121,8 +121,8 @@ def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.n
     :return: _description_
     """
     hfi_classes = {
-        HfiClassificationThresholdEnum.ADVISORY: (hfi_array >= 4000) & (hfi_array < 10000),
-        HfiClassificationThresholdEnum.WARNING: (hfi_array >= 10000),
+        HfiClassificationThresholdEnum.ADVISORY.value: (hfi_array >= 4000) & (hfi_array < 10000),
+        HfiClassificationThresholdEnum.WARNING.value: (hfi_array >= 10000),
     }
 
     # Compute minimum wind speed for each classification
@@ -140,7 +140,7 @@ def create_hfi_wind_speed_record(zone_unit_id: int, hfi_min_wind_speeds: dict[Hf
     return [
         AdvisoryHFIWindSpeed(
             advisory_shape_id=zone_unit_id,
-            threshold=hfi_class.value,
+            threshold=hfi_class,
             run_parameters=run_parameters_id,
             min_wind_speed=wind_speed,
         )
