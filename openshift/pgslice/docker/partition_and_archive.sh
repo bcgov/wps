@@ -88,7 +88,7 @@ for i in {3..6}; do
     _datestamp=`date +\%Y/\%m`
     _target_filename="${PG_HOSTNAME}_${PARTITION_TABLE}_retired_${DATE}.sql.gz"
     _target_folder="${PG_HOSTNAME}_${PG_DATABASE}/${_datestamp}"
-    pg_dump -c -Fp -t ${PARTITION_TABLE} $PGSLICE_URL | gzip | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/retired/${_target_folder}/${_target_filename}"
+    pg_dump -c -Fc -t ${PARTITION_TABLE} $PGSLICE_URL | gzip | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/retired/${_target_folder}/${_target_filename}"
 
     echo "Detaching partition: ${PARTITION_TABLE}"
     psql -c "$DETACH_COMMAND" $PGSLICE_URL
