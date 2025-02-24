@@ -16,6 +16,7 @@ from wps_shared.db.models.auto_spatial_advisory import HfiClassificationThreshol
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal, rasters_match
 from wps_shared.logging import configure_logging
 from wps_shared.run_type import RunType
+from wps_shared.utils.s3 import set_s3_gdal_config
 
 from app.auto_spatial_advisory.common import get_hfi_s3_key
 
@@ -51,7 +52,7 @@ async def process_hfi_min_wind_speed(run_type: RunType, run_datetime: datetime, 
             logger.info("HFI minimum wind speed already processed.")
             return
 
-        await process_min_wind_speed_by_zone(session, run_parameters_id, run_type, run_datetime, for_date)
+        await process_min_wind_speed_by_zone(session, run_parameters_id, RunType(run_type), run_datetime, for_date)
 
     delta = perf_counter() - perf_start
     logger.info(f"delta count before and after calculating minimum hfi wind speed: {delta}")
@@ -69,6 +70,7 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
     :param run_datetime: The date and time of the sfms run.
     :param for_date: The date being calculated for.
     """
+    set_s3_gdal_config()
     # fetch all fire zones from DB
     fire_zone_shape_type_id = await get_fire_zone_unit_shape_type_id(session)
     zone_units = await get_fire_zone_units(session, fire_zone_shape_type_id)
@@ -104,7 +106,7 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
             # Compute minimum wind speed for each HFI range
             hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(wind_array_clip, hfi_array_clip)
 
-            records_to_save = create_hfi_wind_speed_record(zone.source_identifier, hfi_min_wind_speeds, run_parameters_id)
+            records_to_save = create_hfi_wind_speed_record(zone.id, hfi_min_wind_speeds, run_parameters_id)
 
             all_hfi_min_wind_speeds_to_save.extend(records_to_save)
 
@@ -145,6 +147,7 @@ def create_hfi_wind_speed_record(zone_unit_id: int, hfi_min_wind_speeds: dict[Hf
             min_wind_speed=wind_speed,
         )
         for hfi_class, wind_speed in hfi_min_wind_speeds.items()
+        if wind_speed is not None
     ]
 
 
