@@ -61,7 +61,7 @@ const AdvisoryReport = ({
           <Grid item sx={{ width: '90%' }}>
             <Box>
               <Tabs value={tabNumber} onChange={handleTabChange}>
-                <Tab label="BULLETIN" />
+                <Tab aria-label="bulletin" label="BULLETIN" />
               </Tabs>
             </Box>
             <TabPanel value={tabNumber} index={0}>
