@@ -5,9 +5,24 @@ on:
     branches:
       - main
 jobs:
+  check-changes:
+    runs-on: ubuntu-24.04
+    outputs:
+      any_changed: ${{ steps.changed-files.outputs.any_changed }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Get changed files in wps_shared
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            wps_shared/**
+
   lint-api:
     name: Python - Lint
     runs-on: ubuntu-24.04
+    needs: check-changes
     strategy:
       matrix:
         python-version: [3.12.3]
@@ -59,21 +74,8 @@ jobs:
         with:
           path: ~/work/wps/wps/api/.venv
           key: ${{ runner.os }}-venv-poetry-1.8.3-${{ hashFiles('**/poetry.lock') }}
-      - name: Get changed files in wps_shared
-        id: changed-files
-        uses: tj-actions/changed-files@v45
-        with:
-          files: |
-            wps_shared/**
-      - name: List all changed files
-        env:
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
-        run: |
-          for file in ${ALL_CHANGED_FILES}; do
-            echo "$file was changed"
-          done
       - name: Install python dependencies using poetry (api)
-        if: steps.cache-venv.outputs.cache-hit != 'true' || steps.changed-files.outputs.any_changed == 'true'
+        if: ${{needs.changed-files.outputs.any_changed}} == 'true' || steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
         run: |
           poetry run python -m pip install --upgrade pip
@@ -90,6 +92,7 @@ jobs:
   test-api:
     name: Python - Test with coverage
     runs-on: ubuntu-24.04
+    needs: check-changes
     strategy:
       matrix:
         # Match versions for python to Ubuntu 24.04 LTS at the time of writing. Keep R at same version.
@@ -148,14 +151,8 @@ jobs:
         with:
           path: ~/work/wps/wps/api/.venv
           key: ${{ runner.os }}-venv-poetry-1.8.3-${{ hashFiles('**/poetry.lock') }}
-      - name: Get changed files in wps_shared
-        id: changed-files
-        uses: tj-actions/changed-files@v45
-        with:
-          files: |
-            wps_shared/**
       - name: Install python dependencies using poetry (api)
-        if: steps.cache-venv.outputs.cache-hit != 'true' || steps.changed-files.outputs.any_changed == 'true'
+        if: ${{needs.changed-files.outputs.any_changed}} == 'true' || steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
         run: |
           poetry run python -m pip install --upgrade pip
