@@ -53,4 +53,4 @@ COPY prune_test.py /tmp
 RUN chmod a+rx /tmp
 
 # Configure the default command to run.
-CMD sh backup_to_s3.sh
+CMD sh /tmp/backup_to_s3.sh
