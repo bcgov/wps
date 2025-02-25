@@ -15,7 +15,7 @@ USER root
 RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
     /tmp/aws/install
 
-RUN apt-get -y install python3 python3-setuptools python3-pip
+RUN apt-get -y install curl python3 python3-setuptools python3-pip
 
 # Download poetry
 RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
