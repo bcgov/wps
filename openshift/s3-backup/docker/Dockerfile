@@ -30,7 +30,7 @@ RUN pip3 install poetry --break-system-packages
 # take the easy route and create a requirements.txt file.
 COPY pyproject.toml poetry.lock /tmp/
 RUN cd /tmp && \
-    python3 -m poetry install --break-system-packages
+    python3 -m poetry install
 # export -f requirements.txt --output requirements.txt && \
 # pip3 install -r requirements.txt --break-system-packages
 
