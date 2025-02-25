@@ -35,7 +35,7 @@ RUN cd /tmp && \
 # pip3 install -r requirements.txt --break-system-packages
 
 # Add poetry command to the PATH
-ENV PATH="$PATH:/root/.local/bin"
+ENV PATH="/root/.local/bin:${PATH}"
 
 # Copy scripts.
 COPY backup_to_s3.sh .
