@@ -34,6 +34,9 @@ RUN cd /tmp && \
 # python3 -m poetry export -f requirements.txt --output requirements.txt && \
 # pip3 install -r requirements.txt --break-system-packages
 
+# Add poetry command to the PATH
+ENV PATH="$APTH:/root/.local/bin"
+
 # Copy scripts.
 COPY backup_to_s3.sh .
 COPY cleanup_bucket.sh .
