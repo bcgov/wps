@@ -152,6 +152,7 @@ def create_hfi_wind_speed_record(zone_unit_id: int, hfi_min_wind_speeds: dict[Hf
 
 
 async def save_all_hfi_wind_speeds(session: AsyncSession, hfi_wind_speeds: list[AdvisoryHFIWindSpeed]):
+    logger.info("Writing HFI Advisory Minimum Wind Speeds")
     session.add_all(hfi_wind_speeds)
 
 
