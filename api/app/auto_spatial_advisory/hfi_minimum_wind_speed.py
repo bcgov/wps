@@ -103,6 +103,10 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
             intersected_ds: gdal.Dataset = gdal.Warp(hfi_path, hfi_ds, options=warp_options)
             hfi_array_clip = intersected_ds.GetRasterBand(1).ReadAsArray()
 
+            # make sure the previous in-memory files are deleted before the next loop
+            gdal.Unlink(wind_path)
+            gdal.Unlink(hfi_path)
+
             # Compute minimum wind speed for each HFI range
             hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(wind_array_clip, hfi_array_clip)
 
