@@ -64,7 +64,7 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
     comparing wind speed and hfi rasters. Where the hfi raster meets a certain threshold, the wind speed will be taken
     at the same pixel location. The minimum of each class threshold is then determined and stored.
 
-    :param session: async database session
+    :param session: Async database session
     :param run_parameters_id: The RunParameters object id
     :param run_type: The run type, either forecast or actual.
     :param run_datetime: The date and time of the sfms run.
