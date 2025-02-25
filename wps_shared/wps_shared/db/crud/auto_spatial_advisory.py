@@ -61,7 +61,17 @@ async def get_fire_zone_unit_shape_type_id(session: AsyncSession):
 async def get_fire_zone_units(session: AsyncSession, fire_zone_type_id: int):
     statement = select(Shape).where(Shape.shape_type == fire_zone_type_id)
     result = await session.execute(statement)
-    return result.all()
+    return result.scalars().all()
+
+
+async def get_table_srid(session: AsyncSession, model, geom_column: str = "geom"):
+    schema = model.__table__.schema or "public"
+    table_name = model.__tablename__
+
+    stmt = select(func.Find_SRID(schema, table_name, geom_column))
+
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
 
 
 async def get_combustible_area(session: AsyncSession):
@@ -451,6 +461,7 @@ async def get_centre_tpi_stats(session: AsyncSession, fire_centre_name: str, run
     result = await session.execute(stmt)
     return result.all()
 
+
 async def get_fire_zone_tpi_fuel_areas(session: AsyncSession, fire_zone_id):
     stmt = select(TPIFuelArea).join(Shape, Shape.id == TPIFuelArea.advisory_shape_id).where(Shape.source_identifier == fire_zone_id)
     result = await session.execute(stmt)
@@ -514,4 +525,3 @@ async def get_critical_hours_for_run_parameters(session: AsyncSession, run_type:
     )
     result = await session.execute(stmt)
     return result
-

@@ -67,12 +67,16 @@ jobs:
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
-      - name: Lint (api)
+      - name: Reinstall wps_shared
+        working-directory: ./api
+        run: |
+          poetry run python -m pip install --no-deps --force-reinstall ../wps_shared
+      - name: Lint (api/wps_shared)
         # We used to be able to do linting before installing gdal, but it's not possible anymore.
         # We can however place it ahead of the R installs.
         working-directory: ./api
         run: |
-          poetry run ruff app/*.py app/**/*.py
+          poetry run ruff app/*.py app/**/*.py ../wps_shared/wps_shared/*.py ../wps_shared/wps_shared/**/*.py
 
   test-api:
     name: Python - Test with coverage
@@ -142,6 +146,10 @@ jobs:
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
+      - name: Reinstall wps_shared
+        working-directory: ./api
+        run: |
+          poetry run python -m pip install --no-deps --force-reinstall ../wps_shared
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.R }}

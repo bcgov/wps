@@ -148,6 +148,17 @@
             ]
         },
         {
+            "name": "local hfi wind speed",
+            "type": "python",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.hfi_minimum_wind_speed",
+            "console": "integratedTerminal",
+            "args": [
+                "-r",
+                "3517"
+            ]
+        },
+        {
             "name": "sfms raster processor job",
             "type": "python",
             "request": "launch",
