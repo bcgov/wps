@@ -71,16 +71,12 @@ jobs:
         working-directory: ./api
         run: |
           poetry run python -m pip install --no-deps --force-reinstall ../wps_shared
-      - name: Lint (api)
+      - name: Lint (api/wps_shared)
         # We used to be able to do linting before installing gdal, but it's not possible anymore.
         # We can however place it ahead of the R installs.
         working-directory: ./api
         run: |
-          poetry run ruff check app/*.py app/**/*.py
-      - name: Lint (wps_shared)
-        working-directory: ./api
-        run: |
-          poetry run ruff check ../wps_shared/wps_shared/*.py ../wps_shared/wps_shared/**/*.py
+          poetry run ruff check app/*.py app/**/*.py ../wps_shared/wps_shared/*.py ../wps_shared/wps_shared/**/*.py
 
   test-api:
     name: Python - Test with coverage
