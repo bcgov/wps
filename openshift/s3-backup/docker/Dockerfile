@@ -15,32 +15,41 @@ USER root
 RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
     /tmp/aws/install
 
-RUN apt-get -y install python3 python3-setuptools python3-pip
+RUN apt-get -y install curl python3 python3-setuptools python3-pip
 
 # Download poetry
-# RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
+RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
 
 # Install poetry
-# RUN cat /tmp/install.python-poetry.org | python3 -
+RUN cat /tmp/install.python-poetry.org | python3 -
+
+# Add poetry location to PATH
+ENV PATH="/root/.local/bin:${PATH}"
 
 # We don't care that we break system packages, this is only used for backup related tasks
-RUN pip3 install poetry==1.8.5 --break-system-packages
+# RUN pip3 install poetry==1.8.5 --break-system-packages
 
 # Getting poetry to play nice in openshift is a nightmare, so we just
 # take the easy route and create a requirements.txt file.
 COPY pyproject.toml poetry.lock /tmp/
+
 RUN cd /tmp && \
-    python3 -m poetry install --no-root
+    poetry install --no-root
+
+# RUN cd /tmp && \
+#     /usr/local/bin/poetry install --no-root
+#python3 -m poetry install --no-root
 # export -f requirements.txt --output requirements.txt && \
 # pip3 install -r requirements.txt --break-system-packages
 
-# ENV POSTGRES_HOST_AUTH_METHOD trust
+#ENV POSTGRES_HOST_AUTH_METHOD trust
 
 # Copy scripts.
 COPY backup_to_s3.sh .
 COPY cleanup_bucket.sh .
 COPY prune.py .
 COPY prune_test.py .
+
 
 # Configure the default command to run.
 CMD sh backup_to_s3.sh
