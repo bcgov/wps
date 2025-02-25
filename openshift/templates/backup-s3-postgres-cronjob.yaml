@@ -125,7 +125,7 @@ objects:
                     requests:
                       cpu: ${CPU_REQUEST}
                       memory: 2Gi
-                  image: "image-registry.openshift-image-registry.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
+                  image: "image-registry.openshift-image-registry.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:feb-24-2025-8"
                   # image: backup
                   env:
                     - name: PG_HOSTNAME
