@@ -115,12 +115,11 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
 
 def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.ndarray) -> dict[HfiClassificationThresholdEnum, float | None]:
     """
-    Calculates the minimum wind speed for
+    Calculates the minimum wind speed for each HfiClassificationThresholdEnum given a wind speed array and an hfi array.
 
-    :param wind_speed_array: _description_
-    :param hfi_array: _description_
-    :raises ValueError: _description_
-    :return: _description_
+    :param wind_speed_array: Array of wind speed values extracted from raster
+    :param hfi_array: Array of hfi values extracted from raster
+    :return: Dict of advisory level and it's corresponding minimum wind speed
     """
     hfi_classes = {
         HfiClassificationThresholdEnum.ADVISORY.value: (hfi_array >= 4000) & (hfi_array < 10000),
