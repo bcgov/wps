@@ -81,4 +81,4 @@ PGPASSWORD="${PG_PASSWORD}" pg_dump -Fp -h "${PG_HOSTNAME}" -p ${PG_PORT} -U "${
 
 # Run python code to prune old backups.
 cd /tmp
-poetry run python3 ../prune.py
+poetry run python3 ./prune.py

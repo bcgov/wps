@@ -45,11 +45,12 @@ RUN cd /tmp && \
 #ENV POSTGRES_HOST_AUTH_METHOD trust
 
 # Copy scripts.
-COPY backup_to_s3.sh .
-COPY cleanup_bucket.sh .
-COPY prune.py .
-COPY prune_test.py .
+COPY backup_to_s3.sh /tmp
+COPY cleanup_bucket.sh /tmp
+COPY prune.py /tmp
+COPY prune_test.py /tmp
 
+RUN chmod a+rx /tmp
 
 # Configure the default command to run.
 CMD sh backup_to_s3.sh
