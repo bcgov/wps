@@ -100,11 +100,11 @@ jobs:
         # We can however place it ahead of the R installs.
         working-directory: ./api
         run: |
-          poetry run ruff app/*.py app/**/*.py
+          poetry run ruff check app/*.py app/**/*.py
       - name: Lint (wps_shared)
         working-directory: ./api
         run: |
-          poetry run ruff ../wps_shared/wps_shared/*.py ../wps_shared/wps_shared/**/*.py
+          poetry run ruff check ../wps_shared/wps_shared/*.py ../wps_shared/wps_shared/**/*.py
 
   test-api:
     name: Python - Test with coverage
