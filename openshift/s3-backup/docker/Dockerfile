@@ -4,6 +4,7 @@ FROM postgres:16
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
+ENV POETRY_VERSION=1.8.5
 
 RUN apt-get update && apt-get -y install unzip
 
