@@ -80,6 +80,6 @@ PGPASSWORD="${PG_PASSWORD}" pg_dump -Fp -h "${PG_HOSTNAME}" -p ${PG_PORT} -U "${
 
 
 # Run python code to prune old backups.
-cd /tmp
+cd /app
 poetry env activate
 python prune.py

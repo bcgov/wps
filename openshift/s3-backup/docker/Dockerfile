@@ -38,7 +38,6 @@ RUN mkdir /app
 RUN chmod a+w /app
 RUN chown "$USERNAME" /app
 
-
 USER $USERNAME
 
 COPY --chown=$USERNAME pyproject.toml poetry.lock prune.py prune_test.py backup_to_s3.sh cleanup_bucket.sh /app/
@@ -65,9 +64,9 @@ RUN cd /app && \
 # export -f requirements.txt --output requirements.txt && \
 # pip3 install -r requirements.txt --break-system-packages
 
-USER root
+# USER root
 
-ENV POSTGRES_HOST_AUTH_METHOD trust
+# ENV POSTGRES_HOST_AUTH_METHOD trust
 
 # Copy scripts.
 # COPY prune.py /app
@@ -76,5 +75,5 @@ ENV POSTGRES_HOST_AUTH_METHOD trust
 # COPY cleanup_bucket.sh /tmp
 
 # Configure the default command to run.
-CMD sh /tmp/backup_to_s3.sh
+CMD sh /app/backup_to_s3.sh
 
