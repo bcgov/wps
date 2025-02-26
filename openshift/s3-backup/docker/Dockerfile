@@ -1,4 +1,4 @@
-FROM postgres:16.4
+FROM postgres:16
 
 # Set the locale (important for poetry)
 ENV LC_ALL en_US.UTF-8
@@ -20,8 +20,6 @@ RUN apt-get -y install python3 python3-setuptools python3-pip
 # We don't care that we break system packages, this is only used for backup related tasks
 RUN pip3 install poetry==1.8.5 --break-system-packages
 
-RUN poetry --version
-
 # Getting poetry to play nice in openshift is a nightmare, so we just
 # take the easy route and create a requirements.txt file.
 COPY pyproject.toml poetry.lock /tmp/
@@ -34,8 +32,6 @@ COPY backup_to_s3.sh .
 COPY cleanup_bucket.sh .
 COPY prune.py .
 COPY prune_test.py .
-
-# ENV POSTGRES_HOST_AUTH_METHOD trust
 
 # Configure the default command to run.
 CMD sh backup_to_s3.sh
