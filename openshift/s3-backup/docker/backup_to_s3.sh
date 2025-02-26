@@ -78,7 +78,5 @@ _target_folder="${PG_HOSTNAME}_${PG_DATABASE}/${_datestamp}"
 # this is tested and works.
 # PGPASSWORD="${PG_PASSWORD}" pg_dump -Fp -h "${PG_HOSTNAME}" -p ${PG_PORT} -U "${PG_USER}" -n "public" --no-owner "${PG_DATABASE}" | gzip | AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}" AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}" aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/backup/${_target_folder}/${_target_filename}"
 
-
 # Run python code to prune old backups.
-cd /app
-poetry run python prune.py
+python3 prune.py
