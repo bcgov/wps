@@ -35,8 +35,9 @@ RUN chmod a+rx /home/$USERNAME
 ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
 
 RUN mkdir /app
-RUN chown "$USERNAME" /app
 RUN chmod a+w /app
+RUN chown "$USERNAME" /app
+
 
 USER $USERNAME
 
@@ -75,5 +76,5 @@ ENV POSTGRES_HOST_AUTH_METHOD trust
 # COPY cleanup_bucket.sh /tmp
 
 # Configure the default command to run.
-# CMD sh /tmp/backup_to_s3.sh
+CMD sh /tmp/backup_to_s3.sh
 
