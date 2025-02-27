@@ -8,7 +8,7 @@ ENV LANGUAGE en_US.UTF-8
 RUN apt-get update && apt-get -y install unzip
 
 # Download the Amazon CLI installer.
-ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.10.0.zip" /tmp/awscliv2.zip
+ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.22.0.zip" /tmp/awscliv2.zip
 
 
 # Switch to root user for package installs.
