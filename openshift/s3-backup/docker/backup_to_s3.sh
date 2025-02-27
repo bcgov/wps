@@ -3,8 +3,6 @@
 # usage example:
 # PG_PASSWORD=wps PG_HOSTNAME=localhost PG_PORT=5432 PG_USER=wps PG_DATABASE=wps AWS_HOSTNAME=[your aws hostname] AWS_ACCESS_KEY=[your access key] AWS_SECRET_KEY=[your secret key] AWS_BUCKET=[your aws bucket] ./backup_to_s3.sh
 
-aws --version
-
 # variable checks
 if [ -z ${PG_PASSWORD+0} ]
 then

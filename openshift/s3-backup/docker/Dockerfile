@@ -4,6 +4,8 @@ FROM postgres:16
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
+
+# Omit checksum if not required
 ENV AWS_REQUEST_CHECKSUM_CALCULATION when_required
 
 
@@ -11,7 +13,6 @@ RUN apt-get update && apt-get -y install unzip
 
 # Download the Amazon CLI installer.
 ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" /tmp/awscliv2.zip
-
 
 # Switch to root user for package installs.
 USER root
@@ -32,10 +33,9 @@ RUN cd /tmp && \
 
 # Copy scripts.
 COPY backup_to_s3.sh .
-COPY prune_test.py .
-COPY prune.py .
 COPY cleanup_bucket.sh .
-
+COPY prune.py .
+COPY prune_test.py .
 
 # Configure the default command to run.
 CMD sh backup_to_s3.sh
