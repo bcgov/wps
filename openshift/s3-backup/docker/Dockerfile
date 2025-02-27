@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 postgres:16
+FROM postgres:16
 
 # Set the locale (important for poetry)
 ENV LC_ALL en_US.UTF-8
