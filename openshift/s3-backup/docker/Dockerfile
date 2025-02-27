@@ -1,4 +1,4 @@
-FROM postgres:16
+FROM --platform=linux/amd64 postgres:16
 
 # Set the locale (important for poetry)
 ENV LC_ALL en_US.UTF-8
@@ -8,7 +8,7 @@ ENV LANGUAGE en_US.UTF-8
 RUN apt-get update && apt-get -y install unzip
 
 # Download the Amazon CLI installer.
-ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.0.30.zip" /tmp/awscliv2.zip
+ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.23.0.zip" /tmp/awscliv2.zip
 
 
 # Switch to root user for package installs.
