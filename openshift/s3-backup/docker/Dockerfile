@@ -18,7 +18,7 @@ RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
 RUN apt-get -y install python3 python3-setuptools python3-pip
 
 # We don't care that we break system packages, this is only used for backup related tasks
-RUN pip3 install poetry --break-system-packages
+RUN pip3 install poetry==1.8.5 --break-system-packages
 
 # Getting poetry to play nice in openshift is a nightmare, so we just
 # take the easy route and create a requirements.txt file.
