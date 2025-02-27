@@ -4,11 +4,12 @@ FROM --platform=linux/amd64 postgres:16
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
+ENV AWS_REQUEST_CHECKSUM_CALCULATION when_required
 
 RUN apt-get update && apt-get -y install unzip
 
 # Download the Amazon CLI installer.
-ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.23.0.zip" /tmp/awscliv2.zip
+ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64" /tmp/awscliv2.zip
 
 
 # Switch to root user for package installs.
