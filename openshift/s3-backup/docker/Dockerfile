@@ -4,7 +4,6 @@ FROM --platform=linux/amd64 postgres:16
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
-ENV POSTGRES_HOST_AUTH_METHOD trust
 
 RUN apt-get update && apt-get -y install unzip
 
@@ -17,7 +16,7 @@ USER root
 RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
     /tmp/aws/install
 
-RUN apt-get -y install curl python3 python3-setuptools python3-pip
+RUN apt-get -y install python3 python3-setuptools python3-pip
 
 # We don't care that we break system packages, this is only used for backup related tasks
 RUN pip3 install poetry==1.8.5 --break-system-packages
@@ -31,11 +30,10 @@ RUN cd /tmp && \
 
 # Copy scripts.
 COPY backup_to_s3.sh .
-COPY cleanup_bucket.sh .
-COPY prune.py .
 COPY prune_test.py .
-
+COPY prune.py .
+COPY cleanup_bucket.sh .
 
 
 # Configure the default command to run.
-# CMD sh backup_to_s3.sh
+CMD sh backup_to_s3.sh
