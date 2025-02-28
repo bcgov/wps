@@ -168,11 +168,12 @@ async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuel
 
 async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, advisory_shape_id: int) -> List[Row]:
     perf_start = perf_counter()
+    # TODO fix this query?
     stmt = (
         select(CriticalHours.start_hour, CriticalHours.end_hour, AdvisoryFuelStats.fuel_type, AdvisoryFuelStats.threshold, AdvisoryFuelStats.area, AdvisoryShapeFuels.fuel_area)
         .distinct(AdvisoryFuelStats.fuel_type, AdvisoryFuelStats.run_parameters)
         .join(RunParameters, AdvisoryFuelStats.run_parameters == RunParameters.id)
-        .join(CriticalHours, CriticalHours.run_parameters == RunParameters.id)
+        .join(CriticalHours, CriticalHours.run_parameters == RunParameters.id)  # also needs fuel type join from SFSMFuelTypes?
         .join(Shape, AdvisoryFuelStats.advisory_shape_id == Shape.id)
         .join(AdvisoryShapeFuels, and_(AdvisoryShapeFuels.fuel_type == AdvisoryFuelStats.fuel_type, AdvisoryShapeFuels.advisory_shape_id == Shape.id))
         .where(
@@ -194,7 +195,7 @@ async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTy
 async def get_fuel_type_stats_in_advisory_area(session: AsyncSession, advisory_shape_id: int, run_parameters_id: int) -> List[Tuple[AdvisoryFuelStats, SFMSFuelType]]:
     stmt = (
         select(AdvisoryFuelStats, SFMSFuelType)
-        .join_from(AdvisoryFuelStats, SFMSFuelType, AdvisoryFuelStats.fuel_type == SFMSFuelType.id)
+        .join_from(AdvisoryFuelStats, SFMSFuelType, AdvisoryFuelStats.fuel_type == SFMSFuelType.fuel_type_id)
         .filter(AdvisoryFuelStats.advisory_shape_id == advisory_shape_id, AdvisoryFuelStats.run_parameters == run_parameters_id)
     )
     result = await session.execute(stmt)
