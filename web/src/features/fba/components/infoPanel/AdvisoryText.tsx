@@ -136,11 +136,11 @@ const AdvisoryText = ({
       case 0:
         return ''
       case 1:
-        return `Also watch our for fuel type ${array[0]} which occupies a small portion of the zone but is expected to be under advisory conditions wherever it occurs.`
+        return `Also watch out for fuel type ${array[0]} which occupies a small portion of the zone but is expected to be under advisory conditions wherever it occurs.`
       case 2:
-        return `Also watch our for fuel types ${array[0]} and ${array[1]} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.`
+        return `Also watch out for fuel types ${array[0]} and ${array[1]} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.`
       default:
-        return `Also watch our for fuel types ${getCommaSeparatedString(array)} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.`
+        return `Also watch out for fuel types ${getCommaSeparatedString(array)} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.`
     }
   }
 
