@@ -345,7 +345,7 @@ async def store_advisory_fuel_stats(session: AsyncSession, fuel_type_areas: dict
     :param run_parameters_id: The RunParameter object id associated with the run_type, for_date and run_datetime of interest.
     :param advisory_shape_id: The id of advisory shape (eg. fire zone unit) the fuel type area has been calculated for.
     """
-    sfms_fuel_types_dict = await get_fuel_types_dict(session)
+    sfms_fuel_types_dict = await get_fuel_types_id_dict(session)
     advisory_fuel_stats = []
     for key in fuel_type_areas:
         sfms_fuel_type_id = sfms_fuel_types_dict[key]
@@ -530,7 +530,7 @@ async def get_critical_hours_for_run_parameters(session: AsyncSession, run_type:
     return result
 
 
-async def get_fuel_types_dict(db_session: AsyncSession):
+async def get_fuel_types_code_dict(db_session: AsyncSession):
     """
     Gets a dictionary of fuel types keyed by fuel type code.
 
@@ -541,4 +541,18 @@ async def get_fuel_types_dict(db_session: AsyncSession):
     fuel_types_dict = {}
     for fuel_type in sfms_fuel_types:
         fuel_types_dict[fuel_type[0].fuel_type_code] = fuel_type[0].id
+    return fuel_types_dict
+
+
+async def get_fuel_types_id_dict(db_session: AsyncSession):
+    """
+    Gets a dictionary of sfms_fuel_types table id's keyed by fuel_type_id (raster values).
+
+    :param db_session: An async database session.
+    :return: Dict of sfms_fuel_types table id's keyed by fuel_type_id (raster values).
+    """
+    sfms_fuel_types = await get_all_sfms_fuel_type_records(db_session)
+    fuel_types_dict = {}
+    for fuel_type in sfms_fuel_types:
+        fuel_types_dict[fuel_type[0].fuel_type_id] = fuel_type[0].id
     return fuel_types_dict

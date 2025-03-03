@@ -7,7 +7,7 @@ import logging
 import numpy as np
 
 from wps_shared.logging import configure_logging
-from wps_shared.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_type_id, get_fire_zone_units, get_fuel_types_dict
+from wps_shared.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_type_id, get_fire_zone_units, get_fuel_types_id_dict
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryShapeFuels
 from wps_shared import config
@@ -57,7 +57,7 @@ class FuelTypeAreasJob:
         async with get_async_write_session_scope() as session:
             shape_type_id = await get_fire_zone_unit_shape_type_id(session)
             zones = await get_fire_zone_units(session, shape_type_id)
-            sfms_fuel_types_dict = await get_fuel_types_dict(session)
+            sfms_fuel_types_dict = await get_fuel_types_id_dict(session)
             for zone in zones:
                 zone_wkb = zone.geom
                 shapely_zone_geom = to_shape(zone_wkb)
