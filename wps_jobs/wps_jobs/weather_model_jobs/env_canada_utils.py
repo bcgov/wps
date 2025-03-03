@@ -1,30 +1,10 @@
 from datetime import datetime, timedelta
 from typing import Generator
-from app.jobs.common_model_fetchers import UnhandledPredictionModelType
-from wps_shared.weather_models import ModelEnum
+from wps_shared.weather_models import UnhandledPredictionModelType
+from wps_shared.weather_models import get_file_date_part, ModelEnum
 
 GRIB_LAYERS = ("TMP_TGL_2", "RH_TGL_2", "APCP_SFC_0", "WDIR_TGL_10", "WIND_TGL_10")
 HRDPS_GRIB_LAYERS = ("TMP_AGL-2m", "APCP_Sfc", "WDIR_AGL-10m", "WIND_AGL-10m", "RH_AGL-2m")
-
-
-def adjust_model_day(now: datetime, model_run_hour) -> datetime:
-    """Adjust the model day, based on the current time.
-
-    If now (e.g. 10h00) is less than model run (e.g. 12), it means we have to look for yesterdays
-    model run.
-    """
-    if now.hour < model_run_hour:
-        return now - timedelta(days=1)
-    return now
-
-
-def get_file_date_part(now, model_run_hour, is_hrdps: bool = False) -> str:
-    """Construct the part of the filename that contains the model run date"""
-    adjusted = adjust_model_day(now, model_run_hour)
-    date = f"{adjusted.year}{adjusted.month:02d}{adjusted.day:02d}"
-    if is_hrdps:
-        date = date + f"T{model_run_hour:02d}Z"
-    return date
 
 
 def get_global_model_run_download_urls(now: datetime, model_run_hour: int) -> Generator[str, None, None]:
