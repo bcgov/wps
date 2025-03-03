@@ -10,13 +10,18 @@ python = ">=3.12.3"
 wps-shared = {path = "../wps_shared"}
 scipy = "^1.15.2"
 scikit-learn = "^1.6.1"
-numpy = "^2.2.3"
 sqlalchemy = "^2.0.38"
 redis = "^5.2.1"
 psycopg2-binary = "^2.9.10"
 asyncpg = "^0.30.0"
 affine = "^2.4.0"
+numpy = "2.1"
+numba = "^0.61.0"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-mock = "^3.14.0"
 
 [build-system]
 requires = ["poetry-core"]
