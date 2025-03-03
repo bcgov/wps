@@ -270,15 +270,21 @@ def calculate_critical_hours_by_fuel_type(wfwx_stations: List[WFWXWeatherStation
     :return: A dictionary of lists of critical hours keyed by fuel type code.
     """
     critical_hours_by_fuel_type = defaultdict(list)
+
+    today = datetime.now(timezone.utc).date()
+    greenup_start = datetime(today.year, 5, 20, tzinfo=timezone.utc).date()  # SFMS currently defines greenup start date as May 20th (fbp_fueltypes.xml)
+    greenup_end = datetime(today.year, 10, 31, tzinfo=timezone.utc).date()  # SFMS currently defines greenup end date as Oct 31st (fbp_fueltypes.xml)
+    is_greenup_period = greenup_start <= today <= greenup_end
+
     for wfwx_station in wfwx_stations:
         if check_station_valid(wfwx_station, critical_hours_inputs):
             for fuel_type_key in fuel_types_by_area.keys():
                 if fuel_type_key.startswith("O"):
-                    # Raster fuel grid doesn't differentiate between O1A and O1B so we default to O1B for now.
-                    fuel_type_enum = FuelTypeEnum.O1B
-                if fuel_type_key.startswith("M"):
-                    # Raster fuel grid doesn't differentiate between M1 and M2 so we default to M2 for now.
-                    fuel_type_enum = FuelTypeEnum.M2
+                    # Raster fuel grid doesn't differentiate between O1A and O1B so we use SFMS dates to choose which one we want
+                    fuel_type_enum = FuelTypeEnum.O1B if is_greenup_period else FuelTypeEnum.O1A
+                elif fuel_type_key.startswith("M"):
+                    # Raster fuel grid doesn't differentiate between M1 and M2 so we use SFMS dates to choose which one we want
+                    fuel_type_enum = FuelTypeEnum.M2 if is_greenup_period else FuelTypeEnum.M1
                 else:
                     fuel_type_enum = FuelTypeEnum(fuel_type_key.replace("-", ""))
                 try:
