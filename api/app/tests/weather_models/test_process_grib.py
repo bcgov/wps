@@ -6,7 +6,7 @@ import math
 import pytest
 from wps_shared.geospatial.geospatial import NAD83_CRS
 from app.tests.common import default_mock_client_get
-from app.weather_models import process_grib
+from wps_jobs.wps_jobs.weather_model_jobs.utils import process_grib
 
 
 def test_convert_mps_to_kph():

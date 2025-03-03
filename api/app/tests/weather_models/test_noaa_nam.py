@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime, timezone
-from app.jobs import noaa
+from wps_jobs.wps_jobs.weather_model_jobs import noaa
 
 
 logger = logging.getLogger(__name__)

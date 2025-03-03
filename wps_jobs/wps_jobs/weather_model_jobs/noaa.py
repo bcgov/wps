@@ -15,13 +15,13 @@ from wps_shared.db.crud.weather_models import (
     get_prediction_run,
     update_prediction_run,
 )
-from app.jobs.common_model_fetchers import (CompletedWithSomeExceptions, ModelValueProcessor,
+from wps_jobs.weather_model_jobs.common_model_fetchers import (CompletedWithSomeExceptions, ModelValueProcessor,
                                             apply_data_retention_policy, check_if_model_run_complete,
                                             download, flag_file_as_processed)
 from wps_shared.logging import configure_logging
 import wps_shared.utils.time as time_utils
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
-from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
+from wps_jobs.weather_models.process_grib import GribFileProcessor, ModelRunInfo
 import wps_shared.db.database
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 

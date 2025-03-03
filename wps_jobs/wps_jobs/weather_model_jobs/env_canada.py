@@ -14,16 +14,16 @@ from wps_shared.db.crud.weather_models import (
     get_prediction_run,
     update_prediction_run,
 )
-from app.jobs.common_model_fetchers import (CompletedWithSomeExceptions, ModelValueProcessor, UnhandledPredictionModelType,
+from wps_jobs.weather_model_jobs.common_model_fetchers import (CompletedWithSomeExceptions, ModelValueProcessor,
                                             apply_data_retention_policy,
                                             check_if_model_run_complete, download, flag_file_as_processed)
-from wps_shared.weather_models import ModelEnum, ProjectionEnum
+from wps_shared.weather_models import ModelEnum, ProjectionEnum, get_env_canada_model_run_hours, UnhandledPredictionModelType
 from wps_shared.logging import configure_logging
 import wps_shared.utils.time as time_utils
-from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
+from wps_jobs.weather_models.process_grib import GribFileProcessor, ModelRunInfo
 import wps_shared.db.database
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from app.jobs.env_canada_utils import adjust_model_day, get_model_run_urls
+from wps_jobs.weather_model_jobs.env_canada_utils import adjust_model_day, get_model_run_urls
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -114,17 +114,6 @@ def parse_env_canada_filename(url):
     info.prediction_timestamp = prediction_timestamp
     info.variable_name = variable_name
     return info
-
-
-def get_model_run_hours(model_type: ModelEnum):
-    """ Yield model run hours for GDPS (00h00 and 12h00) """
-    if model_type == ModelEnum.GDPS:
-        for hour in [0, 12]:
-            yield hour
-    elif model_type in (ModelEnum.HRDPS, ModelEnum.RDPS):
-        for hour in [0, 6, 12, 18]:
-            yield hour
-
 
 
 def mark_prediction_model_run_processed(session: Session,
@@ -233,7 +222,7 @@ class EnvCanada():
 
     def process(self):
         """ Entry point for downloading and processing weather model grib files """
-        for hour in get_model_run_hours(self.model_type):
+        for hour in get_env_canada_model_run_hours(self.model_type):
             try:
                 self.process_model_run(hour)
             except Exception as exception:
