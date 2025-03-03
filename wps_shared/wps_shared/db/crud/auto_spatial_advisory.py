@@ -195,7 +195,7 @@ async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTy
 async def get_fuel_type_stats_in_advisory_area(session: AsyncSession, advisory_shape_id: int, run_parameters_id: int) -> List[Tuple[AdvisoryFuelStats, SFMSFuelType]]:
     stmt = (
         select(AdvisoryFuelStats, SFMSFuelType)
-        .join_from(AdvisoryFuelStats, SFMSFuelType, AdvisoryFuelStats.fuel_type == SFMSFuelType.fuel_type_id)
+        .join_from(AdvisoryFuelStats, SFMSFuelType, AdvisoryFuelStats.fuel_type == SFMSFuelType.id)
         .filter(AdvisoryFuelStats.advisory_shape_id == advisory_shape_id, AdvisoryFuelStats.run_parameters == run_parameters_id)
     )
     result = await session.execute(stmt)
