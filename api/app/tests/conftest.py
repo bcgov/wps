@@ -153,7 +153,7 @@ def mock_session(monkeypatch):
         return PredictionModelRunTimestamp(id=1, prediction_model_id=1, prediction_run_timestamp=get_utc_now(), prediction_model=prediction_model, complete=True)
 
     monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.env_canada, "get_prediction_model", mock_get_prediction_model)
-    monkeypatch.setattr(wps_jobs.wps_jobs.weather_models.process_grib, "get_prediction_model", mock_get_prediction_model)
+    monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.utils.process_grib, "get_prediction_model", mock_get_prediction_model)
     monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.env_canada, "get_prediction_run", mock_get_prediction_run)
 
 

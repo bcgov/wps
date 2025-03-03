@@ -34,9 +34,6 @@ logger = logging.getLogger(__name__)
 # Keys for weather variables that require interpolation between 1800 and 2100
 SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_10", "apcp_sfc_0")
 
-class CompletedWithSomeExceptions(Exception):
-    """Exception raised when processing completed, but there were some non critical exceptions"""
-
 
 def get_closest_index(coordinate: List, points: List):
     """Get the index of the point closest to the coordinate"""

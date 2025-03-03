@@ -2,7 +2,7 @@
 
 import logging
 import pytest
-from app.jobs.env_canada import parse_env_canada_filename
+from wps_jobs.wps_jobs.weather_model_jobs.env_canada import parse_env_canada_filename
 
 logger = logging.getLogger(__name__)
 
