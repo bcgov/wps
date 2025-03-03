@@ -66,6 +66,8 @@ def get_file_date_part(now, model_run_hour, is_hrdps: bool = False) -> str:
         date = date + f"T{model_run_hour:02d}Z"
     return date
 
+class CompletedWithSomeExceptions(Exception):
+    """Exception raised when processing completed, but there were some non critical exceptions"""
 
 class UnhandledPredictionModelType(Exception):
     """Exception raised when an unknown model type is encountered."""

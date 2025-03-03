@@ -54,9 +54,8 @@ def mock_database(monkeypatch):
         return hrdps_prediction_model_run
 
     monkeypatch.setattr(wps_jobs.wps_jobs.weather_models.process_grib, "get_prediction_model", mock_get_prediction_model)
-    monkeypatch.setattr(app.jobs.common_model_fetchers, 'get_prediction_model_run_timestamp_records',
-                        mock_get_hrdps_prediction_model_run_timestamp_records)
-    monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
+    monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.common_model_fetchers, "get_prediction_model_run_timestamp_records", mock_get_hrdps_prediction_model_run_timestamp_records)
+    monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.env_canada, "get_processed_file_record", mock_get_processed_file_record)
     monkeypatch.setattr(wps_shared.db.crud.weather_models, "get_prediction_run", mock_get_prediction_run)
 
 
@@ -72,7 +71,7 @@ def mock_get_processed_file_record(monkeypatch):
         called = True
         return None
 
-    monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', get_processed_file_record)
+    monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.env_canada, "get_processed_file_record", get_processed_file_record)
 
 
 @pytest.fixture()
@@ -103,7 +102,7 @@ def test_process_hrdps(mock_download, mock_database, monkeypatch: pytest.MonkeyP
     # be processed.
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     sys.argv = ["argv", "HRDPS"]
-    assert app.jobs.env_canada.process_models() == 1
+    assert wps_jobs.wps_jobs.weather_model_jobs.env_canada.process_models() == 1
 
 
 def test_main_fail(mocker: MockerFixture, monkeypatch):
@@ -113,11 +112,11 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     def mock_process_models():
         raise Exception()
 
-    rocket_chat_spy = mocker.spy(app.jobs.env_canada, 'send_rocketchat_notification')
-    monkeypatch.setattr(app.jobs.env_canada, 'process_models', mock_process_models)
+    rocket_chat_spy = mocker.spy(wps_jobs.wps_jobs.weather_model_jobs.env_canada, "send_rocketchat_notification")
+    monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.env_canada, "process_models", mock_process_models)
 
     with pytest.raises(SystemExit) as excinfo:
-        app.jobs.env_canada.main()
+        wps_jobs.wps_jobs.weather_model_jobs.env_canada.main()
 
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_SOFTWARE
@@ -160,9 +159,9 @@ def test_parse_high_res_model_url_correct_format():
     ]
 
     for case in test_cases:
-        actual_variable_name, actual_projection, actual_model_run_timestamp, actual_prediction_timestamp \
-            = app.jobs.env_canada.parse_high_res_model_url(
-                case['url'])
+        actual_variable_name, actual_projection, actual_model_run_timestamp, actual_prediction_timestamp = wps_jobs.wps_jobs.weather_model_jobs.env_canada.parse_high_res_model_url(
+            case["url"]
+        )
         assert actual_variable_name == case['variable_name']
         assert actual_projection == case['projection']
         assert actual_model_run_timestamp == case['model_run_timestamp']
@@ -182,4 +181,4 @@ def test_part_high_res_model_url_incorrect_format():
 
     for test_case in bad_urls:
         with pytest.raises(Exception):
-            app.jobs.env_canada.parse_high_res_model_url(test_case)
+            wps_jobs.wps_jobs.weather_model_jobs.env_canada.parse_high_res_model_url(test_case)

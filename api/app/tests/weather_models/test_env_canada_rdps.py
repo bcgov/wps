@@ -51,9 +51,8 @@ def mock_database(monkeypatch):
         return rdps_prediction_model_run
 
     monkeypatch.setattr(wps_jobs.wps_jobs.weather_models.process_grib, 'get_prediction_model', mock_get_prediction_model)
-    monkeypatch.setattr(app.jobs.common_model_fetchers, 'get_prediction_model_run_timestamp_records',
-                        mock_get_rdps_prediction_model_run_timestamp_records)
-    monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
+    monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.common_model_fetchers, "get_prediction_model_run_timestamp_records", mock_get_rdps_prediction_model_run_timestamp_records)
+    monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.env_canada, "get_processed_file_record", mock_get_processed_file_record)
     monkeypatch.setattr(wps_shared.db.crud.weather_models, "get_prediction_run", mock_get_prediction_run)
 
 
@@ -69,7 +68,7 @@ def mock_get_processed_file_record(monkeypatch):
         called = True
         return None
 
-    monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', get_processed_file_record)
+    monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.env_canada, "get_processed_file_record", get_processed_file_record)
 
 
 @pytest.fixture()
@@ -109,4 +108,4 @@ def test_process_rdps(mock_download, mock_database, monkeypatch: pytest.MonkeyPa
     # be processed.
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     sys.argv = ["argv", "RDPS"]
-    assert app.jobs.env_canada.process_models() == 1
+    assert wps_jobs.wps_jobs.weather_model_jobs.env_canada.process_models() == 1
