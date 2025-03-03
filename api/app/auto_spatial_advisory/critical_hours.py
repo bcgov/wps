@@ -276,6 +276,9 @@ def calculate_critical_hours_by_fuel_type(wfwx_stations: List[WFWXWeatherStation
                 if fuel_type_key.startswith("O"):
                     # Raster fuel grid doesn't differentiate between O1A and O1B so we default to O1B for now.
                     fuel_type_enum = FuelTypeEnum.O1B
+                if fuel_type_key.startswith("M"):
+                    # Raster fuel grid doesn't differentiate between M1 and M2 so we default to M2 for now.
+                    fuel_type_enum = FuelTypeEnum.M2
                 else:
                     fuel_type_enum = FuelTypeEnum(fuel_type_key.replace("-", ""))
                 try:
