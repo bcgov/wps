@@ -152,10 +152,9 @@ def mock_session(monkeypatch):
     def mock_get_prediction_run(session, prediction_model_id: int, prediction_run_timestamp: datetime):
         return PredictionModelRunTimestamp(id=1, prediction_model_id=1, prediction_run_timestamp=get_utc_now(), prediction_model=prediction_model, complete=True)
 
-    monkeypatch.setattr(app.jobs.env_canada, "get_prediction_model", mock_get_prediction_model)
+    monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.env_canada, "get_prediction_model", mock_get_prediction_model)
     monkeypatch.setattr(wps_jobs.wps_jobs.weather_models.process_grib, "get_prediction_model", mock_get_prediction_model)
-
-    monkeypatch.setattr(app.jobs.env_canada, "get_prediction_run", mock_get_prediction_run)
+    monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.env_canada, "get_prediction_run", mock_get_prediction_run)
 
 
 @pytest.fixture()
