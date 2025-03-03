@@ -10,13 +10,13 @@ import datetime
 from aiohttp import ClientSession
 from sqlalchemy.orm import Session
 from pytest_mock import MockerFixture
-from app.jobs.env_canada_utils import HRDPS_GRIB_LAYERS, get_high_res_model_run_download_urls
+from wps_jobs.wps_jobs.weather_model_jobs.env_canada_utils import HRDPS_GRIB_LAYERS, get_high_res_model_run_download_urls
 import wps_shared.utils.time as time_utils
 import wps_shared.db.database
 import wps_shared.db.crud.weather_models
-import app.jobs.env_canada
-import app.jobs.common_model_fetchers
-import app.weather_models.process_grib
+import wps_jobs.wps_jobs.weather_model_jobs.env_canada
+import wps_jobs.wps_jobs.weather_model_jobs.common_model_fetchers
+import wps_jobs.wps_jobs.weather_model_jobs.utils.process_grib
 from wps_shared.weather_models import ProjectionEnum
 from wps_shared.db.models.weather_models import PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp
 from app.tests.common import default_mock_client_get
@@ -53,7 +53,7 @@ def mock_database(monkeypatch):
     def mock_get_prediction_run(*args, **kwargs):
         return hrdps_prediction_model_run
 
-    monkeypatch.setattr(app.weather_models.process_grib, 'get_prediction_model', mock_get_prediction_model)
+    monkeypatch.setattr(wps_jobs.wps_jobs.weather_models.process_grib, "get_prediction_model", mock_get_prediction_model)
     monkeypatch.setattr(app.jobs.common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_hrdps_prediction_model_run_timestamp_records)
     monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', mock_get_processed_file_record)

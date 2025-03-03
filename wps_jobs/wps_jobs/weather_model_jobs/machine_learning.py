@@ -11,14 +11,15 @@ import math
 import numpy as np
 from sqlalchemy.orm import Session
 from wps_shared.weather_models import SCALAR_MODEL_VALUE_KEYS
-from app.weather_models.interpolate import construct_interpolated_noon_prediction
 from wps_shared.db.models.weather_models import PredictionModel, ModelRunPrediction
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.db.crud.observations import get_accumulated_precip_by_24h_interval, get_actuals_left_outer_join_with_predictions, get_predicted_daily_precip
-from app.weather_models.sample import Samples
-from app.weather_models.weather_models import RegressionModelsV2
-from app.weather_models.wind_direction_model import compute_u_v
-from app.weather_models.wind_direction_utils import calculate_wind_dir_from_u_v
+from wps_jobs.weather_models.interpolate import construct_interpolated_noon_prediction
+from wps_jobs.weather_models.sample import Samples
+from wps_jobs.weather_models.weather_models import RegressionModelsV2
+from wps_jobs.weather_models.wind_direction_model import compute_u_v
+from wps_jobs.weather_models.wind_direction_utils import calculate_wind_dir_from_u_v
+
 
 
 logger = getLogger(__name__)

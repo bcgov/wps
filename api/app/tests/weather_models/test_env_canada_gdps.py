@@ -9,11 +9,11 @@ import pytest
 import requests
 from aiohttp import ClientSession
 from sqlalchemy.orm import Session
-from app.jobs import env_canada
-from app.jobs.env_canada_utils import GRIB_LAYERS, get_global_model_run_download_urls
-from app.jobs import common_model_fetchers
+from wps_jobs.wps_jobs.weather_model_jobs import env_canada
+from wps_jobs.wps_jobs.weather_model_jobs.env_canada_utils import GRIB_LAYERS, get_global_model_run_download_urls
+from wps_jobs.wps_jobs.weather_model_jobs import machine_learning
+from wps_jobs.wps_jobs.weather_model_jobs import common_model_fetchers
 import wps_shared.utils.time as time_utils
-from app.weather_models import machine_learning
 import wps_shared.db.crud.weather_models
 from wps_shared.db.models.weather_models import PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp
 from app.tests.common import default_mock_client_get

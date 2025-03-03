@@ -24,8 +24,8 @@ from app.tests.common import (
 )
 import wps_shared.db.database
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
-import app.jobs.env_canada
-import app.weather_models.process_grib
+import wps_jobs.wps_jobs.weather_model_jobs.env_canada
+import wps_jobs.wps_jobs.weather_model_jobs.utils.process_grib
 from wps_shared.schemas.shared import WeatherDataRequest
 import wps_shared.wildfire_one.wildfire_fetchers
 import wps_shared.utils.redis
@@ -153,7 +153,7 @@ def mock_session(monkeypatch):
         return PredictionModelRunTimestamp(id=1, prediction_model_id=1, prediction_run_timestamp=get_utc_now(), prediction_model=prediction_model, complete=True)
 
     monkeypatch.setattr(app.jobs.env_canada, "get_prediction_model", mock_get_prediction_model)
-    monkeypatch.setattr(app.weather_models.process_grib, "get_prediction_model", mock_get_prediction_model)
+    monkeypatch.setattr(wps_jobs.wps_jobs.weather_models.process_grib, "get_prediction_model", mock_get_prediction_model)
 
     monkeypatch.setattr(app.jobs.env_canada, "get_prediction_run", mock_get_prediction_run)
 

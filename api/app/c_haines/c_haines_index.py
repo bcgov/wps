@@ -8,7 +8,7 @@ from pyproj import CRS
 from osgeo import gdal
 from affine import Affine
 from wps_shared.geospatial.geospatial import NAD83_CRS
-from app.weather_models.process_grib import calculate_geographic_coordinate, get_dataset_transform, get_transformer
+from wps_shared.geospatial.geospatial import calculate_geographic_coordinate, get_dataset_transform, get_transformer
 from app.c_haines import GDALData
 
 

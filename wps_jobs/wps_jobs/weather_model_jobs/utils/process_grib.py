@@ -4,18 +4,18 @@ from datetime import datetime
 import math
 import logging
 import logging.config
-from typing import List, Tuple, Optional
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from osgeo import gdal
 from pyproj import CRS, Transformer
 from affine import Affine
 import numpy as np
-from wps_shared.geospatial.geospatial import NAD83_CRS
+from wps_shared.geospatial.geospatial import NAD83_CRS, get_dataset_transform, get_transformer
 from wps_shared.stations import get_stations_synchronously
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp
 from wps_shared.db.crud.weather_models import get_prediction_model, get_or_create_prediction_run
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
-from app.weather_models.wind_direction_utils import calculate_wind_dir_from_u_v, calculate_wind_speed_from_u_v
+from wps_jobs.weather_model_jobs.utils.wind_direction_utils import calculate_wind_dir_from_u_v, calculate_wind_speed_from_u_v
 
 
 logger = logging.getLogger(__name__)
@@ -53,25 +53,6 @@ def calculate_raster_coordinate(longitude: float, latitude: float, transform: Af
     reverse = ~transform
     i_index, j_index = reverse * (raster_long, raster_lat)
     return (math.floor(i_index), math.floor(j_index))
-
-
-def calculate_geographic_coordinate(point: Tuple[int], transform: Affine, transformer: Transformer):
-    """Calculate the geographic coordinates for a given points"""
-    x_coordinate, y_coordinate = transform * point
-    lon, lat = transformer.transform(x_coordinate, y_coordinate)
-    return (lon, lat)
-
-
-def get_dataset_transform(filename) -> Affine:
-    """Get the geometry info (origin and pixel size) of the dataset."""
-    with gdal.Open(filename) as ds:
-        return Affine.from_gdal(*ds.GetGeoTransform())
-
-
-def get_transformer(crs_from, crs_to):
-    """Get an appropriate transformer - it's super important that always_xy=True
-    is specified, otherwise the order in the CRS definition is honoured."""
-    return Transformer.from_crs(crs_from, crs_to, always_xy=True)
 
 
 def convert_mps_to_kph(value: float):

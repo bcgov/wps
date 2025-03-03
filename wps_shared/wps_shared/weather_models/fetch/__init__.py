@@ -1,4 +1,4 @@
-""" Contains code common to app.model.fetch """
+""" Contains code common to wps_jobs.weather_models.fetch """
 import logging
 from typing import List
 from shapely.geometry import Point, Polygon
