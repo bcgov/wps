@@ -196,7 +196,7 @@ class AdvisoryFuelStats(Base):
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
     threshold = Column(Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False)
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
-    fuel_type = Column(Integer, ForeignKey(SFMSFuelType.fuel_type_id), nullable=False, index=True)
+    fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     area = Column(Float, nullable=False)
 
 
@@ -257,7 +257,7 @@ class AdvisoryShapeFuels(Base):
     __table_args__ = {"comment": "Fuel types and their areas in fire zone units."}
     id = Column(Integer, primary_key=True, index=True)
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
-    fuel_type = Column(Integer, ForeignKey(SFMSFuelType.fuel_type_id), nullable=False, index=True)
+    fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     fuel_area = Column(Float, nullable=False)
 
 
