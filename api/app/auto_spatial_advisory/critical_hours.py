@@ -271,10 +271,9 @@ def calculate_critical_hours_by_fuel_type(wfwx_stations: List[WFWXWeatherStation
     """
     critical_hours_by_fuel_type = defaultdict(list)
 
-    today = datetime.now(timezone.utc).date()
-    greenup_start = datetime(today.year, 5, 20, tzinfo=timezone.utc).date()  # SFMS currently defines greenup start date as May 20th (fbp_fueltypes.xml)
-    greenup_end = datetime(today.year, 10, 31, tzinfo=timezone.utc).date()  # SFMS currently defines greenup end date as Oct 31st (fbp_fueltypes.xml)
-    is_greenup_period = greenup_start <= today <= greenup_end
+    greenup_start = datetime(for_date.year, 5, 20, tzinfo=timezone.utc).date()  # SFMS currently defines greenup start date as May 20th (fbp_fueltypes.xml)
+    greenup_end = datetime(for_date.year, 10, 31, tzinfo=timezone.utc).date()  # SFMS currently defines greenup end date as Oct 31st (fbp_fueltypes.xml)
+    is_greenup_period = greenup_start <= for_date <= greenup_end
 
     for wfwx_station in wfwx_stations:
         if check_station_valid(wfwx_station, critical_hours_inputs):
