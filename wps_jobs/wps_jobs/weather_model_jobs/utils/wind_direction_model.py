@@ -2,9 +2,9 @@ import logging
 import math
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.db.models.weather_models import ModelRunPrediction
-from wps_jobs.weather_models.linear_model import LinearModel
-from wps_jobs.weather_models.regression_model import RegressionModelBase
-from wps_jobs.weather_models.wind_direction_utils import compute_u_v
+from wps_jobs.weather_model_jobs.utils.linear_model import LinearModel
+from wps_jobs.weather_model_jobs.utils.regression_model import RegressionModelBase
+from wps_jobs.weather_model_jobs.utils.wind_direction_utils import compute_u_v
 
 logger = logging.getLogger(__name__)
 
