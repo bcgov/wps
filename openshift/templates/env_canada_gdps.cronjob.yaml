@@ -68,7 +68,7 @@ objects:
                       "run",
                       "python",
                       "-m",
-                      "app.jobs.env_canada",
+                      "wps_jobs.weather_model_jobs.env_canada",
                       "GDPS",
                     ]
                   env:
