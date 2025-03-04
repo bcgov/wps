@@ -116,7 +116,7 @@ const AdvisoryText = ({
   }
 
   const getTopFuelsString = () => {
-    const topFuelCodes = selectedFireZoneUnitTopFuels.map(topFuel => topFuel.fuel_type.fuel_type_code)
+    const topFuelCodes = [...new Set(selectedFireZoneUnitTopFuels.map(topFuel => topFuel.fuel_type.fuel_type_code))]
     const zoneStatus = getZoneStatus()?.toLowerCase()
     switch (topFuelCodes.length) {
       case 0:
@@ -131,7 +131,7 @@ const AdvisoryText = ({
   }
 
   const getHighProportionFuelsString = (): string => {
-    const array = highHFIFuelsByProportion.map(fuel_type => fuel_type.fuel_type.fuel_type_code)
+    const array = [...new Set(highHFIFuelsByProportion.map(fuel_type => fuel_type.fuel_type.fuel_type_code))]
     switch (array.length) {
       case 0:
         return ''
