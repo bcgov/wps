@@ -257,7 +257,7 @@ def calculate_critical_hours_for_station_by_fuel_type(
     return critical_hours
 
 
-def calculate_critical_hours_by_fuel_type(wfwx_stations: List[WFWXWeatherStation], critical_hours_inputs: CriticalHoursInputs, fuel_types_by_area, for_date):
+def calculate_critical_hours_by_fuel_type(wfwx_stations: List[WFWXWeatherStation], critical_hours_inputs: CriticalHoursInputs, fuel_types_by_area, for_date: date):
     """
     Calculates the critical hours for each fuel type for all stations in a fire zone unit.
 
