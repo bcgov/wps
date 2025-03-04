@@ -149,6 +149,7 @@ jobs:
       [
         build-api-image,
         build-web-image,
+        build-wps-jobs-image,
         prepare-dev-database,
         deploy-dev-queue,
         configure-nats-server-name,
