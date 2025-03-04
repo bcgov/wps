@@ -14,7 +14,7 @@ from wps_shared.db.crud.weather_models import (
     get_prediction_run,
     update_prediction_run,
 )
-from wps_jobs.weather_model_jobs.env_canada_utils import (
+from wps_shared.weather_models.job_utils import (
     get_model_run_urls,
 )
 from wps_jobs.weather_model_jobs.common_model_fetchers import (
