@@ -16,7 +16,6 @@ psycopg2-binary = "^2.9.10"
 asyncpg = "^0.30.0"
 affine = "^2.4.0"
 numpy = "2.1"
-numba = "^0.61.0"
 
 
 [tool.poetry.group.dev.dependencies]
