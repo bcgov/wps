@@ -19,7 +19,7 @@ from wps_shared.run_type import RunType
 from wps_shared.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats, save_advisory_elevation_tpi_stats
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryElevationStats, AdvisoryTPIStats
-from app.auto_spatial_advisory.hfi_filepath import get_raster_filepath, get_raster_tif_filename
+from app.auto_spatial_advisory.hfi_filepath import get_snow_masked_hfi_filepath, get_raster_tif_filename
 from wps_shared.utils.s3 import get_client
 from wps_shared.geospatial.geospatial import raster_mul, warp_to_match_raster
 
@@ -248,7 +248,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
     pixel_size_metres = int(tpi_source.GetGeoTransform()[1])
 
     hfi_raster_filename = get_raster_tif_filename(for_date)
-    hfi_raster_key = get_raster_filepath(run_datetime, run_type, hfi_raster_filename)
+    hfi_raster_key = get_snow_masked_hfi_filepath(run_datetime, run_type, hfi_raster_filename)
     hfi_key = f"/vsis3/{bucket}/{hfi_raster_key}"
     hfi_source: gdal.Dataset = gdal.Open(hfi_key, gdal.GA_ReadOnly)
 

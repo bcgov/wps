@@ -18,7 +18,7 @@ from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from wps_shared.run_type import RunType
 from app.auto_spatial_advisory.snow import apply_snow_mask
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
-from app.auto_spatial_advisory.hfi_filepath import get_pmtiles_filename, get_pmtiles_filepath, get_raster_filepath, get_raster_tif_filename
+from app.auto_spatial_advisory.hfi_filepath import get_pmtiles_filename, get_pmtiles_filepath, get_snow_masked_hfi_filepath, get_raster_tif_filename
 from wps_shared.utils.polygonize import polygonize_in_memory
 from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
 from wps_shared.utils.s3 import get_client
@@ -113,7 +113,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
                 working_hfi_path = await apply_snow_mask(temp_filename, last_processed_snow[0], temp_dir)
 
             raster_filename = get_raster_tif_filename(for_date)
-            raster_key = get_raster_filepath(run_datetime, run_type, raster_filename)
+            raster_key = get_snow_masked_hfi_filepath(run_datetime, run_type, raster_filename)
             logger.info(f"Uploading file {raster_filename} to {raster_key}")
             await client.put_object(
                 Bucket=bucket,
