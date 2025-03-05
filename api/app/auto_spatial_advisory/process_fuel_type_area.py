@@ -110,8 +110,8 @@ async def intersect_raster_by_advisory_shape(session: AsyncSession, threshold: i
     input_srs = osr.SpatialReference()
     input_srs.ImportFromWkt(masked_fuel_type_ds.GetProjectionRef())
 
-    advisory_shape_wkt = await get_advisory_shape(session, advisory_shape_id, input_srs)
-    warp_options = gdal.WarpOptions(cutlineWKT=advisory_shape_wkt, cropToCutline=True)
+    advisory_shape_geom = await get_advisory_shape(session, advisory_shape_id, input_srs)
+    warp_options = gdal.WarpOptions(cutlineWKT=advisory_shape_geom, cutlineSRS=advisory_shape_geom.GetSpatialReference(), cropToCutline=True)
     intersect_ds = gdal.Warp(f"/vsimem/intersect_{source_identifier}_{threshold}.tif", masked_fuel_type_ds, options=warp_options)
     return intersect_ds
 

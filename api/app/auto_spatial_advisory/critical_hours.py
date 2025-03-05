@@ -21,9 +21,9 @@ from wps_shared.logging import configure_logging
 from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
 from wps_shared.run_type import RunType
 from wps_shared.db.crud.auto_spatial_advisory import (
-    get_all_sfms_fuel_type_records,
     get_containing_zone,
     get_fuel_type_stats_in_advisory_area,
+    get_fuel_types_code_dict,
     get_run_parameters_by_id,
     get_run_parameters_id,
     save_all_critical_hours,
@@ -112,20 +112,6 @@ def calculate_representative_hours(critical_hours: List[CriticalHoursHFI]):
     return (start_time, end_time)
 
 
-async def get_fuel_types_dict(db_session: AsyncSession):
-    """
-    Gets a dictionary of fuel types keyed by fuel type code.
-
-    :param db_session: An async database session.
-    :return: A dictionary of fuel types keyed by fuel type code.
-    """
-    sfms_fuel_types = await get_all_sfms_fuel_type_records(db_session)
-    fuel_types_dict = defaultdict()
-    for fuel_type in sfms_fuel_types:
-        fuel_types_dict[fuel_type[0].fuel_type_code] = fuel_type[0].id
-    return fuel_types_dict
-
-
 async def save_critical_hours(db_session: AsyncSession, zone_unit_id: int, critical_hours_by_fuel_type: dict, run_parameters_id: int):
     """
     Saves CriticalHours records to the API database.
@@ -135,7 +121,7 @@ async def save_critical_hours(db_session: AsyncSession, zone_unit_id: int, criti
     :param critical_hours_by_fuel_type: A dictionary of critical hours for the specified zone unit keyed by fuel type code.
     :param run_parameters_id: The RunParameters id associated with these critical hours (ie an SFMS run).
     """
-    sfms_fuel_types_dict = await get_fuel_types_dict(db_session)
+    sfms_fuel_types_dict = await get_fuel_types_code_dict(db_session)
     critical_hours_to_save: list[CriticalHours] = []
     for fuel_type, critical_hours in critical_hours_by_fuel_type.items():
         start_time, end_time = calculate_representative_hours(critical_hours)
@@ -271,7 +257,7 @@ def calculate_critical_hours_for_station_by_fuel_type(
     return critical_hours
 
 
-def calculate_critical_hours_by_fuel_type(wfwx_stations: List[WFWXWeatherStation], critical_hours_inputs: CriticalHoursInputs, fuel_types_by_area, for_date):
+def calculate_critical_hours_by_fuel_type(wfwx_stations: List[WFWXWeatherStation], critical_hours_inputs: CriticalHoursInputs, fuel_types_by_area, for_date: date):
     """
     Calculates the critical hours for each fuel type for all stations in a fire zone unit.
 
@@ -284,12 +270,20 @@ def calculate_critical_hours_by_fuel_type(wfwx_stations: List[WFWXWeatherStation
     :return: A dictionary of lists of critical hours keyed by fuel type code.
     """
     critical_hours_by_fuel_type = defaultdict(list)
+
+    greenup_start = datetime(for_date.year, 5, 20, tzinfo=timezone.utc).date()  # SFMS currently defines greenup start date as May 20th (fbp_fueltypes.xml)
+    greenup_end = datetime(for_date.year, 10, 31, tzinfo=timezone.utc).date()  # SFMS currently defines greenup end date as Oct 31st (fbp_fueltypes.xml)
+    is_greenup_period = greenup_start <= for_date <= greenup_end
+
     for wfwx_station in wfwx_stations:
         if check_station_valid(wfwx_station, critical_hours_inputs):
             for fuel_type_key in fuel_types_by_area.keys():
                 if fuel_type_key.startswith("O"):
-                    # Raster fuel grid doesn't differentiate between O1A and O1B so we default to O1B for now.
-                    fuel_type_enum = FuelTypeEnum.O1B
+                    # Raster fuel grid doesn't differentiate between O1A and O1B so we use SFMS dates to choose which one we want
+                    fuel_type_enum = FuelTypeEnum.O1B if is_greenup_period else FuelTypeEnum.O1A
+                elif fuel_type_key.startswith("M"):
+                    # Raster fuel grid doesn't differentiate between M1 and M2 so we use SFMS dates to choose which one we want
+                    fuel_type_enum = FuelTypeEnum.M2 if is_greenup_period else FuelTypeEnum.M1
                 else:
                     fuel_type_enum = FuelTypeEnum(fuel_type_key.replace("-", ""))
                 try:
