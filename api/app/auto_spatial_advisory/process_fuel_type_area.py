@@ -209,7 +209,7 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
             return
 
         # Retrieve the appropriate hfi raster from s3 storage
-        hfi_key = get_hfi_s3_key(run_type, run_datetime.date(), for_date)
+        hfi_key = get_hfi_s3_key(run_type, run_datetime, for_date)
         hfi_raster = gdal.Open(hfi_key, gdal.GA_ReadOnly)
         hfi_data = hfi_raster.GetRasterBand(1).ReadAsArray()
 

@@ -46,7 +46,7 @@ async def process_elevation_tpi(run_type: RunType, run_datetime: datetime, for_d
 
         exists = (await session.execute(stmt)).scalars().first() is not None
         if not exists:
-            fire_zone_stats = await process_tpi_by_firezone(run_type, run_datetime.date(), for_date)
+            fire_zone_stats = await process_tpi_by_firezone(run_type, run_datetime, for_date)
             await store_elevation_tpi_stats(session, run_parameters_id, fire_zone_stats)
         else:
             logger.info("Elevation stats already computed")
@@ -225,14 +225,14 @@ class FireZoneTPIStats:
     pixel_size_metres: int
 
 
-async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: date):
+async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for_date: date):
     """
     Given run parameters, lookup associated snow-masked HFI and static classified TPI geospatial data.
     Cut out each fire zone shape from the above and intersect the TPI and HFI pixels, counting each pixel contributing to the TPI class.
     Capture all fire zone stats keyed by its source_identifier.
 
     :param run_type: forecast or actual
-    :param run_date: date the computation ran
+    :param run_datetime: datetime the sfms file was created
     :param for_date: date the computation is for
     :return: fire zone TPI status
     """
@@ -248,7 +248,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
     pixel_size_metres = int(tpi_source.GetGeoTransform()[1])
 
     hfi_raster_filename = get_raster_tif_filename(for_date)
-    hfi_raster_key = get_raster_filepath(run_date, run_type, hfi_raster_filename)
+    hfi_raster_key = get_raster_filepath(run_datetime, run_type, hfi_raster_filename)
     hfi_key = f"/vsis3/{bucket}/{hfi_raster_key}"
     hfi_source: gdal.Dataset = gdal.Open(hfi_key, gdal.GA_ReadOnly)
 
@@ -268,9 +268,9 @@ async def process_tpi_by_firezone(run_type: RunType, run_date: date, for_date: d
         for row in result:
             output_path = f"/vsimem/firezone_{row[1]}.tif"
 
-            advisory_shape_wkt = await get_advisory_shape(session, row[0], hfi_masked_tpi.GetSpatialRef())
+            advisory_shape_geom = await get_advisory_shape(session, row[0], hfi_masked_tpi.GetSpatialRef())
 
-            warp_options = gdal.WarpOptions(format="GTiff", cutlineWKT=advisory_shape_wkt, cropToCutline=True)
+            warp_options = gdal.WarpOptions(format="GTiff", cutlineWKT=advisory_shape_geom, cutlineSRS=advisory_shape_geom.GetSpatialReference(), cropToCutline=True)
             cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
             # Get unique values and their counts
             tpi_classes, counts = np.unique(cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True)

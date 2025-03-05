@@ -28,7 +28,11 @@ logger = logging.getLogger(__name__)
 
 def parse_nats_message(msg: Msg):
     """
-    Parse the fields from the messages to drive the processing
+    Parse the fields from the messages to drive the processing.
+
+    :param msg: NATS message
+    :return: A tuple of run_type, run_date, run_datetime, and for_date. run_date and for_date are the dates in local Vancouver time.
+    run_datetime is in utc time. This is important as run_datetime and run_date may fall on different dates.
     """
     if msg.subject == sfms_file_subject:
         decoded_msg = json.loads(json.loads(msg.data.decode()))
