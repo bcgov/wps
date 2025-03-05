@@ -34,7 +34,7 @@ def get_pmtiles_filename(for_date: date):
 def get_raster_filepath(run_datetime: datetime, run_type: RunType, filename: str) -> str:
     """
     Get the file path for both reading and writing the tif raster from/to the object store.
-    Example: {bucket}/psu/rasters/hfi/actual/[issue/run_date]/hfi[for_date].tif
+    Example: {bucket}/psu/rasters/hfi/actual/[issue/run_date]/snow_masked_hfi[for_date].tif
 
 
     :param run_date: The datetime of the run to process. (when was the hfi file created?)
