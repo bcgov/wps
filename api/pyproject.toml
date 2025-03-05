@@ -5,6 +5,7 @@ description = "Wildfire Predictive Services Unit API"
 authors = ["Sybrand Strauss <sybrand.strauss@gov.bc.ca>"]
 package-mode = false
 
+
 [tool.poetry.dependencies]
 python = ">=3.12.3"
 fastapi = "^0"
@@ -15,7 +16,6 @@ pandas = "^2"
 pyjwt = "^2"
 cryptography = "^44.0.0"
 sqlalchemy = "^2"
-psycopg2 = "^2"
 postgres = "^4"
 python-decouple = "^3"
 uvicorn = "^0"
@@ -47,6 +47,7 @@ numba = "0.61"
 cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307" }
 geopandas = "^1.0.1"
 shapely = "^2.0.5"
+psycopg2 = "^2"
 wps-shared = {path = "../wps_shared"}
 
 
