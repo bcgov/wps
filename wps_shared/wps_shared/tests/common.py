@@ -5,7 +5,7 @@ import os
 import json
 from typing import Optional
 from contextlib import asynccontextmanager
-from app.tests.fixtures.loader import FixtureFinder
+from wps_shared.tests.fixtures.loader import FixtureFinder
 
 logger = logging.getLogger(__name__)
 

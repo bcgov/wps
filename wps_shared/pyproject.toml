@@ -17,6 +17,10 @@ pydantic = "^2.10.6"
 aiobotocore = "^2.0.0"
 geoalchemy2 = "^0"
 affine = "^2.4.0"
+fastapi = "^0.115.11"
+sentry-sdk = "^2.22.0"
+pytest-mock = "^3.14.0"
+pyjwt = "^2.10.1"
 
 
 [build-system]

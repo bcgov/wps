@@ -1,0 +1,9 @@
+{
+   "https://wfappst.nrs.gov.bc.ca/pub/oauth2/v1/oauth/token?grant_type=client_credentials": {
+      "get": {
+         "None": {
+            "None": "pub/oauth2/v1/oauth/token.json"
+         }
+      }
+   }
+}

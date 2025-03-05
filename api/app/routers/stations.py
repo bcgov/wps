@@ -2,7 +2,7 @@
 import logging
 from datetime import datetime
 from fastapi import APIRouter, Response, Depends
-from app.auth import authentication_required, audit
+from wps_shared.auth import authentication_required, audit
 from wps_shared.utils.time import get_utc_now, get_hour_20
 from wps_shared.schemas.stations import (
     WeatherStationGroupsMemberRequest,
