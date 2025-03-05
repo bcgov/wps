@@ -19,7 +19,7 @@ from zoneinfo import ZoneInfo
 
 PST_UTC_OFFSET: Final[int] = -8
 PDT_UTC_OFFSET: Final[int] = -7
-vancouver_tz = ZoneInfo("America/Vancouver")
+vancouver_tz = pytz.timezone("America/Vancouver")
 data_retention_threshold = timedelta(days=365)
 
 
@@ -105,8 +105,9 @@ def convert_to_sfms_timezone(time_of_interest: datetime) -> datetime:
     :param time_of_interest: a datetime object with a defined timezone
     :return: a datetime object in 'America/Vancouver' timezone
     """
+    sfms_timezone = ZoneInfo("America/Vancouver")
     ensure_timezone(time_of_interest)
-    return time_of_interest.astimezone(vancouver_tz)
+    return time_of_interest.astimezone(sfms_timezone)
 
 
 def get_julian_date_now():
@@ -121,7 +122,17 @@ def get_julian_date(time_of_interest: datetime):
 
 
 def get_utc_datetime(input_datetime: datetime):
-    utc_datetime = input_datetime.replace(tzinfo=vancouver_tz).astimezone(ZoneInfo("UTC"))
+    utc_datetime = vancouver_tz.localize(
+        datetime(
+            year=input_datetime.year,
+            month=input_datetime.month,
+            day=input_datetime.day,
+            hour=input_datetime.hour,
+            minute=input_datetime.minute,
+            second=input_datetime.second,
+            microsecond=input_datetime.microsecond,
+        )
+    ).astimezone(pytz.timezone("UTC"))
     return utc_datetime
 
 
