@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 
 def get_wind_spd_s3_key(run_type: RunType, run_datetime: datetime, for_date: date):
     bucket = config.get("OBJECT_STORE_BUCKET")
-    run_datetime = convert_to_sfms_timezone(run_datetime)
-    key = f"/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_datetime.date().isoformat()}/wind_speed{for_date.strftime('%Y%m%d')}.tif"
+    sfms_run_datetime = convert_to_sfms_timezone(run_datetime)
+    key = f"/vsis3/{bucket}/sfms/uploads/{run_type.value}/{sfms_run_datetime.date().isoformat()}/wind_speed{for_date.strftime('%Y%m%d')}.tif"
     return key
 
 
