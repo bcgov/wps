@@ -6,7 +6,7 @@ from datetime import datetime, date
 import os
 from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends, Header
-from app.auth import sfms_authenticate
+from wps_shared.auth import sfms_authenticate
 from app.nats_publish import publish
 from wps_shared.schemas.sfms import HourlyTIF, HourlyTIFs
 from wps_shared.utils.s3 import get_client

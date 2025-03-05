@@ -5,7 +5,7 @@ from typing import List
 from fastapi import APIRouter, Depends
 from datetime import date, datetime, time
 import pytz
-from app.auth import authentication_required, audit
+from wps_shared.auth import authentication_required, audit
 from wps_shared.weather_models import ModelEnum
 from wps_shared.schemas.weather_models import WeatherStationModelPredictionValues, WeatherModelPredictionSummaryResponse, WeatherStationsModelRunsPredictionsResponse
 from wps_shared.schemas.shared import StationsRequest, WeatherDataRequest

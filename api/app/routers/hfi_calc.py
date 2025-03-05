@@ -30,7 +30,7 @@ from wps_shared.schemas.hfi_calc import (
     FuelTypesResponse,
     HFIWeatherStationsResponse,
 )
-from app.auth import (
+from wps_shared.auth import (
     auth_with_station_admin_role_required,
     authentication_required,
     audit,

@@ -12,8 +12,8 @@ from wps_shared.db.models.weather_models import PredictionModel, PredictionModel
 import wps_shared.utils.s3
 from wps_shared.utils.time import get_pst_tz, get_utc_now
 import wps_shared.utils.time
-from app import auth
-from app.tests.common import (
+from wps_shared import auth
+from wps_shared.tests.common import (
     MockJWTDecode,
     default_aiobotocore_get_session,
     default_mock_requests_get,
@@ -24,8 +24,6 @@ from app.tests.common import (
 )
 import wps_shared.db.database
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
-# import wps_jobs.wps_jobs.weather_model_jobs.env_canada
-# import wps_jobs.wps_jobs.weather_model_jobs.utils.process_grib
 from wps_shared.schemas.shared import WeatherDataRequest
 import wps_shared.wildfire_one.wildfire_fetchers
 import wps_shared.utils.redis
@@ -152,10 +150,6 @@ def mock_session(monkeypatch):
     def mock_get_prediction_run(session, prediction_model_id: int, prediction_run_timestamp: datetime):
         return PredictionModelRunTimestamp(id=1, prediction_model_id=1, prediction_run_timestamp=get_utc_now(), prediction_model=prediction_model, complete=True)
 
-    # monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.env_canada, "get_prediction_model", mock_get_prediction_model)
-    # monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.utils.process_grib, "get_prediction_model", mock_get_prediction_model)
-    # monkeypatch.setattr(wps_jobs.wps_jobs.weather_model_jobs.env_canada, "get_prediction_run", mock_get_prediction_run)
-
 
 @pytest.fixture()
 def mock_jwt_decode(monkeypatch):
@@ -175,7 +169,7 @@ def mock_sentry(monkeypatch):
         """No-op"""
         pass
 
-    monkeypatch.setattr("app.auth.set_user", mock_sentry)
+    monkeypatch.setattr("wps_shared.auth.set_user", mock_sentry)
 
 
 @pytest.fixture()
