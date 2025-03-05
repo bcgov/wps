@@ -72,6 +72,9 @@ COPY ./api/alembic.ini /app
 COPY ./api/prestart.sh /app
 COPY ./api/start.sh /app
 
+# Make poetry happy by copying wps_shared
+COPY ./wps_shared /wps_shared
+
 # Copy installed Python packages (the chown lets us install the dev packages later without root if we want)
 COPY --from=builder --chown=$USERNAME:$USER_GID /home/worker/.cache/pypoetry/virtualenvs /home/worker/.cache/pypoetry/virtualenvs
 
