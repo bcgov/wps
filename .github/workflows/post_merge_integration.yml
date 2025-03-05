@@ -76,7 +76,7 @@ jobs:
         # We can however place it ahead of the R installs.
         working-directory: ./api
         run: |
-          poetry run ruff app/*.py app/**/*.py ../wps_shared/wps_shared/*.py ../wps_shared/wps_shared/**/*.py
+          poetry run ruff app/*.py app/**/*.py ../wps_shared/wps_shared/*.py ../wps_shared/wps_shared/**/*.py ./wps_jobs/wps_jobs/*.py ../wps_jobs/wps_jobs/**/*.py
 
   test-api:
     name: Python - Test with coverage
