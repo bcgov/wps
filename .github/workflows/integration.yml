@@ -79,7 +79,7 @@ jobs:
           poetry run ruff check app/*.py app/**/*.py ../wps_shared/wps_shared/*.py ../wps_shared/wps_shared/**/*.py ../wps_jobs/wps_jobs/*.py ../wps_jobs/wps_jobs/**/*.py
 
   test-api:
-    name: Python - API Test with coverage
+    name: Python - Test with coverage
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -194,7 +194,6 @@ jobs:
       matrix:
         # Match versions for python to Ubuntu 24.04 LTS at the time of writing. Keep R at same version.
         python-version: [3.12.3]
-        R: ["4.1.2"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
