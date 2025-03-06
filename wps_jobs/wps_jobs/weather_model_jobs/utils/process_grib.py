@@ -69,7 +69,7 @@ class GribFileProcessor:
         self.padf_transform = padf_transform
         self.raster_to_geo_transformer = raster_to_geo_transformer
         self.geo_to_raster_transformer = geo_to_raster_transformer
-        self.prediction_model: PredictionModel = None
+        self.prediction_model: Optional[PredictionModel] = None
 
     def yield_value_for_stations(self, raster_band: gdal.Dataset):
         """Given a list of stations, and a gdal dataset, yield relevant data value"""

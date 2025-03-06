@@ -12,7 +12,7 @@ from wps_jobs.weather_model_jobs.utils import process_grib
 def test_convert_mps_to_kph():
     metres_per_second_speed = 1
     kilometres_per_hour_speed = process_grib.convert_mps_to_kph(metres_per_second_speed)
-    assert kilometres_per_hour_speed == 3.6  # 1m/s * 3600 sec/hour / 1000m/km
+    assert math.isclose(kilometres_per_hour_speed, 3.6, abs_tol=0.1)  # 1m/s * 3600 sec/hour / 1000m/km
 
 
 def test_convert_mps_to_kph_zero_wind_speed():

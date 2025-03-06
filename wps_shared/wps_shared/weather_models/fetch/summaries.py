@@ -2,7 +2,7 @@
 """
 import datetime
 import logging
-from typing import List, Union
+from typing import List, Optional, Union
 from numpy import percentile
 import wps_shared.stations
 from wps_shared.weather_models import ModelEnum
@@ -43,7 +43,7 @@ class ModelPredictionSummaryBuilder():
         self.values = None
         self.prediction_summaries = []
         self.prediction_summary = None
-        self.stations: dict = None
+        self.stations: Optional[dict] = None
 
     def init_values(self):
         """ Initialize values. """
