@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "api",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "api/app/main.py",
             "console": "integratedTerminal",
@@ -14,33 +14,33 @@
         },
         {
             "name": "nats",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "api/app/auto_spatial_advisory/nats_consumer.py",
             "console": "integratedTerminal"
         },
         {
             "name": "sfms",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "sfms/app/main.py",
             "console": "integratedTerminal"
         },
         {
             "name": "app.jobs.noon_forecasts",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.noon_forecasts"
         },
         {
             "name": "app.jobs.hourly_actuals",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.hourly_actuals"
         },
         {
             "name": "app.jobs.env_canada GDPS",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.env_canada",
             "args": [
@@ -49,7 +49,7 @@
         },
         {
             "name": "app.jobs.env_canada RDPS",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.env_canada",
             "args": [
@@ -58,7 +58,7 @@
         },
         {
             "name": "app.jobs.env_canada HRDPS",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.env_canada",
             "args": [
@@ -67,7 +67,7 @@
         },
         {
             "name": "app.jobs.noaa GFS",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.noaa",
             "args": [
@@ -76,7 +76,7 @@
         },
         {
             "name": "app.jobs.noaa NAM",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.noaa",
             "args": [
@@ -85,14 +85,14 @@
         },
         {
             "name": "backup unit tests",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "openshift/s3-backup/docker/prune_test.py",
             "console": "integratedTerminal"
         },
         {
             "name": "asa - process hfi",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.auto_spatial_advisory.local.process_hfi_local",
             "console": "integratedTerminal",
@@ -104,7 +104,7 @@
         },
         {
             "name": "asa - process stats",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.auto_spatial_advisory.local.process_stats_local",
             "console": "integratedTerminal",
@@ -115,28 +115,28 @@
         },
         {
             "name": "fetch fire zones",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.auto_spatial_advisory.local.import_fire_zones",
             "console": "integratedTerminal",
         },
         {
             "name": "generate classified tpi",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.auto_spatial_advisory.local.generate_classified_tpi",
             "console": "integratedTerminal",
         },
         {
             "name": "app.jobs.rdps_sfms",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.rdps_sfms",
             "console": "integratedTerminal"
         },
         {
             "name": "local critical hours",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.auto_spatial_advisory.critical_hours",
             "console": "integratedTerminal",
@@ -149,7 +149,7 @@
         },
         {
             "name": "local hfi wind speed",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.auto_spatial_advisory.hfi_minimum_wind_speed",
             "console": "integratedTerminal",
@@ -160,7 +160,7 @@
         },
         {
             "name": "local hfi percent conifer",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.auto_spatial_advisory.hfi_percent_conifer",
             "console": "integratedTerminal",
@@ -171,7 +171,7 @@
         },
         {
             "name": "sfms raster processor job",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.sfms_calculations",
             "console": "integratedTerminal",
@@ -181,7 +181,7 @@
         },
         {
             "name": "Chrome",
-            "type": "pwa-chrome",
+            "type": "chrome",
             "request": "launch",
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}/web"
