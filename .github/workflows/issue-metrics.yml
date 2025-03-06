@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           # Determine if the current week is an "even" week (biweekly toggle)
-          if [ $(( $(date +%V) % 2 )) -eq 0 ]; then
+          if [ $(( 10#$(date +%V) % 2 )) -eq 0 ]; then
 
               # Calculate the first and last day of the 2-week period
               last_day=$(date -d "this wed" +%Y-%m-%d)

@@ -110,8 +110,8 @@ async def intersect_raster_by_advisory_shape(session: AsyncSession, threshold: i
     input_srs = osr.SpatialReference()
     input_srs.ImportFromWkt(masked_fuel_type_ds.GetProjectionRef())
 
-    advisory_shape_wkt = await get_advisory_shape(session, advisory_shape_id, input_srs)
-    warp_options = gdal.WarpOptions(cutlineWKT=advisory_shape_wkt, cropToCutline=True)
+    advisory_shape_geom = await get_advisory_shape(session, advisory_shape_id, input_srs)
+    warp_options = gdal.WarpOptions(cutlineWKT=advisory_shape_geom, cutlineSRS=advisory_shape_geom.GetSpatialReference(), cropToCutline=True)
     intersect_ds = gdal.Warp(f"/vsimem/intersect_{source_identifier}_{threshold}.tif", masked_fuel_type_ds, options=warp_options)
     return intersect_ds
 
@@ -209,7 +209,7 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
             return
 
         # Retrieve the appropriate hfi raster from s3 storage
-        hfi_key = get_hfi_s3_key(run_type, run_datetime.date(), for_date)
+        hfi_key = get_hfi_s3_key(run_type, run_datetime, for_date)
         hfi_raster = gdal.Open(hfi_key, gdal.GA_ReadOnly)
         hfi_data = hfi_raster.GetRasterBand(1).ReadAsArray()
 
