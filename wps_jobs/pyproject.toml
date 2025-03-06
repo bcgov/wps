@@ -17,6 +17,7 @@ asyncpg = "^0.30.0"
 affine = "^2.4.0"
 numpy = "2.1"
 ruff = "0.4.0"
+fastapi = "0.115.11"
 
 
 [tool.poetry.group.dev.dependencies]
