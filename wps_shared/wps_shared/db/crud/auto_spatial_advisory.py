@@ -166,6 +166,16 @@ async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuel
     return result.all()
 
 
+async def get_sfms_mixed_fuel_type(session: AsyncSession) -> SFMSFuelType:
+    """
+    Retrieve the fuel record corresponding to the M-1/M-2 fuel type.
+    """
+    stmt = select(SFMSFuelType).where(SFMSFuelType.fuel_type_code == "M-1/M-2")
+    result = await session.execute(stmt)
+
+    return result.scalar_one()
+
+
 async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, advisory_shape_id: int) -> List[Row]:
     perf_start = perf_counter()
     stmt = (
