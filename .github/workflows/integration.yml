@@ -325,7 +325,7 @@ jobs:
   upload-code-coverage:
     name: Coverage with CodeCov
     runs-on: ubuntu-24.04
-    needs: [lint-and-test-web, test-api]
+    needs: [lint-and-test-web, test-api, test-wps-jobs]
     steps:
       # we need to checkout, so that we have codecov.yml
       - name: Checkout repo
