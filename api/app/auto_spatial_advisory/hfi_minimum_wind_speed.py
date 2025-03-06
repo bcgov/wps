@@ -17,6 +17,7 @@ from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal, rasters_
 from wps_shared.logging import configure_logging
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3 import set_s3_gdal_config
+from wps_shared.utils.time import convert_to_sfms_timezone
 
 from app.auto_spatial_advisory.common import get_hfi_s3_key
 
@@ -28,7 +29,8 @@ logger = logging.getLogger(__name__)
 
 def get_wind_spd_s3_key(run_type: RunType, run_datetime: datetime, for_date: date):
     bucket = config.get("OBJECT_STORE_BUCKET")
-    key = f"/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_datetime.date().isoformat()}/wind_speed{for_date.strftime('%Y%m%d')}.tif"
+    sfms_run_datetime = convert_to_sfms_timezone(run_datetime)
+    key = f"/vsis3/{bucket}/sfms/uploads/{run_type.value}/{sfms_run_datetime.date().isoformat()}/wind_speed{for_date.strftime('%Y%m%d')}.tif"
     return key
 
 
@@ -80,7 +82,7 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
     source_srs.ImportFromEPSG(srid)
 
     wind_speed_key = get_wind_spd_s3_key(run_type, run_datetime, for_date)
-    hfi_key = get_hfi_s3_key(run_type, run_datetime.date(), for_date)
+    hfi_key = get_hfi_s3_key(run_type, run_datetime, for_date)
 
     all_hfi_min_wind_speeds_to_save: list[AdvisoryHFIWindSpeed] = []
     with gdal.Open(wind_speed_key) as wind_ds, gdal.Open(hfi_key) as hfi_ds:
@@ -114,7 +116,8 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
 
             all_hfi_min_wind_speeds_to_save.extend(records_to_save)
 
-    await save_all_hfi_wind_speeds(session, all_hfi_min_wind_speeds_to_save)
+    if len(all_hfi_min_wind_speeds_to_save) > 0:
+        await save_all_hfi_wind_speeds(session, all_hfi_min_wind_speeds_to_save)
 
 
 def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.ndarray) -> dict[HfiClassificationThresholdEnum, float | None]:
@@ -169,7 +172,7 @@ async def start_hfi_wind_speed(args: argparse.Namespace):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Process critical hours from command line")
+    parser = argparse.ArgumentParser(description="Process hfi wind speed from command line")
     parser.add_argument("-r", "--run_parameters_id", help="The id of the run parameters of interest from the run_parameters table")
 
     args = parser.parse_args()
