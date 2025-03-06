@@ -201,7 +201,7 @@ jobs:
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
-      - name: Install ubuntu pre-requisites (api)
+      - name: Install ubuntu pre-requisites (wps_jobs)
         # The python gdal relies on libgdal-dev being installed.
         run: |
           sudo apt-get update
