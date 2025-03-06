@@ -11,18 +11,17 @@ ENV POETRY_VERSION 1.8.5
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install pre-requisites
-# - python (we want python!)
-RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libudunits2-dev curl git build-essential libproj-dev libgeos-dev libsqlite3-dev libpq-dev libtirpc-dev
+RUN apt-get update --fix-missing && apt-get -y install build-essential curl git python3 python3-dev python-is-python3 python3-pip \
+    libgeos-dev libpq-dev libproj-dev libsqlite3-dev libtirpc-dev libudunits2-dev \
+    && apt-get clean
 
 RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
 
-# Add the worker user with UID 1000
-RUN useradd --uid $USER_UID -m $USERNAME
-
 # When our app is running, we want to allow poetry full access to the workers home directory.
+# Add the worker user with UID 1000
 # +x : to execute the poetry binary
 # +r : to read poetry cache
-RUN chmod a+rx /home/$USERNAME
+RUN useradd --uid "$USER_UID" -m "$USERNAME" && chmod a+rx /home/"$USERNAME"
 
 USER $USERNAME
 ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
