@@ -140,16 +140,6 @@ def mock_session(monkeypatch):
     monkeypatch.setattr(wps_shared.db.database, "_get_write_session", MagicMock())
     monkeypatch.setattr(wps_shared.db.database, "_get_read_session", MagicMock())
 
-    prediction_model = PredictionModel(id=1, abbreviation="GDPS", projection="latlon.15x.15", name="Global Deterministic Prediction System")
-
-    def mock_get_prediction_model(session, model, projection) -> Optional[PredictionModel]:
-        if model == ModelEnum.GDPS and projection == ProjectionEnum.LATLON_15X_15:
-            return prediction_model
-        return None
-
-    def mock_get_prediction_run(session, prediction_model_id: int, prediction_run_timestamp: datetime):
-        return PredictionModelRunTimestamp(id=1, prediction_model_id=1, prediction_run_timestamp=get_utc_now(), prediction_model=prediction_model, complete=True)
-
 
 @pytest.fixture()
 def mock_jwt_decode(monkeypatch):
