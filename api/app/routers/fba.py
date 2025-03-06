@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from wps_shared.db.database import get_async_read_session_scope
 from wps_shared.db.crud.auto_spatial_advisory import (
-    get_all_sfms_fuel_types,
+    get_all_sfms_fuel_type_records,
     get_all_hfi_thresholds,
     get_fire_centre_tpi_fuel_areas,
     get_fire_zone_tpi_fuel_areas,
@@ -116,7 +116,7 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
         # get thresholds data
         thresholds = await get_all_hfi_thresholds(session)
         # get fuel type ids data
-        fuel_types = await get_all_sfms_fuel_types(session)
+        fuel_types = await get_all_sfms_fuel_type_records(session)
         # get fire zone id's within a fire centre
         zone_ids = await get_zone_ids_in_centre(session, fire_centre_name)
 
@@ -133,7 +133,7 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
                 # 1 ha = 10,000 sq.m.
                 area = area / 10000
                 fuel_area = fuel_area / 10000
-                fuel_type_obj = next((ft for ft in fuel_types if ft.fuel_type_id == fuel_type_id), None)
+                fuel_type_obj = next((ft[0] for ft in fuel_types if ft[0].id == fuel_type_id), None)
                 threshold_obj = next((th for th in thresholds if th.id == threshold_id), None)
                 zone_data.append(
                     ClassifiedHfiThresholdFuelTypeArea(

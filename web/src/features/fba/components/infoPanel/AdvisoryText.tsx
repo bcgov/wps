@@ -116,7 +116,7 @@ const AdvisoryText = ({
   }
 
   const getTopFuelsString = () => {
-    const topFuelCodes = selectedFireZoneUnitTopFuels.map(topFuel => topFuel.fuel_type.fuel_type_code)
+    const topFuelCodes = [...new Set(selectedFireZoneUnitTopFuels.map(topFuel => topFuel.fuel_type.fuel_type_code))]
     const zoneStatus = getZoneStatus()?.toLowerCase()
     switch (topFuelCodes.length) {
       case 0:
@@ -131,16 +131,24 @@ const AdvisoryText = ({
   }
 
   const getHighProportionFuelsString = (): string => {
-    const array = highHFIFuelsByProportion.map(fuel_type => fuel_type.fuel_type.fuel_type_code)
-    switch (array.length) {
+    const topFuelCodes = new Set(selectedFireZoneUnitTopFuels.map(topFuel => topFuel.fuel_type.fuel_type_code))
+
+    const highProportionFuels = [
+      ...new Set(
+        highHFIFuelsByProportion
+          .filter(fuel => !topFuelCodes.has(fuel.fuel_type.fuel_type_code))
+          .map(fuel_type => fuel_type.fuel_type.fuel_type_code)
+      )
+    ]
+    switch (highProportionFuels.length) {
       case 0:
         return ''
       case 1:
-        return `Also watch our for fuel type ${array[0]} which occupies a small portion of the zone but is expected to be under advisory conditions wherever it occurs.`
+        return `Also watch out for fuel type ${highProportionFuels[0]} which occupies a small portion of the zone but is expected to be under advisory conditions wherever it occurs.`
       case 2:
-        return `Also watch our for fuel types ${array[0]} and ${array[1]} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.`
+        return `Also watch out for fuel types ${highProportionFuels[0]} and ${highProportionFuels[1]} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.`
       default:
-        return `Also watch our for fuel types ${getCommaSeparatedString(array)} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.`
+        return `Also watch out for fuel types ${getCommaSeparatedString(highProportionFuels)} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.`
     }
   }
 
