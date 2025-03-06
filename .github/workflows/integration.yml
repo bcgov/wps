@@ -257,7 +257,7 @@ jobs:
       - name: Reinstall wps_shared
         working-directory: ./wps_jobs
         run: |
-          poetry run python -m pip install --no-deps --force-reinstall ../wps_shared
+          poetry run python -m pip install --force-reinstall ../wps_shared
       - name: Unit Test with coverage (wps_jobs)
         working-directory: ./wps_jobs
         run: |
