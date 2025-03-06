@@ -182,6 +182,26 @@ def get_latest_station_model_prediction_per_day(session: Session, station_codes:
 
 def get_latest_station_prediction(session: Session, station_codes: List[int], day_start: datetime.datetime, day_end: datetime.datetime):
     logger.info("Getting data from weather_station_model_predictions.")
+
+    latest_predictions_subquery = (
+        session.query(
+            func.max(WeatherStationModelPrediction.prediction_timestamp).label("latest_prediction"),
+            WeatherStationModelPrediction.station_code,
+            func.date(WeatherStationModelPrediction.prediction_timestamp).label("unique_day"),
+        )
+        .filter(
+            extract("hour", WeatherStationModelPrediction.prediction_timestamp) == 20,
+            WeatherStationModelPrediction.station_code.in_(station_codes),
+            WeatherStationModelPrediction.prediction_timestamp >= day_start,
+            WeatherStationModelPrediction.prediction_timestamp <= day_end,
+        )
+        .group_by(
+            WeatherStationModelPrediction.station_code,
+            func.date(WeatherStationModelPrediction.prediction_timestamp),
+        )
+        .subquery()
+    )
+
     result = (
         session.query(
             WeatherStationModelPrediction.prediction_timestamp,
@@ -200,13 +220,14 @@ def get_latest_station_prediction(session: Session, station_codes: List[int], da
         )
         .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id)
         .join(PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id)
-        .filter(
-            WeatherStationModelPrediction.station_code.in_(station_codes),
-            WeatherStationModelPrediction.prediction_timestamp >= day_start,
-            WeatherStationModelPrediction.prediction_timestamp <= day_end,
-            extract("hour", WeatherStationModelPrediction.prediction_timestamp) == 20,
+        .join(
+            latest_predictions_subquery,
+            (WeatherStationModelPrediction.prediction_timestamp == latest_predictions_subquery.c.latest_prediction)
+            & (WeatherStationModelPrediction.station_code == latest_predictions_subquery.c.station_code),
         )
+        .order_by(WeatherStationModelPrediction.update_date.desc())
     )
+
     return result
 
 
