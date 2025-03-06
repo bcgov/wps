@@ -181,7 +181,7 @@ jobs:
         shell: bash
         run: |
           poetry run coverage report
-          poetry run coverage xml -o coverage-reports/coverage-report-api.xml
+          poetry run coverage xml -o coverage-reports/api-coverage-report.xml
       - name: Archive coverage report (api)
         uses: actions/upload-artifact@v4
         with:
@@ -269,7 +269,7 @@ jobs:
         shell: bash
         run: |
           poetry run coverage report
-          poetry run coverage xml -o coverage-reports/coverage-report-wps-jobs.xml
+          poetry run coverage xml -o coverage-reports/wps-jobs-coverage-report.xml
       - name: Archive coverage report (wps_jobs)
         uses: actions/upload-artifact@v4
         with:
