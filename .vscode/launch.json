@@ -109,8 +109,8 @@
             "module": "app.auto_spatial_advisory.local.process_stats_local",
             "console": "integratedTerminal",
             "args": [
-                "2024-09-01T14:30:00+00:00",
-                "2024-09-01"
+                "2024-08-08T15:00:54.515870+00:00",
+                "2024-08-08"
             ]
         },
         {
@@ -142,7 +142,7 @@
             "console": "integratedTerminal",
             "args": [
                 "-r",
-                "3517"
+                "3460"
                 // "-z",
                 // "85"
             ]
@@ -155,7 +155,18 @@
             "console": "integratedTerminal",
             "args": [
                 "-r",
-                "3517"
+                "3460"
+            ]
+        },
+        {
+            "name": "local hfi percent conifer",
+            "type": "python",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.hfi_percent_conifer",
+            "console": "integratedTerminal",
+            "args": [
+                "-r",
+                "3460"
             ]
         },
         {

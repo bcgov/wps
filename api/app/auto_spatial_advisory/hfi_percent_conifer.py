@@ -138,7 +138,7 @@ async def save_all_percent_conifer(session: AsyncSession, hfi_min_percent_conife
     session.add_all(hfi_min_percent_conifer)
 
 
-async def start_hfi_wind_speed(args: argparse.Namespace):
+async def start_hfi_percent_conifer(args: argparse.Namespace):
     async with get_async_write_session_scope() as db_session:
         run_parameters = await get_run_parameters_by_id(db_session, int(args.run_parameters_id))
         if not run_parameters:
@@ -153,7 +153,7 @@ def main():
 
     args = parser.parse_args()
 
-    asyncio.run(start_hfi_wind_speed(args))
+    asyncio.run(start_hfi_percent_conifer(args))
 
 
 if __name__ == "__main__":
