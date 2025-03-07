@@ -24,8 +24,8 @@ import {
   PERCENTILE_CALC_ROUTE,
   MORE_CAST_NAME,
   MORECAST_ROUTE,
-  PSU_INSIGHTS_NAME,
-  PSU_INSIGHTS_ROUTE
+  SFMS_INSIGHTS_NAME,
+  SFMS_INSIGHTS_ROUTE
 } from 'utils/constants'
 
 const ICON_FONT_SIZE = 'large'
@@ -47,7 +47,7 @@ export const fireBehaviourAdvisoryInfo: ToolInfo = {
     </Typography>
   ),
   icon: <LocalFireDepartmentIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: true
+  isBeta: false
 }
 
 export const cHainesInfo: ToolInfo = {
@@ -135,14 +135,13 @@ export const fbpGoInfo: ToolInfo = {
   isBeta: false
 }
 
-export const psuInsightsInfo: ToolInfo = {
-  name: PSU_INSIGHTS_NAME,
-  route: PSU_INSIGHTS_ROUTE,
+export const sfmsInsightsInfo: ToolInfo = {
+  name: SFMS_INSIGHTS_NAME,
+  route: SFMS_INSIGHTS_ROUTE,
   description: (
     <Typography>
       A visualization tool providing an interactive map-based interface to analyze and understand critical
-      wildfire-related data. The tool offers a comprehensive view of key datasets, allowing users to visualize and
-      explore valuable information.
+      wildfire-related data.
     </Typography>
   ),
   icon: <InsightsIcon color="primary" fontSize={ICON_FONT_SIZE} />,
@@ -152,12 +151,12 @@ export const psuInsightsInfo: ToolInfo = {
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of CardTravelSharp.
 export const toolInfos = [
-  moreCastInfo,
   fireBehaviourAdvisoryInfo,
-  ...(import.meta.env.MODE === 'development' ? [psuInsightsInfo] : []),
-  cHainesInfo,
-  fireBehaviourCalcInfo,
+  moreCastInfo,
   hfiCalcInfo,
+  fbpGoInfo,
+  sfmsInsightsInfo,
+  fireBehaviourCalcInfo,
   percentileCalcInfo,
-  fbpGoInfo
+  cHainesInfo
 ]

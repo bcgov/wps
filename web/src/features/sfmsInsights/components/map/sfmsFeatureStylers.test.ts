@@ -1,4 +1,4 @@
-import { getColorForRasterValue } from '@/features/psuInsights/components/map/psuFeatureStylers'
+import { getColorForRasterValue } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
 
 describe('getColorForRasterValue', () => {
   it('should get the correct colour for the specified raster value', () => {

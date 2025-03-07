@@ -1,4 +1,4 @@
-import PSUMap from '@/features/psuInsights/components/map/PSUMap'
+import PSUMap from '@/features/sfmsInsights/components/map/SFMSMap'
 import { render } from '@testing-library/react'
 
 describe('PSUMap', () => {
