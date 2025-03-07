@@ -61,7 +61,7 @@ export const FIRE_BEHAVIOUR_CALC_NAME = "FireBat";
 export const HFI_CALC_NAME = "HFI Calculator";
 export const MORE_CAST_NAME = "MoreCast";
 export const PERCENTILE_CALC_NAME = "Percentile Calculator";
-export const PSU_INSIGHTS_NAME = "PSU Insights";
+export const SFMS_INSIGHTS_NAME = "PSU Insights";
 
 // UI constants
 export const HEADER_HEIGHT = 56;
