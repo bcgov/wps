@@ -19,13 +19,13 @@ from wps_shared.db.crud.weather_models import (
     get_rdps_sfms_urls_for_deletion,
     delete_rdps_sfms_urls,
 )
-from app.jobs.common_model_fetchers import CompletedWithSomeExceptions, download
+from wps_shared.weather_models import CompletedWithSomeExceptions, download
 from wps_shared.weather_models import ModelEnum
 from wps_shared.logging import configure_logging
 import wps_shared.utils.time as time_utils
 from wps_shared.utils.s3 import get_client
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from app.jobs.env_canada_utils import get_regional_model_run_download_urls
+from wps_shared.weather_models.job_utils import get_regional_model_run_download_urls
 from app.weather_models.precip_rdps_model import compute_and_store_precip_rasters
 from app.weather_models.rdps_filename_marshaller import model_run_for_hour
 

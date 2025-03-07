@@ -34,7 +34,7 @@ from wps_shared.schemas.fba import (
     FireShapeAreaDetail,
     ProvincialSummaryResponse,
 )
-from app.auth import authentication_required, audit
+from wps_shared.auth import authentication_required, audit
 from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_fire_centers
 from app.auto_spatial_advisory.process_hfi import RunType
 

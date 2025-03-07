@@ -11,7 +11,7 @@ from aiohttp import ClientSession
 from pytest_mock import MockerFixture
 import app.main
 import app.routers.hfi_calc
-from app.tests.common import default_mock_client_get
+from wps_shared.tests.common import default_mock_client_get
 from app.tests import load_json_file
 from wps_shared.db.models.hfi_calc import PlanningWeatherStation, FuelType, FireCentre, PlanningArea, HFIRequest, FireStartRange, FireStartLookup
 import wps_shared.db.crud.hfi_calc

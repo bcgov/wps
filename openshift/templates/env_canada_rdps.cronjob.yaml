@@ -61,7 +61,7 @@ objects:
             spec:
               containers:
                 - name: ${JOB_NAME}
-                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-api-${SUFFIX}:${SUFFIX}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-jobs-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
                     [
@@ -69,7 +69,7 @@ objects:
                       "run",
                       "python",
                       "-m",
-                      "app.jobs.env_canada",
+                      "wps_jobs.weather_model_jobs.env_canada",
                       "RDPS",
                     ]
                   env:

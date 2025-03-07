@@ -4,7 +4,7 @@ import pytest
 from aiohttp import ClientSession
 from starlette.testclient import TestClient
 import app.main
-from app.tests.common import default_mock_client_get
+from wps_shared.tests.common import default_mock_client_get
 
 
 PERCENTILE_URL = '/api/percentiles/'
