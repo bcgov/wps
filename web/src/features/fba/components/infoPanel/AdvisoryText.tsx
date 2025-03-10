@@ -32,16 +32,6 @@ const AdvisoryText = ({
   const [maxEndTime, setMaxEndTime] = useState<number | undefined>(undefined)
   const [highHFIFuelsByProportion, setHighHFIFuelsByProportion] = useState<FireZoneFuelStats[]>([])
 
-  const sortByArea = (a: FireZoneFuelStats, b: FireZoneFuelStats) => {
-    if (a.area > b.area) {
-      return -1
-    }
-    if (a.area < b.area) {
-      return 1
-    }
-    return 0
-  }
-
   // Return a list of fuel stats for which greater than 90% of the area of each fuel type has high HFI.
   const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
     const groupedByFuelType = groupBy(zoneUnitFuelStats, stat => stat.fuel_type.fuel_type_code)
