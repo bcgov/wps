@@ -275,3 +275,19 @@ class AdvisoryHFIWindSpeed(Base):
     threshold = Column(postgresql.ENUM("advisory", "warning", name="hficlassificationthresholdenum", create_type=False), nullable=False)
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
     min_wind_speed = Column(Float, nullable=True)
+
+
+class AdvisoryHFIPercentConifer(Base):
+    """Minimum percent conifer for HFI above advisory level (HFI > 4000), per fire zone."""
+
+    __tablename__ = "advisory_hfi_percent_conifer"
+    __table_args__ = {
+        "comment": "Minimum percent conifer for HFI above advisory level, per fire zone. min_percent_conifer refers to the minimum "
+        "percent of conifer trees in a fire zone that coincides with hfi pixels exceeding an HFI value of 4000."
+    }
+
+    id = Column(Integer, primary_key=True, index=True)
+    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
+    fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False)
+    run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
+    min_percent_conifer = Column(Integer, nullable=True)
