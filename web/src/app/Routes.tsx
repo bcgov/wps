@@ -17,7 +17,7 @@ import {
   FIRE_BEHAVIOUR_ADVISORY_ROUTE,
   LANDING_PAGE_ROUTE,
   MORE_CAST_2_ROUTE,
-  PSU_INSIGHTS_ROUTE
+  SFMS_INSIGHTS_ROUTE
 } from 'utils/constants'
 import { NoMatchPage } from 'features/NoMatchPage'
 const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/FireBehaviourCalculatorPage'))
@@ -25,7 +25,7 @@ const FireBehaviourAdvisoryPage = lazy(() => import('features/fba/pages/FireBeha
 const LandingPage = lazy(() => import('features/landingPage/pages/LandingPage'))
 const MoreCast2Page = lazy(() => import('features/moreCast2/pages/MoreCast2Page'))
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
-import { PSUInsightsPage } from '@/features/psuInsights/pages/PSUInsightsPage'
+import { SFMSInsightsPage } from '@/features/sfmsInsights/pages/SFMSInsightsPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
@@ -92,10 +92,10 @@ const WPSRoutes: React.FunctionComponent = () => {
             }
           />
           <Route
-            path={PSU_INSIGHTS_ROUTE}
+            path={SFMS_INSIGHTS_ROUTE}
             element={
               <AuthWrapper>
-                <PSUInsightsPage />
+                <SFMSInsightsPage />
               </AuthWrapper>
             }
           />
