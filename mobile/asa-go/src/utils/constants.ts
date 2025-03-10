@@ -75,7 +75,7 @@ export const FIREBAT_DOC_TITLE = "FireBat | BCWS PSU";
 export const HFI_CALC_DOC_TITLE = "HFI Calculator | BCWS PSU";
 export const MORE_CAST_DOC_TITLE = "MoreCast | BCWS PSU";
 export const PERCENTILE_CALC_DOC_TITLE = "Percentile Calculator | BCWS PSU";
-export const PSU_INSIGHTS_DOC_TITLE = "PSU Insights | BCWS PSU";
+export const SFMS_INSIGHTS_DOC_TITLE = "SFMS Insights | BCWS PSU";
 
 export enum FireCentres {
   CARIBOO_FC = "Cariboo Fire Centre",
