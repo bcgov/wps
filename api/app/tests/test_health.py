@@ -5,7 +5,7 @@ import json
 import requests
 from starlette.testclient import TestClient
 import app.main
-from app.tests.common import MockResponse
+from wps_shared.tests.common import MockResponse
 
 
 def test_ready_ok():

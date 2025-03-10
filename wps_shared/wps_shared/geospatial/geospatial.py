@@ -1,8 +1,9 @@
+from affine import Affine
 from enum import Enum
 from typing import Tuple
 from osgeo import gdal, ogr, osr
 from typing import Final
-from pyproj import CRS
+from pyproj import CRS, Transformer
 
 # Some constants that are frequently used when transforming coordinates.
 
@@ -180,3 +181,21 @@ def rasters_match(raster1: gdal.Dataset, raster2: gdal.Dataset) -> bool:
     projection_match = projection1 == projection2
 
     return pixel_size_match and extent_match and projection_match
+
+def calculate_geographic_coordinate(point: Tuple[int], transform: Affine, transformer: Transformer):
+    """Calculate the geographic coordinates for a given points"""
+    x_coordinate, y_coordinate = transform * point
+    lon, lat = transformer.transform(x_coordinate, y_coordinate)
+    return (lon, lat)
+
+
+def get_dataset_transform(filename) -> Affine:
+    """Get the geometry info (origin and pixel size) of the dataset."""
+    with gdal.Open(filename) as ds:
+        return Affine.from_gdal(*ds.GetGeoTransform())
+
+
+def get_transformer(crs_from, crs_to):
+    """Get an appropriate transformer - it's super important that always_xy=True
+    is specified, otherwise the order in the CRS definition is honoured."""
+    return Transformer.from_crs(crs_from, crs_to, always_xy=True)

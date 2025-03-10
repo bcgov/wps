@@ -39,51 +39,6 @@
             "module": "app.jobs.hourly_actuals"
         },
         {
-            "name": "app.jobs.env_canada GDPS",
-            "type": "python",
-            "request": "launch",
-            "module": "app.jobs.env_canada",
-            "args": [
-                "GDPS"
-            ]
-        },
-        {
-            "name": "app.jobs.env_canada RDPS",
-            "type": "python",
-            "request": "launch",
-            "module": "app.jobs.env_canada",
-            "args": [
-                "RDPS"
-            ]
-        },
-        {
-            "name": "app.jobs.env_canada HRDPS",
-            "type": "python",
-            "request": "launch",
-            "module": "app.jobs.env_canada",
-            "args": [
-                "HRDPS"
-            ]
-        },
-        {
-            "name": "app.jobs.noaa GFS",
-            "type": "python",
-            "request": "launch",
-            "module": "app.jobs.noaa",
-            "args": [
-                "GFS"
-            ]
-        },
-        {
-            "name": "app.jobs.noaa NAM",
-            "type": "python",
-            "request": "launch",
-            "module": "app.jobs.noaa",
-            "args": [
-                "NAM"
-            ]
-        },
-        {
             "name": "backup unit tests",
             "type": "python",
             "request": "launch",

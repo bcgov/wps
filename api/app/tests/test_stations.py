@@ -3,7 +3,7 @@ import pytest
 import app.main
 from datetime import datetime, timezone
 from app.tests import load_json_file
-from app.tests.common import default_mock_client_get
+from wps_shared.tests.common import default_mock_client_get
 from fastapi.testclient import TestClient
 from httpx import Response
 

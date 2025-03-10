@@ -4,7 +4,7 @@ from aiohttp import ClientSession
 import pytest
 import math
 from app.fire_behaviour.cffdrs import CFFDRS
-from app.tests.common import default_mock_client_get
+from wps_shared.tests.common import default_mock_client_get
 
 
 firebat_url = '/api/fba-calc/stations'

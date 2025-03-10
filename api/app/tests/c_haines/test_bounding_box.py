@@ -3,7 +3,7 @@ import pytest
 from osgeo import gdal
 from pyproj import CRS
 from affine import Affine
-from app.weather_models.process_grib import get_transformer
+from wps_shared.geospatial.geospatial import get_transformer
 from wps_shared.geospatial.geospatial import NAD83_CRS
 from app.c_haines.c_haines_index import BoundingBoxChecker
 

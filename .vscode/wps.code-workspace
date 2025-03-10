@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../wps_shared"
+		},
+		{
+			"path": "../wps_jobs"
+		}
+	],
+	"settings": {
+		"autoDocstring.docstringFormat": "sphinx-notypes",
+		"autoDocstring.startOnNewLine": true
+	}
+}

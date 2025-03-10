@@ -5,7 +5,7 @@ import pytest
 from datetime import datetime
 from aiohttp import ClientSession
 from wps_shared.schemas.shared import StationsRequest
-from app.tests.common import default_mock_client_get
+from wps_shared.tests.common import default_mock_client_get
 from wps_shared.schemas.morecast_v2 import MoreCastForecastInput, MoreCastForecastRequest, StationDailyFromWF1
 import app.routers.morecast_v2
 from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole

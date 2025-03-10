@@ -8,7 +8,7 @@ import app.main
 import app.routers.c_haines
 import app.c_haines.fetch
 from app.tests import _load_json_file, get_complete_filename
-from app.tests.common import DefaultMockAioBaseClient
+from wps_shared.tests.common import DefaultMockAioBaseClient
 
 
 def _load_text_file(module_path: str, filename: str) -> Optional[str]:

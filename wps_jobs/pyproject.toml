@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "wps-jobs"
+version = "0.1.0"
+description = ""
+authors = ["Darren Boss <darren.boss@gov.bc.ca>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.12.3"
+wps-shared = {path = "../wps_shared"}
+scipy = "^1.15.2"
+scikit-learn = "^1.6.1"
+sqlalchemy = "^2.0.38"
+redis = "^5.2.1"
+psycopg2-binary = "^2.9.10"
+asyncpg = "^0.30.0"
+affine = "^2.4.0"
+numpy = "2.1"
+ruff = "0.4.0"
+fastapi = "0.115.11"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-mock = "^3.14.0"
+coverage = "7.6.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 185
+lint.ignore = ["E712", "F401"]

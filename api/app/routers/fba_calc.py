@@ -4,7 +4,7 @@ import logging
 from datetime import date, datetime, timedelta
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
-from app.auth import authentication_required, audit
+from wps_shared.auth import authentication_required, audit
 from app.fire_behaviour.advisory import (FBACalculatorWeatherStation, FireBehaviourAdvisory,
                                          calculate_fire_behaviour_advisory)
 from app.fire_behaviour.wind_speed import calculate_wind_speed_result
