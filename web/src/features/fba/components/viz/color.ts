@@ -17,6 +17,10 @@ colorByFuelTypeCode.set('M-1/M-2', 'rgb(255, 211, 127)')
 // Retrieve a color from the Map base don the fuel type code.
 // Provide a default value in case a non-standard code is encountered so we don't end up with empty pie slices.
 export const getColorByFuelTypeCode = (code: string): string => {
-  const color = colorByFuelTypeCode.get(code)
-  return color ?? 'rgb(0, 255, 255)'
+  for (const [key, color] of colorByFuelTypeCode.entries()) {
+    if (code.startsWith(key)) {
+      return color
+    }
+  }
+  return 'rgb(0, 255, 255)'
 }

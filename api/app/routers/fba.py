@@ -128,16 +128,17 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
             )
             zone_data = []
 
-            for critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, fuel_area in hfi_fuel_type_ids_for_zone:
+            for critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, fuel_area, percent_conifer in hfi_fuel_type_ids_for_zone:
                 # area is stored in square metres in DB. For user convenience, convert to hectares
                 # 1 ha = 10,000 sq.m.
                 area = area / 10000
                 fuel_area = fuel_area / 10000
                 fuel_type_obj = next((ft[0] for ft in fuel_types if ft[0].id == fuel_type_id), None)
                 threshold_obj = next((th for th in thresholds if th.id == threshold_id), None)
+                fuel_type_code_details = fuel_type_obj.fuel_type_code + (f" (≥{percent_conifer} PC)" if percent_conifer is not None else "")
                 zone_data.append(
                     ClassifiedHfiThresholdFuelTypeArea(
-                        fuel_type=SFMSFuelType(fuel_type_id=fuel_type_obj.fuel_type_id, fuel_type_code=fuel_type_obj.fuel_type_code, description=fuel_type_obj.description),
+                        fuel_type=SFMSFuelType(fuel_type_id=fuel_type_obj.fuel_type_id, fuel_type_code=fuel_type_code_details, description=fuel_type_obj.description),
                         threshold=HfiThreshold(id=threshold_obj.id, name=threshold_obj.name, description=threshold_obj.description),
                         critical_hours=AdvisoryCriticalHours(start_time=critical_hour_start, end_time=critical_hour_end),
                         area=area,
