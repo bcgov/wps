@@ -3,7 +3,7 @@
 import os
 import sys
 import logging
-import datetime
+from datetime import datetime
 import pytest
 import requests
 from aiohttp import ClientSession
@@ -132,7 +132,7 @@ def test_for_zero_day_bug(monkeypatch):
     """ There's a very specific case, where on the 1st day of the new month, before 12 UTC,
     a url with a month day zero is construced.
     This test ensures that if it's before 12 UTC, we look for the previous days 12 UTC model run"""
-    problem_date = datetime.datetime.fromisoformat('2020-09-01T00:13:58+00:00')
+    problem_date = datetime.fromisoformat("2020-09-01T00:13:58+00:00")
     urls = get_global_model_run_download_urls(problem_date, 12)
     url = next(urls)
     expected_url = ('https://dd.weather.gc.ca/model_gem_global/15km/'

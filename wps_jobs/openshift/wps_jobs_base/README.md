@@ -6,10 +6,10 @@ The Docker image and template in this directory are used to create the base imag
 
 ## working in dev
 
-Update the build config with your GIT_BRANCH and VERSION which is likely going to be dev.
+Update the build config with your GIT_BRANCH and VERSION.
 
 ```bash
-oc -n e1e498-tools process -p GIT_BRANCH=my-branch process -p VERSION=dev -f ./openshift/build.yaml | oc -n e1e498-tools apply -f -
+oc -n e1e498-tools process -p GIT_BRANCH=my-branch process -p VERSION=dd-mm-yyyy -f ./openshift/build.yaml | oc -n e1e498-tools apply -f -
 ```
 
 Kick off a build
@@ -26,7 +26,7 @@ Once you are happy with your changes to the wps-jobs-base image, tag the current
 oc -n e1e498-tools tag wps-jobs-base:prod wps-jobs-base:old-prod
 ```
 
-Now tag the dev image you are happy with as prod
+Now tag the new image you are happy with as prod
 
 ```bash
 oc -n e1e498-tools tag wps-jobs-base:dev wps-jobs-base:prod
