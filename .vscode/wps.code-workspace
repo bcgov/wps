@@ -4,14 +4,144 @@
 			"path": ".."
 		},
 		{
-			"path": "../wps_shared"
+			"path": "../wps_jobs"
 		},
 		{
-			"path": "../wps_jobs"
+			"path": "../wps_shared"
 		}
 	],
 	"settings": {
 		"autoDocstring.docstringFormat": "sphinx-notypes",
-		"autoDocstring.startOnNewLine": true
+		"autoDocstring.startOnNewLine": true,
+		"files.exclude": {
+			".github": false,
+			"**/.pytest_cache": true,
+			"**/__pycache__**": true,
+			"**/python_cache": true,
+			"**/.venv": true
+		},
+		"editor.codeActionsOnSave": {
+			"source.fixAll": "explicit"
+		},
+		"editor.formatOnSave": true,
+		"eslint.format.enable": true,
+		"eslint.validate": [
+			"javascript",
+			"javascriptreact",
+			"typescript",
+			"typescriptreact",
+		],
+		"eslint.run": "onSave",
+		"editor.rulers": [
+			100
+		],
+		"[python]": {
+			"editor.defaultFormatter": "charliermarsh.ruff",
+			"editor.rulers": [
+				120,
+				100
+			]
+		},
+		"[html]": {
+			"editor.formatOnSave": false
+		},
+		"[yaml]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode",
+			"editor.insertSpaces": true,
+			"editor.tabSize": 2,
+			"editor.formatOnSave": true,
+		},
+		"[json]": {
+			"editor.defaultFormatter": "vscode.json-language-features"
+		},
+		"[jsonc]": {
+			"editor.defaultFormatter": "vscode.json-language-features"
+		},
+		"typescript.preferences.importModuleSpecifier": "non-relative",
+		"cSpell.words": [
+			"actuals",
+			"aiobotocore",
+			"aiohttp",
+			"Albers",
+			"allclose",
+			"anyio",
+			"APCP",
+			"astype",
+			"asyncpg",
+			"autoflush",
+			"Behaviour",
+			"botocore",
+			"cffdrs",
+			"colour",
+			"cutline",
+			"CWFIS",
+			"determinates",
+			"dtype",
+			"excinfo",
+			"fastapi",
+			"FBAN",
+			"ffmc",
+			"fireweather",
+			"firezone",
+			"FWIs",
+			"GDPS",
+			"geoalchemy",
+			"GEOGCS",
+			"geopackage",
+			"geospatial",
+			"geotiff",
+			"gpkg",
+			"grib",
+			"gribs",
+			"HAINES",
+			"Hasher",
+			"hourlies",
+			"HRDPS",
+			"idir",
+			"Indeterminates",
+			"Kamloops",
+			"luxon",
+			"maxx",
+			"maxy",
+			"miny",
+			"morecast",
+			"nats",
+			"ndarray",
+			"Neighbour",
+			"numba",
+			"ORJSON",
+			"osgeo",
+			"PMTILES",
+			"polygonize",
+			"Polygonized",
+			"polygonizing",
+			"PRECIP",
+			"PRIMEM",
+			"PROJCS",
+			"pydantic",
+			"pyproj",
+			"RDPS",
+			"reduxjs",
+			"reproject",
+			"rocketchat",
+			"rollup",
+			"rtol",
+			"sessionmaker",
+			"sfms",
+			"sqlalchemy",
+			"starlette",
+			"testid",
+			"tobytes",
+			"upsampled",
+			"uvicorn",
+			"vectorize",
+			"VSIL",
+			"vsimem",
+			"vsis",
+			"WDIR",
+			"wfwx",
+			"Whitebox",
+			"wpsread"
+		]
 	}
 }
