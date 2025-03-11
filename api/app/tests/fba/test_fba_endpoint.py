@@ -10,7 +10,7 @@ from collections import namedtuple
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryTPIStats, HfiClassificationThreshold, RunParameters, SFMSFuelType, TPIFuelArea, TPIClassEnum
 
 from app.tests import get_complete_filename
-from app.tests.common import default_mock_client_get
+from wps_shared.tests.common import default_mock_client_get
 
 mock_fire_centre_name = "PGFireCentre"
 
