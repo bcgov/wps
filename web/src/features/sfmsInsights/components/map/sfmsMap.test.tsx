@@ -1,7 +1,7 @@
-import PSUMap from '@/features/sfmsInsights/components/map/SFMSMap'
+import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
 import { render } from '@testing-library/react'
 
-describe('PSUMap', () => {
+describe('SFMSMap', () => {
   it('should render the map', () => {
     class ResizeObserver {
       observe() {
@@ -15,8 +15,8 @@ describe('PSUMap', () => {
       }
     }
     window.ResizeObserver = ResizeObserver
-    const { getByTestId } = render(<PSUMap />)
-    const map = getByTestId('psu-map')
+    const { getByTestId } = render(<SFMSMap snowDate={null} />)
+    const map = getByTestId('sfms-map')
     expect(map).toBeVisible()
   })
 })
