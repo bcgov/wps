@@ -9,7 +9,7 @@ import { PMTILES_BUCKET } from 'utils/env'
 
 import React, { useEffect, useRef, useState } from 'react'
 
-import { styleFuelGrid } from '@/features/psuInsights/components/map/psuFeatureStylers'
+import { styleFuelGrid } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
 import { Box } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
@@ -20,7 +20,7 @@ const MapContext = React.createContext<Map | null>(null)
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
-const PSUMap = () => {
+const SFMSMap = () => {
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
 
@@ -73,4 +73,4 @@ const PSUMap = () => {
   )
 }
 
-export default PSUMap
+export default SFMSMap
