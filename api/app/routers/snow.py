@@ -4,7 +4,7 @@
 import logging
 from datetime import date, datetime
 from fastapi import APIRouter, Depends
-from app.auth import authentication_required, audit
+from wps_shared.auth import authentication_required, audit
 from wps_shared.db.crud.snow import get_most_recent_processed_snow_by_date
 from wps_shared.db.database import get_async_read_session_scope
 from wps_shared.schemas.snow import ProcessedSnowModel, ProcessedSnowResponse
