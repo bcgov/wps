@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from datetime import datetime, timezone
 import pytest
-import app.auth
+import wps_shared.auth
 import app.main
 from app.tests import load_json_file
 

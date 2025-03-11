@@ -5,14 +5,12 @@ from typing import List
 from fastapi import APIRouter, Depends
 from datetime import date, datetime, time
 import pytz
-from app.auth import authentication_required, audit
+from wps_shared.auth import authentication_required, audit
 from wps_shared.weather_models import ModelEnum
 from wps_shared.schemas.weather_models import WeatherStationModelPredictionValues, WeatherModelPredictionSummaryResponse, WeatherStationsModelRunsPredictionsResponse
 from wps_shared.schemas.shared import StationsRequest, WeatherDataRequest
-from app.weather_models.fetch.summaries import fetch_model_prediction_summaries
-from app.weather_models.fetch.predictions import (
-    fetch_latest_daily_model_run_predictions_by_station_code_and_date_range,
-    fetch_model_run_predictions_by_station_code)
+from wps_shared.weather_models.fetch.summaries import fetch_model_prediction_summaries
+from wps_shared.weather_models.fetch.predictions import fetch_latest_daily_model_run_predictions_by_station_code_and_date_range, fetch_model_run_predictions_by_station_code
 
 logger = logging.getLogger(__name__)
 

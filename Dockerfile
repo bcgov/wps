@@ -35,7 +35,7 @@ RUN poetry run python -m pip install -U setuptools wheel
 # Get a python binding for gdal that matches the version of gdal we have installed.
 RUN poetry run python -m pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
 
-# Stage 2: Preapre the final image, inclusing copying Python packages from Stage 1.
+# Stage 2: Prepare the final image, including copying Python packages from Stage 1.
 FROM ${DOCKER_IMAGE}
 
 # We don't want to run our app as root, so we define a worker user.
@@ -71,6 +71,9 @@ COPY ./api/alembic.ini /app
 # Copy pre-start.sh (it will be run on startup):
 COPY ./api/prestart.sh /app
 COPY ./api/start.sh /app
+
+# Make poetry happy by copying wps_shared
+COPY ./wps_shared /wps_shared
 
 # Copy installed Python packages (the chown lets us install the dev packages later without root if we want)
 COPY --from=builder --chown=$USERNAME:$USER_GID /home/worker/.cache/pypoetry/virtualenvs /home/worker/.cache/pypoetry/virtualenvs
