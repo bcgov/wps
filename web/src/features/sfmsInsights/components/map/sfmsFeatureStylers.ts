@@ -5,6 +5,9 @@ import RenderFeature from 'ol/render/Feature'
 import Fill from 'ol/style/Fill'
 import Style from 'ol/style/Style'
 
+const SNOW_FILL = 'rgba(255, 255, 255, 1)'
+const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
+
 const rasterValueToFuelTypeCode = new Map([
   [1, 'C-1'],
   [2, 'C-2'],
@@ -37,4 +40,16 @@ export const styleFuelGrid = () => {
     })
   }
   return style
+}
+
+// A styling function for the snow coverage pmtiles layer.
+export const snowStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
+  const snow = feature.get('snow')
+  const snowStyle = new Style({})
+  if (snow === 1) {
+    snowStyle.setFill(new Fill({ color: SNOW_FILL }))
+  } else {
+    snowStyle.setFill(new Fill({ color: EMPTY_FILL }))
+  }
+  return snowStyle
 }
