@@ -116,8 +116,7 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
 
             all_hfi_min_wind_speeds_to_save.extend(records_to_save)
 
-    if len(all_hfi_min_wind_speeds_to_save) > 0:
-        await save_all_hfi_wind_speeds(session, all_hfi_min_wind_speeds_to_save)
+    await save_all_hfi_wind_speeds(session, all_hfi_min_wind_speeds_to_save)
 
 
 def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.ndarray) -> dict[HfiClassificationThresholdEnum, float | None]:
@@ -162,13 +161,18 @@ async def save_all_hfi_wind_speeds(session: AsyncSession, hfi_wind_speeds: list[
     session.add_all(hfi_wind_speeds)
 
 
+## Helper functions for local testing
+
+
 async def start_hfi_wind_speed(args: argparse.Namespace):
     async with get_async_write_session_scope() as db_session:
         run_parameters = await get_run_parameters_by_id(db_session, int(args.run_parameters_id))
         if not run_parameters:
             return
 
-        await process_hfi_min_wind_speed(run_parameters[0].run_type, run_parameters[0].run_datetime, run_parameters[0].for_date)
+        run_param = run_parameters[0]
+        run_type, run_datetime, for_date = run_param.run_type, run_param.run_datetime, run_param.for_date
+        await process_hfi_min_wind_speed(run_type, run_datetime, for_date)
 
 
 def main():

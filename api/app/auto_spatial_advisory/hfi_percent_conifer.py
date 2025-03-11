@@ -32,9 +32,9 @@ gdal.UseExceptions()
 logger = logging.getLogger(__name__)
 
 
-def get_percent_conifer_s3_key(year: int):
+def get_percent_conifer_s3_key(for_date: date):
     bucket = config.get("OBJECT_STORE_BUCKET")
-    key = f"/vsis3/{bucket}/sfms/static/m12_{year}.tif"
+    key = f"/vsis3/{bucket}/sfms/static/m12_{for_date.year}.tif"
     return key
 
 
@@ -75,7 +75,7 @@ async def process_min_percent_conifer_by_zone(session: AsyncSession, run_paramet
     source_srs = osr.SpatialReference()
     source_srs.ImportFromEPSG(srid)
 
-    pct_conifer_key = get_percent_conifer_s3_key(for_date.year)
+    pct_conifer_key = get_percent_conifer_s3_key(for_date)
     hfi_key = get_hfi_s3_key(run_type, run_datetime, for_date)
 
     all_hfi_conifer_percent_to_save: list[AdvisoryHFIPercentConifer] = []
@@ -114,8 +114,7 @@ async def process_min_percent_conifer_by_zone(session: AsyncSession, run_paramet
                 )
                 all_hfi_conifer_percent_to_save.append(record)
 
-    if len(all_hfi_conifer_percent_to_save) > 0:
-        await save_all_percent_conifer(session, all_hfi_conifer_percent_to_save)
+    await save_all_percent_conifer(session, all_hfi_conifer_percent_to_save)
 
 
 def get_minimum_percent_conifer_for_hfi(pct_conifer_array: np.ndarray, hfi_array: np.ndarray) -> float:
@@ -138,13 +137,18 @@ async def save_all_percent_conifer(session: AsyncSession, hfi_min_percent_conife
     session.add_all(hfi_min_percent_conifer)
 
 
+## Helper functions for local testing
+
+
 async def start_hfi_percent_conifer(args: argparse.Namespace):
     async with get_async_write_session_scope() as db_session:
         run_parameters = await get_run_parameters_by_id(db_session, int(args.run_parameters_id))
         if not run_parameters:
             return
 
-        await process_hfi_percent_conifer(run_parameters[0].run_type, run_parameters[0].run_datetime, run_parameters[0].for_date)
+        run_param = run_parameters[0]
+        run_type, run_datetime, for_date = run_param.run_type, run_param.run_datetime, run_param.for_date
+        await process_hfi_percent_conifer(run_type, run_datetime, for_date)
 
 
 def main():

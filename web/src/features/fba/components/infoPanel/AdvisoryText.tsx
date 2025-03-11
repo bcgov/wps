@@ -24,7 +24,6 @@ export const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]):
   return topFuelsByProportion
 }
 
-// Return a list of fuel types that
 /**
  * Returns the fuel type stat records that cumulatively account for more than 75% of total area with high HFI.
  * The zoneUnitFuelStats may contain more than 1 record for each fuel type, if there are pixels matching both
