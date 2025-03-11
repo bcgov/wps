@@ -12,7 +12,7 @@ from starlette.applications import Starlette
 from wps_shared import schemas
 from wps_shared.logging import configure_logging
 from app.percentile import get_precalculated_percentiles
-from app.auth import authentication_required, audit
+from wps_shared.auth import authentication_required, audit
 from wps_shared import config
 from app import health
 from app import hourlies

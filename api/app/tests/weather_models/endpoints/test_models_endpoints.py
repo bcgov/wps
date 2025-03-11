@@ -6,7 +6,7 @@ from aiohttp import ClientSession
 from fastapi.testclient import TestClient
 import app.main
 from app.tests import load_json_file, load_sqlalchemy_response_from_json
-from app.tests.common import default_mock_client_get
+from wps_shared.tests.common import default_mock_client_get
 
 
 def _patch_function(monkeypatch, module_name: str, function_name: str, json_filename: str):

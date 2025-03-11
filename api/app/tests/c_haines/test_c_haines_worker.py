@@ -7,7 +7,7 @@ from aiobotocore.client import AioBaseClient
 from wps_shared.logging import configure_logging
 import app.c_haines.worker
 import app.c_haines.kml
-from app.tests.common import MockResponse
+from wps_shared.tests.common import MockResponse
 
 configure_logging()
 
