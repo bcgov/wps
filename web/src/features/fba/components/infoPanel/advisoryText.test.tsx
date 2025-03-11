@@ -1,6 +1,9 @@
 import { render } from '@testing-library/react'
 import { DateTime } from 'luxon'
-import AdvisoryText, { getTopFuelsByProportion } from 'features/fba/components/infoPanel/AdvisoryText'
+import AdvisoryText, {
+  getTopFuelsByProportion,
+  getTopFuelsByArea
+} from 'features/fba/components/infoPanel/AdvisoryText'
 import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneFuelStats } from 'api/fbaAPI'
 import provincialSummarySlice, {
   initialState as provSummaryInitialState,
@@ -12,7 +15,6 @@ import fireCentreHFIFuelStatsSlice, {
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import { Provider } from 'react-redux'
-import { getTopFuelsByArea } from 'features/fba/components/infoPanel/AdvisoryText'
 
 const buildTestStore = (
   provincialSummaryInitialState: ProvincialSummaryState,
