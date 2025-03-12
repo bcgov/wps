@@ -61,7 +61,7 @@ async def process_hfi_percent_conifer(run_type: RunType, run_datetime: datetime,
         await process_min_percent_conifer_by_zone(session, run_parameters_id, RunType(run_type), run_datetime, for_date)
 
     delta = perf_counter() - perf_start
-    logger.info(f"delta count before and after calculating minimum hfi wind speed: {delta}")
+    logger.info(f"delta count before and after calculating minimum hfi percent conifer: {delta}")
 
 
 async def process_min_percent_conifer_by_zone(session: AsyncSession, run_parameters_id: int, run_type: RunType, run_datetime: date, for_date: date):
