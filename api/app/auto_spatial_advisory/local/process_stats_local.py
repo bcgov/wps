@@ -10,7 +10,7 @@ to be set
 ----------------------
 
 If you're trying to reprocess stats that have already been run, you can ensure all stats get
-re-calculated by deleting the original records from the database (excluding run_parameters)
+re-calculated by deleting the original records from the database (excluding the run_parameters table)
 
 DO $$
 DECLARE run_ids INT[];  -- Declare an array variable to store the list of run_id's
