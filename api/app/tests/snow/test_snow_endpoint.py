@@ -23,7 +23,6 @@ def mock_database(monkeypatch):
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_most_recent_snow_by_date_endpoint(mock_database, monkeypatch):
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
-    #monkeypatch.setattr(wps_shared.db.crud.snow, get_most_recent_processed_snow_by_date, mock_get_most_recent_processed_snow_by_date)
     client = TestClient(app.main.app)
     headers = {"Content-Type": "application/json", "Authorization": "Bearer token"}
     response = client.get(f"api/snow/most-recent-by-date/{DATE_OF_INTEREST.isoformat()}", headers=headers)
