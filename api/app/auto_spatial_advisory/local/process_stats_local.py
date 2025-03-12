@@ -60,8 +60,10 @@ async def main(for_dates: list[date], run_type: RunType):
             if run_param:
                 run_datetime = run_param[0].run_datetime
             elif run_type == RunType.ACTUAL:
-                # Use a default run_datetime when no run parameters are found for ACTUAL
-                # We can't know what run_datetime to use for forecasts, since it's used to store data
+                # Use a default run_datetime when no run parameters are found for an actual. The run_datetime
+                # will be the same as the for_date for an actual.
+                # We can't know what run_datetime to use for forecasts, since it's used to store data and
+                # making up a run_datetime will result in processing the wrong data.
                 run_datetime = datetime.combine(for_date, time(20, 0, 0), tzinfo=timezone.utc)
             else:
                 print(f"No run params found for {for_date} - {run_type.value}")
