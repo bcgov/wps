@@ -58,6 +58,13 @@
             ]
         },
         {
+            "name": "asa - populate advisory shape fuels",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.fuel_type_areas_per_zone",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "asa - process stats",
             "type": "debugpy",
             "request": "launch",
