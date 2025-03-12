@@ -27,7 +27,7 @@ pyenv global 3.12.3
 
 ### poetry
 curl -sSL https://install.python-poetry.org | python -
-echo "poetry installed, run poetry_setup.sh in api"
+echo "poetry installed, run poetry-workspaces-setup.sh in wps/setup"
 
 ### r
 brew install --cask r

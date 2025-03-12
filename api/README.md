@@ -6,12 +6,10 @@ You will need an environment file. See: `.env.example`. Contact current maintain
 
 - Automated (mac only):
   - Run `setup/mac.sh` in parent folder
+  - Follow [manual setup](../docs/MANUAL_SETUP.md) for database setup notes as of Nov 2024.
   - Follow [lima setup steps](../setup/LIMA.md)
-  - then add run `eval "$(pyenv init -)"` in your current shell and add it to your `rc` file
-  - then run `poetry_setup.sh`
-  - then activate the virtual environment with `poetry shell`
-  - then run:
-    - python -m pip install gdal==$(gdal-config --version)
+  - then add run `eval "$(pyenv init -)"` in your current shell and add it to your `rc` or `zshrc` file
+  - then run `poetry-workspaces-setup.sh` from the root of the wps project
   - Follow [vsc setup steps](../setup/VSC.md)
 - Manual (linux): See [manual setup](../docs/MANUAL_SETUP.md).
   Note: you may want to alias `python3` as `python` in your profile
