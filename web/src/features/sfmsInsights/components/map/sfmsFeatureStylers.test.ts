@@ -1,6 +1,5 @@
 import * as ol from 'ol'
 import Geometry from 'ol/geom/Geometry'
-import RenderFeature from 'ol/render/Feature'
 import { EMPTY_FILL, getColorForRasterValue, SNOW_FILL, snowStyler, styleFuelGrid } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
 import { colorByFuelTypeCode } from '@/features/fba/components/viz/color'
 
@@ -37,16 +36,12 @@ describe('snowStyler', () => {
   it('should render correct fill color for snow', () => {
     const feature = new ol.Feature<Geometry>({ snow: 1 })
     const snowStyle = snowStyler(feature)
-    const fill = snowStyle.getFill()
-    const color = fill?.getColor()
     expect(snowStyle.getFill()?.getColor()).toBe(SNOW_FILL)
   })
   it('should render the correct fill color for no snow', () => {
     describe('snowStyler', () => {
       const feature = new ol.Feature<Geometry>({ snow: 0 })
       const snowStyle = snowStyler(feature)
-      const fill = snowStyle.getFill()
-      const color = fill?.getColor()
       expect(snowStyle.getFill()?.getColor()).toBe(EMPTY_FILL)
     })
   } )
