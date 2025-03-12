@@ -1,10 +1,16 @@
+import json
+import app.main
 from unittest.mock import patch
 import math
+from aiohttp import ClientSession
 import pytest
 from fastapi.testclient import TestClient
 from datetime import date, datetime, timezone
 from collections import namedtuple
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryTPIStats, HfiClassificationThreshold, RunParameters, SFMSFuelType, TPIFuelArea, TPIClassEnum
+
+from app.tests import get_complete_filename
+from wps_shared.tests.common import default_mock_client_get
 
 mock_fire_centre_name = "PGFireCentre"
 
@@ -21,7 +27,7 @@ mock_tpi_fuel_area_1 = TPIFuelArea(id=1, advisory_shape_id=1, tpi_class=TPIClass
 mock_tpi_fuel_area_2 = TPIFuelArea(id=2, advisory_shape_id=1, tpi_class=TPIClassEnum.mid_slope, fuel_area=2)
 mock_tpi_fuel_area_3 = TPIFuelArea(id=3, advisory_shape_id=1, tpi_class=TPIClassEnum.upper_slope, fuel_area=3)
 mock_tpi_fuel_areas = [mock_tpi_fuel_area_1, mock_tpi_fuel_area_2, mock_tpi_fuel_area_3]
-mock_fire_centre_info = [(9.0, 11.0, 1, 1, 50, 100)]
+mock_fire_centre_info = [(9.0, 11.0, 1, 1, 50, 100, 40)]
 mock_sfms_run_datetimes = [
     RunParameters(id=1, run_type="forecast", run_datetime=datetime(year=2024, month=1, day=1, hour=1, tzinfo=timezone.utc), for_date=date(year=2024, month=1, day=2))
 ]
@@ -86,6 +92,24 @@ def client():
 
     with TestClient(test_app) as test_client:
         yield test_client
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+@pytest.mark.parametrize("status, expected_fire_centers", [(200, "test_fba_endpoint_fire_centers.json")])
+def test_fba_endpoint_fire_centers(status, expected_fire_centers, monkeypatch):
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+
+    client = TestClient(app.main.app)
+    headers = {"Content-Type": "application/json", "Authorization": "Bearer token"}
+
+    response = client.get("/api/fba/fire-centers/", headers=headers)
+
+    response_filename = get_complete_filename(__file__, expected_fire_centers)
+    with open(response_filename) as res_file:
+        expected_response = json.load(res_file)
+
+    assert response.status_code == status
+    assert response.json() == expected_response
 
 
 @pytest.mark.parametrize(

@@ -6,9 +6,57 @@ import { useSelector } from 'react-redux'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { AdvisoryStatus } from 'utils/constants'
-import { isEmpty, isNil, isUndefined } from 'lodash'
+import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
 import { calculateStatusText } from '@/features/fba/calculateZoneStatus'
 
+// Return a list of fuel stats for which greater than 90% of the area of each fuel type has high HFI.
+export const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
+  const groupedByFuelType = groupBy(zoneUnitFuelStats, stat => stat.fuel_type.fuel_type_code)
+  const topFuelsByProportion: FireZoneFuelStats[] = []
+
+  Object.values(groupedByFuelType).forEach(entries => {
+    const totalArea = entries.reduce((sum, entry) => sum + entry.area, 0)
+    const fuelArea = entries[0].fuel_area
+    if (totalArea / fuelArea >= 0.9) {
+      topFuelsByProportion.push(...entries)
+    }
+  })
+  return topFuelsByProportion
+}
+
+/**
+ * Returns the fuel type stat records that cumulatively account for more than 75% of total area with high HFI.
+ * The zoneUnitFuelStats may contain more than 1 record for each fuel type, if there are pixels matching both
+ * HFI class 5 and 6 for that fuel type.
+ * @param zoneUnitFuelStats
+ * @returns FireZoneFuelStats array
+ */
+export const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
+  const groupedByFuelType = groupBy(zoneUnitFuelStats, stat => stat.fuel_type.fuel_type_code)
+
+  const fuelTypeAreas = Object.entries(groupedByFuelType).map(([fuelType, entries]) => ({
+    fuelType,
+    fuelTypeTotalHfi: entries.reduce((sum, entry) => sum + entry.area, 0),
+    entries
+  }))
+
+  const sortedFuelTypes = fuelTypeAreas.toSorted((a, b) => b.fuelTypeTotalHfi - a.fuelTypeTotalHfi)
+  const totalHighHFIArea = zoneUnitFuelStats.reduce((total, stats) => total + stats.area, 0)
+
+  const topFuelsByArea: FireZoneFuelStats[] = []
+  let highHFIArea = 0
+
+  for (const { fuelTypeTotalHfi, entries } of sortedFuelTypes) {
+    highHFIArea += fuelTypeTotalHfi
+    topFuelsByArea.push(...entries)
+
+    if (highHFIArea / totalHighHFIArea > 0.75) {
+      break
+    }
+  }
+
+  return topFuelsByArea
+}
 interface AdvisoryTextProps {
   issueDate: DateTime | null
   forDate: DateTime
@@ -32,41 +80,6 @@ const AdvisoryText = ({
   const [maxEndTime, setMaxEndTime] = useState<number | undefined>(undefined)
   const [highHFIFuelsByProportion, setHighHFIFuelsByProportion] = useState<FireZoneFuelStats[]>([])
 
-  const sortByArea = (a: FireZoneFuelStats, b: FireZoneFuelStats) => {
-    if (a.area > b.area) {
-      return -1
-    }
-    if (a.area < b.area) {
-      return 1
-    }
-    return 0
-  }
-
-  // Return a list of fuel stats for which greater than 90% of the area of each fuel type has high HFI.
-  const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
-    const topFuelsByProportion = zoneUnitFuelStats.filter(fuelStats => {
-      return fuelStats.area / fuelStats.fuel_area >= 0.9
-    })
-    return topFuelsByProportion
-  }
-
-  // Return a list of fuel types that cumulatively account for more than 75% of total area with high HFI.
-  const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
-    const totalHighHFIArea = zoneUnitFuelStats.reduce((total, stats) => total + stats.area, 0)
-    const sortedFuelStats = [...zoneUnitFuelStats].sort(sortByArea)
-    const topFuelsByArea = []
-    let highHFIArea = 0
-    for (const stats of sortedFuelStats) {
-      highHFIArea += stats.area
-      if (highHFIArea / totalHighHFIArea > 0.75) {
-        topFuelsByArea.push(stats)
-        return topFuelsByArea
-      }
-      topFuelsByArea.push(stats)
-    }
-    return topFuelsByArea
-  }
-
   useEffect(() => {
     if (
       isUndefined(fireCentreHFIFuelStats) ||
@@ -82,8 +95,7 @@ const AdvisoryText = ({
     }
     const allZoneUnitFuelStats = fireCentreHFIFuelStats?.[selectedFireCenter.name]
     const selectedZoneUnitFuelStats = allZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? []
-    const sortedFuelStats = [...selectedZoneUnitFuelStats].sort(sortByArea)
-    const topFuels = getTopFuelsByArea(sortedFuelStats)
+    const topFuels = getTopFuelsByArea(selectedZoneUnitFuelStats)
     setSelectedFireZoneUnitTopFuels(topFuels)
     const topFuelsByProportion = getTopFuelsByProportion(selectedZoneUnitFuelStats)
     setHighHFIFuelsByProportion(topFuelsByProportion)

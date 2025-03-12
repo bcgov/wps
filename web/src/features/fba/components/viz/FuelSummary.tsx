@@ -38,7 +38,7 @@ const columns: GridColDef[] = [
     headerClassName: 'fuel-summary-header',
     headerName: 'Fuel Type',
     sortable: false,
-    minWidth: 80,
+    minWidth: 120,
     renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => (
       <Tooltip placement="right" title={params.row['description']}>
