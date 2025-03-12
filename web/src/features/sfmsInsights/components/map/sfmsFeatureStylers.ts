@@ -5,8 +5,8 @@ import RenderFeature from 'ol/render/Feature'
 import Fill from 'ol/style/Fill'
 import Style from 'ol/style/Style'
 
-const SNOW_FILL = 'rgba(255, 255, 255, 1)'
-const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
+export const SNOW_FILL = 'rgba(255, 255, 255, 1)'
+export const EMPTY_FILL = 'rgba(0, 0, 0, 0)'
 
 const rasterValueToFuelTypeCode = new Map([
   [1, 'C-1'],
@@ -27,7 +27,7 @@ const rasterValueToFuelTypeCode = new Map([
 
 export const getColorForRasterValue = (rasterValue: number): string => {
   const fuelTypeCode = rasterValueToFuelTypeCode.get(rasterValue)
-  return fuelTypeCode ? colorByFuelTypeCode.get(fuelTypeCode) : 'rgba(0, 0, 0, 0)'
+  return fuelTypeCode ? colorByFuelTypeCode.get(fuelTypeCode) : EMPTY_FILL
 }
 
 export const styleFuelGrid = () => {
