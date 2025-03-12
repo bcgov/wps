@@ -30,7 +30,7 @@ async def get_last_processed_snow_by_source(session: AsyncSession, snow_source: 
     return result.first()
 
 async def get_most_recent_processed_snow_by_date(session: AsyncSession, target_date: datetime, snow_source: SnowSourceEnum = SnowSourceEnum.viirs) -> ProcessedSnow:
-    """ Retreive the most recent record prior or equal to the provided date.
+    """Retrieve the most recent record prior or equal to the provided date.
 
     :param target_date: The date of interest
     :type target_date: datetime
