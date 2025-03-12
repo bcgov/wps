@@ -7,18 +7,76 @@ Expects
    'OBJECT_STORE_SERVER'
 
 to be set
+----------------------
+
+If you're trying to reprocess stats that have already been run, you can ensure all stats get
+re-calculated by deleting the original records from the database (excluding run_parameters)
+
+DO $$
+DECLARE run_ids INT[];  -- Declare an array variable to store the list of run_id's
+BEGIN
+    -- Populate the array dynamically from a query using a date range
+    SELECT array_agg(id) INTO run_ids
+    FROM run_parameters
+    WHERE for_date BETWEEN '2024-10-23' AND '2024-10-25';
+
+    -- Delete from all tables using the run_ids array
+    DELETE FROM advisory_fuel_stats WHERE run_parameters = ANY(run_ids);
+    DELETE FROM advisory_tpi_stats WHERE run_parameters = ANY(run_ids);
+    DELETE FROM advisory_elevation_stats WHERE run_parameters = ANY(run_ids);
+    DELETE FROM high_hfi_area WHERE run_parameters = ANY(run_ids);
+    DELETE FROM advisory_hfi_wind_speed WHERE run_parameters = ANY(run_ids);
+    DELETE FROM advisory_hfi_percent_conifer WHERE run_parameters = ANY(run_ids);
+    DELETE FROM critical_hours WHERE run_parameters = ANY(run_ids);
+
+END $$;
 """
 
 import sys
 import asyncio
-from datetime import date, datetime
+import os
+from datetime import date, datetime, timedelta, timezone, time
+from sqlalchemy import select
+from wps_shared.db.crud.auto_spatial_advisory import get_most_recent_run_parameters
+from wps_shared.db.database import get_async_read_session_scope
+from wps_shared.db.models.auto_spatial_advisory import AdvisoryShapeFuels
 from wps_shared.logging import configure_logging
 from wps_shared.run_type import RunType
 from .. import process_stats
 
+
+async def main(for_dates: list[date], run_type: RunType):
+    async with get_async_read_session_scope() as session:
+        stmt = select(AdvisoryShapeFuels)
+        advisory_fuels_populated = (await session.execute(stmt)).scalars().first() is not None
+
+        if not advisory_fuels_populated:
+            print("advisory_shape_fuels must be populated")
+            sys.exit(os.EX_SOFTWARE)
+
+        for for_date in for_dates:
+            # try to reprocess the run that ASA will look for
+            run_param = await get_most_recent_run_parameters(session, run_type, for_date)
+            if run_param:
+                run_datetime = run_param[0].run_datetime
+            elif run_type == RunType.ACTUAL:
+                # Use a default run_datetime when no run parameters are found for ACTUAL
+                # We can't know what run_datetime to use for forecasts, since it's used to store data
+                run_datetime = datetime.combine(for_date, time(20, 0, 0), tzinfo=timezone.utc)
+            else:
+                print(f"No run params found for {for_date} - {run_type.value}")
+                continue  # Skip processing if no run params exist
+
+            await process_stats.process_stats(run_type, run_datetime, run_datetime.date(), for_date)
+
+
 if __name__ == "__main__":
     configure_logging()
-    run_datetime = datetime.fromisoformat(sys.argv[1])
-    run_date = run_datetime.date()
-    for_date = date.fromisoformat(sys.argv[2])
-    asyncio.run(process_stats.process_stats(RunType.FORECAST, run_datetime, run_date, for_date))
+
+    start_date = date.fromisoformat(sys.argv[1])
+    end_date = date.fromisoformat(sys.argv[2])
+    run_type = RunType.from_str(sys.argv[3])
+
+    date_range = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+
+    asyncio.run(main(date_range, run_type))

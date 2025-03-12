@@ -71,8 +71,9 @@
             "module": "app.auto_spatial_advisory.local.process_stats_local",
             "console": "integratedTerminal",
             "args": [
-                "2024-08-08T15:00:54.515870+00:00",
-                "2024-08-08"
+                "2024-08-06",
+                "2024-08-08",
+                "forecast"
             ]
         },
         {
