@@ -35,7 +35,6 @@ END $$;
 import sys
 import asyncio
 from datetime import date, timedelta
-from sqlalchemy import select
 from wps_shared.db.crud.auto_spatial_advisory import get_most_recent_run_parameters
 from wps_shared.db.database import get_async_read_session_scope
 from wps_shared.logging import configure_logging
