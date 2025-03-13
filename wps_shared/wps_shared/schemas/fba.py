@@ -109,6 +109,7 @@ class ClassifiedHfiThresholdFuelTypeArea(BaseModel):
     critical_hours: AdvisoryCriticalHours
     area: float
     fuel_area: float
+    percent_curing: Optional[float]
 
 
 class FireZoneElevationStats(BaseModel):
