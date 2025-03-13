@@ -34,12 +34,10 @@ END $$;
 
 import sys
 import asyncio
-import os
-from datetime import date, datetime, timedelta, timezone, time
+from datetime import date, timedelta
 from sqlalchemy import select
 from wps_shared.db.crud.auto_spatial_advisory import get_most_recent_run_parameters
 from wps_shared.db.database import get_async_read_session_scope
-from wps_shared.db.models.auto_spatial_advisory import AdvisoryShapeFuels
 from wps_shared.logging import configure_logging
 from wps_shared.run_type import RunType
 from .. import process_stats
