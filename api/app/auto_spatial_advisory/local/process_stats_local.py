@@ -47,24 +47,11 @@ from .. import process_stats
 
 async def main(for_dates: list[date], run_type: RunType):
     async with get_async_read_session_scope() as session:
-        stmt = select(AdvisoryShapeFuels)
-        advisory_fuels_populated = (await session.execute(stmt)).scalars().first() is not None
-
-        if not advisory_fuels_populated:
-            print("advisory_shape_fuels must be populated")
-            sys.exit(os.EX_SOFTWARE)
-
         for for_date in for_dates:
             # try to reprocess the run that ASA will look for
             run_param = await get_most_recent_run_parameters(session, run_type, for_date)
             if run_param:
                 run_datetime = run_param[0].run_datetime
-            elif run_type == RunType.ACTUAL:
-                # Use a default run_datetime when no run parameters are found for an actual. The run_datetime
-                # will be the same as the for_date for an actual.
-                # We can't know what run_datetime to use for forecasts, since it's used to store data and
-                # making up a run_datetime will result in processing the wrong data.
-                run_datetime = datetime.combine(for_date, time(20, 0, 0), tzinfo=timezone.utc)
             else:
                 print(f"No run params found for {for_date} - {run_type.value}")
                 continue  # Skip processing if no run params exist
