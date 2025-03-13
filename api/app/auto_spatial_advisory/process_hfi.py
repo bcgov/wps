@@ -12,7 +12,7 @@ from app.auto_spatial_advisory.common import get_hfi_s3_key
 from wps_shared.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.crud.auto_spatial_advisory import save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters, get_run_parameters_id
-from wps_shared.db.crud.snow import get_last_processed_snow_by_source
+from wps_shared.db.crud.snow import get_last_processed_snow_by_processed_date
 from wps_shared.db.models.snow import SnowSourceEnum
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from wps_shared.run_type import RunType
@@ -92,7 +92,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
         if existing_run is not None:
             logger.info((f"Skipping run, already processed for run_type:{run_type}" f"run_datetime:{run_datetime}," f"for_date:{for_date}"))
             return
-        last_processed_snow = await get_last_processed_snow_by_source(session, SnowSourceEnum.viirs)
+        last_processed_snow = await get_last_processed_snow_by_processed_date(session, run_datetime, SnowSourceEnum.viirs)
 
     logger.info("Processing HFI %s for run date: %s, for date: %s", run_type, run_date, for_date)
     perf_start = perf_counter()
