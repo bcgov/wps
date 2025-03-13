@@ -22,20 +22,18 @@ from wps_shared.db.crud.auto_spatial_advisory import (
 )
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum, TPIClassEnum
 from wps_shared.schemas.fba import (
-    AdvisoryCriticalHours,
     ClassifiedHfiThresholdFuelTypeArea,
     FireCenterListResponse,
     FireCentreTPIResponse,
     FireShapeAreaListResponse,
     FireShapeArea,
     FireZoneTPIStats,
-    SFMSFuelType,
-    HfiThreshold,
     FireShapeAreaDetail,
     ProvincialSummaryResponse,
 )
 from wps_shared.auth import authentication_required, audit
 from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_fire_centers
+from app.auto_spatial_advisory.fuel_stats import get_fuel_type_area_stats
 from app.auto_spatial_advisory.process_hfi import RunType
 
 logger = logging.getLogger(__name__)
@@ -129,21 +127,8 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
             zone_data = []
 
             for critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, fuel_area in hfi_fuel_type_ids_for_zone:
-                # area is stored in square metres in DB. For user convenience, convert to hectares
-                # 1 ha = 10,000 sq.m.
-                area = area / 10000
-                fuel_area = fuel_area / 10000
-                fuel_type_obj = next((ft[0] for ft in fuel_types if ft[0].id == fuel_type_id), None)
-                threshold_obj = next((th for th in thresholds if th.id == threshold_id), None)
-                zone_data.append(
-                    ClassifiedHfiThresholdFuelTypeArea(
-                        fuel_type=SFMSFuelType(fuel_type_id=fuel_type_obj.fuel_type_id, fuel_type_code=fuel_type_obj.fuel_type_code, description=fuel_type_obj.description),
-                        threshold=HfiThreshold(id=threshold_obj.id, name=threshold_obj.name, description=threshold_obj.description),
-                        critical_hours=AdvisoryCriticalHours(start_time=critical_hour_start, end_time=critical_hour_end),
-                        area=area,
-                        fuel_area=fuel_area,
-                    )
-                )
+                fuel_type_area_stats = get_fuel_type_area_stats(for_date, fuel_types, thresholds, critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, fuel_area)
+                zone_data.append(fuel_type_area_stats)
             all_zone_data[zone_id] = zone_data
 
         return {fire_centre_name: all_zone_data}
