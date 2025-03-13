@@ -102,17 +102,18 @@ poetry config http-basic.psu <service-account-username> <service-account-passwor
 
 Install dependencies:
 
+In each individual workspace you must do the following
+
 ```bash
 poetry install
-poetry shell
 # we can't include gdal in poetry as we have little control over the version of gdal available on different platforms - we must match whatever version of gdal is available on the system in question.
-python -m pip install gdal==$(gdal-config --version)
+poetry run python -m pip install gdal==$(gdal-config --version)
 
-# Install the wps_shared package in editable mode using pip to allow changes in the wps_shared package to be reflected immediately in the api package.
-python -m pip install -e ../wps_shared
+# Install the wps_shared package in editable mode using pip to allow changes in the wps_shared package to be reflected immediately in the api package. This is not needed in the wps_shared workspace.
+poetry run python -m pip install -e ../wps_shared
 
 # on ubuntu, you may have to install pygdal, with the correct version specified.
-python -m pip install pygdal==3.0.4.10
+poetry run python -m pip install pygdal==3.0.4.10
 ```
 
 **N.B.: If `poetry env use [version]` returns an `EnvCommandError` saying something like "pyenv: python3.10: command not found", but `pyenv versions` shows that 3.12.3 is installed, you must first run `pyenv shell 3.12.3` and then re-run `poetry env use [path to python 3.12.3]`.**
