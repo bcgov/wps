@@ -2,7 +2,7 @@
 
 import os
 import pytest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pytest_mock import MockerFixture
 from requests import Response
 from requests.exceptions import HTTPError
@@ -37,7 +37,8 @@ def test_viirs_snow_job_fail(mocker: MockerFixture,
 def test_viirs_snow_job_exits_without_error_when_no_work_required(monkeypatch):
     """ Test that viirs_snow_job exits without error when no data needs to be processed.
     """
-    async def mock__get_last_processed_date(self):
+
+    async def mock__get_last_processed_date(self, for_date: datetime):
         return date.today() - timedelta(days=1)
     
     monkeypatch.setattr(ViirsSnowJob, '_get_last_processed_date', mock__get_last_processed_date)
@@ -52,7 +53,8 @@ def test_viirs_snow_job_exits_cleanly_when_no_viirs_data(monkeypatch):
     """ Test that viirs_snow_job exits cleanly when attempt to download data that doesn't exist
     throws a HTTPError with status code of 501.
     """
-    async def mock__get_last_processed_date(self):
+
+    async def mock__get_last_processed_date(self, for_date: datetime):
         return date.today() - timedelta(days=2)
     
 

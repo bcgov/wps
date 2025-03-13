@@ -10,6 +10,7 @@ from sqlalchemy.engine.row import Row
 from wps_shared.run_type import RunType
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryFuelStats,
+    AdvisoryHFIPercentConifer,
     AdvisoryShapeFuels,
     CriticalHours,
     HfiClassificationThresholdEnum,
@@ -166,10 +167,28 @@ async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuel
     return result.all()
 
 
+async def get_sfms_mixed_fuel_type(session: AsyncSession) -> SFMSFuelType:
+    """
+    Retrieve the fuel record corresponding to the M-1/M-2 fuel type.
+    """
+    stmt = select(SFMSFuelType).where(SFMSFuelType.fuel_type_code == "M-1/M-2")
+    result = await session.execute(stmt)
+
+    return result.scalar_one()
+
+
 async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, advisory_shape_id: int) -> List[Row]:
     perf_start = perf_counter()
     stmt = (
-        select(CriticalHours.start_hour, CriticalHours.end_hour, AdvisoryFuelStats.fuel_type, AdvisoryFuelStats.threshold, AdvisoryFuelStats.area, AdvisoryShapeFuels.fuel_area)
+        select(
+            CriticalHours.start_hour,
+            CriticalHours.end_hour,
+            AdvisoryFuelStats.fuel_type,
+            AdvisoryFuelStats.threshold,
+            AdvisoryFuelStats.area,
+            AdvisoryShapeFuels.fuel_area,
+            AdvisoryHFIPercentConifer.min_percent_conifer,
+        )
         .join(RunParameters, AdvisoryFuelStats.run_parameters == RunParameters.id)
         .join(
             CriticalHours,
@@ -183,6 +202,15 @@ async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTy
         .join(
             AdvisoryShapeFuels,
             and_(AdvisoryShapeFuels.fuel_type == AdvisoryFuelStats.fuel_type, AdvisoryShapeFuels.advisory_shape_id == Shape.id),
+        )
+        .join(
+            AdvisoryHFIPercentConifer,
+            and_(
+                AdvisoryFuelStats.run_parameters == AdvisoryHFIPercentConifer.run_parameters,
+                AdvisoryFuelStats.fuel_type == AdvisoryHFIPercentConifer.fuel_type,
+                AdvisoryFuelStats.advisory_shape_id == AdvisoryHFIPercentConifer.advisory_shape_id,
+            ),
+            isouter=True,
         )
         .where(
             Shape.source_identifier == str(advisory_shape_id),

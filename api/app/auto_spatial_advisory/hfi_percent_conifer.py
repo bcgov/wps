@@ -1,0 +1,165 @@
+import argparse
+import asyncio
+import logging
+from datetime import date, datetime
+from time import perf_counter
+
+import numpy as np
+from geoalchemy2.shape import to_shape
+from osgeo import gdal, osr
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from wps_shared import config
+from wps_shared.db.crud.auto_spatial_advisory import (
+    get_fire_zone_unit_shape_type_id,
+    get_fire_zone_units,
+    get_run_parameters_by_id,
+    get_run_parameters_id,
+    get_sfms_mixed_fuel_type,
+    get_table_srid,
+)
+from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.models.auto_spatial_advisory import AdvisoryHFIPercentConifer, Shape
+from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal, rasters_match
+from wps_shared.logging import configure_logging
+from wps_shared.run_type import RunType
+from wps_shared.utils.s3 import set_s3_gdal_config
+from app.auto_spatial_advisory.common import get_hfi_s3_key
+
+osr.UseExceptions()
+gdal.UseExceptions()
+
+logger = logging.getLogger(__name__)
+
+
+def get_percent_conifer_s3_key(for_date: date):
+    bucket = config.get("OBJECT_STORE_BUCKET")
+    key = f"/vsis3/{bucket}/sfms/static/m12_{for_date.year}.tif"
+    return key
+
+
+async def process_hfi_percent_conifer(run_type: RunType, run_datetime: datetime, for_date: date):
+    """
+    Entry point for calculating minimum percent conifer for hfi > 4000 (above advisory level)
+
+    :param run_type: The run type, either forecast or actual.
+    :param run_datetime: The date and time of the sfms run.
+    :param for_date: The date being calculated for.
+    """
+    logger.info(f"Calculating minimum percent conifer for {run_type} run type on run date: {run_datetime}, for date: {for_date}")
+    perf_start = perf_counter()
+
+    async with get_async_write_session_scope() as session:
+        run_parameters_id = await get_run_parameters_id(session, RunType(run_type), run_datetime, for_date)
+        stmt = select(AdvisoryHFIPercentConifer).where(AdvisoryHFIPercentConifer.run_parameters == run_parameters_id)
+        exists = (await session.execute(stmt)).scalars().first() is not None
+
+        if exists:
+            logger.info("HFI percent conifer already processed.")
+            return
+
+        await process_min_percent_conifer_by_zone(session, run_parameters_id, RunType(run_type), run_datetime, for_date)
+
+    delta = perf_counter() - perf_start
+    logger.info(f"delta count before and after calculating minimum hfi percent conifer: {delta}")
+
+
+async def process_min_percent_conifer_by_zone(session: AsyncSession, run_parameters_id: int, run_type: RunType, run_datetime: date, for_date: date):
+    set_s3_gdal_config()
+    # fetch all fire zones from DB
+    mixed_fuel_record = await get_sfms_mixed_fuel_type(session)
+    fire_zone_shape_type_id = await get_fire_zone_unit_shape_type_id(session)
+    zone_units = await get_fire_zone_units(session, fire_zone_shape_type_id)
+    srid = await get_table_srid(session, Shape) or 3005  # default to bc albers
+
+    source_srs = osr.SpatialReference()
+    source_srs.ImportFromEPSG(srid)
+
+    pct_conifer_key = get_percent_conifer_s3_key(for_date)
+    hfi_key = get_hfi_s3_key(run_type, run_datetime, for_date)
+
+    all_hfi_conifer_percent_to_save: list[AdvisoryHFIPercentConifer] = []
+    with gdal.Open(pct_conifer_key) as conifer_ds, gdal.Open(hfi_key) as hfi_ds:
+        if not rasters_match(conifer_ds, hfi_ds):
+            logger.error(f"{pct_conifer_key} and {hfi_key} do not match.")
+            return
+        for zone in zone_units:
+            zone_wkb = zone.geom
+            shapely_geom = to_shape(zone_wkb)
+            zone_wkt = shapely_geom.wkt
+            zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, source_srs)
+
+            warp_options = gdal.WarpOptions(cutlineWKT=zone_geom, cutlineSRS=zone_geom.GetSpatialReference(), cropToCutline=True)
+
+            conifer_path = "/vsimem/percent_conifer.tif"
+            intersected_ds: gdal.Dataset = gdal.Warp(conifer_path, conifer_ds, options=warp_options)
+            pct_conifer_clip = intersected_ds.GetRasterBand(1).ReadAsArray()
+
+            hfi_path = "/vsimem/zone_hfi.tif"
+            intersected_ds: gdal.Dataset = gdal.Warp(hfi_path, hfi_ds, options=warp_options)
+            hfi_array_clip = intersected_ds.GetRasterBand(1).ReadAsArray()
+
+            # make sure the previous in-memory files are deleted before the next loop
+            gdal.Unlink(conifer_path)
+            gdal.Unlink(hfi_path)
+
+            min_pct_conifer = get_minimum_percent_conifer_for_hfi(pct_conifer_clip, hfi_array_clip)
+
+            if min_pct_conifer:
+                record = AdvisoryHFIPercentConifer(
+                    advisory_shape_id=zone.id,
+                    fuel_type=mixed_fuel_record.id,
+                    run_parameters=run_parameters_id,
+                    min_percent_conifer=int(min_pct_conifer),
+                )
+                all_hfi_conifer_percent_to_save.append(record)
+
+    await save_all_percent_conifer(session, all_hfi_conifer_percent_to_save)
+
+
+def get_minimum_percent_conifer_for_hfi(pct_conifer_array: np.ndarray, hfi_array: np.ndarray) -> float:
+    """
+    Extracts the minimum percent conifer given an array of hfi data and a threshold.
+    The percent conifer grid only has values above 0 where there is M-1/M-2 fuel type in the fuel grid.
+
+    :param pct_conifer_array: Array of wind speed values extracted from raster
+    :param hfi_array: Array of hfi values extracted from raster
+    :return: minimum percent conifer
+    """
+    mask = (hfi_array > 4000) & (pct_conifer_array > 0)
+    min_pct_conifer = np.nanmin(pct_conifer_array[mask]) if np.any(mask) else None
+
+    return min_pct_conifer
+
+
+async def save_all_percent_conifer(session: AsyncSession, hfi_min_percent_conifer: list[AdvisoryHFIPercentConifer]):
+    logger.info("Writing HFI Advisory Minimum Percent Conifer")
+    session.add_all(hfi_min_percent_conifer)
+
+
+## Helper functions for local testing
+
+
+async def start_hfi_percent_conifer(args: argparse.Namespace):
+    async with get_async_write_session_scope() as db_session:
+        run_parameters = await get_run_parameters_by_id(db_session, int(args.run_parameters_id))
+        if not run_parameters:
+            return
+
+        run_param = run_parameters[0]
+        run_type, run_datetime, for_date = run_param.run_type, run_param.run_datetime, run_param.for_date
+        await process_hfi_percent_conifer(run_type, run_datetime, for_date)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Process hfi percent conifer from command line")
+    parser.add_argument("-r", "--run_parameters_id", help="The id of the run parameters of interest from the run_parameters table")
+
+    args = parser.parse_args()
+
+    asyncio.run(start_hfi_percent_conifer(args))
+
+
+if __name__ == "__main__":
+    configure_logging()
+    main()

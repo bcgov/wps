@@ -177,8 +177,13 @@ def rasters_match(raster1: gdal.Dataset, raster2: gdal.Dataset) -> bool:
         and rows1 == rows2
     )
 
-    # Check projection
-    projection_match = projection1 == projection2
+    # Check projection using osr.SpatialReference
+    srs1 = osr.SpatialReference()
+    srs2 = osr.SpatialReference()
+    srs1.ImportFromWkt(projection1)
+    srs2.ImportFromWkt(projection2)
+
+    projection_match = srs1.IsSame(srs2) == 1  # `IsSame()` returns 1 if the projections are equivalent
 
     return pixel_size_match and extent_match and projection_match
 
