@@ -10,7 +10,7 @@ import shutil
 import sys
 import tempfile
 from wps_shared.logging import configure_logging
-from wps_shared.db.crud.snow import get_last_processed_snow_by_source, save_processed_snow
+from wps_shared.db.crud.snow import get_last_processed_snow_by_processed_date, save_processed_snow
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.snow import ProcessedSnow, SnowSourceEnum
 from wps_shared import config
@@ -55,14 +55,14 @@ class ViirsSnowJob():
     """ Job that downloads and processed VIIRS snow coverage data from the NSIDC (https://nsidc.org).
     """
 
-    async def _get_last_processed_date(self) -> date:
+    async def _get_last_processed_date(self, for_date: datetime) -> date:
         """ Return the date of the most recent successful processing of VIIRS snow data.
 
         :return: The date of the most recent successful processing of VIIRS snow data.
         :rtype: date
         """
         async with get_async_read_session_scope() as session:
-            last_processed = await get_last_processed_snow_by_source(session, SnowSourceEnum.viirs)
+            last_processed = await get_last_processed_snow_by_processed_date(session, for_date, SnowSourceEnum.viirs)
             return None if last_processed is None else last_processed[0].for_date.date()
     
 
@@ -229,14 +229,15 @@ class ViirsSnowJob():
     async def _run_viirs_snow(self):
         """ Entry point for running the job.
         """
+        today_datetime = datetime.now(tz=vancouver_tz)
         # Grab the date from our database of the last successful processing of VIIRS snow data.
-        last_processed_date = await self._get_last_processed_date()
-        today = date.today()
+        last_processed_date = await self._get_last_processed_date(today_datetime)
+        today = today_datetime.date()
         if last_processed_date is None:
             # Case to cover the initial run of VIIRS snow processing (ie. start processing yesterday)
             next_date = today - timedelta(days=1)
         elif today - last_processed_date > timedelta(days=14):
-            # Jan 13, 2025 - Start gathering snow data from the start of 2025 give or take a day
+            # Jan 13, 2025 - Start gathering snow data from two weeks ago
             next_date = today - timedelta(days=14)
         else:
             # Start processing the day after the last record of a successful job.
