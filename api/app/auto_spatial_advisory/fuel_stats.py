@@ -39,7 +39,8 @@ def get_optional_percent_curing(grass_curing_date: date, sfms_fuel_type: DBSFMSF
     return None
 
 def get_fuel_type_area_stats(grass_curing_date: date,
-                             sfms_fuel_types: List[(DBSFMSFuelType)], 
+                             sfms_fuel_types: List[(DBSFMSFuelType)],
+                             percent_conifer: Optional[int],
                              thresholds: List[HfiClassificationThreshold], 
                              critical_hour_start: Optional[float],
                              critical_hour_end: Optional[float],
@@ -53,9 +54,10 @@ def get_fuel_type_area_stats(grass_curing_date: date,
     fuel_area = fuel_area / 10000
     fuel_type_obj: DBSFMSFuelType = next((ft[0] for ft in sfms_fuel_types if ft[0].id == fuel_type_id), None)
     percent_curing = get_optional_percent_curing(grass_curing_date, fuel_type_obj)
+    fuel_type_code_details = fuel_type_obj.fuel_type_code + (f" (≥{percent_conifer} PC)" if percent_conifer is not None else "")
     threshold_obj: HfiClassificationThreshold = next((th for th in thresholds if th.id == threshold_id), None)
     return ClassifiedHfiThresholdFuelTypeArea(
-        fuel_type=SFMSFuelType(fuel_type_id=fuel_type_obj.fuel_type_id, fuel_type_code=fuel_type_obj.fuel_type_code, description=fuel_type_obj.description),
+        fuel_type=SFMSFuelType(fuel_type_id=fuel_type_obj.fuel_type_id, fuel_type_code=fuel_type_code_details, description=fuel_type_obj.description),
         threshold=HfiThreshold(id=threshold_obj.id, name=threshold_obj.name, description=threshold_obj.description),
         critical_hours=AdvisoryCriticalHours(start_time=critical_hour_start, end_time=critical_hour_end),
         area=area,

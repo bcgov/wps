@@ -63,7 +63,7 @@ def test_90_percent_curing(for_date: date):
 def test_get_fuel_type_area_stats():
     area=50000
     fuel_area=60000
-    res = get_fuel_type_area_stats(date(2024, 11, 1), [(grass_fuel_type, non_grass_fuel_type)], [HfiClassificationThreshold(id=1, description="4000 < hfi < 10000", name="advisory")], critical_hour_start=8, critical_hour_end=12, fuel_type_id=12, threshold_id=1, area=area, fuel_area=fuel_area)
+    res = get_fuel_type_area_stats(date(2024, 11, 1), [(grass_fuel_type, non_grass_fuel_type)], None, [HfiClassificationThreshold(id=1, description="4000 < hfi < 10000", name="advisory")], critical_hour_start=8, critical_hour_end=12, fuel_type_id=12, threshold_id=1, area=area, fuel_area=fuel_area)
     assert res.area == area / 10000
     assert res.fuel_area == fuel_area / 10000
     assert res.percent_curing == 60
@@ -72,7 +72,18 @@ def test_get_fuel_type_area_stats():
 def test_get_fuel_type_area_stats_non_grass():
     area=50000
     fuel_area=60000
-    res = get_fuel_type_area_stats(date(2024, 11, 1), [(non_grass_fuel_type, grass_fuel_type)], [HfiClassificationThreshold(id=1, description="4000 < hfi < 10000", name="advisory")], critical_hour_start=8, critical_hour_end=12, fuel_type_id=14, threshold_id=1, area=area, fuel_area=fuel_area)
+    res = get_fuel_type_area_stats(date(2024, 11, 1), [(non_grass_fuel_type, grass_fuel_type)], None, [HfiClassificationThreshold(id=1, description="4000 < hfi < 10000", name="advisory")], critical_hour_start=8, critical_hour_end=12, fuel_type_id=14, threshold_id=1, area=area, fuel_area=fuel_area)
     assert res.area == area / 10000
     assert res.fuel_area == fuel_area / 10000
     assert res.percent_curing is None
+
+
+def test_get_fuel_type_area_stats_percent_conifer():
+    area=50000
+    fuel_area=60000
+    percent_conifer = 1
+    res = get_fuel_type_area_stats(date(2024, 11, 1), [(non_grass_fuel_type, grass_fuel_type)], percent_conifer, [HfiClassificationThreshold(id=1, description="4000 < hfi < 10000", name="advisory")], critical_hour_start=8, critical_hour_end=12, fuel_type_id=14, threshold_id=1, area=area, fuel_area=fuel_area)
+    assert res.area == area / 10000
+    assert res.fuel_area == fuel_area / 10000
+    assert res.percent_curing is None
+    assert res.fuel_type.fuel_type_code == f"M-1/M-2 (≥{percent_conifer} PC)"

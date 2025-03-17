@@ -126,8 +126,8 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
             )
             zone_data = []
 
-            for critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, fuel_area in hfi_fuel_type_ids_for_zone:
-                fuel_type_area_stats = get_fuel_type_area_stats(for_date, fuel_types, thresholds, critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, fuel_area)
+            for critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, fuel_area, percent_conifer in hfi_fuel_type_ids_for_zone:
+                fuel_type_area_stats = get_fuel_type_area_stats(for_date, fuel_types, percent_conifer, thresholds, critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, fuel_area)
                 zone_data.append(fuel_type_area_stats)
             all_zone_data[zone_id] = zone_data
 
