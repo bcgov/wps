@@ -34,6 +34,7 @@ def tippecanoe_wrapper(geojson_filepath: str, output_pmtiles_filepath: str, min_
             "--force",
             "--quiet",
             "--coalesce",
+            "--reorder",
         ],
         check=True,
     )
