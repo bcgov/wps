@@ -8,6 +8,7 @@ import { DateTime } from 'luxon'
 
 export const BC_ROAD_BASE_MAP_SERVER_URL = 'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
 export const SNOW_LAYER_NAME = 'snowVector'
+const FBP_ZOOM_THRESHOLD = 8
 
 const basemapSource = new XYZ({
     url: `${BC_ROAD_BASE_MAP_SERVER_URL}/tile/{z}/{y}/{x}`
@@ -16,15 +17,32 @@ const basemapSource = new XYZ({
 export const basemapLayer = new TileLayer({source: basemapSource})
 
 
-const fuelGridVectorSource = new PMTilesVectorSource({
+const fuelGrid2000mVectorSource = new PMTilesVectorSource({
 url: `${PMTILES_BUCKET}fuel/fbp2024.pmtiles`
 })
 
-export const fuelGridVTL = new VectorTileLayer({
-source: fuelGridVectorSource,
-style: styleFuelGrid(),
-zIndex: 51,
-opacity: 0.6
+// Coarse fuel grid layer visible at low zoom levels (levels 1-8).
+export const fuelGrid2000mVTL = new VectorTileLayer({
+  source: fuelGrid2000mVectorSource,
+  style: styleFuelGrid(),
+  zIndex: 51,
+  opacity: 0.6,
+  maxZoom: FBP_ZOOM_THRESHOLD
+})
+
+const fuelGrid500mVectorSource = new PMTilesVectorSource({
+  url: `${PMTILES_BUCKET}fuel/fbp2024_500m.pmtiles`
+})
+
+// Fine fuel grid layer visible at zoom levels > 8. At zoom levels < 8 the high number of features in the 500m fuel grid tif leads to
+// tiles that are too large (>500KB) and features get removed from the tile. We work around this by displaying the 2000m grid at low
+// zoom levels and the 500m grid at higher zoom levels.
+export const fuelGrid500mVTL = new VectorTileLayer({
+  source: fuelGrid500mVectorSource,
+  style: styleFuelGrid(),
+  zIndex: 51,
+  opacity: 0.6,
+  minZoom: FBP_ZOOM_THRESHOLD
 })
 
 export const getSnowPMTilesLayer = (snowDate: DateTime) => {

@@ -7,17 +7,10 @@ import 'ol/ol.css'
 import { fromLonLat } from 'ol/proj'
 import { Box } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
-import {
-  basemapLayer,
-  fuelGridVTL,
-  getSnowPMTilesLayer,
-  SNOW_LAYER_NAME
-} from 'features/sfmsInsights/components/map/layerDefinitions'
+import { basemapLayer, fuelGrid500mVTL, fuelGrid2000mVTL } from 'features/sfmsInsights/components/map/layerDefinitions'
 import { DateTime } from 'luxon'
-import { isNull } from 'lodash'
 
 const MapContext = React.createContext<Map | null>(null)
-
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 interface SFMSMapProps {
@@ -43,7 +36,7 @@ const SFMSMap = ({ snowDate }: SFMSMapProps) => {
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [basemapLayer, fuelGridVTL],
+      layers: [basemapLayer, fuelGrid2000mVTL, fuelGrid500mVTL],
       controls: defaultControls(),
       view: new View({
         zoom: 5,
@@ -58,15 +51,15 @@ const SFMSMap = ({ snowDate }: SFMSMapProps) => {
     }
   }, [])
 
-  useEffect(() => {
-    if (!map) {
-      return
-    }
-    removeLayerByName(map, SNOW_LAYER_NAME)
-    if (!isNull(snowDate)) {
-      map.addLayer(getSnowPMTilesLayer(snowDate))
-    }
-  }, [snowDate])
+  // useEffect(() => {
+  //   if (!map) {
+  //     return
+  //   }
+  //   removeLayerByName(map, SNOW_LAYER_NAME)
+  //   if (!isNull(snowDate)) {
+  //     map.addLayer(getSnowPMTilesLayer(snowDate))
+  //   }
+  // }, [snowDate])
 
   return (
     <ErrorBoundary>
