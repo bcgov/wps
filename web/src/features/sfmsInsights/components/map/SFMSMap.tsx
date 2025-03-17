@@ -7,7 +7,7 @@ import 'ol/ol.css'
 import { fromLonLat } from 'ol/proj'
 import { Box } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
-import { basemapLayer, fuelGrid500mVTL, fuelGrid2000mVTL } from 'features/sfmsInsights/components/map/layerDefinitions'
+import { basemapLayer, fuelGridVTL } from 'features/sfmsInsights/components/map/layerDefinitions'
 import { DateTime } from 'luxon'
 
 const MapContext = React.createContext<Map | null>(null)
@@ -36,7 +36,7 @@ const SFMSMap = ({ snowDate }: SFMSMapProps) => {
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [basemapLayer, fuelGrid2000mVTL, fuelGrid500mVTL],
+      layers: [basemapLayer, fuelGridVTL],
       controls: defaultControls(),
       view: new View({
         zoom: 5,
