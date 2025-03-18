@@ -17,7 +17,6 @@ import { DateTime } from 'luxon'
 import { isNull } from 'lodash'
 
 const MapContext = React.createContext<Map | null>(null)
-
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 interface SFMSMapProps {

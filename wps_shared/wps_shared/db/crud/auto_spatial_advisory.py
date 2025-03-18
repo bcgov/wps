@@ -197,6 +197,7 @@ async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTy
                 AdvisoryFuelStats.fuel_type == CriticalHours.fuel_type,
                 AdvisoryFuelStats.advisory_shape_id == CriticalHours.advisory_shape_id,
             ),
+            isouter=True,
         )
         .join(Shape, AdvisoryFuelStats.advisory_shape_id == Shape.id)
         .join(
