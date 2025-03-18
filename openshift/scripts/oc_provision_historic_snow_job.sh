@@ -19,7 +19,7 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/historical_snow_job.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/historic-snow-job.yaml \
 -p NAME=${APP_NAME} \
 -p SUFFIX=${SUFFIX} \
 -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \

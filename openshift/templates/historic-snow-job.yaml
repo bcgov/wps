@@ -44,9 +44,9 @@ objects:
                 - python
                 - "-m"
                 - app.jobs.viirs_snow
-                - "s"
+                - "-s"
                 - "${START_DATETIME}"
-                - "e"
+                - "-e"
                 - "${END_DATETIME}"
               env:
                 - name: POSTGRES_DATABASE
@@ -118,13 +118,23 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.fuel_raster_name
+                - name: NASA_EARTHDATA_USER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.nasa-earthdata-user
+                - name: NASA_EARTHDATA_PWD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: nasa-earthdata-pwd
               resources:
                 limits:
                   cpu: "1"
-                  memory: 1Gi
+                  memory: 2Gi
                 requests:
                   cpu: 500m
-                  memory: 512Mi
+                  memory: 1Gi
               terminationMessagePath: /dev/termination-log
               terminationMessagePolicy: File
               imagePullPolicy: Always
