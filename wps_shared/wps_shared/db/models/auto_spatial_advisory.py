@@ -273,6 +273,7 @@ class AdvisoryHFIWindSpeed(Base):
     id = Column(Integer, primary_key=True, index=True)
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
     threshold = Column(postgresql.ENUM("advisory", "warning", name="hficlassificationthresholdenum", create_type=False), nullable=False)
+    threshold_temp = Column(Integer, ForeignKey(HfiClassificationThreshold.id), nullable=True, index=True)
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
     min_wind_speed = Column(Float, nullable=True)
 
