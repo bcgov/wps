@@ -1,3 +1,4 @@
+import argparse
 from datetime import date, datetime, timedelta
 from osgeo import gdal
 import asyncio
@@ -224,39 +225,72 @@ class ViirsSnowJob():
             # Create pmtiles file and save to S3
             await self._create_pmtiles_layer(sub_dir, for_date)
 
+    async def _run_viirs_snow_default(self):
+        """Logic for determining start and end dates for processing snow coverage data via a cronjob."""
+        end_datetime = datetime.now(tz=vancouver_tz)
 
-
-    async def _run_viirs_snow(self):
-        """ Entry point for running the job.
-        """
-        today_datetime = datetime.now(tz=vancouver_tz)
         # Grab the date from our database of the last successful processing of VIIRS snow data.
-        last_processed_date = await self._get_last_processed_date(today_datetime)
-        today = today_datetime.date()
+        last_processed_date = await self._get_last_processed_date(end_datetime)
+        end_date = end_datetime.date()
         if last_processed_date is None:
             # Case to cover the initial run of VIIRS snow processing (ie. start processing yesterday)
-            next_date = today - timedelta(days=1)
-        elif today - last_processed_date > timedelta(days=14):
+            start_date = end_date - timedelta(days=1)
+        elif end_date - last_processed_date > timedelta(days=14):
             # Jan 13, 2025 - Start gathering snow data from two weeks ago
-            next_date = today - timedelta(days=14)
+            start_date = end_date - timedelta(days=14)
         else:
             # Start processing the day after the last record of a successful job.
-            next_date = last_processed_date + timedelta(days=1)
-        if next_date >= today:
+            start_date = last_processed_date + timedelta(days=1)
+        if start_date >= end_date:
             logger.info("Processing of VIIRS snow data is up to date.")
             return
+        await self._run_viirs_snow_by_date(start_date, end_date)
+
+    async def _run_viirs_snow_with_args(self, args: argparse.Namespace):
+        """Logic for processing snow coverage data for a start and end date provided as command line arguments."""
+        start_datetime = datetime.fromisoformat(args.start_datetime)
+        end_datetime = datetime.fromisoformat(args.end_datetime)
+        if start_datetime is None:
+            logger.warning(" The start_arg is required to process viirs snow with arguments.")
+            return
+        if end_datetime is None:
+            logger.warning(" The end_arg is required to process viirs snow with arguments.")
+            return
+        await self._run_viirs_snow_by_date(start_datetime.date(), end_datetime.date())
+
+    async def _run_viirs_snow_by_date(self, next_date: date, end_date: date):
+        """Process snow coverage data from next_date to end_date (inclusive).
+
+        Args:
+            next_date (date): The first date at which to start processing snow.
+            end_date (date): The last date to process snow for.
+
+        Raises:
+            http_error: Missing snow data results in a 501 error which is logged and swallowed. All other HTTP errors are surfaced.
+        """
+        if next_date is None:
+            logger.warning(" The start_date is required to process viirs snow.")
+            return
+        if end_date is None:
+            logger.warning(" The end_date is required to process viirs snow.")
+            return
+        if next_date >= end_date:
+            logger.info("Processing of VIIRS snow data is up to date.")
+            return
+        today_datetime = datetime.now(tz=vancouver_tz)
         with tempfile.TemporaryDirectory() as temp_dir:
             # Get the bc_boundary.geojson in a temp_dir. This is expensive so we only want to do this once.
             logger.info("Downloading bc_boundary.geojson from S3.")
             await self._get_bc_boundary_from_s3(temp_dir)
-            while next_date < today:
+            while next_date <= end_date:
+                start = datetime.now()
                 date_string = next_date.strftime('%Y-%m-%d')
                 logger.info(f"Processing snow coverage data for date: {date_string}")
                 tz_aware_datetime = vancouver_tz.localize(datetime.combine(next_date, datetime.min.time()))
                 try: 
                     await self._process_viirs_snow(next_date, temp_dir)
                     async with get_async_write_session_scope() as session:
-                        processed_snow = ProcessedSnow(for_date=tz_aware_datetime, processed_date=today, snow_source=SnowSourceEnum.viirs)
+                        processed_snow = ProcessedSnow(for_date=tz_aware_datetime, processed_date=today_datetime, snow_source=SnowSourceEnum.viirs)
                         await save_processed_snow(session, processed_snow)
                     logger.info(f"Successfully processed VIIRS snow coverage data for date: {date_string}")
                 except requests.exceptions.HTTPError as http_error:
@@ -271,11 +305,28 @@ class ViirsSnowJob():
                         # If a different HTTPError occurred re-raise and let the next exception handler send a notification to RocketChat.
                         raise http_error
                 next_date = next_date + timedelta(days=1)
+                end = datetime.now()
+                print(f"Snow time: {end - start}")
+
+    async def _run_viirs_snow(self, args: argparse.Namespace):
+        """Entry point for running the job."""
+        if args.start_datetime is not None and args.end_datetime is not None:
+            # Path for reprocessing snow coverage data with provided start and end dates.
+            await self._run_viirs_snow_with_args(args)
+        else:
+            # Path for typical daily update of snow coverage data.
+            await self._run_viirs_snow_default()
 
 
 def main():
     """ Kicks off asynchronous processing of VIIRS snow coverage data.
     """
+    parser = argparse.ArgumentParser(description="Process snow coverage data by date")
+    parser.add_argument("-s", "--start_datetime", help="The first datetime to start processing snow for.")
+    parser.add_argument("-e", "--end_datetime", help="The last datetime to process snow for.")
+
+    args = parser.parse_args()
+
     try:
         # We don't want gdal to silently swallow errors.
         gdal.UseExceptions()
@@ -284,7 +335,7 @@ def main():
         bot = ViirsSnowJob()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(bot._run_viirs_snow())
+        loop.run_until_complete(bot._run_viirs_snow(args))
 
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
