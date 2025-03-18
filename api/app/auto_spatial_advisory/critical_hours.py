@@ -284,6 +284,9 @@ def calculate_critical_hours_by_fuel_type(wfwx_stations: List[WFWXWeatherStation
                 elif fuel_type_key.startswith("M"):
                     # Raster fuel grid doesn't differentiate between M1 and M2 so we use SFMS dates to choose which one we want
                     fuel_type_enum = FuelTypeEnum.M2 if is_greenup_period else FuelTypeEnum.M1
+                elif fuel_type_key.startswith("D"):
+                    # Raster fuel grid doesn't differentiate between D1 and D2 so we use SFMS dates to choose which one we want
+                    fuel_type_enum = FuelTypeEnum.D2 if is_greenup_period else FuelTypeEnum.D1
                 else:
                     fuel_type_enum = FuelTypeEnum(fuel_type_key.replace("-", ""))
                 try:
@@ -463,7 +466,7 @@ async def store_critical_hours_inputs_outputs(critical_hours_data: Dict[int, Cri
                     )
                 )
             except Exception as e:
-                logger.error(f"Error converting critical hours data to json - {e}")
+                logger.error(f"Error writing critical hours data to s3 - {e}")
 
 
 async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, for_date: date):

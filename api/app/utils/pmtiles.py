@@ -2,6 +2,13 @@ from osgeo import gdal, ogr
 import os
 import subprocess
 
+# There are a lot of tippecanoe command line arguments worth exploring. The "--coalesce" option was required when creating
+# a pmtiles file from the 500m fuel grid. The 500m fuel grid had too many features per tile and increased tile size above 500KB
+# which tippecanoe did not like. The tippecanoe cli suggested a couple of command line options which resulted in the number of
+# features in the tile being decreased leading to unacceptable visual artifacts. The "--coalesce" option merges small features
+# with identical attributes into larger features with a net result of decreasing tile size a while maintaining the correct
+# visual representation of the underlying tif.
+
 
 def tippecanoe_wrapper(geojson_filepath: str, output_pmtiles_filepath: str, min_zoom: int = 4, max_zoom: int = 11):
     """
@@ -16,16 +23,20 @@ def tippecanoe_wrapper(geojson_filepath: str, output_pmtiles_filepath: str, min_
     :param max_zoom: pmtiles zoom in level
     :type max_zoom: int
     """
-    subprocess.run([
-        'tippecanoe',
-        f'--minimum-zoom={min_zoom}',
-        f'--maximum-zoom={max_zoom}',
-        '--projection=EPSG:4326',
-        f'--output={output_pmtiles_filepath}',
-        f'{geojson_filepath}',
-        '--force',
-        '--quiet'
-    ], check=True
+    subprocess.run(
+        [
+            "tippecanoe",
+            f"--minimum-zoom={min_zoom}",
+            f"--maximum-zoom={max_zoom}",
+            "--projection=EPSG:4326",
+            f"--output={output_pmtiles_filepath}",
+            f"{geojson_filepath}",
+            "--force",
+            "--quiet",
+            "--coalesce",
+            "--reorder",
+        ],
+        check=True,
     )
 
 
