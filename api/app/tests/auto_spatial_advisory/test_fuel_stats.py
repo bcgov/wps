@@ -17,7 +17,7 @@ def test_percent_curing_non_fuel():
     [
         (date(2024, 11, 1)), # nov 1, start of range
         (date(2024, 12, 22)), # dev 22, mid range
-        (date(2024, 7, 15)), # jul 15, end of range
+        (date(2025, 7, 15)), # jul 15, end of range
     ],
 )
 def test_60_percent_curing(for_date: date):
