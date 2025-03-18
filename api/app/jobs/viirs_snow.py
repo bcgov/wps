@@ -283,7 +283,6 @@ class ViirsSnowJob():
             logger.info("Downloading bc_boundary.geojson from S3.")
             await self._get_bc_boundary_from_s3(temp_dir)
             while next_date <= end_date:
-                start = datetime.now()
                 date_string = next_date.strftime('%Y-%m-%d')
                 logger.info(f"Processing snow coverage data for date: {date_string}")
                 tz_aware_datetime = vancouver_tz.localize(datetime.combine(next_date, datetime.min.time()))
@@ -305,8 +304,6 @@ class ViirsSnowJob():
                         # If a different HTTPError occurred re-raise and let the next exception handler send a notification to RocketChat.
                         raise http_error
                 next_date = next_date + timedelta(days=1)
-                end = datetime.now()
-                print(f"Snow time: {end - start}")
 
     async def _run_viirs_snow(self, args: argparse.Namespace):
         """Entry point for running the job."""
