@@ -58,4 +58,6 @@ def upgrade():
 
 
 def downgrade():
-    advisory_hfi_wind_speed_table.update().values(threshold_temp=None)
+    session = Session(bind=op.get_bind())
+    downgrade_stmt = advisory_hfi_wind_speed_table.update().values(threshold_temp=None)
+    session.execute(downgrade_stmt)
