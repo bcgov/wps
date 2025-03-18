@@ -77,7 +77,7 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
     fire_zone_shape_type_id = await get_fire_zone_unit_shape_type_id(session)
     zone_units = await get_fire_zone_units(session, fire_zone_shape_type_id)
     srid = await get_table_srid(session, Shape) or 3005  # default to bc albers
-    advisory_ids = await get_hfi_threshold_ids(session)
+    advisory_id_lut = await get_hfi_threshold_ids(session)
 
     source_srs = osr.SpatialReference()
     source_srs.ImportFromEPSG(srid)
@@ -111,7 +111,7 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
             gdal.Unlink(hfi_path)
 
             # Compute minimum wind speed for each HFI range
-            hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(wind_array_clip, hfi_array_clip)
+            hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(wind_array_clip, hfi_array_clip, advisory_id_lut)
 
             records_to_save = create_hfi_wind_speed_record(zone.id, hfi_min_wind_speeds, run_parameters_id)
 
