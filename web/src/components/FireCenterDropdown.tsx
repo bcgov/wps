@@ -16,7 +16,7 @@ const FireCenterDropdown = (props: FireCenterDropdownProps) => {
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
     if (!isEqual(props.selectedFireCenter, value)) {
       props.setSelectedFireShape(undefined)
-      props.setSelectedFireCenter(value)
+      props.setSelectedFireCenter(value ?? undefined)
       props.setZoomSource('fireCenter')
     }
     if (isNull(value)) {
