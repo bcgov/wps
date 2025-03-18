@@ -24,11 +24,10 @@ def get_optional_percent_curing(grass_curing_date: date, sfms_fuel_type: DBSFMSF
         return None
     
     # we can straddle a prev calendar year and the next calendar year with this date range case, nov 1, 2024 and jul 15, 2025
-    if grass_curing_date.month == 11 or grass_curing_date.month == 12:
-        if grass_curing_date >= date(grass_curing_date.year, 11, 1) and grass_curing_date <= date(grass_curing_date.year + 1, 7, 15):
-            return 60
-    elif grass_curing_date <= date(grass_curing_date.year, 7, 15):
-            return 60
+    if grass_curing_date >= date(grass_curing_date.year, 11, 1) and grass_curing_date <= date(grass_curing_date.year + 1, 7, 15):
+        return 60
+    if grass_curing_date <= date(grass_curing_date.year, 7, 15):
+        return 60
     if grass_curing_date >= date(grass_curing_date.year, 7, 16) and grass_curing_date <= date(grass_curing_date.year, 7, 30):
         return 70
     if grass_curing_date >= date(grass_curing_date.year, 7, 31) and grass_curing_date <= date(grass_curing_date.year, 8, 15):
