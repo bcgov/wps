@@ -88,10 +88,10 @@ async def process_hfi(run_type: RunType, run_datetime: datetime, for_date: date)
 
     # Skip if we already have this run
     async with get_async_read_session_scope() as session:
-        # existing_run = await get_run_parameters_id(session, run_type, run_datetime, for_date)
-        # if existing_run is not None:
-        #     logger.info((f"Skipping run, already processed for run_type:{run_type}" f"run_datetime:{run_datetime}," f"for_date:{for_date}"))
-        #     return
+        existing_run = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+        if existing_run is not None:
+            logger.info((f"Skipping run, already processed for run_type:{run_type}" f"run_datetime:{run_datetime}," f"for_date:{for_date}"))
+            return
         last_processed_snow = await get_most_recent_processed_snow_by_date(session, for_date, SnowSourceEnum.viirs)
 
     logger.info("Processing HFI %s for run date: %s, for date: %s", run_type, run_datetime, for_date)
