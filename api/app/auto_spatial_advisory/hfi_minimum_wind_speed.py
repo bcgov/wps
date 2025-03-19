@@ -39,7 +39,7 @@ async def process_hfi_min_wind_speed(run_type: RunType, run_datetime: datetime, 
     Entry point for calculating minimum wind speed for each advisory threshold
 
     :param run_type: The run type, either forecast or actual.
-    :param run_datetime: The date and time of the sfms run.
+    :param run_datetime: The date and time of the sfms run in UTC.
     :param for_date: The date being calculated for.
     """
     logger.info(f"Calculating minimum wind speed for {run_type} run type on run date: {run_datetime}, for date: {for_date}")

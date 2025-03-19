@@ -32,18 +32,17 @@ def parse_nats_message(msg: Msg):
     Parse the fields from the messages to drive the processing.
 
     :param msg: NATS message
-    :return: A tuple of run_type, run_date, run_datetime, and for_date. run_date and for_date are the dates in local Vancouver time.
-    run_datetime is in utc time. This is important as run_datetime and run_date may fall on different dates.
+    :return: A tuple of run_type, run_datetime, and for_date. for_date is in local Vancouver time.
+    run_datetime is in utc time.
     """
     if msg.subject == sfms_file_subject:
         decoded_msg = json.loads(json.loads(msg.data.decode()))
         run_type = RunType.from_str(decoded_msg["run_type"])
-        run_date = datetime.strptime(decoded_msg["run_date"], "%Y-%m-%d").date()
         for_date = datetime.strptime(decoded_msg["for_date"], "%Y-%m-%d").date()
         # SFMS doesn't give us a timezone, but from the 2022 data it runs in local time
         # so we localize it as such then convert it to UTC
         run_datetime = get_utc_datetime(datetime.fromisoformat(decoded_msg["create_time"]))
-        return (run_type, run_date, run_datetime, for_date)
+        return (run_type, run_datetime, for_date)
 
 
 async def run():
@@ -79,10 +78,10 @@ async def run():
             try:
                 logger.info("Msg received - {}\n".format(msg))
                 await msg.ack()
-                run_type, run_date, run_datetime, for_date = parse_nats_message(msg)
-                logger.info("Awaiting process_hfi({}, {}, {})\n".format(run_type, run_date, for_date))
-                await process_hfi(run_type, run_date, run_datetime, for_date)
-                await process_hfi_elevation(run_type, run_date, run_datetime, for_date)
+                run_type, run_datetime, for_date = parse_nats_message(msg)
+                logger.info("Awaiting process_hfi({}, {}, {})\n".format(run_type, run_datetime, for_date))
+                await process_hfi(run_type, run_datetime, for_date)
+                await process_hfi_elevation(run_type, run_datetime, for_date)
                 await process_high_hfi_area(run_type, run_datetime, for_date)
                 await process_fuel_type_hfi_by_shape(run_type, run_datetime, for_date)
                 await process_hfi_min_wind_speed(run_type, run_datetime, for_date)

@@ -43,7 +43,7 @@ async def process_hfi_percent_conifer(run_type: RunType, run_datetime: datetime,
     Entry point for calculating minimum percent conifer for hfi > 4000 (above advisory level)
 
     :param run_type: The run type, either forecast or actual.
-    :param run_datetime: The date and time of the sfms run.
+    :param run_datetime: The date and time of the sfms run in UTC.
     :param for_date: The date being calculated for.
     """
     logger.info(f"Calculating minimum percent conifer for {run_type} run type on run date: {run_datetime}, for date: {for_date}")
