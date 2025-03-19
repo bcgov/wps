@@ -11,7 +11,7 @@ def get_pmtiles_filepath(run_datetime: datetime, run_type: RunType, filename: st
     Example: {bucket}/psu/pmtiles/hfi/actual/[issue/run_date]/hfi[for_date].pmtiles
 
 
-    :param run_date: The date of the run to process. (when was the hfi file created?)
+    :param run_datetime: The date and time of the run to process. (when was the hfi file created?)
     :param run_type: forecast or actual
     :param filename: hfi[for_date].pmtiles -> hfi20230821.pmtiles
     :return: s3 bucket key for pmtiles file
@@ -38,7 +38,7 @@ def get_snow_masked_hfi_filepath(run_datetime: datetime, run_type: RunType, file
     Example: {bucket}/psu/rasters/hfi/actual/[issue/run_date]/snow_masked_hfi[for_date].tif
 
 
-    :param run_date: The datetime of the run to process. (when was the hfi file created?)
+    :param run_datetime: The datetime of the run to process. (when was the hfi file created?)
     :param run_type: forecast or actual
     :param filename: snow_masked_hfi[for_date].tif -> snow_masked_hfi20230821.tif
     :return: s3 bucket key for raster file
