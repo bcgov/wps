@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_type_id, get_fire_zone_units, get_run_parameters_by_id, get_run_parameters_id, get_table_srid
 from wps_shared.db.database import get_async_write_session_scope
-from wps_shared.db.models.auto_spatial_advisory import HfiClassificationThresholdEnum, AdvisoryHFIWindSpeed, Shape
+from wps_shared.db.models.auto_spatial_advisory import HfiClassificationThresholdEnum, AdvisoryHFIWindSpeed, Shape, HfiClassificationThreshold
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal, rasters_match
 from wps_shared.logging import configure_logging
 from wps_shared.run_type import RunType
@@ -77,6 +77,7 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
     fire_zone_shape_type_id = await get_fire_zone_unit_shape_type_id(session)
     zone_units = await get_fire_zone_units(session, fire_zone_shape_type_id)
     srid = await get_table_srid(session, Shape) or 3005  # default to bc albers
+    advisory_id_lut = await get_hfi_threshold_ids(session)
 
     source_srs = osr.SpatialReference()
     source_srs.ImportFromEPSG(srid)
@@ -110,7 +111,7 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
             gdal.Unlink(hfi_path)
 
             # Compute minimum wind speed for each HFI range
-            hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(wind_array_clip, hfi_array_clip)
+            hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(wind_array_clip, hfi_array_clip, advisory_id_lut)
 
             records_to_save = create_hfi_wind_speed_record(zone.id, hfi_min_wind_speeds, run_parameters_id)
 
@@ -119,7 +120,7 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
     await save_all_hfi_wind_speeds(session, all_hfi_min_wind_speeds_to_save)
 
 
-def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.ndarray) -> dict[HfiClassificationThresholdEnum, float | None]:
+def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.ndarray, advisory_id_lut: dict[str, int]) -> dict[int, float | None]:
     """
     Calculates the minimum wind speed for each HfiClassificationThresholdEnum given a wind speed array and an hfi array.
 
@@ -127,31 +128,39 @@ def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.n
     :param hfi_array: Array of hfi values extracted from raster
     :return: Dict of advisory level and it's corresponding minimum wind speed
     """
-    hfi_classes = {
-        HfiClassificationThresholdEnum.ADVISORY.value: (hfi_array >= 4000) & (hfi_array < 10000),
-        HfiClassificationThresholdEnum.WARNING.value: (hfi_array >= 10000),
+    hfi_class_ids = {
+        advisory_id_lut[HfiClassificationThresholdEnum.ADVISORY.value]: (hfi_array >= 4000) & (hfi_array < 10000),
+        advisory_id_lut[HfiClassificationThresholdEnum.WARNING.value]: (hfi_array >= 10000),
     }
 
     # Compute minimum wind speed for each classification
-    min_wind_speeds = {}
-    for hfi_class, mask in hfi_classes.items():
+    min_wind_speeds: dict[int, float | None] = {}
+    for hfi_class, mask in hfi_class_ids.items():
         min_wind_speeds[hfi_class] = np.nanmin(wind_speed_array[mask]) if np.any(mask) else None
 
     return min_wind_speeds
 
+async def get_hfi_threshold_ids(session: AsyncSession)-> dict[str, int]:
+    """
+    Returns dict of {name: id} for advisory, warning threshold records
+    """
+    stmt = select(HfiClassificationThreshold.id, HfiClassificationThreshold.name)
+    result = await session.execute(stmt)
+    return {name: id_ for id_, name in result.all()}
 
-def create_hfi_wind_speed_record(zone_unit_id: int, hfi_min_wind_speeds: dict[HfiClassificationThresholdEnum, float | None], run_parameters_id: int) -> list[AdvisoryHFIWindSpeed]:
+
+def create_hfi_wind_speed_record(zone_unit_id: int, hfi_min_wind_speeds: dict[int, float | None], run_parameters_id: int) -> list[AdvisoryHFIWindSpeed]:
     """
     Creates a list of HFIMinWindSpeed records for a given fire zone.
     """
     return [
         AdvisoryHFIWindSpeed(
             advisory_shape_id=zone_unit_id,
-            threshold=hfi_class,
+            threshold=hfi_class_id,
             run_parameters=run_parameters_id,
             min_wind_speed=wind_speed,
         )
-        for hfi_class, wind_speed in hfi_min_wind_speeds.items()
+        for hfi_class_id, wind_speed in hfi_min_wind_speeds.items()
         if wind_speed is not None
     ]
 
