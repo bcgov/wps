@@ -177,10 +177,14 @@ const AdvisoryText = ({
   }
 
   const getZoneStatus = () => {
-    const fireCenterSummary = provincialSummary[selectedFireCenter!.name]
-    const fireZoneUnitInfos = fireCenterSummary?.filter(fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id)
-    const zoneStatus = calculateStatusText(fireZoneUnitInfos, advisoryThreshold)
-    return zoneStatus
+    if (selectedFireCenter) {
+      const fireCenterSummary = provincialSummary[selectedFireCenter.name]
+      const fireZoneUnitInfos = fireCenterSummary?.filter(
+        fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id
+      )
+      const zoneStatus = calculateStatusText(fireZoneUnitInfos, advisoryThreshold)
+      return zoneStatus
+    }
   }
 
   const renderAdvisoryText = () => {
