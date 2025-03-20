@@ -7,7 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 from datetime import date, datetime, timezone
 from collections import namedtuple
-from wps_shared.db.models.auto_spatial_advisory import AdvisoryTPIStats, HfiClassificationThreshold, RunParameters, SFMSFuelType, TPIFuelArea, TPIClassEnum
+from wps_shared.db.models.auto_spatial_advisory import AdvisoryTPIStats, HfiClassificationThreshold, RunParameters, SFMSFuelType, TPIFuelArea, TPIClassEnum, AdvisoryHFIWindSpeed
 
 from app.tests import get_complete_filename
 from wps_shared.tests.common import default_mock_client_get
@@ -142,6 +142,9 @@ async def mock_hfi_thresholds(*_, **__):
 async def mock_sfms_fuel_types(*_, **__):
     return [(SFMSFuelType(id=1, fuel_type_id=1, fuel_type_code="C2", description="test fuel type c2"),)]
 
+async def mock_zone_hfi_wind_speed(*_, **__):
+    return {1: AdvisoryHFIWindSpeed(id=1, advisory_shape_id=1, threshold=1, run_parameters=1, min_wind_speed=1)}
+
 async def mock_sfms_grass_fuel_types(*_, **__):
     return [(SFMSFuelType(id=12, fuel_type_id=12, fuel_type_code="O-1a/O-1b", description="Matted or Standing Grass"),)]
 
@@ -153,37 +156,39 @@ async def mock_zone_ids_in_centre(*_, **__):
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
 @patch("app.routers.fba.get_all_hfi_thresholds", mock_hfi_thresholds)
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
+@patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
 @patch("app.routers.fba.get_zone_ids_in_centre", mock_zone_ids_in_centre)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized(client: TestClient):
     """Allowed to get fire centre info when authorized"""
     response = client.get(get_fire_centre_info_url)
     assert response.status_code == 200
-    assert response.json()["Kamloops Fire Centre"]["1"][0]["fuel_type"]["fuel_type_id"] == 1
-    assert response.json()["Kamloops Fire Centre"]["1"][0]["threshold"]["id"] == 1
-    assert response.json()["Kamloops Fire Centre"]["1"][0]["critical_hours"]["start_time"] == 9.0
-    assert response.json()["Kamloops Fire Centre"]["1"][0]["critical_hours"]["end_time"] == 11.0
-    assert response.json()["Kamloops Fire Centre"]["1"][0]["percent_curing"] == None
-    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"][0]["fuel_area"], 0.01)
-    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"][0]["area"], 0.005)
+    assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["fuel_type"]["fuel_type_id"] == 1
+    assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["threshold"]["id"] == 1
+    assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"]["start_time"] == 9.0
+    assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"]["end_time"] == 11.0
+    assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["percent_curing"] == None
+    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["fuel_area"], 0.01)
+    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["area"], 0.005)
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info_with_grass)
 @patch("app.routers.fba.get_all_hfi_thresholds", mock_hfi_thresholds)
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_grass_fuel_types)
+@patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
 @patch("app.routers.fba.get_zone_ids_in_centre", mock_zone_ids_in_centre)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized_grass_fuel(client: TestClient):
     """Allowed to get fire centre info when authorized with grass fuel type"""
     response = client.get(get_fire_centre_info_url)
     assert response.status_code == 200
-    assert response.json()["Kamloops Fire Centre"]["1"][0]["fuel_type"]["fuel_type_id"] == 12
-    assert response.json()["Kamloops Fire Centre"]["1"][0]["threshold"]["id"] == 1
-    assert response.json()["Kamloops Fire Centre"]["1"][0]["critical_hours"]["start_time"] == 9.0
-    assert response.json()["Kamloops Fire Centre"]["1"][0]["critical_hours"]["end_time"] == 11.0
-    assert response.json()["Kamloops Fire Centre"]["1"][0]["percent_curing"] == 90
-    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"][0]["fuel_area"], 0.01)
-    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"][0]["area"], 0.005)
+    assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["fuel_type"]["fuel_type_id"] == 12
+    assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["threshold"]["id"] == 1
+    assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"]["start_time"] == 9.0
+    assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"]["end_time"] == 11.0
+    assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["percent_curing"] == 90
+    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["fuel_area"], 0.01)
+    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["area"], 0.005)
 
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
