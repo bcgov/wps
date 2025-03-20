@@ -33,7 +33,7 @@ RUN poetry install --without dev
 
 RUN poetry run python -m pip install --upgrade pip
 
-RUN poetry run python -m pip install -U setuptools==76.0.0 wheel
+RUN poetry run python -m pip install -U setuptools wheel
 # Get a python binding for gdal that matches the version of gdal we have installed.
 RUN poetry run python -m pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
 
