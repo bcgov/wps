@@ -474,7 +474,7 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
     Entry point for calculating critical hours.
 
     :param run_type: The run type, either forecast or actual.
-    :param run_datetime: The date and time of the sfms run.
+    :param run_datetime: The date and time of the sfms run in UTC.
     :param for_date: The date critical hours are being calculated for.
     """
 
