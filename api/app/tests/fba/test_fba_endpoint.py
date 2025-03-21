@@ -143,7 +143,7 @@ async def mock_sfms_fuel_types(*_, **__):
     return [(SFMSFuelType(id=1, fuel_type_id=1, fuel_type_code="C2", description="test fuel type c2"),)]
 
 async def mock_zone_hfi_wind_speed(*_, **__):
-    return {1: AdvisoryHFIWindSpeed(id=1, advisory_shape_id=1, threshold=1, run_parameters=1, min_wind_speed=1)}
+    return {1: (AdvisoryHFIWindSpeed(id=1, advisory_shape_id=1, threshold=1, run_parameters=1, min_wind_speed=1),)}
 
 async def mock_sfms_grass_fuel_types(*_, **__):
     return [(SFMSFuelType(id=12, fuel_type_id=12, fuel_type_code="O-1a/O-1b", description="Matted or Standing Grass"),)]
