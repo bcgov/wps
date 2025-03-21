@@ -2,7 +2,7 @@
 Functions for computing fuel type stats
 """
 from datetime import date
-from typing import List, Optional
+from typing import List, Optional, Set
 from wps_shared.db.models.auto_spatial_advisory import HfiClassificationThreshold, SFMSFuelType as DBSFMSFuelType, AdvisoryHFIWindSpeed
 from wps_shared.schemas.fba import (
     AdvisoryCriticalHours,
@@ -68,4 +68,16 @@ def get_fuel_type_area_stats(grass_curing_date: date,
 
 
 def get_zone_wind_stats(zone_id: str, zone_wind_stats: dict[int, AdvisoryHFIWindSpeed], hfi_threshold: HfiThreshold) -> AdvisoryMinWindStats:
-    return AdvisoryMinWindStats(threshold=hfi_threshold, min_wind_speed=zone_wind_stats[int(zone_id)].min_wind_speed)
+    """Marshalls hfi and min wind speeds into AdvisoryMinWindStats
+
+    Args:
+        zone_id: zone id stats apply to
+        zone_wind_stats: all wind stats keyed by zone id
+        hfi_threshold: hfi threshold associated with stats
+
+    Returns:
+        AdvisoryMinWindStats: minimum wind stats for this hfi threshold for this zone
+    """
+    all_zone_wind_stats = zone_wind_stats[int(zone_id)]
+    wind_stats_for_threshold = next((stat for stat in all_zone_wind_stats if stat.threshold == hfi_threshold.id), None)
+    return AdvisoryMinWindStats(threshold=hfi_threshold, min_wind_speed=wind_stats_for_threshold.min_wind_speed)

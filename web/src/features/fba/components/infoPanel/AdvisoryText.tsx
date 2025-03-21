@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material'
-import { FireCenter, FireShape, FireZoneFuelStats } from 'api/fbaAPI'
+import { FireCenter, FireShape, FireZoneFuelStats, FireZoneHFIStats } from 'api/fbaAPI'
 import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
@@ -31,8 +31,8 @@ export const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]):
  * @param zoneUnitFuelStats
  * @returns FireZoneFuelStats array
  */
-export const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
-  const groupedByFuelType = groupBy(zoneUnitFuelStats, stat => stat.fuel_type.fuel_type_code)
+export const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneHFIStats): FireZoneFuelStats[] => {
+  const groupedByFuelType = groupBy(zoneUnitFuelStats.fuel_area_stats, stat => stat.fuel_type.fuel_type_code)
 
   const fuelTypeAreas = Object.entries(groupedByFuelType).map(([fuelType, entries]) => ({
     fuelType,
@@ -41,7 +41,7 @@ export const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZ
   }))
 
   const sortedFuelTypes = fuelTypeAreas.toSorted((a, b) => b.fuelTypeTotalHfi - a.fuelTypeTotalHfi)
-  const totalHighHFIArea = zoneUnitFuelStats.reduce((total, stats) => total + stats.area, 0)
+  const totalHighHFIArea = zoneUnitFuelStats.fuel_area_stats.reduce((total, stats) => total + stats.area, 0)
 
   const topFuelsByArea: FireZoneFuelStats[] = []
   let highHFIArea = 0
@@ -94,10 +94,13 @@ const AdvisoryText = ({
       return
     }
     const allZoneUnitFuelStats = fireCentreHFIFuelStats?.[selectedFireCenter.name]
-    const selectedZoneUnitFuelStats = allZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? []
+    const selectedZoneUnitFuelStats = allZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? {
+      fuel_area_stats: [],
+      min_wind_stats: []
+    }
     const topFuels = getTopFuelsByArea(selectedZoneUnitFuelStats)
     setSelectedFireZoneUnitTopFuels(topFuels)
-    const topFuelsByProportion = getTopFuelsByProportion(selectedZoneUnitFuelStats)
+    const topFuelsByProportion = getTopFuelsByProportion(selectedZoneUnitFuelStats.fuel_area_stats)
     setHighHFIFuelsByProportion(topFuelsByProportion)
   }, [fireCentreHFIFuelStats, selectedFireZoneUnit])
 

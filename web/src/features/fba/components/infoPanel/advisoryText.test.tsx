@@ -4,7 +4,7 @@ import AdvisoryText, {
   getTopFuelsByProportion,
   getTopFuelsByArea
 } from 'features/fba/components/infoPanel/AdvisoryText'
-import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneFuelStats } from 'api/fbaAPI'
+import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneHFIStats } from 'api/fbaAPI'
 import provincialSummarySlice, {
   initialState as provSummaryInitialState,
   ProvincialSummaryState
@@ -303,26 +303,29 @@ const missingCriticalHoursStartFuelStatsState: FireCentreHFIFuelStatsState = {
   error: null,
   fireCentreHFIFuelStats: {
     'Prince George Fire Centre': {
-      '25': [
-        {
-          fuel_type: {
-            fuel_type_id: 2,
-            fuel_type_code: 'C-2',
-            description: 'Boreal Spruce'
-          },
-          threshold: {
-            id: 1,
-            name: 'advisory',
-            description: '4000 < hfi < 10000'
-          },
-          critical_hours: {
-            start_time: undefined,
-            end_time: 13
-          },
-          area: 4000,
-          fuel_area: 8000
-        }
-      ]
+      '25': {
+        fuel_area_stats: [
+          {
+            fuel_type: {
+              fuel_type_id: 2,
+              fuel_type_code: 'C-2',
+              description: 'Boreal Spruce'
+            },
+            threshold: {
+              id: 1,
+              name: 'advisory',
+              description: '4000 < hfi < 10000'
+            },
+            critical_hours: {
+              start_time: undefined,
+              end_time: 13
+            },
+            area: 4000,
+            fuel_area: 8000
+          }
+        ],
+        min_wind_stats: []
+      }
     }
   }
 }
@@ -331,117 +334,123 @@ const missingCriticalHoursEndFuelStatsState: FireCentreHFIFuelStatsState = {
   error: null,
   fireCentreHFIFuelStats: {
     'Prince George Fire Centre': {
-      '25': [
-        {
-          fuel_type: {
-            fuel_type_id: 2,
-            fuel_type_code: 'C-2',
-            description: 'Boreal Spruce'
-          },
-          threshold: {
-            id: 1,
-            name: 'advisory',
-            description: '4000 < hfi < 10000'
-          },
-          critical_hours: {
-            start_time: 9,
-            end_time: undefined
-          },
-          area: 4000,
-          fuel_area: 8000
-        }
-      ]
+      '25': {
+        fuel_area_stats: [
+          {
+            fuel_type: {
+              fuel_type_id: 2,
+              fuel_type_code: 'C-2',
+              description: 'Boreal Spruce'
+            },
+            threshold: {
+              id: 1,
+              name: 'advisory',
+              description: '4000 < hfi < 10000'
+            },
+            critical_hours: {
+              start_time: 9,
+              end_time: undefined
+            },
+            area: 4000,
+            fuel_area: 8000
+          }
+        ],
+        min_wind_stats: []
+      }
     }
   }
 }
 
-const fireZoneFuelStats: FireZoneFuelStats[] = [
-  {
-    fuel_type: {
-      fuel_type_id: 2,
-      fuel_type_code: 'C-2',
-      description: 'Boreal Spruce'
+const fireZoneFuelStats: FireZoneHFIStats = {
+  fuel_area_stats: [
+    {
+      fuel_type: {
+        fuel_type_id: 2,
+        fuel_type_code: 'C-2',
+        description: 'Boreal Spruce'
+      },
+      threshold: {
+        id: 1,
+        name: 'advisory',
+        description: '4000 < hfi < 10000'
+      },
+      critical_hours: {
+        start_time: 10.0,
+        end_time: 21.0
+      },
+      area: 500,
+      fuel_area: 1000
     },
-    threshold: {
-      id: 1,
-      name: 'advisory',
-      description: '4000 < hfi < 10000'
+    {
+      fuel_type: {
+        fuel_type_id: 2,
+        fuel_type_code: 'C-2',
+        description: 'Boreal Spruce'
+      },
+      threshold: {
+        id: 2,
+        name: 'warning',
+        description: '4000 < hfi < 10000'
+      },
+      critical_hours: {
+        start_time: 10.0,
+        end_time: 21.0
+      },
+      area: 400,
+      fuel_area: 1000
     },
-    critical_hours: {
-      start_time: 10.0,
-      end_time: 21.0
+    {
+      fuel_type: {
+        fuel_type_id: 9,
+        fuel_type_code: 'S-1',
+        description: 'Slash'
+      },
+      threshold: {
+        id: 1,
+        name: 'advisory',
+        description: '4000 < hfi < 10000'
+      },
+      critical_hours: {
+        start_time: 10.0,
+        end_time: 21.0
+      },
+      area: 90,
+      fuel_area: 100
     },
-    area: 500,
-    fuel_area: 1000
-  },
-  {
-    fuel_type: {
-      fuel_type_id: 2,
-      fuel_type_code: 'C-2',
-      description: 'Boreal Spruce'
-    },
-    threshold: {
-      id: 2,
-      name: 'warning',
-      description: '4000 < hfi < 10000'
-    },
-    critical_hours: {
-      start_time: 10.0,
-      end_time: 21.0
-    },
-    area: 400,
-    fuel_area: 1000
-  },
-  {
-    fuel_type: {
-      fuel_type_id: 9,
-      fuel_type_code: 'S-1',
-      description: 'Slash'
-    },
-    threshold: {
-      id: 1,
-      name: 'advisory',
-      description: '4000 < hfi < 10000'
-    },
-    critical_hours: {
-      start_time: 10.0,
-      end_time: 21.0
-    },
-    area: 90,
-    fuel_area: 100
-  },
-  {
-    fuel_type: {
-      fuel_type_id: 4,
-      fuel_type_code: 'M-1/M-2',
-      description: 'mixed'
-    },
-    threshold: {
-      id: 1,
-      name: 'advisory',
-      description: '4000 < hfi < 10000'
-    },
-    critical_hours: {
-      start_time: 10.0,
-      end_time: 21.0
-    },
-    area: 50,
-    fuel_area: 100
-  }
-]
+    {
+      fuel_type: {
+        fuel_type_id: 4,
+        fuel_type_code: 'M-1/M-2',
+        description: 'mixed'
+      },
+      threshold: {
+        id: 1,
+        name: 'advisory',
+        description: '4000 < hfi < 10000'
+      },
+      critical_hours: {
+        start_time: 10.0,
+        end_time: 21.0
+      },
+      area: 50,
+      fuel_area: 100
+    }
+  ],
+  min_wind_stats: []
+}
 
 describe('getTopFuelsByArea', () => {
   it('should return the top fuels by area, correctly handling both advisory and warning hfi pixels', () => {
     const result = getTopFuelsByArea(fireZoneFuelStats)
     // should return the fuel records that cumulatively sum to > 75% of the total hfi area
-    expect(result).toEqual(fireZoneFuelStats.slice(0, 2))
+    expect(result).toEqual(fireZoneFuelStats.fuel_area_stats.slice(0, 2))
   })
 })
 
 describe('getTopFuelsByProportion', () => {
   it('should return the top fuels by proportion of their fuel area', () => {
-    const result = getTopFuelsByProportion(fireZoneFuelStats)
+    const result = getTopFuelsByProportion(fireZoneFuelStats.fuel_area_stats)
     // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(fireZoneFuelStats.slice(0, 3))
+    expect(result).toEqual(fireZoneFuelStats.fuel_area_stats.slice(0, 3))
   })
 })

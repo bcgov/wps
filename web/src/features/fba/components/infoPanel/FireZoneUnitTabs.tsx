@@ -134,7 +134,9 @@ const FireZoneUnitTabs = ({
             {sortedGroupedFireZoneUnits.map((zone, index) => (
               <TabPanel key={zone.fire_shape_id} value={tabNumber} index={index}>
                 <FireZoneUnitSummary
-                  fireZoneFuelStats={hfiFuelStats ? { [zone.fire_shape_id]: hfiFuelStats[zone.fire_shape_id] } : {}}
+                  fireZoneFuelStats={
+                    hfiFuelStats ? { [zone.fire_shape_id]: hfiFuelStats[zone.fire_shape_id].fuel_area_stats } : {}
+                  }
                   fireZoneTPIStats={
                     tpiStatsArray ? tpiStatsArray.find(stats => stats.fire_zone_id == zone.fire_shape_id) : undefined
                   }
