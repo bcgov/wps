@@ -209,8 +209,9 @@ const AdvisoryText = ({
         )}
         {issueDate?.isValid && (
           <Typography
+            data-testid="bulletin-issue-date"
             sx={{ whiteSpace: 'pre-wrap' }}
-          >{`Issued on ${issueDate?.toLocaleString(DateTime.DATE_MED)} for ${displayForDate}.\n\n`}</Typography>
+          >{`Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS)} for today.\n\n`}</Typography>
         )}
         {!isUndefined(zoneStatus) && zoneStatus === AdvisoryStatus.ADVISORY && (
           <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-advisory">

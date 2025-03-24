@@ -138,17 +138,19 @@ describe('AdvisoryText', () => {
   })
 
   it('should render default message when no fire center is selected', () => {
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText issueDate={issueDate} forDate={forDate} advisoryThreshold={advisoryThreshold} />
       </Provider>
     )
     const message = getByTestId('default-message')
     expect(message).toBeInTheDocument()
+    const bulletinIssueDate = queryByTestId('bulletin-issue-date')
+    expect(bulletinIssueDate).not.toBeInTheDocument()
   })
 
   it('should render default message when no fire zone unit is selected', () => {
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
           issueDate={issueDate}
@@ -160,16 +162,20 @@ describe('AdvisoryText', () => {
     )
     const message = getByTestId('default-message')
     expect(message).toBeInTheDocument()
+    const bulletinIssueDate = queryByTestId('bulletin-issue-date')
+    expect(bulletinIssueDate).not.toBeInTheDocument()
   })
 
   it('should render no data message when the issueDate is invalid', () => {
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText issueDate={DateTime.invalid('test')} forDate={forDate} advisoryThreshold={advisoryThreshold} />
       </Provider>
     )
     const message = getByTestId('no-data-message')
     expect(message).toBeInTheDocument()
+    const bulletinIssueDate = queryByTestId('bulletin-issue-date')
+    expect(bulletinIssueDate).not.toBeInTheDocument()
   })
 
   it('should render a no advisories message when there are no advisories/warnings', () => {
@@ -193,12 +199,17 @@ describe('AdvisoryText', () => {
     const proportionMessage = queryByTestId('advisory-message-proportion')
     const noAdvisoryMessage = queryByTestId('no-advisory-message')
     const zoneBulletinMessage = queryByTestId('fire-zone-unit-bulletin')
+    const bulletinIssueDate = queryByTestId('bulletin-issue-date')
     expect(advisoryMessage).not.toBeInTheDocument()
     expect(warningMessage).not.toBeInTheDocument()
     expect(proportionMessage).not.toBeInTheDocument()
     expect(noAdvisoryMessage).toBeInTheDocument()
     expect(zoneBulletinMessage).toBeInTheDocument()
     expect(zoneBulletinMessage).toHaveTextContent(`${mockFireZoneUnit.mof_fire_zone_name}:`)
+    expect(bulletinIssueDate).toBeInTheDocument()
+    expect(bulletinIssueDate).toHaveTextContent(
+      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS)} for today.`
+    )
   })
 
   it('should render warning status', () => {
@@ -221,11 +232,16 @@ describe('AdvisoryText', () => {
     const warningMessage = queryByTestId('advisory-message-warning')
     const proportionMessage = queryByTestId('advisory-message-proportion')
     const zoneBulletinMessage = queryByTestId('fire-zone-unit-bulletin')
+    const bulletinIssueDate = queryByTestId('bulletin-issue-date')
     expect(advisoryMessage).not.toBeInTheDocument()
     expect(proportionMessage).toBeInTheDocument()
     expect(warningMessage).toBeInTheDocument()
     expect(zoneBulletinMessage).toBeInTheDocument()
     expect(zoneBulletinMessage).toHaveTextContent(`${mockFireZoneUnit.mof_fire_zone_name}:`)
+    expect(bulletinIssueDate).toBeInTheDocument()
+    expect(bulletinIssueDate).toHaveTextContent(
+      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS)} for today.`
+    )
   })
 
   it('should render advisory status', () => {
@@ -244,11 +260,16 @@ describe('AdvisoryText', () => {
     const warningMessage = queryByTestId('advisory-message-warning')
     const proportionMessage = queryByTestId('advisory-message-proportion')
     const zoneBulletinMessage = queryByTestId('fire-zone-unit-bulletin')
+    const bulletinIssueDate = queryByTestId('bulletin-issue-date')
     expect(advisoryMessage).toBeInTheDocument()
     expect(proportionMessage).toBeInTheDocument()
     expect(warningMessage).not.toBeInTheDocument()
     expect(zoneBulletinMessage).toBeInTheDocument()
     expect(zoneBulletinMessage).toHaveTextContent(`${mockAdvisoryFireZoneUnit.mof_fire_zone_name}:`)
+    expect(bulletinIssueDate).toBeInTheDocument()
+    expect(bulletinIssueDate).toHaveTextContent(
+      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS)} for today.`
+    )
   })
 
   it('should render critical hours missing message when critical hours start time is missing', () => {
