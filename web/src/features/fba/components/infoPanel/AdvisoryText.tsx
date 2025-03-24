@@ -188,6 +188,7 @@ const AdvisoryText = ({
   }
 
   const renderAdvisoryText = () => {
+    const zoneTitle = `${selectedFireZoneUnit?.mof_fire_zone_name}:\n\n`
     const forToday = forDate.toISODate() === DateTime.now().toISODate()
     const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
     const zoneStatus = getZoneStatus()
@@ -201,6 +202,11 @@ const AdvisoryText = ({
 
     return (
       <>
+        {selectedFireZoneUnit && (
+          <Typography data-testid="fire-zone-unit-bulletin" sx={{ whiteSpace: 'pre-wrap' }}>
+            {zoneTitle}
+          </Typography>
+        )}
         {issueDate?.isValid && (
           <Typography
             sx={{ whiteSpace: 'pre-wrap' }}

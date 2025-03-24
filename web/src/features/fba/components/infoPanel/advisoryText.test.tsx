@@ -192,10 +192,13 @@ describe('AdvisoryText', () => {
     const advisoryMessage = queryByTestId('advisory-message-advisory')
     const proportionMessage = queryByTestId('advisory-message-proportion')
     const noAdvisoryMessage = queryByTestId('no-advisory-message')
+    const zoneBulletinMessage = queryByTestId('fire-zone-unit-bulletin')
     expect(advisoryMessage).not.toBeInTheDocument()
     expect(warningMessage).not.toBeInTheDocument()
     expect(proportionMessage).not.toBeInTheDocument()
     expect(noAdvisoryMessage).toBeInTheDocument()
+    expect(zoneBulletinMessage).toBeInTheDocument()
+    expect(zoneBulletinMessage).toHaveTextContent(`${mockFireZoneUnit.mof_fire_zone_name}:`)
   })
 
   it('should render warning status', () => {
@@ -217,9 +220,12 @@ describe('AdvisoryText', () => {
     const advisoryMessage = queryByTestId('advisory-message-advisory')
     const warningMessage = queryByTestId('advisory-message-warning')
     const proportionMessage = queryByTestId('advisory-message-proportion')
+    const zoneBulletinMessage = queryByTestId('fire-zone-unit-bulletin')
     expect(advisoryMessage).not.toBeInTheDocument()
     expect(proportionMessage).toBeInTheDocument()
     expect(warningMessage).toBeInTheDocument()
+    expect(zoneBulletinMessage).toBeInTheDocument()
+    expect(zoneBulletinMessage).toHaveTextContent(`${mockFireZoneUnit.mof_fire_zone_name}:`)
   })
 
   it('should render advisory status', () => {
@@ -237,9 +243,12 @@ describe('AdvisoryText', () => {
     const advisoryMessage = queryByTestId('advisory-message-advisory')
     const warningMessage = queryByTestId('advisory-message-warning')
     const proportionMessage = queryByTestId('advisory-message-proportion')
+    const zoneBulletinMessage = queryByTestId('fire-zone-unit-bulletin')
     expect(advisoryMessage).toBeInTheDocument()
     expect(proportionMessage).toBeInTheDocument()
     expect(warningMessage).not.toBeInTheDocument()
+    expect(zoneBulletinMessage).toBeInTheDocument()
+    expect(zoneBulletinMessage).toHaveTextContent(`${mockAdvisoryFireZoneUnit.mof_fire_zone_name}:`)
   })
 
   it('should render critical hours missing message when critical hours start time is missing', () => {

@@ -148,6 +148,7 @@ describe('FireZoneUnitTabs', () => {
 
     const summaryTabs = getByTestId('firezone-summary-tabs')
     expect(summaryTabs).toBeInTheDocument()
+    expect(getByTestId('fire-zone-title-tabs')).toBeInTheDocument()
   })
 
   it('should render tabs for each zone in a centre', () => {
@@ -180,10 +181,11 @@ describe('FireZoneUnitTabs', () => {
       mof_fire_zone_name: zoneB
     })
     expect(setZoomSourceMock).toHaveBeenCalledWith('fireShape')
+    expect(screen.getByTestId('fire-zone-title-tabs')).toHaveTextContent(zoneB)
   })
 
   it('should render empty if there is no selected Fire Centre', () => {
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
         <FireZoneUnitTabs
           selectedFireZoneUnit={undefined}
@@ -197,6 +199,7 @@ describe('FireZoneUnitTabs', () => {
 
     const emptyTabs = getByTestId('fire-zone-unit-tabs-empty')
     expect(emptyTabs).toBeInTheDocument()
+    expect(queryByTestId('fire-zone-title-tabs')).not.toBeInTheDocument()
   })
 
   it('should render tabs with the correct advisory colour', () => {
