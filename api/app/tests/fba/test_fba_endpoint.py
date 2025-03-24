@@ -168,8 +168,11 @@ def test_get_fire_center_info_authorized(client: TestClient):
     assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"]["start_time"] == 9.0
     assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"]["end_time"] == 11.0
     assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["percent_curing"] == None
+    assert response.json()["Kamloops Fire Centre"]["1"]["min_wind_stats"][0]["threshold"]["id"] == 1
     assert math.isclose(response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["fuel_area"], 0.01)
     assert math.isclose(response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["area"], 0.005)
+    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"]["min_wind_stats"][0]["min_wind_speed"], 1)
+
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info_with_grass)
@@ -187,8 +190,10 @@ def test_get_fire_center_info_authorized_grass_fuel(client: TestClient):
     assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"]["start_time"] == 9.0
     assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"]["end_time"] == 11.0
     assert response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["percent_curing"] == 90
+    assert response.json()["Kamloops Fire Centre"]["1"]["min_wind_stats"][0]["threshold"]["id"] == 1
     assert math.isclose(response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["fuel_area"], 0.01)
     assert math.isclose(response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["area"], 0.005)
+    assert math.isclose(response.json()["Kamloops Fire Centre"]["1"]["min_wind_stats"][0]["min_wind_speed"], 1)
 
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
