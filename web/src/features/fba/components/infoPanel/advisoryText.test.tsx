@@ -195,7 +195,7 @@ describe('AdvisoryText', () => {
     const bulletinIssueDate = queryByTestId('bulletin-issue-date')
     expect(bulletinIssueDate).toBeInTheDocument()
     expect(bulletinIssueDate).toHaveTextContent(
-      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS)} for ${forDate.toLocaleString({ month: 'short', day: 'numeric' })}.`
+      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for ${forDate.toLocaleString({ month: 'short', day: 'numeric' })}.`
     )
   })
 
@@ -229,7 +229,7 @@ describe('AdvisoryText', () => {
     expect(zoneBulletinMessage).toHaveTextContent(`${mockFireZoneUnit.mof_fire_zone_name}:`)
     expect(bulletinIssueDate).toBeInTheDocument()
     expect(bulletinIssueDate).toHaveTextContent(
-      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS)} for today.`
+      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for today.`
     )
   })
 
@@ -261,7 +261,7 @@ describe('AdvisoryText', () => {
     expect(zoneBulletinMessage).toHaveTextContent(`${mockFireZoneUnit.mof_fire_zone_name}:`)
     expect(bulletinIssueDate).toBeInTheDocument()
     expect(bulletinIssueDate).toHaveTextContent(
-      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS)} for today.`
+      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for today.`
     )
   })
 
@@ -289,7 +289,7 @@ describe('AdvisoryText', () => {
     expect(zoneBulletinMessage).toHaveTextContent(`${mockAdvisoryFireZoneUnit.mof_fire_zone_name}:`)
     expect(bulletinIssueDate).toBeInTheDocument()
     expect(bulletinIssueDate).toHaveTextContent(
-      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS)} for today.`
+      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for today.`
     )
   })
 
