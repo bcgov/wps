@@ -48,4 +48,5 @@ product_technology_information:
   spatial_mapping_technologies:
     - Openlayers
     - PMTiles
+    - GDAL
 version: 1
