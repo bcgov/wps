@@ -1,7 +1,7 @@
-import { FireShapeAreaDetail } from '@/api/fbaAPI'
+import { AdvisoryMinWindStats, FireShapeAreaDetail } from '@/api/fbaAPI'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 import { AdvisoryStatus } from '@/utils/constants'
-import { isUndefined } from 'lodash'
+import { isNil, isUndefined } from 'lodash'
 
 export const calculateStatusColour = (
   details: FireShapeAreaDetail[],
@@ -37,7 +37,7 @@ export const calculateStatusText = (
   if (isUndefined(details) || details.length === 0) {
     return undefined
   }
-  
+
   const advisoryThresholdDetail = details.find(detail => detail.threshold == 1)
   const warningThresholdDetail = details.find(detail => detail.threshold == 2)
   const advisoryPercentage = advisoryThresholdDetail?.elevated_hfi_percentage ?? 0
@@ -49,5 +49,22 @@ export const calculateStatusText = (
 
   if (advisoryPercentage + warningPercentage > advisoryThreshold) {
     return AdvisoryStatus.ADVISORY
+  }
+}
+
+export const calculateWindSpeedText = (zoneMinWindStats: AdvisoryMinWindStats[]) => {
+  const advisoryThresholdMinWindSpeed = zoneMinWindStats.find(windStats => windStats.threshold.id == 1)
+  const warningThresholdMinWindSpeed = zoneMinWindStats.find(windStats => windStats.threshold.id == 2)
+
+  if (!isNil(warningThresholdMinWindSpeed) && !isNil(advisoryThresholdMinWindSpeed)) {
+    return `Minimum forecasted wind speeds of ${advisoryThresholdMinWindSpeed?.min_wind_speed?.toPrecision(1) ?? 0} km/hr and ${warningThresholdMinWindSpeed?.min_wind_speed?.toPrecision(1) ?? 0} km/hr will result in Head Fire Intensity Classes 5 and 6 respectively.`
+  }
+
+  if (isNil(warningThresholdMinWindSpeed)) {
+    return `Minimum forecasted wind speed of ${advisoryThresholdMinWindSpeed?.min_wind_speed?.toPrecision(1) ?? 0} km/hr will result in Head Fire Intensity Class 5.`
+  }
+
+  if (isNil(advisoryThresholdMinWindSpeed)) {
+    return `Minimum forecasted wind speed of ${warningThresholdMinWindSpeed?.min_wind_speed?.toPrecision(1) ?? 0} km/hr will result in Head Fire Intensity Class 6.`
   }
 }

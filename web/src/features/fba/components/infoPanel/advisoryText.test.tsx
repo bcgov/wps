@@ -1,8 +1,9 @@
-import { render } from '@testing-library/react'
+import { render, waitFor, screen } from '@testing-library/react'
 import { DateTime } from 'luxon'
 import AdvisoryText, {
   getTopFuelsByProportion,
-  getTopFuelsByArea
+  getTopFuelsByArea,
+  getZoneMinWindStats
 } from 'features/fba/components/infoPanel/AdvisoryText'
 import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneHFIStats } from 'api/fbaAPI'
 import provincialSummarySlice, {
@@ -11,6 +12,7 @@ import provincialSummarySlice, {
 } from 'features/fba/slices/provincialSummarySlice'
 import fireCentreHFIFuelStatsSlice, {
   initialState as fuelStatsInitialState,
+  getFireCentreHFIFuelStatsSuccess,
   FireCentreHFIFuelStatsState
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
@@ -242,6 +244,81 @@ describe('AdvisoryText', () => {
     expect(warningMessage).not.toBeInTheDocument()
   })
 
+  it('should render wind speed text when fire zone unit is selected', async () => {
+    const initialStore = buildTestStore({
+      ...provSummaryInitialState,
+      fireShapeAreaDetails: warningDetails
+    })
+    const { queryByTestId, rerender } = render(
+      <Provider store={initialStore}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    const advisoryMessage = queryByTestId('advisory-message-advisory')
+    const warningMessage = queryByTestId('advisory-message-warning')
+    const proportionMessage = queryByTestId('advisory-message-proportion')
+    const windSpeedMessage = queryByTestId('advisory-message-min-wind-speeds')
+    expect(advisoryMessage).not.toBeInTheDocument()
+    expect(windSpeedMessage).not.toBeInTheDocument()
+    expect(proportionMessage).toBeInTheDocument()
+    expect(warningMessage).toBeInTheDocument()
+
+    initialStore.dispatch(
+      getFireCentreHFIFuelStatsSuccess({
+        'Cariboo Fire Centre': {
+          '20': {
+            fuel_area_stats: [
+              {
+                fuel_type: {
+                  fuel_type_id: 2,
+                  fuel_type_code: 'C-2',
+                  description: 'Boreal Spruce'
+                },
+                threshold: {
+                  id: 1,
+                  name: 'advisory',
+                  description: '4000 < hfi < 10000'
+                },
+                critical_hours: {
+                  start_time: 9,
+                  end_time: undefined
+                },
+                area: 4000,
+                fuel_area: 8000
+              }
+            ],
+            min_wind_stats: [
+              {
+                threshold: {
+                  id: 1,
+                  name: 'advisory',
+                  description: '4000 < hfi < 10000'
+                },
+                min_wind_speed: 1
+              },
+              {
+                threshold: {
+                  id: 2,
+                  name: 'warning',
+                  description: 'hfi > 1000'
+                },
+                min_wind_speed: 1
+              }
+            ]
+          }
+        }
+      })
+    )
+
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-min-wind-speeds')).toBeInTheDocument())
+  })
+
   it('should render critical hours missing message when critical hours start time is missing', () => {
     const store = buildTestStore(
       {
@@ -452,5 +529,61 @@ describe('getTopFuelsByProportion', () => {
     const result = getTopFuelsByProportion(fireZoneFuelStats.fuel_area_stats)
     // should return the fuel records that cumulatively sum to > 90% of their own fuel area
     expect(result).toEqual(fireZoneFuelStats.fuel_area_stats.slice(0, 3))
+  })
+})
+
+describe('getZoneMinWindStats', () => {
+  it('should return both advisory and warning min wind speeds', () => {
+    const result = getZoneMinWindStats([
+      {
+        threshold: {
+          id: 1,
+          name: 'advisory',
+          description: '4000 < hfi < 10000'
+        },
+        min_wind_speed: 1
+      },
+      {
+        threshold: {
+          id: 2,
+          name: 'warning',
+          description: 'hfi > 1000'
+        },
+        min_wind_speed: 1
+      }
+    ])
+    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
+    expect(result).toEqual(
+      `Minimum forecasted wind speeds of 1 km/hr and 1 km/hr will result in Head Fire Intensity Classes 5 and 6 respectively.`
+    )
+  })
+  it('should return just advisory min wind speed', () => {
+    const result = getZoneMinWindStats([
+      {
+        threshold: {
+          id: 1,
+          name: 'advisory',
+          description: '4000 < hfi < 10000'
+        },
+        min_wind_speed: 1
+      }
+    ])
+    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
+    expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 5.`)
+  })
+
+  it('should return just warning min wind speed', () => {
+    const result = getZoneMinWindStats([
+      {
+        threshold: {
+          id: 2,
+          name: 'warning',
+          description: 'hfi > 1000'
+        },
+        min_wind_speed: 1
+      }
+    ])
+    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
+    expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 6.`)
   })
 })
