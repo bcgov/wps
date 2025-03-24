@@ -178,6 +178,27 @@ describe('AdvisoryText', () => {
     expect(bulletinIssueDate).not.toBeInTheDocument()
   })
 
+  it('should render forDate as mmm/dd when different than issue date', () => {
+    const issueDate = DateTime.fromObject({ year: 2025, month: 3, day: 24 })
+    const forDate = DateTime.fromObject({ year: 2025, month: 3, day: 25 })
+    const { queryByTestId } = render(
+      <Provider store={testStore}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    const bulletinIssueDate = queryByTestId('bulletin-issue-date')
+    expect(bulletinIssueDate).toBeInTheDocument()
+    expect(bulletinIssueDate).toHaveTextContent(
+      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS)} for ${forDate.toLocaleString({ month: 'short', day: 'numeric' })}.`
+    )
+  })
+
   it('should render a no advisories message when there are no advisories/warnings', () => {
     const noAdvisoryStore = buildTestStore({
       ...provSummaryInitialState,
