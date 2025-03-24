@@ -12,7 +12,7 @@ from app.auto_spatial_advisory.common import get_hfi_s3_key
 from wps_shared.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.crud.auto_spatial_advisory import save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters, get_run_parameters_id
-from wps_shared.db.crud.snow import get_last_processed_snow_by_processed_date
+from wps_shared.db.crud.snow import get_most_recent_processed_snow_by_date
 from wps_shared.db.models.snow import SnowSourceEnum
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from wps_shared.run_type import RunType
@@ -22,7 +22,6 @@ from app.auto_spatial_advisory.hfi_filepath import get_pmtiles_filename, get_pmt
 from wps_shared.utils.polygonize import polygonize_in_memory
 from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
 from wps_shared.utils.s3 import get_client
-import wps_shared.utils.time as time_utils
 
 
 logger = logging.getLogger(__name__)
@@ -78,11 +77,11 @@ def create_model_object(
     )
 
 
-async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime, for_date: date):
+async def process_hfi(run_type: RunType, run_datetime: datetime, for_date: date):
     """Create a new hfi record for the given date.
 
     :param run_type: The type of run to process. (is it a forecast or actual run?)
-    :param run_date: The date of the run to process. (when was the hfi file created?)
+    :param run_datetime: The date and time of the sfms run in UTC. (when was the hfi file created?)
     :param for_date: The date of the hfi to process. (when is the hfi for?)
     """
 
@@ -92,9 +91,9 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
         if existing_run is not None:
             logger.info((f"Skipping run, already processed for run_type:{run_type}" f"run_datetime:{run_datetime}," f"for_date:{for_date}"))
             return
-        last_processed_snow = await get_last_processed_snow_by_processed_date(session, run_datetime, SnowSourceEnum.viirs)
+        last_processed_snow = await get_most_recent_processed_snow_by_date(session, run_datetime, SnowSourceEnum.viirs)
 
-    logger.info("Processing HFI %s for run date: %s, for date: %s", run_type, run_date, for_date)
+    logger.info("Processing HFI %s for run date: %s, for date: %s", run_type, run_datetime, for_date)
     perf_start = perf_counter()
 
     hfi_key = get_hfi_s3_key(run_type, run_datetime, for_date)
@@ -104,8 +103,8 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
             temp_filename = os.path.join(temp_dir, "classified.tif")
             classify_hfi(hfi_key, temp_filename)
             # If something has gone wrong with the collection of snow coverage data and it has not been collected
-            # within the past 7 days, don't apply an old snow mask, work with the classified hfi data as is
-            if last_processed_snow is None or last_processed_snow[0].for_date + timedelta(days=7) < time_utils.get_utc_now():
+            # within 7 days of the SFMS run datetime, don't apply an old snow mask, work with the classified hfi data as is
+            if last_processed_snow is None or last_processed_snow[0].for_date + timedelta(days=7) < run_datetime:
                 logger.info("No recently processed snow data found. Proceeding with non-masked hfi data.")
                 working_hfi_path = temp_filename
             else:
@@ -131,7 +130,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
                 logger.info(f"Writing pmtiles -- {pmtiles_filename}")
                 tippecanoe_wrapper(temp_geojson, temp_pmtiles_filepath, min_zoom=HFI_PMTILES_MIN_ZOOM, max_zoom=HFI_PMTILES_MAX_ZOOM)
 
-                key = get_pmtiles_filepath(run_date, run_type, pmtiles_filename)
+                key = get_pmtiles_filepath(run_datetime, run_type, pmtiles_filename)
                 logger.info(f"Uploading file {pmtiles_filename} to {key}")
 
                 await client.put_object(
