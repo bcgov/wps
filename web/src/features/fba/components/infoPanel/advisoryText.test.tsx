@@ -249,7 +249,7 @@ describe('AdvisoryText', () => {
       ...provSummaryInitialState,
       fireShapeAreaDetails: warningDetails
     })
-    const { queryByTestId, rerender } = render(
+    const { queryByTestId } = render(
       <Provider store={initialStore}>
         <AdvisoryText
           issueDate={issueDate}
