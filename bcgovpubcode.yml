@@ -25,10 +25,10 @@ product_information:
 product_technology_information:
   backend_frameworks:
     - name: FastAPI
-      version: 0.104.0
+      version: 0.115.0
   backend_languages_version:
     - name: Python
-      version: '3.10'
+      version: 3.12.3
   ci_cd_tools:
     - GitHub-Actions
   data_storage_platforms:
@@ -38,10 +38,10 @@ product_technology_information:
     - Postgis
   frontend_frameworks:
     - name: React
-      version: '17'
+      version: 18.3.1
   frontend_languages:
     - name: TypeScript
-      version: 5.2.2
+      version: 5.5.4
   hosting_platforms:
     - Private-Cloud-Openshift
   spatial_mapping_technologies:
