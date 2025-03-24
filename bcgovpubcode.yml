@@ -12,7 +12,7 @@ product_information:
   api_specifications:
     - https://psu.nrs.gov.bc.ca/api/docs
   ministry:
-    - Ministry of Forests
+    - Forests
   product_acronym: WPS
   product_description: >-
     Predictive data tools to support decision making in prevention,
@@ -44,6 +44,7 @@ product_technology_information:
       version: 5.5.4
   hosting_platforms:
     - Private-Cloud-Openshift
+  other_tools: Sentry, CapacitorJS
   spatial_mapping_technologies:
     - Openlayers
 version: 1
