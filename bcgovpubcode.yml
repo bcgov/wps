@@ -12,7 +12,7 @@ product_information:
   api_specifications:
     - https://psu.nrs.gov.bc.ca/api/docs
   ministry:
-    - Water, Land and Resource Stewardship
+    - Ministry of Forests
   product_acronym: WPS
   product_description: >-
     Predictive data tools to support decision making in prevention,
@@ -21,7 +21,7 @@ product_information:
   product_status: active
   product_urls:
     - https://psu.nrs.gov.bc.ca/
-  program_area: NRIDS
+  program_area: BC Wildfire Service
 product_technology_information:
   backend_frameworks:
     - name: FastAPI
