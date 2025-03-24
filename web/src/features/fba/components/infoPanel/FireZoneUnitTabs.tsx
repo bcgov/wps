@@ -139,7 +139,7 @@ const FireZoneUnitTabs = ({
                     color: '#003366',
                     fontWeight: 'bold',
                     textAlign: 'left',
-                    width: '50%'
+                    paddingLeft: theme.spacing(2)
                   }}
                 >
                   {zone.fire_shape_name}
