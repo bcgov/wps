@@ -47,4 +47,5 @@ product_technology_information:
   other_tools: Sentry, CapacitorJS, Pytest, Vitest, Cypress
   spatial_mapping_technologies:
     - Openlayers
+    - PMTiles
 version: 1
