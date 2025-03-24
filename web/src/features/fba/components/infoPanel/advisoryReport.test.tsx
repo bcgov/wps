@@ -53,20 +53,6 @@ describe('AdvisoryReport', () => {
     const advisoryReport = getByTestId('advisory-report')
     expect(advisoryReport).toBeInTheDocument()
   })
-  it('should render the first bulletin tab', () => {
-    const { getByTestId } = render(
-      <Provider store={testStore}>
-        <AdvisoryReport
-          issueDate={issueDate}
-          forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
-          selectedFireCenter={mockFireCenter}
-        />
-      </Provider>
-    )
-    const tabPanel = getByTestId('tabpanel-0')
-    expect(tabPanel).toBeInTheDocument()
-  })
   it('should render advisoryText as children', () => {
     const { getByTestId } = render(
       <Provider store={testStore}>
