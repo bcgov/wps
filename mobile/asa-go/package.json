@@ -11,12 +11,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@capacitor/android": "7.0.0",
+    "@capacitor/android": "7.1.0",
     "@capacitor/app": "7.0.0",
-    "@capacitor/core": "7.0.0",
+    "@capacitor/core": "7.1.0",
     "@capacitor/filesystem": "^7.0.0",
     "@capacitor/haptics": "7.0.0",
-    "@capacitor/ios": "7.0.0",
+    "@capacitor/ios": "7.1.0",
     "@capacitor/keyboard": "7.0.0",
     "@capacitor/status-bar": "7.0.0",
     "@emotion/react": "^11.14.0",
@@ -38,7 +38,7 @@
     "vitest": "^3.0.5"
   },
   "devDependencies": {
-    "@capacitor/cli": "7.0.0",
+    "@capacitor/cli": "7.1.0",
     "@eslint/js": "^9.17.0",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.14",
