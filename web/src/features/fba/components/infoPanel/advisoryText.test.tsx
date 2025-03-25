@@ -179,8 +179,8 @@ describe('AdvisoryText', () => {
   })
 
   it('should render forDate as mmm/dd when different than issue date', () => {
-    const issueDate = DateTime.fromObject({ year: 2025, month: 3, day: 24 })
-    const forDate = DateTime.fromObject({ year: 2025, month: 3, day: 25 })
+    const issueDate = DateTime.fromObject({ year: 2021, month: 3, day: 24 })
+    const forDate = DateTime.fromObject({ year: 2021, month: 3, day: 25 })
     const { queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
