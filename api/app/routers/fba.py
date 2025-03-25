@@ -130,7 +130,6 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
             )
             zone_fuel_stats = []
             zone_wind_stats = []
-            hfi_thresholds: Set[int] = set()
 
             for critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, fuel_area, percent_conifer in hfi_fuel_type_ids_for_zone:
                 hfi_threshold = get_hfi_threshold(threshold_id, thresholds)
@@ -138,10 +137,8 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
                 fuel_type_area_stats = get_fuel_type_area_stats(for_date, fuel_types, hfi_threshold, percent_conifer, critical_hour_start, critical_hour_end, fuel_type_id, area, fuel_area)
                 zone_fuel_stats.append(fuel_type_area_stats)
 
-                if threshold_id not in hfi_thresholds:
-                    min_wind_stats = get_zone_wind_stats(zone_id, all_zone_wind_stats, hfi_threshold)
-                    zone_wind_stats.append(min_wind_stats)
-                    hfi_thresholds.add(threshold_id)
+                min_wind_stats = get_zone_wind_stats(zone_id, all_zone_wind_stats, hfi_threshold)
+                zone_wind_stats.append(min_wind_stats)
             
             all_zone_data[zone_id] = FireZoneHFIStats(min_wind_stats=zone_wind_stats, fuel_area_stats=zone_fuel_stats)
 
