@@ -133,6 +133,17 @@ const FireZoneUnitTabs = ({
             </Box>
             {sortedGroupedFireZoneUnits.map((zone, index) => (
               <TabPanel key={zone.fire_shape_id} value={tabNumber} index={index}>
+                <Typography
+                  data-testid="fire-zone-title-tabs"
+                  sx={{
+                    color: '#003366',
+                    fontWeight: 'bold',
+                    textAlign: 'left',
+                    paddingLeft: theme.spacing(2)
+                  }}
+                >
+                  {zone.fire_shape_name}
+                </Typography>
                 <FireZoneUnitSummary
                   fireZoneFuelStats={
                     hfiFuelStats ? { [zone.fire_shape_id]: hfiFuelStats[zone.fire_shape_id].fuel_area_stats } : {}
