@@ -178,7 +178,7 @@ async def get_sfms_mixed_fuel_type(session: AsyncSession) -> SFMSFuelType:
 
     return result.scalar_one()
 
-async def get_min_wind_speed_hfi_thresholds(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date) -> dict[int, AdvisoryHFIWindSpeed]:
+async def get_min_wind_speed_hfi_thresholds(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date) -> dict[int, List[AdvisoryHFIWindSpeed]]:
     """
     Retrieve min wind speeds for each hfi thresholds
     """
