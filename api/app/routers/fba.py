@@ -117,15 +117,15 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
         # get fuel type ids data
         fuel_types = await get_all_sfms_fuel_type_records(session)
         # get fire zone id's within a fire centre
-        zone_shape_ids = await get_zone_ids_in_centre(session, fire_centre_name)
+        zone_source_ids = await get_zone_ids_in_centre(session, fire_centre_name)
 
         all_zone_wind_stats = await get_min_wind_speed_hfi_thresholds(session, run_type, run_datetime, for_date)
 
         all_zone_data: dict[int, FireZoneHFIStats] = {}
-        for zone_id in zone_shape_ids:
+        for zone_source_id in zone_source_ids:
             # get HFI/fuels data for specific zone
             hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
-                session, run_type=RunTypeEnum(run_type.value), for_date=for_date, run_datetime=run_datetime, advisory_shape_id=zone_id
+                session, run_type=RunTypeEnum(run_type.value), for_date=for_date, run_datetime=run_datetime, advisory_shape_id=zone_source_id
             )
             zone_fuel_stats = []
             zone_wind_stats = []
@@ -136,10 +136,10 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
                 fuel_type_area_stats = get_fuel_type_area_stats(for_date, fuel_types, hfi_threshold, percent_conifer, critical_hour_start, critical_hour_end, fuel_type_id, area, fuel_area)
                 zone_fuel_stats.append(fuel_type_area_stats)
 
-                min_wind_stats = get_zone_wind_stats(zone_id, all_zone_wind_stats, hfi_threshold)
+                min_wind_stats = get_zone_wind_stats(zone_source_id, all_zone_wind_stats, hfi_threshold)
                 zone_wind_stats.append(min_wind_stats)
             
-            all_zone_data[zone_id] = FireZoneHFIStats(min_wind_stats=zone_wind_stats, fuel_area_stats=zone_fuel_stats)
+            all_zone_data[zone_source_id] = FireZoneHFIStats(min_wind_stats=zone_wind_stats, fuel_area_stats=zone_fuel_stats)
 
         return {fire_centre_name: all_zone_data}
 
