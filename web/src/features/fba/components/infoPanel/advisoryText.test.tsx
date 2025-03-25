@@ -181,8 +181,8 @@ describe('AdvisoryText', () => {
   })
 
   it('should render forDate as mmm/dd when different than issue date', () => {
-    const issueDateBefore = DateTime.fromObject({ year: 2021, month: 3, day: 24 })
-    const forDateLater = DateTime.fromObject({ year: 2021, month: 3, day: 25 })
+    const issueDate = DateTime.fromObject({ year: 2021, month: 3, day: 24 })
+    const forDate = DateTime.fromObject({ year: 2021, month: 3, day: 25 })
     const { queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
@@ -197,7 +197,7 @@ describe('AdvisoryText', () => {
     const bulletinIssueDate = queryByTestId('bulletin-issue-date')
     expect(bulletinIssueDate).toBeInTheDocument()
     expect(bulletinIssueDate).toHaveTextContent(
-      `Issued on ${issueDateBefore?.toLocaleString(DateTime.DATETIME_FULL)} for ${forDateLater.toLocaleString({ month: 'short', day: 'numeric' })}.`
+      `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for ${forDate.toLocaleString({ month: 'short', day: 'numeric' })}.`
     )
   })
 
