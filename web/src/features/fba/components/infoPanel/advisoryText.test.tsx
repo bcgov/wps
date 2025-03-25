@@ -186,8 +186,8 @@ describe('AdvisoryText', () => {
     const { queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
-          issueDate={issueDateBefore}
-          forDate={forDateLater}
+          issueDate={issueDate}
+          forDate={forDate}
           advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
