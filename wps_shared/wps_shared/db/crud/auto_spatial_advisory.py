@@ -149,7 +149,7 @@ async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
 async def get_zone_ids_in_centre(session: AsyncSession, fire_centre_name: str):
     logger.info(f"retrieving fire zones within {fire_centre_name} from advisory_shapes table")
 
-    stmt = select(Shape.source_identifier).join(FireCentre, FireCentre.id == Shape.fire_centre).where(FireCentre.name == fire_centre_name)
+    stmt = select(Shape.id).join(FireCentre, FireCentre.id == Shape.fire_centre).where(FireCentre.name == fire_centre_name)
     result = await session.execute(stmt)
 
     all_results = result.scalars().all()

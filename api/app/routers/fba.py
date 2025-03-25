@@ -118,12 +118,12 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
         # get fuel type ids data
         fuel_types = await get_all_sfms_fuel_type_records(session)
         # get fire zone id's within a fire centre
-        zone_ids = await get_zone_ids_in_centre(session, fire_centre_name)
+        zones = await get_zone_ids_in_centre(session, fire_centre_name)
 
         all_zone_wind_stats = await get_min_wind_speed_hfi_thresholds(session, run_type, run_datetime, for_date)
 
         all_zone_data: dict[int, FireZoneHFIStats] = {}
-        for zone_id in zone_ids:
+        for zone_id in zones:
             # get HFI/fuels data for specific zone
             hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
                 session, run_type=RunTypeEnum(run_type.value), for_date=for_date, run_datetime=run_datetime, advisory_shape_id=zone_id

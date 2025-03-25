@@ -2,8 +2,12 @@
 Functions for computing fuel type stats
 """
 from datetime import date
-from typing import List, Optional, Set
-from wps_shared.db.models.auto_spatial_advisory import HfiClassificationThreshold, SFMSFuelType as DBSFMSFuelType, AdvisoryHFIWindSpeed
+from typing import List, Optional
+from wps_shared.db.models.auto_spatial_advisory import (
+    HfiClassificationThreshold, 
+    SFMSFuelType as DBSFMSFuelType,
+    AdvisoryHFIWindSpeed
+)
 from wps_shared.schemas.fba import (
     AdvisoryCriticalHours,
     ClassifiedHfiThresholdFuelTypeArea,
