@@ -3,7 +3,7 @@ import pytest
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryHFIWindSpeed, HfiClassificationThreshold, SFMSFuelType
 from wps_shared.schemas.fba import AdvisoryMinWindStats, HfiThreshold
 
-from app.auto_spatial_advisory.zone_stats import get_fuel_type_area_stats, get_optional_percent_curing, get_zone_wind_stats
+from app.auto_spatial_advisory.zone_stats import get_fuel_type_area_stats, get_optional_percent_curing, get_zone_wind_stats_by_shape_id
 
 grass_fuel_type = SFMSFuelType(id=12, fuel_type_id=12, fuel_type_code="O-1a/O-1b", description="Matted or Standing Grass")
 non_grass_fuel_type = SFMSFuelType(id=14, fuel_type_id=14, fuel_type_code="M-1/M-2", description="Boreal Mixedwood - Leafless or Green")
@@ -101,4 +101,4 @@ def test_get_fuel_type_area_stats_percent_conifer():
     ],
 )
 def test_get_zone_wind_stats(zone_id, zone_wind_stats, hfi_threshold, expected_advisory_wind_stats):
-    assert get_zone_wind_stats(zone_id=zone_id, zone_wind_stats=zone_wind_stats, hfi_threshold=hfi_threshold) == expected_advisory_wind_stats
+    assert get_zone_wind_stats_by_shape_id(zone_id=zone_id, zone_wind_stats=zone_wind_stats, hfi_threshold=hfi_threshold) == expected_advisory_wind_stats

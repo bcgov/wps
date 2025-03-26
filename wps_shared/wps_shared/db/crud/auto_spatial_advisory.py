@@ -184,6 +184,7 @@ async def get_min_wind_speed_hfi_thresholds(session: AsyncSession, run_type: Run
     """
     stmt = select(AdvisoryHFIWindSpeed)\
         .join(RunParameters, AdvisoryHFIWindSpeed.run_parameters == RunParameters.id)\
+        .join(Shape, AdvisoryHFIWindSpeed.advisory_shape_id == Shape.id)\
         .where(
             RunParameters.run_type == run_type.value,
             RunParameters.run_datetime == run_datetime,
