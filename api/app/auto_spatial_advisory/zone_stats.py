@@ -71,17 +71,17 @@ def get_fuel_type_area_stats(grass_curing_date: date,
         percent_curing=percent_curing)
 
 
-def get_zone_wind_stats_by_shape_id(zone_shape_id: str, advisory_wind_speed_by_shape_id: dict[int, List[AdvisoryHFIWindSpeed]], hfi_threshold: HfiThreshold) -> AdvisoryMinWindStats:
+def get_zone_wind_stats_by_source_id(zone_source_id: str, advisory_wind_speed_by_source_id: dict[int, List[AdvisoryHFIWindSpeed]], hfi_threshold: HfiThreshold) -> AdvisoryMinWindStats:
     """Marshalls hfi and min wind speeds into AdvisoryMinWindStats
 
     Args:
         zone_id: zone id stats apply to
-        zone_wind_stats: all wind stats keyed by zone id
+        zone_wind_stats: all wind stats keyed by zone source id
         hfi_threshold: hfi threshold associated with stats
 
     Returns:
         AdvisoryMinWindStats: minimum wind stats for this hfi threshold for this zone
     """
-    all_zone_wind_stats = advisory_wind_speed_by_shape_id.get(int(zone_shape_id), [])
+    all_zone_wind_stats = advisory_wind_speed_by_source_id.get(int(zone_source_id), [])
     wind_stats_for_threshold = next((stat for stat in all_zone_wind_stats if stat.threshold == hfi_threshold.id), None)
     return AdvisoryMinWindStats(threshold=hfi_threshold, min_wind_speed=wind_stats_for_threshold.min_wind_speed if wind_stats_for_threshold else None)

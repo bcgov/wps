@@ -157,7 +157,7 @@ async def mock_zone_ids_in_centre(*_, **__):
 @patch("app.routers.fba.get_all_hfi_thresholds", mock_hfi_thresholds)
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
 @patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
-@patch("app.routers.fba.get_zone_ids_in_centre", mock_zone_ids_in_centre)
+@patch("app.routers.fba.get_zone_source_ids_in_centre", mock_zone_ids_in_centre)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized(client: TestClient):
     """Allowed to get fire centre info when authorized"""
@@ -179,7 +179,7 @@ def test_get_fire_center_info_authorized(client: TestClient):
 @patch("app.routers.fba.get_all_hfi_thresholds", mock_hfi_thresholds)
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_grass_fuel_types)
 @patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
-@patch("app.routers.fba.get_zone_ids_in_centre", mock_zone_ids_in_centre)
+@patch("app.routers.fba.get_zone_source_ids_in_centre", mock_zone_ids_in_centre)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized_grass_fuel(client: TestClient):
     """Allowed to get fire centre info when authorized with grass fuel type"""

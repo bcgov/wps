@@ -146,8 +146,8 @@ async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
     return fuel_types
 
 
-async def get_zone_ids_in_centre(session: AsyncSession, fire_centre_name: str):
-    logger.info(f"retrieving fire zones within {fire_centre_name} from advisory_shapes table")
+async def get_zone_source_ids_in_centre(session: AsyncSession, fire_centre_name: str):
+    logger.info(f"retrieving fire zone source ids within {fire_centre_name} from advisory_shapes table")
 
     stmt = select(Shape.source_identifier).join(FireCentre, FireCentre.id == Shape.fire_centre).where(FireCentre.name == fire_centre_name)
     result = await session.execute(stmt)
@@ -180,9 +180,9 @@ async def get_sfms_mixed_fuel_type(session: AsyncSession) -> SFMSFuelType:
 
 async def get_min_wind_speed_hfi_thresholds(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date) -> dict[int, List[AdvisoryHFIWindSpeed]]:
     """
-    Retrieve min wind speeds for each hfi thresholds
+    Retrieve min wind speeds for each hfi thresholds, and key by source identifier
     """
-    stmt = select(AdvisoryHFIWindSpeed)\
+    stmt = select(AdvisoryHFIWindSpeed, Shape.source_identifier)\
         .join(RunParameters, AdvisoryHFIWindSpeed.run_parameters == RunParameters.id)\
         .join(Shape, AdvisoryHFIWindSpeed.advisory_shape_id == Shape.id)\
         .where(
@@ -192,12 +192,12 @@ async def get_min_wind_speed_hfi_thresholds(session: AsyncSession, run_type: Run
         )
 
     result = await session.execute(stmt)
-    advisory_wind_speed_by_shape_id = defaultdict(list)
-    for record in result.all():
-        advisory_wind_speed_by_shape_id[record[0].advisory_shape_id].append(record[0])
-    return advisory_wind_speed_by_shape_id
+    advisory_wind_speed_by_source_id = defaultdict(list)
+    for advisory_hfi_wind_speed, source_id in result.all():
+        advisory_wind_speed_by_source_id[int(source_id)].append(advisory_hfi_wind_speed)
+    return advisory_wind_speed_by_source_id
 
-async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, advisory_shape_id: int) -> List[Row]:
+async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, source_identifier: int) -> List[Row]:
     perf_start = perf_counter()
     stmt = (
         select(
@@ -234,7 +234,7 @@ async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTy
             isouter=True,
         )
         .where(
-            Shape.source_identifier == str(advisory_shape_id),
+            Shape.source_identifier == str(source_identifier),
             RunParameters.run_type == run_type.value,
             RunParameters.run_datetime == run_datetime,
             RunParameters.for_date == for_date,
