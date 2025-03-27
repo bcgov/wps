@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from enum import Enum
 import logging
+from collections import defaultdict
 from time import perf_counter
 from typing import List, Optional, Tuple
 from sqlalchemy import and_, select, func, cast, String
@@ -8,10 +9,12 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from wps_shared.run_type import RunType
+from wps_shared.schemas.fba import HfiThreshold
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryFuelStats,
     AdvisoryHFIPercentConifer,
     AdvisoryShapeFuels,
+    AdvisoryHFIWindSpeed,
     CriticalHours,
     HfiClassificationThresholdEnum,
     Shape,
@@ -127,6 +130,20 @@ async def get_all_hfi_thresholds(session: AsyncSession) -> List[HfiClassificatio
 
     return thresholds
 
+async def get_all_hfi_thresholds_by_id(session: AsyncSession) -> dict[int, HfiThreshold]:
+    """ Retrieve all hfi thresholds and return them keyed by id.
+
+    :param session: An async database session.
+    :return: All hfi thresholds keyed by their ids
+    """
+    all_hfi_thresholds = await get_all_hfi_thresholds(session)
+    all_hfi_thresholds_by_id = {}
+    for hfi_threshold in all_hfi_thresholds:
+        all_hfi_thresholds_by_id[int(hfi_threshold.id)] = HfiThreshold(id=hfi_threshold.id, name=hfi_threshold.name, description=hfi_threshold.description)
+    return all_hfi_thresholds_by_id
+
+
+
 
 async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
     """
@@ -144,8 +161,8 @@ async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
     return fuel_types
 
 
-async def get_zone_ids_in_centre(session: AsyncSession, fire_centre_name: str):
-    logger.info(f"retrieving fire zones within {fire_centre_name} from advisory_shapes table")
+async def get_zone_source_ids_in_centre(session: AsyncSession, fire_centre_name: str):
+    logger.info(f"retrieving fire zone source ids within {fire_centre_name} from advisory_shapes table")
 
     stmt = select(Shape.source_identifier).join(FireCentre, FireCentre.id == Shape.fire_centre).where(FireCentre.name == fire_centre_name)
     result = await session.execute(stmt)
@@ -176,8 +193,27 @@ async def get_sfms_mixed_fuel_type(session: AsyncSession) -> SFMSFuelType:
 
     return result.scalar_one()
 
+async def get_min_wind_speed_hfi_thresholds(session: AsyncSession, zone_source_ids: List[int], run_type: RunTypeEnum, run_datetime: datetime, for_date: date) -> dict[int, List[AdvisoryHFIWindSpeed]]:
+    """
+    Retrieve min wind speeds for each hfi thresholds, and key by source identifier
+    """
+    stmt = select(AdvisoryHFIWindSpeed, Shape.source_identifier)\
+        .join(RunParameters, AdvisoryHFIWindSpeed.run_parameters == RunParameters.id)\
+        .join(Shape, AdvisoryHFIWindSpeed.advisory_shape_id == Shape.id)\
+        .where(
+            Shape.source_identifier.in_(zone_source_ids),
+            RunParameters.run_type == run_type.value,
+            RunParameters.run_datetime == run_datetime,
+            RunParameters.for_date == for_date,
+        )
 
-async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, advisory_shape_id: int) -> List[Row]:
+    result = await session.execute(stmt)
+    advisory_wind_speed_by_source_id = defaultdict(list)
+    for advisory_hfi_wind_speed, source_id in result.all():
+        advisory_wind_speed_by_source_id[int(source_id)].append(advisory_hfi_wind_speed)
+    return advisory_wind_speed_by_source_id
+
+async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date, source_identifier: int) -> List[Row]:
     perf_start = perf_counter()
     stmt = (
         select(
@@ -214,7 +250,7 @@ async def get_precomputed_stats_for_shape(session: AsyncSession, run_type: RunTy
             isouter=True,
         )
         .where(
-            Shape.source_identifier == str(advisory_shape_id),
+            Shape.source_identifier == str(source_identifier),
             RunParameters.run_type == run_type.value,
             RunParameters.run_datetime == run_datetime,
             RunParameters.for_date == for_date,

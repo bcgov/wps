@@ -1,15 +1,23 @@
 """
 Functions for computing fuel type stats
 """
+import logging
 from datetime import date
 from typing import List, Optional
-from wps_shared.db.models.auto_spatial_advisory import HfiClassificationThreshold, SFMSFuelType as DBSFMSFuelType
+from wps_shared.db.models.auto_spatial_advisory import (
+    SFMSFuelType as DBSFMSFuelType,
+    AdvisoryHFIWindSpeed
+)
 from wps_shared.schemas.fba import (
     AdvisoryCriticalHours,
     ClassifiedHfiThresholdFuelTypeArea,
     HfiThreshold,
-    SFMSFuelType
+    SFMSFuelType,
+    AdvisoryMinWindStats
 )
+
+logger = logging.getLogger(__name__)
+
 
 """
     <!-- Percent Curing default values from June 2021 -->
@@ -36,14 +44,14 @@ def get_optional_percent_curing(grass_curing_date: date, sfms_fuel_type: DBSFMSF
     
     return None
 
+
 def get_fuel_type_area_stats(grass_curing_date: date,
                              sfms_fuel_types: List[(DBSFMSFuelType)],
+                             hfi_threshold: HfiThreshold,
                              percent_conifer: Optional[int],
-                             thresholds: List[HfiClassificationThreshold], 
                              critical_hour_start: Optional[float],
                              critical_hour_end: Optional[float],
                              fuel_type_id: int,
-                             threshold_id: int,
                              area: float,
                              fuel_area: float):
     # area is stored in square metres in DB. For user convenience, convert to hectares
@@ -53,11 +61,28 @@ def get_fuel_type_area_stats(grass_curing_date: date,
     fuel_type_obj: DBSFMSFuelType = next((ft[0] for ft in sfms_fuel_types if ft[0].id == fuel_type_id), None)
     percent_curing = get_optional_percent_curing(grass_curing_date, fuel_type_obj)
     fuel_type_code_details = fuel_type_obj.fuel_type_code + (f" (≥{percent_conifer} PC)" if percent_conifer is not None else "")
-    threshold_obj: HfiClassificationThreshold = next((th for th in thresholds if th.id == threshold_id), None)
     return ClassifiedHfiThresholdFuelTypeArea(
         fuel_type=SFMSFuelType(fuel_type_id=fuel_type_obj.fuel_type_id, fuel_type_code=fuel_type_code_details, description=fuel_type_obj.description),
-        threshold=HfiThreshold(id=threshold_obj.id, name=threshold_obj.name, description=threshold_obj.description),
+        threshold=hfi_threshold,
         critical_hours=AdvisoryCriticalHours(start_time=critical_hour_start, end_time=critical_hour_end),
         area=area,
         fuel_area=fuel_area,
         percent_curing=percent_curing)
+
+
+def get_zone_wind_stats_for_source_id(zone_wind_stats: List[AdvisoryHFIWindSpeed], hfi_thresholds_by_id: dict[int, HfiThreshold]) -> List[AdvisoryMinWindStats]:
+    """ Marshall AdvisoryHFIWindSpeed data model objects into AdvisoryMinWindStats API model objects.
+
+    :param zone_wind_stats: advisory hfi wind speeds for a zone
+    :param hfi_thresholds_by_id: hfi thresholds keyed by their ids
+    :return: List of AdvisoryMinWindStats objects
+    """
+    all_zone_wind_stats = []
+    for zone_wind_stats in zone_wind_stats:
+            hfi_threshold = hfi_thresholds_by_id.get(zone_wind_stats.threshold)
+            if hfi_threshold is None:
+                logger.error(f"No hfi threshold for id: ${zone_wind_stats.threshold}")
+                continue
+            all_zone_wind_stats.append(AdvisoryMinWindStats(threshold=hfi_threshold, min_wind_speed=zone_wind_stats.min_wind_speed if zone_wind_stats else None))
+
+    return all_zone_wind_stats
