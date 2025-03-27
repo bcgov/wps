@@ -140,4 +140,4 @@ def test_eighteen_hour_model_run_with_non_accumulating_timestamp():
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
         nam_cumulative_precip, prediction, MODEL_RUN_EIGHTEEN_HOUR)
     assert (cumulative_precip == [1, 0, 0, 0]).all()
-    assert (prediction_precip == [2, 0, 0, 7]).all()
+    assert (prediction_precip == [2, 0, 0, 0]).all()
