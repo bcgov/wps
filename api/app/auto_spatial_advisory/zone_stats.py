@@ -1,10 +1,10 @@
 """
 Functions for computing fuel type stats
 """
+import logging
 from datetime import date
 from typing import List, Optional
 from wps_shared.db.models.auto_spatial_advisory import (
-    HfiClassificationThreshold, 
     SFMSFuelType as DBSFMSFuelType,
     AdvisoryHFIWindSpeed
 )
@@ -15,6 +15,9 @@ from wps_shared.schemas.fba import (
     SFMSFuelType,
     AdvisoryMinWindStats
 )
+
+logger = logging.getLogger(__name__)
+
 
 """
     <!-- Percent Curing default values from June 2021 -->
@@ -40,10 +43,6 @@ def get_optional_percent_curing(grass_curing_date: date, sfms_fuel_type: DBSFMSF
         return 90
     
     return None
-
-def get_hfi_threshold(threshold_id: int, thresholds: List[HfiClassificationThreshold]) -> HfiThreshold:
-    threshold_obj: HfiClassificationThreshold = next((th for th in thresholds if th.id == threshold_id), None)
-    return HfiThreshold(id=threshold_obj.id, name=threshold_obj.name, description=threshold_obj.description)
 
 
 def get_fuel_type_area_stats(grass_curing_date: date,
@@ -71,17 +70,19 @@ def get_fuel_type_area_stats(grass_curing_date: date,
         percent_curing=percent_curing)
 
 
-def get_zone_wind_stats_by_source_id(zone_source_id: str, advisory_wind_speed_by_source_id: dict[int, List[AdvisoryHFIWindSpeed]], hfi_threshold: HfiThreshold) -> AdvisoryMinWindStats:
-    """Marshalls hfi and min wind speeds into AdvisoryMinWindStats
+def get_zone_wind_stats_for_source_id(zone_wind_stats: List[AdvisoryHFIWindSpeed], hfi_thresholds_by_id: dict[int, HfiThreshold]) -> List[AdvisoryMinWindStats]:
+    """ Retrieve all zone wind stats for the source id.
 
-    Args:
-        zone_id: zone id stats apply to
-        zone_wind_stats: all wind stats keyed by zone source id
-        hfi_threshold: hfi threshold associated with stats
-
-    Returns:
-        AdvisoryMinWindStats: minimum wind stats for this hfi threshold for this zone
+    :param zone_source_id: The zone id to retrieve stats for
+    :param advisory_wind_speed_by_source_id: The zone id to retrieve stats for
+    :return: All hfi thresholds keyed by their ids
     """
-    all_zone_wind_stats = advisory_wind_speed_by_source_id.get(int(zone_source_id), [])
-    wind_stats_for_threshold = next((stat for stat in all_zone_wind_stats if stat.threshold == hfi_threshold.id), None)
-    return AdvisoryMinWindStats(threshold=hfi_threshold, min_wind_speed=wind_stats_for_threshold.min_wind_speed if wind_stats_for_threshold else None)
+    all_zone_wind_stats = []
+    for zone_wind_stats in zone_wind_stats:
+            hfi_threshold = hfi_thresholds_by_id.get(zone_wind_stats.threshold)
+            if hfi_threshold is None:
+                logger.error(f"No hfi threshold for id: ${zone_wind_stats.threshold}")
+                continue
+            all_zone_wind_stats.append(AdvisoryMinWindStats(threshold=hfi_threshold, min_wind_speed=zone_wind_stats.min_wind_speed if zone_wind_stats else None))
+
+    return all_zone_wind_stats

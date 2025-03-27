@@ -7,8 +7,8 @@ import pytest
 from fastapi.testclient import TestClient
 from datetime import date, datetime, timezone
 from collections import namedtuple
-from wps_shared.db.models.auto_spatial_advisory import AdvisoryTPIStats, HfiClassificationThreshold, RunParameters, SFMSFuelType, TPIFuelArea, TPIClassEnum, AdvisoryHFIWindSpeed
-
+from wps_shared.db.models.auto_spatial_advisory import AdvisoryTPIStats, RunParameters, SFMSFuelType, TPIFuelArea, TPIClassEnum, AdvisoryHFIWindSpeed
+from wps_shared.schemas.fba import HfiThreshold
 from app.tests import get_complete_filename
 from wps_shared.tests.common import default_mock_client_get
 
@@ -136,7 +136,7 @@ def test_get_fire_centres_authorized(client: TestClient):
 
 
 async def mock_hfi_thresholds(*_, **__):
-    return [HfiClassificationThreshold(id=1, description="4000 < hfi < 10000", name="advisory")]
+    return {1: HfiThreshold(id=1, description="4000 < hfi < 10000", name="advisory")}
 
 
 async def mock_sfms_fuel_types(*_, **__):
@@ -176,7 +176,7 @@ def test_get_fire_center_info_authorized(client: TestClient):
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info_with_grass)
-@patch("app.routers.fba.get_all_hfi_thresholds", mock_hfi_thresholds)
+@patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_grass_fuel_types)
 @patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
 @patch("app.routers.fba.get_zone_source_ids_in_centre", mock_zone_ids_in_centre)

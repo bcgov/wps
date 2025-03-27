@@ -9,6 +9,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from wps_shared.run_type import RunType
+from wps_shared.schemas.fba import HfiThreshold
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryFuelStats,
     AdvisoryHFIPercentConifer,
@@ -129,6 +130,20 @@ async def get_all_hfi_thresholds(session: AsyncSession) -> List[HfiClassificatio
 
     return thresholds
 
+async def get_all_hfi_thresholds_by_id(session: AsyncSession) -> dict[int, HfiThreshold]:
+    """ Retrieve all hfi thresholds and return them keyed by id.
+
+    :param session: An async database session.
+    :return: All hfi thresholds keyed by their ids
+    """
+    all_hfi_thresholds = await get_all_hfi_thresholds(session)
+    all_hfi_thresholds_by_id = {}
+    for hfi_threshold in all_hfi_thresholds:
+        all_hfi_thresholds_by_id[int(hfi_threshold.id)] = HfiThreshold(id=hfi_threshold.id, name=hfi_threshold.name, description=hfi_threshold.description)
+    return all_hfi_thresholds_by_id
+
+
+
 
 async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
     """
@@ -178,7 +193,7 @@ async def get_sfms_mixed_fuel_type(session: AsyncSession) -> SFMSFuelType:
 
     return result.scalar_one()
 
-async def get_min_wind_speed_hfi_thresholds(session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date) -> dict[int, List[AdvisoryHFIWindSpeed]]:
+async def get_min_wind_speed_hfi_thresholds(session: AsyncSession, zone_source_ids: List[int], run_type: RunTypeEnum, run_datetime: datetime, for_date: date) -> dict[int, List[AdvisoryHFIWindSpeed]]:
     """
     Retrieve min wind speeds for each hfi thresholds, and key by source identifier
     """
@@ -186,6 +201,7 @@ async def get_min_wind_speed_hfi_thresholds(session: AsyncSession, run_type: Run
         .join(RunParameters, AdvisoryHFIWindSpeed.run_parameters == RunParameters.id)\
         .join(Shape, AdvisoryHFIWindSpeed.advisory_shape_id == Shape.id)\
         .where(
+            Shape.source_identifier.in_(zone_source_ids),
             RunParameters.run_type == run_type.value,
             RunParameters.run_datetime == run_datetime,
             RunParameters.for_date == for_date,
