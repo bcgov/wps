@@ -154,7 +154,7 @@ async def mock_zone_ids_in_centre(*_, **__):
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
-@patch("app.routers.fba.get_all_hfi_thresholds", mock_hfi_thresholds)
+@patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
 @patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
 @patch("app.routers.fba.get_zone_source_ids_in_centre", mock_zone_ids_in_centre)
