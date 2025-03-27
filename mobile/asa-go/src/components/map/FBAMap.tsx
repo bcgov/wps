@@ -63,6 +63,16 @@ const FBAMap = (props: FBAMapProps) => {
     null
   ) as React.MutableRefObject<HTMLElement>;
 
+  const removeLayerByName = (map: Map, layerName: string) => {
+    const layer = map
+      .getLayers()
+      .getArray()
+      .find((l) => l.getProperties()?.name === layerName);
+    if (layer) {
+      map.removeLayer(layer);
+    }
+  };
+
   useEffect(() => {
     // zoom to fire center or whole province
     if (!map) return;
@@ -113,6 +123,7 @@ const FBAMap = (props: FBAMapProps) => {
   ]);
 
   useEffect(() => {
+    // Toggle basemap visibility based on network connection status.
     if (networkStatus.connected === true) {
       localBasemapVectorLayer.setVisible(false);
       basemapLayer.setVisible(true);
@@ -131,7 +142,9 @@ const FBAMap = (props: FBAMapProps) => {
     }
     if (networkStatus.connected) {
       localBasemapVectorLayer.setVisible(false);
-    } 
+    }
+    // Remove the placeholder VTL and then add the new localBasemapVectorLayer
+    removeLayerByName(map, LOCAL_BASEMAP_LAYER_NAME);
     map.addLayer(localBasemapVectorLayer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localBasemapVectorLayer]);
