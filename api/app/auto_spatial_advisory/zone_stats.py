@@ -71,11 +71,11 @@ def get_fuel_type_area_stats(grass_curing_date: date,
 
 
 def get_zone_wind_stats_for_source_id(zone_wind_stats: List[AdvisoryHFIWindSpeed], hfi_thresholds_by_id: dict[int, HfiThreshold]) -> List[AdvisoryMinWindStats]:
-    """ Retrieve all zone wind stats for the source id.
+    """ Marshall AdvisoryHFIWindSpeed data model objects into AdvisoryMinWindStats API model objects.
 
-    :param zone_source_id: The zone id to retrieve stats for
-    :param advisory_wind_speed_by_source_id: The zone id to retrieve stats for
-    :return: All hfi thresholds keyed by their ids
+    :param zone_wind_stats: advisory hfi wind speeds for a zone
+    :param hfi_thresholds_by_id: hfi thresholds keyed by their ids
+    :return: List of AdvisoryMinWindStats objects
     """
     all_zone_wind_stats = []
     for zone_wind_stats in zone_wind_stats:
