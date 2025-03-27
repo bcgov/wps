@@ -5,20 +5,18 @@ import { fromLonLat } from "ol/proj";
 import { boundingExtent } from "ol/extent";
 import ScaleLine from "ol/control/ScaleLine";
 import VectorTileLayer from "ol/layer/VectorTile";
-
 import React, { useEffect, useRef, useState } from "react";
-import { source as baseMapSource, BC_EXTENT } from "utils/constants";
-import TileLayer from "ol/layer/Tile";
+import { BC_EXTENT } from "utils/constants";
 import { FireCenter, FireShape, FireShapeArea, RunType } from "api/fbaAPI";
 import {
   fireCentreLabelStyler,
-  fireShapeLineStyler,
   fireShapeLabelStyler,
   fireCentreLineStyler,
   hfiStyler,
+  fireShapeLineStyler,
 } from "@/featureStylers";
 import { DateTime } from "luxon";
-import { isUndefined, cloneDeep } from "lodash";
+import { cloneDeep, isNull, isUndefined } from "lodash";
 import { Box } from "@mui/material";
 import ScalebarContainer from "@/components/ScaleBarContainer";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
@@ -27,6 +25,14 @@ import { extentsMap } from "@/fireCentreExtents";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { Filesystem } from "@capacitor/filesystem";
+import {
+  createBasemapLayer,
+  createLocalBasemapVectorLayer,
+  LOCAL_BASEMAP_LAYER_NAME,
+} from "@/layerDefinitions";
+import TileLayer from "ol/layer/Tile";
+import { useSelector } from "react-redux";
+import { selectNetworkStatus } from "@/store";
 export const MapContext = React.createContext<Map | null>(null);
 
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
@@ -42,12 +48,30 @@ export interface FBAMapProps {
 
 const FBAMap = (props: FBAMapProps) => {
   const [map, setMap] = useState<Map | null>(null);
+  const [basemapLayer] = useState<TileLayer>(createBasemapLayer());
+  const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
+    useState<VectorTileLayer>(() => {
+      const layer = new VectorTileLayer();
+      layer.set("name", LOCAL_BASEMAP_LAYER_NAME);
+      return layer;
+    });
+  const { networkStatus } = useSelector(selectNetworkStatus);
   const mapRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
   const scaleRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
+
+  const removeLayerByName = (map: Map, layerName: string) => {
+    const layer = map
+      .getLayers()
+      .getArray()
+      .find((l) => l.getProperties()?.name === layerName);
+    if (layer) {
+      map.removeLayer(layer);
+    }
+  };
 
   useEffect(() => {
     // zoom to fire center or whole province
@@ -99,6 +123,33 @@ const FBAMap = (props: FBAMapProps) => {
   ]);
 
   useEffect(() => {
+    // Toggle basemap visibility based on network connection status.
+    if (networkStatus.connected === true) {
+      localBasemapVectorLayer.setVisible(false);
+      basemapLayer.setVisible(true);
+    } else {
+      basemapLayer.setVisible(false);
+      localBasemapVectorLayer.setVisible(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [networkStatus]);
+
+  useEffect(() => {
+    // The locally cached basemap pmtiles layer loads async, so add it
+    // to the map once it is loaded and state updated.
+    if (isNull(map) || isNull(localBasemapVectorLayer)) {
+      return;
+    }
+    if (networkStatus.connected) {
+      localBasemapVectorLayer.setVisible(false);
+    }
+    // Remove the placeholder VTL and then add the new localBasemapVectorLayer
+    removeLayerByName(map, LOCAL_BASEMAP_LAYER_NAME);
+    map.addLayer(localBasemapVectorLayer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localBasemapVectorLayer]);
+
+  useEffect(() => {
     // The React ref is used to attach to the div rendered in our
     // return statement of which this map's target is set to.
     // The ref is a div of type  HTMLDivElement.
@@ -113,11 +164,7 @@ const FBAMap = (props: FBAMapProps) => {
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC),
       }),
-      layers: [
-        new TileLayer({
-          source: baseMapSource,
-        }),
-      ],
+      layers: [],
       overlays: [],
       controls: defaultControls().extend([new FullScreen()]),
     });
@@ -214,6 +261,11 @@ const FBAMap = (props: FBAMapProps) => {
           style: hfiStyler,
           zIndex: 52,
         });
+
+        const localBasemapLayer = await createLocalBasemapVectorLayer();
+        setLocalBasemapVectorLayer(localBasemapLayer);
+
+        mapObject.addLayer(basemapLayer);
         mapObject.addLayer(hfiFileLayer);
         mapObject.addLayer(fireCentreFileLayer);
         mapObject.addLayer(fireCentreLabelsFileLayer);

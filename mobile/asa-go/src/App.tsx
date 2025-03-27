@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 
-import FBAMap from "@/FBAMap";
+import FBAMap from "@/components/map/FBAMap";
 import { FireCenter, FireShape, RunType } from "@/api/fbaAPI";
 import { AppHeader } from "@/components/AppHeader";
 import { ASATabs } from "@/components/ASATabs";
@@ -21,6 +21,8 @@ import { fetchFireCentreTPIStats } from "@/slices/fireCentreTPIStatsSlice";
 import { fetchFireCentreHFIFuelStats } from "@/slices/fireCentreHFIFuelStatsSlice";
 import { fetchFireShapeAreas } from "@/slices/fireZoneAreasSlice";
 import { fetchProvincialSummary } from "@/slices/provincialSummarySlice";
+import { updateNetworkStatus } from "@/slices/networkStatusSlice";
+import { ConnectionStatus, Network } from "@capacitor/network";
 
 const App = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -51,6 +53,26 @@ const App = () => {
       dispatch(fetchSFMSRunDates(runType, doiISODate));
     }
   }, [runType]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    // Network status is disconnected by default in the networkStatusSlice. Update the status
+    // when the app first starts and then attach a listener to keep network status in the redux
+    // store current.
+    async function getInitialNetworkStatus() {
+      const status = await Network.getStatus();
+      dispatch(updateNetworkStatus(status));
+    }
+    getInitialNetworkStatus();
+    Network.addListener("networkStatusChange", (status: ConnectionStatus) => {
+      console.log(
+        `Network status changed: ${status.connected}, ${status.connectionType}`
+      );
+      dispatch(updateNetworkStatus(status));
+    });
+    return () => {
+      Network.removeAllListeners();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatch(fetchFireCenters());
