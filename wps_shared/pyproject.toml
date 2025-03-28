@@ -19,12 +19,16 @@ geoalchemy2 = "^0"
 affine = "^2.4.0"
 fastapi = "^0.115.11"
 sentry-sdk = "^2.22.0"
-pytest-mock = "^3.14.0"
 pyjwt = "^2.10.1"
 psycopg2-binary = "^2.9.10"
 asyncpg = "^0.30.0"
 redis = "^5.2.1"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.1"
+pytest-mock = "^3"
+coverage = "^7.6.4"
 
 [build-system]
 requires = ["poetry-core"]
