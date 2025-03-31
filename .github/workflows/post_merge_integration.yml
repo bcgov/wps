@@ -269,7 +269,7 @@ jobs:
           name: wps-jobs-coverage-report
           path: ./wps_jobs/coverage-reports/wps-jobs-coverage-report.xml
   test-wps-shared:
-    name: Python - WPS shared Test with coverage
+    name: Python - WPS Shared Test with coverage
     runs-on: ubuntu-24.04
     strategy:
       matrix:
