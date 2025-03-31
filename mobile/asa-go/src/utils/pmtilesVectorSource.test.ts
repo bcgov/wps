@@ -141,6 +141,17 @@ describe("pmTilesVectorSource", () => {
     sinon.assert.notCalled(pmTilesCacheSpy.loadPMTiles);
   });
 
+  it("should attempt to load basemap pmtiles upon creation", async () => {
+    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles());
+    const pmTilesCacheSpy = sandbox.spy(testCache);
+
+    await PMTilesFileVectorSource.createBasemapSource(testCache, {
+      filename: "test.pmtiles",
+    });
+    sinon.assert.calledOnce(pmTilesCacheSpy.loadPMTiles);
+    sinon.assert.notCalled(pmTilesCacheSpy.loadHFIPMTiles);
+  });
+
   it("should set tile status ready once initialized", async () => {
     const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles());
     const instance = await PMTilesFileVectorSource.createHFILayer(testCache, {
@@ -148,6 +159,18 @@ describe("pmTilesVectorSource", () => {
       for_date: DateTime.fromISO("2016-05-25T09:08:34.123"),
       run_type: RunType.FORECAST,
       run_date: DateTime.fromISO("2016-05-25T09:08:34.123"),
+    });
+    const tileGrid = instance.getTileGrid();
+    assert(tileGrid !== null);
+    assert(tileGrid.getMaxZoom() === testPMTilesHeader.maxZoom);
+    assert(tileGrid.getMinZoom() === testPMTilesHeader.minZoom);
+    assert(instance.getState() === "ready");
+  });
+
+  it("should set tile status ready once basemap initialized", async () => {
+    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles());
+    const instance = await PMTilesFileVectorSource.createBasemapSource(testCache, {
+      filename: "test.pmtiles"
     });
     const tileGrid = instance.getTileGrid();
     assert(tileGrid !== null);
