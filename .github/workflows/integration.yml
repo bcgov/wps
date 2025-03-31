@@ -356,7 +356,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wps-shared-coverage-report
-          path: ./wps_shared/coverage-reports/wps-shared-coverage-report.xml
+          path: ./wps_shared/wps_shared/coverage-reports/wps-shared-coverage-report.xml
   lint-and-test-web:
     name: Web - Lint, Test with coverage
     runs-on: ubuntu-24.04
