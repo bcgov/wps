@@ -142,7 +142,7 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
                 zone_fuel_stats.append(fuel_type_area_stats)
 
             
-            all_zone_data[int(zone_source_id)] = FireZoneHFIStats(min_wind_stats=zone_wind_stats_by_source_id[int(zone_source_id)], fuel_area_stats=zone_fuel_stats)
+            all_zone_data[int(zone_source_id)] = FireZoneHFIStats(min_wind_stats=zone_wind_stats_by_source_id.get(int(zone_source_id), []), fuel_area_stats=zone_fuel_stats)
 
         return {fire_centre_name: all_zone_data}
 
