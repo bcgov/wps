@@ -6,6 +6,7 @@ import fireCentreTPIStatsSlice from "@/slices/fireCentreTPIStatsSlice";
 import fireCentreHFIFuelStatsSlice from "@/slices/fireCentreHFIFuelStatsSlice";
 import runDatesSlice from "@/slices/runDatesSlice";
 import fireCentersSlice from "@/slices/fireCentersSlice";
+import networkStatusSlice from "@/slices/networkStatusSlice"
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     fireCentreTPIStats: fireCentreTPIStatsSlice,
     fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice,
     runDates: runDatesSlice,
+    networkStatus: networkStatusSlice
   },
 });
 
@@ -29,3 +31,4 @@ export type AppThunk = ThunkAction<void, RootState, undefined, Action>;
 export const selectRunDates = (state: RootState) => state.runDates;
 export const selectFireShapeAreas = (state: RootState) => state.fireShapeAreas;
 export const selectFireCenters = (state: RootState) => state.fireCenters;
+export const selectNetworkStatus = (state: RootState) => state.networkStatus
