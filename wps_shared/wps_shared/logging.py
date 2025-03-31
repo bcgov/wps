@@ -1,7 +1,6 @@
 import os
 import json
-import logging
-import logging.config
+from logging import config
 
 # database is used externally by alembic.
 from . import db  # noqa: F401
@@ -12,5 +11,5 @@ def configure_logging():
     logging_config = os.path.join(os.path.dirname(__file__), "logging.json")
     if os.path.exists(logging_config):
         with open(logging_config, encoding="utf-8") as config_file:
-            config = json.load(config_file)
-        logging.config.dictConfig(config)
+            config_json = json.load(config_file)
+        config.dictConfig(config_json)
