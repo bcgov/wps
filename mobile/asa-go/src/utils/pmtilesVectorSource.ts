@@ -140,6 +140,28 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     this.setState("ready");
   }
 
+  static async createBasemapSource(
+    pmtilesCache: IPMTilesCache,
+    options: PMTilesFileVectorOptions
+  ) {
+    const instance = new PMTilesFileVectorSource(options)
+    await instance.initBasemapSource(pmtilesCache, options)
+    return instance
+  }
+
+  async initBasemapSource(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions){
+    try {
+      console.log("Attempting to download offline pmtiles basemap assets.")
+      const pmtiles = await pmtilesCache.loadPMTiles(options.filename);
+
+      await this.initTileGrid(pmtiles);
+
+    } catch (error) {
+      console.error("Error loading PMTiles file:", error);
+      this.setState("error");
+    }
+  }
+
   static async createHFILayer(
     pmtilesCache: IPMTilesCache,
     options: HFIPMTilesFileVectorOptions
