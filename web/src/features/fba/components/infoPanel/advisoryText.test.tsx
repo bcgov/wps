@@ -600,13 +600,35 @@ describe('getZoneMinWindStats', () => {
           name: 'warning',
           description: 'hfi > 1000'
         },
-        min_wind_speed: 1
+        min_wind_speed: 2
       }
     ])
     // should return the fuel records that cumulatively sum to > 90% of their own fuel area
     expect(result).toEqual(
-      `Minimum forecasted wind speeds of 1 km/hr and 1 km/hr will result in Head Fire Intensity Classes 5 and 6 respectively.`
+      `Minimum forecasted wind speeds of 1 km/hr and 2 km/hr will result in Head Fire Intensity Classes 5 and 6 respectively.`
     )
+  })
+  it('should return both advisory and warning min wind speeds when they are the same', () => {
+    const result = getZoneMinWindStats([
+      {
+        threshold: {
+          id: 1,
+          name: 'advisory',
+          description: '4000 < hfi < 10000'
+        },
+        min_wind_speed: 1
+      },
+      {
+        threshold: {
+          id: 2,
+          name: 'warning',
+          description: 'hfi > 1000'
+        },
+        min_wind_speed: 1
+      }
+    ])
+    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
+    expect(result).toEqual(`Minimum forecasted wind speed for both Head Fire Intensity Classes 5 and 6 is 1 km/hr.`)
   })
   it('should return just advisory min wind speed', () => {
     const result = getZoneMinWindStats([
@@ -636,5 +658,72 @@ describe('getZoneMinWindStats', () => {
     ])
     // should return the fuel records that cumulatively sum to > 90% of their own fuel area
     expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 6.`)
+  })
+
+  it('should return specific text when both min wind speeds are 0', () => {
+    const result = getZoneMinWindStats([
+      {
+        threshold: {
+          id: 1,
+          name: 'advisory',
+          description: '4000 < hfi < 10000'
+        },
+        min_wind_speed: 0
+      },
+      {
+        threshold: {
+          id: 2,
+          name: 'warning',
+          description: 'hfi > 1000'
+        },
+        min_wind_speed: 0
+      }
+    ])
+    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
+    expect(result).toEqual(`There are no minimum wind speeds that would result in Head Fire Intensity Classes 5 or 6.`)
+  })
+  it('should return specific text when only advisory min wind speed is 0', () => {
+    const result = getZoneMinWindStats([
+      {
+        threshold: {
+          id: 1,
+          name: 'advisory',
+          description: '4000 < hfi < 10000'
+        },
+        min_wind_speed: 0
+      },
+      {
+        threshold: {
+          id: 2,
+          name: 'warning',
+          description: 'hfi > 1000'
+        },
+        min_wind_speed: 1
+      }
+    ])
+    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
+    expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 6.`)
+  })
+  it('should return specific text when only warning min wind speed is 0', () => {
+    const result = getZoneMinWindStats([
+      {
+        threshold: {
+          id: 1,
+          name: 'advisory',
+          description: '4000 < hfi < 10000'
+        },
+        min_wind_speed: 1
+      },
+      {
+        threshold: {
+          id: 2,
+          name: 'warning',
+          description: 'hfi > 1000'
+        },
+        min_wind_speed: 0
+      }
+    ])
+    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
+    expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 5.`)
   })
 })
