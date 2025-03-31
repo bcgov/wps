@@ -21,7 +21,7 @@ from wps_jobs.weather_model_jobs.common_model_fetchers import (
     check_if_model_run_complete,
     flag_file_as_processed,
 )
-from wps_shared.logging import configure_logging
+from wps_shared.wps_logging import configure_logging
 import wps_shared.utils.time as time_utils
 from wps_shared.weather_models import (
     CompletedWithSomeExceptions,

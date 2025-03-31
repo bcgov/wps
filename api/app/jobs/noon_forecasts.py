@@ -8,7 +8,7 @@ import logging
 import logging.config
 from sqlalchemy.exc import IntegrityError
 from aiohttp.client import ClientSession
-from wps_shared.logging import configure_logging
+from wps_shared.wps_logging import configure_logging
 import wps_shared.db.database
 from wps_shared.db.crud.forecasts import save_noon_forecast
 from wps_shared.wildfire_one import wfwx_api

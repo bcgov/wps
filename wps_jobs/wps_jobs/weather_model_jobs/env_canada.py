@@ -24,7 +24,7 @@ from wps_jobs.weather_model_jobs.common_model_fetchers import (
     flag_file_as_processed,
 )
 from wps_shared.weather_models import ModelEnum, ProjectionEnum, get_env_canada_model_run_hours, UnhandledPredictionModelType
-from wps_shared.logging import configure_logging
+from wps_shared.wps_logging import configure_logging
 import wps_shared.utils.time as time_utils
 from wps_jobs.weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
