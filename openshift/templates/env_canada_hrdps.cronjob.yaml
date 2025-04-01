@@ -48,8 +48,10 @@ objects:
       # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
       # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
       # If we were to use Forbid, and a cronjob gets stuck, then we'd stop gathering data until someone
-      # noticed. We don't want that.
-      concurrencyPolicy: "Replace"
+      # noticed. We don't want that. Edit: Forbid here is temporary...
+      concurrencyPolicy: "Forbid"
+      failedJobsHistoryLimit: 1
+      successfulJobsHistoryLimit: 2
       jobTemplate:
         metadata:
           labels:
