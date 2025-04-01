@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material'
-import { FireCenter, FireShape, FireZoneFuelStats } from 'api/fbaAPI'
+import { AdvisoryMinWindStats, FireCenter, FireShape, FireZoneFuelStats, FireZoneHFIStats } from 'api/fbaAPI'
 import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
@@ -7,7 +7,7 @@ import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySl
 import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { AdvisoryStatus } from 'utils/constants'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
-import { calculateStatusText } from '@/features/fba/calculateZoneStatus'
+import { calculateStatusText, calculateWindSpeedText } from '@/features/fba/calculateZoneStatus'
 
 // Return a list of fuel stats for which greater than 90% of the area of each fuel type has high HFI.
 export const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
@@ -31,8 +31,8 @@ export const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]):
  * @param zoneUnitFuelStats
  * @returns FireZoneFuelStats array
  */
-export const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
-  const groupedByFuelType = groupBy(zoneUnitFuelStats, stat => stat.fuel_type.fuel_type_code)
+export const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneHFIStats): FireZoneFuelStats[] => {
+  const groupedByFuelType = groupBy(zoneUnitFuelStats.fuel_area_stats, stat => stat.fuel_type.fuel_type_code)
 
   const fuelTypeAreas = Object.entries(groupedByFuelType).map(([fuelType, entries]) => ({
     fuelType,
@@ -41,7 +41,7 @@ export const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZ
   }))
 
   const sortedFuelTypes = fuelTypeAreas.toSorted((a, b) => b.fuelTypeTotalHfi - a.fuelTypeTotalHfi)
-  const totalHighHFIArea = zoneUnitFuelStats.reduce((total, stats) => total + stats.area, 0)
+  const totalHighHFIArea = zoneUnitFuelStats.fuel_area_stats.reduce((total, stats) => total + stats.area, 0)
 
   const topFuelsByArea: FireZoneFuelStats[] = []
   let highHFIArea = 0
@@ -57,6 +57,14 @@ export const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZ
 
   return topFuelsByArea
 }
+
+export const getZoneMinWindStats = (selectedFireZoneUnitMinWindSpeeds: AdvisoryMinWindStats[]) => {
+  if (!isEmpty(selectedFireZoneUnitMinWindSpeeds)) {
+    const zoneMinWindSpeedsText = calculateWindSpeedText(selectedFireZoneUnitMinWindSpeeds)
+    return zoneMinWindSpeedsText
+  }
+}
+
 interface AdvisoryTextProps {
   issueDate: DateTime | null
   forDate: DateTime
@@ -75,6 +83,7 @@ const AdvisoryText = ({
   const provincialSummary = useSelector(selectProvincialSummary)
   const { fireCentreHFIFuelStats } = useSelector(selectFireCentreHFIFuelStats)
   const [selectedFireZoneUnitTopFuels, setSelectedFireZoneUnitTopFuels] = useState<FireZoneFuelStats[]>([])
+  const [selectedFireZoneUnitMinWindSpeeds, setSelectedFireZoneUnitMinWindSpeeds] = useState<AdvisoryMinWindStats[]>([])
 
   const [minStartTime, setMinStartTime] = useState<number | undefined>(undefined)
   const [maxEndTime, setMaxEndTime] = useState<number | undefined>(undefined)
@@ -94,10 +103,14 @@ const AdvisoryText = ({
       return
     }
     const allZoneUnitFuelStats = fireCentreHFIFuelStats?.[selectedFireCenter.name]
-    const selectedZoneUnitFuelStats = allZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? []
+    const selectedZoneUnitFuelStats = allZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? {
+      fuel_area_stats: [],
+      min_wind_stats: []
+    }
+    setSelectedFireZoneUnitMinWindSpeeds(selectedZoneUnitFuelStats.min_wind_stats)
     const topFuels = getTopFuelsByArea(selectedZoneUnitFuelStats)
     setSelectedFireZoneUnitTopFuels(topFuels)
-    const topFuelsByProportion = getTopFuelsByProportion(selectedZoneUnitFuelStats)
+    const topFuelsByProportion = getTopFuelsByProportion(selectedZoneUnitFuelStats.fuel_area_stats)
     setHighHFIFuelsByProportion(topFuelsByProportion)
   }, [fireCentreHFIFuelStats, selectedFireZoneUnit])
 
@@ -156,11 +169,11 @@ const AdvisoryText = ({
       case 0:
         return ''
       case 1:
-        return `Also watch out for fuel type ${highProportionFuels[0]} which occupies a small portion of the zone but is expected to be under advisory conditions wherever it occurs.`
+        return `Also watch out for fuel type ${highProportionFuels[0]} which occupies a small portion of the zone but is expected to be under advisory conditions wherever it occurs.\n\n`
       case 2:
-        return `Also watch out for fuel types ${highProportionFuels[0]} and ${highProportionFuels[1]} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.`
+        return `Also watch out for fuel types ${highProportionFuels[0]} and ${highProportionFuels[1]} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.\n\n`
       default:
-        return `Also watch out for fuel types ${getCommaSeparatedString(highProportionFuels)} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.`
+        return `Also watch out for fuel types ${getCommaSeparatedString(highProportionFuels)} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.\n\n`
     }
   }
 
@@ -200,6 +213,8 @@ const AdvisoryText = ({
       message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}.\n\n`
     }
 
+    const minWindSpeeds = getZoneMinWindStats(selectedFireZoneUnitMinWindSpeeds)
+
     return (
       <>
         {selectedFireZoneUnit && (
@@ -226,6 +241,11 @@ const AdvisoryText = ({
         {!isUndefined(zoneStatus) && (
           <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-proportion">
             {getHighProportionFuelsString()}
+          </Typography>
+        )}
+        {!isUndefined(zoneStatus) && !isUndefined(minWindSpeeds) && (
+          <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-min-wind-speeds">
+            {minWindSpeeds}
           </Typography>
         )}
         {!hasCriticalHours && !isUndefined(zoneStatus) && (

@@ -34,6 +34,11 @@ export interface AdvisoryCriticalHours {
   end_time?: number
 }
 
+export interface AdvisoryMinWindStats {
+  threshold: HfiThreshold
+  min_wind_speed?: number
+}
+
 export interface FireZoneFuelStats {
   fuel_type: FuelType
   threshold: HfiThreshold
@@ -115,9 +120,14 @@ export interface FuelType {
   description: string
 }
 
+export interface FireZoneHFIStats {
+  min_wind_stats: AdvisoryMinWindStats[]
+  fuel_area_stats: FireZoneFuelStats[]
+}
+
 export interface FireCentreHFIStats {
   [fire_centre_name: string]: {
-    [fire_zone_id: number]: FireZoneFuelStats[]
+    [fire_zone_id: number]: FireZoneHFIStats
   }
 }
 
