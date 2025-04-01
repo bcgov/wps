@@ -339,7 +339,7 @@ jobs:
         run: |
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
-          poetry run coverage run --source=wps_shared -m pytest tests -x -o log_cli=true --disable-warnings -vvv
+          poetry run coverage run --source=wps_shared -m pytest ./wps_shared/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Create coverage report (wps_shared)
         working-directory: ./wps_shared
         shell: bash
