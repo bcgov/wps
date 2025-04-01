@@ -42,6 +42,9 @@ parameters:
   - name: MEMORY_LIMIT
     required: true
     value: 5000Mi
+  - name: CPU_REQUEST
+    required: true
+    value: "1"
 
 objects:
   - apiVersion: v1
@@ -280,10 +283,9 @@ objects:
               imagePullPolicy: "Always"
               resources:
                 requests:
-                  cpu: "250m"
+                  cpu: ${CPU_REQUEST}
                   memory: ${MEMORY_REQUEST}
                 limits:
-                  cpu: "500m"
                   memory: ${MEMORY_LIMIT}
               command:
                 [
