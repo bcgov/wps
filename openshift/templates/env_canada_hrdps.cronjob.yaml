@@ -58,6 +58,7 @@ objects:
             cronjob: ${JOB_NAME}
             app: ${APP_LABEL}
         spec:
+          backoffLimit: 0
           template:
             spec:
               containers:
@@ -195,4 +196,4 @@ objects:
                     requests:
                       cpu: "500m"
                       memory: 256Mi
-              restartPolicy: OnFailure
+              restartPolicy: Never
