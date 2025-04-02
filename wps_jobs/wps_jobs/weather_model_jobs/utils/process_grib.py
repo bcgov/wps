@@ -3,7 +3,6 @@
 from datetime import datetime
 import math
 import logging
-import logging.config
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from osgeo import gdal

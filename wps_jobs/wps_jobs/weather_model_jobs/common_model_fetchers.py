@@ -21,7 +21,7 @@ from wps_jobs.weather_model_jobs.utils.interpolate import (
 from wps_jobs.weather_model_jobs.machine_learning import StationMachineLearning
 from wps_shared.weather_models import ModelEnum
 from wps_shared.schemas.stations import WeatherStation
-from wps_shared.logging import configure_logging
+from wps_shared.wps_logging import configure_logging
 import wps_shared.utils.time as time_utils
 from wps_shared.stations import get_stations_synchronously
 from wps_shared.db.models.weather_models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunPrediction

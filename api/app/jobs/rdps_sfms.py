@@ -21,7 +21,7 @@ from wps_shared.db.crud.weather_models import (
 )
 from wps_shared.weather_models import CompletedWithSomeExceptions, download
 from wps_shared.weather_models import ModelEnum
-from wps_shared.logging import configure_logging
+from wps_shared.wps_logging import configure_logging
 import wps_shared.utils.time as time_utils
 from wps_shared.utils.s3 import get_client
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
