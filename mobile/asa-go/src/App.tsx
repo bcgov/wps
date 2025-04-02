@@ -4,10 +4,9 @@ import { Box } from "@mui/material";
 import FBAMap from "@/components/map/FBAMap";
 import { FireCenter, FireShape, RunType } from "@/api/fbaAPI";
 import { AppHeader } from "@/components/AppHeader";
-import { ASATabs } from "@/components/ASATabs";
 import { useDispatch, useSelector } from "react-redux";
 import { DateTime } from "luxon";
-import { PST_UTC_OFFSET } from "@/utils/constants";
+import { NavPanel, PST_UTC_OFFSET } from "@/utils/constants";
 import {
   selectFireCenters,
   selectRunDates,
@@ -23,10 +22,14 @@ import { fetchFireShapeAreas } from "@/slices/fireZoneAreasSlice";
 import { fetchProvincialSummary } from "@/slices/provincialSummarySlice";
 import { updateNetworkStatus } from "@/slices/networkStatusSlice";
 import { ConnectionStatus, Network } from "@capacitor/network";
+import Profile from "@/components/Profile";
+import Advisory from "@/components/Advisory";
+import BottomNavigationBar from "@/components/BottomNavigationBar";
 
 const App = () => {
   const dispatch: AppDispatch = useDispatch();
   const { fireCenters } = useSelector(selectFireCenters);
+  const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(
     undefined
@@ -149,7 +152,6 @@ const App = () => {
         height: "100vh",
         padding: 0,
         margin: 0,
-        width: 1024,
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -165,14 +167,18 @@ const App = () => {
         setSelectedFireShape={setSelectedFireShape}
         setZoomSource={setZoomSource}
       />
-      <FBAMap
-        selectedFireCenter={fireCenter}
-        selectedFireShape={selectedFireShape}
-        fireShapeAreas={fireShapeAreas}
-        zoomSource={zoomSource}
-        advisoryThreshold={0}
-      />
-      <ASATabs />
+      {tab === NavPanel.MAP && (
+        <FBAMap
+          selectedFireCenter={fireCenter}
+          selectedFireShape={selectedFireShape}
+          fireShapeAreas={fireShapeAreas}
+          zoomSource={zoomSource}
+          advisoryThreshold={0}
+        />
+      )}
+      {tab === NavPanel.PROFILE && <Profile />}
+      {tab === NavPanel.ADVISORY && <Advisory />}
+      <BottomNavigationBar tab={tab} setTab={setTab} />
     </Box>
   );
 };
