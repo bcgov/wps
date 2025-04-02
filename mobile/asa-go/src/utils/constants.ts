@@ -78,3 +78,9 @@ export enum AdvisoryStatus {
   ADVISORY = "Advisory",
   WARNING = "Warning",
 }
+
+export enum NavPanel {
+  ADVISORY = "Advisory",
+  MAP = "Map",
+  PROFILE = "Profile",
+}
