@@ -2,6 +2,9 @@
 
 PYTHON_VERSION=3.12.3
 
+# create virtual environments inside the project dirs
+poetry config virtualenvs.in-project true
+
 # run from wps root directory
 echo $(pwd)
 
