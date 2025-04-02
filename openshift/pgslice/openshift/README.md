@@ -23,5 +23,5 @@ oc -n e1e498-tools start-build pgslice --follow
 # tag this image with todays' date so we can revert to it again
 oc -n e1e498-tools tag pgslice:dev pgslice:<yyyy-mm-dd>
 # tag it for production
-oc -n e1e498-tools tag pgslice:dev s3-backup:prod
+oc -n e1e498-tools tag pgslice:dev pgslice:prod
 ```

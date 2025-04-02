@@ -17,7 +17,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiobotocore.client import AioBaseClient
 
-from wps_shared.logging import configure_logging
+from wps_shared.wps_logging import configure_logging
 from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
 from wps_shared.run_type import RunType
 from wps_shared.db.crud.auto_spatial_advisory import (

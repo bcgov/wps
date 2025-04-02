@@ -4,7 +4,7 @@ import os
 import sys
 from datetime import datetime, timezone
 
-from wps_shared.logging import configure_logging
+from wps_shared.wps_logging import configure_logging
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from app.jobs.rdps_sfms import MAX_MODEL_RUN_HOUR
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
