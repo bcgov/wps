@@ -29,7 +29,7 @@ import BottomNavigationBar from "@/components/BottomNavigationBar";
 const App = () => {
   const dispatch: AppDispatch = useDispatch();
   const { fireCenters } = useSelector(selectFireCenters);
-  const [location, setLocation] = useState<NavPanel>(NavPanel.MAP);
+  const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(
     undefined
@@ -168,7 +168,7 @@ const App = () => {
         setSelectedFireShape={setSelectedFireShape}
         setZoomSource={setZoomSource}
       />
-      {location === NavPanel.MAP && (
+      {tab === NavPanel.MAP && (
         <FBAMap
           selectedFireCenter={fireCenter}
           selectedFireShape={selectedFireShape}
@@ -177,9 +177,9 @@ const App = () => {
           advisoryThreshold={0}
         />
       )}
-      {location === NavPanel.PROFILE && <Profile />}
-      {location === NavPanel.ADVISORY && <Advisory />}
-      <BottomNavigationBar location={location} setLocation={setLocation} />
+      {tab === NavPanel.PROFILE && <Profile />}
+      {tab === NavPanel.ADVISORY && <Advisory />}
+      <BottomNavigationBar tab={tab} setTab={setTab} />
     </Box>
   );
 };

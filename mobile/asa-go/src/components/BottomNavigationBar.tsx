@@ -13,20 +13,20 @@ const StyledBottomNavigationAction = styled(BottomNavigationAction)({
 })
 
 interface BottomNavigationBarProps {
-  location: NavPanel
-  setLocation: (newValue: NavPanel) => void
+  tab: NavPanel
+  setTab: (newValue: NavPanel) => void
 }
 
-const BottomNavigationBar = ({location, setLocation}: BottomNavigationBarProps) => {
+const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
   return (
-      <BottomNavigation
+    <BottomNavigation
       showLabels
-      value={location}
+      value={tab}
       onChange={(
         event: React.SyntheticEvent<Element, Event>,
         newValue: NavPanel
       ) => {
-        setLocation(newValue);
+        setTab(newValue)
       }}
       sx={{
         backgroundColor: theme.palette.primary.main,
