@@ -10,9 +10,6 @@
 
 set -euxo pipefail
 
-# Omit checksum if not required
-ENV AWS_REQUEST_CHECKSUM_CALCULATION when_required
-
 # We can extend this later on to be a list of tables
 TABLE=weather_station_model_predictions
 
