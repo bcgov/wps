@@ -152,7 +152,6 @@ const App = () => {
         height: "100vh",
         padding: 0,
         margin: 0,
-        width: 1024,
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
