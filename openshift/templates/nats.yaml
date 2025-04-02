@@ -44,7 +44,7 @@ parameters:
     value: 5000Mi
   - name: CPU_REQUEST
     required: true
-    value: "1"
+    value: "1.5"
 
 objects:
   - apiVersion: v1
