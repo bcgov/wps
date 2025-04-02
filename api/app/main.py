@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import sentry_sdk
 from starlette.applications import Starlette
 from wps_shared import schemas
-from wps_shared.logging import configure_logging
+from wps_shared.wps_logging import configure_logging
 from app.percentile import get_precalculated_percentiles
 from wps_shared.auth import authentication_required, audit
 from wps_shared import config

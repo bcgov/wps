@@ -6,7 +6,7 @@ from datetime import datetime, timezone as dt_tz
 import random
 from typing import Final
 import logging
-from wps_shared.logging import configure_logging
+from wps_shared.wps_logging import configure_logging
 from wps_shared.schemas.fba_calc import FuelTypeEnum
 from wps_shared.utils.time import get_hour_20_from_date
 from app.fire_behaviour.advisory import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation

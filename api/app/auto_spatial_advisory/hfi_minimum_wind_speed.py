@@ -14,7 +14,7 @@ from wps_shared.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_ty
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import HfiClassificationThresholdEnum, AdvisoryHFIWindSpeed, Shape, HfiClassificationThreshold
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal, rasters_match
-from wps_shared.logging import configure_logging
+from wps_shared.wps_logging import configure_logging
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.time import convert_to_sfms_timezone

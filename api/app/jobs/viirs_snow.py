@@ -10,7 +10,7 @@ import requests
 import shutil
 import sys
 import tempfile
-from wps_shared.logging import configure_logging
+from wps_shared.wps_logging import configure_logging
 from wps_shared.db.crud.snow import get_last_processed_snow_by_processed_date, save_processed_snow
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.snow import ProcessedSnow, SnowSourceEnum

@@ -8,7 +8,7 @@ from pytest_mock import MockFixture
 
 from wps_shared.wildfire_one.query_builders import BuildQueryAllForecastsByAfterStart, BuildQueryAllHourliesByRange, BuildQueryDailiesByStationCode, BuildQueryStationGroups
 from wps_shared.wildfire_one.wfwx_api import WFWXWeatherStation, get_wfwx_stations_from_station_codes
-from app.wildfire_one.wfwx_post_api import post_forecasts
+from wps_shared.wildfire_one.wfwx_post_api import post_forecasts
 
 
 def test_build_all_hourlies_query():
@@ -93,7 +93,7 @@ def test_get_ids_from_station_codes(mock_responses):
 
 
 @pytest.mark.anyio
-@patch("app.wildfire_one.wfwx_post_api.ClientSession")
+@patch("wps_shared.wildfire_one.wfwx_post_api.ClientSession")
 async def test_wf1_post_failure(mock_client):
     """Verifies that posting to WF1 raises an exception upon failure"""
     mock_client.post.return_value.__aenter__.return_value = AsyncMock(status=400)

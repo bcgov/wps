@@ -9,7 +9,7 @@ from aiohttp.client import ClientSession
 from sqlalchemy.exc import IntegrityError
 import wps_shared.db.database
 import wps_shared.utils.time
-from wps_shared.logging import configure_logging
+from wps_shared.wps_logging import configure_logging
 from wps_shared.db.crud.observations import save_hourly_actual
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.wildfire_one import wfwx_api
