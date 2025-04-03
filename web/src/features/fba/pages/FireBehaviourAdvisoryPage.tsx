@@ -7,7 +7,7 @@ import { DateTime } from 'luxon'
 import { selectFireCenters, selectRunDates, selectFireShapeAreas } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
-import { theme } from 'app/theme'
+import { INFO_PANEL_CONTENT_BACKGROUND, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { FireCenter, FireShape, RunType } from 'api/fbaAPI'
@@ -24,8 +24,9 @@ import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySli
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import FireZoneUnitTabs from 'features/fba/components/infoPanel/FireZoneUnitTabs'
 import { fetchFireCentreTPIStats } from 'features/fba/slices/fireCentreTPIStatsSlice'
-import AboutDataPopover from 'features/fba/components/AboutDataPopover'
 import { fetchFireCentreHFIFuelStats } from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
+import AboutDataPopover from '@/components/AboutDataPopover'
+import { ASAAboutDataContent } from '@/features/fba/components/ASAAboutDataContent'
 
 const ADVISORY_THRESHOLD = 20
 
@@ -161,7 +162,11 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             </FireCentreFormControl>
           </Grid>
           <Grid item sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
-            <AboutDataPopover advisoryThreshold={ADVISORY_THRESHOLD} />
+            <AboutDataPopover
+              content={ASAAboutDataContent}
+              props={{ advisoryThreshold: ADVISORY_THRESHOLD }}
+              backgroundColor={INFO_PANEL_CONTENT_BACKGROUND}
+            />
           </Grid>
         </Grid>
       </Box>

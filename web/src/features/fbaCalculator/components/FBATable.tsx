@@ -39,8 +39,9 @@ import FilterColumnsModal from 'components/FilterColumnsModal'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
-import AboutDataPopover from '@/features/fbaCalculator/components/FbaAboutData'
 import { theme } from '@/app/theme'
+import AboutDataPopover from '@/components/AboutDataPopover'
+import { FBAAboutDataContent } from '@/features/fbaCalculator/components/FbaAboutDataContent'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -606,7 +607,7 @@ const FBATable = (props: FBATableProps) => {
           </Grid>
 
           <Grid item xs={4} container justifyContent="flex-end">
-            <AboutDataPopover />
+            <AboutDataPopover content={FBAAboutDataContent} />
           </Grid>
         </Grid>
 
