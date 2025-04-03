@@ -8,7 +8,8 @@ describe('RowManager', () => {
     fuelType: { value: 'c1', label: 'C1' },
     grassCure: 1,
     windSpeed: 1,
-    wind_speed: undefined
+    wind_speed: undefined,
+    precipitation: undefined
   }
 
   const firstCalculatedRow = {
@@ -50,7 +51,8 @@ describe('RowManager', () => {
     fuelType: { value: 'c2', label: 'C2' },
     grassCure: 2,
     windSpeed: 2,
-    wind_speed: undefined
+    wind_speed: undefined,
+    precipitation: undefined
   }
 
   const secondCalculatedRow = {
@@ -91,7 +93,8 @@ describe('RowManager', () => {
     fuelType: null,
     grassCure: undefined,
     windSpeed: undefined,
-    wind_speed: undefined
+    wind_speed: undefined,
+    precipitation: undefined
   }
 
   const emptyCalculatedRow: Partial<FBAStation> = {
