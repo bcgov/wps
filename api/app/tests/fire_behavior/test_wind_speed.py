@@ -40,10 +40,10 @@ def test_wind_speed_result_with_wind_speed():
         },
     )
     assert math.isclose(wind_speed_result.bui, 0.606, abs_tol=0.001)
-    assert math.isclose(wind_speed_result.ffmc, 26.757, abs_tol=0.001)
-    assert math.isclose(wind_speed_result.isi, 0.001, abs_tol=0.001)
-    assert math.isclose(wind_speed_result.wind_speed, 1.0, abs_tol=0.001)
-    assert math.isclose(wind_speed_result.fwi, 0.0, abs_tol=0.001)
+    assert math.isclose(wind_speed_result.ffmc, 31.427, abs_tol=0.001)
+    assert math.isclose(wind_speed_result.isi, 0.006, abs_tol=0.001)
+    assert math.isclose(wind_speed_result.wind_speed, 5.0, abs_tol=0.001)
+    assert math.isclose(wind_speed_result.fwi, 0.001, abs_tol=0.001)
     assert wind_speed_result.status == "ADJUSTED"
 
 
