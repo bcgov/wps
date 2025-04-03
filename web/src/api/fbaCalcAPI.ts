@@ -51,6 +51,7 @@ export interface FetchableFBAStation extends Identifiable {
   percentageDeadBalsamFir: number | undefined
   crownBaseHeight: number | undefined
   windSpeed: number | undefined
+  precipitation: number | undefined
 }
 
 export async function postFBAStations(
@@ -72,7 +73,8 @@ export async function postFBAStations(
       grass_cure: fireBehaviorStation.grassCurePercentage,
       percentage_dead_balsam_fir: fireBehaviorStation.percentageDeadBalsamFir,
       crown_base_height: fireBehaviorStation.crownBaseHeight,
-      wind_speed: fireBehaviorStation.windSpeed
+      wind_speed: fireBehaviorStation.windSpeed,
+      precipitation: fireBehaviorStation.precipitation
     }))
   })
   return data

@@ -18,6 +18,7 @@ describe('WindSpeedCell', () => {
     weatherStation: null,
     fuelType: null,
     grassCure: undefined,
+    precipitation: undefined,
     windSpeed: windSpeed
   })
   it('should set input value if no calculated value', () => {

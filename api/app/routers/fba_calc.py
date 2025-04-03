@@ -45,7 +45,7 @@ def prepare_response(
     temp = raw_daily.get('temperature', None)
     rh = raw_daily.get('relativeHumidity', None)
     wind_direction = raw_daily.get('windDirection', None)
-    precipitation = raw_daily.get('precipitation', None)
+    precipitation = requested_station.precipitation if requested_station.precipitation is not None else raw_daily.get("precipitation", None)
     drought_code = raw_daily.get('droughtCode', None)
     duff_moisture_code = raw_daily.get('duffMoistureCode', None)
 
@@ -101,7 +101,7 @@ async def process_request(
     # extract variable from wf1 that we need to calculate the fire behaviour advisory.
     temperature = raw_daily.get('temperature', None)
     relative_humidity = raw_daily.get('relativeHumidity', None)
-    precipitation = raw_daily.get('precipitation', None)
+    precipitation = requested_station.precipitation if requested_station.precipitation is not None else raw_daily.get("precipitation", None)
     wind_direction = raw_daily.get('windDirection', None)
     wind_result = calculate_wind_speed_result(requested_station, yesterday, raw_daily)
 

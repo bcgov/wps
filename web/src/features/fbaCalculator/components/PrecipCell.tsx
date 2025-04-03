@@ -2,23 +2,12 @@ import { TextField, Tooltip } from '@mui/material'
 import { createTheme, ThemeProvider, StyledEngineProvider, styled } from '@mui/material/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
-import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
+import { isPrecipInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
+import { adjustedTheme } from 'features/fbaCalculator/components/WindSpeedCell'
 
-const PREFIX = 'WindSpeedCell'
-
-const classes = {
-  windSpeed: `${PREFIX}-windSpeed`
-}
-
-const StyledStyledEngineProvider = styled(StyledEngineProvider)({
-  [`& .${classes.windSpeed}`]: {
-    width: 80
-  }
-})
-
-export interface WindSpeedCellProps {
+export interface PrecipCellProps {
   inputRows: FBATableRow[]
   updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
   inputValue: number | undefined
@@ -27,39 +16,26 @@ export interface WindSpeedCellProps {
   rowId: number
 }
 
-export const adjustedTheme = createTheme({
-  components: {
-    MuiInputBase: {
-      styleOverrides: {
-        root: {
-          border: '2px solid #460270',
-          fontSize: '0.875rem'
-        }
-      }
-    }
-  }
-})
-
-const WindSpeedCell = (props: WindSpeedCellProps) => {
+const PrecipCell = (props: PrecipCellProps) => {
   const value = props.inputValue ? props.inputValue : props.calculatedValue
-  const [windSpeedValue, setWindSpeedValue] = useState(value)
+  const [precipValue, setPrecipValue] = useState(value)
   useEffect(() => {
-    setWindSpeedValue(value)
+    setPrecipValue(value)
   }, [value])
 
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setWindSpeedValue(parseFloat(event.target.value))
+    setPrecipValue(parseFloat(event.target.value))
   }
 
   const handlePossibleUpdate = () => {
-    if (!isEqual(windSpeedValue, props.calculatedValue)) {
-      const dispatchRequest = !isWindSpeedInvalid(windSpeedValue)
+    if (!isEqual(precipValue, props.calculatedValue)) {
+      const dispatchRequest = !isPrecipInvalid(precipValue)
       updateFBARow(
         props.inputRows,
         props.updateRow,
         props.rowId,
-        'windSpeed',
-        windSpeedValue,
+        'precipitation',
+        precipValue,
         buildUpdatedNumberRow,
         dispatchRequest
       )
@@ -72,42 +48,40 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
     }
   }
 
-  const hasError = isWindSpeedInvalid(windSpeedValue)
+  const hasError = isPrecipInvalid(precipValue)
 
   const valueForRendering = () => {
-    if (windSpeedValue === 0) {
+    if (precipValue === 0) {
       return 0
     }
-    return isUndefined(windSpeedValue) ? '' : windSpeedValue
+    return isUndefined(precipValue) ? '' : precipValue
   }
 
   const buildTextField = () => (
-    <Tooltip title="Cannot exceed 120" aria-label="cannot-exceed-120">
+    <Tooltip title="Cannot exceed 200" aria-label="cannot-exceed-200">
       <TextField
-        data-testid={`windSpeedInput-fba-${props.rowId}`}
+        data-testid={`precipInput-fba-${props.rowId}`}
         type="number"
         inputMode="numeric"
-        className={classes.windSpeed}
         size="small"
         variant="outlined"
-        inputProps={{ min: 0, max: 120, step: 'any' }}
+        inputProps={{ min: 0, max: 200, step: '1' }}
         onChange={changeHandler}
         onBlur={handlePossibleUpdate}
         onKeyDown={enterHandler}
         value={valueForRendering()}
         disabled={props.disabled}
         error={hasError}
+        sx={{ width: 80 }}
       />
     </Tooltip>
   )
 
   return props.inputValue && !hasError ? (
-    <StyledStyledEngineProvider injectFirst>
-      <ThemeProvider theme={adjustedTheme}>{buildTextField()}</ThemeProvider>
-    </StyledStyledEngineProvider>
+    <ThemeProvider theme={adjustedTheme}>{buildTextField()}</ThemeProvider>
   ) : (
     buildTextField()
   )
 }
 
-export default React.memo(WindSpeedCell)
+export default React.memo(PrecipCell)

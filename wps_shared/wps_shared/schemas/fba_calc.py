@@ -3,8 +3,7 @@
 from typing import List, Optional
 from datetime import date
 from pydantic import BaseModel
-
-from app.fire_behaviour.fuel_types import FuelTypeEnum
+from wps_shared.fuel_types import FuelTypeEnum
 
 
 class StationRequest(BaseModel):
@@ -18,6 +17,7 @@ class StationRequest(BaseModel):
     crown_base_height: Optional[float] = None
     crown_fuel_load: Optional[float] = None
     wind_speed: Optional[float] = None
+    precipitation: Optional[float] = None
 
 
 class StationListRequest(BaseModel):

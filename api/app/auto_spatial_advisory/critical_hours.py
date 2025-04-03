@@ -31,7 +31,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryFuelStats, CriticalHours, HfiClassificationThresholdEnum, RunTypeEnum, SFMSFuelType
 from app.fire_behaviour import cffdrs
-from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
+from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
 from app.hourlies import get_hourly_readings_in_time_interval
 from wps_shared.schemas.fba_calc import CriticalHoursHFI, WindResult

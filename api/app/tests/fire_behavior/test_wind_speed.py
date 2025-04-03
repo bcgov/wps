@@ -1,5 +1,5 @@
 import math
-from app.fire_behaviour.fuel_types import FuelTypeEnum
+from wps_shared.fuel_types import FuelTypeEnum
 from app.fire_behaviour.wind_speed import calculate_wind_speed_result
 from wps_shared.schemas.fba_calc import StationRequest
 

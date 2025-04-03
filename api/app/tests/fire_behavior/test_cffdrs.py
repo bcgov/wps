@@ -4,7 +4,7 @@ import numpy as np
 import rpy2.robjects as robjs
 import pytest
 import math
-from wps_shared.schemas.fba_calc import FuelTypeEnum
+from wps_shared.fuel_types import FuelTypeEnum
 from app.fire_behaviour import cffdrs
 from app.fire_behaviour.cffdrs import pandas_to_r_converter, hourly_fine_fuel_moisture_code, CFFDRSException
 

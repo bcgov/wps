@@ -13,7 +13,7 @@ def calculate_wind_speed_result(requested_station: StationRequest, yesterday: di
     bui = cffdrs.bui_calc(raw_daily.get('duffMoistureCode', None), raw_daily.get('droughtCode', None))
     temperature = raw_daily.get('temperature', None)
     relative_humidity = raw_daily.get('relativeHumidity', None)
-    precipitation = raw_daily.get('precipitation', None)
+    precipitation = requested_station.precipitation if requested_station.precipitation is not None else raw_daily.get("precipitation", None)
 
     wind_speed = raw_daily.get('windSpeed', None)
     status = raw_daily.get('recordType').get('id')

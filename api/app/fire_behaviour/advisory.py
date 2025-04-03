@@ -3,7 +3,7 @@
 from datetime import date
 from typing import Optional
 from app.fire_behaviour import cffdrs
-from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
+from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from app.fire_behaviour.prediction import (
     FireTypeEnum, calculate_cfb, get_approx_flame_length, get_critical_hours, get_fire_size, get_fire_type)
 from wps_shared.schemas.fba_calc import CriticalHoursHFI
