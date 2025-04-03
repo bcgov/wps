@@ -73,10 +73,11 @@ class StationsListResponse(BaseModel):
     stations: List[StationResponse]
 
 
-class WindResult(BaseModel):
+class AdjustedFWIResult(BaseModel):
     ffmc: float
     bui: float
     isi: float
+    precipitation: Optional[float]
     wind_speed: float
     fwi: float
     status: str

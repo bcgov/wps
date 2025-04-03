@@ -5,7 +5,7 @@ import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tabl
 import { isPrecipInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
-import { adjustedTheme } from 'features/fbaCalculator/components/WindSpeedCell'
+import { adjustedTheme } from 'app/theme'
 
 export interface PrecipCellProps {
   inputRows: FBATableRow[]

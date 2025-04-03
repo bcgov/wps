@@ -1,10 +1,11 @@
 import { TextField, Tooltip } from '@mui/material'
-import { createTheme, ThemeProvider, StyledEngineProvider, styled } from '@mui/material/styles'
+import { ThemeProvider, StyledEngineProvider, styled } from '@mui/material/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
+import { adjustedTheme } from 'app/theme'
 
 const PREFIX = 'WindSpeedCell'
 
@@ -26,19 +27,6 @@ export interface WindSpeedCellProps {
   disabled: boolean
   rowId: number
 }
-
-export const adjustedTheme = createTheme({
-  components: {
-    MuiInputBase: {
-      styleOverrides: {
-        root: {
-          border: '2px solid #460270',
-          fontSize: '0.875rem'
-        }
-      }
-    }
-  }
-})
 
 const WindSpeedCell = (props: WindSpeedCellProps) => {
   const value = props.inputValue ? props.inputValue : props.calculatedValue
