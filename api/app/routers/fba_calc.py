@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from wps_shared.auth import authentication_required, audit
 from app.fire_behaviour.advisory import (FBACalculatorWeatherStation, FireBehaviourAdvisory,
                                          calculate_fire_behaviour_advisory)
-from app.fire_behaviour.wind_speed import calculate_wind_speed_result
+from app.fire_behaviour.fwi_adjust import calculate_adjusted_fwi_result
 from app.hourlies import get_hourly_readings_in_time_interval
 from wps_shared.schemas.fba_calc import StationListRequest, StationRequest, StationsListResponse, StationResponse
 from wps_shared.utils.time import get_hour_20_from_date
@@ -45,7 +45,7 @@ def prepare_response(
     temp = raw_daily.get('temperature', None)
     rh = raw_daily.get('relativeHumidity', None)
     wind_direction = raw_daily.get('windDirection', None)
-    precipitation = raw_daily.get('precipitation', None)
+    precipitation = requested_station.precipitation if requested_station.precipitation is not None else raw_daily.get("precipitation", None)
     drought_code = raw_daily.get('droughtCode', None)
     duff_moisture_code = raw_daily.get('duffMoistureCode', None)
 
@@ -100,10 +100,9 @@ async def process_request(
 
     # extract variable from wf1 that we need to calculate the fire behaviour advisory.
     temperature = raw_daily.get('temperature', None)
-    relative_humidity = raw_daily.get('relativeHumidity', None)
-    precipitation = raw_daily.get('precipitation', None)
+    relative_humidity = raw_daily.get("relativeHumidity", None)
     wind_direction = raw_daily.get('windDirection', None)
-    wind_result = calculate_wind_speed_result(requested_station, yesterday, raw_daily)
+    adjusted_fwi_result = calculate_adjusted_fwi_result(requested_station, yesterday, raw_daily)
 
     # Prepare the inputs for the fire behaviour advisory calculation.
     # This is a combination of inputs from the front end, information about the station from wf1
@@ -111,7 +110,7 @@ async def process_request(
     fba_station = FBACalculatorWeatherStation(
         elevation=wfwx_station.elevation,
         fuel_type=requested_station.fuel_type,
-        status=wind_result.status,
+        status=adjusted_fwi_result.status,
         time_of_interest=time_of_interest,
         percentage_conifer=requested_station.percentage_conifer,
         percentage_dead_balsam_fir=requested_station.percentage_dead_balsam_fir,
@@ -120,17 +119,18 @@ async def process_request(
         crown_fuel_load=requested_station.crown_fuel_load,
         lat=wfwx_station.lat,
         long=wfwx_station.long,
-        bui=wind_result.bui,
-        ffmc=wind_result.ffmc,
-        isi=wind_result.isi,
-        fwi=wind_result.fwi,
-        prev_day_daily_ffmc=yesterday.get('fineFuelMoistureCode', None),
-        wind_speed=wind_result.wind_speed,
+        bui=adjusted_fwi_result.bui,
+        ffmc=adjusted_fwi_result.ffmc,
+        isi=adjusted_fwi_result.isi,
+        fwi=adjusted_fwi_result.fwi,
+        prev_day_daily_ffmc=yesterday.get("fineFuelMoistureCode", None),
+        precipitation=adjusted_fwi_result.precipitation,
+        wind_speed=adjusted_fwi_result.wind_speed,
         wind_direction=wind_direction,
         temperature=temperature,
         relative_humidity=relative_humidity,
-        precipitation=precipitation,
-        last_observed_morning_rh_values=last_observed_morning_rh_values)
+        last_observed_morning_rh_values=last_observed_morning_rh_values,
+    )
 
     # Calculate the fire behaviour advisory.
     fire_behaviour_advisory = calculate_fire_behaviour_advisory(fba_station)

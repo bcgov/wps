@@ -20,7 +20,8 @@ describe('GrassCureCell', () => {
       weatherStation: null,
       fuelType: { label: '', value: fuelType },
       grassCure: undefined,
-      windSpeed: undefined
+      windSpeed: undefined,
+      precipitation: undefined
     })
     it('should return field in error state for o1a without percentage set', () => {
       const O1ARow = buildInputRow('o1a')
@@ -43,7 +44,8 @@ describe('GrassCureCell', () => {
         weatherStation: null,
         fuelType: { label, value },
         grassCure: 101,
-        windSpeed: undefined
+        windSpeed: undefined,
+        precipitation: undefined
       }
       const props = buildProps(inputRow, 0)
       const { container } = render(<GrassCureCell {...props} />)
@@ -60,7 +62,8 @@ describe('GrassCureCell', () => {
         weatherStation: null,
         fuelType: { value: fuelType.name, label: fuelType.friendlyName },
         grassCure: 1,
-        windSpeed: undefined
+        windSpeed: undefined,
+        precipitation: undefined
       }
     }
     it('should return field without error state when o1a when percentage set', () => {

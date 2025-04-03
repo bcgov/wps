@@ -38,9 +38,22 @@ export const isWindSpeedInvalid = (windSpeed: number | undefined): boolean => {
   return isGreaterThan(windSpeed, 120)
 }
 
+/**
+ * Returns whether precip input is invalid or not
+ * @param row the input row to check against
+ * @returns true if precip is greater than 200 (mm), false otherwise
+ */
+export const isPrecipInvalid = (precip: number | undefined): boolean => {
+  if (_.isUndefined(precip)) {
+    return false
+  }
+  return isGreaterThan(precip, 200)
+}
+
 export const isGreaterThan = (input: number | undefined, limit = 100): boolean => {
   if (!_.isUndefined(input) && !isNull(input)) {
     return input > limit
   }
   return false
 }
+

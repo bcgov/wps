@@ -6,8 +6,7 @@ import os
 from typing import List
 import logging
 import pandas as pd
-from app.fire_behaviour.fuel_types import is_grass_fuel_type
-from wps_shared.schemas.fba_calc import FuelTypeEnum
+from wps_shared.fuel_types import FuelTypeEnum, is_grass_fuel_type
 from wps_shared.schemas.observations import WeatherReading
 from wps_shared.schemas.fba_calc import CriticalHoursHFI
 from app.utils.singleton import Singleton

@@ -147,3 +147,17 @@ export const modelHeaderColorClass = (params: Pick<GridCellParams | GridColumnHe
   const modelClass = modelColorClass(params)
   return modelClass === '' ? modelClass : `${modelClass}-header`
 }
+
+// Theme for edited windspeed and precip cells in Fire Calc
+export const adjustedTheme = createTheme({
+  components: {
+    MuiInputBase: {
+      styleOverrides: {
+        root: {
+          border: '2px solid #460270',
+          fontSize: '0.875rem'
+        }
+      }
+    }
+  }
+})
