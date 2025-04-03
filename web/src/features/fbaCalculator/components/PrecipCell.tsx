@@ -1,5 +1,5 @@
 import { TextField, Tooltip } from '@mui/material'
-import { createTheme, ThemeProvider, StyledEngineProvider, styled } from '@mui/material/styles'
+import { ThemeProvider } from '@mui/material/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isPrecipInvalid } from 'features/fbaCalculator/validation'
@@ -17,7 +17,7 @@ export interface PrecipCellProps {
 }
 
 const PrecipCell = (props: PrecipCellProps) => {
-  const value = props.inputValue ? props.inputValue : props.calculatedValue
+  const value = props.inputValue ?? props.calculatedValue
   const [precipValue, setPrecipValue] = useState(value)
   useEffect(() => {
     setPrecipValue(value)
