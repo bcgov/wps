@@ -39,7 +39,7 @@ objects:
     metadata:
       name: partitioner-${NAME}-${SUFFIX}
     spec:
-      # Run every month on day 1 at 00:00
+      # Run every month on day 1 at 11:00
       schedule: ${SCHEDULE}
       # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
       # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
