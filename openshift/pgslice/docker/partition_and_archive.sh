@@ -67,33 +67,32 @@ psql -c "$NEW_PARTITION_COMMAND" "$PGSLICE_URL"
 for i in {3..6}; do
     DATE=$(date -d "$(date +%Y-%m-01) -$i months" +%Y%m)
     PARTITION_TABLE="weather_station_model_predictions_${DATE}"
-    DETACH_COMMAND="
-    DO \$BODY\$
-    BEGIN
-        IF EXISTS (
-        	SELECT 1
-	        FROM pg_inherits
-	        JOIN pg_class parent ON pg_inherits.inhparent = parent.oid
-	        JOIN pg_class child ON pg_inherits.inhrelid = child.oid
-	        JOIN pg_namespace ns_parent ON parent.relnamespace = ns_parent.oid
-	        JOIN pg_namespace ns_child ON child.relnamespace = ns_child.oid
-	        WHERE ns_child.nspname = 'public' 
-	          AND child.relname = '${PARTITION_TABLE}'
-	          AND parent.relname = 'weather_station_model_predictions'
-        ) THEN
-            EXECUTE 'ALTER TABLE weather_station_model_predictions DETACH PARTITION ${PARTITION_TABLE}';
-        END IF;
-    END \$BODY\$;"
 
-    echo "Dumping partition: ${PARTITION_TABLE}"
-    _datestamp=`date +\%Y/\%m`
-    _target_filename="${PG_HOSTNAME}_${PARTITION_TABLE}_retired_${DATE}.sql.gz"
-    _target_folder="${PG_HOSTNAME}_${PG_DATABASE}/${_datestamp}"
-    pg_dump -c -Fc -t ${PARTITION_TABLE} $PGSLICE_URL | gzip | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/retired/${_target_folder}/${_target_filename}"
+        # Check if the partition table exists using pg_inherits
+    TABLE_EXISTS=$(psql -tAc "SELECT EXISTS (
+        SELECT 1 FROM pg_inherits
+        JOIN pg_class parent ON pg_inherits.inhparent = parent.oid
+        JOIN pg_class child ON pg_inherits.inhrelid = child.oid
+        JOIN pg_namespace ns_child ON child.relnamespace = ns_child.oid
+        WHERE ns_child.nspname = 'public' 
+          AND child.relname = '${PARTITION_TABLE}'
+          AND parent.relname = 'weather_station_model_predictions'
+    );" $PGSLICE_URL)
 
-    echo "Detaching partition: ${PARTITION_TABLE}"
-    psql -c "$DETACH_COMMAND" $PGSLICE_URL
-    
-    echo "Dropping partition: ${PARTITION_TABLE}"
-    psql -c "DROP TABLE IF EXISTS ${PARTITION_TABLE};" $PGSLICE_URL
+    if [ "$TABLE_EXISTS" = "t" ]; then
+        echo "Dumping partition: ${PARTITION_TABLE}"
+        _datestamp=`date +\%Y/\%m`
+        _target_filename="${PG_HOSTNAME}_${PARTITION_TABLE}_retired_${DATE}.sql.gz"
+        _target_folder="${PG_HOSTNAME}_${PG_DATABASE}/${_datestamp}"
+        pg_dump -c -Fc -t ${PARTITION_TABLE} $PGSLICE_URL | gzip | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/retired/${_target_folder}/${_target_filename}"
+
+        echo "Detaching partition: ${PARTITION_TABLE}"
+        psql -c "ALTER TABLE weather_station_model_predictions DETACH PARTITION ${PARTITION_TABLE}" $PGSLICE_URL
+
+        echo "Dropping partition: ${PARTITION_TABLE}"
+        psql -c "DROP TABLE IF EXISTS ${PARTITION_TABLE};" $PGSLICE_URL
+
+    else
+        echo "Skipping ${PARTITION_TABLE}: does not exist."
+    fi
 done
