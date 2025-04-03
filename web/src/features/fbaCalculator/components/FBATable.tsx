@@ -39,7 +39,7 @@ import FilterColumnsModal from 'components/FilterColumnsModal'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
-import AboutDataPopover from '@/features/fbaCalculator/components/AboutDataPopover'
+import AboutDataPopover from '@/features/fbaCalculator/components/FbaAboutData'
 import { theme } from '@/app/theme'
 export interface FBATableProps {
   maxWidth?: number
