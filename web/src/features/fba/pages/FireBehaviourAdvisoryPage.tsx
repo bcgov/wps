@@ -26,6 +26,7 @@ import FireZoneUnitTabs from 'features/fba/components/infoPanel/FireZoneUnitTabs
 import { fetchFireCentreTPIStats } from 'features/fba/slices/fireCentreTPIStatsSlice'
 import AboutDataPopover from 'features/fba/components/AboutDataPopover'
 import { fetchFireCentreHFIFuelStats } from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
+import Footer from '@/features/landingPage/components/Footer'
 
 const ADVISORY_THRESHOLD = 20
 
@@ -196,6 +197,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           />
         </Grid>
       </Box>
+      <Footer />
     </Box>
   )
 }
