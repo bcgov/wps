@@ -15,7 +15,7 @@ def calculate_dc(dc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, prec
     rh_array, _ = rh_ds.replace_nodata_with(0)
     precip_array, _ = precip_ds.replace_nodata_with(0)
 
-    # Due to warping of the rh dataset, rh values can exceed 100 which breaks the ffmc calculation.
+    # Due to warping of the rh dataset, rh values can exceed 100 which breaks the calculation.
     # Set rh values greater than 100 to the max allowable which is 100.
     rh_array[rh_array > 100] = 100
 
@@ -36,7 +36,7 @@ def calculate_dmc(dmc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, pr
     rh_array, _ = rh_ds.replace_nodata_with(0)
     precip_array, _ = precip_ds.replace_nodata_with(0)
 
-    # Due to warping of the rh dataset, rh values can exceed 100 which breaks the ffmc calculation.
+    # Due to warping of the rh dataset, rh values can exceed 100 which breaks the calculation.
     # Set rh values greater than 100 to the max allowable which is 100.
     rh_array[rh_array > 100] = 100
 
