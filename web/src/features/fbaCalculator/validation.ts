@@ -32,7 +32,7 @@ export const rowShouldUpdate = (row: FBATableRow): boolean => {
  * @returns true if wind speed is greater than 100 (km/hr), false otherwise
  */
 export const isWindSpeedInvalid = (windSpeed: number | undefined): boolean => {
-  if (_.isUndefined(windSpeed)) {
+  if (isNil(windSpeed)) {
     return false
   }
   return isGreaterThan(windSpeed, 120) || isLessThan(windSpeed, 0)
@@ -44,7 +44,7 @@ export const isWindSpeedInvalid = (windSpeed: number | undefined): boolean => {
  * @returns true if precip is greater than 200 (mm), false otherwise
  */
 export const isPrecipInvalid = (precip: number | undefined): boolean => {
-  if (_.isUndefined(precip)) {
+  if (isNil(precip)) {
     return false
   }
   return isGreaterThan(precip, 200) || isLessThan(precip, 0)
