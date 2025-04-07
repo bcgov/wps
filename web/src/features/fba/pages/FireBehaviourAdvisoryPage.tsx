@@ -162,11 +162,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             </FireCentreFormControl>
           </Grid>
           <Grid item sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
-            <AboutDataPopover
-              content={ASAAboutDataContent}
-              props={{ advisoryThreshold: ADVISORY_THRESHOLD }}
-              backgroundColor={INFO_PANEL_CONTENT_BACKGROUND}
-            />
+            <AboutDataPopover content={ASAAboutDataContent} props={{ advisoryThreshold: ADVISORY_THRESHOLD }} />
           </Grid>
         </Grid>
       </Box>

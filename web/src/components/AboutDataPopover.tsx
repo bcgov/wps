@@ -1,16 +1,16 @@
-import * as React from 'react'
+import InfoIcon from '@mui/icons-material/Info'
+import { Box } from '@mui/material'
 import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
-import InfoIcon from '@mui/icons-material/Info'
-import { theme } from 'app/theme'
+import { INFO_PANEL_CONTENT_BACKGROUND, theme } from 'app/theme'
+import * as React from 'react'
 
 interface AboutDataPopoverProps<T = {}> {
   content: (props: T) => React.ReactNode
   props?: T
-  backgroundColor?: string
 }
 
-const AboutDataPopover = <T,>({ content, props = {} as T, backgroundColor }: AboutDataPopoverProps<T>) => {
+const AboutDataPopover = <T,>({ content, props = {} as T }: AboutDataPopoverProps<T>) => {
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null)
 
   const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -24,7 +24,7 @@ const AboutDataPopover = <T,>({ content, props = {} as T, backgroundColor }: Abo
   const open = Boolean(anchorEl)
 
   return (
-    <div data-testid="about-data-popover">
+    <Box data-testid="about-data-popover">
       <Typography
         data-testid="about-data-trigger"
         fontSize={'0.75rem'}
@@ -44,16 +44,16 @@ const AboutDataPopover = <T,>({ content, props = {} as T, backgroundColor }: Abo
         }}
         onClose={handlePopoverClose}
         disableRestoreFocus
-        slotProps={{ paper: { sx: { maxWidth: 350, backgroundColor } } }}
+        slotProps={{ paper: { sx: { maxWidth: 350, backgroundColor: INFO_PANEL_CONTENT_BACKGROUND } } }}
       >
         <Typography sx={{ padding: theme.spacing(1), fontWeight: 'bold', fontSize: '1rem' }}>
           About This Data
         </Typography>
-        <div style={{ padding: theme.spacing(2), fontSize: '0.9rem' }} data-testid="about-data-content">
+        <Box style={{ padding: theme.spacing(2), fontSize: '0.9rem' }} data-testid="about-data-content">
           {content(props)}
-        </div>
+        </Box>
       </Popover>
-    </div>
+    </Box>
   )
 }
 
