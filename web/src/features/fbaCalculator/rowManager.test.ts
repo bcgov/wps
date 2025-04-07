@@ -9,6 +9,7 @@ describe('RowManager', () => {
     grassCure: 1,
     windSpeed: 1,
     wind_speed: undefined,
+    precip: 1,
     precipitation: undefined
   }
 
@@ -52,6 +53,7 @@ describe('RowManager', () => {
     grassCure: 2,
     windSpeed: 2,
     wind_speed: undefined,
+    precip: 2,
     precipitation: undefined
   }
 
@@ -94,6 +96,7 @@ describe('RowManager', () => {
     grassCure: undefined,
     windSpeed: undefined,
     wind_speed: undefined,
+    precip: undefined,
     precipitation: undefined
   }
 
@@ -146,6 +149,7 @@ describe('RowManager', () => {
 
     // Set values remain
     expect(mergedRows[0].windSpeed).toEqual(nonEmptyInputRows[0].windSpeed)
+    expect(mergedRows[0].precip).toEqual(nonEmptyInputRows[0].precip)
 
     // Builds GridMenuOptions based on user selected options
     expect(mergedRows[0].weatherStation).toEqual({
