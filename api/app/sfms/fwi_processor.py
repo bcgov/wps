@@ -15,9 +15,9 @@ def calculate_dc(dc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, prec
     rh_array, _ = rh_ds.replace_nodata_with(0)
     precip_array, _ = precip_ds.replace_nodata_with(0)
 
-    if (rh_array > 100).any():
-        max_val = rh_array.max()
-        logger.error(f"Relative humidity values exceed 100% (max value: {max_val})")
+    # Due to warping of the rh dataset, rh values can exceed 100 which breaks the ffmc calculation.
+    # Set rh values greater than 100 to the max allowable which is 100.
+    rh_array[rh_array > 100] = 100
 
     start = perf_counter()
     dc_values = vectorized_dc(dc_array, temp_array, rh_array, precip_array, latitude, month, True)
@@ -36,9 +36,9 @@ def calculate_dmc(dmc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, pr
     rh_array, _ = rh_ds.replace_nodata_with(0)
     precip_array, _ = precip_ds.replace_nodata_with(0)
 
-    if (rh_array > 100).any():
-        max_val = rh_array.max()
-        logger.error(f"Relative humidity values exceed 100% (max value: {max_val})")
+    # Due to warping of the rh dataset, rh values can exceed 100 which breaks the ffmc calculation.
+    # Set rh values greater than 100 to the max allowable which is 100.
+    rh_array[rh_array > 100] = 100
 
     start = perf_counter()
     dmc_values = vectorized_dmc(dmc_array, temp_array, rh_array, precip_array, latitude, month, True)
