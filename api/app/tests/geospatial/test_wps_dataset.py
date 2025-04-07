@@ -119,6 +119,33 @@ def test_raster_warp():
     mercator_ds = None
 
 
+def test_raster_warp_max_value():
+    # Dataset 1: 100x100 pixels, extent in EPSG:3857
+    extent1 = (-20037508.34, 20037508.34, -20037508.34, 20037508.34)
+    wgs_84_ds = create_test_dataset("test_dataset_1.tif", 100, 100, extent1, 3857, fill_value=90)
+
+    band = wgs_84_ds.GetRasterBand(1)
+    array = band.ReadAsArray()
+    array[0, 0] = 101  # value to be clamped
+    band.WriteArray(array)
+    band.FlushCache()
+
+    # Dataset 2: 100x100 pixels, extent in EPSG:3857
+    extent2 = (-20037508.34, 20037508.34, -20037508.34, 20037508.34)
+    mercator_ds = create_test_dataset("test_dataset_2.tif", 100, 100, extent2, 3857)
+
+    with WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds, WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds:
+        output_ds: WPSDataset = wps1_ds.warp_to_match(wps2_ds, "/vsimem/test.tif", max_value=100)
+        out_array = output_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
+        assert out_array.max() == 100
+
+        # Ensure 90 stayed 90 everywhere since we're doing Nearest Neighbour interp. 100*100 array minus the 1 value we changed
+        assert np.count_nonzero(out_array == 90) == (100 * 100 - 1), "Expected at least one value to remain 99"
+
+    wgs_84_ds = None
+    mercator_ds = None
+
+
 def test_export_to_geotiff():
     extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
     ds_1 = create_test_dataset("test_dataset_1.tif", 3, 3, extent1, 4326, data_type=gdal.GDT_Byte, fill_value=1)

@@ -137,7 +137,13 @@ class WPSDataset:
 
         return WPSDataset(ds_path=None, ds=out_ds)
 
-    def warp_to_match(self, other: "WPSDataset", output_path: str, resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR):
+    def warp_to_match(
+        self,
+        other: "WPSDataset",
+        output_path: str,
+        resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR,
+        max_value: float | None = None,
+    ):
         """
         Warp the dataset to match the extent, pixel size, and projection of the other dataset.
 
@@ -167,6 +173,15 @@ class WPSDataset:
                 resampleAlg=resample_method.value,
             ),
         )
+
+        if max_value is not None and warped_ds is not None:
+            band = warped_ds.GetRasterBand(1)
+            array = band.ReadAsArray()
+            if (array > max_value).any():
+                array = np.minimum(array, max_value)  # clamp any value above the max_value to the max_value
+                band.WriteArray(array)
+                band.FlushCache()
+
         return WPSDataset(ds_path=None, ds=warped_ds)
 
     def replace_nodata_with(self, new_no_data_value: int = 0):
