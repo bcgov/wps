@@ -50,6 +50,7 @@ class DailyFWIProcessor:
             if not weather_keys_exist:
                 logging.warning(f"Missing weather keys for {model_run_for_hour(self.start_datetime.hour):02} model run")
                 break
+            logger.info(f"Found weather keys: {"\n".join([temp_key, rh_key, wind_speed_key, precip_key])}")
 
             # get and check existence of fwi s3 keys
             dc_key, dmc_key, ffmc_key = self._get_previous_fwi_keys(day, previous_fwi_datetime)
@@ -57,6 +58,7 @@ class DailyFWIProcessor:
             if not fwi_keys_exist:
                 logging.warning(f"No previous DMC/DC/FFMC keys found for {previous_fwi_datetime.date().isoformat()}")
                 break
+            logger.info(f"Found FWI keys: {"\n".join([dc_key, dmc_key, ffmc_key])}")
 
             temp_key, rh_key, wind_speed_key, precip_key, ffmc_key = self.addresser.gdal_prefix_keys(temp_key, rh_key, wind_speed_key, precip_key, ffmc_key)
             dc_key, dmc_key = self.addresser.gdal_prefix_keys(dc_key, dmc_key)
