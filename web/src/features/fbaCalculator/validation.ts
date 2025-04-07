@@ -1,6 +1,6 @@
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import _ from 'lodash'
-import { isNull } from 'lodash'
+import { isNil, isNull } from 'lodash'
 
 /**
  * Returns whether grass cure percentage input is invalid or not
@@ -35,7 +35,7 @@ export const isWindSpeedInvalid = (windSpeed: number | undefined): boolean => {
   if (_.isUndefined(windSpeed)) {
     return false
   }
-  return isGreaterThan(windSpeed, 120)
+  return isGreaterThan(windSpeed, 120) || isLessThan(windSpeed, 0)
 }
 
 /**
@@ -47,12 +47,19 @@ export const isPrecipInvalid = (precip: number | undefined): boolean => {
   if (_.isUndefined(precip)) {
     return false
   }
-  return isGreaterThan(precip, 200)
+  return isGreaterThan(precip, 200) || isLessThan(precip, 0)
 }
 
 export const isGreaterThan = (input: number | undefined, limit = 100): boolean => {
-  if (!_.isUndefined(input) && !isNull(input)) {
+  if (!isNil(input)) {
     return input > limit
+  }
+  return false
+}
+
+export const isLessThan = (input: number | undefined, limit = 0): boolean => {
+  if (!isNil(input)) {
+    return input < limit
   }
   return false
 }
