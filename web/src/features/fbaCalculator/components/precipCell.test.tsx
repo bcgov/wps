@@ -39,8 +39,25 @@ describe('PrecipCell', () => {
     render(<PrecipCell {...props} />)
     expect(screen.getByTestId('precipInput-fba-0').firstChild).toHaveClass('Mui-error')
   })
-  it('should return field without error state when error is corrected', () => {
+  it('should return field in error state when wind speed is set to under 0', () => {
+    const row = buildTableRow(-1)
+    const props = buildProps(row)
+    render(<PrecipCell {...props} />)
+    expect(screen.getByTestId('precipInput-fba-0').firstChild).toHaveClass('Mui-error')
+  })
+  it('should return field without error state when above 200 error is corrected', () => {
     const row = buildTableRow(201)
+    const props = buildProps(row)
+    const { rerender } = render(<PrecipCell {...props} />)
+    expect(screen.getByTestId('precipInput-fba-0').firstChild).toHaveClass('Mui-error')
+
+    const correctedProps = { ...props, inputValue: 200 }
+    rerender(<PrecipCell {...correctedProps} />)
+    expect(screen.getByTestId('precipInput-fba-0').firstChild?.firstChild).toHaveValue(200)
+    expect(screen.getByTestId('precipInput-fba-0').firstChild).not.toHaveClass('Mui-error')
+  })
+  it('should return field without error state when below 0 error is corrected', () => {
+    const row = buildTableRow(-1)
     const props = buildProps(row)
     const { rerender } = render(<PrecipCell {...props} />)
     expect(screen.getByTestId('precipInput-fba-0').firstChild).toHaveClass('Mui-error')
