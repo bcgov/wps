@@ -72,7 +72,7 @@ export const fetchFireBehaviourStations =
         percentageDeadBalsamFir: fuelTypeDetails.percentage_dead_balsam_fir,
         crownBaseHeight: fuelTypeDetails.crown_base_height,
         windSpeed: row.windSpeed,
-        precipitation: row.precipitation
+        precip: row.precip
       }
     })
     try {

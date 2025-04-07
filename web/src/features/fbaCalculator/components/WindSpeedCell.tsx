@@ -3,7 +3,7 @@ import { ThemeProvider, StyledEngineProvider, styled } from '@mui/material/style
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
-import { isEqual, isUndefined } from 'lodash'
+import { isEqual, isNil, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
 import { adjustedTheme } from 'app/theme'
 
@@ -89,12 +89,14 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
     </Tooltip>
   )
 
-  return props.inputValue && !hasError ? (
+  if (isNil(props.inputValue) || hasError) {
+    return buildTextField()
+  }
+
+  return (
     <StyledStyledEngineProvider injectFirst>
       <ThemeProvider theme={adjustedTheme}>{buildTextField()}</ThemeProvider>
     </StyledStyledEngineProvider>
-  ) : (
-    buildTextField()
   )
 }
 

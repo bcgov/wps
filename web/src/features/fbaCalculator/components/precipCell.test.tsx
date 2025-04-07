@@ -8,7 +8,7 @@ describe('PrecipCell', () => {
     updateRow: () => {
       /** no op */
     },
-    inputValue: inputRow.precipitation,
+    inputValue: inputRow.precip,
     calculatedValue,
     disabled: false,
     rowId: 0
@@ -18,7 +18,7 @@ describe('PrecipCell', () => {
     weatherStation: null,
     fuelType: null,
     grassCure: undefined,
-    precipitation: precip,
+    precip: precip,
     windSpeed: undefined
   })
   it('should set input value if no calculated value', () => {

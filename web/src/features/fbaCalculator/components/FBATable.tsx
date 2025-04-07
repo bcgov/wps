@@ -57,7 +57,7 @@ export interface FBAInputRow {
   weatherStation: string | undefined
   fuelType: string | undefined
   grassCure: number | undefined
-  precipitation: number | undefined
+  precip: number | undefined
   windSpeed: number | undefined
 }
 
@@ -251,7 +251,7 @@ const FBATable = (props: FBATableProps) => {
       weatherStation: null,
       fuelType: null,
       grassCure: undefined,
-      precipitation: undefined,
+      precip: undefined,
       windSpeed: undefined
     }
     const newRows = rows.concat(newRow)
@@ -416,7 +416,7 @@ const FBATable = (props: FBATableProps) => {
         <PrecipCell
           inputRows={rows}
           updateRow={updateRow}
-          inputValue={row.precipitation}
+          inputValue={row.precip}
           calculatedValue={row.precipitation}
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row) && !isPrecipInvalid(row.precipitation)}
           rowId={row.id}

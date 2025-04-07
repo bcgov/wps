@@ -42,7 +42,7 @@ export interface DisplayableInputRow {
   weatherStation: GridMenuOption | null
   fuelType: GridMenuOption | null
   grassCure: number | undefined
-  precipitation: number | undefined
+  precip: number | undefined
   windSpeed: number | undefined
 }
 

@@ -3,7 +3,7 @@ import { ThemeProvider } from '@mui/material/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isPrecipInvalid } from 'features/fbaCalculator/validation'
-import { isEqual, isUndefined } from 'lodash'
+import { isEqual, isNil, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
 import { adjustedTheme } from 'app/theme'
 
@@ -34,7 +34,7 @@ const PrecipCell = (props: PrecipCellProps) => {
         props.inputRows,
         props.updateRow,
         props.rowId,
-        'precipitation',
+        'precip',
         precipValue,
         buildUpdatedNumberRow,
         dispatchRequest
@@ -77,11 +77,11 @@ const PrecipCell = (props: PrecipCellProps) => {
     </Tooltip>
   )
 
-  return props.inputValue && !hasError ? (
-    <ThemeProvider theme={adjustedTheme}>{buildTextField()}</ThemeProvider>
-  ) : (
-    buildTextField()
-  )
+  if (isNil(props.inputValue) || hasError) {
+    return buildTextField()
+  }
+
+  return <ThemeProvider theme={adjustedTheme}>{buildTextField()}</ThemeProvider>
 }
 
 export default React.memo(PrecipCell)
