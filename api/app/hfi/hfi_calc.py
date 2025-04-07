@@ -5,10 +5,12 @@ from typing import Optional, List, Dict, Set, Tuple
 from datetime import date, datetime, timedelta, timezone
 from statistics import mean
 from aiohttp.client import ClientSession
+from collections import defaultdict
+from itertools import groupby
 from sqlalchemy.orm import Session
 import app
 from wps_shared.db.database import get_read_session_scope
-from wps_shared.db.models.hfi_calc import FuelType as FuelTypeModel
+from wps_shared.db.models.hfi_calc import FuelType as FuelTypeModel, PlanningWeatherStation
 from app.fire_behaviour.cffdrs import CFFDRSException
 from app.fire_behaviour.prediction import (
     FireBehaviourPredictionInputError, calculate_fire_behaviour_prediction, FireBehaviourPrediction)
@@ -110,107 +112,51 @@ def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -
     dailies_date_time = get_hour_20_from_date(dailies_date)
     return list(filter(lambda daily: (daily.date == dailies_date_time), area_dailies))
 
+def get_hydrated_stations(stations: List[PlanningWeatherStation], stations_by_code: dict[int, WeatherStation]):
+    hydrated_stations = []
+    for station in stations:
+        wfwx_station = stations_by_code.get(station.station_code)
+        if wfwx_station is not None:
+            hydrated_stations.append(
+                WeatherStation(code=wfwx_station.code,
+                            order_of_appearance_in_planning_area_list=station.order_of_appearance_in_planning_area_list,
+                            station_props=WeatherStationProperties(name=wfwx_station.name, elevation=wfwx_station.elevation, wfwx_station_uuid=wfwx_station.wfwx_station_uuid)))
+    return hydrated_stations
 
 async def hydrate_fire_centres():
     """Get detailed fire_centres from db and WFWX"""
 
     with get_read_session_scope() as session:
         # Fetch all fire weather stations from the database.
-        station_query = get_fire_weather_stations(session)
-        # Prepare a dictionary for storing station info in.
-        station_info_dict = {}
-        # Prepare empty data structures to be used in HFIWeatherStationsResponse
-        fire_centres_list = []
-        planning_areas_dict = {}
-        fire_centres_dict = {}
+        rows = get_fire_weather_stations(session)
+        
+        stations_by_area = groupby(sorted(rows, key=lambda row: row[0].planning_area_id), key=lambda row: row[0].planning_area_id)
 
-        # Iterate through all the database records, collecting all the data we need.
-        for (station_record, fuel_type_record, planning_area_record, fire_centre_record) in station_query:
-            station_info = {
-                'fuel_type': FuelTypeSchema(
-                    id=fuel_type_record.id,
-                    abbrev=fuel_type_record.abbrev,
-                    fuel_type_code=fuel_type_record.fuel_type_code,
-                    description=fuel_type_record.description,
-                    percentage_conifer=fuel_type_record.percentage_conifer,
-                    percentage_dead_fir=fuel_type_record.percentage_dead_fir),
-                'order_of_appearance_in_planning_area_list': station_record.order_of_appearance_in_planning_area_list,
-                'planning_area': planning_area_record,
-                'fire_centre': fire_centre_record
-            }
-            if station_info_dict.get(station_record.station_code) is None:
-                station_info_dict[station_record.station_code] = [station_info]
-            else:
-                station_info_dict[station_record.station_code].append(station_info)
+        station_codes = [row[0].station_code for row in rows]
+        wfwx_stations_data = await get_stations_by_codes(station_codes)
+        stations_by_code = {station.code: station for station in wfwx_stations_data}
 
-            if fire_centres_dict.get(fire_centre_record.id) is None:
-                fire_centres_dict[fire_centre_record.id] = {
-                    'fire_centre_record': fire_centre_record,
-                    'planning_area_records': [planning_area_record],
-                    'planning_area_objects': []
-                }
-            else:
-                fire_centres_dict.get(fire_centre_record.id)[
-                    'planning_area_records'].append(planning_area_record)
-                fire_centres_dict[fire_centre_record.id]['planning_area_records'] = list(
-                    set(fire_centres_dict.get(fire_centre_record.id).get('planning_area_records')))
+        planning_areas_by_fire_centre_id = defaultdict(list)
+        fire_centres_by_id = {
+            row[3].id: row[3] for row in rows
+        }
 
-            if planning_areas_dict.get(planning_area_record.id) is None:
-                planning_areas_dict[planning_area_record.id] = {
-                    'planning_area_record': planning_area_record,
-                    'order_of_appearance_in_list': planning_area_record.order_of_appearance_in_list,
-                    'station_codes': [station_record.station_code],
-                    'station_objects': []
-                }
-            else:
-                planning_areas_dict[planning_area_record.id]['station_codes'].append(
-                    station_record.station_code)
+        for _, record in stations_by_area:
+            record_list = list(record)
+            stations = [r[0] for r in record_list]
+            hydrated_stations = get_hydrated_stations(stations, stations_by_code)
+            planning_area = record_list[0][2]
+            fire_centre_id = planning_area.fire_centre_id
+            planning_areas_by_fire_centre_id[fire_centre_id].append(PlanningArea(id=planning_area.id,fire_centre_id=planning_area.fire_centre_id, name=planning_area.name, order_of_appearance_in_list=planning_area.order_of_appearance_in_list, stations=hydrated_stations))
 
-        # We're still missing some data that we need from wfwx, so give it the list of stations
-        wfwx_stations_data = await get_stations_by_codes(list(station_info_dict.keys()))
-        # Iterate through all the stations from wildfire one.
 
-        for wfwx_station in wfwx_stations_data:
-            # Combine everything.
-            station_properties = WeatherStationProperties(
-                name=wfwx_station.name,
-                elevation=wfwx_station.elevation,
-                wfwx_station_uuid=wfwx_station.wfwx_station_uuid)
+        hydrated_fire_centres = []
 
-            for station_info in station_info_dict[wfwx_station.code]:
-                weather_station = WeatherStation(code=wfwx_station.code,
-                                                 order_of_appearance_in_planning_area_list=station_info[
-                                                     'order_of_appearance_in_planning_area_list'],
-                                                 station_props=station_properties)
-                station_info['station'] = weather_station
-                for planning_station in station_info_dict[wfwx_station.code]:
-                    existing_station_codes = [
-                        s.code for s in planning_areas_dict[planning_station['planning_area'].id]['station_objects']]
+        for fire_centre_id, fire_centre in fire_centres_by_id.items():
+            planning_areas = planning_areas_by_fire_centre_id.get(fire_centre_id, [])
+            hydrated_fire_centres.append(FireCentre(id=fire_centre.id, name=fire_centre.name, planning_areas=planning_areas))
 
-                    if weather_station.code not in existing_station_codes:
-                        planning_areas_dict[planning_station['planning_area'].id]['station_objects'].append(
-                            weather_station)
-
-    # create PlanningArea objects containing all corresponding WeatherStation objects
-    for key, val in planning_areas_dict.items():
-        planning_area = PlanningArea(
-            id=val['planning_area_record'].id,
-            name=val['planning_area_record'].name,
-            order_of_appearance_in_list=val['order_of_appearance_in_list'],
-            stations=val['station_objects'])
-        val['planning_area_object'] = planning_area
-
-    # create FireCentre objects containing all corresponding PlanningArea objects
-    for key, val in fire_centres_dict.items():
-        planning_area_objects_list = []
-        for pa_record in val['planning_area_records']:
-            pa_object = planning_areas_dict.get(pa_record.id).get('planning_area_object')
-            planning_area_objects_list.append(pa_object)
-        fire_centre = FireCentre(
-            id=key, name=val['fire_centre_record'].name, planning_areas=planning_area_objects_list)
-        fire_centres_list.append(fire_centre)
-
-    return fire_centres_list
+        return hydrated_fire_centres
 
 
 async def calculate_latest_hfi_results(
