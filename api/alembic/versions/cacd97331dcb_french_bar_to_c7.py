@@ -18,22 +18,11 @@ depends_on = None
 planning_weather_stations_table = sa.Table('planning_weather_stations', sa.MetaData(),
                                            sa.Column('id', sa.Integer),
                                            sa.Column('fuel_type_id', sa.Integer),
-                                           sa.Column('planning_area_id', sa.Integer),
-                                           sa.Column('station_code', sa.Integer),
-                                           sa.Column('order_of_appearance_in_planning_area_list', sa.Integer),
-                                           sa.Column('create_user', sa.String),
-                                           sa.Column('create_timestamp', sa.TIMESTAMP),
-                                           sa.Column('update_user', sa.String),
-                                           sa.Column('update_timestamp', sa.TIMESTAMP),
-                                           sa.Column('is_deleted', sa.Boolean))
+                                           sa.Column('station_code', sa.Integer))
 
 fuel_types_table = sa.Table('fuel_types', sa.MetaData(),
                             sa.Column('id', sa.Integer),
-                            sa.Column('abbrev', sa.String),
-                            sa.Column('fuel_type_code', sa.String),
-                            sa.Column('description', sa.String),
-                            sa.Column('percentage_conifer', sa.Integer),
-                            sa.Column('percentage_dead_fir', sa.Integer))
+                            sa.Column('abbrev', sa.String))
 
 def get_planning_station_id(session: Session, station_code: int):
     res = session.query(planning_weather_stations_table) \
@@ -52,13 +41,13 @@ def upgrade():
     french_bar_id = get_planning_station_id(session, 306)
     c7_id = get_fuel_type_id(session, "C7")
 
-    wet_belt_update_order_stmt = planning_weather_stations_table.update().\
+    french_bar_update_stmt = planning_weather_stations_table.update().\
         where(planning_weather_stations_table.c.id == french_bar_id).\
         values({
             'fuel_type_id': c7_id,
         })
     
-    session.execute(wet_belt_update_order_stmt)
+    session.execute(french_bar_update_stmt)
 
     # ### end Alembic commands ###
 
