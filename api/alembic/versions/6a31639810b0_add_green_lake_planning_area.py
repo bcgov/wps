@@ -1,7 +1,7 @@
 """add green lake planning area
 
 Revision ID: 6a31639810b0
-Revises: ecdace5bfc4f
+Revises: cacd97331dcb
 Create Date: 2025-04-03 14:24:16.331359
 
 """
@@ -12,7 +12,7 @@ from wps_shared.utils.time import get_utc_now
 
 # revision identifiers, used by Alembic.
 revision = '6a31639810b0'
-down_revision = 'ecdace5bfc4f'
+down_revision = 'cacd97331dcb'
 branch_labels = None
 depends_on = None
 
