@@ -2,12 +2,13 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
+import logging
 import pytest
 from cffdrs import bui, dc, dmc, ffmc, fwi, isi
 from osgeo import osr
 
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_fwi, calculate_isi
+from app.sfms.fwi_processor import check_weather_values, calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_fwi, calculate_isi
 
 FWI_ARRAY = np.array([[12, 20], [-999, -999]])
 WEATHER_ARRAY = np.array([[12, 20], [0, 0]])
@@ -243,3 +244,55 @@ def test_calculate_fwi_values(input_datasets):
     static_fwi = fwi(isi_sample, bui_sample)
 
     assert math.isclose(static_fwi, fwi_values[0, 0], abs_tol=0.01)
+
+
+@pytest.mark.parametrize(
+    "rh_array, expected",
+    [
+        (np.array([50, 60, 70]), False),
+        (np.array([-5, 50, 110]), True),
+    ],
+)
+def test_check_rh_logging(rh_array, expected, caplog):
+    check_weather_values(rh_array=rh_array)
+    logged_errors = [record.message for record in caplog.records]
+    assert any("Relative humidity" in msg for msg in logged_errors) == expected
+
+
+@pytest.mark.parametrize(
+    "precip_array, expected",
+    [
+        (np.array([0.0, 5.0, 10.0]), False),
+        (np.array([-1.0, 0.0, 2.0]), True),
+    ],
+)
+def test_check_prec_logging(precip_array, expected, caplog):
+    check_weather_values(precip_array=precip_array)
+    logged_errors = [record.message for record in caplog.records]
+    assert any("Precipitation" in msg for msg in logged_errors) == expected
+
+
+@pytest.mark.parametrize(
+    "ws_array, expected",
+    [
+        (np.array([0.0, 3.2, 7.5]), False),
+        (np.array([-0.1, 1.0, 2.0]), True),
+    ],
+)
+def test_check_ws_logging(ws_array, expected, caplog):
+    check_weather_values(ws_array=ws_array)
+    logged_errors = [record.message for record in caplog.records]
+    assert any("Wind speed" in msg for msg in logged_errors) == expected
+
+
+def test_check_multiple_issues(caplog):
+    rh_array = np.array([-10, 105])
+    precip_array = np.array([-2.5])
+    ws_array = np.array([-1.0])
+
+    check_weather_values(rh_array=rh_array, precip_array=precip_array, ws_array=ws_array)
+
+    messages = [record.message for record in caplog.records]
+    assert any("Relative humidity" in msg for msg in messages)
+    assert any("Precipitation" in msg for msg in messages)
+    assert any("Wind speed" in msg for msg in messages)
