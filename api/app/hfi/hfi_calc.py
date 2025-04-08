@@ -133,7 +133,7 @@ async def hydrate_fire_centres():
         stations_by_area = groupby(sorted(rows, key=lambda row: row[0].planning_area_id), key=lambda row: row[0].planning_area_id)
 
         station_codes = [row[0].station_code for row in rows]
-        wfwx_stations_data = await get_stations_by_codes(station_codes)
+        wfwx_stations_data = await get_stations_by_codes(list(set(station_codes)))
         stations_by_code = {station.code: station for station in wfwx_stations_data}
 
         planning_areas_by_fire_centre_id = defaultdict(list)
