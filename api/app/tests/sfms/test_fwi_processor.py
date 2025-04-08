@@ -313,5 +313,4 @@ def test_check_multiple_issues():
         assert any("Precipitation contains negative values" in msg for msg in error_calls)
         assert any("Wind speed contains negative values" in msg for msg in error_calls)
 
-        # Optional: check the number of errors
         assert mock_logger.error.call_count == 3
