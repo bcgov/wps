@@ -121,7 +121,7 @@ def get_hydrated_stations(stations: List[PlanningWeatherStation], stations_by_co
     """
     hydrated_stations = []
     for station in stations:
-        wfwx_station = stations_by_code.get(station.station_code)
+        wfwx_station = stations_by_code.get(station.station_code, None)
         if wfwx_station is not None:
             hydrated_stations.append(
                 WeatherStation(
