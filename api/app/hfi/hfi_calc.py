@@ -26,6 +26,7 @@ from wps_shared.schemas.hfi_calc import (
     required_daily_fields,
 )
 from wps_shared.schemas.hfi_calc import WeatherStationProperties, FuelType as FuelTypeSchema, FireCentre, PlanningArea, WeatherStation
+from wps_shared.schemas.stations import WeatherStation as WFWXWeatherStationDetails
 from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from wps_shared.utils.time import get_hour_20_from_date, get_pst_now
 from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
@@ -111,7 +112,7 @@ def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -
     return list(filter(lambda daily: (daily.date == dailies_date_time), area_dailies))
 
 
-def get_hydrated_stations(stations: List[PlanningWeatherStation], stations_by_code: Dict[int, WeatherStation]):
+def get_hydrated_stations(stations: List[PlanningWeatherStation], stations_by_code: Dict[int, WFWXWeatherStationDetails]):
     """
     Merges all details of stations from our database and the WFWX API together.
 
@@ -148,7 +149,7 @@ async def hydrate_fire_centres():
 
         station_codes = [station.station_code for (station, _, __, ___) in rows]
         wfwx_stations_data = await get_stations_by_codes(list(set(station_codes)))
-        stations_by_code: Dict[int, WeatherStation] = {station.code: station for station in wfwx_stations_data}
+        stations_by_code: Dict[int, WFWXWeatherStationDetails] = {station.code: station for station in wfwx_stations_data}
 
         planning_areas_by_fire_centre_id = defaultdict(list)
         fire_centres_by_id = {fire_centre.id: fire_centre for (_, __, ___, fire_centre) in rows}
