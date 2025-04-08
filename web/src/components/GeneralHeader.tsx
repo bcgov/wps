@@ -1,9 +1,6 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-
 import HeaderImage from './HeaderImage'
-import Contact from './Contact'
-
 import { OptionalContainer } from 'components/Container'
 
 const PREFIX = 'GeneralHeader'
@@ -59,7 +56,7 @@ interface Props {
 }
 
 export const GeneralHeader = React.forwardRef((props: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
-  const { title, productName, spacing } = props
+  const { title, spacing } = props
   GeneralHeader.displayName = 'GeneralHeader'
 
   return (
