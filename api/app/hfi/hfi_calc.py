@@ -144,9 +144,9 @@ async def hydrate_fire_centres():
         # Fetch all fire weather stations from the database.
         rows = get_fire_weather_stations(session)
 
-        stations_by_area = groupby(sorted(rows, key=lambda station,: station.planning_area_id), key=lambda station,: station.planning_area_id)
+        stations_by_area = groupby(sorted(rows, key=lambda row: row[0].planning_area_id), key=lambda row: row[0].planning_area_id)
 
-        station_codes = [station.station_code for (station,) in rows]
+        station_codes = [station.station_code for (station, _, __, ___) in rows]
         wfwx_stations_data = await get_stations_by_codes(list(set(station_codes)))
         stations_by_code = {station.code: station for station in wfwx_stations_data}
 
