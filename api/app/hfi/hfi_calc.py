@@ -145,7 +145,10 @@ async def hydrate_fire_centres():
         # Fetch all fire weather stations from the database.
         rows = get_fire_weather_stations(session)
 
-        stations_by_area = groupby(sorted(rows, key=lambda row: row[0].planning_area_id), key=lambda row: row[0].planning_area_id)
+        # Sort by the attribute 'planning_area_id' of the first element of the tuple
+        sorted_rows = sorted(rows, key=lambda row: row[0].planning_area_id)
+        # Now group by the same attribute after sorting
+        stations_by_area = groupby(sorted_rows, key=lambda row: row[0].planning_area_id)
 
         station_codes = [station.station_code for (station, _, __, ___) in rows]
         wfwx_stations_data = await get_stations_by_codes(list(set(station_codes)))
@@ -155,8 +158,9 @@ async def hydrate_fire_centres():
         fire_centres_by_id = {fire_centre.id: fire_centre for (_, __, ___, fire_centre) in rows}
 
         for _, records in stations_by_area:
-            (_, __, planning_area, ___) = list(records)[0]
-            stations: List[PlanningWeatherStation] = [station for (station,) in list(records)]
+            stations_with_planning_areas = [(station, planning_area) for (station, _, planning_area, ___) in list(records)]
+            stations, planning_areas = zip(*stations_with_planning_areas)
+            planning_area = planning_areas[0]
             hydrated_stations = get_hydrated_stations(stations, stations_by_code)
             fire_centre_id = planning_area.fire_centre_id
             planning_areas_by_fire_centre_id[fire_centre_id].append(
