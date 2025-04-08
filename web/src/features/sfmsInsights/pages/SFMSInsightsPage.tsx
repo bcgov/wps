@@ -29,7 +29,7 @@ export const SFMSInsightsPage = () => {
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <GeneralHeader isBeta={true} spacing={1} title={SFMS_INSIGHTS_NAME} productName={SFMS_INSIGHTS_NAME} />
+      <GeneralHeader isBeta={true} spacing={1} title={SFMS_INSIGHTS_NAME} />
       <Box sx={{ flex: 1, position: 'relative' }}>
         <SFMSMap snowDate={snowDate} />
       </Box>

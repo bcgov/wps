@@ -50,7 +50,6 @@ const Root = styled('nav')(({ theme }) => ({
 interface Props {
   isBeta: boolean
   padding?: string
-  productName: string
   spacing: number
   title: string
 }

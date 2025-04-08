@@ -33,12 +33,7 @@ const FireBehaviourCalculator: React.FunctionComponent = () => {
 
   return (
     <Root>
-      <GeneralHeader
-        isBeta={false}
-        spacing={1}
-        title="Fire Behaviour Advisory Tool"
-        productName="Fire Behaviour Advisory Tool"
-      />
+      <GeneralHeader isBeta={false} spacing={1} title="Fire Behaviour Advisory Tool" />
       <Container sx={{ paddingTop: '0.5em' }} maxWidth={'xl'}>
         <FBATable />
         <Paper className={classes.disclaimer}>
