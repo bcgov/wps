@@ -1,6 +1,7 @@
 import logging
 import math
 from dataclasses import dataclass
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -254,10 +255,14 @@ def test_calculate_fwi_values(input_datasets):
         (np.array([-5, 50, 110]), True),
     ],
 )
-def test_check_rh_logging(rh_array, expected, caplog):
-    with caplog.at_level(logging.INFO, logger="app.sfms.fwi_processor"):
+def test_check_rh_logging(rh_array, expected):
+    with patch("app.sfms.fwi_processor.logger") as mock_logger:
         check_weather_values(rh_array=rh_array)
-        assert ("Relative humidity" in caplog.text) == expected
+        if expected:
+            mock_logger.error.assert_called_once()
+            assert "Relative humidity" in mock_logger.error.call_args[0][0]
+        else:
+            mock_logger.error.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -267,10 +272,14 @@ def test_check_rh_logging(rh_array, expected, caplog):
         (np.array([-1.0, 0.0, 2.0]), True),
     ],
 )
-def test_check_prec_logging(precip_array, expected, caplog):
-    with caplog.at_level(logging.INFO, logger="app.sfms.fwi_processor"):
+def test_check_prec_logging(precip_array, expected):
+    with patch("app.sfms.fwi_processor.logger") as mock_logger:
         check_weather_values(precip_array=precip_array)
-        assert ("Precipitation" in caplog.text) == expected
+        if expected:
+            mock_logger.error.assert_called_once()
+            assert "Precipitation" in mock_logger.error.call_args[0][0]
+        else:
+            mock_logger.error.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -280,21 +289,29 @@ def test_check_prec_logging(precip_array, expected, caplog):
         (np.array([-0.1, 1.0, 2.0]), True),
     ],
 )
-def test_check_ws_logging(ws_array, expected, caplog):
-    with caplog.at_level(logging.INFO, logger="app.sfms.fwi_processor"):
+def test_check_ws_logging(ws_array, expected):
+    with patch("app.sfms.fwi_processor.logger") as mock_logger:
         check_weather_values(ws_array=ws_array)
-        assert ("Wind speed" in caplog.text) == expected
+        if expected:
+            mock_logger.error.assert_called_once()
+            assert "Wind speed" in mock_logger.error.call_args[0][0]
+        else:
+            mock_logger.error.assert_not_called()
 
 
-def test_check_multiple_issues(caplog):
+def test_check_multiple_issues():
     rh_array = np.array([-10, 105])
     precip_array = np.array([-2.5])
     ws_array = np.array([-1.0])
 
-    with caplog.at_level(logging.INFO, logger="app.sfms.fwi_processor"):
+    with patch("app.sfms.fwi_processor.logger") as mock_logger:
         check_weather_values(rh_array=rh_array, precip_array=precip_array, ws_array=ws_array)
 
-        messages = [record.message for record in caplog.records]
-        assert any("Relative humidity" in msg for msg in messages)
-        assert any("Precipitation" in msg for msg in messages)
-        assert any("Wind speed" in msg for msg in messages)
+        error_calls = [call.args[0] for call in mock_logger.error.call_args_list]
+
+        assert any("Relative humidity values out of bounds" in msg for msg in error_calls)
+        assert any("Precipitation contains negative values" in msg for msg in error_calls)
+        assert any("Wind speed contains negative values" in msg for msg in error_calls)
+
+        # Optional: check the number of errors
+        assert mock_logger.error.call_count == 3
