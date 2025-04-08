@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { difference, filter, findIndex, isEmpty, isEqual, isUndefined } from 'lodash'
-import { TableBody, TableCell, TableRow } from '@mui/material'
+import { Grid, TableBody, TableCell, TableRow } from '@mui/material'
 import GetAppIcon from '@mui/icons-material/GetApp'
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
 import { CsvBuilder } from 'filefy'
@@ -38,8 +38,10 @@ import FBATableInstructions from 'features/fbaCalculator/components/FBATableInst
 import FilterColumnsModal from 'components/FilterColumnsModal'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
-import { StyledFormControl } from 'components/StyledFormControl'
 import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
+import { theme } from '@/app/theme'
+import AboutDataPopover from '@/components/AboutDataPopover'
+import { FBAAboutDataContent } from '@/features/fbaCalculator/components/FbaAboutDataContent'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -542,42 +544,72 @@ const FBATable = (props: FBATableProps) => {
       {stationsError ||
         (fbaResultsError && <ErrorAlert stationsError={stationsError} fbaResultsError={fbaResultsError} />)}
       <ErrorBoundary>
-        <StyledFormControl>
-          <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
-        </StyledFormControl>
-        <StyledFormControl>
-          <Button data-testid="add-row" variant="contained" color="primary" spinnercolor="white" onClick={addStation}>
-            Add Row
-          </Button>
-        </StyledFormControl>
-        <StyledFormControl>
-          <Button
-            data-testid="remove-rows"
-            disabled={rows.length === 0}
-            variant="contained"
-            color="primary"
-            spinnercolor="white"
-            onClick={deleteSelectedStations}
-          >
-            Remove Row(s)
-          </Button>
-        </StyledFormControl>
-        <StyledFormControl>
-          <Button data-testid="export" disabled={selected.length === 0} onClick={exportSelectedRows}>
-            <GetAppIcon />
-            Export Selection
-          </Button>
-        </StyledFormControl>
-        <StyledFormControl>
-          <Button
-            data-testid="filter-columns-btn"
-            disabled={fireBehaviourResultStations.length === 0}
-            onClick={openColumnsModal}
-          >
-            <ViewColumnOutlinedIcon />
-            Columns
-          </Button>
-        </StyledFormControl>
+        <Grid
+          container
+          spacing={2}
+          alignItems="top"
+          justifyContent="center"
+          paddingTop={theme.spacing(1)}
+          paddingBottom={theme.spacing(1)}
+        >
+          <Grid item xs={4} container spacing={2} justifyContent="flex-start">
+            <Grid item>
+              <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
+            </Grid>
+            <Grid item>
+              <Button
+                data-testid="add-row"
+                variant="contained"
+                color="primary"
+                spinnercolor="white"
+                onClick={addStation}
+              >
+                Add Row
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                data-testid="remove-rows"
+                disabled={rows.length === 0}
+                variant="outlined"
+                color="primary"
+                spinnercolor="white"
+                onClick={deleteSelectedStations}
+              >
+                Remove Row(s)
+              </Button>
+            </Grid>
+          </Grid>
+
+          <Grid item xs={4} container spacing={2} justifyContent="center">
+            <Grid item>
+              <Button
+                data-testid="export"
+                variant="outlined"
+                disabled={selected.length === 0}
+                onClick={exportSelectedRows}
+                sx={{ height: 'auto' }}
+              >
+                <GetAppIcon />
+                Export Selection
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                data-testid="filter-columns-btn"
+                disabled={fireBehaviourResultStations.length === 0}
+                onClick={openColumnsModal}
+              >
+                <ViewColumnOutlinedIcon />
+                Columns
+              </Button>
+            </Grid>
+          </Grid>
+
+          <Grid item xs={4} container justifyContent="flex-end">
+            <AboutDataPopover content={FBAAboutDataContent} />
+          </Grid>
+        </Grid>
 
         <FilterColumnsModal
           modalOpen={modalOpen}
