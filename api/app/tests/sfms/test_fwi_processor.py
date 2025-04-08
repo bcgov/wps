@@ -1,3 +1,4 @@
+import logging
 import math
 from dataclasses import dataclass
 
@@ -254,8 +255,9 @@ def test_calculate_fwi_values(input_datasets):
     ],
 )
 def test_check_rh_logging(rh_array, expected, caplog):
-    check_weather_values(rh_array=rh_array)
-    assert ("Relative humidity" in caplog.text) == expected
+    with caplog.at_level(logging.INFO, logger="app.sfms.fwi_processor"):
+        check_weather_values(rh_array=rh_array)
+        assert ("Relative humidity" in caplog.text) == expected
 
 
 @pytest.mark.parametrize(
@@ -266,8 +268,9 @@ def test_check_rh_logging(rh_array, expected, caplog):
     ],
 )
 def test_check_prec_logging(precip_array, expected, caplog):
-    check_weather_values(precip_array=precip_array)
-    assert ("Precipitation" in caplog.text) == expected
+    with caplog.at_level(logging.INFO, logger="app.sfms.fwi_processor"):
+        check_weather_values(precip_array=precip_array)
+        assert ("Precipitation" in caplog.text) == expected
 
 
 @pytest.mark.parametrize(
@@ -278,8 +281,9 @@ def test_check_prec_logging(precip_array, expected, caplog):
     ],
 )
 def test_check_ws_logging(ws_array, expected, caplog):
-    check_weather_values(ws_array=ws_array)
-    assert ("Wind speed" in caplog.text) == expected
+    with caplog.at_level(logging.INFO, logger="app.sfms.fwi_processor"):
+        check_weather_values(ws_array=ws_array)
+        assert ("Wind speed" in caplog.text) == expected
 
 
 def test_check_multiple_issues(caplog):
@@ -287,9 +291,10 @@ def test_check_multiple_issues(caplog):
     precip_array = np.array([-2.5])
     ws_array = np.array([-1.0])
 
-    check_weather_values(rh_array=rh_array, precip_array=precip_array, ws_array=ws_array)
+    with caplog.at_level(logging.INFO, logger="app.sfms.fwi_processor"):
+        check_weather_values(rh_array=rh_array, precip_array=precip_array, ws_array=ws_array)
 
-    messages = [record.message for record in caplog.records]
-    assert any("Relative humidity" in msg for msg in messages)
-    assert any("Precipitation" in msg for msg in messages)
-    assert any("Wind speed" in msg for msg in messages)
+        messages = [record.message for record in caplog.records]
+        assert any("Relative humidity" in msg for msg in messages)
+        assert any("Precipitation" in msg for msg in messages)
+        assert any("Wind speed" in msg for msg in messages)
