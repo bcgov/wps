@@ -7,10 +7,8 @@ from cffdrs import bui, dc, dmc, ffmc, fwi, isi
 from osgeo import osr
 
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.wps_logging import configure_logging
 from app.sfms.fwi_processor import check_weather_values, calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_fwi, calculate_isi
 
-configure_logging()
 
 FWI_ARRAY = np.array([[12, 20], [-999, -999]])
 WEATHER_ARRAY = np.array([[12, 20], [0, 0]])
@@ -257,8 +255,7 @@ def test_calculate_fwi_values(input_datasets):
 )
 def test_check_rh_logging(rh_array, expected, caplog):
     check_weather_values(rh_array=rh_array)
-    logged_errors = [record.message for record in caplog.records]
-    assert any("Relative humidity" in msg for msg in logged_errors) == expected
+    assert ("Relative humidity" in caplog.text) == expected
 
 
 @pytest.mark.parametrize(
@@ -270,8 +267,7 @@ def test_check_rh_logging(rh_array, expected, caplog):
 )
 def test_check_prec_logging(precip_array, expected, caplog):
     check_weather_values(precip_array=precip_array)
-    logged_errors = [record.message for record in caplog.records]
-    assert any("Precipitation" in msg for msg in logged_errors) == expected
+    assert ("Precipitation" in caplog.text) == expected
 
 
 @pytest.mark.parametrize(
@@ -283,8 +279,7 @@ def test_check_prec_logging(precip_array, expected, caplog):
 )
 def test_check_ws_logging(ws_array, expected, caplog):
     check_weather_values(ws_array=ws_array)
-    logged_errors = [record.message for record in caplog.records]
-    assert any("Wind speed" in msg for msg in logged_errors) == expected
+    assert ("Wind speed" in caplog.text) == expected
 
 
 def test_check_multiple_issues(caplog):
