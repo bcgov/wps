@@ -113,6 +113,13 @@ def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -
     return list(filter(lambda daily: (daily.date == dailies_date_time), area_dailies))
 
 def get_hydrated_stations(stations: List[PlanningWeatherStation], stations_by_code: dict[int, WeatherStation]):
+    """
+    Merges all details of stations from our database and the WFWX API together.
+
+    :param stations: the database representation of weather stations
+    :param stations_by_code: WFWX representation of weather stations keyed by station code
+    :return: a list of all the hydrated stations
+    """
     hydrated_stations = []
     for station in stations:
         wfwx_station = stations_by_code.get(station.station_code)
@@ -124,8 +131,12 @@ def get_hydrated_stations(stations: List[PlanningWeatherStation], stations_by_co
     return hydrated_stations
 
 async def hydrate_fire_centres():
-    """Get detailed fire_centres from db and WFWX"""
+    """
+    Merges all details of fire centres, including their planning areas and 
+    weather stations together from both the database and the WFWX API.
 
+    :return: a list of all the hydrated fire centres
+    """
     with get_read_session_scope() as session:
         # Fetch all fire weather stations from the database.
         rows = get_fire_weather_stations(session)
