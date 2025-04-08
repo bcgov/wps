@@ -2,13 +2,15 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
-import logging
 import pytest
 from cffdrs import bui, dc, dmc, ffmc, fwi, isi
 from osgeo import osr
 
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.wps_logging import configure_logging
 from app.sfms.fwi_processor import check_weather_values, calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_fwi, calculate_isi
+
+configure_logging()
 
 FWI_ARRAY = np.array([[12, 20], [-999, -999]])
 WEATHER_ARRAY = np.array([[12, 20], [0, 0]])
