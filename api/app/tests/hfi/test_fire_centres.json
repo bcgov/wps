@@ -6,6 +6,7 @@
       "planning_areas": [
         {
           "id": 33,
+          "fire_centre_id": 5,
           "name": "Chilcotin",
           "order_of_appearance_in_list": 2,
           "stations": [
@@ -76,6 +77,7 @@
         },
         {
           "id": 35,
+          "fire_centre_id": 5,
           "name": "Wet Belt",
           "order_of_appearance_in_list": 4,
           "stations": [
@@ -173,6 +175,7 @@
         },
         {
           "id": 32,
+          "fire_centre_id": 5,
           "name": "Black Water",
           "order_of_appearance_in_list": 1,
           "stations": [
@@ -225,6 +228,7 @@
         },
         {
           "id": 34,
+          "fire_centre_id": 5,
           "name": "Fraser",
           "order_of_appearance_in_list": 3,
           "stations": [
@@ -310,6 +314,7 @@
       "planning_areas": [
         {
           "id": 42,
+          "fire_centre_id": 2,
           "name": "Mid-Coast",
           "order_of_appearance_in_list": 7,
           "stations": [
@@ -335,6 +340,7 @@
         },
         {
           "id": 36,
+          "fire_centre_id": 2,
           "name": "Fraser Zone",
           "order_of_appearance_in_list": 1,
           "stations": [
@@ -387,6 +393,7 @@
         },
         {
           "id": 38,
+          "fire_centre_id": 2,
           "name": "Sunshine Coast",
           "order_of_appearance_in_list": 3,
           "stations": [
@@ -430,6 +437,7 @@
         },
         {
           "id": 37,
+          "fire_centre_id": 2,
           "name": "Pemberton Zone",
           "order_of_appearance_in_list": 2,
           "stations": [
@@ -482,6 +490,7 @@
         },
         {
           "id": 40,
+          "fire_centre_id": 2,
           "name": "Mid Island",
           "order_of_appearance_in_list": 5,
           "stations": [
@@ -516,6 +525,7 @@
         },
         {
           "id": 41,
+          "fire_centre_id": 2,
           "name": "North Island",
           "order_of_appearance_in_list": 6,
           "stations": [
@@ -550,6 +560,7 @@
         },
         {
           "id": 39,
+          "fire_centre_id": 2,
           "name": "South Island",
           "order_of_appearance_in_list": 4,
           "stations": [
@@ -581,6 +592,7 @@
       "planning_areas": [
         {
           "id": 59,
+          "fire_centre_id": 1,
           "name": "Vernon (K4)",
           "order_of_appearance_in_list": 2,
           "stations": [
@@ -633,6 +645,7 @@
         },
         {
           "id": 60,
+          "fire_centre_id": 1,
           "name": "Penticton (K5)",
           "order_of_appearance_in_list": 3,
           "stations": [
@@ -658,6 +671,7 @@
         },
         {
           "id": 58,
+          "fire_centre_id": 1,
           "name": "Kamloops (K2)",
           "order_of_appearance_in_list": 1,
           "stations": [
@@ -710,6 +724,7 @@
         },
         {
           "id": 62,
+          "fire_centre_id": 1,
           "name": "Lillooet (K7)",
           "order_of_appearance_in_list": 5,
           "stations": [
@@ -762,6 +777,7 @@
         },
         {
           "id": 61,
+          "fire_centre_id": 1,
           "name": "Merritt (K6)",
           "order_of_appearance_in_list": 4,
           "stations": [
@@ -793,6 +809,7 @@
       "planning_areas": [
         {
           "id": 50,
+          "fire_centre_id": 3,
           "name": "Cassiar Zone",
           "order_of_appearance_in_list": 1,
           "stations": [
@@ -872,6 +889,7 @@
         },
         {
           "id": 51,
+          "fire_centre_id": 3,
           "name": "Skeena Zone",
           "order_of_appearance_in_list": 2,
           "stations": [
@@ -942,6 +960,7 @@
         },
         {
           "id": 52,
+          "fire_centre_id": 3,
           "name": "Bulkley Zone",
           "order_of_appearance_in_list": 3,
           "stations": [
@@ -1021,6 +1040,7 @@
         },
         {
           "id": 53,
+          "fire_centre_id": 3,
           "name": "Nadina Zone",
           "order_of_appearance_in_list": 4,
           "stations": [
@@ -1115,6 +1135,7 @@
       "planning_areas": [
         {
           "id": 49,
+          "fire_centre_id": 4,
           "name": "Fort Nelson (G9)",
           "order_of_appearance_in_list": 7,
           "stations": [
@@ -1167,6 +1188,7 @@
         },
         {
           "id": 43,
+          "fire_centre_id": 4,
           "name": "Prince George Zone (G1)",
           "order_of_appearance_in_list": 1,
           "stations": [
@@ -1210,6 +1232,7 @@
         },
         {
           "id": 44,
+          "fire_centre_id": 4,
           "name": "Robson Valley (G3)",
           "order_of_appearance_in_list": 2,
           "stations": [
@@ -1253,6 +1276,7 @@
         },
         {
           "id": 45,
+          "fire_centre_id": 4,
           "name": "VanJam (G4/5)",
           "order_of_appearance_in_list": 3,
           "stations": [
@@ -1296,6 +1320,7 @@
         },
         {
           "id": 46,
+          "fire_centre_id": 4,
           "name": "Mackenzie (G6)",
           "order_of_appearance_in_list": 4,
           "stations": [
@@ -1330,6 +1355,7 @@
         },
         {
           "id": 48,
+          "fire_centre_id": 4,
           "name": "Fort St John (G8)",
           "order_of_appearance_in_list": 6,
           "stations": [
@@ -1364,6 +1390,7 @@
         },
         {
           "id": 47,
+          "fire_centre_id": 4,
           "name": "Dawson Creek (G7)",
           "order_of_appearance_in_list": 5,
           "stations": [
@@ -1413,6 +1440,7 @@
       "planning_areas": [
         {
           "id": 57,
+          "fire_centre_id": 6,
           "name": "Columbia Zone",
           "order_of_appearance_in_list": 4,
           "stations": [
@@ -1474,6 +1502,7 @@
         },
         {
           "id": 54,
+          "fire_centre_id": 6,
           "name": "Boundary Zone",
           "order_of_appearance_in_list": 1,
           "stations": [
@@ -1508,6 +1537,7 @@
         },
         {
           "id": 56,
+          "fire_centre_id": 6,
           "name": "East Kootenay Zone",
           "order_of_appearance_in_list": 3,
           "stations": [
@@ -1578,6 +1608,7 @@
         },
         {
           "id": 55,
+          "fire_centre_id": 6,
           "name": "West Kootenay Zone",
           "order_of_appearance_in_list": 2,
           "stations": [
