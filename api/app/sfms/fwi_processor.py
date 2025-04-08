@@ -18,21 +18,18 @@ def check_weather_values(rh_array: Optional[np.ndarray] = None, precip_array: Op
     :param prec_array: Optional array of precipitation values (>= 0).
     :param ws_array: Optional array of wind speed values (>= 0).
     """
-    if rh_array is not None:
-        if (rh_array < 0).any() or (rh_array > 100).any():
-            min_rh = rh_array.min()
-            max_rh = rh_array.max()
-            logger.error(f"Relative humidity values out of bounds (min: {min_rh}, max: {max_rh})")
+    if rh_array is not None and ((rh_array < 0).any() or (rh_array > 100).any()):
+        min_rh = rh_array.min()
+        max_rh = rh_array.max()
+        logger.error(f"Relative humidity values out of bounds (min: {min_rh}, max: {max_rh})")
 
-    if precip_array is not None:
-        if (precip_array < 0).any():
-            min_prec = precip_array.min()
-            logger.error(f"Precipitation contains negative values (min: {min_prec})")
+    if precip_array is not None and (precip_array < 0).any():
+        min_precip = precip_array.min()
+        logger.error(f"Precipitation contains negative values (min: {min_precip})")
 
-    if ws_array is not None:
-        if (ws_array < 0).any():
-            min_ws = ws_array.min()
-            logger.error(f"Wind speed contains negative values (min: {min_ws})")
+    if ws_array is not None and (ws_array < 0).any():
+        min_ws = ws_array.min()
+        logger.error(f"Wind speed contains negative values (min: {min_ws})")
 
 
 def calculate_dc(dc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset, latitude: np.ndarray, month: np.ndarray):
