@@ -8,7 +8,8 @@ describe('Mean Intensity Group Rollup', () => {
     id: 1,
     name: 'Test Area',
     stations: [],
-    order_of_appearance_in_list: 0
+    order_of_appearance_in_list: 0,
+    fire_centre_id: 1
   }
 
   it('should show error icon in cell when dailies are empty', () => {
