@@ -43,6 +43,7 @@ import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningA
 import { theme } from '@/app/theme'
 import AboutDataPopover from '@/components/AboutDataPopover'
 import { FBAAboutDataContent } from '@/features/fbaCalculator/components/FbaAboutDataContent'
+import ResetDialog from '@/components/ResetDialog'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -138,6 +139,7 @@ const FBATable = (props: FBATableProps) => {
   const { fireBehaviourResultStations, loading, error: fbaResultsError } = useSelector(selectFireBehaviourCalcResult)
   const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(fireBehaviourResultStations)
   const [visibleColumns, setVisibleColumns] = useState<ColumnLabel[]>(tableColumnLabels)
+  const [showResetDialog, setShowResetDialog] = useState<boolean>(false)
 
   const rowsFromQuery = getRowsFromUrlParams(location.search)
 
@@ -332,6 +334,15 @@ const FBATable = (props: FBATableProps) => {
 
   const openColumnsModal = () => {
     setModalOpen(true)
+  }
+
+  const openResetDialog = () => {
+    setShowResetDialog(true)
+  }
+
+  const handleResetSelected = () => {
+    setShowResetDialog(false)
+    console.log('Reset and close')
   }
 
   const filterColumnsCallback = (filterByColumns: ColumnLabel[]) => {
@@ -629,15 +640,27 @@ const FBATable = (props: FBATableProps) => {
                 data-testid="filter-columns-btn"
                 disabled={fireBehaviourResultStations.length === 0}
                 onClick={openColumnsModal}
+                variant="outlined"
               >
                 <ViewColumnOutlinedIcon />
                 Columns
               </Button>
             </Grid>
           </Grid>
-
-          <Grid item xs={4} container justifyContent="flex-end">
-            <AboutDataPopover content={FBAAboutDataContent} />
+          <Grid item xs={4} container spacing={2} justifyContent="flex-end">
+            <Grid item>
+              <Button
+                data-testid="reset-selected-btn"
+                disabled={selected.length === 0}
+                onClick={openResetDialog}
+                variant="outlined"
+              >
+                Reset Selected
+              </Button>
+            </Grid>
+            <Grid item>
+              <AboutDataPopover content={FBAAboutDataContent} />
+            </Grid>
           </Grid>
         </Grid>
 
@@ -646,6 +669,13 @@ const FBATable = (props: FBATableProps) => {
           columns={tableColumnLabels}
           setModalOpen={setModalOpen}
           parentCallback={filterColumnsCallback}
+        />
+
+        <ResetDialog
+          showResetDialog={showResetDialog}
+          setShowResetDialog={setShowResetDialog}
+          handleResetButtonConfirm={handleResetSelected}
+          message="Are you sure you want to reset the adjusted weather values of the selected rows?"
         />
 
         <FireTable ariaLabel="Fire Behaviour Analysis table" data-testid={props.testId}>
