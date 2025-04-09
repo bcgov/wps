@@ -1,5 +1,7 @@
 import os
+import io
 import logging
+import hashlib
 from typing import Any
 from aiobotocore.session import get_session
 from wps_shared import config
@@ -51,6 +53,16 @@ class S3Client:
             if not key_exists:
                 return False
         return True
+
+    async def get_fuel_raster(self, key: str, expected_hash: str, hash_alg: str = "sha256"):
+        response = await self.client.get_object(Bucket=self.bucket, Key=key)
+        async with response["Body"] as stream:
+            fuel_layer_bytes = await stream.read()
+            with io.BytesIO(fuel_layer_bytes) as f:
+                content_hash = hashlib.file_digest(f, hash_alg).hexdigest()
+                if content_hash != expected_hash:
+                    raise ValueError("Content hash: %s, does not match expected hash: %s for file key: %s", content_hash, expected_hash, key)
+                return fuel_layer_bytes
 
     async def put_object(self, key: str, body: Any):
         await self.client.put_object(Bucket=self.bucket, Key=key, Body=body)

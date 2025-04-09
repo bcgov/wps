@@ -7,6 +7,9 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from app.tests.dataset_common import create_mock_gdal_dataset
 from wps_shared.utils.s3_client import S3Client
 from pytest_mock import MockerFixture
+from unittest.mock import AsyncMock, MagicMock
+import hashlib
+import io
 
 
 @pytest.mark.anyio
@@ -27,3 +30,65 @@ async def test_put_object_called(mocker: MockerFixture):
 
                 assert persist_raster_spy.call_args_list == [mocker.call(key=expected_key, body=mocker.ANY)]
                 assert isinstance(persist_raster_spy.call_args.kwargs["body"], BufferedReader)
+
+
+@pytest.mark.anyio
+async def test_get_fuel_raster(mocker: MockerFixture):
+    sample_data = b"test raster data"
+
+    # Mock the async stream returned by the S3 body
+    mock_stream = AsyncMock()
+    mock_stream.read.return_value = sample_data
+    mock_body_context = MagicMock()
+    mock_body_context.__aenter__.return_value = mock_stream
+
+    # Mock the S3 client
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.return_value = {"Body": mock_body_context}
+
+    # Mock the context manager returned by create_client
+    mock_client_context = MagicMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+
+    # Patch get_session() to return a mocked session
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    async with S3Client() as s3_client:
+        response = await s3_client.client.get_object(Bucket="some-bucket", Key="some-key")
+
+        # 👇 This is the actual async stream object
+        async with response["Body"] as stream:
+            data = await stream.read()
+
+        assert data == sample_data
+
+
+@pytest.mark.anyio
+async def test_get_fuel_raster_hash_mismatch(mocker: MockerFixture):
+    sample_data = b"test raster data"
+    incorrect_hash = "0000"
+
+    # Mock the async stream returned by the S3 body
+    mock_stream = AsyncMock()
+    mock_stream.read.return_value = sample_data
+    mock_body_context = MagicMock()
+    mock_body_context.__aenter__.return_value = mock_stream
+
+    # Mock the S3 client
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.return_value = {"Body": mock_body_context}
+
+    # Mock the context manager returned by create_client
+    mock_client_context = MagicMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+
+    # Patch get_session() to return our mock session
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    async with S3Client() as s3:
+        with pytest.raises(ValueError):
+            await s3.get_fuel_raster("some-key", incorrect_hash)
