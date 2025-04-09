@@ -116,6 +116,7 @@ class PlanningArea(BaseModel):
     zone within a fire centre. """
     id: int
     name: str
+    fire_centre_id: int
     order_of_appearance_in_list: Optional[int] = None
     stations: List[WeatherStation]
 

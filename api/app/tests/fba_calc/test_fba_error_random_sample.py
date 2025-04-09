@@ -7,7 +7,7 @@ import random
 from typing import Final
 import logging
 from wps_shared.wps_logging import configure_logging
-from wps_shared.schemas.fba_calc import FuelTypeEnum
+from wps_shared.fuel_types import FuelTypeEnum
 from wps_shared.utils.time import get_hour_20_from_date
 from app.fire_behaviour.advisory import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.fire_behaviour.cffdrs import fire_weather_index, initial_spread_index, bui_calc

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { difference, filter, findIndex, isEmpty, isEqual, isUndefined } from 'lodash'
-import { TableBody, TableCell, TableRow } from '@mui/material'
+import { Grid, TableBody, TableCell, TableRow } from '@mui/material'
 import GetAppIcon from '@mui/icons-material/GetApp'
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
 import { CsvBuilder } from 'filefy'
@@ -9,6 +9,7 @@ import { FBAStation } from 'api/fbaCalcAPI'
 import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
 import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
 import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
+import PrecipCell from 'features/fbaCalculator/components/PrecipCell'
 import WindSpeedCell from 'features/fbaCalculator/components/WindSpeedCell'
 import { Order, PST_UTC_OFFSET } from 'utils/constants'
 import { FBATableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
@@ -21,7 +22,7 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { rowShouldUpdate, isWindSpeedInvalid } from 'features/fbaCalculator/validation'
+import { rowShouldUpdate, isWindSpeedInvalid, isPrecipInvalid } from 'features/fbaCalculator/validation'
 import TextDisplayCell from 'features/fbaCalculator/components/TextDisplayCell'
 import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
 import HFICell from 'components/HFICell'
@@ -38,8 +39,10 @@ import FBATableInstructions from 'features/fbaCalculator/components/FBATableInst
 import FilterColumnsModal from 'components/FilterColumnsModal'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
-import { StyledFormControl } from 'components/StyledFormControl'
 import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
+import { theme } from '@/app/theme'
+import AboutDataPopover from '@/components/AboutDataPopover'
+import { FBAAboutDataContent } from '@/features/fbaCalculator/components/FbaAboutDataContent'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -56,6 +59,7 @@ export interface FBAInputRow {
   weatherStation: string | undefined
   fuelType: string | undefined
   grassCure: number | undefined
+  precip: number | undefined
   windSpeed: number | undefined
 }
 
@@ -249,6 +253,7 @@ const FBATable = (props: FBATableProps) => {
       weatherStation: null,
       fuelType: null,
       grassCure: undefined,
+      precip: undefined,
       windSpeed: undefined
     }
     const newRows = rows.concat(newRow)
@@ -275,7 +280,7 @@ const FBATable = (props: FBATableProps) => {
     csvBuilder.exportFile()
   }
 
-  const updateRow = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
+  const getNewRows = (id: number, updatedRow: FBATableRow) => {
     const newRows = [...rows].filter(row => !isUndefined(row))
     const index = findIndex(newRows, row => row.id === id)
 
@@ -287,8 +292,20 @@ const FBATable = (props: FBATableProps) => {
       const toUpdate = new Set(rowIdsToUpdate)
       setRowIdsToUpdate(toUpdate)
     }
+    return newRows
+  }
+
+  const updateRow = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
+    const newRows = getNewRows(id, updatedRow)
     if (dispatchUpdate) {
       updateQueryParams(getUrlParamsFromRows(newRows))
+    }
+  }
+
+  const updateRowDirect = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
+    const newRows = getNewRows(id, updatedRow)
+    if (dispatchUpdate) {
+      dispatch(fetchFireBehaviourStations(dateOfInterest, newRows))
     }
   }
 
@@ -407,6 +424,21 @@ const FBATable = (props: FBATableProps) => {
     )
   }
 
+  const getPrecipCell = (row: FBATableRow) => {
+    return (
+      <DataTableCell>
+        <PrecipCell
+          inputRows={rows}
+          updateRow={updateRowDirect}
+          inputValue={row.precip}
+          calculatedValue={row.precipitation}
+          disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row) && !isPrecipInvalid(row.precipitation)}
+          rowId={row.id}
+        />
+      </DataTableCell>
+    )
+  }
+
   const getWindSpeedCell = (row: FBATableRow) => {
     return (
       <DataTableCell>
@@ -472,7 +504,7 @@ const FBATable = (props: FBATableProps) => {
         return getTextDisplayCell(row, 'wind_direction')
       }
       case 'Precip (mm)': {
-        return getTextDisplayCell(row, 'precipitation')
+        return getPrecipCell(row)
       }
       case 'Weather Station': {
         return getWeatherStationCell(row)
@@ -542,42 +574,72 @@ const FBATable = (props: FBATableProps) => {
       {stationsError ||
         (fbaResultsError && <ErrorAlert stationsError={stationsError} fbaResultsError={fbaResultsError} />)}
       <ErrorBoundary>
-        <StyledFormControl>
-          <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
-        </StyledFormControl>
-        <StyledFormControl>
-          <Button data-testid="add-row" variant="contained" color="primary" spinnercolor="white" onClick={addStation}>
-            Add Row
-          </Button>
-        </StyledFormControl>
-        <StyledFormControl>
-          <Button
-            data-testid="remove-rows"
-            disabled={rows.length === 0}
-            variant="contained"
-            color="primary"
-            spinnercolor="white"
-            onClick={deleteSelectedStations}
-          >
-            Remove Row(s)
-          </Button>
-        </StyledFormControl>
-        <StyledFormControl>
-          <Button data-testid="export" disabled={selected.length === 0} onClick={exportSelectedRows}>
-            <GetAppIcon />
-            Export Selection
-          </Button>
-        </StyledFormControl>
-        <StyledFormControl>
-          <Button
-            data-testid="filter-columns-btn"
-            disabled={fireBehaviourResultStations.length === 0}
-            onClick={openColumnsModal}
-          >
-            <ViewColumnOutlinedIcon />
-            Columns
-          </Button>
-        </StyledFormControl>
+        <Grid
+          container
+          spacing={2}
+          alignItems="top"
+          justifyContent="center"
+          paddingTop={theme.spacing(1)}
+          paddingBottom={theme.spacing(1)}
+        >
+          <Grid item xs={4} container spacing={2} justifyContent="flex-start">
+            <Grid item>
+              <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
+            </Grid>
+            <Grid item>
+              <Button
+                data-testid="add-row"
+                variant="contained"
+                color="primary"
+                spinnercolor="white"
+                onClick={addStation}
+              >
+                Add Row
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                data-testid="remove-rows"
+                disabled={rows.length === 0}
+                variant="outlined"
+                color="primary"
+                spinnercolor="white"
+                onClick={deleteSelectedStations}
+              >
+                Remove Row(s)
+              </Button>
+            </Grid>
+          </Grid>
+
+          <Grid item xs={4} container spacing={2} justifyContent="center">
+            <Grid item>
+              <Button
+                data-testid="export"
+                variant="outlined"
+                disabled={selected.length === 0}
+                onClick={exportSelectedRows}
+                sx={{ height: 'auto' }}
+              >
+                <GetAppIcon />
+                Export Selection
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                data-testid="filter-columns-btn"
+                disabled={fireBehaviourResultStations.length === 0}
+                onClick={openColumnsModal}
+              >
+                <ViewColumnOutlinedIcon />
+                Columns
+              </Button>
+            </Grid>
+          </Grid>
+
+          <Grid item xs={4} container justifyContent="flex-end">
+            <AboutDataPopover content={FBAAboutDataContent} />
+          </Grid>
+        </Grid>
 
         <FilterColumnsModal
           modalOpen={modalOpen}

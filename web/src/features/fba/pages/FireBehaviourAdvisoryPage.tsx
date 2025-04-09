@@ -24,8 +24,10 @@ import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySli
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import FireZoneUnitTabs from 'features/fba/components/infoPanel/FireZoneUnitTabs'
 import { fetchFireCentreTPIStats } from 'features/fba/slices/fireCentreTPIStatsSlice'
-import AboutDataPopover from 'features/fba/components/AboutDataPopover'
 import { fetchFireCentreHFIFuelStats } from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
+import Footer from '@/features/landingPage/components/Footer'
+import AboutDataPopover from '@/components/AboutDataPopover'
+import { ASAAboutDataContent } from '@/features/fba/components/ASAAboutDataContent'
 
 const ADVISORY_THRESHOLD = 20
 
@@ -131,12 +133,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <GeneralHeader
-        isBeta={true}
-        spacing={1}
-        title={FIRE_BEHAVIOUR_ADVISORY_NAME}
-        productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
-      />
+      <GeneralHeader isBeta={true} spacing={1} title={FIRE_BEHAVIOUR_ADVISORY_NAME} />
       <Box sx={{ paddingTop: '0.5em' }}>
         <Grid container spacing={1} alignItems={'center'}>
           <Grid item>
@@ -161,7 +158,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             </FireCentreFormControl>
           </Grid>
           <Grid item sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
-            <AboutDataPopover advisoryThreshold={ADVISORY_THRESHOLD} />
+            <AboutDataPopover content={ASAAboutDataContent} props={{ advisoryThreshold: ADVISORY_THRESHOLD }} />
           </Grid>
         </Grid>
       </Box>
@@ -196,6 +193,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           />
         </Grid>
       </Box>
+      <Footer />
     </Box>
   )
 }

@@ -65,7 +65,8 @@ export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
       weatherStation: builtRow.weatherStation,
       fuelType: builtRow.fuelType,
       grassCure: builtRow.grassCure,
-      windSpeed: builtRow.windSpeed
+      windSpeed: builtRow.windSpeed,
+      precip: undefined
     }
     return rowWithId
   })

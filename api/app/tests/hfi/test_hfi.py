@@ -35,6 +35,7 @@ kamloops_fc = FireCentre(
     planning_areas=[
         PlanningArea(
             id=1,
+            fire_centre_id=1,
             name="Vernon",
             order_of_appearance_in_list=None,
             stations=[
