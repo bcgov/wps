@@ -68,10 +68,10 @@ class HourlyFFMCProcessor:
                     input_datasets = cast(List[WPSDataset], input_datasets)  # Ensure correct type inference
                     temp_ds, rh_ds, wind_speed_ds, precip_ds, hffmc_ds = input_datasets
                     # Warp weather datasets to match hffmc
-                    warped_temp_ds = temp_ds.warp_to_match(hffmc_ds, f"{temp_dir}/{os.path.basename(temp_key)}", GDALResamplingMethod.BILINEAR)
-                    warped_rh_ds = rh_ds.warp_to_match(hffmc_ds, f"{temp_dir}/{os.path.basename(rh_key)}", GDALResamplingMethod.BILINEAR)
-                    warped_wind_speed_ds = wind_speed_ds.warp_to_match(hffmc_ds, f"{temp_dir}/{os.path.basename(wind_speed_key)}", GDALResamplingMethod.BILINEAR)
-                    warped_precip_ds = precip_ds.warp_to_match(hffmc_ds, f"{temp_dir}/{os.path.basename(precip_key)}", GDALResamplingMethod.BILINEAR)
+                    warped_temp_ds = temp_ds.warp_to_match(hffmc_ds, f"{temp_dir}/{os.path.basename(temp_key)}.tif", GDALResamplingMethod.BILINEAR)
+                    warped_rh_ds = rh_ds.warp_to_match(hffmc_ds, f"{temp_dir}/{os.path.basename(rh_key)}.tif", GDALResamplingMethod.BILINEAR, max_value=100)
+                    warped_wind_speed_ds = wind_speed_ds.warp_to_match(hffmc_ds, f"{temp_dir}/{os.path.basename(wind_speed_key)}.tif", GDALResamplingMethod.BILINEAR)
+                    warped_precip_ds = precip_ds.warp_to_match(hffmc_ds, f"{temp_dir}/{os.path.basename(precip_key)}.tif", GDALResamplingMethod.BILINEAR)
 
                     # Create and store new hFFMC dataset
                     hffmc_values, hffmc_no_data_value = calculate_ffmc(hffmc_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, warped_wind_speed_ds)

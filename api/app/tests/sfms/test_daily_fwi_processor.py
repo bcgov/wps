@@ -24,7 +24,7 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
     get_weather_data_key_spy = mocker.spy(mock_key_addresser, "get_weather_data_keys")
     gdal_prefix_keys_spy = mocker.spy(mock_key_addresser, "gdal_prefix_keys")
     get_calculated_index_key_spy = mocker.spy(mock_key_addresser, "get_calculated_index_key")
-    
+
     fwi_processor = DailyFWIProcessor(TEST_DATETIME, 2, mock_key_addresser)
 
     # mock weather index, param datasets used for calculations
@@ -127,8 +127,8 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
         ]
 
         assert rh_ds_spy.call_args_list == [
-            mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
-            mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
+            mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR, max_value=100),
+            mocker.call(mock_dmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR, max_value=100),
         ]
 
         assert wind_speed_ds_spy.call_args_list == [
@@ -158,7 +158,6 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
             assert ffmc_ds == mock_ffmc_ds
             wps_datasets = ffmc_calls[0][1:4]  # Extract dataset arguments
             assert all(isinstance(ds, WPSDataset) for ds in wps_datasets)
-
 
         assert calculate_bui_spy.call_args_list == [
             mocker.call(mock_new_dmc_ds, mock_new_dc_ds),
