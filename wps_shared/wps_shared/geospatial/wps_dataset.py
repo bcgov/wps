@@ -177,6 +177,8 @@ class WPSDataset:
         )
 
         if max_value is not None and warped_ds is not None:
+            warped_ds = None  # close the dataset so we can re-open in update mode
+            warped_ds = gdal.Open(output_path, gdal.GA_Update)
             band = warped_ds.GetRasterBand(1)
             array = band.ReadAsArray()
             if (array > max_value).any():
