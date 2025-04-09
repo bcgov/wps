@@ -278,7 +278,7 @@ const FBATable = (props: FBATableProps) => {
     csvBuilder.exportFile()
   }
 
-  const updateRow = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
+  const getNewRows = (id: number, updatedRow: FBATableRow) => {
     const newRows = [...rows].filter(row => !isUndefined(row))
     const index = findIndex(newRows, row => row.id === id)
 
@@ -290,8 +290,20 @@ const FBATable = (props: FBATableProps) => {
       const toUpdate = new Set(rowIdsToUpdate)
       setRowIdsToUpdate(toUpdate)
     }
+    return newRows
+  }
+
+  const updateRow = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
+    const newRows = getNewRows(id, updatedRow)
     if (dispatchUpdate) {
       updateQueryParams(getUrlParamsFromRows(newRows))
+    }
+  }
+
+  const updateRowDirect = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
+    const newRows = getNewRows(id, updatedRow)
+    if (dispatchUpdate) {
+      dispatch(fetchFireBehaviourStations(dateOfInterest, newRows))
     }
   }
 
@@ -415,7 +427,7 @@ const FBATable = (props: FBATableProps) => {
       <DataTableCell>
         <PrecipCell
           inputRows={rows}
-          updateRow={updateRow}
+          updateRow={updateRowDirect}
           inputValue={row.precip}
           calculatedValue={row.precipitation}
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row) && !isPrecipInvalid(row.precipitation)}
