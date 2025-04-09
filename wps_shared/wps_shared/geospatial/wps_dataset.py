@@ -2,6 +2,7 @@ from contextlib import ExitStack, contextmanager
 from typing import Iterator, List, Optional, Tuple, Union
 from osgeo import gdal, osr
 import numpy as np
+import io
 
 from wps_shared.geospatial.geospatial import GDALResamplingMethod
 
@@ -69,6 +70,27 @@ class WPSDataset:
         output_band.FlushCache()
 
         return cls(ds_path=None, ds=output_dataset, datatype=datatype)
+
+    @classmethod
+    def from_bytes(
+        cls,
+        raster_bytes: bytes,
+        datatype=gdal.GDT_Float32,
+    ) -> "WPSDataset":
+        """
+        Create a WPSDataset from raw bytes.
+
+        :param bytes: bytes representing the raster data
+        :param datatype gdal datatype
+        :return: An instance of WPSDataset containing the created dataset
+        """
+        with io.BytesIO(raster_bytes) as buffer:
+            buffer.seek(0)  # rewind buffer to read from beginning
+            path = "/vsimem/bytes_temp.tif"
+            gdal.FileFromMemBuffer(path, buffer.read())
+            dataset = gdal.Open(path)
+            gdal.Unlink(path)
+            return cls(ds_path=None, ds=dataset, datatype=datatype)
 
     def __mul__(self, other):
         """

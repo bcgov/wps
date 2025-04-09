@@ -197,6 +197,23 @@ def test_from_array():
         assert wps_ds.GetRasterBand(1).GetNoDataValue() == -99
 
 
+def test_from_bytes():
+    with open(hfi_tif, "rb") as f:
+        file_bytes = f.read()
+        with WPSDataset.from_bytes(file_bytes) as wps_ds:
+            ds = wps_ds.as_gdal_ds()
+            assert ds.GetName() == "/vsimem/bytes_temp.tif"
+            assert ds.RasterCount == 1
+            assert ds.RasterXSize == 778
+            assert ds.RasterYSize == 683
+            assert ds.GetGeoTransform() == (-758000.0, 2000.0, 0.0, 1290000.0, 0.0, -2000.0)
+            assert (
+                ds.GetProjection()
+                == """PROJCS["Lambert Conformal Conic",GEOGCS["NAD83",DATUM["North_American_Datum_1983",SPHEROID["GRS 1980",6378137,298.257222101004,AUTHORITY["EPSG","7019"]],AUTHORITY["EPSG","6269"]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4269"]],PROJECTION["Lambert_Conformal_Conic_2SP"],PARAMETER["latitude_of_origin",49],PARAMETER["central_meridian",-125],PARAMETER["standard_parallel_1",49],PARAMETER["standard_parallel_2",77],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["Easting",EAST],AXIS["Northing",NORTH]]"""
+            )
+            assert ds.GetMetadata() == {"AREA_OR_POINT": "Area"}
+
+
 def test_multi_wps_dataset_context(mocker):
     # mock WPSDataset and define the mock dataset paths
     dataset_paths = ["path1", "path2"]
