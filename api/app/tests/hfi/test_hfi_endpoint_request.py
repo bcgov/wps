@@ -30,11 +30,11 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
         fire_centre = FireCentre(id=1, name="Kamloops Fire Centre")
         planning_area_1 = PlanningArea(id=1, name="Kamloops (K2)", fire_centre_id=1, order_of_appearance_in_list=1)
         planning_area_2 = PlanningArea(id=2, name="Vernon (K4)", fire_centre_id=1, order_of_appearance_in_list=2)
-        return (
+        return [
             (PlanningWeatherStation(station_code=230, fuel_type_id=1, planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
             (PlanningWeatherStation(station_code=239, fuel_type_id=1, planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
             (PlanningWeatherStation(station_code=230, fuel_type_id=2, planning_area_id=2), fuel_type_2, planning_area_2, fire_centre),
-        )
+        ]
 
     code1 = 230
     code2 = 239

@@ -1,6 +1,6 @@
 """ CRUD operations relating to HFI Calculator
 """
-from typing import List
+from typing import List, Tuple
 from sqlalchemy.engine import Row
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
@@ -12,14 +12,14 @@ from wps_shared.db.models.hfi_calc import (FireCentre, FuelType, HFIReady, Plann
 from wps_shared.utils.time import get_utc_now
 
 
-def get_fire_weather_stations(session: Session) -> CursorResult:
+def get_fire_weather_stations(session: Session) -> List[Row[Tuple[PlanningWeatherStation, FuelType, PlanningArea, FireCentre]]]:
     """ Get all PlanningWeatherStation with joined FuelType, PlanningArea and FireCentre
     for the provided list of station_codes. """
     return session.query(PlanningWeatherStation, FuelType, PlanningArea, FireCentre)\
         .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
         .join(FireCentre, FireCentre.id == PlanningArea.fire_centre_id)\
-        .filter(PlanningWeatherStation.is_deleted == False)
+        .filter(PlanningWeatherStation.is_deleted == False).all()
 
 
 def get_all_stations(session: Session) -> List[Row]:
@@ -42,7 +42,7 @@ def get_fire_centre_station_codes() -> List[int]:
     return station_codes
 
 
-def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
+def get_fire_centre_stations(session: Session, fire_centre_id: int) -> CursorResult:
     """ Get all the stations, along with default fuel type for a fire centre. """
     return session.query(PlanningWeatherStation, FuelType)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
@@ -51,7 +51,7 @@ def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
         .filter(PlanningArea.fire_centre_id == fire_centre_id)
 
 
-def get_planning_weather_stations(session, fire_centre_id: int) -> List[PlanningWeatherStation]:
+def get_planning_weather_stations(session: Session, fire_centre_id: int) -> List[PlanningWeatherStation]:
     """ Get all the stations for a fire centre. """
     return session.query(PlanningWeatherStation)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\

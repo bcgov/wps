@@ -38,6 +38,7 @@ export interface FireCentre {
 export interface PlanningArea {
   id: number
   name: string
+  fire_centre_id: number
   order_of_appearance_in_list: number
   stations: WeatherStation[]
 }
