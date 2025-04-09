@@ -138,7 +138,7 @@ def test_raster_warp_max_value():
     mercator_ds = create_test_dataset("test_dataset_2.tif", 100, 100, extent2, 3857)
 
     with WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds, WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds:
-        output_ds: WPSDataset = wps1_ds.warp_to_match(wps2_ds, "/vsimem/test.tif", max_value=100)
+        output_ds: WPSDataset = wps1_ds.warp_to_match(wps2_ds, "/vsimem/test.grib2", max_value=100)  # test that we can update an output path with any extension
         out_array = output_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
         assert out_array.max() == 100
 
