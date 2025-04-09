@@ -10,7 +10,10 @@ const Root = styled('div', {
   name: `${PREFIX}-links`
 })({
   backgroundColor: theme.palette.primary.main,
-  minHeight: '30px'
+  borderTopWidth: 2,
+  borderTopStyle: 'solid',
+  borderTopColor: theme.palette.secondary.main,
+  minHeight: '50px'
 })
 
 const FooterLinks = styled('div', {
@@ -27,7 +30,7 @@ const FooterLinks = styled('div', {
 })
 
 const VerticalDivider: React.FunctionComponent = () => {
-  return <Root style={{ color: '#FFFFFF' }}>|</Root>
+  return <div style={{ color: '#FFFFFF' }}>|</div>
 }
 
 const StyledLink = styled(Link)(({ theme }) => ({
