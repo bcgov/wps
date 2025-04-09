@@ -7,7 +7,7 @@ import tempfile
 from wps_shared.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
 from app.tests.dataset_common import create_mock_gdal_dataset, create_test_dataset
 
-hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")
+hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")  # Byte data
 zero_tif = os.path.join(os.path.dirname(__file__), "zero_layer.tif")
 
 
@@ -43,8 +43,11 @@ def test_raster_mul():
     with WPSDataset(hfi_tif) as wps_ds, WPSDataset(zero_tif) as zero_ds:
         output_ds = wps_ds * zero_ds
         raw_ds = output_ds.as_gdal_ds()
-        output_values = raw_ds.GetRasterBand(1).ReadAsArray()
+        output_band = raw_ds.GetRasterBand(1)
+        output_values = output_band.ReadAsArray()
+        output_datatype = output_band.DataType
         assert np.all(output_values == 0)
+        assert output_datatype == gdal.GDT_Byte
 
 
 def test_raster_mul_identity():
@@ -207,7 +210,7 @@ def test_get_nodata_mask_empty():
 
 def test_from_array():
     extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    original_ds = create_test_dataset("test_dataset_1.tif", 100, 100, extent1, 4326)
+    original_ds = create_test_dataset("test_dataset_1.tif", 100, 100, extent1, 4326)  # float32 datatype
     original_ds.GetRasterBand(1).SetNoDataValue(-99)
     og_band = original_ds.GetRasterBand(1)
     og_array = og_band.ReadAsArray()
