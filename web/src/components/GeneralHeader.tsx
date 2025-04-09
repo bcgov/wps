@@ -1,9 +1,6 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-
 import HeaderImage from './HeaderImage'
-import Contact from './Contact'
-
 import { OptionalContainer } from 'components/Container'
 
 const PREFIX = 'GeneralHeader'
@@ -53,13 +50,12 @@ const Root = styled('nav')(({ theme }) => ({
 interface Props {
   isBeta: boolean
   padding?: string
-  productName: string
   spacing: number
   title: string
 }
 
 export const GeneralHeader = React.forwardRef((props: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
-  const { title, productName, spacing } = props
+  const { title, spacing } = props
   GeneralHeader.displayName = 'GeneralHeader'
 
   return (
@@ -71,7 +67,6 @@ export const GeneralHeader = React.forwardRef((props: Props, ref: React.Forwarde
           {props.isBeta && <div className={classes.beta}>BETA</div>}
         </div>
         <div style={{ flexGrow: spacing }}></div>
-        <Contact productName={productName}></Contact>
       </OptionalContainer>
     </Root>
   )
