@@ -163,6 +163,10 @@ class WPSDataset:
         miny = maxy + dest_geotransform[5] * other.ds.RasterYSize
         extent = [minx, miny, maxx, maxy]
 
+        # we need the output to be a geotiff, since we cannot update grib files
+        if not output_path.endswith(".tif"):
+            output_path += ".tif"
+
         # Warp to match input option parameters
         warped_ds = gdal.Warp(
             output_path,
@@ -177,8 +181,6 @@ class WPSDataset:
         )
 
         if max_value is not None and warped_ds is not None:
-            warped_ds = None  # close the dataset so we can re-open in update mode
-            warped_ds = gdal.Open(output_path, gdal.GA_Update)
             band = warped_ds.GetRasterBand(1)
             array = band.ReadAsArray()
             if (array > max_value).any():
