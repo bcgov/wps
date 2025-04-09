@@ -3,7 +3,7 @@ import enum
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from wps_shared import config
-from wps_shared.utils.time import convert_utc_to_pdt
+from wps_shared.utils.time import convert_to_sfms_timezone, convert_utc_to_pdt
 from wps_shared.weather_models import ModelEnum
 from app.weather_models.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key, compose_rdps_key_hffmc
 
@@ -37,15 +37,14 @@ class RasterKeyAddresser:
     def __init__(self):
         self.sfms_calculated_prefix = "sfms/calculated"
         self.s3_prefix = f"/vsis3/{config.get('OBJECT_STORE_BUCKET')}"
-        self.smfs_hourly_upload_prefix = "sfms/uploads/hourlies"
-        self.sfms_upload_prefix = "sfms/uploads/actual"
+        self.sfms_hourly_upload_prefix = "sfms/uploads/hourlies"
+        self.sfms_daily_upload_prefix = "sfms/uploads/actual"
         self.weather_model_prefix = f"weather_models/{ModelEnum.RDPS.lower()}"
 
-    def get_uploaded_index_key(self, datetime_utc: datetime, fwi_param: FWIParameter):
-        assert_all_utc(datetime_utc)
-        iso_date = datetime_utc.date().isoformat()
-        return f"{self.sfms_upload_prefix}/{iso_date}/{fwi_param.value}{iso_date.replace('-', '')}.tif"
-
+    def get_uploaded_index_key(self, datetime: datetime, fwi_param: FWIParameter):
+        sfms_datetime = convert_to_sfms_timezone(datetime)
+        iso_date = sfms_datetime.date().isoformat()
+        return f"{self.sfms_daily_upload_prefix}/{iso_date}/{fwi_param.value}{iso_date.replace('-', '')}.tif"
 
     def get_calculated_index_key(self, datetime_utc: datetime, fwi_param: FWIParameter):
         """
@@ -122,7 +121,7 @@ class RasterKeyAddresser:
         # Convert utc into pdt and substract one hour to get hFFMC source raster time. sfms only produces hFFMC from Apr - Oct which is always PDT
         datetime_pdt = convert_utc_to_pdt(datetime_utc) - timedelta(hours=1)
         iso_date = datetime_pdt.date().isoformat()
-        return f"{self.smfs_hourly_upload_prefix}/{iso_date}/fine_fuel_moisture_code{iso_date.replace('-', '')}{datetime_pdt.hour:02d}.tif"
+        return f"{self.sfms_hourly_upload_prefix}/{iso_date}/fine_fuel_moisture_code{iso_date.replace('-', '')}{datetime_pdt.hour:02d}.tif"
 
     def get_weather_data_keys_hffmc(self, rdps_model_run_start: datetime, offset_hour):
         """
