@@ -31,10 +31,10 @@ from wps_shared.db.crud.auto_spatial_advisory import (
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryFuelStats, CriticalHours, HfiClassificationThresholdEnum, RunTypeEnum, SFMSFuelType
 from app.fire_behaviour import cffdrs
-from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
+from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
 from app.hourlies import get_hourly_readings_in_time_interval
-from wps_shared.schemas.fba_calc import CriticalHoursHFI, WindResult
+from wps_shared.schemas.fba_calc import CriticalHoursHFI, AdjustedFWIResult
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
 from wps_shared.stations import get_stations_asynchronously
 from wps_shared.geospatial.geospatial import PointTransformer
@@ -166,7 +166,7 @@ async def apply_retention_policy(client: AioBaseClient, bucket: str):
                 logger.info(f"Deleted folder {folder_name}")
 
 
-def calculate_wind_speed_result(yesterday: dict, raw_daily: dict) -> WindResult:
+def calculate_adjusted_fwi_result(yesterday: dict, raw_daily: dict) -> AdjustedFWIResult:
     """
     Calculates new FWIs based on observed and forecast daily data from WF1.
 
@@ -186,7 +186,7 @@ def calculate_wind_speed_result(yesterday: dict, raw_daily: dict) -> WindResult:
     ffmc = cffdrs.fine_fuel_moisture_code(yesterday.get("fineFuelMoistureCode", None), temperature, relative_humidity, precipitation, wind_speed)
     isi = cffdrs.initial_spread_index(ffmc, wind_speed)
     fwi = cffdrs.fire_weather_index(isi, bui)
-    return WindResult(ffmc=ffmc, isi=isi, bui=bui, wind_speed=wind_speed, fwi=fwi, status=status)
+    return AdjustedFWIResult(ffmc=ffmc, isi=isi, bui=bui, wind_speed=wind_speed, fwi=fwi, status=status)
 
 
 def calculate_critical_hours_for_station_by_fuel_type(
@@ -209,17 +209,17 @@ def calculate_critical_hours_for_station_by_fuel_type(
     yesterday = critical_hours_inputs.yesterday_dailies_by_station_id[wfwx_station.wfwx_id]
     last_observed_morning_rh_values = build_hourly_rh_dict(raw_observations.values)
 
-    wind_result = calculate_wind_speed_result(yesterday, raw_daily)
-    bui = wind_result.bui
-    ffmc = wind_result.ffmc
-    isi = wind_result.isi
+    adjusted_fwi_result = calculate_adjusted_fwi_result(yesterday, raw_daily)
+    bui = adjusted_fwi_result.bui
+    ffmc = adjusted_fwi_result.ffmc
+    isi = adjusted_fwi_result.isi
     fuel_type_info = FUEL_TYPE_DEFAULTS[fuel_type]
     percentage_conifer = fuel_type_info.get("PC", None)
     percentage_dead_balsam_fir = fuel_type_info.get("PDF", None)
     crown_base_height = fuel_type_info.get("CBH", None)
     cfl = fuel_type_info.get("CFL", None)
     grass_cure = yesterday.get("grasslandCuring", None)
-    wind_speed = wind_result.wind_speed
+    wind_speed = adjusted_fwi_result.wind_speed
     yesterday_ffmc = yesterday.get("fineFuelMoistureCode", None)
     julian_date = get_julian_date(for_date)
     fmc = cffdrs.foliar_moisture_content(int(wfwx_station.lat), int(wfwx_station.long), wfwx_station.elevation, julian_date)

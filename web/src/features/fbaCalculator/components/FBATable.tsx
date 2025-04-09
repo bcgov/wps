@@ -9,6 +9,7 @@ import { FBAStation } from 'api/fbaCalcAPI'
 import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
 import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
 import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
+import PrecipCell from 'features/fbaCalculator/components/PrecipCell'
 import WindSpeedCell from 'features/fbaCalculator/components/WindSpeedCell'
 import { Order, PST_UTC_OFFSET } from 'utils/constants'
 import { FBATableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
@@ -21,7 +22,7 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { rowShouldUpdate, isWindSpeedInvalid } from 'features/fbaCalculator/validation'
+import { rowShouldUpdate, isWindSpeedInvalid, isPrecipInvalid } from 'features/fbaCalculator/validation'
 import TextDisplayCell from 'features/fbaCalculator/components/TextDisplayCell'
 import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
 import HFICell from 'components/HFICell'
@@ -58,6 +59,7 @@ export interface FBAInputRow {
   weatherStation: string | undefined
   fuelType: string | undefined
   grassCure: number | undefined
+  precip: number | undefined
   windSpeed: number | undefined
 }
 
@@ -251,6 +253,7 @@ const FBATable = (props: FBATableProps) => {
       weatherStation: null,
       fuelType: null,
       grassCure: undefined,
+      precip: undefined,
       windSpeed: undefined
     }
     const newRows = rows.concat(newRow)
@@ -277,7 +280,7 @@ const FBATable = (props: FBATableProps) => {
     csvBuilder.exportFile()
   }
 
-  const updateRow = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
+  const getNewRows = (id: number, updatedRow: FBATableRow) => {
     const newRows = [...rows].filter(row => !isUndefined(row))
     const index = findIndex(newRows, row => row.id === id)
 
@@ -289,8 +292,20 @@ const FBATable = (props: FBATableProps) => {
       const toUpdate = new Set(rowIdsToUpdate)
       setRowIdsToUpdate(toUpdate)
     }
+    return newRows
+  }
+
+  const updateRow = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
+    const newRows = getNewRows(id, updatedRow)
     if (dispatchUpdate) {
       updateQueryParams(getUrlParamsFromRows(newRows))
+    }
+  }
+
+  const updateRowDirect = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
+    const newRows = getNewRows(id, updatedRow)
+    if (dispatchUpdate) {
+      dispatch(fetchFireBehaviourStations(dateOfInterest, newRows))
     }
   }
 
@@ -409,6 +424,21 @@ const FBATable = (props: FBATableProps) => {
     )
   }
 
+  const getPrecipCell = (row: FBATableRow) => {
+    return (
+      <DataTableCell>
+        <PrecipCell
+          inputRows={rows}
+          updateRow={updateRowDirect}
+          inputValue={row.precip}
+          calculatedValue={row.precipitation}
+          disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row) && !isPrecipInvalid(row.precipitation)}
+          rowId={row.id}
+        />
+      </DataTableCell>
+    )
+  }
+
   const getWindSpeedCell = (row: FBATableRow) => {
     return (
       <DataTableCell>
@@ -474,7 +504,7 @@ const FBATable = (props: FBATableProps) => {
         return getTextDisplayCell(row, 'wind_direction')
       }
       case 'Precip (mm)': {
-        return getTextDisplayCell(row, 'precipitation')
+        return getPrecipCell(row)
       }
       case 'Weather Station': {
         return getWeatherStationCell(row)

@@ -8,7 +8,9 @@ describe('RowManager', () => {
     fuelType: { value: 'c1', label: 'C1' },
     grassCure: 1,
     windSpeed: 1,
-    wind_speed: undefined
+    wind_speed: undefined,
+    precip: 1,
+    precipitation: undefined
   }
 
   const firstCalculatedRow = {
@@ -50,7 +52,9 @@ describe('RowManager', () => {
     fuelType: { value: 'c2', label: 'C2' },
     grassCure: 2,
     windSpeed: 2,
-    wind_speed: undefined
+    wind_speed: undefined,
+    precip: 2,
+    precipitation: undefined
   }
 
   const secondCalculatedRow = {
@@ -91,7 +95,9 @@ describe('RowManager', () => {
     fuelType: null,
     grassCure: undefined,
     windSpeed: undefined,
-    wind_speed: undefined
+    wind_speed: undefined,
+    precip: undefined,
+    precipitation: undefined
   }
 
   const emptyCalculatedRow: Partial<FBAStation> = {
@@ -143,6 +149,7 @@ describe('RowManager', () => {
 
     // Set values remain
     expect(mergedRows[0].windSpeed).toEqual(nonEmptyInputRows[0].windSpeed)
+    expect(mergedRows[0].precip).toEqual(nonEmptyInputRows[0].precip)
 
     // Builds GridMenuOptions based on user selected options
     expect(mergedRows[0].weatherStation).toEqual({

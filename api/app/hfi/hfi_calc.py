@@ -26,8 +26,8 @@ from wps_shared.schemas.hfi_calc import (
     required_daily_fields,
 )
 from wps_shared.schemas.hfi_calc import WeatherStationProperties, FuelType as FuelTypeSchema, FireCentre, PlanningArea, WeatherStation
+from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from wps_shared.schemas.stations import WeatherStation as WFWXWeatherStationDetails
-from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from wps_shared.utils.time import get_hour_20_from_date, get_pst_now
 from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_stations_by_codes, get_wfwx_stations_from_station_codes, get_raw_dailies_in_range_generator
