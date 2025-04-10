@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { styled } from '@mui/material/styles'
 import { Container, GeneralHeader } from 'components'
 import FBATable from 'features/fbaCalculator/components/FBATable'
-import { FIREBAT_DOC_TITLE } from 'utils/constants'
+import { FIRECALC_DOC_TITLE } from 'utils/constants'
 
 const PREFIX = 'FireBehaviourCalculator'
 
@@ -27,7 +27,7 @@ const Root = styled('main')(({ theme }) => ({
 
 const FireBehaviourCalculator: React.FunctionComponent = () => {
   useEffect(() => {
-    document.title = FIREBAT_DOC_TITLE
+    document.title = FIRECALC_DOC_TITLE
   }, [])
 
   return (
