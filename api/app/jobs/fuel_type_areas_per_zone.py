@@ -6,6 +6,7 @@ import asyncio
 import logging
 import numpy as np
 
+from wps_shared.geospatial.fuel_raster import get_fuel_layer_key
 from wps_shared.wps_logging import configure_logging
 from wps_shared.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_type_id, get_fire_zone_units, get_fuel_types_id_dict
 from wps_shared.db.database import get_async_write_session_scope
@@ -42,11 +43,7 @@ class FuelTypeAreasJob:
         """
         Entry point for calculating the area of each fuel type in each fire zone unit.
         """
-
-        set_s3_gdal_config()
-        bucket = config.get("OBJECT_STORE_BUCKET")
-        fuel_raster_name = config.get("FUEL_RASTER_NAME")
-        fuel_raster_key = f"/vsis3/{bucket}/sfms/static/{fuel_raster_name}"
+        fuel_raster_key = get_fuel_layer_key()
         fuel_raster_ds: gdal.Dataset = gdal.Open(fuel_raster_key, gdal.GA_ReadOnly)
         pixel_size = fuel_raster_ds.GetGeoTransform()[1]
         # We're using fire zone units from the advisory_shapes table to clip out shapes from the fuel raster.
