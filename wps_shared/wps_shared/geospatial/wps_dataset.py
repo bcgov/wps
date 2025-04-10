@@ -72,11 +72,7 @@ class WPSDataset:
         return cls(ds_path=None, ds=output_dataset)
 
     @classmethod
-    def from_bytes(
-        cls,
-        raster_bytes: bytes,
-        datatype=gdal.GDT_Float32,
-    ) -> "WPSDataset":
+    def from_bytes(cls, raster_bytes: bytes) -> "WPSDataset":
         """
         Create a WPSDataset from raw bytes.
 
@@ -90,7 +86,7 @@ class WPSDataset:
             gdal.FileFromMemBuffer(path, buffer.read())
             dataset = gdal.Open(path)
             gdal.Unlink(path)
-            return cls(ds_path=None, ds=dataset, datatype=datatype)
+            return cls(ds_path=None, ds=dataset)
 
     def __mul__(self, other):
         """
