@@ -1,5 +1,5 @@
 import { FireZoneFuelStats } from '@/api/fbaAPI'
-import { isUndefined } from 'lodash'
+import { isNil, isUndefined } from 'lodash'
 
 /**
  * Function to calculate the minimum start and maximum end time for critical hours.
@@ -42,7 +42,7 @@ export const getMinStartAndMaxEndTime = (
       }
     }
   }
-  if (!isUndefined(maxEndTime)) {
+  if (!isNil(maxEndTime)) {
     maxEndTime = maxEndTime % 24 // normalize back to 24 hour clock
   }
 
