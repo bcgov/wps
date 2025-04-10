@@ -14,17 +14,17 @@ class WPSDataset:
     A wrapper around gdal datasets for common operations
     """
 
-    def __init__(self, ds_path: Optional[str], ds=None, band=1, chunk_size=256, access=gdal.GA_ReadOnly, datatype=gdal.GDT_Byte):
+    def __init__(self, ds_path: Optional[str], ds=None, band: int = 1, chunk_size: int = 256, access=gdal.GA_ReadOnly):
         self.ds = ds
         self.ds_path = ds_path
         self.band = band
         self.chunk_size = chunk_size
         self.access = access
-        self.datatype = datatype
 
     def __enter__(self):
         if self.ds is None:
             self.ds: gdal.Dataset = gdal.Open(self.ds_path, self.access)
+
         return self
 
     def __exit__(self, *_):
@@ -69,7 +69,7 @@ class WPSDataset:
         # Flush cache to ensure all data is written
         output_band.FlushCache()
 
-        return cls(ds_path=None, ds=output_dataset, datatype=datatype)
+        return cls(ds_path=None, ds=output_dataset)
 
     @classmethod
     def from_bytes(
@@ -120,16 +120,18 @@ class WPSDataset:
         if geotransform[0] != other.ds.GetGeoTransform()[0] or geotransform[3] != other.ds.GetGeoTransform()[3]:
             raise ValueError("The origins of the two rasters do not match.")
 
+        self_band: gdal.Band = self.ds.GetRasterBand(self.band)
+        other_band: gdal.Band = other.ds.GetRasterBand(self.band)
+
+        datatype = self_band.DataType
+
         # Create the output raster
         driver: gdal.Driver = gdal.GetDriverByName("MEM")
-        out_ds: gdal.Dataset = driver.Create("memory", x_size, y_size, 1, self.datatype)
+        out_ds: gdal.Dataset = driver.Create("memory", x_size, y_size, 1, datatype)
 
         # Set the geotransform and projection
         out_ds.SetGeoTransform(geotransform)
         out_ds.SetProjection(projection)
-
-        self_band: gdal.Band = self.ds.GetRasterBand(self.band)
-        other_band: gdal.Band = other.ds.GetRasterBand(self.band)
 
         # Process in chunks
         for y in range(0, y_size, self.chunk_size):
@@ -159,7 +161,13 @@ class WPSDataset:
 
         return WPSDataset(ds_path=None, ds=out_ds)
 
-    def warp_to_match(self, other: "WPSDataset", output_path: str, resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR):
+    def warp_to_match(
+        self,
+        other: "WPSDataset",
+        output_path: str,
+        resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR,
+        max_value: float | None = None,
+    ):
         """
         Warp the dataset to match the extent, pixel size, and projection of the other dataset.
 
@@ -177,6 +185,10 @@ class WPSDataset:
         miny = maxy + dest_geotransform[5] * other.ds.RasterYSize
         extent = [minx, miny, maxx, maxy]
 
+        # we need the output to be a geotiff, since we cannot update grib files
+        if not output_path.endswith(".tif"):
+            output_path += ".tif"
+
         # Warp to match input option parameters
         warped_ds = gdal.Warp(
             output_path,
@@ -189,6 +201,15 @@ class WPSDataset:
                 resampleAlg=resample_method.value,
             ),
         )
+
+        if max_value is not None and warped_ds is not None:
+            band = warped_ds.GetRasterBand(1)
+            array = band.ReadAsArray()
+            if (array > max_value).any():
+                array = np.minimum(array, max_value)  # clamp any value above the max_value to the max_value
+                band.WriteArray(array)
+                band.FlushCache()
+
         return WPSDataset(ds_path=None, ds=warped_ds)
 
     def replace_nodata_with(self, new_no_data_value: int = 0):
@@ -251,11 +272,12 @@ class WPSDataset:
         projection = self.ds.GetProjection()
 
         band: gdal.Band = self.ds.GetRasterBand(self.band)
+        datatype = band.DataType
         nodata_value = band.GetNoDataValue()
         array = band.ReadAsArray()
 
         rows, cols = array.shape
-        output_dataset: gdal.Dataset = driver.Create(output_path, cols, rows, 1, self.datatype)
+        output_dataset: gdal.Dataset = driver.Create(output_path, cols, rows, 1, datatype)
         output_dataset.SetGeoTransform(geotransform)
         output_dataset.SetProjection(projection)
 

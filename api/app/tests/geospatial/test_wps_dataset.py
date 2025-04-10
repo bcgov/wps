@@ -7,7 +7,7 @@ import tempfile
 from wps_shared.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
 from app.tests.dataset_common import create_mock_gdal_dataset, create_test_dataset
 
-hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")
+hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")  # Byte data
 zero_tif = os.path.join(os.path.dirname(__file__), "zero_layer.tif")
 
 
@@ -43,8 +43,11 @@ def test_raster_mul():
     with WPSDataset(hfi_tif) as wps_ds, WPSDataset(zero_tif) as zero_ds:
         output_ds = wps_ds * zero_ds
         raw_ds = output_ds.as_gdal_ds()
-        output_values = raw_ds.GetRasterBand(1).ReadAsArray()
+        output_band = raw_ds.GetRasterBand(1)
+        output_values = output_band.ReadAsArray()
+        output_datatype = output_band.DataType
         assert np.all(output_values == 0)
+        assert output_datatype == gdal.GDT_Byte
 
 
 def test_raster_mul_identity():
@@ -119,6 +122,33 @@ def test_raster_warp():
     mercator_ds = None
 
 
+def test_raster_warp_max_value():
+    # Dataset 1: 100x100 pixels, extent in EPSG:3857
+    extent1 = (-20037508.34, 20037508.34, -20037508.34, 20037508.34)
+    wgs_84_ds = create_test_dataset("test_dataset_1.tif", 100, 100, extent1, 3857, fill_value=90)
+
+    band = wgs_84_ds.GetRasterBand(1)
+    array = band.ReadAsArray()
+    array[0, 0] = 101  # value to be clamped
+    band.WriteArray(array)
+    band.FlushCache()
+
+    # Dataset 2: 100x100 pixels, extent in EPSG:3857
+    extent2 = (-20037508.34, 20037508.34, -20037508.34, 20037508.34)
+    mercator_ds = create_test_dataset("test_dataset_2.tif", 100, 100, extent2, 3857)
+
+    with WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds, WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds:
+        output_ds: WPSDataset = wps1_ds.warp_to_match(wps2_ds, "/vsimem/test.grib2", max_value=100)  # test that we can update an output path with any extension
+        out_array = output_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
+        assert out_array.max() == 100
+
+        # Ensure 90 stayed 90 everywhere since we're doing Nearest Neighbour interp. 100*100 array minus the 1 value we changed
+        assert np.count_nonzero(out_array == 90) == (100 * 100 - 1), "Expected at least one value to remain 99"
+
+    wgs_84_ds = None
+    mercator_ds = None
+
+
 def test_export_to_geotiff():
     extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
     ds_1 = create_test_dataset("test_dataset_1.tif", 3, 3, extent1, 4326, data_type=gdal.GDT_Byte, fill_value=1)
@@ -180,7 +210,7 @@ def test_get_nodata_mask_empty():
 
 def test_from_array():
     extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    original_ds = create_test_dataset("test_dataset_1.tif", 100, 100, extent1, 4326)
+    original_ds = create_test_dataset("test_dataset_1.tif", 100, 100, extent1, 4326)  # float32 datatype
     original_ds.GetRasterBand(1).SetNoDataValue(-99)
     og_band = original_ds.GetRasterBand(1)
     og_array = og_band.ReadAsArray()
