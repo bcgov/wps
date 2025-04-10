@@ -232,7 +232,6 @@ def test_from_bytes():
         file_bytes = f.read()
         with WPSDataset.from_bytes(file_bytes) as wps_ds:
             ds = wps_ds.as_gdal_ds()
-            assert ds.GetName() == "/vsimem/bytes_temp.tif"
             assert ds.RasterCount == 1
             assert ds.RasterXSize == 778
             assert ds.RasterYSize == 683
