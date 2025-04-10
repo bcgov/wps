@@ -274,7 +274,7 @@ const FBATable = (props: FBATableProps) => {
     const selectedSet = new Set<number>(selected)
     const selectedRows = rows.filter(row => selectedSet.has(row.id))
     const selectedRowsAsStrings = RowManager.exportRowsAsStrings(selectedRows)
-    const csvBuilder = new CsvBuilder(`FireBAT_${dateOfInterest}.csv`)
+    const csvBuilder = new CsvBuilder(`FireCalc_${dateOfInterest}.csv`)
       .setColumns(tableColumnLabels)
       .addRows(selectedRowsAsStrings)
     csvBuilder.exportFile()
