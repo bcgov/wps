@@ -58,7 +58,6 @@ async def test_get_fuel_raster(mocker: MockerFixture):
     async with S3Client() as s3_client:
         response = await s3_client.client.get_object(Bucket="some-bucket", Key="some-key")
 
-        # 👇 This is the actual async stream object
         async with response["Body"] as stream:
             data = await stream.read()
 
