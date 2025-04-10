@@ -1,10 +1,14 @@
-from app.sfms.raster_addresser import RasterKeyAddresser, FWIParameter
-import pytest
 from datetime import datetime, timezone
-from app.sfms.raster_addresser import WeatherParameter
+import pytest
+from zoneinfo import ZoneInfo
+from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser, WeatherParameter
 
-TEST_DATETIME_1 = datetime(2024, 10, 10, 23, tzinfo=timezone.utc)
+sfms_timezone = ZoneInfo("America/Vancouver")
+
+TEST_DATETIME_1 = datetime(2024, 10, 10, 6, tzinfo=timezone.utc)
 TEST_DATE_1_ISO = TEST_DATETIME_1.date().isoformat()
+
+TEST_DATETIME_1_LOCAL = datetime(2024, 10, 10, 6, tzinfo=sfms_timezone)
 
 TEST_DATETIME_2 = datetime(2024, 10, 10, 11, tzinfo=timezone.utc)
 TEST_DATE_2_ISO = TEST_DATETIME_2.date().isoformat()
@@ -25,8 +29,11 @@ def raster_key_addresser():
 
 
 def test_get_uploaded_index_key(raster_key_addresser):
-    result = raster_key_addresser.get_uploaded_index_key(TEST_DATETIME_1, FWIParameter.DMC)
-    assert result == f"sfms/uploads/actual/{TEST_DATE_1_ISO}/dmc{TEST_DATE_1_ISO.replace('-','')}.tif"
+    result_from_utc = raster_key_addresser.get_uploaded_index_key(TEST_DATETIME_1, FWIParameter.DMC)
+    assert result_from_utc == "sfms/uploads/actual/2024-10-09/dmc20241009.tif"  # should be the datetime in the SFMS timezone (PDT/PST)
+
+    result_from_local = raster_key_addresser.get_uploaded_index_key(TEST_DATETIME_1_LOCAL, FWIParameter.DMC)
+    assert result_from_local == "sfms/uploads/actual/2024-10-10/dmc20241010.tif"  # should be the datetime in the SFMS timezone (PDT/PST)
 
 
 def test_get_calculated_index_key(raster_key_addresser):
@@ -38,6 +45,7 @@ def test_get_weather_data_keys(raster_key_addresser):
     result = raster_key_addresser.get_weather_data_keys(TEST_DATETIME_1, TEST_DATETIME_TO_CALC, 20)
 
     assert len(result) == 4
+
 
 def test_get_uploaded_hffmc_key_00_hour(raster_key_addresser):
     result = raster_key_addresser.get_uploaded_hffmc_key(RDPS_MODEL_RUN_00_START)
