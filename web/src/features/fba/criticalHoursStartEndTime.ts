@@ -2,15 +2,20 @@ import { FireZoneFuelStats } from '@/api/fbaAPI'
 import { isUndefined } from 'lodash'
 
 /**
- *
+ * Function to calculate the minimum start and maximum end time for critical hours.
+ * Critical hours can start as early as 0700 and continue on to the next day at 0700.
+ * Because of this we need some logic to determine the maximum time.
+ * ie. 0600 the following day needs to be considered later than 2300 the same day.
  *
  * @param fuels FireZoneFuelStats[]
  * @returns
  */
-export function getMinStartAndMaxEndTime(fuels: FireZoneFuelStats[]): {
+export const getMinStartAndMaxEndTime = (
+  fuels: FireZoneFuelStats[]
+): {
   minStartTime: number | undefined
   maxEndTime: number | undefined
-} {
+} => {
   let minStartTime: number | undefined = undefined
   let maxEndTime: number | undefined = undefined
 
