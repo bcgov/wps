@@ -196,7 +196,11 @@ const AdvisoryText = ({
     const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime) && selectFireCentreHFIFuelStats.length > 0
     let message = ''
     if (hasCriticalHours) {
-      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00. ${getTopFuelsString()}\n\n`
+      const extendsNextDay = maxEndTime <= minStartTime
+      const paddedMinStartTime = String(minStartTime).padStart(2, '0')
+      const paddedMaxEndTime = String(maxEndTime).padStart(2, '0')
+      const formattedEndTime = `${paddedMaxEndTime}:00${extendsNextDay ? '+1' : ''}`
+      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${paddedMinStartTime}:00 and ${formattedEndTime}. ${getTopFuelsString()}\n\n`
     } else {
       message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}. ${getTopFuelsString()}\n\n`
     }
