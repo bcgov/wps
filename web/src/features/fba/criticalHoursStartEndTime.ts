@@ -22,7 +22,7 @@ export const getMinStartAndMaxEndTime = (
   for (const fuel of fuels) {
     let { start_time, end_time } = fuel.critical_hours
 
-    // Handle case where end_time is past midnight (e.g. 7 is later than 23).
+    // Handle case where end_time is past midnight by adding 24 hours if the end_time <= start time.
     // Critical hours start_time can't be earlier than 0700, and the end time can't be later than 0700 the following day
     if (!isUndefined(start_time) && !isUndefined(end_time)) {
       if (end_time <= start_time) {
