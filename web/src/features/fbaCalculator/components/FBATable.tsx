@@ -17,7 +17,12 @@ import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
 import { selectFireWeatherStations, selectFireBehaviourCalcResult } from 'app/rootReducer'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { fetchFireBehaviourStations } from 'features/fbaCalculator/slices/fbaCalculatorSlice'
-import { getRowsFromUrlParams, getNextRowIdFromRows, getUrlParamsFromRows } from 'features/fbaCalculator/utils'
+import {
+  getRowsFromUrlParams,
+  getNextRowIdFromRows,
+  getUrlParamsFromRows,
+  stripWindFromQueryParams
+} from 'features/fbaCalculator/utils'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
@@ -141,8 +146,6 @@ const FBATable = (props: FBATableProps) => {
   const [visibleColumns, setVisibleColumns] = useState<ColumnLabel[]>(tableColumnLabels)
   const [showResetDialog, setShowResetDialog] = useState<boolean>(false)
 
-  const rowsFromQuery = getRowsFromUrlParams(location.search)
-
   const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(station => ({
     value: String(station.properties.code),
     label: `${station.properties.name} (${station.properties.code})`
@@ -154,11 +157,14 @@ const FBATable = (props: FBATableProps) => {
   }))
 
   useEffect(() => {
+    // Strip the wind query parameters if present and update the URL
+    updateQueryParams(stripWindFromQueryParams(location.search))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (stations.length > 0) {
+      const rowsFromQuery = getRowsFromUrlParams(location.search)
       const stationCodeMap = new Map(stationMenuOptions.map(station => [station.value, station.label]))
 
       const sortedRows = RowManager.sortRows(
@@ -342,7 +348,13 @@ const FBATable = (props: FBATableProps) => {
 
   const handleResetSelected = () => {
     setShowResetDialog(false)
-    console.log('Reset and close')
+    const rowsToUpdate = rows.filter(row => selected.includes(row.id))
+    const updatedRows = rowsToUpdate.map(rowToUpdate => {
+      rowToUpdate.precip = undefined
+      rowToUpdate.windSpeed = undefined
+      return rowToUpdate
+    })
+    dispatch(fetchFireBehaviourStations(dateOfInterest, updatedRows))
   }
 
   const filterColumnsCallback = (filterByColumns: ColumnLabel[]) => {
@@ -455,7 +467,7 @@ const FBATable = (props: FBATableProps) => {
       <DataTableCell>
         <WindSpeedCell
           inputRows={rows}
-          updateRow={updateRow}
+          updateRow={updateRowDirect}
           inputValue={row.windSpeed}
           calculatedValue={row.wind_speed}
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row) && !isWindSpeedInvalid(row.windSpeed)}
