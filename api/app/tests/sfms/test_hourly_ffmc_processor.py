@@ -128,8 +128,8 @@ async def test_hourly_ffmc_processor(mocker: MockerFixture):
         ]
 
         assert rh_ds_spy.call_args_list == [
-            mocker.call(mock_hffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
-            mocker.call(mock_hffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR),
+            mocker.call(mock_hffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR, max_value=100),
+            mocker.call(mock_hffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR, max_value=100),
         ]
 
         assert wind_speed_ds_spy.call_args_list == [

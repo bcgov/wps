@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import logging
 import numpy
 import tempfile
-from osgeo import gdal, ogr
+from osgeo import gdal
 from wps_shared import config
 from numba import vectorize
 from wps_shared.utils.s3 import get_client, read_into_memory

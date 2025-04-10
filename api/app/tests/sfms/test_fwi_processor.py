@@ -1,5 +1,7 @@
+import logging
 import math
 from dataclasses import dataclass
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -7,7 +9,8 @@ from cffdrs import bui, dc, dmc, ffmc, fwi, isi
 from osgeo import osr
 
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from app.sfms.fwi_processor import calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_fwi, calculate_isi
+from app.sfms.fwi_processor import check_weather_values, calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_fwi, calculate_isi
+
 
 FWI_ARRAY = np.array([[12, 20], [-999, -999]])
 WEATHER_ARRAY = np.array([[12, 20], [0, 0]])
@@ -243,3 +246,71 @@ def test_calculate_fwi_values(input_datasets):
     static_fwi = fwi(isi_sample, bui_sample)
 
     assert math.isclose(static_fwi, fwi_values[0, 0], abs_tol=0.01)
+
+
+@pytest.mark.parametrize(
+    "rh_array, expected",
+    [
+        (np.array([50, 60, 70]), False),
+        (np.array([-5, 50, 110]), True),
+    ],
+)
+def test_check_rh_logging(rh_array, expected):
+    with patch("app.sfms.fwi_processor.logger") as mock_logger:
+        check_weather_values(rh_array=rh_array)
+        if expected:
+            mock_logger.error.assert_called_once()
+            assert "Relative humidity" in mock_logger.error.call_args[0][0]
+        else:
+            mock_logger.error.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "precip_array, expected",
+    [
+        (np.array([0.0, 5.0, 10.0]), False),
+        (np.array([-1.0, 0.0, 2.0]), True),
+    ],
+)
+def test_check_prec_logging(precip_array, expected):
+    with patch("app.sfms.fwi_processor.logger") as mock_logger:
+        check_weather_values(precip_array=precip_array)
+        if expected:
+            mock_logger.error.assert_called_once()
+            assert "Precipitation" in mock_logger.error.call_args[0][0]
+        else:
+            mock_logger.error.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "ws_array, expected",
+    [
+        (np.array([0.0, 3.2, 7.5]), False),
+        (np.array([-0.1, 1.0, 2.0]), True),
+    ],
+)
+def test_check_ws_logging(ws_array, expected):
+    with patch("app.sfms.fwi_processor.logger") as mock_logger:
+        check_weather_values(ws_array=ws_array)
+        if expected:
+            mock_logger.error.assert_called_once()
+            assert "Wind speed" in mock_logger.error.call_args[0][0]
+        else:
+            mock_logger.error.assert_not_called()
+
+
+def test_check_multiple_issues():
+    rh_array = np.array([-10, 105])
+    precip_array = np.array([-2.5])
+    ws_array = np.array([-1.0])
+
+    with patch("app.sfms.fwi_processor.logger") as mock_logger:
+        check_weather_values(rh_array=rh_array, precip_array=precip_array, ws_array=ws_array)
+
+        error_calls = [call.args[0] for call in mock_logger.error.call_args_list]
+
+        assert any("Relative humidity values out of bounds" in msg for msg in error_calls)
+        assert any("Precipitation contains negative values" in msg for msg in error_calls)
+        assert any("Wind speed contains negative values" in msg for msg in error_calls)
+
+        assert mock_logger.error.call_count == 3
