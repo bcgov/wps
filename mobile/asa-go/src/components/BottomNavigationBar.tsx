@@ -23,10 +23,10 @@ const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
       showLabels
       value={tab}
       onChange={(
-        event: React.SyntheticEvent<Element, Event>,
+        _: React.SyntheticEvent<Element, Event>,
         newValue: NavPanel
       ) => {
-        setTab(newValue)
+        setTab(newValue);
       }}
       sx={{
         backgroundColor: theme.palette.primary.main,
@@ -52,7 +52,7 @@ const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
         value={NavPanel.ADVISORY}
       />
     </BottomNavigation>
-  )
+  );
 }
 
 export default BottomNavigationBar

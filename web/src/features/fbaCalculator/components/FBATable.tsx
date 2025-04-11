@@ -17,7 +17,12 @@ import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
 import { selectFireWeatherStations, selectFireBehaviourCalcResult } from 'app/rootReducer'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { fetchFireBehaviourStations } from 'features/fbaCalculator/slices/fbaCalculatorSlice'
-import { getRowsFromUrlParams, getNextRowIdFromRows, getUrlParamsFromRows } from 'features/fbaCalculator/utils'
+import {
+  getRowsFromUrlParams,
+  getNextRowIdFromRows,
+  getUrlParamsFromRows,
+  stripWindFromQueryParams
+} from 'features/fbaCalculator/utils'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
@@ -43,6 +48,7 @@ import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningA
 import { theme } from '@/app/theme'
 import AboutDataPopover from '@/components/AboutDataPopover'
 import { FBAAboutDataContent } from '@/features/fbaCalculator/components/FbaAboutDataContent'
+import ResetDialog from '@/components/ResetDialog'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -138,8 +144,7 @@ const FBATable = (props: FBATableProps) => {
   const { fireBehaviourResultStations, loading, error: fbaResultsError } = useSelector(selectFireBehaviourCalcResult)
   const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(fireBehaviourResultStations)
   const [visibleColumns, setVisibleColumns] = useState<ColumnLabel[]>(tableColumnLabels)
-
-  const rowsFromQuery = getRowsFromUrlParams(location.search)
+  const [showResetDialog, setShowResetDialog] = useState<boolean>(false)
 
   const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(station => ({
     value: String(station.properties.code),
@@ -152,11 +157,14 @@ const FBATable = (props: FBATableProps) => {
   }))
 
   useEffect(() => {
+    // Strip the wind query parameters if present and update the URL
+    updateQueryParams(stripWindFromQueryParams(location.search))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (stations.length > 0) {
+      const rowsFromQuery = getRowsFromUrlParams(location.search)
       const stationCodeMap = new Map(stationMenuOptions.map(station => [station.value, station.label]))
 
       const sortedRows = RowManager.sortRows(
@@ -334,6 +342,21 @@ const FBATable = (props: FBATableProps) => {
     setModalOpen(true)
   }
 
+  const openResetDialog = () => {
+    setShowResetDialog(true)
+  }
+
+  const handleResetSelected = () => {
+    setShowResetDialog(false)
+    const rowsToUpdate = rows.filter(row => selected.includes(row.id))
+    const updatedRows = rowsToUpdate.map(rowToUpdate => {
+      rowToUpdate.precip = undefined
+      rowToUpdate.windSpeed = undefined
+      return rowToUpdate
+    })
+    dispatch(fetchFireBehaviourStations(dateOfInterest, updatedRows))
+  }
+
   const filterColumnsCallback = (filterByColumns: ColumnLabel[]) => {
     setVisibleColumns(filterByColumns)
   }
@@ -444,7 +467,7 @@ const FBATable = (props: FBATableProps) => {
       <DataTableCell>
         <WindSpeedCell
           inputRows={rows}
-          updateRow={updateRow}
+          updateRow={updateRowDirect}
           inputValue={row.windSpeed}
           calculatedValue={row.wind_speed}
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row) && !isWindSpeedInvalid(row.windSpeed)}
@@ -629,15 +652,27 @@ const FBATable = (props: FBATableProps) => {
                 data-testid="filter-columns-btn"
                 disabled={fireBehaviourResultStations.length === 0}
                 onClick={openColumnsModal}
+                variant="outlined"
               >
                 <ViewColumnOutlinedIcon />
                 Columns
               </Button>
             </Grid>
           </Grid>
-
-          <Grid item xs={4} container justifyContent="flex-end">
-            <AboutDataPopover content={FBAAboutDataContent} />
+          <Grid item xs={4} container spacing={2} justifyContent="flex-end">
+            <Grid item>
+              <Button
+                data-testid="reset-selected-btn"
+                disabled={selected.length === 0}
+                onClick={openResetDialog}
+                variant="outlined"
+              >
+                Reset Selected
+              </Button>
+            </Grid>
+            <Grid item>
+              <AboutDataPopover content={FBAAboutDataContent} />
+            </Grid>
           </Grid>
         </Grid>
 
@@ -646,6 +681,13 @@ const FBATable = (props: FBATableProps) => {
           columns={tableColumnLabels}
           setModalOpen={setModalOpen}
           parentCallback={filterColumnsCallback}
+        />
+
+        <ResetDialog
+          showResetDialog={showResetDialog}
+          setShowResetDialog={setShowResetDialog}
+          handleResetButtonConfirm={handleResetSelected}
+          message="Are you sure you want to reset the adjusted weather values of the selected rows?"
         />
 
         <FireTable ariaLabel="Fire Behaviour Analysis table" data-testid={props.testId}>

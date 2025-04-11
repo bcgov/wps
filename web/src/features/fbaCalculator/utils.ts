@@ -18,7 +18,7 @@ export const isValidFuelSetting = (fuelType: string, grassCurePercentage: number
 export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
   const buildRow = (params: string[]) => {
     // station, fuel type, grass cure %
-    if (params.length !== 3 && params.length !== 4) {
+    if (params.length < 2 || params.length > 4) {
       // malformed param query
       return null
     }
@@ -26,8 +26,7 @@ export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
     const rowToBuild = {
       weatherStation: '1',
       fuelType: 'c1',
-      grassCure: 0,
-      windSpeed: 0.0
+      grassCure: 0
     }
     params.forEach(param => {
       const keyValPair = param.replace('?', '').split('=')
@@ -40,9 +39,6 @@ export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
           break
         case 'c':
           rowToBuild.grassCure = parseInt(keyValPair[1])
-          break
-        case 'w':
-          rowToBuild.windSpeed = parseFloat(keyValPair[1])
           break
         default:
           // No op
@@ -65,7 +61,7 @@ export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
       weatherStation: builtRow.weatherStation,
       fuelType: builtRow.fuelType,
       grassCure: builtRow.grassCure,
-      windSpeed: builtRow.windSpeed,
+      windSpeed: undefined,
       precip: undefined
     }
     return rowWithId
@@ -84,7 +80,7 @@ export const getUrlParamsFromRows = (rows: FBATableRow[]): string => {
   }
   const query = '?'
   const params = rows
-    .map(row => `s=${row.weatherStation?.value}&f=${row.fuelType?.value}&c=${row.grassCure}&w=${row.windSpeed}`)
+    .map(row => `s=${row.weatherStation?.value}&f=${row.fuelType?.value}&c=${row.grassCure}`)
     .join(',')
 
   return query + params
@@ -95,4 +91,19 @@ export const getNextRowIdFromRows = (rows: FBATableRow[]): number => {
   lastIdFromExisting = lastIdFromExisting ? lastIdFromExisting : 0
   const lastId = _.isEmpty(rows) ? 0 : lastIdFromExisting
   return lastId + 1
+}
+
+export const stripWindFromQueryParams = (queryParams: string): string => {
+  if (queryParams === '') {
+    return queryParams
+  }
+  const groups = queryParams.replace('?', '').split(',')
+  const newGroups = groups.map(group => {
+    const newGroup = group
+      .split('&')
+      .filter(subgroup => !/^w=.+$/.test(subgroup))
+      .join('&')
+    return newGroup
+  })
+  return `?${newGroups.join(',')}`
 }

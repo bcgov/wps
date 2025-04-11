@@ -233,11 +233,13 @@ export class RowManager {
         formattedWindSpeed = value.wind_speed.toFixed(DECIMAL_PLACES)
       }
       rowString.push(formattedWindSpeed)
-      rowString.push(
-        isUndefined(value.precipitation) || isNull(value.precipitation)
-          ? ''
-          : value.precipitation.toFixed(DECIMAL_PLACES)
-      )
+      let formattedPrecip = ''
+      if (!isUndefined(value.precip) && !isNaN(value.precip) && !isNull(value.precip)) {
+        formattedPrecip = value.precip.toFixed(DECIMAL_PLACES)
+      } else if (!isUndefined(value.precipitation) && !isNull(value.precipitation)) {
+        formattedPrecip = value.precipitation.toFixed(DECIMAL_PLACES)
+      }
+      rowString.push(formattedPrecip)
       rowString.push(
         isUndefined(value.fine_fuel_moisture_code) || isNull(value.fine_fuel_moisture_code)
           ? ''
