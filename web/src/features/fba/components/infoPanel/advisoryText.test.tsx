@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import AdvisoryText, {
   getTopFuelsByProportion,
   getTopFuelsByArea,
-  getZoneMinWindStats
+  getZoneMinWindStatsText
 } from 'features/fba/components/infoPanel/AdvisoryText'
 import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneHFIStats } from 'api/fbaAPI'
 import provincialSummarySlice, {
@@ -584,8 +584,8 @@ describe('getTopFuelsByProportion', () => {
 })
 
 describe('getZoneMinWindStats', () => {
-  it('should return both advisory and warning min wind speeds', () => {
-    const result = getZoneMinWindStats([
+  it('should return the minimum wind speed', () => {
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 1,
@@ -603,13 +603,10 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 2
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(
-      `Minimum forecasted wind speeds of 1 km/hr and 2 km/hr will result in Head Fire Intensity Classes 5 and 6 respectively.`
-    )
+    expect(result).toEqual(`if winds exceed 1 km/h`)
   })
-  it('should return both advisory and warning min wind speeds when they are the same', () => {
-    const result = getZoneMinWindStats([
+  it('should return the minimum wind speed when they are the same', () => {
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 1,
@@ -627,11 +624,10 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 1
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(`Minimum forecasted wind speed for both Head Fire Intensity Classes 5 and 6 is 1 km/hr.`)
+    expect(result).toEqual(`if winds exceed 1 km/h`)
   })
   it('should return just advisory min wind speed', () => {
-    const result = getZoneMinWindStats([
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 1,
@@ -641,12 +637,11 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 1
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 5.`)
+    expect(result).toEqual(`if winds exceed 1 km/h`)
   })
 
   it('should return just warning min wind speed', () => {
-    const result = getZoneMinWindStats([
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 2,
@@ -656,12 +651,11 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 1
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 6.`)
+    expect(result).toEqual(`if winds exceed 1 km/h`)
   })
 
   it('should return specific text when both min wind speeds are 0', () => {
-    const result = getZoneMinWindStats([
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 1,
@@ -679,11 +673,10 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 0
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(`There are no minimum wind speeds that would result in Head Fire Intensity Classes 5 or 6.`)
+    expect(result).toBeUndefined()
   })
   it('should return specific text when only advisory min wind speed is 0', () => {
-    const result = getZoneMinWindStats([
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 1,
@@ -701,11 +694,10 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 1
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 6.`)
+    expect(result).toEqual(`if winds exceed 1 km/h`)
   })
   it('should return specific text when only warning min wind speed is 0', () => {
-    const result = getZoneMinWindStats([
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 1,
@@ -723,7 +715,6 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 0
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 5.`)
+    expect(result).toEqual(`if winds exceed 1 km/h`)
   })
 })
