@@ -8,7 +8,7 @@ interface CriticalHoursProps {
 }
 
 const CriticalHours = ({ start, end }: CriticalHoursProps) => {
-  const extendsNextDay = !isNil(start) && !isNil(end) && end <= start
+  const extendsNextDay = !isNil(start) && !isNil(end) && end <= start && end < 8 // critical hours can't extend into the next day past 07:00
   const paddedStartTime = String(start).padStart(2, '0')
   const paddedEndTime = String(end).padStart(2, '0')
   const formattedEndTime = `${paddedEndTime}:00${extendsNextDay ? '+1' : ''}`

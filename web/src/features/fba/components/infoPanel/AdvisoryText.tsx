@@ -196,7 +196,7 @@ const AdvisoryText = ({
     const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime) && selectFireCentreHFIFuelStats.length > 0
     let message = ''
     if (hasCriticalHours) {
-      const extendsNextDay = maxEndTime <= minStartTime
+      const extendsNextDay = maxEndTime <= minStartTime && maxEndTime < 8 // critical hours can't extend into the next day past 07:00
       const paddedMinStartTime = String(minStartTime).padStart(2, '0')
       const paddedMaxEndTime = String(maxEndTime).padStart(2, '0')
       const formattedEndTime = `${paddedMaxEndTime}:00${extendsNextDay ? '+1' : ''}`
