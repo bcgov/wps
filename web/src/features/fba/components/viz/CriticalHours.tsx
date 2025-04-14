@@ -1,6 +1,6 @@
 import { Typography } from '@mui/material'
 import React from 'react'
-import { isNil, isNull, isUndefined } from 'lodash'
+import { isNil } from 'lodash'
 
 interface CriticalHoursProps {
   start?: number
