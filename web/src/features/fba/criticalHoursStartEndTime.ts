@@ -48,3 +48,14 @@ export const getMinStartAndMaxEndTime = (
 
   return { minStartTime, maxEndTime }
 }
+
+export const formatCriticalHoursTimeText = (startTime: number, endTime: number): string[] => {
+  const extendsNextDay = endTime <= startTime && endTime < 8 // critical hours can't extend into the next day past 07:00
+
+  const paddedMinStartTime = String(startTime).padStart(2, '0')
+  const paddedMaxEndTime = String(endTime).padStart(2, '0')
+  const formattedStartTime = `${paddedMinStartTime}:00`
+  const formattedEndTime = `${paddedMaxEndTime}:00${extendsNextDay ? '+1' : ''}`
+
+  return [formattedStartTime, formattedEndTime]
+}

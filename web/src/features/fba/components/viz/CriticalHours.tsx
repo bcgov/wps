@@ -1,6 +1,7 @@
 import { Typography } from '@mui/material'
 import React from 'react'
 import { isNil } from 'lodash'
+import { formatCriticalHoursTimeText } from '@/features/fba/criticalHoursStartEndTime'
 
 interface CriticalHoursProps {
   start?: number
@@ -8,12 +9,12 @@ interface CriticalHoursProps {
 }
 
 const CriticalHours = ({ start, end }: CriticalHoursProps) => {
-  const extendsNextDay = !isNil(start) && !isNil(end) && end <= start && end < 8 // critical hours can't extend into the next day past 07:00
-  const paddedStartTime = String(start).padStart(2, '0')
-  const paddedEndTime = String(end).padStart(2, '0')
-  const formattedEndTime = `${paddedEndTime}:00${extendsNextDay ? '+1' : ''}`
+  let formattedCriticalHours = '-'
 
-  const formattedCriticalHours = isNil(start) || isNil(end) ? '-' : `${paddedStartTime}:00 - ${formattedEndTime}`
+  if (!isNil(start) && !isNil(end)) {
+    const [formattedStartTime, formattedEndTime] = formatCriticalHoursTimeText(start, end)
+    formattedCriticalHours = `${formattedStartTime} - ${formattedEndTime}`
+  }
   return (
     <Typography sx={{ fontSize: '0.75rem' }} data-testid="critical-hours">
       {formattedCriticalHours}

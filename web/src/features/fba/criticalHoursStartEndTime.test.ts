@@ -1,5 +1,5 @@
 import { FireZoneFuelStats } from '@/api/fbaAPI'
-import { getMinStartAndMaxEndTime } from '@/features/fba/criticalHoursStartEndTime'
+import { getMinStartAndMaxEndTime, formatCriticalHoursTimeText } from '@/features/fba/criticalHoursStartEndTime'
 
 const sameDayC2: FireZoneFuelStats = {
   fuel_type: {
@@ -112,5 +112,27 @@ describe('getMinStartAndMaxEndTime', () => {
   it('handles stats containing both same day and next day critical hours, as well as no critical hours', () => {
     const result = getMinStartAndMaxEndTime([sameDayC2, nextDayM1M2, nextDayS1, noHoursM1M2])
     expect(result).toEqual({ minStartTime: 10, maxEndTime: 6 })
+  })
+})
+
+describe('formatCriticalHoursTimeText', () => {
+  it('returns formatted times when endTime is after startTime (same day)', () => {
+    const result = formatCriticalHoursTimeText(13, 18)
+    expect(result).toEqual(['13:00', '18:00'])
+  })
+
+  it('adds +1 when endTime is before startTime and endTime < 8 (next day)', () => {
+    const result = formatCriticalHoursTimeText(22, 6)
+    expect(result).toEqual(['22:00', '06:00+1'])
+  })
+
+  it('adds +1 when startTime and endTime are the same and endTime < 8', () => {
+    const result = formatCriticalHoursTimeText(7, 7)
+    expect(result).toEqual(['07:00', '07:00+1'])
+  })
+
+  it('returns +1 only when endTime <= startTime AND endTime < 8', () => {
+    expect(formatCriticalHoursTimeText(23, 7)).toEqual(['23:00', '07:00+1'])
+    expect(formatCriticalHoursTimeText(17, 17)).toEqual(['17:00', '17:00'])
   })
 })
