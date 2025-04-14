@@ -367,7 +367,7 @@ describe('AdvisoryText', () => {
       })
     )
 
-    await waitFor(() => expect(screen.queryByTestId('advisory-message-min-wind-speeds')).toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-wind-speed')).toBeInTheDocument())
   })
 
   it('should render critical hours missing message when critical hours start time is missing', () => {

@@ -241,14 +241,35 @@ const AdvisoryText = ({
     const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
     const zoneStatus = getZoneStatus()
     const minWindSpeedText = getZoneMinWindStatsText(selectedFireZoneUnitMinWindSpeeds)
-    const formattedWindText = minWindSpeedText ? ` ${minWindSpeedText}` : ''
+
+    const formattedWindText = minWindSpeedText ? (
+      <Typography component="span" data-testid="advisory-message-wind-speed">
+        {' '}
+        {minWindSpeedText}
+      </Typography>
+    ) : null
 
     const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime) && selectFireCentreHFIFuelStats.length > 0
-    let message = ''
+    let message: React.ReactNode = null
     if (hasCriticalHours) {
-      message = `There is a fire behaviour ${zoneStatus?.toLowerCase()} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00${formattedWindText}. ${getTopFuelsString()}\n\n`
+      message = (
+        <>
+          There is a fire behaviour {zoneStatus?.toLowerCase()} in effect for {selectedFireZoneUnit?.mof_fire_zone_name}
+          between {minStartTime}:00 and {maxEndTime}:00
+          {formattedWindText}. {getTopFuelsString()}
+          <br />
+          <br />
+        </>
+      )
     } else {
-      message = `There is a fire behaviour ${zoneStatus?.toLowerCase()} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}${formattedWindText}. ${getTopFuelsString()}\n\n`
+      message = (
+        <>
+          There is a fire behaviour {zoneStatus?.toLowerCase()} in effect for {selectedFireZoneUnit?.mof_fire_zone_name}
+          {formattedWindText}. {getTopFuelsString()}
+          <br />
+          <br />
+        </>
+      )
     }
 
     const [earlyOrLowWindText, overnightText] = getAdditionalDetailText(
