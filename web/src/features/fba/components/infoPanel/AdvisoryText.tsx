@@ -7,7 +7,7 @@ import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySl
 import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { AdvisoryStatus } from 'utils/constants'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
-import { calculateStatusText, calculateWindSpeedText } from '@/features/fba/calculateZoneStatus'
+import { calculateStatusText, calculateWindSpeedText, getWindSpeedMinimum } from '@/features/fba/calculateZoneStatus'
 
 // Return a list of fuel stats for which greater than 90% of the area of each fuel type has high HFI.
 export const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
@@ -147,11 +147,11 @@ const AdvisoryText = ({
       case 0:
         return ''
       case 1:
-        return `Fuel type ${topFuelCodes[0]} is the most prevalent fuel type under ${zoneStatus} that you will encounter.`
+        return `${topFuelCodes[0]} is the most prevalent fuel type under ${zoneStatus}.`
       case 2:
-        return `Fuel types ${topFuelCodes[0]} and ${topFuelCodes[1]} are the most prevalent fuel types under ${zoneStatus} that you will encounter.`
+        return `${topFuelCodes[0]} and ${topFuelCodes[1]} are the most prevalent fuel types under ${zoneStatus}.`
       default:
-        return `Fuel types ${getCommaSeparatedString(topFuelCodes)} are the most prevalent fuel types under ${zoneStatus} that you will encounter.`
+        return `${getCommaSeparatedString(topFuelCodes)} are the most prevalent fuel types under ${zoneStatus}.`
     }
   }
 
@@ -169,12 +169,47 @@ const AdvisoryText = ({
       case 0:
         return ''
       case 1:
-        return `Also watch out for fuel type ${highProportionFuels[0]} which occupies a small portion of the zone but is expected to be under advisory conditions wherever it occurs.\n\n`
+        return `${highProportionFuels[0]} occupies a small portion of the zone but is expected to challenge suppression wherever it occurs.\n\n`
       case 2:
-        return `Also watch out for fuel types ${highProportionFuels[0]} and ${highProportionFuels[1]} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.\n\n`
+        return `${highProportionFuels[0]} and ${highProportionFuels[1]} occupy a small portion of the zone but are expected to challenge suppression wherever they occur.\n\n`
       default:
-        return `Also watch out for fuel types ${getCommaSeparatedString(highProportionFuels)} which occupy a small portion of the zone but are expected to be under advisory conditions wherever they occur.\n\n`
+        return `${getCommaSeparatedString(highProportionFuels)} occupy a small portion of the zone but are expected to challenge suppression wherever they occur.\n\n`
     }
+  }
+
+  const getAdditionalDetailText = (
+    zoneMinWindStats: AdvisoryMinWindStats[],
+    minStartTime?: number,
+    maxEndTime?: number
+  ) => {
+    const minWindSpeed = getWindSpeedMinimum(zoneMinWindStats)
+
+    const isLowWindThreshold = minWindSpeed !== undefined && minWindSpeed < 15
+    const isEarlyAdvisory = typeof minStartTime === 'number' && minStartTime < 12
+    const isOvernightBurnPossible =
+      typeof minStartTime === 'number' &&
+      typeof maxEndTime === 'number' &&
+      (maxEndTime > 22 || maxEndTime < minStartTime)
+
+    const details: string[] = []
+
+    if (isLowWindThreshold && isEarlyAdvisory) {
+      details.push(
+        'Pay close attention to minor increases in wind speed and be prepared for increasing fire behaviour early in the day.'
+      )
+    } else if (isLowWindThreshold) {
+      details.push('Pay close attention to minor increases in wind speed.')
+    } else if (isEarlyAdvisory) {
+      details.push('Be prepared for increasing fire behaviour early in the day.')
+    }
+
+    if (isOvernightBurnPossible) {
+      details.push(
+        'Overnight burn conditions will support increased fire behaviour late into the evening and early morning hours tomorrow.'
+      )
+    }
+
+    return details
   }
 
   const renderDefaultMessage = () => {
@@ -205,15 +240,20 @@ const AdvisoryText = ({
     const forToday = forDate.toISODate() === DateTime.now().toISODate()
     const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
     const zoneStatus = getZoneStatus()
+    const minWindSpeedText = getZoneMinWindStats(selectedFireZoneUnitMinWindSpeeds)
     const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime) && selectFireCentreHFIFuelStats.length > 0
     let message = ''
     if (hasCriticalHours) {
-      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00. ${getTopFuelsString()}\n\n`
+      message = `There is a fire behaviour ${zoneStatus?.toLowerCase()} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00${minWindSpeedText}. ${getTopFuelsString()}\n\n`
     } else {
-      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}.\n\n`
+      message = `There is a fire behaviour ${zoneStatus?.toLowerCase()} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}${minWindSpeedText}. ${getTopFuelsString()}\n\n`
     }
 
-    const minWindSpeeds = getZoneMinWindStats(selectedFireZoneUnitMinWindSpeeds)
+    const [earlyOrLowWindText, overnightText] = getAdditionalDetailText(
+      selectedFireZoneUnitMinWindSpeeds,
+      minStartTime,
+      maxEndTime
+    )
 
     return (
       <>
@@ -243,13 +283,21 @@ const AdvisoryText = ({
             {getHighProportionFuelsString()}
           </Typography>
         )}
-        {!isUndefined(zoneStatus) && !isUndefined(minWindSpeeds) && (
-          <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-min-wind-speeds">
-            {minWindSpeeds}
+        {!isUndefined(zoneStatus) && (
+          <Typography sx={{ whiteSpace: 'pre-line', mb: 2 }} data-testid="advisory-message-early-low-wind">
+            {earlyOrLowWindText}
+          </Typography>
+        )}
+        {!isUndefined(zoneStatus) && (
+          <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-overnight">
+            {overnightText}
           </Typography>
         )}
         {!hasCriticalHours && !isUndefined(zoneStatus) && (
           <Typography data-testid="advisory-message-no-critical-hours">No critical hours available.</Typography>
+        )}
+        {!minWindSpeedText && !isUndefined(zoneStatus) && (
+          <Typography data-testid="advisory-message-no-wind-speed">No wind speed available.</Typography>
         )}
         {isUndefined(zoneStatus) && (
           <Typography data-testid="no-advisory-message">
