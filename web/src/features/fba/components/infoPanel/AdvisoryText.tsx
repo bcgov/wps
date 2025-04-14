@@ -58,7 +58,7 @@ export const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneHFIStats): FireZone
   return topFuelsByArea
 }
 
-export const getZoneMinWindStats = (selectedFireZoneUnitMinWindSpeeds: AdvisoryMinWindStats[]) => {
+export const getZoneMinWindStatsText = (selectedFireZoneUnitMinWindSpeeds: AdvisoryMinWindStats[]) => {
   if (!isEmpty(selectedFireZoneUnitMinWindSpeeds)) {
     const zoneMinWindSpeedsText = calculateWindSpeedText(selectedFireZoneUnitMinWindSpeeds)
     return zoneMinWindSpeedsText
@@ -240,13 +240,15 @@ const AdvisoryText = ({
     const forToday = forDate.toISODate() === DateTime.now().toISODate()
     const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
     const zoneStatus = getZoneStatus()
-    const minWindSpeedText = getZoneMinWindStats(selectedFireZoneUnitMinWindSpeeds)
+    const minWindSpeedText = getZoneMinWindStatsText(selectedFireZoneUnitMinWindSpeeds)
+    const formattedWindText = minWindSpeedText ? ` ${minWindSpeedText}` : ''
+
     const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime) && selectFireCentreHFIFuelStats.length > 0
     let message = ''
     if (hasCriticalHours) {
-      message = `There is a fire behaviour ${zoneStatus?.toLowerCase()} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00${minWindSpeedText}. ${getTopFuelsString()}\n\n`
+      message = `There is a fire behaviour ${zoneStatus?.toLowerCase()} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00${formattedWindText}. ${getTopFuelsString()}\n\n`
     } else {
-      message = `There is a fire behaviour ${zoneStatus?.toLowerCase()} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}${minWindSpeedText}. ${getTopFuelsString()}\n\n`
+      message = `There is a fire behaviour ${zoneStatus?.toLowerCase()} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}${formattedWindText}. ${getTopFuelsString()}\n\n`
     }
 
     const [earlyOrLowWindText, overnightText] = getAdditionalDetailText(

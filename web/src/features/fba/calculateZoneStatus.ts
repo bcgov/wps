@@ -59,13 +59,15 @@ export const getWindSpeedMinimum = (zoneMinWindStats: AdvisoryMinWindStats[]): n
   const advisoryWindSpeed = advisoryThresholdMinWindSpeed?.min_wind_speed ?? Infinity
   const warningWindSpeed = warningThresholdMinWindSpeed?.min_wind_speed ?? Infinity
 
-  const minWindSpeed = Math.min(advisoryWindSpeed, warningWindSpeed)
+  const validSpeeds = [advisoryWindSpeed, warningWindSpeed].filter(windSpeed => windSpeed > 0)
+
+  const minWindSpeed = Math.min(...validSpeeds)
 
   return minWindSpeed !== Infinity ? minWindSpeed : undefined
 }
 
-export const calculateWindSpeedText = (zoneMinWindStats: AdvisoryMinWindStats[]): String => {
+export const calculateWindSpeedText = (zoneMinWindStats: AdvisoryMinWindStats[]): string | undefined => {
   const minWindSpeed = getWindSpeedMinimum(zoneMinWindStats)
 
-  return minWindSpeed ? ` if winds exceed ${minWindSpeed.toPrecision(1)} km/h` : ''
+  return minWindSpeed ? `if winds exceed ${minWindSpeed.toPrecision(1)} km/h` : undefined
 }
