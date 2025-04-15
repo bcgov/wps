@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useTheme, styled } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import { LANDING_BACKGROUND_COLOUR } from 'app/theme'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import Footer from 'features/landingPage/components/Footer'
