@@ -3,7 +3,7 @@ import { GridMenuOption, FBAInputRow } from 'features/fbaCalculator/components/F
 import { formatCrownFractionBurned } from 'features/fbaCalculator/components/CrownFractionBurnedCell'
 import { formatCriticalHoursAsString } from 'features/fbaCalculator/components/CriticalHoursCell'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
-import _, { isNull, isUndefined, merge } from 'lodash'
+import _, { isNil, isNull, isUndefined, merge } from 'lodash'
 import { Order } from 'utils/constants'
 export enum SortByColumn {
   Zone,
@@ -222,21 +222,21 @@ export class RowManager {
       rowString.push(isUndefined(value.temp) || isNull(value.temp) ? '' : value.temp.toFixed(DECIMAL_PLACES))
       rowString.push(isUndefined(value.rh) || isNull(value.rh) ? '' : value.rh.toString())
       rowString.push(
-        isUndefined(value.wind_direction) || isNaN(value.wind_direction) || isNull(value.wind_direction)
+        isNil(value.wind_direction) || isNaN(value.wind_direction)
           ? ''
           : value.wind_direction.toString()
       )
       let formattedWindSpeed = ''
-      if (!isUndefined(value.windSpeed) && !isNaN(value.windSpeed) && !isNull(value.windSpeed)) {
+      if (!isNil(value.windSpeed) && !isNaN(value.windSpeed)) {
         formattedWindSpeed = value.windSpeed.toFixed(DECIMAL_PLACES)
-      } else if (!isUndefined(value.wind_speed) && !isNull(value.wind_speed)) {
+      } else if (!isNil(value.wind_speed)) {
         formattedWindSpeed = value.wind_speed.toFixed(DECIMAL_PLACES)
       }
       rowString.push(formattedWindSpeed)
       let formattedPrecip = ''
-      if (!isUndefined(value.precip) && !isNaN(value.precip) && !isNull(value.precip)) {
+      if (!isNil(value.precip) && !isNaN(value.precip)) {
         formattedPrecip = value.precip.toFixed(DECIMAL_PLACES)
-      } else if (!isUndefined(value.precipitation) && !isNull(value.precipitation)) {
+      } else if (!isNil(value.precipitation)) {
         formattedPrecip = value.precipitation.toFixed(DECIMAL_PLACES)
       }
       rowString.push(formattedPrecip)
