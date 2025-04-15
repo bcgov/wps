@@ -241,7 +241,7 @@ const AdvisoryText = ({
       const [formattedStartTime, formattedEndTime] = formatCriticalHoursTimeText(minStartTime, maxEndTime)
       message = (
         <>
-          There is a fire behaviour {zoneStatus?.toLowerCase()} in effect for {selectedFireZoneUnit?.mof_fire_zone_name}
+          There is a fire behaviour {zoneStatus?.toLowerCase()} in effect for {selectedFireZoneUnit?.mof_fire_zone_name}{' '}
           between {formattedStartTime} and {formattedEndTime}
           {formattedWindText}. {getTopFuelsString()}
           <br />
