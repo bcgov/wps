@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 import pytest
 from zoneinfo import ZoneInfo
-from app.sfms.raster_addresser import FWIParameter, RasterKeyAddresser, WeatherParameter
+from wps_shared.sfms.raster_addresser import FWIParameter, RasterKeyAddresser, WeatherParameter
 
 sfms_timezone = ZoneInfo("America/Vancouver")
 
@@ -74,4 +74,4 @@ def test_get_model_data_key_hffmc(raster_key_addresser):
 
 def test_get_calculated_hffmc_index_key(raster_key_addresser: RasterKeyAddresser):
     result = raster_key_addresser.get_calculated_hffmc_index_key(HFFMC_DATETIME)
-    assert result == f"sfms/calculated/hourlies/{HFFMC_DATETIME_ISO}/fine_fuel_moisture_code{HFFMC_DATETIME_ISO.replace('-','')}{HFFMC_DATETIME.hour:02d}.tif"
+    assert result == f"sfms/calculated/hourlies/{HFFMC_DATETIME_ISO}/fine_fuel_moisture_code{HFFMC_DATETIME_ISO.replace('-', '')}{HFFMC_DATETIME.hour:02d}.tif"
