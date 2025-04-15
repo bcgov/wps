@@ -30,8 +30,8 @@ export interface FBAResponse {
 }
 
 export interface AdvisoryCriticalHours {
-  start_time?: number
-  end_time?: number
+  start_time?: number | null
+  end_time?: number | null
 }
 
 export interface AdvisoryMinWindStats {
