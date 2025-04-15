@@ -67,6 +67,12 @@ class S3Client:
     async def put_object(self, key: str, body: Any):
         await self.client.put_object(Bucket=self.bucket, Key=key, Body=body)
 
+    async def copy_object(self, old_key: str, new_key: str):
+        await self.client.copy_object(Bucket=self.bucket, CopySource={"Bucket": self.bucket, "Key": old_key}, Key=new_key)
+
+    async def delete_object(self, key: str):
+        await self.client.delete_object(Bucket=self.bucket, Key=key)
+
     async def persist_raster_data(self, temp_dir: str, key: str, transform, projection, values, no_data_value) -> str:
         """
         Persists a geotiff in s3 based on transform, projection, values and no data value.

@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 from wps_shared import config
 from wps_shared.utils.time import convert_to_sfms_timezone, convert_utc_to_pdt
 from wps_shared.weather_models import ModelEnum
-from app.weather_models.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key, compose_rdps_key_hffmc
+from wps_shared.sfms.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key, compose_rdps_key_hffmc
 
 
 class WeatherParameter(enum.Enum):
@@ -59,6 +59,16 @@ class RasterKeyAddresser:
         assert_all_utc(datetime_utc)
         year = datetime_utc.year
         return f"{self.sfms_fuel_raster_prefix}/{year}/fbp{year}_v{version}.tif"
+
+    def get_unprocessed_fuel_raster_key(self, object_name: str):
+        """
+        returns the unprocessed fuel raster object storage key based on format:
+            sfms/static/{object_name}
+
+        :param object_name: the object file name including extension
+        :return: the unprocessed fuel raster key at sfms/static
+        """
+        return f"sfms/static/{object_name}"
 
     def get_uploaded_index_key(self, datetime: datetime, fwi_param: FWIParameter):
         sfms_datetime = convert_to_sfms_timezone(datetime)
