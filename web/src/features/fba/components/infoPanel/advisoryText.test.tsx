@@ -124,7 +124,7 @@ const noAdvisoryDetails: FireShapeAreaDetail[] = [
   }
 ]
 
-const fireCentreHFIFuelStats = {
+const initialHFIFuelStats = {
   'Cariboo Fire Centre': {
     '20': {
       fuel_area_stats: [
@@ -378,7 +378,7 @@ describe('AdvisoryText', () => {
     )
     assertInitialState()
 
-    store.dispatch(getFireCentreHFIFuelStatsSuccess(fireCentreHFIFuelStats))
+    store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
 
     await waitFor(() => expect(screen.queryByTestId('advisory-message-wind-speed')).toBeInTheDocument())
     await waitFor(() => expect(screen.queryByTestId('advisory-message-early-low-wind')).toBeInTheDocument())
@@ -405,7 +405,7 @@ describe('AdvisoryText', () => {
     )
     assertInitialState()
 
-    let noEarlyStats = cloneDeep(fireCentreHFIFuelStats)
+    let noEarlyStats = cloneDeep(initialHFIFuelStats)
     noEarlyStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.start_time = 13
 
     store.dispatch(getFireCentreHFIFuelStatsSuccess(noEarlyStats))
@@ -435,7 +435,7 @@ describe('AdvisoryText', () => {
     )
     assertInitialState()
 
-    let overnightStats = cloneDeep(fireCentreHFIFuelStats)
+    let overnightStats = cloneDeep(initialHFIFuelStats)
     overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 5
 
     store.dispatch(getFireCentreHFIFuelStatsSuccess(overnightStats))
