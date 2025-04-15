@@ -1,21 +1,21 @@
-import { render, waitFor, screen } from '@testing-library/react'
-import { DateTime } from 'luxon'
-import AdvisoryText, {
-  getTopFuelsByProportion,
-  getTopFuelsByArea,
-  getZoneMinWindStatsText
-} from 'features/fba/components/infoPanel/AdvisoryText'
-import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneHFIStats } from 'api/fbaAPI'
-import provincialSummarySlice, {
-  initialState as provSummaryInitialState,
-  ProvincialSummaryState
-} from 'features/fba/slices/provincialSummarySlice'
 import fireCentreHFIFuelStatsSlice, {
+  FireCentreHFIFuelStatsState,
   initialState as fuelStatsInitialState,
-  getFireCentreHFIFuelStatsSuccess,
-  FireCentreHFIFuelStatsState
+  getFireCentreHFIFuelStatsSuccess
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
+import { render, screen, waitFor } from '@testing-library/react'
+import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneHFIStats } from 'api/fbaAPI'
+import AdvisoryText, {
+  getTopFuelsByArea,
+  getTopFuelsByProportion,
+  getZoneMinWindStatsText
+} from 'features/fba/components/infoPanel/AdvisoryText'
+import provincialSummarySlice, {
+  ProvincialSummaryState,
+  initialState as provSummaryInitialState
+} from 'features/fba/slices/provincialSummarySlice'
+import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 
 const buildTestStore = (
@@ -265,6 +265,9 @@ describe('AdvisoryText', () => {
     expect(bulletinIssueDate).toHaveTextContent(
       `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for today.`
     )
+    expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-early-low-wind')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-overnight')).not.toBeInTheDocument()
   })
 
   it('should render advisory status', () => {
@@ -293,9 +296,12 @@ describe('AdvisoryText', () => {
     expect(bulletinIssueDate).toHaveTextContent(
       `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for today.`
     )
+    expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-early-low-wind')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-overnight')).not.toBeInTheDocument()
   })
 
-  it('should render wind speed text when fire zone unit is selected', async () => {
+  it('should render wind speed text and early fire behaviour text when fire zone unit is selected, based on wind speed & critical hours data', async () => {
     const initialStore = buildTestStore({
       ...provSummaryInitialState,
       fireShapeAreaDetails: warningDetails
@@ -319,6 +325,8 @@ describe('AdvisoryText', () => {
     expect(windSpeedMessage).not.toBeInTheDocument()
     expect(proportionMessage).toBeInTheDocument()
     expect(warningMessage).toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-early-low-wind')).not.toBeInTheDocument()
 
     initialStore.dispatch(
       getFireCentreHFIFuelStatsSuccess({
@@ -368,6 +376,174 @@ describe('AdvisoryText', () => {
     )
 
     await waitFor(() => expect(screen.queryByTestId('advisory-message-wind-speed')).toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-early-low-wind')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByTestId('advisory-message-early-low-wind')).toHaveTextContent(
+        'Pay close attention to minor increases in wind speed and be prepared for increasing fire behaviour early in the day'
+      )
+    )
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-overnight')).not.toBeInTheDocument())
+  })
+
+  it('should render wind speed text without early fire behaviour text when fire zone unit is selected, based on wind speed & critical hours data', async () => {
+    const initialStore = buildTestStore({
+      ...provSummaryInitialState,
+      fireShapeAreaDetails: warningDetails
+    })
+    const { queryByTestId } = render(
+      <Provider store={initialStore}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    const advisoryMessage = queryByTestId('advisory-message-advisory')
+    const warningMessage = queryByTestId('advisory-message-warning')
+    const proportionMessage = queryByTestId('advisory-message-proportion')
+    const windSpeedMessage = queryByTestId('advisory-message-min-wind-speeds')
+    expect(advisoryMessage).not.toBeInTheDocument()
+    expect(windSpeedMessage).not.toBeInTheDocument()
+    expect(proportionMessage).toBeInTheDocument()
+    expect(warningMessage).toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-early-low-wind')).not.toBeInTheDocument()
+
+    initialStore.dispatch(
+      getFireCentreHFIFuelStatsSuccess({
+        'Cariboo Fire Centre': {
+          '20': {
+            fuel_area_stats: [
+              {
+                fuel_type: {
+                  fuel_type_id: 2,
+                  fuel_type_code: 'C-2',
+                  description: 'Boreal Spruce'
+                },
+                threshold: {
+                  id: 1,
+                  name: 'advisory',
+                  description: '4000 < hfi < 10000'
+                },
+                critical_hours: {
+                  start_time: 13,
+                  end_time: 18
+                },
+                area: 4000,
+                fuel_area: 8000
+              }
+            ],
+            min_wind_stats: [
+              {
+                threshold: {
+                  id: 1,
+                  name: 'advisory',
+                  description: '4000 < hfi < 10000'
+                },
+                min_wind_speed: 1
+              },
+              {
+                threshold: {
+                  id: 2,
+                  name: 'warning',
+                  description: 'hfi > 1000'
+                },
+                min_wind_speed: 1
+              }
+            ]
+          }
+        }
+      })
+    )
+
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-wind-speed')).toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-early-low-wind')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByTestId('advisory-message-early-low-wind')).toHaveTextContent(
+        'Pay close attention to minor increases in wind speed'
+      )
+    )
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-overnight')).not.toBeInTheDocument())
+  })
+
+  it('should render overnight burning text when critical hours go into the next day', async () => {
+    const initialStore = buildTestStore({
+      ...provSummaryInitialState,
+      fireShapeAreaDetails: warningDetails
+    })
+    const { queryByTestId } = render(
+      <Provider store={initialStore}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    const advisoryMessage = queryByTestId('advisory-message-advisory')
+    const warningMessage = queryByTestId('advisory-message-warning')
+    const proportionMessage = queryByTestId('advisory-message-proportion')
+    const windSpeedMessage = queryByTestId('advisory-message-min-wind-speeds')
+    expect(advisoryMessage).not.toBeInTheDocument()
+    expect(windSpeedMessage).not.toBeInTheDocument()
+    expect(proportionMessage).toBeInTheDocument()
+    expect(warningMessage).toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-early-low-wind')).not.toBeInTheDocument()
+
+    initialStore.dispatch(
+      getFireCentreHFIFuelStatsSuccess({
+        'Cariboo Fire Centre': {
+          '20': {
+            fuel_area_stats: [
+              {
+                fuel_type: {
+                  fuel_type_id: 2,
+                  fuel_type_code: 'C-2',
+                  description: 'Boreal Spruce'
+                },
+                threshold: {
+                  id: 1,
+                  name: 'advisory',
+                  description: '4000 < hfi < 10000'
+                },
+                critical_hours: {
+                  start_time: 9,
+                  end_time: 5
+                },
+                area: 4000,
+                fuel_area: 8000
+              }
+            ],
+            min_wind_stats: [
+              {
+                threshold: {
+                  id: 1,
+                  name: 'advisory',
+                  description: '4000 < hfi < 10000'
+                },
+                min_wind_speed: 1
+              },
+              {
+                threshold: {
+                  id: 2,
+                  name: 'warning',
+                  description: 'hfi > 1000'
+                },
+                min_wind_speed: 1
+              }
+            ]
+          }
+        }
+      })
+    )
+
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-overnight')).toBeInTheDocument())
   })
 
   it('should render critical hours missing message when critical hours start time is missing', () => {
@@ -424,6 +600,34 @@ describe('AdvisoryText', () => {
     const criticalHoursMessage = queryByTestId('advisory-message-no-critical-hours')
     expect(advisoryMessage).toBeInTheDocument()
     expect(criticalHoursMessage).toBeInTheDocument()
+  })
+
+  it('should render wind speed missing message when wind speed is missing', () => {
+    const store = buildTestStore(
+      {
+        ...provSummaryInitialState,
+        fireShapeAreaDetails: advisoryDetails
+      },
+      {
+        ...fuelStatsInitialState,
+        fireCentreHFIFuelStats: missingCriticalHoursEndFuelStatsState.fireCentreHFIFuelStats
+      }
+    )
+    const { queryByTestId } = render(
+      <Provider store={store}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
+        />
+      </Provider>
+    )
+    const advisoryMessage = queryByTestId('advisory-message-advisory')
+    const windSpeedMissingMessage = queryByTestId('advisory-message-no-wind-speed')
+    expect(advisoryMessage).toBeInTheDocument()
+    expect(windSpeedMissingMessage).toBeInTheDocument()
   })
 })
 

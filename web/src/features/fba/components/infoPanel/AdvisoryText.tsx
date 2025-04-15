@@ -293,14 +293,14 @@ const AdvisoryText = ({
             {getHighProportionFuelsString()}
           </Typography>
         )}
-        {!isUndefined(zoneStatus) && (
+        {!isUndefined(zoneStatus) && earlyOrLowWindText && (
           <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-early-low-wind">
             {earlyOrLowWindText}
             <br />
             <br />
           </Typography>
         )}
-        {!isUndefined(zoneStatus) && (
+        {!isUndefined(zoneStatus) && overnightText && (
           <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-overnight">
             {overnightText}
           </Typography>
