@@ -8,6 +8,7 @@ import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { AdvisoryStatus } from 'utils/constants'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
 import { calculateStatusText, calculateWindSpeedText } from '@/features/fba/calculateZoneStatus'
+import { formatCriticalHoursTimeText, getMinStartAndMaxEndTime } from '@/features/fba/criticalHoursStartEndTime'
 
 // Return a list of fuel stats for which greater than 90% of the area of each fuel type has high HFI.
 export const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
@@ -115,22 +116,9 @@ const AdvisoryText = ({
   }, [fireCentreHFIFuelStats, selectedFireZoneUnit])
 
   useEffect(() => {
-    let startTime: number | undefined = undefined
-    let endTime: number | undefined = undefined
-    for (const fuel of selectedFireZoneUnitTopFuels) {
-      if (!isUndefined(fuel.critical_hours.start_time)) {
-        if (isUndefined(startTime) || fuel.critical_hours.start_time < startTime) {
-          startTime = fuel.critical_hours.start_time
-        }
-      }
-      if (!isUndefined(fuel.critical_hours.end_time)) {
-        if (isUndefined(endTime) || fuel.critical_hours.end_time > endTime) {
-          endTime = fuel.critical_hours.end_time
-        }
-      }
-    }
-    setMinStartTime(startTime)
-    setMaxEndTime(endTime)
+    const { minStartTime, maxEndTime } = getMinStartAndMaxEndTime(selectedFireZoneUnitTopFuels)
+    setMinStartTime(minStartTime)
+    setMaxEndTime(maxEndTime)
   }, [selectedFireZoneUnitTopFuels])
 
   const getCommaSeparatedString = (array: string[]): string => {
@@ -208,9 +196,10 @@ const AdvisoryText = ({
     const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime) && selectFireCentreHFIFuelStats.length > 0
     let message = ''
     if (hasCriticalHours) {
-      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${minStartTime}:00 and ${maxEndTime}:00. ${getTopFuelsString()}\n\n`
+      const [formattedStartTime, formattedEndTime] = formatCriticalHoursTimeText(minStartTime, maxEndTime)
+      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name} between ${formattedStartTime} and ${formattedEndTime}. ${getTopFuelsString()}\n\n`
     } else {
-      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}.\n\n`
+      message = `There is a fire behaviour ${zoneStatus} in effect for ${selectedFireZoneUnit?.mof_fire_zone_name}. ${getTopFuelsString()}\n\n`
     }
 
     const minWindSpeeds = getZoneMinWindStats(selectedFireZoneUnitMinWindSpeeds)

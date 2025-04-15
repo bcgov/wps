@@ -1,6 +1,7 @@
 import { Typography } from '@mui/material'
 import React from 'react'
-import { isNull, isUndefined } from 'lodash'
+import { isNil } from 'lodash'
+import { formatCriticalHoursTimeText } from '@/features/fba/criticalHoursStartEndTime'
 
 interface CriticalHoursProps {
   start?: number
@@ -8,8 +9,12 @@ interface CriticalHoursProps {
 }
 
 const CriticalHours = ({ start, end }: CriticalHoursProps) => {
-  const formattedCriticalHours =
-    isNull(start) || isUndefined(start) || isNull(end) || isUndefined(end) ? '-' : `${start}:00 - ${end}:00`
+  let formattedCriticalHours = '-'
+
+  if (!isNil(start) && !isNil(end)) {
+    const [formattedStartTime, formattedEndTime] = formatCriticalHoursTimeText(start, end)
+    formattedCriticalHours = `${formattedStartTime} - ${formattedEndTime}`
+  }
   return (
     <Typography sx={{ fontSize: '0.75rem' }} data-testid="critical-hours">
       {formattedCriticalHours}

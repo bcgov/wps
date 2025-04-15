@@ -1,13 +1,39 @@
 import { FIRE_BEHAVIOR_CALC_ROUTE } from '../../src/utils/constants'
 import { FuelTypes } from '../../src/features/fbaCalculator/fuelTypes'
 
-describe('FireBAT Calculator Page', () => {
+describe('FireCalc Page', () => {
   const visitAndAddRow = () => {
     cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
 
     cy.getByTestId('add-row').click()
   }
   it('Sets all the input fields for calculating results on the backend', () => {
+    cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
+    const stationCode = 322
+    const fuelType = FuelTypes.get()['c1']
+    const grassCure = '1'
+    const windSpeed = '2'
+
+    cy.intercept('POST', 'api/fba-calc/stations', req => {
+      expect(req.body.stations[0]).to.deep.include({
+        station_code: stationCode,
+        fuel_type: fuelType.name,
+        percentage_conifer: fuelType.percentage_conifer,
+        crown_base_height: fuelType.crown_base_height,
+        grass_cure: parseInt(grassCure),
+      })
+    }).as('calculateResults')
+    visitAndAddRow()
+    cy.wait('@getStations')
+    cy.setFBAGrassCurePercentage(grassCure, 1)
+    cy.setFBAWindSpeed(windSpeed, 1)
+    cy.selectFBAStationInDropdown(stationCode, 1)
+    cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
+    cy.wait('@calculateResults')
+    cy.rowCountShouldBe(1)
+    cy.url().should('contain', `s=${stationCode}&f=${fuelType.name.toLowerCase()}&c=${grassCure}`)
+  })
+  it('Does not set wind speed query parameter', () => {
     cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
     const stationCode = 322
     const fuelType = FuelTypes.get()['c1']
@@ -32,7 +58,7 @@ describe('FireBAT Calculator Page', () => {
     cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
     cy.wait('@calculateResults')
     cy.rowCountShouldBe(1)
-    cy.url().should('contain', `s=${stationCode}&f=${fuelType.name.toLowerCase()}&c=${grassCure}&w=${windSpeed}`)
+    cy.url().should('contain', `s=${stationCode}&f=${fuelType.name.toLowerCase()}&c=${grassCure}`)
   })
   describe('Hover', () => {
     it('Should move the tooltip to the left on hover', () => {
@@ -114,7 +140,7 @@ describe('FireBAT Calculator Page', () => {
         // One of our stations (9999) is invalid, so we expect it to be excluded from the request.
         expect(req.body.stations.length).to.eq(1)
       }).as('calculateResults')
-      cy.visit(FIRE_BEHAVIOR_CALC_ROUTE + '?s=322&f=c1&c=1&w=2,s=9999&f=c1&c=1&w=2')
+      cy.visit(FIRE_BEHAVIOR_CALC_ROUTE + '?s=322&f=c1&c=1,s=9999&f=c1&c=1')
       cy.wait('@calculateResults')
     })
     it('Disables remove row(s) button when table is empty', () => {
@@ -161,10 +187,19 @@ describe('FireBAT Calculator Page', () => {
     })
     it('Loads one row from query parameters', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
+      cy.visit(`${FIRE_BEHAVIOR_CALC_ROUTE}?s=322&f=c2&c=80`)
+      cy.wait('@getStations')
+      cy.rowCountShouldBe(1)
+      cy.grassCuringForRowShouldBe('80', 0)
+      cy.stationCodeForRowShouldBe('322', 0)
+      cy.fuelTypeForRowShouldBe('c2', 0)
+    })
+    it('Does not load wind speed into row from query parameters', () => {
+      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       cy.visit(`${FIRE_BEHAVIOR_CALC_ROUTE}?s=322&f=c2&c=80&w=5`)
       cy.wait('@getStations')
       cy.rowCountShouldBe(1)
-      cy.windSpeedForRowShouldBe('5', 0)
+      cy.windSpeedForRowShouldBe('', 0)
       cy.grassCuringForRowShouldBe('80', 0)
       cy.stationCodeForRowShouldBe('322', 0)
       cy.fuelTypeForRowShouldBe('c2', 0)
@@ -174,11 +209,11 @@ describe('FireBAT Calculator Page', () => {
       cy.visit(`${FIRE_BEHAVIOR_CALC_ROUTE}?s=838&f=c3&c=90&w=11,s=322&f=c4&c=85&w=18`)
       cy.wait('@getStations')
       cy.rowCountShouldBe(2)
-      cy.windSpeedForRowShouldBe('11', 0)
+      cy.windSpeedForRowShouldBe('', 0)
       cy.grassCuringForRowShouldBe('90', 0)
       cy.stationCodeForRowShouldBe('838', 0)
       cy.fuelTypeForRowShouldBe('c3', 0)
-      cy.windSpeedForRowShouldBe('18', 1)
+      cy.windSpeedForRowShouldBe('', 1)
       cy.grassCuringForRowShouldBe('85', 1)
       cy.stationCodeForRowShouldBe('322', 1)
       cy.fuelTypeForRowShouldBe('c4', 1)
