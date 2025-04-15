@@ -5,7 +5,7 @@ import pytest
 import tempfile
 
 from wps_shared.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
-from app.tests.dataset_common import create_mock_gdal_dataset, create_test_dataset
+from wps_shared.tests.geospatial.dataset_common import create_mock_gdal_dataset, create_test_dataset
 
 hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")  # Byte data
 zero_tif = os.path.join(os.path.dirname(__file__), "zero_layer.tif")
