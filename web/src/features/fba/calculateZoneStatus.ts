@@ -52,20 +52,6 @@ export const calculateStatusText = (
   }
 }
 
-type Advisory2WarningMapping = Record<0 | 1, 0 | 1>
-const windTextLookup = {
-  0: {
-    0: (warningSpeed: number | string) =>
-      'There are no minimum wind speeds that would result in Head Fire Intensity Classes 5 or 6.',
-    1: (warningSpeed: number | string) =>
-      `There is no minimum wind speed that would result in Head Fire Intensity Class 5. A minimum wind speed`
-  },
-  1: {
-    0: '',
-    1: ''
-  }
-}
-
 export const calculateWindSpeedText = (zoneMinWindStats: AdvisoryMinWindStats[]) => {
   const advisoryThresholdMinWindSpeed = zoneMinWindStats.find(windStats => windStats.threshold.id == 1)
   const warningThresholdMinWindSpeed = zoneMinWindStats.find(windStats => windStats.threshold.id == 2)
