@@ -41,8 +41,8 @@ const columns: GridColDef[] = [
     minWidth: 120,
     renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => (
-      <Tooltip placement="right" title={params.row['description']}>
-        <Typography sx={{ fontSize: '0.75rem' }}>{params.row[params.field]}</Typography>
+      <Tooltip followCursor placement="right" title={params.row['description']}>
+        <Typography sx={{ fontSize: '0.75rem', display: 'flex', flexGrow: 1 }}>{params.row[params.field]}</Typography>
       </Tooltip>
     )
   },
