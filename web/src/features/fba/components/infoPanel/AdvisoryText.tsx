@@ -307,8 +307,10 @@ const AdvisoryText = ({
           </Typography>
         )}
         {!isUndefined(zoneStatus) && (
-          <Typography sx={{ whiteSpace: 'pre-line', mb: 2 }} data-testid="advisory-message-early-low-wind">
+          <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-early-low-wind">
             {earlyOrLowWindText}
+            <br />
+            <br />
           </Typography>
         )}
         {!isUndefined(zoneStatus) && (
