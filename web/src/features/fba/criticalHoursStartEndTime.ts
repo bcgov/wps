@@ -25,7 +25,7 @@ export const getMinStartAndMaxEndTime = (
     // Handle case where end_time is past midnight by adding 24 hours if the end_time <= start time.
     // Critical hours start_time can't be earlier than 0700, and the end time can't be later than 0700 the following day
     if (!isNil(start_time) && !isNil(end_time)) {
-      if (end_time <= start_time) {
+      if (criticalHoursExtendToNextDay(start_time, end_time)) {
         end_time += 24
       }
     }
@@ -49,8 +49,13 @@ export const getMinStartAndMaxEndTime = (
   return { minStartTime, maxEndTime }
 }
 
-export const formatCriticalHoursTimeText = (startTime: number, endTime: number): string[] => {
+const criticalHoursExtendToNextDay = (startTime: number, endTime: number): boolean => {
   const extendsNextDay = endTime <= startTime && endTime < 8 // critical hours can't extend into the next day past 07:00
+  return extendsNextDay
+}
+
+export const formatCriticalHoursTimeText = (startTime: number, endTime: number): string[] => {
+  const extendsNextDay = criticalHoursExtendToNextDay(startTime, endTime)
 
   const paddedMinStartTime = String(startTime).padStart(2, '0')
   const paddedMaxEndTime = String(endTime).padStart(2, '0')
