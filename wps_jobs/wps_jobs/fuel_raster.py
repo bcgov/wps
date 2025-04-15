@@ -25,11 +25,11 @@ logger = logging.getLogger(__name__)
 async def find_latest_version(s3_client: S3Client, raster_addresser: RasterKeyAddresser, now: datetime, version: int):
     current_version = version
     key = raster_addresser.get_fuel_raster_key(now, current_version)
-    exists = True
+    exists = await s3_client.all_objects_exist(key)
     while exists:
-        exists = await s3_client.all_objects_exist(key)
         current_version += 1
         key = raster_addresser.get_fuel_raster_key(now, current_version)
+        exists = await s3_client.all_objects_exist(key)
 
     return current_version
 
@@ -46,6 +46,7 @@ async def start_job(raster_addresser: RasterKeyAddresser, start_datetime: dateti
         except ValueError as e:
             logger.error(f"Could not store fuel raster at: {new_key}", exc_info=e)
             await s3_client.delete_object(new_key)
+            raise e
 
         logger.info("Raster file content hash succeeded")
         with WPSDataset.from_bytes(res) as new_raster_ds:
