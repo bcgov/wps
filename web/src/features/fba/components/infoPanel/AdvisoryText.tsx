@@ -172,12 +172,10 @@ const AdvisoryText = ({
   ) => {
     const minWindSpeed = getWindSpeedMinimum(zoneMinWindStats)
 
-    const isLowWindThreshold = minWindSpeed !== undefined && minWindSpeed < 15
-    const isEarlyAdvisory = typeof minStartTime === 'number' && minStartTime < 12
+    const isLowWindThreshold = !isUndefined(minWindSpeed) && minWindSpeed < 15
+    const isEarlyAdvisory = !isUndefined(minStartTime) && minStartTime < 12
     const isOvernightBurnPossible =
-      typeof minStartTime === 'number' &&
-      typeof maxEndTime === 'number' &&
-      (maxEndTime > 22 || maxEndTime < minStartTime)
+      !isUndefined(minStartTime) && !isUndefined(maxEndTime) && (maxEndTime > 22 || maxEndTime < minStartTime)
 
     const details: string[] = []
 
