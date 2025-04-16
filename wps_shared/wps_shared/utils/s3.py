@@ -1,6 +1,8 @@
 """Utils to help with s3"""
 
+from datetime import datetime, timedelta, timezone
 import logging
+import re
 from typing import Generator, Tuple
 from contextlib import asynccontextmanager
 from aiobotocore.client import AioBaseClient
@@ -76,3 +78,41 @@ def set_s3_gdal_config():
     gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
     gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
     gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
+
+
+async def apply_retention_policy_on_date_folder(
+    client: AioBaseClient,
+    bucket: str,
+    prefix: str,
+    days_to_retain: int,
+):
+    DATE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})")
+    today = datetime.now(timezone.utc).date()
+    retention_date = today - timedelta(days=days_to_retain)
+    logger.info(f"Applying retention policy to '{prefix}'. Deleting data older than {days_to_retain} days (before {retention_date}).")
+
+    res = await client.list_objects_v2(Bucket=bucket, Prefix=prefix, Delimiter="/")
+
+    if "CommonPrefixes" in res:
+        for folder in res["CommonPrefixes"]:
+            folder_prefix = folder["Prefix"]
+
+            match = DATE_PATTERN.search(folder_prefix)
+            if not match:
+                logger.warning(f"Prefix '{folder_prefix}' does not contain a valid date.")
+                continue
+
+            folder_name = match.group(1)
+
+            try:
+                folder_date = datetime.strptime(folder_name, "%Y-%m-%d").date()
+            except ValueError:
+                logger.error(f"Failed to parse date from '{folder_name}' in prefix '{folder_prefix}'.")
+                continue
+
+            if folder_date < retention_date:
+                res_objects = await client.list_objects_v2(Bucket=bucket, Prefix=folder_prefix)
+                if "Contents" in res_objects:
+                    for obj in res_objects["Contents"]:
+                        await client.delete_object(Bucket=bucket, Key=obj["Key"])
+                logger.info(f"Deleted folder '{folder_prefix}'")
