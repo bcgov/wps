@@ -55,7 +55,7 @@ async def start_job(raster_addresser: RasterKeyAddresser, start_datetime: dateti
             ysize = new_raster_ds.as_gdal_ds().RasterYSize
             async with get_async_write_session_scope() as db_session:
                 now = get_utc_now()
-                save_processed_fuel_raster(
+                await save_processed_fuel_raster(
                     db_session, FuelTypeRaster(year=start_datetime.year, xsize=xsize, ysize=ysize, object_store_path=new_key, content_hash=expected_hash, create_timestamp=now)
                 )
 
