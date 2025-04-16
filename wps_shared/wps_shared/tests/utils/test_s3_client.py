@@ -31,6 +31,25 @@ async def test_put_object_called(mocker: MockerFixture):
 
 
 @pytest.mark.anyio
+async def test_copy_object_called(mocker: MockerFixture):
+    old_key = "old-key"
+    new_key = "new-key"
+    async with S3Client() as s3_client:
+        copy_raster_spy = mocker.patch.object(s3_client, "copy_object")
+        await s3_client.copy_object(old_key, new_key)
+        copy_raster_spy.assert_called_once_with(old_key, new_key)
+
+
+@pytest.mark.anyio
+async def test_delete_object_called(mocker: MockerFixture):
+    old_key = "old-key"
+    async with S3Client() as s3_client:
+        delete_raster_spy = mocker.patch.object(s3_client, "delete_object")
+        await s3_client.delete_object(old_key)
+        delete_raster_spy.assert_called_once_with(old_key)
+
+
+@pytest.mark.anyio
 async def test_get_fuel_raster(mocker: MockerFixture):
     sample_data = b"test raster data"
 
