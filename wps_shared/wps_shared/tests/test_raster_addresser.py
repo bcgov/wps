@@ -75,3 +75,14 @@ def test_get_model_data_key_hffmc(raster_key_addresser):
 def test_get_calculated_hffmc_index_key(raster_key_addresser: RasterKeyAddresser):
     result = raster_key_addresser.get_calculated_hffmc_index_key(HFFMC_DATETIME)
     assert result == f"sfms/calculated/hourlies/{HFFMC_DATETIME_ISO}/fine_fuel_moisture_code{HFFMC_DATETIME_ISO.replace('-', '')}{HFFMC_DATETIME.hour:02d}.tif"
+
+
+def test_get_fuel_raster_key(raster_key_addresser: RasterKeyAddresser):
+    result = raster_key_addresser.get_fuel_raster_key(TEST_DATETIME_1, 1)
+    assert result == f"{raster_key_addresser.sfms_fuel_raster_prefix}/{TEST_DATETIME_1.year}/fbp{TEST_DATETIME_1.year}_v{1}.tif"
+
+
+def test_get_unprocessed_raster_key(raster_key_addresser: RasterKeyAddresser):
+    tif_object = "test.tif"
+    result = raster_key_addresser.get_unprocessed_fuel_raster_key(tif_object)
+    assert result == f"sfms/static/{tif_object}"
