@@ -47,7 +47,8 @@ numba = "0.61"
 cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307" }
 geopandas = "^1.0.1"
 shapely = "^2.0.5"
-wps-shared = {path = "../wps_shared"}
+wps-shared = { path = "../wps_shared" }
+ruff = "^0.11.5"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -63,7 +64,7 @@ pytest-mock = "^3"
 rope = "^1"
 pytest-watch = "^4.2.0"
 pytest-testmon = "^2.0.0"
-ruff = "^0.4.0"
+ruff = "^0.11.5"
 pytest-cov = "^6.0.0"
 
 [build-system]
