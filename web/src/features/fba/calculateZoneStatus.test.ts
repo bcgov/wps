@@ -1,19 +1,19 @@
 import { AdvisoryMinWindStats } from '@/api/fbaAPI'
-import { getWindSpeedMinimum } from '@/features/fba/calculateZoneStatus'
+import { calculateWindSpeedText, getWindSpeedMinimum } from '@/features/fba/calculateZoneStatus'
+
+const advisoryThreshold = {
+  id: 1,
+  name: 'Advisory',
+  description: 'Advisory threshold'
+}
+
+const warningThreshold = {
+  id: 2,
+  name: 'Warning',
+  description: 'Warning threshold'
+}
 
 describe('getWindSpeedMinimum', () => {
-  const advisoryThreshold = {
-    id: 1,
-    name: 'Advisory',
-    description: 'Advisory threshold'
-  }
-
-  const warningThreshold = {
-    id: 2,
-    name: 'Warning',
-    description: 'Warning threshold'
-  }
-
   it('returns the lower of two valid wind speeds', () => {
     const input: AdvisoryMinWindStats[] = [
       { threshold: advisoryThreshold, min_wind_speed: 12 },
@@ -47,5 +47,34 @@ describe('getWindSpeedMinimum', () => {
 
   it('returns undefined if input array is empty', () => {
     expect(getWindSpeedMinimum([])).toBeUndefined()
+  })
+})
+
+describe('calculateWindSpeedText', () => {
+  it.each([
+    {
+      description: 'return the correct wind speed string for the minimum wind speed',
+      input: [
+        { threshold: advisoryThreshold, min_wind_speed: 12 },
+        { threshold: warningThreshold, min_wind_speed: 15 }
+      ],
+      expected: 'if winds exceed 12 km/h'
+    },
+    {
+      description: 'return the correct wind speed string if a valid string is present',
+      input: [
+        { threshold: advisoryThreshold, min_wind_speed: -5 },
+        { threshold: warningThreshold, min_wind_speed: 1 }
+      ],
+      expected: 'if winds exceed 1 km/h'
+    }
+  ])('should $description', ({ input, expected }) => {
+    const windText = calculateWindSpeedText(input)
+    expect(windText).toBe(expected)
+  })
+  it('should return undefined if there are no valid wind speeds', () => {
+    const input: AdvisoryMinWindStats[] = [{ threshold: advisoryThreshold, min_wind_speed: 0 }]
+    const windText = calculateWindSpeedText(input)
+    expect(windText).toBeUndefined()
   })
 })

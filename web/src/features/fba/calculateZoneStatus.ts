@@ -69,5 +69,5 @@ export const getWindSpeedMinimum = (zoneMinWindStats: AdvisoryMinWindStats[]): n
 export const calculateWindSpeedText = (zoneMinWindStats: AdvisoryMinWindStats[]): string | undefined => {
   const minWindSpeed = getWindSpeedMinimum(zoneMinWindStats)
 
-  return minWindSpeed ? `if winds exceed ${minWindSpeed.toPrecision(1)} km/h` : undefined
+  return minWindSpeed ? `if winds exceed ${minWindSpeed.toFixed(0)} km/h` : undefined
 }
