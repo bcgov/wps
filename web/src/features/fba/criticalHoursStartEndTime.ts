@@ -49,7 +49,7 @@ export const getMinStartAndMaxEndTime = (
   return { minStartTime, maxEndTime }
 }
 
-const criticalHoursExtendToNextDay = (startTime: number, endTime: number): boolean => {
+export const criticalHoursExtendToNextDay = (startTime: number, endTime: number): boolean => {
   const extendsNextDay = endTime <= startTime && endTime < 8 // critical hours can't extend into the next day past 07:00
   return extendsNextDay
 }

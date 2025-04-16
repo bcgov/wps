@@ -8,7 +8,11 @@ import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { AdvisoryStatus } from 'utils/constants'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
 import { calculateStatusText, calculateWindSpeedText, getWindSpeedMinimum } from '@/features/fba/calculateZoneStatus'
-import { formatCriticalHoursTimeText, getMinStartAndMaxEndTime } from '@/features/fba/criticalHoursStartEndTime'
+import {
+  criticalHoursExtendToNextDay,
+  formatCriticalHoursTimeText,
+  getMinStartAndMaxEndTime
+} from '@/features/fba/criticalHoursStartEndTime'
 
 // Return a list of fuel stats for which greater than 90% of the area of each fuel type has high HFI.
 export const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
@@ -175,7 +179,9 @@ const AdvisoryText = ({
     const isLowWindThreshold = !isUndefined(minWindSpeed) && minWindSpeed < 15
     const isEarlyAdvisory = !isUndefined(minStartTime) && minStartTime < 12
     const isOvernightBurnPossible =
-      !isUndefined(minStartTime) && !isUndefined(maxEndTime) && (maxEndTime > 22 || maxEndTime < minStartTime)
+      !isUndefined(minStartTime) &&
+      !isUndefined(maxEndTime) &&
+      (maxEndTime > 22 || criticalHoursExtendToNextDay(minStartTime, maxEndTime))
 
     const details: string[] = []
 
