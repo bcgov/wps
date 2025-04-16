@@ -17,6 +17,7 @@ from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.db.crud.fuel_layer import save_processed_fuel_raster
 from wps_shared.db.models import FuelTypeRaster
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,9 @@ async def start_job(raster_addresser: RasterKeyAddresser, start_datetime: dateti
             ysize = new_raster_ds.as_gdal_ds().RasterYSize
             async with get_async_write_session_scope() as db_session:
                 now = get_utc_now()
-                db_session.add(FuelTypeRaster(year=start_datetime.year, xsize=xsize, ysize=ysize, object_store_path=new_key, content_hash=expected_hash, create_timestamp=now))
+                save_processed_fuel_raster(
+                    db_session, FuelTypeRaster(year=start_datetime.year, xsize=xsize, ysize=ysize, object_store_path=new_key, content_hash=expected_hash, create_timestamp=now)
+                )
 
 
 def main():
