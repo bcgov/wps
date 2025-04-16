@@ -272,46 +272,54 @@ const AdvisoryText = ({
             {zoneTitle}
           </Typography>
         )}
+
         {issueDate?.isValid && (
-          <Typography
-            data-testid="bulletin-issue-date"
-            sx={{ whiteSpace: 'pre-wrap' }}
-          >{`Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for ${displayForDate}.\n\n`}</Typography>
-        )}
-        {!isUndefined(zoneStatus) && zoneStatus === AdvisoryStatus.ADVISORY && (
-          <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-advisory">
-            {message}
+          <Typography data-testid="bulletin-issue-date" sx={{ whiteSpace: 'pre-wrap' }}>
+            {`Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for ${displayForDate}.\n\n`}
           </Typography>
         )}
-        {!isUndefined(zoneStatus) && zoneStatus === AdvisoryStatus.WARNING && (
-          <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-warning">
-            {message}
-          </Typography>
-        )}
-        {!isUndefined(zoneStatus) && (
-          <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-proportion">
-            {getHighProportionFuelsString()}
-          </Typography>
-        )}
-        {!isUndefined(zoneStatus) && earlyOrLowWindText && (
-          <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-early-low-wind">
-            {earlyOrLowWindText}
-            <br />
-            <br />
-          </Typography>
-        )}
-        {!isUndefined(zoneStatus) && overnightText && (
-          <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-overnight">
-            {overnightText}
-          </Typography>
-        )}
-        {!hasCriticalHours && !isUndefined(zoneStatus) && (
-          <Typography data-testid="advisory-message-no-critical-hours">No critical hours available.</Typography>
-        )}
-        {!minWindSpeedText && !isUndefined(zoneStatus) && (
-          <Typography data-testid="advisory-message-no-wind-speed">No wind speed available.</Typography>
-        )}
-        {isUndefined(zoneStatus) && (
+
+        {!isUndefined(zoneStatus) ? (
+          <>
+            {zoneStatus === AdvisoryStatus.ADVISORY && (
+              <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-advisory">
+                {message}
+              </Typography>
+            )}
+
+            {zoneStatus === AdvisoryStatus.WARNING && (
+              <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-warning">
+                {message}
+              </Typography>
+            )}
+
+            <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-proportion">
+              {getHighProportionFuelsString()}
+            </Typography>
+
+            {earlyOrLowWindText && (
+              <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-early-low-wind">
+                {earlyOrLowWindText}
+                <br />
+                <br />
+              </Typography>
+            )}
+
+            {overnightText && (
+              <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-overnight">
+                {overnightText}
+              </Typography>
+            )}
+
+            {!hasCriticalHours && (
+              <Typography data-testid="advisory-message-no-critical-hours">No critical hours available.</Typography>
+            )}
+
+            {!minWindSpeedText && (
+              <Typography data-testid="advisory-message-no-wind-speed">No wind speed available.</Typography>
+            )}
+          </>
+        ) : (
           <Typography data-testid="no-advisory-message">
             No advisories or warnings issued for the selected fire zone unit.
           </Typography>
