@@ -7,6 +7,7 @@ import logging
 import numpy as np
 
 from wps_shared.geospatial.fuel_raster import get_fuel_layer_key
+from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.wps_logging import configure_logging
 from wps_shared.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_type_id, get_fire_zone_units, get_fuel_types_id_dict
 from wps_shared.db.database import get_async_write_session_scope
@@ -43,15 +44,15 @@ class FuelTypeAreasJob:
         """
         Entry point for calculating the area of each fuel type in each fire zone unit.
         """
-        fuel_raster_key = get_fuel_layer_key()
-        fuel_raster_ds: gdal.Dataset = gdal.Open(fuel_raster_key, gdal.GA_ReadOnly)
-        pixel_size = fuel_raster_ds.GetGeoTransform()[1]
-        # We're using fire zone units from the advisory_shapes table to clip out shapes from the fuel raster.
-        # We need to manually specify the spatial reference of the advisory_shapes table in the gdal.WarpOptions below.
-        source_srs = osr.SpatialReference()
-        source_srs.ImportFromEPSG(3005)
-
         async with get_async_write_session_scope() as session:
+            fuel_raster_key = await get_fuel_layer_key(RasterKeyAddresser(), session)
+            fuel_raster_ds: gdal.Dataset = gdal.Open(fuel_raster_key, gdal.GA_ReadOnly)
+            pixel_size = fuel_raster_ds.GetGeoTransform()[1]
+            # We're using fire zone units from the advisory_shapes table to clip out shapes from the fuel raster.
+            # We need to manually specify the spatial reference of the advisory_shapes table in the gdal.WarpOptions below.
+            source_srs = osr.SpatialReference()
+            source_srs.ImportFromEPSG(3005)
+
             shape_type_id = await get_fire_zone_unit_shape_type_id(session)
             zones = await get_fire_zone_units(session, shape_type_id)
             sfms_fuel_types_dict = await get_fuel_types_id_dict(session)
