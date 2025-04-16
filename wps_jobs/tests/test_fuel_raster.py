@@ -1,6 +1,11 @@
+import os
+import sys
 import pytest
 from datetime import datetime
-from wps_jobs.fuel_raster import find_latest_version, start_job
+
+from pytest_mock import MockerFixture
+import wps_jobs.fuel_raster
+from wps_jobs.fuel_raster import find_latest_version, start_job, main
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.db.models import FuelTypeRaster
@@ -160,3 +165,36 @@ async def test_start_job_failure(monkeypatch):
         await start_job(raster_addresser=raster_addresser, start_datetime=datetime(2024, 1, 1), unprocessed_object_name="fuel.tif", expected_hash="abc123")
         assert mock_db.added == {}
         assert mock_s3.deleted == "fuel-key-v3"
+
+
+def test_main_fail(mocker: MockerFixture, monkeypatch):
+    async def mock_start_job(_, __, ___, ____):
+        raise Exception()
+
+    rocket_chat_spy = mocker.spy(wps_jobs.fuel_raster, "send_rocketchat_notification")
+    monkeypatch.setattr(wps_jobs.fuel_raster, "start_job", mock_start_job)
+
+    with pytest.raises(SystemExit) as excinfo:
+        wps_jobs.fuel_raster.main()
+
+    # Assert that we exited with an error code.
+    assert excinfo.value.code == os.EX_SOFTWARE
+    # Assert that rocket chat was called.
+    assert rocket_chat_spy.call_count == 1
+
+
+def test_main_success(mocker: MockerFixture, monkeypatch):
+    async def mock_start_job(_, __, ___, ____):
+        pass
+
+    rocket_chat_spy = mocker.spy(wps_jobs.fuel_raster, "send_rocketchat_notification")
+    monkeypatch.setattr(wps_jobs.fuel_raster, "start_job", mock_start_job)
+
+    with pytest.raises(SystemExit) as excinfo:
+        wps_jobs.fuel_raster.main()
+
+    # Assert that we exited with an error code.
+    assert excinfo.value.code == os.EX_OK
+
+    # Assert that rocket chat was called.
+    assert rocket_chat_spy.call_count == 0

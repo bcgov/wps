@@ -60,12 +60,11 @@ async def start_job(raster_addresser: RasterKeyAddresser, start_datetime: dateti
 def main():
     """Kicks off asynchronous processing of new fuel raster"""
     parser = argparse.ArgumentParser(description="Retrieve and store the latest fuel raster by date")
-    parser.add_argument("-d", "--date", help="The date to use for looking up the fuel raster.")
-    parser.add_argument("-k", "--key", help="Object storage key that points to the unprocessed raster")
-    parser.add_argument("-e", "--expected-hash", help="Expected content hash of the unprocessed raster's raw bytes")
+    parser.add_argument("-d", "--date", default=None, help="The date to use for looking up the fuel raster.")
+    parser.add_argument("-k", "--key", default=None, help="Object storage key that points to the unprocessed raster")
+    parser.add_argument("-e", "--expected-hash", default=None, help="Expected content hash of the unprocessed raster's raw bytes")
 
-    args = parser.parse_args()
-    # Convert date if provided
+    args, _ = parser.parse_known_args()
     start_datetime = datetime.fromisoformat(args.date) if args.date else get_utc_now()
     unprocessed_object_name = str(args.key) if args.key else config.get("FUEL_RASTER_NAME")
     expected_hash = str(args.expected_hash) if args.expected_hash else config.get("FUEL_RASTER_CONTENT_HASH")
