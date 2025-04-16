@@ -23,7 +23,7 @@ from wps_shared.weather_models import CompletedWithSomeExceptions, download
 from wps_shared.weather_models import ModelEnum
 from wps_shared.wps_logging import configure_logging
 import wps_shared.utils.time as time_utils
-from wps_shared.utils.s3 import apply_retention_policy_on_date_folder, get_client
+from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, get_client
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.weather_models.job_utils import get_regional_model_run_download_urls
 from app.weather_models.precip_rdps_model import compute_and_store_precip_rasters
@@ -130,7 +130,7 @@ class RDPSGrib:
         logger.info(f"Applying retention policy to RDPS data downloaded for SFMS. Data in S3 and corresponding database records older than {days_to_retain} days are being deleted.")
         prefix = "weather_models/rdps/"
         async with get_client() as (client, bucket):
-            await apply_retention_policy_on_date_folder(client, bucket, prefix, days_to_retain)
+            await apply_retention_policy_on_date_folders(client, bucket, prefix, days_to_retain)
 
         deletion_threshold = self.now - timedelta(days=days_to_retain)
         records_for_deletion = get_rdps_sfms_urls_for_deletion(self.session, deletion_threshold)
@@ -152,7 +152,7 @@ class RDPSJob:
         model_start_time = datetime(start_time.year, start_time.month, start_time.day, model_run_hour, tzinfo=timezone.utc)
         with get_write_session_scope() as session:
             rdps_grib = RDPSGrib(session)
-            # await rdps_grib.process()
+            await rdps_grib.process()
             await rdps_grib.apply_retention_policy(DAYS_TO_RETAIN)
             await compute_and_store_precip_rasters(model_start_time)
         # calculate the execution time.

@@ -80,7 +80,7 @@ def set_s3_gdal_config():
     gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
 
 
-async def apply_retention_policy_on_date_folder(
+async def apply_retention_policy_on_date_folders(
     client: AioBaseClient,
     bucket: str,
     prefix: str,
