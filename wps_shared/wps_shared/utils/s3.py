@@ -85,6 +85,7 @@ async def apply_retention_policy_on_date_folders(
     bucket: str,
     prefix: str,
     days_to_retain: int,
+    dry_run: bool = False,
 ):
     DATE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})")
     today = datetime.now(timezone.utc).date()
@@ -112,7 +113,13 @@ async def apply_retention_policy_on_date_folders(
 
             if folder_date < retention_date:
                 res_objects = await client.list_objects_v2(Bucket=bucket, Prefix=folder_prefix)
-                if "Contents" in res_objects:
-                    for obj in res_objects["Contents"]:
+                objects = res_objects.get("Contents", [])
+
+                if dry_run:
+                    logger.debug(f"[Dry Run] Objects that would be deleted: {[obj['Key'] for obj in objects]}")
+                    continue
+
+                else:
+                    for obj in objects:
                         await client.delete_object(Bucket=bucket, Key=obj["Key"])
-                logger.info(f"Deleted folder '{folder_prefix}'")
+                logger.info(f"Deleted {len(objects)} objects from '{folder_prefix}'")
