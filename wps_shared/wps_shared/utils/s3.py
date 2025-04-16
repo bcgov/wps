@@ -115,11 +115,15 @@ async def apply_retention_policy_on_date_folders(
                 res_objects = await client.list_objects_v2(Bucket=bucket, Prefix=folder_prefix)
                 objects = res_objects.get("Contents", [])
 
+                if not objects:
+                    logger.info(f"No objects to delete in '{folder_prefix}'")
+                    continue
+
                 if dry_run:
-                    logger.debug(f"[Dry Run] Objects that would be deleted: {[obj['Key'] for obj in objects]}")
+                    logger.info(f"[Dry Run] Would delete {len(objects)} objects from '{folder_prefix}'")
                     continue
 
                 else:
                     for obj in objects:
                         await client.delete_object(Bucket=bucket, Key=obj["Key"])
-                logger.info(f"Deleted {len(objects)} objects from '{folder_prefix}'")
+                    logger.info(f"Deleted {len(objects)} objects from '{folder_prefix}'")
