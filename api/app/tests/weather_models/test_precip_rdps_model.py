@@ -13,7 +13,7 @@ from app.weather_models.precip_rdps_model import (
     get_raster_keys_to_diff,
     generate_24_hour_accumulating_precip_raster,
 )
-from app.weather_models.rdps_filename_marshaller import model_run_for_hour
+from wps_shared.sfms.rdps_filename_marshaller import model_run_for_hour
 
 geotransform = (-4556441.403315245, 10000.0, 0.0, 920682.1411659503, 0.0, -10000.0)
 projection = 'PROJCS["unnamed",GEOGCS["Coordinate System imported from GRIB file",DATUM["unnamed",SPHEROID["Sphere",6371229,0]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]]],PROJECTION["Polar_Stereographic"],PARAMETER["latitude_of_origin",60],PARAMETER["central_meridian",249],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["Metre",1],AXIS["Easting",SOUTH],AXIS["Northing",SOUTH]]'
@@ -176,6 +176,7 @@ def test_get_raster_keys_to_diff(timestamp: datetime, expected_yesterday_key, ex
     (yesterday_key, today_key) = get_raster_keys_to_diff(timestamp)
     assert yesterday_key == expected_yesterday_key
     assert today_key == expected_today_key
+
 
 async def return_none_tuple(timestamp: datetime):
     return (None, None, None)

@@ -9,7 +9,7 @@ from wps_shared import config
 from numba import vectorize
 from wps_shared.utils.s3 import get_client, read_into_memory
 from wps_shared.weather_models import ModelEnum
-from app.weather_models.rdps_filename_marshaller import adjust_forecast_hour, compose_rdps_key, compose_computed_precip_rdps_key
+from wps_shared.sfms.rdps_filename_marshaller import adjust_forecast_hour, compose_rdps_key, compose_computed_precip_rdps_key
 
 logger = logging.getLogger(__name__)
 

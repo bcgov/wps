@@ -50,6 +50,7 @@ def create_mock_wps_dataset():
     mock_ds = create_mock_gdal_dataset()
     return WPSDataset(ds=mock_ds, ds_path=None)
 
+
 def create_mock_wps_datasets(num: int) -> List[WPSDataset]:
     return [create_mock_wps_dataset() for _ in range(num)]
 

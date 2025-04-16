@@ -50,5 +50,13 @@
                 "NAM"
             ]
         },
+        {
+            "name": "fuel layer processor job",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "wps_jobs.fuel_raster",
+            "console": "integratedTerminal",
+            "args": []
+        },
     ]
 }
