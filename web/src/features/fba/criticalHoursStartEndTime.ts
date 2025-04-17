@@ -54,13 +54,19 @@ export const criticalHoursExtendToNextDay = (startTime: number, endTime: number)
   return extendsNextDay
 }
 
-export const formatCriticalHoursTimeText = (startTime: number, endTime: number): string[] => {
+export const formatCriticalHoursTimeText = (
+  startTime: number,
+  endTime: number,
+  shorthand: boolean = true
+): string[] => {
   const extendsNextDay = criticalHoursExtendToNextDay(startTime, endTime)
 
-  const paddedMinStartTime = String(startTime).padStart(2, '0')
-  const paddedMaxEndTime = String(endTime).padStart(2, '0')
-  const formattedStartTime = `${paddedMinStartTime}:00`
-  const formattedEndTime = `${paddedMaxEndTime}:00${extendsNextDay ? '+1' : ''}`
+  let endSuffix = ''
+  if (extendsNextDay) {
+    endSuffix = shorthand ? '+1' : ' tomorrow'
+  }
 
-  return [formattedStartTime, formattedEndTime]
+  const formatHour = (hour: number) => `${String(hour).padStart(2, '0')}:00`
+
+  return [formatHour(startTime), `${formatHour(endTime)}${endSuffix}`]
 }

@@ -191,7 +191,7 @@ const AdvisoryText = ({
           <Typography component="span" data-testid="overnight-burning-text">
             {isEarlyAdvisory
               ? 'and remain elevated into the overnight hours.'
-              : 'Fire behaviour may remain elevated into the overnight hours.'}
+              : 'Be prepared for fire behaviour to remain elevated into the overnight hours.'}
           </Typography>
         )}
       </>
@@ -238,7 +238,7 @@ const AdvisoryText = ({
     const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime) && selectFireCentreHFIFuelStats.length > 0
     let message: React.ReactNode = null
     if (hasCriticalHours) {
-      const [formattedStartTime, formattedEndTime] = formatCriticalHoursTimeText(minStartTime, maxEndTime)
+      const [formattedStartTime, formattedEndTime] = formatCriticalHoursTimeText(minStartTime, maxEndTime, false)
       message = (
         <>
           There is a fire behaviour {zoneStatus?.toLowerCase()} in effect for {selectedFireZoneUnit?.mof_fire_zone_name}{' '}
@@ -294,6 +294,7 @@ const AdvisoryText = ({
             </Typography>
 
             {earlyOvernightBurning && <>{earlyOvernightBurning}</>}
+
             {!hasCriticalHours && (
               <Typography data-testid="advisory-message-no-critical-hours">No critical hours available.</Typography>
             )}
