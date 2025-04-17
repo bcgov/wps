@@ -1,6 +1,8 @@
 """Utils to help with s3"""
 
+from datetime import datetime, timedelta, timezone
 import logging
+import re
 from typing import Generator, Tuple
 from contextlib import asynccontextmanager
 from aiobotocore.client import AioBaseClient
@@ -76,3 +78,65 @@ def set_s3_gdal_config():
     gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
     gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
     gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
+
+
+async def apply_retention_policy_on_date_folders(
+    client: AioBaseClient,
+    bucket: str,
+    prefix: str,
+    days_to_retain: int,
+    dry_run: bool = False,
+):
+    """
+    Applies a retention policy to an S3 bucket by deleting "folders" (prefixes) named by ISO date (YYYY-MM-DD).
+
+    It deletes folders that are older than a specified number of days from today. Each folder is expected to be named
+    as a date string, such as '2024-04-01/', and located under the given prefix (e.g., 'critical_hours/2024-04-01/').
+
+    :param client: Asynchronous S3 client
+    :param bucket: The name of the S3 bucket
+    :param prefix: The prefix path within the bucket where date-named folders are located.
+    :param days_to_retain: The number of most recent days to retain. Folders older than this will be deleted.
+    :param dry_run: If True, no deletions will occur. Instead, actions will be logged to indicate what *would* be deleted.
+                    Defaults to False.
+    """
+    DATE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})")
+    today = datetime.now(timezone.utc).date()
+    retention_date = today - timedelta(days=days_to_retain)
+    logger.info(f"Applying retention policy to '{prefix}'. Deleting data older than {days_to_retain} days (before {retention_date}).")
+
+    res = await client.list_objects_v2(Bucket=bucket, Prefix=prefix, Delimiter="/")
+
+    if "CommonPrefixes" in res:
+        for folder in res["CommonPrefixes"]:
+            folder_prefix = folder["Prefix"]
+
+            match = DATE_PATTERN.search(folder_prefix)
+            if not match:
+                logger.warning(f"Prefix '{folder_prefix}' does not contain a valid date.")
+                continue
+
+            folder_name = match.group(1)
+
+            try:
+                folder_date = datetime.strptime(folder_name, "%Y-%m-%d").date()
+            except ValueError:
+                logger.error(f"Failed to parse date from '{folder_name}' in prefix '{folder_prefix}'.")
+                continue
+
+            if folder_date < retention_date:
+                res_objects = await client.list_objects_v2(Bucket=bucket, Prefix=folder_prefix)
+                objects = res_objects.get("Contents", [])
+
+                if not objects:
+                    logger.info(f"No objects to delete in '{folder_prefix}'")
+                    continue
+
+                if dry_run:
+                    logger.info(f"[Dry Run] Would delete {len(objects)} objects from '{folder_prefix}'")
+                    continue
+
+                else:
+                    for obj in objects:
+                        await client.delete_object(Bucket=bucket, Key=obj["Key"])
+                    logger.info(f"Deleted {len(objects)} objects from '{folder_prefix}'")
