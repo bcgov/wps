@@ -243,7 +243,7 @@ export const Sidebar: React.FunctionComponent = () => {
     )
   }
 
-  return <div>{isSmall ? renderSmall() : renderLarge()}</div>
+  return isSmall ? renderSmall() : renderLarge()
 }
 
 export default React.memo(Sidebar)
