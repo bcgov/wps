@@ -87,6 +87,19 @@ async def apply_retention_policy_on_date_folders(
     days_to_retain: int,
     dry_run: bool = False,
 ):
+    """
+    Applies a retention policy to an S3 bucket by deleting "folders" (prefixes) named by ISO date (YYYY-MM-DD).
+
+    It deletes folders that are older than a specified number of days from today. Each folder is expected to be named
+    as a date string, such as '2024-04-01/', and located under the given prefix (e.g., 'critical_hours/2024-04-01/').
+
+    :param client: Asynchronous S3 client
+    :param bucket: The name of the S3 bucket
+    :param prefix: The prefix path within the bucket where date-named folders are located.
+    :param days_to_retain: The number of most recent days to retain. Folders older than this will be deleted.
+    :param dry_run: If True, no deletions will occur. Instead, actions will be logged to indicate what *would* be deleted.
+                    Defaults to False.
+    """
     DATE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})")
     today = datetime.now(timezone.utc).date()
     retention_date = today - timedelta(days=days_to_retain)
