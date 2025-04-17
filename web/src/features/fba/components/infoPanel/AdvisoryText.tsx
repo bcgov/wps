@@ -169,39 +169,30 @@ const AdvisoryText = ({
     }
   }
 
-  const getAdditionalDetailText = (
-    zoneMinWindStats: AdvisoryMinWindStats[],
-    minStartTime?: number,
-    maxEndTime?: number
-  ) => {
-    const minWindSpeed = getWindSpeedMinimum(zoneMinWindStats)
-
-    const isLowWindThreshold = !isUndefined(minWindSpeed) && minWindSpeed < 15
-    const isEarlyAdvisory = !isUndefined(minStartTime) && minStartTime < 12
+  const getAdditionalDetailText = (minStartTime?: number, maxEndTime?: number): React.ReactNode => {
+    const isEarlyAdvisory = minStartTime !== undefined && minStartTime < 12
     const isOvernightBurnPossible =
-      !isUndefined(minStartTime) &&
-      !isUndefined(maxEndTime) &&
+      minStartTime !== undefined &&
+      maxEndTime !== undefined &&
       (maxEndTime > 22 || criticalHoursExtendToNextDay(minStartTime, maxEndTime))
 
-    const details: string[] = []
+    if (!isEarlyAdvisory && !isOvernightBurnPossible) return null
 
-    if (isLowWindThreshold && isEarlyAdvisory) {
-      details.push(
-        'Pay close attention to minor increases in wind speed and be prepared for increasing fire behaviour early in the day.'
-      )
-    } else if (isLowWindThreshold) {
-      details.push('Pay close attention to minor increases in wind speed.')
-    } else if (isEarlyAdvisory) {
-      details.push('Be prepared for increasing fire behaviour early in the day.')
-    }
-
-    if (isOvernightBurnPossible) {
-      details.push(
-        'Overnight burn conditions will support increased fire behaviour late into the evening and early morning hours tomorrow.'
-      )
-    }
-
-    return details
+    return (
+      <>
+        {isEarlyAdvisory && (
+          <Typography component={'span'} data-testid="early-advisory-message">
+            Be prepared for increasing fire behaviour early in the day.
+          </Typography>
+        )}
+        {isEarlyAdvisory && isOvernightBurnPossible && ' '}
+        {isOvernightBurnPossible && (
+          <Typography component={'span'} data-testid="advisory-message-overnight">
+            Overnight burning is expected.
+          </Typography>
+        )}
+      </>
+    )
   }
 
   const renderDefaultMessage = () => {
@@ -265,11 +256,7 @@ const AdvisoryText = ({
       )
     }
 
-    const [earlyOrLowWindText, overnightText] = getAdditionalDetailText(
-      selectedFireZoneUnitMinWindSpeeds,
-      minStartTime,
-      maxEndTime
-    )
+    const earlyOvernightBurning = getAdditionalDetailText(minStartTime, maxEndTime)
 
     return (
       <>
@@ -303,26 +290,9 @@ const AdvisoryText = ({
               {getHighProportionFuelsString()}
             </Typography>
 
-            {earlyOrLowWindText && (
-              <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-early-low-wind">
-                {earlyOrLowWindText}
-                <br />
-                <br />
-              </Typography>
-            )}
-
-            {overnightText && (
-              <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-overnight">
-                {overnightText}
-              </Typography>
-            )}
-
+            {earlyOvernightBurning && <>{earlyOvernightBurning}</>}
             {!hasCriticalHours && (
               <Typography data-testid="advisory-message-no-critical-hours">No critical hours available.</Typography>
-            )}
-
-            {!minWindSpeedText && (
-              <Typography data-testid="advisory-message-no-wind-speed">No wind speed available.</Typography>
             )}
           </>
         ) : (
