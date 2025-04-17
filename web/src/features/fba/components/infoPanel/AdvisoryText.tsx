@@ -7,7 +7,7 @@ import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySl
 import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { AdvisoryStatus } from 'utils/constants'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
-import { calculateStatusText, calculateWindSpeedText, getWindSpeedMinimum } from '@/features/fba/calculateZoneStatus'
+import { calculateStatusText, calculateWindSpeedText } from '@/features/fba/calculateZoneStatus'
 import {
   criticalHoursExtendToNextDay,
   formatCriticalHoursTimeText,
