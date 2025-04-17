@@ -381,11 +381,11 @@ describe('AdvisoryText', () => {
     store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
 
     await waitFor(() => expect(screen.queryByTestId('advisory-message-wind-speed')).toBeInTheDocument())
-    await waitFor(() => expect(screen.queryByTestId('early-advisory-message')).toBeInTheDocument())
-    await waitFor(() => expect(screen.queryByTestId('advisory-message-overnight')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).not.toBeInTheDocument())
   })
 
-  it('should render overnight burning text when critical hours go into the next day', async () => {
+  it('should render early advisory text and overnight burning text when critical hours go into the next day and start before 12', async () => {
     const store = getInitialStore()
     render(
       <Provider store={store}>
@@ -405,7 +405,33 @@ describe('AdvisoryText', () => {
 
     store.dispatch(getFireCentreHFIFuelStatsSuccess(overnightStats))
 
-    await waitFor(() => expect(screen.queryByTestId('advisory-message-overnight')).toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).toBeInTheDocument())
+  })
+
+  it('should render only overnight burning text when critical hours go into the next day and start after 12', async () => {
+    const store = getInitialStore()
+    render(
+      <Provider store={store}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    assertInitialState()
+
+    let overnightStats = cloneDeep(initialHFIFuelStats)
+    overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 5
+    overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.start_time = 13
+
+    store.dispatch(getFireCentreHFIFuelStatsSuccess(overnightStats))
+
+    await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).toBeInTheDocument())
   })
 
   it('should render critical hours missing message when critical hours start time is missing', () => {

@@ -174,21 +174,24 @@ const AdvisoryText = ({
     const isOvernightBurnPossible =
       minStartTime !== undefined &&
       maxEndTime !== undefined &&
-      (maxEndTime > 22 || criticalHoursExtendToNextDay(minStartTime, maxEndTime))
+      (maxEndTime > 23 || criticalHoursExtendToNextDay(minStartTime, maxEndTime))
 
     if (!isEarlyAdvisory && !isOvernightBurnPossible) return null
 
     return (
       <>
         {isEarlyAdvisory && (
-          <Typography component={'span'} data-testid="early-advisory-message">
-            Be prepared for increasing fire behaviour early in the day.
+          <Typography component="span" data-testid="early-advisory-text">
+            Be prepared for fire behaviour to increase early in the day
+            {!isOvernightBurnPossible && '.'}
           </Typography>
         )}
         {isEarlyAdvisory && isOvernightBurnPossible && ' '}
         {isOvernightBurnPossible && (
-          <Typography component={'span'} data-testid="advisory-message-overnight">
-            Overnight burning is expected.
+          <Typography component="span" data-testid="overnight-burning-text">
+            {isEarlyAdvisory
+              ? 'and remain elevated into the overnight hours.'
+              : 'Fire behaviour may remain elevated into the overnight hours.'}
           </Typography>
         )}
       </>
