@@ -407,6 +407,11 @@ describe('AdvisoryText', () => {
 
     await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).toBeInTheDocument())
     await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByTestId('overnight-burning-text')).toHaveTextContent(
+        'and remain elevated into the overnight hours.'
+      )
+    )
   })
 
   it('should render only overnight burning text when critical hours go into the next day and start after 12', async () => {
@@ -432,6 +437,11 @@ describe('AdvisoryText', () => {
 
     await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).not.toBeInTheDocument())
     await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByTestId('overnight-burning-text')).toHaveTextContent(
+        'Be prepared for fire behaviour to remain elevated into the overnight hours.'
+      )
+    )
   })
 
   it('should render critical hours missing message when critical hours start time is missing', () => {
