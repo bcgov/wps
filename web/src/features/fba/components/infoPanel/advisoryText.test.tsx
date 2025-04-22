@@ -728,7 +728,7 @@ describe('getZoneMinWindStats', () => {
     expect(result).toEqual(`if winds exceed 1 km/h`)
   })
 
-  it('should return specific text when both min wind speeds are 0', () => {
+  it('should return specific text when both min wind speeds are 0 or round to 0', () => {
     const result = getZoneMinWindStatsText([
       {
         threshold: {
@@ -736,7 +736,7 @@ describe('getZoneMinWindStats', () => {
           name: 'advisory',
           description: '4000 < hfi < 10000'
         },
-        min_wind_speed: 0
+        min_wind_speed: 0.1
       },
       {
         threshold: {
@@ -747,7 +747,7 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 0
       }
     ])
-    expect(result).toBeUndefined()
+    expect(result).toEqual('if winds exceed 0 km/h')
   })
   it('should return specific text when only advisory min wind speed is 0', () => {
     const result = getZoneMinWindStatsText([
@@ -768,7 +768,7 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 1
       }
     ])
-    expect(result).toEqual(`if winds exceed 1 km/h`)
+    expect(result).toEqual(`if winds exceed 0 km/h`)
   })
   it('should return specific text when only warning min wind speed is 0', () => {
     const result = getZoneMinWindStatsText([
@@ -789,6 +789,6 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 0
       }
     ])
-    expect(result).toEqual(`if winds exceed 1 km/h`)
+    expect(result).toEqual(`if winds exceed 0 km/h`)
   })
 })

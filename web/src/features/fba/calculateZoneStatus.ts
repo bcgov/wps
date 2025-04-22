@@ -1,7 +1,7 @@
 import { AdvisoryMinWindStats, FireShapeAreaDetail } from '@/api/fbaAPI'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 import { AdvisoryStatus } from '@/utils/constants'
-import { isUndefined } from 'lodash'
+import { isNil, isUndefined } from 'lodash'
 
 export const calculateStatusColour = (
   details: FireShapeAreaDetail[],
@@ -69,5 +69,6 @@ export const getWindSpeedMinimum = (zoneMinWindStats: AdvisoryMinWindStats[]): n
 export const calculateWindSpeedText = (zoneMinWindStats: AdvisoryMinWindStats[]): string | undefined => {
   const minWindSpeed = getWindSpeedMinimum(zoneMinWindStats)
 
-  return minWindSpeed ? `if winds exceed ${minWindSpeed.toFixed(0)} km/h` : undefined
+  // 0 is falsy, so we need to perform a null/undefined check for this to consider 0 valid
+  return !isNil(minWindSpeed) ? `if winds exceed ${minWindSpeed.toFixed(0)} km/h` : undefined
 }
