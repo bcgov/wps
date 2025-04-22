@@ -50,5 +50,11 @@
                 "NAM"
             ]
         },
+        {
+            "name": "ecmwf IFS",
+            "type": "python",
+            "request": "launch",
+            "module": "wps_jobs.weather_model_jobs.ecmwf",
+        },
     ]
 }

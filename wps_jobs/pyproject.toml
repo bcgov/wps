@@ -24,6 +24,7 @@ fastapi = "0.115.11"
 pytest = "^7.2.1"
 pytest-mock = "^3"
 coverage = "^7.6.4"
+ipykernel = "^6.29.5"
 
 [build-system]
 requires = ["poetry-core"]
