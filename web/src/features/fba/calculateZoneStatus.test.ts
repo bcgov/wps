@@ -61,19 +61,19 @@ describe('calculateWindSpeedText', () => {
       expected: 'if winds exceed 12 km/h'
     },
     {
-      description: 'return the correct wind speed string if a valid string is present',
+      description: 'return the correct wind speed string if a valid wind speed is present',
       input: [
         { threshold: advisoryThreshold, min_wind_speed: -5 },
-        { threshold: warningThreshold, min_wind_speed: 1 }
+        { threshold: warningThreshold, min_wind_speed: 0 }
       ],
-      expected: 'if winds exceed 1 km/h'
+      expected: 'if winds exceed 0 km/h'
     }
   ])('should $description', ({ input, expected }) => {
     const windText = calculateWindSpeedText(input)
     expect(windText).toBe(expected)
   })
   it('should return undefined if there are no valid wind speeds', () => {
-    const input: AdvisoryMinWindStats[] = [{ threshold: advisoryThreshold, min_wind_speed: 0 }]
+    const input: AdvisoryMinWindStats[] = [{ threshold: advisoryThreshold, min_wind_speed: -5 }]
     const windText = calculateWindSpeedText(input)
     expect(windText).toBeUndefined()
   })
