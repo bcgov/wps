@@ -6,6 +6,7 @@ import PercentIcon from '@mui/icons-material/Percent'
 import PublicIcon from '@mui/icons-material/Public'
 import InsightsIcon from '@mui/icons-material/Insights'
 import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
+import MedicationIcon from '@mui/icons-material/Medication'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
 
@@ -25,7 +26,9 @@ import {
   MORE_CAST_NAME,
   MORECAST_ROUTE,
   SFMS_INSIGHTS_NAME,
-  SFMS_INSIGHTS_ROUTE
+  SFMS_INSIGHTS_ROUTE,
+  PRESCRIBED_BURN_ADVISOR_NAME,
+  PRESCRIBED_BURN_ADVISOR_ROUTE
 } from 'utils/constants'
 
 const ICON_FONT_SIZE = 'large'
@@ -148,9 +151,24 @@ export const sfmsInsightsInfo: ToolInfo = {
   isBeta: true
 }
 
+export const prescribedBurnAdvisorInfo: ToolInfo = {
+  name: PRESCRIBED_BURN_ADVISOR_NAME,
+  route: PRESCRIBED_BURN_ADVISOR_ROUTE,
+  description: (
+    <Typography>
+      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptatibus architecto quaerat nobis, molestias alias
+      incidunt, a repellendus minus ad autem impedit assumenda adipisci consequuntur perferendis at eum error enim
+      ratione?
+    </Typography>
+  ),
+  icon: <MedicationIcon color="primary" fontSize={ICON_FONT_SIZE} />,
+  isBeta: true
+}
+
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of CardTravelSharp.
 export const toolInfos = [
+  ...(import.meta.env.MODE === 'development' ? [prescribedBurnAdvisorInfo] : []),
   fireBehaviourAdvisoryInfo,
   moreCastInfo,
   hfiCalcInfo,
