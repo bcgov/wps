@@ -100,7 +100,7 @@ async def apply_retention_policy_on_date_folders(
     :param dry_run: If True, no deletions will occur. Instead, actions will be logged to indicate what *would* be deleted.
                     Defaults to False.
     """
-    DATE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})")
+    date_pattern = re.compile(r"/(\d{4}-\d{2}-\d{2})/$")
     today = datetime.now(timezone.utc).date()
     retention_date = today - timedelta(days=days_to_retain)
     logger.info(f"Applying retention policy to '{prefix}'. Deleting data older than {days_to_retain} days (before {retention_date}).")
@@ -111,7 +111,7 @@ async def apply_retention_policy_on_date_folders(
         for folder in res["CommonPrefixes"]:
             folder_prefix = folder["Prefix"]
 
-            match = DATE_PATTERN.search(folder_prefix)
+            match = date_pattern.search(folder_prefix)
             if not match:
                 logger.warning(f"Prefix '{folder_prefix}' does not contain a valid date.")
                 continue
