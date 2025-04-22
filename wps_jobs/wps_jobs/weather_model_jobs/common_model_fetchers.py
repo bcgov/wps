@@ -2,17 +2,19 @@ from typing import List
 import logging
 import numpy
 from datetime import datetime, timedelta, timezone
+
+import requests
 from pyproj import Geod
 import numpy as np
 from sqlalchemy.orm import Session
 from wps_shared.db.crud.weather_models import (
-    get_processed_file_record,
-    get_processed_file_count,
-    get_prediction_model_run_timestamp_records,
-    get_model_run_predictions_for_station,
-    get_weather_station_model_prediction,
-    delete_weather_station_model_predictions,
     delete_model_run_predictions,
+    delete_weather_station_model_predictions,
+    get_model_run_predictions_for_station,
+    get_prediction_model_run_timestamp_records,
+    get_processed_file_count,
+    get_processed_file_record,
+    get_weather_station_model_prediction,
 )
 from wps_jobs.weather_model_jobs.utils.interpolate import (
     construct_interpolated_noon_prediction,
@@ -62,10 +64,11 @@ def flag_file_as_processed(url: str, session: Session):
     session.commit()
 
 
-def check_if_model_run_complete(session: Session, urls):
+def check_if_model_run_complete(session: Session, urls, expected_count: int = None):
     """Check if a particular model run is complete"""
     actual_count = get_processed_file_count(session, urls)
-    expected_count = len(urls)
+    if not expected_count:
+        expected_count = len(urls)
     logger.info("we have processed %s/%s files", actual_count, expected_count)
     return actual_count == expected_count and actual_count > 0
 
