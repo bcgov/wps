@@ -56,10 +56,10 @@ export const getWindSpeedMinimum = (zoneMinWindStats: AdvisoryMinWindStats[]): n
   const advisoryThresholdMinWindSpeed = zoneMinWindStats.find(windStats => windStats.threshold.id === 1)
   const warningThresholdMinWindSpeed = zoneMinWindStats.find(windStats => windStats.threshold.id === 2)
 
-  const advisoryWindSpeed = advisoryThresholdMinWindSpeed?.min_wind_speed ?? Infinity
-  const warningWindSpeed = warningThresholdMinWindSpeed?.min_wind_speed ?? Infinity
+  const advisoryWindSpeed = advisoryThresholdMinWindSpeed?.min_wind_speed ?? -1
+  const warningWindSpeed = warningThresholdMinWindSpeed?.min_wind_speed ?? -1
 
-  const validSpeeds = [advisoryWindSpeed, warningWindSpeed].filter(windSpeed => windSpeed > 0)
+  const validSpeeds = [advisoryWindSpeed, warningWindSpeed].filter(windSpeed => windSpeed >= 0)
 
   const minWindSpeed = Math.min(...validSpeeds)
 

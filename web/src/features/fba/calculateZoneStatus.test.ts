@@ -32,12 +32,12 @@ describe('getWindSpeedMinimum', () => {
     expect(getWindSpeedMinimum(input)).toBe(7)
   })
 
-  it('ignores wind speeds <= 0', () => {
+  it('ignores wind speeds < 0', () => {
     const input: AdvisoryMinWindStats[] = [
       { threshold: advisoryThreshold, min_wind_speed: 0 },
       { threshold: warningThreshold, min_wind_speed: -5 }
     ]
-    expect(getWindSpeedMinimum(input)).toBeUndefined()
+    expect(getWindSpeedMinimum(input)).toBe(0)
   })
 
   it('returns undefined if both min_wind_speed values are missing', () => {
