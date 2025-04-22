@@ -58,6 +58,11 @@ def convert_mps_to_kph(value: float):
     return value / 1000 * 3600
 
 
+def convert_kelvin_to_celsius(value: float):
+    """Convert a value from kelvin to celsius."""
+    return value - 273.15
+
+
 class GribFileProcessor:
     """Instances of this object can be used to process and ingest a grib file."""
 
