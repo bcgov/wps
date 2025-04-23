@@ -1,21 +1,22 @@
-import { render, waitFor, screen } from '@testing-library/react'
-import { DateTime } from 'luxon'
-import AdvisoryText, {
-  getTopFuelsByProportion,
-  getTopFuelsByArea,
-  getZoneMinWindStats
-} from 'features/fba/components/infoPanel/AdvisoryText'
-import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneHFIStats } from 'api/fbaAPI'
-import provincialSummarySlice, {
-  initialState as provSummaryInitialState,
-  ProvincialSummaryState
-} from 'features/fba/slices/provincialSummarySlice'
 import fireCentreHFIFuelStatsSlice, {
+  FireCentreHFIFuelStatsState,
   initialState as fuelStatsInitialState,
-  getFireCentreHFIFuelStatsSuccess,
-  FireCentreHFIFuelStatsState
+  getFireCentreHFIFuelStatsSuccess
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
+import { render, screen, waitFor } from '@testing-library/react'
+import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneHFIStats } from 'api/fbaAPI'
+import AdvisoryText, {
+  getTopFuelsByArea,
+  getTopFuelsByProportion,
+  getZoneMinWindStatsText
+} from 'features/fba/components/infoPanel/AdvisoryText'
+import provincialSummarySlice, {
+  ProvincialSummaryState,
+  initialState as provSummaryInitialState
+} from 'features/fba/slices/provincialSummarySlice'
+import { cloneDeep } from 'lodash'
+import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 
 const buildTestStore = (
@@ -123,11 +124,72 @@ const noAdvisoryDetails: FireShapeAreaDetail[] = [
   }
 ]
 
+const initialHFIFuelStats = {
+  'Cariboo Fire Centre': {
+    '20': {
+      fuel_area_stats: [
+        {
+          fuel_type: {
+            fuel_type_id: 2,
+            fuel_type_code: 'C-2',
+            description: 'Boreal Spruce'
+          },
+          threshold: {
+            id: 1,
+            name: 'advisory',
+            description: '4000 < hfi < 10000'
+          },
+          critical_hours: {
+            start_time: 9,
+            end_time: 13
+          },
+          area: 4000,
+          fuel_area: 8000
+        }
+      ],
+      min_wind_stats: [
+        {
+          threshold: {
+            id: 1,
+            name: 'advisory',
+            description: '4000 < hfi < 10000'
+          },
+          min_wind_speed: 1
+        },
+        {
+          threshold: {
+            id: 2,
+            name: 'warning',
+            description: 'hfi > 1000'
+          },
+          min_wind_speed: 1
+        }
+      ]
+    }
+  }
+}
+
 describe('AdvisoryText', () => {
   const testStore = buildTestStore({
     ...provSummaryInitialState,
     fireShapeAreaDetails: advisoryDetails
   })
+
+  const getInitialStore = () =>
+    buildTestStore({
+      ...provSummaryInitialState,
+      fireShapeAreaDetails: warningDetails
+    })
+
+  const assertInitialState = () => {
+    expect(screen.queryByTestId('advisory-message-advisory')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-min-wind-speeds')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-proportion')).toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-warning')).toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-early-low-wind')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-overnight')).not.toBeInTheDocument()
+  }
 
   it('should render the advisory text container', () => {
     const { getByTestId } = render(
@@ -265,6 +327,9 @@ describe('AdvisoryText', () => {
     expect(bulletinIssueDate).toHaveTextContent(
       `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for today.`
     )
+    expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-early-low-wind')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-overnight')).not.toBeInTheDocument()
   })
 
   it('should render advisory status', () => {
@@ -293,15 +358,15 @@ describe('AdvisoryText', () => {
     expect(bulletinIssueDate).toHaveTextContent(
       `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for today.`
     )
+    expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-early-low-wind')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-overnight')).not.toBeInTheDocument()
   })
 
-  it('should render wind speed text when fire zone unit is selected', async () => {
-    const initialStore = buildTestStore({
-      ...provSummaryInitialState,
-      fireShapeAreaDetails: warningDetails
-    })
-    const { queryByTestId } = render(
-      <Provider store={initialStore}>
+  it('should render wind speed text and early fire behaviour text when fire zone unit is selected, based on wind speed & critical hours data', async () => {
+    const store = getInitialStore()
+    render(
+      <Provider store={store}>
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
@@ -311,63 +376,72 @@ describe('AdvisoryText', () => {
         />
       </Provider>
     )
-    const advisoryMessage = queryByTestId('advisory-message-advisory')
-    const warningMessage = queryByTestId('advisory-message-warning')
-    const proportionMessage = queryByTestId('advisory-message-proportion')
-    const windSpeedMessage = queryByTestId('advisory-message-min-wind-speeds')
-    expect(advisoryMessage).not.toBeInTheDocument()
-    expect(windSpeedMessage).not.toBeInTheDocument()
-    expect(proportionMessage).toBeInTheDocument()
-    expect(warningMessage).toBeInTheDocument()
+    assertInitialState()
 
-    initialStore.dispatch(
-      getFireCentreHFIFuelStatsSuccess({
-        'Cariboo Fire Centre': {
-          '20': {
-            fuel_area_stats: [
-              {
-                fuel_type: {
-                  fuel_type_id: 2,
-                  fuel_type_code: 'C-2',
-                  description: 'Boreal Spruce'
-                },
-                threshold: {
-                  id: 1,
-                  name: 'advisory',
-                  description: '4000 < hfi < 10000'
-                },
-                critical_hours: {
-                  start_time: 9,
-                  end_time: undefined
-                },
-                area: 4000,
-                fuel_area: 8000
-              }
-            ],
-            min_wind_stats: [
-              {
-                threshold: {
-                  id: 1,
-                  name: 'advisory',
-                  description: '4000 < hfi < 10000'
-                },
-                min_wind_speed: 1
-              },
-              {
-                threshold: {
-                  id: 2,
-                  name: 'warning',
-                  description: 'hfi > 1000'
-                },
-                min_wind_speed: 1
-              }
-            ]
-          }
-        }
-      })
+    store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
+
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-wind-speed')).toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).not.toBeInTheDocument())
+  })
+
+  it('should render early advisory text and overnight burning text when critical hours go into the next day and start before 12', async () => {
+    const store = getInitialStore()
+    render(
+      <Provider store={store}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
     )
+    assertInitialState()
 
-    await waitFor(() => expect(screen.queryByTestId('advisory-message-min-wind-speeds')).toBeInTheDocument())
+    let overnightStats = cloneDeep(initialHFIFuelStats)
+    overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 5
+
+    store.dispatch(getFireCentreHFIFuelStatsSuccess(overnightStats))
+
+    await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByTestId('overnight-burning-text')).toHaveTextContent(
+        'and remain elevated into the overnight hours.'
+      )
+    )
+  })
+
+  it('should render only overnight burning text when critical hours go into the next day and start after 12', async () => {
+    const store = getInitialStore()
+    render(
+      <Provider store={store}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    assertInitialState()
+
+    let overnightStats = cloneDeep(initialHFIFuelStats)
+    overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 5
+    overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.start_time = 13
+
+    store.dispatch(getFireCentreHFIFuelStatsSuccess(overnightStats))
+
+    await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByTestId('overnight-burning-text')).toHaveTextContent(
+        'Be prepared for fire behaviour to remain elevated into the overnight hours.'
+      )
+    )
   })
 
   it('should render critical hours missing message when critical hours start time is missing', () => {
@@ -584,8 +658,8 @@ describe('getTopFuelsByProportion', () => {
 })
 
 describe('getZoneMinWindStats', () => {
-  it('should return both advisory and warning min wind speeds', () => {
-    const result = getZoneMinWindStats([
+  it('should return the minimum wind speed', () => {
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 1,
@@ -603,13 +677,10 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 2
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(
-      `Minimum forecasted wind speeds of 1 km/hr and 2 km/hr will result in Head Fire Intensity Classes 5 and 6 respectively.`
-    )
+    expect(result).toEqual(`if winds exceed 1 km/h`)
   })
-  it('should return both advisory and warning min wind speeds when they are the same', () => {
-    const result = getZoneMinWindStats([
+  it('should return the minimum wind speed when they are the same', () => {
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 1,
@@ -627,11 +698,10 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 1
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(`Minimum forecasted wind speed for both Head Fire Intensity Classes 5 and 6 is 1 km/hr.`)
+    expect(result).toEqual(`if winds exceed 1 km/h`)
   })
   it('should return just advisory min wind speed', () => {
-    const result = getZoneMinWindStats([
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 1,
@@ -641,12 +711,11 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 1
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 5.`)
+    expect(result).toEqual(`if winds exceed 1 km/h`)
   })
 
   it('should return just warning min wind speed', () => {
-    const result = getZoneMinWindStats([
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 2,
@@ -656,19 +725,18 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 1
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 6.`)
+    expect(result).toEqual(`if winds exceed 1 km/h`)
   })
 
-  it('should return specific text when both min wind speeds are 0', () => {
-    const result = getZoneMinWindStats([
+  it('should return specific text when both min wind speeds are 0 or round to 0', () => {
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 1,
           name: 'advisory',
           description: '4000 < hfi < 10000'
         },
-        min_wind_speed: 0
+        min_wind_speed: 0.1
       },
       {
         threshold: {
@@ -679,11 +747,10 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 0
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(`There are no minimum wind speeds that would result in Head Fire Intensity Classes 5 or 6.`)
+    expect(result).toEqual('if winds exceed 0 km/h')
   })
   it('should return specific text when only advisory min wind speed is 0', () => {
-    const result = getZoneMinWindStats([
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 1,
@@ -701,11 +768,10 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 1
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 6.`)
+    expect(result).toEqual(`if winds exceed 0 km/h`)
   })
   it('should return specific text when only warning min wind speed is 0', () => {
-    const result = getZoneMinWindStats([
+    const result = getZoneMinWindStatsText([
       {
         threshold: {
           id: 1,
@@ -723,7 +789,6 @@ describe('getZoneMinWindStats', () => {
         min_wind_speed: 0
       }
     ])
-    // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(`Minimum forecasted wind speed of 1 km/hr will result in Head Fire Intensity Class 5.`)
+    expect(result).toEqual(`if winds exceed 0 km/h`)
   })
 })

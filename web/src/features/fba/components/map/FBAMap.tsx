@@ -164,10 +164,10 @@ const FBAMap = (props: FBAMapProps) => {
           if (!feature) {
             return
           }
-
+          const zonePlacename = `${feature.getProperties().FIRE_ZONE_} - ${feature.getProperties().FIRE_ZON_1}`
           const fireZone: FireShape = {
             fire_shape_id: feature.getProperties().OBJECTID,
-            mof_fire_zone_name: feature.getProperties().FIRE_ZONE,
+            mof_fire_zone_name: zonePlacename,
             mof_fire_centre_name: feature.getProperties().FIRE_CENTR,
             area_sqm: feature.getProperties().Shape_Area
           }
