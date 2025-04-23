@@ -254,7 +254,7 @@ def mock_get_s3_client(monkeypatch):
 def test_chaines_endpoint(endpoint, status_code, expected_response_file):
     client = TestClient(app.main.app)
     # For the test, we set allow_redirects=False, so that we can test when we get a redirect.
-    response = client.get(endpoint, allow_redirects=False)
+    response = client.get(endpoint, follow_redirects=False)
     expected_response = load_expected_response(__file__)(expected_response_file) if expected_response_file is not None else None
     assert response.status_code == status_code
     if expected_response["type"] == "json":
@@ -276,6 +276,6 @@ def test_chaines_endpoint(endpoint, status_code, expected_response_file):
 @pytest.mark.usefixtures("mock_get_s3_client")
 def test_chaines_endpoint_no_response(endpoint, status_code, expected_response):
     client = TestClient(app.main.app)
-    response = client.get(endpoint, allow_redirects=False)
+    response = client.get(endpoint, follow_redirects=False)
     assert response.status_code == status_code
     assert response.content == expected_response

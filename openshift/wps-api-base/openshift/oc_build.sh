@@ -56,7 +56,3 @@ if [ "${APPLY}" ]; then
 		exit 1
 	fi
 fi
-
-# Provide oc command instruction
-#
-display_helper "${OC_PROCESS} | ${OC_APPLY}" "${OC_START_BUILD}"
