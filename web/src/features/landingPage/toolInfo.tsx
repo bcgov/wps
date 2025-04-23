@@ -27,8 +27,8 @@ import {
   MORECAST_ROUTE,
   SFMS_INSIGHTS_NAME,
   SFMS_INSIGHTS_ROUTE,
-  PRESCRIBED_BURN_ADVISOR_NAME,
-  PRESCRIBED_BURN_ADVISOR_ROUTE
+  FIRE_WATCH_NAME,
+  FIRE_WATCH_ROUTE
 } from 'utils/constants'
 
 const ICON_FONT_SIZE = 'large'
@@ -152,8 +152,8 @@ export const sfmsInsightsInfo: ToolInfo = {
 }
 
 export const prescribedBurnAdvisorInfo: ToolInfo = {
-  name: PRESCRIBED_BURN_ADVISOR_NAME,
-  route: PRESCRIBED_BURN_ADVISOR_ROUTE,
+  name: FIRE_WATCH_NAME,
+  route: FIRE_WATCH_ROUTE,
   description: (
     <Typography>
       Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptatibus architecto quaerat nobis, molestias alias
@@ -168,7 +168,7 @@ export const prescribedBurnAdvisorInfo: ToolInfo = {
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of CardTravelSharp.
 export const toolInfos = [
-  ...(import.meta.env.MODE === 'development' ? [prescribedBurnAdvisorInfo] : []),
+  prescribedBurnAdvisorInfo,
   fireBehaviourAdvisoryInfo,
   moreCastInfo,
   hfiCalcInfo,
