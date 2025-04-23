@@ -543,54 +543,54 @@ objects:
     # API ROUTE
     # Route for psu.nrs.gov.bc.ca/api
     # Points to api
-  #   kind: Route
-  #   metadata:
-  #     labels:
-  #       app: ${APP_NAME}-${SUFFIX}
-  #       certbot-managed: "true"
-  #     name: ${APP_NAME}-api-${SUFFIX}-vanity
-  #     annotations:
-  #       # Enable HTTP Strict Transport Security:
-  #       haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
-  #       # Use roundrobin load balancing strategy
-  #       haproxy.router.openshift.io/balance: roundrobin
-  #       haproxy.router.openshift.io/disable_cookies: "true"
-  #       # TODO: we don't want to keep it at 60s - this is just a temporary workaround while
-  #       # we generate classified HFI on the fly.
-  #       haproxy.router.openshift.io/timeout: 60s
-  #   spec:
-  #     host: ${VANITY_DOMAIN}
-  #     path: "/api"
-  #     port:
-  #       targetPort: 8080-tcp
-  #     to:
-  #       kind: Service
-  #       name: ${APP_NAME}-api-${SUFFIX}
-  #     tls:
-  #       termination: edge
-  # - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+        certbot-managed: "true"
+      name: ${APP_NAME}-api-${SUFFIX}-vanity
+      annotations:
+        # Enable HTTP Strict Transport Security:
+        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+        # Use roundrobin load balancing strategy
+        haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/disable_cookies: "true"
+        # TODO: we don't want to keep it at 60s - this is just a temporary workaround while
+        # we generate classified HFI on the fly.
+        haproxy.router.openshift.io/timeout: 60s
+    spec:
+      host: ${VANITY_DOMAIN}
+      path: "/api"
+      port:
+        targetPort: 8080-tcp
+      to:
+        kind: Service
+        name: ${APP_NAME}-api-${SUFFIX}
+      tls:
+        termination: edge
+  - apiVersion: route.openshift.io/v1
     ################################################################################
     # WEB ROUTE
     # Route for psu.nrs.gov.bc.ca
     # Points to web
-    # kind: Route
-    # metadata:
-    #   labels:
-    #     app: ${APP_NAME}-${SUFFIX}
-    #     certbot-managed: "true"
-    #   name: ${APP_NAME}-${SUFFIX}-vanity
-    #   annotations:
-    #     # Enable HTTP Strict Transport Security:
-    #     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
-    #     # Use roundrobin load balancing strategy
-    #     haproxy.router.openshift.io/balance: roundrobin
-    #     haproxy.router.openshift.io/disable_cookies: "true"
-    # spec:
-    #   host: ${VANITY_DOMAIN}
-    #   port:
-    #     targetPort: 3000-tcp
-    #   to:
-    #     kind: Service
-    #     name: ${APP_NAME}-web-${SUFFIX}
-    #   tls:
-    #     termination: edge
+    kind: Route
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+        certbot-managed: "true"
+      name: ${APP_NAME}-${SUFFIX}-vanity
+      annotations:
+        # Enable HTTP Strict Transport Security:
+        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+        # Use roundrobin load balancing strategy
+        haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/disable_cookies: "true"
+    spec:
+      host: ${VANITY_DOMAIN}
+      port:
+        targetPort: 3000-tcp
+      to:
+        kind: Service
+        name: ${APP_NAME}-web-${SUFFIX}
+      tls:
+        termination: edge
