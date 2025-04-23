@@ -3,7 +3,7 @@ name: Integration
 on:
   pull_request:
     branches:
-      - main
+      - innovation/prescribed-burn
 jobs:
   lint-api:
     name: Python - Lint
