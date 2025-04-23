@@ -1,6 +1,6 @@
 import Footer from '@/features/landingPage/components/Footer'
-import MenuHeader from '@/features/prescribedBurnAdvisor/components/MenuHeader'
-import NavigationDrawer from '@/features/prescribedBurnAdvisor/components/NavigationDrawer'
+import MenuHeader from '@/features/fireWatch/components/MenuHeader'
+import NavigationDrawer from '@/features/fireWatch/components/NavigationDrawer'
 import { DRAWER_WIDTH } from '@/utils/constants'
 import { Box, BoxProps, styled } from '@mui/material'
 import { useState } from 'react'
@@ -32,7 +32,7 @@ const TransitionBox = styled(Box, {
   ]
 }))
 
-const PrescribedBurnAdvisor = () => {
+const FireWatch = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false)
   return (
     <Box
@@ -53,4 +53,4 @@ const PrescribedBurnAdvisor = () => {
   )
 }
 
-export default PrescribedBurnAdvisor
+export default FireWatch
