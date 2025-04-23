@@ -1,4 +1,4 @@
-import { PRESCRIBED_BURN_ADVISOR_NAME } from "@/utils/constants";
+import { FIRE_WATCH_NAME } from "@/utils/constants";
 import { IconButton, AppBar, styled, Toolbar, Typography } from "@mui/material"
 import MenuIcon from '@mui/icons-material/Menu'
 import HeaderImage from "@/components/HeaderImage";
@@ -31,7 +31,7 @@ const MenuHeader = ({open, setOpen}: MenuHeaderProps) => {
           </IconButton>
           <HeaderImage />
           <Typography sx={{fontSize: '1.7em'}} >
-            {PRESCRIBED_BURN_ADVISOR_NAME}
+            {FIRE_WATCH_NAME}
           </Typography>
         </Toolbar>
     </StyledAppBar>
