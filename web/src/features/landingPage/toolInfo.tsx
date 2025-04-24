@@ -56,7 +56,7 @@ export const cHainesInfo: ToolInfo = {
   description: (
     <Typography>
       A provincial map that animates forecasted atmospheric stability and potential for pyro-convection in the form of
-      the Continuous Haines Index.
+      the Continuous Haines Index .
     </Typography>
   ),
   icon: <PublicIcon color="primary" fontSize={ICON_FONT_SIZE} />,
