@@ -11,20 +11,16 @@ The Docker image and template in this folder are used to create the base image u
 oc -n e1e498-tools process -f build.yaml | oc -n e1e498-tools apply -f -
 ```
 
-## apply template using a specified branch
+## apply template using a specified branch and version
 
 ```bash
-oc -n e1e498-tools process -p GIT_BRANCH=my-branch process -f build.yaml | oc -n e1e498-tools apply -f -
+oc -n e1e498-tools process -p GIT_BRANCH=my-branch -p VERSION=01-01-2025 -f build.yaml | oc -n e1e498-tools apply -f -
 ```
 
-## The image can also be built by kicking off a build in Openshift
+## The image can be built by kicking off a build in Openshift
 
 ```bash
-# dry run to check first
-VERSION=<dd-mm-yyyy> oc_build.sh
-
-# then run
-VERSION=<dd-mm-yyyy> oc_build.sh apply
+oc -n e1e498-tools start-build wps-api-base --follow
 
 # now tag the built image as prod
 oc -n e1e498-tools tag wps-api-base:<dd-mm-yyyy> wps-api-base:ubuntu.24.04-latest
