@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'openshift/wps-api-base/docker/Dockerfile'
-      - '.github/workflows/publish_docker_base.yml'
+
 jobs:
   build-and-publish:
     name: Build and Publish Docker Image

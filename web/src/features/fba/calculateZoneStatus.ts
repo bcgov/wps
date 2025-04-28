@@ -1,7 +1,7 @@
 import { AdvisoryMinWindStats, FireShapeAreaDetail } from '@/api/fbaAPI'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 import { AdvisoryStatus } from '@/utils/constants'
-import { isEqual, isNil, isUndefined } from 'lodash'
+import { isNil, isUndefined } from 'lodash'
 
 export const calculateStatusColour = (
   details: FireShapeAreaDetail[],
@@ -52,43 +52,23 @@ export const calculateStatusText = (
   }
 }
 
-export const calculateWindSpeedText = (zoneMinWindStats: AdvisoryMinWindStats[]) => {
-  const advisoryThresholdMinWindSpeed = zoneMinWindStats.find(windStats => windStats.threshold.id == 1)
-  const warningThresholdMinWindSpeed = zoneMinWindStats.find(windStats => windStats.threshold.id == 2)
+export const getWindSpeedMinimum = (zoneMinWindStats: AdvisoryMinWindStats[]): number | undefined => {
+  const advisoryThresholdMinWindSpeed = zoneMinWindStats.find(windStats => windStats.threshold.id === 1)
+  const warningThresholdMinWindSpeed = zoneMinWindStats.find(windStats => windStats.threshold.id === 2)
 
-  const getEqualWindSpeedText = (minAdvisoryWindSpeed: number, minWarningWindSpeed: number) => {
-    if (minAdvisoryWindSpeed === 0) {
-      return 'There are no minimum wind speeds that would result in Head Fire Intensity Classes 5 or 6.'
-    }
-    return `Minimum forecasted wind speed for both Head Fire Intensity Classes 5 and 6 is ${minAdvisoryWindSpeed} km/hr.`
-  }
+  const advisoryWindSpeed = advisoryThresholdMinWindSpeed?.min_wind_speed ?? -1
+  const warningWindSpeed = warningThresholdMinWindSpeed?.min_wind_speed ?? -1
 
-  const getMinAdvisoryWindSpeedText = (minAdvisoryWindSpeed: AdvisoryMinWindStats | undefined) =>
-    `Minimum forecasted wind speed of ${minAdvisoryWindSpeed?.min_wind_speed?.toPrecision(1) ?? 0} km/hr will result in Head Fire Intensity Class 5.`
+  const validSpeeds = [advisoryWindSpeed, warningWindSpeed].filter(windSpeed => windSpeed >= 0)
 
-  const getMinWarningWindSpeedText = (minWarningWindSpeed: AdvisoryMinWindStats | undefined) =>
-    `Minimum forecasted wind speed of ${minWarningWindSpeed?.min_wind_speed?.toPrecision(1) ?? 0} km/hr will result in Head Fire Intensity Class 6.`
+  const minWindSpeed = Math.min(...validSpeeds)
 
-  if (!isNil(warningThresholdMinWindSpeed) && !isNil(advisoryThresholdMinWindSpeed)) {
-    const minAdvisoryWindSpeed = Number(advisoryThresholdMinWindSpeed?.min_wind_speed?.toPrecision(1) ?? 0)
-    const minWarningWindSpeed = Number(warningThresholdMinWindSpeed?.min_wind_speed?.toPrecision(1) ?? 0)
-    if (isEqual(minAdvisoryWindSpeed, minWarningWindSpeed)) {
-      return getEqualWindSpeedText(minAdvisoryWindSpeed, minWarningWindSpeed)
-    }
-    if (minAdvisoryWindSpeed === 0) {
-      return getMinWarningWindSpeedText(warningThresholdMinWindSpeed)
-    }
-    if (minWarningWindSpeed === 0) {
-      return getMinAdvisoryWindSpeedText(advisoryThresholdMinWindSpeed)
-    }
-    return `Minimum forecasted wind speeds of ${advisoryThresholdMinWindSpeed?.min_wind_speed?.toPrecision(1) ?? 0} km/hr and ${warningThresholdMinWindSpeed?.min_wind_speed?.toPrecision(1) ?? 0} km/hr will result in Head Fire Intensity Classes 5 and 6 respectively.`
-  }
+  return minWindSpeed !== Infinity ? minWindSpeed : undefined
+}
 
-  if (isNil(warningThresholdMinWindSpeed)) {
-    return getMinAdvisoryWindSpeedText(advisoryThresholdMinWindSpeed)
-  }
+export const calculateWindSpeedText = (zoneMinWindStats: AdvisoryMinWindStats[]): string | undefined => {
+  const minWindSpeed = getWindSpeedMinimum(zoneMinWindStats)
 
-  if (isNil(advisoryThresholdMinWindSpeed)) {
-    return getMinWarningWindSpeedText(warningThresholdMinWindSpeed)
-  }
+  // 0 is falsy, so we need to perform a null/undefined check for this to consider 0 valid
+  return !isNil(minWindSpeed) ? `if winds exceed ${minWindSpeed.toFixed(0)} km/h` : undefined
 }
