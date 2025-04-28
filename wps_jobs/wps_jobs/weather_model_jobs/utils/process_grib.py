@@ -63,6 +63,23 @@ def convert_kelvin_to_celsius(value: float):
     return value - 273.15
 
 
+def calculate_relative_humidity(temp: float, dew_temp: float) -> float:
+    """
+    Calculate relative humidity (RH) from air temperature and dew point temperature.
+
+    :param temp: Air temperature in Kelvin.
+    :param dew_temp: Dew point temperature in Kelvin.
+    :return: Relative humidity
+    """
+    # Convert temperature and dew point from Kelvin to Celsius
+    temp_c = convert_kelvin_to_celsius(temp)
+    dew_temp_c = dew_temp - 273.15
+
+    rh = 100 * (np.exp((17.625 * dew_temp_c) / (dew_temp_c + 243.04)) / np.exp((17.625 * temp_c) / (temp_c + 243.04)))
+
+    return rh
+
+
 class GribFileProcessor:
     """Instances of this object can be used to process and ingest a grib file."""
 
