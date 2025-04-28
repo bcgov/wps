@@ -206,14 +206,15 @@ class ModelRunPrediction(Base):
     # Wind speed 10m above ground.
     wind_tgl_10 = Column(Float, nullable=True)
 
-    def get_weather_model_fields(self):
-        """Return the prediction fields as a list."""
+    @staticmethod
+    def get_weather_model_fields():
+        """Return the list of weather model fields as direct references."""
         return [
-            self.tmp_tgl_2.name,
-            self.rh_tgl_2.name,
-            self.apcp_sfc_0.name,
-            self.wdir_tgl_10.name,
-            self.wind_tgl_10.name,
+            ModelRunPrediction.tmp_tgl_2.name,
+            ModelRunPrediction.rh_tgl_2.name,
+            ModelRunPrediction.apcp_sfc_0.name,
+            ModelRunPrediction.wdir_tgl_10.name,
+            ModelRunPrediction.wind_tgl_10.name,
         ]
 
 
