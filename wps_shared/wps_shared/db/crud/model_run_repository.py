@@ -43,7 +43,7 @@ class ModelRunRepository:
         prediction_run = self.get_prediction_run(prediction_model.id, prediction_run_timestamp)
         if not prediction_run:
             logger.info("Creating prediction run %s for %s", prediction_model.abbreviation, prediction_run_timestamp)
-            prediction_run = self.create_prediction_run(prediction_model.id, prediction_run_timestamp, False, False)
+            prediction_run = self.create_prediction_run(prediction_model.id, prediction_run_timestamp)
         return prediction_run
 
     def mark_prediction_model_run_processed(self, model: ModelEnum, projection: ProjectionEnum, model_run_datetime: datetime):
