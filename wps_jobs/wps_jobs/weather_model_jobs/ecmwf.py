@@ -23,6 +23,7 @@ from wps_jobs.weather_model_jobs.ecmwf_model_processor import ECMWFModelProcesso
 from wps_jobs.weather_model_jobs.utils.process_grib import PredictionModelNotFound
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
 
+gdal.UseExceptions()
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
