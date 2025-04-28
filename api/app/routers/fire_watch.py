@@ -79,13 +79,14 @@ def marshall_fire_watch_input_to_db(fire_watch_input: FireWatchInput, idir_usern
     )
     return db_fire_watch
 
+
 def get_cordinates_from_geometry(geometry) -> List[float]:
     if isinstance(geometry, str):
         return from_wkt(geometry)
     elif isinstance(geometry, WKBElement):
         return to_shape(geometry)
-    else:
-        None
+    raise TypeError("Unrecognized geometry type.")
+
 
 def marshall_fire_watch_db_to_api(db_fire_watch: DBFireWatch) -> FireWatchOutput:
     location = get_cordinates_from_geometry(db_fire_watch.burn_location)
