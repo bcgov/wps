@@ -3,7 +3,7 @@ name: Deployment
 on:
   pull_request:
     branches:
-      - main
+      - innovation/prescribed-burn
 
 jobs:
   prepare-dev-database:

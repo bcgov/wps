@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - main
+      - innovation/prescribed-burn
 
 jobs:
   cleanup-non-db:
@@ -36,11 +36,11 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
           bash openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
 
-      - name: Clean up - test (OCP4)
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
-          PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
+      # - name: Clean up - test (OCP4)
+      #   shell: bash
+      #   run: |
+      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+      #     PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
 
   cleanup-db:
     name: Delete DB resources associated with PR
@@ -66,11 +66,11 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
 
-      - name: Clean up test database
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
-          PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
+      # - name: Clean up test database
+      #   shell: bash
+      #   run: |
+      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+      #     PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
 
       - name: Clean up s3 backups in object store
         shell: bash

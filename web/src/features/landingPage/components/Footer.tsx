@@ -13,7 +13,8 @@ const Root = styled('div', {
   borderTopWidth: 2,
   borderTopStyle: 'solid',
   borderTopColor: theme.palette.secondary.main,
-  minHeight: '50px'
+  minHeight: '50px',
+  zIndex: theme.zIndex.drawer + 1
 })
 
 const FooterLinks = styled('div', {
