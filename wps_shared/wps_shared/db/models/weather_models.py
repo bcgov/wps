@@ -174,9 +174,8 @@ class ModelRunGridSubsetPrediction(Base):
             "prediction_timestamp={self.prediction_timestamp}, "
             "tmp_tgl_2={self.tmp_tgl_2}, "
             "rh_tgl_2={self.rh_tgl_2}, "
-            "apcp_sfc_0={self.apcp_sfc_0}"
-            "wdir_tgl_10={self.wdir_tgl_10}"
-            "wind_tgl_10={self.wind_tgl_10}"
+            "apcp_sfc_0={self.apcp_sfc_0}, "
+            "wdir_tgl_10={self.wdir_tgl_10}, "
         ).format(self=self)
 
 
