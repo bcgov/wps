@@ -48,7 +48,7 @@ _write_session = sessionmaker(autocommit=False, autoflush=False, bind=_write_eng
 _read_session = sessionmaker(autocommit=False, autoflush=False, bind=_read_engine)
 _async_read_sessionmaker = sessionmaker(autocommit=False, autoflush=False, bind=_async_read_engine, class_=AsyncSession)
 _async_write_sessionmaker = sessionmaker(autocommit=False, autoflush=False, bind=_async_write_engine, class_=AsyncSession)
-
+_async_write_sessionmaker_no_commit = sessionmaker(autocommit=False, autoflush=False, bind=_async_write_engine, class_=AsyncSession, expire_on_commit=False)
 
 def _get_write_session() -> Session:
     """abstraction used for mocking out a write session"""
@@ -69,6 +69,10 @@ def _get_async_write_session() -> AsyncSession:
     """abstraction used for mocking out a read session"""
     return _async_write_sessionmaker()
 
+def _get_async_write_session_no_expire():
+    """abstraction used for mocking out a write session with expire_on_commit = False"""
+    return _async_write_sessionmaker_no_commit()
+
 
 @asynccontextmanager
 async def get_async_read_session_scope() -> AsyncGenerator[AsyncSession, None]:
@@ -84,6 +88,19 @@ async def get_async_read_session_scope() -> AsyncGenerator[AsyncSession, None]:
 async def get_async_write_session_scope() -> AsyncGenerator[AsyncSession, None]:
     """Return a session scope for async read session"""
     session = _get_async_write_session()
+    try:
+        yield session
+        await session.commit()
+    except:
+        await session.rollback()
+        raise
+    finally:
+        await session.close()
+
+@asynccontextmanager
+async def get_async_write_session_scope_no_expire() -> AsyncGenerator[AsyncSession, None]:
+    """Return a session scope for async read session"""
+    session = _get_async_write_session_no_expire()
     try:
         yield session
         await session.commit()
