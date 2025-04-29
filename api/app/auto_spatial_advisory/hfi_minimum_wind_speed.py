@@ -100,7 +100,9 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
 
             wind_path = "/vsimem/zone_wind.tif"
             intersected_ds: gdal.Dataset = gdal.Warp(wind_path, wind_ds, options=warp_options)
-            wind_array_clip = intersected_ds.GetRasterBand(1).ReadAsArray()
+            wind_band = intersected_ds.GetRasterBand(1)
+            wind_array_clip = wind_band.ReadAsArray()
+            wind_nodata = wind_band.GetNoDataValue()
 
             hfi_path = "/vsimem/zone_hfi.tif"
             intersected_ds: gdal.Dataset = gdal.Warp(hfi_path, hfi_ds, options=warp_options)
@@ -111,7 +113,7 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
             gdal.Unlink(hfi_path)
 
             # Compute minimum wind speed for each HFI range
-            hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(wind_array_clip, hfi_array_clip, advisory_id_lut)
+            hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(wind_array_clip, hfi_array_clip, advisory_id_lut, wind_nodata)
 
             records_to_save = create_hfi_wind_speed_record(zone.id, hfi_min_wind_speeds, run_parameters_id)
 
@@ -120,18 +122,23 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
     await save_all_hfi_wind_speeds(session, all_hfi_min_wind_speeds_to_save)
 
 
-def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.ndarray, advisory_id_lut: dict[str, int]) -> dict[int, float | None]:
+def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.ndarray, advisory_id_lut: dict[str, int], wind_nodata_value: float | None) -> dict[int, float | None]:
     """
     Calculates the minimum wind speed for each HfiClassificationThresholdEnum given a wind speed array and an hfi array.
 
     :param wind_speed_array: Array of wind speed values extracted from raster
     :param hfi_array: Array of hfi values extracted from raster
+    :param advisory_id_lut: Lookup table for advisory/warning id's
+    :param wind_nodata_value: NoData value from wind speed raster
     :return: Dict of advisory level and it's corresponding minimum wind speed
     """
     hfi_class_ids = {
         advisory_id_lut[HfiClassificationThresholdEnum.ADVISORY.value]: (hfi_array >= 4000) & (hfi_array < 10000),
         advisory_id_lut[HfiClassificationThresholdEnum.WARNING.value]: (hfi_array >= 10000),
     }
+
+    if wind_nodata_value is not None:  # convert nodata values to np.nan
+        wind_speed_array = np.where(wind_speed_array == wind_nodata_value, np.nan, wind_speed_array)
 
     # Compute minimum wind speed for each classification
     min_wind_speeds: dict[int, float | None] = {}
@@ -140,7 +147,8 @@ def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.n
 
     return min_wind_speeds
 
-async def get_hfi_threshold_ids(session: AsyncSession)-> dict[str, int]:
+
+async def get_hfi_threshold_ids(session: AsyncSession) -> dict[str, int]:
     """
     Returns dict of {name: id} for advisory, warning threshold records
     """
