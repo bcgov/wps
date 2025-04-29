@@ -73,7 +73,7 @@ def calculate_relative_humidity(temp: float, dew_temp: float) -> float:
     """
     # Convert temperature and dew point from Kelvin to Celsius
     temp_c = convert_kelvin_to_celsius(temp)
-    dew_temp_c = dew_temp - 273.15
+    dew_temp_c = convert_kelvin_to_celsius(dew_temp)
 
     rh = 100 * (np.exp((17.625 * dew_temp_c) / (dew_temp_c + 243.04)) / np.exp((17.625 * temp_c) / (temp_c + 243.04)))
 
