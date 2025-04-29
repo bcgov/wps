@@ -33,7 +33,7 @@ gdal.UseExceptions()
 logger = logging.getLogger(__name__)
 
 
-def get_percent_conifer_s3_key(for_date: date, s3_client: S3Client) -> Optional[str]:
+async def get_percent_conifer_s3_key(for_date: date, s3_client: S3Client) -> Optional[str]:
     """
     Gets the S3 key for the percent conifer file for the given year
     or the previous year, if available.
@@ -43,10 +43,10 @@ def get_percent_conifer_s3_key(for_date: date, s3_client: S3Client) -> Optional[
     last_year = current_year - 1
 
     for year in [current_year, last_year]:
-        key = f"/vsis3/{s3_client.bucket}/sfms/static/m12_{year}.tif"
-        if s3_client.all_objects_exist(key):
+        key = f"sfms/static/m12_{year}.tif"
+        if await s3_client.all_objects_exist(key):
             logger.info(f"Found percent conifer grid - {key}")
-            return key
+            return f"/vsis3/{s3_client.bucket}/{key}"
     logger.error(f"No percent conifer key found for {current_year} or {last_year}")
     return None
 
@@ -88,8 +88,8 @@ async def process_min_percent_conifer_by_zone(session: AsyncSession, run_paramet
     source_srs = osr.SpatialReference()
     source_srs.ImportFromEPSG(srid)
 
-    with S3Client() as s3_client:
-        pct_conifer_key = get_percent_conifer_s3_key(for_date, s3_client)
+    async with S3Client() as s3_client:
+        pct_conifer_key = await get_percent_conifer_s3_key(for_date, s3_client)
     if not pct_conifer_key:
         return
 

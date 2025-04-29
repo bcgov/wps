@@ -1,5 +1,5 @@
 from datetime import date
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 import numpy as np
 import pytest
 from app.auto_spatial_advisory.hfi_percent_conifer import get_minimum_percent_conifer_for_hfi, get_percent_conifer_s3_key
@@ -45,28 +45,32 @@ def test_no_values_above_threshold():
 def mock_s3():
     mock = MagicMock()
     mock.bucket = "bucket"
+    mock.all_objects_exist = AsyncMock()
     return mock
 
 
 SFMS_TEST_DATE = date(2024, 12, 15)
 
 
-def test_get_percent_conifer_s3_key_current_year(mock_s3):
+@pytest.mark.anyio
+async def test_get_percent_conifer_s3_key_current_year(mock_s3):
     mock_s3.all_objects_exist.side_effect = lambda key: "m12_2024.tif" in key
 
-    key = get_percent_conifer_s3_key(SFMS_TEST_DATE, mock_s3)
+    key = await get_percent_conifer_s3_key(SFMS_TEST_DATE, mock_s3)
     assert key == "/vsis3/bucket/sfms/static/m12_2024.tif"
 
 
-def test_get_percent_conifer_s3_key_fallback_year(mock_s3):
+@pytest.mark.anyio
+async def test_get_percent_conifer_s3_key_fallback_year(mock_s3):
     mock_s3.all_objects_exist.side_effect = lambda key: "m12_2023.tif" in key
 
-    key = get_percent_conifer_s3_key(SFMS_TEST_DATE, mock_s3)
+    key = await get_percent_conifer_s3_key(SFMS_TEST_DATE, mock_s3)
     assert key == "/vsis3/bucket/sfms/static/m12_2023.tif"
 
 
-def test_get_percent_conifer_s3_key_none_exist(mock_s3):
+@pytest.mark.anyio
+async def test_get_percent_conifer_s3_key_none_exist(mock_s3):
     mock_s3.all_objects_exist.return_value = False
 
-    key = get_percent_conifer_s3_key(SFMS_TEST_DATE, mock_s3)
+    key = await get_percent_conifer_s3_key(SFMS_TEST_DATE, mock_s3)
     assert key is None
