@@ -3,14 +3,8 @@
 from datetime import datetime
 from typing import Optional
 from enum import Enum
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import xarray
-import numpy as np
-from wps_jobs.weather_model_jobs.utils.process_grib import convert_mps_to_kph, convert_kelvin_to_celsius, calculate_relative_humidity
-
-# Key values on ModelRunGridSubsetPrediction.
-# Wind direction (wdir_tgl_10_b) is handled slightly differently, so not included here.
-SCALAR_MODEL_VALUE_KEYS = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_10")
 
 
 class ModelEnum(str, Enum):
@@ -37,20 +31,6 @@ class ProjectionEnum(str, Enum):
     HRDPS_LATLON = "RLatLon0.0225"
     NAM_POLAR_STEREO = "ps32km"
     ECMWF_LATLON = "latlon.0.25deg"
-
-
-@dataclass(frozen=True)
-class FireZoneTPIStats:
-    """
-    Captures fire zone stats of TPI pixels hitting >4K HFI threshold via
-    a dictionary, fire_zone_stats, of {source_identifier: {1: X, 2: Y, 3: Z}}, where 1 = valley bottom, 2 = mid slope, 3 = upper slope
-    and X, Y, Z are pixel counts at each of those elevation classes respectively.
-
-    Also includes the TPI raster's pixel size in metres.
-    """
-
-    model_enum: Optional[ModelEnum]
-    projection: Optional[ProjectionEnum]
 
 
 class ModelRunInfo:
