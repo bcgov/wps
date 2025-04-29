@@ -67,9 +67,9 @@ async def process_hfi_percent_conifer(run_type: RunType, run_datetime: datetime,
         stmt = select(AdvisoryHFIPercentConifer).where(AdvisoryHFIPercentConifer.run_parameters == run_parameters_id)
         exists = (await session.execute(stmt)).scalars().first() is not None
 
-        # if exists:
-        #     logger.info("HFI percent conifer already processed.")
-        #     return
+        if exists:
+            logger.info("HFI percent conifer already processed.")
+            return
 
         await process_min_percent_conifer_by_zone(session, run_parameters_id, RunType(run_type), run_datetime, for_date)
 
