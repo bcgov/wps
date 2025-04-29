@@ -1,5 +1,8 @@
+from datetime import date
+from unittest.mock import MagicMock
 import numpy as np
-from app.auto_spatial_advisory.hfi_percent_conifer import get_minimum_percent_conifer_for_hfi
+import pytest
+from app.auto_spatial_advisory.hfi_percent_conifer import get_minimum_percent_conifer_for_hfi, get_percent_conifer_s3_key
 
 
 def test_valid_values():
@@ -36,3 +39,34 @@ def test_no_values_above_threshold():
     pct_conifer_array = np.array([10, 20, 30])
     hfi_array = np.array([3000, 3500, 2000])  # All values below 4000
     assert get_minimum_percent_conifer_for_hfi(pct_conifer_array, hfi_array) is None
+
+
+@pytest.fixture
+def mock_s3():
+    mock = MagicMock()
+    mock.bucket = "bucket"
+    return mock
+
+
+SFMS_TEST_DATE = date(2024, 12, 15)
+
+
+def test_get_percent_conifer_s3_key_current_year(mock_s3):
+    mock_s3.all_objects_exist.side_effect = lambda key: "m12_2024.tif" in key
+
+    key = get_percent_conifer_s3_key(SFMS_TEST_DATE, mock_s3)
+    assert key == "/vsis3/bucket/sfms/static/m12_2024.tif"
+
+
+def test_get_percent_conifer_s3_key_fallback_year(mock_s3):
+    mock_s3.all_objects_exist.side_effect = lambda key: "m12_2023.tif" in key
+
+    key = get_percent_conifer_s3_key(SFMS_TEST_DATE, mock_s3)
+    assert key == "/vsis3/bucket/sfms/static/m12_2023.tif"
+
+
+def test_get_percent_conifer_s3_key_none_exist(mock_s3):
+    mock_s3.all_objects_exist.return_value = False
+
+    key = get_percent_conifer_s3_key(SFMS_TEST_DATE, mock_s3)
+    assert key is None
