@@ -17,8 +17,8 @@ asyncpg = "^0.30.0"
 affine = "^2.4.0"
 numpy = "2.1"
 fastapi = "0.115.11"
-herbie = "^1.0b2"
 xarray = "^2025.3.1"
+herbie-data = "^2025.3.1"
 
 
 [tool.poetry.group.dev.dependencies]
