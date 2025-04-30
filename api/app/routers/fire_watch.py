@@ -6,9 +6,9 @@ from fastapi import APIRouter, Depends, Response, status
 from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
 from shapely import from_wkt
-from wps_shared.auth import audit, authenticate, authentication_required
+from wps_shared.auth import audit, authentication_required
 from wps_shared.db.crud.fire_watch import get_all_active_fire_watches, get_fire_centre_by_name, get_fire_watch_by_id, save_fire_watch
-from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope, get_async_write_session_scope_no_expire
+from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch as DBFireWatch
 from wps_shared.fuel_types import FuelTypeEnum
 from wps_shared.schemas.fire_watch import FireWatchInput, FireWatchOutput, FireWatchListResponse, FireWatchResponse
@@ -163,7 +163,7 @@ async def get_all_fire_watches(_=Depends(authentication_required)):
 async def save_new_fire_watch(fire_watch_input: FireWatchInput, token=Depends(authentication_required)):
     idir = token.get("idir_username", None)
     db_fire_watch = marshall_fire_watch_input_to_db(fire_watch_input, idir)
-    async with get_async_write_session_scope_no_expire() as session:
+    async with get_async_write_session_scope() as session:
         new_fire_watch_id = await save_fire_watch(session, db_fire_watch)
         new_fire_watch = await get_fire_watch_by_id(session, new_fire_watch_id)
         fire_watch_output = marshall_fire_watch_db_to_api(new_fire_watch)
