@@ -15,7 +15,6 @@ pandas = "^2"
 pyjwt = "^2"
 cryptography = "^44.0.0"
 sqlalchemy = "^2"
-psycopg2 = "^2"
 postgres = "^4"
 python-decouple = "^3"
 uvicorn = "^0"
@@ -48,6 +47,7 @@ cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307" }
 geopandas = "^1.0.1"
 shapely = "^2.0.5"
 wps-shared = { path = "../wps_shared" }
+psycopg2-binary = "^2.9.10"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
