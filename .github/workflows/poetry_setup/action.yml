@@ -7,7 +7,6 @@ inputs:
     default: "2.1.2"
 runs:
   using: "composite"
-    runs-on: ubuntu-24.04
     steps:
       - name: Cache Poetry Installer
         id: cache-poetry-installer
