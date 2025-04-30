@@ -16,14 +16,20 @@ runs:
         key: "poetry-installer-${{ inputs.poetry_version }}"
     - name: Download Poetry Installer
       if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
+      shell: bash
       run: |
         mkdir -p ~/poetry_installer
         curl -sSL https://install.python-poetry.org > ~/poetry_installer/install-poetry.py
     - name: Install Poetry
       id: install-poetry
+      shell: bash
       run: |
         cd ~/poetry_installer
         python install-poetry.py --version ${{ inputs.poetry_version }}
+        # Update PATH for the current step
+        export PATH=$HOME/.local/bin:$PATH
+        # Persist PATH for subsequent steps
+        echo "PATH=$HOME/.local/bin:\$PATH" >> $GITHUB_ENV
         poetry config virtualenvs.create true
         poetry config virtualenvs.in-project false
         echo "::set-output name=poetry_installed::true"
