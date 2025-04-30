@@ -3,13 +3,13 @@ import asyncio
 import logging
 from datetime import date, datetime
 from time import perf_counter
+from typing import Optional
 
 import numpy as np
 from geoalchemy2.shape import to_shape
 from osgeo import gdal, osr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_fire_zone_unit_shape_type_id,
     get_fire_zone_units,
@@ -25,6 +25,7 @@ from wps_shared.wps_logging import configure_logging
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3 import set_s3_gdal_config
 from app.auto_spatial_advisory.common import get_hfi_s3_key
+from wps_shared.utils.s3_client import S3Client
 
 osr.UseExceptions()
 gdal.UseExceptions()
@@ -32,10 +33,22 @@ gdal.UseExceptions()
 logger = logging.getLogger(__name__)
 
 
-def get_percent_conifer_s3_key(for_date: date):
-    bucket = config.get("OBJECT_STORE_BUCKET")
-    key = f"/vsis3/{bucket}/sfms/static/m12_{for_date.year}.tif"
-    return key
+async def get_percent_conifer_s3_key(for_date: date, s3_client: S3Client) -> Optional[str]:
+    """
+    Gets the S3 key for the percent conifer file for the given year
+    or the previous year, if available.
+    """
+    # check to see if the previous years conifer file exists, only going back 1 year
+    current_year = for_date.year
+    last_year = current_year - 1
+
+    for year in [current_year, last_year]:
+        key = f"sfms/static/m12_{year}.tif"
+        if await s3_client.all_objects_exist(key):
+            logger.info(f"Found percent conifer grid - {key}")
+            return f"/vsis3/{s3_client.bucket}/{key}"
+    logger.error(f"No percent conifer key found for {current_year} or {last_year}")
+    return None
 
 
 async def process_hfi_percent_conifer(run_type: RunType, run_datetime: datetime, for_date: date):
@@ -75,7 +88,11 @@ async def process_min_percent_conifer_by_zone(session: AsyncSession, run_paramet
     source_srs = osr.SpatialReference()
     source_srs.ImportFromEPSG(srid)
 
-    pct_conifer_key = get_percent_conifer_s3_key(for_date)
+    async with S3Client() as s3_client:
+        pct_conifer_key = await get_percent_conifer_s3_key(for_date, s3_client)
+    if not pct_conifer_key:
+        return
+
     hfi_key = get_hfi_s3_key(run_type, run_datetime, for_date)
 
     all_hfi_conifer_percent_to_save: list[AdvisoryHFIPercentConifer] = []
