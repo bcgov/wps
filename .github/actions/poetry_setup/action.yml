@@ -1,0 +1,39 @@
+name: "Setup Poetry"
+description: "Installs Poetry and configures it for the project."
+inputs:
+  poetry_version:
+    description: "The version of Poetry to install (default is 2.1.2)."
+    required: false
+    default: "2.1.2"
+runs:
+  using: "composite"
+  steps:
+    - name: Cache Poetry Installer
+      id: cache-poetry-installer
+      uses: actions/cache@v4
+      with:
+        path: ~/poetry_installer
+        key: "poetry-installer-${{ inputs.poetry_version }}"
+    - name: Download Poetry Installer
+      if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p ~/poetry_installer
+        curl -sSL https://install.python-poetry.org > ~/poetry_installer/install-poetry.py
+    - name: Install Poetry
+      id: install-poetry
+      run: |
+        cd ~/poetry_installer
+        python install-poetry.py --version ${{ inputs.poetry_version }}
+        poetry config virtualenvs.create true
+        poetry config virtualenvs.in-project false
+        echo "::set-output name=poetry_installed::true"
+    # poetry cache folder: /home/runner/.cache/pypoetry
+    - name: Cache poetry
+      uses: actions/cache@v4
+      env:
+        cache-name: cache-poetry
+      with:
+        path: ~/.cache/pypoetry
+        key: ${{ runner.os }}-poetry-${{ inputs.poetry_version }}-cache-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-poetry-${{ inputs.poetry_version }}-cache-
