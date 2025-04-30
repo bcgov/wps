@@ -1,4 +1,4 @@
-""" This module contains pydantic models related to Fire Behaviour Advisory Calculator. """
+"""This module contains pydantic models related to Fire Behaviour Advisory Calculator."""
 
 from typing import List, Optional
 from datetime import date
@@ -7,7 +7,8 @@ from wps_shared.fuel_types import FuelTypeEnum
 
 
 class StationRequest(BaseModel):
-    """ Request for one individual weather station. """
+    """Request for one individual weather station."""
+
     id: Optional[int] = None
     station_code: int
     fuel_type: FuelTypeEnum
@@ -21,22 +22,25 @@ class StationRequest(BaseModel):
 
 
 class StationListRequest(BaseModel):
-    """ Request for a list of stations """
+    """Request for a list of stations"""
+
     date: date
     stations: List[StationRequest]
 
 
 class CriticalHoursHFI(BaseModel):
-    """ Object response for critical hours """
+    """Object response for critical hours"""
+
     start: float
     end: float
 
 
 class StationResponse(BaseModel):
-    """ Response for one individual weather station.
+    """Response for one individual weather station.
     NOTE: Most of the values are optional, since if an observation/forecast isn't available,
     there's not much we can do.
     """
+
     id: Optional[int] = None
     station_code: int
     station_name: str
@@ -68,7 +72,8 @@ class StationResponse(BaseModel):
 
 
 class StationsListResponse(BaseModel):
-    """ Response for all weather stations, in a list """
+    """Response for all weather stations, in a list"""
+
     date: date
     stations: List[StationResponse]
 
@@ -77,7 +82,7 @@ class AdjustedFWIResult(BaseModel):
     ffmc: float
     bui: float
     isi: float
-    precipitation: Optional[float]
+    precipitation: Optional[float] = None
     wind_speed: float
     fwi: float
     status: str
