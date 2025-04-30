@@ -85,7 +85,7 @@ class ECMWF:
         self.exception_count = 0
         self.ecmwf_processor = ECMWFModelProcessor(working_directory)
 
-    def process_model_run(self, model_run_hour) -> List[ModelRunProcessResult]:
+    def process_model_run(self, model_run_hour):
         """Process a particular model run"""
         logger.info("Processing {} model run {:02d}".format(self.model_type, model_run_hour))
 
