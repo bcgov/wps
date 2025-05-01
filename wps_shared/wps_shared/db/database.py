@@ -49,7 +49,6 @@ _read_session = sessionmaker(autocommit=False, autoflush=False, bind=_read_engin
 _async_read_sessionmaker = sessionmaker(autocommit=False, autoflush=False, bind=_async_read_engine, class_=AsyncSession)
 _async_write_sessionmaker = sessionmaker(autocommit=False, autoflush=False, bind=_async_write_engine, class_=AsyncSession)
 
-
 def _get_write_session() -> Session:
     """abstraction used for mocking out a write session"""
     return _write_session()
