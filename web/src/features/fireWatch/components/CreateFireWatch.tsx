@@ -17,7 +17,7 @@ export const FORM_MAX_WIDTH = 768
 const CreateFireWatch = () => {
 const dispatch: AppDispatch = useDispatch()
   const theme = useTheme()
-  const [activeStep, setActiveStep] = useState<number>(4)
+  const [activeStep, setActiveStep] = useState<number>(0)
   const [fireWatch, setFireWatch] = useState<FireWatch>(getBlankFireWatch())
   const steps: { key: string; label: string; component?: () => React.ReactNode }[] = [
     {

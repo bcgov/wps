@@ -36,7 +36,7 @@ const TransitionBox = styled(Box, {
 
 const FireWatchPage = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false)
-  const [fireWatchView, setFireWatchView] = useState<FireWatchViewEnum>(FireWatchViewEnum.CREATE)
+  const [fireWatchView, setFireWatchView] = useState<FireWatchViewEnum>(FireWatchViewEnum.DASHBOARD)
 
   return (
     <Box
