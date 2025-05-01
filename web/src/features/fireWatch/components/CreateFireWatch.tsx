@@ -17,41 +17,40 @@ export const FORM_MAX_WIDTH = 768
 const CreateFireWatch = () => {
 const dispatch: AppDispatch = useDispatch()
   const theme = useTheme()
-  const [activeStep, setActiveStep] = useState<number>(0)
+  const [activeStep, setActiveStep] = useState<number>(4)
   const [fireWatch, setFireWatch] = useState<FireWatch>(getBlankFireWatch())
-  const steps: {key: string, label: string, component?: () => React.ReactNode}[] = [
-    { 
+  const steps: { key: string; label: string; component?: () => React.ReactNode }[] = [
+    {
       key: 'info',
-      label: 'Location & Basics',
+      label: 'Location & Basics'
     },
-    { 
+    {
       key: 'weather-parameters',
-      label: 'Weather Parameters',
+      label: 'Weather Parameters'
     },
     {
       key: 'fuel-moisture-codes',
-      label: 'Fuel Type & Fuel Moisture Codes',
+      label: 'Fuel Type & Fuel Moisture Codes'
     },
-    { 
+    {
       key: 'fire-behaviour-indices',
-      label: 'Fire Behaviour Indices',
+      label: 'Fire Behaviour Indices'
     },
     {
       key: 'review-submit',
-      label: 'Review and Submit',
+      label: 'Review and Submit'
     }
   ]
 
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1)
+    setActiveStep(prevActiveStep => prevActiveStep - 1)
   }
 
   const handleNext = () => {
-    if (activeStep === steps.length) {
+    if (activeStep === steps.length - 1) {
       handleSubmit()
-    } else {
-      setActiveStep((prevActiveStep) => prevActiveStep + 1)
     }
+    setActiveStep(prevActiveStep => prevActiveStep + 1)
   }
 
   const handleReset = () => {

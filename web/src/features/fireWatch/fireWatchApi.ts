@@ -173,56 +173,55 @@ export async function postFireWatchInput(fireWatch: FireWatch): Promise<FireWatc
   const fireWatchInput = marshalFireWatchToFireWatchInput(fireWatch)
   const url = '/fire-watch/watch'
   const { data } = await axios.post(url, {
-    fireWatchInput
+    fire_watch: fireWatchInput
   })
   return data
 }
 
-const marshalFireWatchToFireWatchInput = (fireWatch: FireWatch) => {
-  const fireWatchInput = {
-    burnWindowEnd: fireWatch.burnWindowEnd?.toMillis(),
-    burnWindowStart: fireWatch.burnWindowStart?.toMillis(),
-    contactEmail: [fireWatch.contactEmail],
-    fireCentre: fireWatch.fireCentre ,
-    latitude: fireWatch.latitude ,
-    longitude: fireWatch.longitude , 
-    stationCode: fireWatch.stationCode ,
+const marshalFireWatchToFireWatchInput = (fireWatch: FireWatch): FireWatchInput => {
+  return {
+    burn_location: [fireWatch.latitude, fireWatch.longitude],
+    burn_window_end: Math.round(fireWatch.burnWindowEnd?.toMillis()/1000),
+    burn_window_start: Math.round(fireWatch.burnWindowStart?.toMillis()/1000),
+    contact_email: fireWatch.contactEmail,
+    fire_centre: fireWatch.fireCentre,
+    station_code: fireWatch.stationCode,
     status: fireWatch.status,
     title: fireWatch.title,
     // Fuel parameters
-    fuelType: fireWatch.fuelType,
-    percentConifer: fireWatch.percentConifer ,
-    percentDeadFir: fireWatch.percentDeadFir ,
-    percentGrassCuring: fireWatch.percentGrassCuring ,
+    fuel_type: fireWatch.fuelType,
+    percent_conifer: fireWatch.percentConifer,
+    percent_dead_fir: fireWatch.percentDeadFir,
+    percent_grass_curing: fireWatch.percentGrassCuring,
     // Weather parameters
-    tempMin: fireWatch.tempMin ,
-    tempPreferred: fireWatch.tempPreferred ,
-    tempMax: fireWatch.tempMax ,
-    rhMin: fireWatch.rhMin ,
-    rhPreferred: fireWatch.rhPreferred ,
-    rhMax: fireWatch.rhMax ,
-    windSpeedMin: fireWatch.windSpeedMin ,
-    windSpeedPreferred: fireWatch.windSpeedPreferred ,
-    windSpeedMax: fireWatch.windSpeedMax ,
+    temp_min: fireWatch.tempMin,
+    temp_preferred: fireWatch.tempPreferred,
+    temp_max: fireWatch.tempMax,
+    rh_min: fireWatch.rhMin,
+    rh_preferred: fireWatch.rhPreferred,
+    rh_max: fireWatch.rhMax,
+    wind_speed_min: fireWatch.windSpeedMin,
+    wind_speed_preferred: fireWatch.windSpeedPreferred,
+    wind_speed_max: fireWatch.windSpeedMax,
     // FWI and FBP parameters
-    ffmcMin: fireWatch.ffmcMin ,
-    ffmcPreferred: fireWatch.ffmcPreferred,
-    ffmcMax: fireWatch.ffmcMax,
-    dmcMin: fireWatch.dmcMin,
-    dmcPreferred: fireWatch.dmcPreferred,
-    dmcMax: fireWatch.dmcMax,
-    dcMin: fireWatch.dcMin,
-    dcPreferred: fireWatch.dcPreferred,
-    dcMax: fireWatch.dcMax,
-    isiMin: fireWatch.isiMin,
-    isiPreferred: fireWatch.isiPreferred,
-    isiMax: fireWatch.isiMax,
-    buiMin: fireWatch.buiMin,
-    buiPreferred: fireWatch.buiPreferred,
-    buiMax: fireWatch.buiMax,
-    hfiMin: fireWatch.hfiMin,
-    hfiPreferred: fireWatch.hfiPreferred,
-    hfiMax: fireWatch.hfiMax
+    ffmc_min: fireWatch.ffmcMin,
+    ffmc_preferred: fireWatch.ffmcPreferred,
+    ffmc_max: fireWatch.ffmcMax,
+    dmc_min: fireWatch.dmcMin,
+    dmc_preferred: fireWatch.dmcPreferred,
+    dmc_max: fireWatch.dmcMax,
+    dc_min: fireWatch.dcMin,
+    dc_preferred: fireWatch.dcPreferred,
+    dc_max: fireWatch.dcMax,
+    isi_min: fireWatch.isiMin,
+    isi_preferred: fireWatch.isiPreferred,
+    isi_max: fireWatch.isiMax,
+    bui_min: fireWatch.buiMin,
+    bui_preferred: fireWatch.buiPreferred,
+    bui_max: fireWatch.buiMax,
+    hfi_min: fireWatch.hfiMin,
+    hfi_preferred: fireWatch.hfiPreferred,
+    hfi_max: fireWatch.hfiMax
   }
 }
 
