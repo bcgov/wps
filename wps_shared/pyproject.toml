@@ -6,7 +6,7 @@ authors = ["Darren Boss <darren.boss@gov.bc.ca>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.12.3"
+python = ">=3.12.3,<4.0"
 sqlalchemy = "^2"
 aiohttp = "^3"
 requests = "^2"
@@ -30,6 +30,7 @@ pytest = "^7.2.1"
 pytest-mock = "^3"
 coverage = "^7.6.4"
 ruff = "^0.11.5"
+testcontainers = {extras = ["postgres"], version = "^4.10.0"}
 
 [build-system]
 requires = ["poetry-core"]
