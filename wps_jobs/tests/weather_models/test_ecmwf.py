@@ -1,9 +1,15 @@
+import os
+import sys
 import pytest
-from unittest.mock import MagicMock, patch
+from aiohttp import ClientSession
+from pytest_mock import MockerFixture
+from unittest.mock import MagicMock
+from wps_shared.tests.common import default_mock_client_get
 import wps_jobs.weather_model_jobs.ecmwf
 from wps_jobs.weather_model_jobs import ModelEnum
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
+from wps_shared.db.models.weather_models import PredictionModelRunTimestamp
 
 from wps_jobs.weather_model_jobs.ecmwf import (
     get_model_run_hours,
@@ -11,6 +17,8 @@ from wps_jobs.weather_model_jobs.ecmwf import (
     get_stations_dataframe,
     ECMWF,
 )
+from wps_jobs.weather_model_jobs.ecmwf_model_processor import TEMP
+from wps_jobs.weather_model_jobs.utils.process_grib import PredictionModelNotFound
 
 
 class MockModelRunRepository(ModelRunRepository):
@@ -32,14 +40,16 @@ class MockModelRunRepository(ModelRunRepository):
 
 
 @pytest.fixture
-def mock_herbie_instance():
+def mock_herbie_instance(mocker: MockerFixture):
     """Fixture to set up a mocked Herbie instance."""
-    with patch("wps_jobs.weather_model_jobs.ecmwf.Herbie") as mock_herbie:
-        mock_herbie_instance = MagicMock()
-        mock_herbie.return_value = mock_herbie_instance
-        mock_herbie_instance.download.return_value = "/path/to/mock/file.grib"
-        mock_herbie_instance.grib = "/path/to/mock/file.grib"
-        yield mock_herbie_instance
+    mock_herbie = MagicMock()
+    mocker.patch("wps_jobs.weather_model_jobs.ecmwf.Herbie", mock_herbie)
+    mock_herbie_instance = MagicMock()
+    mock_herbie.return_value = mock_herbie_instance
+    mock_herbie_instance.download.return_value = "/path/to/mock/file.grib"
+    mock_herbie_instance.grib = "/path/to/mock/file.grib"
+    yield mock_herbie_instance
+
 
 
 def test_get_model_run_hours():
@@ -65,6 +75,14 @@ def test_get_stations_dataframe():
     assert df.iloc[0]["latitude"] == 11.0
     assert df.iloc[0]["longitude"] == 21.0
 
+def test_ecmwf_process_model_run_no_url(mock_herbie_instance):
+    mock_herbie_instance.grib = None
+    stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
+    ecmwf = ECMWF("/tmp", stations, MockModelRunRepository())
+    ecmwf.process_model_run(0)
+
+    assert ecmwf.files_downloaded == 0
+    assert ecmwf.files_processed == 0
 
 def test_ecmwf_process_model_run(mock_herbie_instance):
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
@@ -100,3 +118,152 @@ def test_ecmwf_process_model_run_prediction_not_found(mock_herbie_instance, monk
     ecmwf.process()
     # For each hour (0 and 12) get all the forecast hours (2 * (len(range(0, 145, 3)) + len(range(150, 241, 6)))
     assert ecmwf.exception_count == 130
+
+@pytest.mark.parametrize(
+    "prediction_exists",
+    [
+        (True),
+        (False)
+    ],
+)
+def test_store_processed_result(prediction_exists):
+    mock_repo = MagicMock(spec=ModelRunRepository)
+    if not prediction_exists:
+        mock_repo.get_model_run_prediction.return_value = None
+
+    mock_prediction_run = MagicMock(spec=PredictionModelRunTimestamp)
+    mock_prediction_run.id = 1
+
+    mock_process_result = MagicMock()
+    mock_process_result.model_run_info.prediction_timestamp = "2025-05-01T12:00:00Z"
+    mock_process_result.data.sel.return_value = {
+        "temperature": MagicMock(item=lambda: 25.0),
+        "humidity": MagicMock(item=lambda: 60.0),
+    }
+
+    stations = [
+        WeatherStation(code="001", name="Station1", lat=10.0, long=20.0),
+        WeatherStation(code="002", name="Station2", lat=15.0, long=25.0),
+    ]
+
+    ecmwf = ECMWF("/tmp", stations, mock_repo)
+
+    ecmwf.store_processed_result(stations, mock_prediction_run, mock_process_result)
+
+    assert mock_repo.get_model_run_prediction.call_count == len(stations)
+    assert mock_repo.store_model_run_prediction.call_count == len(stations)
+
+
+def test_ecmwf_process_handles_exceptions(monkeypatch):
+    mock_repo = MagicMock(spec=ModelRunRepository)
+    stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
+    monkeypatch.setattr(wps_jobs.weather_model_jobs.ecmwf.ECMWF, "process_model_run", lambda: Exception("Mocked exception"))
+
+
+    ecmwf = ECMWF("/tmp", stations, mock_repo)
+    ecmwf.process()
+
+    assert ecmwf.exception_count > 0
+
+def test_main_success(mocker: MockerFixture, monkeypatch):
+    """Test the main function when it runs successfully."""
+    async def mock_process_models():
+        pass
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+    monkeypatch.setattr(wps_jobs.weather_model_jobs.ecmwf, "process_models", mock_process_models)
+    rocket_chat_spy = mocker.spy(wps_jobs.weather_model_jobs.ecmwf, "send_rocketchat_notification")
+
+    with pytest.raises(SystemExit) as excinfo:
+        wps_jobs.weather_model_jobs.ecmwf.main()
+    
+     # Assert that we exited with an error code.
+    assert excinfo.value.code == os.EX_OK
+    # Assert that rocket chat was called.
+    assert rocket_chat_spy.call_count == 0
+
+
+def test_main_fail(mocker: MockerFixture, monkeypatch):
+    """ Run the main method, check that message is sent to rocket chat, and exit code is EX_SOFTWARE """
+    def mock_process_models():
+        raise Exception()
+
+    rocket_chat_spy = mocker.spy(wps_jobs.weather_model_jobs.ecmwf, "send_rocketchat_notification")
+    monkeypatch.setattr(wps_jobs.weather_model_jobs.ecmwf, "process_models", mock_process_models)
+
+    with pytest.raises(SystemExit) as excinfo:
+        wps_jobs.weather_model_jobs.ecmwf.main()
+
+    # Assert that we exited with an error code.
+    assert excinfo.value.code == os.EX_SOFTWARE
+    # Assert that rocket chat was called.
+    assert rocket_chat_spy.call_count == 1
+
+@pytest.mark.anyio
+async def test_process_models_success(mocker: MockerFixture):
+    """Test process_models when it runs successfully."""
+    mock_stations = [
+        WeatherStation(code="001", name="Station1", lat=10.0, long=20.0),
+        WeatherStation(code="002", name="Station2", lat=15.0, long=25.0),
+    ]
+    mock_repo = MockModelRunRepository()
+    mock_session_scope = MagicMock()
+    mock_session_scope.return_value.__enter__.return_value = mock_repo
+    mock_temp_dir = MagicMock()
+    mock_temp_dir.return_value.__enter__.return_value = "/mock/temp/dir"
+    mocker.patch("tempfile.TemporaryDirectory", mock_temp_dir)
+    mocker.patch("wps_jobs.weather_model_jobs.ecmwf.get_stations_asynchronously", return_value=mock_stations)
+    mocker.patch("wps_jobs.weather_model_jobs.ecmwf.get_write_session_scope", return_value=mock_session_scope)
+
+    mock_ecmwf = mocker.patch("wps_jobs.weather_model_jobs.ecmwf.ECMWF")
+    mock_ecmwf_instance = mock_ecmwf.return_value
+    mock_ecmwf_instance.files_processed = 10
+
+
+    mock_temp_dir.return_value.__enter__.return_value = "/mock/temp/dir"
+    mock_session_scope.return_value.__enter__.return_value = mock_repo
+
+    await wps_jobs.weather_model_jobs.ecmwf.process_models()
+
+    mock_ecmwf_instance.process.assert_called_once()
+
+def test_process_model_run_prediction_model_not_found():
+    """Test process_model_run when prediction model is not found."""
+    stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
+    mock_repo = MockModelRunRepository()
+    mock_repo.get_prediction_model = MagicMock(return_value=None)  # Simulate missing prediction model
+    ecmwf = ECMWF("/tmp", stations, mock_repo)
+
+    with pytest.raises(PredictionModelNotFound):
+        ecmwf.process_model_run(0)
+
+    assert ecmwf.files_downloaded == 0
+    assert ecmwf.files_processed == 0
+    assert ecmwf.exception_count == 0
+
+@pytest.mark.parametrize(
+    "complete",
+    [
+        (True),
+        (False)
+    ],
+)
+def test_process_model_run_prediction_model_complete(complete):
+    """Test process_model_run when prediction model is not found."""
+    stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
+    mock_repo = MockModelRunRepository()
+    mock_prediction_run = MagicMock(spec=PredictionModelRunTimestamp)
+    if complete:
+        mock_prediction_run.complete = True
+    mock_repo.get_or_create_prediction_run = mock_prediction_run
+    ecmwf = ECMWF("/tmp", stations, mock_repo)
+
+    ecmwf.process_model_run(0)
+
+    assert ecmwf.files_downloaded == 0
+    assert ecmwf.files_processed == 0
+    assert ecmwf.exception_count == 0
+
+
+
+
+

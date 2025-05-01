@@ -10,7 +10,7 @@ from herbie import Herbie
 import asyncio
 from osgeo import gdal
 from pyproj import CRS, Transformer
-
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.geospatial.geospatial import NAD83_CRS, get_transformer
 import wps_shared.utils.time as time_utils
 from wps_shared.schemas.stations import WeatherStation
@@ -184,6 +184,8 @@ def main():
     except Exception as exception:
         # Exit non 0 - failure.
         logger.error("An error occurred while processing ECMWF model.", exc_info=exception)
+        rc_message = f':poop: Encountered error retrieving {sys.argv[1]} model data from Env Canada'
+        send_rocketchat_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
 
