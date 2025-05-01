@@ -107,10 +107,10 @@ def accumulate_nam_precipitation(nam_cumulative_precip: float, prediction: Model
 class ModelValueProcessor:
     """Iterate through model runs that have completed, and calculate the interpolated weather predictions."""
 
-    def __init__(self, session):
+    def __init__(self, session, stations=None):
         """Prepare variables we're going to use throughout"""
         self.session = session
-        self.stations = get_stations_synchronously()
+        self.stations = get_stations_synchronously() if not stations else stations
         self.station_count = len(self.stations)
 
     def _process_model_run(self, model_run: PredictionModelRunTimestamp, model_type: ModelEnum):

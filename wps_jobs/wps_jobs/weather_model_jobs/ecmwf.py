@@ -19,6 +19,7 @@ from wps_shared.stations import get_stations_asynchronously
 from wps_shared.db.database import get_write_session_scope
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_jobs.weather_model_jobs import ModelEnum, ModelRunInfo, ModelRunProcessResult, ProjectionEnum
+from wps_jobs.weather_model_jobs.common_model_fetchers import ModelValueProcessor
 from wps_jobs.weather_model_jobs.ecmwf_model_processor import ECMWFModelProcessor, TEMP
 from wps_jobs.weather_model_jobs.utils.process_grib import PredictionModelNotFound
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
@@ -165,6 +166,10 @@ async def process_models():
         with tempfile.TemporaryDirectory() as temp_dir:
             ecmwf = ECMWF(temp_dir, stations, ModelRunRepository(session))
             ecmwf.process()
+
+            # interpolate and machine learn everything that needs interpolating.
+            model_value_processor = ModelValueProcessor(session, stations)
+            model_value_processor.process(ModelEnum.ECMWF)
 
     # calculate the execution time.
     execution_time = datetime.now() - start_time
