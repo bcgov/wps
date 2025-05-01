@@ -1,7 +1,7 @@
 """add ecmwf model
 
 Revision ID: 42a9dae10dca
-Revises: 6a31639810b0
+Revises: 54176235e225
 Create Date: 2025-04-28 14:45:11.701108
 
 """
@@ -10,7 +10,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "42a9dae10dca"
-down_revision = "6a31639810b0"
+down_revision = "54176235e225"
 branch_labels = None
 depends_on = None
 
