@@ -16,7 +16,7 @@ import os
 
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
 
-os.environ["DOCKER_HOST"] = f"unix://{os.environ['HOME']}/.docker/run/docker.sock"
+# os.environ["DOCKER_HOST"] = f"unix://{os.environ['HOME']}/.docker/run/docker.sock"
 
 TEST_DATETIME = datetime(2023, 1, 1, 12, 0, tzinfo=timezone.utc)
 
