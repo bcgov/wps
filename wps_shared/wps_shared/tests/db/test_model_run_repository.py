@@ -12,11 +12,12 @@ from wps_shared.db.models.weather_models import (
     ProcessedModelRunUrl,
 )
 
-import os
+from dotenv import load_dotenv
+
+# Required for loading DOCKER_HOST
+load_dotenv()
 
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
-
-# os.environ["DOCKER_HOST"] = f"unix://{os.environ['HOME']}/.docker/run/docker.sock"
 
 TEST_DATETIME = datetime(2023, 1, 1, 12, 0, tzinfo=timezone.utc)
 
