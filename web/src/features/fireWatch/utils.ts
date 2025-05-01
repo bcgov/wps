@@ -62,9 +62,11 @@ export const getBlankFireWatch = (): FireWatch => {
 
 const hasValidFuelInfo = (fireWatch: FireWatch) => {
   switch(fireWatch.fuelType) {
-    case FuelTypeEnum.M1 || FuelTypeEnum.M2:
+    case FuelTypeEnum.M1:
+    case FuelTypeEnum.M2:
       return !isNil(fireWatch.percentConifer)
-    case FuelTypeEnum.M3 || FuelTypeEnum.M4:
+    case FuelTypeEnum.M3:
+    case FuelTypeEnum.M4:
       return !isNil(fireWatch.percentDeadFir)
     case FuelTypeEnum.C7:
       return !isNil(fireWatch.percentGrassCuring)
@@ -73,7 +75,7 @@ const hasValidFuelInfo = (fireWatch: FireWatch) => {
 }
 
 export const isValidFireWatch = (fireWatch: FireWatch) => {
-  fireWatch.contactEmail.length > 0 &&
+  return fireWatch.contactEmail.length > 0 &&
   !isNaN(fireWatch.fireCentre) &&
   !isNaN(fireWatch.latitude) &&
   !isNaN(fireWatch.longitude) && 

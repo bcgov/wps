@@ -23,10 +23,12 @@ const ReviewSubmitStep = ({fireWatch, setActiveStep}: ReviewSubmitStepProps) => 
   const formatFuelType = () => {
     let postfix = ''
     switch (fireWatch.fuelType) {
-      case FuelTypeEnum.M1 || FuelTypeEnum.M2:
+      case FuelTypeEnum.M1:
+      case FuelTypeEnum.M2:
         postfix = `(Percent Conifer: ${formatNumber(fireWatch.percentConifer)})`
         break
-      case FuelTypeEnum.M3 || FuelTypeEnum.M4:
+      case FuelTypeEnum.M3:
+      case FuelTypeEnum.M4:
         postfix = `(Percent Dead Fir: ${formatNumber(fireWatch.percentDeadFir)})`
         break
       case FuelTypeEnum.C7:

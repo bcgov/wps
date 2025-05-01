@@ -44,7 +44,7 @@ const fireWatchSlice = createSlice({
 			state.fireWatchSubmitting = true
 		},
 		submitFireWatchFailed(state: FireWatchState, action: PayloadAction<string>) {
-			state.fireWatchSubmitError = action.payload,
+			state.fireWatchSubmitError = action.payload
 			state.fireWatchSubmitting = false
 		},
 		submitFireWatchSuccess(state: FireWatchState, action: PayloadAction<{fireWatch: FireWatchOutput}>) {
