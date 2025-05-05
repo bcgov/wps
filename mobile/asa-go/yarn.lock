@@ -2969,6 +2969,7 @@ rimraf@^6.0.1:
     glob "^11.0.0"
     package-json-from-dist "^1.0.0"
 
+<<<<<<< HEAD
 rollup@^4.30.1, rollup@^4.34.9:
   version "4.41.0"
   resolved "https://registry.yarnpkg.com/rollup/-/rollup-4.41.0.tgz#17476835d2967759e3ffebe5823ed15fc4b7d13e"
@@ -2996,6 +2997,35 @@ rollup@^4.30.1, rollup@^4.34.9:
     "@rollup/rollup-win32-arm64-msvc" "4.41.0"
     "@rollup/rollup-win32-ia32-msvc" "4.41.0"
     "@rollup/rollup-win32-x64-msvc" "4.41.0"
+=======
+rollup@^4.34.9:
+  version "4.40.1"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-4.40.1.tgz#03d6c53ebb6a9c2c060ae686a61e72a2472b366f"
+  integrity sha512-C5VvvgCCyfyotVITIAv+4efVytl5F7wt+/I2i9q9GZcEXW9BP52YYOXC58igUi+LFZVHukErIIqQSWwv/M3WRw==
+  dependencies:
+    "@types/estree" "1.0.7"
+  optionalDependencies:
+    "@rollup/rollup-android-arm-eabi" "4.40.1"
+    "@rollup/rollup-android-arm64" "4.40.1"
+    "@rollup/rollup-darwin-arm64" "4.40.1"
+    "@rollup/rollup-darwin-x64" "4.40.1"
+    "@rollup/rollup-freebsd-arm64" "4.40.1"
+    "@rollup/rollup-freebsd-x64" "4.40.1"
+    "@rollup/rollup-linux-arm-gnueabihf" "4.40.1"
+    "@rollup/rollup-linux-arm-musleabihf" "4.40.1"
+    "@rollup/rollup-linux-arm64-gnu" "4.40.1"
+    "@rollup/rollup-linux-arm64-musl" "4.40.1"
+    "@rollup/rollup-linux-loongarch64-gnu" "4.40.1"
+    "@rollup/rollup-linux-powerpc64le-gnu" "4.40.1"
+    "@rollup/rollup-linux-riscv64-gnu" "4.40.1"
+    "@rollup/rollup-linux-riscv64-musl" "4.40.1"
+    "@rollup/rollup-linux-s390x-gnu" "4.40.1"
+    "@rollup/rollup-linux-x64-gnu" "4.40.1"
+    "@rollup/rollup-linux-x64-musl" "4.40.1"
+    "@rollup/rollup-win32-arm64-msvc" "4.40.1"
+    "@rollup/rollup-win32-ia32-msvc" "4.40.1"
+    "@rollup/rollup-win32-x64-msvc" "4.40.1"
+>>>>>>> 09551213a (New fire watch form (#4478))
     fsevents "~2.3.2"
 
 rrweb-cssom@^0.8.0:
@@ -3399,14 +3429,24 @@ vite-node@3.0.6:
     pathe "^2.0.3"
     vite "^5.0.0 || ^6.0.0"
 
+<<<<<<< HEAD
 "vite@^5.0.0 || ^6.0.0":
   version "6.2.7"
   resolved "https://registry.npmjs.org/vite/-/vite-6.2.7.tgz"
   integrity sha512-qg3LkeuinTrZoJHHF94coSaTfIPyBYoywp+ys4qu20oSJFbKMYoIJo0FWJT9q6Vp49l6z9IsJRbHdcGtiKbGoQ==
+=======
+"vite@^5.0.0 || ^6.0.0", vite@^6.0.5:
+  version "6.3.5"
+  resolved "https://registry.yarnpkg.com/vite/-/vite-6.3.5.tgz#fec73879013c9c0128c8d284504c6d19410d12a3"
+  integrity sha512-cZn6NDFE7wdTpINgs++ZJ4N49W2vRp8LCKrn3Ob1kYNtOo21vfDoaV5GzBfLU4MovSAB8uNRm4jgzVQZ+mBzPQ==
+>>>>>>> 09551213a (New fire watch form (#4478))
   dependencies:
     esbuild "^0.25.0"
+    fdir "^6.4.4"
+    picomatch "^4.0.2"
     postcss "^8.5.3"
-    rollup "^4.30.1"
+    rollup "^4.34.9"
+    tinyglobby "^0.2.13"
   optionalDependencies:
     fsevents "~2.3.3"
 
