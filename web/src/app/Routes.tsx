@@ -27,7 +27,7 @@ const LandingPage = lazy(() => import('features/landingPage/pages/LandingPage'))
 const MoreCast2Page = lazy(() => import('features/moreCast2/pages/MoreCast2Page'))
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 import { SFMSInsightsPage } from '@/features/sfmsInsights/pages/SFMSInsightsPage'
-import FireWatch from '@/features/fireWatch/pages/FireWatch'
+import FireWatchPage from '@/features/fireWatch/pages/FireWatchPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
@@ -105,7 +105,7 @@ const WPSRoutes: React.FunctionComponent = () => {
             path={FIRE_WATCH_ROUTE}
             element={
               <AuthWrapper>
-                <FireWatch />
+                <FireWatchPage />
               </AuthWrapper>
             }
           />
