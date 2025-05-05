@@ -18,22 +18,20 @@ const MenuHeader = ({open, setOpen}: MenuHeaderProps) => {
     setOpen(!open)
   }
   return (
-    <StyledAppBar position="fixed">
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleMenuButtonClick}
-            edge="start"
-            sx={{paddingRight: '32px'}}
-          >
-            <MenuIcon />
-          </IconButton>
-          <HeaderImage />
-          <Typography sx={{fontSize: '1.7em'}} >
-            {FIRE_WATCH_NAME}
-          </Typography>
-        </Toolbar>
+    <StyledAppBar position="sticky">
+      <Toolbar>
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          onClick={handleMenuButtonClick}
+          edge="start"
+          sx={{ paddingRight: '32px' }}
+        >
+          <MenuIcon />
+        </IconButton>
+        <HeaderImage />
+        <Typography sx={{ fontSize: '1.7em' }}>{FIRE_WATCH_NAME}</Typography>
+      </Toolbar>
     </StyledAppBar>
   )
 }

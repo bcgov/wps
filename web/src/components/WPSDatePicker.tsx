@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { DateTime } from 'luxon'
-import { isNull } from 'lodash'
+import { isNil, isNull } from 'lodash'
 
 interface WPSDatePickerProps {
   testId?: string
@@ -27,10 +27,12 @@ const WPSDatePicker = (props: WPSDatePickerProps) => {
     }
   }
 
+  let label = isNil(props.label) ? 'Date of Interest' : props.label
+
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <DatePicker
-        label={props.label || 'Date of Interest'}
+        label={label}
         format="yyyy/MM/dd"
         value={selectedDate}
         onAccept={(newValue: DateTime | null) => {

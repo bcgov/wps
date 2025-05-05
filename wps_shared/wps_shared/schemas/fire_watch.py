@@ -50,6 +50,9 @@ class FireWatchInput(BaseModel):
     hfi_preferred: float
     hfi_max: float
 
+class FireWatchInputRequest(BaseModel):
+    fire_watch: FireWatchInput
+
 class FireWatchOutput(FireWatchInput):
     id: int
     create_timestamp: int
