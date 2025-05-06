@@ -10,8 +10,15 @@ import {
   Theme,
   Tooltip
 } from '@mui/material'
+import CreateIcon from '@mui/icons-material/Create'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import { DRAWER_WIDTH } from '@/utils/constants'
+import { SetStateAction } from 'react'
+
+export enum FireWatchViewEnum {
+  DASHBOARD = 'dashboard',
+  CREATE = 'create'
+}
 
 const openedMixin = (theme: Theme): CSSObject => ({
   width: DRAWER_WIDTH,
@@ -67,64 +74,82 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 }))
 
 interface NavigationDrawerProps {
+  setFireWatchView: React.Dispatch<SetStateAction<FireWatchViewEnum>>
   open: boolean
+  selectedView: FireWatchViewEnum
 }
 
-const NavigationDrawer = ({ open }: NavigationDrawerProps) => {
+const navigationItems = [
+  {
+    icon: () => <DashboardIcon />,
+    title: 'Dashboard',
+    view: FireWatchViewEnum.DASHBOARD
+  },
+  {
+    icon: () => <CreateIcon />,
+    title: 'Create',
+    view: FireWatchViewEnum.CREATE
+  }
+]
+
+const NavigationDrawer = ({ setFireWatchView, open, selectedView }: NavigationDrawerProps) => {
   return (
     <Drawer open={open} PaperProps={{ sx: { backgroundColor: '#eaeaea' } }} variant="permanent">
       <DrawerHeader />
       <List>
-        <ListItem>
-          <ListItemButton
-            sx={[
-              {
-                minHeight: 48,
-                px: 2.5
-              },
-              open
-                ? {
-                    justifyContent: 'initial'
-                  }
-                : {
-                    justifyContent: 'center'
-                  }
-            ]}
-          >
-            <ListItemIcon
+        {navigationItems.map(item => (
+          <ListItem key={`fire-watch-${item.title}`}>
+            <ListItemButton
+              onClick={() => setFireWatchView(item.view)}
               sx={[
                 {
-                  minWidth: 0,
-                  justifyContent: 'center'
+                  minHeight: 48,
+                  px: 2.5
                 },
                 open
                   ? {
-                      mr: 3
+                      justifyContent: 'initial'
                     }
                   : {
-                      mr: 'auto'
+                      justifyContent: 'center'
                     }
               ]}
             >
-              <Tooltip disableHoverListener={open} title="Dashboard">
-                <DashboardIcon />
-              </Tooltip>
-            </ListItemIcon>
-            <ListItemText
-              sx={[
-                open
-                  ? {
-                      opacity: 1
-                    }
-                  : {
-                      opacity: 0
-                    }
-              ]}
-            >
-              Dashboard
-            </ListItemText>
-          </ListItemButton>
-        </ListItem>
+              <ListItemIcon
+                sx={[
+                  {
+                    minWidth: 0,
+                    justifyContent: 'center'
+                  },
+                  open
+                    ? {
+                        mr: 3
+                      }
+                    : {
+                        mr: 'auto'
+                      }
+                ]}
+              >
+                <Tooltip disableHoverListener={open} title={item.title}>
+                  {item.icon()}
+                </Tooltip>
+              </ListItemIcon>
+              <ListItemText
+                sx={[
+                  open
+                    ? {
+                        opacity: 1
+                      }
+                    : {
+                        opacity: 0
+                      }
+                ]}
+              >
+                {item.title}
+              </ListItemText>
+            </ListItemButton>
+          </ListItem>
+        ))}
       </List>
     </Drawer>
   )
