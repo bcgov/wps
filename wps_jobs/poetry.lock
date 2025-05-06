@@ -2982,7 +2982,7 @@ name = "wps-shared"
 version = "0.1.0"
 description = ""
 optional = false
-python-versions = ">=3.12.3"
+python-versions = ">=3.12.3,<4.0"
 groups = ["main"]
 files = []
 develop = false
@@ -3223,5 +3223,5 @@ propcache = ">=0.2.0"
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.12.3"
-content-hash = "bb39fd79d01243ef15e49c1b9c62fca848944ad4ed86a6166b1758e3b2ffe9e4"
+python-versions = ">=3.12.3,<4.0"
+content-hash = "6f47fe3eac1f961c6ce4109aa49c141ac967e32d4b6ee9748616a0a1823058cb"
