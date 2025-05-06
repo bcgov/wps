@@ -1,6 +1,7 @@
 """Class models that reflect resources and map to database tables relating to weather models."""
 
 import logging
+import numpy as np
 from sqlalchemy import Column, String, Integer, Float, Boolean, Sequence, ForeignKey, UniqueConstraint, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
@@ -204,6 +205,29 @@ class ModelRunPrediction(Base):
     wdir_tgl_10 = Column(Float, nullable=True)
     # Wind speed 10m above ground.
     wind_tgl_10 = Column(Float, nullable=True)
+
+    def _get_field_value(self, field_name: str, field_value: float | np.float64 | None) -> float | None:
+        """Helper method to process field values."""
+        value = field_value.item() if isinstance(field_value, np.float64) else field_value
+        if value is None:
+            logger.warning(f"{field_name} is None for ModelRunPrediction.id == %s", self.id)
+        return value
+
+    def get_temp(self) -> float | None:
+        return self._get_field_value(ModelRunPrediction.tmp_tgl_2.name, self.tmp_tgl_2)
+
+    def get_rh(self) -> float | None:
+        return self._get_field_value(ModelRunPrediction.rh_tgl_2.name, self.rh_tgl_2)
+    
+    def get_precip(self) -> float | None:
+        precip = self._get_field_value(ModelRunPrediction.apcp_sfc_0.name, self.apcp_sfc_0)
+        return precip if precip is not None else 0.0
+    
+    def get_wind_speed(self) -> float | None:
+        return self._get_field_value(ModelRunPrediction.wind_tgl_10.name, self.wind_tgl_10)
+    
+    def get_wind_direction(self) -> float | None:
+        return self._get_field_value(ModelRunPrediction.wdir_tgl_10.name, self.wdir_tgl_10)
 
     @staticmethod
     def get_weather_model_fields():

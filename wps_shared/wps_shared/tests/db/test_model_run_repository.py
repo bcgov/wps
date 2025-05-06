@@ -203,5 +203,39 @@ def test_store_model_run_prediction(repository: ModelRunRepository, db_session: 
     assert stored_prediction is not None
     assert stored_prediction == mock_prediction
 
+def test_get_model_run_predictions_for_station(repository: ModelRunRepository, db_session: Session):
+    prediction_model = repository.get_prediction_model(ModelEnum.ECMWF, ProjectionEnum.ECMWF_LATLON)
+    prediction_run_timestamp = TEST_DATETIME + timedelta(hours=6)
+
+    # Create a prediction run to associate with the predictions
+    prediction_run = repository.get_or_create_prediction_run(prediction_model, prediction_run_timestamp)
+
+    # Insert mock predictions
+    mock_predictions = [
+        ModelRunPrediction(
+            prediction_model_run_timestamp_id=prediction_run.id,
+            prediction_timestamp=TEST_DATETIME + timedelta(hours=i),
+            station_code=12345,
+        )
+        for i in range(3)
+    ]
+    db_session.add_all(mock_predictions)
+    db_session.commit()
+
+    # Call the method to get predictions for the station
+    predictions = repository.get_model_run_predictions_for_station(
+        station_code=12345,
+        prediction_run=prediction_run,
+    )
+
+    # Verify the predictions are retrieved and ordered correctly
+    assert predictions is not None
+    assert len(predictions) == len(mock_predictions)
+    for i, prediction in enumerate(predictions):
+        assert prediction == mock_predictions[i]
+
+
+
+
 
 
