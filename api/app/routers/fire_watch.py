@@ -2,7 +2,7 @@ import logging
 from typing import List
 from aiohttp import ClientSession
 from datetime import date, datetime, UTC
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, status
 from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
 from shapely import from_wkt
@@ -182,9 +182,11 @@ async def get_fire_watch_weather(start_date: date, end_date: date, request: Stat
     logger.info(f"/fire-watch/weather/{start_date}/{end_date}")
 
     unique_station_codes = list(set(request.stations))
+    start_datetime = datetime.combine(start_date, datetime.min.time(), tzinfo=UTC)
+    end_datetime = datetime.combine(end_date, datetime.max.time(), tzinfo=UTC)
 
     async with get_async_read_session_scope() as session:
-        actuals_forecasts, predictions = await collect_fire_weather_data(session, start_date, end_date, unique_station_codes)
+        actuals_forecasts, predictions = await collect_fire_weather_data(session, start_datetime, end_datetime, unique_station_codes)
 
     records = marshal_weather_data_to_api(actuals_forecasts, predictions)
     return FireWatchWeatherResponse(station_weather=records)
