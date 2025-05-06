@@ -265,6 +265,12 @@ def test_process_prediction_with_interpolation(mock_process_data):
 
     processor._process_prediction(prev_prediction, prediction, station, model_run, machine, prediction_is_interpolated=True)
 
+    prediction.get_temp.assert_called_once()
+    prediction.get_wind_speed.assert_called_once()
+    prediction.get_wind_direction.assert_called_once()
+    prediction.get_rh.assert_called_once()
+    prediction.get_precip.assert_called_once()
+
     processor._weather_station_prediction_initializer.assert_called_once_with(station, model_run, prediction)
     processor._calculate_past_24_hour_precip.assert_called_once_with(station, model_run, prediction, station_prediction)
     processor._calculate_delta_precip.assert_called_once_with(prev_prediction, station_prediction)
@@ -280,13 +286,16 @@ def test_process_prediction_with_interpolation(mock_process_data):
 def test_process_prediction_without_interpolation(mock_process_data):
     processor, model_run_repository, machine, station_prediction, station, model_run, prediction = mock_process_data
 
-    # Mock data
     prediction.prediction_timestamp = datetime(2023, 10, 1, 12, 0)
 
-    # Call the method
     processor._process_prediction(None, prediction, station, model_run, machine, prediction_is_interpolated=False)
 
-    # Assertions
+    prediction.get_temp.assert_called_once()
+    prediction.get_wind_speed.assert_called_once()
+    prediction.get_wind_direction.assert_called_once()
+    prediction.get_rh.assert_called_once()
+    prediction.get_precip.assert_called_once()
+
     processor._weather_station_prediction_initializer.assert_called_once_with(station, model_run, prediction)
     processor._calculate_past_24_hour_precip.assert_called_once_with(station, model_run, prediction, station_prediction)
     processor._calculate_delta_precip.assert_called_once_with(None, station_prediction)
