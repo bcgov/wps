@@ -3,9 +3,10 @@
 import logging
 import datetime
 from typing import List, Union
-from sqlalchemy import and_, extract, func
+from sqlalchemy import and_, extract, func, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
+from wps_shared.schemas.weather_models import ModelPredictionDetails
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
 from wps_shared.db.models.weather_models import (
     ProcessedModelRunUrl,
@@ -229,6 +230,49 @@ def get_latest_station_prediction(session: Session, station_codes: List[int], da
     )
 
     return result
+
+
+async def get_latest_model_prediction_for_stations(
+    session: Session, station_codes: list[int], model: ModelEnum, day_start: datetime.datetime, day_end: datetime.datetime
+) -> list[ModelPredictionDetails]:
+    stmt = (
+        select(
+            WeatherStationModelPrediction.prediction_timestamp,
+            WeatherStationModelPrediction.update_date,
+            PredictionModel.abbreviation,
+            PredictionModelRunTimestamp.prediction_run_timestamp,
+            WeatherStationModelPrediction.station_code,
+            WeatherStationModelPrediction.rh_tgl_2,
+            WeatherStationModelPrediction.tmp_tgl_2,
+            WeatherStationModelPrediction.bias_adjusted_temperature,
+            WeatherStationModelPrediction.bias_adjusted_rh,
+            WeatherStationModelPrediction.bias_adjusted_wind_speed,
+            WeatherStationModelPrediction.bias_adjusted_wdir,
+            WeatherStationModelPrediction.precip_24h,
+            WeatherStationModelPrediction.bias_adjusted_precip_24h,
+            WeatherStationModelPrediction.wdir_tgl_10,
+            WeatherStationModelPrediction.wind_tgl_10,
+        )
+        .join(PredictionModelRunTimestamp, WeatherStationModelPrediction.prediction_model_run_timestamp_id == PredictionModelRunTimestamp.id)
+        .join(PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id)
+        .where(
+            extract("hour", WeatherStationModelPrediction.prediction_timestamp) == 20,
+            WeatherStationModelPrediction.station_code.in_(station_codes),
+            WeatherStationModelPrediction.prediction_timestamp.between(day_start, day_end),
+            PredictionModelRunTimestamp.complete == True,
+            PredictionModel.abbreviation == model.value,
+        )
+        .distinct(func.date(WeatherStationModelPrediction.prediction_timestamp), WeatherStationModelPrediction.station_code)
+        .order_by(
+            WeatherStationModelPrediction.station_code,
+            func.date(WeatherStationModelPrediction.prediction_timestamp),
+            WeatherStationModelPrediction.update_date.desc(),
+        )
+    )
+    results = await session.execute(stmt)
+    latest_predictions = [ModelPredictionDetails.model_validate(row) for row in results.mappings().all()]
+
+    return latest_predictions
 
 
 def get_station_model_prediction_from_previous_model_run(
