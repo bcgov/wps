@@ -235,6 +235,20 @@ def get_latest_station_prediction(session: Session, station_codes: List[int], da
 async def get_latest_model_prediction_for_stations(
     session: Session, station_codes: list[int], model: ModelEnum, day_start: datetime.datetime, day_end: datetime.datetime
 ) -> list[ModelPredictionDetails]:
+    """
+    Retrieves the most recent model predictions for each station and day, ensuring that only
+    predictions with a timestamp at 20:00 hours are included. The results are distinct by prediction date and station code.
+    The DISTINCT ON clause is used to ensure that only the latest prediction (by update_date) for each station and day is returned. 
+    Note: DISTINCT ON only works with PostgreSQL.
+
+    :param session: SQLAlchemy session used to execute the query.
+    :param station_codes: List of station codes to filter the predictions.
+    :param model: Weather prediction model to filter by.
+    :param day_start: Start of the time range for predictions.
+    :param day_end: End of the time range for predictions.
+    :return: List of the latest model prediction details for each station and day.
+
+    """
     stmt = (
         select(
             WeatherStationModelPrediction.prediction_timestamp,
