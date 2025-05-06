@@ -315,7 +315,7 @@ def test_process(setup_processor):
     model_run_repository.get_prediction_model_run_timestamp_records.assert_called_once_with(
         complete=True, interpolated=False, model_type=ModelEnum.ECMWF
     )
-    processor._process_model_run.assert_called_once_with(model_run, ModelEnum.ECMWF)
+    processor._process_model_run.assert_called_once_with(model_run)
     model_run_repository.mark_model_run_interpolated.assert_called_once_with(model_run)
 
 def test_process_model_run(setup_processor):
@@ -324,7 +324,6 @@ def test_process_model_run(setup_processor):
     # Mock data
     model_run = MagicMock(spec=PredictionModelRunTimestamp)
     model_run.id = 123
-    model_type = ModelEnum.ECMWF
     stations = [
         WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1"),
         WeatherStation(code=2, long=20.0, lat=60.0, name="Station 2"),
@@ -335,12 +334,12 @@ def test_process_model_run(setup_processor):
     processor._process_model_run_for_station = MagicMock()
 
     # Call the method
-    processor._process_model_run(model_run, model_type)
+    processor._process_model_run(model_run)
 
     # Assertions
     assert processor._process_model_run_for_station.call_count == len(stations)
     for _, station in enumerate(stations):
-        processor._process_model_run_for_station.assert_any_call(model_run, station, model_type)
+        processor._process_model_run_for_station.assert_any_call(model_run, station)
         
 
 

@@ -44,11 +44,11 @@ class ECMWFPredictionProcessor:
             logger.info("model %s", model)
             logger.info("model_run %s", model_run)
             # Process the model run.
-            self._process_model_run(model_run, ModelEnum.ECMWF)
+            self._process_model_run(model_run)
             # Mark the model run as interpolated.
             self.model_run_repository.mark_model_run_interpolated(model_run)
 
-    def _process_model_run(self, model_run: PredictionModelRunTimestamp, model_type: ModelEnum):
+    def _process_model_run(self, model_run: PredictionModelRunTimestamp):
         """Interpolate predictions in the provided model run for all stations."""
         logger.info("Interpolating values for model run: %s", model_run)
         # Iterate through stations.
