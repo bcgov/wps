@@ -55,7 +55,7 @@ class ECMWFPredictionProcessor:
         for index, station in enumerate(self.stations):
             logger.info("Interpolating model run %s (%s/%s) for %s:%s", model_run.id, index, len(self.stations), station.code, station.name)
             # Process this model run for station.
-            self._process_model_run_for_station(model_run, station, model_type)
+            self._process_model_run_for_station(model_run, station)
 
     
     def _process_model_run_for_station(self, model_run: PredictionModelRunTimestamp, station: WeatherStation):
