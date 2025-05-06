@@ -82,3 +82,78 @@ def test_marshal_weather_data_to_api():
     predictions = []
     result = marshal_weather_data_to_api(actuals_forecasts, predictions)
     assert len(result[1]) == 1
+
+
+@pytest.mark.anyio
+async def test_collect_fire_weather_data():
+    # Mock inputs
+    start_date = datetime(2025, 5, 1, tzinfo=timezone.utc)
+    end_date = datetime(2025, 5, 6, tzinfo=timezone.utc)
+    station_ids = [101, 102]
+
+    # Mock database session
+    mock_db_session = AsyncMock()
+
+    # Mock predictions
+    mock_predictions = [
+        ModelPredictionDetails(
+            station_code=101,
+            abbreviation="GFS",
+            prediction_timestamp=start_date + timedelta(days=1),
+            tmp_tgl_2=20.0,
+            rh_tgl_2=50.0,
+            precip_24h=0.0,
+            wdir_tgl_10=180,
+            wind_tgl_10=10.0,
+            update_date=start_date,
+            prediction_run_timestamp=start_date,
+        )
+    ]
+
+    # Mock station metadata
+    mock_station_metadata = {
+        101: WFWXWeatherStation(code=101, name="Station 101", lat=50.0, long=-120.0, elevation=100, wfwx_id="101", zone_code=None),
+        102: WFWXWeatherStation(code=102, name="Station 102", lat=51.0, long=-121.0, elevation=200, wfwx_id="102", zone_code=None),
+    }
+
+    # Mock actuals and forecasts
+    mock_actuals = [
+        WeatherIndeterminate(
+            station_code=101,
+            station_name="Station 101",
+            latitude=50.0,
+            longitude=-120.0,
+            determinate=WeatherDeterminate.ACTUAL,
+            utc_timestamp=start_date,
+            temperature=15.0,
+            relative_humidity=60.0,
+            precipitation=0.0,
+            wind_direction=180,
+            wind_speed=5.0,
+            update_date=start_date,
+            prediction_run_timestamp=start_date,
+            fine_fuel_moisture_code=90,
+            duff_moisture_code=80,
+            drought_code=70,
+            initial_spread_index=60,
+            fire_weather_index=50,
+            build_up_index=40,
+        )
+    ]
+    mock_forecasts = []
+
+    # Patch dependencies
+    with (
+        patch("app.fire_watch.collect_weather.get_latest_model_prediction_for_stations", return_value=mock_predictions),
+        patch("app.fire_watch.collect_weather.fetch_station_metadata", return_value=mock_station_metadata),
+        patch("app.fire_watch.collect_weather.fetch_actuals_and_forecasts", return_value=(mock_actuals, mock_forecasts)),
+        # patch("app.fire_watch.collect_weather.calculate_fwi_for_indeterminates", return_value=[]),
+    ):
+        # Call the function
+        actuals_forecasts, predictions = await collect_fire_weather_data(mock_db_session, start_date, end_date, station_ids)
+
+        # Assertions
+        assert len(actuals_forecasts) == 1
+        assert actuals_forecasts[0].station_code == 101
+        assert len(predictions) == 1
+        assert isinstance(predictions[0], WeatherIndeterminate)
