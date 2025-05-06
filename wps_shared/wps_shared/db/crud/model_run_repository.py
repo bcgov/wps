@@ -1,7 +1,11 @@
 import logging
 from datetime import datetime
+from typing import List, Tuple
 from sqlalchemy.orm import Session
-from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp, ProcessedModelRunUrl
+from sqlalchemy import select
+from sqlalchemy.sql import func
+from wps_shared.db.models.observations import HourlyActual
+from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp, ProcessedModelRunUrl, WeatherStationModelPrediction
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
 
 logger = logging.getLogger(__name__)
@@ -70,3 +74,58 @@ class ModelRunRepository:
             .first()
         )
         return prediction
+    
+    def get_prediction_model_run_timestamp_records(self, model_type: ModelEnum, complete: bool = True, interpolated: bool = True) -> List[Tuple[PredictionModelRunTimestamp, PredictionModel]]:
+        """Get prediction model run timestamps (filter on complete and interpolated if provided.)"""
+        query = (
+            self.session.query(PredictionModelRunTimestamp, PredictionModel)
+            .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id)
+            .filter(PredictionModel.abbreviation == model_type.value)
+        )
+        if interpolated is not None:
+            query = query.filter(PredictionModelRunTimestamp.interpolated == interpolated)
+        if complete is not None:
+            query = query.filter(PredictionModelRunTimestamp.complete == complete)
+        query = query.order_by(PredictionModelRunTimestamp.prediction_run_timestamp)
+        return query.all()
+    
+    def get_weather_station_model_prediction(self, station_code: int, prediction_model_run_timestamp_id: int, prediction_timestamp: datetime) -> WeatherStationModelPrediction:
+        """Get the model prediction for a weather station given a model run and a timestamp."""
+        return (
+            self.session.query(WeatherStationModelPrediction)
+            .filter(WeatherStationModelPrediction.station_code == station_code)
+            .filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id)
+            .filter(WeatherStationModelPrediction.prediction_timestamp == prediction_timestamp)
+            .first()
+        )
+    
+    def get_accumulated_precipitation(self, station_code: int, start_datetime: datetime, end_datetime: datetime):
+        """ Get the accumulated precipitation for a station by datetime range. """
+        stmt = select(func.sum(HourlyActual.precipitation))\
+            .where(HourlyActual.station_code == station_code, HourlyActual.weather_date > start_datetime, HourlyActual.weather_date <= end_datetime)
+        result = self.session.scalars(stmt).first()
+        if result is None:
+            return 0
+        return result
+    
+    def get_model_run_predictions_for_station(self, station_code: int, prediction_run: PredictionModelRunTimestamp) -> List[ModelRunPrediction]:
+        """Get all the predictions for a provided model run"""
+        logger.info("Getting model predictions for grid %s", prediction_run)
+        return (
+            self.session.query(ModelRunPrediction)
+            .filter(ModelRunPrediction.prediction_model_run_timestamp_id == prediction_run.id)
+            .filter(ModelRunPrediction.station_code == station_code)
+            .order_by(ModelRunPrediction.prediction_timestamp)
+            .all()
+        )
+    
+    def store_weather_station_model_prediction(self, prediction: WeatherStationModelPrediction):
+        """Store the model run prediction in the database."""
+        self.session.add(prediction)
+
+    def mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
+        """Having completely processed a model run, we can mark it has having been interpolated."""
+        model_run.interpolated = True
+        logger.info("marking %s as interpolated", model_run)
+        self.session.add(model_run)
+        self.session.commit()
