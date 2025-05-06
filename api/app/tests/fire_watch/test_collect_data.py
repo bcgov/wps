@@ -142,17 +142,13 @@ async def test_collect_fire_weather_data():
     ]
     mock_forecasts = []
 
-    # Patch dependencies
     with (
         patch("app.fire_watch.collect_weather.get_latest_model_prediction_for_stations", return_value=mock_predictions),
         patch("app.fire_watch.collect_weather.fetch_station_metadata", return_value=mock_station_metadata),
         patch("app.fire_watch.collect_weather.fetch_actuals_and_forecasts", return_value=(mock_actuals, mock_forecasts)),
-        # patch("app.fire_watch.collect_weather.calculate_fwi_for_indeterminates", return_value=[]),
     ):
-        # Call the function
         actuals_forecasts, predictions = await collect_fire_weather_data(mock_db_session, start_date, end_date, station_ids)
 
-        # Assertions
         assert len(actuals_forecasts) == 1
         assert actuals_forecasts[0].station_code == 101
         assert len(predictions) == 1
