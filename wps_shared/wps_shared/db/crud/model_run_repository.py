@@ -81,12 +81,10 @@ class ModelRunRepository:
             self.session.query(PredictionModelRunTimestamp, PredictionModel)
             .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id)
             .filter(PredictionModel.abbreviation == model_type.value)
+            .filter(PredictionModelRunTimestamp.interpolated == interpolated)
+            .filter(PredictionModelRunTimestamp.complete == complete)
+            .order_by(PredictionModelRunTimestamp.prediction_run_timestamp)
         )
-        if interpolated is not None:
-            query = query.filter(PredictionModelRunTimestamp.interpolated == interpolated)
-        if complete is not None:
-            query = query.filter(PredictionModelRunTimestamp.complete == complete)
-        query = query.order_by(PredictionModelRunTimestamp.prediction_run_timestamp)
         return query.all()
     
     def get_weather_station_model_prediction(self, station_code: int, prediction_model_run_timestamp_id: int, prediction_timestamp: datetime) -> WeatherStationModelPrediction:
