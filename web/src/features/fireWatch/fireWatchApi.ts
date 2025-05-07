@@ -1,5 +1,6 @@
 import axios from 'api/axios'
 import { DateTime } from 'luxon';
+import { Option as StationOption } from 'utils/dropdown'
 
 export enum BurnStatusEnum {
   ACTIVE = "active",
@@ -56,9 +57,8 @@ export interface FireWatch {
   burnWindowStart: DateTime
   contactEmail: string[]
   fireCentre: number
-  latitude: number,
-  longitude: number, 
-  stationCode: number
+  geometry: number[]
+  station?: StationOption | null  
   status: BurnStatusEnum
   title: string
   // Fuel parameters
@@ -150,7 +150,7 @@ export interface FireWatchInput {
 export interface FireWatchOutput extends FireWatchInput {
   id: number
   create_timestamp: number
-  create_user: string
+  create_user: string 
   update_timestamp: number
   update_user: string
 }
@@ -180,12 +180,12 @@ export async function postFireWatchInput(fireWatch: FireWatch): Promise<FireWatc
 
 const marshalFireWatchToFireWatchInput = (fireWatch: FireWatch): FireWatchInput => {
   return {
-    burn_location: [fireWatch.latitude, fireWatch.longitude],
+    burn_location: fireWatch.geometry,
     burn_window_end: Math.round(fireWatch.burnWindowEnd?.toMillis()/1000),
     burn_window_start: Math.round(fireWatch.burnWindowStart?.toMillis()/1000),
     contact_email: fireWatch.contactEmail,
     fire_centre: fireWatch.fireCentre,
-    station_code: fireWatch.stationCode,
+    station_code: fireWatch.station?.code ?? NaN,
     status: fireWatch.status,
     title: fireWatch.title,
     // Fuel parameters
