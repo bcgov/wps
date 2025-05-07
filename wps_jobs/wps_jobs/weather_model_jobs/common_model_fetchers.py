@@ -2,19 +2,17 @@ from typing import List
 import logging
 import numpy
 from datetime import datetime, timedelta, timezone
-
-import requests
 from pyproj import Geod
 import numpy as np
 from sqlalchemy.orm import Session
 from wps_shared.db.crud.weather_models import (
-    delete_model_run_predictions,
-    delete_weather_station_model_predictions,
-    get_model_run_predictions_for_station,
-    get_prediction_model_run_timestamp_records,
-    get_processed_file_count,
     get_processed_file_record,
+    get_processed_file_count,
+    get_prediction_model_run_timestamp_records,
+    get_model_run_predictions_for_station,
     get_weather_station_model_prediction,
+    delete_weather_station_model_predictions,
+    delete_model_run_predictions,
 )
 from wps_jobs.weather_model_jobs.utils.interpolate import (
     construct_interpolated_noon_prediction,
@@ -64,11 +62,10 @@ def flag_file_as_processed(url: str, session: Session):
     session.commit()
 
 
-def check_if_model_run_complete(session: Session, urls, expected_count: int = None):
+def check_if_model_run_complete(session: Session, urls):
     """Check if a particular model run is complete"""
     actual_count = get_processed_file_count(session, urls)
-    if not expected_count:
-        expected_count = len(urls)
+    expected_count = len(urls)
     logger.info("we have processed %s/%s files", actual_count, expected_count)
     return actual_count == expected_count and actual_count > 0
 
@@ -107,10 +104,10 @@ def accumulate_nam_precipitation(nam_cumulative_precip: float, prediction: Model
 class ModelValueProcessor:
     """Iterate through model runs that have completed, and calculate the interpolated weather predictions."""
 
-    def __init__(self, session, stations=None):
+    def __init__(self, session):
         """Prepare variables we're going to use throughout"""
         self.session = session
-        self.stations = get_stations_synchronously() if not stations else stations
+        self.stations = get_stations_synchronously()
         self.station_count = len(self.stations)
 
     def _process_model_run(self, model_run: PredictionModelRunTimestamp, model_type: ModelEnum):
