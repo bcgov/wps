@@ -12,6 +12,8 @@ from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_daily_determin
 
 from app.morecast_v2.forecasts import calculate_fwi_from_seed_indeterminates
 
+WEATHER_MODEL = ModelEnum.GFS
+
 
 def map_model_prediction_to_weather_indeterminate(model_prediction: ModelPredictionDetails, station_details: WFWXWeatherStation) -> WeatherIndeterminate:
     """Map ModelPredictionDetails to WeatherIndeterminateWithMetadata."""
@@ -35,7 +37,7 @@ def map_model_prediction_to_weather_indeterminate(model_prediction: ModelPredict
 async def collect_fire_weather_data(db_session: AsyncSession, start_date: datetime, end_date: datetime, station_ids: list[int]):
     """Collect fire weather data, including actuals, forecasts, and predictions."""
     # step 1: Fetch data
-    predictions = await get_latest_model_prediction_for_stations(db_session, station_ids, ModelEnum.GFS, start_date, end_date)
+    predictions = await get_latest_model_prediction_for_stations(db_session, station_ids, WEATHER_MODEL, start_date, end_date)
     wfwx_station_map = await fetch_station_metadata(station_ids)
     wf1_actuals, wf1_forecasts = await fetch_actuals_and_forecasts(start_date, end_date, station_ids)
 

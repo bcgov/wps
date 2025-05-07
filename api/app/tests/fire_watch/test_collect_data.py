@@ -5,9 +5,9 @@ from app.fire_watch.collect_weather import (
     map_model_prediction_to_weather_indeterminate,
     collect_fire_weather_data,
     fetch_station_metadata,
-    fetch_actuals_and_forecasts,
     prepare_data_for_fwi,
     marshal_weather_data_to_api,
+    WEATHER_MODEL,
 )
 from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
 from wps_shared.schemas.weather_models import ModelPredictionDetails
@@ -18,7 +18,7 @@ from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 async def test_map_model_prediction_to_weather_indeterminate():
     model_prediction = ModelPredictionDetails(
         station_code=1,
-        abbreviation="GFS",
+        abbreviation=WEATHER_MODEL.value,
         prediction_timestamp=datetime(2025, 4, 25, 20, tzinfo=timezone.utc),
         tmp_tgl_2=25.0,
         rh_tgl_2=50.0,
@@ -58,14 +58,14 @@ def test_prepare_data_for_fwi():
         ModelPredictionDetails(
             prediction_timestamp=datetime(2025, 4, 27, tzinfo=timezone.utc),
             station_code=1,
-            abbreviation="GFS",
+            abbreviation=WEATHER_MODEL.value,
             update_date=datetime(2025, 4, 25, 14, tzinfo=timezone.utc),
             prediction_run_timestamp=datetime(2025, 4, 25, 12, tzinfo=timezone.utc),
         ),
         ModelPredictionDetails(
             prediction_timestamp=datetime(2025, 4, 28, tzinfo=timezone.utc),
             station_code=1,
-            abbreviation="GFS",
+            abbreviation=WEATHER_MODEL.value,
             update_date=datetime(2025, 4, 25, 14, tzinfo=timezone.utc),
             prediction_run_timestamp=datetime(2025, 4, 25, 12, tzinfo=timezone.utc),
         ),
@@ -98,7 +98,7 @@ async def test_collect_fire_weather_data():
     mock_predictions = [
         ModelPredictionDetails(
             station_code=101,
-            abbreviation="GFS",
+            abbreviation=WEATHER_MODEL.value,
             prediction_timestamp=start_date + timedelta(days=1),
             tmp_tgl_2=20.0,
             rh_tgl_2=50.0,
