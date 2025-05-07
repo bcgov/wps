@@ -1,11 +1,9 @@
-import asyncio
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from aiohttp import ClientSession
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.crud.weather_models import get_latest_model_prediction_for_stations
-from wps_shared.db.database import get_async_read_session_scope
 from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
 from wps_shared.schemas.weather_models import ModelPredictionDetails
 from wps_shared.weather_models import ModelEnum
@@ -67,7 +65,6 @@ async def fetch_actuals_and_forecasts(start_date: datetime, end_date: datetime, 
     async with ClientSession() as session:
         header = await get_auth_header(session)
         wf1_actuals, wf1_forecasts = await get_daily_determinates_for_stations_and_date(session, header, start_date, end_date, station_ids)
-        # wf1_actuals = [wf1_actuals[0], wf1_actuals[1], wf1_actuals[10], wf1_actuals[11]]
         return wf1_actuals, wf1_forecasts
 
 
@@ -114,21 +111,4 @@ def marshal_weather_data_to_api(actuals_forecasts: list[WeatherIndeterminate], p
     # Sort records by date for each station code
     sorted_records = {station_code: sorted(records, key=lambda r: r.utc_timestamp) for station_code, records in grouped_records.items()}
 
-    combined_records = sorted_records
-    return combined_records
-
-
-async def main():
-    start_date = datetime(2025, 4, 25, tzinfo=timezone.utc)
-    end_date = start_date + timedelta(days=10)
-    station_ids = [392, 393]
-
-    async with get_async_read_session_scope() as session:
-        actuals_forecasts, predictions = await collect_fire_weather_data(session, start_date, end_date, station_ids)
-
-    records = marshal_weather_data_to_api(actuals_forecasts, predictions)
-    print(records)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    return sorted_records
