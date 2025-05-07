@@ -274,6 +274,135 @@ def test_process_model_run(setup_processor):
     assert processor._process_model_run_for_station.call_count == len(stations)
     for _, station in enumerate(stations):
         processor._process_model_run_for_station.assert_any_call(model_run, station)
+
+def test_initialize_station_prediction(setup_processor, mock_model_run_data):
+    processor, _, _ = setup_processor
+    station, model_run, prediction, station_prediction = mock_model_run_data
+
+    # Mock methods
+    processor._weather_station_prediction_initializer = MagicMock(return_value=station_prediction)
+    processor._calculate_past_24_hour_precip = MagicMock(return_value=15.0)
+    processor._calculate_delta_precip = MagicMock(return_value=5.0)
+
+    # Mock prediction methods
+    prediction.get_temp.return_value = 25.0
+    prediction.get_rh.return_value = 60.0
+    prediction.get_precip.return_value = 10.0
+    prediction.get_wind_speed.return_value = 5.5
+    prediction.get_wind_direction.return_value = 180.0
+
+    # Call the method
+    result = processor.initialize_station_prediction(None, prediction, station, model_run)
+
+    # Assertions
+    processor._weather_station_prediction_initializer.assert_called_once_with(station, model_run, prediction)
+    processor._calculate_past_24_hour_precip.assert_called_once_with(station, model_run, prediction, station_prediction)
+    processor._calculate_delta_precip.assert_called_once_with(None, station_prediction)
+
+    assert result.tmp_tgl_2 == 25.0
+    assert result.rh_tgl_2 == 60.0
+    assert result.apcp_sfc_0 == 10.0
+    assert result.precip_24h == 15.0
+    assert result.delta_precip == 5.0
+    assert result.wind_tgl_10 == 5.5
+    assert result.wdir_tgl_10 == 180.0
+
+def test_apply_bias_adjustments(setup_processor, mock_model_run_data):
+    processor, _, _ = setup_processor
+    _, _, _, station_prediction = mock_model_run_data
+
+    # Mock machine
+    machine = MagicMock()
+
+    # Mock machine predictions
+    machine.predict_temperature.return_value = 22.5
+    machine.predict_rh.return_value = 55.0
+    machine.predict_wind_speed.return_value = 6.5
+    machine.predict_wind_direction.return_value = 190.0
+    machine.predict_precipitation.return_value = 12.0
+
+    # Call the method
+    result = processor._apply_bias_adjustments(station_prediction, machine)
+
+    # Assertions
+    machine.predict_temperature.assert_called_once_with(station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp)
+    machine.predict_rh.assert_called_once_with(station_prediction.rh_tgl_2, station_prediction.prediction_timestamp)
+    machine.predict_wind_speed.assert_called_once_with(station_prediction.wind_tgl_10, station_prediction.prediction_timestamp)
+    machine.predict_wind_direction.assert_called_once_with(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, station_prediction.prediction_timestamp)
+    machine.predict_precipitation.assert_called_once_with(station_prediction.precip_24h, station_prediction.prediction_timestamp)
+
+    assert result.bias_adjusted_temperature == 22.5
+    assert result.bias_adjusted_rh == 55.0
+    assert result.bias_adjusted_wind_speed == 6.5
+    assert result.bias_adjusted_wdir == 190.0
+    assert result.bias_adjusted_precip_24h == 12.0
+
+def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_data):
+    processor, _, _ = setup_processor
+    station, model_run, prediction, station_prediction = mock_model_run_data
+
+    # Mock previous prediction
+    prev_prediction = MagicMock(spec=ModelRunPrediction)
+    prev_prediction.prediction_timestamp = datetime(2023, 10, 1, 18, 0)
+
+    # Mock current prediction
+    prediction.prediction_timestamp = datetime(2023, 10, 1, 21, 0)
+
+    # Mock machine
+    machine = MagicMock()
+    machine.predict_temperature.side_effect = [10.0, 20.0]
+    machine.predict_rh.side_effect = [50.0, 55.0]
+    machine.predict_wind_speed.side_effect = [5.0, 6.0]
+    machine.predict_wind_direction.side_effect = [180.0, 190.0]
+    machine.predict_precipitation.return_value = 10.0
+
+    # Mock interpolation method
+    processor.interpolate_20_00_values = MagicMock(side_effect=[52.5, 5.5, 185.0])
+
+    # Call the method
+    result = processor._apply_interpolated_bias_adjustments(
+        station_prediction, prev_prediction, prediction, station, model_run, machine
+    )
+
+    # Assertions
+    machine.predict_temperature.assert_any_call(station_prediction.tmp_tgl_2, prev_prediction.prediction_timestamp)
+    machine.predict_temperature.assert_any_call(station_prediction.tmp_tgl_2, prediction.prediction_timestamp)
+
+    machine.predict_rh.assert_any_call(station_prediction.rh_tgl_2, prev_prediction.prediction_timestamp)
+    machine.predict_rh.assert_any_call(station_prediction.rh_tgl_2, prediction.prediction_timestamp)
+
+    machine.predict_wind_speed.assert_any_call(station_prediction.wind_tgl_10, prev_prediction.prediction_timestamp)
+    machine.predict_wind_speed.assert_any_call(station_prediction.wind_tgl_10, prediction.prediction_timestamp)
+
+    machine.predict_wind_direction.assert_any_call(
+        station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, prev_prediction.prediction_timestamp
+    )
+    machine.predict_wind_direction.assert_any_call(
+        station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, prediction.prediction_timestamp
+    )
+
+    machine.predict_precipitation.assert_called_once_with(
+        station_prediction.precip_24h, station_prediction.prediction_timestamp
+    )
+
+    processor.interpolate_20_00_values.assert_any_call(
+        prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 50.0, 55.0, datetime(2023, 10, 1, 20, 0)
+    )
+    processor.interpolate_20_00_values.assert_any_call(
+        prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 5.0, 6.0, datetime(2023, 10, 1, 20, 0)
+    )
+    processor.interpolate_20_00_values.assert_any_call(
+        prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 180.0, 190.0, datetime(2023, 10, 1, 20, 0)
+    )
+
+    assert result.bias_adjusted_temperature == pytest.approx(16.666, rel=0.1)
+    assert result.bias_adjusted_rh == pytest.approx(52.5, rel=0.1)
+    assert result.bias_adjusted_wind_speed == pytest.approx(5.5, rel=0.1)
+    assert result.bias_adjusted_wdir == pytest.approx(185.0 , rel=0.1)
+    assert result.bias_adjusted_precip_24h == pytest.approx(10.0 , rel=0.1)
+
+
+
         
 
 
