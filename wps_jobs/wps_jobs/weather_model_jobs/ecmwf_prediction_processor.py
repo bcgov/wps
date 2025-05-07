@@ -56,7 +56,7 @@ class ECMWFPredictionProcessor:
             station_prediction = self._weather_station_prediction_initializer(station, model_run, prediction)
             if prev_prediction is not None and self._should_interpolate(prev_prediction, prediction):
                 noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction, SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION)
-                station_prediction = self._apply_interpolated_bias_adjustments(station_prediction, prev_prediction, noon_prediction, station, model_run, machine)
+                station_prediction = self._apply_interpolated_bias_adjustments(station_prediction, prev_prediction, noon_prediction, machine)
             else:
                 station_prediction = self._apply_bias_adjustments(station_prediction, machine)
 
