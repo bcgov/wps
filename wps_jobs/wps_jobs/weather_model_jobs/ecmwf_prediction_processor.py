@@ -148,7 +148,7 @@ class ECMWFPredictionProcessor:
         """Initialize a WeatherStationModelPrediction object with the provided prediction data."""
         station_prediction = self._weather_station_prediction_initializer(station, model_run, prediction)
         station_prediction.tmp_tgl_2 = prediction.get_temp()
-        station_prediction.tmp_tgl_2 = prediction.get_rh()
+        station_prediction.rh_tgl_2 = prediction.get_rh()
         station_prediction.apcp_sfc_0 = prediction.get_precip()
 
         station_prediction.precip_24h = self._calculate_past_24_hour_precip(station, model_run, prediction, station_prediction)
