@@ -2,7 +2,6 @@ import pytest
 from unittest.mock import MagicMock, create_autospec
 from datetime import datetime, timedelta, timezone
 
-from pytest_mock import MockerFixture
 from wps_jobs.weather_model_jobs import ModelEnum
 from wps_jobs.weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
 from wps_shared.schemas.stations import WeatherStation
@@ -16,14 +15,13 @@ def setup_processor():
         WeatherStation(code=1, long=20.0, lat=60.0, name="Station 2"),
     ]
     model_run_repository = MagicMock(spec=ModelRunRepository)
-    prediction_run = MagicMock(spec=PredictionModelRunTimestamp)
     model_run_repository.session = MagicMock()
-    processor = ECMWFPredictionProcessor(stations, model_run_repository, prediction_run)
-    return processor, model_run_repository, prediction_run
+    processor = ECMWFPredictionProcessor(stations, model_run_repository)
+    return processor, model_run_repository
 
 @pytest.fixture
 def mock_predictions():
-    processor = ECMWFPredictionProcessor([], None, None)
+    processor = ECMWFPredictionProcessor([], None)
     prev_prediction = MagicMock(spec=ModelRunPrediction)
     prediction = MagicMock(spec=ModelRunPrediction)
     return processor, prev_prediction, prediction
@@ -43,7 +41,7 @@ def mock_model_run_data():
 
 
 def test_process_model_run_for_station(setup_processor):
-    processor, model_run_repository, _ = setup_processor
+    processor, model_run_repository = setup_processor
 
     # Mock data
     station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
@@ -99,7 +97,7 @@ def test_should_interpolate_assertion_error(mock_predictions):
         processor._should_interpolate(prev_prediction, prediction)
     
 def test_weather_station_prediction_initializer(setup_processor):
-    processor, model_run_repository, _ = setup_processor
+    processor, model_run_repository = setup_processor
 
     # Mock data
     station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
@@ -157,7 +155,7 @@ def test_interpolate_20_00_values_invalid_timestamps(prev_timestamp, next_timest
         processor.interpolate_20_00_values(prev_timestamp, next_timestamp, prev_value, next_value, target_timestamp)
 
 def test_calculate_past_24_hour_precip_with_previous_prediction(setup_processor, mock_model_run_data):
-    processor, model_run_repository, _ = setup_processor
+    processor, model_run_repository = setup_processor
     station, model_run, prediction, station_prediction = mock_model_run_data
 
     # Mock repository behavior
@@ -176,7 +174,7 @@ def test_calculate_past_24_hour_precip_with_previous_prediction(setup_processor,
 
 
 def test_calculate_past_24_hour_precip_without_previous_prediction(setup_processor, mock_model_run_data):
-    processor, model_run_repository, _ = setup_processor
+    processor, model_run_repository = setup_processor
     station, model_run, prediction, station_prediction = mock_model_run_data
 
     # Mock repository behavior
@@ -209,7 +207,7 @@ def test_calculate_past_24_hour_precip_without_previous_prediction(setup_process
     ],
 )
 def test_calculate_delta_precip(prev_prediction, station_value, expected, setup_processor, mock_model_run_data):
-    processor, _, _ = setup_processor
+    processor, _ = setup_processor
     _, _, _, station_prediction = mock_model_run_data
 
     def setup_prev_prediction():
@@ -232,7 +230,7 @@ def test_calculate_delta_precip(prev_prediction, station_value, expected, setup_
 
 
 def test_process(setup_processor):
-    processor, model_run_repository, _ = setup_processor
+    processor, model_run_repository = setup_processor
 
     # Mock data
     model_run = MagicMock()
@@ -253,7 +251,7 @@ def test_process(setup_processor):
     model_run_repository.mark_model_run_interpolated.assert_called_once_with(model_run)
 
 def test_process_model_run(setup_processor):
-    processor, _, _ = setup_processor
+    processor, _ = setup_processor
 
     # Mock data
     model_run = MagicMock(spec=PredictionModelRunTimestamp)
@@ -276,7 +274,7 @@ def test_process_model_run(setup_processor):
         processor._process_model_run_for_station.assert_any_call(model_run, station)
 
 def test_initialize_station_prediction(setup_processor, mock_model_run_data):
-    processor, _, _ = setup_processor
+    processor, _ = setup_processor
     station, model_run, prediction, station_prediction = mock_model_run_data
 
     # Mock methods
@@ -308,7 +306,7 @@ def test_initialize_station_prediction(setup_processor, mock_model_run_data):
     assert result.wdir_tgl_10 == 180.0
 
 def test_apply_bias_adjustments(setup_processor, mock_model_run_data):
-    processor, _, _ = setup_processor
+    processor, _ = setup_processor
     _, _, _, station_prediction = mock_model_run_data
 
     # Mock machine
@@ -338,8 +336,8 @@ def test_apply_bias_adjustments(setup_processor, mock_model_run_data):
     assert result.bias_adjusted_precip_24h == 12.0
 
 def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_data):
-    processor, _, _ = setup_processor
-    station, model_run, prediction, station_prediction = mock_model_run_data
+    processor, _ = setup_processor
+    _, _, prediction, station_prediction = mock_model_run_data
 
     # Mock previous prediction
     prev_prediction = MagicMock(spec=ModelRunPrediction)

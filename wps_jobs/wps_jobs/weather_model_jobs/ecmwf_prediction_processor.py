@@ -15,28 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class ECMWFPredictionProcessor:
-    def __init__(self, stations: List[WeatherStation], model_run_repository: ModelRunRepository, prediction_run: PredictionModelRunTimestamp):        
-        self.prediction_run = prediction_run
+    def __init__(self, stations: List[WeatherStation], model_run_repository: ModelRunRepository):        
         self.stations = stations
         self.model_run_repository = model_run_repository
         self.station_predictions: Dict[int, List[ModelRunPrediction]] = defaultdict(list)
-
-    def store(self, process_result: ModelRunProcessResult):
-        for station in self.stations:
-            prediction = self.model_run_repository.get_model_run_prediction(self.prediction_run, process_result.model_run_info.prediction_timestamp, station.code)
-            if not prediction:
-                prediction = ModelRunPrediction()
-                prediction.prediction_model_run_timestamp_id = self.prediction_run.id
-                prediction.prediction_timestamp = process_result.model_run_info.prediction_timestamp
-                prediction.station_code = station.code
-
-            station_data = process_result.data.sel(point_code=station.code)
-
-            for field in ModelRunPrediction.get_weather_model_fields():
-                if field in station_data:
-                    setattr(prediction, field, station_data[field].item())
-            
-            self.model_run_repository.store_model_run_prediction(prediction)
     
     def process(self):
         for model_run, model in self.model_run_repository.get_prediction_model_run_timestamp_records(complete=True, interpolated=False, model_type=ModelEnum.ECMWF):
