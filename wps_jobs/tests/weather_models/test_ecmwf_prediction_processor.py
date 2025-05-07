@@ -7,7 +7,6 @@ from wps_jobs.weather_model_jobs import ModelEnum
 from wps_jobs.weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
-from wps_jobs.weather_model_jobs.machine_learning import StationMachineLearning
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
 
 @pytest.fixture
@@ -19,13 +18,12 @@ def setup_processor():
     model_run_repository = MagicMock(spec=ModelRunRepository)
     prediction_run = MagicMock(spec=PredictionModelRunTimestamp)
     model_run_repository.session = MagicMock()
-    machine = MagicMock(spec=StationMachineLearning)
-    processor = ECMWFPredictionProcessor(stations, model_run_repository, prediction_run, machine)
-    return processor, model_run_repository, prediction_run, machine
+    processor = ECMWFPredictionProcessor(stations, model_run_repository, prediction_run)
+    return processor, model_run_repository, prediction_run
 
 @pytest.fixture
 def mock_predictions():
-    processor = ECMWFPredictionProcessor([], None, None, None)
+    processor = ECMWFPredictionProcessor([], None, None)
     prev_prediction = MagicMock(spec=ModelRunPrediction)
     prediction = MagicMock(spec=ModelRunPrediction)
     return processor, prev_prediction, prediction
@@ -45,7 +43,7 @@ def mock_model_run_data():
 
 
 def test_process_model_run_for_station(setup_processor):
-    processor, model_run_repository, _, __ = setup_processor
+    processor, model_run_repository, _ = setup_processor
 
     # Mock data
     station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
@@ -100,8 +98,8 @@ def test_should_interpolate_assertion_error(mock_predictions):
     with pytest.raises(AssertionError, match="Next timestamp must be greater than previous timestamp"):
         processor._should_interpolate(prev_prediction, prediction)
     
-def test_weather_station_prediction_initializer(setup_processor, mocker: MockerFixture):
-    processor, model_run_repository, _, _ = setup_processor
+def test_weather_station_prediction_initializer(setup_processor):
+    processor, model_run_repository, _ = setup_processor
 
     # Mock data
     station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
@@ -125,7 +123,7 @@ def test_weather_station_prediction_initializer(setup_processor, mocker: MockerF
     assert station_prediction.prediction_model_run_timestamp_id == model_run.id
     assert station_prediction.prediction_timestamp == model_run.prediction_run_timestamp
     
-def test_interpolate_20_00_values_valid_interpolation(mock_predictions, mocker: MockerFixture):
+def test_interpolate_20_00_values_valid_interpolation(mock_predictions):
     processor, _, _ = mock_predictions
 
     # Mock data
@@ -159,7 +157,7 @@ def test_interpolate_20_00_values_invalid_timestamps(prev_timestamp, next_timest
         processor.interpolate_20_00_values(prev_timestamp, next_timestamp, prev_value, next_value, target_timestamp)
 
 def test_calculate_past_24_hour_precip_with_previous_prediction(setup_processor, mock_model_run_data):
-    processor, model_run_repository, _, _ = setup_processor
+    processor, model_run_repository, _ = setup_processor
     station, model_run, prediction, station_prediction = mock_model_run_data
 
     # Mock repository behavior
@@ -178,7 +176,7 @@ def test_calculate_past_24_hour_precip_with_previous_prediction(setup_processor,
 
 
 def test_calculate_past_24_hour_precip_without_previous_prediction(setup_processor, mock_model_run_data):
-    processor, model_run_repository, _, _ = setup_processor
+    processor, model_run_repository, _ = setup_processor
     station, model_run, prediction, station_prediction = mock_model_run_data
 
     # Mock repository behavior
@@ -211,7 +209,7 @@ def test_calculate_past_24_hour_precip_without_previous_prediction(setup_process
     ],
 )
 def test_calculate_delta_precip(prev_prediction, station_value, expected, setup_processor, mock_model_run_data):
-    processor, _, _, _ = setup_processor
+    processor, _, _ = setup_processor
     _, _, _, station_prediction = mock_model_run_data
 
     def setup_prev_prediction():
@@ -232,34 +230,9 @@ def test_calculate_delta_precip(prev_prediction, station_value, expected, setup_
     # Assertions
     assert result == expected
 
-@pytest.fixture()
-def mock_process_data(setup_processor, mock_model_run_data):
-    processor, model_run_repository, _, machine = setup_processor
-    station, model_run, prediction, station_prediction = mock_model_run_data
-    
-    station_prediction = MagicMock()
-    station_prediction.prediction_timestamp = datetime(2023, 10, 1, 12, 0)
-    station_prediction.tmp_tgl_2 = 15.0
-    station_prediction.rh_tgl_2 = 50.0
-    station_prediction.wind_tgl_10 = 5.0
-    station_prediction.wdir_tgl_10 = 180.0
-    station_prediction.precip_24h = 10.0
-
-    # Mock methods
-    processor._weather_station_prediction_initializer = MagicMock(return_value=station_prediction)
-    processor._calculate_past_24_hour_precip = MagicMock(return_value=10.0)
-    processor._calculate_delta_precip = MagicMock(return_value=5.0)
-    machine.predict_temperature = MagicMock(return_value=14.0)
-    machine.predict_rh = MagicMock(return_value=45.0)
-    machine.predict_wind_speed = MagicMock(return_value=4.0)
-    machine.predict_wind_direction = MagicMock(return_value=170.0)
-    machine.predict_precipitation = MagicMock(return_value=8.0)
-
-    return processor, model_run_repository, machine, station_prediction, station, model_run, prediction
-
 
 def test_process(setup_processor):
-    processor, model_run_repository, _, _ = setup_processor
+    processor, model_run_repository, _ = setup_processor
 
     # Mock data
     model_run = MagicMock()
@@ -280,7 +253,7 @@ def test_process(setup_processor):
     model_run_repository.mark_model_run_interpolated.assert_called_once_with(model_run)
 
 def test_process_model_run(setup_processor):
-    processor, _, _, _ = setup_processor
+    processor, _, _ = setup_processor
 
     # Mock data
     model_run = MagicMock(spec=PredictionModelRunTimestamp)
