@@ -7,7 +7,7 @@ from wps_shared.utils.time import get_utc_now
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp, WeatherStationModelPrediction
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
-from wps_jobs.weather_model_jobs import ModelEnum, ModelRunProcessResult
+from wps_jobs.weather_model_jobs import ModelEnum
 from wps_jobs.weather_model_jobs.machine_learning import StationMachineLearning
 from wps_jobs.weather_model_jobs.utils.interpolate import SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION, construct_interpolated_noon_prediction, interpolate_between_two_points
 
