@@ -357,7 +357,7 @@ def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_dat
     machine.predict_precipitation.return_value = 10.0
 
     # Mock interpolation method
-    processor.interpolate_20_00_values = MagicMock(side_effect=[52.5, 5.5, 185.0])
+    processor.interpolate_20_00_values = MagicMock(side_effect=[16.66, 52.5, 5.5, 185.0])
 
     # Call the method
     result = processor._apply_interpolated_bias_adjustments(
@@ -386,6 +386,10 @@ def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_dat
     )
 
     processor.interpolate_20_00_values.assert_any_call(
+        prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 10.0, 20.0, datetime(2023, 10, 1, 20, 0)
+    )
+
+    processor.interpolate_20_00_values.assert_any_call(
         prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 50.0, 55.0, datetime(2023, 10, 1, 20, 0)
     )
     processor.interpolate_20_00_values.assert_any_call(
@@ -395,7 +399,10 @@ def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_dat
         prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 180.0, 190.0, datetime(2023, 10, 1, 20, 0)
     )
 
-    assert result.bias_adjusted_temperature == pytest.approx(16.666, rel=0.1)
+    # precip is not interpolated
+    assert processor.interpolate_20_00_values.call_count == 4
+
+    assert result.bias_adjusted_temperature == pytest.approx(16.66, rel=0.1)
     assert result.bias_adjusted_rh == pytest.approx(52.5, rel=0.1)
     assert result.bias_adjusted_wind_speed == pytest.approx(5.5, rel=0.1)
     assert result.bias_adjusted_wdir == pytest.approx(185.0 , rel=0.1)
