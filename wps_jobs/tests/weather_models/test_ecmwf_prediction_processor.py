@@ -361,7 +361,7 @@ def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_dat
 
     # Call the method
     result = processor._apply_interpolated_bias_adjustments(
-        station_prediction, prev_prediction, prediction, station, model_run, machine
+        station_prediction, prev_prediction, prediction, machine
     )
 
     # Assertions
