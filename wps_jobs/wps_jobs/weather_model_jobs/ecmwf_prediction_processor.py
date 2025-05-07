@@ -115,7 +115,7 @@ class ECMWFPredictionProcessor:
 
         temp_before_2000 = machine.predict_temperature(station_prediction.tmp_tgl_2, prev_prediction_datetime)
         temp_after_2000 = machine.predict_temperature(station_prediction.tmp_tgl_2, prediction_datetime)
-        station_prediction.bias_adjusted_temperature = interpolate_between_two_points(int(prev_prediction_datetime.timestamp()), int(prediction_datetime.timestamp()), temp_before_2000, temp_after_2000, int(datetime_at_2000.timestamp()))
+        station_prediction.bias_adjusted_temperature = self.interpolate_20_00_values(prev_prediction_datetime, prediction_datetime, temp_before_2000, temp_after_2000, datetime_at_2000)
 
         rh_before_2000 = machine.predict_rh(station_prediction.rh_tgl_2, prev_prediction_datetime)
         rh_after_2000 = machine.predict_rh(station_prediction.rh_tgl_2, prediction_datetime)
