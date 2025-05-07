@@ -10,7 +10,7 @@ from wps_shared.weather_models import ModelEnum
 from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_daily_determinates_for_stations_and_date, get_wfwx_stations_from_station_codes
 
-from app.morecast_v2.forecasts import calculate_fwi_for_indeterminates
+from app.morecast_v2.forecasts import calculate_fwi_from_seed_indeterminates
 
 
 def map_model_prediction_to_weather_indeterminate(model_prediction: ModelPredictionDetails, station_details: WFWXWeatherStation) -> WeatherIndeterminate:
@@ -47,7 +47,7 @@ async def collect_fire_weather_data(db_session: AsyncSession, start_date: dateti
         return actuals_forecasts_in_range, []
 
     # step 3: Calculate FWI values for the predictions
-    fwi_filled_predictions = calculate_fwi_for_indeterminates(actuals_forecasts_in_range, predictions_in_range)
+    fwi_filled_predictions = calculate_fwi_from_seed_indeterminates(actuals_forecasts_in_range, predictions_in_range)
 
     return actuals_forecasts_in_range, fwi_filled_predictions
 

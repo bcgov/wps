@@ -166,7 +166,7 @@ def indeterminate_missing_fwi(indeterminate: WeatherIndeterminate):
     )
 
 
-def calculate_fwi_for_indeterminates(seed_indeterminates: List[WeatherIndeterminate], target_indeterminates: List[WeatherIndeterminate]) -> List[WeatherIndeterminate]:
+def calculate_fwi_from_seed_indeterminates(seed_indeterminates: List[WeatherIndeterminate], target_indeterminates: List[WeatherIndeterminate]) -> List[WeatherIndeterminate]:
     """
     Calculates FWI values for a list of target indeterminates based on seed indeterminates.
 
