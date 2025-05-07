@@ -262,8 +262,3 @@ def test_process_model_run_prediction_model_complete(complete):
     assert ecmwf.files_downloaded == 0
     assert ecmwf.files_processed == 0
     assert ecmwf.exception_count == 0
-
-
-
-
-
