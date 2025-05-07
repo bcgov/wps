@@ -35,7 +35,10 @@ def map_model_prediction_to_weather_indeterminate(model_prediction: ModelPredict
 
 
 async def collect_fire_weather_data(db_session: AsyncSession, start_date: datetime, end_date: datetime, station_ids: list[int]):
-    """Collect fire weather data, including actuals, forecasts, and predictions."""
+    """
+    Collect fire weather data for the given date range and station IDs. It will also project out the FWI values for predictions using actuals/forecasts
+    as starting values.
+    """
     # step 1: Fetch data
     predictions = await get_latest_model_prediction_for_stations(db_session, station_ids, WEATHER_MODEL, start_date, end_date)
     wfwx_station_map = await fetch_station_metadata(station_ids)
@@ -79,7 +82,10 @@ def prepare_data_for_fwi(
     start_date: datetime,
     end_date: datetime,
 ) -> tuple[list[WeatherIndeterminate], list[WeatherIndeterminate]]:
-    """Prepare data for FWI calculation by mapping and filtering."""
+    """
+    Prepare data for FWI calculation by filtering actuals, forecasts, and predictions within a range of dates.
+    It will prioritize actuals over forecasts and forecasts over predictions for each station and date.
+    """
     actuals_forecasts_in_range: list[WeatherIndeterminate] = []
     predictions_in_range: list[WeatherIndeterminate] = []
     date_range = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
