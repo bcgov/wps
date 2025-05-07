@@ -58,7 +58,8 @@ def test_process_model_run_for_station(setup_processor):
 
     # Mock methods
     processor._should_interpolate = MagicMock(return_value=True)
-    processor._process_prediction = MagicMock()
+    processor._apply_bias_adjustments = MagicMock()
+    processor._apply_interpolated_bias_adjustments = MagicMock()
 
     # Call the method
     processor._process_model_run_for_station(model_run, station)
@@ -66,7 +67,8 @@ def test_process_model_run_for_station(setup_processor):
     # Assertions
     model_run_repository.get_model_run_predictions_for_station.assert_called_once_with(station.code, model_run)
     processor._should_interpolate.assert_called()
-    assert processor._process_prediction.call_count == 3  # Two predictions + one interpolated
+    assert processor._apply_bias_adjustments.call_count == 1  
+    assert processor._apply_interpolated_bias_adjustments.call_count == 1  # Two predictions + one interpolated
 
 
 @pytest.mark.parametrize(
@@ -255,56 +257,6 @@ def mock_process_data(setup_processor, mock_model_run_data):
 
     return processor, model_run_repository, machine, station_prediction, station, model_run, prediction
 
-def test_process_prediction_with_interpolation(mock_process_data):
-    processor, model_run_repository, machine, station_prediction, station, model_run, prediction = mock_process_data
-
-    prev_prediction = MagicMock(spec=ModelRunPrediction)
-    prev_prediction.prediction_timestamp = datetime(2023, 10, 1, 18, 0)
-    prediction.prediction_timestamp = datetime(2023, 10, 1, 21, 0)
-    processor.interpolate_20_00_values = MagicMock(return_value=12.5)
-
-    processor._process_prediction(prev_prediction, prediction, station, model_run, machine, prediction_is_interpolated=True)
-
-    prediction.get_temp.assert_called_once()
-    prediction.get_wind_speed.assert_called_once()
-    prediction.get_wind_direction.assert_called_once()
-    prediction.get_rh.assert_called_once()
-    prediction.get_precip.assert_called_once()
-
-    processor._weather_station_prediction_initializer.assert_called_once_with(station, model_run, prediction)
-    processor._calculate_past_24_hour_precip.assert_called_once_with(station, model_run, prediction, station_prediction)
-    processor._calculate_delta_precip.assert_called_once_with(prev_prediction, station_prediction)
-    processor.interpolate_20_00_values.assert_called()
-    machine.predict_temperature.assert_called()
-    machine.predict_rh.assert_called()
-    machine.predict_wind_speed.assert_called()
-    machine.predict_wind_direction.assert_called()
-    machine.predict_precipitation.assert_called_once_with(station_prediction.precip_24h, station_prediction.prediction_timestamp)
-    model_run_repository.store_weather_station_model_prediction.assert_called_once_with(station_prediction)
-
-
-def test_process_prediction_without_interpolation(mock_process_data):
-    processor, model_run_repository, machine, station_prediction, station, model_run, prediction = mock_process_data
-
-    prediction.prediction_timestamp = datetime(2023, 10, 1, 12, 0)
-
-    processor._process_prediction(None, prediction, station, model_run, machine, prediction_is_interpolated=False)
-
-    prediction.get_temp.assert_called_once()
-    prediction.get_wind_speed.assert_called_once()
-    prediction.get_wind_direction.assert_called_once()
-    prediction.get_rh.assert_called_once()
-    prediction.get_precip.assert_called_once()
-
-    processor._weather_station_prediction_initializer.assert_called_once_with(station, model_run, prediction)
-    processor._calculate_past_24_hour_precip.assert_called_once_with(station, model_run, prediction, station_prediction)
-    processor._calculate_delta_precip.assert_called_once_with(None, station_prediction)
-    machine.predict_temperature.assert_called_once_with(station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp)
-    machine.predict_rh.assert_called_once_with(station_prediction.rh_tgl_2, station_prediction.prediction_timestamp)
-    machine.predict_wind_speed.assert_called_once_with(station_prediction.wind_tgl_10, station_prediction.prediction_timestamp)
-    machine.predict_wind_direction.assert_called_once_with(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, station_prediction.prediction_timestamp)
-    machine.predict_precipitation.assert_called_once_with(station_prediction.precip_24h, station_prediction.prediction_timestamp)
-    model_run_repository.store_weather_station_model_prediction.assert_called_once_with(station_prediction)
 
 def test_process(setup_processor):
     processor, model_run_repository, _, _ = setup_processor
