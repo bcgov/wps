@@ -36,7 +36,7 @@ def mock_model_run_data():
     prediction.prediction_timestamp = datetime(2023, 10, 2, 12, 0)
     station_prediction = MagicMock()
     station_prediction.prediction_timestamp = datetime(2023, 10, 2, 12, 0)
-    station_prediction.apcp_sfc_0 = 10.0
+    station_prediction.apcp_sfc_0 = 0.0
     return station, model_run, prediction, station_prediction
 
 
@@ -193,7 +193,7 @@ def test_calculate_past_24_hour_precip_without_previous_prediction(setup_process
         prediction.prediction_timestamp - timedelta(days=1),
         datetime(year=2023, month=10, day=2, tzinfo=timezone.utc),
     )
-    assert result == 13.0
+    assert result == 3.0
 
 
 
