@@ -108,7 +108,7 @@ class ECMWFPredictionProcessor:
         station_prediction.prediction_timestamp = model_run.prediction_run_timestamp
         return station_prediction
     
-    def _apply_interpolated_bias_adjustments(self, station_prediction: WeatherStationModelPrediction, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction, station: WeatherStation, model_run: PredictionModelRunTimestamp, machine: StationMachineLearning):
+    def _apply_interpolated_bias_adjustments(self, station_prediction: WeatherStationModelPrediction, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction, machine: StationMachineLearning):
         prev_prediction_datetime: datetime = prev_prediction.prediction_timestamp
         prediction_datetime: datetime = prediction.prediction_timestamp
         datetime_at_2000 = prev_prediction_datetime.replace(hour=20)
