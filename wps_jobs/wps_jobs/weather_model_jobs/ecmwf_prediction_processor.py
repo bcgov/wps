@@ -72,10 +72,16 @@ class ECMWFPredictionProcessor:
         prev_prediction: ModelRunPrediction | None = None
 
         for prediction in model_run_predictions:
+            station_prediction = self._weather_station_prediction_initializer(station, model_run, prediction)
             if prev_prediction is not None and self._should_interpolate(prev_prediction, prediction):
                 noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction, SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION)
-                self._process_prediction(prev_prediction, noon_prediction, station, model_run, machine, True)
-            self._process_prediction(prev_prediction, prediction, station, model_run, machine, False)
+                station_prediction = self._apply_interpolated_bias_adjustments(station_prediction, prev_prediction, noon_prediction, station, model_run, machine)
+            else:
+                station_prediction = self._apply_bias_adjustments(station_prediction, machine)
+
+            # Update the update time (this might be an update)
+            station_prediction.update_date = get_utc_now()
+            self.model_run_repository.store_weather_station_model_prediction(station_prediction)
 
             prev_prediction = prediction
     
@@ -103,9 +109,44 @@ class ECMWFPredictionProcessor:
         station_prediction.prediction_timestamp = model_run.prediction_run_timestamp
         return station_prediction
     
-    
-    def _process_prediction(self, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction, station: WeatherStation, model_run: PredictionModelRunTimestamp, machine: StationMachineLearning, prediction_is_interpolated: bool):
+    def _apply_interpolated_bias_adjustments(self, station_prediction: WeatherStationModelPrediction, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction, station: WeatherStation, model_run: PredictionModelRunTimestamp, machine: StationMachineLearning):
+        prev_prediction_datetime: datetime = prev_prediction.prediction_timestamp
+        prediction_datetime: datetime = prediction.prediction_timestamp
+        datetime_at_2000 = prev_prediction_datetime.replace(hour=20)
+
+        temp_before_2000 = machine.predict_temperature(station_prediction.tmp_tgl_2, prev_prediction_datetime)
+        temp_after_2000 = machine.predict_temperature(station_prediction.tmp_tgl_2, prediction_datetime)
+        station_prediction.bias_adjusted_temperature = interpolate_between_two_points(int(prev_prediction_datetime.timestamp()), int(prediction_datetime.timestamp()), temp_before_2000, temp_after_2000, int(datetime_at_2000.timestamp()))
+
+        rh_before_2000 = machine.predict_rh(station_prediction.rh_tgl_2, prev_prediction_datetime)
+        rh_after_2000 = machine.predict_rh(station_prediction.rh_tgl_2, prediction_datetime)
+        station_prediction.bias_adjusted_rh = self.interpolate_20_00_values(prev_prediction_datetime, prediction_datetime, rh_before_2000, rh_after_2000, datetime_at_2000)
+
+        wind_speed_before_2000 = machine.predict_wind_speed(station_prediction.wind_tgl_10, prev_prediction_datetime)
+        wind_speed_after_2000 = machine.predict_wind_speed(station_prediction.wind_tgl_10, prediction_datetime)
+        station_prediction.bias_adjusted_wind_speed = self.interpolate_20_00_values(prev_prediction_datetime, prediction_datetime, wind_speed_before_2000, wind_speed_after_2000, datetime_at_2000)
+
+        wind_direction_before_2000 = station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, prev_prediction_datetime)
+        wind_direction_after_2000 = station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, prediction_datetime)
+        station_prediction.bias_adjusted_wdir = self.interpolate_20_00_values(prev_prediction_datetime, prediction_datetime, wind_direction_before_2000, wind_direction_after_2000, datetime_at_2000)
+
+        # Predict the 24h precipitation. No interpolation necessary due to the underlying model training.
+        station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(station_prediction.precip_24h, station_prediction.prediction_timestamp)
+        return station_prediction
+
+
+    def _apply_bias_adjustments(self, station_prediction: WeatherStationModelPrediction, machine: StationMachineLearning):
         """Create a WeatherStationModelPrediction from the ModelRunPrediction data."""
+        station_prediction.bias_adjusted_temperature = machine.predict_temperature(station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp)
+        station_prediction.bias_adjusted_rh = machine.predict_rh(station_prediction.rh_tgl_2, station_prediction.prediction_timestamp)
+        station_prediction.bias_adjusted_wind_speed = machine.predict_wind_speed(station_prediction.wind_tgl_10, station_prediction.prediction_timestamp)
+        station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, station_prediction.prediction_timestamp)
+        station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(station_prediction.precip_24h, station_prediction.prediction_timestamp)
+        return station_prediction
+    
+
+    def initialize_station_prediction(self, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction, station: WeatherStation, model_run: PredictionModelRunTimestamp) -> WeatherStationModelPrediction:
+        """Initialize a WeatherStationModelPrediction object with the provided prediction data."""
         station_prediction = self._weather_station_prediction_initializer(station, model_run, prediction)
         station_prediction.tmp_tgl_2 = prediction.get_temp()
         station_prediction.tmp_tgl_2 = prediction.get_rh()
@@ -116,44 +157,7 @@ class ECMWFPredictionProcessor:
 
         station_prediction.wind_tgl_10 = prediction.get_wind_speed()
         station_prediction.wdir_tgl_10 = prediction.get_wind_direction()
-
-        if prediction_is_interpolated:
-            # We need to interpolate prediction for 2000 using predictions for prev and next predictions
-
-            prev_prediction_datetime: datetime = prev_prediction.prediction_timestamp
-            prediction_datetime: datetime = prediction.prediction_timestamp
-            datetime_at_2000 = prev_prediction_datetime.replace(hour=20)
-
-            temp_before_2000 = machine.predict_temperature(station_prediction.tmp_tgl_2, prev_prediction_datetime)
-            temp_after_2000 = machine.predict_temperature(station_prediction.tmp_tgl_2, prediction_datetime)
-            station_prediction.bias_adjusted_temperature = interpolate_between_two_points(int(prev_prediction_datetime.timestamp()), int(prediction_datetime.timestamp()), temp_before_2000, temp_after_2000, int(datetime_at_2000.timestamp()))
-
-            rh_before_2000 = machine.predict_rh(station_prediction.rh_tgl_2, prev_prediction_datetime)
-            rh_after_2000 = machine.predict_rh(station_prediction.rh_tgl_2, prediction_datetime)
-            station_prediction.bias_adjusted_rh = self.interpolate_20_00_values(prev_prediction_datetime, prediction_datetime, rh_before_2000, rh_after_2000, datetime_at_2000)
-
-            wind_speed_before_2000 = machine.predict_wind_speed(station_prediction.wind_tgl_10, prev_prediction_datetime)
-            wind_speed_after_2000 = machine.predict_wind_speed(station_prediction.wind_tgl_10, prediction_datetime)
-            station_prediction.bias_adjusted_wind_speed = self.interpolate_20_00_values(prev_prediction_datetime, prediction_datetime, wind_speed_before_2000, wind_speed_after_2000, datetime_at_2000)
-
-            wind_direction_before_2000 = station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, prev_prediction_datetime)
-            wind_direction_after_2000 = station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, prediction_datetime)
-            station_prediction.bias_adjusted_wdir = self.interpolate_20_00_values(prev_prediction_datetime, prediction_datetime, wind_direction_before_2000, wind_direction_after_2000, datetime_at_2000)
-
-            # Predict the 24h precipitation. No interpolation necessary due to the underlying model training.
-            station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(station_prediction.precip_24h, station_prediction.prediction_timestamp)
-
-        else:
-            station_prediction.bias_adjusted_temperature = machine.predict_temperature(station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp)
-            station_prediction.bias_adjusted_rh = machine.predict_rh(station_prediction.rh_tgl_2, station_prediction.prediction_timestamp)
-            station_prediction.bias_adjusted_wind_speed = machine.predict_wind_speed(station_prediction.wind_tgl_10, station_prediction.prediction_timestamp)
-            station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, station_prediction.prediction_timestamp)
-            station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(station_prediction.precip_24h, station_prediction.prediction_timestamp)
-
-        # Update the update time (this might be an update)
-        station_prediction.update_date = get_utc_now()
-        # Add this prediction to the session (we'll commit it later.)
-        self.model_run_repository.store_weather_station_model_prediction(station_prediction)
+        return station_prediction
     
     def interpolate_20_00_values(self, prev_datetime: datetime, next_datetime: datetime, prev_value: float, next_value: float, target_datetime: datetime) -> float | None:
         """Interpolate the value at 2000 UTC using the previous and next values."""
