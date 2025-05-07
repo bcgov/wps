@@ -235,7 +235,43 @@ def test_get_model_run_predictions_for_station(repository: ModelRunRepository, d
         assert prediction == mock_predictions[i]
 
 
+@pytest.mark.parametrize(
+    "mock_prediction_runs, complete, interpolated, expected",
+    [
+        # no prediction runs
+        ([], False, False, 0),
+        ([PredictionModelRunTimestamp(prediction_model_id=1,
+                                prediction_run_timestamp=TEST_DATETIME + timedelta(days = 1, hours=1),
+                                complete=False,
+                                interpolated=False)], False, False, 1),
+        ([PredictionModelRunTimestamp(prediction_model_id=1,
+                                prediction_run_timestamp=TEST_DATETIME + timedelta(days = 1, hours=2),
+                                complete=True,
+                                interpolated=False)], True, False, 1),
+        ([PredictionModelRunTimestamp(prediction_model_id=1,
+                                prediction_run_timestamp=TEST_DATETIME + timedelta(days = 1, hours=3),
+                                complete=False,
+                                interpolated=True)], False, True, 1),
+        ([PredictionModelRunTimestamp(prediction_model_id=1,
+                                prediction_run_timestamp=TEST_DATETIME + timedelta(days = 1, hours=4),
+                                complete=True,
+                                interpolated=True)], True, True, 1)
+    ],
+)
+def test_get_interpolated_prediction_value(mock_prediction_runs, complete, interpolated, expected, repository: ModelRunRepository, db_session: Session):
+    # Clear the database before inserting mock data
+    db_session.query(ModelRunPrediction).delete()
+    db_session.query(PredictionModelRunTimestamp).delete()
+    db_session.commit()
 
+    # Insert mock prediction runs
+    db_session.add_all(mock_prediction_runs)
+    db_session.commit()
 
+    results = repository.get_prediction_model_run_timestamp_records(
+        model_type=ModelEnum.ECMWF,
+        complete=complete,
+        interpolated=interpolated,
+    )
 
-
+    assert len(results) == expected
