@@ -405,12 +405,3 @@ def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_dat
     assert result.bias_adjusted_wind_speed == pytest.approx(5.5, rel=0.1)
     assert result.bias_adjusted_wdir == pytest.approx(185.0 , rel=0.1)
     assert result.bias_adjusted_precip_24h == pytest.approx(10.0 , rel=0.1)
-
-
-
-        
-
-
-
-
-
