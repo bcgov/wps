@@ -169,8 +169,8 @@ async def process_models():
             ecmwf.process()
 
             # interpolate and machine learn everything that needs interpolating.
-            model_value_processor = ECMWFPredictionProcessor(stations, model_run_repository)
-            model_value_processor.process()
+            ecmwf_prediction_processor = ECMWFPredictionProcessor(stations, model_run_repository)
+            ecmwf_prediction_processor.process()
 
     # calculate the execution time.
     execution_time = datetime.now() - start_time
