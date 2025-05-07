@@ -15,11 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class ECMWFPredictionProcessor:
-    def __init__(self, stations: List[WeatherStation], model_run_repository: ModelRunRepository, prediction_run: PredictionModelRunTimestamp, machine: StationMachineLearning):        
+    def __init__(self, stations: List[WeatherStation], model_run_repository: ModelRunRepository, prediction_run: PredictionModelRunTimestamp):        
         self.prediction_run = prediction_run
         self.stations = stations
         self.model_run_repository = model_run_repository
-        self.machine = machine
         self.station_predictions: Dict[int, List[ModelRunPrediction]] = defaultdict(list)
 
     def store(self, process_result: ModelRunProcessResult):
