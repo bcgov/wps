@@ -55,7 +55,6 @@ def test_process_model_run_for_station(setup_processor):
     model_run_repository.get_model_run_predictions_for_station.return_value = model_run_predictions
 
     # Mock methods
-    processor._should_interpolate = MagicMock(return_value=True)
     processor._apply_bias_adjustments = MagicMock()
     processor._apply_interpolated_bias_adjustments = MagicMock()
 
@@ -64,9 +63,10 @@ def test_process_model_run_for_station(setup_processor):
 
     # Assertions
     model_run_repository.get_model_run_predictions_for_station.assert_called_once_with(station.code, model_run)
-    processor._should_interpolate.assert_called()
-    assert processor._apply_bias_adjustments.call_count == 1  
-    assert processor._apply_interpolated_bias_adjustments.call_count == 1  # Two predictions + one interpolated
+    # This is called for the first prediction at 18:00 UTC
+    assert processor._apply_bias_adjustments.call_count == 1 
+    # This is called the 2nd iteration where the previous prediction is for 18:00 UTC and the next prediction is for 21:00 UTC
+    assert processor._apply_interpolated_bias_adjustments.call_count == 1  
 
 
 @pytest.mark.parametrize(
