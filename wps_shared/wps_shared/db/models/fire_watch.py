@@ -73,6 +73,17 @@ class FireWatch(Base):
     hfi_max = Column(Float, nullable=False, index=False)
 
 
+class PrescriptionStatus(Base):
+    """Table to store fire watch prescription statuses."""
+
+    __tablename__ = "prescription_status"
+    __table_args__ = {"comment": "Contains the status of a fire watch prescription."}
+
+    id = Column(Integer, primary_key=True, nullable=False, index=True)
+    name = Column(String, nullable=False, unique=True)
+    description = Column(String, nullable=False)
+
+
 class FireWatchWeather(Base):
     """Weather and FWI/FBP indices for a fire watch."""
 
@@ -97,6 +108,6 @@ class FireWatchWeather(Base):
     # FBP indices
     hfi = Column(Float, nullable=False, index=False)
     # prescription flag
-    in_prescription = Column(Boolean, nullable=False, index=False)
+    in_prescription = Column(Integer, ForeignKey(PrescriptionStatus.id), nullable=False, index=True)
     # metadata
     created_at = Column(TZTimeStamp, nullable=False, index=True)
