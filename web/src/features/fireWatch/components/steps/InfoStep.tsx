@@ -1,5 +1,6 @@
+import { FireWatchFireCentre } from 'features/fireWatch/fireWatchApi'
 import { GeoJsonStation } from '@/api/stationAPI'
-import { selectFireWeatherStations } from '@/app/rootReducer'
+import { selectFireWatchFireCentres, selectFireWeatherStations } from '@/app/rootReducer'
 import WPSDatePicker from '@/components/WPSDatePicker'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import { FireWatch } from '@/features/fireWatch/fireWatchApi'
@@ -16,12 +17,11 @@ interface InfoStepProps {
   setFireWatch: React.Dispatch<SetStateAction<FireWatch>>
 }
 
-const EMPTY_LABEL = 'Select a station'
-
 const InfoStep = ({ fireWatch, setFireWatch }: InfoStepProps) => {
   const theme = useTheme()
   const [stationOptions, setStationOptions] = useState<StationOption[]>([])
   const { stations } = useSelector(selectFireWeatherStations)
+  const { fireCentres } = useSelector(selectFireWatchFireCentres)
 
   useEffect(() => {
     const allStationOptions: StationOption[] = (stations as GeoJsonStation[]).map(station => ({
@@ -78,29 +78,55 @@ const InfoStep = ({ fireWatch, setFireWatch }: InfoStepProps) => {
               <WPSDatePicker date={fireWatch.burnWindowEnd} label="" updateDate={updateBurnWindowEnd} size="small" />
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', pt: theme.spacing(2) }}>
-            <Typography sx={{ pb: theme.spacing(0.5) }} variant="body1">
-              Reference Weather Station
-            </Typography>
-            <Autocomplete
-              autoHighlight={true}
-              autoSelect={true}
-              options={stationOptions}
-              isOptionEqualToValue={(option, value) => isEqual(option, value)}
-              getOptionLabel={option => option?.name}
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  label={isNull(fireWatch.station) ? EMPTY_LABEL : ''}
-                  variant="outlined"
-                  size="small"
-                />
-              )}
-              onChange={(_: React.SyntheticEvent<Element, Event>, newValue: StationOption | null) => {
-                handleFormUpdate('station', newValue)
-              }}
-              value={fireWatch.station}
-            />
+          <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1, pt: theme.spacing(2) }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', flexBasis: 0, flexGrow: 1, pr: theme.spacing(2) }}>
+              <Typography sx={{ pb: theme.spacing(0.5) }} variant="body1">
+                Fire Centre
+              </Typography>
+              <Autocomplete
+                autoHighlight={true}
+                autoSelect={true}
+                options={fireCentres}
+                isOptionEqualToValue={(option, value) => isEqual(option, value)}
+                getOptionLabel={option => option?.name}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    label={isNull(fireWatch.fireCentre) ? 'Select a fire centre' : ''}
+                    variant="outlined"
+                    size="small"
+                  />
+                )}
+                onChange={(_: React.SyntheticEvent<Element, Event>, newValue: FireWatchFireCentre | null) => {
+                  handleFormUpdate('fireCentre', newValue)
+                }}
+                value={fireWatch.fireCentre}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', flexBasis: 0, flexGrow: 1 }}>
+              <Typography sx={{ pb: theme.spacing(0.5) }} variant="body1">
+                Reference Weather Station
+              </Typography>
+              <Autocomplete
+                autoHighlight={true}
+                autoSelect={true}
+                options={stationOptions}
+                isOptionEqualToValue={(option, value) => isEqual(option, value)}
+                getOptionLabel={option => option?.name}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    label={isNull(fireWatch.station) ? 'Select a station' : ''}
+                    variant="outlined"
+                    size="small"
+                  />
+                )}
+                onChange={(_: React.SyntheticEvent<Element, Event>, newValue: StationOption | null) => {
+                  handleFormUpdate('station', newValue)
+                }}
+                value={fireWatch.station}
+              />
+            </Box>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', pt: theme.spacing(2) }}>
             <Typography sx={{ pb: theme.spacing(0.5) }} variant="body1">

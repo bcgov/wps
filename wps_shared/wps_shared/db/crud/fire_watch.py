@@ -80,3 +80,9 @@ async def save_fire_watch(session: AsyncSession, fire_watch: FireWatch):
     )
     result = await session.execute(statement)
     return result.scalar_one()
+
+
+async def get_fire_centres(session: AsyncSession):
+    statement = select(FireCentre)
+    result = await session.execute(statement)
+    return result.scalars()

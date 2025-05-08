@@ -2,18 +2,18 @@ import logging
 from typing import List
 from aiohttp import ClientSession
 from datetime import datetime, UTC
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, status
 from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
 from osgeo import ogr, osr
 from shapely import from_wkt
 from wps_shared.auth import audit, authentication_required
-from wps_shared.db.crud.fire_watch import get_all_active_fire_watches, get_fire_centre_by_name, get_fire_watch_by_id, save_fire_watch
+from wps_shared.db.crud.fire_watch import get_all_active_fire_watches, get_fire_centre_by_name, get_fire_centres, get_fire_watch_by_id, save_fire_watch
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch as DBFireWatch
 from wps_shared.fuel_types import FuelTypeEnum
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS, WEB_MERCATOR, PointTransformer
-from wps_shared.schemas.fire_watch import FireWatchInput, FireWatchInputRequest, FireWatchOutput, FireWatchListResponse, FireWatchResponse
+from wps_shared.schemas.fire_watch import FireCentre, FireCentresResponse, FireWatchInput, FireWatchInputRequest, FireWatchOutput, FireWatchListResponse, FireWatchResponse
 from wps_shared.utils.time import get_utc_now
 
 
@@ -178,3 +178,12 @@ async def save_new_fire_watch(fire_watch_input_request: FireWatchInputRequest, t
         new_fire_watch = await get_fire_watch_by_id(session, new_fire_watch_id)
         fire_watch_output = marshall_fire_watch_db_to_api(new_fire_watch)
         return FireWatchResponse(fire_watch=fire_watch_output)
+
+
+@router.get("/fire-centres", response_model=FireCentresResponse)
+async def get_all_fire_centres(token=Depends(authentication_required)):
+    logger.info("/fire-watch/fire-centres")
+    async with get_async_read_session_scope() as session:
+        result = await get_fire_centres(session)
+        fire_centres = [FireCentre(id=item.id, name=item.name) for item in result]
+        return FireCentresResponse(fire_centres=fire_centres)

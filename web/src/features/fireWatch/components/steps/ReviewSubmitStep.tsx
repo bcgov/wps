@@ -67,6 +67,7 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
                   left="Burn Window"
                   right={`${fireWatch.burnWindowStart.toISODate() ?? ''} - ${fireWatch.burnWindowEnd.toISODate() ?? ''}`}
                 />
+                <SummaryTextLine indentLevel={1} left="Fire Centre" right={fireWatch.fireCentre?.name ?? ''} />
                 <SummaryTextLine indentLevel={1} left="Weather Station" right={fireWatch.station?.name ?? ''} />
                 <SummaryTextLine
                   indentLevel={1}
@@ -101,7 +102,7 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
             <Box sx={{ display: 'flex', pt: theme.spacing(2) }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: '1' }}>
                 <Typography sx={{ fontWeight: 'bold' }} variant="body1">
-                  2. Weather (Min/Preferred/Max)
+                  3. Weather (Min/Preferred/Max)
                 </Typography>
                 <SummaryTextLine
                   indentLevel={1}
@@ -126,7 +127,7 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
             <Box sx={{ display: 'flex', pt: theme.spacing(2) }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: '1' }}>
                 <Typography sx={{ fontWeight: 'bold' }} variant="body1">
-                  3. Fuel Type and Fuel Moisture Codes
+                  4. Fuel Type and Fuel Moisture Codes
                 </Typography>
                 <SummaryTextLine indentLevel={1} left="Fuel Type" right={`${formatFuelType()}`} />
                 <SummaryTextLine indentLevel={1} left="Fuel Moisture Codes (Min/Preferred/Max)" right={''} />
@@ -153,7 +154,7 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
             <Box sx={{ display: 'flex', pt: theme.spacing(2) }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: '1' }}>
                 <Typography sx={{ fontWeight: 'bold' }} variant="body1">
-                  4. Fire Behavior Indices (Min/Preferred/Max
+                  5. Fire Behavior Indices (Min/Preferred/Max
                 </Typography>
                 <SummaryTextLine
                   indentLevel={1}

@@ -14,6 +14,7 @@ import { AppDispatch } from '@/app/store'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from '@/api/stationAPI'
 import LocationStep from '@/features/fireWatch/components/steps/LocationStep'
+import { fetchFireWatchFireCentres } from 'features/fireWatch/slices/fireWatchFireCentresSlice'
 
 export const FORM_MAX_WIDTH = 768
 
@@ -22,6 +23,7 @@ const CreateFireWatch = () => {
   const theme = useTheme()
   const [activeStep, setActiveStep] = useState<number>(0)
   const [fireWatch, setFireWatch] = useState<FireWatch>(getBlankFireWatch())
+
   const steps: { key: string; label: string; component?: () => React.ReactNode }[] = [
     {
       key: 'info',
@@ -71,6 +73,7 @@ const CreateFireWatch = () => {
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+    dispatch(fetchFireWatchFireCentres())
   }, [])
 
   return (

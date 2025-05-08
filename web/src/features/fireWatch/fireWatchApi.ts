@@ -56,7 +56,7 @@ export interface FireWatch {
   burnWindowEnd: DateTime
   burnWindowStart: DateTime
   contactEmail: string[]
-  fireCentre: number
+  fireCentre?: FireWatchFireCentre | null
   geometry: number[]
   station?: StationOption | null  
   status: BurnStatusEnum
@@ -163,18 +163,33 @@ export interface FireWatchListResponse {
   watch_list: FireWatchOutput[]
 }
 
-export async function getActiveFireWatches(): Promise<FireWatchListResponse> {
+export interface FireWatchFireCentre {
+  id: number
+  name: string
+}
+
+export interface FireWatchFireCentresResponse {
+  fire_centres: FireWatchFireCentre[]
+}
+
+export const getActiveFireWatches = async (): Promise<FireWatchListResponse> => {
   const url = '/fire-watch/active'
   const { data } = await axios.get(url)
   return data
 }
 
-export async function postFireWatchInput(fireWatch: FireWatch): Promise<FireWatchResponse> {
+export const postFireWatchInput = async (fireWatch: FireWatch): Promise<FireWatchResponse> => {
   const fireWatchInput = marshalFireWatchToFireWatchInput(fireWatch)
   const url = '/fire-watch/watch'
   const { data } = await axios.post(url, {
     fire_watch: fireWatchInput
   })
+  return data
+}
+
+export const getFireCentres = async (): Promise<FireWatchFireCentresResponse> => {
+  const url = 'fire-watch/fire-centres'
+  const { data } = await axios.get(url)
   return data
 }
 
@@ -184,7 +199,7 @@ const marshalFireWatchToFireWatchInput = (fireWatch: FireWatch): FireWatchInput 
     burn_window_end: Math.round(fireWatch.burnWindowEnd?.toMillis()/1000),
     burn_window_start: Math.round(fireWatch.burnWindowStart?.toMillis()/1000),
     contact_email: fireWatch.contactEmail,
-    fire_centre: fireWatch.fireCentre,
+    fire_centre: fireWatch.fireCentre?.id ?? NaN,
     station_code: fireWatch.station?.code ?? NaN,
     status: fireWatch.status,
     title: fireWatch.title,
