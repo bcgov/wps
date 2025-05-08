@@ -1,4 +1,4 @@
-import { GeoJsonStation, Station } from '@/api/stationAPI'
+import { GeoJsonStation } from '@/api/stationAPI'
 import { selectFireWeatherStations } from '@/app/rootReducer'
 import WPSDatePicker from '@/components/WPSDatePicker'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'

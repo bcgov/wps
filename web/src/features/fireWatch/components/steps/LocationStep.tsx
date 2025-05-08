@@ -1,6 +1,5 @@
 import { FireWatch } from '@/features/fireWatch/fireWatchApi'
-import React, { useEffect, useRef, useState } from 'react'
-import { SetStateAction } from 'react'
+import React, { SetStateAction, useEffect, useRef, useState } from 'react'
 import { Collection, Map, MapBrowserEvent, View } from 'ol'
 import TileLayer from 'ol/layer/Tile'
 import { fromLonLat } from 'ol/proj'
