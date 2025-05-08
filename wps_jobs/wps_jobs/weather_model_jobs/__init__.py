@@ -34,7 +34,7 @@ class ProjectionEnum(str, Enum):
 
 
 class ModelRunInfo:
-    """Information relation to a particular model run"""
+    """Information related to a particular model run"""
 
     def __init__(self, model_enum=None, projection=None, model_run_timestamp=None, prediction_timestamp=None, variable_name=None):
         self.model_enum: Optional[ModelEnum] = model_enum
