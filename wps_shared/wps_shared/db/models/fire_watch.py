@@ -110,4 +110,4 @@ class FireWatchWeather(Base):
     # prescription flag
     in_prescription = Column(Integer, ForeignKey(PrescriptionStatus.id), nullable=False, index=True)
     # metadata
-    created_at = Column(TZTimeStamp, nullable=False, index=True)
+    created_at = Column(TZTimeStamp, nullable=False, index=False)

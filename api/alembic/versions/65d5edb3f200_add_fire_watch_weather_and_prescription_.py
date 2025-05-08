@@ -63,7 +63,6 @@ def upgrade():
         sa.PrimaryKeyConstraint("id"),
         comment="Contains weather forecasts and FWI/FBP indices related to a fire watch prescribed burn.",
     )
-    op.create_index(op.f("ix_fire_watch_weather_created_at"), "fire_watch_weather", ["created_at"], unique=False)
     op.create_index(op.f("ix_fire_watch_weather_date"), "fire_watch_weather", ["date"], unique=False)
     op.create_index(op.f("ix_fire_watch_weather_fire_watch_id"), "fire_watch_weather", ["fire_watch_id"], unique=False)
     op.create_index(op.f("ix_fire_watch_weather_id"), "fire_watch_weather", ["id"], unique=False)
@@ -80,7 +79,6 @@ def downgrade():
     op.drop_index(op.f("ix_fire_watch_weather_id"), table_name="fire_watch_weather")
     op.drop_index(op.f("ix_fire_watch_weather_fire_watch_id"), table_name="fire_watch_weather")
     op.drop_index(op.f("ix_fire_watch_weather_date"), table_name="fire_watch_weather")
-    op.drop_index(op.f("ix_fire_watch_weather_created_at"), table_name="fire_watch_weather")
     op.drop_table("fire_watch_weather")
     op.drop_index(op.f("ix_prescription_status_id"), table_name="prescription_status")
     op.drop_table("prescription_status")
