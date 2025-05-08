@@ -1,8 +1,8 @@
 """add fire watch weather table
 
-Revision ID: 78aed5378600
+Revision ID: 25b07f9414cb
 Revises: 54176235e225
-Create Date: 2025-05-08 10:47:54.853044
+Create Date: 2025-05-08 12:01:38.739596
 
 """
 
@@ -10,9 +10,8 @@ from alembic import op
 import sqlalchemy as sa
 from wps_shared.db.models.common import TZTimeStamp
 
-
 # revision identifiers, used by Alembic.
-revision = "78aed5378600"
+revision = "25b07f9414cb"
 down_revision = "54176235e225"
 branch_labels = None
 depends_on = None
@@ -29,7 +28,6 @@ def upgrade():
         sa.Column("temperature", sa.Float(), nullable=False),
         sa.Column("relative_humidity", sa.Float(), nullable=False),
         sa.Column("wind_speed", sa.Float(), nullable=False),
-        sa.Column("wind_dir", sa.Float(), nullable=False),
         sa.Column("precip_24hr", sa.Float(), nullable=False),
         sa.Column("ffmc", sa.Float(), nullable=False),
         sa.Column("dmc", sa.Float(), nullable=False),

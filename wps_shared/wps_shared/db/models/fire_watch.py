@@ -87,7 +87,6 @@ class FireWatchWeather(Base):
     temperature = Column(Float, nullable=False, index=False)
     relative_humidity = Column(Float, nullable=False, index=False)
     wind_speed = Column(Float, nullable=False, index=False)
-    wind_dir = Column(Float, nullable=False, index=False)
     precip_24hr = Column(Float, nullable=False, index=False)
     # FWI indices
     ffmc = Column(Float, nullable=False, index=False)
