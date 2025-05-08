@@ -1,7 +1,7 @@
 import enum
 from wps_shared.db.models import Base
 from geoalchemy2 import Geometry
-from sqlalchemy import ARRAY, Boolean, Column, Enum, Float, ForeignKey, Integer, String
+from sqlalchemy import ARRAY, Boolean, Column, Date, Enum, Float, ForeignKey, Integer, String
 from wps_shared.db.models.common import TZTimeStamp
 from wps_shared.db.models.hfi_calc import FireCentre
 from wps_shared.db.models.weather_models import PredictionModelRunTimestamp
@@ -81,7 +81,7 @@ class FireWatchWeather(Base):
 
     id = Column(Integer, primary_key=True, nullable=False, index=True)
     fire_watch_id = Column(Integer, ForeignKey(FireWatch.id), nullable=False, index=True)
-    date = Column(TZTimeStamp, nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)
     # Weather parameters
     prediction_model_run_timestamp_id = Column(Integer, ForeignKey(PredictionModelRunTimestamp.id), nullable=False, index=True)
     temperature = Column(Float, nullable=False, index=False)
@@ -98,3 +98,5 @@ class FireWatchWeather(Base):
     hfi = Column(Float, nullable=False, index=False)
     # prescription flag
     in_prescription = Column(Boolean, nullable=False, index=False)
+    # metadata
+    created_at = Column(TZTimeStamp, nullable=False, index=True)
