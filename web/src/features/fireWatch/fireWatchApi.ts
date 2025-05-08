@@ -163,6 +163,32 @@ export interface FireWatchListResponse {
   watch_list: FireWatchOutput[]
 }
 
+export interface BurnForecast {
+  fire_watch_id: number // The FireWatch record this BurnForecast relates to?
+  date: number // Epoch time equivalent to peak burning for the specified day or maybe just a ISO date string
+  temp: number
+  rh: number
+  wind_speed: number
+  ffmc: number
+  dmc: number
+  dc: number
+  isi: number
+  bui: number
+  hfi: number
+  in_prescription: boolean
+}
+
+export interface FireWatchBurnForecast {
+  fire_watch: FireWatchInput
+  burn_forecasts: BurnForecast[]
+}
+
+export interface FireWatchBurnForecastsResponse {
+  fire_watch_burn_forecasts: { 
+    [fire_watch_id: number]: FireWatchBurnForecast
+  }
+}
+
 export async function getActiveFireWatches(): Promise<FireWatchListResponse> {
   const url = '/fire-watch/active'
   const { data } = await axios.get(url)
@@ -175,6 +201,12 @@ export async function postFireWatchInput(fireWatch: FireWatch): Promise<FireWatc
   const { data } = await axios.post(url, {
     fire_watch: fireWatchInput
   })
+  return data
+}
+
+export async function getBurnForecasts(): Promise<FireWatchBurnForecastsResponse> {
+  const url = "/fire-watch/burn-forecasts"
+  const { data } = await axios.get(url)
   return data
 }
 

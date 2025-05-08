@@ -22,6 +22,7 @@ import selectedStationsSlice from 'features/moreCast2/slices/selectedStationsSli
 import provincialSummarySlice from 'features/fba/slices/provincialSummarySlice'
 import fireCentreTPIStatsSlice from 'features/fba/slices/fireCentreTPIStatsSlice'
 import fireCentreHFIFuelStatsSlice from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
+import burnForecastsSlice from 'features/fireWatch/slices/burnForecastsSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -46,7 +47,8 @@ const rootReducer = combineReducers({
   weatherIndeterminates: dataSlice,
   selectedStations: selectedStationsSlice,
   provincialSummary: provincialSummarySlice,
-  morecastInputValid: morecastInputValidSlice
+  morecastInputValid: morecastInputValidSlice,
+  burnForecasts: burnForecastsSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
