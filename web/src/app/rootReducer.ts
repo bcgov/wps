@@ -22,6 +22,7 @@ import selectedStationsSlice from 'features/moreCast2/slices/selectedStationsSli
 import provincialSummarySlice from 'features/fba/slices/provincialSummarySlice'
 import fireCentreTPIStatsSlice from 'features/fba/slices/fireCentreTPIStatsSlice'
 import fireCentreHFIFuelStatsSlice from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
+import fireWatchSlice from 'features/fireWatch/slices/fireWatchSlice'
 import fireWatchFireCentresSlice from '@/features/fireWatch/slices/fireWatchFireCentresSlice'
 
 const rootReducer = combineReducers({
@@ -48,6 +49,7 @@ const rootReducer = combineReducers({
   selectedStations: selectedStationsSlice,
   provincialSummary: provincialSummarySlice,
   morecastInputValid: morecastInputValidSlice,
+  fireWatch: fireWatchSlice,
   fireWatchFireCentres: fireWatchFireCentresSlice
 })
 
@@ -82,4 +84,5 @@ export const selectFireCentersLoading = (state: RootState): boolean => state.fir
 export const selectStationGroupsLoading = (state: RootState): boolean => state.stationGroups.loading
 export const selectStationGroups = (state: RootState) => state.stationGroups
 export const selectStationGroupsMembers = (state: RootState) => state.stationGroupsMembers
+export const fireWatch = (state: RootState) => state.fireWatch
 export const selectFireWatchFireCentres = (state: RootState) => state.fireWatchFireCentres
