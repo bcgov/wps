@@ -120,6 +120,11 @@ const CreateFireWatch = () => {
             width: `${FORM_MAX_WIDTH}px`
           }}
         >
+          <Box sx={{ display: 'flex', flexGrow: 1, pl: theme.spacing(4) }}>
+            <Button disabled={activeStep === 0} onClick={handleBack} variant="outlined">
+              Back
+            </Button>
+          </Box>
           <Button onClick={handleReset} variant="contained">
             Reset
           </Button>
