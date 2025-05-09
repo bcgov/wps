@@ -2,13 +2,12 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 
 from aiohttp import ClientSession
-from shapely import Point
 from sqlalchemy.ext.asyncio import AsyncSession
-from wps_shared.db.crud.fire_watch import get_all_prescription_status
+from wps_shared.db.crud.fire_watch import get_all_active_fire_watches, get_all_prescription_status
 from wps_shared.db.crud.weather_models import get_latest_model_prediction_for_stations
 from wps_shared.db.database import get_async_write_session_scope
-from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch, FireWatchWeather
-from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
+from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather
+from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS
 from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
 from wps_shared.schemas.weather_models import ModelPredictionDetails
 from wps_shared.weather_models import ModelEnum
@@ -20,56 +19,6 @@ from app.fire_behaviour.prediction import FireBehaviourPredictionInputError, cal
 from app.morecast_v2.forecasts import calculate_fwi_from_seed_indeterminates
 
 FIREWATCH_WEATHER_MODEL = ModelEnum.GFS
-
-
-def create_test_fire_watch(station_code: int) -> FireWatch:
-    # Create a FireWatch object with sample data
-    fire_watch = FireWatch(
-        burn_location=Point(-123.3656, 48.4284),
-        burn_window_start=datetime.now(timezone.utc),
-        burn_window_end=datetime.now(timezone.utc) + timedelta(days=1),
-        contact_email=["test@example.com"],
-        create_timestamp=datetime.now(timezone.utc),
-        create_user="test_user",
-        fire_centre=None,  # Set to None or a valid FireCentre ID if available
-        station_code=station_code,
-        status=BurnStatusEnum.ACTIVE,
-        title="Test Burn",
-        update_timestamp=datetime.now(timezone.utc),
-        update_user="test_user",
-        fuel_type=FuelTypeEnum.C3,
-        percent_conifer=0.0,
-        percent_dead_fir=0.0,
-        percent_grass_curing=0.0,
-        temp_min=10.0,
-        temp_preferred=20.0,
-        temp_max=30.0,
-        rh_min=30.0,
-        rh_preferred=50.0,
-        rh_max=70.0,
-        wind_speed_min=5.0,
-        wind_speed_preferred=10.0,
-        wind_speed_max=20.0,
-        ffmc_min=85.0,
-        ffmc_preferred=90.0,
-        ffmc_max=95.0,
-        dmc_min=10.0,
-        dmc_preferred=15.0,
-        dmc_max=20.0,
-        dc_min=300.0,
-        dc_preferred=400.0,
-        dc_max=500.0,
-        isi_min=2.0,
-        isi_preferred=5.0,
-        isi_max=10.0,
-        bui_min=40.0,
-        bui_preferred=50.0,
-        bui_max=60.0,
-        hfi_min=1000.0,
-        hfi_preferred=2000.0,
-        hfi_max=3000.0,
-    )
-    return fire_watch
 
 
 def map_model_prediction_to_weather_indeterminate(model_prediction: ModelPredictionDetails, station_details: WFWXWeatherStation) -> WeatherIndeterminate:
@@ -102,7 +51,7 @@ async def calculate_fire_watch_weather(db_session: AsyncSession, start_date: dat
     predictions = await get_latest_model_prediction_for_stations(db_session, [fire_watch.station_code], FIREWATCH_WEATHER_MODEL, start_date, end_date)
     prediction_id = predictions[0].prediction_model_run_timestamp_id  # all predictions should have the same id
     wf1_actuals, _ = await fetch_actuals_and_forecasts(day_before_start_date, end_date, [fire_watch.station_code])
-    wf1_actuals = [wf1_actuals[0]]
+    wf1_actuals = [wf1_actuals[0]]  # remove later
 
     # step 2: Map model predictions to WeatherIndeterminate to calculate FWI
     prediction_indeterminates = [map_model_prediction_to_weather_indeterminate(p, station_data) for p in predictions]
@@ -195,7 +144,7 @@ def check_prescription_statuses(watch: FireWatch, weather: FireWatchWeather, sta
         return status_id_dict["no"]
 
 
-async def process_all_fire_watch_weather(fire_watches: list[FireWatch]):
+async def process_all_fire_watch_weather():
     """
     Process fire watch weather data by fetching actuals and forecasts, preparing data for FWI calculation,
     and marshaling the results into a format suitable for API response.
@@ -203,11 +152,12 @@ async def process_all_fire_watch_weather(fire_watches: list[FireWatch]):
     start_date = datetime(2025, 4, 25, tzinfo=timezone.utc)
     end_date = start_date + timedelta(days=10)
 
-    station_ids = [fire_watch.station_code for fire_watch in fire_watches]
-    wfwx_station_map = await fetch_station_metadata(station_ids)  # we need station metadata (lat/long/elevation) for FBP calculation
-
     async with get_async_write_session_scope() as session:
+        fire_watches = await get_all_active_fire_watches(session)
+        station_ids = [fire_watch.station_code for fire_watch in fire_watches]
+        wfwx_station_map = await fetch_station_metadata(station_ids)  # we need station metadata (lat/long/elevation) for FBP calculation
         status_id_dict = await get_all_prescription_status(session)
+
         for fire_watch in fire_watches:
             station_metadata = wfwx_station_map[fire_watch.station_code]
             fire_watch_weather_predictions = await calculate_fire_watch_weather(session, start_date, end_date, fire_watch, station_metadata)
@@ -217,13 +167,13 @@ async def process_all_fire_watch_weather(fire_watches: list[FireWatch]):
                 status_id = check_prescription_statuses(fire_watch, weather, status_id_dict)
                 weather.in_prescription = status_id
 
-                print(weather.in_prescription)
+            print([w.in_prescription for w in fire_watch_weather_predictions])
 
 
 async def main():
-    fire_watches = [create_test_fire_watch(station_code) for station_code in [392, 393]]
+    # fire_watches = [create_test_fire_watch(station_code) for station_code in [392, 393]]
 
-    await process_all_fire_watch_weather(fire_watches)
+    await process_all_fire_watch_weather()
 
 
 if __name__ == "__main__":
