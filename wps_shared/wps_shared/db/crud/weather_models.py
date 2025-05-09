@@ -238,7 +238,7 @@ async def get_latest_model_prediction_for_stations(
     """
     Retrieves the most recent model predictions for each station and day, ensuring that only
     predictions with a timestamp at 20:00 hours are included. The results are distinct by prediction date and station code.
-    The DISTINCT ON clause is used to ensure that only the latest prediction (by update_date) for each station and day is returned. 
+    The DISTINCT ON clause is used to ensure that only the latest prediction (by update_date) for each station and day is returned.
     Note: DISTINCT ON only works with PostgreSQL.
 
     :param session: SQLAlchemy session used to execute the query.
@@ -255,6 +255,7 @@ async def get_latest_model_prediction_for_stations(
             WeatherStationModelPrediction.update_date,
             PredictionModel.abbreviation,
             PredictionModelRunTimestamp.prediction_run_timestamp,
+            WeatherStationModelPrediction.prediction_model_run_timestamp_id,
             WeatherStationModelPrediction.station_code,
             WeatherStationModelPrediction.rh_tgl_2,
             WeatherStationModelPrediction.tmp_tgl_2,
@@ -280,11 +281,11 @@ async def get_latest_model_prediction_for_stations(
         .order_by(
             WeatherStationModelPrediction.station_code,
             func.date(WeatherStationModelPrediction.prediction_timestamp),
-            WeatherStationModelPrediction.update_date.desc(),
+            PredictionModelRunTimestamp.prediction_run_timestamp.desc(),
         )
     )
     results = await session.execute(stmt)
-    latest_predictions = [ModelPredictionDetails.model_validate(row) for row in results.mappings().all()]
+    latest_predictions = [ModelPredictionDetails(**row) for row in results.mappings().all()]
 
     return latest_predictions
 
