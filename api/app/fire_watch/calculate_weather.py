@@ -58,7 +58,7 @@ async def calculate_fire_watch_weather(db_session: AsyncSession, start_date: dat
     fwi_prediction_indeterminates = calculate_fwi_from_seed_indeterminates(wf1_actuals, prediction_indeterminates)
 
     # step 3: Calculate FBP
-    fire_watch_predictions = []
+    fire_watch_predictions: list[FireWatchWeather] = []
     for prediction in fwi_prediction_indeterminates:
         crown_base_height = FUEL_TYPE_DEFAULTS[fire_watch.fuel_type]["CBH"]
         crown_fuel_load = FUEL_TYPE_DEFAULTS[fire_watch.fuel_type]["CFL"]
