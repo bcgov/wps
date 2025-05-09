@@ -1,15 +1,13 @@
 import asyncio
-from collections import defaultdict
 from datetime import datetime, timedelta, timezone
-from enum import Enum
 
 from aiohttp import ClientSession
 from shapely import Point
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.crud.fire_watch import get_all_prescription_status
 from wps_shared.db.crud.weather_models import get_latest_model_prediction_for_stations
-from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
-from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch, FireWatchWeather, PrescriptionStatus
+from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch, FireWatchWeather
 from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
 from wps_shared.schemas.weather_models import ModelPredictionDetails
@@ -17,7 +15,8 @@ from wps_shared.weather_models import ModelEnum
 from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_daily_determinates_for_stations_and_date, get_wfwx_stations_from_station_codes
 
-from app.fire_behaviour.prediction import calculate_fire_behaviour_prediction
+from app.fire_behaviour.cffdrs import CFFDRSException
+from app.fire_behaviour.prediction import FireBehaviourPredictionInputError, calculate_fire_behaviour_prediction
 from app.morecast_v2.forecasts import calculate_fwi_from_seed_indeterminates
 
 FIREWATCH_WEATHER_MODEL = ModelEnum.GFS
@@ -98,6 +97,7 @@ async def calculate_fire_watch_weather(db_session: AsyncSession, start_date: dat
     as starting values.
     """
     day_before_start_date = start_date - timedelta(days=1)
+
     # step 1: Fetch data
     predictions = await get_latest_model_prediction_for_stations(db_session, [fire_watch.station_code], FIREWATCH_WEATHER_MODEL, start_date, end_date)
     prediction_id = predictions[0].prediction_model_run_timestamp_id  # all predictions should have the same id
@@ -113,23 +113,27 @@ async def calculate_fire_watch_weather(db_session: AsyncSession, start_date: dat
     for prediction in fwi_prediction_indeterminates:
         crown_base_height = FUEL_TYPE_DEFAULTS[fire_watch.fuel_type]["CBH"]
         crown_fuel_load = FUEL_TYPE_DEFAULTS[fire_watch.fuel_type]["CFL"]
+        try:
+            fbp = calculate_fire_behaviour_prediction(
+                station_data.lat,
+                station_data.long,
+                station_data.elevation,
+                fire_watch.fuel_type,
+                prediction.build_up_index,
+                prediction.fine_fuel_moisture_code,
+                prediction.wind_speed,
+                fire_watch.percent_grass_curing,
+                fire_watch.percent_conifer,
+                prediction.initial_spread_index,
+                fire_watch.percent_dead_fir,
+                crown_base_height,
+                crown_fuel_load,
+                prediction.utc_timestamp,
+            )
+        except (FireBehaviourPredictionInputError, CFFDRSException):
+            continue
 
-        fbp = calculate_fire_behaviour_prediction(
-            station_data.lat,
-            station_data.long,
-            station_data.elevation,
-            fire_watch.fuel_type,
-            prediction.build_up_index,
-            prediction.fine_fuel_moisture_code,
-            prediction.wind_speed,
-            fire_watch.percent_grass_curing,
-            fire_watch.percent_conifer,
-            prediction.initial_spread_index,
-            fire_watch.percent_dead_fir,
-            crown_base_height,
-            crown_fuel_load,
-            prediction.utc_timestamp,
-        )
+        # step 4: Create FireWatchWeather object
         fire_watch_weather = FireWatchWeather(
             fire_watch_id=fire_watch.id,
             date=prediction.utc_timestamp.date(),
