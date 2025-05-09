@@ -65,3 +65,13 @@ class FireWatchResponse(BaseModel):
 
 class FireWatchListResponse(BaseModel):
     watch_list: List[FireWatchOutput]
+
+
+# A fire center from our database.
+class FireCentre(BaseModel):
+    id: int
+    name: str
+
+
+class FireCentresResponse(BaseModel):
+    fire_centres: List[FireCentre]

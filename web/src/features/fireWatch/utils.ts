@@ -1,5 +1,5 @@
 import { BurnStatusEnum, FireWatch, FuelTypeEnum } from "@/features/fireWatch/fireWatchApi"
-import { isNil } from "lodash"
+import { isNil, isNull } from "lodash"
 import { DateTime } from "luxon"
 import { SetStateAction } from "react"
 
@@ -17,10 +17,9 @@ export const getBlankFireWatch = (): FireWatch => {
     burnWindowEnd: DateTime.now(),
     burnWindowStart: DateTime.now(),
     contactEmail: [],
-    fireCentre: NaN,
-    latitude: NaN,
-    longitude: NaN, 
-    stationCode: NaN,
+    fireCentre: null,
+    geometry: [],
+    station: null,
     status: BurnStatusEnum.ACTIVE,
     title: "",
     // Fuel parameters
@@ -76,10 +75,8 @@ const hasValidFuelInfo = (fireWatch: FireWatch) => {
 
 export const isValidFireWatch = (fireWatch: FireWatch) => {
   return fireWatch.contactEmail.length > 0 &&
-  !isNaN(fireWatch.fireCentre) &&
-  !isNaN(fireWatch.latitude) &&
-  !isNaN(fireWatch.longitude) && 
-  !isNaN(fireWatch.stationCode) &&
+  !isNull(fireWatch.fireCentre) &&
+  !isNull(fireWatch.station) &&
   fireWatch.title &&
   // Fuel parameters
   hasValidFuelInfo(fireWatch) &&
