@@ -2,11 +2,16 @@ import pytest
 from unittest.mock import MagicMock, create_autospec
 from datetime import datetime, timedelta, timezone
 
+from pytest_mock import MockerFixture
+import wps_jobs.weather_model_jobs.ecmwf_prediction_processor
 from wps_jobs.weather_model_jobs import ModelEnum
 from wps_jobs.weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp, WeatherStationModelPrediction
+
+import wps_jobs.weather_model_jobs.utils
+import wps_jobs.weather_model_jobs.utils.interpolate
 
 @pytest.fixture
 def setup_processor():
@@ -40,7 +45,7 @@ def mock_model_run_data():
     return station, model_run, prediction, station_prediction
 
 
-def test_process_model_run_for_station(setup_processor):
+def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
     """
     Test the `_process_model_run_for_station` method of the processor.
 
@@ -57,6 +62,10 @@ def test_process_model_run_for_station(setup_processor):
         ModelRunPrediction(prediction_timestamp=datetime(2023, 10, 1, 18, 0), apcp_sfc_0=0.0),
         ModelRunPrediction(prediction_timestamp=datetime(2023, 10, 1, 21, 0), apcp_sfc_0=0.0),
     ]
+    interpolated_noon_prediction_spy = mocker.spy(wps_jobs.weather_model_jobs.ecmwf_prediction_processor,
+        "construct_interpolated_noon_prediction",
+    )
+    initialize_station_prediction_spy = mocker.spy(processor, "initialize_station_prediction")
     model_run_repository.get_model_run_predictions_for_station.return_value = model_run_predictions
 
     # Mock methods
@@ -71,8 +80,15 @@ def test_process_model_run_for_station(setup_processor):
     # This is called for the first prediction at 18:00 UTC
     assert processor._apply_bias_adjustments.call_count == 1 
     # This is called the 2nd iteration where the previous prediction is for 18:00 UTC and the next prediction is for 21:00 UTC
-    assert processor._apply_interpolated_bias_adjustments.call_count == 1  
-
+    assert processor._apply_interpolated_bias_adjustments.call_count == 1
+    # This is called to create the interpolated noon prediction between 18:00 UTC and 21:00 UTC
+    assert interpolated_noon_prediction_spy.call_count == 1
+    # 1st call to initialize_station_prediction does not construct the noon prediction
+    assert initialize_station_prediction_spy.call_args_list[0][0][0] == None
+    assert initialize_station_prediction_spy.call_args_list[0][0][1] == model_run_predictions[0]
+    # 2nd call to initialize_station_prediction constructs the noon prediction, and does not use prev or next prediction
+    assert initialize_station_prediction_spy.call_args_list[1][0][1] != model_run_predictions[0]
+    assert initialize_station_prediction_spy.call_args_list[1][0][1] != model_run_predictions[1]
 
 @pytest.mark.parametrize(
     "prev_timestamp, next_timestamp, expected",
