@@ -6,7 +6,7 @@ from wps_jobs.weather_model_jobs import ModelEnum
 from wps_jobs.weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
-from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
+from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp, WeatherStationModelPrediction
 
 @pytest.fixture
 def setup_processor():
@@ -41,6 +41,13 @@ def mock_model_run_data():
 
 
 def test_process_model_run_for_station(setup_processor):
+    """
+    Test the `_process_model_run_for_station` method of the processor.
+
+    This test verifies that the processor correctly handles the processing of 
+    model run predictions for a given weather station, including applying bias 
+    adjustments and interpolated bias adjustments.
+    """
     processor, model_run_repository = setup_processor
 
     # Mock data
@@ -79,6 +86,12 @@ def test_process_model_run_for_station(setup_processor):
     ],
 )
 def test_should_interpolate(prev_timestamp, next_timestamp, expected, mock_predictions):
+    """
+    Test the `_should_interpolate` method of the processor.
+
+    This test verifies whether the `_should_interpolate` method correctly determines
+    if interpolation should occur between two prediction timestamps.
+    """
     processor, prev_prediction, prediction = mock_predictions
     prev_prediction.prediction_timestamp = prev_timestamp
     prediction.prediction_timestamp = next_timestamp
@@ -87,6 +100,14 @@ def test_should_interpolate(prev_timestamp, next_timestamp, expected, mock_predi
     assert result is expected
 
 def test_should_interpolate_assertion_error(mock_predictions):
+    """
+    Test the `_should_interpolate` method to ensure it raises an `AssertionError` 
+    when the `prediction_timestamp` of the next prediction is earlier than the 
+    `prediction_timestamp` of the previous prediction.
+
+    This test verifies that the method enforces the assumption that the next 
+    timestamp must always be greater than the previous timestamp.
+    """
     processor, prev_prediction, prediction = mock_predictions
 
     # Mock timestamps where next timestamp is earlier than previous timestamp
@@ -95,20 +116,42 @@ def test_should_interpolate_assertion_error(mock_predictions):
 
     with pytest.raises(AssertionError, match="Next timestamp must be greater than previous timestamp"):
         processor._should_interpolate(prev_prediction, prediction)
-    
-def test_weather_station_prediction_initializer(setup_processor):
+
+@pytest.mark.parametrize(
+    "existing_station_model_prediction, prediction_timestamp",
+    [
+        # existing station model prediction
+        (WeatherStationModelPrediction(station_code=123, 
+                                    prediction_model_run_timestamp_id=123,
+                                    prediction_timestamp=datetime(2023, 10, 1, 12, 0),
+                                    tmp_tgl_2=1, rh_tgl_2=1, apcp_sfc_0=1, wdir_tgl_10=1, wind_tgl_10=1, 
+                                    create_date=datetime(2023, 10, 1, 12, 0),
+                                    update_date=datetime(2023, 10, 1, 12, 0) + timedelta(days=1)), datetime(2023, 10, 1, 12, 0)),
+        # no existing station model prediction
+        (None, datetime(2023, 10, 1, 12, 0)),
+    ],
+)
+def test_weather_station_prediction_initializer(existing_station_model_prediction, prediction_timestamp, setup_processor):
+    """
+    Test the `_weather_station_prediction_initializer` method of the processor.
+
+    This test verifies the behavior of the `_weather_station_prediction_initializer` method
+    when initializing a weather station prediction. It ensures that the method correctly
+    retrieves or initializes a prediction object for a given weather station, model run, 
+    and prediction timestamp.
+    """
     processor, model_run_repository = setup_processor
 
     # Mock data
-    station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
+    station = WeatherStation(code=123, long=10.0, lat=50.0, name="Station 1")
     model_run = MagicMock(spec=PredictionModelRunTimestamp)
     model_run.id = 123
     model_run.prediction_run_timestamp = datetime(2023, 10, 1, 12, 0)
     prediction = MagicMock(spec=ModelRunPrediction)
-    prediction.prediction_timestamp = datetime(2023, 10, 1, 12, 0)
+    prediction.prediction_timestamp = prediction_timestamp
 
     # Mock repository behavior
-    model_run_repository.get_weather_station_model_prediction.return_value = None
+    model_run_repository.get_weather_station_model_prediction.return_value = existing_station_model_prediction
 
     # Call the method
     station_prediction = processor._weather_station_prediction_initializer(station, model_run, prediction)
@@ -120,8 +163,24 @@ def test_weather_station_prediction_initializer(setup_processor):
     assert station_prediction.station_code == station.code
     assert station_prediction.prediction_model_run_timestamp_id == model_run.id
     assert station_prediction.prediction_timestamp == model_run.prediction_run_timestamp
-    
+    if existing_station_model_prediction is not None:
+        assert station_prediction.tmp_tgl_2 == existing_station_model_prediction.tmp_tgl_2
+        assert station_prediction.rh_tgl_2 == existing_station_model_prediction.rh_tgl_2
+        assert station_prediction.apcp_sfc_0 == existing_station_model_prediction.apcp_sfc_0
+        assert station_prediction.wdir_tgl_10 == existing_station_model_prediction.wdir_tgl_10
+        assert station_prediction.wind_tgl_10 == existing_station_model_prediction.wind_tgl_10
+        assert station_prediction.update_date == existing_station_model_prediction.update_date
+    else:
+        assert station_prediction.update_date is None
+
+
 def test_interpolate_20_00_values_valid_interpolation(mock_predictions):
+    """
+    Test the `interpolate_20_00_values` method of the processor for valid interpolation.
+
+    This test verifies that the interpolation logic correctly calculates the value
+    at a target datetime (20:00) based on the provided previous and next datetime-value pairs.
+    """
     processor, _, _ = mock_predictions
 
     # Mock data
@@ -135,8 +194,6 @@ def test_interpolate_20_00_values_valid_interpolation(mock_predictions):
 
     assert result == pytest.approx(16.666, rel=0.1)
 
-
-
 @pytest.mark.parametrize(
     "prev_timestamp, next_timestamp, target_timestamp, expected",
     [
@@ -146,6 +203,12 @@ def test_interpolate_20_00_values_valid_interpolation(mock_predictions):
     ],
 )
 def test_interpolate_20_00_values_invalid_timestamps(prev_timestamp, next_timestamp, target_timestamp, expected, mock_predictions):
+    """
+    Test the `interpolate_20_00_values` method for invalid timestamp scenarios.
+
+    This test ensures that the method raises an `AssertionError` with the correct
+    error message when the provided timestamps do not meet the required conditions.
+    """
     processor, _, _ = mock_predictions
     prev_value = 10.0
     next_value = 20.0
@@ -155,6 +218,14 @@ def test_interpolate_20_00_values_invalid_timestamps(prev_timestamp, next_timest
         processor.interpolate_20_00_values(prev_timestamp, next_timestamp, prev_value, next_value, target_timestamp)
 
 def test_calculate_past_24_hour_precip_with_previous_prediction(setup_processor, mock_model_run_data):
+    """
+    Test the `_calculate_past_24_hour_precip` method of the processor.
+
+    This test verifies that the method correctly calculates the past 24-hour 
+    precipitation using a previous prediction retrieved from the model run 
+    repository. It ensures that the repository is queried with the correct 
+    parameters and that the method returns the expected precipitation value.
+    """
     processor, model_run_repository = setup_processor
     station, model_run, prediction, station_prediction = mock_model_run_data
 
@@ -174,6 +245,12 @@ def test_calculate_past_24_hour_precip_with_previous_prediction(setup_processor,
 
 
 def test_calculate_past_24_hour_precip_without_previous_prediction(setup_processor, mock_model_run_data):
+    """
+    Test the `_calculate_past_24_hour_precip` method when there is no previous prediction.
+
+    This test verifies that the method correctly calculates the past 24-hour precipitation
+    when no previous weather station model prediction exists in the repository.
+    """
     processor, model_run_repository = setup_processor
     station, model_run, prediction, station_prediction = mock_model_run_data
 
@@ -195,8 +272,6 @@ def test_calculate_past_24_hour_precip_without_previous_prediction(setup_process
     )
     assert result == 3.0
 
-
-
 @pytest.mark.parametrize(
     "prev_prediction, station_value, expected",
     [
@@ -207,6 +282,12 @@ def test_calculate_past_24_hour_precip_without_previous_prediction(setup_process
     ],
 )
 def test_calculate_delta_precip(prev_prediction, station_value, expected, setup_processor, mock_model_run_data):
+    """
+    Test the `_calculate_delta_precip` method of the processor.
+    This test verifies that the `_calculate_delta_precip` method correctly calculates
+    the delta precipitation value based on the previous prediction and the current 
+    station prediction.
+    """
     processor, _ = setup_processor
     _, _, _, station_prediction = mock_model_run_data
 
@@ -230,6 +311,14 @@ def test_calculate_delta_precip(prev_prediction, station_value, expected, setup_
 
 
 def test_process(setup_processor):
+    """
+    Test the `process` method of the ECMWF prediction processor.
+
+    This test verifies that the `process` method:
+    1. Retrieves prediction model run timestamp records from the repository.
+    2. Processes each model run using the `_process_model_run` method.
+    3. Marks the processed model run as interpolated in the repository.
+    """
     processor, model_run_repository = setup_processor
 
     # Mock data
@@ -251,6 +340,13 @@ def test_process(setup_processor):
     model_run_repository.mark_model_run_interpolated.assert_called_once_with(model_run)
 
 def test_process_model_run(setup_processor):
+    """
+    Test the `_process_model_run` method of the processor.
+
+    This test verifies that the `_process_model_run` method correctly processes
+    a model run for all weather stations associated with the processor. It mocks
+    the necessary data and methods to ensure the method behaves as expected.
+    """
     processor, _ = setup_processor
 
     # Mock data
@@ -274,6 +370,13 @@ def test_process_model_run(setup_processor):
         processor._process_model_run_for_station.assert_any_call(model_run, station)
 
 def test_initialize_station_prediction(setup_processor, mock_model_run_data):
+    """
+    Unit test for the `initialize_station_prediction` method of the processor.
+
+    This test verifies that the `initialize_station_prediction` method correctly initializes
+    a station prediction object using mocked dependencies and ensures that the expected
+    calculations and assignments are performed.
+    """
     processor, _ = setup_processor
     station, model_run, prediction, station_prediction = mock_model_run_data
 
@@ -306,6 +409,14 @@ def test_initialize_station_prediction(setup_processor, mock_model_run_data):
     assert result.wdir_tgl_10 == 180.0
 
 def test_apply_bias_adjustments(setup_processor, mock_model_run_data):
+    """
+    Test the `_apply_bias_adjustments` method of the processor.
+
+    This test verifies that the `_apply_bias_adjustments` method correctly applies
+    bias adjustments to the station prediction data using a mock machine. It ensures
+    that the machine's prediction methods are called with the expected arguments and
+    that the returned bias-adjusted values are correctly assigned to the result.
+    """
     processor, _ = setup_processor
     _, _, _, station_prediction = mock_model_run_data
 
@@ -336,6 +447,12 @@ def test_apply_bias_adjustments(setup_processor, mock_model_run_data):
     assert result.bias_adjusted_precip_24h == 12.0
 
 def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_data):
+    """
+    Test the `_apply_interpolated_bias_adjustments` method of the processor.
+
+    This test verifies that the method correctly applies interpolated bias adjustments
+    to weather model predictions using a machine learning model and interpolation logic.
+    """
     processor, _ = setup_processor
     _, _, prediction, station_prediction = mock_model_run_data
 
