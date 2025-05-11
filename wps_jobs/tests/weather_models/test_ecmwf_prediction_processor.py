@@ -54,8 +54,8 @@ def test_process_model_run_for_station(setup_processor):
     station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
     model_run = create_autospec(PredictionModelRunTimestamp)
     model_run_predictions = [
-        ModelRunPrediction(prediction_timestamp=datetime(2023, 10, 1, 18, 0)),
-        ModelRunPrediction(prediction_timestamp=datetime(2023, 10, 1, 21, 0)),
+        ModelRunPrediction(prediction_timestamp=datetime(2023, 10, 1, 18, 0), apcp_sfc_0=0.0),
+        ModelRunPrediction(prediction_timestamp=datetime(2023, 10, 1, 21, 0), apcp_sfc_0=0.0),
     ]
     model_run_repository.get_model_run_predictions_for_station.return_value = model_run_predictions
 
