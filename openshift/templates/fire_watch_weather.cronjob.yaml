@@ -27,6 +27,10 @@ parameters:
     value: image-registry.openshift-image-registry.svc:5000
   - name: SCHEDULE
     required: true
+  - name: CRUNCHYDB_USER
+    required: true
+  - name: POSTGRES_DATABASE
+    required: true
   - name: APP_LABEL
     required: true
 objects:
