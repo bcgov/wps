@@ -4,13 +4,14 @@ import { FireWatch, FuelTypeEnum } from "@/features/fireWatch/fireWatchApi"
 import { Box, Button, Step, Typography, useTheme } from "@mui/material"
 import { isUndefined } from "lodash"
 import { SetStateAction } from "react"
+import { toLonLat } from 'ol/proj'
 
 interface ReviewSubmitStepProps {
   fireWatch: FireWatch
   setActiveStep: React.Dispatch<SetStateAction<number>>
 }
 
-const ReviewSubmitStep = ({fireWatch, setActiveStep}: ReviewSubmitStepProps) => {
+const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) => {
   const theme = useTheme()
 
   const formatNumber = (value: number | undefined) => {
@@ -40,34 +41,68 @@ const ReviewSubmitStep = ({fireWatch, setActiveStep}: ReviewSubmitStepProps) => 
 
   return (
     <Step>
-      <Box sx={{display: 'flex', flexDirection: 'column', maxWidth: `${FORM_MAX_WIDTH}px`, padding: theme.spacing(4)}}>
-        <Typography sx={{fontWeight: "bold"}} variant='h6'>
-          Step 5: Review and Submit
+      <Box
+        sx={{ display: 'flex', flexDirection: 'column', maxWidth: `${FORM_MAX_WIDTH}px`, padding: theme.spacing(4) }}
+      >
+        <Typography sx={{ fontWeight: 'bold' }} variant="h6">
+          Step 6: Review and Submit
         </Typography>
-        <Typography sx={{fontWeight: "bold", py: theme.spacing(2)}} variant='body1'>
+        <Typography sx={{ fontWeight: 'bold', py: theme.spacing(2) }} variant="body1">
           Submission Summary
         </Typography>
-        <Box sx={{display: 'flex', flexGrow: 1}}>
-          <Box sx={{display: 'flex', flexDirection: 'column', flexGrow: 1}}>
-            <Box sx={{display: 'flex'}}>
-              <Box sx={{display: 'flex', flexDirection: 'column', flexGrow: "1"}}>
-                <Typography sx={{fontWeight: "bold"}} variant="body1">
-                  1. Location & Basics
+        <Box sx={{ display: 'flex', flexGrow: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+            <Box sx={{ display: 'flex' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: '1' }}>
+                <Typography sx={{ fontWeight: 'bold' }} variant="body1">
+                  1. Burn Information
                 </Typography>
-                <SummaryTextLine indentLevel={1} left="Burn Name" right={fireWatch.title} />
-                <SummaryTextLine indentLevel={1} left="Latitude" right={formatNumber(fireWatch.latitude)} />
-                <SummaryTextLine indentLevel={1} left="Longitude" right={formatNumber(fireWatch.longitude)} />
-                <SummaryTextLine indentLevel={1} left="Burn Window" right={`${fireWatch.burnWindowStart.toISODate() ?? ""} - ${fireWatch.burnWindowEnd.toISODate() ?? ""}`} />
-                <SummaryTextLine indentLevel={1} left="Contact Email" right={fireWatch.contactEmail.length > 0 ? fireWatch.contactEmail[0].toString() : ""} />
+                <SummaryTextLine
+                  indentLevel={1}
+                  left="Name"
+                  right={fireWatch.contactEmail.length > 0 ? fireWatch.title : ''}
+                />
+                <SummaryTextLine
+                  indentLevel={1}
+                  left="Burn Window"
+                  right={`${fireWatch.burnWindowStart.toISODate() ?? ''} - ${fireWatch.burnWindowEnd.toISODate() ?? ''}`}
+                />
+                <SummaryTextLine indentLevel={1} left="Fire Centre" right={fireWatch.fireCentre?.name ?? ''} />
+                <SummaryTextLine indentLevel={1} left="Weather Station" right={fireWatch.station?.name ?? ''} />
+                <SummaryTextLine
+                  indentLevel={1}
+                  left="Contact Email"
+                  right={fireWatch.contactEmail.length > 0 ? fireWatch.contactEmail[0].toString() : ''}
+                />
               </Box>
               <Box>
-                <Button onClick={()=> setActiveStep(0)}>Edit</Button>
+                <Button onClick={() => setActiveStep(0)}>Edit</Button>
               </Box>
             </Box>
-            <Box sx={{display: 'flex', pt: theme.spacing(2)}}>
-              <Box sx={{display: 'flex', flexDirection: 'column', flexGrow: "1"}}>
-                <Typography sx={{fontWeight: "bold"}} variant="body1">
-                  2. Weather (Min/Preferred/Max)
+            <Box sx={{ display: 'flex', pt: theme.spacing(2) }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: '1' }}>
+                <Typography sx={{ fontWeight: 'bold' }} variant="body1">
+                  2. Location
+                </Typography>
+                <SummaryTextLine
+                  indentLevel={1}
+                  left="Latitude"
+                  right={fireWatch.geometry.length === 2 ? toLonLat(fireWatch.geometry)[1].toFixed(3) : ''}
+                />
+                <SummaryTextLine
+                  indentLevel={1}
+                  left="Longitude"
+                  right={fireWatch.geometry.length === 2 ? toLonLat(fireWatch.geometry)[0].toFixed(3) : ''}
+                />
+              </Box>
+              <Box>
+                <Button onClick={() => setActiveStep(1)}>Edit</Button>
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', pt: theme.spacing(2) }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: '1' }}>
+                <Typography sx={{ fontWeight: 'bold' }} variant="body1">
+                  3. Weather (Min/Preferred/Max)
                 </Typography>
                 <SummaryTextLine
                   indentLevel={1}
@@ -86,24 +121,16 @@ const ReviewSubmitStep = ({fireWatch, setActiveStep}: ReviewSubmitStepProps) => 
                 />
               </Box>
               <Box>
-                <Button onClick={()=> setActiveStep(1)}>Edit</Button>
+                <Button onClick={() => setActiveStep(2)}>Edit</Button>
               </Box>
             </Box>
-            <Box sx={{display: 'flex', pt: theme.spacing(2)}}>
-              <Box sx={{display: 'flex', flexDirection: 'column', flexGrow: "1"}}>
-                <Typography sx={{fontWeight: "bold"}} variant="body1">
-                  3. Fuel Type and Fuel Moisture Codes
+            <Box sx={{ display: 'flex', pt: theme.spacing(2) }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: '1' }}>
+                <Typography sx={{ fontWeight: 'bold' }} variant="body1">
+                  4. Fuel Type and Fuel Moisture Codes
                 </Typography>
-                <SummaryTextLine
-                  indentLevel={1}
-                  left="Fuel Type"
-                  right={`${formatFuelType()}`}
-                />
-                <SummaryTextLine
-                  indentLevel={1}
-                  left="Fuel Moisture Codes (Min/Preferred/Max)"
-                  right={""}
-                />
+                <SummaryTextLine indentLevel={1} left="Fuel Type" right={`${formatFuelType()}`} />
+                <SummaryTextLine indentLevel={1} left="Fuel Moisture Codes (Min/Preferred/Max)" right={''} />
                 <SummaryTextLine
                   indentLevel={2}
                   left="FFMC"
@@ -121,13 +148,13 @@ const ReviewSubmitStep = ({fireWatch, setActiveStep}: ReviewSubmitStepProps) => 
                 />
               </Box>
               <Box>
-                <Button onClick={()=> setActiveStep(2)}>Edit</Button>
+                <Button onClick={() => setActiveStep(3)}>Edit</Button>
               </Box>
             </Box>
-            <Box sx={{display: 'flex', pt: theme.spacing(2)}}>
-              <Box sx={{display: 'flex', flexDirection: 'column', flexGrow: "1"}}>
-                <Typography sx={{fontWeight: "bold"}} variant="body1">
-                  4. Fire Behavior Indices (Min/Preferred/Max
+            <Box sx={{ display: 'flex', pt: theme.spacing(2) }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: '1' }}>
+                <Typography sx={{ fontWeight: 'bold' }} variant="body1">
+                  5. Fire Behavior Indices (Min/Preferred/Max
                 </Typography>
                 <SummaryTextLine
                   indentLevel={1}
@@ -146,7 +173,7 @@ const ReviewSubmitStep = ({fireWatch, setActiveStep}: ReviewSubmitStepProps) => 
                 />
               </Box>
               <Box>
-                <Button onClick={()=> setActiveStep(3)}>Edit</Button>
+                <Button onClick={() => setActiveStep(4)}>Edit</Button>
               </Box>
             </Box>
           </Box>
