@@ -121,11 +121,13 @@ def validate_fire_watch_inputs(
 
 
 def map_model_prediction_to_weather_indeterminate(model_prediction: ModelPredictionDetails, station_data: WFWXWeatherStation) -> WeatherIndeterminate:
-    """Map ModelPredictionDetails to WeatherIndeterminate."""
+    """
+    Map a ModelPredictionDetails object to a WeatherIndeterminate object, filling in station metadata that is needed for FWI calculations.
+    """
     return WeatherIndeterminate(
         station_code=model_prediction.station_code,
         station_name=station_data.name,
-        latitude=station_data.lat,  # latitude is need for FWI calculations
+        latitude=station_data.lat,  # latitude is needed for FWI calculations
         longitude=station_data.long,
         determinate=WeatherDeterminate.from_string(model_prediction.abbreviation),
         utc_timestamp=model_prediction.prediction_timestamp,
