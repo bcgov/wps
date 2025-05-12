@@ -178,8 +178,8 @@ async def save_new_fire_watch(fire_watch_input_request: FireWatchInputRequest, t
     
     async with get_async_write_session_scope() as session:
         new_fire_watch_id = await save_fire_watch(session, db_fire_watch)
-        result = await get_fire_watch_by_id(session, new_fire_watch_id)
-        fire_watch_output = create_fire_watch_output(result[0], result[1], stations)
+        fire_watch, fire_centre = await get_fire_watch_by_id(session, new_fire_watch_id)
+        fire_watch_output = create_fire_watch_output(fire_watch, fire_centre, stations)
         return FireWatchResponse(fire_watch=fire_watch_output)
 
 
