@@ -146,7 +146,7 @@ class ECMWF:
                 self.model_run_repository.mark_url_as_processed(url)
         if self.model_run_repository.check_if_model_run_complete(all_model_run_urls):
             logger.info("{} model run {:02d}:00 completed with SUCCESS".format(self.model_type, model_run_hour))
-            self.model_run_repository.mark_prediction_model_run_processed(self.model_type, self.projection, self.now, model_run_hour)
+            self.model_run_repository.mark_prediction_model_run_processed(self.model_type, self.projection, model_datetime)
 
     def process(self):
         for hour in get_model_run_hours(self.model_type):
