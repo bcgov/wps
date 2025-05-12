@@ -1,7 +1,7 @@
 import asyncio
-from datetime import datetime, timedelta, timezone
 import logging
-from typing import List, Dict, Tuple
+from datetime import datetime, time, timedelta, timezone
+from typing import Dict, List, Tuple
 
 from aiohttp import ClientSession
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +12,7 @@ from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather
 from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS
 from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
 from wps_shared.schemas.weather_models import ModelPredictionDetails
+from wps_shared.utils.time import get_utc_now
 from wps_shared.weather_models import ModelEnum
 from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_daily_determinates_for_stations_and_date, get_wfwx_stations_from_station_codes
@@ -41,6 +42,7 @@ async def gather_fire_watch_inputs(
 
     # fetch actual weather data. Using this method as it may make it easier to pull in forecasts if we want to.
     actual_weather_data, _ = await fetch_actuals_and_forecasts(start_date - timedelta(days=1), end_date, [fire_watch.station_code])
+    actual_weather_data = actual_weather_data[:1]
 
     return predictions, actual_weather_data
 
@@ -49,6 +51,7 @@ def map_to_fire_watch_weather(
     fire_watch: FireWatch,
     prediction: WeatherIndeterminate,
     fbp_result: FireBehaviourPrediction,
+    prediction_model_run_timestamp_id: int,
 ) -> FireWatchWeather:
     """
     Map a WeatherIndeterminate and FBP result to a FireWatchWeather object.
@@ -61,7 +64,7 @@ def map_to_fire_watch_weather(
     return FireWatchWeather(
         fire_watch_id=fire_watch.id,
         date=prediction.utc_timestamp.date(),
-        prediction_model_run_timestamp_id=prediction.prediction_run_timestamp_id,
+        prediction_model_run_timestamp_id=prediction_model_run_timestamp_id,
         temperature=prediction.temperature,
         relative_humidity=prediction.relative_humidity,
         precip_24hr=prediction.precipitation,
@@ -72,6 +75,7 @@ def map_to_fire_watch_weather(
         dc=prediction.drought_code,
         dmc=prediction.duff_moisture_code,
         hfi=fbp_result.hfi,
+        created_at=get_utc_now(),
     )
 
 
@@ -142,6 +146,9 @@ def calculate_fbp(
     prediction: WeatherIndeterminate,
 ) -> FireBehaviourPrediction:
     """Calculate Fire Behaviour Prediction (FBP) and create FireWatchWeather."""
+    # assert that we're working with all the same station's data
+    assert fire_watch.station_code == station_data.code == prediction.station_code
+
     crown_base_height = FUEL_TYPE_DEFAULTS[fire_watch.fuel_type]["CBH"]
     crown_fuel_load = FUEL_TYPE_DEFAULTS[fire_watch.fuel_type]["CFL"]
 
@@ -217,10 +224,15 @@ async def fetch_actuals_and_forecasts(start_date: datetime, end_date: datetime, 
         return wf1_actuals, wf1_forecasts
 
 
+async def save_all_hfi_wind_speeds(session: AsyncSession, fire_watch_weather_records: list[FireWatchWeather]):
+    logger.info("Writing Fire Watch Weather records")
+    session.add_all(fire_watch_weather_records)
+
+
 async def process_all_fire_watch_weather(start_date: datetime):
     """Process fire watch weather data."""
-    # start_date = datetime(2025, 4, 25, tzinfo=timezone.utc)
     end_date = start_date + timedelta(days=10)
+    end_date = datetime.combine(end_date, time.max, tzinfo=timezone.utc)
 
     async with get_async_write_session_scope() as session:
         fire_watches = await get_all_active_fire_watches(session)
@@ -231,7 +243,7 @@ async def process_all_fire_watch_weather(start_date: datetime):
         for fire_watch in fire_watches:
             station_metadata = wfwx_station_map[fire_watch.station_code]
 
-            predictions, actual_weather_data = await gather_fire_watch_inputs(session, fire_watch, start_date, end_date, wfwx_station_map)
+            predictions, actual_weather_data = await gather_fire_watch_inputs(session, fire_watch, start_date, end_date)
 
             if not validate_fire_watch_inputs(fire_watch, station_metadata, actual_weather_data, predictions, start_date, end_date):
                 logger.warning(f"Skipping FireWatch {fire_watch.id} due to missing data.")
@@ -241,20 +253,28 @@ async def process_all_fire_watch_weather(start_date: datetime):
             prediction_indeterminates = [map_model_prediction_to_weather_indeterminate(p, station_metadata) for p in predictions]
             fwi_prediction_indeterminates = calculate_fwi_from_seed_indeterminates(actual_weather_data, prediction_indeterminates)
 
+            # iterate through our predictions to calculate FBP/prescription status and store results
             fire_watch_predictions = []
             for prediction in fwi_prediction_indeterminates:
                 fbp = calculate_fbp(fire_watch, station_metadata, prediction)
                 if fbp:
-                    fire_watch_weather = map_to_fire_watch_weather(fire_watch, prediction, fbp)
+                    prediction_timestamp_id = next((p.prediction_model_run_timestamp_id for p in predictions if p.prediction_timestamp == prediction.utc_timestamp), None)
+                    fire_watch_weather = map_to_fire_watch_weather(fire_watch, prediction, fbp, prediction_timestamp_id)
+
+                    # finally check prescription status after running all calculations
                     status_id = check_prescription_status(fire_watch, fire_watch_weather, status_id_dict)
                     fire_watch_weather.in_prescription = status_id
                     fire_watch_predictions.append(fire_watch_weather)
 
-            logger.info(f"Processed fire watch predictions: {fire_watch_predictions}")
+            if fire_watch_predictions:
+                await save_all_hfi_wind_speeds(session, fire_watch_predictions)
+                logger.info(f"Saved {len(fire_watch_predictions)} records for FireWatch {fire_watch.id}.")
 
 
 async def main():
-    await process_all_fire_watch_weather()
+    start_date = datetime(2025, 5, 5, tzinfo=timezone.utc)
+
+    await process_all_fire_watch_weather(start_date)
 
 
 if __name__ == "__main__":
