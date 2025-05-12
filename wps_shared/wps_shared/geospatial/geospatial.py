@@ -14,6 +14,8 @@ NAD83: Final = "epsg:4269"
 NAD83_CRS: Final = CRS(NAD83)
 # De facto standard is to expose data in WGS84 (EPSG:4326).
 WGS84: Final = "epsg:4326"
+# Web Mercator
+WEB_MERCATOR: Final = 3857
 
 
 class GDALResamplingMethod(Enum):
