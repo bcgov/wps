@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import sys
 import pytest
@@ -6,7 +7,7 @@ from pytest_mock import MockerFixture
 from unittest.mock import MagicMock
 from wps_shared.tests.common import default_mock_client_get
 import wps_jobs.weather_model_jobs.ecmwf
-from wps_jobs.weather_model_jobs import ModelEnum
+from wps_jobs.weather_model_jobs import ModelEnum, ProjectionEnum
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.models.weather_models import PredictionModelRunTimestamp
@@ -17,7 +18,7 @@ from wps_jobs.weather_model_jobs.ecmwf import (
     get_stations_dataframe,
     ECMWF,
 )
-from wps_jobs.weather_model_jobs.ecmwf_model_processor import TEMP
+from wps_jobs.weather_model_jobs.ecmwf_model_processor import TEMP, ECMWFModelProcessor
 from wps_jobs.weather_model_jobs.utils.process_grib import PredictionModelNotFound
 
 
@@ -25,6 +26,7 @@ class MockModelRunRepository(ModelRunRepository):
     def __init__(self):
         self.get_or_create_prediction_run_calls = 0
         self.prediction_runs = {}
+        self.session = MagicMock()
 
     def get_prediction_model(self, _, __):
         return ModelEnum.ECMWF
@@ -84,14 +86,47 @@ def test_ecmwf_process_model_run_no_url(mock_herbie_instance):
     assert ecmwf.files_downloaded == 0
     assert ecmwf.files_processed == 0
 
-def test_ecmwf_process_model_run(mock_herbie_instance):
+@pytest.mark.parametrize(
+    "complete, expected_processed, expected_complete_check, expected_complete",
+    [
+        (False, 65, 1, 1),
+        (True, 0, 0, 0)
+    ],
+)
+def test_ecmwf_process_model_complete(complete, expected_processed, expected_complete_check, expected_complete, mock_herbie_instance, mocker: MockerFixture):
+    mocker.patch(
+        "wps_jobs.weather_model_jobs.ecmwf.get_ecmwf_transformer",
+        return_value=MagicMock()
+    )
+    mocker.patch(
+        "wps_jobs.weather_model_jobs.ecmwf.get_stations_dataframe",
+        return_value=MagicMock()
+    )
+    mocker.patch.object(
+        ECMWFModelProcessor,
+        "process_grib_data",
+        return_value=MagicMock()
+    )
+    # Mock ECMWF.store_processed_result to do nothing
+    mocker.patch.object(
+        ECMWF,
+        "store_processed_result",
+        return_value=None
+    )
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
-    ecmwf = ECMWF("/tmp", stations, MockModelRunRepository())
+    mock_repository = MagicMock(spec=ModelRunRepository)
+    mock_repository.get_or_create_prediction_run = MagicMock(return_value=MagicMock(complete=complete))
+    mock_repository.check_if_model_run_complete = MagicMock(return_value=True)
+    ecmwf = ECMWF("/tmp", stations, mock_repository)
     ecmwf.process_model_run(0)
 
     # For a single hour (0) get all the forecast hours (len(range(0, 145, 3)) + len(range(150, 241, 6))
-    assert ecmwf.files_downloaded == 65
-    assert ecmwf.files_processed == 65
+    assert ecmwf.files_downloaded == expected_processed
+    assert ecmwf.files_processed == expected_processed
+    assert mock_repository.mark_url_as_processed.call_count == expected_processed
+    assert mock_repository.check_if_model_run_complete.call_count == expected_complete_check
+    assert mock_repository.mark_prediction_model_run_processed.call_count == expected_complete
+
 
 
 def test_ecmwf_process(mock_herbie_instance):
@@ -262,3 +297,26 @@ def test_process_model_run_prediction_model_complete(complete):
     assert ecmwf.files_downloaded == 0
     assert ecmwf.files_processed == 0
     assert ecmwf.exception_count == 0
+
+def test_get_model_run_urls(mock_herbie_instance):
+    """Test get_model_run_urls to ensure it returns the correct URLs."""
+    mock_herbie_instance.grib = "/mock/path/to/file.grib"
+
+    urls = wps_jobs.weather_model_jobs.ecmwf.get_model_run_urls(datetime(2023, 1, 1, 0, 0))
+
+    # Ensure the number of URLs matches the forecast hours
+    expected_forecast_hours = len(list(get_ecmwf_forecast_hours()))
+    assert len(urls) == expected_forecast_hours
+
+    # Ensure all URLs are the mocked grib file path
+    assert all(url == "/mock/path/to/file.grib" for url in urls)
+
+
+def test_get_model_run_urls_no_grib(mock_herbie_instance):
+    """Test get_model_run_urls when no grib files are found."""
+    mock_herbie_instance.grib = None  # Simulate no grib file found
+
+    urls = wps_jobs.weather_model_jobs.ecmwf.get_model_run_urls(datetime(2023, 1, 1, 0, 0))
+
+    # Ensure no URLs are returned
+    assert len(urls) == 0

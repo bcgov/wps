@@ -107,7 +107,7 @@ def test_get_processed_file_record(repository: ModelRunRepository, db_session: S
     db_session.add(mock_processed_file)
     db_session.commit()
 
-    result = repository.get_processed_file_record(url)
+    result = repository.get_processed_url(url)
 
     assert result == mock_processed_file
 
@@ -275,3 +275,73 @@ def test_get_interpolated_prediction_value(mock_prediction_runs, complete, inter
     )
 
     assert len(results) == expected
+
+def test_get_prediction_model(repository: ModelRunRepository, db_session: Session):
+    # Insert a mock record
+    mock_prediction_model = PredictionModel(
+        name="GFS Global Forecast System",
+        abbreviation=ModelEnum.GFS.value,
+        projection=ProjectionEnum.GFS_LONLAT.value,
+    )
+    db_session.add(mock_prediction_model)
+    db_session.commit()
+
+    # Test retrieving the prediction model
+    result = repository.get_prediction_model(ModelEnum.GFS, ProjectionEnum.GFS_LONLAT)
+
+    assert result is not None
+    assert result == mock_prediction_model
+    assert result.name == "GFS Global Forecast System"
+    assert result.abbreviation == ModelEnum.GFS.value
+    assert result.projection == ProjectionEnum.GFS_LONLAT.value
+
+
+def test_mark_url_as_processed_new_url(repository: ModelRunRepository, db_session: Session):
+    url = "http://example.com/new_file"
+
+    # Ensure the URL does not exist initially
+    existing_url = repository.get_processed_url(url)
+    assert existing_url is None
+
+    # Call the method to mark the URL as processed
+    repository.mark_url_as_processed(url)
+
+    # Verify the URL is now stored in the database
+    processed_url = repository.get_processed_url(url)
+    assert processed_url is not None
+    assert processed_url.url == url
+    assert processed_url.create_date is not None
+    assert processed_url.update_date is not None
+    assert processed_url.create_date == processed_url.update_date
+
+@pytest.mark.parametrize(
+    "processed_urls, unprocessed_urls, expected_count, expected_model_run_complete",
+    [
+        ([
+            ProcessedModelRunUrl(url="http://example.com/file1", create_date=TEST_DATETIME, update_date=TEST_DATETIME),
+            ProcessedModelRunUrl(url="http://example.com/file2", create_date=TEST_DATETIME, update_date=TEST_DATETIME),
+            ProcessedModelRunUrl(url="http://example.com/file3", create_date=TEST_DATETIME, update_date=TEST_DATETIME)], [], 3, True),
+        ([
+            ProcessedModelRunUrl(url="http://example.com/file1", create_date=TEST_DATETIME, update_date=TEST_DATETIME),
+            ProcessedModelRunUrl(url="http://example.com/file2", create_date=TEST_DATETIME, update_date=TEST_DATETIME),], [ProcessedModelRunUrl(url="http://example.com/file3", create_date=TEST_DATETIME, update_date=TEST_DATETIME)], 2, False),
+            ([], [], 0, False),
+    ],
+)
+def test_get_processed_file_count(processed_urls, unprocessed_urls, expected_count, expected_model_run_complete, repository: ModelRunRepository, db_session: Session):
+    # Ensure no records exist for the URLs
+    db_session.query(ProcessedModelRunUrl).delete()
+    db_session.commit()
+
+    # Insert mock records for some of the URLs
+    db_session.add_all(processed_urls)
+    db_session.commit()
+
+    urls = [url.url for url in processed_urls + unprocessed_urls]
+
+    # Call the method to get the count of processed files
+    processed_url_count = repository.get_processed_url_count(urls)
+
+    # Verify the count matches the number of processed URLs
+    assert processed_url_count == expected_count
+    model_run_complete = repository.check_if_model_run_complete(urls)
+    assert model_run_complete == expected_model_run_complete

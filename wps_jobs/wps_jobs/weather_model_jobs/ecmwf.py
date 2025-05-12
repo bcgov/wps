@@ -48,6 +48,20 @@ def get_ecmwf_forecast_hours():
     for h in range(150, 241, 6):
         yield h
 
+def get_model_run_urls(model_datetime: datetime) -> List[str]:
+    urls = []
+    for fxx in get_ecmwf_forecast_hours():
+        H = Herbie(
+            model_datetime.strftime("%Y-%m-%d %H"),
+            model="ifs",
+            product="oper",
+            priority="aws",
+            fxx=fxx,
+            verbose=False
+        )
+        if H.grib:
+            urls.append(H.grib)
+    return urls
 
 def get_stations_dataframe(transformer: Transformer, stations: List[WeatherStation]) -> pd.DataFrame:
     stations_df = pd.DataFrame([station.model_dump(include={"code", "name", "lat", "long"}) for station in stations]).rename(columns={"lat": "latitude", "long": "longitude"})
@@ -91,6 +105,7 @@ class ECMWF:
         logger.info("Processing {} model run {:02d}".format(self.model_type, model_run_hour))
 
         model_datetime = self.now.replace(hour=model_run_hour, minute=0, second=0, microsecond=0)
+        all_model_run_urls = get_model_run_urls(model_datetime)
 
         self.prediction_model = self.model_run_repository.get_prediction_model(self.model_type, self.projection)
         if not self.prediction_model:
@@ -100,7 +115,6 @@ class ECMWF:
         if prediction_run.complete:
             logger.info(f"Prediction run {model_datetime} already completed")
             return
-
         for prediction_hour in get_ecmwf_forecast_hours():
             model_info = ModelRunInfo(
                 model_enum=self.model_type,
@@ -129,6 +143,10 @@ class ECMWF:
                     # as we can.
                     logger.error("unexpected exception processing %s", url, exc_info=exception)
                 self.files_processed += 1
+                self.model_run_repository.mark_url_as_processed(url)
+        if self.model_run_repository.check_if_model_run_complete(all_model_run_urls):
+            logger.info("{} model run {:02d}:00 completed with SUCCESS".format(self.model_type, model_run_hour))
+            self.model_run_repository.mark_prediction_model_run_processed(self.model_type, self.projection, self.now, model_run_hour)
 
     def process(self):
         for hour in get_model_run_hours(self.model_type):

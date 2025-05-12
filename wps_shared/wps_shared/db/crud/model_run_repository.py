@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.sql import func
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp, ProcessedModelRunUrl, WeatherStationModelPrediction
+from wps_shared.utils.time import get_utc_now
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
 
 logger = logging.getLogger(__name__)
@@ -30,10 +31,33 @@ class ModelRunRepository:
         """Get the prediction model corresponding to a particular abbreviation and projection."""
         return self.session.query(PredictionModel).filter(PredictionModel.abbreviation == model_enum.value).filter(PredictionModel.projection == projection.value).first()
 
-    def get_processed_file_record(self, url: str) -> ProcessedModelRunUrl:
+    def get_processed_url(self, url: str) -> ProcessedModelRunUrl:
         """Get record corresponding to a processed file."""
-        processed_file = self.session.query(ProcessedModelRunUrl).filter(ProcessedModelRunUrl.url == url).first()
-        return processed_file
+        processed_url = self.session.query(ProcessedModelRunUrl).filter(ProcessedModelRunUrl.url == url).first()
+        return processed_url
+    
+    def mark_url_as_processed(self, url: str):
+        """Mark url as processed in the database"""
+        processed_url = self.get_processed_url(url)
+        if processed_url:
+            logger.info("re-processed %s", url)
+        else:
+            logger.info("file processed %s", url)
+            processed_url = ProcessedModelRunUrl(url=url, create_date=get_utc_now())
+        processed_url.update_date = get_utc_now()
+        self.session.add(processed_url)
+        self.session.commit()
+
+    def get_processed_url_count(self, urls: List[str]) -> int:
+        """Return the number of matching urls"""
+        return self.session.query(ProcessedModelRunUrl).filter(ProcessedModelRunUrl.url.in_(urls)).count()
+    
+    def check_if_model_run_complete(self, urls: List[str]) -> bool:
+        """Check if a particular model run is complete"""
+        actual_count = self.get_processed_url_count(urls)
+        expected_count = len(urls)
+        logger.info("we have processed %s/%s files", actual_count, expected_count)
+        return actual_count == expected_count and actual_count > 0
 
     def create_prediction_run(self, prediction_model_id: int, prediction_run_timestamp: datetime) -> PredictionModelRunTimestamp:
         """Create a model prediction run for a particular model."""
@@ -127,3 +151,7 @@ class ModelRunRepository:
         logger.info("marking %s as interpolated", model_run)
         self.session.add(model_run)
         self.session.commit()
+
+    def get_prediction_model(self, model_enum: ModelEnum, projection: ProjectionEnum) -> PredictionModel:
+        """Get the prediction model corresponding to a particular abbreviation and projection."""
+        return self.session.query(PredictionModel).filter(PredictionModel.abbreviation == model_enum.value).filter(PredictionModel.projection == projection.value).first()
