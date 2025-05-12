@@ -244,7 +244,7 @@ async def process_all_fire_watch_weather(start_date: datetime):
         wfwx_station_map = await fetch_station_metadata(station_ids)
         status_id_dict = await get_all_prescription_status(session)
 
-        for fire_watch in fire_watches:
+        for fire_watch, _ in fire_watches:
             station_metadata = wfwx_station_map[fire_watch.station_code]
 
             predictions, actual_weather_data = await gather_fire_watch_inputs(session, fire_watch, start_date, end_date)
