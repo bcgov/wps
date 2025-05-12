@@ -27,15 +27,20 @@ def crunchydb_cluster_health_check():
     header = {
         'Authorization': 'Bearer ' + config.get('STATUS_CHECKER_SECRET')
     }
-    resp = requests.get(url, headers=header, timeout=10)
-    resp_json = resp.json()
-    logger.info(resp_json)
-    # NOTE: In Openshift parlance "replica" refers to how many of one pod we have, in CrunchyDB's managed
-    # Patroni, a "Replica" refers to a read only copy of of the Leader.
-    # Get the number of pods that are ready:
-    ready_count = resp_json.get('status').get('instances')[0].get('readyReplicas')
-    # Get the number of pods we expect:
-    replica_count = resp_json.get('status').get('instances')[0].get('replicas')
+    try:
+        resp = requests.get(url, headers=header, timeout=10)
+        resp_json = resp.json()
+        logger.info(resp_json)
+        # NOTE: In Openshift parlance "replica" refers to how many of one pod we have, in CrunchyDB's managed
+        # Patroni, a "Replica" refers to a read only copy of of the Leader.
+        # Get the number of pods that are ready:
+        ready_count = resp_json.get("status").get("instances")[0].get("readyReplicas")
+        # Get the number of pods we expect:
+        replica_count = resp_json.get("status").get("instances")[0].get("replicas")
+    except Exception as e:
+        healthy = True
+        message = f"An error occurred: {e}"
+
     if ready_count > 1:
         # It's actually a bit more complicated than this.
         # There are a number of scenarios that are ok:
