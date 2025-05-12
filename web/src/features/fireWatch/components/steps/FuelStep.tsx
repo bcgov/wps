@@ -90,7 +90,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
   return (
     <Step>
       <Box sx={{ display: 'flex', flexDirection: 'column', width: `${FORM_MAX_WIDTH}px`, padding: theme.spacing(4) }}>
-        <Typography variant="h6">Step 3: Fuel Type & Fuel Moisture Codes</Typography>
+        <Typography variant="h6">Step 4: Fuel Type & Fuel Moisture Codes</Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', pt: theme.spacing(2) }}>
             <Typography sx={{ pb: theme.spacing(0.5) }} variant="body1">
