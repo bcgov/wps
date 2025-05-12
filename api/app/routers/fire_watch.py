@@ -5,15 +5,16 @@ from datetime import datetime, UTC
 from fastapi import APIRouter, Depends, status
 from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
-from osgeo import ogr, osr
 from shapely import from_wkt
 from wps_shared.auth import audit, authentication_required
-from wps_shared.db.crud.fire_watch import get_all_active_fire_watches, get_fire_centre_by_name, get_fire_centres, get_fire_watch_by_id, save_fire_watch
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch as DBFireWatch
 from wps_shared.fuel_types import FuelTypeEnum
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS, WEB_MERCATOR, PointTransformer
-from wps_shared.schemas.fire_watch import FireCentre, FireCentresResponse, FireWatchInput, FireWatchInputRequest, FireWatchOutput, FireWatchListResponse, FireWatchResponse
+from wps_shared.db.crud.fire_watch import get_all_fire_watches, get_fire_centre_by_name, get_fire_centres, get_fire_watch_by_id, save_fire_watch
+from wps_shared.schemas.fire_watch import FireWatchFireCentre, FireWatchFireCentresResponse, FireWatchInputRequest, FireWatchInput, FireWatchOutput, FireWatchListResponse, FireWatchResponse, FireWatchStation
+from wps_shared.schemas.stations import GeoJsonWeatherStation
+from wps_shared.stations import get_stations_as_geojson
 from wps_shared.utils.time import get_utc_now
 
 
@@ -45,8 +46,8 @@ def marshall_fire_watch_input_to_db(fire_watch_input: FireWatchInput, idir_usern
         contact_email=fire_watch_input.contact_email,
         create_timestamp=now,
         create_user=idir_username,
-        fire_centre=fire_watch_input.fire_centre,
-        station_code=fire_watch_input.station_code,
+        fire_centre=fire_watch_input.fire_centre.id,
+        station_code=fire_watch_input.station.code,
         status=BurnStatusEnum(fire_watch_input.status),
         title=fire_watch_input.title,
         update_timestamp=now,
@@ -89,7 +90,7 @@ def marshall_fire_watch_input_to_db(fire_watch_input: FireWatchInput, idir_usern
     return db_fire_watch
 
 
-def get_cordinates_from_geometry(geometry) -> List[float]:
+def get_coordinates_from_geometry(geometry) -> List[float]:
     if isinstance(geometry, str):
         return from_wkt(geometry)
     elif isinstance(geometry, WKBElement):
@@ -97,8 +98,9 @@ def get_cordinates_from_geometry(geometry) -> List[float]:
     raise TypeError("Unrecognized geometry type.")
 
 
-def marshall_fire_watch_db_to_api(db_fire_watch: DBFireWatch) -> FireWatchOutput:
-    location = get_cordinates_from_geometry(db_fire_watch.burn_location)
+def create_fire_watch_output(db_fire_watch: DBFireWatch, fire_centre: FireWatchFireCentre, stations: List[GeoJsonWeatherStation]) -> FireWatchOutput:
+    station = next((station for station in stations if station.properties.code == db_fire_watch.station_code), None)
+    location = get_coordinates_from_geometry(db_fire_watch.burn_location)
     coords = location.coords[0]
     x, y = reproject_burn_location(coords, NAD83_BC_ALBERS, WEB_MERCATOR)
     return FireWatchOutput(
@@ -109,8 +111,8 @@ def marshall_fire_watch_db_to_api(db_fire_watch: DBFireWatch) -> FireWatchOutput
         contact_email=db_fire_watch.contact_email,
         create_timestamp=int(db_fire_watch.create_timestamp.timestamp()),
         create_user=db_fire_watch.create_user,
-        fire_centre=db_fire_watch.fire_centre,
-        station_code=db_fire_watch.station_code,
+        fire_centre=FireWatchFireCentre(id=fire_centre.id, name=fire_centre.name),
+        station=FireWatchStation(code=station.properties.code, name=station.properties.name),
         status=db_fire_watch.status,
         title=db_fire_watch.title,
         update_timestamp=int(db_fire_watch.update_timestamp.timestamp()),
@@ -151,21 +153,20 @@ def marshall_fire_watch_db_to_api(db_fire_watch: DBFireWatch) -> FireWatchOutput
         hfi_max=db_fire_watch.hfi_max,
     )
 
-def marshal_watch_list(watch_list: List[DBFireWatch]) -> List[FireWatchOutput]:
-    api_watch_list: List[FireWatchOutput] = []
-    for db_fire_watch in watch_list:
-        api_fire_watch = marshall_fire_watch_db_to_api(db_fire_watch)
-        api_watch_list.append(api_fire_watch)
-    return api_watch_list
 
-
-@router.get("/active", response_model=FireWatchListResponse)
-async def get_all_fire_watches(_=Depends(authentication_required)):
-    """Returns all active fire watch records."""
-    logger.info("/fire-watch/active")
+@router.get("/", response_model=FireWatchListResponse)
+async def get_fire_watches(_=Depends(authentication_required)):
+    """Returns all FireWatch records"""
+    logger.info("/fire-watch/")
+    stations = await get_stations_as_geojson()
     async with get_async_read_session_scope() as session:
-        db_watch_list = await get_all_active_fire_watches(session)
-        api_watch_list = marshal_watch_list(db_watch_list)
+        results = await get_all_fire_watches(session)
+        api_watch_list = []
+        for fire_watch, fire_centre in results:
+            if fire_watch is None or fire_centre is None:
+                continue
+            fire_watch_output = create_fire_watch_output(fire_watch, fire_centre, stations)
+            api_watch_list.append(fire_watch_output)
     return FireWatchListResponse(watch_list=api_watch_list)
 
 
@@ -173,17 +174,19 @@ async def get_all_fire_watches(_=Depends(authentication_required)):
 async def save_new_fire_watch(fire_watch_input_request: FireWatchInputRequest, token=Depends(authentication_required)):
     idir = token.get("idir_username", None)
     db_fire_watch = marshall_fire_watch_input_to_db(fire_watch_input_request.fire_watch, idir)
+    stations = await get_stations_as_geojson()
+    
     async with get_async_write_session_scope() as session:
         new_fire_watch_id = await save_fire_watch(session, db_fire_watch)
-        new_fire_watch = await get_fire_watch_by_id(session, new_fire_watch_id)
-        fire_watch_output = marshall_fire_watch_db_to_api(new_fire_watch)
+        fire_watch, fire_centre = await get_fire_watch_by_id(session, new_fire_watch_id)
+        fire_watch_output = create_fire_watch_output(fire_watch, fire_centre, stations)
         return FireWatchResponse(fire_watch=fire_watch_output)
 
 
-@router.get("/fire-centres", response_model=FireCentresResponse)
+@router.get("/fire-centres", response_model=FireWatchFireCentresResponse)
 async def get_all_fire_centres(token=Depends(authentication_required)):
     logger.info("/fire-watch/fire-centres")
     async with get_async_read_session_scope() as session:
         result = await get_fire_centres(session)
-        fire_centres = [FireCentre(id=item.id, name=item.name) for item in result]
-        return FireCentresResponse(fire_centres=fire_centres)
+        fire_centres = [FireWatchFireCentre(id=item.id, name=item.name) for item in result]
+        return FireWatchFireCentresResponse(fire_centres=fire_centres)
