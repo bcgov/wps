@@ -1,6 +1,5 @@
 import axios from 'api/axios'
-import { DateTime } from 'luxon';
-import { Option as StationOption } from 'utils/dropdown'
+import { DateTime } from 'luxon'
 
 export enum BurnStatusEnum {
   ACTIVE = "active",
@@ -51,14 +50,19 @@ export const fuelTypes = [
   FuelTypeEnum.S2,
   FuelTypeEnum.S3
 ]
+interface FireWatchStation {
+  code: number
+  name: string
+}
 
 export interface FireWatch {
   burnWindowEnd: DateTime
   burnWindowStart: DateTime
   contactEmail: string[]
-  fireCentre?: FireWatchFireCentre | null
+  fireCentre: FireWatchFireCentre | null
   geometry: number[]
-  station?: StationOption | null  
+  // station?: StationOption | null
+  station: FireWatchStation | null
   status: BurnStatusEnum
   title: string
   // Fuel parameters
@@ -107,8 +111,8 @@ export interface FireWatchInput {
   burn_window_end: number
   burn_window_start: number
   contact_email: string[]
-  fire_centre: number
-  station_code: number
+  fire_centre: FireWatchFireCentre | null
+  station: FireWatchStation | null
   status: BurnStatusEnum
   title: string
   // Fuel parameters
@@ -199,8 +203,8 @@ const marshalFireWatchToFireWatchInput = (fireWatch: FireWatch): FireWatchInput 
     burn_window_end: Math.round(fireWatch.burnWindowEnd?.toMillis()/1000),
     burn_window_start: Math.round(fireWatch.burnWindowStart?.toMillis()/1000),
     contact_email: fireWatch.contactEmail,
-    fire_centre: fireWatch.fireCentre?.id ?? NaN,
-    station_code: fireWatch.station?.code ?? NaN,
+    fire_centre: fireWatch.fireCentre ?? null,
+    station: fireWatch.station ?? null,
     status: fireWatch.status,
     title: fireWatch.title,
     // Fuel parameters
