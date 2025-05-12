@@ -160,6 +160,3 @@ build
 Pods
 .xcode.env.local
 *.xcuserstate
-
-cruft
-mobile/asa-go/android
