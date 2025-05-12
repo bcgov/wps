@@ -6,13 +6,23 @@ from pydantic import BaseModel
 from wps_shared.db.models.fire_watch import BurnStatusEnum
 from wps_shared.fuel_types import FuelTypeEnum
 
+class FireWatchFireCentre(BaseModel):
+    id: int
+    name: str
+
+
+class FireWatchStation(BaseModel):
+    code: int
+    name: str
+
+
 class FireWatchInput(BaseModel):
     burn_location: List[float]
     burn_window_end: int
     burn_window_start: int
     contact_email: List[str]
-    fire_centre: int
-    station_code: int
+    fire_centre: FireWatchFireCentre
+    station: FireWatchStation
     status: BurnStatusEnum
     title: str
     # Fuel parameters
@@ -66,12 +76,5 @@ class FireWatchResponse(BaseModel):
 class FireWatchListResponse(BaseModel):
     watch_list: List[FireWatchOutput]
 
-
-# A fire center from our database.
-class FireCentre(BaseModel):
-    id: int
-    name: str
-
-
-class FireCentresResponse(BaseModel):
-    fire_centres: List[FireCentre]
+class FireWatchFireCentresResponse(BaseModel):
+    fire_centres: List[FireWatchFireCentre]

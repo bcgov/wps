@@ -3,10 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch
 from wps_shared.db.models.hfi_calc import FireCentre
 
-async def get_all_active_fire_watches(session: AsyncSession):
-    statement = select(FireWatch).where(FireWatch.status == BurnStatusEnum.ACTIVE)
+async def get_all_fire_watches(session: AsyncSession):
+    statement = select(FireWatch, FireCentre).join(FireCentre, FireWatch.fire_centre == FireCentre.id)
     result = await session.execute(statement)
-    return result.scalars()
+    return result.all()
 
 async def get_fire_centre_by_name(session: AsyncSession, name: str) -> FireCentre:
     statement = select(FireCentre).where(FireCentre.name.ilike(name))
@@ -14,9 +14,9 @@ async def get_fire_centre_by_name(session: AsyncSession, name: str) -> FireCentr
     return result.scalar_one()
 
 async def get_fire_watch_by_id(session: AsyncSession, id: int) -> FireWatch:
-    statement = select(FireWatch).where(FireWatch.id == id)
+    statement = select(FireWatch, FireCentre).join(FireCentre, FireWatch.fire_centre == FireCentre.id).where(FireWatch.id == id)
     result = await session.execute(statement)
-    return result.scalar_one()
+    return result.first()
 
 async def save_fire_watch(session: AsyncSession, fire_watch: FireWatch):
     """
