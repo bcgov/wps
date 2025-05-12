@@ -86,6 +86,12 @@ async def save_fire_watch(session: AsyncSession, fire_watch: FireWatch):
     return result.scalar_one()
 
 
+async def get_fire_centres(session: AsyncSession):
+    statement = select(FireCentre)
+    result = await session.execute(statement)
+    return result.scalars()
+
+
 async def get_all_prescription_status(session: AsyncSession) -> dict[str, int]:
     """
     Returns dict of {name: id} for all prescription status records.

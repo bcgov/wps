@@ -70,5 +70,11 @@ class FireWatchListResponse(BaseModel):
     watch_list: List[FireWatchOutput]
 
 
-class FireWatchWeatherResponse(BaseModel):
-    station_weather: dict[int, list[WeatherIndeterminate]]
+# A fire center from our database.
+class FireCentre(BaseModel):
+    id: int
+    name: str
+
+
+class FireCentresResponse(BaseModel):
+    fire_centres: List[FireCentre]
