@@ -1,6 +1,6 @@
 from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch, PrescriptionStatus
+from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch, FireWatchWeather, PrescriptionStatus
 from wps_shared.db.models.hfi_calc import FireCentre
 
 
@@ -99,3 +99,9 @@ async def get_all_prescription_status(session: AsyncSession) -> dict[str, int]:
     stmt = select(PrescriptionStatus.id, PrescriptionStatus.name)
     result = await session.execute(stmt)
     return {name: id for id, name in result.all()}
+
+
+async def get_fire_watch_weather_by_model_run_parameter_id(session: AsyncSession, prediction_model_run_timestamp_id: int):
+    statement = select(FireWatchWeather).where(FireWatchWeather.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id)
+    result = await session.execute(statement)
+    return result.scalars().all()

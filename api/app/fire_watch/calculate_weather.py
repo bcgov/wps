@@ -41,8 +41,7 @@ async def gather_fire_watch_inputs(
     predictions = await get_latest_model_prediction_for_stations(session, [fire_watch.station_code], FIREWATCH_WEATHER_MODEL, start_date, end_date)
 
     # fetch actual weather data. Using this method as it may make it easier to pull in forecasts if we want to.
-    actual_weather_data, _ = await fetch_actuals_and_forecasts(start_date - timedelta(days=1), end_date, [fire_watch.station_code])
-    actual_weather_data = actual_weather_data[:1]
+    actual_weather_data, _ = await fetch_actuals_and_forecasts(start_date - timedelta(days=1), start_date, [fire_watch.station_code])
 
     return predictions, actual_weather_data
 
@@ -230,7 +229,10 @@ async def save_all_hfi_wind_speeds(session: AsyncSession, fire_watch_weather_rec
 
 
 async def process_all_fire_watch_weather(start_date: datetime):
-    """Process fire watch weather data."""
+    """
+    This function encapsulates the entire job process of gathering, validating, and saving fire watch weather data.
+
+    """
     end_date = start_date + timedelta(days=10)
     end_date = datetime.combine(end_date, time.max, tzinfo=timezone.utc)
 

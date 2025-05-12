@@ -5,7 +5,7 @@ import datetime
 from typing import List, Union
 from sqlalchemy import and_, extract, func, select
 from sqlalchemy.orm import Session
-from sqlalchemy.sql import text
+from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.schemas.weather_models import ModelPredictionDetails
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
 from wps_shared.db.models.weather_models import (
@@ -274,7 +274,7 @@ async def get_latest_model_prediction_for_stations(
             extract("hour", WeatherStationModelPrediction.prediction_timestamp) == 20,
             WeatherStationModelPrediction.station_code.in_(station_codes),
             WeatherStationModelPrediction.prediction_timestamp.between(day_start, day_end),
-            PredictionModelRunTimestamp.complete == True,
+            PredictionModelRunTimestamp.interpolated == True,
             PredictionModel.abbreviation == model.value,
         )
         .distinct(func.date(WeatherStationModelPrediction.prediction_timestamp), WeatherStationModelPrediction.station_code)
@@ -403,9 +403,17 @@ def get_weather_station_model_prediction(session: Session, station_code: int, pr
     )
 
 
-def refresh_morecast2_materialized_view(session: Session):
-    start = datetime.datetime.now()
-    logger.info("Refreshing morecast_2_materialized_view")
-    session.execute(text("REFRESH MATERIALIZED VIEW morecast_2_materialized_view WITH DATA"))
-    session.commit()
-    logger.info(f"Finished mat view refresh with elapsed time: {datetime.datetime.now() - start}")
+async def get_latest_prediction_timestamp_id_for_model(session: AsyncSession, model: ModelEnum) -> int:
+    """Get the latest prediction model run timestamp id for a given model."""
+
+    stmt = (
+        select(PredictionModelRunTimestamp.id)
+        .join(PredictionModel, PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id)
+        .where(PredictionModelRunTimestamp.interpolated == True)
+        .where(PredictionModel.abbreviation == model.value)
+        .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
+        .limit(1)
+    )
+    result = await session.scalar(stmt)
+
+    return result
