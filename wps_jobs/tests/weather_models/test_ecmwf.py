@@ -282,7 +282,7 @@ def test_process_model_run_prediction_model_not_found():
         (False)
     ],
 )
-def test_process_model_run_prediction_model_complete(complete):
+def test_process_model_run_prediction_model_complete(mock_herbie_instance, complete):
     """Test process_model_run when prediction model is not found."""
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
     mock_repo = MockModelRunRepository()
