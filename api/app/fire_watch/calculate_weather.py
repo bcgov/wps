@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple
 
 from aiohttp import ClientSession
 from sqlalchemy.ext.asyncio import AsyncSession
-from wps_shared.db.crud.fire_watch import get_all_active_fire_watches, get_all_prescription_status
+from wps_shared.db.crud.fire_watch import get_all_fire_watches, get_all_prescription_status
 from wps_shared.db.crud.weather_models import get_latest_model_prediction_for_stations
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather
@@ -239,7 +239,7 @@ async def process_all_fire_watch_weather(start_date: datetime):
     end_date = datetime.combine(end_date, time.max, tzinfo=timezone.utc)
 
     async with get_async_write_session_scope() as session:
-        fire_watches = await get_all_active_fire_watches(session)
+        fire_watches = await get_all_fire_watches(session)
         station_ids = list(set([fire_watch.station_code for fire_watch in fire_watches]))
         wfwx_station_map = await fetch_station_metadata(station_ids)
         status_id_dict = await get_all_prescription_status(session)
