@@ -240,7 +240,7 @@ async def process_all_fire_watch_weather(start_date: datetime):
 
     async with get_async_write_session_scope() as session:
         fire_watches = await get_all_fire_watches(session)
-        station_ids = list(set([fire_watch.station_code for fire_watch in fire_watches]))
+        station_ids = list(set([fire_watch.station_code for fire_watch, _ in fire_watches]))
         wfwx_station_map = await fetch_station_metadata(station_ids)
         status_id_dict = await get_all_prescription_status(session)
 

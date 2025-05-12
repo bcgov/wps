@@ -3,10 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch, FireWatchWeather, PrescriptionStatus
 from wps_shared.db.models.hfi_calc import FireCentre
 
+
 async def get_all_fire_watches(session: AsyncSession):
     statement = select(FireWatch, FireCentre).join(FireCentre, FireWatch.fire_centre == FireCentre.id)
     result = await session.execute(statement)
     return result.all()
+
 
 async def get_fire_centre_by_name(session: AsyncSession, name: str) -> FireCentre:
     statement = select(FireCentre).where(FireCentre.name.ilike(name))
