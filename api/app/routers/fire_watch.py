@@ -41,18 +41,6 @@ def marshall_fire_watch_input_to_db(fire_watch_input: FireWatchInput, idir_usern
     now = get_utc_now()
     x, y = reproject_burn_location(fire_watch_input.burn_location, WEB_MERCATOR, NAD83_BC_ALBERS)
     db_fire_watch = DBFireWatch(
-        burn_location=f"POINT({fire_watch_input.burn_location[0]} {fire_watch_input.burn_location[1]})",
-        burn_window_end=datetime.fromtimestamp(fire_watch_input.burn_window_end, UTC),
-        burn_window_start=datetime.fromtimestamp(fire_watch_input.burn_window_start, UTC),
-        contact_email=fire_watch_input.contact_email,
-        create_timestamp=now,
-        create_user=idir_username,
-        fire_centre=fire_watch_input.fire_centre,
-        station_code=fire_watch_input.station_code,
-        status=BurnStatusEnum(fire_watch_input.status),
-        title=fire_watch_input.title,
-        update_timestamp=now,
-        update_user=idir_username,
         burn_location=f"POINT({x} {y})",
         burn_window_end=datetime.fromtimestamp(fire_watch_input.burn_window_end, UTC),
         burn_window_start=datetime.fromtimestamp(fire_watch_input.burn_window_start, UTC),
@@ -116,19 +104,6 @@ def marshall_fire_watch_db_to_api(db_fire_watch: DBFireWatch) -> FireWatchOutput
     coords = location.coords[0]
     x, y = reproject_burn_location(coords, NAD83_BC_ALBERS, WEB_MERCATOR)
     return FireWatchOutput(
-        id=db_fire_watch.id,
-        burn_location=[coords[0], coords[1]],
-        burn_window_end=int(db_fire_watch.burn_window_end.timestamp()),
-        burn_window_start=int(db_fire_watch.burn_window_end.timestamp()),
-        contact_email=db_fire_watch.contact_email,
-        create_timestamp=int(db_fire_watch.create_timestamp.timestamp()),
-        create_user=db_fire_watch.create_user,
-        fire_centre=db_fire_watch.fire_centre,
-        station_code=db_fire_watch.station_code,
-        status=db_fire_watch.status,
-        title=db_fire_watch.title,
-        update_timestamp=int(db_fire_watch.update_timestamp.timestamp()),
-        update_user=db_fire_watch.update_user,
         id=db_fire_watch.id,
         burn_location=[y, x],
         burn_window_end=int(db_fire_watch.burn_window_end.timestamp()),
@@ -206,7 +181,6 @@ async def save_new_fire_watch(fire_watch_input_request: FireWatchInputRequest, t
         new_fire_watch = await get_fire_watch_by_id(session, new_fire_watch_id)
         fire_watch_output = marshall_fire_watch_db_to_api(new_fire_watch)
         return FireWatchResponse(fire_watch=fire_watch_output)
-
 
 
 @router.get("/fire-centres", response_model=FireCentresResponse)
