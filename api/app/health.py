@@ -29,6 +29,7 @@ def crunchydb_cluster_health_check():
     }
     resp = requests.get(url, headers=header, timeout=10)
     resp_json = resp.json()
+    logger.info(resp_json)
     # NOTE: In Openshift parlance "replica" refers to how many of one pod we have, in CrunchyDB's managed
     # Patroni, a "Replica" refers to a read only copy of of the Leader.
     # Get the number of pods that are ready:
