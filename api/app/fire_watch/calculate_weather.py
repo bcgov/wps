@@ -225,7 +225,7 @@ async def fetch_actuals_and_forecasts(start_date: datetime, end_date: datetime, 
         return wf1_actuals, wf1_forecasts
 
 
-async def save_all_hfi_wind_speeds(session: AsyncSession, fire_watch_weather_records: list[FireWatchWeather]):
+async def save_all_fire_watch_weather(session: AsyncSession, fire_watch_weather_records: list[FireWatchWeather]):
     logger.info("Writing Fire Watch Weather records")
     session.add_all(fire_watch_weather_records)
 
@@ -271,7 +271,7 @@ async def process_all_fire_watch_weather(start_date: datetime):
                     fire_watch_predictions.append(fire_watch_weather)
 
             if fire_watch_predictions:
-                await save_all_hfi_wind_speeds(session, fire_watch_predictions)
+                await save_all_fire_watch_weather(session, fire_watch_predictions)
                 logger.info(f"Saved {len(fire_watch_predictions)} records for FireWatch {fire_watch.id}.")
 
 
