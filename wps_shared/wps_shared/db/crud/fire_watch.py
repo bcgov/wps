@@ -7,7 +7,7 @@ from wps_shared.db.models.hfi_calc import FireCentre
 async def get_all_active_fire_watches(session: AsyncSession):
     statement = select(FireWatch).where(FireWatch.status == BurnStatusEnum.ACTIVE)
     result = await session.execute(statement)
-    return result.scalars()
+    return result.scalars().all()
 
 
 async def get_fire_centre_by_name(session: AsyncSession, name: str) -> FireCentre:
