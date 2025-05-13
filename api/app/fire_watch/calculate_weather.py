@@ -17,6 +17,7 @@ from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_daily_determin
 
 from app.fire_behaviour.prediction import FireBehaviourPrediction, calculate_fire_behaviour_prediction
 from app.morecast_v2.forecasts import calculate_fwi_from_seed_indeterminates
+from wps_shared.utils.time import assert_all_utc
 
 logger = logging.getLogger(__name__)
 
@@ -124,12 +125,18 @@ def validate_prediction_dates(
     """
     Validate that there is a prediction at 20:00 UTC for every day in the date range.
     """
+
     required_datetimes = {datetime.combine(start_date.date() + timedelta(days=i), time(20, 0), tzinfo=timezone.utc) for i in range((end_date.date() - start_date.date()).days + 1)}
 
     prediction_datetimes = {prediction.prediction_timestamp.replace(second=0, microsecond=0) for prediction in predictions}
 
-    missing_datetimes = required_datetimes - prediction_datetimes
+    try:
+        assert_all_utc(prediction_datetimes)  # ensure all datetimes are UTC
+    except AssertionError:
+        logger.warning("Prediction datetimes are not in UTC.")
+        return False
 
+    missing_datetimes = required_datetimes - prediction_datetimes
     if missing_datetimes:
         missing_str = ", ".join(dt.strftime("%Y-%m-%d %H:%M UTC") for dt in sorted(missing_datetimes))
         logger.warning(f"Missing 20Z prediction data for station {predictions[0].station_code} on: {missing_str}")
