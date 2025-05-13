@@ -6,7 +6,7 @@ import {
   FuelTypeEnum,
   InPrescriptionEnum
 } from '@/features/fireWatch/interfaces'
-import { Box, IconButton, styled, Typography, useTheme } from '@mui/material'
+import { Box, styled, Typography, useTheme } from '@mui/material'
 import {
   DataGridPro,
   DataGridProProps,
