@@ -1,6 +1,6 @@
 import { FORM_MAX_WIDTH } from "@/features/fireWatch/components/CreateFireWatch"
 import SummaryTextLine from "@/features/fireWatch/components/steps/SummaryTextLine"
-import { FireWatch, FuelTypeEnum } from "@/features/fireWatch/fireWatchApi"
+import { FireWatch, FuelTypeEnum } from '@/features/fireWatch/interfaces'
 import { Box, Button, Step, Typography, useTheme } from "@mui/material"
 import { isUndefined } from "lodash"
 import { SetStateAction } from "react"

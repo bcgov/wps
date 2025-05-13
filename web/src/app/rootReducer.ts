@@ -24,6 +24,7 @@ import fireCentreTPIStatsSlice from 'features/fba/slices/fireCentreTPIStatsSlice
 import fireCentreHFIFuelStatsSlice from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
 import fireWatchSlice from 'features/fireWatch/slices/fireWatchSlice'
 import fireWatchFireCentresSlice from '@/features/fireWatch/slices/fireWatchFireCentresSlice'
+import burnForecastsSlice from '@/features/fireWatch/slices/burnForecastSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -50,7 +51,8 @@ const rootReducer = combineReducers({
   provincialSummary: provincialSummarySlice,
   morecastInputValid: morecastInputValidSlice,
   fireWatch: fireWatchSlice,
-  fireWatchFireCentres: fireWatchFireCentresSlice
+  fireWatchFireCentres: fireWatchFireCentresSlice,
+  burnForecasts: burnForecastsSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -86,3 +88,4 @@ export const selectStationGroups = (state: RootState) => state.stationGroups
 export const selectStationGroupsMembers = (state: RootState) => state.stationGroupsMembers
 export const fireWatch = (state: RootState) => state.fireWatch
 export const selectFireWatchFireCentres = (state: RootState) => state.fireWatchFireCentres
+export const selectBurnForecasts = (state: RootState) => state.burnForecasts.fireWatchBurnForecasts

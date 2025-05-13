@@ -1,7 +1,7 @@
 import FuelStep from "@/features/fireWatch/components/steps/FuelStep"
 import InfoStep from "@/features/fireWatch/components/steps/InfoStep"
 import WeatherParametersStep from "@/features/fireWatch/components/steps/WeatherParametersStep"
-import { FireWatch } from "@/features/fireWatch/fireWatchApi"
+import { FireWatch } from '@/features/fireWatch/interfaces'
 import { getBlankFireWatch } from "@/features/fireWatch/utils"
 import { Box, Button, Step, StepLabel, Stepper, Typography, useTheme } from "@mui/material"
 import { useEffect, useState } from 'react'
