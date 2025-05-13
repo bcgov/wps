@@ -131,7 +131,7 @@ def validate_prediction_dates(
     prediction_datetimes = {prediction.prediction_timestamp.replace(second=0, microsecond=0) for prediction in predictions}
 
     try:
-        assert_all_utc(prediction_datetimes)  # ensure all datetimes are UTC
+        assert_all_utc(*prediction_datetimes)  # ensure all datetimes are UTC
     except AssertionError:
         logger.warning("Prediction datetimes are not in UTC.")
         return False
