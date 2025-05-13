@@ -38,7 +38,7 @@ async def gather_fire_watch_inputs(
     predictions = await get_latest_model_prediction_for_stations(session, [fire_watch.station_code], FIREWATCH_WEATHER_MODEL, start_date, end_date)
 
     # fetch actual weather data. Using this method as it may make it easier to pull in forecasts if we want to.
-    actual_weather_data, _ = await fetch_actuals_and_forecasts(start_date - timedelta(days=1), start_date, [fire_watch.station_code])
+    actual_weather_data, _ = await get_actuals_and_forecasts(start_date - timedelta(days=1), start_date, [fire_watch.station_code])
 
     return predictions, actual_weather_data
 
@@ -229,7 +229,7 @@ def check_prescription_status(fire_watch: FireWatch, weather: FireWatchWeather, 
         return status_id_dict["no"]
 
 
-async def fetch_station_metadata(station_ids: list[int]) -> dict[int, WFWXWeatherStation]:
+async def get_station_metadata(station_ids: list[int]) -> dict[int, WFWXWeatherStation]:
     """Fetch station metadata from the WFWX API."""
     async with ClientSession() as session:
         header = await get_auth_header(session)
@@ -237,7 +237,7 @@ async def fetch_station_metadata(station_ids: list[int]) -> dict[int, WFWXWeathe
         return {station.code: station for station in wfwx_stations}
 
 
-async def fetch_actuals_and_forecasts(start_date: datetime, end_date: datetime, station_ids: list[int]) -> tuple[list[WeatherIndeterminate], list[WeatherIndeterminate]]:
+async def get_actuals_and_forecasts(start_date: datetime, end_date: datetime, station_ids: list[int]) -> tuple[list[WeatherIndeterminate], list[WeatherIndeterminate]]:
     """Fetch actuals and forecasts from the WFWX API."""
     async with ClientSession() as session:
         header = await get_auth_header(session)
@@ -298,6 +298,7 @@ async def process_predictions(
         if not fbp:
             continue
 
+        # If we're calculating forward from the current date, these prediction_timestamp_ids should all be the same
         prediction_timestamp_id = next(
             (p.prediction_model_run_timestamp_id for p in predictions if p.prediction_timestamp == prediction.utc_timestamp),
             None,
@@ -322,7 +323,7 @@ async def process_all_fire_watch_weather(start_date: datetime):
     async with get_async_write_session_scope() as session:
         fire_watches = await get_all_fire_watches(session)
         station_ids = set(fire_watch.station_code for fire_watch, _ in fire_watches)
-        wfwx_station_map = await fetch_station_metadata(list(station_ids))
+        wfwx_station_map = await get_station_metadata(list(station_ids))
         status_id_dict = await get_all_prescription_status(session)
 
         for fire_watch, _ in fire_watches:

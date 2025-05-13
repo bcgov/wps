@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, patch
 from app.fire_watch.calculate_weather import (
     FIREWATCH_WEATHER_MODEL,
-    fetch_station_metadata,
+    get_station_metadata,
     map_model_prediction_to_weather_indeterminate,
 )
 from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
@@ -45,5 +45,5 @@ async def test_map_model_prediction_to_weather_indeterminate():
 @patch("app.fire_watch.calculate_weather.get_wfwx_stations_from_station_codes", new_callable=AsyncMock)
 async def test_fetch_station_metadata(mock_get_stations, mock_get_auth_header):
     mock_get_stations.return_value = [WFWXWeatherStation(code=1, name="Station 1", lat=50.0, long=-120.0, elevation=1, wfwx_id="1", zone_code=None)]
-    result = await fetch_station_metadata([1])
+    result = await get_station_metadata([1])
     assert result[1].name == "Station 1"
