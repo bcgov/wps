@@ -4,7 +4,7 @@ import { FireWatch, FuelTypeEnum } from "@/features/fireWatch/fireWatchApi"
 import { Box, Button, Step, Typography, useTheme } from "@mui/material"
 import { isUndefined } from "lodash"
 import { SetStateAction, useEffect, useRef, useState } from 'react'
-import { toLonLat } from 'ol/proj'
+import { fromLonLat, toLonLat } from 'ol/proj'
 import { Map, View } from 'ol'
 import TileLayer from 'ol/layer/Tile'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
@@ -14,6 +14,7 @@ import VectorLayer from 'ol/layer/Vector.js'
 import { Icon, Style } from 'ol/style'
 import Feature from 'ol/Feature.js'
 import { Point } from 'ol/geom'
+import { CENTER_OF_BC } from '@/utils/constants'
 
 interface ReviewSubmitStepProps {
   fireWatch: FireWatch
@@ -56,7 +57,8 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
     if (!mapRef.current) {
       return
     }
-    const feature = new Feature({ geometry: new Point(fireWatch.geometry) })
+    const feature =
+      fireWatch.geometry.length === 2 ? new Feature({ geometry: new Point(fireWatch.geometry) }) : new Feature()
     const featureSource = new VectorSource({ features: [feature] })
     const featureLayer = new VectorLayer({
       source: featureSource,
@@ -71,8 +73,8 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
     })
     const mapObject = new Map({
       view: new View({
-        zoom: 10,
-        center: fireWatch.geometry
+        zoom: fireWatch.geometry.length === 2 ? 9 : 5,
+        center: fireWatch.geometry.length === 2 ? fireWatch.geometry : fromLonLat(CENTER_OF_BC)
       }),
       layers: [
         new TileLayer({
