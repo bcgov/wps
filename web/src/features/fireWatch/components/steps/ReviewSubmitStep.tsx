@@ -3,12 +3,11 @@ import SummaryTextLine from "@/features/fireWatch/components/steps/SummaryTextLi
 import { FireWatch, FuelTypeEnum } from "@/features/fireWatch/fireWatchApi"
 import { Box, Button, Step, Typography, useTheme } from "@mui/material"
 import { isUndefined } from "lodash"
-import { SetStateAction, useEffect, useRef, useState } from 'react'
+import React, { SetStateAction, useEffect, useRef, useState } from 'react'
 import { fromLonLat, toLonLat } from 'ol/proj'
 import { Map, View } from 'ol'
 import TileLayer from 'ol/layer/Tile'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
-import React from 'react'
 import VectorSource from 'ol/source/Vector.js'
 import VectorLayer from 'ol/layer/Vector.js'
 import { Icon, Style } from 'ol/style'
