@@ -1,11 +1,10 @@
-import asyncio
 import logging
 from datetime import datetime, time, timedelta, timezone
 
 from aiohttp import ClientSession
 from sqlalchemy.ext.asyncio import AsyncSession
-from wps_shared.db.crud.fire_watch import get_all_fire_watches, get_all_prescription_status
-from wps_shared.db.crud.weather_models import get_latest_model_prediction_for_stations
+from wps_shared.db.crud.fire_watch import get_all_fire_watches, get_all_prescription_status, get_fire_watch_weather_by_model_run_parameter_id
+from wps_shared.db.crud.weather_models import get_latest_model_prediction_for_stations, get_latest_prediction_timestamp_id_for_model
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather
 from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS
@@ -334,6 +333,13 @@ async def process_all_fire_watch_weather(start_date: datetime):
     end_date = datetime.combine(start_date + timedelta(days=9), time.max, tzinfo=timezone.utc)
 
     async with get_async_write_session_scope() as session:
+        latest_prediction_id = await get_latest_prediction_timestamp_id_for_model(session, FIREWATCH_WEATHER_MODEL)
+        fire_watch_weather_exists = await get_fire_watch_weather_by_model_run_parameter_id(session, latest_prediction_id)
+
+        if fire_watch_weather_exists:
+            logger.info(f"Fire watch weather already exists for the latest prediction - {latest_prediction_id}. Skipping processing.")
+            return
+
         fire_watches = await get_all_fire_watches(session)
         station_ids = set(fire_watch.station_code for fire_watch, _ in fire_watches)
         wfwx_station_map = await get_station_metadata(list(station_ids))

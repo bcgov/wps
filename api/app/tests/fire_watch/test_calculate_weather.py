@@ -1,11 +1,11 @@
+from unittest import mock
 import pytest
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import datetime, time, timedelta, timezone
+from unittest.mock import AsyncMock, patch
 
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather
 from wps_shared.fuel_types import FuelTypeEnum
 from app.fire_behaviour.prediction import FireBehaviourPrediction
-from app.fire_watch import calculate_weather
 from app.fire_watch.calculate_weather import (
     FIREWATCH_WEATHER_MODEL,
     calculate_fbp,
@@ -290,11 +290,49 @@ async def test_process_predictions(mock_fire_watch, mock_station_metadata, mock_
 
 
 @pytest.mark.anyio
-async def test_process_all_fire_watch_weather(mocker, mock_fire_watch, mock_status_id_dict):
-    mocker.patch("app.fire_watch.calculate_weather.get_all_fire_watches", return_value=[(mock_fire_watch, None)])
-    mocker.patch("app.fire_watch.calculate_weather.get_station_metadata", return_value={101: MagicMock()})
-    mocker.patch("app.fire_watch.calculate_weather.get_all_prescription_status", return_value=mock_status_id_dict)
-    mocker.patch("app.fire_watch.calculate_weather.process_single_fire_watch", AsyncMock())
+async def test_process_all_fire_watch_weather_skips_if_weather_exists(mocker):
+    mocker.patch(
+        "app.fire_watch.calculate_weather.get_latest_prediction_timestamp_id_for_model",
+        return_value=123,
+    )
+    mocker.patch(
+        "app.fire_watch.calculate_weather.get_fire_watch_weather_by_model_run_parameter_id",
+        return_value=True,  # Simulate that weather data already exists
+    )
+    mock_get_all_fire_watches = mocker.patch("app.fire_watch.calculate_weather.get_all_fire_watches")
+    mock_get_station_metadata = mocker.patch("app.fire_watch.calculate_weather.get_station_metadata")
+    mock_get_all_prescription_status = mocker.patch("app.fire_watch.calculate_weather.get_all_prescription_status")
+    mock_process_single_fire_watch = mocker.patch("app.fire_watch.calculate_weather.process_single_fire_watch")
 
-    await process_all_fire_watch_weather(datetime(2025, 5, 5, tzinfo=timezone.utc))
-    calculate_weather.process_single_fire_watch.assert_called_once()
+    start_date = datetime(2025, 5, 5, tzinfo=timezone.utc)
+    await process_all_fire_watch_weather(start_date)
+
+    mock_get_all_fire_watches.assert_not_called()
+    mock_get_station_metadata.assert_not_called()
+    mock_get_all_prescription_status.assert_not_called()
+    mock_process_single_fire_watch.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_process_all_fire_watch_weather_processes_fire_watches(mocker, mock_fire_watch, mock_status_id_dict, mock_station_metadata):
+    mocker.patch("app.fire_watch.calculate_weather.get_latest_prediction_timestamp_id_for_model", return_value=123)
+    mocker.patch(
+        "app.fire_watch.calculate_weather.get_fire_watch_weather_by_model_run_parameter_id",
+        return_value=False,  # Simulate that weather data does not exist
+    )
+    mocker.patch("app.fire_watch.calculate_weather.get_all_fire_watches", return_value=[(mock_fire_watch, None)])
+    mocker.patch("app.fire_watch.calculate_weather.get_station_metadata", return_value={101: mock_station_metadata})
+    mocker.patch("app.fire_watch.calculate_weather.get_all_prescription_status", return_value=mock_status_id_dict)
+    mock_process_single_fire_watch = mocker.patch("app.fire_watch.calculate_weather.process_single_fire_watch", AsyncMock())
+
+    start_date = datetime(2025, 5, 5, tzinfo=timezone.utc)
+    await process_all_fire_watch_weather(start_date)
+
+    mock_process_single_fire_watch.assert_called_once_with(
+        mock.ANY,
+        mock_fire_watch,
+        {101: mock_station_metadata},
+        mock_status_id_dict,
+        start_date,
+        datetime.combine(start_date + timedelta(days=9), time.max, tzinfo=timezone.utc),
+    )
