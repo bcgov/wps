@@ -340,4 +340,5 @@ async def process_all_fire_watch_weather(start_date: datetime):
         status_id_dict = await get_all_prescription_status(session)
 
         for fire_watch, _ in fire_watches:
+            logger.info(f"Processing FireWatch {fire_watch.id} using station {fire_watch.station_code} from {start_date.date()} to {end_date.date()}.")
             await process_single_fire_watch(session, fire_watch, wfwx_station_map, status_id_dict, start_date, end_date)
