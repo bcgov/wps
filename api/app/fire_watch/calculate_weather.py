@@ -90,16 +90,16 @@ def validate_fire_watch_inputs(
         logger.warning(f"Missing station metadata for station {fire_watch.station_code}.")
         return False
 
-    if not validate_actual_weather_data(actual_weather_data, fire_watch.station_code):
+    if not validate_actual_weather_data(actual_weather_data):
         return False
 
-    if not validate_prediction_dates(predictions, start_date, end_date, fire_watch.station_code):
+    if not validate_prediction_dates(predictions, start_date, end_date):
         return False
 
     return True
 
 
-def validate_actual_weather_data(actual_weather_data: list[WeatherIndeterminate], station_code: int) -> bool:
+def validate_actual_weather_data(actual_weather_data: list[WeatherIndeterminate]) -> bool:
     """
     Validate actual weather data for a station.
     """
@@ -112,7 +112,7 @@ def validate_actual_weather_data(actual_weather_data: list[WeatherIndeterminate]
         or actual.build_up_index is None
         for actual in actual_weather_data
     ):
-        logger.warning(f"Invalid actual weather data for station {station_code}.")
+        logger.warning(f"Invalid actual weather data for station {actual_weather_data[0].station_code}.")
         return False
     return True
 
@@ -121,7 +121,6 @@ def validate_prediction_dates(
     predictions: list[ModelPredictionDetails],
     start_date: datetime,
     end_date: datetime,
-    station_code: int,
 ) -> bool:
     """
     Validate that there is a prediction at 20:00 UTC for every day in the date range.
@@ -134,7 +133,7 @@ def validate_prediction_dates(
 
     if missing_datetimes:
         missing_str = ", ".join(dt.strftime("%Y-%m-%d %H:%M UTC") for dt in sorted(missing_datetimes))
-        logger.warning(f"Missing 20Z prediction data for station {station_code} on: {missing_str}")
+        logger.warning(f"Missing 20Z prediction data for station {predictions[0].station_code} on: {missing_str}")
         return False
 
     return True
@@ -166,7 +165,7 @@ def calculate_fbp(
     station_data: WFWXWeatherStation,
     prediction: WeatherIndeterminate,
 ) -> FireBehaviourPrediction:
-    """Calculate Fire Behaviour Prediction (FBP) and create FireWatchWeather."""
+    """Calculate Fire Behaviour Prediction (FBP)"""
     # assert that we're working with all the same station's data
     assert fire_watch.station_code == station_data.code == prediction.station_code, "Station codes do not match for fbp calculation"
 
@@ -260,6 +259,13 @@ async def process_single_fire_watch(
 ):
     """
     Process a single FireWatch by gathering inputs, validating them, and saving results.
+
+    :param session: Async database session.
+    :param fire_watch: The FireWatch instance to process.
+    :param wfwx_station_map: Mapping of station codes to their metadata.
+    :param status_id_dict: Mapping of status IDs to their descriptions.
+    :param start_date: The start date for the weather model processing.
+    :param end_date: The end date for the weather model processing.
     """
     station_metadata = wfwx_station_map.get(fire_watch.station_code)
     if not station_metadata:
@@ -287,7 +293,14 @@ async def process_predictions(
     status_id_dict: dict[str, int],
 ) -> list[FireWatchWeather]:
     """
-    Process predictions for a FireWatch and calculate FBP and prescription status.
+    Processes weather model predictions for a FireWatch to calculate FBP and prescription status.
+
+    :param fire_watch: The FireWatch instance to process.
+    :param station_metadata: Metadata for the weather station.
+    :param predictions: List of model predictions.
+    :param actual_weather_data: List of actual weather data.
+    :param status_id_dict: Dictionary mapping status IDs to their descriptions.
+    :return: List of FireWatchWeather instances.
     """
     prediction_indeterminates = [map_model_prediction_to_weather_indeterminate(p, station_metadata) for p in predictions]
     fwi_prediction_indeterminates = calculate_fwi_from_seed_indeterminates(actual_weather_data, prediction_indeterminates)
