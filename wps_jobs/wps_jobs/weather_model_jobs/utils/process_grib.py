@@ -16,7 +16,6 @@ from wps_shared.db.crud.weather_models import get_prediction_model, get_or_creat
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
 from wps_jobs.weather_model_jobs.utils.wind_direction_utils import calculate_wind_dir_from_u_v, calculate_wind_speed_from_u_v
 
-
 logger = logging.getLogger(__name__)
 
 GFS_000_HOURS_RASTER_BANDS = {"tmp_tgl_2": 2, "rh_tgl_2": 3, "u_comp_wind_10m": 4, "v_comp_wind_10m": 5}
@@ -57,6 +56,28 @@ def calculate_raster_coordinate(longitude: float, latitude: float, transform: Af
 def convert_mps_to_kph(value: float):
     """Convert a value from metres per second to kilometres per hour."""
     return value / 1000 * 3600
+
+
+def convert_kelvin_to_celsius(value: float):
+    """Convert a value from kelvin to celsius."""
+    return value - 273.15
+
+
+def calculate_relative_humidity(temp: float, dew_temp: float) -> float:
+    """
+    Calculate relative humidity (RH) from air temperature and dew point temperature.
+
+    :param temp: Air temperature in Kelvin.
+    :param dew_temp: Dew point temperature in Kelvin.
+    :return: Relative humidity
+    """
+    # Convert temperature and dew point from Kelvin to Celsius
+    temp_c = convert_kelvin_to_celsius(temp)
+    dew_temp_c = convert_kelvin_to_celsius(dew_temp)
+
+    rh = 100 * (np.exp((17.625 * dew_temp_c) / (dew_temp_c + 243.04)) / np.exp((17.625 * temp_c) / (temp_c + 243.04)))
+
+    return rh
 
 
 class GribFileProcessor:
@@ -154,12 +175,12 @@ class GribFileProcessor:
 
         return variable_name
 
-    def store_prediction_value(self, station_code: int, value: float, preduction_model_run: PredictionModelRunTimestamp, grib_info: ModelRunInfo, session: Session):
+    def store_prediction_value(self, station_code: int, value: float, prediction_model_run: PredictionModelRunTimestamp, grib_info: ModelRunInfo, session: Session):
         """Store the values around the area of interest."""
         # Load the record if it exists.
         prediction = (
             session.query(ModelRunPrediction)
-            .filter(ModelRunPrediction.prediction_model_run_timestamp_id == preduction_model_run.id)
+            .filter(ModelRunPrediction.prediction_model_run_timestamp_id == prediction_model_run.id)
             .filter(ModelRunPrediction.prediction_timestamp == grib_info.prediction_timestamp)
             .filter(ModelRunPrediction.station_code == station_code)
             .first()
@@ -167,7 +188,7 @@ class GribFileProcessor:
         if not prediction:
             # Record doesn't exist, so we create it.
             prediction = ModelRunPrediction()
-            prediction.prediction_model_run_timestamp_id = preduction_model_run.id
+            prediction.prediction_model_run_timestamp_id = prediction_model_run.id
             prediction.prediction_timestamp = grib_info.prediction_timestamp
             prediction.station_code = station_code
 
