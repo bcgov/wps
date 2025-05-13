@@ -181,5 +181,5 @@ objects:
                       memory: 2Gi
                     requests:
                       cpu: "500m"
-                      memory: 256Mi
+                      memory: 1Gi
               restartPolicy: OnFailure
