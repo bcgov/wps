@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, create_autospec
+from unittest.mock import MagicMock
 from datetime import datetime, timedelta, timezone
 
 from pytest_mock import MockerFixture
@@ -9,9 +9,6 @@ from wps_jobs.weather_model_jobs.ecmwf_prediction_processor import ECMWFPredicti
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp, WeatherStationModelPrediction
-
-import wps_jobs.weather_model_jobs.utils
-import wps_jobs.weather_model_jobs.utils.interpolate
 
 @pytest.fixture
 def setup_processor():
@@ -57,7 +54,7 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
 
     # Mock data
     station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
-    model_run = create_autospec(PredictionModelRunTimestamp)
+    model_run = MagicMock(spec=PredictionModelRunTimestamp)
     model_run_predictions = [
         ModelRunPrediction(prediction_timestamp=datetime(2023, 10, 1, 18, 0), apcp_sfc_0=0.0),
         ModelRunPrediction(prediction_timestamp=datetime(2023, 10, 1, 21, 0), apcp_sfc_0=0.0),
