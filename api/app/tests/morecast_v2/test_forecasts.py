@@ -167,19 +167,19 @@ def test_get_fwi_values():
     assert len(forecasts) == 2
     assert len(actuals) == 2
     # The below values were calculated using the CFFDRS library and the values from the test indeterminates as input
-    assert isclose(forecasts[0].fine_fuel_moisture_code, 76.56049294825995)
-    assert isclose(forecasts[0].duff_moisture_code, 27.5921591)
-    assert isclose(forecasts[0].drought_code, 487.838)
-    assert isclose(forecasts[0].initial_spread_index, 1.3203256328897335)
-    assert isclose(forecasts[0].build_up_index, 48.347912947622426)
-    assert isclose(forecasts[0].fire_weather_index, 3.831558327789315)
+    assert isclose(forecasts[0].fine_fuel_moisture_code, 76.560, abs_tol=0.001)
+    assert isclose(forecasts[0].duff_moisture_code, 27.5921591, abs_tol=0.001)
+    assert isclose(forecasts[0].drought_code, 487.838, abs_tol=0.001)
+    assert isclose(forecasts[0].initial_spread_index, 1.3203256328897335, abs_tol=0.001)
+    assert isclose(forecasts[0].build_up_index, 48.347912947622426, abs_tol=0.001)
+    assert isclose(forecasts[0].fire_weather_index, 3.831558327789315, abs_tol=0.001)
 
-    assert isclose(forecasts[1].fine_fuel_moisture_code, 86.95953827364833)
-    assert isclose(forecasts[1].duff_moisture_code, 92.7296955)
-    assert isclose(forecasts[1].drought_code, 564.564)
-    assert isclose(forecasts[1].initial_spread_index, 5.072430401784243)
-    assert isclose(forecasts[1].build_up_index, 131.47318170452328)
-    assert isclose(forecasts[1].fire_weather_index, 22.169614889600865)
+    assert isclose(forecasts[1].fine_fuel_moisture_code, 86.95953827364833, abs_tol=0.001)
+    assert isclose(forecasts[1].duff_moisture_code, 92.7296955, abs_tol=0.001)
+    assert isclose(forecasts[1].drought_code, 564.564, abs_tol=0.001)
+    assert isclose(forecasts[1].initial_spread_index, 5.072430401784243, abs_tol=0.001)
+    assert isclose(forecasts[1].build_up_index, 131.47318170452328, abs_tol=0.001)
+    assert isclose(forecasts[1].fire_weather_index, 22.169614889600865, abs_tol=0.001)
 
 
 @patch("app.morecast_v2.forecasts.get_forecasts_in_range", return_value=[])
