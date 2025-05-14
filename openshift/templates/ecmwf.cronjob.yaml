@@ -42,6 +42,8 @@ objects:
     metadata:
       name: ${JOB_NAME}
     spec:
+      # disable until ecmwf is ready
+      suspend: true
       # Don't run on the hour - as a courtesy to env canada, pick a random
       # number so that not everyone hits env. canada at the same time.
       schedule: ${SCHEDULE}
