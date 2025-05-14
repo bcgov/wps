@@ -1,18 +1,19 @@
 """Create Fire Watch table
 
 Revision ID: 54176235e225
-Revises: 6a31639810b0
+Revises: 42a9dae10dca
 Create Date: 2025-04-24 11:04:18.515614
 
 """
+
 from alembic import op
 import geoalchemy2
 import sqlalchemy as sa
 from wps_shared.db.models.common import TZTimeStamp
 
 # revision identifiers, used by Alembic.
-revision = '54176235e225'
-down_revision = '6a31639810b0'
+revision = "54176235e225"
+down_revision = "42a9dae10dca"
 branch_labels = None
 depends_on = None
 
@@ -75,11 +76,11 @@ def upgrade():
         sa.PrimaryKeyConstraint("id"),
         comment="Contains parameters related to a prescribed burn.",
     )
-    op.create_index(op.f('ix_fire_watch_id'), 'fire_watch', ['id'], unique=False)
-    op.create_index(op.f('ix_fire_watch_status'), 'fire_watch', ['status'], unique=False)
+    op.create_index(op.f("ix_fire_watch_id"), "fire_watch", ["id"], unique=False)
+    op.create_index(op.f("ix_fire_watch_status"), "fire_watch", ["status"], unique=False)
 
 
 def downgrade():
-    op.drop_index(op.f('ix_fire_watch_status'), table_name='fire_watch')
+    op.drop_index(op.f("ix_fire_watch_status"), table_name="fire_watch")
     op.drop_index(op.f("ix_fire_watch_id"), table_name="fire_watch")
-    op.drop_table('fire_watch')
+    op.drop_table("fire_watch")

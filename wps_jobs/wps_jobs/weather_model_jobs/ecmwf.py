@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import sys
@@ -7,22 +8,27 @@ from typing import List
 
 import pandas as pd
 from herbie import Herbie
-import asyncio
 from osgeo import gdal
 from pyproj import CRS, Transformer
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from wps_shared.geospatial.geospatial import NAD83_CRS, get_transformer
+
 import wps_shared.utils.time as time_utils
-from wps_shared.schemas.stations import WeatherStation
-from wps_shared.wps_logging import configure_logging
-from wps_shared.stations import get_stations_asynchronously
-from wps_shared.db.database import get_write_session_scope
-from wps_shared.db.crud.model_run_repository import ModelRunRepository
-from wps_jobs.weather_model_jobs import ModelEnum, ModelRunInfo, ModelRunProcessResult, ProjectionEnum
-from wps_jobs.weather_model_jobs.ecmwf_model_processor import ECMWFModelProcessor, TEMP
+from wps_jobs.weather_model_jobs import (
+    ModelEnum,
+    ModelRunInfo,
+    ModelRunProcessResult,
+    ProjectionEnum,
+)
+from wps_jobs.weather_model_jobs.ecmwf_model_processor import TEMP, ECMWFModelProcessor
 from wps_jobs.weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
 from wps_jobs.weather_model_jobs.utils.process_grib import PredictionModelNotFound
+from wps_shared.db.crud.model_run_repository import ModelRunRepository
+from wps_shared.db.database import get_write_session_scope
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
+from wps_shared.geospatial.geospatial import NAD83_CRS, get_transformer
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.schemas.stations import WeatherStation
+from wps_shared.stations import get_stations_asynchronously
+from wps_shared.wps_logging import configure_logging
 
 gdal.UseExceptions()
 
@@ -49,8 +55,12 @@ def get_ecmwf_forecast_hours():
         yield h
 
 
-def get_stations_dataframe(transformer: Transformer, stations: List[WeatherStation]) -> pd.DataFrame:
-    stations_df = pd.DataFrame([station.model_dump(include={"code", "name", "lat", "long"}) for station in stations]).rename(columns={"lat": "latitude", "long": "longitude"})
+def get_stations_dataframe(
+    transformer: Transformer, stations: List[WeatherStation]
+) -> pd.DataFrame:
+    stations_df = pd.DataFrame(
+        [station.model_dump(include={"code", "name", "lat", "long"}) for station in stations]
+    ).rename(columns={"lat": "latitude", "long": "longitude"})
 
     stations_df[["longitude", "latitude"]] = stations_df.apply(
         lambda row: transformer.transform(row["longitude"], row["latitude"]),
@@ -61,7 +71,9 @@ def get_stations_dataframe(transformer: Transformer, stations: List[WeatherStati
 
 
 def get_ecmwf_transformer(working_dir: str, herbie_instance: Herbie) -> Transformer:
-    grib = herbie_instance.download(TEMP, verbose=False, save_dir=working_dir)  # Any variable can be used to get the model projection
+    grib = herbie_instance.download(
+        TEMP, verbose=False, save_dir=working_dir
+    )  # Any variable can be used to get the model projection
     dataset = gdal.Open(grib)
 
     wkt = dataset.GetProjection()
@@ -74,7 +86,12 @@ def get_ecmwf_transformer(working_dir: str, herbie_instance: Herbie) -> Transfor
 
 
 class ECMWF:
-    def __init__(self, working_directory: str, stations: List[WeatherStation], model_run_repository: ModelRunRepository):
+    def __init__(
+        self,
+        working_directory: str,
+        stations: List[WeatherStation],
+        model_run_repository: ModelRunRepository,
+    ):
         self.now = time_utils.get_utc_now()
         self.model_type = ModelEnum.ECMWF
         self.projection = ProjectionEnum.ECMWF_LATLON
@@ -96,11 +113,19 @@ class ECMWF:
             logger.info(f"Model run {model_datetime} is in the future. Exiting model run.")
             return
 
-        self.prediction_model = self.model_run_repository.get_prediction_model(self.model_type, self.projection)
+        self.prediction_model = self.model_run_repository.get_prediction_model(
+            self.model_type, self.projection
+        )
         if not self.prediction_model:
-            raise PredictionModelNotFound("Could not find this prediction model in the database", self.model_type, self.projection)
+            raise PredictionModelNotFound(
+                "Could not find this prediction model in the database",
+                self.model_type,
+                self.projection,
+            )
 
-        prediction_run = self.model_run_repository.get_or_create_prediction_run(self.prediction_model, model_datetime)
+        prediction_run = self.model_run_repository.get_or_create_prediction_run(
+            self.prediction_model, model_datetime
+        )
         if prediction_run.complete:
             logger.info(f"Prediction run {model_datetime} already completed")
             return
@@ -128,7 +153,9 @@ class ECMWF:
 
                 url = H.grib
                 if not url:
-                    logger.info(f"GRIB file not found for {model_datetime} - hour {prediction_hour}. Exiting model run. ")
+                    logger.info(
+                        f"GRIB file not found for {model_datetime} - hour {prediction_hour}. Exiting model run. "
+                    )
                     return
 
                 self.files_downloaded += 1
@@ -141,7 +168,9 @@ class ECMWF:
                 try:
                     transformer = get_ecmwf_transformer(self.working_directory, H)
                     stations_df = get_stations_dataframe(transformer, self.stations)
-                    process_result = self.ecmwf_processor.process_grib_data(H, model_info, stations_df)
+                    process_result = self.ecmwf_processor.process_grib_data(
+                        H, model_info, stations_df
+                    )
                     self.store_processed_result(self.stations, prediction_run, process_result)
 
                     self.files_processed += 1
@@ -152,8 +181,12 @@ class ECMWF:
 
             # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
             if len(prediction_hours) == self.files_processed:
-                logger.info(f"{self.model_type} model run {model_run_hour:02d}:00 completed with SUCCESS")
-                self.model_run_repository.mark_prediction_model_run_processed(self.model_type, self.projection, model_datetime)
+                logger.info(
+                    f"{self.model_type} model run {model_run_hour:02d}:00 completed with SUCCESS"
+                )
+                self.model_run_repository.mark_prediction_model_run_processed(
+                    self.model_type, self.projection, model_datetime
+                )
 
     def process(self):
         for hour in get_model_run_hours(self.model_type):
@@ -162,11 +195,23 @@ class ECMWF:
             except Exception as exception:
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
-                logger.error("unexpected exception processing %s model run %d", self.model_type, hour, exc_info=exception)
+                logger.error(
+                    "unexpected exception processing %s model run %d",
+                    self.model_type,
+                    hour,
+                    exc_info=exception,
+                )
 
-    def store_processed_result(self, stations: List[WeatherStation], prediction_run: PredictionModelRunTimestamp, process_result: ModelRunProcessResult):
+    def store_processed_result(
+        self,
+        stations: List[WeatherStation],
+        prediction_run: PredictionModelRunTimestamp,
+        process_result: ModelRunProcessResult,
+    ):
         for station in stations:
-            prediction = self.model_run_repository.get_model_run_prediction(prediction_run, process_result.model_run_info.prediction_timestamp, station.code)
+            prediction = self.model_run_repository.get_model_run_prediction(
+                prediction_run, process_result.model_run_info.prediction_timestamp, station.code
+            )
             if not prediction:
                 prediction = ModelRunPrediction()
                 prediction.prediction_model_run_timestamp_id = prediction_run.id
@@ -202,7 +247,9 @@ async def process_models():
     hours, remainder = divmod(execution_time.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
 
-    logger.info(f"{ecmwf.files_processed} files processed, time taken {hours} hours, {minutes} minutes, {seconds} seconds")
+    logger.info(
+        f"{ecmwf.files_processed} files processed, time taken {hours} hours, {minutes} minutes, {seconds} seconds"
+    )
 
 
 def main():
