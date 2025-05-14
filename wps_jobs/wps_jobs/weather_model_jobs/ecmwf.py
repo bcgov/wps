@@ -183,8 +183,8 @@ async def process_models():
     with get_write_session_scope() as session:
         with tempfile.TemporaryDirectory() as temp_dir:
             model_run_repository = ModelRunRepository(session)
-            # ecmwf = ECMWF(temp_dir, stations, model_run_repository)
-            # ecmwf.process()
+            ecmwf = ECMWF(temp_dir, stations, model_run_repository)
+            ecmwf.process()
 
             # interpolate and machine learn everything that needs interpolating.
             ecmwf_prediction_processor = ECMWFPredictionProcessor(stations, model_run_repository)
