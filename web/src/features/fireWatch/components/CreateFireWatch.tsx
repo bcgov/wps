@@ -1,9 +1,9 @@
-import FuelStep from "@/features/fireWatch/components/steps/FuelStep"
-import InfoStep from "@/features/fireWatch/components/steps/InfoStep"
-import WeatherParametersStep from "@/features/fireWatch/components/steps/WeatherParametersStep"
+import FuelStep from '@/features/fireWatch/components/steps/FuelStep'
+import InfoStep from '@/features/fireWatch/components/steps/InfoStep'
+import WeatherParametersStep from '@/features/fireWatch/components/steps/WeatherParametersStep'
 import { FireWatch } from '@/features/fireWatch/interfaces'
-import { getBlankFireWatch } from "@/features/fireWatch/utils"
-import { Box, Button, Step, StepLabel, Stepper, Typography, useTheme } from "@mui/material"
+import { getBlankFireWatch } from '@/features/fireWatch/utils'
+import { Box, Button, Step, StepLabel, Stepper, Typography, useTheme } from '@mui/material'
 import { useEffect, useState } from 'react'
 import FireBehvaiourIndicesStep from '@/features/fireWatch/components/steps/FireBehviorIndicesStep'
 import ReviewSubmitStep from '@/features/fireWatch/components/steps/ReviewSubmitStep'
@@ -18,11 +18,18 @@ import { fetchFireWatchFireCentres } from 'features/fireWatch/slices/fireWatchFi
 
 export const FORM_MAX_WIDTH = 768
 
-const CreateFireWatch = () => {
+interface CreateFireWatchProps {
+  fireWatch?: FireWatch
+  activeStep?: number
+}
+
+const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiveStep }: CreateFireWatchProps) => {
   const dispatch: AppDispatch = useDispatch()
   const theme = useTheme()
-  const [activeStep, setActiveStep] = useState<number>(0)
-  const [fireWatch, setFireWatch] = useState<FireWatch>(getBlankFireWatch())
+
+  // Use props if provided, otherwise fall back to defaults
+  const [fireWatch, setFireWatch] = useState<FireWatch>(initialFireWatch || getBlankFireWatch())
+  const [activeStep, setActiveStep] = useState<number>(initialActiveStep || 0)
 
   const steps: { key: string; label: string; component?: () => React.ReactNode }[] = [
     {
