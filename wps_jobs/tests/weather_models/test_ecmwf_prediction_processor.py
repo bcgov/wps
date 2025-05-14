@@ -94,8 +94,10 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
         (datetime(2023, 10, 1, 18, 0), datetime(2023, 10, 1, 21, 0), True),
         # timestamps on the same day but not surrounding 20:00 UTC
         (datetime(2023, 10, 1, 10, 0), datetime(2023, 10, 1, 15, 0), False),
-        # timestamps on different days
-        (datetime(2023, 10, 1, 23, 0), datetime(2023, 10, 2, 1, 0), True),
+        # timestamps on different days, later timestamp earlier than 21:00 UTC
+        (datetime(2023, 10, 1, 21, 0), datetime(2023, 10, 2, 0, 0), False),
+        # timestamps on different days, later timestamp later than 21:00 UTC
+        (datetime(2023, 10, 1, 21, 0), datetime(2023, 10, 2, 22, 0), True),
     ],
 )
 def test_should_interpolate(prev_timestamp, next_timestamp, expected, mock_predictions):

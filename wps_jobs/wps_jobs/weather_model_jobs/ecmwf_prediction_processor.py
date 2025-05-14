@@ -77,8 +77,9 @@ class ECMWFPredictionProcessor:
             # Timestamps on the same day but surround 20:00 UTC should be interpolated
             return prev_timestamp.hour <= 18 and next_timestamp.hour >= 21
         
-        # Otherwise the next timestamp is on the next day and should always be interpolated for 20:00 UTC
-        return True
+        # datetimes are on different days, interpolate if next is after 20:00 UTC
+        return next_timestamp.hour > 20
+
 
     def _weather_station_prediction_initializer(self, station: WeatherStation, model_run: PredictionModelRunTimestamp, prediction: ModelRunPrediction) -> WeatherStationModelPrediction:
         """Initialize a WeatherStationModelPrediction object."""
