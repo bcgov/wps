@@ -24,8 +24,6 @@ from wps_jobs.weather_model_jobs.utils.wind_direction_utils import (
     calculate_wind_dir_from_u_v,
 )
 
-
-
 logger = getLogger(__name__)
 
 # Corresponding key values on HourlyActual and SampleCollection

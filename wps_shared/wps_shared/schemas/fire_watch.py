@@ -1,10 +1,9 @@
-
-
-
 from typing import List, Optional
 from pydantic import BaseModel
 from wps_shared.db.models.fire_watch import BurnStatusEnum
 from wps_shared.fuel_types import FuelTypeEnum
+from wps_shared.schemas.morecast_v2 import WeatherIndeterminate
+
 
 class FireWatchFireCentre(BaseModel):
     id: int
@@ -60,8 +59,10 @@ class FireWatchInput(BaseModel):
     hfi_preferred: float
     hfi_max: float
 
+
 class FireWatchInputRequest(BaseModel):
     fire_watch: FireWatchInput
+
 
 class FireWatchOutput(FireWatchInput):
     id: int
@@ -70,11 +71,14 @@ class FireWatchOutput(FireWatchInput):
     update_timestamp: int
     update_user: str
 
+
 class FireWatchResponse(BaseModel):
     fire_watch: FireWatchOutput
+
 
 class FireWatchListResponse(BaseModel):
     watch_list: List[FireWatchOutput]
 
+      
 class FireWatchFireCentresResponse(BaseModel):
     fire_centres: List[FireWatchFireCentre]
