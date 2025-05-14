@@ -1,32 +1,34 @@
-""" Code relating to fuel types. """
+"""Code relating to fuel types."""
+
 from enum import Enum
 
 
 class FuelTypeEnum(str, Enum):
-    """ Enumerator for all valid fuel types. """
-    C1 = 'C1'
-    C2 = 'C2'
-    C3 = 'C3'
-    C4 = 'C4'
-    C5 = 'C5'
-    C6 = 'C6'
-    C7 = 'C7'
-    C7B = 'C7B'
-    D1 = 'D1'
-    D2 = 'D2'
-    M1 = 'M1'
-    M2 = 'M2'
-    M3 = 'M3'
-    M4 = 'M4'
-    O1A = 'O1A'
-    O1B = 'O1B'
-    S1 = 'S1'
-    S2 = 'S2'
-    S3 = 'S3'
+    """Enumerator for all valid fuel types."""
+
+    C1 = "C1"
+    C2 = "C2"
+    C3 = "C3"
+    C4 = "C4"
+    C5 = "C5"
+    C6 = "C6"
+    C7 = "C7"
+    C7B = "C7B"
+    D1 = "D1"
+    D2 = "D2"
+    M1 = "M1"
+    M2 = "M2"
+    M3 = "M3"
+    M4 = "M4"
+    O1A = "O1A"
+    O1B = "O1B"
+    S1 = "S1"
+    S2 = "S2"
+    S3 = "S3"
 
 
 def is_grass_fuel_type(fuel_type: FuelTypeEnum):
-    """ Returns True if the fuel type has grass (e.g. 01A, 01B, C7B) """
+    """Returns True if the fuel type has grass (e.g. 01A, 01B, C7B)"""
     return fuel_type in [FuelTypeEnum.O1A, FuelTypeEnum.O1B, FuelTypeEnum.C7B]
 
 
@@ -52,22 +54,20 @@ FUEL_TYPE_DEFAULTS = {
     FuelTypeEnum.C6: {"PC": 100, "PDF": 0, "CC": None, "CBH": 7, "CFL": 1.8},
     FuelTypeEnum.C7: {"PC": 100, "PDF": 0, "CC": None, "CBH": 10, "CFL": 0.5},
     FuelTypeEnum.C7B: {"PC": 100, "PDF": 0, "CC": None, "CBH": 10, "CFL": 0.5},
-    # No CBH listed in RB fire intensity class table for D1.
-    # Using default CBH value of 3, as specified in fbp.Rd in cffdrs R package.
-    FuelTypeEnum.D1: {"PC": 0, "PDF": 0, "CC": None, "CBH": 3, "CFL": 1.0},  # TODO: check cfl
+    FuelTypeEnum.D1: {"PC": 0, "PDF": 0, "CC": None, "CBH": 0, "CFL": 0},
     # No CBH listed in RB fire intensity class table for D2.
     # Using default CBH value of 3, as specified in fbp.Rd in cffdrs R package.
-    FuelTypeEnum.D2: {"PC": 0, "PDF": 0, "CC": None, "CBH": 3, "CFL": 1.0},  # TODO: check cfl
+    FuelTypeEnum.D2: {"PC": 0, "PDF": 0, "CC": None, "CBH": 3, "CFL": 1.0},
     FuelTypeEnum.M1: {"PC": 50, "PDF": 0, "CC": None, "CBH": 6, "CFL": 0.8},
     FuelTypeEnum.M2: {"PC": 50, "PDF": 0, "CC": None, "CBH": 6, "CFL": 0.8},
-    'M2_25': {"PC": 25, "PDF": 0, "CC": None, "CBH": 6, "CFL": 0.8, "cffdrs_fuel_type": FuelTypeEnum.M2},
+    "M2_25": {"PC": 25, "PDF": 0, "CC": None, "CBH": 6, "CFL": 0.8, "cffdrs_fuel_type": FuelTypeEnum.M2},
     FuelTypeEnum.M3: {"PC": 0, "PDF": 30, "CC": None, "CBH": 6, "CFL": 0.8},
     FuelTypeEnum.M4: {"PC": 0, "PDF": 30, "CC": None, "CBH": 6, "CFL": 0.8},
     # NOTE! I think having a default CC of 0 is dangerous, I think we should rather just
     # fail to calculate ROS, and say, unknown.
-    FuelTypeEnum.O1A: {"PC": 0, "PDF": 0, "CC": 0, "CBH": 1, "CFL": 1.0},  # TODO: check cfl
-    FuelTypeEnum.O1B: {"PC": 0, "PDF": 0, "CC": 0, "CBH": 1, "CFL": 1.0},  # TODO: check cfl
-    FuelTypeEnum.S1: {"PC": 0, "PDF": 0, "CC": None, "CBH": 1, "CFL": 1.0},  # TODO: check cfl
-    FuelTypeEnum.S2: {"PC": 0, "PDF": 0, "CC": None, "CBH": 1, "CFL": 1.0},  # TODO: check cfl
-    FuelTypeEnum.S3: {"PC": 0, "PDF": 0, "CC": None, "CBH": 1, "CFL": 1.0}  # TODO: check cfl
+    FuelTypeEnum.O1A: {"PC": 0, "PDF": 0, "CC": 0, "CBH": 0, "CFL": 0},
+    FuelTypeEnum.O1B: {"PC": 0, "PDF": 0, "CC": 0, "CBH": 0, "CFL": 0},
+    FuelTypeEnum.S1: {"PC": 0, "PDF": 0, "CC": None, "CBH": 0, "CFL": 0},
+    FuelTypeEnum.S2: {"PC": 0, "PDF": 0, "CC": None, "CBH": 0, "CFL": 0},
+    FuelTypeEnum.S3: {"PC": 0, "PDF": 0, "CC": None, "CBH": 0, "CFL": 0},
 }

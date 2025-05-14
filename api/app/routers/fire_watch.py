@@ -25,6 +25,7 @@ router = APIRouter(
     dependencies=[Depends(authentication_required), Depends(audit)],
 )
 
+
 def reproject_burn_location(coordinate: List[float], source_srs, target_srs):
     """Reproject a coordinate between the specified spatial references"""
     transformer = PointTransformer(source_srs, target_srs)
@@ -35,6 +36,7 @@ async def get_fire_centre_id_by_name(name: str):
     async with ClientSession as session:
         result = await get_fire_centre_by_name(session, name)
         return result.id
+
 
 def marshall_fire_watch_input_to_db(fire_watch_input: FireWatchInput, idir_username: str) -> DBFireWatch:
     now = get_utc_now()
