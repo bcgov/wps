@@ -6,8 +6,14 @@ import {
   FuelTypeEnum,
   InPrescriptionEnum
 } from '@/features/fireWatch/interfaces'
-import { Box, styled, Typography, useTheme } from '@mui/material'
-import { DataGridPro, DataGridProProps, GridColDef, GridValueFormatterParams } from '@mui/x-data-grid-pro'
+import { Box, IconButton, styled, Typography, useTheme } from '@mui/material'
+import {
+  DataGridPro,
+  DataGridProProps,
+  GridActionsCellItem,
+  GridColDef,
+  GridValueFormatterParams
+} from '@mui/x-data-grid-pro'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -17,6 +23,8 @@ import { AppDispatch } from '@/app/store'
 import React from 'react'
 import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
 import { isNull } from 'lodash'
+import InfoIcon from '@mui/icons-material/Info'
+import FireWatchDetailsModal from '@/features/fireWatch/components/FireWatchDetailsModal'
 
 export interface BurnWatchRow {
   id: number
@@ -42,6 +50,8 @@ const FireWatchDashboard = () => {
   const burnForecasts = useSelector(selectBurnForecasts)
   const theme = useTheme()
   const [rows, setRows] = useState<BurnWatchRow[]>([])
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedFireWatch, setSelectedFireWatch] = useState<FireWatchBurnForecast | null>(null)
 
   const getInPrescription = (burnForecasts: BurnForecast[]): InPrescriptionEnum => {
     let inPrescription = InPrescriptionEnum.NO
@@ -74,6 +84,27 @@ const FireWatchDashboard = () => {
       }
     })
     return newRows
+  }
+
+  const getFireWatchDetails = (row: BurnWatchRow) => {
+    const fireWatchID = row.id
+    const fireWatch = burnForecasts.find(fireWatch => fireWatch.fireWatch.id === fireWatchID)
+    if (fireWatch) {
+      return fireWatch
+    }
+  }
+
+  const handleOpenModal = (row: BurnWatchRow) => {
+    const fireWatch = getFireWatchDetails(row)
+    if (fireWatch) {
+      setSelectedFireWatch(fireWatch)
+    }
+    setModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setSelectedFireWatch(null)
+    setModalOpen(false)
   }
 
   const columns: GridColDef<BurnWatchRow>[] = [
@@ -127,6 +158,20 @@ const FireWatchDashboard = () => {
       field: 'inPrescription',
       headerName: 'In Prescription',
       width: 120
+    },
+    {
+      field: 'details',
+      headerName: 'Details',
+      type: 'actions',
+      width: 80,
+      getActions: (params: { row: BurnWatchRow }) => [
+        <GridActionsCellItem
+          icon={<InfoIcon />}
+          label="View details"
+          onClick={() => handleOpenModal(params.row)}
+          showInMenu={false}
+        />
+      ]
     }
   ]
 
@@ -174,6 +219,7 @@ const FireWatchDashboard = () => {
           }}
         />
       </Box>
+      <FireWatchDetailsModal open={modalOpen} onClose={handleCloseModal} selectedFireWatch={selectedFireWatch} />
     </Box>
   )
 }
