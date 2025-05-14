@@ -1,22 +1,26 @@
 from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch
+from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch, FireWatchWeather, PrescriptionStatus
 from wps_shared.db.models.hfi_calc import FireCentre
+
 
 async def get_all_fire_watches(session: AsyncSession):
     statement = select(FireWatch, FireCentre).join(FireCentre, FireWatch.fire_centre == FireCentre.id)
     result = await session.execute(statement)
     return result.all()
 
+
 async def get_fire_centre_by_name(session: AsyncSession, name: str) -> FireCentre:
     statement = select(FireCentre).where(FireCentre.name.ilike(name))
     result = await session.execute(statement)
     return result.scalar_one()
 
+
 async def get_fire_watch_by_id(session: AsyncSession, id: int) -> FireWatch:
     statement = select(FireWatch, FireCentre).join(FireCentre, FireWatch.fire_centre == FireCentre.id).where(FireWatch.id == id)
     result = await session.execute(statement)
     return result.first()
+
 
 async def save_fire_watch(session: AsyncSession, fire_watch: FireWatch):
     """
@@ -86,3 +90,18 @@ async def get_fire_centres(session: AsyncSession):
     statement = select(FireCentre)
     result = await session.execute(statement)
     return result.scalars()
+
+
+async def get_all_prescription_status(session: AsyncSession) -> dict[str, int]:
+    """
+    Returns dict of {name: id} for all prescription status records.
+    """
+    stmt = select(PrescriptionStatus.id, PrescriptionStatus.name)
+    result = await session.execute(stmt)
+    return {name: id for id, name in result.all()}
+
+
+async def get_fire_watch_weather_by_model_run_parameter_id(session: AsyncSession, prediction_model_run_timestamp_id: int):
+    statement = select(FireWatchWeather).where(FireWatchWeather.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id)
+    result = await session.execute(statement)
+    return result.scalars().all()

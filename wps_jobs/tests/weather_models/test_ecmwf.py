@@ -83,7 +83,6 @@ def test_get_stations_dataframe():
     assert df.iloc[0]["latitude"] == 11.0
     assert df.iloc[0]["longitude"] == 21.0
 
-
 def test_ecmwf_process_model_run_no_url(mock_herbie_instance):
     mock_herbie_instance.grib = None
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
@@ -274,7 +273,6 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
     assert rocket_chat_spy.call_count == 1
-
 
 @pytest.mark.anyio
 async def test_process_models_success(mocker: MockerFixture):

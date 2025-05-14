@@ -782,6 +782,7 @@ findlibs = "*"
 numpy = "*"
 
 [[package]]
+<<<<<<< HEAD
 name = "execnet"
 version = "2.1.1"
 description = "execnet: rapid multi-Python deployment"
@@ -797,6 +798,8 @@ files = [
 testing = ["hatch", "pre-commit", "pytest", "tox"]
 
 [[package]]
+=======
+>>>>>>> e5f23fca0 (Fire Watch - Calculate/Store FireWatchWeather job (#4482))
 name = "executing"
 version = "2.2.0"
 description = "Get the currently executing AST node of a frame, and other information"
