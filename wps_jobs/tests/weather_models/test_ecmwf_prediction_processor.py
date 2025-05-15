@@ -96,8 +96,6 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
         (datetime(2023, 10, 1, 10, 0, tzinfo=timezone.utc), datetime(2023, 10, 1, 15, 0, tzinfo=timezone.utc), False),
         # timestamps on different days, later timestamp earlier than 21:00 UTC
         (datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 0, 0, tzinfo=timezone.utc), False),
-        # timestamps on different days, later timestamp later than 21:00 UTC
-        (datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 22, 0, tzinfo=timezone.utc), True),
         # 18:00 UTC and 00:00 UTC on subsequent days should return true
         (datetime(2023, 10, 1, 18, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 00, 0, tzinfo=timezone.utc), True),
     ],
@@ -116,7 +114,17 @@ def test_should_interpolate(prev_timestamp, next_timestamp, expected, mock_predi
     result = processor._should_interpolate(prev_prediction, prediction)
     assert result is expected
 
-def test_should_interpolate_assertion_error(mock_predictions):
+@pytest.mark.parametrize(
+    "prev_timestamp, next_timestamp, expected",
+    [
+        # previous timestamp is later than next timestamp
+        (datetime(2023, 10, 2, 1, 0, tzinfo=timezone.utc), datetime(2023, 10, 1, 23, 0, tzinfo=timezone.utc), "Next timestamp must be greater than previous timestamp"),
+        # timestamps greater than 24 hours apart
+        (datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 22, 0, tzinfo=timezone.utc), "Timestamps must be no more than 24 hours apart"),
+
+    ],
+)
+def test_should_interpolate_assertion_error(prev_timestamp, next_timestamp, expected, mock_predictions):
     """
     Test the `_should_interpolate` method to ensure it raises an `AssertionError` 
     when the `prediction_timestamp` of the next prediction is earlier than the 
@@ -128,10 +136,10 @@ def test_should_interpolate_assertion_error(mock_predictions):
     processor, prev_prediction, prediction = mock_predictions
 
     # Mock timestamps where next timestamp is earlier than previous timestamp
-    prev_prediction.prediction_timestamp = datetime(2023, 10, 2, 1, 0)
-    prediction.prediction_timestamp = datetime(2023, 10, 1, 23, 0)
+    prev_prediction.prediction_timestamp = prev_timestamp
+    prediction.prediction_timestamp = next_timestamp
 
-    with pytest.raises(AssertionError, match="Next timestamp must be greater than previous timestamp"):
+    with pytest.raises(AssertionError, match=expected):
         processor._should_interpolate(prev_prediction, prediction)
 
 @pytest.mark.parametrize(

@@ -1,4 +1,3 @@
-
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List
@@ -72,13 +71,15 @@ class ECMWFPredictionProcessor:
         prev_timestamp: datetime = prev_prediction.prediction_timestamp
         next_timestamp: datetime = prediction.prediction_timestamp
         assert next_timestamp > prev_timestamp, "Next timestamp must be greater than previous timestamp"
+        # Assert the hour difference is 24 or less
+        assert (next_timestamp - prev_timestamp).total_seconds() <= 24 * 3600, "Timestamps must be no more than 24 hours apart"
         # Check if datetimes are on the same day
         if prev_timestamp.date() == next_timestamp.date():
             # Timestamps on the same day but surround 20:00 UTC should be interpolated
             return prev_timestamp.hour < 20 and next_timestamp.hour > 20
         
         # datetimes are on different days, interpolate if next is not 20:00 UTC
-        return next_timestamp.hour != 20
+        return prev_timestamp.hour < 20
 
 
     def _weather_station_prediction_initializer(self, station: WeatherStation, model_run: PredictionModelRunTimestamp, prediction: ModelRunPrediction) -> WeatherStationModelPrediction:
