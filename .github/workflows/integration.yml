@@ -100,9 +100,8 @@ jobs:
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
         run: |
-          # Install JDK
           apt-get update --fix-missing
-          apt-get -y install default-jdk
+          apt-get -y install default-jdk wkhtmltopdf libudunits2-dev r-base-dev build-essential libgdal-dev libproj-dev libgeos-dev libsqlite3-dev libtirpc-dev          
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
           poetry run python -m pip install --upgrade pip
