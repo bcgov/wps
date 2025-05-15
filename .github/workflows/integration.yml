@@ -83,6 +83,7 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/bcgov/wps/wps-api-base:04-23-2025
+      options: --user 0
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
