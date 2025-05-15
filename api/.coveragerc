@@ -1,5 +1,3 @@
 [run]
 omit =
-    app/tests/fba_calc/test_fba_error_random_sample.py
-    app/tests/fba_calc/test_fba_error_redapp.py
     app/utils/redapp.py
