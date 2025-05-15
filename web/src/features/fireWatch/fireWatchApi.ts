@@ -1,110 +1,17 @@
+import {
+  BurnForecast,
+  BurnStatusEnum,
+  FireWatch,
+  FireWatchBurnForecast,
+  FireWatchFireCentre,
+  FireWatchStation,
+  FuelTypeEnum,
+  PrescriptionEnum
+} from '@/features/fireWatch/interfaces'
 import axios from 'api/axios'
 import { DateTime } from 'luxon'
 
-export enum BurnStatusEnum {
-  ACTIVE = "active",
-  CANCELLED = "cancelled",
-  COMPLETE = "complete",
-  HOLD = "hold"
-}
-
-export enum FuelTypeEnum {
-  C1 = "C1",
-  C2 = "C2",
-  C3 = "C3",
-  C4 = "C4",
-  C5 = "C5",
-  C6 = "C6",
-  C7 = "C7",
-  C7B = "C7B",
-  D1 = "D1",
-  D2 = "D2",
-  M1 = "M1",
-  M2 = "M2",
-  M3 = "M3",
-  M4 = "M4",
-  O1A = "O1A",
-  O1B = "O1B",
-  S1 = "S1",
-  S2 = "S2",
-  S3 = "S3"
-}
-
-export const fuelTypes = [
-  FuelTypeEnum.C1,
-  FuelTypeEnum.C2,
-  FuelTypeEnum.C3,
-  FuelTypeEnum.C4,
-  FuelTypeEnum.C5,
-  FuelTypeEnum.C6,
-  FuelTypeEnum.C7,
-  FuelTypeEnum.D1,
-  FuelTypeEnum.D2,
-  FuelTypeEnum.M1,
-  FuelTypeEnum.M2,
-  FuelTypeEnum.M3,
-  FuelTypeEnum.M4,
-  FuelTypeEnum.O1A,
-  FuelTypeEnum.O1B,
-  FuelTypeEnum.S1,
-  FuelTypeEnum.S2,
-  FuelTypeEnum.S3
-]
-interface FireWatchStation {
-  code: number
-  name: string
-}
-
-export interface FireWatch {
-  burnWindowEnd: DateTime
-  burnWindowStart: DateTime
-  contactEmail: string[]
-  fireCentre: FireWatchFireCentre | null
-  geometry: number[]
-  // station?: StationOption | null
-  station: FireWatchStation | null
-  status: BurnStatusEnum
-  title: string
-  // Fuel parameters
-  fuelType: FuelTypeEnum
-  percentConifer?: number
-  percentDeadFir?: number
-  percentGrassCuring?: number
-  // Weather parameters
-  tempMin: number
-  tempPreferred: number
-  tempMax: number
-  rhMin: number
-  rhPreferred: number
-  rhMax: number
-  windSpeedMin: number
-  windSpeedPreferred: number
-  windSpeedMax: number
-  // FWI and FBP parameters
-  ffmcMin: number
-  ffmcPreferred: number
-  ffmcMax: number
-  dmcMin: number
-  dmcPreferred: number
-  dmcMax: number
-  dcMin: number
-  dcPreferred: number
-  dcMax: number
-  isiMin: number
-  isiPreferred: number
-  isiMax: number
-  buiMin: number
-  buiPreferred: number
-  buiMax: number
-  hfiMin: number
-  hfiPreferred: number
-  hfiMax: number
-  id?: number
-  createTimestamp?: DateTime
-  createUser?: string
-  updateTimestamp?: DateTime
-  updateUser?: string
-}
+// Interfaces for data transfer objects and functions for fetching data.
 
 export interface FireWatchInput {
   burn_location: number[]
@@ -154,7 +61,7 @@ export interface FireWatchInput {
 export interface FireWatchOutput extends FireWatchInput {
   id: number
   create_timestamp: number
-  create_user: string 
+  create_user: string
   update_timestamp: number
   update_user: string
 }
@@ -167,13 +74,38 @@ export interface FireWatchListResponse {
   watch_list: FireWatchOutput[]
 }
 
-export interface FireWatchFireCentre {
-  id: number
-  name: string
-}
-
 export interface FireWatchFireCentresResponse {
   fire_centres: FireWatchFireCentre[]
+}
+
+// API data transfer object
+export interface BurnForecastOutput {
+  id: number
+  fire_watch_id: number // The FireWatch record this BurnForecast relates to
+  date: number // Epoch time equivalent to peak burning for the specified day or maybe just a ISO date string
+  temp: number
+  rh: number
+  wind_speed: number
+  ffmc: number
+  dmc: number
+  dc: number
+  isi: number
+  bui: number
+  hfi: number
+  in_prescription: string
+}
+
+// API data transfer object
+export interface FireWatchOutputBurnForecast {
+  fire_watch: FireWatchOutput
+  burn_forecasts: BurnForecastOutput[]
+}
+
+// API response data transfer object
+export interface FireWatchBurnForecastsResponse {
+  fire_watch_burn_forecasts: {
+    [fire_watch_id: number]: FireWatchOutputBurnForecast
+  }
 }
 
 export const getActiveFireWatches = async (): Promise<FireWatchListResponse> => {
@@ -197,11 +129,19 @@ export const getFireCentres = async (): Promise<FireWatchFireCentresResponse> =>
   return data
 }
 
+export async function getBurnForecasts(): Promise<FireWatchBurnForecast[]> {
+  const url = '/fire-watch/burn-forecasts'
+  const { data } = await axios.get(url)
+  console.log(data)
+  const burnForecasts = marshalBurnForecasts(data.fire_watch_burn_forecasts)
+  return burnForecasts
+}
+
 const marshalFireWatchToFireWatchInput = (fireWatch: FireWatch): FireWatchInput => {
   return {
     burn_location: fireWatch.geometry,
-    burn_window_end: Math.round(fireWatch.burnWindowEnd?.toMillis()/1000),
-    burn_window_start: Math.round(fireWatch.burnWindowStart?.toMillis()/1000),
+    burn_window_end: Math.round(fireWatch.burnWindowEnd?.toMillis() / 1000),
+    burn_window_start: Math.round(fireWatch.burnWindowStart?.toMillis() / 1000),
     contact_email: fireWatch.contactEmail,
     fire_centre: fireWatch.fireCentre ?? null,
     station: fireWatch.station ?? null,
@@ -244,4 +184,90 @@ const marshalFireWatchToFireWatchInput = (fireWatch: FireWatch): FireWatchInput 
   }
 }
 
+const marshalFireWatchOutputToFireWatch = (fireWatchOutput: FireWatchOutput): FireWatch => {
+  return {
+    id: fireWatchOutput.id,
+    createTimestamp: DateTime.fromMillis(fireWatchOutput.create_timestamp * 1000),
+    createUser: fireWatchOutput.create_user,
+    updateTimestamp: DateTime.fromMillis(fireWatchOutput.update_timestamp * 1000),
+    updateUser: fireWatchOutput.update_user,
+    geometry: fireWatchOutput.burn_location,
+    burnWindowEnd: DateTime.fromMillis(fireWatchOutput.burn_window_end * 1000),
+    burnWindowStart: DateTime.fromMillis(fireWatchOutput.burn_window_start * 1000),
+    contactEmail: fireWatchOutput.contact_email,
+    fireCentre: fireWatchOutput.fire_centre,
+    station: fireWatchOutput.station,
+    status: fireWatchOutput.status as BurnStatusEnum,
+    title: fireWatchOutput.title,
+    fuelType: fireWatchOutput.fuel_type as FuelTypeEnum,
+    percentConifer: fireWatchOutput.percent_conifer,
+    percentDeadFir: fireWatchOutput.percent_dead_fir,
+    percentGrassCuring: fireWatchOutput.percent_grass_curing,
+    tempMin: fireWatchOutput.temp_min,
+    tempPreferred: fireWatchOutput.temp_preferred,
+    tempMax: fireWatchOutput.temp_max,
+    rhMin: fireWatchOutput.rh_min,
+    rhPreferred: fireWatchOutput.rh_preferred,
+    rhMax: fireWatchOutput.rh_max,
+    windSpeedMin: fireWatchOutput.wind_speed_min,
+    windSpeedPreferred: fireWatchOutput.wind_speed_preferred,
+    windSpeedMax: fireWatchOutput.wind_speed_max,
+    ffmcMin: fireWatchOutput.ffmc_min,
+    ffmcPreferred: fireWatchOutput.ffmc_preferred,
+    ffmcMax: fireWatchOutput.ffmc_max,
+    dmcMin: fireWatchOutput.dmc_min,
+    dmcPreferred: fireWatchOutput.dmc_preferred,
+    dmcMax: fireWatchOutput.dmc_max,
+    dcMin: fireWatchOutput.dc_min,
+    dcPreferred: fireWatchOutput.dc_preferred,
+    dcMax: fireWatchOutput.dc_max,
+    isiMin: fireWatchOutput.isi_min,
+    isiPreferred: fireWatchOutput.isi_preferred,
+    isiMax: fireWatchOutput.isi_max,
+    buiMin: fireWatchOutput.bui_min,
+    buiPreferred: fireWatchOutput.bui_preferred,
+    buiMax: fireWatchOutput.bui_max,
+    hfiMin: fireWatchOutput.hfi_min,
+    hfiPreferred: fireWatchOutput.hfi_preferred,
+    hfiMax: fireWatchOutput.hfi_max
+  }
+}
 
+const marshalBurnForecastOutputToBurnForecast = (burnForecastOutput: BurnForecastOutput): BurnForecast => {
+  return {
+    id: burnForecastOutput.id,
+    fireWatchId: burnForecastOutput.fire_watch_id,
+    date: DateTime.fromMillis(burnForecastOutput.date * 1000),
+    temp: burnForecastOutput.temp,
+    rh: burnForecastOutput.rh,
+    windSpeed: burnForecastOutput.wind_speed,
+    ffmc: burnForecastOutput.ffmc,
+    dmc: burnForecastOutput.dmc,
+    dc: burnForecastOutput.dc,
+    isi: burnForecastOutput.isi,
+    bui: burnForecastOutput.bui,
+    hfi: burnForecastOutput.hfi,
+    inPrescription: burnForecastOutput.in_prescription as PrescriptionEnum
+  }
+}
+
+// Convert fire watch burn forecasts from the API shape to frontend shape.
+const marshalBurnForecasts = (output: { [id: number]: FireWatchOutputBurnForecast }) => {
+  const fireWatchBurnForecasts: FireWatchBurnForecast[] = []
+  for (const value of Object.values(output)) {
+    // Convert FireWatch from API to front-end shape
+    const fireWatch = marshalFireWatchOutputToFireWatch(value.fire_watch)
+    // Convert BurnForecasts from API to front-end shape
+    const burnForecasts: BurnForecast[] = []
+    for (const burnForecastOutput of value.burn_forecasts) {
+      const burnForecast = marshalBurnForecastOutputToBurnForecast(burnForecastOutput)
+      burnForecasts.push(burnForecast)
+    }
+    const fireWatchBurnForecast = {
+      fireWatch,
+      burnForecasts: burnForecasts
+    }
+    fireWatchBurnForecasts.push(fireWatchBurnForecast)
+  }
+  return fireWatchBurnForecasts
+}

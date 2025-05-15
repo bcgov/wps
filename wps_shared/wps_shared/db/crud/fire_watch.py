@@ -105,3 +105,13 @@ async def get_fire_watch_weather_by_model_run_parameter_id(session: AsyncSession
     statement = select(FireWatchWeather).where(FireWatchWeather.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id)
     result = await session.execute(statement)
     return result.scalars().all()
+
+
+async def get_fire_watch_weather_by_model_with_prescription_status(session: AsyncSession, prediction_model_run_timestamp_id: int):
+    statement = (
+        select(FireWatchWeather, PrescriptionStatus.name)
+        .join(PrescriptionStatus, PrescriptionStatus.id == FireWatchWeather.in_prescription)
+        .where(FireWatchWeather.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id)
+    )
+    result = await session.execute(statement)
+    return result.all()

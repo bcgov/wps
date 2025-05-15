@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
-import { FireWatch, FireWatchOutput, getActiveFireWatches, postFireWatchInput } from '@/features/fireWatch/fireWatchApi'
+import { FireWatchOutput, getActiveFireWatches, postFireWatchInput } from '@/features/fireWatch/fireWatchApi'
+import { FireWatch } from '@/features/fireWatch/interfaces'
 
 export interface FireWatchState {
   loading: boolean

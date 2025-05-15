@@ -1,53 +1,60 @@
-import FuelStep from "@/features/fireWatch/components/steps/FuelStep"
-import InfoStep from "@/features/fireWatch/components/steps/InfoStep"
-import WeatherParametersStep from "@/features/fireWatch/components/steps/WeatherParametersStep"
-import { FireWatch } from "@/features/fireWatch/fireWatchApi"
-import { getBlankFireWatch } from "@/features/fireWatch/utils"
-import { Box, Button, Step, StepLabel, Stepper, Typography, useTheme } from "@mui/material"
-import { useEffect, useState } from 'react'
-import FireBehvaiourIndicesStep from '@/features/fireWatch/components/steps/FireBehviorIndicesStep'
-import ReviewSubmitStep from '@/features/fireWatch/components/steps/ReviewSubmitStep'
-import CompleteStep from '@/features/fireWatch/components/steps/CompleteStep'
-import { useDispatch } from 'react-redux'
-import { submitNewFireWatch } from '@/features/fireWatch/slices/fireWatchSlice'
-import { AppDispatch } from '@/app/store'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from '@/api/stationAPI'
+import { AppDispatch } from '@/app/store'
+import CompleteStep from '@/features/fireWatch/components/steps/CompleteStep'
+import FireBehvaiourIndicesStep from '@/features/fireWatch/components/steps/FireBehaviourIndicesStep'
+import FuelStep from '@/features/fireWatch/components/steps/FuelStep'
+import InfoStep from '@/features/fireWatch/components/steps/InfoStep'
 import LocationStep from '@/features/fireWatch/components/steps/LocationStep'
+import ReviewSubmitStep from '@/features/fireWatch/components/steps/ReviewSubmitStep'
+import WeatherParametersStep from '@/features/fireWatch/components/steps/WeatherParametersStep'
+import { FireWatch } from '@/features/fireWatch/interfaces'
+import { submitNewFireWatch } from '@/features/fireWatch/slices/fireWatchSlice'
+import { getBlankFireWatch } from '@/features/fireWatch/utils'
+import { Box, Button, Step, StepLabel, Stepper, Typography, useTheme } from '@mui/material'
 import { fetchFireWatchFireCentres } from 'features/fireWatch/slices/fireWatchFireCentresSlice'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
 
 export const FORM_MAX_WIDTH = 768
 
-const CreateFireWatch = () => {
+interface CreateFireWatchProps {
+  fireWatch?: FireWatch
+  activeStep?: number
+}
+
+const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiveStep }: CreateFireWatchProps) => {
   const dispatch: AppDispatch = useDispatch()
   const theme = useTheme()
-  const [activeStep, setActiveStep] = useState<number>(0)
-  const [fireWatch, setFireWatch] = useState<FireWatch>(getBlankFireWatch())
+
+  // Use props if provided, otherwise fall back to defaults
+  const [fireWatch, setFireWatch] = useState<FireWatch>(initialFireWatch || getBlankFireWatch())
+  const [activeStep, setActiveStep] = useState<number>(initialActiveStep || 0)
 
   const steps: { key: string; label: string; component?: () => React.ReactNode }[] = [
     {
       key: 'info',
-      label: 'Location & Basics'
+      label: 'Info'
     },
     {
       key: 'location',
-      label: 'Burn Location'
+      label: 'Location'
     },
     {
       key: 'weather-parameters',
-      label: 'Weather Parameters'
+      label: 'Weather'
     },
     {
       key: 'fuel-moisture-codes',
-      label: 'Fuel Type & Fuel Moisture Codes'
+      label: 'Fuel Info'
     },
     {
       key: 'fire-behaviour-indices',
-      label: 'Fire Behaviour Indices'
+      label: 'FBP Indices'
     },
     {
       key: 'review-submit',
-      label: 'Review and Submit'
+      label: 'Submit'
     }
   ]
 
@@ -86,7 +93,7 @@ const CreateFireWatch = () => {
           const stepProps: { completed?: boolean } = {}
           return (
             <Step key={step.key} {...stepProps}>
-              <StepLabel>{''}</StepLabel>
+              <StepLabel>{step.label}</StepLabel>
             </Step>
           )
         })}
