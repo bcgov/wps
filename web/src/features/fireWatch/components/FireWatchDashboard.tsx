@@ -8,7 +8,7 @@ import {
   FireWatch,
   FireWatchBurnForecast,
   FuelTypeEnum,
-  InPrescriptionEnum
+  PrescriptionEnum
 } from '@/features/fireWatch/interfaces'
 import { fetchBurnForecasts } from '@/features/fireWatch/slices/burnForecastSlice'
 import InfoIcon from '@mui/icons-material/Info'
@@ -34,7 +34,7 @@ export interface BurnWatchRow {
   status: BurnStatusEnum
   burnWindowStart: DateTime
   burnWindowEnd: DateTime
-  inPrescription: InPrescriptionEnum
+  inPrescription: PrescriptionEnum
   fireWatch: FireWatch
   burnForecasts: BurnForecast[]
 }
@@ -52,14 +52,14 @@ const FireWatchDashboard = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedFireWatch, setSelectedFireWatch] = useState<FireWatchBurnForecast | null>(null)
 
-  const getInPrescription = (burnForecasts: BurnForecast[]): InPrescriptionEnum => {
-    let inPrescription = InPrescriptionEnum.NO
+  const getInPrescription = (burnForecasts: BurnForecast[]): PrescriptionEnum => {
+    let inPrescription = PrescriptionEnum.NO
     for (const burnForecast of burnForecasts) {
-      if (burnForecast.inPrescription === InPrescriptionEnum.HFI) {
-        inPrescription = InPrescriptionEnum.HFI
+      if (burnForecast.inPrescription === PrescriptionEnum.HFI) {
+        inPrescription = PrescriptionEnum.HFI
       }
-      if (burnForecast.inPrescription === InPrescriptionEnum.YES) {
-        inPrescription = InPrescriptionEnum.YES
+      if (burnForecast.inPrescription === PrescriptionEnum.ALL) {
+        inPrescription = PrescriptionEnum.ALL
         break
       }
     }

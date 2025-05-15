@@ -52,8 +52,8 @@ export const fuelTypes = [
   FuelTypeEnum.S3
 ]
 
-export enum InPrescriptionEnum {
-  YES = 'yes',
+export enum PrescriptionEnum {
+  ALL = 'all',
   HFI = 'hfi',
   NO = 'no'
 }
@@ -137,7 +137,7 @@ export interface BurnForecast {
   isi: number
   bui: number
   hfi: number
-  inPrescription: InPrescriptionEnum
+  inPrescription: PrescriptionEnum
 }
 
 export interface FireWatchBurnForecasts {

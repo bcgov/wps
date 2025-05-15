@@ -6,7 +6,7 @@ import {
   FireWatchFireCentre,
   FireWatchStation,
   FuelTypeEnum,
-  InPrescriptionEnum
+  PrescriptionEnum
 } from '@/features/fireWatch/interfaces'
 import axios from 'api/axios'
 import { DateTime } from 'luxon'
@@ -247,7 +247,7 @@ const marshalBurnForecastOutputToBurnForecast = (burnForecastOutput: BurnForecas
     isi: burnForecastOutput.isi,
     bui: burnForecastOutput.bui,
     hfi: burnForecastOutput.hfi,
-    inPrescription: burnForecastOutput.in_prescription as InPrescriptionEnum
+    inPrescription: burnForecastOutput.in_prescription as PrescriptionEnum
   }
 }
 

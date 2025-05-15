@@ -5,15 +5,12 @@ import { Box } from '@mui/material'
 import { DataGridPro, GridColDef, GridValueFormatterParams } from '@mui/x-data-grid-pro'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
-import { useState } from 'react'
 
 interface DetailPanelContentProps {
   row: BurnWatchRow
 }
 
 const DetailPanelContent = ({ row }: DetailPanelContentProps) => {
-  const [rows, setRows] = useState<BurnForecast[]>(row.burnForecasts)
-
   const numberFormatter = (value: number, precision: number) => {
     if (isNaN(value)) {
       return ''
@@ -101,7 +98,7 @@ const DetailPanelContent = ({ row }: DetailPanelContentProps) => {
         disableRowSelectionOnClick
         hideFooter
         columns={columns}
-        rows={rows}
+        rows={row.burnForecasts}
         getRowClassName={params => `in-prescription-${params.row.inPrescription}`}
         sx={{
           '.in-prescription-yes': {
