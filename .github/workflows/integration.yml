@@ -101,6 +101,7 @@ jobs:
         working-directory: ./api
         run: |
           # Install JDK
+          apt-get update --fix-missing
           apt-get -y install default-jdk
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
