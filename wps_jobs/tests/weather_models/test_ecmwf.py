@@ -261,7 +261,7 @@ async def test_process_models_success(mocker: MockerFixture):
 
     mock_ecmwf_instance.process.assert_called_once()
 
-def test_process_model_run_prediction_model_not_found():
+def test_process_model_run_prediction_model_not_found(mock_herbie_instance):
     """Test process_model_run when prediction model is not found."""
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
     mock_repo = MockModelRunRepository()
