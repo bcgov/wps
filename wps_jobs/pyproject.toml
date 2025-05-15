@@ -6,17 +6,19 @@ authors = ["Darren Boss <darren.boss@gov.bc.ca>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.12.3"
+python = ">=3.12.3,<4.0"
 wps-shared = { path = "../wps_shared" }
 scipy = "^1.15.2"
 scikit-learn = "^1.6.1"
 sqlalchemy = "^2.0.38"
-redis = "^5.2.1"
+redis = "^6.0.0"
 psycopg2-binary = "^2.9.10"
 asyncpg = "^0.30.0"
 affine = "^2.4.0"
 numpy = "2.1"
 fastapi = "0.115.11"
+xarray = "^2025.3.1"
+herbie-data = "^2025.3.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -24,6 +26,8 @@ pytest = "^7.2.1"
 pytest-mock = "^3"
 coverage = "^7.6.4"
 ruff = "^0.11.5"
+ipykernel = "^6.29.5"
+pytest-cov = "^6.1.1"
 
 [build-system]
 requires = ["poetry-core"]

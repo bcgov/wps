@@ -1,4 +1,4 @@
-""" Code common to weather_models"""
+"""Code common to weather_models"""
 
 from datetime import datetime, timedelta
 from enum import Enum
@@ -12,29 +12,33 @@ logger = logging.getLogger(__name__)
 
 # Key values on ModelRunGridSubsetPrediction.
 # Wind direction (wdir_tgl_10_b) is handled slightly differently, so not included here.
-SCALAR_MODEL_VALUE_KEYS = ('tmp_tgl_2', 'rh_tgl_2', 'wind_tgl_10')
+SCALAR_MODEL_VALUE_KEYS = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_10")
 
 
 class ModelEnum(str, Enum):
-    """ Enumerator for different kinds of supported weather models """
-    GDPS = 'GDPS'
-    RDPS = 'RDPS'
-    HRDPS = 'HRDPS'
-    GFS = 'GFS'
-    NAM = 'NAM'
+    """Enumerator for different kinds of supported weather models"""
+
+    GDPS = "GDPS"
+    RDPS = "RDPS"
+    HRDPS = "HRDPS"
+    GFS = "GFS"
+    NAM = "NAM"
+    ECMWF = "ECMWF"
 
 
 class ProjectionEnum(str, Enum):
-    """ Enumerator for different projections based on the different
+    """Enumerator for different projections based on the different
     kinds of weather models
     """
-    LATLON_24X_24 = 'latlon.24x.24'
-    LATLON_15X_15 = 'latlon.15x.15'
-    HIGH_RES_CONTINENTAL = 'ps2.5km'
-    REGIONAL_PS = 'ps10km'
-    GFS_LONLAT = 'lonlat.0.25deg'
-    HRDPS_LATLON = 'RLatLon0.0225'
-    NAM_POLAR_STEREO = 'ps32km'
+
+    LATLON_24X_24 = "latlon.24x.24"
+    LATLON_15X_15 = "latlon.15x.15"
+    HIGH_RES_CONTINENTAL = "ps2.5km"
+    REGIONAL_PS = "ps10km"
+    GFS_LONLAT = "lonlat.0.25deg"
+    HRDPS_LATLON = "RLatLon0.0225"
+    NAM_POLAR_STEREO = "ps32km"
+    ECMWF_LATLON = "latlon.0.25deg"
 
 
 def get_env_canada_model_run_hours(model_type: ModelEnum):
@@ -66,8 +70,10 @@ def get_file_date_part(now, model_run_hour, is_hrdps: bool = False) -> str:
         date = date + f"T{model_run_hour:02d}Z"
     return date
 
+
 class CompletedWithSomeExceptions(Exception):
     """Exception raised when processing completed, but there were some non critical exceptions"""
+
 
 class UnhandledPredictionModelType(Exception):
     """Exception raised when an unknown model type is encountered."""
