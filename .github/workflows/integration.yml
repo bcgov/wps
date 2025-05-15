@@ -120,7 +120,7 @@ jobs:
           export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATH
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
-          poetry run pytest --cov=app --cov-branch --cov-report=xml:coverage-reports/api-coverage-report.xml app/tests -x -o log_cli=true --disable-warnings -vvv
+          poetry run pytest -n auto --cov=app --cov-branch --cov-report=xml:coverage-reports/api-coverage-report.xml app/tests -x -o log_cli=true --disable-warnings -vvv
       # - name: Create coverage report (api)
       #   working-directory: ./api
       #   shell: bash
