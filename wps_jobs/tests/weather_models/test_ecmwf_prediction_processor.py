@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, create_autospec
+from unittest.mock import MagicMock
 from datetime import datetime, timedelta, timezone
 
 from pytest_mock import MockerFixture
@@ -9,9 +9,6 @@ from wps_jobs.weather_model_jobs.ecmwf_prediction_processor import ECMWFPredicti
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp, WeatherStationModelPrediction
-
-import wps_jobs.weather_model_jobs.utils
-import wps_jobs.weather_model_jobs.utils.interpolate
 
 @pytest.fixture
 def setup_processor():
@@ -57,7 +54,7 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
 
     # Mock data
     station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
-    model_run = create_autospec(PredictionModelRunTimestamp)
+    model_run = MagicMock(spec=PredictionModelRunTimestamp)
     model_run_predictions = [
         ModelRunPrediction(prediction_timestamp=datetime(2023, 10, 1, 18, 0), apcp_sfc_0=0.0),
         ModelRunPrediction(prediction_timestamp=datetime(2023, 10, 1, 21, 0), apcp_sfc_0=0.0),
@@ -94,11 +91,13 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
     "prev_timestamp, next_timestamp, expected",
     [
         # timestamps on the same day surrounding 20:00 UTC
-        (datetime(2023, 10, 1, 18, 0), datetime(2023, 10, 1, 21, 0), True),
+        (datetime(2023, 10, 1, 18, 0, tzinfo=timezone.utc), datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc), True),
         # timestamps on the same day but not surrounding 20:00 UTC
-        (datetime(2023, 10, 1, 10, 0), datetime(2023, 10, 1, 15, 0), False),
-        # timestamps on different days
-        (datetime(2023, 10, 1, 23, 0), datetime(2023, 10, 2, 1, 0), True),
+        (datetime(2023, 10, 1, 10, 0, tzinfo=timezone.utc), datetime(2023, 10, 1, 15, 0, tzinfo=timezone.utc), False),
+        # timestamps on different days, later timestamp earlier than 21:00 UTC
+        (datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 0, 0, tzinfo=timezone.utc), False),
+        # 18:00 UTC and 00:00 UTC on subsequent days should return true
+        (datetime(2023, 10, 1, 18, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 00, 0, tzinfo=timezone.utc), True),
     ],
 )
 def test_should_interpolate(prev_timestamp, next_timestamp, expected, mock_predictions):
@@ -115,7 +114,17 @@ def test_should_interpolate(prev_timestamp, next_timestamp, expected, mock_predi
     result = processor._should_interpolate(prev_prediction, prediction)
     assert result is expected
 
-def test_should_interpolate_assertion_error(mock_predictions):
+@pytest.mark.parametrize(
+    "prev_timestamp, next_timestamp, expected",
+    [
+        # previous timestamp is later than next timestamp
+        (datetime(2023, 10, 2, 1, 0, tzinfo=timezone.utc), datetime(2023, 10, 1, 23, 0, tzinfo=timezone.utc), "Next timestamp must be greater than previous timestamp"),
+        # timestamps greater than 24 hours apart
+        (datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 22, 0, tzinfo=timezone.utc), "Timestamps must be no more than 24 hours apart"),
+
+    ],
+)
+def test_should_interpolate_assertion_error(prev_timestamp, next_timestamp, expected, mock_predictions):
     """
     Test the `_should_interpolate` method to ensure it raises an `AssertionError` 
     when the `prediction_timestamp` of the next prediction is earlier than the 
@@ -127,10 +136,10 @@ def test_should_interpolate_assertion_error(mock_predictions):
     processor, prev_prediction, prediction = mock_predictions
 
     # Mock timestamps where next timestamp is earlier than previous timestamp
-    prev_prediction.prediction_timestamp = datetime(2023, 10, 2, 1, 0)
-    prediction.prediction_timestamp = datetime(2023, 10, 1, 23, 0)
+    prev_prediction.prediction_timestamp = prev_timestamp
+    prediction.prediction_timestamp = next_timestamp
 
-    with pytest.raises(AssertionError, match="Next timestamp must be greater than previous timestamp"):
+    with pytest.raises(AssertionError, match=expected):
         processor._should_interpolate(prev_prediction, prediction)
 
 @pytest.mark.parametrize(
