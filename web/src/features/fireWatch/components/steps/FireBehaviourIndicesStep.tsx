@@ -1,15 +1,15 @@
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import { FireWatch } from '@/features/fireWatch/interfaces'
+import { updateFireWatch } from '@/features/fireWatch/utils'
 import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
 import { SetStateAction } from 'react'
-import { updateFireWatch } from '@/features/fireWatch/utils'
-import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 
 interface FireBehaviourIndicesStepProps {
   fireWatch: FireWatch
   setFireWatch: React.Dispatch<SetStateAction<FireWatch>>
 }
 
-const FireBehvaiourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndicesStepProps) => {
+const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndicesStepProps) => {
   const theme = useTheme()
 
   const handleFormUpdate = <K extends keyof FireWatch>(key: K, value: FireWatch[K]) => {
@@ -137,4 +137,4 @@ const FireBehvaiourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
   )
 }
 
-export default FireBehvaiourIndicesStep
+export default FireBehaviourIndicesStep

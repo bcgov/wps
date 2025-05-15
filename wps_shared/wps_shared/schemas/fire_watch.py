@@ -1,8 +1,7 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel
 from wps_shared.db.models.fire_watch import BurnStatusEnum
 from wps_shared.fuel_types import FuelTypeEnum
-from wps_shared.schemas.morecast_v2 import WeatherIndeterminate
 
 
 class FireWatchFireCentre(BaseModel):
@@ -82,3 +81,28 @@ class FireWatchListResponse(BaseModel):
       
 class FireWatchFireCentresResponse(BaseModel):
     fire_centres: List[FireWatchFireCentre]
+
+
+class BurnForecastOutput(BaseModel):
+    id: int
+    fire_watch_id: int
+    date: int
+    temp: float
+    rh: float
+    wind_speed: float
+    ffmc: float
+    dmc: float
+    dc: float
+    isi: float
+    bui: float
+    hfi: float
+    in_prescription: str
+
+
+class FireWatchOutputBurnForecast(BaseModel):
+    fire_watch: FireWatchOutput
+    burn_forecasts: List[BurnForecastOutput]
+
+
+class FireWatchBurnForecastsResponse(BaseModel):
+    fire_watch_burn_forecasts: Dict[int, FireWatchOutputBurnForecast]

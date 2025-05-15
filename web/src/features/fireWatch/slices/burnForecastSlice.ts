@@ -2,7 +2,6 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { getBurnForecasts } from '@/features/fireWatch/fireWatchApi'
 import { FireWatchBurnForecast } from '@/features/fireWatch/interfaces'
-import { data } from '@/features/fireWatch/mockData'
 
 export interface BurnForecastsState {
   loading: boolean
@@ -13,7 +12,7 @@ export interface BurnForecastsState {
 const initialState: BurnForecastsState = {
   loading: false,
   error: null,
-  fireWatchBurnForecasts: data,
+  fireWatchBurnForecasts: [],
 }
 
 const burnForecastsSlice = createSlice({

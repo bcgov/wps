@@ -1,4 +1,13 @@
-import { BurnForecast, BurnStatusEnum, FireWatch, FireWatchBurnForecast, FireWatchFireCentre, FireWatchStation, FuelTypeEnum, InPrescriptionEnum } from '@/features/fireWatch/interfaces'
+import {
+  BurnForecast,
+  BurnStatusEnum,
+  FireWatch,
+  FireWatchBurnForecast,
+  FireWatchFireCentre,
+  FireWatchStation,
+  FuelTypeEnum,
+  InPrescriptionEnum
+} from '@/features/fireWatch/interfaces'
 import axios from 'api/axios'
 import { DateTime } from 'luxon'
 
@@ -52,7 +61,7 @@ export interface FireWatchInput {
 export interface FireWatchOutput extends FireWatchInput {
   id: number
   create_timestamp: number
-  create_user: string 
+  create_user: string
   update_timestamp: number
   update_user: string
 }
@@ -94,11 +103,10 @@ export interface FireWatchOutputBurnForecast {
 
 // API response data transfer object
 export interface FireWatchBurnForecastsResponse {
-  fire_watch_burn_forecasts: { 
+  fire_watch_burn_forecasts: {
     [fire_watch_id: number]: FireWatchOutputBurnForecast
   }
 }
-
 
 export const getActiveFireWatches = async (): Promise<FireWatchListResponse> => {
   const url = '/fire-watch/active'
@@ -122,17 +130,18 @@ export const getFireCentres = async (): Promise<FireWatchFireCentresResponse> =>
 }
 
 export async function getBurnForecasts(): Promise<FireWatchBurnForecast[]> {
-  const url = "/fire-watch/burn-forecasts"
+  const url = '/fire-watch/burn-forecasts'
   const { data } = await axios.get(url)
-  const burnForecasts = marshalBurnForecasts(data)
+  console.log(data)
+  const burnForecasts = marshalBurnForecasts(data.fire_watch_burn_forecasts)
   return burnForecasts
 }
 
 const marshalFireWatchToFireWatchInput = (fireWatch: FireWatch): FireWatchInput => {
   return {
     burn_location: fireWatch.geometry,
-    burn_window_end: Math.round(fireWatch.burnWindowEnd?.toMillis()/1000),
-    burn_window_start: Math.round(fireWatch.burnWindowStart?.toMillis()/1000),
+    burn_window_end: Math.round(fireWatch.burnWindowEnd?.toMillis() / 1000),
+    burn_window_start: Math.round(fireWatch.burnWindowStart?.toMillis() / 1000),
     contact_email: fireWatch.contactEmail,
     fire_centre: fireWatch.fireCentre ?? null,
     station: fireWatch.station ?? null,
@@ -178,13 +187,13 @@ const marshalFireWatchToFireWatchInput = (fireWatch: FireWatch): FireWatchInput 
 const marshalFireWatchOutputToFireWatch = (fireWatchOutput: FireWatchOutput): FireWatch => {
   return {
     id: fireWatchOutput.id,
-    createTimestamp: DateTime.fromMillis(fireWatchOutput.create_timestamp),
+    createTimestamp: DateTime.fromMillis(fireWatchOutput.create_timestamp * 1000),
     createUser: fireWatchOutput.create_user,
-    updateTimestamp: DateTime.fromMillis(fireWatchOutput.update_timestamp),
+    updateTimestamp: DateTime.fromMillis(fireWatchOutput.update_timestamp * 1000),
     updateUser: fireWatchOutput.update_user,
     geometry: fireWatchOutput.burn_location,
-    burnWindowEnd: DateTime.fromMillis(fireWatchOutput.burn_window_end),
-    burnWindowStart: DateTime.fromMillis(fireWatchOutput.burn_window_start),
+    burnWindowEnd: DateTime.fromMillis(fireWatchOutput.burn_window_end * 1000),
+    burnWindowStart: DateTime.fromMillis(fireWatchOutput.burn_window_start * 1000),
     contactEmail: fireWatchOutput.contact_email,
     fireCentre: fireWatchOutput.fire_centre,
     station: fireWatchOutput.station,
@@ -220,7 +229,7 @@ const marshalFireWatchOutputToFireWatch = (fireWatchOutput: FireWatchOutput): Fi
     buiMax: fireWatchOutput.bui_max,
     hfiMin: fireWatchOutput.hfi_min,
     hfiPreferred: fireWatchOutput.hfi_preferred,
-    hfiMax: fireWatchOutput.hfi_max,
+    hfiMax: fireWatchOutput.hfi_max
   }
 }
 
@@ -228,7 +237,7 @@ const marshalBurnForecastOutputToBurnForecast = (burnForecastOutput: BurnForecas
   return {
     id: burnForecastOutput.id,
     fireWatchId: burnForecastOutput.fire_watch_id,
-    date: DateTime.fromMillis(burnForecastOutput.date),
+    date: DateTime.fromMillis(burnForecastOutput.date * 1000),
     temp: burnForecastOutput.temp,
     rh: burnForecastOutput.rh,
     windSpeed: burnForecastOutput.wind_speed,
@@ -242,7 +251,7 @@ const marshalBurnForecastOutputToBurnForecast = (burnForecastOutput: BurnForecas
   }
 }
 
-// Convert fire watch burn forecasts from the API shape to frontend shape. 
+// Convert fire watch burn forecasts from the API shape to frontend shape.
 const marshalBurnForecasts = (output: { [id: number]: FireWatchOutputBurnForecast }) => {
   const fireWatchBurnForecasts: FireWatchBurnForecast[] = []
   for (const value of Object.values(output)) {
@@ -262,5 +271,3 @@ const marshalBurnForecasts = (output: { [id: number]: FireWatchOutputBurnForecas
   }
   return fireWatchBurnForecasts
 }
-
-

@@ -1,3 +1,7 @@
+import { selectBurnForecasts } from '@/app/rootReducer'
+import { AppDispatch } from '@/app/store'
+import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
+import FireWatchDetailsModal from '@/features/fireWatch/components/FireWatchDetailsModal'
 import {
   BurnForecast,
   BurnStatusEnum,
@@ -6,6 +10,8 @@ import {
   FuelTypeEnum,
   InPrescriptionEnum
 } from '@/features/fireWatch/interfaces'
+import { fetchBurnForecasts } from '@/features/fireWatch/slices/burnForecastSlice'
+import InfoIcon from '@mui/icons-material/Info'
 import { Box, styled, Typography, useTheme } from '@mui/material'
 import {
   DataGridPro,
@@ -14,17 +20,10 @@ import {
   GridColDef,
   GridValueFormatterParams
 } from '@mui/x-data-grid-pro'
-import { DateTime } from 'luxon'
-import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { selectBurnForecasts } from '@/app/rootReducer'
-import { fetchBurnForecasts } from '@/features/fireWatch/slices/burnForecastSlice'
-import { AppDispatch } from '@/app/store'
-import React from 'react'
-import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
 import { isNull } from 'lodash'
-import InfoIcon from '@mui/icons-material/Info'
-import FireWatchDetailsModal from '@/features/fireWatch/components/FireWatchDetailsModal'
+import { DateTime } from 'luxon'
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 
 export interface BurnWatchRow {
   id: number
@@ -176,7 +175,7 @@ const FireWatchDashboard = () => {
   ]
 
   useEffect(() => {
-    dispatch(fetchBurnForecasts)
+    dispatch(fetchBurnForecasts())
   }, [])
 
   useEffect(() => {

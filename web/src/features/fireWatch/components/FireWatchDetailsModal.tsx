@@ -1,7 +1,7 @@
+import CreateFireWatch from '@/features/fireWatch/components/CreateFireWatch'
+import { FireWatchBurnForecast } from '@/features/fireWatch/interfaces'
 import { Modal, Paper, Typography } from '@mui/material'
 import { useTheme } from '@mui/system'
-import { FireWatchBurnForecast } from '@/features/fireWatch/interfaces'
-import CreateFireWatch from '@/features/fireWatch/components/CreateFireWatch'
 
 interface FireWatchDetailsModalProps {
   open: boolean
@@ -21,8 +21,8 @@ const FireWatchDetailsModal = ({ open, onClose, selectedFireWatch }: FireWatchDe
           left: '50%',
           transform: 'translate(-50%, -50%)',
           padding: theme.spacing(4),
-          width: 800,
-          height: 800,
+          width: 'auto',
+          height: `calc(100vh - ${theme.spacing(8)})`,
           overflowY: 'auto'
         }}
       >
