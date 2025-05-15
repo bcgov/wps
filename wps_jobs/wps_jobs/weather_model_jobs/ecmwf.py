@@ -208,7 +208,7 @@ def main():
     except Exception as exception:
         # Exit non 0 - failure.
         logger.error("An error occurred while processing ECMWF model.", exc_info=exception)
-        rc_message = f':poop: Encountered error retrieving {sys.argv[1]} model data from Env Canada'
+        rc_message = f':poop: Encountered error retrieving model data from ECMWF'
         send_rocketchat_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
