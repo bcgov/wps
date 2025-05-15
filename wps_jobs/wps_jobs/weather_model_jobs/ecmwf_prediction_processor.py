@@ -78,7 +78,7 @@ class ECMWFPredictionProcessor:
             # Timestamps on the same day but surround 20:00 UTC should be interpolated
             return prev_timestamp.hour < 20 and next_timestamp.hour > 20
         
-        # datetimes are on different days, interpolate if next is not 20:00 UTC
+        # datetimes are on different days, interpolate if previous is before 20:00 UTC
         return prev_timestamp.hour < 20
 
 
