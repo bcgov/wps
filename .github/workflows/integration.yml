@@ -100,8 +100,9 @@ jobs:
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
         run: |
+          # Install JDK
           apt-get update --fix-missing
-          apt-get -y install default-jdk wkhtmltopdf libudunits2-dev r-base-dev build-essential libgdal-dev libproj-dev libgeos-dev libsqlite3-dev libtirpc-dev          
+          apt-get -y install default-jdk
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
           poetry run python -m pip install --upgrade pip
@@ -119,7 +120,7 @@ jobs:
           export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATH
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
-          poetry run coverage run --source=app -m pytest app/tests -x -o log_cli=true --disable-warnings -vvv
+          poetry run pytest --cov=app --cov-branch --cov-report=xml:coverage-reports/api-coverage-report.xml app/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Create coverage report (api)
         working-directory: ./api
         shell: bash
