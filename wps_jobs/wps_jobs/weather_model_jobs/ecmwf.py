@@ -49,15 +49,6 @@ def get_ecmwf_forecast_hours():
         yield h
 
 
-def get_model_run_urls(model_datetime: datetime) -> List[str]:
-    urls = []
-    for fxx in get_ecmwf_forecast_hours():
-        H = Herbie(model_datetime.strftime("%Y-%m-%d %H"), model="ifs", product="oper", fxx=fxx, verbose=False)
-        if H.grib:
-            urls.append(H.grib)
-    return urls
-
-
 def get_stations_dataframe(transformer: Transformer, stations: List[WeatherStation]) -> pd.DataFrame:
     stations_df = pd.DataFrame([station.model_dump(include={"code", "name", "lat", "long"}) for station in stations]).rename(columns={"lat": "latitude", "long": "longitude"})
 

@@ -267,27 +267,3 @@ def test_process_model_run_prediction_model_complete(mock_herbie_instance, compl
     assert ecmwf.files_downloaded == 0
     assert ecmwf.files_processed == 0
     assert ecmwf.exception_count == 0
-
-
-def test_get_model_run_urls(mock_herbie_instance):
-    """Test get_model_run_urls to ensure it returns the correct URLs."""
-    mock_herbie_instance.grib = "/mock/path/to/file.grib"
-
-    urls = wps_jobs.weather_model_jobs.ecmwf.get_model_run_urls(datetime(2023, 1, 1, 0, 0))
-
-    # Ensure the number of URLs matches the forecast hours
-    expected_forecast_hours = len(list(get_ecmwf_forecast_hours()))
-    assert len(urls) == expected_forecast_hours
-
-    # Ensure all URLs are the mocked grib file path
-    assert all(url == "/mock/path/to/file.grib" for url in urls)
-
-
-def test_get_model_run_urls_no_grib(mock_herbie_instance):
-    """Test get_model_run_urls when no grib files are found."""
-    mock_herbie_instance.grib = None  # Simulate no grib file found
-
-    urls = wps_jobs.weather_model_jobs.ecmwf.get_model_run_urls(datetime(2023, 1, 1, 0, 0))
-
-    # Ensure no URLs are returned
-    assert len(urls) == 0
