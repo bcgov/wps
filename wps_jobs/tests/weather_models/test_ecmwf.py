@@ -2,7 +2,7 @@ import os
 import pytest
 from aiohttp import ClientSession
 from pytest_mock import MockerFixture
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, PropertyMock
 from wps_shared.tests.common import default_mock_client_get
 import wps_jobs.weather_model_jobs.ecmwf
 from wps_jobs.weather_model_jobs import ModelEnum
@@ -140,6 +140,32 @@ def test_ecmwf_process_model_previously_partial_processed(mock_herbie_instance, 
     assert mock_repository.mark_url_as_processed.call_count == num_forecast_hours - len(processed_urls)
 
 
+def test_ecmwf_process_model_partial_process(mock_herbie_instance, mocker: MockerFixture):
+    mocker.patch("wps_jobs.weather_model_jobs.ecmwf.get_ecmwf_transformer", return_value=MagicMock())
+    mocker.patch("wps_jobs.weather_model_jobs.ecmwf.get_stations_dataframe", return_value=MagicMock())
+    mocker.patch.object(ECMWFModelProcessor, "process_grib_data", return_value=MagicMock())
+    # Mock ECMWF.store_processed_result to do nothing
+    mocker.patch.object(ECMWF, "store_processed_result", return_value=None)
+    stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
+    mock_repository = MagicMock(spec=ModelRunRepository)
+    mock_repository.get_or_create_prediction_run.return_value.complete = False
+    mock_repository.check_if_model_run_complete.return_value = False
+    mock_repository.get_processed_url.return_value = None
+
+    urls = ["url0", "url1", "url2"]
+    unprocessed_urls = [None] * (num_forecast_hours - len(urls))
+    grib_values = urls + unprocessed_urls
+
+    type(mock_herbie_instance).grib = PropertyMock(side_effect=grib_values)
+
+    ecmwf = ECMWF("/tmp", stations, mock_repository)
+    ecmwf.process_model_run(0)
+
+    assert ecmwf.files_processed == len(urls)
+    assert mock_repository.mark_url_as_processed.call_count == len(urls)
+    assert mock_repository.mark_prediction_model_run_processed.call_count == 0
+
+
 def test_ecmwf_process(mock_herbie_instance):
     mock_repo = MockModelRunRepository()
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
@@ -152,7 +178,7 @@ def test_ecmwf_process(mock_herbie_instance):
     assert ecmwf.files_processed == num_forecast_hours * 2
 
 
-def test_ecmwf_process_model_run_prediction_not_found(mock_herbie_instance, monkeypatch):
+def test_ecmwf_process_model_run_exception(mock_herbie_instance, monkeypatch):
     def mock_get_transformer(_, __):
         raise Exception()
 
