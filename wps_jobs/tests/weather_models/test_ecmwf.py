@@ -99,7 +99,7 @@ def test_ecmwf_process_model_complete(complete, expected_processed, expected_com
     mock_repository = MagicMock(spec=ModelRunRepository)
     mock_repository.get_or_create_prediction_run.return_value.complete = complete
     mock_repository.check_if_model_run_complete.return_value = complete
-    mock_repository.get_processed_url.return_value = False
+    mock_repository.get_processed_url.return_value = None
 
     ecmwf = ECMWF("/tmp", stations, mock_repository)
     ecmwf.process_model_run(0)
