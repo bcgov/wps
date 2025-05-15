@@ -65,6 +65,7 @@ acceptable_margin_of_error: Final = 0.01
         ("S3", None, None, None, None, 0.01, 0.01, 0.01, 0.01, 0.01, 20),
     ],
 )
+@pytest.mark.skip(reason="Only used for initial validation of FireCalc and REDapp")
 def test_get_endpoints_unauthorized(
     fuel_type,
     percentage_conifer,
