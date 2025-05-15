@@ -139,9 +139,9 @@ class ECMWF:
                     stations_df = get_stations_dataframe(transformer, self.stations)
                     process_result = self.ecmwf_processor.process_grib_data(H, model_info, stations_df)
                     self.store_processed_result(self.stations, prediction_run, process_result)
-                except Exception as e:
+                except Exception as exception:
                     self.exception_count += 1
-                    logger.error("unexpected exception processing %s", url, exc_info=e)
+                    logger.error("unexpected exception processing %s", url, exc_info=exception)
 
                 self.files_processed += 1
                 self.model_run_repository.mark_url_as_processed(url)
@@ -150,14 +150,6 @@ class ECMWF:
             if len(forecast_hours) == self.files_processed:
                 logger.info(f"{self.model_type} model run {model_run_hour:02d}:00 completed with SUCCESS")
                 self.model_run_repository.mark_prediction_model_run_processed(self.model_type, self.projection, model_datetime)
-
-    def _already_processed(self, url: str) -> bool:
-        """Check if the URL has already been processed."""
-        if self.model_run_repository.get_processed_url(self.session, url):
-            logger.info(f"file already processed -- {url}")
-            self.files_processed += 1
-            return True
-        return False
 
     def process(self):
         for hour in get_model_run_hours(self.model_type):
