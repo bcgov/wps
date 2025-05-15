@@ -121,12 +121,12 @@ jobs:
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
           poetry run pytest --cov=app --cov-branch --cov-report=xml:coverage-reports/api-coverage-report.xml app/tests -x -o log_cli=true --disable-warnings -vvv
-      - name: Create coverage report (api)
-        working-directory: ./api
-        shell: bash
-        run: |
-          poetry run coverage report
-          poetry run coverage xml -o coverage-reports/api-coverage-report.xml
+      # - name: Create coverage report (api)
+      #   working-directory: ./api
+      #   shell: bash
+      #   run: |
+      #     poetry run coverage report
+      #     poetry run coverage xml -o coverage-reports/api-coverage-report.xml
       - name: Archive coverage report (api)
         uses: actions/upload-artifact@v4
         with:
