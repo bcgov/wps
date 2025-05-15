@@ -40,7 +40,7 @@ jobs:
           poetry run ruff check app/*.py app/**/*.py ../wps_shared/wps_shared/*.py ../wps_shared/wps_shared/**/*.py ../wps_jobs/wps_jobs/*.py ../wps_jobs/wps_jobs/**/*.py
 
   test-api:
-    name: Python - Test with coverage
+    name: Python - API Test with coverage
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/bcgov/wps/wps-api-base:04-23-2025
