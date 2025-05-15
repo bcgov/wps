@@ -91,13 +91,15 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
     "prev_timestamp, next_timestamp, expected",
     [
         # timestamps on the same day surrounding 20:00 UTC
-        (datetime(2023, 10, 1, 18, 0), datetime(2023, 10, 1, 21, 0), True),
+        (datetime(2023, 10, 1, 18, 0, tzinfo=timezone.utc), datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc), True),
         # timestamps on the same day but not surrounding 20:00 UTC
-        (datetime(2023, 10, 1, 10, 0), datetime(2023, 10, 1, 15, 0), False),
+        (datetime(2023, 10, 1, 10, 0, tzinfo=timezone.utc), datetime(2023, 10, 1, 15, 0, tzinfo=timezone.utc), False),
         # timestamps on different days, later timestamp earlier than 21:00 UTC
-        (datetime(2023, 10, 1, 21, 0), datetime(2023, 10, 2, 0, 0), False),
+        (datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 0, 0, tzinfo=timezone.utc), True),
         # timestamps on different days, later timestamp later than 21:00 UTC
-        (datetime(2023, 10, 1, 21, 0), datetime(2023, 10, 2, 22, 0), True),
+        (datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 22, 0, tzinfo=timezone.utc), True),
+        # 18:00 UTC and 00:00 UTC on subsequent days should return true
+        (datetime(2023, 10, 1, 18, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 00, 0, tzinfo=timezone.utc), True),
     ],
 )
 def test_should_interpolate(prev_timestamp, next_timestamp, expected, mock_predictions):

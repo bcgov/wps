@@ -75,10 +75,10 @@ class ECMWFPredictionProcessor:
         # Check if datetimes are on the same day
         if prev_timestamp.date() == next_timestamp.date():
             # Timestamps on the same day but surround 20:00 UTC should be interpolated
-            return prev_timestamp.hour <= 18 and next_timestamp.hour >= 21
+            return prev_timestamp.hour < 20 and next_timestamp.hour > 20
         
-        # datetimes are on different days, interpolate if next is after 20:00 UTC
-        return next_timestamp.hour > 20
+        # datetimes are on different days, interpolate if next is not 20:00 UTC
+        return next_timestamp.hour != 20
 
 
     def _weather_station_prediction_initializer(self, station: WeatherStation, model_run: PredictionModelRunTimestamp, prediction: ModelRunPrediction) -> WeatherStationModelPrediction:
