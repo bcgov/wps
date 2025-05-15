@@ -1,13 +1,11 @@
-from datetime import datetime
 import os
-import sys
 import pytest
 from aiohttp import ClientSession
 from pytest_mock import MockerFixture
 from unittest.mock import MagicMock
 from wps_shared.tests.common import default_mock_client_get
 import wps_jobs.weather_model_jobs.ecmwf
-from wps_jobs.weather_model_jobs import ModelEnum, ProjectionEnum
+from wps_jobs.weather_model_jobs import ModelEnum
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.models.weather_models import PredictionModelRunTimestamp
