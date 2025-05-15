@@ -81,58 +81,14 @@ jobs:
   test-api:
     name: Python - Test with coverage
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        # Match versions for python to Ubuntu 24.04 LTS at the time of writing. Keep R at same version.
-        python-version: [3.12.3]
-        R: ["4.1.2"]
+    container:
+      image: ghcr.io/bcgov/wps/wps-api-base:04-23-2025
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
-      - name: Install ubuntu pre-requisites (api)
-        # The python gdal and R component relies on libgdal-dev being installed.
-        # cffdrs requires libudunits2-dev
-        # The api uses wkhtmltopdf to generate pdf's.
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install wkhtmltopdf libudunits2-dev r-base-dev build-essential libgdal-dev libproj-dev libgeos-dev libsqlite3-dev libtirpc-dev
-      - name: Setup Python ${{ matrix.python-version }} (api)
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Cache poetry installer
-        uses: actions/cache@v4
-        id: cache-poetry-installer
-        env:
-          cache-name: cache-poetry-installer
-        with:
-          path: "~/poetry_installer"
-          key: "poetry-installer-1.8.3"
-      - name: Download poetry installer
-        if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
-        run: |
-          echo
-          mkdir ~/poetry_installer
-          curl -sSL https://install.python-poetry.org > ~/poetry_installer/install-poetry.py
-      - name: Install poetry (api)
-        run: |
-          cd ~/poetry_installer
-          python install-poetry.py --version 1.8.3
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project false
-      # poetry cache folder: /home/runner/.cache/pypoetry
-      - name: Cache poetry
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-poetry
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-1.8.3-cache-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-1.8.3-cache-
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
@@ -143,6 +99,8 @@ jobs:
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
         run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project false
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install -U setuptools wheel
@@ -151,23 +109,6 @@ jobs:
         working-directory: ./api
         run: |
           poetry run python -m pip install --no-deps --force-reinstall ../wps_shared
-      - uses: r-lib/actions/setup-r@v2
-        # r-lib/actions/setup-r@v2 is supposed to install version ${{ matrix.R }}, BUT, it doesn't.
-        # When asking for 4.1.2 - it's installing a new version! Or at least reporting a newer
-        # version.
-        with:
-          r-version: ${{ matrix.R }}
-      - name: Cache /home/runner/work/_temp/Library
-        # When installing cffdrs, a bunch of stuff is downloaded and compiled and placed in
-        # /home/runner/work/_temp/Library ; By caching this folder, subsequent calls to
-        # install cffdrs run much faster.
-        id: cache-r-cffdrs
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/work/_temp/Library
-          key: ${{ runner.os }}-r-${{ matrix.R }}-cffdrs
-      - name: Install R dependencies (api)
-        run: R -e "install.packages('cffdrs')"
       - name: Unit Test with coverage (api)
         working-directory: ./api
         run: |
