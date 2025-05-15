@@ -175,55 +175,15 @@ jobs:
   test-wps-shared:
     name: Python - WPS Shared Test with coverage
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        # Match versions for python to Ubuntu 24.04 LTS at the time of writing. Keep R at same version.
-        python-version: [3.12.3]
+    container:
+      image: ghcr.io/bcgov/wps/wps-api-base:04-23-2025
+      options: --user 0
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
-      - name: Install ubuntu pre-requisites (wps_shared)
-        # The python gdal relies on libgdal-dev being installed.
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install build-essential libgdal-dev libproj-dev libgeos-dev libsqlite3-dev libtirpc-dev
-      - name: Setup Python ${{ matrix.python-version }} (wps_shared)
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Cache poetry installer
-        uses: actions/cache@v4
-        id: cache-poetry-installer
-        env:
-          cache-name: cache-poetry-installer
-        with:
-          path: "~/poetry_installer"
-          key: "poetry-installer-1.8.3"
-      - name: Download poetry installer
-        if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
-        run: |
-          echo
-          mkdir ~/poetry_installer
-          curl -sSL https://install.python-poetry.org > ~/poetry_installer/install-poetry.py
-      - name: Install poetry (wps_shared)
-        run: |
-          cd ~/poetry_installer
-          python install-poetry.py --version 1.8.3
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project false
-      # poetry cache folder: /home/runner/.cache/pypoetry
-      - name: Cache poetry
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-poetry
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-1.8.3-cache-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-1.8.3-cache-
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
@@ -234,6 +194,11 @@ jobs:
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./wps_shared
         run: |
+          # Install JDK
+          apt-get update --fix-missing
+          apt-get -y install default-jdk
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project false
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install -U setuptools wheel
@@ -243,13 +208,7 @@ jobs:
         run: |
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
-          poetry run coverage run --source=wps_shared -m pytest ./wps_shared/tests -x -o log_cli=true --disable-warnings -vvv
-      - name: Create coverage report (wps_shared)
-        working-directory: ./wps_shared
-        shell: bash
-        run: |
-          poetry run coverage report
-          poetry run coverage xml -o coverage-reports/wps-shared-coverage-report.xml
+          poetry run pytest -n auto --cov=wps_shared --cov-branch --cov-report=xml:coverage-reports/wps-shared-coverage-report.xml tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_shared)
         uses: actions/upload-artifact@v4
         with:
