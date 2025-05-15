@@ -208,7 +208,7 @@ jobs:
         run: |
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
-          poetry run pytest -n auto --cov=wps_shared --cov-branch --cov-report=xml:coverage-reports/wps-shared-coverage-report.xml wps_shared/tests -x -o log_cli=true --disable-warnings -vvv
+          poetry run pytest -n auto --cov=wps_shared --cov-branch --cov-report=xml:coverage-reports/wps-shared-coverage-report.xml -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_shared)
         uses: actions/upload-artifact@v4
         with:
