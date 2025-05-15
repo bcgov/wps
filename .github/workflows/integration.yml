@@ -175,7 +175,7 @@ jobs:
           export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATH
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
-          COVERAGE_CORE=sysmon poetry run coverage run --source=app -m pytest app/tests -x -o log_cli=true --disable-warnings -vvv --numprocesses=auto
+          poetry run coverage run --source=app -m pytest app/tests -x -o log_cli=true --disable-warnings -vvv --numprocesses=auto
       - name: Create coverage report (api)
         working-directory: ./api
         shell: bash
