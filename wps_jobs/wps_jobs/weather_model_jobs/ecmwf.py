@@ -48,20 +48,6 @@ def get_ecmwf_forecast_hours():
     for h in range(150, 241, 6):
         yield h
 
-def get_model_run_urls(model_datetime: datetime) -> List[str]:
-    urls = []
-    for fxx in get_ecmwf_forecast_hours():
-        H = Herbie(
-            model_datetime.strftime("%Y-%m-%d %H"),
-            model="ifs",
-            product="oper",
-            priority="aws",
-            fxx=fxx,
-            verbose=False
-        )
-        if H.grib:
-            urls.append(H.grib)
-    return urls
 
 def get_stations_dataframe(transformer: Transformer, stations: List[WeatherStation]) -> pd.DataFrame:
     stations_df = pd.DataFrame([station.model_dump(include={"code", "name", "lat", "long"}) for station in stations]).rename(columns={"lat": "latitude", "long": "longitude"})
@@ -105,7 +91,6 @@ class ECMWF:
         logger.info("Processing {} model run {:02d}".format(self.model_type, model_run_hour))
 
         model_datetime = self.now.replace(hour=model_run_hour, minute=0, second=0, microsecond=0)
-        all_model_run_urls = get_model_run_urls(model_datetime)
 
         self.prediction_model = self.model_run_repository.get_prediction_model(self.model_type, self.projection)
         if not self.prediction_model:
@@ -123,14 +108,31 @@ class ECMWF:
                 projection=self.projection,
             )
 
-            with tempfile.TemporaryDirectory() as temp_dir:
-                H = Herbie(model_datetime.strftime("%Y-%m-%d %H"), model="ifs", product="oper", priority="aws", fxx=prediction_hour, save_dir=temp_dir, verbose=False)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            forecast_hours = list(get_ecmwf_forecast_hours())
+
+            for prediction_hour in forecast_hours:
+                H = Herbie(
+                    model_datetime.strftime("%Y-%m-%d %H"),
+                    model="ifs",
+                    product="oper",
+                    priority="aws",
+                    fxx=prediction_hour,
+                    save_dir=temp_dir,
+                    verbose=False,
+                )
+
                 url = H.grib
                 if not url:
-                    logger.info(f"grib file not found for {model_info.prediction_timestamp} ")
-                    continue
+                    logger.info(f"GRIB file not found for {model_datetime} - hour {prediction_hour}. Exiting model run. ")
+                    return
 
                 self.files_downloaded += 1
+
+                if self.model_run_repository.get_processed_url(url):
+                    logger.info(f"file already processed -- {url}")
+                    self.files_processed += 1
+                    continue
 
                 try:
                     transformer = get_ecmwf_transformer(self.working_directory, H)
@@ -139,14 +141,15 @@ class ECMWF:
                     self.store_processed_result(self.stations, prediction_run, process_result)
                 except Exception as exception:
                     self.exception_count += 1
-                    # We intentionally catch a broad exception, as we want to try and download as much
-                    # as we can.
                     logger.error("unexpected exception processing %s", url, exc_info=exception)
+
                 self.files_processed += 1
                 self.model_run_repository.mark_url_as_processed(url)
-        if self.model_run_repository.check_if_model_run_complete(all_model_run_urls):
-            logger.info("{} model run {:02d}:00 completed with SUCCESS".format(self.model_type, model_run_hour))
-            self.model_run_repository.mark_prediction_model_run_processed(self.model_type, self.projection, model_datetime)
+
+            # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
+            if len(forecast_hours) == self.files_processed:
+                logger.info(f"{self.model_type} model run {model_run_hour:02d}:00 completed with SUCCESS")
+                self.model_run_repository.mark_prediction_model_run_processed(self.model_type, self.projection, model_datetime)
 
     def process(self):
         for hour in get_model_run_hours(self.model_type):
@@ -208,7 +211,7 @@ def main():
     except Exception as exception:
         # Exit non 0 - failure.
         logger.error("An error occurred while processing ECMWF model.", exc_info=exception)
-        rc_message = ':poop: Encountered error retrieving model data from ECMWF'
+        rc_message = ":poop: Encountered error retrieving model data from ECMWF"
         send_rocketchat_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
