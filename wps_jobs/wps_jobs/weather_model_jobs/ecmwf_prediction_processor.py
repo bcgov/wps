@@ -14,11 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 class ECMWFPredictionProcessor:
-    def __init__(self, stations: List[WeatherStation], model_run_repository: ModelRunRepository):        
+    def __init__(self, stations: List[WeatherStation], model_run_repository: ModelRunRepository):
         self.stations = stations
         self.model_run_repository = model_run_repository
         self.station_predictions: Dict[int, List[ModelRunPrediction]] = defaultdict(list)
-    
+
     def process(self):
         for model_run, model in self.model_run_repository.get_prediction_model_run_timestamp_records(complete=True, interpolated=False, model_type=ModelEnum.ECMWF):
             logger.info("model %s", model)
@@ -37,12 +37,17 @@ class ECMWFPredictionProcessor:
             # Process this model run for station.
             self._process_model_run_for_station(model_run, station)
 
-    
     def _process_model_run_for_station(self, model_run: PredictionModelRunTimestamp, station: WeatherStation):
         """Process the model run for the provided station."""
         # Extract the coordinate.
         coordinate = [station.long, station.lat]
-        machine = StationMachineLearning(session=self.model_run_repository.session, model=model_run.prediction_model, target_coordinate=coordinate, station_code=station.code, max_learn_date=model_run.prediction_run_timestamp)
+        machine = StationMachineLearning(
+            session=self.model_run_repository.session,
+            model=model_run.prediction_model,
+            target_coordinate=coordinate,
+            station_code=station.code,
+            max_learn_date=model_run.prediction_run_timestamp,
+        )
         machine.learn()
 
         # Get all the predictions associated to this particular model run.
@@ -53,19 +58,21 @@ class ECMWFPredictionProcessor:
 
         for prediction in model_run_predictions:
             if prev_prediction is not None and self._should_interpolate(prev_prediction, prediction):
+                # Create and store interpolated 20z prediction
                 noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction, SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION)
-                station_prediction: WeatherStationModelPrediction = self.initialize_station_prediction(prev_prediction, noon_prediction, station, model_run)
-                station_prediction = self._apply_interpolated_bias_adjustments(station_prediction, prev_prediction, prediction, machine)
-            else:
-                station_prediction: WeatherStationModelPrediction = self.initialize_station_prediction(prev_prediction, prediction, station, model_run)
-                station_prediction = self._apply_bias_adjustments(station_prediction, machine)
+                noon_station_prediction = self.initialize_station_prediction(prev_prediction, noon_prediction, station, model_run)
+                noon_station_prediction = self._apply_interpolated_bias_adjustments(noon_station_prediction, prev_prediction, prediction, machine)
+                noon_station_prediction.update_date = get_utc_now()
+                self.model_run_repository.store_weather_station_model_prediction(noon_station_prediction)
 
-            # Update the update time (this might be an update)
+            # Always process the current prediction
+            station_prediction = self.initialize_station_prediction(prev_prediction, prediction, station, model_run)
+            station_prediction = self._apply_bias_adjustments(station_prediction, machine)
             station_prediction.update_date = get_utc_now()
             self.model_run_repository.store_weather_station_model_prediction(station_prediction)
 
             prev_prediction = prediction
-    
+
     def _should_interpolate(self, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction) -> bool:
         """Check if we should interpolate between the two predictions."""
         prev_timestamp: datetime = prev_prediction.prediction_timestamp
@@ -77,10 +84,9 @@ class ECMWFPredictionProcessor:
         if prev_timestamp.date() == next_timestamp.date():
             # Timestamps on the same day but surround 20:00 UTC should be interpolated
             return prev_timestamp.hour < 20 and next_timestamp.hour > 20
-        
+
         # datetimes are on different days, interpolate if previous is before 20:00 UTC
         return prev_timestamp.hour < 20
-
 
     def _weather_station_prediction_initializer(self, station: WeatherStation, model_run: PredictionModelRunTimestamp, prediction: ModelRunPrediction) -> WeatherStationModelPrediction:
         """Initialize a WeatherStationModelPrediction object."""
@@ -89,10 +95,14 @@ class ECMWFPredictionProcessor:
             station_prediction = WeatherStationModelPrediction()
         station_prediction.station_code = station.code
         station_prediction.prediction_model_run_timestamp_id = model_run.id
-        station_prediction.prediction_timestamp = model_run.prediction_run_timestamp
+        station_prediction.prediction_run_timestamp = model_run.prediction_run_timestamp
+        station_prediction.prediction_timestamp = prediction.prediction_timestamp
+
         return station_prediction
-    
-    def _apply_interpolated_bias_adjustments(self, station_prediction: WeatherStationModelPrediction, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction, machine: StationMachineLearning):
+
+    def _apply_interpolated_bias_adjustments(
+        self, station_prediction: WeatherStationModelPrediction, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction, machine: StationMachineLearning
+    ):
         prev_prediction_datetime: datetime = prev_prediction.prediction_timestamp
         prediction_datetime: datetime = prediction.prediction_timestamp
         datetime_at_2000 = prev_prediction_datetime.replace(hour=20)
@@ -107,16 +117,23 @@ class ECMWFPredictionProcessor:
 
         wind_speed_before_2000 = machine.predict_wind_speed(station_prediction.wind_tgl_10, prev_prediction_datetime)
         wind_speed_after_2000 = machine.predict_wind_speed(station_prediction.wind_tgl_10, prediction_datetime)
-        station_prediction.bias_adjusted_wind_speed = self.interpolate_20_00_values(prev_prediction_datetime, prediction_datetime, wind_speed_before_2000, wind_speed_after_2000, datetime_at_2000)
+        station_prediction.bias_adjusted_wind_speed = self.interpolate_20_00_values(
+            prev_prediction_datetime, prediction_datetime, wind_speed_before_2000, wind_speed_after_2000, datetime_at_2000
+        )
 
-        wind_direction_before_2000 = station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, prev_prediction_datetime)
-        wind_direction_after_2000 = station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, prediction_datetime)
-        station_prediction.bias_adjusted_wdir = self.interpolate_20_00_values(prev_prediction_datetime, prediction_datetime, wind_direction_before_2000, wind_direction_after_2000, datetime_at_2000)
+        wind_direction_before_2000 = station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(
+            station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, prev_prediction_datetime
+        )
+        wind_direction_after_2000 = station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(
+            station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, prediction_datetime
+        )
+        station_prediction.bias_adjusted_wdir = self.interpolate_20_00_values(
+            prev_prediction_datetime, prediction_datetime, wind_direction_before_2000, wind_direction_after_2000, datetime_at_2000
+        )
 
         # Predict the 24h precipitation. No interpolation necessary due to the underlying model training.
         station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(station_prediction.precip_24h, station_prediction.prediction_timestamp)
         return station_prediction
-
 
     def _apply_bias_adjustments(self, station_prediction: WeatherStationModelPrediction, machine: StationMachineLearning):
         """Create a WeatherStationModelPrediction from the ModelRunPrediction data."""
@@ -126,9 +143,10 @@ class ECMWFPredictionProcessor:
         station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, station_prediction.prediction_timestamp)
         station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(station_prediction.precip_24h, station_prediction.prediction_timestamp)
         return station_prediction
-    
 
-    def initialize_station_prediction(self, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction, station: WeatherStation, model_run: PredictionModelRunTimestamp) -> WeatherStationModelPrediction:
+    def initialize_station_prediction(
+        self, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction, station: WeatherStation, model_run: PredictionModelRunTimestamp
+    ) -> WeatherStationModelPrediction:
         """Initialize a WeatherStationModelPrediction object with the provided prediction data."""
         station_prediction = self._weather_station_prediction_initializer(station, model_run, prediction)
         station_prediction.tmp_tgl_2 = prediction.get_temp()
@@ -141,7 +159,7 @@ class ECMWFPredictionProcessor:
         station_prediction.wind_tgl_10 = prediction.get_wind_speed()
         station_prediction.wdir_tgl_10 = prediction.get_wind_direction()
         return station_prediction
-    
+
     def interpolate_20_00_values(self, prev_datetime: datetime, next_datetime: datetime, prev_value: float, next_value: float, target_datetime: datetime) -> float | None:
         """Interpolate the value at 2000 UTC using the previous and next values."""
         assert target_datetime.hour == 20, "Target datetime must be at 20:00 UTC"
@@ -172,7 +190,7 @@ class ECMWFPredictionProcessor:
         end_prediction_timestamp = datetime(year=prediction_timestamp.year, month=prediction_timestamp.month, day=prediction_timestamp.day, tzinfo=timezone.utc)
         actual_precip = self.model_run_repository.get_accumulated_precipitation(station.code, start_prediction_timestamp, end_prediction_timestamp)
         return actual_precip + station_prediction.apcp_sfc_0
-    
+
     def _calculate_delta_precip(self, prev_prediction: ModelRunPrediction, station_prediction: WeatherStationModelPrediction):
         """Calculate the station_prediction's delta_precip based on the previous precip
         prediction for the station
