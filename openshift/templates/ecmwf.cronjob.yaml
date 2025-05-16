@@ -42,10 +42,6 @@ objects:
     metadata:
       name: ${JOB_NAME}
     spec:
-      # disable until ecmwf is ready
-      suspend: true
-      # Don't run on the hour - as a courtesy to env canada, pick a random
-      # number so that not everyone hits env. canada at the same time.
       schedule: ${SCHEDULE}
       # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
       # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
