@@ -92,6 +92,10 @@ class ECMWF:
 
         model_datetime = self.now.replace(hour=model_run_hour, minute=0, second=0, microsecond=0)
 
+        if model_datetime > self.now:
+            logger.info(f"Model run {model_datetime} is in the future. Exiting model run.")
+            return
+
         self.prediction_model = self.model_run_repository.get_prediction_model(self.model_type, self.projection)
         if not self.prediction_model:
             raise PredictionModelNotFound("Could not find this prediction model in the database", self.model_type, self.projection)
