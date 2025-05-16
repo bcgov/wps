@@ -1,7 +1,6 @@
 from datetime import datetime
 import logging
 from typing import Optional
-import numpy as np
 from scipy.interpolate import interp1d
 from wps_shared.db.models.weather_models import ModelRunPrediction
 
