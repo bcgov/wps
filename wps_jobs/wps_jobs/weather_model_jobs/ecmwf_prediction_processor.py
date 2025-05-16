@@ -90,13 +90,19 @@ class ECMWFPredictionProcessor:
 
     def _weather_station_prediction_initializer(self, station: WeatherStation, model_run: PredictionModelRunTimestamp, prediction: ModelRunPrediction) -> WeatherStationModelPrediction:
         """Initialize a WeatherStationModelPrediction object."""
-        station_prediction = self.model_run_repository.get_weather_station_model_prediction(station.code, model_run.id, prediction.prediction_timestamp)
+
+        station_prediction = self.model_run_repository.get_weather_station_model_prediction(
+            station.code,
+            model_run.id,
+            prediction.prediction_timestamp,
+        )
+
         if station_prediction is None:
             station_prediction = WeatherStationModelPrediction()
-        station_prediction.station_code = station.code
-        station_prediction.prediction_model_run_timestamp_id = model_run.id
-        station_prediction.prediction_run_timestamp = model_run.prediction_run_timestamp
-        station_prediction.prediction_timestamp = prediction.prediction_timestamp
+            station_prediction.station_code = station.code
+            station_prediction.prediction_model_run_timestamp_id = model_run.id
+            station_prediction.prediction_run_timestamp = model_run.prediction_run_timestamp
+            station_prediction.prediction_timestamp = prediction.prediction_timestamp
 
         return station_prediction
 
