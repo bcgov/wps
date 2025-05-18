@@ -104,18 +104,18 @@ class ECMWF:
         if prediction_run.complete:
             logger.info(f"Prediction run {model_datetime} already completed")
             return
-        for prediction_hour in get_ecmwf_forecast_hours():
-            model_info = ModelRunInfo(
-                model_enum=self.model_type,
-                model_run_timestamp=model_datetime,
-                prediction_timestamp=model_datetime + timedelta(hours=prediction_hour),
-                projection=self.projection,
-            )
+
+        prediction_hours = list(get_ecmwf_forecast_hours())
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            forecast_hours = list(get_ecmwf_forecast_hours())
+            for prediction_hour in prediction_hours:
+                model_info = ModelRunInfo(
+                    model_enum=self.model_type,
+                    model_run_timestamp=model_datetime,
+                    prediction_timestamp=model_datetime + timedelta(hours=prediction_hour),
+                    projection=self.projection,
+                )
 
-            for prediction_hour in forecast_hours:
                 H = Herbie(
                     model_datetime.strftime("%Y-%m-%d %H"),
                     model="ifs",
@@ -151,7 +151,7 @@ class ECMWF:
                 self.model_run_repository.mark_url_as_processed(url)
 
             # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
-            if len(forecast_hours) == self.files_processed:
+            if len(prediction_hours) == self.files_processed:
                 logger.info(f"{self.model_type} model run {model_run_hour:02d}:00 completed with SUCCESS")
                 self.model_run_repository.mark_prediction_model_run_processed(self.model_type, self.projection, model_datetime)
 
