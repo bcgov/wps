@@ -65,12 +65,12 @@ class ECMWFPredictionProcessor:
             if prev_prediction is not None and self._should_interpolate(prev_prediction, prediction):
                 # create and store interpolated 20z prediction
                 noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction, SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION)
-                noon_station_prediction = self.initialize_station_prediction(prev_prediction, noon_prediction, station, model_run)
+                noon_station_prediction = self.initialize_station_prediction(prev_prediction, noon_prediction)
                 noon_station_prediction = self._apply_interpolated_bias_adjustments(noon_station_prediction, prev_prediction, prediction, machine)
                 self.model_run_repository.store_weather_station_model_prediction(noon_station_prediction)
 
             # always process the current prediction
-            station_prediction = self.initialize_station_prediction(prev_prediction, prediction, station, model_run)
+            station_prediction = self.initialize_station_prediction(prev_prediction, prediction)
             station_prediction = self._apply_bias_adjustments(station_prediction, machine)
             self.model_run_repository.store_weather_station_model_prediction(station_prediction)
 
@@ -91,19 +91,19 @@ class ECMWFPredictionProcessor:
         # datetimes are on different days, interpolate if previous is before 20:00 UTC
         return prev_timestamp.hour < 20
 
-    def _weather_station_prediction_initializer(self, station: WeatherStation, model_run: PredictionModelRunTimestamp, prediction: ModelRunPrediction) -> WeatherStationModelPrediction:
+    def _weather_station_prediction_initializer(self, prediction: ModelRunPrediction) -> WeatherStationModelPrediction:
         """Initialize a WeatherStationModelPrediction object."""
 
         station_prediction = self.model_run_repository.get_weather_station_model_prediction(
-            station.code,
-            model_run.id,
+            prediction.station_code,
+            prediction.prediction_model_run_timestamp_id,
             prediction.prediction_timestamp,
         )
 
         if station_prediction is None:
             station_prediction = WeatherStationModelPrediction()
-            station_prediction.station_code = station.code
-            station_prediction.prediction_model_run_timestamp_id = model_run.id
+            station_prediction.station_code = prediction.station_code
+            station_prediction.prediction_model_run_timestamp_id = prediction.prediction_model_run_timestamp_id
             station_prediction.prediction_timestamp = prediction.prediction_timestamp
 
         return station_prediction
@@ -180,16 +180,14 @@ class ECMWFPredictionProcessor:
         station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(station_prediction.precip_24h, station_prediction.prediction_timestamp)
         return station_prediction
 
-    def initialize_station_prediction(
-        self, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction, station: WeatherStation, model_run: PredictionModelRunTimestamp
-    ) -> WeatherStationModelPrediction:
+    def initialize_station_prediction(self, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction) -> WeatherStationModelPrediction:
         """Initialize a WeatherStationModelPrediction object with the provided prediction data."""
-        station_prediction = self._weather_station_prediction_initializer(station, model_run, prediction)
+        station_prediction = self._weather_station_prediction_initializer(prediction)
         station_prediction.tmp_tgl_2 = prediction.get_temp()
         station_prediction.rh_tgl_2 = prediction.get_rh()
         station_prediction.apcp_sfc_0 = prediction.get_precip()
 
-        station_prediction.precip_24h = self._calculate_past_24_hour_precip(station, model_run, prediction, station_prediction)
+        station_prediction.precip_24h = self._calculate_past_24_hour_precip(prediction, station_prediction)
         station_prediction.delta_precip = self._calculate_delta_precip(prev_prediction, station_prediction)
 
         station_prediction.wind_tgl_10 = prediction.get_wind_speed()
@@ -210,15 +208,15 @@ class ECMWFPredictionProcessor:
             int(target_datetime.timestamp()),
         )
 
-    def _calculate_past_24_hour_precip(
-        self, station: WeatherStation, model_run: PredictionModelRunTimestamp, prediction: ModelRunPrediction, station_prediction: WeatherStationModelPrediction
-    ):
+    def _calculate_past_24_hour_precip(self, prediction: ModelRunPrediction, station_prediction: WeatherStationModelPrediction):
         """Calculate the predicted precipitation over the previous 24 hours within the specified model run.
         If the model run does not contain a prediction timestamp for 24 hours prior to the current prediction,
         return the predicted precipitation from the previous run of the same model for the same time frame."""
         start_prediction_timestamp: datetime = prediction.prediction_timestamp - timedelta(days=1)
         # Check if a prediction exists for this model run 24 hours in the past
-        previous_prediction_from_same_model_run = self.model_run_repository.get_weather_station_model_prediction(station.code, model_run.id, start_prediction_timestamp)
+        previous_prediction_from_same_model_run = self.model_run_repository.get_weather_station_model_prediction(
+            prediction.station_code, prediction.prediction_model_run_timestamp_id, start_prediction_timestamp
+        )
         # If a prediction from 24 hours ago from the same model run exists, return the difference in cumulative precipitation
         # between now and then as our total for the past 24 hours. We can end up with very very small negative numbers due
         # to floating point math, so return absolute value to avoid displaying -0.0.
@@ -235,7 +233,7 @@ class ECMWFPredictionProcessor:
             day=prediction_timestamp.day,
             tzinfo=timezone.utc,
         )
-        actual_precip = self.model_run_repository.get_accumulated_precipitation(station.code, start_prediction_timestamp, end_prediction_timestamp)
+        actual_precip = self.model_run_repository.get_accumulated_precipitation(prediction.station_code, start_prediction_timestamp, end_prediction_timestamp)
         return actual_precip + station_prediction.apcp_sfc_0
 
     def _calculate_delta_precip(self, prev_prediction: ModelRunPrediction, station_prediction: WeatherStationModelPrediction):

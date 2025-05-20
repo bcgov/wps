@@ -85,6 +85,11 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction, pre
     # create a noon prediction. (using utc hour 20, as that is solar noon in B.C.)
     noon_prediction = ModelRunPrediction()
     noon_prediction.prediction_timestamp = prediction_a.prediction_timestamp.replace(hour=20)
+
+    # inherit metadata
+    noon_prediction.station_code = prediction_a.station_code
+    noon_prediction.prediction_model_run_timestamp_id = prediction_a.prediction_model_run_timestamp_id
+
     # throw timestamps into their own variables.
     timestamp_a = prediction_a.prediction_timestamp.timestamp()
     timestamp_b = prediction_b.prediction_timestamp.timestamp()

@@ -188,18 +188,22 @@ def test_weather_station_prediction_initializer(existing_station_model_predictio
     model_run.prediction_run_timestamp = datetime(2023, 10, 1, 12, 0)
     prediction = MagicMock(spec=ModelRunPrediction)
     prediction.prediction_timestamp = prediction_timestamp
+    prediction.station_code = station.code
+    prediction.prediction_model_run_timestamp_id = model_run.id
 
     # Mock repository behavior
     model_run_repository.get_weather_station_model_prediction.return_value = existing_station_model_prediction
 
     # Call the method
-    station_prediction = processor._weather_station_prediction_initializer(station, model_run, prediction)
+    station_prediction = processor._weather_station_prediction_initializer(prediction)
 
     # Assertions
-    model_run_repository.get_weather_station_model_prediction.assert_called_once_with(station.code, model_run.id, prediction.prediction_timestamp)
-    assert station_prediction.station_code == station.code
-    assert station_prediction.prediction_model_run_timestamp_id == model_run.id
-    assert station_prediction.prediction_timestamp == model_run.prediction_run_timestamp
+    model_run_repository.get_weather_station_model_prediction.assert_called_once_with(
+        prediction.station_code, prediction.prediction_model_run_timestamp_id, prediction.prediction_timestamp
+    )
+    assert station_prediction.station_code == prediction.station_code
+    assert station_prediction.prediction_model_run_timestamp_id == prediction.prediction_model_run_timestamp_id
+    assert station_prediction.prediction_timestamp == prediction.prediction_timestamp
     if existing_station_model_prediction is not None:
         assert station_prediction.tmp_tgl_2 == existing_station_model_prediction.tmp_tgl_2
         assert station_prediction.rh_tgl_2 == existing_station_model_prediction.rh_tgl_2
@@ -274,10 +278,12 @@ def test_calculate_past_24_hour_precip_with_previous_prediction(setup_processor,
     model_run_repository.get_weather_station_model_prediction.return_value = previous_prediction
 
     # Call the method
-    result = processor._calculate_past_24_hour_precip(station, model_run, prediction, station_prediction)
+    result = processor._calculate_past_24_hour_precip(prediction, station_prediction)
 
     # Assertions
-    model_run_repository.get_weather_station_model_prediction.assert_called_once_with(station.code, model_run.id, prediction.prediction_timestamp - timedelta(days=1))
+    model_run_repository.get_weather_station_model_prediction.assert_called_once_with(
+        prediction.station_code, prediction.prediction_model_run_timestamp_id, prediction.prediction_timestamp - timedelta(days=1)
+    )
     assert result == 5.0
 
 
@@ -296,12 +302,14 @@ def test_calculate_past_24_hour_precip_without_previous_prediction(setup_process
     model_run_repository.get_accumulated_precipitation.return_value = 3.0
 
     # Call the method
-    result = processor._calculate_past_24_hour_precip(station, model_run, prediction, station_prediction)
+    result = processor._calculate_past_24_hour_precip(prediction, station_prediction)
 
     # Assertions
-    model_run_repository.get_weather_station_model_prediction.assert_called_once_with(station.code, model_run.id, prediction.prediction_timestamp - timedelta(days=1))
+    model_run_repository.get_weather_station_model_prediction.assert_called_once_with(
+        prediction.station_code, prediction.prediction_model_run_timestamp_id, prediction.prediction_timestamp - timedelta(days=1)
+    )
     model_run_repository.get_accumulated_precipitation.assert_called_once_with(
-        station.code,
+        prediction.station_code,
         prediction.prediction_timestamp - timedelta(days=1),
         datetime(year=2023, month=10, day=2, tzinfo=timezone.utc),
     )
@@ -429,11 +437,11 @@ def test_initialize_station_prediction(setup_processor, mock_model_run_data):
     prediction.get_wind_direction.return_value = 180.0
 
     # Call the method
-    result = processor.initialize_station_prediction(None, prediction, station, model_run)
+    result = processor.initialize_station_prediction(None, prediction)
 
     # Assertions
-    processor._weather_station_prediction_initializer.assert_called_once_with(station, model_run, prediction)
-    processor._calculate_past_24_hour_precip.assert_called_once_with(station, model_run, prediction, station_prediction)
+    processor._weather_station_prediction_initializer.assert_called_once_with(prediction)
+    processor._calculate_past_24_hour_precip.assert_called_once_with(prediction, station_prediction)
     processor._calculate_delta_precip.assert_called_once_with(None, station_prediction)
 
     assert result.tmp_tgl_2 == 25.0
