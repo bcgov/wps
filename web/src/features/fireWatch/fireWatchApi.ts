@@ -103,9 +103,7 @@ export interface FireWatchOutputBurnForecast {
 
 // API response data transfer object
 export interface FireWatchBurnForecastsResponse {
-  fire_watch_burn_forecasts: {
-    [fire_watch_id: number]: FireWatchOutputBurnForecast
-  }
+  fire_watch_burn_forecasts: FireWatchOutputBurnForecast[]
 }
 
 export const getActiveFireWatches = async (): Promise<FireWatchListResponse> => {
@@ -251,12 +249,9 @@ const marshalBurnForecastOutputToBurnForecast = (burnForecastOutput: BurnForecas
 }
 
 // Convert fire watch burn forecasts from the API shape to frontend shape.
-const marshalBurnForecasts = (output: { [id: number]: FireWatchOutputBurnForecast }) => {
-  const fireWatchBurnForecasts: FireWatchBurnForecast[] = []
-  for (const value of Object.values(output)) {
-    // Convert FireWatch from API to front-end shape
+const marshalBurnForecasts = (values: FireWatchOutputBurnForecast[]) => {
+    const fireWatchBurnForecasts: FireWatchBurnForecast[] = values.map((value: FireWatchOutputBurnForecast) => {
     const fireWatch = marshalFireWatchOutputToFireWatch(value.fire_watch)
-    // Convert BurnForecasts from API to front-end shape
     const burnForecasts: BurnForecast[] = []
     for (const burnForecastOutput of value.burn_forecasts) {
       const burnForecast = marshalBurnForecastOutputToBurnForecast(burnForecastOutput)
@@ -266,7 +261,8 @@ const marshalBurnForecasts = (output: { [id: number]: FireWatchOutputBurnForecas
       fireWatch,
       burnForecasts: burnForecasts
     }
-    fireWatchBurnForecasts.push(fireWatchBurnForecast)
-  }
+    return fireWatchBurnForecast
+
+  })
   return fireWatchBurnForecasts
 }

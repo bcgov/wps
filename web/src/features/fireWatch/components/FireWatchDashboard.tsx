@@ -163,6 +163,11 @@ const FireWatchDashboard = () => {
           getDetailPanelContent={getDetailPanelContent}
           getDetailPanelHeight={() => 'auto'}
           getRowClassName={params => `in-prescription-${params.row.inPrescription}`}
+          initialState={{
+            sorting: {
+              sortModel: [{ field: 'id', sort: 'asc' }]
+            }
+          }}
           sx={{
             '.in-prescription-yes': {
               bgcolor: '#e1f1df',

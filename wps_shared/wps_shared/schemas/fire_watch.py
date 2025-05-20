@@ -105,4 +105,4 @@ class FireWatchOutputBurnForecast(BaseModel):
 
 
 class FireWatchBurnForecastsResponse(BaseModel):
-    fire_watch_burn_forecasts: Dict[int, FireWatchOutputBurnForecast]
+    fire_watch_burn_forecasts: List[FireWatchOutputBurnForecast]
