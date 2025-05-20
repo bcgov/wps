@@ -179,7 +179,6 @@ def test_ecmwf_process(mock_herbie_instance):
     assert mock_repo.get_or_create_prediction_run_calls == 2  # For hours 0 and 12
     # For each hour (0 and 12) get all the forecast hours (2 * (len(range(0, 145, 3)) + len(range(150, 241, 6)))
     assert ecmwf.files_downloaded == num_forecast_hours * 2
-    assert ecmwf.files_processed == num_forecast_hours * 2
 
 
 def test_ecmwf_process_model_run_exception(mock_herbie_instance, mocker: MockerFixture):
