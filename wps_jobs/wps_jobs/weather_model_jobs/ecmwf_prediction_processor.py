@@ -1,15 +1,12 @@
 import logging
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List
-from collections import defaultdict
-from wps_shared.utils.time import get_utc_now
-from wps_shared.schemas.stations import WeatherStation
-from wps_shared.db.models.weather_models import (
-    ModelRunPrediction,
-    PredictionModelRunTimestamp,
-    WeatherStationModelPrediction,
-)
+
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
+from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp, WeatherStationModelPrediction
+from wps_shared.schemas.stations import WeatherStation
+
 from wps_jobs.weather_model_jobs import ModelEnum
 from wps_jobs.weather_model_jobs.machine_learning import StationMachineLearning
 from wps_jobs.weather_model_jobs.utils.interpolate import (
@@ -94,12 +91,7 @@ class ECMWFPredictionProcessor:
         # datetimes are on different days, interpolate if previous is before 20:00 UTC
         return prev_timestamp.hour < 20
 
-    def _weather_station_prediction_initializer(
-        self,
-        station: WeatherStation,
-        model_run: PredictionModelRunTimestamp,
-        prediction: ModelRunPrediction,
-    ) -> WeatherStationModelPrediction:
+    def _weather_station_prediction_initializer(self, station: WeatherStation, model_run: PredictionModelRunTimestamp, prediction: ModelRunPrediction) -> WeatherStationModelPrediction:
         """Initialize a WeatherStationModelPrediction object."""
 
         station_prediction = self.model_run_repository.get_weather_station_model_prediction(
@@ -117,11 +109,7 @@ class ECMWFPredictionProcessor:
         return station_prediction
 
     def _apply_interpolated_bias_adjustments(
-        self,
-        station_prediction: WeatherStationModelPrediction,
-        prev_prediction: ModelRunPrediction,
-        prediction: ModelRunPrediction,
-        machine: StationMachineLearning,
+        self, station_prediction: WeatherStationModelPrediction, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction, machine: StationMachineLearning
     ):
         prev_prediction_datetime: datetime = prev_prediction.prediction_timestamp
         prediction_datetime: datetime = prediction.prediction_timestamp
@@ -179,11 +167,7 @@ class ECMWFPredictionProcessor:
         station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(station_prediction.precip_24h, station_prediction.prediction_timestamp)
         return station_prediction
 
-    def _apply_bias_adjustments(
-        self,
-        station_prediction: WeatherStationModelPrediction,
-        machine: StationMachineLearning,
-    ):
+    def _apply_bias_adjustments(self, station_prediction: WeatherStationModelPrediction, machine: StationMachineLearning):
         """Create a WeatherStationModelPrediction from the ModelRunPrediction data."""
         station_prediction.bias_adjusted_temperature = machine.predict_temperature(station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp)
         station_prediction.bias_adjusted_rh = machine.predict_rh(station_prediction.rh_tgl_2, station_prediction.prediction_timestamp)
@@ -197,11 +181,7 @@ class ECMWFPredictionProcessor:
         return station_prediction
 
     def initialize_station_prediction(
-        self,
-        prev_prediction: ModelRunPrediction,
-        prediction: ModelRunPrediction,
-        station: WeatherStation,
-        model_run: PredictionModelRunTimestamp,
+        self, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction, station: WeatherStation, model_run: PredictionModelRunTimestamp
     ) -> WeatherStationModelPrediction:
         """Initialize a WeatherStationModelPrediction object with the provided prediction data."""
         station_prediction = self._weather_station_prediction_initializer(station, model_run, prediction)
@@ -216,14 +196,7 @@ class ECMWFPredictionProcessor:
         station_prediction.wdir_tgl_10 = prediction.get_wind_direction()
         return station_prediction
 
-    def interpolate_20_00_values(
-        self,
-        prev_datetime: datetime,
-        next_datetime: datetime,
-        prev_value: float,
-        next_value: float,
-        target_datetime: datetime,
-    ) -> float | None:
+    def interpolate_20_00_values(self, prev_datetime: datetime, next_datetime: datetime, prev_value: float, next_value: float, target_datetime: datetime) -> float | None:
         """Interpolate the value at 2000 UTC using the previous and next values."""
         assert target_datetime.hour == 20, "Target datetime must be at 20:00 UTC"
         assert prev_datetime < target_datetime, "Previous datetime must be before target datetime"
@@ -238,11 +211,7 @@ class ECMWFPredictionProcessor:
         )
 
     def _calculate_past_24_hour_precip(
-        self,
-        station: WeatherStation,
-        model_run: PredictionModelRunTimestamp,
-        prediction: ModelRunPrediction,
-        station_prediction: WeatherStationModelPrediction,
+        self, station: WeatherStation, model_run: PredictionModelRunTimestamp, prediction: ModelRunPrediction, station_prediction: WeatherStationModelPrediction
     ):
         """Calculate the predicted precipitation over the previous 24 hours within the specified model run.
         If the model run does not contain a prediction timestamp for 24 hours prior to the current prediction,
@@ -269,11 +238,7 @@ class ECMWFPredictionProcessor:
         actual_precip = self.model_run_repository.get_accumulated_precipitation(station.code, start_prediction_timestamp, end_prediction_timestamp)
         return actual_precip + station_prediction.apcp_sfc_0
 
-    def _calculate_delta_precip(
-        self,
-        prev_prediction: ModelRunPrediction,
-        station_prediction: WeatherStationModelPrediction,
-    ):
+    def _calculate_delta_precip(self, prev_prediction: ModelRunPrediction, station_prediction: WeatherStationModelPrediction):
         """Calculate the station_prediction's delta_precip based on the previous precip
         prediction for the station
         """
