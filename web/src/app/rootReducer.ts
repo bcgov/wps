@@ -88,4 +88,3 @@ export const selectStationGroups = (state: RootState) => state.stationGroups
 export const selectStationGroupsMembers = (state: RootState) => state.stationGroupsMembers
 export const fireWatch = (state: RootState) => state.fireWatch
 export const selectFireWatchFireCentres = (state: RootState) => state.fireWatchFireCentres
-export const selectBurnForecasts = (state: RootState) => state.burnForecasts.fireWatchBurnForecasts

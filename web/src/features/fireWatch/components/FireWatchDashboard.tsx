@@ -1,4 +1,3 @@
-import { selectBurnForecasts } from '@/app/rootReducer'
 import { AppDispatch } from '@/app/store'
 import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
 import FireWatchDetailsModal from '@/features/fireWatch/components/FireWatchDetailsModal'
@@ -10,7 +9,7 @@ import {
   FuelTypeEnum,
   PrescriptionEnum
 } from '@/features/fireWatch/interfaces'
-import { fetchBurnForecasts } from '@/features/fireWatch/slices/burnForecastSlice'
+import { fetchBurnForecasts, selectBurnForecasts } from '@/features/fireWatch/slices/burnForecastSlice'
 import InfoIcon from '@mui/icons-material/Info'
 import { Box, styled, Typography, useTheme } from '@mui/material'
 import {
@@ -48,42 +47,8 @@ const FireWatchDashboard = () => {
   const dispatch: AppDispatch = useDispatch()
   const burnForecasts = useSelector(selectBurnForecasts)
   const theme = useTheme()
-  const [rows, setRows] = useState<BurnWatchRow[]>([])
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedFireWatch, setSelectedFireWatch] = useState<FireWatchBurnForecast | null>(null)
-
-  const getInPrescription = (burnForecasts: BurnForecast[]): PrescriptionEnum => {
-    let inPrescription = PrescriptionEnum.NO
-    for (const burnForecast of burnForecasts) {
-      if (burnForecast.inPrescription === PrescriptionEnum.HFI) {
-        inPrescription = PrescriptionEnum.HFI
-      }
-      if (burnForecast.inPrescription === PrescriptionEnum.ALL) {
-        inPrescription = PrescriptionEnum.ALL
-        break
-      }
-    }
-    return inPrescription
-  }
-
-  const shapeRows = (values: FireWatchBurnForecast[]) => {
-    const newRows = values.map((value: FireWatchBurnForecast) => {
-      return {
-        id: value.fireWatch.id,
-        title: value.fireWatch.title,
-        fireCentre: value.fireWatch.fireCentre?.name ?? '',
-        station: value.fireWatch.station?.name ?? '',
-        fuelType: value.fireWatch.fuelType,
-        status: value.fireWatch.status,
-        burnWindowStart: value.fireWatch.burnWindowStart,
-        burnWindowEnd: value.fireWatch.burnWindowEnd,
-        inPrescription: getInPrescription(value.burnForecasts),
-        fireWatch: value.fireWatch,
-        burnForecasts: value.burnForecasts
-      }
-    })
-    return newRows
-  }
 
   const getFireWatchDetails = (row: BurnWatchRow) => {
     const fireWatchID = row.id
@@ -178,11 +143,6 @@ const FireWatchDashboard = () => {
     dispatch(fetchBurnForecasts())
   }, [])
 
-  useEffect(() => {
-    const newRows = shapeRows(burnForecasts)
-    setRows(newRows)
-  }, [burnForecasts])
-
   const getDetailPanelContent = React.useCallback<NonNullable<DataGridProProps['getDetailPanelContent']>>(
     ({ row }) => <DetailPanelContent row={row} />,
     []
@@ -199,7 +159,7 @@ const FireWatchDashboard = () => {
           disableRowSelectionOnClick
           hideFooter
           columns={columns}
-          rows={rows}
+          rows={burnForecasts}
           getDetailPanelContent={getDetailPanelContent}
           getDetailPanelHeight={() => 'auto'}
           getRowClassName={params => `in-prescription-${params.row.inPrescription}`}

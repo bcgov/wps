@@ -1,7 +1,7 @@
 import { theme } from '@/app/theme'
 import { BurnWatchRow } from '@/features/fireWatch/components/FireWatchDashboard'
 import { BurnForecast } from '@/features/fireWatch/interfaces'
-import { Box } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { DataGridPro, GridColDef, GridValueFormatterParams } from '@mui/x-data-grid-pro'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
@@ -93,28 +93,37 @@ const DetailPanelContent = ({ row }: DetailPanelContentProps) => {
 
   return (
     <Box sx={{ pb: theme.spacing(2), pl: theme.spacing(4) }}>
-      <DataGridPro
-        density="compact"
-        disableRowSelectionOnClick
-        hideFooter
-        columns={columns}
-        rows={row.burnForecasts}
-        getRowClassName={params => `in-prescription-${params.row.inPrescription}`}
-        sx={{
-          '.in-prescription-yes': {
-            bgcolor: '#e1f1df',
-            '&:hover': { bgcolor: '#cddfc9' }
-          },
-          '.in-prescription-hfi': {
-            bgcolor: '#fef4cf',
-            '&:hover': { bgcolor: '#fce9b3' }
-          },
-          '&.MuiDataGrid-root .in-prescription-no': {
-            bgcolor: '#ffffff',
-            '&:hover': { bgcolor: '#ffffff' }
-          }
-        }}
-      />
+      {row.burnForecasts.length > 0 && (
+        <DataGridPro
+          disableVirtualization
+          data-testid={`detail-panel-content-${row.id}`}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          columns={columns}
+          rows={row.burnForecasts}
+          getRowClassName={params => `in-prescription-${params.row.inPrescription}`}
+          sx={{
+            '.in-prescription-all': {
+              bgcolor: '#e1f1df',
+              '&:hover': { bgcolor: '#cddfc9' }
+            },
+            '.in-prescription-hfi': {
+              bgcolor: '#fef4cf',
+              '&:hover': { bgcolor: '#fce9b3' }
+            },
+            '&.MuiDataGrid-root .in-prescription-no': {
+              bgcolor: '#ffffff',
+              '&:hover': { bgcolor: '#ffffff' }
+            }
+          }}
+        />
+      )}
+      {row.burnForecasts.length === 0 && (
+        <Typography variant="body1" sx={{ padding: theme.spacing(1) }}>
+          No data available.
+        </Typography>
+      )}
     </Box>
   )
 }

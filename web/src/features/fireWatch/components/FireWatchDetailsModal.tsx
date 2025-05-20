@@ -3,7 +3,7 @@ import { FireWatchBurnForecast } from '@/features/fireWatch/interfaces'
 import { Modal, Paper, Typography } from '@mui/material'
 import { useTheme } from '@mui/system'
 
-interface FireWatchDetailsModalProps {
+export interface FireWatchDetailsModalProps {
   open: boolean
   onClose: () => void
   selectedFireWatch: FireWatchBurnForecast | null

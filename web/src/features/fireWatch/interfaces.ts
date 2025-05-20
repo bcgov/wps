@@ -69,7 +69,6 @@ export interface FireWatch {
   contactEmail: string[]
   fireCentre: FireWatchFireCentre | null
   geometry: number[]
-  // station?: StationOption | null
   station: FireWatchStation | null
   status: BurnStatusEnum
   title: string
