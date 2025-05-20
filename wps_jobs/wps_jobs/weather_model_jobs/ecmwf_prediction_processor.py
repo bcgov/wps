@@ -9,11 +9,7 @@ from wps_shared.schemas.stations import WeatherStation
 
 from wps_jobs.weather_model_jobs import ModelEnum
 from wps_jobs.weather_model_jobs.machine_learning import StationMachineLearning
-from wps_jobs.weather_model_jobs.utils.interpolate import (
-    SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION,
-    construct_interpolated_noon_prediction,
-    interpolate_between_two_points,
-)
+from wps_jobs.weather_model_jobs.utils.interpolate import SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION, construct_interpolated_noon_prediction, interpolate_between_two_points
 
 logger = logging.getLogger(__name__)
 
@@ -95,9 +91,7 @@ class ECMWFPredictionProcessor:
         """Initialize a WeatherStationModelPrediction object."""
 
         station_prediction = self.model_run_repository.get_weather_station_model_prediction(
-            prediction.station_code,
-            prediction.prediction_model_run_timestamp_id,
-            prediction.prediction_timestamp,
+            prediction.station_code, prediction.prediction_model_run_timestamp_id, prediction.prediction_timestamp
         )
 
         if station_prediction is None:
@@ -227,12 +221,7 @@ class ECMWFPredictionProcessor:
         # We use actual precipitation from our hourly_actuals table to make up the missing hours.
         prediction_timestamp: datetime = station_prediction.prediction_timestamp
         # Create new datetime with time of 00:00 hours as the end time.
-        end_prediction_timestamp = datetime(
-            year=prediction_timestamp.year,
-            month=prediction_timestamp.month,
-            day=prediction_timestamp.day,
-            tzinfo=timezone.utc,
-        )
+        end_prediction_timestamp = datetime(year=prediction_timestamp.year, month=prediction_timestamp.month, day=prediction_timestamp.day, tzinfo=timezone.utc)
         actual_precip = self.model_run_repository.get_accumulated_precipitation(prediction.station_code, start_prediction_timestamp, end_prediction_timestamp)
         return actual_precip + station_prediction.apcp_sfc_0
 

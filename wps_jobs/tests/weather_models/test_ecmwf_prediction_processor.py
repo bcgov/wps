@@ -84,7 +84,7 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
     # This is called to create the interpolated noon prediction between 18:00 UTC and 21:00 UTC
     assert interpolated_noon_prediction_spy.call_count == 1
     # 1st call to initialize_station_prediction does not construct the noon prediction
-    assert initialize_station_prediction_spy.call_args_list[0][0][0] == None
+    assert initialize_station_prediction_spy.call_args_list[0][0][0] is None
     assert initialize_station_prediction_spy.call_args_list[0][0][1] == model_run_predictions[0]
     # 2nd call to initialize_station_prediction constructs the noon prediction, and does not use prev or next prediction
     assert initialize_station_prediction_spy.call_args_list[1][0][1] != model_run_predictions[0]
@@ -270,7 +270,7 @@ def test_calculate_past_24_hour_precip_with_previous_prediction(setup_processor,
     parameters and that the method returns the expected precipitation value.
     """
     processor, model_run_repository = setup_processor
-    station, model_run, prediction, station_prediction = mock_model_run_data
+    _, _, prediction, station_prediction = mock_model_run_data
 
     # Mock repository behavior
     previous_prediction = MagicMock()
@@ -295,7 +295,7 @@ def test_calculate_past_24_hour_precip_without_previous_prediction(setup_process
     when no previous weather station model prediction exists in the repository.
     """
     processor, model_run_repository = setup_processor
-    station, model_run, prediction, station_prediction = mock_model_run_data
+    _, _, prediction, station_prediction = mock_model_run_data
 
     # Mock repository behavior
     model_run_repository.get_weather_station_model_prediction.return_value = None
@@ -422,7 +422,7 @@ def test_initialize_station_prediction(setup_processor, mock_model_run_data):
     calculations and assignments are performed.
     """
     processor, _ = setup_processor
-    station, model_run, prediction, station_prediction = mock_model_run_data
+    _, _, prediction, station_prediction = mock_model_run_data
 
     # Mock methods
     processor._weather_station_prediction_initializer = MagicMock(return_value=station_prediction)
