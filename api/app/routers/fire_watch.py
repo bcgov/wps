@@ -212,7 +212,7 @@ def create_fire_watch_burn_forecasts_response(
     for fire_watch, fire_centre in fire_watches:
         fire_watch_output = create_fire_watch_output(fire_watch, fire_centre, stations)
         burn_forecast_outputs = fire_watch_weather_dict.get(fire_watch.id, [])
-        _ = burn_forecast_outputs.sort(key=lambda x: x.date)
+        burn_forecast_outputs.sort(key=lambda x: x.date)
         fire_watch_burn_forecasts[fire_watch.id] = FireWatchOutputBurnForecast(fire_watch=fire_watch_output, burn_forecasts=burn_forecast_outputs)
     output_as_dict = dict(fire_watch_burn_forecasts)
     return FireWatchBurnForecastsResponse(fire_watch_burn_forecasts=output_as_dict)

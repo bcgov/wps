@@ -132,7 +132,6 @@ export const getFireCentres = async (): Promise<FireWatchFireCentresResponse> =>
 export async function getBurnForecasts(): Promise<FireWatchBurnForecast[]> {
   const url = '/fire-watch/burn-forecasts'
   const { data } = await axios.get(url)
-  console.log(data)
   const burnForecasts = marshalBurnForecasts(data.fire_watch_burn_forecasts)
   return burnForecasts
 }
