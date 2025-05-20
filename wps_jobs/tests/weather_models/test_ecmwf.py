@@ -44,6 +44,9 @@ class MockModelRunRepository(ModelRunRepository):
     def get_processed_url(self, url):
         return None
 
+    def mark_url_as_processed(self, url):
+        return None
+
 
 @pytest.fixture
 def mock_herbie_instance(mocker: MockerFixture):
@@ -179,18 +182,19 @@ def test_ecmwf_process(mock_herbie_instance):
     assert ecmwf.files_processed == num_forecast_hours * 2
 
 
-def test_ecmwf_process_model_run_exception(mock_herbie_instance, monkeypatch):
-    def mock_get_transformer(_, __):
-        raise Exception()
-
-    monkeypatch.setattr(wps_jobs.weather_model_jobs.ecmwf, "get_ecmwf_transformer", mock_get_transformer)
+def test_ecmwf_process_model_run_exception(mock_herbie_instance, mocker: MockerFixture):
+    mocker.patch("wps_jobs.weather_model_jobs.ecmwf.get_ecmwf_transformer", side_effect=Exception("test exception"))
 
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
-    ecmwf = ECMWF("/tmp", stations, MockModelRunRepository())
+    mock_repo = MockModelRunRepository()
+    mark_complete_spy = mocker.spy(mock_repo, "mark_model_run_interpolated")
+
+    ecmwf = ECMWF("/tmp", stations, mock_repo)
 
     ecmwf.process()
-    # 1 exception for each forecast hour + 1 for the model run
-    assert ecmwf.exception_count == (num_forecast_hours * 2) + 1
+
+    assert mark_complete_spy.call_count == 0
+    assert ecmwf.exception_count == (num_forecast_hours * 2)
 
 
 @pytest.mark.parametrize(

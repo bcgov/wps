@@ -143,12 +143,12 @@ class ECMWF:
                     stations_df = get_stations_dataframe(transformer, self.stations)
                     process_result = self.ecmwf_processor.process_grib_data(H, model_info, stations_df)
                     self.store_processed_result(self.stations, prediction_run, process_result)
+
+                    self.files_processed += 1
+                    self.model_run_repository.mark_url_as_processed(url)
                 except Exception as exception:
                     self.exception_count += 1
                     logger.error("unexpected exception processing %s", url, exc_info=exception)
-
-                self.files_processed += 1
-                self.model_run_repository.mark_url_as_processed(url)
 
             # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
             if len(prediction_hours) == self.files_processed:
