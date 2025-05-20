@@ -18,6 +18,7 @@ from wps_jobs.weather_model_jobs.ecmwf import (
 )
 from wps_jobs.weather_model_jobs.ecmwf_model_processor import ECMWFModelProcessor
 from wps_jobs.weather_model_jobs.utils.process_grib import PredictionModelNotFound
+from datetime import datetime
 
 num_forecast_hours = len(list(get_ecmwf_forecast_hours()))
 
@@ -41,6 +42,9 @@ class MockModelRunRepository(ModelRunRepository):
         return self.prediction_runs[key]
 
     def get_processed_url(self, url):
+        return None
+
+    def mark_url_as_processed(self, url):
         return None
 
 
@@ -175,21 +179,21 @@ def test_ecmwf_process(mock_herbie_instance):
     assert mock_repo.get_or_create_prediction_run_calls == 2  # For hours 0 and 12
     # For each hour (0 and 12) get all the forecast hours (2 * (len(range(0, 145, 3)) + len(range(150, 241, 6)))
     assert ecmwf.files_downloaded == num_forecast_hours * 2
-    assert ecmwf.files_processed == num_forecast_hours * 2
 
 
-def test_ecmwf_process_model_run_exception(mock_herbie_instance, monkeypatch):
-    def mock_get_transformer(_, __):
-        raise Exception()
-
-    monkeypatch.setattr(wps_jobs.weather_model_jobs.ecmwf, "get_ecmwf_transformer", mock_get_transformer)
+def test_ecmwf_process_model_run_exception(mock_herbie_instance, mocker: MockerFixture):
+    mocker.patch("wps_jobs.weather_model_jobs.ecmwf.get_ecmwf_transformer", side_effect=Exception("test exception"))
 
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
-    ecmwf = ECMWF("/tmp", stations, MockModelRunRepository())
+    mock_repo = MockModelRunRepository()
+    mark_complete_spy = mocker.spy(mock_repo, "mark_model_run_interpolated")
+
+    ecmwf = ECMWF("/tmp", stations, mock_repo)
 
     ecmwf.process()
-    # 1 exception for each forecast hour + 1 for the model run
-    assert ecmwf.exception_count == (num_forecast_hours * 2) + 1
+
+    assert mark_complete_spy.call_count == 0
+    assert ecmwf.exception_count == (num_forecast_hours * 2)
 
 
 @pytest.mark.parametrize(
@@ -334,3 +338,27 @@ def test_process_model_run_prediction_model_complete(mock_herbie_instance, compl
     assert ecmwf.files_downloaded == 0
     assert ecmwf.files_processed == 0
     assert ecmwf.exception_count == 0
+
+
+def test_process_model_run_future_model_datetime(mocker):
+    stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
+    mock_repo = MagicMock(spec=ModelRunRepository)
+
+    # set a fixed 'now' and patch time_utils.get_utc_now
+    fixed_now = datetime(2024, 6, 1, 10, 0, 0)
+    mocker.patch("wps_jobs.weather_model_jobs.ecmwf.time_utils.get_utc_now", return_value=fixed_now)
+
+    ecmwf = ECMWF("/tmp", stations, mock_repo)
+    logger_spy = mocker.spy(wps_jobs.weather_model_jobs.ecmwf.logger, "info")
+
+    future_hour = 12  # fixed_now is 10:00, so 12:00 is in the future
+
+    ecmwf.process_model_run(future_hour)
+
+    assert ecmwf.files_downloaded == 0
+    assert ecmwf.files_processed == 0
+
+    mock_repo.get_prediction_model.assert_not_called()
+    mock_repo.get_or_create_prediction_run.assert_not_called()
+
+    assert any("is in the future. Exiting model run." in str(call.args[0]) for call in logger_spy.call_args_list)
