@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 from datetime import datetime, timedelta, timezone
+from unittest.mock import call
 
 from pytest_mock import MockerFixture
 import wps_jobs.weather_model_jobs.ecmwf_prediction_processor
@@ -538,11 +539,12 @@ def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_dat
 
     machine.predict_precipitation.assert_called_once_with(station_prediction.precip_24h, station_prediction.prediction_timestamp)
 
-    processor.interpolate_20_00_values.assert_any_call(prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 10.0, 20.0, datetime(2023, 10, 1, 20, 0))
-
-    processor.interpolate_20_00_values.assert_any_call(prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 50.0, 55.0, datetime(2023, 10, 1, 20, 0))
-    processor.interpolate_20_00_values.assert_any_call(prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 5.0, 6.0, datetime(2023, 10, 1, 20, 0))
-    processor.interpolate_20_00_values.assert_any_call(prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 180.0, 190.0, datetime(2023, 10, 1, 20, 0))
+    assert processor.interpolate_20_00_values.call_args_list == [
+        call(prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 10.0, 20.0, datetime(2023, 10, 1, 20, 0)),
+        call(prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 50.0, 55.0, datetime(2023, 10, 1, 20, 0)),
+        call(prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 5.0, 6.0, datetime(2023, 10, 1, 20, 0)),
+        call(prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 180.0, 190.0, datetime(2023, 10, 1, 20, 0)),
+    ]
 
     # precip is not interpolated
     assert processor.interpolate_20_00_values.call_count == 4
