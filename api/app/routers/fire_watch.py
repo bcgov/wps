@@ -207,15 +207,13 @@ def create_fire_watch_burn_forecasts_response(
     fire_watch_weather_dict = defaultdict(list)
     for item, prescription in fire_watch_weather:
         fire_watch_weather_dict[item.fire_watch_id].append(create_burn_forecast_output(item, prescription))
-    # Build a dictionary of FireWatchOutputBurnForecasts keyed by fire watch id for easy lookup
-    fire_watch_burn_forecasts: Dict[int, FireWatchOutputBurnForecast] = {}
+    fire_watch_burn_forecasts: List[FireWatchOutputBurnForecast] = []
     for fire_watch, fire_centre in fire_watches:
         fire_watch_output = create_fire_watch_output(fire_watch, fire_centre, stations)
         burn_forecast_outputs = fire_watch_weather_dict.get(fire_watch.id, [])
         burn_forecast_outputs.sort(key=lambda x: x.date)
-        fire_watch_burn_forecasts[fire_watch.id] = FireWatchOutputBurnForecast(fire_watch=fire_watch_output, burn_forecasts=burn_forecast_outputs)
-    output_as_dict = dict(fire_watch_burn_forecasts)
-    return FireWatchBurnForecastsResponse(fire_watch_burn_forecasts=output_as_dict)
+        fire_watch_burn_forecasts.append(FireWatchOutputBurnForecast(fire_watch=fire_watch_output, burn_forecasts=burn_forecast_outputs))
+    return FireWatchBurnForecastsResponse(fire_watch_burn_forecasts=fire_watch_burn_forecasts)
 
 
 @router.get("/", response_model=FireWatchListResponse)
