@@ -29,9 +29,6 @@
 		// Python
 		"[python]": {
 			"editor.defaultFormatter": "charliermarsh.ruff",
-			"editor.rulers": [
-				100
-			]
 		},
 		"ruff.lineLength": 100,
 		"autoDocstring.docstringFormat": "sphinx-notypes",
@@ -57,7 +54,7 @@
 			"editor.tabSize": 2,
 			"editor.formatOnSave": true
 		},
-		// JSON/JSONC
+		// JSON
 		"[json]": {
 			"editor.defaultFormatter": "vscode.json-language-features"
 		},
