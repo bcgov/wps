@@ -1,15 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
-import { combineReducers, configureStore } from '@reduxjs/toolkit'
-import { Provider } from 'react-redux'
 import FireWatchDashboard from '@/features/fireWatch/components/FireWatchDashboard'
-import { BurnForecastsState, initialState } from '@/features/fireWatch/slices/burnForecastSlice'
-import { DateTime } from 'luxon'
-import burnForecastSlice from '@/features/fireWatch/slices/burnForecastSlice'
-import { LicenseInfo } from '@mui/x-data-grid-pro'
-import { MUI_LICENSE } from '@/utils/env'
-import { BurnStatusEnum, FireWatch, FuelTypeEnum, PrescriptionEnum } from '@/features/fireWatch/interfaces'
 import { FireWatchDetailsModalProps } from '@/features/fireWatch/components/FireWatchDetailsModal'
+import { BurnStatusEnum, FireWatch, FuelTypeEnum, PrescriptionEnum } from '@/features/fireWatch/interfaces'
+import burnForecastSlice, { BurnForecastsState, initialState } from '@/features/fireWatch/slices/burnForecastSlice'
+import { MUI_LICENSE } from '@/utils/env'
+import { LicenseInfo } from '@mui/x-data-grid-pro'
+import { combineReducers, configureStore } from '@reduxjs/toolkit'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { DateTime } from 'luxon'
+import { Provider } from 'react-redux'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const buildTestStore = (initialState: BurnForecastsState) => {
   const rootReducer = combineReducers({ burnForecasts: burnForecastSlice })
@@ -28,8 +27,7 @@ vi.mock('features/fireWatch/fireWatchApi', () => ({
 
 vi.mock('@/features/fireWatch/components/FireWatchDetailsModal', () => {
   return {
-    default: ({ open }: FireWatchDetailsModalProps) =>
-  open ? <div>FireWatch Modal Open</div> : <div></div>
+    default: ({ open }: FireWatchDetailsModalProps) => (open ? <div>FireWatch Modal Open</div> : <div></div>)
   }
 })
 
@@ -45,8 +43,12 @@ describe('FireWatchDashboard', async () => {
     const testStore = buildTestStore({
       ...initialState
     })
-    const dispatchSpy = vi.spyOn(testStore, "dispatch")
-    render(<Provider store={testStore}><FireWatchDashboard /></Provider>)
+    const dispatchSpy = vi.spyOn(testStore, 'dispatch')
+    render(
+      <Provider store={testStore}>
+        <FireWatchDashboard />
+      </Provider>
+    )
     expect(dispatchSpy).toHaveBeenCalled()
   })
 
@@ -54,24 +56,28 @@ describe('FireWatchDashboard', async () => {
     const testStore = buildTestStore({
       ...initialState
     })
-    await act(async () => render(
-      <Provider store={testStore}>
-        <FireWatchDashboard />
-      </Provider>
-    ))
+    await act(async () =>
+      render(
+        <Provider store={testStore}>
+          <FireWatchDashboard />
+        </Provider>
+      )
+    )
     const dashboard = screen.getByTestId('fire-watch-dashboard')
     expect(dashboard).toBeInTheDocument()
   })
 
-    it('renders the grid with rows', async () => {
-      const testStore = buildTestStore({
+  it('renders the grid with rows', async () => {
+    const testStore = buildTestStore({
       ...initialState
     })
-    await act(async () => render(
-      <Provider store={testStore}>
-        <FireWatchDashboard />
-      </Provider>
-    ))
+    await act(async () =>
+      render(
+        <Provider store={testStore}>
+          <FireWatchDashboard />
+        </Provider>
+      )
+    )
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument()
     // Check if FireWatch titles are rendered
@@ -80,16 +86,18 @@ describe('FireWatchDashboard', async () => {
     expect(screen.getByText('test-3')).toBeInTheDocument()
   })
 
-    it('opens modal when info icon is clicked', async () => {
-      const testStore = buildTestStore({
+  it('opens modal when info icon is clicked', async () => {
+    const testStore = buildTestStore({
       ...initialState
     })
-    await act(async () => render(
-      <Provider store={testStore}>
-        <FireWatchDashboard />
-      </Provider>
-    ))
-    const infoButton = screen.getAllByLabelText("View details")[0]
+    await act(async () =>
+      render(
+        <Provider store={testStore}>
+          <FireWatchDashboard />
+        </Provider>
+      )
+    )
+    const infoButton = screen.getAllByLabelText('View details')[0]
     fireEvent.click(infoButton)
 
     await waitFor(() => {
@@ -97,16 +105,18 @@ describe('FireWatchDashboard', async () => {
     })
   })
 
-    it('renders the detail panel when expanded', async () => {
-      const testStore = buildTestStore({
+  it('renders the detail panel when expanded', async () => {
+    const testStore = buildTestStore({
       ...initialState
     })
-    await act(async () => render(
-      <Provider store={testStore}>
-        <FireWatchDashboard />
-      </Provider>
-    ))
-    const expandButton = screen.getAllByLabelText("Expand")[0]
+    await act(async () =>
+      render(
+        <Provider store={testStore}>
+          <FireWatchDashboard />
+        </Provider>
+      )
+    )
+    const expandButton = screen.getAllByLabelText('Expand')[0]
     fireEvent.click(expandButton)
 
     await waitFor(() => {
@@ -114,14 +124,16 @@ describe('FireWatchDashboard', async () => {
     })
   })
   it('applies correct row class based on inPrescription value', async () => {
-      const testStore = buildTestStore({
+    const testStore = buildTestStore({
       ...initialState
     })
-    await act(async () => render(
-      <Provider store={testStore}>
-        <FireWatchDashboard />
-      </Provider>
-    ))
+    await act(async () =>
+      render(
+        <Provider store={testStore}>
+          <FireWatchDashboard />
+        </Provider>
+      )
+    )
 
     const row1 = document.querySelector('[data-id="1"]')
     expect(row1).toBeInTheDocument()
@@ -137,7 +149,7 @@ describe('FireWatchDashboard', async () => {
   })
 })
 
-const getMockFireWatch = (id: number, title: string): FireWatch =>  {
+const getMockFireWatch = (id: number, title: string): FireWatch => {
   const now = DateTime.now()
   return {
     id,
@@ -149,7 +161,7 @@ const getMockFireWatch = (id: number, title: string): FireWatch =>  {
       id: 1,
       name: 'fire-centre-test'
     },
-    geometry: [1,2],
+    geometry: [1, 2],
     station: {
       code: 1,
       name: 'test'
@@ -220,5 +232,5 @@ const mockFireWatchBurnForecasts = [
   {
     fireWatch: getMockFireWatch(3, 'test-3'),
     burnForecasts: [getMockBurnForecast(1, PrescriptionEnum.NO)]
-  },
+  }
 ]
