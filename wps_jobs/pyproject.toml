@@ -33,3 +33,6 @@ pytest-xdist = "^3.6.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+lint.ignore = ["E712", "F401"]

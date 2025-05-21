@@ -98,3 +98,4 @@ lint.per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.
     "E402",
     "F811",
 ] }
+lint.ignore = ["E712", "F401"]
