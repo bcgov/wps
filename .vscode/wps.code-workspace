@@ -30,7 +30,6 @@
 		"[python]": {
 			"editor.defaultFormatter": "charliermarsh.ruff",
 		},
-		"ruff.lineLength": 100,
 		"autoDocstring.docstringFormat": "sphinx-notypes",
 		"autoDocstring.startOnNewLine": true,
 		// JavaScript/TypeScript

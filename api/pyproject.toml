@@ -68,34 +68,3 @@ pytest-cov = "^6.0.0"
 [build-system]
 requires = ["poetry>=1.1.11"]
 build-backend = "poetry.masonry.api"
-
-[tool.ruff]
-exclude = ["app/tests/fba_calc/test_fba_error_redapp.py"]
-lint.per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" = [
-    "E501",
-], "alembic/versions/39806f02cdec_wfwx_update_date_part_of_unique_.py" = [
-    "E501",
-], "alembic/versions/56916d46d8cb_high_hfi_area.py" = [
-    "E501",
-], "alembic/versions/ac65354014bd_remove_bear_lake_station.py" = [
-    "E501",
-], "app/auto_spatial_advisory/db/database/tileserver.py" = [
-    "E501",
-], "app/tests/fba_calc/test_fba_error.py" = [
-    "E501",
-], "app/tests/hfi/test_hfi.py" = [
-    "F811",
-], "app/auto_spatial_advisory/nats_consumer.py" = [
-    "F811",
-], "app/tests/hfi/test_pdf_formatter.py" = [
-    "F811",
-], "app/tests/hfi/test_pdf_generator.py" = [
-    "F811",
-], "app/tests/weather_models/test_env_canada_gdps.py" = [
-    "F811",
-], "app/db/models/__init__.py" = [
-    "F401",
-    "E402",
-    "F811",
-] }
-lint.ignore = ["E712", "F401"]
