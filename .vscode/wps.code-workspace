@@ -34,10 +34,6 @@
 			]
 		},
 		"ruff.lineLength": 100,
-		"ruff.lint.ignore": [
-			"E712",
-			"F401"
-		],
 		"autoDocstring.docstringFormat": "sphinx-notypes",
 		"autoDocstring.startOnNewLine": true,
 		// JavaScript/TypeScript
