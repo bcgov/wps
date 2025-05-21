@@ -68,8 +68,8 @@ def marshall_fire_watch_input_to_db(fire_watch_input: FireWatchInput, idir_usern
     x, y = reproject_burn_location(fire_watch_input.burn_location, WEB_MERCATOR, NAD83_BC_ALBERS)
     db_fire_watch = DBFireWatch(
         burn_location=f"POINT({x} {y})",
-        burn_window_end=datetime.fromtimestamp(fire_watch_input.burn_window_end, UTC),
-        burn_window_start=datetime.fromtimestamp(fire_watch_input.burn_window_start, UTC),
+        burn_window_end=datetime.fromisoformat(fire_watch_input.burn_window_end),
+        burn_window_start=datetime.fromisoformat(fire_watch_input.burn_window_start),
         contact_email=fire_watch_input.contact_email,
         create_timestamp=now,
         create_user=idir_username,
@@ -133,16 +133,16 @@ def create_fire_watch_output(db_fire_watch: DBFireWatch, fire_centre: FireWatchF
     return FireWatchOutput(
         id=db_fire_watch.id,
         burn_location=[y, x],
-        burn_window_end=int(db_fire_watch.burn_window_end.timestamp()),
-        burn_window_start=int(db_fire_watch.burn_window_end.timestamp()),
+        burn_window_end=db_fire_watch.burn_window_end.isoformat(),
+        burn_window_start=db_fire_watch.burn_window_start.isoformat(),
         contact_email=db_fire_watch.contact_email,
-        create_timestamp=int(db_fire_watch.create_timestamp.timestamp()),
+        create_timestamp=db_fire_watch.create_timestamp.isoformat(),
         create_user=db_fire_watch.create_user,
         fire_centre=FireWatchFireCentre(id=fire_centre.id, name=fire_centre.name),
         station=FireWatchStation(code=station.properties.code, name=station.properties.name),
         status=db_fire_watch.status,
         title=db_fire_watch.title,
-        update_timestamp=int(db_fire_watch.update_timestamp.timestamp()),
+        update_timestamp=db_fire_watch.update_timestamp.isoformat(),
         update_user=db_fire_watch.update_user,
         # Fuel parameters
         fuel_type=db_fire_watch.fuel_type,
@@ -182,11 +182,11 @@ def create_fire_watch_output(db_fire_watch: DBFireWatch, fire_centre: FireWatchF
 
 
 def create_burn_forecast_output(fire_watch_weather: FireWatchWeather, prescription: str):
-    dt = datetime.combine(fire_watch_weather.date, datetime.min.time())
+    dt = datetime.combine(fire_watch_weather.date, datetime.min.time(), tzinfo=UTC)
     return BurnForecastOutput(
         id=fire_watch_weather.id,
         fire_watch_id=fire_watch_weather.fire_watch_id,
-        date=dt.timestamp(),
+        date=dt.isoformat(),
         temp=fire_watch_weather.temperature,
         rh=fire_watch_weather.relative_humidity,
         wind_speed=fire_watch_weather.wind_speed,

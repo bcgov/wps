@@ -56,13 +56,12 @@ describe('FireWatchDashboard', async () => {
     const testStore = buildTestStore({
       ...initialState
     })
-    await act(async () =>
-      render(
-        <Provider store={testStore}>
-          <FireWatchDashboard />
-        </Provider>
-      )
+    render(
+      <Provider store={testStore}>
+        <FireWatchDashboard />
+      </Provider>
     )
+
     const dashboard = screen.getByTestId('fire-watch-dashboard')
     expect(dashboard).toBeInTheDocument()
   })

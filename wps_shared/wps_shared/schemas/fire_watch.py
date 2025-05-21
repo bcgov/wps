@@ -16,8 +16,8 @@ class FireWatchStation(BaseModel):
 
 class FireWatchInput(BaseModel):
     burn_location: List[float]
-    burn_window_end: int
-    burn_window_start: int
+    burn_window_end: str
+    burn_window_start: str
     contact_email: List[str]
     fire_centre: FireWatchFireCentre
     station: FireWatchStation
@@ -65,9 +65,9 @@ class FireWatchInputRequest(BaseModel):
 
 class FireWatchOutput(FireWatchInput):
     id: int
-    create_timestamp: int
+    create_timestamp: str
     create_user: str
-    update_timestamp: int
+    update_timestamp: str
     update_user: str
 
 
@@ -86,7 +86,7 @@ class FireWatchFireCentresResponse(BaseModel):
 class BurnForecastOutput(BaseModel):
     id: int
     fire_watch_id: int
-    date: int
+    date: str
     temp: float
     rh: float
     wind_speed: float

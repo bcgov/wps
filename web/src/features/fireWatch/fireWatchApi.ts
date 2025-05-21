@@ -15,8 +15,8 @@ import { DateTime } from 'luxon'
 
 export interface FireWatchInput {
   burn_location: number[]
-  burn_window_end: number
-  burn_window_start: number
+  burn_window_end: string
+  burn_window_start: string
   contact_email: string[]
   fire_centre: FireWatchFireCentre | null
   station: FireWatchStation | null
@@ -60,9 +60,9 @@ export interface FireWatchInput {
 
 export interface FireWatchOutput extends FireWatchInput {
   id: number
-  create_timestamp: number
+  create_timestamp: string
   create_user: string
-  update_timestamp: number
+  update_timestamp: string
   update_user: string
 }
 
@@ -82,7 +82,7 @@ export interface FireWatchFireCentresResponse {
 export interface BurnForecastOutput {
   id: number
   fire_watch_id: number // The FireWatch record this BurnForecast relates to
-  date: number // Epoch time equivalent to peak burning for the specified day or maybe just a ISO date string
+  date: string
   temp: number
   rh: number
   wind_speed: number
@@ -137,8 +137,8 @@ export async function getBurnForecasts(): Promise<FireWatchBurnForecast[]> {
 const marshalFireWatchToFireWatchInput = (fireWatch: FireWatch): FireWatchInput => {
   return {
     burn_location: fireWatch.geometry,
-    burn_window_end: Math.round(fireWatch.burnWindowEnd?.toMillis() / 1000),
-    burn_window_start: Math.round(fireWatch.burnWindowStart?.toMillis() / 1000),
+    burn_window_end: fireWatch.burnWindowEnd.toISO()!,
+    burn_window_start: fireWatch.burnWindowStart.toISO()!,
     contact_email: fireWatch.contactEmail,
     fire_centre: fireWatch.fireCentre ?? null,
     station: fireWatch.station ?? null,
@@ -184,13 +184,13 @@ const marshalFireWatchToFireWatchInput = (fireWatch: FireWatch): FireWatchInput 
 const marshalFireWatchOutputToFireWatch = (fireWatchOutput: FireWatchOutput): FireWatch => {
   return {
     id: fireWatchOutput.id,
-    createTimestamp: DateTime.fromMillis(fireWatchOutput.create_timestamp * 1000),
+    createTimestamp: DateTime.fromISO(fireWatchOutput.create_timestamp),
     createUser: fireWatchOutput.create_user,
-    updateTimestamp: DateTime.fromMillis(fireWatchOutput.update_timestamp * 1000),
+    updateTimestamp: DateTime.fromISO(fireWatchOutput.update_timestamp),
     updateUser: fireWatchOutput.update_user,
     geometry: fireWatchOutput.burn_location,
-    burnWindowEnd: DateTime.fromMillis(fireWatchOutput.burn_window_end * 1000),
-    burnWindowStart: DateTime.fromMillis(fireWatchOutput.burn_window_start * 1000),
+    burnWindowEnd: DateTime.fromISO(fireWatchOutput.burn_window_end),
+    burnWindowStart: DateTime.fromISO(fireWatchOutput.burn_window_start),
     contactEmail: fireWatchOutput.contact_email,
     fireCentre: fireWatchOutput.fire_centre,
     station: fireWatchOutput.station,
@@ -234,7 +234,7 @@ const marshalBurnForecastOutputToBurnForecast = (burnForecastOutput: BurnForecas
   return {
     id: burnForecastOutput.id,
     fireWatchId: burnForecastOutput.fire_watch_id,
-    date: DateTime.fromMillis(burnForecastOutput.date * 1000),
+    date: DateTime.fromISO(burnForecastOutput.date),
     temp: burnForecastOutput.temp,
     rh: burnForecastOutput.rh,
     windSpeed: burnForecastOutput.wind_speed,
