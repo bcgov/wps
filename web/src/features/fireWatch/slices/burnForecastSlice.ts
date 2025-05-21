@@ -11,7 +11,7 @@ export interface BurnForecastsState {
   fireWatchBurnForecasts: FireWatchBurnForecast[]
 }
 
-const initialState: BurnForecastsState = {
+export const initialState: BurnForecastsState = {
   loading: false,
   error: null,
   fireWatchBurnForecasts: [],

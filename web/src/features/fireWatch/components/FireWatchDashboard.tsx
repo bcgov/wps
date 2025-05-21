@@ -23,6 +23,7 @@ import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { FireWatchPrescriptionColors } from 'app/theme'
 
 export interface BurnWatchRow {
   id: number
@@ -39,7 +40,7 @@ export interface BurnWatchRow {
 }
 
 const StyledDataGrid = styled(DataGridPro)(({ theme }) => ({
-  ['&.in-prescription-yes']: { backGroundColor: theme.palette.success },
+  ['&.in-prescription-all']: { backGroundColor: theme.palette.success },
   ['&.in-prescription-hfi']: { backGroundColor: theme.palette.warning }
 }))
 
@@ -149,7 +150,7 @@ const FireWatchDashboard = () => {
   )
 
   return (
-    <Box id="fire-watch-dashboard" sx={{ flexGrow: 1 }}>
+    <Box data-testid="fire-watch-dashboard" id="fire-watch-dashboard" sx={{ flexGrow: 1 }}>
       <Typography sx={{ padding: theme.spacing(2) }} variant="h4">
         Dashboard
       </Typography>
@@ -157,6 +158,7 @@ const FireWatchDashboard = () => {
         <DataGridPro
           density="compact"
           disableRowSelectionOnClick
+          disableVirtualization
           hideFooter
           columns={columns}
           rows={burnForecasts}
@@ -169,16 +171,16 @@ const FireWatchDashboard = () => {
             }
           }}
           sx={{
-            '.in-prescription-yes': {
-              bgcolor: '#e1f1df',
-              '&:hover': { bgcolor: '#cddfc9' }
+            '.in-prescription-all': {
+              bgcolor: FireWatchPrescriptionColors.all.bgcolor,
+              '&:hover': { bgcolor: FireWatchPrescriptionColors.all.hover }
             },
             '.in-prescription-hfi': {
-              bgcolor: '#fef4cf',
-              '&:hover': { bgcolor: '#fce9b3' }
+              bgcolor: FireWatchPrescriptionColors.hfi.bgcolor,
+              '&:hover': { bgcolor: FireWatchPrescriptionColors.hfi.hover }
             },
             '&.MuiDataGrid-root .in-prescription-no': {
-              bgcolor: '#ffffff'
+              bgcolor: FireWatchPrescriptionColors.no.bgcolor
             }
           }}
         />

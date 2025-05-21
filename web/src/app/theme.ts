@@ -161,3 +161,15 @@ export const adjustedTheme = createTheme({
     }
   }
 })
+
+interface FireWatchPrescriptionColorInterface {
+  [key: string]: {
+    bgcolor: string
+    hover: string
+  }
+}
+export const FireWatchPrescriptionColors: FireWatchPrescriptionColorInterface = {
+  all: { bgcolor: '#e1f1df', hover: '#cddfc9' },
+  hfi: { bgcolor: '#fef4cf', hover: '#fce9b3' },
+  no: { bgcolor: '#ffffff', hover: '#ffffff' }
+}
