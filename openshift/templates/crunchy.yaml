@@ -75,6 +75,7 @@ objects:
     spec:
       postgresVersion: 16
       postGISVersion: "3.3"
+      openshift: true
       metadata:
         name: ${CRUNCHY_NAME}-${SUFFIX}
         labels:

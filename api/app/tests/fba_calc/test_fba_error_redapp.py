@@ -67,6 +67,7 @@ logger = logging.getLogger(__name__)
         ("S3", 780, 50.6733333, -120.4816667, date.fromisoformat("2021-07-12"), 6.2, 3, None, None, None, None, 11.5, 186.8, 94.8, 126.1, 900.3, 0.01, 0.01, 0.01, 0.01)
     ],
 )
+@pytest.mark.skip(reason="Only used for initial validation of FireCalc and REDapp")
 def test_redapp_vs_fba(
     fuel_type,
     elevation,

@@ -143,6 +143,8 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(
             wind_dir,
             wind_speed,
         ) in daily_result:
+            if model_abbrev == ModelEnum.ECMWF.value:
+                continue
             # Create two WeatherIndeterminates, one for model predictions and one for bias corrected predictions
             results.append(
                 WeatherIndeterminate(
