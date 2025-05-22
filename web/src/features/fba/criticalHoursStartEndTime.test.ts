@@ -117,13 +117,20 @@ describe('getMinStartAndMaxEndTime', () => {
 
 describe('formatCriticalHoursTimeText', () => {
   it('returns formatted times when endTime is after startTime (same day)', () => {
-    const result = formatCriticalHoursTimeText(13, 18)
-    expect(result).toEqual(['13:00', '18:00'])
+    const resultShort = formatCriticalHoursTimeText(13, 18)
+    expect(resultShort).toEqual(['13:00', '18:00'])
+    const resultLong = formatCriticalHoursTimeText(13, 18, false)
+    expect(resultLong).toEqual(['13:00', '18:00'])
   })
 
   it('adds +1 when endTime is before startTime and endTime < 8 (next day)', () => {
     const result = formatCriticalHoursTimeText(22, 6)
     expect(result).toEqual(['22:00', '06:00+1'])
+  })
+
+  it('adds "tomorrow" when endTime is before startTime and endTime < 8 (next day)', () => {
+    const result = formatCriticalHoursTimeText(22, 6, false)
+    expect(result).toEqual(['22:00', '06:00 tomorrow'])
   })
 
   it('adds +1 when startTime and endTime are the same and endTime < 8', () => {

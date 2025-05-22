@@ -211,7 +211,7 @@ export const precipForecastField = new IndeterminateField(
   PRECIP_HEADER,
   'number',
   1,
-  true,
+  false,
   (value: string) => {
     return Number(value) < 0.0 || Number(value) > 200.0 ? 'Precip must be between 0 and 200 mm' : ''
   }
