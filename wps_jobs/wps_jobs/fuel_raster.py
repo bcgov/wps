@@ -23,7 +23,9 @@ from wps_shared.db.models import FuelTypeRaster
 logger = logging.getLogger(__name__)
 
 
-async def find_latest_version(s3_client: S3Client, raster_addresser: RasterKeyAddresser, now: datetime, version: int):
+async def find_latest_version(
+    s3_client: S3Client, raster_addresser: RasterKeyAddresser, now: datetime, version: int
+):
     current_version = version
     key = raster_addresser.get_fuel_raster_key(now, current_version)
     exists = await s3_client.all_objects_exist(key)
@@ -35,14 +37,38 @@ async def find_latest_version(s3_client: S3Client, raster_addresser: RasterKeyAd
     return current_version
 
 
-async def start_job(raster_addresser: RasterKeyAddresser, start_datetime: datetime, unprocessed_object_name: str, expected_hash: str):
+async def start_job(
+    raster_addresser: RasterKeyAddresser,
+    start_datetime: datetime,
+    unprocessed_object_name: str,
+    expected_hash: str,
+):
+    """
+    This function performs the following steps:
+    1. Finds the latest version of the fuel raster for the given start datetime.
+    2. Copies the unprocessed raster object to a new key with an incremented version.
+    3. Validates the content hash of the copied raster.
+    4. If validation fails, deletes the new raster object and raises an error.
+    5. If validation succeeds, extracts raster dimensions and saves metadata to the database.
+
+    Args:
+        raster_addresser (RasterKeyAddresser): An instance used to generate S3 keys for raster objects.
+        start_datetime (datetime): The datetime associated with the raster job.
+        unprocessed_object_name (str): The S3 object name of the unprocessed raster.
+        expected_hash (str): The expected content hash of the raster file for validation.
+
+    Raises:
+        ValueError: If the content hash validation fails or the raster cannot be stored.
+    """
     async with S3Client() as s3_client:
-        current_version = await find_latest_version(s3_client, RasterKeyAddresser(), start_datetime, 1)
+        current_version = await find_latest_version(
+            s3_client, RasterKeyAddresser(), start_datetime, 1
+        )
         unprocessed_key = raster_addresser.get_unprocessed_fuel_raster_key(unprocessed_object_name)
         new_key = raster_addresser.get_fuel_raster_key(start_datetime, current_version + 1)
-        await s3_client.copy_object(unprocessed_key, new_key)
 
         try:
+            await s3_client.copy_object(unprocessed_key, new_key)
             res = await s3_client.get_fuel_raster(new_key, expected_hash)
         except ValueError as e:
             logger.error(f"Could not store fuel raster at: {new_key}", exc_info=e)
@@ -56,21 +82,42 @@ async def start_job(raster_addresser: RasterKeyAddresser, start_datetime: dateti
             async with get_async_write_session_scope() as db_session:
                 now = get_utc_now()
                 await save_processed_fuel_raster(
-                    db_session, FuelTypeRaster(year=start_datetime.year, xsize=xsize, ysize=ysize, object_store_path=new_key, content_hash=expected_hash, create_timestamp=now)
+                    db_session,
+                    FuelTypeRaster(
+                        year=start_datetime.year,
+                        xsize=xsize,
+                        ysize=ysize,
+                        object_store_path=new_key,
+                        content_hash=expected_hash,
+                        create_timestamp=now,
+                    ),
                 )
 
 
 def main():
     """Kicks off asynchronous processing of new fuel raster"""
-    parser = argparse.ArgumentParser(description="Retrieve and store the latest fuel raster by date")
-    parser.add_argument("-d", "--date", default=None, help="The date to use for looking up the fuel raster.")
-    parser.add_argument("-k", "--key", default=None, help="Object storage key that points to the unprocessed raster")
-    parser.add_argument("-e", "--expected-hash", default=None, help="Expected content hash of the unprocessed raster's raw bytes")
+    parser = argparse.ArgumentParser(
+        description="Retrieve and store the latest fuel raster by date"
+    )
+    parser.add_argument(
+        "-d", "--date", default=None, help="The date to use for looking up the fuel raster."
+    )
+    parser.add_argument(
+        "-k", "--key", default=None, help="Object storage key that points to the unprocessed raster"
+    )
+    parser.add_argument(
+        "-e",
+        "--expected-hash",
+        default=None,
+        help="Expected content hash of the unprocessed raster's raw bytes",
+    )
 
     args, _ = parser.parse_known_args()
     start_datetime = datetime.fromisoformat(args.date) if args.date else get_utc_now()
     unprocessed_object_name = str(args.key) if args.key else config.get("FUEL_RASTER_NAME")
-    expected_hash = str(args.expected_hash) if args.expected_hash else config.get("FUEL_RASTER_CONTENT_HASH")
+    expected_hash = (
+        str(args.expected_hash) if args.expected_hash else config.get("FUEL_RASTER_CONTENT_HASH")
+    )
     try:
         # We don't want gdal to silently swallow errors.
         gdal.UseExceptions()
@@ -78,7 +125,9 @@ def main():
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(start_job(RasterKeyAddresser(), start_datetime, unprocessed_object_name, expected_hash))
+        loop.run_until_complete(
+            start_job(RasterKeyAddresser(), start_datetime, unprocessed_object_name, expected_hash)
+        )
 
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
