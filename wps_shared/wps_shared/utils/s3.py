@@ -141,7 +141,6 @@ async def apply_retention_policy_on_date_folders(
                     logger.info(
                         f"[Dry Run] Would delete {len(objects)} objects from '{folder_prefix}'"
                     )
-                    continue
 
                 else:
                     for obj in objects:
