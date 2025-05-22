@@ -5,7 +5,8 @@ from unittest.mock import AsyncMock
 from wps_shared.utils.s3 import apply_retention_policy_on_date_folders
 
 
-def setup_test_vars():
+@pytest.fixture
+def test_vars():
     bucket = "my-bucket"
     prefix = "data/"
     today = datetime.now(timezone.utc).date()
@@ -13,18 +14,23 @@ def setup_test_vars():
     return bucket, prefix, today, mock_client
 
 
-@pytest.mark.anyio
-async def test_retention_policy_dry_run_does_not_delete():
-    bucket, prefix, today, mock_client = setup_test_vars()
+@pytest.fixture
+def old_folder_prefix(test_vars):
+    bucket, prefix, today, _ = test_vars
     folder_date = today - timedelta(days=10)
-    folder_prefix = f"{prefix}{folder_date.strftime('%Y-%m-%d')}/"
+    return f"{prefix}{folder_date.strftime('%Y-%m-%d')}/"
+
+
+@pytest.mark.anyio
+async def test_retention_policy_dry_run_does_not_delete(test_vars, old_folder_prefix):
+    bucket, prefix, _, mock_client = test_vars
 
     mock_client.list_objects_v2.side_effect = [
-        {"CommonPrefixes": [{"Prefix": folder_prefix}]},
+        {"CommonPrefixes": [{"Prefix": old_folder_prefix}]},
         {
             "Contents": [
-                {"Key": f"{folder_prefix}file1.tif"},
-                {"Key": f"{folder_prefix}file2.tif"},
+                {"Key": f"{old_folder_prefix}file1.tif"},
+                {"Key": f"{old_folder_prefix}file2.tif"},
             ]
         },
     ]
@@ -42,17 +48,15 @@ async def test_retention_policy_dry_run_does_not_delete():
 
 
 @pytest.mark.anyio
-async def test_retention_policy_deletes_old_data():
-    bucket, prefix, today, mock_client = setup_test_vars()
-    folder_date = today - timedelta(days=10)
-    folder_prefix = f"{prefix}{folder_date.strftime('%Y-%m-%d')}/"
+async def test_retention_policy_deletes_old_data(test_vars, old_folder_prefix):
+    bucket, prefix, _, mock_client = test_vars
 
     mock_client.list_objects_v2.side_effect = [
-        {"CommonPrefixes": [{"Prefix": folder_prefix}]},
+        {"CommonPrefixes": [{"Prefix": old_folder_prefix}]},
         {
             "Contents": [
-                {"Key": f"{folder_prefix}file1.tif"},
-                {"Key": f"{folder_prefix}file2.tif"},
+                {"Key": f"{old_folder_prefix}file1.tif"},
+                {"Key": f"{old_folder_prefix}file2.tif"},
             ]
         },
     ]
@@ -67,15 +71,17 @@ async def test_retention_policy_deletes_old_data():
 
     assert mock_client.list_objects_v2.call_count == 2
     assert mock_client.delete_object.await_count == 2
-    mock_client.delete_object.assert_any_call(Bucket=bucket, Key=f"{folder_prefix}file1.tif")
-    mock_client.delete_object.assert_any_call(Bucket=bucket, Key=f"{folder_prefix}file2.tif")
+    mock_client.delete_object.assert_any_call(Bucket=bucket, Key=f"{old_folder_prefix}file1.tif")
+    mock_client.delete_object.assert_any_call(Bucket=bucket, Key=f"{old_folder_prefix}file2.tif")
 
 
 @pytest.mark.anyio
-async def test_retention_policy_ignores_invalid_date_prefix():
-    bucket, prefix, _, mock_client = setup_test_vars()
+async def test_retention_policy_ignores_invalid_date_prefix(test_vars):
+    bucket, prefix, _, mock_client = test_vars
 
-    mock_client.list_objects_v2.return_value = {"CommonPrefixes": [{"Prefix": f"{prefix}not-a-date/"}]}
+    mock_client.list_objects_v2.return_value = {
+        "CommonPrefixes": [{"Prefix": f"{prefix}not-a-date/"}]
+    }
 
     await apply_retention_policy_on_date_folders(
         client=mock_client,
