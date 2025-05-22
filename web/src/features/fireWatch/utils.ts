@@ -1,4 +1,4 @@
-import { BurnStatusEnum, FireWatch, FuelTypeEnum } from "@/features/fireWatch/fireWatchApi"
+import { BurnStatusEnum, FireWatch, FuelTypeEnum } from "@/features/fireWatch/interfaces"
 import { isNil, isNull } from "lodash"
 import { DateTime } from "luxon"
 import { SetStateAction } from "react"
@@ -14,6 +14,7 @@ export const updateFireWatch = <K extends keyof FireWatch>(fireWatch: FireWatch,
 
 export const getBlankFireWatch = (): FireWatch => {
   return {
+    id: NaN,
     burnWindowEnd: DateTime.now(),
     burnWindowStart: DateTime.now(),
     contactEmail: [],
