@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime, timezone
-from wps_jobs.weather_model_jobs.utils.rdps_filename_marshaller import parse_rdps_filename, compose_computed_precip_rdps_key
+from wps_shared.sfms.rdps_filename_marshaller import parse_rdps_filename, compose_computed_precip_rdps_key
 
 
 def test_parse_rdps_filename_ok():
