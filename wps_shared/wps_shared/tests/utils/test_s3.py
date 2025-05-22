@@ -16,7 +16,7 @@ def test_vars():
 
 @pytest.fixture
 def old_folder_prefix(test_vars):
-    bucket, prefix, today, _ = test_vars
+    _, prefix, today, _ = test_vars
     folder_date = today - timedelta(days=10)
     return f"{prefix}{folder_date.strftime('%Y-%m-%d')}/"
 
