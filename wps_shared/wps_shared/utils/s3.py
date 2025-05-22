@@ -2,8 +2,7 @@
 
 from datetime import datetime, timedelta, timezone
 import logging
-import re
-from typing import Generator, Tuple
+from typing import AsyncGenerator, Tuple
 from contextlib import asynccontextmanager
 from aiobotocore.client import AioBaseClient
 from aiobotocore.session import get_session
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def get_client() -> Generator[Tuple[AioBaseClient, str], None, None]:
+async def get_client() -> AsyncGenerator[Tuple[AioBaseClient, str], None]:
     """Return AioBaseClient client and bucket"""
     server = config.get("OBJECT_STORE_SERVER")
     user_id = config.get("OBJECT_STORE_USER_ID")
@@ -23,7 +22,12 @@ async def get_client() -> Generator[Tuple[AioBaseClient, str], None, None]:
     bucket = config.get("OBJECT_STORE_BUCKET")
 
     session = get_session()
-    async with session.create_client("s3", endpoint_url=f"https://{server}", aws_secret_access_key=secret_key, aws_access_key_id=user_id) as client:
+    async with session.create_client(
+        "s3",
+        endpoint_url=f"https://{server}",
+        aws_secret_access_key=secret_key,
+        aws_access_key_id=user_id,
+    ) as client:
         try:
             yield client, bucket
         finally:
@@ -105,7 +109,9 @@ async def apply_retention_policy_on_date_folders(
     """
     today = datetime.now(timezone.utc).date()
     retention_date = today - timedelta(days=days_to_retain)
-    logger.info(f"Applying retention policy to '{prefix}'. Deleting data older than {days_to_retain} days (before {retention_date}).")
+    logger.info(
+        f"Applying retention policy to '{prefix}'. Deleting data older than {days_to_retain} days (before {retention_date})."
+    )
 
     res = await client.list_objects_v2(Bucket=bucket, Prefix=prefix, Delimiter="/")
 
@@ -118,7 +124,9 @@ async def apply_retention_policy_on_date_folders(
             try:
                 folder_date = datetime.strptime(folder_name, "%Y-%m-%d").date()
             except ValueError:
-                logger.error(f"Failed to parse date from '{folder_name}' in prefix '{folder_prefix}'.")
+                logger.error(
+                    f"Failed to parse date from '{folder_name}' in prefix '{folder_prefix}'."
+                )
                 continue
 
             if folder_date < retention_date:
@@ -130,7 +138,9 @@ async def apply_retention_policy_on_date_folders(
                     continue
 
                 if dry_run:
-                    logger.info(f"[Dry Run] Would delete {len(objects)} objects from '{folder_prefix}'")
+                    logger.info(
+                        f"[Dry Run] Would delete {len(objects)} objects from '{folder_prefix}'"
+                    )
                     continue
 
                 else:
