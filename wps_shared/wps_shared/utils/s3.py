@@ -88,10 +88,13 @@ async def apply_retention_policy_on_date_folders(
     dry_run: bool = False,
 ):
     """
-    Applies a retention policy to an S3 bucket by deleting "folders" (prefixes) named by ISO date (YYYY-MM-DD).
+    Applies a retention policy to an S3 bucket by deleting folders named with ISO dates (YYYY-MM-DD)
+    located directly under a specified prefix.
 
-    It deletes folders that are older than a specified number of days from today. Each folder is expected to be named
-    as a date string, such as '2024-04-01/', and located under the given prefix (e.g., 'critical_hours/2024-04-01/').
+    Each folder is expected to be named as a date (e.g., '2024-04-01/') and located immediately under
+    the given prefix (e.g., 'critical_hours/2024-04-01/').
+
+    Folders older than a specified number of days from today will be deleted.
 
     :param client: Asynchronous S3 client
     :param bucket: The name of the S3 bucket
@@ -100,7 +103,6 @@ async def apply_retention_policy_on_date_folders(
     :param dry_run: If True, no deletions will occur. Instead, actions will be logged to indicate what *would* be deleted.
                     Defaults to False.
     """
-    date_pattern = re.compile(r"/(\d{4}-\d{2}-\d{2})/$")
     today = datetime.now(timezone.utc).date()
     retention_date = today - timedelta(days=days_to_retain)
     logger.info(f"Applying retention policy to '{prefix}'. Deleting data older than {days_to_retain} days (before {retention_date}).")
@@ -111,12 +113,7 @@ async def apply_retention_policy_on_date_folders(
         for folder in res["CommonPrefixes"]:
             folder_prefix = folder["Prefix"]
 
-            match = date_pattern.search(folder_prefix)
-            if not match:
-                logger.warning(f"Prefix '{folder_prefix}' does not contain a valid date.")
-                continue
-
-            folder_name = match.group(1)
+            folder_name = folder_prefix.removeprefix(prefix).strip("/").split("/")[0]
 
             try:
                 folder_date = datetime.strptime(folder_name, "%Y-%m-%d").date()
