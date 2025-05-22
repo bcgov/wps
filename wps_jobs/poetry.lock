@@ -782,8 +782,6 @@ findlibs = "*"
 numpy = "*"
 
 [[package]]
-<<<<<<< HEAD
-=======
 name = "execnet"
 version = "2.1.1"
 description = "execnet: rapid multi-Python deployment"
@@ -799,7 +797,6 @@ files = [
 testing = ["hatch", "pre-commit", "pytest", "tox"]
 
 [[package]]
->>>>>>> origin/main
 name = "executing"
 version = "2.2.0"
 description = "Get the currently executing AST node of a frame, and other information"
