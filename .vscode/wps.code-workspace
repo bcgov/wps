@@ -11,8 +11,14 @@
 		}
 	],
 	"settings": {
-		"autoDocstring.docstringFormat": "sphinx-notypes",
-		"autoDocstring.startOnNewLine": true,
+		// General
+		"editor.codeActionsOnSave": {
+			"source.fixAll": "explicit"
+		},
+		"editor.formatOnSave": true,
+		"editor.rulers": [
+			100
+		],
 		"files.exclude": {
 			".github": false,
 			"**/.pytest_cache": true,
@@ -20,44 +26,41 @@
 			"**/python_cache": true,
 			"**/.venv": true
 		},
-		"editor.codeActionsOnSave": {
-			"source.fixAll": "explicit"
+		// Python
+		"[python]": {
+			"editor.defaultFormatter": "charliermarsh.ruff",
 		},
-		"editor.formatOnSave": true,
+		"autoDocstring.docstringFormat": "sphinx-notypes",
+		"autoDocstring.startOnNewLine": true,
+		// JavaScript/TypeScript
 		"eslint.format.enable": true,
+		"eslint.run": "onSave",
 		"eslint.validate": [
 			"javascript",
 			"javascriptreact",
 			"typescript",
-			"typescriptreact",
+			"typescriptreact"
 		],
-		"eslint.run": "onSave",
-		"editor.rulers": [
-			100
-		],
-		"[python]": {
-			"editor.defaultFormatter": "charliermarsh.ruff",
-			"editor.rulers": [
-				120,
-				100
-			]
-		},
+		"typescript.preferences.importModuleSpecifier": "non-relative",
+		// HTML
 		"[html]": {
 			"editor.formatOnSave": false
 		},
+		// YAML
 		"[yaml]": {
 			"editor.defaultFormatter": "esbenp.prettier-vscode",
 			"editor.insertSpaces": true,
 			"editor.tabSize": 2,
-			"editor.formatOnSave": true,
+			"editor.formatOnSave": true
 		},
+		// JSON
 		"[json]": {
 			"editor.defaultFormatter": "vscode.json-language-features"
 		},
 		"[jsonc]": {
 			"editor.defaultFormatter": "vscode.json-language-features"
 		},
-		"typescript.preferences.importModuleSpecifier": "non-relative",
+		// Spell checker
 		"cSpell.words": [
 			"actuals",
 			"aiobotocore",

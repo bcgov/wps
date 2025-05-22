@@ -1,0 +1,34 @@
+target-version = "py312"
+line-length = 100
+
+exclude = ["api/app/tests/fba_calc/test_fba_error_redapp.py"]
+
+[lint]
+ignore = ["E712", "F401"]
+per-file-ignores = { "api/alembic/versions/00df3c7b5cba_rethink_classification.py" = [
+    "E501",
+], "api/alembic/versions/39806f02cdec_wfwx_update_date_part_of_unique_.py" = [
+    "E501",
+], "api/alembic/versions/56916d46d8cb_high_hfi_area.py" = [
+    "E501",
+], "api/alembic/versions/ac65354014bd_remove_bear_lake_station.py" = [
+    "E501",
+], "api/app/auto_spatial_advisory/db/database/tileserver.py" = [
+    "E501",
+], "api/app/tests/fba_calc/test_fba_error.py" = [
+    "E501",
+], "api/app/tests/hfi/test_hfi.py" = [
+    "F811",
+], "api/app/auto_spatial_advisory/nats_consumer.py" = [
+    "F811",
+], "api/app/tests/hfi/test_pdf_formatter.py" = [
+    "F811",
+], "api/app/tests/hfi/test_pdf_generator.py" = [
+    "F811",
+], "api/app/tests/weather_models/test_env_canada_gdps.py" = [
+    "F811",
+], "api/app/db/models/__init__.py" = [
+    "F401",
+    "E402",
+    "F811",
+] }

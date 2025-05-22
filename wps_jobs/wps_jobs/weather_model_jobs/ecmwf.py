@@ -92,6 +92,10 @@ class ECMWF:
 
         model_datetime = self.now.replace(hour=model_run_hour, minute=0, second=0, microsecond=0)
 
+        if model_datetime > self.now:
+            logger.info(f"Model run {model_datetime} is in the future. Exiting model run.")
+            return
+
         self.prediction_model = self.model_run_repository.get_prediction_model(self.model_type, self.projection)
         if not self.prediction_model:
             raise PredictionModelNotFound("Could not find this prediction model in the database", self.model_type, self.projection)
@@ -100,18 +104,18 @@ class ECMWF:
         if prediction_run.complete:
             logger.info(f"Prediction run {model_datetime} already completed")
             return
-        for prediction_hour in get_ecmwf_forecast_hours():
-            model_info = ModelRunInfo(
-                model_enum=self.model_type,
-                model_run_timestamp=model_datetime,
-                prediction_timestamp=model_datetime + timedelta(hours=prediction_hour),
-                projection=self.projection,
-            )
+
+        prediction_hours = list(get_ecmwf_forecast_hours())
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            forecast_hours = list(get_ecmwf_forecast_hours())
+            for prediction_hour in prediction_hours:
+                model_info = ModelRunInfo(
+                    model_enum=self.model_type,
+                    model_run_timestamp=model_datetime,
+                    prediction_timestamp=model_datetime + timedelta(hours=prediction_hour),
+                    projection=self.projection,
+                )
 
-            for prediction_hour in forecast_hours:
                 H = Herbie(
                     model_datetime.strftime("%Y-%m-%d %H"),
                     model="ifs",
@@ -139,15 +143,15 @@ class ECMWF:
                     stations_df = get_stations_dataframe(transformer, self.stations)
                     process_result = self.ecmwf_processor.process_grib_data(H, model_info, stations_df)
                     self.store_processed_result(self.stations, prediction_run, process_result)
+
+                    self.files_processed += 1
+                    self.model_run_repository.mark_url_as_processed(url)
                 except Exception as exception:
                     self.exception_count += 1
                     logger.error("unexpected exception processing %s", url, exc_info=exception)
 
-                self.files_processed += 1
-                self.model_run_repository.mark_url_as_processed(url)
-
             # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
-            if len(forecast_hours) == self.files_processed:
+            if len(prediction_hours) == self.files_processed:
                 logger.info(f"{self.model_type} model run {model_run_hour:02d}:00 completed with SUCCESS")
                 self.model_run_repository.mark_prediction_model_run_processed(self.model_type, self.projection, model_datetime)
 
