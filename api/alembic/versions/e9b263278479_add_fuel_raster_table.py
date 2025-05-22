@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "e9b263278479"
-down_revision = "6a31639810b0"
+down_revision = "42a9dae10dca"
 branch_labels = None
 depends_on = None
 
@@ -30,8 +30,18 @@ def upgrade():
         sa.PrimaryKeyConstraint("id"),
         comment="Processed fuel type rasters.",
     )
-    op.create_index(op.f("ix_fuel_type_raster_create_timestamp"), "fuel_type_raster", ["create_timestamp"], unique=False)
-    op.create_index(op.f("ix_fuel_type_raster_object_store_path"), "fuel_type_raster", ["object_store_path"], unique=False)
+    op.create_index(
+        op.f("ix_fuel_type_raster_create_timestamp"),
+        "fuel_type_raster",
+        ["create_timestamp"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_fuel_type_raster_object_store_path"),
+        "fuel_type_raster",
+        ["object_store_path"],
+        unique=False,
+    )
     op.create_index(op.f("ix_fuel_type_raster_year"), "fuel_type_raster", ["year"], unique=False)
 
     # ### end Alembic commands ###
