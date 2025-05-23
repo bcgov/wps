@@ -13,7 +13,14 @@ class WPSDataset:
     A wrapper around gdal datasets for common operations
     """
 
-    def __init__(self, ds_path: Optional[str], ds=None, band: int = 1, chunk_size: int = 256, access=gdal.GA_ReadOnly):
+    def __init__(
+        self,
+        ds_path: Optional[str],
+        ds=None,
+        band: int = 1,
+        chunk_size: int = 256,
+        access=gdal.GA_ReadOnly,
+    ):
         self.ds = ds
         self.ds_path = ds_path
         self.band = band
@@ -95,7 +102,10 @@ class WPSDataset:
             raise ValueError("The projections of the two rasters do not match.")
 
         # Check if origin matches
-        if geotransform[0] != other.ds.GetGeoTransform()[0] or geotransform[3] != other.ds.GetGeoTransform()[3]:
+        if (
+            geotransform[0] != other.ds.GetGeoTransform()[0]
+            or geotransform[3] != other.ds.GetGeoTransform()[3]
+        ):
             raise ValueError("The origins of the two rasters do not match.")
 
         self_band: gdal.Band = self.ds.GetRasterBand(self.band)
@@ -184,7 +194,9 @@ class WPSDataset:
             band = warped_ds.GetRasterBand(1)
             array = band.ReadAsArray()
             if (array > max_value).any():
-                array = np.minimum(array, max_value)  # clamp any value above the max_value to the max_value
+                array = np.minimum(
+                    array, max_value
+                )  # clamp any value above the max_value to the max_value
                 band.WriteArray(array)
                 band.FlushCache()
 
@@ -255,12 +267,15 @@ class WPSDataset:
         array = band.ReadAsArray()
 
         rows, cols = array.shape
-        output_dataset: gdal.Dataset = driver.Create(output_path, cols, rows, 1, datatype)
+        output_dataset: gdal.Dataset = driver.Create(
+            output_path, cols, rows, 1, datatype, options=["COMPRESS=LZW"]
+        )
         output_dataset.SetGeoTransform(geotransform)
         output_dataset.SetProjection(projection)
 
         output_band: gdal.Band = output_dataset.GetRasterBand(self.band)
         output_band.WriteArray(array)
+
         if nodata_value is not None:
             output_band.SetNoDataValue(nodata_value)
 
