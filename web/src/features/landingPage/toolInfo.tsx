@@ -151,7 +151,7 @@ export const sfmsInsightsInfo: ToolInfo = {
   isBeta: true
 }
 
-export const prescribedBurnAdvisorInfo: ToolInfo = {
+export const fireWatchInfo: ToolInfo = {
   name: FIRE_WATCH_NAME,
   route: FIRE_WATCH_ROUTE,
   description: (
@@ -168,7 +168,7 @@ export const prescribedBurnAdvisorInfo: ToolInfo = {
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of CardTravelSharp.
 export const toolInfos = [
-  prescribedBurnAdvisorInfo,
+  ...(import.meta.env.MODE === 'development' ? [fireWatchInfo] : []),
   fireBehaviourAdvisoryInfo,
   moreCastInfo,
   hfiCalcInfo,

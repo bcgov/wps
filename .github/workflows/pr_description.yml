@@ -3,7 +3,7 @@ name: Pull request description
 on:
   pull_request:
     branches:
-      - innovation/prescribed-burn
+      - main
       - roles
 
 jobs:

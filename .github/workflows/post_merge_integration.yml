@@ -3,7 +3,7 @@ name: Post Merge Integration
 on:
   push:
     branches:
-      - innovation/prescribed-burn
+      - main
 
 jobs:
   lint-api:
