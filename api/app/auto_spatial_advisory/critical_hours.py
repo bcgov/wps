@@ -1,9 +1,9 @@
 import argparse
 import asyncio
+import json
 import logging
 import math
 import os
-import json
 import sys
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
@@ -13,13 +13,9 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 from aiohttp import ClientSession
 from pydantic import BaseModel
+from pydantic_core import to_jsonable_python
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from aiobotocore.client import AioBaseClient
-
-from wps_shared.wps_logging import configure_logging
-from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
-from wps_shared.run_type import RunType
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_containing_zone,
     get_fuel_type_stats_in_advisory_area,
@@ -30,19 +26,22 @@ from wps_shared.db.crud.auto_spatial_advisory import (
 )
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryFuelStats, CriticalHours, HfiClassificationThresholdEnum, RunTypeEnum, SFMSFuelType
-from app.fire_behaviour import cffdrs
 from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
-from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
-from app.hourlies import get_hourly_readings_in_time_interval
-from wps_shared.schemas.fba_calc import CriticalHoursHFI, AdjustedFWIResult
+from wps_shared.geospatial.geospatial import PointTransformer
+from wps_shared.run_type import RunType
+from wps_shared.schemas.fba_calc import AdjustedFWIResult, CriticalHoursHFI
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
 from wps_shared.stations import get_stations_asynchronously
-from wps_shared.geospatial.geospatial import PointTransformer
-from wps_shared.utils.s3 import get_client
+from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, get_client
 from wps_shared.utils.time import get_hour_20_from_date, get_julian_date
 from wps_shared.wildfire_one import wfwx_api
 from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
-from pydantic_core import to_jsonable_python
+from wps_shared.wps_logging import configure_logging
+
+from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
+from app.fire_behaviour import cffdrs
+from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
+from app.hourlies import get_hourly_readings_in_time_interval
 
 logger = logging.getLogger(__name__)
 
@@ -135,35 +134,6 @@ async def save_critical_hours(db_session: AsyncSession, zone_unit_id: int, criti
         )
         critical_hours_to_save.append(critical_hours_record)
     await save_all_critical_hours(db_session, critical_hours_to_save)
-
-
-async def apply_retention_policy(client: AioBaseClient, bucket: str):
-    today = datetime.now(timezone.utc).date()
-    retention_date = today - timedelta(days=DAYS_TO_RETAIN)
-    logger.info(f"Applying critical hours s3 retention policy. Data older than {DAYS_TO_RETAIN} days is being deleted.")
-
-    prefix = "critical_hours/"
-
-    res = await client.list_objects_v2(Bucket=bucket, Prefix=prefix, Delimiter="/")
-
-    if "CommonPrefixes" in res:
-        for folder in res["CommonPrefixes"]:
-            folder_name = folder["Prefix"].split("/")[-2]  # folder name (YYYY-MM-DD)
-
-            try:
-                folder_date = datetime.strptime(folder_name, "%Y-%m-%d").date()
-            except ValueError:
-                logger.error(f"{folder["Prefix"]} - {folder_name} - could not be parsed to datetime object")
-                continue
-
-            if folder_date < retention_date:
-                # Delete the objects in this folder
-                res_objects = await client.list_objects_v2(Bucket=bucket, Prefix=folder["Prefix"])
-                if "Contents" in res_objects:
-                    for obj in res_objects["Contents"]:
-                        s3_key = obj["Key"]
-                        await client.delete_object(Bucket=bucket, Key=s3_key)
-                logger.info(f"Deleted folder {folder_name}")
 
 
 def calculate_adjusted_fwi_result(yesterday: dict, raw_daily: dict) -> AdjustedFWIResult:
@@ -446,8 +416,9 @@ async def calculate_critical_hours_by_zone(db_session: AsyncSession, header: dic
 
 
 async def store_critical_hours_inputs_outputs(critical_hours_data: Dict[int, CriticalHoursIO], for_date: date, run_parameters_id: int):
+    s3_prefix = "critical_hours/"
     async with get_client() as (client, bucket):
-        await apply_retention_policy(client, bucket)
+        await apply_retention_policy_on_date_folders(client, bucket, s3_prefix, DAYS_TO_RETAIN)
 
         if critical_hours_data:
             try:
