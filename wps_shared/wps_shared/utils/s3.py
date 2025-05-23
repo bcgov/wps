@@ -1,8 +1,8 @@
 """Utils to help with s3"""
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 import logging
-from typing import AsyncGenerator, Tuple
+from typing import AsyncGenerator, Optional, Tuple
 from contextlib import asynccontextmanager
 from aiobotocore.client import AioBaseClient
 from aiobotocore.session import get_session
@@ -84,6 +84,15 @@ def set_s3_gdal_config():
     gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
 
 
+def extract_date_from_prefix(folder_prefix: str, base_prefix: str) -> Optional[date]:
+    try:
+        folder_name = folder_prefix.removeprefix(base_prefix).strip("/").split("/")[0]
+        return datetime.strptime(folder_name, "%Y-%m-%d").date()
+    except ValueError:
+        logger.warning(f"Failed to parse date from '{folder_name}' in prefix '{folder_prefix}'.")
+        return None
+
+
 async def apply_retention_policy_on_date_folders(
     client: AioBaseClient,
     bucket: str,
@@ -107,6 +116,9 @@ async def apply_retention_policy_on_date_folders(
     :param dry_run: If True, no deletions will occur. Instead, actions will be logged to indicate what *would* be deleted.
                     Defaults to False.
     """
+    if not prefix.endswith("/"):
+        prefix += "/"
+
     today = datetime.now(timezone.utc).date()
     retention_date = today - timedelta(days=days_to_retain)
     logger.info(
@@ -119,14 +131,8 @@ async def apply_retention_policy_on_date_folders(
         for folder in res["CommonPrefixes"]:
             folder_prefix = folder["Prefix"]
 
-            folder_name = folder_prefix.removeprefix(prefix).strip("/").split("/")[0]
-
-            try:
-                folder_date = datetime.strptime(folder_name, "%Y-%m-%d").date()
-            except ValueError:
-                logger.error(
-                    f"Failed to parse date from '{folder_name}' in prefix '{folder_prefix}'."
-                )
+            folder_date = extract_date_from_prefix(folder_prefix, prefix)
+            if not folder_date:
                 continue
 
             if folder_date < retention_date:

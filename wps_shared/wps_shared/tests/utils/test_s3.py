@@ -1,8 +1,9 @@
-import pytest
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from unittest.mock import AsyncMock
 
-from wps_shared.utils.s3 import apply_retention_policy_on_date_folders
+import pytest
+
+from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, extract_date_from_prefix
 
 
 @pytest.fixture
@@ -93,3 +94,33 @@ async def test_retention_policy_ignores_invalid_date_prefix(test_vars):
 
     mock_client.list_objects_v2.assert_called_once()
     mock_client.delete_object.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "folder_prefix,base_prefix,expected",
+    [
+        ("data/2024-06-01/", "data/", date(2024, 6, 1)),
+        ("data/2023-01-15/somefile", "data/", date(2023, 1, 15)),
+        ("prefix/2022-12-31/", "prefix/", date(2022, 12, 31)),
+        ("prefix/2022-12-31/extra/", "prefix/", date(2022, 12, 31)),
+        ("foo/bar/2020-02-29/", "foo/bar/", date(2020, 2, 29)),
+    ],
+)
+def test_extract_date_from_prefix_valid(folder_prefix, base_prefix, expected):
+    assert extract_date_from_prefix(folder_prefix, base_prefix) == expected
+
+
+@pytest.mark.parametrize(
+    "folder_prefix,base_prefix",
+    [
+        ("data/not-a-date/", "data/"),
+        ("data/2024-13-01/", "data/"),  # invalid month
+        ("data/2024-06-32/", "data/"),  # invalid day
+        ("data/", "data/"),
+        ("data//", "data/"),
+        ("data/20240601/", "data/"),  # wrong format
+        ("data/2024-06-01/", "wrongprefix/"),  # base_prefix not matching
+    ],
+)
+def test_extract_date_from_prefix_invalid(folder_prefix, base_prefix):
+    assert extract_date_from_prefix(folder_prefix, base_prefix) is None
