@@ -1,6 +1,5 @@
 import { FORM_MAX_WIDTH } from "@/features/fireWatch/components/CreateFireWatch"
 import { FireWatch, FuelTypeEnum, fuelTypes } from '@/features/fireWatch/interfaces'
-import { updateFireWatch } from "@/features/fireWatch/utils"
 import { Autocomplete, Box, Step, TextField, Typography, useTheme } from "@mui/material"
 import { isUndefined } from "lodash"
 import { SetStateAction } from "react"
@@ -14,7 +13,8 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
   const theme = useTheme()
 
   const handleFormUpdate = (partialFireWatch: Partial<FireWatch>) => {
-    updateFireWatch(fireWatch, partialFireWatch, setFireWatch)
+    const newFireWatch = { ...fireWatch, ...partialFireWatch }
+    setFireWatch(newFireWatch)
   }
 
   const renderConditionalPercentInputField = () => {

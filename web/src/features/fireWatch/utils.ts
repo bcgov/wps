@@ -1,12 +1,6 @@
 import { BurnStatusEnum, FireWatch, FuelTypeEnum } from "@/features/fireWatch/interfaces"
 import { isNil, isNull } from "lodash"
 import { DateTime } from "luxon"
-import { SetStateAction } from "react"
-
-export const updateFireWatch = (fireWatch: FireWatch, partialFireWatch: Partial<FireWatch>, updateCallback: React.Dispatch<SetStateAction<FireWatch>>) => {
-  const newFireWatch = { ...fireWatch, ...partialFireWatch}
-  updateCallback(newFireWatch)
-}
 
 export const getBlankFireWatch = (): FireWatch => {
   return {

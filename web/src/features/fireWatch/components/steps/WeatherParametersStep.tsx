@@ -1,19 +1,19 @@
 import { FORM_MAX_WIDTH } from "@/features/fireWatch/components/CreateFireWatch"
 import { FireWatch } from '@/features/fireWatch/interfaces'
-import { updateFireWatch } from "@/features/fireWatch/utils"
-import { Box, Step, TextField, Typography, useTheme } from "@mui/material"
-import { SetStateAction } from "react"
+import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
+import { SetStateAction } from 'react'
 
 interface WeatherParametersStepProps {
   fireWatch: FireWatch
   setFireWatch: React.Dispatch<SetStateAction<FireWatch>>
 }
 
-const WeatherParametersStep = ({fireWatch, setFireWatch}: WeatherParametersStepProps) => {
+const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersStepProps) => {
   const theme = useTheme()
 
   const handleFormUpdate = (partialFireWatch: Partial<FireWatch>) => {
-    updateFireWatch(fireWatch, partialFireWatch, setFireWatch)
+    const newFireWatch = { ...fireWatch, ...partialFireWatch }
+    setFireWatch(newFireWatch)
   }
 
   return (

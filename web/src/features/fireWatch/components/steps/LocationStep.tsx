@@ -14,7 +14,6 @@ import VectorLayer from 'ol/layer/Vector.js'
 import { Icon, Style } from 'ol/style'
 import { Geometry, Point } from 'ol/geom'
 import Translate from 'ol/interaction/Translate.js'
-import { updateFireWatch } from '@/features/fireWatch/utils'
 import { isUndefined } from 'lodash'
 import { defaults as defaultInteractions } from 'ol/interaction/defaults'
 
@@ -112,7 +111,8 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
   }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFormUpdate = (partialFireWatch: Partial<FireWatch>) => {
-    updateFireWatch(fireWatch, partialFireWatch, setFireWatch)
+    const newFireWatch = { ...fireWatch, ...partialFireWatch }
+    setFireWatch(newFireWatch)
   }
 
   return (

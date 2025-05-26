@@ -3,7 +3,6 @@ import { selectFireWatchFireCentres, selectFireWeatherStations } from '@/app/roo
 import WPSDatePicker from '@/components/WPSDatePicker'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import { FireWatch, FireWatchFireCentre } from '@/features/fireWatch/interfaces'
-import { updateFireWatch } from '@/features/fireWatch/utils'
 import { Autocomplete, Box, Step, TextField, Typography, useTheme } from '@mui/material'
 import { isEqual, isNull } from 'lodash'
 import { DateTime } from 'luxon'
@@ -30,9 +29,10 @@ const InfoStep = ({ fireWatch, setFireWatch }: InfoStepProps) => {
     setStationOptions(allStationOptions)
   }, [stations])
 
-const handleFormUpdate = (partialFireWatch: Partial<FireWatch>) => {
-  updateFireWatch(fireWatch, partialFireWatch, setFireWatch)
-}
+  const handleFormUpdate = (partialFireWatch: Partial<FireWatch>) => {
+    const newFireWatch = { ...fireWatch, ...partialFireWatch }
+    setFireWatch(newFireWatch)
+  }
 
 const updateBurnWindowStart = (newDate: DateTime) => {
   handleFormUpdate({ burnWindowStart: newDate })
