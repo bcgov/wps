@@ -24,23 +24,24 @@ def tippecanoe_wrapper(
     :type min_zoom: int
     :param max_zoom: pmtiles zoom in level
     :type max_zoom: int
+    :param keep_attribute: Attribute to keep in the tiles, the rest will be dropped to save file size.
+    :type keep_attribute: str
     """
-    subprocess.run(
-        [
-            "tippecanoe",
-            f"--minimum-zoom={min_zoom}",
-            f"--maximum-zoom={max_zoom}",
-            "--projection=EPSG:4326",
-            f"--output={output_pmtiles_filepath}",
-            f"{geojson_filepath}",
-            "--force",
-            "--quiet",
-            "--coalesce",
-            "--reorder",
-            "--hilbert",
-        ],
-        check=True,
-    )
+    cmd = [
+        "tippecanoe",
+        f"--minimum-zoom={min_zoom}",
+        f"--maximum-zoom={max_zoom}",
+        "--projection=EPSG:4326",
+        f"--output={output_pmtiles_filepath}",
+        geojson_filepath,
+        "--force",  # overwrite output file if it exists
+        "--no-progress-indicator",  # Don't report progress, but still give warnings
+        "--coalesce",
+        "--reorder",
+        "--hilbert",  # put features in Hilbert Curve order instead of the usual Z-Order, should improve spatial coalescing
+    ]
+
+    subprocess.run(cmd, check=True)
 
 
 def write_geojson(polygons: ogr.Layer, output_dir: str) -> str:
@@ -76,3 +77,23 @@ def write_geojson(polygons: ogr.Layer, output_dir: str) -> str:
     del temp_gpkg
 
     return temp_geojson
+
+
+def merge_pmtiles(input_pmtiles: list[str], output_path: str):
+    """
+    Merge all pmtiles files into a single pmtiles file using the tile-join command line tool that comes with tippecanoe.
+    These files should not have overlapping tiles at the same zoom level.
+
+    :param parent_dir: Directory containing pmtiles files
+    :type parent_dir: str
+    :param output_path: Path to output merged pmtiles file
+    :type output_path: str
+    """
+    cmd = [
+        "tile-join",
+        "--force",  # force allows overwriting the output file if it exists
+        "-o",
+        output_path,
+    ] + input_pmtiles
+
+    subprocess.run(cmd, check=True)
