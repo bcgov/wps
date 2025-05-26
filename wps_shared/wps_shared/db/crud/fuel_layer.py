@@ -1,4 +1,4 @@
-"""CRUD operations relating to processing snow coverage"""
+"""CRUD operations relating to processing fuel rasters"""
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
