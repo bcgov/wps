@@ -11,9 +11,10 @@ class FuelTypeRaster(Base):
     __tablename__ = "fuel_type_raster"
     __table_args__ = {"comment": "Processed fuel type rasters."}
     id = Column(Integer, primary_key=True)
-    year = Column(Integer, nullable=False, index=True)
+    year = Column(Integer, nullable=False)
+    version = Column(Integer, nullable=False)
     xsize = Column(Integer, nullable=False)
     ysize = Column(Integer, nullable=False)
-    object_store_path = Column(String, nullable=False, index=True)
+    object_store_path = Column(String, nullable=False)
     content_hash = Column(String, nullable=False)
-    create_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    create_timestamp = Column(TZTimeStamp, nullable=False)

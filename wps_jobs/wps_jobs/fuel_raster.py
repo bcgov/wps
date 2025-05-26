@@ -61,8 +61,9 @@ async def start_job(
         current_version = await find_latest_version(
             s3_client, RasterKeyAddresser(), start_datetime, 1
         )
+        new_version = current_version + 1
         unprocessed_key = raster_addresser.get_unprocessed_fuel_raster_key(unprocessed_object_name)
-        new_key = raster_addresser.get_fuel_raster_key(start_datetime, current_version + 1)
+        new_key = raster_addresser.get_fuel_raster_key(start_datetime, new_version)
 
         try:
             expected_hash = await s3_client.get_content_hash(unprocessed_key)
@@ -83,6 +84,7 @@ async def start_job(
                     db_session,
                     FuelTypeRaster(
                         year=start_datetime.year,
+                        version=new_version,
                         xsize=xsize,
                         ysize=ysize,
                         object_store_path=new_key,
