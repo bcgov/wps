@@ -28,8 +28,8 @@ const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiv
   const theme = useTheme()
 
   // Use props if provided, otherwise fall back to defaults
-  const [fireWatch, setFireWatch] = useState<FireWatch>(initialFireWatch || getBlankFireWatch())
-  const [activeStep, setActiveStep] = useState<number>(initialActiveStep || 0)
+  const [fireWatch, setFireWatch] = useState<FireWatch>(initialFireWatch ?? getBlankFireWatch())
+  const [activeStep, setActiveStep] = useState<number>(initialActiveStep ?? 0)
 
   const steps: { key: string; label: string; component?: () => React.ReactNode }[] = [
     {

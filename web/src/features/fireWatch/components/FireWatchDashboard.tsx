@@ -131,6 +131,7 @@ const FireWatchDashboard = () => {
       width: 80,
       getActions: (params: { row: BurnWatchRow }) => [
         <GridActionsCellItem
+          key={params.row.id}
           icon={<InfoIcon />}
           label="View details"
           onClick={() => handleOpenModal(params.row)}
