@@ -12,8 +12,8 @@ interface FireBehaviourIndicesStepProps {
 const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndicesStepProps) => {
   const theme = useTheme()
 
-  const handleFormUpdate = <K extends keyof FireWatch>(key: K, value: FireWatch[K]) => {
-    updateFireWatch(fireWatch, key, value, setFireWatch)
+  const handleFormUpdate = (partialFireWatch: Partial<FireWatch>) => {
+    updateFireWatch(fireWatch, partialFireWatch, setFireWatch)
   }
 
   return (
@@ -33,7 +33,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                   type="number"
                   value={isNaN(fireWatch.isiMin) ? '' : fireWatch.isiMin}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    handleFormUpdate('isiMin', parseFloat(event.target.value))
+                    handleFormUpdate({ isiMin: parseFloat(event.target.value) })
                   }
                   sx={{ pr: theme.spacing(2) }}
                 />
@@ -43,7 +43,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                   type="number"
                   value={isNaN(fireWatch.isiPreferred) ? '' : fireWatch.isiPreferred}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    handleFormUpdate('isiPreferred', parseFloat(event.target.value))
+                    handleFormUpdate({ isiPreferred: parseFloat(event.target.value) })
                   }
                   sx={{ pr: theme.spacing(2) }}
                 />
@@ -53,7 +53,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                   type="number"
                   value={isNaN(fireWatch.isiMax) ? '' : fireWatch.isiMax}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    handleFormUpdate('isiMax', parseFloat(event.target.value))
+                    handleFormUpdate({ isiMax: parseFloat(event.target.value) })
                   }
                 />
               </Box>
@@ -70,7 +70,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 type="number"
                 value={isNaN(fireWatch.buiMin) ? '' : fireWatch.buiMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate('buiMin', parseFloat(event.target.value))
+                  handleFormUpdate({ buiMin: parseFloat(event.target.value) })
                 }
                 sx={{ pr: theme.spacing(2) }}
               />
@@ -80,7 +80,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 type="number"
                 value={isNaN(fireWatch.buiPreferred) ? '' : fireWatch.buiPreferred}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate('buiPreferred', parseFloat(event.target.value))
+                  handleFormUpdate({ buiPreferred: parseFloat(event.target.value) })
                 }
                 sx={{ pr: theme.spacing(2) }}
               />
@@ -90,7 +90,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 type="number"
                 value={isNaN(fireWatch.buiMax) ? '' : fireWatch.buiMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate('buiMax', parseFloat(event.target.value))
+                  handleFormUpdate({ buiMax: parseFloat(event.target.value) })
                 }
               />
             </Box>
@@ -106,7 +106,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 type="number"
                 value={isNaN(fireWatch.hfiMin) ? '' : fireWatch.hfiMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate('hfiMin', parseFloat(event.target.value))
+                  handleFormUpdate({ hfiMin: parseFloat(event.target.value) })
                 }
                 sx={{ pr: theme.spacing(2) }}
               />
@@ -116,7 +116,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 type="number"
                 value={isNaN(fireWatch.hfiPreferred) ? '' : fireWatch.hfiPreferred}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate('hfiPreferred', parseFloat(event.target.value))
+                  handleFormUpdate({ hfiPreferred: parseFloat(event.target.value) })
                 }
                 sx={{ pr: theme.spacing(2) }}
               />
@@ -126,7 +126,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 type="number"
                 value={isNaN(fireWatch.hfiMax) ? '' : fireWatch.hfiMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate('hfiMax', parseFloat(event.target.value))
+                  handleFormUpdate({ hfiMax: parseFloat(event.target.value) })
                 }
               />
             </Box>

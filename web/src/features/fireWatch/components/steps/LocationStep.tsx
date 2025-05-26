@@ -51,7 +51,7 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
       features: new Collection(marker)
     })
     newTranslate.on('translateend', evt => {
-      handleFormUpdate('geometry', evt.coordinate)
+      handleFormUpdate({ geometry: evt.coordinate })
     })
     map?.addInteraction(newTranslate)
   }, [marker])
@@ -93,7 +93,7 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
   useEffect(() => {
     // Click handler to allow user to click on map to place a marker.
     const handleMapClick = (evt: MapBrowserEvent<UIEvent>) => {
-      handleFormUpdate('geometry', evt.coordinate)
+      handleFormUpdate({ geometry: evt.coordinate })
       const newFeature = new Feature({
         geometry: new Point(evt.coordinate)
       })
@@ -106,13 +106,13 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
       features: new Collection(marker)
     })
     translate.on('translateend', evt => {
-      handleFormUpdate('geometry', evt.coordinate)
+      handleFormUpdate({ geometry: evt.coordinate })
     })
     map?.addInteraction(translate)
   }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleFormUpdate = <K extends keyof FireWatch>(key: K, value: FireWatch[K]) => {
-    updateFireWatch(fireWatch, key, value, setFireWatch)
+  const handleFormUpdate = (partialFireWatch: Partial<FireWatch>) => {
+    updateFireWatch(fireWatch, partialFireWatch, setFireWatch)
   }
 
   return (

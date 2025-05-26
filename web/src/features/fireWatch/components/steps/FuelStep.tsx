@@ -13,8 +13,8 @@ interface FuelStepProps {
 const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
   const theme = useTheme()
 
-  const handleFormUpdate = <K extends keyof FireWatch>(key: K, value: FireWatch[K]) => {
-    updateFireWatch(fireWatch, key, value, setFireWatch)
+  const handleFormUpdate = (partialFireWatch: Partial<FireWatch>) => {
+    updateFireWatch(fireWatch, partialFireWatch, setFireWatch)
   }
 
   const renderConditionalPercentInputField = () => {
@@ -36,7 +36,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
                   : fireWatch.percentConifer
               }
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                handleFormUpdate('percentConifer', parseFloat(event.target.value))
+                handleFormUpdate({ percentConifer: parseFloat(event.target.value) })
               }
             />
           </Box>
@@ -58,7 +58,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
                   : fireWatch.percentDeadFir
               }
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                handleFormUpdate('percentDeadFir', parseFloat(event.target.value))
+                handleFormUpdate({ percentDeadFir: parseFloat(event.target.value) })
               }
             />
           </Box>
@@ -79,7 +79,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
                   : fireWatch.percentGrassCuring
               }
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                handleFormUpdate('percentGrassCuring', parseFloat(event.target.value))
+                handleFormUpdate({ percentGrassCuring: parseFloat(event.target.value) })
               }
             />
           </Box>
@@ -104,7 +104,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
               value={fireWatch.fuelType}
               renderInput={params => <TextField {...params} />}
               onChange={(_: React.SyntheticEvent<Element, Event>, newValue: FuelTypeEnum) => {
-                handleFormUpdate('fuelType', newValue)
+                handleFormUpdate({ fuelType: newValue })
               }}
             />
           </Box>
@@ -121,7 +121,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
                   type="number"
                   value={isNaN(fireWatch.ffmcMin) ? '' : fireWatch.ffmcMin}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    handleFormUpdate('ffmcMin', parseFloat(event.target.value))
+                    handleFormUpdate({ ffmcMin: parseFloat(event.target.value) })
                   }
                   sx={{ pr: theme.spacing(2) }}
                 />
@@ -131,7 +131,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
                   type="number"
                   value={isNaN(fireWatch.ffmcPreferred) ? '' : fireWatch.ffmcPreferred}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    handleFormUpdate('ffmcPreferred', parseFloat(event.target.value))
+                    handleFormUpdate({ ffmcPreferred: parseFloat(event.target.value) })
                   }
                   sx={{ pr: theme.spacing(2) }}
                 />
@@ -141,7 +141,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
                   type="number"
                   value={isNaN(fireWatch.ffmcMax) ? '' : fireWatch.ffmcMax}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    handleFormUpdate('ffmcMax', parseFloat(event.target.value))
+                    handleFormUpdate({ ffmcMax: parseFloat(event.target.value) })
                   }
                 />
               </Box>
@@ -158,7 +158,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
                 type="number"
                 value={isNaN(fireWatch.dmcMin) ? '' : fireWatch.dmcMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate('dmcMin', parseFloat(event.target.value))
+                  handleFormUpdate({ dmcMin: parseFloat(event.target.value) })
                 }
                 sx={{ pr: theme.spacing(2) }}
               />
@@ -168,7 +168,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
                 type="number"
                 value={isNaN(fireWatch.dmcPreferred) ? '' : fireWatch.dmcPreferred}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate('dmcPreferred', parseFloat(event.target.value))
+                  handleFormUpdate({ dmcPreferred: parseFloat(event.target.value) })
                 }
                 sx={{ pr: theme.spacing(2) }}
               />
@@ -178,7 +178,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
                 type="number"
                 value={isNaN(fireWatch.dmcMax) ? '' : fireWatch.dmcMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate('dmcMax', parseFloat(event.target.value))
+                  handleFormUpdate({ dmcMax: parseFloat(event.target.value) })
                 }
               />
             </Box>
@@ -194,7 +194,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
                 type="number"
                 value={isNaN(fireWatch.dcMin) ? '' : fireWatch.dcMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate('dcMin', parseFloat(event.target.value))
+                  handleFormUpdate({ dcMin: parseFloat(event.target.value) })
                 }
                 sx={{ pr: theme.spacing(2) }}
               />
@@ -204,7 +204,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
                 type="number"
                 value={isNaN(fireWatch.dcPreferred) ? '' : fireWatch.dcPreferred}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate('dcPreferred', parseFloat(event.target.value))
+                  handleFormUpdate({ dcPreferred: parseFloat(event.target.value) })
                 }
                 sx={{ pr: theme.spacing(2) }}
               />
@@ -214,7 +214,7 @@ const FuelStep = ({fireWatch, setFireWatch}: FuelStepProps) => {
                 type="number"
                 value={isNaN(fireWatch.dcMax) ? '' : fireWatch.dcMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate('dcMax', parseFloat(event.target.value))
+                  handleFormUpdate({ dcMax: parseFloat(event.target.value) })
                 }
               />
             </Box>

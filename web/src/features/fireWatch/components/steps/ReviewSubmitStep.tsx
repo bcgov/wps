@@ -211,7 +211,7 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
               <Box sx={{ display: 'flex', pt: theme.spacing(2) }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: '1' }}>
                   <Typography sx={{ fontWeight: 'bold' }} variant="body1">
-                    5. Fire Behavior Indices (Min/Preferred/Max
+                    5. Fire Behavior Indices (Min/Preferred/Max)
                   </Typography>
                   <SummaryTextLine
                     indentLevel={1}

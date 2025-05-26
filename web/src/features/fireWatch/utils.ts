@@ -3,12 +3,8 @@ import { isNil, isNull } from "lodash"
 import { DateTime } from "luxon"
 import { SetStateAction } from "react"
 
-export const handleFireWatchPropertyUpdate = <K extends keyof FireWatch>(fireWatch: FireWatch, key: K, value: FireWatch[K]): FireWatch => {
-  return { ...fireWatch, [key]: value } as FireWatch
-}
-
-export const updateFireWatch = <K extends keyof FireWatch>(fireWatch: FireWatch, key: K, value: FireWatch[K], updateCallback: React.Dispatch<SetStateAction<FireWatch>>) => {
-  const newFireWatch = handleFireWatchPropertyUpdate(fireWatch, key, value)
+export const updateFireWatch = (fireWatch: FireWatch, partialFireWatch: Partial<FireWatch>, updateCallback: React.Dispatch<SetStateAction<FireWatch>>) => {
+  const newFireWatch = { ...fireWatch, ...partialFireWatch}
   updateCallback(newFireWatch)
 }
 
