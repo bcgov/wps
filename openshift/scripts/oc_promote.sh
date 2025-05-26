@@ -23,12 +23,12 @@ source "$(dirname ${0})/common/common"
 
 # Source and destination
 #
-IMG_DEST="${APP_NAME}-${MODULE_NAME}-${TAG_TEST}"
+IMG_DEST="${APP_NAME}-${MODULE_NAME}-${TAG_PROD}"
 
 # Tag PR image on prod imagestream, leaving the original tag in, then retag prod imagestream
 #
 OC_IMG_PROD_STREAM_TAG="oc -n ${PROJ_TOOLS} tag ${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX} ${IMG_DEST}:${SUFFIX}"
-OC_IMG_PROD_LATEST_TAG="oc -n ${PROJ_TOOLS} tag ${IMG_DEST}:${SUFFIX} ${IMG_DEST}:${TAG_TEST}"
+OC_IMG_PROD_LATEST_TAG="oc -n ${PROJ_TOOLS} tag ${IMG_DEST}:${SUFFIX} ${IMG_DEST}:${TAG_PROD}"
 
 # Get list of images to prune.
 #
