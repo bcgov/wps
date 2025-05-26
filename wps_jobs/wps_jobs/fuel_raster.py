@@ -38,10 +38,7 @@ async def find_latest_version(
 
 
 async def start_job(
-    raster_addresser: RasterKeyAddresser,
-    start_datetime: datetime,
-    unprocessed_object_name: str,
-    expected_hash: str,
+    raster_addresser: RasterKeyAddresser, start_datetime: datetime, unprocessed_object_name: str
 ):
     """
     This function performs the following steps:
@@ -68,6 +65,7 @@ async def start_job(
         new_key = raster_addresser.get_fuel_raster_key(start_datetime, current_version + 1)
 
         try:
+            expected_hash = await s3_client.get_content_hash(unprocessed_key)
             await s3_client.copy_object(unprocessed_key, new_key)
             res = await s3_client.get_fuel_raster(new_key, expected_hash)
         except ValueError as e:
@@ -105,19 +103,10 @@ def main():
     parser.add_argument(
         "-k", "--key", default=None, help="Object storage key that points to the unprocessed raster"
     )
-    parser.add_argument(
-        "-e",
-        "--expected-hash",
-        default=None,
-        help="Expected content hash of the unprocessed raster's raw bytes",
-    )
 
     args, _ = parser.parse_known_args()
     start_datetime = datetime.fromisoformat(args.date) if args.date else get_utc_now()
     unprocessed_object_name = str(args.key) if args.key else config.get("FUEL_RASTER_NAME")
-    expected_hash = (
-        str(args.expected_hash) if args.expected_hash else config.get("FUEL_RASTER_CONTENT_HASH")
-    )
     try:
         # We don't want gdal to silently swallow errors.
         gdal.UseExceptions()
@@ -126,7 +115,7 @@ def main():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(
-            start_job(RasterKeyAddresser(), start_datetime, unprocessed_object_name, expected_hash)
+            start_job(RasterKeyAddresser(), start_datetime, unprocessed_object_name)
         )
 
         # Exit with 0 - success.

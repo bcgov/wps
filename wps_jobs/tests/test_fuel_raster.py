@@ -1,11 +1,10 @@
 import os
-import sys
 import pytest
 from datetime import datetime
 
 from pytest_mock import MockerFixture
 import wps_jobs.fuel_raster
-from wps_jobs.fuel_raster import find_latest_version, start_job, main
+from wps_jobs.fuel_raster import find_latest_version, start_job
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.db.models import FuelTypeRaster
@@ -57,6 +56,9 @@ class MockS3Client:
     async def copy_object(self, src, dst):
         assert src == "unprocessed-key"  # Test we call it with the correct key
         assert dst == "fuel-key-v3"  # Test the new key is generated correctly
+
+    async def get_content_hash(self, _):
+        return "abc123"
 
     async def get_fuel_raster(self, key, hash_):
         return b"raster-bytes"  # Fake raster content for testing
@@ -110,7 +112,9 @@ def setup_mocks(monkeypatch):
         return f"fuel-key-v{version}"
 
     raster_addresser = RasterKeyAddresser()
-    monkeypatch.setattr(raster_addresser, "get_unprocessed_fuel_raster_key", mock_get_unprocessed_key)
+    monkeypatch.setattr(
+        raster_addresser, "get_unprocessed_fuel_raster_key", mock_get_unprocessed_key
+    )
     monkeypatch.setattr(raster_addresser, "get_fuel_raster_key", mock_get_fuel_key)
 
     monkeypatch.setattr("wps_jobs.fuel_raster.S3Client", lambda: MockS3Client())
@@ -120,10 +124,14 @@ def setup_mocks(monkeypatch):
 
     monkeypatch.setattr("wps_jobs.fuel_raster.find_latest_version", mock_find_latest_version)
 
-    monkeypatch.setattr("wps_jobs.fuel_raster.WPSDataset.from_bytes", lambda res: MockRasterContext())
+    monkeypatch.setattr(
+        "wps_jobs.fuel_raster.WPSDataset.from_bytes", lambda res: MockRasterContext()
+    )
 
     mock_db = MockDB()
-    monkeypatch.setattr("wps_jobs.fuel_raster.get_async_write_session_scope", lambda: mock_db.MockDBScope(mock_db))
+    monkeypatch.setattr(
+        "wps_jobs.fuel_raster.get_async_write_session_scope", lambda: mock_db.MockDBScope(mock_db)
+    )
 
     # UTC now
     monkeypatch.setattr("wps_jobs.fuel_raster.get_utc_now", lambda: datetime(2024, 4, 15, 12, 0))
@@ -134,7 +142,11 @@ def setup_mocks(monkeypatch):
 async def test_start_job_success(monkeypatch):
     raster_addresser, mock_db = setup_mocks(monkeypatch)
 
-    await start_job(raster_addresser=raster_addresser, start_datetime=datetime(2024, 1, 1), unprocessed_object_name="fuel.tif", expected_hash="abc123")
+    await start_job(
+        raster_addresser=raster_addresser,
+        start_datetime=datetime(2024, 1, 1),
+        unprocessed_object_name="fuel.tif",
+    )
 
     raster = mock_db.added["raster"]
     assert isinstance(raster, FuelTypeRaster)
@@ -155,6 +167,9 @@ async def test_start_job_failure(monkeypatch):
         async def delete_object(self, key):
             self.deleted = key
 
+        async def get_content_hash(self, _):
+            return "abc123"
+
         async def get_fuel_raster(_, __, ___):
             raise ValueError("corrupt file")
 
@@ -162,7 +177,11 @@ async def test_start_job_failure(monkeypatch):
     monkeypatch.setattr("wps_jobs.fuel_raster.S3Client", lambda: mock_s3)
 
     with pytest.raises(ValueError):
-        await start_job(raster_addresser=raster_addresser, start_datetime=datetime(2024, 1, 1), unprocessed_object_name="fuel.tif", expected_hash="abc123")
+        await start_job(
+            raster_addresser=raster_addresser,
+            start_datetime=datetime(2024, 1, 1),
+            unprocessed_object_name="fuel.tif",
+        )
         assert mock_db.added == {}
         assert mock_s3.deleted == "fuel-key-v3"
 
@@ -184,7 +203,7 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
 
 
 def test_main_success(mocker: MockerFixture, monkeypatch):
-    async def mock_start_job(_, __, ___, ____):
+    async def mock_start_job(_, __, ___):
         pass
 
     rocket_chat_spy = mocker.spy(wps_jobs.fuel_raster, "send_rocketchat_notification")
