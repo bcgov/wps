@@ -246,7 +246,9 @@ async def get_actuals_and_forecasts(start_date: datetime, end_date: datetime, st
     """Fetch actuals and forecasts from the WFWX API."""
     async with ClientSession() as session:
         header = await get_auth_header(session)
-        wf1_actuals, wf1_forecasts = await get_daily_determinates_for_stations_and_date(session, header, start_date, end_date, station_ids)
+        wf1_actuals, wf1_forecasts = await get_daily_determinates_for_stations_and_date(
+            session, header, start_date, end_date, station_ids, check_cache=False
+        )
         return wf1_actuals, wf1_forecasts
 
 
