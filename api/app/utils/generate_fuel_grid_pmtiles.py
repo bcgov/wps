@@ -46,12 +46,13 @@ def reclassify_fuel_geotiff(fuel_raster_path: str, output_geotiff_path: str) -> 
     band = ds.GetRasterBand(1)
     array = band.ReadAsArray()
     reclassified = np.copy(array)
+
+    reclassified[np.isin(array, [2010, 2060, 2070])] = 8
+    reclassified[array == 2030] = 10
     reclassified[np.isin(array, [2050, 2080])] = 12
     reclassified[(array >= 500) & (array <= 595)] = 14
-    reclassified[np.isin(array, [2000, 2040])] = 99
-    reclassified[np.isin(array, [2010, 2060, 2070])] = 8
     reclassified[array == 2020] = 14
-    reclassified[array == 2030] = 10
+    reclassified[np.isin(array, [2000, 2040])] = 99
 
     transform = ds.GetGeoTransform()
     projection = ds.GetProjection()
