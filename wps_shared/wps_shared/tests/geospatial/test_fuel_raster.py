@@ -13,7 +13,7 @@ async def test_get_fuel_layer_key_returns_processed(monkeypatch):
         "wps_shared.geospatial.fuel_raster.config", {"OBJECT_STORE_BUCKET": "my-bucket"}
     )
     monkeypatch.setattr(
-        "wps_shared.geospatial.fuel_raster.get_most_recent_fuel_layer",
+        "wps_shared.geospatial.fuel_raster.get_processed_fuel_raster_details",
         AsyncMock(return_value=mock_raster),
     )
 
@@ -32,7 +32,8 @@ async def test_get_fuel_layer_key_returns_unprocessed(monkeypatch):
         {"OBJECT_STORE_BUCKET": "my-bucket", "FUEL_RASTER_NAME": "fuel-unprocessed.tif"},
     )
     monkeypatch.setattr(
-        "wps_shared.geospatial.fuel_raster.get_most_recent_fuel_layer", AsyncMock(return_value=None)
+        "wps_shared.geospatial.fuel_raster.get_processed_fuel_raster_details",
+        AsyncMock(return_value=None),
     )
 
     key = await get_versioned_fuel_raster_key(
