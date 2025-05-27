@@ -43,7 +43,7 @@ async def start_job(
     """
     This function performs the following steps:
     1. Finds the latest version of the fuel raster for the given start datetime.
-    2. Copies the unprocessed raster object to a new key with an incremented version.
+    2. Copies the unprocessed raster object to a new key with an incremented version. The object already needs to exist in S3 storage at `sfms/static/`.
     3. Validates the content hash of the copied raster.
     4. If validation fails, deletes the new raster object and raises an error.
     5. If validation succeeds, extracts raster dimensions and saves metadata to the database.
