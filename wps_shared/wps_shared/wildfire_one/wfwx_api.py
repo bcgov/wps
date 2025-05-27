@@ -358,12 +358,20 @@ async def get_forecasts_for_stations_by_date_range(
 
 
 async def get_daily_determinates_for_stations_and_date(
-    session: ClientSession, header: dict, start_time_of_interest: datetime, end_time_of_interest: datetime, unique_station_codes: List[int], mapper=weather_indeterminate_list_mapper
+    session: ClientSession,
+    header: dict,
+    start_time_of_interest: datetime,
+    end_time_of_interest: datetime,
+    unique_station_codes: List[int],
+    mapper=weather_indeterminate_list_mapper,
+    check_cache: bool = True,
 ):
     # get station information from the wfwx api
     wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
     # get the dailies for all the stations
-    raw_dailies = await get_dailies_generator(session, header, wfwx_stations, start_time_of_interest, end_time_of_interest)
+    raw_dailies = await get_dailies_generator(
+        session, header, wfwx_stations, start_time_of_interest, end_time_of_interest, check_cache
+    )
 
     weather_determinates_actuals, weather_determinates_forecasts = await mapper(raw_dailies)
 

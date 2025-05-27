@@ -113,11 +113,6 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: object-store-bucket
-                - name: FUEL_RASTER_NAME
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.fuel_raster_name
                 - name: NASA_EARTHDATA_USER
                   valueFrom:
                     configMapKeyRef:

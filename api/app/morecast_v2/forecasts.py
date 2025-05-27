@@ -1,6 +1,8 @@
 from datetime import datetime, time, timedelta, timezone
 from urllib.parse import urljoin
 from wps_shared import config
+from cffdrs import ffmc, dc, dmc, isi, bui, fwi
+
 
 from aiohttp import ClientSession
 from collections import defaultdict
@@ -154,6 +156,43 @@ def get_fwi_values(actuals: List[WeatherIndeterminate], forecasts: List[WeatherI
     return updated_actuals, updated_forecasts
 
 
+def indeterminate_missing_fwi(indeterminate: WeatherIndeterminate):
+    return (
+        indeterminate.fine_fuel_moisture_code is None
+        or indeterminate.duff_moisture_code is None
+        or indeterminate.drought_code is None
+        or indeterminate.initial_spread_index is None
+        or indeterminate.build_up_index is None
+    )
+
+
+def calculate_fwi_from_seed_indeterminates(seed_indeterminates: List[WeatherIndeterminate], target_indeterminates: List[WeatherIndeterminate]) -> List[WeatherIndeterminate]:
+    """
+    Calculates FWI values for a list of target indeterminates based on seed indeterminates.
+
+    :param seed_indeterminates: List of seed WeatherIndeterminate objects used as the base for calculations
+    :param target_indeterminates: List of WeatherIndeterminate objects that need FWI values calculated
+    :return: List of updated WeatherIndeterminate objects with calculated FWI values
+    """
+    # Combine seed and target indeterminates for lookup
+    all_indeterminates = seed_indeterminates + target_indeterminates
+    indeterminates_dict = defaultdict(dict)
+
+    # Shape indeterminates into nested dicts for quick lookups by station code and date
+    for indeterminate in all_indeterminates:
+        indeterminates_dict[indeterminate.station_code][indeterminate.utc_timestamp.date()] = indeterminate
+
+    # Calculate FWI values for target indeterminates
+    for idx, indeterminate in enumerate(target_indeterminates):
+        previous_date = indeterminate.utc_timestamp.date() - timedelta(days=1)
+        last_indeterminate = indeterminates_dict[indeterminate.station_code].get(previous_date, None)
+        if last_indeterminate is not None and indeterminate_missing_fwi(indeterminate):
+            # If the target indeterminate already has FWI values, skip calculation
+            target_indeterminates[idx] = calculate_fwi_values(last_indeterminate, indeterminate)
+
+    return target_indeterminates
+
+
 def calculate_fwi_values(yesterday: WeatherIndeterminate, today: WeatherIndeterminate) -> WeatherIndeterminate:
     """
     Uses CFFDRS library to calculate Fire Weather Index System values
@@ -175,22 +214,16 @@ def calculate_fwi_values(yesterday: WeatherIndeterminate, today: WeatherIndeterm
     wind_spd = today.wind_speed
 
     if yesterday.fine_fuel_moisture_code is not None:
-        today.fine_fuel_moisture_code = cffdrs.fine_fuel_moisture_code(
-            ffmc=yesterday.fine_fuel_moisture_code, temperature=temp, relative_humidity=rh, precipitation=precip, wind_speed=wind_spd
-        )
+        today.fine_fuel_moisture_code = ffmc(ffmc_yda=yesterday.fine_fuel_moisture_code, temp=temp, rh=rh, prec=precip, ws=wind_spd)
     if yesterday.duff_moisture_code is not None:
-        today.duff_moisture_code = cffdrs.duff_moisture_code(
-            dmc=yesterday.duff_moisture_code, temperature=temp, relative_humidity=rh, precipitation=precip, latitude=latitude, month=month_to_calculate_for, latitude_adjust=True
-        )
+        today.duff_moisture_code = dmc(dmc_yda=yesterday.duff_moisture_code, temp=temp, rh=rh, prec=precip, lat=latitude, mon=month_to_calculate_for, lat_adjust=True)
     if yesterday.drought_code is not None:
-        today.drought_code = cffdrs.drought_code(
-            dc=yesterday.drought_code, temperature=temp, relative_humidity=rh, precipitation=precip, latitude=latitude, month=month_to_calculate_for, latitude_adjust=True
-        )
+        today.drought_code = dc(dc_yda=yesterday.drought_code, temp=temp, rh=rh, prec=precip, lat=latitude, mon=month_to_calculate_for, lat_adjust=True)
     if today.fine_fuel_moisture_code is not None:
-        today.initial_spread_index = cffdrs.initial_spread_index(ffmc=today.fine_fuel_moisture_code, wind_speed=today.wind_speed)
+        today.initial_spread_index = isi(ffmc=today.fine_fuel_moisture_code, ws=today.wind_speed)
     if today.duff_moisture_code is not None and today.drought_code is not None:
-        today.build_up_index = cffdrs.bui_calc(dmc=today.duff_moisture_code, dc=today.drought_code)
+        today.build_up_index = bui(dmc=today.duff_moisture_code, dc=today.drought_code)
     if today.initial_spread_index is not None and today.build_up_index is not None:
-        today.fire_weather_index = cffdrs.fire_weather_index(isi=today.initial_spread_index, bui=today.build_up_index)
+        today.fire_weather_index = fwi(isi=today.initial_spread_index, bui=today.build_up_index)
 
     return today

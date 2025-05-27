@@ -116,7 +116,7 @@ def compose_rdps_filename(forecast_start_date: datetime, run_hour: int, forecast
 
     return (
         f"{SourcePrefix.CMC.value}{DELIMITER}{REG}{DELIMITER}{key_params.variable}{DELIMITER}{key_params.level_type}{DELIMITER}{key_params.level}{DELIMITER}{PS10KM}{DELIMITER}"
-        f"{forecast_start_date.date().isoformat().replace('-','')}{model_hour:02d}{DELIMITER}P{adjusted_forecast_hour:03d}{file_ext}"
+        f"{forecast_start_date.date().isoformat().replace('-', '')}{model_hour:02d}{DELIMITER}P{adjusted_forecast_hour:03d}{file_ext}"
     )
 
 
@@ -157,5 +157,5 @@ def compose_rdps_filename_hffmc(model_run_start: datetime, offset_hour: int, wea
     file_ext = ".grib2"
     return (
         f"{SourcePrefix.CMC.value}{DELIMITER}{REG}{DELIMITER}{key_params.variable}{DELIMITER}{key_params.level_type}{DELIMITER}{key_params.level}{DELIMITER}{PS10KM}{DELIMITER}"
-        f"{model_run_start.date().isoformat().replace('-','')}{model_run_start.hour:02d}{DELIMITER}P{offset_hour:03d}{file_ext}"
+        f"{model_run_start.date().isoformat().replace('-', '')}{model_run_start.hour:02d}{DELIMITER}P{offset_hour:03d}{file_ext}"
     )

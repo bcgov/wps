@@ -27,7 +27,8 @@ const Root = styled('nav')(({ theme }) => ({
     background: theme.palette.primary.main,
     borderBottomWidth: 2,
     borderBottomStyle: 'solid',
-    borderBottomColor: theme.palette.secondary.main
+    borderBottomColor: theme.palette.secondary.main,
+    zIndex: theme.zIndex.drawer + 1
   },
 
   [`& .${classes.container}`]: {
