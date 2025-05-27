@@ -57,6 +57,5 @@ async def get_processed_fuel_raster_details(
             .where(FuelTypeRaster.year == year)
             .where(FuelTypeRaster.version == version)
         )
-        result = list((await session.execute(stmt)).scalars().all())
-        assert len(result) < 2
-        return None if len(result) == 0 else result[0]
+        result = (await session.execute(stmt)).scalars().one_or_none()
+        return result
