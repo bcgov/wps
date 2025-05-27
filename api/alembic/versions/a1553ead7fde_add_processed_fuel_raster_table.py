@@ -1,7 +1,7 @@
 """add processed fuel raster table
 
 Revision ID: a1553ead7fde
-Revises: 42a9dae10dca
+Revises: 128156e36f67
 Create Date: 2025-05-26 15:42:34.221962
 
 """
@@ -13,7 +13,7 @@ from wps_shared.db.models.common import TZTimeStamp
 
 # revision identifiers, used by Alembic.
 revision = "a1553ead7fde"
-down_revision = "42a9dae10dca"
+down_revision = "128156e36f67"
 branch_labels = None
 depends_on = None
 
