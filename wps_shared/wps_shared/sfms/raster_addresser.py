@@ -1,11 +1,11 @@
 import os
 import enum
-from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta
 from wps_shared import config
 from wps_shared.utils.time import convert_to_sfms_timezone, convert_utc_to_pdt
+from wps_shared.utils.time import assert_all_utc
 from wps_shared.weather_models import ModelEnum
-from app.weather_models.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key, compose_rdps_key_hffmc
+from wps_shared.sfms.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key, compose_rdps_key_hffmc
 
 
 class WeatherParameter(enum.Enum):
@@ -23,12 +23,6 @@ class FWIParameter(enum.Enum):
     FWI = "fwi"
 
 
-def assert_all_utc(*datetimes: datetime):
-    for dt in datetimes:
-        assert dt.tzinfo is not None, f"{dt} must be timezone-aware."
-        assert dt.tzinfo == timezone.utc or dt.tzinfo == ZoneInfo("UTC"), f"{dt} is not in UTC."
-
-
 class RasterKeyAddresser:
     """
     Encapsulates logic for addressing model and weather data rasters stored in object storage.
@@ -39,7 +33,36 @@ class RasterKeyAddresser:
         self.s3_prefix = f"/vsis3/{config.get('OBJECT_STORE_BUCKET')}"
         self.sfms_hourly_upload_prefix = "sfms/uploads/hourlies"
         self.sfms_daily_upload_prefix = "sfms/uploads/actual"
+        self.sfms_fuel_raster_prefix = "sfms/static/fuel"
         self.weather_model_prefix = f"weather_models/{ModelEnum.RDPS.lower()}"
+
+    def get_fuel_raster_key(self, datetime_utc: datetime, version: int):
+        """
+        returns fuel raster object storage key based on format:
+            sfms/static/yyyy/fbpyyyy_v{x}.tif
+
+            where
+                bucket: the object storage bucket
+                yyyy: the year
+                x: the raster tif version number
+
+        :param datetime_utc: the current UTC datetime
+        :param version: the version of the fuel raster file desired
+        :return: the fuel raster key
+        """
+        assert_all_utc(datetime_utc)
+        year = datetime_utc.year
+        return f"{self.sfms_fuel_raster_prefix}/{year}/fbp{year}_v{version}.tif"
+
+    def get_unprocessed_fuel_raster_key(self, object_name: str):
+        """
+        returns the unprocessed fuel raster object storage key based on format:
+            sfms/static/{object_name}
+
+        :param object_name: the object file name including extension
+        :return: the unprocessed fuel raster key at sfms/static
+        """
+        return f"sfms/static/{object_name}"
 
     def get_uploaded_index_key(self, datetime: datetime, fwi_param: FWIParameter):
         sfms_datetime = convert_to_sfms_timezone(datetime)

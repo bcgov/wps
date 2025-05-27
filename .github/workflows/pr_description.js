@@ -22,6 +22,7 @@ module.exports = async ({ github, context }) => {
     body += `[Auto Spatial Advisory (ASA)](${prBaseUrl}/auto-spatial-advisory)\n`;
     body += `[HFI Calculator](${prBaseUrl}/hfi-calculator)\n`;
     body += `[SFMS Insights](${prBaseUrl}/insights)\n`;
+    body += `[Fire Watch](${prBaseUrl}/fire-watch)\n`;
     github.rest.pulls.update({
       owner: context.repo.owner,
       repo: context.repo.repo,

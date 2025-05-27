@@ -23,11 +23,11 @@ from wps_shared.weather_models import CompletedWithSomeExceptions, download
 from wps_shared.weather_models import ModelEnum
 from wps_shared.wps_logging import configure_logging
 import wps_shared.utils.time as time_utils
-from wps_shared.utils.s3 import get_client
+from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, get_client
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.weather_models.job_utils import get_regional_model_run_download_urls
 from app.weather_models.precip_rdps_model import compute_and_store_precip_rasters
-from app.weather_models.rdps_filename_marshaller import model_run_for_hour
+from wps_shared.sfms.rdps_filename_marshaller import model_run_for_hour
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -128,13 +128,12 @@ class RDPSGrib:
     async def apply_retention_policy(self, days_to_retain: int):
         """Delete objects from S3 storage and remove records from database that are older than DAYS_TO_RETAIN"""
         logger.info(f"Applying retention policy to RDPS data downloaded for SFMS. Data in S3 and corresponding database records older than {days_to_retain} days are being deleted.")
+        prefix = "weather_models/rdps/"
+        async with get_client() as (client, bucket):
+            await apply_retention_policy_on_date_folders(client, bucket, prefix, days_to_retain)
+
         deletion_threshold = self.now - timedelta(days=days_to_retain)
         records_for_deletion = get_rdps_sfms_urls_for_deletion(self.session, deletion_threshold)
-        async with get_client() as (client, bucket):
-            for record in records_for_deletion:
-                s3_key = record.s3_key
-                await client.delete_object(Bucket=bucket, Key=s3_key)
-                print("Object deleted")
         ids_for_deletion = list(record.id for record in records_for_deletion)
         delete_rdps_sfms_urls(self.session, ids_for_deletion)
         logger.info(f"Completed deleting {len(records_for_deletion)} objects and records.")

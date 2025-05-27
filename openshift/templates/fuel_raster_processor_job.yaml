@@ -1,0 +1,126 @@
+kind: "Template"
+apiVersion: "template.openshift.io/v1"
+metadata:
+  name: fuel-raster-processor-template
+  annotations:
+    description: "Job to process a new fuel raster layer."
+    tags: "job,sfms,fuel"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+  - name: CRUNCHYDB_USER
+    required: true
+objects:
+  - kind: Job
+    apiVersion: batch/v1
+    metadata:
+      name: fuel-raster-${NAME}-${SUFFIX}
+    spec:
+      parallelism: 1
+      completions: 1
+      activeDeadlineSeconds: 3600
+      backoffLimit: 6
+      template:
+        metadata:
+          name: fuel-raster-${NAME}-${SUFFIX}
+        spec:
+          containers:
+            - name: fuel-raster-${NAME}-${SUFFIX}
+              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-jobs-${SUFFIX}:${SUFFIX}
+              imagePullPolicy: "Always"
+              command: ["poetry", "run", "python", "-m", "wps_jobs.fuel_raster"]
+              env:
+                - name: OBJECT_STORE_SERVER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-server
+                - name: OBJECT_STORE_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-user-id
+                - name: OBJECT_STORE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-secret
+                - name: OBJECT_STORE_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-bucket
+                - name: FUEL_RASTER_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.fuel_raster_name
+                - name: FUEL_RASTER_CONTENT_HASH
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.fuel_raster_content_hash
+                - name: PG_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: user
+                - name: PG_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: password
+                - name: PG_HOSTNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-host
+                - name: PG_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-port
+                - name: PG_DATABASE
+                  value: ${NAME}
+                - name: SUFFIX
+                  value: ${SUFFIX}
+                - name: ROCKET_URL_POST_MESSAGE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: rocket.chat-url-post-message
+                - name: ROCKET_CHANNEL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: rocket.chat-channel
+                - name: ROCKET_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: rocket.chat-user-id-secret
+                - name: ROCKET_AUTH_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: rocket.chat-auth-token-secret
+              resources:
+                limits:
+                  cpu: "1"
+                  memory: 256Mi
+                requests:
+                  cpu: "500m"
+                  memory: 128Mi
+          restartPolicy: OnFailure
