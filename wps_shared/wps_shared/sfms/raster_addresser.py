@@ -1,9 +1,9 @@
 import os
 import enum
-from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta
 from wps_shared import config
 from wps_shared.utils.time import convert_to_sfms_timezone, convert_utc_to_pdt
+from wps_shared.utils.time import assert_all_utc
 from wps_shared.weather_models import ModelEnum
 from wps_shared.sfms.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key, compose_rdps_key_hffmc
 
@@ -21,12 +21,6 @@ class FWIParameter(enum.Enum):
     FFMC = "ffmc"
     ISI = "isi"
     FWI = "fwi"
-
-
-def assert_all_utc(*datetimes: datetime):
-    for dt in datetimes:
-        assert dt.tzinfo is not None, f"{dt} must be timezone-aware."
-        assert dt.tzinfo == timezone.utc or dt.tzinfo == ZoneInfo("UTC"), f"{dt} is not in UTC."
 
 
 class RasterKeyAddresser:

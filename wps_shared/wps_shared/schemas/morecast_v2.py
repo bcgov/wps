@@ -36,6 +36,13 @@ class WeatherDeterminate(str, Enum):
     FORECAST = "Forecast"
     ACTUAL = "Actual"
 
+    @classmethod
+    def from_string(cls, value: str) -> "WeatherDeterminate":
+        try:
+            return cls(value)
+        except ValueError:
+            raise ValueError(f"{value!r} is not a valid WeatherDeterminate")
+
 
 class ForecastedTemperature(BaseModel):
     """Forecaster chosen temperature"""
@@ -152,6 +159,8 @@ class WeatherIndeterminate(BaseModel):
     fire_weather_index: Optional[float] = None
     danger_rating: Optional[int] = None
     grass_curing: Optional[float] = None
+    update_date: Optional[datetime] = None
+    prediction_run_timestamp: Optional[datetime] = None
 
 
 class IndeterminateDailiesResponse(BaseModel):
