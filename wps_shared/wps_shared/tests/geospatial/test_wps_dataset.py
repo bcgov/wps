@@ -5,7 +5,7 @@ import pytest
 import tempfile
 
 from wps_shared.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
-from app.tests.dataset_common import create_mock_gdal_dataset, create_test_dataset
+from wps_shared.tests.geospatial.dataset_common import create_mock_gdal_dataset, create_test_dataset
 
 hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")  # Byte data
 zero_tif = os.path.join(os.path.dirname(__file__), "zero_layer.tif")
@@ -225,6 +225,22 @@ def test_from_array():
         assert wps_ds.GetProjection() == og_proj
         assert wps_ds.GetRasterBand(1).DataType == dtype
         assert wps_ds.GetRasterBand(1).GetNoDataValue() == -99
+
+
+def test_from_bytes():
+    with open(hfi_tif, "rb") as f:
+        file_bytes = f.read()
+        with WPSDataset.from_bytes(file_bytes) as wps_ds:
+            ds = wps_ds.as_gdal_ds()
+            assert ds.RasterCount == 1
+            assert ds.RasterXSize == 778
+            assert ds.RasterYSize == 683
+            assert ds.GetGeoTransform() == (-758000.0, 2000.0, 0.0, 1290000.0, 0.0, -2000.0)
+            assert (
+                ds.GetProjection()
+                == """PROJCS["Lambert Conformal Conic",GEOGCS["NAD83",DATUM["North_American_Datum_1983",SPHEROID["GRS 1980",6378137,298.257222101004,AUTHORITY["EPSG","7019"]],AUTHORITY["EPSG","6269"]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4269"]],PROJECTION["Lambert_Conformal_Conic_2SP"],PARAMETER["latitude_of_origin",49],PARAMETER["central_meridian",-125],PARAMETER["standard_parallel_1",49],PARAMETER["standard_parallel_2",77],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["Easting",EAST],AXIS["Northing",NORTH]]"""
+            )
+            assert ds.GetMetadata() == {"AREA_OR_POINT": "Area"}
 
 
 def test_multi_wps_dataset_context(mocker):
