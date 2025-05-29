@@ -5,13 +5,13 @@ from datetime import datetime, timedelta, timezone
 from pyproj import Geod
 import numpy as np
 from sqlalchemy.orm import Session
+from wps_shared import config
 from wps_shared.db.crud.weather_models import (
     get_processed_file_record,
     get_processed_file_count,
     get_prediction_model_run_timestamp_records,
     get_model_run_predictions_for_station,
     get_weather_station_model_prediction,
-    delete_weather_station_model_predictions,
     delete_model_run_predictions,
 )
 from wps_jobs.weather_model_jobs.utils.interpolate import (
@@ -24,7 +24,12 @@ from wps_shared.schemas.stations import WeatherStation
 from wps_shared.wps_logging import configure_logging
 import wps_shared.utils.time as time_utils
 from wps_shared.stations import get_stations_synchronously
-from wps_shared.db.models.weather_models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunPrediction
+from wps_shared.db.models.weather_models import (
+    ProcessedModelRunUrl,
+    PredictionModelRunTimestamp,
+    WeatherStationModelPrediction,
+    ModelRunPrediction,
+)
 import wps_shared.db.database
 from wps_shared.db.crud.observations import get_accumulated_precipitation
 
@@ -44,7 +49,12 @@ def get_closest_index(coordinate: List, points: List):
     # Use GRS80 ellipsoid (it's what NAD83 uses)
     geod = Geod(ellps="GRS80")
     # Calculate the distance each point is from the coordinate.
-    _, _, distances = geod.inv([coordinate[0] for _ in range(4)], [coordinate[1] for _ in range(4)], [x[0] for x in points], [x[1] for x in points])
+    _, _, distances = geod.inv(
+        [coordinate[0] for _ in range(4)],
+        [coordinate[1] for _ in range(4)],
+        [x[0] for x in points],
+        [x[1] for x in points],
+    )
     # Return the index of the point with the shortest distance.
     return numpy.argmin(distances)
 
@@ -53,7 +63,7 @@ def flag_file_as_processed(url: str, session: Session):
     """Flag the file as processed in the database"""
     processed_file = get_processed_file_record(session, url)
     if processed_file:
-        logger.info("re-procesed %s", url)
+        logger.info("re-processed %s", url)
     else:
         logger.info("file processed %s", url)
         processed_file = ProcessedModelRunUrl(url=url, create_date=time_utils.get_utc_now())
@@ -75,15 +85,17 @@ def apply_data_retention_policy():
     We can't keep data forever, we just don't have the space.
     """
     with wps_shared.db.database.get_write_session_scope() as session:
-        # Currently we're using 19 days of data for machine learning, so
-        # keeping 21 days (3 weeks) of historic data is sufficient, howeever, we keep
-        # a years' worth of prediction data for historical skill scoring.
-        oldest_to_keep = time_utils.get_utc_now() - time_utils.data_retention_threshold
-        delete_weather_station_model_predictions(session, oldest_to_keep)
+        # Weather station model predictions are partitioned and archived.
+        # Model run predictions are used to inform weather station model predictions
+        # and we can delete them over time by lessening data_retention_threshold.
+        days_to_keep = int(config.get("DATA_RETENTION_THRESHOLD"))
+        oldest_to_keep = time_utils.get_utc_now() - timedelta(days=days_to_keep)
         delete_model_run_predictions(session, oldest_to_keep)
 
 
-def accumulate_nam_precipitation(nam_cumulative_precip: float, prediction: ModelRunPrediction, model_run_hour: int):
+def accumulate_nam_precipitation(
+    nam_cumulative_precip: float, prediction: ModelRunPrediction, model_run_hour: int
+):
     """Calculate overall cumulative precip and cumulative precip for the current prediction."""
     # 00 and 12 hour model runs accumulate precipitation in 12 hour intervals, 06 and 18 hour accumulate in
     # 3 hour intervals
@@ -95,8 +107,12 @@ def accumulate_nam_precipitation(nam_cumulative_precip: float, prediction: Model
         # If we're on an 'accumulation interval', update the cumulative precip
         cumulative_precip = current_precip
 
-    cumulative_precip = cumulative_precip.item() if isinstance(cumulative_precip, np.float64) else cumulative_precip
-    current_precip = current_precip.item() if isinstance(current_precip, np.float64) else current_precip
+    cumulative_precip = (
+        cumulative_precip.item() if isinstance(cumulative_precip, np.float64) else cumulative_precip
+    )
+    current_precip = (
+        current_precip.item() if isinstance(current_precip, np.float64) else current_precip
+    )
 
     return (cumulative_precip, current_precip)
 
@@ -115,7 +131,14 @@ class ModelValueProcessor:
         logger.info("Interpolating values for model run: %s", model_run)
         # Iterate through stations.
         for index, station in enumerate(self.stations):
-            logger.info("Interpolating model run %s (%s/%s) for %s:%s", model_run.id, index, self.station_count, station.code, station.name)
+            logger.info(
+                "Interpolating model run %s (%s/%s) for %s:%s",
+                model_run.id,
+                index,
+                self.station_count,
+                station.code,
+                station.name,
+            )
             # Process this model run for station.
             self._process_model_run_for_station(model_run, station, model_type)
         # Commit all the weather station model predictions (it's fast if we line them all up and commit
@@ -124,56 +147,109 @@ class ModelValueProcessor:
         self.session.commit()
         logger.info("done commit.")
 
-    def _add_interpolated_bias_adjustments_to_prediction(self, station_prediction: WeatherStationModelPrediction, machine: StationMachineLearning):
+    def _add_interpolated_bias_adjustments_to_prediction(
+        self, station_prediction: WeatherStationModelPrediction, machine: StationMachineLearning
+    ):
         # We need to interpolate prediction for 2000 using predictions for 1800 and 2100
         # Predict the temperature
-        temp_at_1800 = machine.predict_temperature(station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp.replace(hour=18))
-        temp_at_2100 = machine.predict_temperature(station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp.replace(hour=21))
-        station_prediction.bias_adjusted_temperature = interpolate_between_two_points(18, 21, temp_at_1800, temp_at_2100, 20)
+        temp_at_1800 = machine.predict_temperature(
+            station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp.replace(hour=18)
+        )
+        temp_at_2100 = machine.predict_temperature(
+            station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp.replace(hour=21)
+        )
+        station_prediction.bias_adjusted_temperature = interpolate_between_two_points(
+            18, 21, temp_at_1800, temp_at_2100, 20
+        )
         # Predict the rh
-        rh_at_1800 = machine.predict_rh(station_prediction.rh_tgl_2, station_prediction.prediction_timestamp.replace(hour=18))
-        rh_at_2100 = machine.predict_rh(station_prediction.rh_tgl_2, station_prediction.prediction_timestamp.replace(hour=21))
-        station_prediction.bias_adjusted_rh = interpolate_between_two_points(18, 21, rh_at_1800, rh_at_2100, 20)
+        rh_at_1800 = machine.predict_rh(
+            station_prediction.rh_tgl_2, station_prediction.prediction_timestamp.replace(hour=18)
+        )
+        rh_at_2100 = machine.predict_rh(
+            station_prediction.rh_tgl_2, station_prediction.prediction_timestamp.replace(hour=21)
+        )
+        station_prediction.bias_adjusted_rh = interpolate_between_two_points(
+            18, 21, rh_at_1800, rh_at_2100, 20
+        )
 
         # Predict the wind speed
-        wind_speed_at_1800 = machine.predict_wind_speed(station_prediction.wind_tgl_10, station_prediction.prediction_timestamp.replace(hour=18))
-        wind_speed_at_2100 = machine.predict_wind_speed(station_prediction.wind_tgl_10, station_prediction.prediction_timestamp.replace(hour=21))
-        station_prediction.bias_adjusted_wind_speed = interpolate_between_two_points(18, 21, wind_speed_at_1800, wind_speed_at_2100, 20)
+        wind_speed_at_1800 = machine.predict_wind_speed(
+            station_prediction.wind_tgl_10, station_prediction.prediction_timestamp.replace(hour=18)
+        )
+        wind_speed_at_2100 = machine.predict_wind_speed(
+            station_prediction.wind_tgl_10, station_prediction.prediction_timestamp.replace(hour=21)
+        )
+        station_prediction.bias_adjusted_wind_speed = interpolate_between_two_points(
+            18, 21, wind_speed_at_1800, wind_speed_at_2100, 20
+        )
 
         # Predict the wind direction
-        wind_direction_at_1800 = station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(
-            station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, station_prediction.prediction_timestamp.replace(hour=18)
+        wind_direction_at_1800 = station_prediction.bias_adjusted_wdir = (
+            machine.predict_wind_direction(
+                station_prediction.wind_tgl_10,
+                station_prediction.wdir_tgl_10,
+                station_prediction.prediction_timestamp.replace(hour=18),
+            )
         )
-        wind_direction_at_2100 = station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(
-            station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, station_prediction.prediction_timestamp.replace(hour=21)
+        wind_direction_at_2100 = station_prediction.bias_adjusted_wdir = (
+            machine.predict_wind_direction(
+                station_prediction.wind_tgl_10,
+                station_prediction.wdir_tgl_10,
+                station_prediction.prediction_timestamp.replace(hour=21),
+            )
         )
-        station_prediction.bias_adjusted_wdir = interpolate_between_two_points(18, 21, wind_direction_at_1800, wind_direction_at_2100, 20)
+        station_prediction.bias_adjusted_wdir = interpolate_between_two_points(
+            18, 21, wind_direction_at_1800, wind_direction_at_2100, 20
+        )
 
         # Predict the 24h precipitation. No interpolation necessary due to the underlying model training.
-        station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(station_prediction.precip_24h, station_prediction.prediction_timestamp)
+        station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(
+            station_prediction.precip_24h, station_prediction.prediction_timestamp
+        )
 
-    def _add_bias_adjustments_to_prediction(self, station_prediction: WeatherStationModelPrediction, machine: StationMachineLearning):
+    def _add_bias_adjustments_to_prediction(
+        self, station_prediction: WeatherStationModelPrediction, machine: StationMachineLearning
+    ):
         # Predict the temperature
-        station_prediction.bias_adjusted_temperature = machine.predict_temperature(station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp)
+        station_prediction.bias_adjusted_temperature = machine.predict_temperature(
+            station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp
+        )
 
         # Predict the rh
-        station_prediction.bias_adjusted_rh = machine.predict_rh(station_prediction.rh_tgl_2, station_prediction.prediction_timestamp)
+        station_prediction.bias_adjusted_rh = machine.predict_rh(
+            station_prediction.rh_tgl_2, station_prediction.prediction_timestamp
+        )
 
         # Predict the wind speed
-        station_prediction.bias_adjusted_wind_speed = machine.predict_wind_speed(station_prediction.wind_tgl_10, station_prediction.prediction_timestamp)
+        station_prediction.bias_adjusted_wind_speed = machine.predict_wind_speed(
+            station_prediction.wind_tgl_10, station_prediction.prediction_timestamp
+        )
 
         # Predict the wind direction
-        station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, station_prediction.prediction_timestamp)
+        station_prediction.bias_adjusted_wdir = machine.predict_wind_direction(
+            station_prediction.wind_tgl_10,
+            station_prediction.wdir_tgl_10,
+            station_prediction.prediction_timestamp,
+        )
 
         # Predict the 24h precipitation
-        station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(station_prediction.precip_24h, station_prediction.prediction_timestamp)
+        station_prediction.bias_adjusted_precip_24h = machine.predict_precipitation(
+            station_prediction.precip_24h, station_prediction.prediction_timestamp
+        )
 
     def _process_prediction(
-        self, prediction: ModelRunPrediction, station: WeatherStation, model_run: PredictionModelRunTimestamp, machine: StationMachineLearning, prediction_is_interpolated: bool
+        self,
+        prediction: ModelRunPrediction,
+        station: WeatherStation,
+        model_run: PredictionModelRunTimestamp,
+        machine: StationMachineLearning,
+        prediction_is_interpolated: bool,
     ):
         """Create a WeatherStationModelPrediction from the ModelRunPrediction data."""
         # If there's already a prediction, we want to update it
-        station_prediction = get_weather_station_model_prediction(self.session, station.code, model_run.id, prediction.prediction_timestamp)
+        station_prediction = get_weather_station_model_prediction(
+            self.session, station.code, model_run.id, prediction.prediction_timestamp
+        )
         if station_prediction is None:
             station_prediction = WeatherStationModelPrediction()
         # Populate the weather station prediction object.
@@ -187,7 +263,11 @@ class ModelValueProcessor:
         if prediction.tmp_tgl_2 is None:
             logger.warning("tmp_tgl_2 is None for ModelRunPrediction.id == %s", prediction.id)
         else:
-            temp = prediction.tmp_tgl_2.item() if isinstance(prediction.tmp_tgl_2, np.float64) else prediction.tmp_tgl_2
+            temp = (
+                prediction.tmp_tgl_2.item()
+                if isinstance(prediction.tmp_tgl_2, np.float64)
+                else prediction.tmp_tgl_2
+            )
             station_prediction.tmp_tgl_2 = temp
 
         # 2020 Dec 10, Sybrand: Encountered situation where rh_tgl_2 was None, add this workaround for it.
@@ -198,28 +278,48 @@ class ModelValueProcessor:
             logger.warning("rh_tgl_2 is None for ModelRunPrediction.id == %s", prediction.id)
             station_prediction.rh_tgl_2 = None
         else:
-            rh = prediction.rh_tgl_2.item() if isinstance(prediction.rh_tgl_2, np.float64) else prediction.rh_tgl_2
+            rh = (
+                prediction.rh_tgl_2.item()
+                if isinstance(prediction.rh_tgl_2, np.float64)
+                else prediction.rh_tgl_2
+            )
             station_prediction.rh_tgl_2 = rh
         # Check that apcp_sfc_0 is None, since accumulated precipitation
         # does not exist for 00 hour.
         if prediction.apcp_sfc_0 is None:
             station_prediction.apcp_sfc_0 = float(0.0)
         else:
-            apcp = prediction.apcp_sfc_0.item() if isinstance(prediction.apcp_sfc_0, np.float64) else prediction.apcp_sfc_0
+            apcp = (
+                prediction.apcp_sfc_0.item()
+                if isinstance(prediction.apcp_sfc_0, np.float64)
+                else prediction.apcp_sfc_0
+            )
             station_prediction.apcp_sfc_0 = apcp
         # Calculate the delta_precipitation and 24 hour precip based on station's previous prediction_timestamp
         # for the same model run
         self.session.flush()
-        station_prediction.precip_24h = self._calculate_past_24_hour_precip(station, model_run, prediction, station_prediction)
-        station_prediction.delta_precip = self._calculate_delta_precip(station, model_run, prediction, station_prediction)
+        station_prediction.precip_24h = self._calculate_past_24_hour_precip(
+            station, model_run, prediction, station_prediction
+        )
+        station_prediction.delta_precip = self._calculate_delta_precip(
+            station, model_run, prediction, station_prediction
+        )
 
         # Get the closest wind speed
         if prediction.wind_tgl_10 is not None:
-            wind_tgl_10 = prediction.wind_tgl_10.item() if isinstance(prediction.wind_tgl_10, np.float64) else prediction.wind_tgl_10
+            wind_tgl_10 = (
+                prediction.wind_tgl_10.item()
+                if isinstance(prediction.wind_tgl_10, np.float64)
+                else prediction.wind_tgl_10
+            )
             station_prediction.wind_tgl_10 = wind_tgl_10
         # Get the closest wind direcion
         if prediction.wdir_tgl_10 is not None:
-            wdir_tgl_10 = prediction.wdir_tgl_10.item() if isinstance(prediction.wdir_tgl_10, np.float64) else prediction.wdir_tgl_10
+            wdir_tgl_10 = (
+                prediction.wdir_tgl_10.item()
+                if isinstance(prediction.wdir_tgl_10, np.float64)
+                else prediction.wdir_tgl_10
+            )
             station_prediction.wdir_tgl_10 = wdir_tgl_10
 
         if prediction_is_interpolated:
@@ -237,26 +337,41 @@ class ModelValueProcessor:
         self.session.add(station_prediction)
 
     def _calculate_past_24_hour_precip(
-        self, station: WeatherStation, model_run: PredictionModelRunTimestamp, prediction: ModelRunPrediction, station_prediction: WeatherStationModelPrediction
+        self,
+        station: WeatherStation,
+        model_run: PredictionModelRunTimestamp,
+        prediction: ModelRunPrediction,
+        station_prediction: WeatherStationModelPrediction,
     ):
         """Calculate the predicted precipitation over the previous 24 hours within the specified model run.
         If the model run does not contain a prediction timestamp for 24 hours prior to the current prediction,
         return the predicted precipitation from the previous run of the same model for the same time frame."""
         start_prediction_timestamp = prediction.prediction_timestamp - timedelta(days=1)
         # Check if a prediction exists for this model run 24 hours in the past
-        previous_prediction_from_same_model_run = get_weather_station_model_prediction(self.session, station.code, model_run.id, start_prediction_timestamp)
+        previous_prediction_from_same_model_run = get_weather_station_model_prediction(
+            self.session, station.code, model_run.id, start_prediction_timestamp
+        )
         # If a prediction from 24 hours ago from the same model run exists, return the difference in cumulative precipitation
         # between now and then as our total for the past 24 hours. We can end up with very very small negative numbers due
         # to floating point math, so return absolute value to avoid displaying -0.0.
         if previous_prediction_from_same_model_run is not None:
-            return abs(station_prediction.apcp_sfc_0 - previous_prediction_from_same_model_run.apcp_sfc_0)
+            return abs(
+                station_prediction.apcp_sfc_0 - previous_prediction_from_same_model_run.apcp_sfc_0
+            )
 
         # We're within 24 hours of the start of a model run so we don't have cumulative precipitation for a full 24h.
         # We use actual precipitation from our API hourly_actuals table to make up the missing hours.
         prediction_timestamp = station_prediction.prediction_timestamp
         # Create new datetime with time of 00:00 hours as the end time.
-        end_prediction_timestamp = datetime(year=prediction_timestamp.year, month=prediction_timestamp.month, day=prediction_timestamp.day, tzinfo=timezone.utc)
-        actual_precip = get_accumulated_precipitation(self.session, station.code, start_prediction_timestamp, end_prediction_timestamp)
+        end_prediction_timestamp = datetime(
+            year=prediction_timestamp.year,
+            month=prediction_timestamp.month,
+            day=prediction_timestamp.day,
+            tzinfo=timezone.utc,
+        )
+        actual_precip = get_accumulated_precipitation(
+            self.session, station.code, start_prediction_timestamp, end_prediction_timestamp
+        )
         return actual_precip + station_prediction.apcp_sfc_0
 
     def _calculate_delta_precip(self, station, model_run, prediction, station_prediction):
@@ -267,7 +382,9 @@ class ModelValueProcessor:
             self.session.query(WeatherStationModelPrediction)
             .filter(WeatherStationModelPrediction.station_code == station.code)
             .filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == model_run.id)
-            .filter(WeatherStationModelPrediction.prediction_timestamp < prediction.prediction_timestamp)
+            .filter(
+                WeatherStationModelPrediction.prediction_timestamp < prediction.prediction_timestamp
+            )
             .order_by(WeatherStationModelPrediction.prediction_timestamp.desc())
             .limit(1)
             .first()
@@ -280,14 +397,22 @@ class ModelValueProcessor:
         # model type). In this case, delta_precip will be equal to the apcp
         return station_prediction.apcp_sfc_0
 
-    def _process_model_run_for_station(self, model_run: PredictionModelRunTimestamp, station: WeatherStation, model_type: ModelEnum):
+    def _process_model_run_for_station(
+        self, model_run: PredictionModelRunTimestamp, station: WeatherStation, model_type: ModelEnum
+    ):
         """Process the model run for the provided station."""
         # Extract the coordinate.
         coordinate = [station.long, station.lat]
         # Lookup the grid our weather station is in.
-        logger.info("Getting grid for coordinate %s and model %s", coordinate, model_run.prediction_model)
+        logger.info(
+            "Getting grid for coordinate %s and model %s", coordinate, model_run.prediction_model
+        )
         machine = StationMachineLearning(
-            session=self.session, model=model_run.prediction_model, target_coordinate=coordinate, station_code=station.code, max_learn_date=model_run.prediction_run_timestamp
+            session=self.session,
+            model=model_run.prediction_model,
+            target_coordinate=coordinate,
+            station_code=station.code,
+            max_learn_date=model_run.prediction_run_timestamp,
         )
         machine.learn()
 
@@ -301,9 +426,17 @@ class ModelValueProcessor:
         for prediction in query:
             # NAM model requires manual calculation of cumulative precip
             if model_type == ModelEnum.NAM:
-                nam_cumulative_precip, prediction.apcp_sfc_0 = accumulate_nam_precipitation(nam_cumulative_precip, prediction, model_run.prediction_run_timestamp.hour)
-            if prev_prediction is not None and prev_prediction.prediction_timestamp.hour == 18 and prediction.prediction_timestamp.hour == 21:
-                noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction, SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION)
+                nam_cumulative_precip, prediction.apcp_sfc_0 = accumulate_nam_precipitation(
+                    nam_cumulative_precip, prediction, model_run.prediction_run_timestamp.hour
+                )
+            if (
+                prev_prediction is not None
+                and prev_prediction.prediction_timestamp.hour == 18
+                and prediction.prediction_timestamp.hour == 21
+            ):
+                noon_prediction = construct_interpolated_noon_prediction(
+                    prev_prediction, prediction, SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION
+                )
                 self._process_prediction(noon_prediction, station, model_run, machine, True)
             self._process_prediction(prediction, station, model_run, machine, False)
 
@@ -319,7 +452,9 @@ class ModelValueProcessor:
     def process(self, model_type: ModelEnum):
         """Entry point to start processing model runs that have not yet had their predictions interpolated"""
         # Get model runs that are complete (fully downloaded), but not yet interpolated.
-        query = get_prediction_model_run_timestamp_records(self.session, complete=True, interpolated=False, model_type=model_type)
+        query = get_prediction_model_run_timestamp_records(
+            self.session, complete=True, interpolated=False, model_type=model_type
+        )
         for model_run, model in query:
             logger.info("model %s", model)
             logger.info("model_run %s", model_run)

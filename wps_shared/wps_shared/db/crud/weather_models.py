@@ -22,7 +22,9 @@ from wps_shared.utils.time import get_utc_now
 logger = logging.getLogger(__name__)
 
 
-def get_prediction_run(session: Session, prediction_model_id: int, prediction_run_timestamp: datetime.datetime) -> PredictionModelRunTimestamp:
+def get_prediction_run(
+    session: Session, prediction_model_id: int, prediction_run_timestamp: datetime.datetime
+) -> PredictionModelRunTimestamp:
     """load the model run from the database (.e.g. for 2020 07 07 12h00)."""
     logger.info("get prediction run for %s", prediction_run_timestamp)
     return (
@@ -33,10 +35,19 @@ def get_prediction_run(session: Session, prediction_model_id: int, prediction_ru
     )
 
 
-def create_prediction_run(session: Session, prediction_model_id: int, prediction_run_timestamp: datetime.datetime, complete: bool, interpolated: bool) -> PredictionModelRunTimestamp:
+def create_prediction_run(
+    session: Session,
+    prediction_model_id: int,
+    prediction_run_timestamp: datetime.datetime,
+    complete: bool,
+    interpolated: bool,
+) -> PredictionModelRunTimestamp:
     """Create a model prediction run for a particular model."""
     prediction_run = PredictionModelRunTimestamp(
-        prediction_model_id=prediction_model_id, prediction_run_timestamp=prediction_run_timestamp, complete=complete, interpolated=interpolated
+        prediction_model_id=prediction_model_id,
+        prediction_run_timestamp=prediction_run_timestamp,
+        complete=complete,
+        interpolated=interpolated,
     )
     session.add(prediction_run)
     session.commit()
@@ -49,16 +60,26 @@ def update_prediction_run(session: Session, prediction_run: PredictionModelRunTi
     session.commit()
 
 
-def get_or_create_prediction_run(session, prediction_model: PredictionModel, prediction_run_timestamp: datetime.datetime) -> PredictionModelRunTimestamp:
+def get_or_create_prediction_run(
+    session, prediction_model: PredictionModel, prediction_run_timestamp: datetime.datetime
+) -> PredictionModelRunTimestamp:
     """Get a model prediction run for a particular model, creating one if it doesn't already exist."""
     prediction_run = get_prediction_run(session, prediction_model.id, prediction_run_timestamp)
     if not prediction_run:
-        logger.info("Creating prediction run %s for %s", prediction_model.abbreviation, prediction_run_timestamp)
-        prediction_run = create_prediction_run(session, prediction_model.id, prediction_run_timestamp, False, False)
+        logger.info(
+            "Creating prediction run %s for %s",
+            prediction_model.abbreviation,
+            prediction_run_timestamp,
+        )
+        prediction_run = create_prediction_run(
+            session, prediction_model.id, prediction_run_timestamp, False, False
+        )
     return prediction_run
 
 
-def get_model_run_predictions_for_station(session: Session, station_code: int, prediction_run: PredictionModelRunTimestamp) -> List:
+def get_model_run_predictions_for_station(
+    session: Session, station_code: int, prediction_run: PredictionModelRunTimestamp
+) -> List:
     """Get all the predictions for a provided model run"""
     logger.info("Getting model predictions for grid %s", prediction_run)
     return (
@@ -69,20 +90,20 @@ def get_model_run_predictions_for_station(session: Session, station_code: int, p
     )
 
 
-def delete_weather_station_model_predictions(session: Session, older_than: datetime):
-    """Delete any weather model prediction older than a certain date."""
-    logger.info("Deleting weather station model prediction data older than %s...", older_than)
-    session.query(WeatherStationModelPrediction).filter(WeatherStationModelPrediction.prediction_timestamp < older_than).delete()
-
-
 def delete_model_run_predictions(session: Session, older_than: datetime):
     """Delete any model run prediction older than a certain date."""
     logger.info("Deleting model_run_prediction data older than %s...", older_than)
-    session.query(ModelRunPrediction).filter(ModelRunPrediction.prediction_timestamp < older_than).delete()
+    session.query(ModelRunPrediction).filter(
+        ModelRunPrediction.prediction_timestamp < older_than
+    ).delete()
 
 
 def get_station_model_predictions_order_by_prediction_timestamp(
-    session: Session, station_codes: List, model: ModelEnum, start_date: datetime.datetime, end_date: datetime.datetime
+    session: Session,
+    station_codes: List,
+    model: ModelEnum,
+    start_date: datetime.datetime,
+    end_date: datetime.datetime,
 ) -> List[Union[WeatherStationModelPrediction, PredictionModel]]:
     """Fetch model predictions for given stations within given time range ordered by station code
     and prediction timestamp.
@@ -92,8 +113,14 @@ def get_station_model_predictions_order_by_prediction_timestamp(
     """
     query = (
         session.query(WeatherStationModelPrediction, PredictionModel)
-        .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id)
-        .join(PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id)
+        .join(
+            PredictionModelRunTimestamp,
+            PredictionModelRunTimestamp.id
+            == WeatherStationModelPrediction.prediction_model_run_timestamp_id,
+        )
+        .join(
+            PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id
+        )
         .filter(WeatherStationModelPrediction.station_code.in_(station_codes))
         .filter(WeatherStationModelPrediction.prediction_timestamp >= start_date)
         .filter(WeatherStationModelPrediction.prediction_timestamp <= end_date)
@@ -105,7 +132,11 @@ def get_station_model_predictions_order_by_prediction_timestamp(
 
 
 def get_station_model_predictions(
-    session: Session, station_codes: List, model: str, start_date: datetime.datetime, end_date: datetime.datetime
+    session: Session,
+    station_codes: List,
+    model: str,
+    start_date: datetime.datetime,
+    end_date: datetime.datetime,
 ) -> List[Union[WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel]]:
     """Fetches the model predictions that were most recently issued before the prediction_timestamp.
     Used to compare the most recent model predictions against forecasts and actuals for the same
@@ -118,8 +149,14 @@ def get_station_model_predictions(
         .filter(WeatherStationModelPrediction.station_code.in_(station_codes))
         .filter(WeatherStationModelPrediction.prediction_timestamp >= start_date)
         .filter(WeatherStationModelPrediction.prediction_timestamp <= end_date)
-        .filter(PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id)
-        .filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id, PredictionModel.abbreviation == model)
+        .filter(
+            PredictionModelRunTimestamp.id
+            == WeatherStationModelPrediction.prediction_model_run_timestamp_id
+        )
+        .filter(
+            PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
+            PredictionModel.abbreviation == model,
+        )
         .order_by(WeatherStationModelPrediction.station_code)
         .order_by(WeatherStationModelPrediction.prediction_timestamp)
         .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.asc())
@@ -127,7 +164,13 @@ def get_station_model_predictions(
     return query
 
 
-def get_latest_station_model_prediction_per_day(session: Session, station_codes: List[int], model: str, day_start: datetime.datetime, day_end: datetime.datetime):
+def get_latest_station_model_prediction_per_day(
+    session: Session,
+    station_codes: List[int],
+    model: str,
+    day_start: datetime.datetime,
+    day_end: datetime.datetime,
+):
     """
     All weather station model predictions for:
      - a given day
@@ -153,7 +196,10 @@ def get_latest_station_model_prediction_per_day(session: Session, station_codes:
             WeatherStationModelPrediction.prediction_timestamp <= day_end,
             func.date_part("hour", WeatherStationModelPrediction.prediction_timestamp) == 20,
         )
-        .group_by(WeatherStationModelPrediction.station_code, func.date(WeatherStationModelPrediction.prediction_timestamp).label("unique_day"))
+        .group_by(
+            WeatherStationModelPrediction.station_code,
+            func.date(WeatherStationModelPrediction.prediction_timestamp).label("unique_day"),
+        )
         .subquery("latest")
     )
 
@@ -172,16 +218,33 @@ def get_latest_station_model_prediction_per_day(session: Session, station_codes:
             WeatherStationModelPrediction.wind_tgl_10,
             WeatherStationModelPrediction.update_date,
         )
-        .join(PredictionModelRunTimestamp, WeatherStationModelPrediction.prediction_model_run_timestamp_id == PredictionModelRunTimestamp.id)
-        .join(PredictionModel, PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id)
-        .join(subquery, and_(WeatherStationModelPrediction.prediction_timestamp == subquery.c.latest_prediction, WeatherStationModelPrediction.station_code == subquery.c.station_code))
+        .join(
+            PredictionModelRunTimestamp,
+            WeatherStationModelPrediction.prediction_model_run_timestamp_id
+            == PredictionModelRunTimestamp.id,
+        )
+        .join(
+            PredictionModel, PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id
+        )
+        .join(
+            subquery,
+            and_(
+                WeatherStationModelPrediction.prediction_timestamp == subquery.c.latest_prediction,
+                WeatherStationModelPrediction.station_code == subquery.c.station_code,
+            ),
+        )
         .filter(PredictionModel.abbreviation == model)
         .order_by(WeatherStationModelPrediction.update_date.desc())
     )
     return result
 
 
-def get_latest_station_prediction(session: Session, station_codes: List[int], day_start: datetime.datetime, day_end: datetime.datetime):
+def get_latest_station_prediction(
+    session: Session,
+    station_codes: List[int],
+    day_start: datetime.datetime,
+    day_end: datetime.datetime,
+):
     logger.info("Getting data from weather_station_model_predictions.")
 
     latest_predictions_subquery = (
@@ -219,12 +282,24 @@ def get_latest_station_prediction(session: Session, station_codes: List[int], da
             WeatherStationModelPrediction.wdir_tgl_10,
             WeatherStationModelPrediction.wind_tgl_10,
         )
-        .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id)
-        .join(PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id)
+        .join(
+            PredictionModelRunTimestamp,
+            PredictionModelRunTimestamp.id
+            == WeatherStationModelPrediction.prediction_model_run_timestamp_id,
+        )
+        .join(
+            PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id
+        )
         .join(
             latest_predictions_subquery,
-            (WeatherStationModelPrediction.prediction_timestamp == latest_predictions_subquery.c.latest_prediction)
-            & (WeatherStationModelPrediction.station_code == latest_predictions_subquery.c.station_code),
+            (
+                WeatherStationModelPrediction.prediction_timestamp
+                == latest_predictions_subquery.c.latest_prediction
+            )
+            & (
+                WeatherStationModelPrediction.station_code
+                == latest_predictions_subquery.c.station_code
+            ),
         )
         .order_by(WeatherStationModelPrediction.update_date.desc())
     )
@@ -233,7 +308,11 @@ def get_latest_station_prediction(session: Session, station_codes: List[int], da
 
 
 async def get_latest_model_prediction_for_stations(
-    session: Session, station_codes: list[int], model: ModelEnum, day_start: datetime.datetime, day_end: datetime.datetime
+    session: Session,
+    station_codes: list[int],
+    model: ModelEnum,
+    day_start: datetime.datetime,
+    day_end: datetime.datetime,
 ) -> list[ModelPredictionDetails]:
     """
     Retrieves the most recent model predictions for each station and day, ensuring that only
@@ -268,8 +347,14 @@ async def get_latest_model_prediction_for_stations(
             WeatherStationModelPrediction.wdir_tgl_10,
             WeatherStationModelPrediction.wind_tgl_10,
         )
-        .join(PredictionModelRunTimestamp, WeatherStationModelPrediction.prediction_model_run_timestamp_id == PredictionModelRunTimestamp.id)
-        .join(PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id)
+        .join(
+            PredictionModelRunTimestamp,
+            WeatherStationModelPrediction.prediction_model_run_timestamp_id
+            == PredictionModelRunTimestamp.id,
+        )
+        .join(
+            PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id
+        )
         .where(
             extract("hour", WeatherStationModelPrediction.prediction_timestamp) == 20,
             WeatherStationModelPrediction.station_code.in_(station_codes),
@@ -277,7 +362,10 @@ async def get_latest_model_prediction_for_stations(
             PredictionModelRunTimestamp.interpolated == True,
             PredictionModel.abbreviation == model.value,
         )
-        .distinct(func.date(WeatherStationModelPrediction.prediction_timestamp), WeatherStationModelPrediction.station_code)
+        .distinct(
+            func.date(WeatherStationModelPrediction.prediction_timestamp),
+            WeatherStationModelPrediction.station_code,
+        )
         .order_by(
             WeatherStationModelPrediction.station_code,
             func.date(WeatherStationModelPrediction.prediction_timestamp),
@@ -291,7 +379,11 @@ async def get_latest_model_prediction_for_stations(
 
 
 def get_station_model_prediction_from_previous_model_run(
-    session: Session, station_code: int, model: ModelEnum, prediction_timestamp: datetime.datetime, prediction_model_run_timestamp: datetime.datetime
+    session: Session,
+    station_code: int,
+    model: ModelEnum,
+    prediction_timestamp: datetime.datetime,
+    prediction_model_run_timestamp: datetime.datetime,
 ) -> List[WeatherStationModelPrediction]:
     """Fetches the one model prediction for the specified station_code, model, and prediction_timestamp
     from the prediction model run immediately previous to the given prediction_model_run_timestamp.
@@ -301,12 +393,20 @@ def get_station_model_prediction_from_previous_model_run(
     lower_bound = prediction_model_run_timestamp - datetime.timedelta(days=1)
     response = (
         session.query(WeatherStationModelPrediction)
-        .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id)
-        .join(PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id)
+        .join(
+            PredictionModelRunTimestamp,
+            PredictionModelRunTimestamp.id
+            == WeatherStationModelPrediction.prediction_model_run_timestamp_id,
+        )
+        .join(
+            PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id
+        )
         .filter(WeatherStationModelPrediction.station_code == station_code)
         .filter(WeatherStationModelPrediction.prediction_timestamp == prediction_timestamp)
         .filter(PredictionModel.abbreviation == model)
-        .filter(PredictionModelRunTimestamp.prediction_run_timestamp < prediction_model_run_timestamp)
+        .filter(
+            PredictionModelRunTimestamp.prediction_run_timestamp < prediction_model_run_timestamp
+        )
         .filter(PredictionModelRunTimestamp.prediction_run_timestamp > lower_bound)
         .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
         .limit(1)
@@ -323,7 +423,9 @@ def get_processed_file_count(session: Session, urls: List[str]) -> int:
 
 def get_processed_file_record(session: Session, url: str) -> ProcessedModelRunUrl:
     """Get record corresponding to a processed file."""
-    processed_file = session.query(ProcessedModelRunUrl).filter(ProcessedModelRunUrl.url == url).first()
+    processed_file = (
+        session.query(ProcessedModelRunUrl).filter(ProcessedModelRunUrl.url == url).first()
+    )
     return processed_file
 
 
@@ -335,14 +437,20 @@ def get_saved_model_run_for_sfms(session: Session, url: str) -> SavedModelRunFor
 def create_saved_model_run_for_sfms_url(session: Session, url: str, key: str):
     """Create a record of a model run url that has been downloaded and stored in S3."""
     now = get_utc_now()
-    saved_model_run_for_sfms_url = SavedModelRunForSFMSUrl(url=url, create_date=now, update_date=now, s3_key=key)
+    saved_model_run_for_sfms_url = SavedModelRunForSFMSUrl(
+        url=url, create_date=now, update_date=now, s3_key=key
+    )
     session.add(saved_model_run_for_sfms_url)
     session.commit()
 
 
 def get_rdps_sfms_urls_for_deletion(session: Session, threshold: datetime):
     """Gets all records older than the provided threshold."""
-    return session.query(SavedModelRunForSFMSUrl).filter(SavedModelRunForSFMSUrl.create_date < threshold).all()
+    return (
+        session.query(SavedModelRunForSFMSUrl)
+        .filter(SavedModelRunForSFMSUrl.create_date < threshold)
+        .all()
+    )
 
 
 def delete_rdps_sfms_urls(session: Session, ids: list[int]):
@@ -351,12 +459,20 @@ def delete_rdps_sfms_urls(session: Session, ids: list[int]):
         session.query(SavedModelRunForSFMSUrl).filter(SavedModelRunForSFMSUrl.id.in_(ids)).delete()
 
 
-def create_model_run_for_sfms(session: Session, model: ModelEnum, model_run_date: datetime, model_run_hour: int):
+def create_model_run_for_sfms(
+    session: Session, model: ModelEnum, model_run_date: datetime, model_run_hour: int
+):
     """Create a model run for sfms record to indicate that weather model data for the given
     date and model has been stored in S3.
     """
     prediction_model = get_prediction_model_by_model_enum(session, model)
-    model_run_timestamp = datetime.datetime(year=model_run_date.year, month=model_run_date.month, day=model_run_date.day, hour=model_run_hour, tzinfo=datetime.timezone.utc)
+    model_run_timestamp = datetime.datetime(
+        year=model_run_date.year,
+        month=model_run_date.month,
+        day=model_run_date.day,
+        hour=model_run_hour,
+        tzinfo=datetime.timezone.utc,
+    )
     model_run_for_sfms = ModelRunForSFMS(
         prediction_model_id=prediction_model.id,
         model_run_timestamp=model_run_timestamp,
@@ -369,19 +485,35 @@ def create_model_run_for_sfms(session: Session, model: ModelEnum, model_run_date
 
 def get_prediction_model_by_model_enum(session: Session, model_enum: ModelEnum):
     """Get the PredictionModel corresponding to a particular model enum."""
-    return session.query(PredictionModel).filter(PredictionModel.abbreviation == model_enum.value).first()
+    return (
+        session.query(PredictionModel)
+        .filter(PredictionModel.abbreviation == model_enum.value)
+        .first()
+    )
 
 
-def get_prediction_model(session: Session, model_enum: ModelEnum, projection: ProjectionEnum) -> PredictionModel:
+def get_prediction_model(
+    session: Session, model_enum: ModelEnum, projection: ProjectionEnum
+) -> PredictionModel:
     """Get the prediction model corresponding to a particular abbreviation and projection."""
-    return session.query(PredictionModel).filter(PredictionModel.abbreviation == model_enum.value).filter(PredictionModel.projection == projection.value).first()
+    return (
+        session.query(PredictionModel)
+        .filter(PredictionModel.abbreviation == model_enum.value)
+        .filter(PredictionModel.projection == projection.value)
+        .first()
+    )
 
 
-def get_prediction_model_run_timestamp_records(session: Session, model_type: ModelEnum, complete: bool = True, interpolated: bool = True):
+def get_prediction_model_run_timestamp_records(
+    session: Session, model_type: ModelEnum, complete: bool = True, interpolated: bool = True
+):
     """Get prediction model run timestamps (filter on complete and interpolated if provided.)"""
     query = (
         session.query(PredictionModelRunTimestamp, PredictionModel)
-        .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id)
+        .join(
+            PredictionModelRunTimestamp,
+            PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
+        )
         .filter(PredictionModel.abbreviation == model_type.value)
     )
     if interpolated is not None:
@@ -392,23 +524,35 @@ def get_prediction_model_run_timestamp_records(session: Session, model_type: Mod
     return query
 
 
-def get_weather_station_model_prediction(session: Session, station_code: int, prediction_model_run_timestamp_id: int, prediction_timestamp: datetime) -> WeatherStationModelPrediction:
+def get_weather_station_model_prediction(
+    session: Session,
+    station_code: int,
+    prediction_model_run_timestamp_id: int,
+    prediction_timestamp: datetime,
+) -> WeatherStationModelPrediction:
     """Get the model prediction for a weather station given a model run and a timestamp."""
     return (
         session.query(WeatherStationModelPrediction)
         .filter(WeatherStationModelPrediction.station_code == station_code)
-        .filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id)
+        .filter(
+            WeatherStationModelPrediction.prediction_model_run_timestamp_id
+            == prediction_model_run_timestamp_id
+        )
         .filter(WeatherStationModelPrediction.prediction_timestamp == prediction_timestamp)
         .first()
     )
 
 
-async def get_latest_prediction_timestamp_id_for_model(session: AsyncSession, model: ModelEnum) -> int:
+async def get_latest_prediction_timestamp_id_for_model(
+    session: AsyncSession, model: ModelEnum
+) -> int:
     """Get the latest prediction model run timestamp id for a given model."""
 
     stmt = (
         select(PredictionModelRunTimestamp.id)
-        .join(PredictionModel, PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id)
+        .join(
+            PredictionModel, PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id
+        )
         .where(PredictionModelRunTimestamp.interpolated == True)
         .where(PredictionModel.abbreviation == model.value)
         .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
