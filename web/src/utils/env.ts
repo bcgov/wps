@@ -12,7 +12,8 @@ let ENV = {
   PMTILES_BUCKET: import.meta.env.VITE_PMTILES_BUCKET as string,
   MUI_LICENSE: import.meta.env.VITE_MUI_LICENSE_KEY as string,
   SENTRY_DSN: import.meta.env.VITE_SENTRY_DSN as string,
-  SENTRY_ENV: import.meta.env.VITE_SENTRY_ENV as string
+  SENTRY_ENV: import.meta.env.VITE_SENTRY_ENV as string,
+  PSU_BUCKET: import.meta.env.VITE_PSU_BUCKET as string
 }
 // If the app is built using 'npm run build'
 if (import.meta.env.MODE === 'production') {
@@ -32,7 +33,8 @@ if (import.meta.env.MODE === 'production') {
     PMTILES_BUCKET: window.env.REACT_APP_PMTILES_BUCKET,
     MUI_LICENSE: window.env.REACT_APP_MUI_LICENSE_KEY,
     SENTRY_DSN: window.env.REACT_APP_SENTRY_DSN,
-    SENTRY_ENV: window.env.REACT_APP_SENTRY_ENV
+    SENTRY_ENV: window.env.REACT_APP_SENTRY_ENV,
+    PSU_BUCKET: window.env.REACT_APP_PSU_BUCKET
   }
 }
 
@@ -50,5 +52,6 @@ export const {
   PMTILES_BUCKET,
   MUI_LICENSE,
   SENTRY_DSN,
-  SENTRY_ENV
+  SENTRY_ENV,
+  PSU_BUCKET
 } = ENV

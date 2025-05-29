@@ -1,4 +1,4 @@
-import { colorByFuelTypeCode } from '@/features/fba/components/viz/color'
+import { colorByFuelTypeCode, getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
 import * as ol from 'ol'
 import Geometry from 'ol/geom/Geometry'
 import RenderFeature from 'ol/render/Feature'
@@ -8,7 +8,7 @@ import Style from 'ol/style/Style'
 export const SNOW_FILL = 'rgba(255, 255, 255, 1)'
 export const EMPTY_FILL = 'rgba(0, 0, 0, 0)'
 
-const rasterValueToFuelTypeCode = new Map([
+export const rasterValueToFuelTypeCode = new Map([
   [1, 'C-1'],
   [2, 'C-2'],
   [3, 'C-3'],
@@ -27,7 +27,7 @@ const rasterValueToFuelTypeCode = new Map([
 
 export const getColorForRasterValue = (rasterValue: number): string => {
   const fuelTypeCode = rasterValueToFuelTypeCode.get(rasterValue)
-  return fuelTypeCode ? colorByFuelTypeCode.get(fuelTypeCode) : EMPTY_FILL
+  return fuelTypeCode ? getColorByFuelTypeCode(fuelTypeCode) : EMPTY_FILL
 }
 
 export const styleFuelGrid = () => {
@@ -52,4 +52,20 @@ export const snowStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style
     snowStyle.setFill(new Fill({ color: EMPTY_FILL }))
   }
   return snowStyle
+}
+
+type ColourCaseCondition = ['==', ['band', number], number]
+type ColourCaseColour = [number, number, number, number]
+type ColourCases = Array<ColourCaseCondition | ColourCaseColour>
+
+export const fuelCOGColourExpression = () => {
+  const colourCases: ColourCases = []
+
+  rasterValueToFuelTypeCode.forEach((code, value) => {
+    const [r, g, b] = colorByFuelTypeCode.get(code) ?? [0, 0, 0]
+    colourCases.push(['==', ['band', 1], value], [r, g, b, 1])
+  })
+  colourCases.push([0, 0, 0, 0])
+
+  return ['case', ...colourCases]
 }

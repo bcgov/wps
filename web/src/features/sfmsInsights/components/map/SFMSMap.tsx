@@ -9,7 +9,7 @@ import { Box } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
 import {
   basemapLayer,
-  fuelGridVTL,
+  fuelCOGTiles,
   getSnowPMTilesLayer,
   SNOW_LAYER_NAME
 } from 'features/sfmsInsights/components/map/layerDefinitions'
@@ -42,7 +42,7 @@ const SFMSMap = ({ snowDate }: SFMSMapProps) => {
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [basemapLayer, fuelGridVTL],
+      layers: [basemapLayer, fuelCOGTiles],
       controls: defaultControls(),
       view: new View({
         zoom: 5,
