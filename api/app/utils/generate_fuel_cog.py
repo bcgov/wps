@@ -2,7 +2,7 @@ import os
 from tempfile import TemporaryDirectory
 
 import numpy as np
-from osgeo import gdal, gdalconst
+from osgeo import gdal
 
 from wps_shared import config
 from wps_shared.geospatial.wps_dataset import WPSDataset
@@ -13,7 +13,7 @@ bucket = config.get("OBJECT_STORE_BUCKET")
 # Input
 INPUT_GEOTIFF = f"/vsis3/{bucket}/psu/rasters/fuel/FM_FUEL_TYPE_GRID_BC_2025_500m_BC_ONLY.tif"
 # Output
-OUTPUT_PATH = "/Users/breedwar/Downloads/fuel/cog/fbp2025_500m_cog.tif"
+OUTPUT_PATH = "/output/to/cog/fbp2025_500m_cog.tif"
 
 
 def reclassify_fuel_geotiff(fuel_raster_path: str, output_geotiff_path: str) -> str:
