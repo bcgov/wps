@@ -3,7 +3,6 @@ from tempfile import TemporaryDirectory
 from app.utils.generate_fuel_cog import reclassify_fuel_geotiff
 from app.utils.pmtiles import merge_pmtiles, tippecanoe_wrapper, write_geojson
 from wps_shared import config
-from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.utils.polygonize import polygonize_in_memory
 from wps_shared.utils.s3 import set_s3_gdal_config
 
