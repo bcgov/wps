@@ -22,7 +22,7 @@ jobs:
       - name: Install OpenShift CLI tools
         uses: redhat-actions/openshift-tools-installer@v1
         with:
-          oc: "4.14"
+          oc: "4.16"
 
       - name: Clean up - dev (OCP4)
         shell: bash
@@ -58,7 +58,7 @@ jobs:
       - name: Install OpenShift CLI tools
         uses: redhat-actions/openshift-tools-installer@v1
         with:
-          oc: "4.14"
+          oc: "4.16"
 
       - name: Clean up dev database
         shell: bash
