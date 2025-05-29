@@ -10,7 +10,9 @@ import subprocess
 # visual representation of the underlying tif.
 
 
-def tippecanoe_wrapper(geojson_filepath: str, output_pmtiles_filepath: str, min_zoom: int = 4, max_zoom: int = 11):
+def tippecanoe_wrapper(
+    geojson_filepath: str, output_pmtiles_filepath: str, min_zoom: int = 4, max_zoom: int = 11
+):
     """
     Wrapper for the tippecanoe cli tool
 
@@ -22,22 +24,24 @@ def tippecanoe_wrapper(geojson_filepath: str, output_pmtiles_filepath: str, min_
     :type min_zoom: int
     :param max_zoom: pmtiles zoom in level
     :type max_zoom: int
+    :param keep_attribute: Attribute to keep in the tiles, the rest will be dropped to save file size.
+    :type keep_attribute: str
     """
-    subprocess.run(
-        [
-            "tippecanoe",
-            f"--minimum-zoom={min_zoom}",
-            f"--maximum-zoom={max_zoom}",
-            "--projection=EPSG:4326",
-            f"--output={output_pmtiles_filepath}",
-            f"{geojson_filepath}",
-            "--force",
-            "--quiet",
-            "--coalesce",
-            "--reorder",
-        ],
-        check=True,
-    )
+    cmd = [
+        "tippecanoe",
+        f"--minimum-zoom={min_zoom}",
+        f"--maximum-zoom={max_zoom}",
+        "--projection=EPSG:4326",
+        f"--output={output_pmtiles_filepath}",
+        geojson_filepath,
+        "--force",  # overwrite output file if it exists
+        "--no-progress-indicator",  # Don't report progress, but still give warnings
+        "--coalesce",
+        "--reorder",
+        "--hilbert",  # put features in Hilbert Curve order instead of the usual Z-Order, should improve spatial coalescing
+    ]
+
+    subprocess.run(cmd, check=True)
 
 
 def write_geojson(polygons: ogr.Layer, output_dir: str) -> str:
@@ -53,19 +57,43 @@ def write_geojson(polygons: ogr.Layer, output_dir: str) -> str:
     """
     # We can't use an in-memory layer for translating, so we'll create a temp layer
     # Using a geopackage since it supports all projections and doesn't limit field name lengths.
-    temp_gpkg = os.path.join(output_dir, 'temp_polys.gpkg')
-    driver = ogr.GetDriverByName('GPKG')
+    temp_gpkg = os.path.join(output_dir, "temp_polys.gpkg")
+    driver = ogr.GetDriverByName("GPKG")
     temp_data_source = driver.CreateDataSource(temp_gpkg)
-    temp_data_source.CopyLayer(polygons, 'poly_layer')
+    temp_data_source.CopyLayer(polygons, "poly_layer")
 
     # We need a geojson file to pass to tippecanoe
-    temp_geojson = os.path.join(output_dir, 'temp_polys.geojson')
+    temp_geojson = os.path.join(output_dir, "temp_polys.geojson")
 
     # tippecanoe recommends the input geojson be in EPSG:4326 [https://github.com/felt/tippecanoe#projection-of-input]
-    gdal.VectorTranslate(destNameOrDestDS=temp_geojson, srcDS=temp_gpkg,
-                         format='GeoJSON', dstSRS='EPSG:4326', reproject=True)
+    gdal.VectorTranslate(
+        destNameOrDestDS=temp_geojson,
+        srcDS=temp_gpkg,
+        format="GeoJSON",
+        dstSRS="EPSG:4326",
+        reproject=True,
+    )
 
     del temp_gpkg
 
     return temp_geojson
 
+
+def merge_pmtiles(input_pmtiles: list[str], output_path: str):
+    """
+    Merge all pmtiles files into a single pmtiles file using the tile-join command line tool that comes with tippecanoe.
+    These files should not have overlapping tiles at the same zoom level.
+
+    :param parent_dir: Directory containing pmtiles files
+    :type parent_dir: str
+    :param output_path: Path to output merged pmtiles file
+    :type output_path: str
+    """
+    cmd = [
+        "tile-join",
+        "--force",  # force allows overwriting the output file if it exists
+        "-o",
+        output_path,
+    ] + input_pmtiles
+
+    subprocess.run(cmd, check=True)
