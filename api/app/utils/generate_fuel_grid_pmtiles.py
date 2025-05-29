@@ -1,8 +1,6 @@
 from tempfile import TemporaryDirectory
 
-import numpy as np
-from osgeo import gdal
-
+from app.utils.generate_fuel_cog import reclassify_fuel_geotiff
 from app.utils.pmtiles import merge_pmtiles, tippecanoe_wrapper, write_geojson
 from wps_shared import config
 from wps_shared.geospatial.wps_dataset import WPSDataset
@@ -34,37 +32,6 @@ low_res_pmtiles_output = "/output/to/fbp2025.pmtiles"  # local output
 # paths for high resolution fuel grid
 high_res_geotiff = "/fuel/input/path/FM_FUEL_TYPE_GRID_BC_2025_500m_BC_ONLY.tif"
 high_res_pmtiles_output = "/output/to/fbp2025_500m.pmtiles"
-
-
-def reclassify_fuel_geotiff(fuel_raster_path: str, output_geotiff_path: str) -> str:
-    """
-    Reclassify the fuel grid raster -- typically needed for high res prometheus fuel grid.
-    The reclassification rules are based on the lookup table for the 2025 fuel grid in s3:
-    {bucket}/psu/rasters/fuel
-    """
-    ds = gdal.Open(fuel_raster_path)
-    band = ds.GetRasterBand(1)
-    array = band.ReadAsArray()
-    reclassified = np.copy(array)
-
-    reclassified[np.isin(array, [2010, 2060, 2070])] = 8
-    reclassified[array == 2030] = 10
-    reclassified[np.isin(array, [2050, 2080])] = 12
-    reclassified[(array >= 500) & (array <= 595)] = 14
-    reclassified[array == 2020] = 14
-    reclassified[np.isin(array, [2000, 2040])] = 99
-
-    transform = ds.GetGeoTransform()
-    projection = ds.GetProjection()
-    no_data_value = band.GetNoDataValue()
-    reclassified[array == no_data_value] = 255
-    ds = None
-
-    with WPSDataset.from_array(reclassified, transform, projection, 255, gdal.GDT_Byte) as ds:
-        ds.export_to_geotiff(output_geotiff_path)
-
-    print(f"Reclassification complete. Output saved to: {output_geotiff_path}")
-    return output_geotiff_path
 
 
 def generate_fuel_pmtiles(
