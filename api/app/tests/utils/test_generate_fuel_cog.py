@@ -2,7 +2,7 @@ import os
 import numpy as np
 from app.utils import generate_fuel_cog
 from tempfile import TemporaryDirectory
-from osgeo import gdal
+from osgeo import gdal, osr
 
 fuel_tif_500m = os.path.join(os.path.dirname(__file__), "fuel_sample.tif")
 
@@ -42,3 +42,27 @@ def test_reclassify_fuel_array_nothing_to_reclass():
     expected = np.array([[1, 2], [3, 4]])
     result = generate_fuel_cog.reclassify_fuel_array(arr)
     np.testing.assert_array_equal(result, expected)
+
+
+def test_reproject_raster_to_3857():
+    source_ds = gdal.Open(fuel_tif_500m)
+    gt = source_ds.GetGeoTransform()
+    src_xres = gt[1]  # pixel width (meters if original CRS uses meters)
+    src_yres = abs(gt[5])  # pixel height
+
+    with TemporaryDirectory() as tmpdir:
+        output_path = os.path.join(tmpdir, "reprojected_fuel.tif")
+        result = generate_fuel_cog.reproject_raster_to_3857(fuel_tif_500m, output_path)
+        assert result == output_path
+
+        ds = gdal.Open(output_path)
+        web_mercator = osr.SpatialReference()
+        web_mercator.ImportFromEPSG(3857)
+        assert ds.GetSpatialRef().IsSame(web_mercator) == 1, "Projection should be EPSG:3857"
+
+        gt = ds.GetGeoTransform()
+        xres = gt[1]  # pixel width (meters if original CRS uses meters)
+        yres = abs(gt[5])  # pixel height
+
+        assert xres == src_xres, "X resolution should match original"
+        assert yres == src_yres, "Y resolution should match original"
