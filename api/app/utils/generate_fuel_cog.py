@@ -1,3 +1,4 @@
+import logging
 import os
 from tempfile import TemporaryDirectory
 
@@ -7,13 +8,16 @@ from osgeo import gdal
 from wps_shared import config
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.utils.s3 import set_s3_gdal_config
+from wps_shared.wps_logging import configure_logging
+
+logger = logging.getLogger(__name__)
 
 bucket = config.get("OBJECT_STORE_BUCKET")
 
 # Input
 INPUT_GEOTIFF = f"/vsis3/{bucket}/psu/rasters/fuel/FM_FUEL_TYPE_GRID_BC_2025_500m_BC_ONLY.tif"
 # Output
-OUTPUT_PATH = "/Users/breedwar/Downloads/fbp2025_500m_cog.tif"
+OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "fbp2025_500m_cog.tif")
 
 
 def reclassify_fuel_array(array: np.ndarray, no_data_value=None) -> np.ndarray:
@@ -52,7 +56,7 @@ def reclassify_fuel_geotiff(fuel_raster_path: str, output_geotiff_path: str) -> 
     with WPSDataset.from_array(reclassified, transform, projection, 255, gdal.GDT_Byte) as ds:
         ds.export_to_geotiff(output_geotiff_path)
 
-    print(f"Reclassification complete. Output saved to: {output_geotiff_path}")
+    logger.info(f"Reclassification complete. Output saved to: {output_geotiff_path}")
     return output_geotiff_path
 
 
@@ -76,7 +80,7 @@ def reproject_raster_to_3857(input_path: str, output_path: str) -> str:
         format="GTiff",
     )
 
-    print(f"Reprojection complete. Output saved to: {output_path}")
+    logger.info(f"Reprojection complete. Output saved to: {output_path}")
     src_ds = None
     return output_path
 
@@ -96,11 +100,12 @@ def generate_cloud_optimized_geotiff(input_path: str, output_path: str) -> None:
     cog_driver = gdal.GetDriverByName("COG")
 
     cog_driver.CreateCopy(output_path, src_ds, options=cog_options)
-    print(f"COG created at {output_path}")
+    logger.info(f"COG created at {output_path}")
 
 
 if __name__ == "__main__":
     set_s3_gdal_config()
+    configure_logging()
 
     with TemporaryDirectory() as temp_dir:
         # Define paths for intermediate and final outputs
@@ -108,7 +113,7 @@ if __name__ == "__main__":
         reprojected_path = os.path.join(temp_dir, "fuel_grid_reprojected.tif")
 
         # Reclassify the fuel grid raster
-        print(f"Processing {INPUT_GEOTIFF} ...")
+        logger.info(f"Processing {INPUT_GEOTIFF} ...")
         reclassified_path = reclassify_fuel_geotiff(INPUT_GEOTIFF, reclass_geotiff)
 
         # Reproject the reclassified raster to EPSG:3857
