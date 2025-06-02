@@ -24,8 +24,6 @@ def tippecanoe_wrapper(
     :type min_zoom: int
     :param max_zoom: pmtiles zoom in level
     :type max_zoom: int
-    :param keep_attribute: Attribute to keep in the tiles, the rest will be dropped to save file size.
-    :type keep_attribute: str
     """
     cmd = [
         "tippecanoe",
