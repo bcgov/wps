@@ -40,6 +40,9 @@ export const MapContext = React.createContext<Map | null>(null)
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
+export const hfiLayerName = 'hfiVector'
+export const zoneStatusLayerName = 'fireShapeVector'
+
 export interface FBAMapProps {
   testId?: string
   selectedFireCenter: FireCenter | undefined
@@ -66,7 +69,10 @@ const removeLayerByName = (map: Map, layerName: string) => {
 const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const [showShapeStatus, setShowShapeStatus] = useState(true)
-  const [showHFI, setShowHFI] = useState(false)
+  const [showHFI, setShowHFI] = useState(() => {
+    const stored = localStorage.getItem(hfiLayerName)
+    return stored === 'true'
+  })
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const scaleRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
@@ -153,6 +159,11 @@ const FBAMap = (props: FBAMapProps) => {
   )
 
   useEffect(() => {
+    const hfiLayerEnabled = localStorage.getItem(hfiLayerName)
+    setShowHFI(hfiLayerEnabled === 'true')
+  })
+
+  useEffect(() => {
     if (map) {
       map.on('click', event => {
         fireShapeVTL.getFeatures(event.pixel).then(features => {
@@ -226,8 +237,7 @@ const FBAMap = (props: FBAMapProps) => {
 
   useEffect(() => {
     if (!map) return
-    const layerName = 'hfiVector'
-    removeLayerByName(map, layerName)
+    removeLayerByName(map, hfiLayerName)
     if (!isNull(mostRecentRunDate)) {
       // The runDate for forecasts is the mostRecentRunDate. For Actuals, our API expects the runDate to be
       // the same as the forDate.
@@ -241,7 +251,7 @@ const FBAMap = (props: FBAMapProps) => {
         style: hfiStyler,
         zIndex: 100,
         minZoom: 4,
-        properties: { name: layerName },
+        properties: { name: hfiLayerName },
         visible: showHFI
       })
       map.addLayer(latestHFILayer)

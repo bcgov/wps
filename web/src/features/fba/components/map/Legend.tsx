@@ -7,6 +7,8 @@ import {
   HFI_ADVISORY,
   HFI_WARNING
 } from 'features/fba/components/map/featureStylers'
+import { isEqual } from 'lodash'
+import { hfiLayerName, zoneStatusLayerName } from '@/features/fba/components/map/FBAMap'
 
 const LegendGrid = styled(Grid)({
   display: 'flex',
@@ -100,18 +102,15 @@ interface LegendProps {
   setShowHFI: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const Legend = ({
-  onToggleLayer,
-  showShapeStatus,
-  setShowShapeStatus,
-  showHFI,
-  setShowHFI
-}: LegendProps) => {
+const Legend = ({ onToggleLayer, showShapeStatus, setShowShapeStatus, showHFI, setShowHFI }: LegendProps) => {
   const handleLayerChange = (
     layerName: string,
     isVisible: boolean,
     setShowLayer: React.Dispatch<React.SetStateAction<boolean>>
   ) => {
+    if (isEqual(layerName, hfiLayerName)) {
+      localStorage.setItem(hfiLayerName, `${!isVisible}`)
+    }
     setShowLayer(!isVisible)
     onToggleLayer(layerName, !isVisible)
   }
@@ -133,13 +132,13 @@ const Legend = ({
       <LegendItem
         label="Zone Unit Status"
         checked={showShapeStatus}
-        onChange={() => handleLayerChange('fireShapeVector', showShapeStatus, setShowShapeStatus)}
+        onChange={() => handleLayerChange(zoneStatusLayerName, showShapeStatus, setShowShapeStatus)}
         subItems={zoneStatusSubItems}
       />
       <LegendItem
         label="HFI Potential (kW/m)"
         checked={showHFI}
-        onChange={() => handleLayerChange('hfiVector', showHFI, setShowHFI)}
+        onChange={() => handleLayerChange(hfiLayerName, showHFI, setShowHFI)}
         subItems={hfiSubItems}
       />
     </LegendGrid>
