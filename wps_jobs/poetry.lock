@@ -1110,7 +1110,7 @@ scikit-learn = ["scikit-learn"]
 [package.source]
 type = "git"
 url = "https://github.com/blaylockbk/Herbie.git"
-reference = "main"
+reference = "e11d4fe577873ab9b459e61db1adf6f567b61278"
 resolved_reference = "e11d4fe577873ab9b459e61db1adf6f567b61278"
 
 [[package]]
