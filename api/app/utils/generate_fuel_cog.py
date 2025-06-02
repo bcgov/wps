@@ -13,7 +13,22 @@ bucket = config.get("OBJECT_STORE_BUCKET")
 # Input
 INPUT_GEOTIFF = f"/vsis3/{bucket}/psu/rasters/fuel/FM_FUEL_TYPE_GRID_BC_2025_500m_BC_ONLY.tif"
 # Output
-OUTPUT_PATH = "/output/to/cog/fbp2025_500m_cog.tif"
+OUTPUT_PATH = "/Users/breedwar/Downloads/fbp2025_500m_cog.tif"
+
+
+def reclassify_fuel_array(array: np.ndarray, no_data_value=None) -> np.ndarray:
+    reclassified = np.copy(array)
+    reclassified[np.isin(array, [2010, 2060, 2070])] = 8
+    reclassified[array == 2030] = 10
+    reclassified[np.isin(array, [2050, 2080])] = 12
+    reclassified[(array >= 500) & (array <= 595)] = 14
+    reclassified[array == 2020] = 14
+    reclassified[np.isin(array, [2000, 2040])] = 99
+
+    # set the no data value to 255, the max for byte data type
+    if no_data_value is not None:
+        reclassified[array == no_data_value] = 255
+    return reclassified
 
 
 def reclassify_fuel_geotiff(fuel_raster_path: str, output_geotiff_path: str) -> str:
@@ -25,22 +40,12 @@ def reclassify_fuel_geotiff(fuel_raster_path: str, output_geotiff_path: str) -> 
     ds = gdal.Open(fuel_raster_path)
     band = ds.GetRasterBand(1)
     array = band.ReadAsArray()
-    reclassified = np.copy(array)
-
-    reclassified[np.isin(array, [2010, 2060, 2070])] = 8
-    reclassified[array == 2030] = 10
-    reclassified[np.isin(array, [2050, 2080])] = 12
-    reclassified[(array >= 500) & (array <= 595)] = 14
-    reclassified[array == 2020] = 14
-    reclassified[np.isin(array, [2000, 2040])] = 99
 
     transform = ds.GetGeoTransform()
     projection = ds.GetProjection()
     no_data_value = band.GetNoDataValue()
 
-    if no_data_value is not None:
-        # set the no data value to 255, the max for byte data type
-        reclassified[array == no_data_value] = 255
+    reclassified = reclassify_fuel_array(array, no_data_value)
 
     ds = None
 
