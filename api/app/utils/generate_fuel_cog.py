@@ -38,7 +38,7 @@ def reclassify_fuel_geotiff(fuel_raster_path: str, output_geotiff_path: str) -> 
     projection = ds.GetProjection()
     no_data_value = band.GetNoDataValue()
 
-    if no_data_value is None:
+    if no_data_value is not None:
         # set the no data value to 255, the max for byte data type
         reclassified[array == no_data_value] = 255
 
