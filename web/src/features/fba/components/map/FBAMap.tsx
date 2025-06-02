@@ -161,7 +161,7 @@ const FBAMap = (props: FBAMapProps) => {
   useEffect(() => {
     const hfiLayerEnabled = localStorage.getItem(hfiLayerName)
     setShowHFI(hfiLayerEnabled === 'true')
-  })
+  }, [])
 
   useEffect(() => {
     if (map) {
