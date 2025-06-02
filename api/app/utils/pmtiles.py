@@ -77,23 +77,3 @@ def write_geojson(polygons: ogr.Layer, output_dir: str) -> str:
     del temp_gpkg
 
     return temp_geojson
-
-
-def merge_pmtiles(input_pmtiles: list[str], output_path: str):
-    """
-    Merge all pmtiles files into a single pmtiles file using the tile-join command line tool that comes with tippecanoe.
-    These files should not have overlapping tiles at the same zoom level.
-
-    :param parent_dir: Directory containing pmtiles files
-    :type parent_dir: str
-    :param output_path: Path to output merged pmtiles file
-    :type output_path: str
-    """
-    cmd = [
-        "tile-join",
-        "--force",  # force allows overwriting the output file if it exists
-        "-o",
-        output_path,
-    ] + input_pmtiles
-
-    subprocess.run(cmd, check=True)
