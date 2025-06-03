@@ -37,10 +37,14 @@ const buildTestStore = (
   return testStore
 }
 
-const preCoreSeasonForDate = DateTime.fromObject({ year: 2025, month: 5, day: 31 })
-const firstCoreSeasonDate = DateTime.fromObject({ year: 2025, month: 6, day: 1 })
-const lastCoreSeasonDate = DateTime.fromObject({ year: 2025, month: 9, day: 30 })
-const postCoreSeasonDate = DateTime.fromObject({ year: 2025, month: 10, day: 1 })
+const createDateTime = (year: number, month: number, day: number) => {
+  return DateTime.fromObject({ year, month, day })
+}
+
+const preCoreSeasonForDate = createDateTime(2025, 5, 31)
+const firstCoreSeasonDate = createDateTime(2025, 6, 1)
+const lastCoreSeasonDate = createDateTime(2025, 9, 30)
+const postCoreSeasonDate = createDateTime(2025, 10, 1)
 
 const issueDate = DateTime.now()
 const forDate = DateTime.now()
