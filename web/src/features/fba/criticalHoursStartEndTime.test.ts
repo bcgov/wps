@@ -99,19 +99,19 @@ const noHoursM1M2: FireZoneFuelStats = {
 describe('getMinStartAndMaxEndTime', () => {
   it('handles normal same-day critical hours', () => {
     const result = getMinStartAndMaxEndTime([sameDayC2])
-    expect(result).toEqual({ minStartTime: 10, maxEndTime: 21 })
+    expect(result).toEqual({ minStartTime: 10, maxEndTime: 21, duration: 11 })
   })
   it('handles full day/time critical hours', () => {
     const result = getMinStartAndMaxEndTime([fullDayC2])
-    expect(result).toEqual({ minStartTime: 7, maxEndTime: 7 })
+    expect(result).toEqual({ minStartTime: 7, maxEndTime: 7, duration: 24 })
   })
   it('handles stats containing both same day and next day critical hours', () => {
     const result = getMinStartAndMaxEndTime([sameDayC2, fullDayC2])
-    expect(result).toEqual({ minStartTime: 7, maxEndTime: 7 })
+    expect(result).toEqual({ minStartTime: 7, maxEndTime: 7, duration: 24 })
   })
   it('handles stats containing both same day and next day critical hours, as well as no critical hours', () => {
     const result = getMinStartAndMaxEndTime([sameDayC2, nextDayM1M2, nextDayS1, noHoursM1M2])
-    expect(result).toEqual({ minStartTime: 10, maxEndTime: 6 })
+    expect(result).toEqual({ minStartTime: 10, maxEndTime: 6, duration: 20 })
   })
 })
 

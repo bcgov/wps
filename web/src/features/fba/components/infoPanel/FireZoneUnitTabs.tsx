@@ -125,6 +125,7 @@ const FireZoneUnitTabs = ({
                           minHeight: '30px'
                         }}
                         label={zone.fire_shape_name.split('-')[0]}
+                        aria-label={`zone-${key}-tab`}
                       />
                     </Tooltip>
                   )

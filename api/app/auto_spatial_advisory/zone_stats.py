@@ -54,11 +54,11 @@ def get_fuel_type_area_stats(grass_curing_date: date,
                              fuel_type_id: int,
                              area: float,
                              fuel_area: float):
-    # area is stored in square metres in DB. For user convenience, convert to hectares
-    # 1 ha = 10,000 sq.m.
-    area = area / 10000
-    fuel_area = fuel_area / 10000
-    fuel_type_obj: DBSFMSFuelType = next((ft[0] for ft in sfms_fuel_types if ft[0].id == fuel_type_id), None)
+    area = area
+    fuel_area = fuel_area
+    fuel_type_obj: DBSFMSFuelType = next(
+        (ft for ft in sfms_fuel_types if ft.id == fuel_type_id), None
+    )
     percent_curing = get_optional_percent_curing(grass_curing_date, fuel_type_obj)
     fuel_type_code_details = fuel_type_obj.fuel_type_code + (f" (≥{percent_conifer} PC)" if percent_conifer is not None else "")
     return ClassifiedHfiThresholdFuelTypeArea(

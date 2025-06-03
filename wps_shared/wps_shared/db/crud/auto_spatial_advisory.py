@@ -181,7 +181,7 @@ async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuel
     """
     stmt = select(SFMSFuelType)
     result = await session.execute(stmt)
-    return result.all()
+    return result.scalars().all()
 
 
 async def get_sfms_mixed_fuel_type(session: AsyncSession) -> SFMSFuelType:
@@ -613,7 +613,7 @@ async def get_fuel_types_code_dict(db_session: AsyncSession):
     sfms_fuel_types = await get_all_sfms_fuel_type_records(db_session)
     fuel_types_dict = {}
     for fuel_type in sfms_fuel_types:
-        fuel_types_dict[fuel_type[0].fuel_type_code] = fuel_type[0].id
+        fuel_types_dict[fuel_type.fuel_type_code] = fuel_type.id
     return fuel_types_dict
 
 
@@ -627,5 +627,5 @@ async def get_fuel_types_id_dict(db_session: AsyncSession):
     sfms_fuel_types = await get_all_sfms_fuel_type_records(db_session)
     fuel_types_dict = {}
     for fuel_type in sfms_fuel_types:
-        fuel_types_dict[fuel_type[0].fuel_type_id] = fuel_type[0].id
+        fuel_types_dict[fuel_type.fuel_type_id] = fuel_type.id
     return fuel_types_dict
