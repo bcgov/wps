@@ -1,7 +1,15 @@
 import * as ol from 'ol'
 import Geometry from 'ol/geom/Geometry'
-import { EMPTY_FILL, getColorForRasterValue, SNOW_FILL, snowStyler, styleFuelGrid } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
-import { colorByFuelTypeCode } from '@/features/fba/components/viz/color'
+import {
+  EMPTY_FILL,
+  getColorForRasterValue,
+  SNOW_FILL,
+  snowStyler,
+  styleFuelGrid,
+  fuelCOGColourExpression,
+  rasterValueToFuelTypeCode
+} from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
+import { getColorByFuelTypeCode, colorByFuelTypeCode } from '@/features/fba/components/viz/color'
 
 describe('getColorForRasterValue', () => {
   it('should get the correct colour for the specified raster value', () => {
@@ -27,7 +35,7 @@ describe('styleFuelGrid', () => {
     const feature = new ol.Feature<Geometry>({ fuel: 1 })
     const styler = styleFuelGrid()
     const fuelStyle = styler(feature)
-    const expected = colorByFuelTypeCode.get('C-1')
+    const expected = getColorByFuelTypeCode('C-1')
     expect(fuelStyle.getFill()?.getColor()).toBe(expected)
   })
 })
@@ -44,9 +52,41 @@ describe('snowStyler', () => {
       const snowStyle = snowStyler(feature)
       expect(snowStyle.getFill()?.getColor()).toBe(EMPTY_FILL)
     })
-  } )
+  })
 })
 
+describe('fuelCOGColourExpression', () => {
+  it('should return a case expression array', () => {
+    const expr = fuelCOGColourExpression()
+    expect(Array.isArray(expr)).toBe(true)
+    expect(expr[0]).toBe('case')
+  })
 
+  it('should include all raster values and their corresponding colors', () => {
+    const expr = fuelCOGColourExpression()
+    const expectedLength = 1 + rasterValueToFuelTypeCode.size * 2 + 1
+    expect(expr.length).toBe(expectedLength)
 
+    for (const [rasterValue, code] of rasterValueToFuelTypeCode.entries()) {
+      const idx = expr.findIndex(
+        item =>
+          Array.isArray(item) &&
+          item[0] === '==' &&
+          Array.isArray(item[1]) &&
+          item[1][0] === 'band' &&
+          item[2] === rasterValue
+      )
+      expect(idx).toBeGreaterThan(-1)
+      const color = expr[idx + 1]
+      const expectedColor = colorByFuelTypeCode.get(code) ?? [0, 0, 0]
+      expect(color.slice(0, 3)).toEqual(expectedColor)
+      expect(color[3]).toBe(1)
+    }
+  })
 
+  it('should end with a transparent fallback color', () => {
+    const expr = fuelCOGColourExpression()
+    const fallback = expr[expr.length - 1]
+    expect(fallback).toEqual([0, 0, 0, 0])
+  })
+})
