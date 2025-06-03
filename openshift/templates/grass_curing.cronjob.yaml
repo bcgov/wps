@@ -164,7 +164,6 @@ objects:
                           key: env.redis-use
                   resources:
                     limits:
-                      cpu: "1"
                       memory: 1024Mi
                     requests:
                       cpu: "500m"

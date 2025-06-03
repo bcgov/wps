@@ -144,7 +144,6 @@ objects:
                           key: object-store-bucket
                   resources:
                     limits:
-                      cpu: "250m"
                       memory: 2048Mi
                     requests:
                       cpu: "75m"
