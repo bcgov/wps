@@ -13,6 +13,7 @@ interface Window {
     REACT_APP_MUI_LICENSE_KEY: string
     REACT_APP_SENTRY_DSN: string
     REACT_APP_SENTRY_ENV: string
+    REACT_APP_PSU_BUCKET: string
   }
   Cypress: {} | undefined
 }

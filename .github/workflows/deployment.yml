@@ -22,6 +22,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1
         with:
           oc: "4.14"
+          skip_cache: true
 
       - name: Deploy PostGIS instance
         shell: bash
@@ -48,6 +49,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1
         with:
           oc: "4.14"
+          skip_cache: true
 
       - name: Build wps-web Image
         shell: bash
@@ -71,6 +73,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1
         with:
           oc: "4.14"
+          skip_cache: true
 
       - name: Build wps-api Image
         shell: bash
@@ -112,6 +115,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1
         with:
           oc: "4.14"
+          skip_cache: true
 
       - name: Build wps-jobs Image
         shell: bash
@@ -135,6 +139,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1
         with:
           oc: "4.14"
+          skip_cache: true
 
       - name: Configure
         shell: bash
@@ -168,6 +173,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1
         with:
           oc: "4.14"
+          skip_cache: true
 
       - name: Deploy API to Dev
         shell: bash
@@ -322,6 +328,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1
         with:
           oc: "4.14"
+          skip_cache: true
 
       - name: NATS Message Queue
         shell: bash
@@ -383,6 +390,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1
         with:
           oc: "4.14"
+          skip_cache: true
 
       - name: C-Haines Cronjob
         shell: bash

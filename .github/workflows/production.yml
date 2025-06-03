@@ -30,6 +30,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1
         with:
           oc: "4.14"
+          skip_cache: true
       - name: Provision to production
         run: |
           echo Login
