@@ -79,7 +79,6 @@ objects:
                       value: ${SUFFIX}
                   resources:
                     limits:
-                      cpu: "250m"
                       memory: 1024Mi
                     requests:
                       cpu: "75m"
