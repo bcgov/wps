@@ -1,22 +1,24 @@
 import json
-import app.main
-from unittest.mock import patch
 import math
-from aiohttp import ClientSession
-import pytest
-from fastapi.testclient import TestClient
-from datetime import date, datetime, timezone
 from collections import namedtuple
+from datetime import date, datetime, timezone
+from unittest.mock import patch
+
+import app.main
+import pytest
+from aiohttp import ClientSession
+from app.tests import get_complete_filename
+from fastapi.testclient import TestClient
+
 from wps_shared.db.models.auto_spatial_advisory import (
+    AdvisoryHFIWindSpeed,
     AdvisoryTPIStats,
     RunParameters,
     SFMSFuelType,
-    TPIFuelArea,
     TPIClassEnum,
-    AdvisoryHFIWindSpeed,
+    TPIFuelArea,
 )
 from wps_shared.schemas.fba import HfiThreshold
-from app.tests import get_complete_filename
 from wps_shared.tests.common import default_mock_client_get
 
 mock_fire_centre_name = "PGFireCentre"
@@ -36,15 +38,17 @@ decode_fn = "jwt.decode"
 mock_tpi_stats = AdvisoryTPIStats(
     id=1, advisory_shape_id=1, valley_bottom=1, mid_slope=2, upper_slope=3, pixel_size_metres=50
 )
-mock_tpi_fuel_area_1 = TPIFuelArea(
-    id=1, advisory_shape_id=1, tpi_class=TPIClassEnum.valley_bottom, fuel_area=1
-)
-mock_tpi_fuel_area_2 = TPIFuelArea(
-    id=2, advisory_shape_id=1, tpi_class=TPIClassEnum.mid_slope, fuel_area=2
-)
-mock_tpi_fuel_area_3 = TPIFuelArea(
-    id=3, advisory_shape_id=1, tpi_class=TPIClassEnum.upper_slope, fuel_area=3
-)
+
+
+def create_mock_tpi_fuel_area(id, advisory_shape_id, tpi_class, fuel_area):
+    return TPIFuelArea(
+        id=id, advisory_shape_id=advisory_shape_id, tpi_class=tpi_class, fuel_area=fuel_area
+    )
+
+
+mock_tpi_fuel_area_1 = create_mock_tpi_fuel_area(1, 1, TPIClassEnum.valley_bottom, 1)
+mock_tpi_fuel_area_2 = create_mock_tpi_fuel_area(2, 1, TPIClassEnum.mid_slope, 2)
+mock_tpi_fuel_area_3 = create_mock_tpi_fuel_area(3, 1, TPIClassEnum.upper_slope, 3)
 mock_tpi_fuel_areas = [mock_tpi_fuel_area_1, mock_tpi_fuel_area_2, mock_tpi_fuel_area_3]
 mock_fire_centre_info = [(9.0, 11.0, 1, 1, 50, 100, 1)]
 mock_fire_centre_info_with_grass = [(9.0, 11.0, 12, 1, 50, 100, None)]
@@ -68,34 +72,44 @@ CentreHFIFuelResponse = namedtuple(
         "pixel_size_metres",
     ],
 )
-mock_centre_tpi_stats_1 = CentreHFIFuelResponse(
-    advisory_shape_id=1,
-    source_identifier=1,
-    valley_bottom=1,
-    mid_slope=2,
-    upper_slope=3,
-    pixel_size_metres=2,
-)
-mock_centre_tpi_stats_2 = CentreHFIFuelResponse(
-    advisory_shape_id=2,
-    source_identifier=2,
-    valley_bottom=1,
-    mid_slope=2,
-    upper_slope=3,
-    pixel_size_metres=2,
-)
+
+
+def create_mock_centre_tpi_stats(
+    advisory_shape_id, source_identifier, valley_bottom, mid_slope, upper_slope, pixel_size_metres
+):
+    return CentreHFIFuelResponse(
+        advisory_shape_id=advisory_shape_id,
+        source_identifier=source_identifier,
+        valley_bottom=valley_bottom,
+        mid_slope=mid_slope,
+        upper_slope=upper_slope,
+        pixel_size_metres=pixel_size_metres,
+    )
+
+
+mock_centre_tpi_stats_1 = create_mock_centre_tpi_stats(1, 1, 1, 2, 3, 2)
+mock_centre_tpi_stats_2 = create_mock_centre_tpi_stats(2, 2, 1, 2, 3, 2)
+
 
 CentreTPIFuelAreasResponse = namedtuple(
     "CentreTPIFuelAreasResponse", ["tpi_class", "fuel_area", "source_identifier"]
 )
-mock_centre_tpi_fuel_area_1 = CentreTPIFuelAreasResponse(
-    tpi_class=TPIClassEnum.valley_bottom, fuel_area=1, source_identifier=1
+
+
+def create_mock_centre_tpi_fuel_area_response(tpi_class, fuel_area, source_identifier):
+    return CentreTPIFuelAreasResponse(
+        tpi_class=tpi_class, fuel_area=fuel_area, source_identifier=source_identifier
+    )
+
+
+mock_centre_tpi_fuel_area_1 = create_mock_centre_tpi_fuel_area_response(
+    TPIClassEnum.valley_bottom, 1, 1
 )
-mock_centre_tpi_fuel_area_2 = CentreTPIFuelAreasResponse(
-    tpi_class=TPIClassEnum.mid_slope, fuel_area=2, source_identifier=1
+mock_centre_tpi_fuel_area_2 = create_mock_centre_tpi_fuel_area_response(
+    TPIClassEnum.mid_slope, 2, 1
 )
-mock_centre_tpi_fuel_area_3 = CentreTPIFuelAreasResponse(
-    tpi_class=TPIClassEnum.upper_slope, fuel_area=3, source_identifier=1
+mock_centre_tpi_fuel_area_3 = create_mock_centre_tpi_fuel_area_response(
+    TPIClassEnum.upper_slope, 3, 1
 )
 
 
@@ -251,40 +265,16 @@ def test_get_fire_center_info_authorized(client: TestClient):
     """Allowed to get fire centre info when authorized"""
     response = client.get(get_fire_centre_info_url)
     assert response.status_code == 200
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["fuel_type"][
-            "fuel_type_id"
-        ]
-        == 1
-    )
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["threshold"]["id"] == 1
-    )
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"][
-            "start_time"
-        ]
-        == 9.0
-    )
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"][
-            "end_time"
-        ]
-        == 11.0
-    )
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["percent_curing"] == None
-    )
-    assert response.json()["Kamloops Fire Centre"]["1"]["min_wind_stats"][0]["threshold"]["id"] == 1
-    assert math.isclose(
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["fuel_area"], 100
-    )
-    assert math.isclose(
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["area"], 50
-    )
-    assert math.isclose(
-        response.json()["Kamloops Fire Centre"]["1"]["min_wind_stats"][0]["min_wind_speed"], 1
-    )
+    kfc_json = response.json()["Kamloops Fire Centre"]
+    assert kfc_json["1"]["fuel_area_stats"][0]["fuel_type"]["fuel_type_id"] == 1
+    assert kfc_json["1"]["fuel_area_stats"][0]["threshold"]["id"] == 1
+    assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["critical_hours"]["start_time"], 9.0)
+    assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["critical_hours"]["end_time"], 11.0)
+    assert kfc_json["1"]["fuel_area_stats"][0]["percent_curing"] is None
+    assert kfc_json["1"]["min_wind_stats"][0]["threshold"]["id"] == 1
+    assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["fuel_area"], 100)
+    assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["area"], 50)
+    assert math.isclose(kfc_json["1"]["min_wind_stats"][0]["min_wind_speed"], 1)
 
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
@@ -298,37 +288,15 @@ def test_get_fire_center_info_authorized_no_min_wind_speeds(client: TestClient):
     """Allowed to get fire centre info when authorized"""
     response = client.get(get_fire_centre_info_url)
     assert response.status_code == 200
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["fuel_type"][
-            "fuel_type_id"
-        ]
-        == 1
-    )
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["threshold"]["id"] == 1
-    )
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"][
-            "start_time"
-        ]
-        == 9.0
-    )
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"][
-            "end_time"
-        ]
-        == 11.0
-    )
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["percent_curing"] == None
-    )
-    assert math.isclose(
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["fuel_area"], 100
-    )
-    assert math.isclose(
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["area"], 50
-    )
-    assert response.json()["Kamloops Fire Centre"]["1"]["min_wind_stats"] == []
+    kfc_json = response.json()["Kamloops Fire Centre"]
+    assert kfc_json["1"]["fuel_area_stats"][0]["fuel_type"]["fuel_type_id"] == 1
+    assert kfc_json["1"]["fuel_area_stats"][0]["threshold"]["id"] == 1
+    assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["critical_hours"]["start_time"], 9.0)
+    assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["critical_hours"]["end_time"], 11.0)
+    assert kfc_json["1"]["fuel_area_stats"][0]["percent_curing"] is None
+    assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["fuel_area"], 100)
+    assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["area"], 50)
+    assert kfc_json["1"]["min_wind_stats"] == []
 
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
@@ -342,40 +310,16 @@ def test_get_fire_center_info_authorized_grass_fuel(client: TestClient):
     """Allowed to get fire centre info when authorized with grass fuel type"""
     response = client.get(get_fire_centre_info_url)
     assert response.status_code == 200
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["fuel_type"][
-            "fuel_type_id"
-        ]
-        == 12
-    )
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["threshold"]["id"] == 1
-    )
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"][
-            "start_time"
-        ]
-        == 9.0
-    )
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["critical_hours"][
-            "end_time"
-        ]
-        == 11.0
-    )
-    assert (
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["percent_curing"] == 90
-    )
+    kfc_json = response.json()["Kamloops Fire Centre"]
+    assert kfc_json["1"]["fuel_area_stats"][0]["fuel_type"]["fuel_type_id"] == 12
+    assert kfc_json["1"]["fuel_area_stats"][0]["threshold"]["id"] == 1
+    assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["critical_hours"]["start_time"], 9.0)
+    assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["critical_hours"]["end_time"], 11.0)
+    assert kfc_json["1"]["fuel_area_stats"][0]["percent_curing"] == 90
     assert response.json()["Kamloops Fire Centre"]["1"]["min_wind_stats"][0]["threshold"]["id"] == 1
-    assert math.isclose(
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["fuel_area"], 100
-    )
-    assert math.isclose(
-        response.json()["Kamloops Fire Centre"]["1"]["fuel_area_stats"][0]["area"], 50
-    )
-    assert math.isclose(
-        response.json()["Kamloops Fire Centre"]["1"]["min_wind_stats"][0]["min_wind_speed"], 1
-    )
+    assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["fuel_area"], 100)
+    assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["area"], 50)
+    assert math.isclose(kfc_json["1"]["min_wind_stats"][0]["min_wind_speed"], 1)
 
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
