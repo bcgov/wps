@@ -276,7 +276,7 @@ describe('AdvisoryText', () => {
 
   it('should not include fuel stats when their fuel area is below the 100 * 2000m * 2000m threshold', async () => {
     const store = getInitialStore()
-    const { queryByTestId } = render(
+    render(
       <Provider store={store}>
         <AdvisoryText
           issueDate={issueDate}

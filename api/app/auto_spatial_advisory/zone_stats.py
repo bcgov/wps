@@ -45,17 +45,17 @@ def get_optional_percent_curing(grass_curing_date: date, sfms_fuel_type: DBSFMSF
     return None
 
 
-def get_fuel_type_area_stats(grass_curing_date: date,
-                             sfms_fuel_types: List[(DBSFMSFuelType)],
-                             hfi_threshold: HfiThreshold,
-                             percent_conifer: Optional[int],
-                             critical_hour_start: Optional[float],
-                             critical_hour_end: Optional[float],
-                             fuel_type_id: int,
-                             area: float,
-                             fuel_area: float):
-    area = area
-    fuel_area = fuel_area
+def get_fuel_type_area_stats(
+    grass_curing_date: date,
+    sfms_fuel_types: List[(DBSFMSFuelType)],
+    hfi_threshold: HfiThreshold,
+    percent_conifer: Optional[int],
+    critical_hour_start: Optional[float],
+    critical_hour_end: Optional[float],
+    fuel_type_id: int,
+    area: float,
+    fuel_area: float,
+):
     fuel_type_obj: DBSFMSFuelType = next(
         (ft for ft in sfms_fuel_types if ft.id == fuel_type_id), None
     )
