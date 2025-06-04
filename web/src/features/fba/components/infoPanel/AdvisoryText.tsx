@@ -319,7 +319,7 @@ const AdvisoryText = ({
       </Typography>
     ) : null
 
-    const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime) // && fireCentreHFIFuelStats.length > 0
+    const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime)
     let message: React.ReactNode = null
     if (hasCriticalHours) {
       const [formattedStartTime, formattedEndTime] = formatCriticalHoursTimeText(minStartTime, maxEndTime, false)
