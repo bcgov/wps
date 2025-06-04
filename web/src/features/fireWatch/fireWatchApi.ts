@@ -121,6 +121,15 @@ export const postFireWatchInput = async (fireWatch: FireWatch): Promise<FireWatc
   return data
 }
 
+export const postFireWatchUpdate = async (fireWatch: FireWatch): Promise<FireWatchResponse> => {
+  const fireWatchInput = marshalFireWatchToFireWatchInput(fireWatch)
+  const url = `/fire-watch/watch/${fireWatch.id}`
+  const { data } = await axios.post(url, {
+    fire_watch: fireWatchInput
+  })
+  return data
+}
+
 export const getFireCentres = async (): Promise<FireWatchFireCentresResponse> => {
   const url = 'fire-watch/fire-centres'
   const { data } = await axios.get(url)
@@ -250,7 +259,7 @@ const marshalBurnForecastOutputToBurnForecast = (burnForecastOutput: BurnForecas
 
 // Convert fire watch burn forecasts from the API shape to frontend shape.
 const marshalBurnForecasts = (values: FireWatchOutputBurnForecast[]) => {
-    const fireWatchBurnForecasts: FireWatchBurnForecast[] = values.map((value: FireWatchOutputBurnForecast) => {
+  const fireWatchBurnForecasts: FireWatchBurnForecast[] = values.map((value: FireWatchOutputBurnForecast) => {
     const fireWatch = marshalFireWatchOutputToFireWatch(value.fire_watch)
     const burnForecasts: BurnForecast[] = []
     for (const burnForecastOutput of value.burn_forecasts) {
@@ -262,7 +271,6 @@ const marshalBurnForecasts = (values: FireWatchOutputBurnForecast[]) => {
       burnForecasts: burnForecasts
     }
     return fireWatchBurnForecast
-
   })
   return fireWatchBurnForecasts
 }

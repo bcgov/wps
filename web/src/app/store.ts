@@ -1,4 +1,4 @@
-import { configureStore, AnyAction, ThunkAction } from '@reduxjs/toolkit'
+import { configureStore, AnyAction, ThunkAction, UnknownAction } from '@reduxjs/toolkit'
 import { thunk, ThunkMiddleware } from 'redux-thunk'
 import rootReducer, { RootState } from 'app/rootReducer'
 
@@ -14,9 +14,8 @@ const store = configureStore({
     getDefaultMiddleware({ immutableCheck: false, serializableCheck: false }).concat(thunkMiddleware)
 })
 
-
 export type AppDispatch = typeof store.dispatch
 
-export type AppThunk = ThunkAction<void, RootState, undefined, AnyAction>
+export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, UnknownAction>
 
 export default store
