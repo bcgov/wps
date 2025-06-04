@@ -133,7 +133,7 @@ class PredictionModelGridSubset(Base):
         return ("id: {self.id}, prediction_model_id: {self.prediction_model_id}").format(self=self)
 
 
-# Explict creation of index due to issue with alembic + geoalchemy.
+# Explicit creation of index due to issue with alembic + geoalchemy.
 Index("idx_prediction_model_grid_subsets_geom", PredictionModelGridSubset.geom, postgresql_using="gist")
 
 

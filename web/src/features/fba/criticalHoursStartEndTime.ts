@@ -15,9 +15,11 @@ export const getMinStartAndMaxEndTime = (
 ): {
   minStartTime: number | undefined
   maxEndTime: number | undefined
+  duration: number | undefined
 } => {
   let minStartTime: number | undefined = undefined
   let maxEndTime: number | undefined = undefined
+  let duration: number | undefined = undefined
 
   for (const fuel of fuels) {
     let { start_time, end_time } = fuel.critical_hours
@@ -42,11 +44,16 @@ export const getMinStartAndMaxEndTime = (
       }
     }
   }
+
+  if (!isNil(minStartTime) && !isNil(maxEndTime)) {
+    duration = maxEndTime - minStartTime
+  }
+
   if (!isNil(maxEndTime)) {
     maxEndTime = maxEndTime % 24 // normalize back to 24 hour clock
   }
 
-  return { minStartTime, maxEndTime }
+  return { minStartTime, maxEndTime, duration }
 }
 
 export const criticalHoursExtendToNextDay = (startTime: number, endTime: number): boolean => {

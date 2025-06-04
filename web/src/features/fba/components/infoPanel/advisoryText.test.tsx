@@ -37,6 +37,15 @@ const buildTestStore = (
   return testStore
 }
 
+const createDateTime = (year: number, month: number, day: number) => {
+  return DateTime.fromObject({ year, month, day })
+}
+
+const preCoreSeasonForDate = createDateTime(2025, 5, 31)
+const firstCoreSeasonDate = createDateTime(2025, 6, 1)
+const lastCoreSeasonDate = createDateTime(2025, 9, 30)
+const postCoreSeasonDate = createDateTime(2025, 10, 1)
+
 const issueDate = DateTime.now()
 const forDate = DateTime.now()
 const advisoryThreshold = 20
@@ -143,8 +152,8 @@ const initialHFIFuelStats = {
             start_time: 9,
             end_time: 13
           },
-          area: 4000,
-          fuel_area: 8000
+          area: 4000000000,
+          fuel_area: 8000000000
         }
       ],
       min_wind_stats: [
@@ -187,8 +196,8 @@ describe('AdvisoryText', () => {
     expect(screen.queryByTestId('advisory-message-proportion')).toBeInTheDocument()
     expect(screen.queryByTestId('advisory-message-warning')).toBeInTheDocument()
     expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('advisory-message-early-low-wind')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('advisory-message-overnight')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-slash')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('overnight-burning-text')).not.toBeInTheDocument()
   }
 
   it('should render the advisory text container', () => {
@@ -240,6 +249,56 @@ describe('AdvisoryText', () => {
     expect(message).toBeInTheDocument()
     const bulletinIssueDate = queryByTestId('bulletin-issue-date')
     expect(bulletinIssueDate).not.toBeInTheDocument()
+  })
+
+  it('should include fuel stats when their fuel area is above the 100 * 2000m * 2000m threshold', async () => {
+    const store = getInitialStore()
+    render(
+      <Provider store={store}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    assertInitialState()
+    store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-warning')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByTestId('advisory-message-warning')).toHaveTextContent(
+        initialHFIFuelStats['Cariboo Fire Centre'][20].fuel_area_stats[0].fuel_type.fuel_type_code
+      )
+    )
+  })
+
+  it('should not include fuel stats when their fuel area is below the 100 * 2000m * 2000m threshold', async () => {
+    const store = getInitialStore()
+    render(
+      <Provider store={store}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    assertInitialState()
+    let smallAreaStats = cloneDeep(initialHFIFuelStats)
+    smallAreaStats['Cariboo Fire Centre'][20].fuel_area_stats[0].area = 10
+    smallAreaStats['Cariboo Fire Centre'][20].fuel_area_stats[0].fuel_area = 100
+    store.dispatch(getFireCentreHFIFuelStatsSuccess(smallAreaStats))
+
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-warning')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByTestId('advisory-message-warning')).not.toHaveTextContent(
+        initialHFIFuelStats['Cariboo Fire Centre'][20].fuel_area_stats[0].fuel_type.fuel_type_code
+      )
+    )
   })
 
   it('should render forDate as mmm/dd when different than issue date', () => {
@@ -328,8 +387,6 @@ describe('AdvisoryText', () => {
       `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for today.`
     )
     expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('advisory-message-early-low-wind')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('advisory-message-overnight')).not.toBeInTheDocument()
   })
 
   it('should render advisory status', () => {
@@ -359,8 +416,6 @@ describe('AdvisoryText', () => {
       `Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for today.`
     )
     expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('advisory-message-early-low-wind')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('advisory-message-overnight')).not.toBeInTheDocument()
   })
 
   it('should render wind speed text and early fire behaviour text when fire zone unit is selected, based on wind speed & critical hours data', async () => {
@@ -377,9 +432,7 @@ describe('AdvisoryText', () => {
       </Provider>
     )
     assertInitialState()
-
     store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
-
     await waitFor(() => expect(screen.queryByTestId('advisory-message-wind-speed')).toBeInTheDocument())
     await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).toBeInTheDocument())
     await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).not.toBeInTheDocument())
@@ -404,7 +457,6 @@ describe('AdvisoryText', () => {
     overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 5
 
     store.dispatch(getFireCentreHFIFuelStatsSuccess(overnightStats))
-
     await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).toBeInTheDocument())
     await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).toBeInTheDocument())
     await waitFor(() =>
@@ -434,9 +486,8 @@ describe('AdvisoryText', () => {
     overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.start_time = 13
 
     store.dispatch(getFireCentreHFIFuelStatsSuccess(overnightStats))
-
-    await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).not.toBeInTheDocument())
-    await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).toBeInTheDocument())
+    await waitFor(async () => expect(screen.queryByTestId('early-advisory-text')).not.toBeInTheDocument())
+    await waitFor(async () => expect(screen.queryByTestId('overnight-burning-text')).toBeInTheDocument())
     await waitFor(() =>
       expect(screen.queryByTestId('overnight-burning-text')).toHaveTextContent(
         'Be prepared for fire behaviour to remain elevated into the overnight hours.'
@@ -498,6 +549,46 @@ describe('AdvisoryText', () => {
     const criticalHoursMessage = queryByTestId('advisory-message-no-critical-hours')
     expect(advisoryMessage).toBeInTheDocument()
     expect(criticalHoursMessage).toBeInTheDocument()
+  })
+
+  it('should not render slash warning when critical hours duration is less than 12 hours', async () => {
+    const store = getInitialStore()
+    render(
+      <Provider store={store}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    assertInitialState()
+    store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-slash')).not.toBeInTheDocument())
+  })
+
+  it('should render slash warning when critical hours duration is greater than 12 hours', async () => {
+    const store = getInitialStore()
+    render(
+      <Provider store={store}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    assertInitialState()
+
+    let newHFIFuelStats = cloneDeep(initialHFIFuelStats)
+    newHFIFuelStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 22
+
+    store.dispatch(getFireCentreHFIFuelStatsSuccess(newHFIFuelStats))
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-slash')).toBeInTheDocument())
   })
 })
 
@@ -616,8 +707,8 @@ const fireZoneFuelStats: FireZoneHFIStats = {
         start_time: 10.0,
         end_time: 21.0
       },
-      area: 90,
-      fuel_area: 100
+      area: 300,
+      fuel_area: 1000
     },
     {
       fuel_type: {
@@ -642,10 +733,25 @@ const fireZoneFuelStats: FireZoneHFIStats = {
 }
 
 describe('getTopFuelsByArea', () => {
-  it('should return the top fuels by area, correctly handling both advisory and warning hfi pixels', () => {
-    const result = getTopFuelsByArea(fireZoneFuelStats)
+  it('should return the top fuels by area before start of core season, correctly handling both advisory and warning hfi pixels', () => {
+    const result = getTopFuelsByArea(fireZoneFuelStats, preCoreSeasonForDate)
+    // should return the fuel records that cumulatively sum to > 75% of the total hfi area
+    expect(result).toEqual(fireZoneFuelStats.fuel_area_stats.slice(0, 3))
+  })
+  it('should return the top fuels by area from start of core season, correctly handling both advisory and warning hfi pixels', () => {
+    const result = getTopFuelsByArea(fireZoneFuelStats, firstCoreSeasonDate)
+    // should return the fuel records that cumulatively sum to > 75% of the total hfi area
+    expect(result).toEqual([...fireZoneFuelStats.fuel_area_stats.slice(0, 2)])
+  })
+  it('should return the top fuels by area until end of core season, correctly handling both advisory and warning hfi pixels', () => {
+    const result = getTopFuelsByArea(fireZoneFuelStats, lastCoreSeasonDate)
     // should return the fuel records that cumulatively sum to > 75% of the total hfi area
     expect(result).toEqual(fireZoneFuelStats.fuel_area_stats.slice(0, 2))
+  })
+  it('should return the top fuels by area after end of core season, correctly handling both advisory and warning hfi pixels', () => {
+    const result = getTopFuelsByArea(fireZoneFuelStats, postCoreSeasonDate)
+    // should return the fuel records that cumulatively sum to > 75% of the total hfi area
+    expect(result).toEqual(fireZoneFuelStats.fuel_area_stats.slice(0, 3))
   })
 })
 
@@ -653,7 +759,7 @@ describe('getTopFuelsByProportion', () => {
   it('should return the top fuels by proportion of their fuel area', () => {
     const result = getTopFuelsByProportion(fireZoneFuelStats.fuel_area_stats)
     // should return the fuel records that cumulatively sum to > 90% of their own fuel area
-    expect(result).toEqual(fireZoneFuelStats.fuel_area_stats.slice(0, 3))
+    expect(result).toEqual(fireZoneFuelStats.fuel_area_stats.slice(0, 2))
   })
 })
 
