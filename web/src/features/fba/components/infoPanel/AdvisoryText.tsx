@@ -43,7 +43,7 @@ export const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]):
 }
 
 /**
- * Determine if we are in the core season ie between June 1 - September 20. Alternate logic for
+ * Determine if we are in the core season ie between June 1 - September 30. Alternate logic for
  * handling slash fuel types in the advisory text is required during this period.
  * @param date
  * @returns True if the date is between June 1 - September 30, otherwise False.
