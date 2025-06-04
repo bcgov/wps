@@ -1,3 +1,8 @@
+import { Box, styled, Typography } from '@mui/material'
+import { DateTime } from 'luxon'
+import React, { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { calculateStatusText, calculateWindSpeedText } from '@/features/fba/calculateZoneStatus'
 import {
@@ -5,7 +10,6 @@ import {
   formatCriticalHoursTimeText,
   getMinStartAndMaxEndTime
 } from '@/features/fba/criticalHoursStartEndTime'
-import { Box, Typography } from '@mui/material'
 import {
   AdvisoryMinWindStats,
   FireCenter,
@@ -14,11 +18,7 @@ import {
   FireZoneFuelStats,
   FireZoneHFIStats
 } from 'api/fbaAPI'
-import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
-import { DateTime } from 'luxon'
-import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
 import { AdvisoryStatus } from 'utils/constants'
 
 // Minimum area of a fuel type to be included in hfi stats.
@@ -127,6 +127,10 @@ const filterHFIStatsByArea = (stats: FireZoneFuelStats[]) => {
     stat => stat.fuel_area > FUEL_AREA_THRESHOLD || FUEL_TYPES_ALWAYS_INCLUDED.includes(stat.fuel_type.fuel_type_code)
   )
 }
+const SerifTypography = styled(Typography)({
+  fontSize: '1.2rem',
+  fontFamily: '"Courier New", "Courier", "Monospace" !important'
+}) as typeof Typography
 
 interface AdvisoryTextProps {
   issueDate: DateTime | null
@@ -259,24 +263,24 @@ const AdvisoryText = ({
     return (
       <>
         {isEarlyAdvisory && (
-          <Typography component="span" data-testid="early-advisory-text">
+          <SerifTypography component="span" data-testid="early-advisory-text">
             Be prepared for fire behaviour to increase early in the day
             {!isOvernightBurnPossible && '.'}
-          </Typography>
+          </SerifTypography>
         )}
         {isEarlyAdvisory && isOvernightBurnPossible && ' '}
         {isOvernightBurnPossible && (
-          <Typography component="span" data-testid="overnight-burning-text">
+          <SerifTypography component="span" data-testid="overnight-burning-text">
             {isEarlyAdvisory
               ? 'and remain elevated into the overnight hours.'
               : 'Be prepared for fire behaviour to remain elevated into the overnight hours.'}
-          </Typography>
+          </SerifTypography>
         )}
         {(isEarlyAdvisory || isOvernightBurnPossible) && ' '}
         {showSlashMessage && (
-          <Typography component="span" data-testid="advisory-message-slash">
+          <SerifTypography component="span" data-testid="advisory-message-slash">
             {'Slash fuel types will exhibit high fire intensity throughout the burning period.'}
-          </Typography>
+          </SerifTypography>
         )}
       </>
     )
@@ -286,9 +290,11 @@ const AdvisoryText = ({
     return (
       <>
         {issueDate?.isValid ? (
-          <Typography data-testid="default-message">Please select a fire center.</Typography>
+          <SerifTypography data-testid="default-message">Please select a fire center.</SerifTypography>
         ) : (
-          <Typography data-testid="no-data-message">No advisory data available for the selected date.</Typography>
+          <SerifTypography data-testid="no-data-message">
+            No advisory data available for the selected date.
+          </SerifTypography>
         )}
       </>
     )
@@ -313,10 +319,10 @@ const AdvisoryText = ({
     const minWindSpeedText = getZoneMinWindStatsText(selectedFireZoneUnitMinWindSpeeds)
 
     const formattedWindText = minWindSpeedText ? (
-      <Typography component="span" data-testid="advisory-message-wind-speed">
+      <SerifTypography component="span" data-testid="advisory-message-wind-speed">
         {' '}
         {minWindSpeedText}
-      </Typography>
+      </SerifTypography>
     ) : null
 
     const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime)
@@ -348,45 +354,47 @@ const AdvisoryText = ({
     return (
       <>
         {selectedFireZoneUnit && (
-          <Typography data-testid="fire-zone-unit-bulletin" sx={{ whiteSpace: 'pre-wrap' }}>
+          <SerifTypography data-testid="fire-zone-unit-bulletin" sx={{ whiteSpace: 'pre-wrap' }}>
             {zoneTitle}
-          </Typography>
+          </SerifTypography>
         )}
 
         {issueDate?.isValid && (
-          <Typography data-testid="bulletin-issue-date" sx={{ whiteSpace: 'pre-wrap' }}>
+          <SerifTypography data-testid="bulletin-issue-date" sx={{ whiteSpace: 'pre-wrap' }}>
             {`Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for ${displayForDate}.\n\n`}
-          </Typography>
+          </SerifTypography>
         )}
 
         {!isUndefined(zoneStatus) ? (
           <>
             {zoneStatus === AdvisoryStatus.ADVISORY && (
-              <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-advisory">
+              <SerifTypography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-advisory">
                 {message}
-              </Typography>
+              </SerifTypography>
             )}
 
             {zoneStatus === AdvisoryStatus.WARNING && (
-              <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-warning">
+              <SerifTypography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-warning">
                 {message}
-              </Typography>
+              </SerifTypography>
             )}
 
-            <Typography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-proportion">
+            <SerifTypography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-proportion">
               {getHighProportionFuelsString()}
-            </Typography>
+            </SerifTypography>
 
             {earlyOvernightBurning && <>{earlyOvernightBurning}</>}
 
             {!hasCriticalHours && (
-              <Typography data-testid="advisory-message-no-critical-hours">No critical hours available.</Typography>
+              <SerifTypography data-testid="advisory-message-no-critical-hours">
+                No critical hours available.
+              </SerifTypography>
             )}
           </>
         ) : (
-          <Typography data-testid="no-advisory-message">
+          <SerifTypography data-testid="no-advisory-message">
             No advisories or warnings issued for the selected fire zone unit.
-          </Typography>
+          </SerifTypography>
         )}
       </>
     )
@@ -396,13 +404,13 @@ const AdvisoryText = ({
     <div data-testid="advisory-text">
       <Box
         sx={{
-          height: 350,
           maxWidth: '100%',
           overflow: 'auto',
           border: '1px solid #ccc',
           padding: 2,
           borderRadius: 1,
-          backgroundColor: 'white'
+          backgroundColor: 'white',
+          marginBottom: '10px'
         }}
       >
         {!selectedFireCenter || !issueDate?.isValid || !selectedFireZoneUnit
