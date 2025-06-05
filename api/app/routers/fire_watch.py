@@ -132,7 +132,7 @@ def create_fire_watch_output(db_fire_watch: DBFireWatch, fire_centre: FireWatchF
     x, y = reproject_burn_location(coords, NAD83_BC_ALBERS, WEB_MERCATOR)
     return FireWatchOutput(
         id=db_fire_watch.id,
-        burn_location=[y, x],
+        burn_location=[x, y],
         burn_window_end=db_fire_watch.burn_window_end.isoformat(),
         burn_window_start=db_fire_watch.burn_window_start.isoformat(),
         contact_email=db_fire_watch.contact_email,
