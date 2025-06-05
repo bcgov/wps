@@ -44,6 +44,8 @@ from wps_shared.stations import get_stations_as_geojson
 from wps_shared.utils.time import get_utc_now
 from wps_shared.weather_models import ModelEnum
 
+from app.fire_watch.calculate_weather import FIREWATCH_WEATHER_MODEL
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
@@ -302,7 +304,7 @@ async def get_burn_forecasts(_=Depends(authentication_required)):
     async with get_async_read_session_scope() as session:
         fire_watches = await get_all_fire_watches(session)
         latest_model_run_parameters_id = await get_latest_prediction_timestamp_id_for_model(
-            session, ModelEnum.GFS
+            session, FIREWATCH_WEATHER_MODEL
         )
         fire_watch_weather = await get_fire_watch_weather_by_model_with_prescription_status(
             session, latest_model_run_parameters_id
