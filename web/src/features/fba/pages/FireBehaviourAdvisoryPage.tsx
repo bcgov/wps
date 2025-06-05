@@ -19,7 +19,6 @@ import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
-import InfoPanel from 'features/fba/components/infoPanel/InfoPanel'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import FireZoneUnitTabs from 'features/fba/components/infoPanel/FireZoneUnitTabs'
@@ -163,7 +162,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         </Grid>
       </Box>
       <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
-        <InfoPanel>
+        <Box sx={{ width: 700, overflowY: 'auto' }}>
           <AdvisoryReport
             issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
             forDate={dateOfInterest}
@@ -178,7 +177,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             advisoryThreshold={ADVISORY_THRESHOLD}
             setSelectedFireShape={setSelectedFireShape}
           />
-        </InfoPanel>
+        </Box>
         <Grid sx={{ display: 'flex', flex: 1 }} item>
           <FBAMap
             forDate={dateOfInterest}
