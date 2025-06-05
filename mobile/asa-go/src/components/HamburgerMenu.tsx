@@ -27,6 +27,8 @@ export interface HamburgerMenuProps {
   setZoomSource: React.Dispatch<
     React.SetStateAction<"fireCenter" | "fireShape" | undefined>
   >;
+  drawerTop: number;
+  drawerHeight: number;
 }
 
 export const HamburgerMenu = ({
@@ -39,6 +41,8 @@ export const HamburgerMenu = ({
   setSelectedFireShape,
   setSelectedFireCenter,
   setZoomSource,
+  drawerTop,
+  drawerHeight,
 }: HamburgerMenuProps) => {
   const [open, setOpen] = useState(false);
 
@@ -47,15 +51,26 @@ export const HamburgerMenu = ({
       <IconButton onClick={() => setOpen(true)}>
         <MenuIcon fontSize="large" sx={{ color: "white" }} />
       </IconButton>
-      <Drawer anchor="left" open={open} onClose={() => setOpen(false)}>
-        <div style={{ width: 250, padding: "16px" }}>
-          {/* Close Button */}
-          <IconButton onClick={() => setOpen(false)} sx={{ marginBottom: 2 }}>
-            <CloseIcon />
-          </IconButton>
-        </div>
-        <Grid container spacing={1} direction={"column"} sx={{}}>
-          <Grid>
+      <Drawer
+        anchor="right"
+        open={open}
+        onClose={() => setOpen(false)}
+        PaperProps={{
+          sx: {
+            top: `${drawerTop}px`,
+            height: `${drawerHeight}px`,
+            borderTopLeftRadius: 16,
+            borderBottomLeftRadius: 16,
+          },
+        }}
+      >
+        <Grid
+          container
+          spacing={1}
+          direction={"column"}
+          sx={{ width: 250, padding: "16px" }}
+        >
+          <Grid container alignItems="center" justifyContent="space-between">
             <Typography
               variant="h2"
               sx={{
@@ -65,24 +80,35 @@ export const HamburgerMenu = ({
             >
               ASA
             </Typography>
-            <Grid>
-              <ActualForecastControl
-                runType={runType}
-                setRunType={setRunType}
-              />
-            </Grid>
-            <Grid>
-              <WPSDatePicker date={date} updateDate={updateDate} />
-            </Grid>
-            <Grid>
-              <FireCenterDropdown
-                fireCenterOptions={fireCenterOptions}
-                selectedFireCenter={selectedFireCenter}
-                setSelectedFireCenter={setSelectedFireCenter}
-                setSelectedFireShape={setSelectedFireShape}
-                setZoomSource={setZoomSource}
-              />
-            </Grid>
+            <IconButton
+              onClick={() => setOpen(false)}
+              sx={{
+                cursor: "pointer",
+                backgroundColor: "transparent",
+                transition: "background-color 0.2s",
+                "&:hover": {
+                  backgroundColor: "#f0f0f0",
+                },
+              }}
+              aria-label="close settings"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Grid>
+          <Grid>
+            <ActualForecastControl runType={runType} setRunType={setRunType} />
+          </Grid>
+          <Grid>
+            <WPSDatePicker date={date} updateDate={updateDate} />
+          </Grid>
+          <Grid>
+            <FireCenterDropdown
+              fireCenterOptions={fireCenterOptions}
+              selectedFireCenter={selectedFireCenter}
+              setSelectedFireCenter={setSelectedFireCenter}
+              setSelectedFireShape={setSelectedFireShape}
+              setZoomSource={setZoomSource}
+            />
           </Grid>
         </Grid>
       </Drawer>
