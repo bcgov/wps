@@ -1,5 +1,10 @@
 name: Production
 
+permissions:
+  contents: read
+  pull-requests: read
+  deployments: write
+
 # trigger this deployment by running:
 # gh api repos/bcgov/wps/deployments -f ref="[your branch]"
 # reference used to figure this part out:

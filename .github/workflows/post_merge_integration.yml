@@ -1,5 +1,11 @@
 name: Post Merge Integration
 
+permissions:
+  contents: read        # Required for actions/checkout
+  actions: read         # Allows downloading workflow artifacts
+  checks: write         # For uploading test results (if needed)
+  pull-requests: write  # For status reporting (if needed)
+
 on:
   push:
     branches:

@@ -1,4 +1,9 @@
 name: Every Sunday at 02:00
+
+permissions:
+  contents: read
+  issues: write
+
 on:
   schedule:
     # Scheduled workflows run on the latest commit on the default or base branch.
