@@ -1,11 +1,12 @@
 name: Sprint issue metrics
+
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
   schedule:
     - cron: "0 21 * * 3"
-
-permissions:
-  contents: read
 
 jobs:
   build:

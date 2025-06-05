@@ -1,4 +1,9 @@
 name: Renovate
+
+permissions:
+  contents: read
+  pull-requests: write
+
 on:
   schedule:
     # Scheduled workflows run on the latest commit on the default or base branch.
