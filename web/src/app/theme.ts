@@ -24,7 +24,8 @@ export const theme = createTheme({
   typography: {
     button: {
       textTransform: 'none'
-    }
+    },
+    fontFamily: "'BC Sans', 'Noto Sans', Verdana, Arial, sans-serif"
   },
   breakpoints: {
     values: {
