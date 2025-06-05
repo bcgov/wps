@@ -182,11 +182,10 @@ def create_fire_watch_output(db_fire_watch: DBFireWatch, fire_centre: FireWatchF
 
 
 def create_burn_forecast_output(fire_watch_weather: FireWatchWeather, prescription: str):
-    dt = datetime.combine(fire_watch_weather.date, datetime.min.time(), tzinfo=UTC)
     return BurnForecastOutput(
         id=fire_watch_weather.id,
         fire_watch_id=fire_watch_weather.fire_watch_id,
-        date=dt.isoformat(),
+        date=fire_watch_weather.date.isoformat(),
         temp=fire_watch_weather.temperature,
         rh=fire_watch_weather.relative_humidity,
         wind_speed=fire_watch_weather.wind_speed,
