@@ -1,9 +1,4 @@
-import {
-  FireWatchOutput,
-  getActiveFireWatches,
-  postFireWatchInput,
-  postFireWatchUpdate
-} from '@/features/fireWatch/fireWatchApi'
+import { FireWatchOutput, getActiveFireWatches, postFireWatchInput } from '@/features/fireWatch/fireWatchApi'
 import { FireWatch } from '@/features/fireWatch/interfaces'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
@@ -87,20 +82,6 @@ export const submitNewFireWatch =
       const submitFireWatchResponse = await postFireWatchInput(fireWatch)
       const fireWatchOutput = submitFireWatchResponse.fire_watch
       dispatch(submitFireWatchSuccess({ fireWatch: fireWatchOutput }))
-    } catch (err) {
-      dispatch(submitFireWatchFailed((err as Error).toString()))
-    }
-  }
-
-export const updateFireWatch =
-  (fireWatch: FireWatch): AppThunk<Promise<FireWatchOutput | undefined>> =>
-  async dispatch => {
-    try {
-      dispatch(submitFireWatchStart())
-      const submitFireWatchResponse = await postFireWatchUpdate(fireWatch)
-      const fireWatchOutput = submitFireWatchResponse.fire_watch
-      dispatch(submitFireWatchSuccess({ fireWatch: fireWatchOutput }))
-      return fireWatchOutput
     } catch (err) {
       dispatch(submitFireWatchFailed((err as Error).toString()))
     }

@@ -8,8 +8,8 @@ import LocationStep from '@/features/fireWatch/components/steps/LocationStep'
 import ReviewSubmitStep from '@/features/fireWatch/components/steps/ReviewSubmitStep'
 import WeatherParametersStep from '@/features/fireWatch/components/steps/WeatherParametersStep'
 import { FireWatch } from '@/features/fireWatch/interfaces'
-import { fetchBurnForecasts } from '@/features/fireWatch/slices/burnForecastSlice'
-import { submitNewFireWatch, updateFireWatch } from '@/features/fireWatch/slices/fireWatchSlice'
+import { submitNewFireWatch } from '@/features/fireWatch/slices/fireWatchSlice'
+import { updateFireWatch } from '../slices/burnForecastSlice'
 import { getBlankFireWatch } from '@/features/fireWatch/utils'
 import { Box, Button, Step, StepLabel, Stepper, Typography, useTheme } from '@mui/material'
 import { fetchFireWatchFireCentres } from 'features/fireWatch/slices/fireWatchFireCentresSlice'
@@ -80,7 +80,6 @@ const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiv
       dispatch(submitNewFireWatch(fireWatch))
     } else {
       await dispatch(updateFireWatch(fireWatch))
-      dispatch(fetchBurnForecasts())
     }
   }
 
