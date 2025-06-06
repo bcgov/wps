@@ -98,20 +98,22 @@ async def save_fire_watch(session: AsyncSession, fire_watch: FireWatch):
     return result.scalar_one()
 
 
-async def update_fire_watch(session: AsyncSession, fire_watch_id: int, fire_watch: FireWatch):
+async def update_fire_watch(
+    session: AsyncSession, fire_watch_id: int, fire_watch: FireWatch
+) -> FireWatch:
     """
     Update an existing FireWatch record.
 
     :param session: Async db session.
     :param fire_watch_id: The id of the FireWatch record to update.
     :param fire_watch: The FireWatch record with updated values.
-    :return: The id of the updated FireWatch record.
+    :return: The updated FireWatch record.
     """
     statement = (
         update(FireWatch)
         .where(FireWatch.id == fire_watch_id)
         .values(**fire_watch_to_dict(fire_watch))
-        .returning(FireWatch.id)
+        .returning(FireWatch)
     )
     result = await session.execute(statement)
     return result.scalar_one()
@@ -142,7 +144,7 @@ async def get_fire_watch_weather_by_model_run_parameter_id(
     return result.scalars().all()
 
 
-async def get_fire_watch_weather_by_model_with_prescription_status(
+async def get_fire_watch_weather_by_model_with_prescription_status_all(
     session: AsyncSession, prediction_model_run_timestamp_id: int
 ):
     statement = (
@@ -151,6 +153,22 @@ async def get_fire_watch_weather_by_model_with_prescription_status(
         .where(
             FireWatchWeather.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id
         )
+    )
+    result = await session.execute(statement)
+    return result.all()
+
+
+async def get_fire_watch_weather_by_model_with_prescription_status(
+    session: AsyncSession, fire_watch_id: int, prediction_model_run_timestamp_id: int
+):
+    statement = (
+        select(FireWatchWeather, PrescriptionStatus.name)
+        .join(PrescriptionStatus, PrescriptionStatus.id == FireWatchWeather.in_prescription)
+        .where(
+            FireWatchWeather.fire_watch_id == fire_watch_id,
+            FireWatchWeather.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id,
+        )
+        # .execution_options(populate_existing=True)
     )
     result = await session.execute(statement)
     return result.all()

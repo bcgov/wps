@@ -1,7 +1,6 @@
 import logging
-from collections import defaultdict
-from datetime import UTC, datetime
-from typing import Dict, List, Sequence, Tuple
+from datetime import datetime
+from typing import List, Sequence, Tuple
 
 from aiohttp import ClientSession
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -9,6 +8,11 @@ from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
 from shapely import from_wkt
 from sqlalchemy import Row
+
+from app.fire_watch.calculate_weather import (
+    FIREWATCH_WEATHER_MODEL,
+    reprocess_fire_watch_weather,
+)
 from wps_shared.auth import audit, authentication_required
 from wps_shared.db.crud.fire_watch import (
     get_all_fire_watches,
@@ -16,6 +20,7 @@ from wps_shared.db.crud.fire_watch import (
     get_fire_centres,
     get_fire_watch_by_id,
     get_fire_watch_weather_by_model_with_prescription_status,
+    get_fire_watch_weather_by_model_with_prescription_status_all,
     save_fire_watch,
     update_fire_watch,
 )
@@ -42,9 +47,6 @@ from wps_shared.schemas.hfi_calc import FireCentre
 from wps_shared.schemas.stations import GeoJsonWeatherStation
 from wps_shared.stations import get_stations_as_geojson
 from wps_shared.utils.time import get_utc_now
-from wps_shared.weather_models import ModelEnum
-
-from app.fire_watch.calculate_weather import FIREWATCH_WEATHER_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -211,26 +213,38 @@ def create_burn_forecast_output(fire_watch_weather: FireWatchWeather, prescripti
     )
 
 
+def create_fire_watch_burn_forecast(
+    stations: List[GeoJsonWeatherStation],
+    fire_watch: DBFireWatch,
+    fire_centre: FireWatchFireCentre,
+    fire_watch_weather: List[Tuple[FireWatchWeather, str]],
+) -> FireWatchOutputBurnForecast:
+    fire_watch_output = create_fire_watch_output(fire_watch, fire_centre, stations)
+    burn_forecast_outputs = [
+        create_burn_forecast_output(item, prescription)
+        for item, prescription in fire_watch_weather
+        if item.fire_watch_id == fire_watch.id
+    ]
+    burn_forecast_outputs.sort(key=lambda x: x.date)
+    return FireWatchOutputBurnForecast(
+        fire_watch=fire_watch_output, burn_forecasts=burn_forecast_outputs
+    )
+
+
 def create_fire_watch_burn_forecasts_response(
     stations: List[GeoJsonWeatherStation],
     fire_watches: Sequence[Row[Tuple[FireWatch, FireCentre]]],
     fire_watch_weather: Sequence[Row[Tuple[FireWatchWeather, str]]],
 ) -> FireWatchBurnForecastsResponse:
-    # Build a dictionary of BurnForecastOutputs keyed by fire watch id for easy lookup
-    fire_watch_weather_dict = defaultdict(list)
-    for item, prescription in fire_watch_weather:
-        fire_watch_weather_dict[item.fire_watch_id].append(
-            create_burn_forecast_output(item, prescription)
-        )
     fire_watch_burn_forecasts: List[FireWatchOutputBurnForecast] = []
     for fire_watch, fire_centre in fire_watches:
-        fire_watch_output = create_fire_watch_output(fire_watch, fire_centre, stations)
-        burn_forecast_outputs = fire_watch_weather_dict.get(fire_watch.id, [])
-        burn_forecast_outputs.sort(key=lambda x: x.date)
+        burn_weather = [
+            (item, prescription)
+            for item, prescription in fire_watch_weather
+            if item.fire_watch_id == fire_watch.id
+        ]
         fire_watch_burn_forecasts.append(
-            FireWatchOutputBurnForecast(
-                fire_watch=fire_watch_output, burn_forecasts=burn_forecast_outputs
-            )
+            create_fire_watch_burn_forecast(stations, fire_watch, fire_centre, burn_weather)
         )
     return FireWatchBurnForecastsResponse(fire_watch_burn_forecasts=fire_watch_burn_forecasts)
 
@@ -266,7 +280,7 @@ async def save_new_fire_watch(
         return FireWatchResponse(fire_watch=fire_watch_output)
 
 
-@router.post("/watch/{fire_watch_id}", response_model=FireWatchResponse)
+@router.patch("/watch/{fire_watch_id}", response_model=FireWatchOutputBurnForecast)
 async def update_existing_fire_watch(
     fire_watch_id: int,
     fire_watch_input_request: FireWatchInputRequest,
@@ -278,13 +292,30 @@ async def update_existing_fire_watch(
 
     async with get_async_write_session_scope() as session:
         # Check if FireWatch exists
-        existing = await get_fire_watch_by_id(session, fire_watch_id)
-        if not existing:
+        fire_watch, fire_centre = await get_fire_watch_by_id(session, fire_watch_id)
+        if not fire_watch:
             raise HTTPException(status_code=404, detail=f"FireWatch {fire_watch_id} not found")
-        updated_fire_watch_id = await update_fire_watch(session, fire_watch_id, db_fire_watch)
-        fire_watch, fire_centre = await get_fire_watch_by_id(session, updated_fire_watch_id)
-        fire_watch_output = create_fire_watch_output(fire_watch, fire_centre, stations)
-        return FireWatchResponse(fire_watch=fire_watch_output)
+        updated_fire_watch = await update_fire_watch(session, fire_watch_id, db_fire_watch)
+
+        latest_model_run_parameters_id = await get_latest_prediction_timestamp_id_for_model(
+            session, FIREWATCH_WEATHER_MODEL
+        )
+
+        await reprocess_fire_watch_weather(
+            session,
+            updated_fire_watch,
+            latest_model_run_parameters_id,
+        )
+
+        fire_watch_weather = await get_fire_watch_weather_by_model_with_prescription_status(
+            session, updated_fire_watch.id, latest_model_run_parameters_id
+        )
+
+        updated_burn_forecast = create_fire_watch_burn_forecast(
+            stations, fire_watch, fire_centre, fire_watch_weather
+        )
+
+        return updated_burn_forecast
 
 
 @router.get("/fire-centres", response_model=FireWatchFireCentresResponse)
@@ -305,7 +336,7 @@ async def get_burn_forecasts(_=Depends(authentication_required)):
         latest_model_run_parameters_id = await get_latest_prediction_timestamp_id_for_model(
             session, FIREWATCH_WEATHER_MODEL
         )
-        fire_watch_weather = await get_fire_watch_weather_by_model_with_prescription_status(
+        fire_watch_weather = await get_fire_watch_weather_by_model_with_prescription_status_all(
             session, latest_model_run_parameters_id
         )
         fire_watch_burn_forecasts_response = create_fire_watch_burn_forecasts_response(

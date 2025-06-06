@@ -25,7 +25,9 @@ class FireWatch(Base):
     __table_args__ = {"comment": "Contains parameters related to a prescribed burn."}
 
     id = Column(Integer, primary_key=True, nullable=False, index=True)
-    burn_location = Column(Geometry("Point", spatial_index=True, srid=NAD83_BC_ALBERS), nullable=False)
+    burn_location = Column(
+        Geometry("Point", spatial_index=True, srid=NAD83_BC_ALBERS), nullable=False
+    )
     burn_window_end = Column(TZTimeStamp, nullable=False, index=False)
     burn_window_start = Column(TZTimeStamp, nullable=False, index=False)
     contact_email = Column(ARRAY(String), nullable=False, index=False)
@@ -88,13 +90,17 @@ class FireWatchWeather(Base):
     """Weather and FWI/FBP indices for a fire watch."""
 
     __tablename__ = "fire_watch_weather"
-    __table_args__ = {"comment": "Contains weather forecasts and FWI/FBP indices related to a fire watch prescribed burn."}
+    __table_args__ = {
+        "comment": "Contains weather forecasts and FWI/FBP indices related to a fire watch prescribed burn."
+    }
 
     id = Column(Integer, primary_key=True, nullable=False, index=True)
     fire_watch_id = Column(Integer, ForeignKey(FireWatch.id), nullable=False, index=True)
     date = Column(Date, nullable=False, index=True)
     # Weather parameters
-    prediction_model_run_timestamp_id = Column(Integer, ForeignKey(PredictionModelRunTimestamp.id), nullable=False, index=True)
+    prediction_model_run_timestamp_id = Column(
+        Integer, ForeignKey(PredictionModelRunTimestamp.id), nullable=False, index=True
+    )
     temperature = Column(Float, nullable=False, index=False)
     relative_humidity = Column(Float, nullable=False, index=False)
     wind_speed = Column(Float, nullable=False, index=False)
@@ -111,3 +117,18 @@ class FireWatchWeather(Base):
     in_prescription = Column(Integer, ForeignKey(PrescriptionStatus.id), nullable=False, index=True)
     # metadata
     created_at = Column(TZTimeStamp, nullable=False, index=False)
+
+    UPDATABLE_FIELDS = [
+        "temperature",
+        "relative_humidity",
+        "wind_speed",
+        "precip_24hr",
+        "ffmc",
+        "isi",
+        "bui",
+        "dc",
+        "dmc",
+        "hfi",
+        "in_prescription",
+        "created_at",
+    ]

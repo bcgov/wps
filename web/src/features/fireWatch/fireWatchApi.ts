@@ -124,7 +124,7 @@ export const postFireWatchInput = async (fireWatch: FireWatch): Promise<FireWatc
 export const postFireWatchUpdate = async (fireWatch: FireWatch): Promise<FireWatchBurnForecast> => {
   const fireWatchInput = marshalFireWatchToFireWatchInput(fireWatch)
   const url = `/fire-watch/watch/${fireWatch.id}`
-  const { data } = await axios.post(url, {
+  const { data } = await axios.patch(url, {
     fire_watch: fireWatchInput
   })
   const updatedFireWatchBurnForecasts = marshalBurnForecasts([data])
