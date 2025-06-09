@@ -7,29 +7,10 @@ import {
 } from "@mui/material";
 import { EmailComposer } from "capacitor-email-composer";
 import Grid from "@mui/material/Grid2";
-
 import { Menu as MenuIcon, Close as CloseIcon } from "@mui/icons-material";
-
 import { useState } from "react";
-import { RunType, FireCenter, FireShape } from "@/api/fbaAPI";
-import { DateTime } from "luxon";
 
 export interface HamburgerMenuProps {
-  runType: RunType;
-  setRunType: React.Dispatch<React.SetStateAction<RunType>>;
-  date: DateTime;
-  updateDate: (d: DateTime) => void;
-  selectedFireCenter?: FireCenter;
-  fireCenterOptions: FireCenter[];
-  setSelectedFireCenter: React.Dispatch<
-    React.SetStateAction<FireCenter | undefined>
-  >;
-  setSelectedFireShape: React.Dispatch<
-    React.SetStateAction<FireShape | undefined>
-  >;
-  setZoomSource: React.Dispatch<
-    React.SetStateAction<"fireCenter" | "fireShape" | undefined>
-  >;
   drawerTop: number;
   drawerHeight: number;
 }
