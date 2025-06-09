@@ -15,6 +15,7 @@ from app.fire_watch.calculate_weather import (
     map_model_prediction_to_weather_indeterminate,
     process_all_fire_watch_weather,
     process_predictions,
+    process_single_fire_watch,
     save_all_fire_watch_weather,
     validate_actual_weather_data,
     validate_fire_watch_inputs,
@@ -506,3 +507,137 @@ async def test_save_all_fire_watch_weather_handles_multiple_records(mocker):
     assert mock_session.add.call_count == 1
     assert mock_session.add.call_args[0][0] == mock_record1
     assert existing_record2.temperature == mock_record2.temperature
+
+
+@pytest.mark.anyio
+async def test_process_single_fire_watch_success(
+    mocker, mock_fire_watch, mock_station_metadata, mock_status_id_dict
+):
+    mock_session = AsyncMock()
+    wfwx_station_map = {mock_fire_watch.station_code: mock_station_metadata}
+    prediction_run_timestamp_id = 1
+
+    mock_predictions = ["predictions"]
+    mock_actual_weather_data = ["actuals"]
+    mock_fire_watch_predictions = ["fw_weather"]
+
+    mocker.patch(
+        "app.fire_watch.calculate_weather.gather_fire_watch_inputs",
+        AsyncMock(return_value=(mock_predictions, mock_actual_weather_data)),
+    )
+    mocker.patch(
+        "app.fire_watch.calculate_weather.validate_fire_watch_inputs",
+        return_value=True,
+    )
+    mocker.patch(
+        "app.fire_watch.calculate_weather.process_predictions",
+        AsyncMock(return_value=mock_fire_watch_predictions),
+    )
+    mock_save = mocker.patch(
+        "app.fire_watch.calculate_weather.save_all_fire_watch_weather",
+        AsyncMock(),
+    )
+    mock_logger = mocker.patch("app.fire_watch.calculate_weather.logger")
+
+    await process_single_fire_watch(
+        mock_session,
+        mock_fire_watch,
+        wfwx_station_map,
+        mock_status_id_dict,
+        prediction_run_timestamp_id,
+    )
+
+    mock_save.assert_awaited_once_with(mock_session, mock_fire_watch_predictions)
+    mock_logger.info.assert_called()  # Should log save info
+
+
+@pytest.mark.anyio
+async def test_process_single_fire_watch_missing_station_metadata(
+    mocker, mock_fire_watch, mock_status_id_dict
+):
+    mock_session = AsyncMock()
+    wfwx_station_map = {}  # No station metadata
+    prediction_run_timestamp_id = 1
+
+    mock_logger = mocker.patch("app.fire_watch.calculate_weather.logger")
+
+    result = await process_single_fire_watch(
+        mock_session,
+        mock_fire_watch,
+        wfwx_station_map,
+        mock_status_id_dict,
+        prediction_run_timestamp_id,
+    )
+
+    assert result is None
+    mock_logger.warning.assert_called_once()
+    assert "Missing station metadata" in mock_logger.warning.call_args[0][0]
+
+
+@pytest.mark.anyio
+async def test_process_single_fire_watch_invalid_inputs(
+    mocker, mock_fire_watch, mock_station_metadata, mock_status_id_dict
+):
+    mock_session = AsyncMock()
+    wfwx_station_map = {mock_fire_watch.station_code: mock_station_metadata}
+    prediction_run_timestamp_id = 1
+
+    mocker.patch(
+        "app.fire_watch.calculate_weather.gather_fire_watch_inputs",
+        AsyncMock(return_value=(["predictions"], ["actuals"])),
+    )
+    mocker.patch(
+        "app.fire_watch.calculate_weather.validate_fire_watch_inputs",
+        return_value=False,
+    )
+
+    with pytest.raises(ValueError) as exc:
+        await process_single_fire_watch(
+            mock_session,
+            mock_fire_watch,
+            wfwx_station_map,
+            mock_status_id_dict,
+            prediction_run_timestamp_id,
+        )
+    assert f"Invalid inputs for FireWatch {mock_fire_watch.id}" in str(exc.value)
+
+
+@pytest.mark.anyio
+async def test_process_single_fire_watch_no_predictions_to_save(
+    mocker, mock_fire_watch, mock_station_metadata, mock_status_id_dict
+):
+    mock_session = AsyncMock()
+    wfwx_station_map = {mock_fire_watch.station_code: mock_station_metadata}
+    prediction_run_timestamp_id = 1
+
+    mocker.patch(
+        "app.fire_watch.calculate_weather.gather_fire_watch_inputs",
+        AsyncMock(return_value=(["predictions"], ["actuals"])),
+    )
+    mocker.patch(
+        "app.fire_watch.calculate_weather.validate_fire_watch_inputs",
+        return_value=True,
+    )
+    mocker.patch(
+        "app.fire_watch.calculate_weather.process_predictions",
+        AsyncMock(return_value=[]),
+    )
+    mock_save = mocker.patch(
+        "app.fire_watch.calculate_weather.save_all_fire_watch_weather",
+        AsyncMock(),
+    )
+    mock_logger = mocker.patch("app.fire_watch.calculate_weather.logger")
+
+    await process_single_fire_watch(
+        mock_session,
+        mock_fire_watch,
+        wfwx_station_map,
+        mock_status_id_dict,
+        prediction_run_timestamp_id,
+    )
+
+    mock_save.assert_not_awaited()
+    # Should not log save info
+    assert not any(
+        "Saved" in str(call) for call in [c[0][0] for c in mock_logger.info.call_args_list]
+    )
