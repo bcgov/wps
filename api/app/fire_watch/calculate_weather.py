@@ -312,7 +312,7 @@ async def save_all_fire_watch_weather(
                 == record.prediction_model_run_timestamp_id,
             )
         )
-        existing_record = existing.scalar_one_or_none()
+        existing_record = await existing.scalar_one_or_none()
         if existing_record:
             # update fields
             for attr in FireWatchWeather.UPDATABLE_FIELDS:
