@@ -1,4 +1,4 @@
-import { Box, FormControl, Grid, styled } from '@mui/material'
+import { Box, FormControl, Grid, IconButton, styled } from '@mui/material'
 import { GeneralHeader, ErrorBoundary } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
@@ -27,6 +27,7 @@ import { fetchFireCentreHFIFuelStats } from 'features/fba/slices/fireCentreHFIFu
 import Footer from '@/features/landingPage/components/Footer'
 import AboutDataPopover from '@/components/AboutDataPopover'
 import { ASAAboutDataContent } from '@/features/fba/components/ASAAboutDataContent'
+import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material'
 
 const ADVISORY_THRESHOLD = 20
 
@@ -135,11 +136,17 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       <GeneralHeader isBeta={false} spacing={1} title={FIRE_BEHAVIOUR_ADVISORY_NAME} />
       <Box sx={{ paddingTop: '0.5em' }}>
         <Grid container spacing={1} alignItems={'center'}>
+          <IconButton sx={{ marginLeft: theme.spacing(2) }}>
+            <KeyboardArrowLeft />
+          </IconButton>
           <Grid item>
             <StyledFormControl>
               <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
             </StyledFormControl>
           </Grid>
+          <IconButton>
+            <KeyboardArrowRight />
+          </IconButton>
           <ErrorBoundary>
             <Grid item>
               <ActualForecastControl runType={runType} setRunType={setRunType} />
