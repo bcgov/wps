@@ -79,7 +79,7 @@ const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiv
     if (isNaN(fireWatch.id)) {
       dispatch(submitNewFireWatch(fireWatch))
     } else {
-      await dispatch(updateFireWatch(fireWatch))
+      dispatch(updateFireWatch(fireWatch))
     }
   }
 
