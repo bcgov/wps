@@ -23,6 +23,7 @@ from app.fire_watch.calculate_weather import (
 from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
 from wps_shared.schemas.weather_models import ModelPredictionDetails
 from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
+from app.fire_watch.calculate_weather import MissingWeatherDataError
 
 
 @pytest.fixture
@@ -219,6 +220,28 @@ def test_validate_fire_watch_inputs(
         mock_actual_weather_data,
     )
     assert result is True
+
+
+def test_validate_fire_watch_inputs_raises_missing_station_metadata(
+    mock_fire_watch, mock_actual_weather_data
+):
+    # Should raise MissingWeatherDataError if station_metadata is None
+    with pytest.raises(MissingWeatherDataError) as exc:
+        validate_fire_watch_inputs(mock_fire_watch, None, mock_actual_weather_data)
+    assert f"Missing station metadata for station {mock_fire_watch.station_code}" in str(exc.value)
+
+
+def test_validate_fire_watch_inputs_raises_invalid_actual_weather_data(
+    mock_fire_watch, mock_station_metadata, mock_actual_weather_data
+):
+    # Should raise MissingWeatherDataError if actual_weather_data is invalid
+    # Invalidate actual_weather_data
+    mock_actual_weather_data[0].duff_moisture_code = None
+    with pytest.raises(MissingWeatherDataError) as exc:
+        validate_fire_watch_inputs(mock_fire_watch, mock_station_metadata, mock_actual_weather_data)
+    assert f"Invalid actual weather data for station {mock_fire_watch.station_code}" in str(
+        exc.value
+    )
 
 
 def test_validate_actual_weather_data(mock_actual_weather_data):

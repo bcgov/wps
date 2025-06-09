@@ -11,6 +11,7 @@ from sqlalchemy import Row
 
 from app.fire_watch.calculate_weather import (
     FIREWATCH_WEATHER_MODEL,
+    MissingWeatherDataError,
     reprocess_fire_watch_weather,
 )
 from wps_shared.auth import audit, authentication_required
@@ -301,11 +302,24 @@ async def update_existing_fire_watch(
             session, FIREWATCH_WEATHER_MODEL
         )
 
-        await reprocess_fire_watch_weather(
-            session,
-            updated_fire_watch,
-            latest_model_run_parameters_id,
-        )
+        try:
+            await reprocess_fire_watch_weather(
+                session,
+                updated_fire_watch,
+                latest_model_run_parameters_id,
+            )
+        except MissingWeatherDataError as e:
+            logger.error(f"Missing weather data: {e}")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Missing actual weather data for FireWatch {fire_watch_id}: {str(e)}",
+            )
+        except Exception as e:
+            logger.error(f"Error reprocessing fire watch weather: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to reprocess fire watch weather for FireWatch {fire_watch_id}: {str(e)}",
+            )
 
         fire_watch_weather = await get_fire_watch_weather_by_model_with_prescription_status(
             session, updated_fire_watch.id, latest_model_run_parameters_id

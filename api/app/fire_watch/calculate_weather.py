@@ -38,6 +38,10 @@ logger = logging.getLogger(__name__)
 FIREWATCH_WEATHER_MODEL = ModelEnum.ECMWF
 
 
+class MissingWeatherDataError(Exception):
+    pass
+
+
 async def gather_fire_watch_inputs(
     session: AsyncSession,
     fire_watch: FireWatch,
@@ -105,11 +109,14 @@ def validate_fire_watch_inputs(
     Validate that all required data is available for processing a FireWatch.
     """
     if not station_metadata:
-        logger.warning(f"Missing station metadata for station {fire_watch.station_code}.")
-        return False
+        raise MissingWeatherDataError(
+            f"Missing station metadata for station {fire_watch.station_code}."
+        )
 
     if not validate_actual_weather_data(actual_weather_data):
-        return False
+        raise MissingWeatherDataError(
+            f"Invalid actual weather data for station {fire_watch.station_code}."
+        )
 
     return True
 
@@ -429,12 +436,10 @@ async def process_single_fire_watch(
         )
 
 
-async def process_all_fire_watch_weather(start_date: datetime):
+async def process_all_fire_watch_weather():
     """
     Process all FireWatch weather data by gathering inputs, validating them, and saving results.
     """
-    # Set the end date to 10 calendar days after the start date, including today
-    end_date = datetime.combine(start_date + timedelta(days=9), time.max, tzinfo=timezone.utc)
 
     async with get_async_write_session_scope() as session:
         latest_prediction_id = await get_latest_prediction_timestamp_id_for_model(
@@ -444,7 +449,7 @@ async def process_all_fire_watch_weather(start_date: datetime):
 
         if not fire_watches_to_process:
             logger.info(
-                "All FireWatch records already processed for prediction id: {latest_prediction_id}."
+                f"All FireWatch records already processed for prediction id: {latest_prediction_id}."
             )
             return
 
@@ -455,7 +460,7 @@ async def process_all_fire_watch_weather(start_date: datetime):
         for fire_watch in fire_watches_to_process:
             try:
                 logger.info(
-                    f"Processing FireWatch {fire_watch.id} - {fire_watch.title} using station {fire_watch.station_code} from {start_date.date()} to {end_date.date()}."
+                    f"Processing FireWatch {fire_watch.id} - {fire_watch.title} using station {fire_watch.station_code} and {FIREWATCH_WEATHER_MODEL.value} data - prediction_timestamp_id {latest_prediction_id}."
                 )
                 await process_single_fire_watch(
                     session,
