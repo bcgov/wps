@@ -321,8 +321,7 @@ async def get_latest_daily_model_prediction_for_stations(
     :param session: SQLAlchemy session used to execute the query.
     :param station_codes: List of station codes to filter the predictions.
     :param model: Weather prediction model to filter by.
-    :param date_start: Start of the time range for predictions.
-    :param date_end: End of the time range for predictions.
+    :param prediction_run_timestamp_id: ID of the prediction model run timestamp to filter predictions.
     :return: List of the latest model prediction details for each station and day.
 
     """
