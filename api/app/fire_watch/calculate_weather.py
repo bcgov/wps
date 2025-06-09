@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.crud.fire_watch import (
     get_all_fire_watches,
     get_all_prescription_status,
+    get_fire_watch_weather_by_fire_watch_id_and_model_run,
     get_fire_watch_weather_by_model_run_parameter_id,
 )
 from wps_shared.db.crud.weather_models import (
@@ -310,18 +311,25 @@ async def save_all_fire_watch_weather(
     session: AsyncSession, fire_watch_weather_records: list[FireWatchWeather]
 ):
     logger.info("Writing Fire Watch Weather records")
-    for record in fire_watch_weather_records:
-        existing = await session.execute(
-            select(FireWatchWeather).where(
-                FireWatchWeather.fire_watch_id == record.fire_watch_id,
-                FireWatchWeather.date == record.date,
-                FireWatchWeather.prediction_model_run_timestamp_id
-                == record.prediction_model_run_timestamp_id,
-            )
+
+    # fetch all existing records for this fire_watch and model run
+    fire_watch_id = fire_watch_weather_records[0].fire_watch_id
+    prediction_model_run_timestamp_id = fire_watch_weather_records[
+        0
+    ].prediction_model_run_timestamp_id
+
+    existing_records = (
+        await get_fire_watch_weather_by_fire_watch_id_and_model_run(
+            session, fire_watch_id, prediction_model_run_timestamp_id
         )
-        existing_record = await existing.scalar_one_or_none()
+        or []
+    )
+
+    existing_by_date = {rec.date: rec for rec in existing_records}
+
+    for record in fire_watch_weather_records:
+        existing_record = existing_by_date.get(record.date)
         if existing_record:
-            # update fields
             for attr in FireWatchWeather.UPDATABLE_FIELDS:
                 setattr(existing_record, attr, getattr(record, attr))
         else:

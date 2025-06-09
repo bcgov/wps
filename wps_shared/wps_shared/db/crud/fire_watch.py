@@ -144,6 +144,20 @@ async def get_fire_watch_weather_by_model_run_parameter_id(
     return result.scalars().all()
 
 
+async def get_fire_watch_weather_by_fire_watch_id_and_model_run(
+    session: AsyncSession, fire_watch_id: int, prediction_model_run_timestamp_id: int
+):
+    stmt = select(FireWatchWeather).where(
+        FireWatchWeather.fire_watch_id == fire_watch_id,
+        FireWatchWeather.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id,
+    )
+
+    result = await session.execute(stmt)
+    existing_record = result.scalars().all()
+
+    return existing_record
+
+
 async def get_fire_watch_weather_by_model_with_prescription_status_all(
     session: AsyncSession, prediction_model_run_timestamp_id: int
 ):
@@ -168,7 +182,6 @@ async def get_fire_watch_weather_by_model_with_prescription_status(
             FireWatchWeather.fire_watch_id == fire_watch_id,
             FireWatchWeather.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id,
         )
-        # .execution_options(populate_existing=True)
     )
     result = await session.execute(statement)
     return result.all()

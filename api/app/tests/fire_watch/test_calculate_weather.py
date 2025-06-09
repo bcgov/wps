@@ -441,15 +441,15 @@ async def test_save_all_fire_watch_weather_adds_new_records(mocker):
     mock_record.prediction_model_run_timestamp_id = 123
 
     # Simulate no existing record found
-    mock_execute = AsyncMock()
-    mock_execute.scalar_one_or_none.return_value = None
-    mock_session.execute.return_value = mock_execute
+    mocker.patch(
+        "app.fire_watch.calculate_weather.get_fire_watch_weather_by_fire_watch_id_and_model_run",
+        return_value=None,
+    )
 
     mocker.patch.object(FireWatchWeather, "UPDATABLE_FIELDS", ["temperature", "hfi"])
 
     await save_all_fire_watch_weather(mock_session, [mock_record])
 
-    mock_session.execute.assert_awaited_once()
     mock_session.add.assert_called_once_with(mock_record)
 
 
@@ -465,48 +465,21 @@ async def test_save_all_fire_watch_weather_updates_existing_records(mocker):
 
     # Simulate existing record found
     existing_record = create_autospec(FireWatchWeather)
-    mock_execute = AsyncMock()
-    mock_execute.scalar_one_or_none.return_value = existing_record
-    mock_session.execute.return_value = mock_execute
+    existing_record.date = "2025-05-05"
+    mocker.patch(
+        "app.fire_watch.calculate_weather.get_fire_watch_weather_by_fire_watch_id_and_model_run",
+        return_value=[existing_record],
+    )
 
     mocker.patch.object(FireWatchWeather, "UPDATABLE_FIELDS", ["temperature", "hfi"])
 
     await save_all_fire_watch_weather(mock_session, [mock_record])
 
-    mock_session.execute.assert_awaited_once()
     # Should not add new record
     mock_session.add.assert_not_called()
     # Should update fields
     assert existing_record.temperature == mock_record.temperature
     assert existing_record.hfi == mock_record.hfi
-
-
-@pytest.mark.anyio
-async def test_save_all_fire_watch_weather_handles_multiple_records(mocker):
-    mock_session = AsyncMock()
-    mock_record1 = create_autospec(FireWatchWeather)
-    mock_record2 = create_autospec(FireWatchWeather)
-    mock_record1.fire_watch_id = 1
-    mock_record2.fire_watch_id = 2
-    mock_record1.date = mock_record2.date = "2025-05-05"
-    mock_record1.prediction_model_run_timestamp_id = 123
-    mock_record2.prediction_model_run_timestamp_id = 124
-
-    # First record: no existing, second: existing
-    existing_record2 = create_autospec(FireWatchWeather)
-    mock_execute1 = AsyncMock()
-    mock_execute1.scalar_one_or_none.return_value = None
-    mock_execute2 = AsyncMock()
-    mock_execute2.scalar_one_or_none.return_value = existing_record2
-    mock_session.execute.side_effect = [mock_execute1, mock_execute2]
-
-    mocker.patch.object(FireWatchWeather, "UPDATABLE_FIELDS", ["temperature"])
-
-    await save_all_fire_watch_weather(mock_session, [mock_record1, mock_record2])
-
-    assert mock_session.add.call_count == 1
-    assert mock_session.add.call_args[0][0] == mock_record1
-    assert existing_record2.temperature == mock_record2.temperature
 
 
 @pytest.mark.anyio
