@@ -86,64 +86,36 @@ export const HamburgerMenu = ({
               },
             }}
           >
-            <ListItemButton
-              divider
-              onClick={() =>
-                handleListButtonClick("https://psu.nrs.gov.bc.ca/")
-              }
-            >
-              <Typography variant="subtitle1">Home</Typography>
-            </ListItemButton>
-            <ListItemButton
-              divider
-              onClick={() =>
-                handleListButtonClick(
-                  "https://www2.gov.bc.ca/gov/content/home/disclaimer"
-                )
-              }
-            >
-              Disclaimer
-            </ListItemButton>
-            <ListItemButton
-              divider
-              onClick={() =>
-                handleListButtonClick(
-                  "https://www2.gov.bc.ca/gov/content/home/privacy"
-                )
-              }
-            >
-              Privacy
-            </ListItemButton>
-            <ListItemButton
-              divider
-              onClick={() =>
-                handleListButtonClick(
-                  "https://www2.gov.bc.ca/gov/content/home/accessible-government"
-                )
-              }
-            >
-              Accessibility
-            </ListItemButton>
-            <ListItemButton
-              divider
-              onClick={() =>
-                handleListButtonClick(
-                  "https://www2.gov.bc.ca/gov/content/home/copyright"
-                )
-              }
-            >
-              Copyright
-            </ListItemButton>
-            <ListItemButton
-              divider
-              onClick={() =>
-                handleListButtonClick(
-                  "mailto:bcws.predictiveservices@gov.bc.ca"
-                )
-              }
-            >
-              Contact Us
-            </ListItemButton>
+            {[
+              { url: "https://psu.nrs.gov.bc.ca/", title: "Home" },
+              {
+                url: "https://www2.gov.bc.ca/gov/content/home/disclaimer",
+                title: "Disclaimer",
+              },
+              {
+                url: "https://www2.gov.bc.ca/gov/content/home/privacy",
+                title: "Privacy",
+              },
+              {
+                url: "https://www2.gov.bc.ca/gov/content/home/accessible-government",
+                title: "Accessibility",
+              },
+              {
+                url: "https://www2.gov.bc.ca/gov/content/home/copyright",
+                title: "Copyright",
+              },
+              {
+                url: "mailto:bcws.predictiveservices@gov.bc.ca",
+                title: "Contact Us",
+              },
+            ].map((item) => (
+              <ListItemButton
+                divider
+                onClick={() => handleListButtonClick(item.url)}
+              >
+                <Typography variant="subtitle1">{item.title}</Typography>
+              </ListItemButton>
+            ))}
           </List>
         </Grid>
       </Drawer>
