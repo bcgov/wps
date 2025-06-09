@@ -24,12 +24,11 @@ const CompleteStep = ({ isEditMode }: CompleteStepProps) => {
       <Box
         sx={{ display: 'flex', flexDirection: 'column', maxWidth: `${FORM_MAX_WIDTH}px`, padding: theme.spacing(4) }}
       >
-        {fireWatchSubmitting ||
-          (updateLoading && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-              <CircularProgress />
-            </Box>
-          ))}
+        {(fireWatchSubmitting || updateLoading) && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <CircularProgress />
+          </Box>
+        )}
         {isEditMode && !updateLoading && updateError && (
           <Typography sx={{ fontWeight: 'bold' }} variant="body1" color="error">
             An error occurred while updating the fire watch.
