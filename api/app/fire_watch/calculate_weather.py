@@ -122,19 +122,25 @@ def validate_actual_weather_data(actual_weather_data: list[WeatherIndeterminate]
         logger.warning("Station missing actual weather data.")
         return False
 
-    if any(
-        actual.temperature is None  # use temp as a smoke test for missing weather data
-        or actual.fine_fuel_moisture_code is None
-        or actual.initial_spread_index is None
-        or actual.duff_moisture_code is None
-        or actual.drought_code is None
-        or actual.build_up_index is None
-        for actual in actual_weather_data
-    ):
-        logger.warning(
-            f"Invalid actual weather data for station {actual_weather_data[0].station_code}."
-        )
-        return False
+    required_fields = [
+        "temperature",
+        "relative_humidity",
+        "precipitation",
+        "wind_speed",
+        "fine_fuel_moisture_code",
+        "initial_spread_index",
+        "duff_moisture_code",
+        "drought_code",
+        "build_up_index",
+    ]
+
+    for actual in actual_weather_data:
+        if any(getattr(actual, field) is None for field in required_fields):
+            logger.warning(
+                f"Invalid actual weather data for station {actual.station_code} at {actual.utc_timestamp}."
+            )
+            return False
+
     return True
 
 
