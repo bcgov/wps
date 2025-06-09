@@ -1,12 +1,13 @@
 from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.models.fire_watch import (
-    BurnStatusEnum,
     FireWatch,
     FireWatchWeather,
     PrescriptionStatus,
 )
 from wps_shared.db.models.hfi_calc import FireCentre
+from wps_shared.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
+from wps_shared.weather_models import ModelEnum
 
 
 def fire_watch_to_dict(fire_watch: FireWatch) -> dict:
@@ -185,3 +186,23 @@ async def get_fire_watch_weather_by_model_with_prescription_status(
     )
     result = await session.execute(statement)
     return result.all()
+
+
+async def get_latest_processed_model_run_id_for_fire_watch_model(
+    session: AsyncSession, model: ModelEnum
+) -> int:
+    stmt = (
+        select(PredictionModelRunTimestamp.id)
+        .join(
+            FireWatchWeather,
+            FireWatchWeather.prediction_model_run_timestamp_id == PredictionModelRunTimestamp.id,
+        )
+        .join(
+            PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id
+        )
+        .where(PredictionModel.abbreviation == model.value)
+        .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
+        .limit(1)
+    )
+    result = await session.execute(stmt)
+    return result.scalar()

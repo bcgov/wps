@@ -22,10 +22,10 @@ from wps_shared.db.crud.fire_watch import (
     get_fire_watch_by_id,
     get_fire_watch_weather_by_model_with_prescription_status,
     get_fire_watch_weather_by_model_with_prescription_status_all,
+    get_latest_processed_model_run_id_for_fire_watch_model,
     save_fire_watch,
     update_fire_watch,
 )
-from wps_shared.db.crud.weather_models import get_latest_prediction_timestamp_id_for_model
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch, FireWatchWeather
 from wps_shared.db.models.fire_watch import FireWatch as DBFireWatch
@@ -298,8 +298,10 @@ async def update_existing_fire_watch(
             raise HTTPException(status_code=404, detail=f"FireWatch {fire_watch_id} not found")
         updated_fire_watch = await update_fire_watch(session, fire_watch_id, db_fire_watch)
 
-        latest_model_run_parameters_id = await get_latest_prediction_timestamp_id_for_model(
-            session, FIREWATCH_WEATHER_MODEL
+        latest_model_run_parameters_id = (
+            await get_latest_processed_model_run_id_for_fire_watch_model(
+                session, FIREWATCH_WEATHER_MODEL
+            )
         )
 
         try:
@@ -347,8 +349,10 @@ async def get_burn_forecasts(_=Depends(authentication_required)):
     stations = await get_stations_as_geojson()
     async with get_async_read_session_scope() as session:
         fire_watches = await get_all_fire_watches(session)
-        latest_model_run_parameters_id = await get_latest_prediction_timestamp_id_for_model(
-            session, FIREWATCH_WEATHER_MODEL
+        latest_model_run_parameters_id = (
+            await get_latest_processed_model_run_id_for_fire_watch_model(
+                session, FIREWATCH_WEATHER_MODEL
+            )
         )
         fire_watch_weather = await get_fire_watch_weather_by_model_with_prescription_status_all(
             session, latest_model_run_parameters_id
