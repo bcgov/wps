@@ -15,8 +15,7 @@ import { Box, Button, Step, StepLabel, Stepper, Typography, useTheme } from '@mu
 import { fetchFireWatchFireCentres } from 'features/fireWatch/slices/fireWatchFireCentresSlice'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from '@/app/rootReducer'
+import { useDispatch } from 'react-redux'
 
 export const FORM_MAX_WIDTH = 768
 
@@ -90,7 +89,6 @@ const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiv
   }, [])
 
   const isEditMode = !isNaN(fireWatch.id)
-  const { loading: updateLoading, error: updateError } = useSelector((state: RootState) => state.burnForecasts)
 
   return (
     <Box id="fire-watch-dashboard" sx={{ flexGrow: 1, width: `${FORM_MAX_WIDTH}px` }}>
@@ -113,9 +111,7 @@ const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiv
       {activeStep === 3 && <FuelStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
       {activeStep === 4 && <FireBehvaiourIndicesStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
       {activeStep === 5 && <ReviewSubmitStep fireWatch={fireWatch} setActiveStep={setActiveStep} />}
-      {activeStep === 6 && (
-        <CompleteStep isEditMode={isEditMode} updateLoading={updateLoading} updateError={updateError} />
-      )}
+      {activeStep === 6 && <CompleteStep isEditMode={isEditMode} />}
       {activeStep < steps.length && (
         <Box sx={{ display: 'flex', flexDirection: 'row', pr: theme.spacing(4), width: `${FORM_MAX_WIDTH}px` }}>
           <Box sx={{ display: 'flex', flexGrow: 1, pl: theme.spacing(4) }}>
