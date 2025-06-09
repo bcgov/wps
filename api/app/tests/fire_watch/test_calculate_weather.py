@@ -382,8 +382,7 @@ async def test_process_all_fire_watch_weather_skips_if_weather_exists(mocker, mo
         "app.fire_watch.calculate_weather.process_single_fire_watch"
     )
 
-    start_date = datetime(2025, 5, 5, tzinfo=timezone.utc)
-    await process_all_fire_watch_weather(start_date)
+    await process_all_fire_watch_weather()
 
     # mock_get_all_fire_watches.assert_not_called()
     mock_get_station_metadata.assert_not_called()
@@ -421,8 +420,7 @@ async def test_process_all_fire_watch_weather_processes_fire_watches(
         "app.fire_watch.calculate_weather.process_single_fire_watch", AsyncMock()
     )
 
-    start_date = datetime(2025, 5, 5, tzinfo=timezone.utc)
-    await process_all_fire_watch_weather(start_date)
+    await process_all_fire_watch_weather()
 
     mock_process_single_fire_watch.assert_called_once_with(
         mock.ANY,
