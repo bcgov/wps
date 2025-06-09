@@ -35,18 +35,16 @@ const App = () => {
     undefined
   );
 
-  const [selectedFireShape, setSelectedFireShape] = useState<
-    FireShape | undefined
-  >(undefined);
-  const [zoomSource, setZoomSource] = useState<
-    "fireCenter" | "fireShape" | undefined
-  >("fireCenter");
-  const [dateOfInterest, setDateOfInterest] = useState(
+  const [selectedFireShape] = useState<FireShape | undefined>(undefined);
+  const [zoomSource] = useState<"fireCenter" | "fireShape" | undefined>(
+    "fireCenter"
+  );
+  const [dateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   );
-  const [runType, setRunType] = useState(RunType.FORECAST);
+  const [runType] = useState(RunType.FORECAST);
   const { mostRecentRunDate } = useSelector(selectRunDates);
   const { fireShapeAreas } = useSelector(selectFireShapeAreas);
 
@@ -140,12 +138,6 @@ const App = () => {
     }
   }, [mostRecentRunDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const updateDate = (newDate: DateTime) => {
-    if (newDate !== dateOfInterest) {
-      setDateOfInterest(newDate);
-    }
-  };
-
   return (
     <Box
       sx={{
@@ -157,16 +149,7 @@ const App = () => {
         overflow: "hidden",
       }}
     >
-      <AppHeader
-        runType={runType}
-        setRunType={setRunType}
-        date={dateOfInterest}
-        updateDate={updateDate}
-        fireCenterOptions={fireCenters}
-        setSelectedFireCenter={setFireCenter}
-        setSelectedFireShape={setSelectedFireShape}
-        setZoomSource={setZoomSource}
-      />
+      <AppHeader />
       {tab === NavPanel.MAP && (
         <FBAMap
           selectedFireCenter={fireCenter}

@@ -1,50 +1,38 @@
-import { Drawer, IconButton, Typography } from "@mui/material";
+import {
+  Drawer,
+  IconButton,
+  List,
+  Typography,
+  ListItemButton,
+} from "@mui/material";
+import { EmailComposer } from "capacitor-email-composer";
 import Grid from "@mui/material/Grid2";
-
 import { Menu as MenuIcon, Close as CloseIcon } from "@mui/icons-material";
-
 import { useState } from "react";
-import { RunType, FireCenter, FireShape } from "@/api/fbaAPI";
-import { DateTime } from "luxon";
-import ActualForecastControl from "@/components/ActualForecastControl";
-import WPSDatePicker from "@/components/WPSDatePicker";
-import FireCenterDropdown from "@/components/FireCenterDropdown";
-import { theme } from "@/theme";
 
 export interface HamburgerMenuProps {
-  runType: RunType;
-  setRunType: React.Dispatch<React.SetStateAction<RunType>>;
-  date: DateTime;
-  updateDate: (d: DateTime) => void;
-  selectedFireCenter?: FireCenter;
-  fireCenterOptions: FireCenter[];
-  setSelectedFireCenter: React.Dispatch<
-    React.SetStateAction<FireCenter | undefined>
-  >;
-  setSelectedFireShape: React.Dispatch<
-    React.SetStateAction<FireShape | undefined>
-  >;
-  setZoomSource: React.Dispatch<
-    React.SetStateAction<"fireCenter" | "fireShape" | undefined>
-  >;
   drawerTop: number;
   drawerHeight: number;
 }
 
 export const HamburgerMenu = ({
-  runType,
-  setRunType,
-  date,
-  updateDate,
-  selectedFireCenter,
-  fireCenterOptions,
-  setSelectedFireShape,
-  setSelectedFireCenter,
-  setZoomSource,
   drawerTop,
   drawerHeight,
 }: HamburgerMenuProps) => {
   const [open, setOpen] = useState(false);
+
+  const handleListButtonClick = (url: string) => {
+    if (url.startsWith("mail:to")) {
+      EmailComposer.open({
+        to: ["bcws.predictiveservices@gov.bc.ca"],
+        subject: "ASA App Contact",
+        body: "",
+        isHtml: false,
+      });
+    } else {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
 
   return (
     <>
@@ -59,6 +47,7 @@ export const HamburgerMenu = ({
           sx: {
             top: `${drawerTop}px`,
             height: `${drawerHeight}px`,
+            backgroundColor: "lightGrey",
             borderTopLeftRadius: 16,
             borderBottomLeftRadius: 16,
           },
@@ -71,21 +60,14 @@ export const HamburgerMenu = ({
           sx={{ width: 250, padding: "16px" }}
         >
           <Grid container alignItems="center" justifyContent="space-between">
-            <Typography
-              variant="h2"
-              sx={{
-                color: theme.palette.primary.contrastText,
-                fontSize: "1.7rem",
-              }}
-            >
-              ASA
-            </Typography>
             <IconButton
               onClick={() => setOpen(false)}
               sx={{
                 cursor: "pointer",
                 backgroundColor: "transparent",
                 transition: "background-color 0.2s",
+                alignSelf: "flex-end",
+                marginLeft: "auto",
                 "&:hover": {
                   backgroundColor: "#f0f0f0",
                 },
@@ -95,21 +77,46 @@ export const HamburgerMenu = ({
               <CloseIcon />
             </IconButton>
           </Grid>
-          <Grid>
-            <ActualForecastControl runType={runType} setRunType={setRunType} />
-          </Grid>
-          <Grid>
-            <WPSDatePicker date={date} updateDate={updateDate} />
-          </Grid>
-          <Grid>
-            <FireCenterDropdown
-              fireCenterOptions={fireCenterOptions}
-              selectedFireCenter={selectedFireCenter}
-              setSelectedFireCenter={setSelectedFireCenter}
-              setSelectedFireShape={setSelectedFireShape}
-              setZoomSource={setZoomSource}
-            />
-          </Grid>
+          <List
+            sx={{
+              width: "100%",
+              "& .MuiListItemButton-root": {
+                width: "100%",
+                justifyContent: "flex-end",
+              },
+            }}
+          >
+            {[
+              { url: "https://psu.nrs.gov.bc.ca/", title: "Home" },
+              {
+                url: "https://www2.gov.bc.ca/gov/content/home/disclaimer",
+                title: "Disclaimer",
+              },
+              {
+                url: "https://www2.gov.bc.ca/gov/content/home/privacy",
+                title: "Privacy",
+              },
+              {
+                url: "https://www2.gov.bc.ca/gov/content/home/accessible-government",
+                title: "Accessibility",
+              },
+              {
+                url: "https://www2.gov.bc.ca/gov/content/home/copyright",
+                title: "Copyright",
+              },
+              {
+                url: "mailto:bcws.predictiveservices@gov.bc.ca",
+                title: "Contact Us",
+              },
+            ].map((item) => (
+              <ListItemButton
+                divider
+                onClick={() => handleListButtonClick(item.url)}
+              >
+                <Typography variant="subtitle1">{item.title}</Typography>
+              </ListItemButton>
+            ))}
+          </List>
         </Grid>
       </Drawer>
     </>
