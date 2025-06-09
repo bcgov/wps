@@ -315,55 +315,6 @@ async def save_all_fire_watch_weather(
             session.add(record)
 
 
-async def process_single_fire_watch(
-    session: AsyncSession,
-    fire_watch: FireWatch,
-    wfwx_station_map: dict[int, WFWXWeatherStation],
-    status_id_dict: dict[str, int],
-    prediction_run_timestamp_id: int,
-):
-    """
-    Process a single FireWatch by gathering inputs, validating them, and saving results.
-
-    :param session: Async database session.
-    :param fire_watch: The FireWatch instance to process.
-    :param wfwx_station_map: Mapping of station codes to their metadata.
-    :param status_id_dict: Mapping of status IDs to their descriptions.
-    :param start_date: The start date for the weather model processing.
-    :param end_date: The end date for the weather model processing.
-    """
-    station_metadata = wfwx_station_map.get(fire_watch.station_code)
-    if not station_metadata:
-        logger.warning(
-            f"Skipping FireWatch {fire_watch.id} - {fire_watch.title}: Missing station metadata."
-        )
-        return
-
-    predictions, actual_weather_data = await gather_fire_watch_inputs(
-        session, fire_watch, prediction_run_timestamp_id
-    )
-
-    if not validate_fire_watch_inputs(fire_watch, station_metadata, actual_weather_data):
-        raise ValueError(
-            f"Invalid inputs for FireWatch {fire_watch.id} - {fire_watch.title} at station {fire_watch.station_code}."
-        )
-
-    fire_watch_predictions = await process_predictions(
-        fire_watch,
-        station_metadata,
-        predictions,
-        actual_weather_data,
-        status_id_dict,
-        prediction_run_timestamp_id,
-    )
-
-    if fire_watch_predictions:
-        await save_all_fire_watch_weather(session, fire_watch_predictions)
-        logger.info(
-            f"Saved {len(fire_watch_predictions)} records for FireWatch {fire_watch.id} - {fire_watch.title}."
-        )
-
-
 async def process_predictions(
     fire_watch: FireWatch,
     station_metadata: WFWXWeatherStation,
@@ -418,10 +369,58 @@ async def get_fire_watches_to_process(session: AsyncSession, prediction_id: int)
         session, prediction_id
     )
     existing_fire_watch_ids = {w.fire_watch_id for w in existing_weather}
-    fire_watches, _ = await get_all_fire_watches(session)
+    fire_watches = await get_all_fire_watches(session)
 
-    fire_watches_to_process = [fw for fw in fire_watches if fw.id not in existing_fire_watch_ids]
+    fire_watches_to_process = [fw for fw, _ in fire_watches if fw.id not in existing_fire_watch_ids]
     return fire_watches_to_process
+
+
+async def process_single_fire_watch(
+    session: AsyncSession,
+    fire_watch: FireWatch,
+    wfwx_station_map: dict[int, WFWXWeatherStation],
+    status_id_dict: dict[str, int],
+    prediction_run_timestamp_id: int,
+):
+    """
+    Process a single FireWatch by gathering inputs, validating them, and saving results.
+
+    :param session: Async database session.
+    :param fire_watch: The FireWatch instance to process.
+    :param wfwx_station_map: Mapping of station codes to their metadata.
+    :param status_id_dict: Mapping of status IDs to their descriptions.
+    :param prediction_run_timestamp_id: The ID of the prediction run timestamp.
+    """
+    station_metadata = wfwx_station_map.get(fire_watch.station_code)
+    if not station_metadata:
+        logger.warning(
+            f"Skipping FireWatch {fire_watch.id} - {fire_watch.title}: Missing station metadata."
+        )
+        return
+
+    predictions, actual_weather_data = await gather_fire_watch_inputs(
+        session, fire_watch, prediction_run_timestamp_id
+    )
+
+    if not validate_fire_watch_inputs(fire_watch, station_metadata, actual_weather_data):
+        raise ValueError(
+            f"Invalid inputs for FireWatch {fire_watch.id} - {fire_watch.title} at station {fire_watch.station_code}."
+        )
+
+    fire_watch_predictions = await process_predictions(
+        fire_watch,
+        station_metadata,
+        predictions,
+        actual_weather_data,
+        status_id_dict,
+        prediction_run_timestamp_id,
+    )
+
+    if fire_watch_predictions:
+        await save_all_fire_watch_weather(session, fire_watch_predictions)
+        logger.info(
+            f"Saved {len(fire_watch_predictions)} records for FireWatch {fire_watch.id} - {fire_watch.title}."
+        )
 
 
 async def process_all_fire_watch_weather(start_date: datetime):
@@ -436,6 +435,12 @@ async def process_all_fire_watch_weather(start_date: datetime):
             session, FIREWATCH_WEATHER_MODEL
         )
         fire_watches_to_process = await get_fire_watches_to_process(session, latest_prediction_id)
+
+        if not fire_watches_to_process:
+            logger.info(
+                "All FireWatch records already processed for prediction id: {latest_prediction_id}."
+            )
+            return
 
         station_ids = set(fire_watch.station_code for fire_watch in fire_watches_to_process)
         wfwx_station_map = await get_station_metadata(list(station_ids))
