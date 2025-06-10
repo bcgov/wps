@@ -83,7 +83,7 @@ export const selectBurnForecasts = createSelector([selectFireWatchBurnForecasts]
       status: value.fireWatch.status,
       burnWindowStart: value.fireWatch.burnWindowStart,
       burnWindowEnd: value.fireWatch.burnWindowEnd,
-      inPrescription: getInPrescription(value.burnForecasts),
+      inPrescription: getPrescriptionStatus(value.burnForecasts),
       fireWatch: value.fireWatch,
       burnForecasts: value.burnForecasts
     }
