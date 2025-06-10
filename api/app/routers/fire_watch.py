@@ -11,7 +11,6 @@ from shapely import from_wkt
 from sqlalchemy import Row
 
 from app.fire_watch.calculate_weather import (
-    FIREWATCH_WEATHER_MODEL,
     MissingWeatherDataError,
     reprocess_fire_watch_weather,
 )
@@ -23,7 +22,7 @@ from wps_shared.db.crud.fire_watch import (
     get_fire_centres,
     get_fire_watch_by_id,
     get_fire_watch_weather_by_model_with_prescription_status,
-    get_latest_processed_model_run_id_for_fire_watch_model,
+    get_latest_processed_model_run_id_in_fire_watch_weather,
     save_fire_watch,
     update_fire_watch,
 )
@@ -288,9 +287,7 @@ async def update_existing_fire_watch(
         updated_fire_watch = await update_fire_watch(session, fire_watch_id, fire_watch_input)
 
         latest_model_run_parameters_id = (
-            await get_latest_processed_model_run_id_for_fire_watch_model(
-                session, FIREWATCH_WEATHER_MODEL
-            )
+            await get_latest_processed_model_run_id_in_fire_watch_weather(session)
         )
 
         try:
@@ -339,9 +336,7 @@ async def get_burn_forecasts(_=Depends(authentication_required)):
     async with get_async_read_session_scope() as session:
         fire_watches = await get_all_fire_watches(session)
         latest_model_run_parameters_id = (
-            await get_latest_processed_model_run_id_for_fire_watch_model(
-                session, FIREWATCH_WEATHER_MODEL
-            )
+            await get_latest_processed_model_run_id_in_fire_watch_weather(session)
         )
         fire_watch_weather = await get_all_fire_watch_weather_with_prescription_status(
             session, latest_model_run_parameters_id

@@ -24,7 +24,7 @@ def token():
 @patch("app.routers.fire_watch.get_fire_watch_by_id", new_callable=AsyncMock)
 @patch("app.routers.fire_watch.update_fire_watch", new_callable=AsyncMock)
 @patch(
-    "app.routers.fire_watch.get_latest_processed_model_run_id_for_fire_watch_model",
+    "app.routers.fire_watch.get_latest_processed_model_run_id_in_fire_watch_weather",
     new_callable=AsyncMock,
 )
 @patch("app.routers.fire_watch.reprocess_fire_watch_weather", new_callable=AsyncMock)
@@ -105,7 +105,7 @@ async def test_update_existing_fire_watch_not_found(
 @patch("app.routers.fire_watch.get_fire_watch_by_id", new_callable=AsyncMock)
 @patch("app.routers.fire_watch.update_fire_watch", new_callable=AsyncMock)
 @patch(
-    "app.routers.fire_watch.get_latest_processed_model_run_id_for_fire_watch_model",
+    "app.routers.fire_watch.get_latest_processed_model_run_id_in_fire_watch_weather",
     new_callable=AsyncMock,
 )
 @patch("app.routers.fire_watch.reprocess_fire_watch_weather", new_callable=AsyncMock)
@@ -145,7 +145,7 @@ async def test_update_existing_fire_watch_missing_weather_data(
 @patch("app.routers.fire_watch.get_fire_watch_by_id", new_callable=AsyncMock)
 @patch("app.routers.fire_watch.update_fire_watch", new_callable=AsyncMock)
 @patch(
-    "app.routers.fire_watch.get_latest_processed_model_run_id_for_fire_watch_model",
+    "app.routers.fire_watch.get_latest_processed_model_run_id_in_fire_watch_weather",
     new_callable=AsyncMock,
 )
 @patch("app.routers.fire_watch.reprocess_fire_watch_weather", new_callable=AsyncMock)

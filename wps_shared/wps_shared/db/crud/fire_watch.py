@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.models.fire_watch import (
@@ -6,8 +7,8 @@ from wps_shared.db.models.fire_watch import (
     PrescriptionStatus,
 )
 from wps_shared.db.models.hfi_calc import FireCentre
-from wps_shared.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
-from wps_shared.weather_models import ModelEnum
+from wps_shared.db.models.weather_models import PredictionModelRunTimestamp
+from wps_shared.utils.time import get_utc_now
 
 
 def fire_watch_to_dict(fire_watch: FireWatch) -> dict:
@@ -155,19 +156,19 @@ async def get_fire_watch_weather_by_model_with_prescription_status(
     return result.all()
 
 
-async def get_latest_processed_model_run_id_for_fire_watch_model(
-    session: AsyncSession, model: ModelEnum
+async def get_latest_processed_model_run_id_in_fire_watch_weather(
+    session: AsyncSession, after: datetime | None = None
 ) -> int:
+    if after is None:
+        after = get_utc_now() - timedelta(days=7)
+
     stmt = (
-        select(PredictionModelRunTimestamp.id)
+        select(FireWatchWeather.prediction_model_run_timestamp_id)
         .join(
-            FireWatchWeather,
-            FireWatchWeather.prediction_model_run_timestamp_id == PredictionModelRunTimestamp.id,
+            PredictionModelRunTimestamp,
+            PredictionModelRunTimestamp.id == FireWatchWeather.prediction_model_run_timestamp_id,
         )
-        .join(
-            PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id
-        )
-        .where(PredictionModel.abbreviation == model.value)
+        .where(PredictionModelRunTimestamp.prediction_run_timestamp > after)
         .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
         .limit(1)
     )
