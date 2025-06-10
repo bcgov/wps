@@ -385,7 +385,6 @@ async def test_process_all_fire_watch_weather_skips_if_weather_exists(mocker, mo
 
     await process_all_fire_watch_weather()
 
-    # mock_get_all_fire_watches.assert_not_called()
     mock_get_station_metadata.assert_not_called()
     mock_get_all_prescription_status.assert_not_called()
     mock_process_single_fire_watch.assert_not_called()
