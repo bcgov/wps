@@ -1488,6 +1488,11 @@ callsites@^3.0.0:
   resolved "https://registry.npmjs.org/callsites/-/callsites-3.1.0.tgz"
   integrity sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==
 
+capacitor-email-composer@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/capacitor-email-composer/-/capacitor-email-composer-7.0.0.tgz#55d048e6eaf908fc7fe9459ed2ea2917ece3ccdc"
+  integrity sha512-U4R6zqgVmEv7AV+pAi7XixNvJEsuzYAKlUKAx+++sf4/4Z3osAMz3N+8xXAyBQzhG/spZQBlFcTtXoNmv4TpWA==
+
 chai@^5.2.0:
   version "5.2.0"
   resolved "https://registry.npmjs.org/chai/-/chai-5.2.0.tgz"
@@ -3410,7 +3415,7 @@ vite-node@3.0.6:
   optionalDependencies:
     fsevents "~2.3.3"
 
-vite@^6.2.7:
+vite@^6.0.5:
   version "6.3.5"
   resolved "https://registry.yarnpkg.com/vite/-/vite-6.3.5.tgz#fec73879013c9c0128c8d284504c6d19410d12a3"
   integrity sha512-cZn6NDFE7wdTpINgs++ZJ4N49W2vRp8LCKrn3Ob1kYNtOo21vfDoaV5GzBfLU4MovSAB8uNRm4jgzVQZ+mBzPQ==

@@ -4,6 +4,8 @@ PODS:
   - CapacitorApp (7.0.0):
     - Capacitor
   - CapacitorCordova (7.1.0)
+  - CapacitorEmailComposer (7.0.0):
+    - Capacitor
   - CapacitorFilesystem (7.0.0):
     - Capacitor
   - CapacitorHaptics (7.0.0):
@@ -19,6 +21,7 @@ DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - CapacitorEmailComposer (from `../../node_modules/capacitor-email-composer`)
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
@@ -32,6 +35,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/app"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorEmailComposer:
+    :path: "../../node_modules/capacitor-email-composer"
   CapacitorFilesystem:
     :path: "../../node_modules/@capacitor/filesystem"
   CapacitorHaptics:
@@ -47,12 +52,13 @@ SPEC CHECKSUMS:
   Capacitor: 68ff8eabbcce387e69767c13b5fbcc1c5399eabc
   CapacitorApp: 45cb7cbef4aa380b9236fd6980033eb5cde6fcd2
   CapacitorCordova: 866217f32c1d25b326c568a10ea3ed0c36b13e29
+  CapacitorEmailComposer: 5f0ae4bd516997aba61034ba4387f2a67947ce21
   CapacitorFilesystem: 2881ad012b5c8d0ffbfed1216aadfc2cca16d5b5
   CapacitorHaptics: 1fba3e460e7614349c6d5f868b1fccdc5c87b66d
   CapacitorKeyboard: 2c26c6fccde35023c579fc37d4cae6326d5e6343
   CapacitorNetwork: cd17b98182841055ff58629213242a1f22f4a76b
   CapacitorStatusBar: 438e90beeeefa8276b24e6c5991cb02dd13e51bf
 
-PODFILE CHECKSUM: a4a962007de4ee3752e8348b45eadbd919cce0e4
+PODFILE CHECKSUM: d3eb99dc925b0c9b7129366eb0ef7674f48fe4fa
 
 COCOAPODS: 1.16.2
