@@ -46,8 +46,7 @@ const CompleteStep = ({ isEditMode }: CompleteStepProps) => {
         )}
         {!isEditMode && !fireWatchSubmitting && !fireWatchSubmitError && (
           <Typography sx={{ fontWeight: 'bold' }} variant="body1">
-            A new fire watch has been successfully submitted. You will receive a notification at the provided email each
-            time the burn comes into prescription.
+            A new fire watch has been successfully submitted.
           </Typography>
         )}
       </Box>
