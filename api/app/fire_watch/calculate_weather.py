@@ -40,7 +40,9 @@ FIREWATCH_WEATHER_MODEL = ModelEnum.ECMWF
 
 
 class MissingWeatherDataError(Exception):
-    pass
+    """
+    Exception raised when weather data that is needed for calculations is missing.
+    """
 
 
 async def gather_fire_watch_inputs(
