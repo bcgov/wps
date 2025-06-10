@@ -357,21 +357,13 @@ async def test_process_predictions(
 
 @pytest.mark.anyio
 async def test_process_all_fire_watch_weather_skips_if_weather_exists(mocker, mock_fire_watch):
-    mock_fire_weather = create_autospec(FireWatchWeather)
-    mock_fire_weather.fire_watch_id = mock_fire_watch.id
     mocker.patch(
         "app.fire_watch.calculate_weather.get_latest_prediction_timestamp_id_for_model",
         return_value=1,
     )
     mocker.patch(
-        "app.fire_watch.calculate_weather.get_fire_watch_weather_by_model_run_parameter_id",
-        return_value=[
-            mock_fire_weather
-        ],  # Simulate that weather data does not exist for a FireWatch
-    )
-    mocker.patch(
-        "app.fire_watch.calculate_weather.get_all_fire_watches",
-        return_value=[(mock_fire_watch, None)],
+        "app.fire_watch.calculate_weather.get_fire_watches_missing_weather_for_run",
+        return_value=[],
     )
     mock_get_station_metadata = mocker.patch(
         "app.fire_watch.calculate_weather.get_station_metadata"
@@ -394,19 +386,13 @@ async def test_process_all_fire_watch_weather_skips_if_weather_exists(mocker, mo
 async def test_process_all_fire_watch_weather_processes_fire_watches(
     mocker, mock_fire_watch, mock_status_id_dict, mock_station_metadata
 ):
-    mock_fire_weather = create_autospec(FireWatchWeather)
-    mock_fire_weather.fire_watch_id = mock_fire_watch.id
     mocker.patch(
         "app.fire_watch.calculate_weather.get_latest_prediction_timestamp_id_for_model",
         return_value=1,
     )
     mocker.patch(
-        "app.fire_watch.calculate_weather.get_fire_watch_weather_by_model_run_parameter_id",
-        return_value=[],  # Simulate that weather data does not exist for a FireWatch
-    )
-    mocker.patch(
-        "app.fire_watch.calculate_weather.get_all_fire_watches",
-        return_value=[(mock_fire_watch, None)],
+        "app.fire_watch.calculate_weather.get_fire_watches_missing_weather_for_run",
+        return_value=[mock_fire_watch],
     )
     mocker.patch(
         "app.fire_watch.calculate_weather.get_station_metadata",

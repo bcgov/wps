@@ -70,6 +70,28 @@ async def get_all_fire_watches(session: AsyncSession):
     return result.all()
 
 
+async def get_fire_watches_missing_weather_for_run(
+    session: AsyncSession, prediction_model_run_timestamp_id: int
+):
+    """
+    Return a list of FireWatch objects that do NOT have weather for the given prediction_id.
+    """
+    stmt = (
+        select(FireWatch)
+        .outerjoin(
+            FireWatchWeather,
+            (FireWatch.id == FireWatchWeather.fire_watch_id)
+            & (
+                FireWatchWeather.prediction_model_run_timestamp_id
+                == prediction_model_run_timestamp_id
+            ),
+        )
+        .where(FireWatchWeather.id.is_(None))
+    )
+    result = await session.execute(stmt)
+    return result.scalars().all()
+
+
 async def get_fire_centre_by_name(session: AsyncSession, name: str) -> FireCentre:
     statement = select(FireCentre).where(FireCentre.name.ilike(name))
     result = await session.execute(statement)
@@ -133,16 +155,6 @@ async def get_all_prescription_status(session: AsyncSession) -> dict[str, int]:
     stmt = select(PrescriptionStatus.id, PrescriptionStatus.name)
     result = await session.execute(stmt)
     return {name: id for id, name in result.all()}
-
-
-async def get_fire_watch_weather_by_model_run_parameter_id(
-    session: AsyncSession, prediction_model_run_timestamp_id: int
-):
-    statement = select(FireWatchWeather).where(
-        FireWatchWeather.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id
-    )
-    result = await session.execute(statement)
-    return result.scalars().all()
 
 
 async def get_fire_watch_weather_by_fire_watch_id_and_model_run(

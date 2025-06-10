@@ -277,7 +277,7 @@ async def update_existing_fire_watch(
     token=Depends(authentication_required),
 ):
     idir = token.get("idir_username", None)
-    db_fire_watch = marshall_fire_watch_input_to_db(fire_watch_input_request.fire_watch, idir)
+    fire_watch_input = marshall_fire_watch_input_to_db(fire_watch_input_request.fire_watch, idir)
     stations = await get_stations_as_geojson()
 
     async with get_async_write_session_scope() as session:
@@ -285,7 +285,7 @@ async def update_existing_fire_watch(
         fire_watch = await get_fire_watch_by_id(session, fire_watch_id)
         if not fire_watch:
             raise HTTPException(status_code=404, detail=f"FireWatch {fire_watch_id} not found")
-        updated_fire_watch = await update_fire_watch(session, fire_watch_id, db_fire_watch)
+        updated_fire_watch = await update_fire_watch(session, fire_watch_id, fire_watch_input)
 
         latest_model_run_parameters_id = (
             await get_latest_processed_model_run_id_for_fire_watch_model(

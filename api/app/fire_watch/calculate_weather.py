@@ -7,14 +7,12 @@ from app.fire_behaviour.prediction import (
     calculate_fire_behaviour_prediction,
 )
 from app.morecast_v2.forecasts import calculate_fwi_from_seed_indeterminates
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wps_shared.db.crud.fire_watch import (
-    get_all_fire_watches,
     get_all_prescription_status,
     get_fire_watch_weather_by_fire_watch_id_and_model_run,
-    get_fire_watch_weather_by_model_run_parameter_id,
+    get_fire_watches_missing_weather_for_run,
 )
 from wps_shared.db.crud.weather_models import (
     get_latest_daily_model_prediction_for_stations,
@@ -384,20 +382,6 @@ async def process_predictions(
     return fire_watch_predictions
 
 
-async def get_fire_watches_to_process(session: AsyncSession, prediction_id: int) -> list[FireWatch]:
-    """
-    Return a list of FireWatch objects that do NOT have weather for the given prediction_id.
-    """
-    existing_weather = await get_fire_watch_weather_by_model_run_parameter_id(
-        session, prediction_id
-    )
-    existing_fire_watch_ids = {w.fire_watch_id for w in existing_weather}
-    fire_watches = await get_all_fire_watches(session)
-
-    fire_watches_to_process = [fw for fw, _ in fire_watches if fw.id not in existing_fire_watch_ids]
-    return fire_watches_to_process
-
-
 async def process_single_fire_watch(
     session: AsyncSession,
     fire_watch: FireWatch,
@@ -455,7 +439,9 @@ async def process_all_fire_watch_weather():
         latest_prediction_id = await get_latest_prediction_timestamp_id_for_model(
             session, FIREWATCH_WEATHER_MODEL
         )
-        fire_watches_to_process = await get_fire_watches_to_process(session, latest_prediction_id)
+        fire_watches_to_process = await get_fire_watches_missing_weather_for_run(
+            session, latest_prediction_id
+        )
 
         if not fire_watches_to_process:
             logger.info(
