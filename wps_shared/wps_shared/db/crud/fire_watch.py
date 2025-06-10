@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from sqlalchemy import insert, select, update
+from sqlalchemy import func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.models.fire_watch import (
     FireWatch,
@@ -156,21 +156,7 @@ async def get_fire_watch_weather_by_model_with_prescription_status(
     return result.all()
 
 
-async def get_latest_processed_model_run_id_in_fire_watch_weather(
-    session: AsyncSession, after: datetime | None = None
-) -> int:
-    if after is None:
-        after = get_utc_now() - timedelta(days=7)
-
-    stmt = (
-        select(FireWatchWeather.prediction_model_run_timestamp_id)
-        .join(
-            PredictionModelRunTimestamp,
-            PredictionModelRunTimestamp.id == FireWatchWeather.prediction_model_run_timestamp_id,
-        )
-        .where(PredictionModelRunTimestamp.prediction_run_timestamp > after)
-        .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
-        .limit(1)
-    )
+async def get_latest_processed_model_run_id_in_fire_watch_weather(session: AsyncSession) -> int:
+    stmt = select(func.max(FireWatchWeather.prediction_model_run_timestamp_id))
     result = await session.execute(stmt)
     return result.scalar()
