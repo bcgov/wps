@@ -91,7 +91,7 @@ export const selectBurnForecasts = createSelector([selectFireWatchBurnForecasts]
   return newBurnForecasts
 })
 
-const getInPrescription = (burnForecasts: BurnForecast[]): PrescriptionEnum => {
+const getPrescriptionStatus = (burnForecasts: BurnForecast[]): PrescriptionEnum => {
   let inPrescription = PrescriptionEnum.NO
   for (const burnForecast of burnForecasts) {
     if (burnForecast.inPrescription === PrescriptionEnum.HFI) {
