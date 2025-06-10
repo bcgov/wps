@@ -127,7 +127,7 @@ export const postFireWatchUpdate = async (fireWatch: FireWatch): Promise<FireWat
   const { data } = await axios.patch(url, {
     fire_watch: fireWatchInput
   })
-  const updatedFireWatchBurnForecasts = marshalBurnForecasts([data])
+  const updatedFireWatchBurnForecasts = marshalBurnForecasts(data.fire_watch_burn_forecasts)
   return updatedFireWatchBurnForecasts[0]
 }
 

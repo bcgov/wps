@@ -32,7 +32,7 @@ def token():
     "app.routers.fire_watch.get_fire_watch_weather_by_model_with_prescription_status",
     new_callable=AsyncMock,
 )
-@patch("app.routers.fire_watch.create_fire_watch_burn_forecast")
+@patch("app.routers.fire_watch.create_fire_watch_burn_forecasts_response")
 async def test_update_existing_fire_watch_success(
     mock_create_burn_forecast,
     mock_get_weather,
@@ -88,7 +88,7 @@ async def test_update_existing_fire_watch_not_found(
 ):
     mock_session = AsyncMock()
     mock_session_scope.return_value.__aenter__.return_value = mock_session
-    mock_get_by_id.return_value = (None, None)
+    mock_get_by_id.return_value = None
     mock_get_stations.return_value = ["station"]
     mock_marshall.return_value = MagicMock()
 
@@ -134,7 +134,7 @@ async def test_update_existing_fire_watch_missing_weather_data(
 
     with pytest.raises(HTTPException) as exc:
         await update_existing_fire_watch(1, fire_watch_input_request, token)
-    assert exc.value.status_code == 404
+    assert exc.value.status_code == 500
     assert "Missing actual weather data" in exc.value.detail
 
 

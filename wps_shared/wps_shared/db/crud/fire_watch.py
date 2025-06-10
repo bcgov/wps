@@ -76,7 +76,7 @@ async def get_fire_centre_by_name(session: AsyncSession, name: str) -> FireCentr
     return result.scalar_one()
 
 
-async def get_fire_watch_by_id(session: AsyncSession, id: int) -> FireWatch:
+async def get_fire_watch_by_id(session: AsyncSession, id: int):
     statement = (
         select(FireWatch, FireCentre)
         .join(FireCentre, FireWatch.fire_centre == FireCentre.id)
