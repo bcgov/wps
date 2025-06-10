@@ -22,9 +22,14 @@ export const FORM_MAX_WIDTH = 768
 interface CreateFireWatchProps {
   fireWatch?: FireWatch
   activeStep?: number
+  onCloseModal?: () => void
 }
 
-const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiveStep }: CreateFireWatchProps) => {
+const CreateFireWatch = ({
+  fireWatch: initialFireWatch,
+  activeStep: initialActiveStep,
+  onCloseModal
+}: CreateFireWatchProps) => {
   const dispatch: AppDispatch = useDispatch()
   const theme = useTheme()
 
@@ -139,9 +144,15 @@ const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiv
               Back
             </Button>
           </Box>
-          <Button onClick={handleReset} variant="contained">
-            Reset
-          </Button>
+          {isEditMode ? (
+            <Button onClick={onCloseModal} variant="contained">
+              Close
+            </Button>
+          ) : (
+            <Button onClick={handleReset} variant="contained">
+              Reset
+            </Button>
+          )}
         </Box>
       )}
     </Box>
