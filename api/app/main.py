@@ -1,7 +1,8 @@
-""" This module contains the entrypoint for the Predictive Services Unit Fire Weather Index calculator API.
+"""This module contains the entrypoint for the Predictive Services Unit Fire Weather Index calculator API.
 
 See README.md for details on how to run.
 """
+
 import logging
 from time import perf_counter
 from urllib.request import Request
@@ -17,7 +18,19 @@ from wps_shared import config
 from app import health
 from app import hourlies
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from app.routers import fba, forecasts, weather_models, c_haines, stations, hfi_calc, fba_calc, sfms, morecast_v2, snow, fire_watch
+from app.routers import (
+    fba,
+    forecasts,
+    weather_models,
+    c_haines,
+    stations,
+    hfi_calc,
+    fba_calc,
+    sfms,
+    morecast_v2,
+    snow,
+    fire_watch,
+)
 from app.fire_behaviour.cffdrs import CFFDRS
 
 
@@ -25,7 +38,7 @@ configure_logging()
 
 logger = logging.getLogger(__name__)
 
-API_INFO = '''
+API_INFO = """
     Description: API for the PSU Services
 
     Warranty Disclaimer:
@@ -58,12 +71,12 @@ API_INFO = '''
     other software to which this site is linked, including, without
     limitation, any lost profits, business interruption, or loss of
     programs or information, even if the Government of British Columbia
-    has been specifically advised of the possibility of such damages.'''
+    has been specifically advised of the possibility of such damages."""
 
-if config.get('ENVIRONMENT') == 'production':        
+if config.get("ENVIRONMENT") == "production":
     sentry_sdk.init(
         dsn=config.get("SENTRY_DSN"),
-        environment=config.get('ENVIRONMENT'),
+        environment=config.get("ENVIRONMENT"),
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
         traces_sample_rate=0.5,
@@ -74,11 +87,7 @@ if config.get('ENVIRONMENT') == 'production':
     )
 
 # This is the api app.
-api = FastAPI(
-    title="Predictive Services API",
-    description=API_INFO,
-    version="0.0.0"
-)
+api = FastAPI(title="Predictive Services API", description=API_INFO, version="0.0.0")
 
 # This is our base starlette app - it doesn't do much except glue together
 # the api and the front end.
@@ -88,31 +97,32 @@ app = Starlette()
 # Mount the /api
 # In production, / routes to the frontend. (api and front end run in seperate containers, with
 # seperate routing)
-app.mount('/api', app=api)
+app.mount("/api", app=api)
 
-ORIGINS = config.get('ORIGINS')
+ORIGINS = config.get("ORIGINS")
 
 
 async def catch_exception_middleware(request: Request, call_next):
-    """ Basic middleware to catch all unhandled exceptions and log them to the terminal """
+    """Basic middleware to catch all unhandled exceptions and log them to the terminal"""
     try:
         return await call_next(request)
     except Exception as exc:
-        logger.error('%s %s %s', request.method, request.url.path, exc, exc_info=True)
+        logger.error("%s %s %s", request.method, request.url.path, exc, exc_info=True)
         rc_message = f"Exception occurred {request.method} {request.url.path}"
         send_rocketchat_notification(rc_message, exc)
         raise
 
-app.middleware('http')(catch_exception_middleware)
+
+app.middleware("http")(catch_exception_middleware)
 
 api.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PATCH"],
     allow_headers=["*"],
 )
-api.middleware('http')(catch_exception_middleware)
+api.middleware("http")(catch_exception_middleware)
 
 api.include_router(forecasts.router, tags=["Forecasts"])
 api.include_router(weather_models.router, tags=["Weather Models"])
@@ -127,21 +137,22 @@ api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
 
 
-@api.get('/ready')
+@api.get("/ready")
 async def get_ready():
-    """ A simple endpoint for OpenShift readiness """
+    """A simple endpoint for OpenShift readiness"""
     return Response()
 
 
-@api.get('/health')
+@api.get("/health")
 async def get_health():
-    """ A simple endpoint for Openshift Healthchecks.
-    It's assumed that if patroni is ok, then all is well.  """
+    """A simple endpoint for Openshift Healthchecks.
+    It's assumed that if patroni is ok, then all is well."""
     try:
         health_check = health.crunchydb_cluster_health_check()
 
-        logger.debug('/health - healthy: %s. %s',
-                     health_check.get('healthy'), health_check.get('message'))
+        logger.debug(
+            "/health - healthy: %s. %s", health_check.get("healthy"), health_check.get("message")
+        )
 
         # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
         cffdrs_start = perf_counter()
@@ -150,7 +161,7 @@ async def get_health():
         delta = cffdrs_end - cffdrs_start
         # Any delta below 100 milliseconds is just noise in the logs.
         if delta > 0.1:
-            logger.info('%f seconds added by CFFDRS startup', delta)
+            logger.info("%f seconds added by CFFDRS startup", delta)
 
         return health_check
     except Exception as exception:
@@ -158,14 +169,18 @@ async def get_health():
         raise
 
 
-@api.post('/observations/', response_model=schemas.observations.WeatherStationHourlyReadingsResponse)
-async def get_hourlies(request: schemas.shared.WeatherDataRequest,
-                       _=Depends(authentication_required),
-                       __=Depends(audit)):
-    """ Returns hourly observations for the 5 days before and 10 days after the time of interest
-    for the specified weather stations """
+@api.post(
+    "/observations/", response_model=schemas.observations.WeatherStationHourlyReadingsResponse
+)
+async def get_hourlies(
+    request: schemas.shared.WeatherDataRequest,
+    _=Depends(authentication_required),
+    __=Depends(audit),
+):
+    """Returns hourly observations for the 5 days before and 10 days after the time of interest
+    for the specified weather stations"""
     try:
-        logger.info('/observations/')
+        logger.info("/observations/")
 
         readings = await hourlies.get_hourly_readings(request.stations, request.time_of_interest)
 
@@ -175,12 +190,11 @@ async def get_hourlies(request: schemas.shared.WeatherDataRequest,
         raise
 
 
-@api.post('/percentiles/', response_model=schemas.percentiles.CalculatedResponse)
+@api.post("/percentiles/", response_model=schemas.percentiles.CalculatedResponse)
 async def get_percentiles(request: schemas.percentiles.PercentileRequest):
-    """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
-    """
+    """Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time."""
     try:
-        logger.info('/percentiles/')
+        logger.info("/percentiles/")
 
         percentiles = get_precalculated_percentiles(request)
 
@@ -195,4 +209,5 @@ if __name__ == "__main__":
     # for developers to easily debug the application by running main.py and attaching to it with a debugger.
     # uvicorn is imported in this scope only, as it's not required when the application is run in production.
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8080)

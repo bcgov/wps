@@ -27,9 +27,11 @@ const FireWatchDetailsModal = ({ open, onClose, selectedFireWatch }: FireWatchDe
         }}
       >
         <Typography variant="h6" gutterBottom>
-          Row Details
+          {selectedFireWatch ? selectedFireWatch.fireWatch.title : 'Fire Watch Details'}
         </Typography>
-        {selectedFireWatch && <CreateFireWatch fireWatch={selectedFireWatch.fireWatch} activeStep={5} />}
+        {selectedFireWatch && (
+          <CreateFireWatch fireWatch={selectedFireWatch.fireWatch} activeStep={5} onCloseModal={onClose} />
+        )}
       </Paper>
     </Modal>
   )

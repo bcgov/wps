@@ -14,7 +14,6 @@ const store = configureStore({
     getDefaultMiddleware({ immutableCheck: false, serializableCheck: false }).concat(thunkMiddleware)
 })
 
-
 export type AppDispatch = typeof store.dispatch
 
 export type AppThunk = ThunkAction<void, RootState, undefined, AnyAction>
