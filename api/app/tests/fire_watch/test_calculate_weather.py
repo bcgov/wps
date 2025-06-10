@@ -608,7 +608,7 @@ async def test_process_single_fire_watch_no_predictions_to_save(
         prediction_run_timestamp_id,
     )
 
-    mock_save.assert_not_awaited()
+    mock_save.assert_not_called()
     # Should not log save info
     assert not any(
         "Saved" in str(call) for call in [c[0][0] for c in mock_logger.info.call_args_list]
