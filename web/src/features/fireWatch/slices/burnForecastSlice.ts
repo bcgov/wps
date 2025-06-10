@@ -1,6 +1,6 @@
 import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
-import { getBurnForecasts, postFireWatchUpdate } from '@/features/fireWatch/fireWatchApi'
+import { getBurnForecasts, patchFireWatchUpdate } from '@/features/fireWatch/fireWatchApi'
 import { BurnForecast, FireWatch, FireWatchBurnForecast, PrescriptionEnum } from '@/features/fireWatch/interfaces'
 import { RootState } from '@/app/rootReducer'
 import { BurnWatchRow } from '@/features/fireWatch/components/FireWatchDashboard'
@@ -110,7 +110,7 @@ export const updateFireWatch =
   async dispatch => {
     try {
       dispatch(updateBurnForecastStart())
-      const updatedFireWatchForecast = await postFireWatchUpdate(fireWatch)
+      const updatedFireWatchForecast = await patchFireWatchUpdate(fireWatch)
       dispatch(updateBurnForecastSuccess(updatedFireWatchForecast))
     } catch (err) {
       dispatch(getBurnForecastsFailed((err as Error).toString()))
