@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from sqlalchemy import func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.models.fire_watch import (
@@ -7,8 +6,6 @@ from wps_shared.db.models.fire_watch import (
     PrescriptionStatus,
 )
 from wps_shared.db.models.hfi_calc import FireCentre
-from wps_shared.db.models.weather_models import PredictionModelRunTimestamp
-from wps_shared.utils.time import get_utc_now
 
 
 def fire_watch_to_dict(fire_watch: FireWatch) -> dict:
