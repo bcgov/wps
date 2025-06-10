@@ -17,12 +17,12 @@ from app.fire_watch.calculate_weather import (
 )
 from wps_shared.auth import audit, authentication_required
 from wps_shared.db.crud.fire_watch import (
+    get_all_fire_watch_weather_with_prescription_status,
     get_all_fire_watches,
     get_fire_centre_by_name,
     get_fire_centres,
     get_fire_watch_by_id,
     get_fire_watch_weather_by_model_with_prescription_status,
-    get_fire_watch_weather_by_model_with_prescription_status_all,
     get_latest_processed_model_run_id_for_fire_watch_model,
     save_fire_watch,
     update_fire_watch,
