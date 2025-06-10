@@ -171,7 +171,7 @@ async def get_fire_watch_weather_by_fire_watch_id_and_model_run(
     return existing_record
 
 
-async def get_fire_watch_weather_by_model_with_prescription_status_all(
+async def get_all_fire_watch_weather_with_prescription_status(
     session: AsyncSession, prediction_model_run_timestamp_id: int
 ):
     statement = (

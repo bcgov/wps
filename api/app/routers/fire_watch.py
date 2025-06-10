@@ -343,7 +343,7 @@ async def get_burn_forecasts(_=Depends(authentication_required)):
                 session, FIREWATCH_WEATHER_MODEL
             )
         )
-        fire_watch_weather = await get_fire_watch_weather_by_model_with_prescription_status_all(
+        fire_watch_weather = await get_all_fire_watch_weather_with_prescription_status(
             session, latest_model_run_parameters_id
         )
         fire_watch_burn_forecasts_response = create_fire_watch_burn_forecasts_response(
