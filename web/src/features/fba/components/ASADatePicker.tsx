@@ -63,7 +63,7 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
 
   const renderEndAdornments = () => {
     return (
-      <IconButton onClick={handleTogglePicker}>
+      <IconButton aria-label="calendar" onClick={handleTogglePicker}>
         <CalendarIcon color="action" />
       </IconButton>
     )
