@@ -9,6 +9,7 @@ import ReviewSubmitStep from '@/features/fireWatch/components/steps/ReviewSubmit
 import WeatherParametersStep from '@/features/fireWatch/components/steps/WeatherParametersStep'
 import { FireWatch } from '@/features/fireWatch/interfaces'
 import { submitNewFireWatch } from '@/features/fireWatch/slices/fireWatchSlice'
+import { updateFireWatch } from '../slices/burnForecastSlice'
 import { getBlankFireWatch } from '@/features/fireWatch/utils'
 import { Box, Button, Step, StepLabel, Stepper, Typography, useTheme } from '@mui/material'
 import { fetchFireWatchFireCentres } from 'features/fireWatch/slices/fireWatchFireCentresSlice'
@@ -21,9 +22,14 @@ export const FORM_MAX_WIDTH = 768
 interface CreateFireWatchProps {
   fireWatch?: FireWatch
   activeStep?: number
+  onCloseModal?: () => void
 }
 
-const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiveStep }: CreateFireWatchProps) => {
+const CreateFireWatch = ({
+  fireWatch: initialFireWatch,
+  activeStep: initialActiveStep,
+  onCloseModal
+}: CreateFireWatchProps) => {
   const dispatch: AppDispatch = useDispatch()
   const theme = useTheme()
 
@@ -74,14 +80,20 @@ const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiv
     setActiveStep(0)
   }
 
-  const handleSubmit = () => {
-    dispatch(submitNewFireWatch(fireWatch))
+  const handleSubmit = async () => {
+    if (isNaN(fireWatch.id)) {
+      dispatch(submitNewFireWatch(fireWatch))
+    } else {
+      dispatch(updateFireWatch(fireWatch))
+    }
   }
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
     dispatch(fetchFireWatchFireCentres())
   }, [])
+
+  const isEditMode = !isNaN(fireWatch.id)
 
   return (
     <Box id="fire-watch-dashboard" sx={{ flexGrow: 1, width: `${FORM_MAX_WIDTH}px` }}>
@@ -104,7 +116,7 @@ const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiv
       {activeStep === 3 && <FuelStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
       {activeStep === 4 && <FireBehvaiourIndicesStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
       {activeStep === 5 && <ReviewSubmitStep fireWatch={fireWatch} setActiveStep={setActiveStep} />}
-      {activeStep === 6 && <CompleteStep />}
+      {activeStep === 6 && <CompleteStep isEditMode={isEditMode} />}
       {activeStep < steps.length && (
         <Box sx={{ display: 'flex', flexDirection: 'row', pr: theme.spacing(4), width: `${FORM_MAX_WIDTH}px` }}>
           <Box sx={{ display: 'flex', flexGrow: 1, pl: theme.spacing(4) }}>
@@ -132,9 +144,15 @@ const CreateFireWatch = ({ fireWatch: initialFireWatch, activeStep: initialActiv
               Back
             </Button>
           </Box>
-          <Button onClick={handleReset} variant="contained">
-            Reset
-          </Button>
+          {isEditMode ? (
+            <Button onClick={onCloseModal} variant="contained">
+              Close
+            </Button>
+          ) : (
+            <Button onClick={handleReset} variant="contained">
+              Reset
+            </Button>
+          )}
         </Box>
       )}
     </Box>

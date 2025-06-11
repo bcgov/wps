@@ -1,24 +1,31 @@
-import logging
 from collections import defaultdict
-from datetime import UTC, datetime
-from typing import Dict, List, Sequence, Tuple
+import logging
+from datetime import datetime
+from typing import List, Sequence, Tuple
 
 from aiohttp import ClientSession
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
 from shapely import from_wkt
 from sqlalchemy import Row
+
+from app.fire_watch.calculate_weather import (
+    MissingWeatherDataError,
+    reprocess_fire_watch_weather,
+)
 from wps_shared.auth import audit, authentication_required
 from wps_shared.db.crud.fire_watch import (
+    get_all_fire_watch_weather_with_prescription_status,
     get_all_fire_watches,
     get_fire_centre_by_name,
     get_fire_centres,
     get_fire_watch_by_id,
     get_fire_watch_weather_by_model_with_prescription_status,
+    get_latest_processed_model_run_id_in_fire_watch_weather,
     save_fire_watch,
+    update_fire_watch,
 )
-from wps_shared.db.crud.weather_models import get_latest_prediction_timestamp_id_for_model
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch, FireWatchWeather
 from wps_shared.db.models.fire_watch import FireWatch as DBFireWatch
@@ -41,7 +48,6 @@ from wps_shared.schemas.hfi_calc import FireCentre
 from wps_shared.schemas.stations import GeoJsonWeatherStation
 from wps_shared.stations import get_stations_as_geojson
 from wps_shared.utils.time import get_utc_now
-from wps_shared.weather_models import ModelEnum
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +69,9 @@ async def get_fire_centre_id_by_name(name: str):
         return result.id
 
 
-def marshall_fire_watch_input_to_db(fire_watch_input: FireWatchInput, idir_username: str) -> DBFireWatch:
+def marshall_fire_watch_input_to_db(
+    fire_watch_input: FireWatchInput, idir_username: str
+) -> DBFireWatch:
     now = get_utc_now()
     x, y = reproject_burn_location(fire_watch_input.burn_location, WEB_MERCATOR, NAD83_BC_ALBERS)
     db_fire_watch = DBFireWatch(
@@ -125,8 +133,15 @@ def get_coordinates_from_geometry(geometry) -> List[float]:
     raise TypeError("Unrecognized geometry type.")
 
 
-def create_fire_watch_output(db_fire_watch: DBFireWatch, fire_centre: FireWatchFireCentre, stations: List[GeoJsonWeatherStation]) -> FireWatchOutput:
-    station = next((station for station in stations if station.properties.code == db_fire_watch.station_code), None)
+def create_fire_watch_output(
+    db_fire_watch: DBFireWatch,
+    fire_centre: FireWatchFireCentre,
+    stations: List[GeoJsonWeatherStation],
+) -> FireWatchOutput:
+    station = next(
+        (station for station in stations if station.properties.code == db_fire_watch.station_code),
+        None,
+    )
     location = get_coordinates_from_geometry(db_fire_watch.burn_location)
     coords = location.coords[0]
     x, y = reproject_burn_location(coords, NAD83_BC_ALBERS, WEB_MERCATOR)
@@ -200,18 +215,26 @@ def create_burn_forecast_output(fire_watch_weather: FireWatchWeather, prescripti
 
 
 def create_fire_watch_burn_forecasts_response(
-    stations: List[GeoJsonWeatherStation], fire_watches: Sequence[Row[Tuple[FireWatch, FireCentre]]], fire_watch_weather: Sequence[Row[Tuple[FireWatchWeather, str]]]
+    stations: List[GeoJsonWeatherStation],
+    fire_watches: Sequence[Row[Tuple[FireWatch, FireCentre]]],
+    fire_watch_weather: Sequence[Row[Tuple[FireWatchWeather, str]]],
 ) -> FireWatchBurnForecastsResponse:
     # Build a dictionary of BurnForecastOutputs keyed by fire watch id for easy lookup
     fire_watch_weather_dict = defaultdict(list)
     for item, prescription in fire_watch_weather:
-        fire_watch_weather_dict[item.fire_watch_id].append(create_burn_forecast_output(item, prescription))
+        fire_watch_weather_dict[item.fire_watch_id].append(
+            create_burn_forecast_output(item, prescription)
+        )
     fire_watch_burn_forecasts: List[FireWatchOutputBurnForecast] = []
     for fire_watch, fire_centre in fire_watches:
         fire_watch_output = create_fire_watch_output(fire_watch, fire_centre, stations)
         burn_forecast_outputs = fire_watch_weather_dict.get(fire_watch.id, [])
         burn_forecast_outputs.sort(key=lambda x: x.date)
-        fire_watch_burn_forecasts.append(FireWatchOutputBurnForecast(fire_watch=fire_watch_output, burn_forecasts=burn_forecast_outputs))
+        fire_watch_burn_forecasts.append(
+            FireWatchOutputBurnForecast(
+                fire_watch=fire_watch_output, burn_forecasts=burn_forecast_outputs
+            )
+        )
     return FireWatchBurnForecastsResponse(fire_watch_burn_forecasts=fire_watch_burn_forecasts)
 
 
@@ -232,7 +255,9 @@ async def get_fire_watches(_=Depends(authentication_required)):
 
 
 @router.post("/watch", response_model=FireWatchResponse, status_code=status.HTTP_201_CREATED)
-async def save_new_fire_watch(fire_watch_input_request: FireWatchInputRequest, token=Depends(authentication_required)):
+async def save_new_fire_watch(
+    fire_watch_input_request: FireWatchInputRequest, token=Depends(authentication_required)
+):
     idir = token.get("idir_username", None)
     db_fire_watch = marshall_fire_watch_input_to_db(fire_watch_input_request.fire_watch, idir)
     stations = await get_stations_as_geojson()
@@ -242,6 +267,57 @@ async def save_new_fire_watch(fire_watch_input_request: FireWatchInputRequest, t
         fire_watch, fire_centre = await get_fire_watch_by_id(session, new_fire_watch_id)
         fire_watch_output = create_fire_watch_output(fire_watch, fire_centre, stations)
         return FireWatchResponse(fire_watch=fire_watch_output)
+
+
+@router.patch("/watch/{fire_watch_id}", response_model=FireWatchBurnForecastsResponse)
+async def update_existing_fire_watch(
+    fire_watch_id: int,
+    fire_watch_input_request: FireWatchInputRequest,
+    token=Depends(authentication_required),
+):
+    idir = token.get("idir_username", None)
+    fire_watch_input = marshall_fire_watch_input_to_db(fire_watch_input_request.fire_watch, idir)
+    stations = await get_stations_as_geojson()
+
+    async with get_async_write_session_scope() as session:
+        # Check if FireWatch exists
+        fire_watch = await get_fire_watch_by_id(session, fire_watch_id)
+        if not fire_watch:
+            raise HTTPException(status_code=404, detail=f"FireWatch {fire_watch_id} not found")
+        updated_fire_watch = await update_fire_watch(session, fire_watch_id, fire_watch_input)
+
+        latest_model_run_parameters_id = (
+            await get_latest_processed_model_run_id_in_fire_watch_weather(session)
+        )
+
+        try:
+            await reprocess_fire_watch_weather(
+                session,
+                updated_fire_watch,
+                latest_model_run_parameters_id,
+            )
+        except MissingWeatherDataError as e:
+            logger.error(f"Missing weather data: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Missing actual weather data for FireWatch {fire_watch_id}: {str(e)}",
+            )
+        except Exception as e:
+            logger.error(f"Error reprocessing fire watch weather: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to reprocess fire watch weather for FireWatch {fire_watch_id}: {str(e)}",
+            )
+
+        fire_watch_weather = await get_fire_watch_weather_by_model_with_prescription_status(
+            session, updated_fire_watch.id, latest_model_run_parameters_id
+        )
+
+        updated_burn_forecast = create_fire_watch_burn_forecasts_response(
+            stations, [fire_watch], fire_watch_weather
+        )
+
+        return updated_burn_forecast
 
 
 @router.get("/fire-centres", response_model=FireWatchFireCentresResponse)
@@ -259,7 +335,13 @@ async def get_burn_forecasts(_=Depends(authentication_required)):
     stations = await get_stations_as_geojson()
     async with get_async_read_session_scope() as session:
         fire_watches = await get_all_fire_watches(session)
-        latest_model_run_parameters_id = await get_latest_prediction_timestamp_id_for_model(session, ModelEnum.GFS)
-        fire_watch_weather = await get_fire_watch_weather_by_model_with_prescription_status(session, latest_model_run_parameters_id)
-        fire_watch_burn_forecasts_response = create_fire_watch_burn_forecasts_response(stations, fire_watches, fire_watch_weather)
+        latest_model_run_parameters_id = (
+            await get_latest_processed_model_run_id_in_fire_watch_weather(session)
+        )
+        fire_watch_weather = await get_all_fire_watch_weather_with_prescription_status(
+            session, latest_model_run_parameters_id
+        )
+        fire_watch_burn_forecasts_response = create_fire_watch_burn_forecasts_response(
+            stations, fire_watches, fire_watch_weather
+        )
         return fire_watch_burn_forecasts_response

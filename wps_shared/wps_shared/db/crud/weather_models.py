@@ -307,24 +307,18 @@ def get_latest_station_prediction(
     return result
 
 
-async def get_latest_model_prediction_for_stations(
+async def get_latest_daily_model_prediction_for_stations(
     session: Session,
     station_codes: list[int],
-    model: ModelEnum,
-    day_start: datetime.datetime,
-    day_end: datetime.datetime,
+    prediction_run_timestamp_id: int,
 ) -> list[ModelPredictionDetails]:
     """
     Retrieves the most recent model predictions for each station and day, ensuring that only
-    predictions with a timestamp at 20:00 hours are included. The results are distinct by prediction date and station code.
-    The DISTINCT ON clause is used to ensure that only the latest prediction (by update_date) for each station and day is returned.
-    Note: DISTINCT ON only works with PostgreSQL.
+    predictions with a timestamp at 20:00 hours are included.
 
     :param session: SQLAlchemy session used to execute the query.
     :param station_codes: List of station codes to filter the predictions.
-    :param model: Weather prediction model to filter by.
-    :param day_start: Start of the time range for predictions.
-    :param day_end: End of the time range for predictions.
+    :param prediction_run_timestamp_id: ID of the prediction model run timestamp to filter predictions.
     :return: List of the latest model prediction details for each station and day.
 
     """
@@ -358,18 +352,13 @@ async def get_latest_model_prediction_for_stations(
         .where(
             extract("hour", WeatherStationModelPrediction.prediction_timestamp) == 20,
             WeatherStationModelPrediction.station_code.in_(station_codes),
-            WeatherStationModelPrediction.prediction_timestamp.between(day_start, day_end),
+            WeatherStationModelPrediction.prediction_model_run_timestamp_id
+            == prediction_run_timestamp_id,
             PredictionModelRunTimestamp.interpolated == True,
-            PredictionModel.abbreviation == model.value,
-        )
-        .distinct(
-            func.date(WeatherStationModelPrediction.prediction_timestamp),
-            WeatherStationModelPrediction.station_code,
         )
         .order_by(
             WeatherStationModelPrediction.station_code,
-            func.date(WeatherStationModelPrediction.prediction_timestamp),
-            PredictionModelRunTimestamp.prediction_run_timestamp.desc(),
+            WeatherStationModelPrediction.prediction_timestamp.asc(),
         )
     )
     results = await session.execute(stmt)

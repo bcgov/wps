@@ -31,6 +31,7 @@ class WeatherDeterminate(str, Enum):
     RDPS = "RDPS"
     RDPS_BIAS = "RDPS_BIAS"
     GRASS_CURING_CWFIS = "Grass_Curing_CWFIS"
+    ECMWF = "ECMWF"
 
     # non prediction models
     FORECAST = "Forecast"
