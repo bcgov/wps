@@ -160,3 +160,11 @@ class FireZoneElevationStatsListResponse(BaseModel):
     """Response for a firezone that includes elevation statistics by threshold for the run parameters of interest"""
 
     hfi_elevation_info: List[FireZoneElevationStatsByThreshold]
+
+class SFMSBounds(BaseModel):
+    minimum: str
+    maximum: str
+
+
+class SFMSBoundsForYearResponse(BaseModel):
+    sfms_bounds: SFMSBounds

@@ -2,40 +2,49 @@
 
 import logging
 import math
+from collections import defaultdict
 from datetime import date, datetime
 from typing import List
-from fastapi import APIRouter, Depends
+
 from aiohttp.client import ClientSession
-from wps_shared.db.database import get_async_read_session_scope
+from fastapi import APIRouter, Depends
+
+from app.auto_spatial_advisory.process_hfi import RunType
+from app.auto_spatial_advisory.zone_stats import (
+    get_fuel_type_area_stats,
+    get_zone_wind_stats_for_source_id,
+)
+from wps_shared.auth import audit, authentication_required
 from wps_shared.db.crud.auto_spatial_advisory import (
-    get_all_sfms_fuel_type_records,
     get_all_hfi_thresholds_by_id,
+    get_all_sfms_fuel_type_records,
+    get_bounds_for_year_and_run_type,
+    get_centre_tpi_stats,
     get_fire_centre_tpi_fuel_areas,
     get_fire_zone_tpi_fuel_areas,
     get_hfi_area,
+    get_min_wind_speed_hfi_thresholds,
     get_precomputed_stats_for_shape,
     get_provincial_rollup,
     get_run_datetimes,
     get_zonal_tpi_stats,
-    get_centre_tpi_stats,
     get_zone_source_ids_in_centre,
-    get_min_wind_speed_hfi_thresholds
 )
+from wps_shared.db.database import get_async_read_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum, TPIClassEnum
 from wps_shared.schemas.fba import (
-    FireZoneHFIStats,
     FireCenterListResponse,
     FireCentreTPIResponse,
-    FireShapeAreaListResponse,
     FireShapeArea,
-    FireZoneTPIStats,
     FireShapeAreaDetail,
+    FireShapeAreaListResponse,
+    FireZoneHFIStats,
+    FireZoneTPIStats,
     ProvincialSummaryResponse,
+    SFMSBounds,
+    SFMSBoundsForYearResponse,
 )
-from wps_shared.auth import authentication_required, audit
 from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_fire_centers
-from app.auto_spatial_advisory.zone_stats import get_fuel_type_area_stats, get_zone_wind_stats_for_source_id
-from app.auto_spatial_advisory.process_hfi import RunType
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +64,13 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
     return FireCenterListResponse(fire_centers=fire_centers)
 
 
-@router.get("/fire-shape-areas/{run_type}/{run_datetime}/{for_date}", response_model=FireShapeAreaListResponse)
-async def get_shapes(run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
+@router.get(
+    "/fire-shape-areas/{run_type}/{run_datetime}/{for_date}",
+    response_model=FireShapeAreaListResponse,
+)
+async def get_shapes(
+    run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)
+):
     """Return area of each zone unit shape, and percentage of area of zone unit shape with high hfi."""
     async with get_async_read_session_scope() as session:
         shapes = []
@@ -79,13 +93,20 @@ async def get_shapes(run_type: RunType, run_datetime: datetime, for_date: date, 
         return FireShapeAreaListResponse(shapes=shapes)
 
 
-@router.get("/provincial-summary/{run_type}/{run_datetime}/{for_date}", response_model=ProvincialSummaryResponse)
-async def get_provincial_summary(run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
+@router.get(
+    "/provincial-summary/{run_type}/{run_datetime}/{for_date}",
+    response_model=ProvincialSummaryResponse,
+)
+async def get_provincial_summary(
+    run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)
+):
     """Return all Fire Centres with their fire shapes and the HFI status of those shapes."""
     logger.info("/fba/provincial_summary/")
     async with get_async_read_session_scope() as session:
         fire_shape_area_details = []
-        rows = await get_provincial_rollup(session, RunTypeEnum(run_type.value), run_datetime, for_date)
+        rows = await get_provincial_rollup(
+            session, RunTypeEnum(run_type.value), run_datetime, for_date
+        )
         for row in rows:
             elevated_hfi_percentage = 0
             if row.hfi_area is not None and row.combustible_area is not None:
@@ -104,12 +125,23 @@ async def get_provincial_summary(run_type: RunType, run_datetime: datetime, for_
     return ProvincialSummaryResponse(provincial_summary=fire_shape_area_details)
 
 
-@router.get("/fire-centre-hfi-stats/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}", response_model=dict[str, dict[int, FireZoneHFIStats]])
-async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, run_datetime: datetime, fire_centre_name: str):
+@router.get(
+    "/fire-centre-hfi-stats/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}",
+    response_model=dict[str, dict[int, FireZoneHFIStats]],
+)
+async def get_hfi_fuels_data_for_fire_centre(
+    run_type: RunType, for_date: date, run_datetime: datetime, fire_centre_name: str
+):
     """
     Fetch fuel type and critical hours data for all fire zones in a fire centre for a given date
     """
-    logger.info("fire-centre-hfi-stats/%s/%s/%s/%s", run_type.value, for_date, run_datetime, fire_centre_name)
+    logger.info(
+        "fire-centre-hfi-stats/%s/%s/%s/%s",
+        run_type.value,
+        for_date,
+        run_datetime,
+        fire_centre_name,
+    )
 
     async with get_async_read_session_scope() as session:
         # get fuel type ids data
@@ -120,35 +152,65 @@ async def get_hfi_fuels_data_for_fire_centre(run_type: RunType, for_date: date, 
         # wind stats
         zone_wind_stats_by_source_id = {}
         hfi_thresholds_by_id = await get_all_hfi_thresholds_by_id(session)
-        advisory_wind_speed_by_source_id = await get_min_wind_speed_hfi_thresholds(session, zone_source_ids, run_type, run_datetime, for_date)
+        advisory_wind_speed_by_source_id = await get_min_wind_speed_hfi_thresholds(
+            session, zone_source_ids, run_type, run_datetime, for_date
+        )
         for source_id, wind_speed_stats in advisory_wind_speed_by_source_id.items():
-            min_wind_stats = get_zone_wind_stats_for_source_id(wind_speed_stats, hfi_thresholds_by_id)
+            min_wind_stats = get_zone_wind_stats_for_source_id(
+                wind_speed_stats, hfi_thresholds_by_id
+            )
             zone_wind_stats_by_source_id[source_id] = min_wind_stats
 
         all_zone_data: dict[int, FireZoneHFIStats] = {}
         for zone_source_id in zone_source_ids:
             # get HFI/fuels data for specific zone
             hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
-                session, run_type=RunTypeEnum(run_type.value), for_date=for_date, run_datetime=run_datetime, source_identifier=zone_source_id
+                session,
+                run_type=RunTypeEnum(run_type.value),
+                for_date=for_date,
+                run_datetime=run_datetime,
+                source_identifier=zone_source_id,
             )
             zone_fuel_stats = []
 
-            for critical_hour_start, critical_hour_end, fuel_type_id, threshold_id, area, fuel_area, percent_conifer in hfi_fuel_type_ids_for_zone:
+            for (
+                critical_hour_start,
+                critical_hour_end,
+                fuel_type_id,
+                threshold_id,
+                area,
+                fuel_area,
+                percent_conifer,
+            ) in hfi_fuel_type_ids_for_zone:
                 hfi_threshold = hfi_thresholds_by_id.get(threshold_id)
                 if hfi_threshold is None:
                     logger.error(f"No hfi threshold for id: {threshold_id}")
                     continue
-                fuel_type_area_stats = get_fuel_type_area_stats(for_date, fuel_types, hfi_threshold, percent_conifer, critical_hour_start, critical_hour_end, fuel_type_id, area, fuel_area)
+                fuel_type_area_stats = get_fuel_type_area_stats(
+                    for_date,
+                    fuel_types,
+                    hfi_threshold,
+                    percent_conifer,
+                    critical_hour_start,
+                    critical_hour_end,
+                    fuel_type_id,
+                    area,
+                    fuel_area,
+                )
                 zone_fuel_stats.append(fuel_type_area_stats)
 
-            
-            all_zone_data[int(zone_source_id)] = FireZoneHFIStats(min_wind_stats=zone_wind_stats_by_source_id.get(int(zone_source_id), []), fuel_area_stats=zone_fuel_stats)
+            all_zone_data[int(zone_source_id)] = FireZoneHFIStats(
+                min_wind_stats=zone_wind_stats_by_source_id.get(int(zone_source_id), []),
+                fuel_area_stats=zone_fuel_stats,
+            )
 
         return {fire_centre_name: all_zone_data}
 
 
 @router.get("/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])
-async def get_run_datetimes_for_date_and_runtype(run_type: RunType, for_date: date, _=Depends(authentication_required)):
+async def get_run_datetimes_for_date_and_runtype(
+    run_type: RunType, for_date: date, _=Depends(authentication_required)
+):
     """Return list of datetimes for which SFMS has run, given a specific for_date and run_type.
     Datetimes should be ordered with most recent first."""
     async with get_async_read_session_scope() as session:
@@ -162,8 +224,34 @@ async def get_run_datetimes_for_date_and_runtype(run_type: RunType, for_date: da
         return datetimes
 
 
-@router.get("/fire-zone-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_zone_id}", response_model=FireZoneTPIStats)
-async def get_fire_zone_tpi_stats(fire_zone_id: int, run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
+@router.get("/sfms-run-bounds/{run_type}/{year}", response_model=SFMSBoundsForYearResponse)
+async def get_sfms_run_bounds_for_year(
+    run_type: RunType, year: int, _=Depends(authentication_required)
+):
+    """
+    Return the range of available SFMS run data for the specified year and run type.
+
+    :param run_type: The RunType of interest (actual or forecast).
+    :param year: The year of interest.
+    :return: The range of available SFMS run data.
+    """
+    async with get_async_read_session_scope() as session:
+        min, max = await get_bounds_for_year_and_run_type(session, run_type.value, year)
+        bounds = SFMSBounds(minimum=min.isoformat(), maximum=max.isoformat())
+    return SFMSBoundsForYearResponse(sfms_bounds=bounds)
+
+
+@router.get(
+    "/fire-zone-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_zone_id}",
+    response_model=FireZoneTPIStats,
+)
+async def get_fire_zone_tpi_stats(
+    fire_zone_id: int,
+    run_type: RunType,
+    run_datetime: datetime,
+    for_date: date,
+    _=Depends(authentication_required),
+):
     """Return the elevation TPI statistics for each advisory threshold"""
     logger.info("/fba/fire-zone-tpi-stats/")
     async with get_async_read_session_scope() as session:
@@ -192,19 +280,32 @@ async def get_fire_zone_tpi_stats(fire_zone_id: int, run_type: RunType, run_date
         )
 
 
-@router.get("/fire-centre-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}", response_model=FireCentreTPIResponse)
-async def get_fire_centre_tpi_stats(fire_centre_name: str, run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
+@router.get(
+    "/fire-centre-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}",
+    response_model=FireCentreTPIResponse,
+)
+async def get_fire_centre_tpi_stats(
+    fire_centre_name: str,
+    run_type: RunType,
+    run_datetime: datetime,
+    for_date: date,
+    _=Depends(authentication_required),
+):
     """Return the elevation TPI statistics for each advisory threshold for a fire centre"""
     logger.info("/fba/fire-centre-tpi-stats/")
     async with get_async_read_session_scope() as session:
-        tpi_stats_for_centre = await get_centre_tpi_stats(session, fire_centre_name, run_type, run_datetime, for_date)
+        tpi_stats_for_centre = await get_centre_tpi_stats(
+            session, fire_centre_name, run_type, run_datetime, for_date
+        )
         tpi_fuel_stats = await get_fire_centre_tpi_fuel_areas(session, fire_centre_name)
 
         hfi_tpi_areas_by_zone = []
         for row in tpi_stats_for_centre:
             fire_zone_id = row.source_identifier
             square_metres = math.pow(row.pixel_size_metres, 2)
-            tpi_fuel_stats_for_zone = [stats for stats in tpi_fuel_stats if stats[2] == fire_zone_id]
+            tpi_fuel_stats_for_zone = [
+                stats for stats in tpi_fuel_stats if stats[2] == fire_zone_id
+            ]
             valley_bottom_tpi = None
             mid_slope_tpi = None
             upper_slope_tpi = None
@@ -229,4 +330,6 @@ async def get_fire_centre_tpi_stats(fire_centre_name: str, run_type: RunType, ru
                 )
             )
 
-    return FireCentreTPIResponse(fire_centre_name=fire_centre_name, firezone_tpi_stats=hfi_tpi_areas_by_zone)
+    return FireCentreTPIResponse(
+        fire_centre_name=fire_centre_name, firezone_tpi_stats=hfi_tpi_areas_by_zone
+    )
