@@ -236,8 +236,8 @@ async def get_sfms_run_bounds_for_year(
     :return: The range of available SFMS run data.
     """
     async with get_async_read_session_scope() as session:
-        min, max = await get_bounds_for_year_and_run_type(session, run_type.value, year)
-        bounds = SFMSBounds(minimum=min.isoformat(), maximum=max.isoformat())
+        minimum, maximum = await get_bounds_for_year_and_run_type(session, run_type.value, year)
+        bounds = SFMSBounds(minimum=minimum.isoformat(), maximum=maximum.isoformat())
     return SFMSBoundsForYearResponse(sfms_bounds=bounds)
 
 
