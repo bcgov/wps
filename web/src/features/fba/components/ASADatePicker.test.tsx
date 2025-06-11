@@ -5,8 +5,8 @@ import ASADatePicker from './ASADatePicker'
 
 describe('ASADatePicker', () => {
   const baseDate = DateTime.fromISO('2025-06-10')
-  const minDate = baseDate.minus({ days: 1 })
-  const maxDate = baseDate.plus({ days: 1 })
+  const minimumDate = baseDate.minus({ days: 2 })
+  const maximumDate = baseDate.plus({ days: 2 })
 
   const setup = (overrideProps = {}) => {
     const updateDate = vi.fn()
@@ -14,8 +14,8 @@ describe('ASADatePicker', () => {
       <ASADatePicker
         date={baseDate}
         updateDate={updateDate}
-        minDate={minDate}
-        maxDate={maxDate}
+        minimumDate={minimumDate}
+        maximumDate={maximumDate}
         {...overrideProps}
       />
     )
@@ -42,15 +42,15 @@ describe('ASADatePicker', () => {
     expect(updateDate).toHaveBeenCalledWith(baseDate.plus({ days: -1 }))
   })
 
-  it('disables left arrow when at minDate', () => {
-    setup({ date: minDate })
+  it('disables left arrow when at minimumDate', () => {
+    setup({ date: minimumDate })
     const arrows = screen.getAllByRole('button', { name: '' })
     expect(arrows[0]).toBeDisabled() // left arrow
     expect(arrows[1]).not.toBeDisabled() // right arrow
   })
 
-  it('disables right arrow when at maxDate', () => {
-    setup({ date: maxDate })
+  it('disables right arrow when at maximumDate', () => {
+    setup({ date: maximumDate })
     const arrows = screen.getAllByRole('button', { name: '' })
     expect(arrows[1]).toBeDisabled() // right arrow
     expect(arrows[0]).not.toBeDisabled() // left arrow
