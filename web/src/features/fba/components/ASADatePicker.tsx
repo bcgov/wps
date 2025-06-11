@@ -26,7 +26,7 @@ interface CustomDateTextFieldProps
   maxDate: DateTime
 }
 
-function CustomDateTextField(props: CustomDateTextFieldProps) {
+function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
   const { internalProps, forwardedProps } = useSplitFieldProps(props, 'date')
   const { minDate, maxDate, value } = internalProps
   const { date, updateDate, slotProps, InputProps, ...other } = forwardedProps
