@@ -225,9 +225,7 @@ async def get_run_datetimes_for_date_and_runtype(
 
 
 @router.get("/sfms-run-bounds/{run_type}/{year}", response_model=SFMSBoundsForYearResponse)
-async def get_sfms_run_bounds_for_year(
-    run_type: RunType, year: int, _=Depends(authentication_required)
-):
+async def get_sfms_run_bounds(run_type: RunType, year: int, _=Depends(authentication_required)):
     """
     Return the range of available SFMS run data for the specified year and run type.
 
@@ -237,6 +235,9 @@ async def get_sfms_run_bounds_for_year(
     """
     async with get_async_read_session_scope() as session:
         minimum, maximum = await get_bounds_for_year_and_run_type(session, run_type.value, year)
+        # Supply season long default dates if no actuals bounds available
+        minimum = minimum if minimum is not None else date(year, 4, 1)
+        maximum = maximum if maximum is not None else date(year, 10, 31)
         bounds = SFMSBounds(minimum=minimum.isoformat(), maximum=maximum.isoformat())
     return SFMSBoundsForYearResponse(sfms_bounds=bounds)
 

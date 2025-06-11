@@ -165,6 +165,9 @@ async def mock_get_sfms_run_datetimes(*_, **__):
 async def mock_get_bounds_for_year_and_run_type(*_, **__):
     return (date(2025, 4, 3), date(2025, 9, 23))
 
+async def mock_get_bounds_for_year_and_run_type_no_data(*_, **__):
+    return (None, None)
+
 
 @pytest.fixture()
 def client():
@@ -439,3 +442,17 @@ def test_get_sfms_run_bounds(client: TestClient):
     json_response = response.json()
     assert json_response["sfms_bounds"]["minimum"] == "2025-04-03"
     assert json_response["sfms_bounds"]["maximum"] == "2025-09-23"
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
+@patch(
+    "app.routers.fba.get_bounds_for_year_and_run_type",
+    mock_get_bounds_for_year_and_run_type_no_data,
+)
+def test_get_sfms_run_bounds_no_bounds(client: TestClient):
+    response = client.get(get_sfms_run_bounds_for_year_url)
+    assert response.status_code == 200
+    json_response = response.json()
+    assert json_response["sfms_bounds"]["minimum"] == "2025-04-01"
+    assert json_response["sfms_bounds"]["maximum"] == "2025-10-31"
