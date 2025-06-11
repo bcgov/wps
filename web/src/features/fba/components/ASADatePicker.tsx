@@ -54,7 +54,11 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
         >
           <PlayArrow />
         </IconButton>
-        <IconButton disabled={date >= maxDate} onClick={() => handleArrowButton(1)} sx={{ paddingLeft: 0 }}>
+        <IconButton
+          disabled={date.plus({ days: 1 }) > maxDate}
+          onClick={() => handleArrowButton(1)}
+          sx={{ paddingLeft: 0 }}
+        >
           <PlayArrow />
         </IconButton>
       </>
@@ -99,7 +103,6 @@ const ASADatePicker = ({ date, minDate, maxDate, updateDate, ...other }: ASADate
       <DatePicker
         label="Date of Interest"
         format="yyyy/MM/dd"
-        minDate={minDate}
         maxDate={maxDate}
         value={date}
         onAccept={(newValue: DateTime | null) => {
