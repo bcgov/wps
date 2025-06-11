@@ -91,7 +91,6 @@ export const fetchSFMSBounds =
     try {
       dispatch(getRunDateBoundsStart())
       const bounds = await getSFMSRunDateBounds(runType, year)
-      const sfmsBounds = bounds.sfms_bounds
       dispatch(getRunDateBoundsSuccess(bounds))
     } catch (err) {
       dispatch(getRunDateBoundsFailed((err as Error).toString()))

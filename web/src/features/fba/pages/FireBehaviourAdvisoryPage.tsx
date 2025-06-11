@@ -133,7 +133,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [])
 
   const getSFMSRunDateLimit = (limit: 'minimum' | 'maximum'): DateTime => {
-    const sfmsRunType: 'actual' | 'forecast' = runType === RunType.ACTUAL ? 'actual' : 'forecast'
     const defaultBounds = {
       minimum: DateTime.fromObject({ year: dateOfInterest.year, month: 4, day: 1 }),
       maximum: DateTime.fromObject({ year: dateOfInterest.year, month: 10, day: 31 })
