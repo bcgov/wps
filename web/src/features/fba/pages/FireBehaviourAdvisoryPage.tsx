@@ -86,6 +86,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
       dispatch(fetchSFMSRunDates(runType, doiISODate))
+      dispatch(fetchSFMSBounds(runType, dateOfInterest.year))
     }
   }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -129,7 +130,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     document.title = ASA_DOC_TITLE
-    dispatch(fetchSFMSBounds(runType, dateOfInterest.year))
   }, [])
 
   const getSFMSRunDateLimit = (limit: 'minimum' | 'maximum'): DateTime => {

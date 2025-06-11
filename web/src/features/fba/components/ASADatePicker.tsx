@@ -48,17 +48,13 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
     return (
       <>
         <IconButton
-          disabled={minimumDate >= date.plus({days: -1})}
+          disabled={minimumDate >= date.minus({ days: 1 })}
           onClick={() => handleArrowButton(-1)}
           sx={{ paddingLeft: 0, transform: 'rotate(180deg)' }}
         >
           <PlayArrow />
         </IconButton>
-        <IconButton
-          disabled={date.plus({ days: 1 }) > maximumDate}
-          onClick={() => handleArrowButton(1)}
-          sx={{ paddingLeft: 0 }}
-        >
+        <IconButton disabled={date >= maximumDate} onClick={() => handleArrowButton(1)} sx={{ paddingLeft: 0 }}>
           <PlayArrow />
         </IconButton>
       </>
