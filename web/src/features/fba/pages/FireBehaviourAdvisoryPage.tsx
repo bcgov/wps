@@ -153,8 +153,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               <ASADatePicker
                 date={dateOfInterest}
                 updateDate={updateDate}
-                minDate={getSFMSRunDateLimit('minimum')}
-                maxDate={getSFMSRunDateLimit('maximum')}
+                minimumDate={getSFMSRunDateLimit('minimum')}
+                maximumDate={getSFMSRunDateLimit('maximum')}
               />
             </StyledFormControl>
           </Grid>

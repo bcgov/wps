@@ -22,14 +22,14 @@ interface CustomDateTextFieldProps
     BaseSingleInputFieldProps<DateTime | null, DateTime, FieldSection, false, DateValidationError> {
   date: DateTime
   updateDate: React.Dispatch<React.SetStateAction<DateTime>>
-  minDate: DateTime
-  maxDate: DateTime
+  minimumDate: DateTime
+  maximumDate: DateTime
 }
 
 function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
   const { internalProps, forwardedProps } = useSplitFieldProps(props, 'date')
-  const { minDate, maxDate, value } = internalProps
-  const { date, updateDate, slotProps, InputProps, ...other } = forwardedProps
+  const { value } = internalProps
+  const { date, updateDate, minimumDate, maximumDate, slotProps, InputProps, ...other } = forwardedProps
   const pickersContext = usePickersContext()
   const handleTogglePicker = (event: React.UIEvent) => {
     if (pickersContext.open) {
@@ -48,14 +48,14 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
     return (
       <>
         <IconButton
-          disabled={minDate >= date}
+          disabled={minimumDate >= date.plus({days: -1})}
           onClick={() => handleArrowButton(-1)}
           sx={{ paddingLeft: 0, transform: 'rotate(180deg)' }}
         >
           <PlayArrow />
         </IconButton>
         <IconButton
-          disabled={date.plus({ days: 1 }) > maxDate}
+          disabled={date.plus({ days: 1 }) > maximumDate}
           onClick={() => handleArrowButton(1)}
           sx={{ paddingLeft: 0 }}
         >
@@ -93,17 +93,16 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
 interface ASADatePickerProps extends DatePickerProps<DateTime> {
   date: DateTime
   updateDate: (d: DateTime) => void
-  minDate?: DateTime
-  maxDate?: DateTime
+  minimumDate?: DateTime
+  maximumDate?: DateTime
 }
 
-const ASADatePicker = ({ date, minDate, maxDate, updateDate, ...other }: ASADatePickerProps) => {
+const ASADatePicker = ({ date, minimumDate, maximumDate, updateDate, ...other }: ASADatePickerProps) => {
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <DatePicker
         label="Date of Interest"
         format="yyyy/MM/dd"
-        maxDate={maxDate}
         value={date}
         onAccept={(newValue: DateTime | null) => {
           if (!isNull(newValue) && newValue.isValid) {
@@ -111,7 +110,7 @@ const ASADatePicker = ({ date, minDate, maxDate, updateDate, ...other }: ASADate
           }
         }}
         slots={{ ...other.slots, field: CustomDateTextField }}
-        slotProps={{ ...other.slotProps, field: { date, updateDate, minDate, maxDate } as any }}
+        slotProps={{ ...other.slotProps, field: { date, updateDate, minimumDate, maximumDate } as any }}
       />
     </LocalizationProvider>
   )
