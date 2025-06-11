@@ -33,6 +33,7 @@ get_fire_centre_tpi_stats_url = (
     f"/api/fba/fire-centre-tpi-stats/forecast/2024-08-10/2024-08-10/{mock_fire_centre_name}"
 )
 get_sfms_run_datetimes_url = "/api/fba/sfms-run-datetimes/forecast/2022-09-27"
+get_sfms_run_bounds_for_year_url = "/api/fba/sfms-run-bounds/forecast/2025"
 
 decode_fn = "jwt.decode"
 mock_tpi_stats = AdvisoryTPIStats(
@@ -161,6 +162,10 @@ async def mock_get_sfms_run_datetimes(*_, **__):
     return mock_sfms_run_datetimes
 
 
+async def mock_get_bounds_for_year_and_run_type(*_, **__):
+    return (date(2025, 4, 3), date(2025, 9, 23))
+
+
 @pytest.fixture()
 def client():
     from app.main import app as test_app
@@ -197,6 +202,7 @@ def test_fba_endpoint_fire_centers(status, expected_fire_centers, monkeypatch):
         get_fire_zone_tpi_stats_url,
         get_fire_centre_info_url,
         get_sfms_run_datetimes_url,
+        get_sfms_run_bounds_for_year_url,
     ],
 )
 def test_get_endpoints_unauthorized(client: TestClient, endpoint: str):
@@ -422,3 +428,14 @@ def test_get_fire_centre_tpi_stats_authorized(client: TestClient):
     assert json_response["firezone_tpi_stats"][1]["valley_bottom_tpi"] is None
     assert json_response["firezone_tpi_stats"][1]["mid_slope_tpi"] is None
     assert json_response["firezone_tpi_stats"][1]["upper_slope_tpi"] is None
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
+@patch("app.routers.fba.get_bounds_for_year_and_run_type", mock_get_bounds_for_year_and_run_type)
+def test_get_sfms_run_bounds(client: TestClient):
+    response = client.get(get_sfms_run_bounds_for_year_url)
+    assert response.status_code == 200
+    json_response = response.json()
+    assert json_response["sfms_bounds"]["minimum"] == "2025-04-03"
+    assert json_response["sfms_bounds"]["maximum"] == "2025-09-23"
