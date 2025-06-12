@@ -19,7 +19,7 @@
     "@mui/icons-material": "^5.5.1",
     "@mui/material": "5.15.20",
     "@mui/x-data-grid-pro": "^6.0.0",
-    "@mui/x-date-pickers": "^7.0.0",
+    "@mui/x-date-pickers": "^7.29.4",
     "@psu/cffdrs_ts": "git+https://github.com/cffdrs/cffdrs_ts#b9afdabc89dd4bdf04ccf1e406a4a5d8d552ff51",
     "@reduxjs/toolkit": "^2.2.7",
     "@sentry/react": "^9.0.0",

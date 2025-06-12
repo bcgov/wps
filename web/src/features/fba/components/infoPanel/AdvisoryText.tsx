@@ -129,7 +129,7 @@ const filterHFIStatsByArea = (stats: FireZoneFuelStats[]) => {
 }
 const SerifTypography = styled(Typography)({
   fontSize: '1.2rem',
-  fontFamily: '"Courier New", "Courier", "Monospace"'
+  fontFamily: '"Courier", "Monospace"'
 }) as typeof Typography
 
 interface AdvisoryTextProps {

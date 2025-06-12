@@ -470,6 +470,25 @@ async def get_run_datetimes(
     return result.all()
 
 
+async def get_bounds_for_year_and_run_type(session: AsyncSession, run_type: RunTypeEnum, year: int):
+    """
+    Retrieve the first and last available for_dates for the given year.
+
+    :param session: The async database session.
+    :param year: The year of interest.
+    """
+    stmt = (
+        select(
+            func.min(RunParameters.for_date),
+            func.max(RunParameters.for_date),
+        )
+        .where(RunParameters.run_type == run_type)
+        .where(func.date_part("YEAR", RunParameters.for_date) == year)
+    )
+    result = await session.execute(stmt)
+    return result.first()
+
+
 async def get_most_recent_run_parameters(
     session: AsyncSession, run_type: RunTypeEnum, for_date: date
 ) -> List[Row]:
