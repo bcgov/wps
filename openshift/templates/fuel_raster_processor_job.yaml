@@ -70,22 +70,22 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.fuel_raster_name
-                - name: PG_USER
+                - name: POSTGRES_WRITE_USER
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
                       key: user
-                - name: PG_PASSWORD
+                - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
                       key: password
-                - name: PG_HOSTNAME
+                - name: POSTGRES_WRITE_HOST
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
                       key: pgbouncer-host
-                - name: PG_PORT
+                - name: POSTGRES_PORT
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
