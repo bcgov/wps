@@ -22,6 +22,9 @@ parameters:
     value: e1e498-tools
   - name: CRUNCHYDB_USER
     required: true
+  - name: IMAGE_REGISTRY
+    required: true
+    value: image-registry.openshift-image-registry.svc:5000
 objects:
   - kind: Job
     apiVersion: batch/v1
@@ -67,27 +70,22 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.fuel_raster_name
-                - name: FUEL_RASTER_CONTENT_HASH
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.fuel_raster_content_hash
-                - name: PG_USER
+                - name: POSTGRES_WRITE_USER
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
                       key: user
-                - name: PG_PASSWORD
+                - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
                       key: password
-                - name: PG_HOSTNAME
+                - name: POSTGRES_WRITE_HOST
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
                       key: pgbouncer-host
-                - name: PG_PORT
+                - name: POSTGRES_PORT
                   valueFrom:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
