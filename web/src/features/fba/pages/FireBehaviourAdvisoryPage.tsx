@@ -12,11 +12,10 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { FireCenter, FireShape, RunType } from 'api/fbaAPI'
 import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME, PST_UTC_OFFSET } from 'utils/constants'
-import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import ActualForecastControl from 'features/fba/components/ActualForecastControl'
-import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
-import { isNull, isUndefined } from 'lodash'
+import { fetchSFMSRunDates, fetchSFMSBounds } from 'features/fba/slices/runDatesSlice'
+import { isNil, isNull, isUndefined } from 'lodash'
 import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
@@ -27,6 +26,7 @@ import { fetchFireCentreHFIFuelStats } from 'features/fba/slices/fireCentreHFIFu
 import Footer from '@/features/landingPage/components/Footer'
 import AboutDataPopover from '@/components/AboutDataPopover'
 import { ASAAboutDataContent } from '@/features/fba/components/ASAAboutDataContent'
+import ASADatePicker from '@/features/fba/components/ASADatePicker'
 
 const ADVISORY_THRESHOLD = 20
 
@@ -38,9 +38,7 @@ export const FireCentreFormControl = styled(FormControl)({
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
-
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
   const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
   const [dateOfInterest, setDateOfInterest] = useState(
@@ -49,7 +47,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
-  const { mostRecentRunDate } = useSelector(selectRunDates)
+  const { mostRecentRunDate, sfmsBounds } = useSelector(selectRunDates)
   const { fireShapeAreas } = useSelector(selectFireShapeAreas)
 
   useEffect(() => {
@@ -79,12 +77,16 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (newDate !== dateOfInterest) {
       setDateOfInterest(newDate)
     }
+    if (newDate.year !== dateOfInterest.year) {
+      dispatch(fetchSFMSBounds(runType, newDate.year))
+    }
   }
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
       dispatch(fetchSFMSRunDates(runType, doiISODate))
+      dispatch(fetchSFMSBounds(runType, dateOfInterest.year))
     }
   }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -130,6 +132,17 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     document.title = ASA_DOC_TITLE
   }, [])
 
+  const getSFMSRunDateLimit = (limit: 'minimum' | 'maximum'): DateTime => {
+    const defaultBounds = {
+      minimum: DateTime.fromObject({ year: dateOfInterest.year, month: 4, day: 1 }),
+      maximum: DateTime.fromObject({ year: dateOfInterest.year, month: 11, day: 1 })
+    }
+    if (!isNil(sfmsBounds)) {
+      return DateTime.fromISO(sfmsBounds[limit])
+    }
+    return defaultBounds[limit]
+  }
+
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader isBeta={false} spacing={1} title={FIRE_BEHAVIOUR_ADVISORY_NAME} />
@@ -137,7 +150,12 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         <Grid container spacing={1} alignItems={'center'}>
           <Grid item>
             <StyledFormControl>
-              <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
+              <ASADatePicker
+                date={dateOfInterest}
+                updateDate={updateDate}
+                minimumDate={getSFMSRunDateLimit('minimum')}
+                maximumDate={getSFMSRunDateLimit('maximum')}
+              />
             </StyledFormControl>
           </Grid>
           <ErrorBoundary>
