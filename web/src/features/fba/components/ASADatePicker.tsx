@@ -119,6 +119,7 @@ const ASADatePicker = ({
         slots={{ ...other.slots, field: CustomDateTextField }}
         slotProps={{
           ...other.slotProps,
+          actionBar: { actions: ['today'] },
           field: { date, updateDate, minimumDate: currentYearMinDate, maximumDate: currentYearMaxDate } as any
         }}
         value={date}
@@ -127,3 +128,7 @@ const ASADatePicker = ({
   )
 }
 export default React.memo(ASADatePicker)
+
+actionBar: {
+  actions: ['today']
+}
