@@ -14,8 +14,8 @@ describe('ASADatePicker', () => {
       <ASADatePicker
         date={baseDate}
         updateDate={updateDate}
-        minimumDate={minimumDate}
-        maximumDate={maximumDate}
+        currentYearMinDate={minimumDate}
+        currentYearMaxDate={maximumDate}
         {...overrideProps}
       />
     )

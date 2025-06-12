@@ -15,7 +15,7 @@ import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME, PST_UTC_OFFSET } from 'uti
 import { AppDispatch } from 'app/store'
 import ActualForecastControl from 'features/fba/components/ActualForecastControl'
 import { fetchSFMSRunDates, fetchSFMSBounds } from 'features/fba/slices/runDatesSlice'
-import { isNil, isNull, isUndefined } from 'lodash'
+import { isEmpty, isNull, isUndefined } from 'lodash'
 import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
@@ -49,6 +49,44 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [runType, setRunType] = useState(RunType.FORECAST)
   const { mostRecentRunDate, sfmsBounds } = useSelector(selectRunDates)
   const { fireShapeAreas } = useSelector(selectFireShapeAreas)
+  // Set some reasonable historical min and max dates for ASA (used by the DatePicker).
+  const [historicalMinDate, setHistoricalMinDate] = useState<DateTime>(
+    DateTime.fromObject({ year: 2022, month: 4, day: 1 })
+  )
+  const [historicalMaxDate, setHistoricalMaxDate] = useState<DateTime>(DateTime.now().plus({ days: 3 }))
+  // Set some reasonable min and max dates for ASA for the current year (used by forward/back arrow buttons).
+  const [currentYearMinDate, setCurrentYearMinDate] = useState<DateTime>(
+    DateTime.fromObject({ year: DateTime.now().year, month: 4, day: 1 })
+  )
+  const [currentYearMaxDate, setCurrentYearMaxDate] = useState<DateTime>(DateTime.now().plus({ days: 3 }))
+  const [currentYear, setCurrentYear] = useState<number>(DateTime.now().year)
+  const dateTimeComparator = (a: DateTime, b: DateTime) => (a > b ? 1 : a > b ? -1 : 0)
+
+  const updateDatePickerOptions = () => {
+    const dates: DateTime[] = []
+    const runTypeLower = runType.toLocaleLowerCase()
+    if (!isNull(sfmsBounds) && !isEmpty(sfmsBounds)) {
+      for (const key of Object.keys(sfmsBounds)) {
+        const minValue = sfmsBounds[key][runTypeLower]['minimum']
+        const maxValue = sfmsBounds[key][runTypeLower]['maximum']
+        const minDate = DateTime.fromISO(minValue)
+        const maxDate = DateTime.fromISO(maxValue)
+        dates.push(minDate, maxDate)
+      }
+      if (dates.length >= 2) {
+        dates.sort(dateTimeComparator)
+        setHistoricalMinDate(dates[0])
+        setHistoricalMaxDate(dates[dates.length - 1].plus({ days: 1 }))
+      }
+    }
+    const year = dateOfInterest.year
+    const currentYearMin = sfmsBounds?.[year]?.[runTypeLower]?.['minimum'] ?? `${currentYear}-04-01`
+    const currentYearMax = sfmsBounds?.[year]?.[runTypeLower]?.['maximum'] ?? `${currentYear}-10-31`
+    setCurrentYearMinDate(DateTime.fromISO(currentYearMin))
+    setCurrentYearMaxDate(DateTime.fromISO(currentYearMax))
+  }
+
+  useEffect(() => updateDatePickerOptions(), [currentYear, runType, sfmsBounds])
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -77,16 +115,12 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (newDate !== dateOfInterest) {
       setDateOfInterest(newDate)
     }
-    if (newDate.year !== dateOfInterest.year) {
-      dispatch(fetchSFMSBounds(runType, newDate.year))
-    }
   }
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
       dispatch(fetchSFMSRunDates(runType, doiISODate))
-      dispatch(fetchSFMSBounds(runType, dateOfInterest.year))
     }
   }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -97,12 +131,16 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       dispatch(fetchSFMSRunDates(runType, doiISODate))
     }
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+    dispatch(fetchSFMSBounds())
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
       dispatch(fetchSFMSRunDates(runType, doiISODate))
+    }
+    if (dateOfInterest.year !== currentYear) {
+      setCurrentYear(dateOfInterest.year)
     }
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -132,17 +170,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     document.title = ASA_DOC_TITLE
   }, [])
 
-  const getSFMSRunDateLimit = (limit: 'minimum' | 'maximum'): DateTime => {
-    const defaultBounds = {
-      minimum: DateTime.fromObject({ year: dateOfInterest.year, month: 4, day: 1 }),
-      maximum: DateTime.fromObject({ year: dateOfInterest.year, month: 11, day: 1 })
-    }
-    if (!isNil(sfmsBounds)) {
-      return DateTime.fromISO(sfmsBounds[limit])
-    }
-    return defaultBounds[limit]
-  }
-
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader isBeta={false} spacing={1} title={FIRE_BEHAVIOUR_ADVISORY_NAME} />
@@ -153,8 +180,10 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               <ASADatePicker
                 date={dateOfInterest}
                 updateDate={updateDate}
-                minimumDate={getSFMSRunDateLimit('minimum')}
-                maximumDate={getSFMSRunDateLimit('maximum')}
+                historicalMinDate={historicalMinDate}
+                historicalMaxDate={historicalMaxDate}
+                currentYearMinDate={currentYearMinDate}
+                currentYearMaxDate={currentYearMaxDate}
               />
             </StyledFormControl>
           </Grid>
