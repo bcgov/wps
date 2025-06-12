@@ -2,7 +2,6 @@
 
 import logging
 import math
-from collections import defaultdict
 from datetime import date, datetime
 from typing import List
 
