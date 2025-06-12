@@ -53,12 +53,6 @@ router = APIRouter(
 )
 
 
-def convert_defaultdict_to_dict(dd: defaultdict):
-    if isinstance(dd, defaultdict):
-        return {key: convert_defaultdict_to_dict(value) for key, value in dd.items()}
-    return dd
-
-
 @router.get("/fire-centers", response_model=FireCenterListResponse)
 async def get_all_fire_centers(_=Depends(authentication_required)):
     """Returns fire centers for all active stations."""
@@ -233,11 +227,10 @@ async def get_run_datetimes_for_date_and_runtype(
 async def get_sfms_run_bounds():
     async with get_async_read_session_scope() as session:
         results = await get_sfms_bounds(session)
-        bounds = defaultdict(lambda: defaultdict(lambda: defaultdict(date)))
+        sfms_bounds = defaultdict(lambda: defaultdict(lambda: defaultdict(date)))
         for year, run_type, min_date, max_date in results:
-            bounds[year][run_type]["minimum"] = min_date
-            bounds[year][run_type]["maximum"] = max_date
-        sfms_bounds = convert_defaultdict_to_dict(bounds)
+            sfms_bounds[year][run_type]["minimum"] = min_date
+            sfms_bounds[year][run_type]["maximum"] = max_date
     return SFMSBoundsResponse(sfms_bounds=sfms_bounds)
 
 
