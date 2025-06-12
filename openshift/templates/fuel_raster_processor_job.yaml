@@ -70,11 +70,6 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.fuel_raster_name
-                - name: FUEL_RASTER_CONTENT_HASH
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.fuel_raster_content_hash
                 - name: PG_USER
                   valueFrom:
                     secretKeyRef:
