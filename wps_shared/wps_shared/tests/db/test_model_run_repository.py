@@ -1,24 +1,25 @@
-import pytest
-from datetime import datetime, timezone, timedelta
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.dialects.postgresql import insert
-from testcontainers.postgres import PostgresContainer
-from wps_shared.db.crud.model_run_repository import ModelRunRepository
+from datetime import datetime, timedelta, timezone
 
+import pytest
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session, sessionmaker
+from testcontainers.postgres import PostgresContainer
+
+from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.models.weather_models import (
     ModelRunPrediction,
     PredictionModel,
     PredictionModelRunTimestamp,
     ProcessedModelRunUrl,
+    WeatherStationModelPrediction,
 )
-
-from dotenv import load_dotenv
+from wps_shared.weather_models import ModelEnum, ProjectionEnum
 
 # Required for loading DOCKER_HOST
 load_dotenv()
 
-from wps_shared.weather_models import ModelEnum, ProjectionEnum
 
 TEST_DATETIME = datetime(2023, 1, 1, 12, 0, tzinfo=timezone.utc)
 
@@ -45,11 +46,16 @@ def db_session(postgres_container):
     PredictionModelRunTimestamp.__table__.create(engine, checkfirst=True)
     ProcessedModelRunUrl.__table__.create(engine, checkfirst=True)
     ModelRunPrediction.__table__.create(engine, checkfirst=True)
-    Session = sessionmaker(bind=engine)
+    WeatherStationModelPrediction.__table__.create(engine, checkfirst=True)
+    Session = sessionmaker(bind=engine, autoflush=False)
     session = Session()
 
     # Make sure model exists
-    stmt = insert(PredictionModel).values(name="ECMWF Integrated Forecast System", abbreviation=ModelEnum.ECMWF.value, projection=ProjectionEnum.ECMWF_LATLON.value)
+    stmt = insert(PredictionModel).values(
+        name="ECMWF Integrated Forecast System",
+        abbreviation=ModelEnum.ECMWF.value,
+        projection=ProjectionEnum.ECMWF_LATLON.value,
+    )
     stmt = stmt.on_conflict_do_nothing()
     session.execute(stmt)
     session.commit()
@@ -103,7 +109,9 @@ def test_get_processed_file_record(repository: ModelRunRepository, db_session: S
     url = "http://example.com/file"
 
     # Insert a mock record
-    mock_processed_file = ProcessedModelRunUrl(url=url, create_date=TEST_DATETIME, update_date=TEST_DATETIME)
+    mock_processed_file = ProcessedModelRunUrl(
+        url=url, create_date=TEST_DATETIME, update_date=TEST_DATETIME
+    )
     db_session.add(mock_processed_file)
     db_session.commit()
 
@@ -114,7 +122,9 @@ def test_get_processed_file_record(repository: ModelRunRepository, db_session: S
 
 def test_create_prediction_run(repository: ModelRunRepository):
     run_datetime = TEST_DATETIME + timedelta(hours=1)
-    prediction_model_id = repository.get_prediction_model(ModelEnum.ECMWF, ProjectionEnum.ECMWF_LATLON).id
+    prediction_model_id = repository.get_prediction_model(
+        ModelEnum.ECMWF, ProjectionEnum.ECMWF_LATLON
+    ).id
     result = repository.create_prediction_run(prediction_model_id, run_datetime)
 
     assert isinstance(result, PredictionModelRunTimestamp)
@@ -126,6 +136,7 @@ def test_create_prediction_run(repository: ModelRunRepository):
     assert stored_result is not None
     assert stored_result == result
 
+
 def test_get_or_create_prediction_run(repository: ModelRunRepository, db_session: Session):
     prediction_model = repository.get_prediction_model(ModelEnum.ECMWF, ProjectionEnum.ECMWF_LATLON)
     prediction_run_timestamp = TEST_DATETIME + timedelta(hours=2)
@@ -135,7 +146,9 @@ def test_get_or_create_prediction_run(repository: ModelRunRepository, db_session
     assert existing_run is None
 
     # Call the method to get or create the prediction run
-    created_run = repository.get_or_create_prediction_run(prediction_model, prediction_run_timestamp)
+    created_run = repository.get_or_create_prediction_run(
+        prediction_model, prediction_run_timestamp
+    )
 
     # Verify the prediction run was created
     assert isinstance(created_run, PredictionModelRunTimestamp)
@@ -148,8 +161,11 @@ def test_get_or_create_prediction_run(repository: ModelRunRepository, db_session
     assert stored_run == created_run
 
     # Call the method again to ensure it retrieves the existing run
-    retrieved_run = repository.get_or_create_prediction_run(prediction_model, prediction_run_timestamp)
+    retrieved_run = repository.get_or_create_prediction_run(
+        prediction_model, prediction_run_timestamp
+    )
     assert retrieved_run == created_run
+
 
 def test_mark_prediction_model_run_processed(repository: ModelRunRepository, db_session: Session):
     prediction_model = repository.get_prediction_model(ModelEnum.ECMWF, ProjectionEnum.ECMWF_LATLON)
@@ -172,16 +188,21 @@ def test_mark_prediction_model_run_processed(repository: ModelRunRepository, db_
     )
 
     # Verify the prediction run is marked as complete
-    updated_prediction_run = repository.get_prediction_run(prediction_model.id, prediction_run_timestamp)
+    updated_prediction_run = repository.get_prediction_run(
+        prediction_model.id, prediction_run_timestamp
+    )
     assert updated_prediction_run is not None
     assert updated_prediction_run.complete is True
+
 
 def test_store_model_run_prediction(repository: ModelRunRepository, db_session: Session):
     prediction_model = repository.get_prediction_model(ModelEnum.ECMWF, ProjectionEnum.ECMWF_LATLON)
     prediction_run_timestamp = TEST_DATETIME + timedelta(hours=4)
 
     # Create a prediction run to associate with the prediction
-    prediction_run = repository.get_or_create_prediction_run(prediction_model, prediction_run_timestamp)
+    prediction_run = repository.get_or_create_prediction_run(
+        prediction_model, prediction_run_timestamp
+    )
 
     # Create a mock prediction
     mock_prediction = ModelRunPrediction(
@@ -203,12 +224,15 @@ def test_store_model_run_prediction(repository: ModelRunRepository, db_session: 
     assert stored_prediction is not None
     assert stored_prediction == mock_prediction
 
+
 def test_get_model_run_predictions_for_station(repository: ModelRunRepository, db_session: Session):
     prediction_model = repository.get_prediction_model(ModelEnum.ECMWF, ProjectionEnum.ECMWF_LATLON)
     prediction_run_timestamp = TEST_DATETIME + timedelta(hours=6)
 
     # Create a prediction run to associate with the predictions
-    prediction_run = repository.get_or_create_prediction_run(prediction_model, prediction_run_timestamp)
+    prediction_run = repository.get_or_create_prediction_run(
+        prediction_model, prediction_run_timestamp
+    )
 
     # Insert mock predictions
     mock_predictions = [
@@ -240,25 +264,68 @@ def test_get_model_run_predictions_for_station(repository: ModelRunRepository, d
     [
         # no prediction runs
         ([], False, False, 0),
-        ([PredictionModelRunTimestamp(prediction_model_id=1,
-                                prediction_run_timestamp=TEST_DATETIME + timedelta(days = 1, hours=1),
-                                complete=False,
-                                interpolated=False)], False, False, 1),
-        ([PredictionModelRunTimestamp(prediction_model_id=1,
-                                prediction_run_timestamp=TEST_DATETIME + timedelta(days = 1, hours=2),
-                                complete=True,
-                                interpolated=False)], True, False, 1),
-        ([PredictionModelRunTimestamp(prediction_model_id=1,
-                                prediction_run_timestamp=TEST_DATETIME + timedelta(days = 1, hours=3),
-                                complete=False,
-                                interpolated=True)], False, True, 1),
-        ([PredictionModelRunTimestamp(prediction_model_id=1,
-                                prediction_run_timestamp=TEST_DATETIME + timedelta(days = 1, hours=4),
-                                complete=True,
-                                interpolated=True)], True, True, 1)
+        (
+            [
+                PredictionModelRunTimestamp(
+                    prediction_model_id=1,
+                    prediction_run_timestamp=TEST_DATETIME + timedelta(days=1, hours=1),
+                    complete=False,
+                    interpolated=False,
+                )
+            ],
+            False,
+            False,
+            1,
+        ),
+        (
+            [
+                PredictionModelRunTimestamp(
+                    prediction_model_id=1,
+                    prediction_run_timestamp=TEST_DATETIME + timedelta(days=1, hours=2),
+                    complete=True,
+                    interpolated=False,
+                )
+            ],
+            True,
+            False,
+            1,
+        ),
+        (
+            [
+                PredictionModelRunTimestamp(
+                    prediction_model_id=1,
+                    prediction_run_timestamp=TEST_DATETIME + timedelta(days=1, hours=3),
+                    complete=False,
+                    interpolated=True,
+                )
+            ],
+            False,
+            True,
+            1,
+        ),
+        (
+            [
+                PredictionModelRunTimestamp(
+                    prediction_model_id=1,
+                    prediction_run_timestamp=TEST_DATETIME + timedelta(days=1, hours=4),
+                    complete=True,
+                    interpolated=True,
+                )
+            ],
+            True,
+            True,
+            1,
+        ),
     ],
 )
-def test_get_interpolated_prediction_value(mock_prediction_runs, complete, interpolated, expected, repository: ModelRunRepository, db_session: Session):
+def test_get_interpolated_prediction_value(
+    mock_prediction_runs,
+    complete,
+    interpolated,
+    expected,
+    repository: ModelRunRepository,
+    db_session: Session,
+):
     # Clear the database before inserting mock data
     db_session.query(ModelRunPrediction).delete()
     db_session.query(PredictionModelRunTimestamp).delete()
@@ -275,6 +342,7 @@ def test_get_interpolated_prediction_value(mock_prediction_runs, complete, inter
     )
 
     assert len(results) == expected
+
 
 def test_get_prediction_model(repository: ModelRunRepository, db_session: Session):
     # Insert a mock record
@@ -314,20 +382,66 @@ def test_mark_url_as_processed_new_url(repository: ModelRunRepository, db_sessio
     assert processed_url.update_date is not None
     assert processed_url.create_date == processed_url.update_date
 
+
 @pytest.mark.parametrize(
     "processed_urls, unprocessed_urls, expected_count, expected_model_run_complete",
     [
-        ([
-            ProcessedModelRunUrl(url="http://example.com/file1", create_date=TEST_DATETIME, update_date=TEST_DATETIME),
-            ProcessedModelRunUrl(url="http://example.com/file2", create_date=TEST_DATETIME, update_date=TEST_DATETIME),
-            ProcessedModelRunUrl(url="http://example.com/file3", create_date=TEST_DATETIME, update_date=TEST_DATETIME)], [], 3, True),
-        ([
-            ProcessedModelRunUrl(url="http://example.com/file1", create_date=TEST_DATETIME, update_date=TEST_DATETIME),
-            ProcessedModelRunUrl(url="http://example.com/file2", create_date=TEST_DATETIME, update_date=TEST_DATETIME),], [ProcessedModelRunUrl(url="http://example.com/file3", create_date=TEST_DATETIME, update_date=TEST_DATETIME)], 2, False),
-            ([], [], 0, False),
+        (
+            [
+                ProcessedModelRunUrl(
+                    url="http://example.com/file1",
+                    create_date=TEST_DATETIME,
+                    update_date=TEST_DATETIME,
+                ),
+                ProcessedModelRunUrl(
+                    url="http://example.com/file2",
+                    create_date=TEST_DATETIME,
+                    update_date=TEST_DATETIME,
+                ),
+                ProcessedModelRunUrl(
+                    url="http://example.com/file3",
+                    create_date=TEST_DATETIME,
+                    update_date=TEST_DATETIME,
+                ),
+            ],
+            [],
+            3,
+            True,
+        ),
+        (
+            [
+                ProcessedModelRunUrl(
+                    url="http://example.com/file1",
+                    create_date=TEST_DATETIME,
+                    update_date=TEST_DATETIME,
+                ),
+                ProcessedModelRunUrl(
+                    url="http://example.com/file2",
+                    create_date=TEST_DATETIME,
+                    update_date=TEST_DATETIME,
+                ),
+            ],
+            [
+                ProcessedModelRunUrl(
+                    url="http://example.com/file3",
+                    create_date=TEST_DATETIME,
+                    update_date=TEST_DATETIME,
+                )
+            ],
+            2,
+            False,
+        ),
+        ([], [], 0, False),
     ],
 )
-def test_get_processed_file_count(processed_urls, unprocessed_urls, expected_count, expected_model_run_complete, repository: ModelRunRepository, db_session: Session):
+def test_get_processed_file_count(
+    processed_urls,
+    unprocessed_urls,
+    expected_count,
+    expected_model_run_complete,
+    repository: ModelRunRepository,
+    db_session: Session,
+):
     # Ensure no records exist for the URLs
     db_session.query(ProcessedModelRunUrl).delete()
     db_session.commit()
@@ -345,3 +459,33 @@ def test_get_processed_file_count(processed_urls, unprocessed_urls, expected_cou
     assert processed_url_count == expected_count
     model_run_complete = repository.check_if_model_run_complete(urls)
     assert model_run_complete == expected_model_run_complete
+
+
+def test_store_prediction_flushes_makes_record_queryable_immediately(
+    repository: ModelRunRepository,
+):
+    prediction_model = repository.get_prediction_model(ModelEnum.ECMWF, ProjectionEnum.ECMWF_LATLON)
+    run_timestamp = TEST_DATETIME + timedelta(hours=4)
+    prediction_timestamp = TEST_DATETIME + timedelta(hours=10)
+
+    # Create a prediction run to associate with the prediction
+    prediction_run = repository.get_or_create_prediction_run(prediction_model, run_timestamp)
+
+    prediction = WeatherStationModelPrediction(
+        station_code=1,
+        prediction_model_run_timestamp_id=prediction_run.id,
+        prediction_timestamp=prediction_timestamp,
+    )
+
+    # should flush so the "stored" record is available for querying
+    repository.store_weather_station_model_prediction(prediction)
+
+    # query for the prediction before committing
+    fetched_prediction = repository.get_weather_station_model_prediction(
+        station_code=1,
+        prediction_model_run_timestamp_id=prediction_run.id,
+        prediction_timestamp=prediction_timestamp,
+    )
+
+    assert fetched_prediction is not None
+    assert fetched_prediction == prediction
