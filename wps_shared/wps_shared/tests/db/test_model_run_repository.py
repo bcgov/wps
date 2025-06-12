@@ -47,8 +47,8 @@ def db_session(postgres_container):
     ProcessedModelRunUrl.__table__.create(engine, checkfirst=True)
     ModelRunPrediction.__table__.create(engine, checkfirst=True)
     WeatherStationModelPrediction.__table__.create(engine, checkfirst=True)
-    Session = sessionmaker(bind=engine, autoflush=False)
-    session = Session()
+    session_ = sessionmaker(bind=engine, autoflush=False)
+    session = session_()
 
     # Make sure model exists
     stmt = insert(PredictionModel).values(
