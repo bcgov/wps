@@ -234,9 +234,9 @@ async def get_sfms_run_bounds():
     async with get_async_read_session_scope() as session:
         results = await get_sfms_bounds(session)
         bounds = defaultdict(lambda: defaultdict(lambda: defaultdict(date)))
-        for year, run_type, minDate, maxDate in results:
-            bounds[year][run_type]["minimum"] = minDate
-            bounds[year][run_type]["maximum"] = maxDate
+        for year, run_type, min_date, max_date in results:
+            bounds[year][run_type]["minimum"] = min_date
+            bounds[year][run_type]["maximum"] = max_date
         sfms_bounds = convert_defaultdict_to_dict(bounds)
     return SFMSBoundsResponse(sfms_bounds=sfms_bounds)
 

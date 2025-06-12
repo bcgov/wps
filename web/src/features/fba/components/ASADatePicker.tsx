@@ -128,7 +128,3 @@ const ASADatePicker = ({
   )
 }
 export default React.memo(ASADatePicker)
-
-actionBar: {
-  actions: ['today']
-}

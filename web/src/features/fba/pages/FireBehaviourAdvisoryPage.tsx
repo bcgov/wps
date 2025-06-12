@@ -60,7 +60,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   )
   const [currentYearMaxDate, setCurrentYearMaxDate] = useState<DateTime>(DateTime.now().plus({ days: 3 }))
   const [currentYear, setCurrentYear] = useState<number>(DateTime.now().year)
-  const dateTimeComparator = (a: DateTime, b: DateTime) => (a > b ? 1 : a > b ? -1 : 0)
+
+  const dateTimeComparator = (a: DateTime, b: DateTime) => a.valueOf() - b.valueOf()
 
   const updateDatePickerOptions = () => {
     const dates: DateTime[] = []
