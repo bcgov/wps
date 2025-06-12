@@ -106,7 +106,7 @@ def test_get_prediction_model(repository: ModelRunRepository, db_session: Sessio
 
 
 def test_get_processed_file_record(repository: ModelRunRepository, db_session: Session):
-    url = "http://example.com/file"
+    url = "https://example.com/file"
 
     # Insert a mock record
     mock_processed_file = ProcessedModelRunUrl(
@@ -365,7 +365,7 @@ def test_get_prediction_model(repository: ModelRunRepository, db_session: Sessio
 
 
 def test_mark_url_as_processed_new_url(repository: ModelRunRepository, db_session: Session):
-    url = "http://example.com/new_file"
+    url = "https://example.com/new_file"
 
     # Ensure the URL does not exist initially
     existing_url = repository.get_processed_url(url)
@@ -389,17 +389,17 @@ def test_mark_url_as_processed_new_url(repository: ModelRunRepository, db_sessio
         (
             [
                 ProcessedModelRunUrl(
-                    url="http://example.com/file1",
+                    url="https://example.com/file1",
                     create_date=TEST_DATETIME,
                     update_date=TEST_DATETIME,
                 ),
                 ProcessedModelRunUrl(
-                    url="http://example.com/file2",
+                    url="https://example.com/file2",
                     create_date=TEST_DATETIME,
                     update_date=TEST_DATETIME,
                 ),
                 ProcessedModelRunUrl(
-                    url="http://example.com/file3",
+                    url="https://example.com/file3",
                     create_date=TEST_DATETIME,
                     update_date=TEST_DATETIME,
                 ),
@@ -411,19 +411,19 @@ def test_mark_url_as_processed_new_url(repository: ModelRunRepository, db_sessio
         (
             [
                 ProcessedModelRunUrl(
-                    url="http://example.com/file1",
+                    url="https://example.com/file1",
                     create_date=TEST_DATETIME,
                     update_date=TEST_DATETIME,
                 ),
                 ProcessedModelRunUrl(
-                    url="http://example.com/file2",
+                    url="https://example.com/file2",
                     create_date=TEST_DATETIME,
                     update_date=TEST_DATETIME,
                 ),
             ],
             [
                 ProcessedModelRunUrl(
-                    url="http://example.com/file3",
+                    url="https://example.com/file3",
                     create_date=TEST_DATETIME,
                     update_date=TEST_DATETIME,
                 )
