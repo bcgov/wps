@@ -22,6 +22,9 @@ parameters:
     value: e1e498-tools
   - name: CRUNCHYDB_USER
     required: true
+  - name: IMAGE_REGISTRY
+    required: true
+    value: image-registry.openshift-image-registry.svc:5000
 objects:
   - kind: Job
     apiVersion: batch/v1
