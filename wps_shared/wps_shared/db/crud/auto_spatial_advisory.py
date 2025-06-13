@@ -4,7 +4,7 @@ import logging
 from collections import defaultdict
 from time import perf_counter
 from typing import List, Optional, Tuple
-from sqlalchemy import and_, select, func, cast, String
+from sqlalchemy import and_, extract, select, func, cast, String
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
@@ -470,23 +470,19 @@ async def get_run_datetimes(
     return result.all()
 
 
-async def get_bounds_for_year_and_run_type(session: AsyncSession, run_type: RunTypeEnum, year: int):
-    """
-    Retrieve the first and last available for_dates for the given year.
-
-    :param session: The async database session.
-    :param year: The year of interest.
-    """
+async def get_sfms_bounds(session: AsyncSession):
     stmt = (
         select(
-            func.min(RunParameters.for_date),
-            func.max(RunParameters.for_date),
+            extract("YEAR", RunParameters.for_date).label("year"),
+            RunParameters.run_type,
+            func.min(RunParameters.for_date).label("minDate"),
+            func.max(RunParameters.for_date).label("maxDate"),
         )
-        .where(RunParameters.run_type == run_type)
-        .where(func.date_part("YEAR", RunParameters.for_date) == year)
+        .group_by(extract("YEAR", RunParameters.for_date), RunParameters.run_type)
+        .order_by("year")
     )
     result = await session.execute(stmt)
-    return result.first()
+    return result.all()
 
 
 async def get_most_recent_run_parameters(
