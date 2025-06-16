@@ -17,23 +17,26 @@ station_1 = WFWXWeatherStation(
 
 time_of_interest = datetime.fromisoformat("2021-01-01")
 
+yesterday = {"fineFuelMoistureCode": 1}
+raw_daily = {
+    "buildUpIndex": 1,
+    "duffMoistureCode": 1,
+    "droughtCode": 1,
+    "temperature": 1,
+    "relativeHumidity": 1,
+    "precipitation": 1,
+    "windSpeed": 1,
+    "recordType": {"id": "ACTUAL"},
+}
+
 
 def test_adjusted_fwi_result_no_wind_speed_no_precipitation():
     adjusted_fwi_result = calculate_adjusted_fwi_result(
         requested_station=StationRequest(station_code=1, fuel_type=FuelTypeEnum.C2),
         wfwx_station=station_1,
         time_of_interest=time_of_interest,
-        yesterday={"fineFuelMoistureCode": 1},
-        raw_daily={
-            "buildUpIndex": 1,
-            "duffMoistureCode": 1,
-            "droughtCode": 1,
-            "temperature": 1,
-            "relativeHumidity": 1,
-            "precipitation": 1,
-            "windSpeed": 1,
-            "recordType": {"id": "ACTUAL"},
-        },
+        yesterday=yesterday,
+        raw_daily=raw_daily,
     )
     assert math.isclose(adjusted_fwi_result.dmc, 1, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.dc, 1, abs_tol=0.001)
@@ -51,17 +54,8 @@ def test_adjusted_fwi_result_with_wind_speed():
         requested_station=StationRequest(station_code=1, fuel_type=FuelTypeEnum.C2, wind_speed=5),
         wfwx_station=station_1,
         time_of_interest=time_of_interest,
-        yesterday={"fineFuelMoistureCode": 1},
-        raw_daily={
-            "buildUpIndex": 1,
-            "duffMoistureCode": 1,
-            "droughtCode": 1,
-            "temperature": 1,
-            "relativeHumidity": 1,
-            "precipitation": 1,
-            "windSpeed": 1,
-            "recordType": {"id": "ACTUAL"},
-        },
+        yesterday=yesterday,
+        raw_daily=raw_daily,
     )
     assert math.isclose(adjusted_fwi_result.dmc, 1, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.dc, 1, abs_tol=0.001)
@@ -81,20 +75,11 @@ def test_adjusted_fwi_result_with_precipitation():
         wfwx_station=station_1,
         time_of_interest=time_of_interest,
         yesterday={
-            "fineFuelMoistureCode": 1,
+            **yesterday,
             "duffMoistureCode": 1,
             "droughtCode": 1,
         },
-        raw_daily={
-            "buildUpIndex": 1,
-            "duffMoistureCode": 1,
-            "droughtCode": 1,
-            "temperature": 1,
-            "relativeHumidity": 1,
-            "precipitation": 1,
-            "windSpeed": 1,
-            "recordType": {"id": "ACTUAL"},
-        },
+        raw_daily=raw_daily,
     )
     assert math.isclose(adjusted_fwi_result.dmc, 0.256, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.dc, 0.0, abs_tol=0.001)
