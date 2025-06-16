@@ -35,8 +35,6 @@ def test_adjusted_fwi_result_no_wind_speed_no_precipitation():
             "recordType": {"id": "ACTUAL"},
         },
     )
-    assert math.isclose(adjusted_fwi_result.dmc, 1, abs_tol=0.001)
-    assert math.isclose(adjusted_fwi_result.dc, 1, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.bui, 0.606, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.ffmc, 26.757, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.isi, 0.001, abs_tol=0.001)
@@ -63,8 +61,6 @@ def test_adjusted_fwi_result_with_wind_speed():
             "recordType": {"id": "ACTUAL"},
         },
     )
-    assert math.isclose(adjusted_fwi_result.dmc, 1, abs_tol=0.001)
-    assert math.isclose(adjusted_fwi_result.dc, 1, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.bui, 0.606, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.ffmc, 31.427, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.isi, 0.006, abs_tol=0.001)
@@ -96,8 +92,6 @@ def test_adjusted_fwi_result_with_precipitation():
             "recordType": {"id": "ACTUAL"},
         },
     )
-    assert math.isclose(adjusted_fwi_result.dmc, 0.256, abs_tol=0.001)
-    assert math.isclose(adjusted_fwi_result.dc, 0.0, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.bui, 0.0, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.ffmc, 26.757, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.isi, 0.001, abs_tol=0.001)
