@@ -10,10 +10,16 @@ logger = logging.getLogger(__name__)
 
 
 def any_none_or_nan(prediction: ModelRunPrediction, actual: HourlyActual):
-    return prediction.wdir_tgl_10 is None or math.isnan(prediction.wdir_tgl_10) or\
-        prediction.wind_tgl_10 is None or math.isnan(prediction.wind_tgl_10) or\
-        actual.wind_direction is None or math.isnan(actual.wind_direction) or\
-        actual.wind_speed is None or math.isnan(actual.wind_speed)
+    return (
+        prediction.wdir_tgl_10 is None
+        or math.isnan(prediction.wdir_tgl_10)
+        or prediction.wind_tgl_10 is None
+        or math.isnan(prediction.wind_tgl_10)
+        or actual.wind_direction is None
+        or math.isnan(actual.wind_direction)
+        or actual.wind_speed is None
+        or math.isnan(actual.wind_speed)
+    )
 
 
 class WindDirectionModel(RegressionModelBase):
@@ -26,19 +32,23 @@ class WindDirectionModel(RegressionModelBase):
     def __init__(self, linear_model: LinearModel):
         self._linear_model = linear_model
 
-    def add_sample(self,
-                   prediction: ModelRunPrediction,
-                   actual: HourlyActual):
+    def add_sample(self, prediction: ModelRunPrediction, actual: HourlyActual):
         """
         Decompose into u, v components, then add that to data sample
         """
-        logger.info('adding sample for wind direction with: model_values %s, actual_value: %s',
-                    prediction.wdir_tgl_10, actual.wind_direction)
+        logger.debug(
+            "adding sample for wind direction with: model_values %s, actual_value: %s",
+            prediction.wdir_tgl_10,
+            actual.wind_direction,
+        )
 
         if any_none_or_nan(prediction, actual):
             # If for whatever reason we don't have an actual value, we skip this one.
-            logger.warning('no actual value for wind direction: %s, or wind speed: %s',
-                           actual.wind_direction, actual.wind_speed)
+            logger.warning(
+                "no actual value for wind direction: %s, or wind speed: %s",
+                actual.wind_direction,
+                actual.wind_speed,
+            )
             return
 
         prediction_u_v = compute_u_v(prediction.wind_tgl_10, prediction.wdir_tgl_10)
