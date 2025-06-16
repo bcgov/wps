@@ -1,16 +1,17 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { getAllRunDates, getMostRecentRunDate, getSFMSBounds, RunType, SFMSBounds } from 'api/fbaAPI'
+
 import { AppThunk } from 'app/store'
-import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
+import { getAllRunDates, getMostRecentRunDate, getSFMSRunDateBounds, RunType, SFMSBounds } from 'api/fbaAPI'
+import { DateTime } from 'luxon'
 
 export interface RunDateState {
   loading: boolean
   error: string | null
   runDates: DateTime[]
   mostRecentRunDate: string | null
-  sfmsBoundsError: string | null
   sfmsBounds: SFMSBounds | null
+  sfmsBoundsError: string | null
 }
 
 const initialState: RunDateState = {
@@ -18,8 +19,8 @@ const initialState: RunDateState = {
   error: null,
   runDates: [],
   mostRecentRunDate: null,
-  sfmsBoundsError: null,
-  sfmsBounds: null
+  sfmsBounds: null,
+  sfmsBoundsError: null
 }
 
 const runDatesSlice = createSlice({
@@ -45,14 +46,14 @@ const runDatesSlice = createSlice({
       state.mostRecentRunDate = action.payload.mostRecentRunDate
       state.loading = false
     },
-    getSFMSBoundsStart(state: RunDateState) {
+    getRunDateBoundsStart(state: RunDateState) {
       state.sfmsBounds = null
     },
-    getSFMSBoundsFailed(state: RunDateState, action: PayloadAction<string>) {
+    getRunDateBoundsFailed(state: RunDateState, action: PayloadAction<string>) {
       state.sfmsBounds = null
       state.sfmsBoundsError = action.payload
     },
-    getSFMSBoundsSuccess(state: RunDateState, action: PayloadAction<{ sfms_bounds: SFMSBounds }>) {
+    getRunDateBoundsSuccess(state: RunDateState, action: PayloadAction<{ sfms_bounds: SFMSBounds }>) {
       state.sfmsBoundsError = null
       state.sfmsBounds = action.payload.sfms_bounds
     }
@@ -63,9 +64,9 @@ export const {
   getRunDatesStart,
   getRunDatesFailed,
   getRunDatesSuccess,
-  getSFMSBoundsStart,
-  getSFMSBoundsFailed,
-  getSFMSBoundsSuccess
+  getRunDateBoundsStart,
+  getRunDateBoundsFailed,
+  getRunDateBoundsSuccess
 } = runDatesSlice.actions
 
 export default runDatesSlice.reducer
@@ -84,13 +85,15 @@ export const fetchSFMSRunDates =
     }
   }
 
-export const fetchSFMSBounds = (): AppThunk => async dispatch => {
-  try {
-    dispatch(getSFMSBoundsStart())
-    const bounds = await getSFMSBounds()
-    dispatch(getSFMSBoundsSuccess(bounds))
-  } catch (err) {
-    dispatch(getSFMSBoundsFailed((err as Error).toString()))
-    logError(err)
+export const fetchSFMSBounds =
+  (runType: RunType, year: number): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getRunDateBoundsStart())
+      const bounds = await getSFMSRunDateBounds(runType, year)
+      dispatch(getRunDateBoundsSuccess(bounds))
+    } catch (err) {
+      dispatch(getRunDateBoundsFailed((err as Error).toString()))
+      logError(err)
+    }
   }
-}
