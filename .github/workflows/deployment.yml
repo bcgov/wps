@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          EPHEMERAL_STORAGE=True BUCKET=gpdqha DATA_SIZE=5Gi WAL_SIZE=5Gi bash openshift/scripts/oc_provision_crunchy.sh ${SUFFIX} apply
+          EPHEMERAL_STORAGE=True BUCKET=gpdqha CPU_REQUEST=1 DATA_SIZE=5Gi WAL_SIZE=5Gi bash openshift/scripts/oc_provision_crunchy.sh ${SUFFIX} apply
 
   build-web-image:
     # Declared ahead of build-api-image ; it runs slightly slower than the api build, and putting
