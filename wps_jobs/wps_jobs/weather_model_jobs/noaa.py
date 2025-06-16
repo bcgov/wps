@@ -9,6 +9,7 @@ import logging
 import tempfile
 from sqlalchemy.orm import Session
 from urllib.parse import parse_qs, urlsplit
+from wps_shared.db.database import get_read_session_scope, get_write_session_scope
 from wps_shared.db.crud.weather_models import (
     get_processed_file_record,
     get_prediction_model,
@@ -365,12 +366,12 @@ def process_models():
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    with wps_shared.db.database.get_write_session_scope() as session:
-        noaa = NOAA(session, model_type)
+    with get_write_session_scope() as write_session, get_read_session_scope() as read_session:
+        noaa = NOAA(write_session, model_type)
         noaa.process()
 
         # interpolate and machine learn everything that needs interpolating.
-        model_value_processor = ModelValueProcessor(session)
+        model_value_processor = ModelValueProcessor(write_session, read_session)
         model_value_processor.process(model_type)
 
     # calculate the execution time.

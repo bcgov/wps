@@ -120,9 +120,10 @@ def accumulate_nam_precipitation(
 class ModelValueProcessor:
     """Iterate through model runs that have completed, and calculate the interpolated weather predictions."""
 
-    def __init__(self, session):
+    def __init__(self, write_session, read_session):
         """Prepare variables we're going to use throughout"""
-        self.session = session
+        self.write_session = write_session
+        self.read_session = read_session
         self.stations = get_stations_synchronously()
         self.station_count = len(self.stations)
 
@@ -144,7 +145,7 @@ class ModelValueProcessor:
         # Commit all the weather station model predictions (it's fast if we line them all up and commit
         # them in one go.)
         logger.info("commit to database...")
-        self.session.commit()
+        self.write_session.commit()
         logger.info("done commit.")
 
     def _add_interpolated_bias_adjustments_to_prediction(
@@ -248,7 +249,7 @@ class ModelValueProcessor:
         """Create a WeatherStationModelPrediction from the ModelRunPrediction data."""
         # If there's already a prediction, we want to update it
         station_prediction = get_weather_station_model_prediction(
-            self.session, station.code, model_run.id, prediction.prediction_timestamp
+            self.write_session, station.code, model_run.id, prediction.prediction_timestamp
         )
         if station_prediction is None:
             station_prediction = WeatherStationModelPrediction()
@@ -297,7 +298,7 @@ class ModelValueProcessor:
             station_prediction.apcp_sfc_0 = apcp
         # Calculate the delta_precipitation and 24 hour precip based on station's previous prediction_timestamp
         # for the same model run
-        self.session.flush()
+        self.write_session.flush()
         station_prediction.precip_24h = self._calculate_past_24_hour_precip(
             station, model_run, prediction, station_prediction
         )
@@ -334,7 +335,7 @@ class ModelValueProcessor:
         # Update the update time (this might be an update)
         station_prediction.update_date = time_utils.get_utc_now()
         # Add this prediction to the session (we'll commit it later.)
-        self.session.add(station_prediction)
+        self.write_session.add(station_prediction)
 
     def _calculate_past_24_hour_precip(
         self,
@@ -349,7 +350,7 @@ class ModelValueProcessor:
         start_prediction_timestamp = prediction.prediction_timestamp - timedelta(days=1)
         # Check if a prediction exists for this model run 24 hours in the past
         previous_prediction_from_same_model_run = get_weather_station_model_prediction(
-            self.session, station.code, model_run.id, start_prediction_timestamp
+            self.read_session, station.code, model_run.id, start_prediction_timestamp
         )
         # If a prediction from 24 hours ago from the same model run exists, return the difference in cumulative precipitation
         # between now and then as our total for the past 24 hours. We can end up with very very small negative numbers due
@@ -370,7 +371,7 @@ class ModelValueProcessor:
             tzinfo=timezone.utc,
         )
         actual_precip = get_accumulated_precipitation(
-            self.session, station.code, start_prediction_timestamp, end_prediction_timestamp
+            self.read_session, station.code, start_prediction_timestamp, end_prediction_timestamp
         )
         return actual_precip + station_prediction.apcp_sfc_0
 
@@ -379,7 +380,7 @@ class ModelValueProcessor:
         prediction for the station
         """
         results = (
-            self.session.query(WeatherStationModelPrediction)
+            self.read_session.query(WeatherStationModelPrediction)
             .filter(WeatherStationModelPrediction.station_code == station.code)
             .filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == model_run.id)
             .filter(
@@ -408,7 +409,7 @@ class ModelValueProcessor:
             "Getting grid for coordinate %s and model %s", coordinate, model_run.prediction_model
         )
         machine = StationMachineLearning(
-            session=self.session,
+            session=self.read_session,
             model=model_run.prediction_model,
             target_coordinate=coordinate,
             station_code=station.code,
@@ -417,7 +418,7 @@ class ModelValueProcessor:
         machine.learn()
 
         # Get all the predictions associated to this particular model run.
-        query = get_model_run_predictions_for_station(self.session, station.code, model_run)
+        query = get_model_run_predictions_for_station(self.read_session, station.code, model_run)
 
         nam_cumulative_precip = 0.0
         # Iterate through all the predictions.
@@ -446,14 +447,14 @@ class ModelValueProcessor:
         """Having completely processed a model run, we can mark it has having been interpolated."""
         model_run.interpolated = True
         logger.info("marking %s as interpolated", model_run)
-        self.session.add(model_run)
-        self.session.commit()
+        self.write_session.add(model_run)
+        self.write_session.commit()
 
     def process(self, model_type: ModelEnum):
         """Entry point to start processing model runs that have not yet had their predictions interpolated"""
         # Get model runs that are complete (fully downloaded), but not yet interpolated.
         query = get_prediction_model_run_timestamp_records(
-            self.session, complete=True, interpolated=False, model_type=model_type
+            self.write_session, complete=True, interpolated=False, model_type=model_type
         )
         for model_run, model in query:
             logger.info("model %s", model)
