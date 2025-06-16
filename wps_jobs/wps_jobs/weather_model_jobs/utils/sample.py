@@ -9,25 +9,29 @@ logger = logging.getLogger(__name__)
 
 
 class SamplesProto(Protocol):
+    @abstractmethod
+    def hours(self):
+        raise NotImplementedError
 
     @abstractmethod
-    def hours(self): raise NotImplementedError
+    def append_x(self, value, timestamp: datetime):
+        raise NotImplementedError
 
     @abstractmethod
-    def append_x(self, value, timestamp: datetime): raise NotImplementedError
+    def append_y(self, value, timestamp: datetime):
+        raise NotImplementedError
 
     @abstractmethod
-    def append_y(self, value, timestamp: datetime): raise NotImplementedError
+    def np_x(self, hour):
+        raise NotImplementedError
 
     @abstractmethod
-    def np_x(self, hour): raise NotImplementedError
-
-    @abstractmethod
-    def np_y(self, hour): raise NotImplementedError
+    def np_y(self, hour):
+        raise NotImplementedError
 
 
 class Samples(SamplesProto):
-    """ Class for storing samples in buckets of hours.
+    """Class for storing samples in buckets of hours.
     e.g. a temperature sample consists of an x axis (predicted values) and a y axis (observed values) put
     together in hour buckets.
     """
@@ -37,35 +41,42 @@ class Samples(SamplesProto):
         self._y = defaultdict(list)
 
     def hours(self):
-        """ Return all the hours used to bucket samples together. """
+        """Return all the hours used to bucket samples together."""
         return self._x.keys()
 
     def append_x(self, value, timestamp: datetime):
-        """ Append another predicted value. """
+        """Append another predicted value."""
         self._x[timestamp.hour].append(value)
 
     def append_y(self, value, timestamp: datetime):
-        """ Append another observered values. """
+        """Append another observered values."""
         self._y[timestamp.hour].append(value)
 
     def np_x(self, hour):
-        """ Return numpy array of the predicted values. """
+        """Return numpy array of the predicted values."""
         return np.array(self._x[hour])
 
     def np_y(self, hour):
-        """ Return a numpy array of the observed values. """
+        """Return a numpy array of the observed values."""
         return np.array(self._y[hour])
 
-    def add_sample(self,
-                   model_value: float,
-                   actual_value: float,
-                   timestamp: datetime,
-                   model_key: str,
-                   sample_key: str):
-        """ Add a sample, interpolating the model values spatially """
+    def add_sample(
+        self,
+        model_value: float,
+        actual_value: float,
+        timestamp: datetime,
+        model_key: str,
+        sample_key: str,
+    ):
+        """Add a sample, interpolating the model values spatially"""
         # Additional logging to assist with finding errors:
-        logger.info('adding sample for %s->%s with: model_values %s, actual_value: %s',
-                    model_key, sample_key, model_value, actual_value)
+        logger.debug(
+            "adding sample for %s->%s with: model_values %s, actual_value: %s",
+            model_key,
+            sample_key,
+            model_value,
+            actual_value,
+        )
         # Add to the data we're going to learn from:
         # Using two variables, the interpolated temperature value, and the hour of the day.
         self.append_x(model_value, timestamp)
