@@ -459,6 +459,9 @@ class ModelValueProcessor:
             logger.info("model %s", model)
             logger.info("model_run %s", model_run)
             # Process the model run.
+            start_time = datetime.now()
             self._process_model_run(model_run, model_type)
             # Mark the model run as interpolated.
             self._mark_model_run_interpolated(model_run)
+            execution_time = datetime.now() - start_time
+            logger.info(f"Interpolated & machine learned model run {model_run} in {execution_time}")
