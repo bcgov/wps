@@ -38,9 +38,12 @@ class ECMWFPredictionProcessor:
             logger.info("model %s", model)
             logger.info("model_run %s", model_run)
             # Process the model run.
+            start_time = datetime.now()
             self._process_model_run(model_run)
             # Mark the model run as interpolated.
             self.model_run_repository.mark_model_run_interpolated(model_run)
+            execution_time = datetime.now() - start_time
+            logger.info(f"Interpolated & machine learned model run {model_run} in {execution_time}")
 
     def _process_model_run(self, model_run: PredictionModelRunTimestamp):
         """Interpolate predictions in the provided model run for all stations."""
