@@ -2,7 +2,6 @@
 
 import logging
 import math
-from collections import defaultdict
 from datetime import date, datetime
 from typing import List
 
@@ -18,6 +17,7 @@ from wps_shared.auth import audit, authentication_required
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_hfi_thresholds_by_id,
     get_all_sfms_fuel_type_records,
+    get_bounds_for_year_and_run_type,
     get_centre_tpi_stats,
     get_fire_centre_tpi_fuel_areas,
     get_fire_zone_tpi_fuel_areas,
@@ -26,7 +26,6 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_precomputed_stats_for_shape,
     get_provincial_rollup,
     get_run_datetimes,
-    get_sfms_bounds,
     get_zonal_tpi_stats,
     get_zone_source_ids_in_centre,
 )
@@ -41,7 +40,8 @@ from wps_shared.schemas.fba import (
     FireZoneHFIStats,
     FireZoneTPIStats,
     ProvincialSummaryResponse,
-    SFMSBoundsResponse,
+    SFMSBounds,
+    SFMSBoundsForYearResponse,
 )
 from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_fire_centers
 
@@ -223,15 +223,22 @@ async def get_run_datetimes_for_date_and_runtype(
         return datetimes
 
 
-@router.get("/sfms-run-bounds", response_model=SFMSBoundsResponse)
-async def get_sfms_run_bounds():
+@router.get("/sfms-run-bounds/{run_type}/{year}", response_model=SFMSBoundsForYearResponse)
+async def get_sfms_run_bounds(run_type: RunType, year: int, _=Depends(authentication_required)):
+    """
+    Return the range of available SFMS run data for the specified year and run type.
+
+    :param run_type: The RunType of interest (actual or forecast).
+    :param year: The year of interest.
+    :return: The range of available SFMS run data.
+    """
     async with get_async_read_session_scope() as session:
-        results = await get_sfms_bounds(session)
-        sfms_bounds = defaultdict(lambda: defaultdict(lambda: defaultdict(date)))
-        for year, run_type, min_date, max_date in results:
-            sfms_bounds[year][run_type]["minimum"] = min_date
-            sfms_bounds[year][run_type]["maximum"] = max_date
-    return SFMSBoundsResponse(sfms_bounds=sfms_bounds)
+        minimum, maximum = await get_bounds_for_year_and_run_type(session, run_type.value, year)
+        # Supply season long default dates if no actuals bounds available
+        minimum = minimum if minimum is not None else date(year, 4, 1)
+        maximum = maximum if maximum is not None else date(year, 10, 31)
+        bounds = SFMSBounds(minimum=minimum.isoformat(), maximum=maximum.isoformat())
+    return SFMSBoundsForYearResponse(sfms_bounds=bounds)
 
 
 @router.get(

@@ -131,22 +131,12 @@ export interface FireCentreHFIStats {
   }
 }
 
-export interface SFMSBoundsMinMax {
+export interface SFMSBounds {
   minimum: string
   maximum: string
 }
 
-// Keys are 'actual' or 'forecast'
-export interface SFMSBoundsByRunType {
-  [key: string]: SFMSBoundsMinMax
-}
-
-// Keys are years (eg. 2024, 2024)
-export interface SFMSBounds{
-  [key: string]: SFMSBoundsByRunType
-}
-
-export interface SFMSBoundsResponse {
+export interface SFMSRunDateBoundsResponse {
   sfms_bounds: SFMSBounds
 }
 
@@ -190,11 +180,11 @@ export async function getAllRunDates(run_type: RunType, for_date: string): Promi
   return data
 }
 
-export async function getSFMSBounds(): Promise<SFMSBoundsResponse> {
-  const url = 'fba/sfms-run-bounds'
-  const { data } = await axios.get(url)
+export async function getSFMSRunDateBounds(runType: RunType, year: number): Promise<SFMSRunDateBoundsResponse> {
+  const url = `fba/sfms-run-bounds/${runType.toLowerCase()}/${year}`
+  const { data }  = await axios.get(url)
   return data
-}
+ }
 
 export async function getFireCentreHFIStats(
   run_type: RunType,

@@ -1,7 +1,6 @@
 """This module contains pydantic models related to the new formal/non-tinker fba."""
 
 from typing import List, Optional
-
 from pydantic import BaseModel
 
 
@@ -112,20 +111,16 @@ class ClassifiedHfiThresholdFuelTypeArea(BaseModel):
     fuel_area: float
     percent_curing: Optional[float]
 
-
 class AdvisoryMinWindStats(BaseModel):
     """Critical Hours for an advisory."""
-
     threshold: HfiThreshold
     min_wind_speed: Optional[float]
 
-
 class FireZoneHFIStats(BaseModel):
     """Collection of stats for fire zones within a fire centre"""
-
     min_wind_stats: List[AdvisoryMinWindStats]
     fuel_area_stats: List[ClassifiedHfiThresholdFuelTypeArea]
-
+    
 
 class FireZoneElevationStats(BaseModel):
     """Basic elevation statistics for a firezone"""
@@ -166,6 +161,10 @@ class FireZoneElevationStatsListResponse(BaseModel):
 
     hfi_elevation_info: List[FireZoneElevationStatsByThreshold]
 
+class SFMSBounds(BaseModel):
+    minimum: str
+    maximum: str
 
-class SFMSBoundsResponse(BaseModel):
-    sfms_bounds: dict
+
+class SFMSBoundsForYearResponse(BaseModel):
+    sfms_bounds: SFMSBounds

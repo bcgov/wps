@@ -89,40 +89,24 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
 interface ASADatePickerProps extends DatePickerProps<DateTime> {
   date: DateTime
   updateDate: (d: DateTime) => void
-  currentYearMinDate?: DateTime
-  currentYearMaxDate?: DateTime
-  historicalMinDate?: DateTime
-  historicalMaxDate?: DateTime
+  minimumDate?: DateTime
+  maximumDate?: DateTime
 }
 
-const ASADatePicker = ({
-  date,
-  currentYearMinDate,
-  currentYearMaxDate,
-  historicalMinDate,
-  historicalMaxDate,
-  updateDate,
-  ...other
-}: ASADatePickerProps) => {
+const ASADatePicker = ({ date, minimumDate, maximumDate, updateDate, ...other }: ASADatePickerProps) => {
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <DatePicker
         label="Date of Interest"
         format="yyyy/MM/dd"
-        maxDate={historicalMaxDate}
-        minDate={historicalMinDate}
+        value={date}
         onAccept={(newValue: DateTime | null) => {
           if (!isNull(newValue) && newValue.isValid) {
             updateDate(newValue)
           }
         }}
         slots={{ ...other.slots, field: CustomDateTextField }}
-        slotProps={{
-          ...other.slotProps,
-          actionBar: { actions: ['today'] },
-          field: { date, updateDate, minimumDate: currentYearMinDate, maximumDate: currentYearMaxDate } as any
-        }}
-        value={date}
+        slotProps={{ ...other.slotProps, field: { date, updateDate, minimumDate, maximumDate } as any }}
       />
     </LocalizationProvider>
   )
