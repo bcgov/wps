@@ -1,6 +1,6 @@
-import { BurnStatusEnum, FireWatch, FuelTypeEnum } from "@/features/fireWatch/interfaces"
-import { isNil, isNull } from "lodash"
-import { DateTime } from "luxon"
+import { BurnStatusEnum, FireWatch, FuelTypeEnum } from '@/features/fireWatch/interfaces'
+import { isNil, isNull } from 'lodash'
+import { DateTime } from 'luxon'
 
 export const getBlankFireWatch = (): FireWatch => {
   return {
@@ -12,7 +12,7 @@ export const getBlankFireWatch = (): FireWatch => {
     geometry: [],
     station: null,
     status: BurnStatusEnum.ACTIVE,
-    title: "",
+    title: '',
     // Fuel parameters
     fuelType: FuelTypeEnum.C1,
     percentConifer: NaN,
@@ -51,7 +51,7 @@ export const getBlankFireWatch = (): FireWatch => {
 }
 
 const hasValidFuelInfo = (fireWatch: FireWatch) => {
-  switch(fireWatch.fuelType) {
+  switch (fireWatch.fuelType) {
     case FuelTypeEnum.M1:
     case FuelTypeEnum.M2:
       return !isNil(fireWatch.percentConifer)
@@ -65,39 +65,22 @@ const hasValidFuelInfo = (fireWatch: FireWatch) => {
 }
 
 export const isValidFireWatch = (fireWatch: FireWatch) => {
-  return fireWatch.contactEmail.length > 0 &&
-  !isNull(fireWatch.fireCentre) &&
-  !isNull(fireWatch.station) &&
-  fireWatch.title &&
-  // Fuel parameters
-  hasValidFuelInfo(fireWatch) &&
-  // Weather parameters
-  !isNaN(fireWatch.tempMin) &&
-  !isNaN(fireWatch.tempPreferred) &&
-  !isNaN(fireWatch.tempMax) &&
-  !isNaN(fireWatch.rhMin) &&
-  !isNaN(fireWatch.rhPreferred) &&
-  !isNaN(fireWatch.rhMax) &&
-  !isNaN(fireWatch.windSpeedMin) &&
-  !isNaN(fireWatch.windSpeedPreferred) &&
-  !isNaN(fireWatch.windSpeedMax) &&
-  // FWI and FBP parameters
-  !isNaN(fireWatch.ffmcMin) &&
-  !isNaN(fireWatch.ffmcPreferred) &&
-  !isNaN(fireWatch.ffmcMax) &&
-  !isNaN(fireWatch.dmcMin) &&
-  !isNaN(fireWatch.dmcPreferred) &&
-  !isNaN(fireWatch.dmcMax) &&
-  !isNaN(fireWatch.dcMin) &&
-  !isNaN(fireWatch.dcPreferred) &&
-  !isNaN(fireWatch.dcMax) &&
-  !isNaN(fireWatch.isiMin) &&
-  !isNaN(fireWatch.isiPreferred) &&
-  !isNaN(fireWatch.isiMax) &&
-  !isNaN(fireWatch.buiMin) &&
-  !isNaN(fireWatch.buiPreferred) &&
-  !isNaN(fireWatch.buiMax) &&
-  !isNaN(fireWatch.hfiMin) &&
-  !isNaN(fireWatch.hfiPreferred) &&
-  !isNaN(fireWatch.hfiMax)
+  return (
+    fireWatch.contactEmail.length > 0 &&
+    !isNull(fireWatch.fireCentre) &&
+    !isNull(fireWatch.station) &&
+    fireWatch.title &&
+    // Fuel parameters
+    hasValidFuelInfo(fireWatch) &&
+    // Weather parameters
+    !isNaN(fireWatch.tempMin) &&
+    !isNaN(fireWatch.tempMax) &&
+    !isNaN(fireWatch.rhMin) &&
+    !isNaN(fireWatch.rhMax) &&
+    !isNaN(fireWatch.windSpeedMin) &&
+    !isNaN(fireWatch.windSpeedMax) &&
+    // FWI and FBP parameters
+    !isNaN(fireWatch.hfiMin) &&
+    !isNaN(fireWatch.hfiMax)
+  )
 }
