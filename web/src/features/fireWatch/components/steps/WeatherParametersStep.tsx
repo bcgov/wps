@@ -1,6 +1,7 @@
-import { FORM_MAX_WIDTH } from "@/features/fireWatch/components/CreateFireWatch"
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import { FireWatch } from '@/features/fireWatch/interfaces'
 import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
+import { isNull } from 'lodash'
 import { SetStateAction } from 'react'
 
 interface WeatherParametersStepProps {
@@ -41,7 +42,9 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                   label="Preferred"
                   size="small"
                   type="number"
-                  value={isNaN(fireWatch.tempPreferred) ? '' : fireWatch.tempPreferred}
+                  value={
+                    isNull(fireWatch.tempPreferred) || isNaN(fireWatch.tempPreferred) ? '' : fireWatch.tempPreferred
+                  }
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ tempPreferred: parseFloat(event.target.value) })
                   }
@@ -78,7 +81,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                 label="Preferred"
                 size="small"
                 type="number"
-                value={isNaN(fireWatch.rhPreferred) ? '' : fireWatch.rhPreferred}
+                value={isNull(fireWatch.rhPreferred) || isNaN(fireWatch.rhPreferred) ? '' : fireWatch.rhPreferred}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ rhPreferred: parseFloat(event.target.value) })
                 }
@@ -114,7 +117,11 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                 label="Preferred"
                 size="small"
                 type="number"
-                value={isNaN(fireWatch.windSpeedPreferred) ? '' : fireWatch.windSpeedPreferred}
+                value={
+                  isNull(fireWatch.windSpeedPreferred) || isNaN(fireWatch.windSpeedPreferred)
+                    ? ''
+                    : fireWatch.windSpeedPreferred
+                }
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ windSpeedPreferred: parseFloat(event.target.value) })
                 }

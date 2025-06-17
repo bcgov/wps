@@ -1,8 +1,8 @@
-import { FORM_MAX_WIDTH } from "@/features/fireWatch/components/CreateFireWatch"
-import SummaryTextLine from "@/features/fireWatch/components/steps/SummaryTextLine"
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
+import SummaryTextLine from '@/features/fireWatch/components/steps/SummaryTextLine'
 import { FireWatch, FuelTypeEnum } from '@/features/fireWatch/interfaces'
-import { Box, Button, Step, Typography, useTheme } from "@mui/material"
-import { isUndefined } from "lodash"
+import { Box, Button, Step, Typography, useTheme } from '@mui/material'
+import { isNil } from 'lodash'
 import React, { SetStateAction, useEffect, useRef, useState } from 'react'
 import { fromLonLat, toLonLat } from 'ol/proj'
 import { Map, View } from 'ol'
@@ -27,8 +27,8 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
 
-  const formatNumber = (value: number | undefined) => {
-    if (isUndefined(value)) {
+  const formatNumber = (value: number | undefined | null) => {
+    if (isNil(value)) {
       return '-'
     }
     return `${!isNaN(value) ? value : '-'}`
@@ -119,11 +119,13 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
                     left="Name"
                     right={fireWatch.contactEmail.length > 0 ? fireWatch.title : ''}
                   />
-                  <SummaryTextLine
-                    indentLevel={1}
-                    left="Burn Window"
-                    right={`${fireWatch.burnWindowStart.toISODate() ?? ''} - ${fireWatch.burnWindowEnd.toISODate() ?? ''}`}
-                  />
+                  {(fireWatch.burnWindowStart || fireWatch.burnWindowEnd) && (
+                    <SummaryTextLine
+                      indentLevel={1}
+                      left="Burn Window"
+                      right={`${fireWatch.burnWindowStart?.toISODate() ?? '-'} - ${fireWatch.burnWindowEnd?.toISODate() ?? '-'}`}
+                    />
+                  )}
                   <SummaryTextLine indentLevel={1} left="Fire Centre" right={fireWatch.fireCentre?.name ?? ''} />
                   <SummaryTextLine indentLevel={1} left="Weather Station" right={fireWatch.station?.name ?? ''} />
                   <SummaryTextLine
