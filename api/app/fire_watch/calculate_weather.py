@@ -266,20 +266,31 @@ def check_prescription_status(
     def in_range(val, min_val, max_val):
         return min_val <= val <= max_val
 
-    checks = [
+    # always required weather checks
+    weather_checks = [
         in_range(weather.temperature, fire_watch.temp_min, fire_watch.temp_max),
         in_range(weather.relative_humidity, fire_watch.rh_min, fire_watch.rh_max),
         in_range(weather.wind_speed, fire_watch.wind_speed_min, fire_watch.wind_speed_max),
-        in_range(weather.ffmc, fire_watch.ffmc_min, fire_watch.ffmc_max),
-        in_range(weather.dmc, fire_watch.dmc_min, fire_watch.dmc_max),
-        in_range(weather.dc, fire_watch.dc_min, fire_watch.dc_max),
-        in_range(weather.isi, fire_watch.isi_min, fire_watch.isi_max),
-        in_range(weather.bui, fire_watch.bui_min, fire_watch.bui_max),
     ]
 
+    # always required FBP check
     hfi_check = in_range(weather.hfi, fire_watch.hfi_min, fire_watch.hfi_max)
 
-    if all(checks) and hfi_check:
+    # optional FWI checks
+    fwi_checks = dict()
+    for field in FireWatch.OPTIONAL_FWI_FIELDS:
+        min_val = getattr(fire_watch, f"{field}_min", None)
+        max_val = getattr(fire_watch, f"{field}_max", None)
+        # only check if both min and max is set (required for this FireWatch)
+        if min_val is not None and max_val is not None:
+            value = getattr(weather, field, None)
+
+            if value is not None:
+                # check if the value is in range
+                fwi_in_range = in_range(value, min_val, max_val)
+                fwi_checks[field] = fwi_in_range
+
+    if all(weather_checks) and hfi_check and all(fwi_checks.values()):
         return status_id_dict["all"]
     elif hfi_check:
         return status_id_dict["hfi"]

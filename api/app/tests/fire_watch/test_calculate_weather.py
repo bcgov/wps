@@ -58,6 +58,34 @@ def mock_fire_watch():
 
 
 @pytest.fixture
+def mock_partial_fire_watch():
+    return FireWatch(
+        id=1,
+        station_code=101,
+        fuel_type=FuelTypeEnum.C3,
+        temp_min=10,
+        temp_max=30,
+        rh_min=20,
+        rh_max=60,
+        wind_speed_min=5,
+        wind_speed_max=20,
+        # no ffmc
+        dmc_min=10,
+        dmc_max=30,
+        dc_min=100,
+        dc_max=300,
+        isi_min=5,
+        isi_max=15,
+        # no bui
+        hfi_min=0,
+        hfi_max=4000,
+        percent_grass_curing=0,
+        percent_conifer=0,
+        percent_dead_fir=0,
+    )
+
+
+@pytest.fixture
 def mock_station_metadata():
     return WFWXWeatherStation(
         code=101,
@@ -279,7 +307,9 @@ def test_calculate_fbp(mock_fire_watch, mock_station_metadata, mock_actual_weath
     assert result.hfi == pytest.approx(3350, abs=10)
 
 
-def test_check_prescription_status_all(mock_fire_watch, mock_status_id_dict):
+@pytest.mark.parametrize("fire_watch_name", ["mock_fire_watch", "mock_partial_fire_watch"])
+def test_check_prescription_status_all(request, fire_watch_name, mock_status_id_dict):
+    fire_watch = request.getfixturevalue(fire_watch_name)
     mock_weather = FireWatchWeather(
         temperature=25,
         relative_humidity=40,
@@ -291,27 +321,39 @@ def test_check_prescription_status_all(mock_fire_watch, mock_status_id_dict):
         bui=50,
         hfi=1000,
     )
-    result = check_prescription_status(mock_fire_watch, mock_weather, mock_status_id_dict)
+    result = check_prescription_status(fire_watch, mock_weather, mock_status_id_dict)
     assert result == 1
 
 
-def test_check_prescription_status_hfi(mock_fire_watch, mock_status_id_dict):
+@pytest.mark.parametrize(
+    ("fire_watch_name", "expected_result"),
+    [
+        ("mock_fire_watch", 2),
+        ("mock_partial_fire_watch", 1),
+    ],
+)
+def test_check_prescription_status_hfi(
+    request, fire_watch_name, expected_result, mock_status_id_dict
+):
+    fire_watch = request.getfixturevalue(fire_watch_name)
     mock_weather = FireWatchWeather(
         temperature=25,
         relative_humidity=40,
         wind_speed=10,
-        ffmc=99,
+        ffmc=99,  # ffmc is out of range for mock_fire_watch, but not a required check for mock_partial_fire_watch
         dmc=20,
         dc=200,
         isi=10,
         bui=50,
         hfi=1000,
     )
-    result = check_prescription_status(mock_fire_watch, mock_weather, mock_status_id_dict)
-    assert result == 2
+    result = check_prescription_status(fire_watch, mock_weather, mock_status_id_dict)
+    assert result == expected_result
 
 
-def test_check_prescription_status_none(mock_fire_watch, mock_status_id_dict):
+@pytest.mark.parametrize("fire_watch_name", ["mock_fire_watch", "mock_partial_fire_watch"])
+def test_check_prescription_status_none(request, fire_watch_name, mock_status_id_dict):
+    fire_watch = request.getfixturevalue(fire_watch_name)
     mock_weather = FireWatchWeather(
         temperature=25,
         relative_humidity=40,
@@ -323,7 +365,7 @@ def test_check_prescription_status_none(mock_fire_watch, mock_status_id_dict):
         bui=50,
         hfi=5000,
     )
-    result = check_prescription_status(mock_fire_watch, mock_weather, mock_status_id_dict)
+    result = check_prescription_status(fire_watch, mock_weather, mock_status_id_dict)
     assert result == 3
 
 
