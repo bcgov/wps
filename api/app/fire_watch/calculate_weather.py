@@ -277,7 +277,7 @@ def check_prescription_status(
     hfi_check = in_range(weather.hfi, fire_watch.hfi_min, fire_watch.hfi_max)
 
     # optional FWI checks
-    fwi_checks = dict()
+    fwi_checks = {}
     for field in FireWatch.OPTIONAL_FWI_FIELDS:
         min_val = getattr(fire_watch, f"{field}_min", None)
         max_val = getattr(fire_watch, f"{field}_max", None)
