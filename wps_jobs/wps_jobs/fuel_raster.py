@@ -12,7 +12,7 @@ from datetime import datetime
 from osgeo import gdal
 
 from wps_shared import config
-from wps_shared.auto_spatial_advisory.fuel_raster import process_fuel_type_raster
+from wps_shared.fuel_raster import process_fuel_type_raster
 from wps_shared.db.crud.fuel_layer import save_processed_fuel_raster
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models import FuelTypeRaster
@@ -35,7 +35,7 @@ async def start_job(
         object_store_path,
         content_hash,
         create_timestamp,
-    ) = process_fuel_type_raster(raster_addresser, start_datetime, unprocessed_object_name)
+    ) = await process_fuel_type_raster(raster_addresser, start_datetime, unprocessed_object_name)
     async with get_async_write_session_scope() as db_session:
         await save_processed_fuel_raster(
             db_session,

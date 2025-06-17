@@ -1,5 +1,5 @@
 """
-Job to update the fuel raster
+Update the fuel raster
 """
 
 import argparse
