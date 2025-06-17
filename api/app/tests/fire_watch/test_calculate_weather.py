@@ -659,7 +659,7 @@ def test_check_optional_fwi_fields_all_fields_in_range(mock_fire_watch):
         hfi=1000,
     )
     result = check_optional_fwi_fields(mock_fire_watch, weather)
-    assert result == {field: True for field in FireWatch.OPTIONAL_FWI_FIELDS}
+    assert result == dict.fromkeys(FireWatch.OPTIONAL_FWI_FIELDS, True)
 
 
 def test_check_optional_fwi_fields_some_fields_out_of_range(mocker, mock_fire_watch):
