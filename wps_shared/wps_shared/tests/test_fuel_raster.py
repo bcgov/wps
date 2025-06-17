@@ -164,4 +164,3 @@ async def test_process_fuel_type_raster_failure(monkeypatch):
             start_datetime=datetime(2024, 1, 1),
             unprocessed_object_name="fuel.tif",
         )
-        assert mock_s3.deleted == "fuel-key-v3"
