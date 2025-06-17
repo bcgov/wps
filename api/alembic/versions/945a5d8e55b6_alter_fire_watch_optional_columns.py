@@ -8,7 +8,7 @@ Create Date: 2025-06-17 08:48:51.171800
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+from wps_shared.db.models.common import TZTimeStamp
 
 # revision identifiers, used by Alembic.
 revision = "945a5d8e55b6"
@@ -22,13 +22,13 @@ def upgrade():
     op.alter_column(
         "fire_watch",
         "burn_window_end",
-        existing_type=postgresql.TIMESTAMP(timezone=True),
+        existing_type=TZTimeStamp(),
         nullable=True,
     )
     op.alter_column(
         "fire_watch",
         "burn_window_start",
-        existing_type=postgresql.TIMESTAMP(timezone=True),
+        existing_type=TZTimeStamp(),
         nullable=True,
     )
     op.alter_column(
@@ -201,13 +201,13 @@ def downgrade():
     op.alter_column(
         "fire_watch",
         "burn_window_start",
-        existing_type=postgresql.TIMESTAMP(timezone=True),
+        existing_type=TZTimeStamp(),
         nullable=False,
     )
     op.alter_column(
         "fire_watch",
         "burn_window_end",
-        existing_type=postgresql.TIMESTAMP(timezone=True),
+        existing_type=TZTimeStamp(),
         nullable=False,
     )
     # ### end Alembic commands ###
