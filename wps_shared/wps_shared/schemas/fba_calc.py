@@ -82,6 +82,8 @@ class AdjustedFWIResult(BaseModel):
     ffmc: float
     bui: float
     isi: float
+    dmc: Optional[float] = None
+    dc: Optional[float] = None
     precipitation: Optional[float] = None
     wind_speed: float
     fwi: float
