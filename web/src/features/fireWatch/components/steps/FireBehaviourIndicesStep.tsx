@@ -1,7 +1,7 @@
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import { FireWatch } from '@/features/fireWatch/interfaces'
 import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
-import { isNull } from 'lodash'
+import { isNull, isUndefined } from 'lodash'
 import { SetStateAction } from 'react'
 
 interface FireBehaviourIndicesStepProps {
@@ -32,7 +32,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                   label="Minimum"
                   size="small"
                   type="number"
-                  value={isNull(fireWatch.isiMin) || isNaN(fireWatch.isiMin) ? '' : fireWatch.isiMin}
+                  value={isUndefined(fireWatch.isiMin) || isNaN(fireWatch.isiMin) ? '' : fireWatch.isiMin}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ isiMin: parseFloat(event.target.value) })
                   }
@@ -42,7 +42,9 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                   label="Preferred"
                   size="small"
                   type="number"
-                  value={isNull(fireWatch.isiPreferred) || isNaN(fireWatch.isiPreferred) ? '' : fireWatch.isiPreferred}
+                  value={
+                    isUndefined(fireWatch.isiPreferred) || isNaN(fireWatch.isiPreferred) ? '' : fireWatch.isiPreferred
+                  }
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ isiPreferred: parseFloat(event.target.value) })
                   }
@@ -52,7 +54,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                   label="Maximum"
                   size="small"
                   type="number"
-                  value={isNull(fireWatch.isiMax) || isNaN(fireWatch.isiMax) ? '' : fireWatch.isiMax}
+                  value={isUndefined(fireWatch.isiMax) || isNaN(fireWatch.isiMax) ? '' : fireWatch.isiMax}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ isiMax: parseFloat(event.target.value) })
                   }
@@ -69,7 +71,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 label="Minimum"
                 size="small"
                 type="number"
-                value={isNull(fireWatch.buiMin) || isNaN(fireWatch.buiMin) ? '' : fireWatch.buiMin}
+                value={isUndefined(fireWatch.buiMin) || isNaN(fireWatch.buiMin) ? '' : fireWatch.buiMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ buiMin: parseFloat(event.target.value) })
                 }
@@ -79,7 +81,9 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 label="Preferred"
                 size="small"
                 type="number"
-                value={isNull(fireWatch.buiPreferred) || isNaN(fireWatch.buiPreferred) ? '' : fireWatch.buiPreferred}
+                value={
+                  isUndefined(fireWatch.buiPreferred) || isNaN(fireWatch.buiPreferred) ? '' : fireWatch.buiPreferred
+                }
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ buiPreferred: parseFloat(event.target.value) })
                 }
@@ -89,7 +93,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 label="Maximum"
                 size="small"
                 type="number"
-                value={isNull(fireWatch.buiMax) || isNaN(fireWatch.buiMax) ? '' : fireWatch.buiMax}
+                value={isUndefined(fireWatch.buiMax) || isNaN(fireWatch.buiMax) ? '' : fireWatch.buiMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ buiMax: parseFloat(event.target.value) })
                 }
@@ -115,7 +119,9 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 label="Preferred"
                 size="small"
                 type="number"
-                value={isNull(fireWatch.hfiPreferred) || isNaN(fireWatch.hfiPreferred) ? '' : fireWatch.hfiPreferred}
+                value={
+                  isUndefined(fireWatch.hfiPreferred) || isNaN(fireWatch.hfiPreferred) ? '' : fireWatch.hfiPreferred
+                }
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ hfiPreferred: parseFloat(event.target.value) })
                 }
@@ -125,7 +131,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 label="Maximum"
                 size="small"
                 type="number"
-                value={isNull(fireWatch.hfiMax) || isNaN(fireWatch.hfiMax) ? '' : fireWatch.hfiMax}
+                value={isUndefined(fireWatch.hfiMax) || isNaN(fireWatch.hfiMax) ? '' : fireWatch.hfiMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ hfiMax: parseFloat(event.target.value) })
                 }
