@@ -64,8 +64,8 @@ export interface FireWatchStation {
 }
 
 export interface FireWatch {
-  burnWindowEnd: DateTime | null
-  burnWindowStart: DateTime | null
+  burnWindowEnd?: DateTime
+  burnWindowStart?: DateTime
   contactEmail: string[]
   fireCentre: FireWatchFireCentre | null
   geometry: number[]
@@ -79,32 +79,32 @@ export interface FireWatch {
   percentGrassCuring?: number
   // Weather parameters
   tempMin: number
-  tempPreferred: number | null
+  tempPreferred?: number
   tempMax: number
   rhMin: number
-  rhPreferred: number | null
+  rhPreferred?: number
   rhMax: number
   windSpeedMin: number
-  windSpeedPreferred: number | null
+  windSpeedPreferred?: number
   windSpeedMax: number
   // FWI and FBP parameters
-  ffmcMin: number | null
-  ffmcPreferred: number | null
-  ffmcMax: number | null
-  dmcMin: number | null
-  dmcPreferred: number | null
-  dmcMax: number | null
-  dcMin: number | null
-  dcPreferred: number | null
-  dcMax: number | null
-  isiMin: number | null
-  isiPreferred: number | null
-  isiMax: number | null
-  buiMin: number | null
-  buiPreferred: number | null
-  buiMax: number | null
+  ffmcMin?: number
+  ffmcPreferred?: number
+  ffmcMax?: number
+  dmcMin?: number
+  dmcPreferred?: number
+  dmcMax?: number
+  dcMin?: number
+  dcPreferred?: number
+  dcMax?: number
+  isiMin?: number
+  isiPreferred?: number
+  isiMax?: number
+  buiMin?: number
+  buiPreferred?: number
+  buiMax?: number
   hfiMin: number
-  hfiPreferred: number | null
+  hfiPreferred?: number
   hfiMax: number
   id: number
   createTimestamp?: DateTime
