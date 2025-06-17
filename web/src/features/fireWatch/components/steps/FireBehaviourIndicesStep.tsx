@@ -1,7 +1,7 @@
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import { FireWatch } from '@/features/fireWatch/interfaces'
 import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
-import { isNull, isUndefined } from 'lodash'
+import { isNull } from 'lodash'
 import { SetStateAction } from 'react'
 
 interface FireBehaviourIndicesStepProps {
@@ -42,9 +42,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                   label="Preferred"
                   size="small"
                   type="number"
-                  value={
-                    isNull(fireWatch.isiPreferred) || isNaN(fireWatch.isiPreferred) ? '' : fireWatch.isiPreferred
-                  }
+                  value={isNull(fireWatch.isiPreferred) || isNaN(fireWatch.isiPreferred) ? '' : fireWatch.isiPreferred}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ isiPreferred: parseFloat(event.target.value) })
                   }
@@ -81,9 +79,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 label="Preferred"
                 size="small"
                 type="number"
-                value={
-                  isNull(fireWatch.buiPreferred) || isNaN(fireWatch.buiPreferred) ? '' : fireWatch.buiPreferred
-                }
+                value={isNull(fireWatch.buiPreferred) || isNaN(fireWatch.buiPreferred) ? '' : fireWatch.buiPreferred}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ buiPreferred: parseFloat(event.target.value) })
                 }
@@ -119,9 +115,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 label="Preferred"
                 size="small"
                 type="number"
-                value={
-                  isNull(fireWatch.hfiPreferred) || isNaN(fireWatch.hfiPreferred) ? '' : fireWatch.hfiPreferred
-                }
+                value={isNull(fireWatch.hfiPreferred) || isNaN(fireWatch.hfiPreferred) ? '' : fireWatch.hfiPreferred}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ hfiPreferred: parseFloat(event.target.value) })
                 }
