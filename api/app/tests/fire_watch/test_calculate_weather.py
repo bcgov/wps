@@ -1,6 +1,6 @@
 from unittest import mock
 import pytest
-from datetime import datetime, time, timedelta, timezone
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch, create_autospec
 
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather
@@ -9,9 +9,11 @@ from app.fire_behaviour.prediction import FireBehaviourPrediction
 from app.fire_watch.calculate_weather import (
     FIREWATCH_WEATHER_MODEL,
     calculate_fbp,
+    check_optional_fwi_fields,
     check_prescription_status,
     gather_fire_watch_inputs,
     get_station_metadata,
+    in_range,
     map_model_prediction_to_weather_indeterminate,
     process_all_fire_watch_weather,
     process_predictions,
@@ -641,3 +643,82 @@ async def test_process_single_fire_watch_no_predictions_to_save(
     assert not any(
         "Saved" in str(call) for call in [c[0][0] for c in mock_logger.info.call_args_list]
     )
+
+
+def test_check_optional_fwi_fields_all_fields_in_range(mock_fire_watch):
+    # Weather values within range
+    weather = FireWatchWeather(
+        ffmc=85,
+        dmc=20,
+        dc=100,
+        isi=14,
+        bui=60,
+        temperature=25,
+        relative_humidity=40,
+        wind_speed=10,
+        hfi=1000,
+    )
+    result = check_optional_fwi_fields(mock_fire_watch, weather)
+    assert result == {field: True for field in FireWatch.OPTIONAL_FWI_FIELDS}
+
+
+def test_check_optional_fwi_fields_some_fields_out_of_range(mocker, mock_fire_watch):
+    mock_fire_watch.ffmc_min = 80
+    mock_fire_watch.ffmc_max = 90
+    mock_fire_watch.dmc_min = 10
+    mock_fire_watch.dmc_max = 30
+    mock_fire_watch.dc_min = 100
+    mock_fire_watch.dc_max = 200
+    weather = FireWatchWeather(
+        ffmc=95,  # out of range
+        dmc=20,  # in range
+        dc=90,  # out of range
+        isi=14,  # in range
+        bui=60,  # in range
+        temperature=25,
+        relative_humidity=40,
+        wind_speed=10,
+        hfi=1000,
+    )
+    result = check_optional_fwi_fields(mock_fire_watch, weather)
+    assert result == {"ffmc": False, "dmc": True, "dc": False, "isi": True, "bui": True}
+
+
+def test_check_optional_fwi_fields_missing_min_max(mock_fire_watch):
+    # ffmc/dmc not required for this fire watch
+    mock_fire_watch.ffmc_min = None
+    mock_fire_watch.ffmc_max = None
+    mock_fire_watch.dmc_min = None
+    mock_fire_watch.dmc_max = None
+    weather = FireWatchWeather(
+        ffmc=95,  # not required
+        dmc=20,  # not required
+        dc=90,  # out of range
+        isi=15,  # in range
+        bui=60,  # in range
+        temperature=25,
+        relative_humidity=40,
+        wind_speed=10,
+        hfi=1000,
+    )
+    result = check_optional_fwi_fields(mock_fire_watch, weather)
+    assert result == {"isi": True, "bui": True, "dc": False}
+
+
+@pytest.mark.parametrize(
+    "val, min_val, max_val, expected",
+    [
+        (5, 1, 10, True),  # value within range
+        (1, 1, 10, True),  # value equal to min
+        (10, 1, 10, True),  # value equal to max
+        (0, 1, 10, False),  # value below min
+        (11, 1, 10, False),  # value above max
+        (5.5, 1.0, 10.0, True),  # float within range
+        (1.0, 1.0, 10.0, True),  # float equal to min
+        (10.0, 1.0, 10.0, True),  # float equal to max
+        (0.9, 1.0, 10.0, False),  # float below min
+        (10.1, 1.0, 10.0, False),  # float above max
+    ],
+)
+def test_in_range(val, min_val, max_val, expected):
+    assert in_range(val, min_val, max_val) is expected

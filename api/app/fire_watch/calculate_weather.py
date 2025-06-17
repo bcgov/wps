@@ -253,6 +253,22 @@ def calculate_fbp(
     return fbp
 
 
+def in_range(val: int | float, min_val: int | float, max_val: int | float):
+    return min_val <= val <= max_val
+
+
+def check_optional_fwi_fields(fire_watch: FireWatch, weather: FireWatchWeather) -> dict[str, bool]:
+    results = {}
+    for field in FireWatch.OPTIONAL_FWI_FIELDS:
+        min_val = getattr(fire_watch, f"{field}_min", None)
+        max_val = getattr(fire_watch, f"{field}_max", None)
+        if min_val is not None and max_val is not None:
+            value = getattr(weather, field, None)
+            if value is not None:
+                results[field] = in_range(value, min_val, max_val)
+    return results
+
+
 def check_prescription_status(
     fire_watch: FireWatch, weather: FireWatchWeather, status_id_dict: dict[str, int]
 ) -> str:
@@ -262,9 +278,6 @@ def check_prescription_status(
     - HFI: Only the HFI is within the specified range.
     - No: Neither of the above conditions are met.
     """
-
-    def in_range(val, min_val, max_val):
-        return min_val <= val <= max_val
 
     # always required weather checks
     weather_checks = [
@@ -277,18 +290,7 @@ def check_prescription_status(
     hfi_check = in_range(weather.hfi, fire_watch.hfi_min, fire_watch.hfi_max)
 
     # optional FWI checks
-    fwi_checks = {}
-    for field in FireWatch.OPTIONAL_FWI_FIELDS:
-        min_val = getattr(fire_watch, f"{field}_min", None)
-        max_val = getattr(fire_watch, f"{field}_max", None)
-        # only check if both min and max is set (required for this FireWatch)
-        if min_val is not None and max_val is not None:
-            value = getattr(weather, field, None)
-
-            if value is not None:
-                # check if the value is in range
-                fwi_in_range = in_range(value, min_val, max_val)
-                fwi_checks[field] = fwi_in_range
+    fwi_checks = check_optional_fwi_fields(fire_watch, weather)
 
     if all(weather_checks) and hfi_check and all(fwi_checks.values()):
         return status_id_dict["all"]
