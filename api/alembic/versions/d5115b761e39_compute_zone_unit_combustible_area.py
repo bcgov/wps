@@ -5,31 +5,45 @@ Revises: 5b745fe0bd7a
 Create Date: 2023-10-31 12:24:36.889483
 
 """
-from alembic import op
-import sqlalchemy as sa
+
 import geoalchemy2
+import sqlalchemy as sa
+from alembic import op
+from app.auto_spatial_advisory.calculate_combustible_land_area import (
+    calculate_combustible_area_by_fire_zone,
+    get_fuel_types_from_object_store,
+)
 from sqlalchemy.orm.session import Session
-from app.auto_spatial_advisory.calculate_combustible_land_area import calculate_combustible_area_by_fire_zone, get_fuel_types_from_object_store
 
 # revision identifiers, used by Alembic.
-revision = 'd5115b761e39'
-down_revision = 'f2e027a47a3f'
+revision = "d5115b761e39"
+down_revision = "f2e027a47a3f"
 branch_labels = None
 depends_on = None
 
-shape_type_table = sa.Table('advisory_shape_types', sa.MetaData(),
-                            sa.Column('id', sa.Integer),
-                            sa.Column('name', sa.String))
+shape_type_table = sa.Table(
+    "advisory_shape_types",
+    sa.MetaData(),
+    sa.Column("id", sa.Integer),
+    sa.Column(
+        "name",
+        sa.Enum("fire_centre", "fire_zone", "fire_zone_unit", name="shapetypeenum_2"),
+        nullable=False,
+    ),
+)
 
-shape_table = sa.Table('advisory_shapes', sa.MetaData(),
-                       sa.Column('id', sa.Integer),
-                       sa.Column('source_identifier', sa.String),
-                       sa.Column('shape_type', sa.Integer),
-                       sa.Column('geom', geoalchemy2.Geometry))
+shape_table = sa.Table(
+    "advisory_shapes",
+    sa.MetaData(),
+    sa.Column("id", sa.Integer),
+    sa.Column("source_identifier", sa.String),
+    sa.Column("shape_type", sa.Integer),
+    sa.Column("geom", geoalchemy2.Geometry),
+)
 
 
 def get_fire_zone_unit_shape_type_id(session: Session):
-    statement = shape_type_table.select().where(shape_type_table.c.name == 'fire_zone_unit')
+    statement = shape_type_table.select().where(shape_type_table.c.name == "fire_zone_unit")
     result = session.execute(statement).fetchone()
     return result.id
 
@@ -50,8 +64,10 @@ def upgrade():
 
         zone_areas = calculate_combustible_area_by_fire_zone(fuel_types, zone_units)
         for tuple in zone_areas:
-            op.execute('UPDATE advisory_shapes SET combustible_area={} WHERE source_identifier LIKE \'{}\''.format(
-                tuple[1], tuple[0])
+            op.execute(
+                "UPDATE advisory_shapes SET combustible_area={} WHERE source_identifier LIKE '{}'".format(
+                    tuple[1], tuple[0]
+                )
             )
 
 
@@ -61,6 +77,8 @@ def downgrade():
     zones = get_fire_zone_units(session, fire_zone_shape_id)
 
     for zone in zones:
-        op.execute('UPDATE advisory_shapes SET combustible_area = NULL WHERE source_identifier LIKE \'{}\''.format(
-            str(zone.source_identifier)
-        ))
+        op.execute(
+            "UPDATE advisory_shapes SET combustible_area = NULL WHERE source_identifier LIKE '{}'".format(
+                str(zone.source_identifier)
+            )
+        )
