@@ -4,7 +4,14 @@ from datetime import date
 from typing import Optional
 from app.fire_behaviour import cffdrs
 from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
-from app.fire_behaviour.prediction import FireTypeEnum, calculate_cfb, get_approx_flame_length, get_critical_hours, get_fire_size, get_fire_type
+from app.fire_behaviour.prediction import (
+    FireTypeEnum,
+    calculate_cfb,
+    get_approx_flame_length,
+    get_critical_hours,
+    get_fire_size,
+    get_fire_type,
+)
 from wps_shared.schemas.fba_calc import CriticalHoursHFI
 from wps_shared.utils.time import get_hour_20_from_date, get_julian_date
 
@@ -25,6 +32,8 @@ class FBACalculatorWeatherStation:
         lat: float,
         long: float,
         bui: float,
+        dmc: Optional[float],
+        dc: Optional[float],
         ffmc: float,
         isi: float,
         fwi: float,
@@ -50,6 +59,8 @@ class FBACalculatorWeatherStation:
         self.lat = lat
         self.long = long
         self.bui = bui
+        self.dmc = dmc
+        self.dc = dc
         self.ffmc = ffmc
         self.isi = isi
         self.fwi = fwi
@@ -67,7 +78,8 @@ class FBACalculatorWeatherStation:
             time_of_interest {self.time_of_interest}, percentage_conifer {self.percentage_conifer},\
             percentage_dead_balsam_fir {self.percentage_dead_balsam_fir}, grass_cure {self.grass_cure},\
             crown_base_height {self.crown_base_height}, crown_fuel_load {self.crown_fuel_load}, bui {self.bui},\
-            ffmc {self.ffmc}, isi {self.isi}, fwi {self.fwi} prev_day_daily_ffmc {self.prev_day_daily_ffmc},\
+            dmc: {self.dmc}, dc: {self.dc}, ffmc {self.ffmc}, isi {self.isi},\
+            fwi {self.fwi} prev_day_daily_ffmc {self.prev_day_daily_ffmc},\
             wind_speed {self.wind_speed}, temperature {self.temperature},\
             relative_humidity {self.relative_humidity}, precipitation {self.precipitation},\
             status {self.status}"
@@ -110,13 +122,19 @@ class FireBehaviourAdvisory:
         self.sixty_minute_fire_size_t = sixty_minute_fire_size_t
 
 
-def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> FireBehaviourAdvisory:
+def calculate_fire_behaviour_advisory(
+    station: FBACalculatorWeatherStation,
+) -> FireBehaviourAdvisory:
     """Transform from the raw daily json object returned by wf1, to our fba_calc.StationResponse object."""
     # time of interest will be the same for all stations.
     time_of_interest = get_hour_20_from_date(station.time_of_interest)
 
-    fmc = cffdrs.foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date(time_of_interest))
-    sfc = cffdrs.surface_fuel_consumption(station.fuel_type, station.bui, station.ffmc, station.percentage_conifer)
+    fmc = cffdrs.foliar_moisture_content(
+        station.lat, station.long, station.elevation, get_julian_date(time_of_interest)
+    )
+    sfc = cffdrs.surface_fuel_consumption(
+        station.fuel_type, station.bui, station.ffmc, station.percentage_conifer
+    )
     lb_ratio = cffdrs.length_to_breadth_ratio(station.fuel_type, station.wind_speed)
     ros = cffdrs.rate_of_spread(
         station.fuel_type,
@@ -132,7 +150,9 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
     cfb = calculate_cfb(station.fuel_type, fmc, sfc, ros, station.crown_base_height)
 
     # Calculate rate of spread assuming 60 minutes since ignition.
-    ros_t = cffdrs.rate_of_spread_t(fuel_type=station.fuel_type, ros_eq=ros, minutes_since_ignition=60, cfb=cfb)
+    ros_t = cffdrs.rate_of_spread_t(
+        fuel_type=station.fuel_type, ros_eq=ros, minutes_since_ignition=60, cfb=cfb
+    )
     cfb_t = calculate_cfb(station.fuel_type, fmc, sfc, ros_t, station.crown_base_height)
 
     # Get the default crown fuel load, if none specified.
@@ -142,10 +162,22 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
         cfl = station.crown_fuel_load
 
     hfi = cffdrs.head_fire_intensity(
-        fuel_type=station.fuel_type, percentage_conifer=station.percentage_conifer, percentage_dead_balsam_fir=station.percentage_dead_balsam_fir, ros=ros, cfb=cfb, cfl=cfl, sfc=sfc
+        fuel_type=station.fuel_type,
+        percentage_conifer=station.percentage_conifer,
+        percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
+        ros=ros,
+        cfb=cfb,
+        cfl=cfl,
+        sfc=sfc,
     )
     hfi_t = cffdrs.head_fire_intensity(
-        fuel_type=station.fuel_type, percentage_conifer=station.percentage_conifer, percentage_dead_balsam_fir=station.percentage_dead_balsam_fir, ros=ros_t, cfb=cfb_t, cfl=cfl, sfc=sfc
+        fuel_type=station.fuel_type,
+        percentage_conifer=station.percentage_conifer,
+        percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
+        ros=ros_t,
+        cfb=cfb_t,
+        cfl=cfl,
+        sfc=sfc,
     )
     critical_hours_4000 = get_critical_hours(
         4000,
