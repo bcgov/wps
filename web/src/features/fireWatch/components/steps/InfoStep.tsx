@@ -64,7 +64,7 @@ const InfoStep = ({ fireWatch, setFireWatch }: InfoStepProps) => {
                 Burn Window Start Date
               </Typography>
               <WPSDatePicker
-                date={fireWatch.burnWindowStart ?? null}
+                date={fireWatch.burnWindowStart}
                 label=""
                 updateDate={updateBurnWindowStart}
                 size="small"
@@ -74,12 +74,7 @@ const InfoStep = ({ fireWatch, setFireWatch }: InfoStepProps) => {
               <Typography sx={{ pb: theme.spacing(0.5) }} variant="body1">
                 Burn Window End Date
               </Typography>
-              <WPSDatePicker
-                date={fireWatch.burnWindowEnd ?? null}
-                label=""
-                updateDate={updateBurnWindowEnd}
-                size="small"
-              />
+              <WPSDatePicker date={fireWatch.burnWindowEnd} label="" updateDate={updateBurnWindowEnd} size="small" />
             </Box>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1, pt: theme.spacing(2) }}>

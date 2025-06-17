@@ -1,7 +1,7 @@
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import { FireWatch, FuelTypeEnum, fuelTypes } from '@/features/fireWatch/interfaces'
 import { Autocomplete, Box, Step, TextField, Typography, useTheme } from '@mui/material'
-import { isUndefined } from 'lodash'
+import { isNull, isUndefined } from 'lodash'
 import { SetStateAction } from 'react'
 
 interface FuelStepProps {
@@ -119,7 +119,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
                   label="Minimum"
                   size="small"
                   type="number"
-                  value={isUndefined(fireWatch.ffmcMin) || isNaN(fireWatch.ffmcMin) ? '' : fireWatch.ffmcMin}
+                  value={isNull(fireWatch.ffmcMin) || isNaN(fireWatch.ffmcMin) ? '' : fireWatch.ffmcMin}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ ffmcMin: parseFloat(event.target.value) })
                   }
@@ -130,9 +130,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
                   size="small"
                   type="number"
                   value={
-                    isUndefined(fireWatch.ffmcPreferred) || isNaN(fireWatch.ffmcPreferred)
-                      ? ''
-                      : fireWatch.ffmcPreferred
+                    isNull(fireWatch.ffmcPreferred) || isNaN(fireWatch.ffmcPreferred) ? '' : fireWatch.ffmcPreferred
                   }
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ ffmcPreferred: parseFloat(event.target.value) })
@@ -143,7 +141,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
                   label="Maximum"
                   size="small"
                   type="number"
-                  value={isUndefined(fireWatch.ffmcMax) || isNaN(fireWatch.ffmcMax) ? '' : fireWatch.ffmcMax}
+                  value={isNull(fireWatch.ffmcMax) || isNaN(fireWatch.ffmcMax) ? '' : fireWatch.ffmcMax}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ ffmcMax: parseFloat(event.target.value) })
                   }
@@ -160,7 +158,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
                 label="Minimum"
                 size="small"
                 type="number"
-                value={isUndefined(fireWatch.dmcMin) || isNaN(fireWatch.dmcMin) ? '' : fireWatch.dmcMin}
+                value={isNull(fireWatch.dmcMin) || isNaN(fireWatch.dmcMin) ? '' : fireWatch.dmcMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ dmcMin: parseFloat(event.target.value) })
                 }
@@ -170,9 +168,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
                 label="Preferred"
                 size="small"
                 type="number"
-                value={
-                  isUndefined(fireWatch.dmcPreferred) || isNaN(fireWatch.dmcPreferred) ? '' : fireWatch.dmcPreferred
-                }
+                value={isNull(fireWatch.dmcPreferred) || isNaN(fireWatch.dmcPreferred) ? '' : fireWatch.dmcPreferred}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ dmcPreferred: parseFloat(event.target.value) })
                 }
@@ -182,7 +178,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
                 label="Maximum"
                 size="small"
                 type="number"
-                value={isUndefined(fireWatch.dmcMax) || isNaN(fireWatch.dmcMax) ? '' : fireWatch.dmcMax}
+                value={isNull(fireWatch.dmcMax) || isNaN(fireWatch.dmcMax) ? '' : fireWatch.dmcMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ dmcMax: parseFloat(event.target.value) })
                 }
@@ -198,7 +194,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
                 label="Minimum"
                 size="small"
                 type="number"
-                value={isUndefined(fireWatch.dcMin) || isNaN(fireWatch.dcMin) ? '' : fireWatch.dcMin}
+                value={isNull(fireWatch.dcMin) || isNaN(fireWatch.dcMin) ? '' : fireWatch.dcMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ dcMin: parseFloat(event.target.value) })
                 }
@@ -208,7 +204,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
                 label="Preferred"
                 size="small"
                 type="number"
-                value={isUndefined(fireWatch.dcPreferred) || isNaN(fireWatch.dcPreferred) ? '' : fireWatch.dcPreferred}
+                value={isNull(fireWatch.dcPreferred) || isNaN(fireWatch.dcPreferred) ? '' : fireWatch.dcPreferred}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ dcPreferred: parseFloat(event.target.value) })
                 }
@@ -218,7 +214,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
                 label="Maximum"
                 size="small"
                 type="number"
-                value={isUndefined(fireWatch.dcMax) || isNaN(fireWatch.dcMax) ? '' : fireWatch.dcMax}
+                value={isNull(fireWatch.dcMax) || isNaN(fireWatch.dcMax) ? '' : fireWatch.dcMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ dcMax: parseFloat(event.target.value) })
                 }
