@@ -10,7 +10,7 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-24.04
+    runs-on: macos-14
     name: Build and test ASA Go
     steps:
       - name: Checkout
