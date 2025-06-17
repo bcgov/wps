@@ -1,0 +1,24 @@
+name: ASA Go
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-24.04
+    name: Build and test ASA Go
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Test
+        working-directory: ./mobile/asa-go
+        run: yarn install && yarn test
+      - name: Build
+        working-directory: ./mobile/asa-go
+        run: yarn install && ionic cap build ios && ionic cap build android
+
