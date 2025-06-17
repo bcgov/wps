@@ -12,10 +12,10 @@ from datetime import datetime
 from osgeo import gdal
 
 from wps_shared import config
-from wps_shared.fuel_raster import process_fuel_type_raster
 from wps_shared.db.crud.fuel_layer import save_processed_fuel_raster
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models import FuelTypeRaster
+from wps_shared.fuel_raster import process_fuel_type_raster
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.time import get_utc_now

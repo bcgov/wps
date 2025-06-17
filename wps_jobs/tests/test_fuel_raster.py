@@ -1,16 +1,17 @@
 import os
-import pytest
 from datetime import datetime
 
+import pytest
 from pytest_mock import MockerFixture
+
 import wps_jobs.fuel_raster
 from wps_jobs.fuel_raster import start_job
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
-from wps_shared.utils.s3_client import S3Client
 from wps_shared.db.models import FuelTypeRaster
+from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 
 START_TIMESTAMP = datetime(2024, 1, 1)
 CREATE_TIMESTAMP = datetime(2024, 4, 15, 12, 0)
+
 
 # --- Mocked S3Client with async methods ---
 class MockS3Client:

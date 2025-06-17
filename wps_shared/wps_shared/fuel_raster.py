@@ -2,23 +2,13 @@
 Update the fuel raster
 """
 
-import argparse
-from datetime import datetime
-from osgeo import gdal
-import asyncio
 import logging
-import os
-import sys
-from wps_shared import config
-from wps_shared.wps_logging import configure_logging
-from wps_shared.db.database import get_async_write_session_scope
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from datetime import datetime
+
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
-from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.db.crud.fuel_layer import save_processed_fuel_raster
-from wps_shared.db.models import FuelTypeRaster
 
 logger = logging.getLogger(__name__)
 

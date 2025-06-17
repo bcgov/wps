@@ -80,6 +80,7 @@ class MockRasterContext:
     def __exit__(self, *a):
         pass
 
+
 def setup_mocks(monkeypatch):
     def mock_get_unprocessed_key(_):
         return "unprocessed-key"
