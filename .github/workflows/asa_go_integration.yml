@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install Ionic CLI
+        working-directory: ./mobile/asa-go
+        run: npm install -g @ionic/cli
       - name: Test
         working-directory: ./mobile/asa-go
         run: yarn install && yarn test
