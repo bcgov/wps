@@ -1,7 +1,7 @@
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import { FireWatch } from '@/features/fireWatch/interfaces'
 import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
-import { isNull, isUndefined } from 'lodash'
+import { isUndefined } from 'lodash'
 import { SetStateAction } from 'react'
 
 interface FireBehaviourIndicesStepProps {
