@@ -32,8 +32,8 @@ export interface BurnWatchRow {
   station: string
   fuelType: FuelTypeEnum
   status: BurnStatusEnum
-  burnWindowStart?: DateTime
-  burnWindowEnd?: DateTime
+  burnWindowStart: DateTime | null
+  burnWindowEnd: DateTime | null
   inPrescription: PrescriptionEnum
   fireWatch: FireWatch
   burnForecasts: BurnForecast[]
