@@ -33,6 +33,9 @@
 		"autoDocstring.docstringFormat": "sphinx-notypes",
 		"autoDocstring.startOnNewLine": true,
 		// JavaScript/TypeScript
+		"[typescript]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode"
+		},
 		"eslint.format.enable": true,
 		"eslint.run": "onSave",
 		"eslint.validate": [
