@@ -33,14 +33,6 @@ const InfoStep = ({ fireWatch, setFireWatch }: InfoStepProps) => {
     setFireWatch(newFireWatch)
   }
 
-  const updateBurnWindowStart = (newDate: DateTime) => {
-    handleFormUpdate({ burnWindowStart: newDate })
-  }
-
-  const updateBurnWindowEnd = (newDate: DateTime) => {
-    handleFormUpdate({ burnWindowEnd: newDate })
-  }
-
   return (
     <Step>
       <Box sx={{ display: 'flex', flexDirection: 'column', width: `${FORM_MAX_WIDTH}px`, padding: theme.spacing(4) }}>

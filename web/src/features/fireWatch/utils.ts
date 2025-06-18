@@ -1,6 +1,5 @@
 import { BurnStatusEnum, FireWatch, FuelTypeEnum } from '@/features/fireWatch/interfaces'
 import { isNil, isNull } from 'lodash'
-import { DateTime } from 'luxon'
 
 export const getBlankFireWatch = (): FireWatch => {
   return {

@@ -1,7 +1,6 @@
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import { FireWatch } from '@/features/fireWatch/interfaces'
 import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
-import { isNull } from 'lodash'
 import { SetStateAction } from 'react'
 
 interface WeatherParametersStepProps {
