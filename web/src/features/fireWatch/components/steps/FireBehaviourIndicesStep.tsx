@@ -1,4 +1,5 @@
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
+import OptionalHeading from '@/features/fireWatch/components/OptionalHeading'
 import { FireWatch } from '@/features/fireWatch/interfaces'
 import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
 import { isNull } from 'lodash'
@@ -24,12 +25,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: theme.spacing(2) }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(4) }}>
-              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', pb: theme.spacing(2) }}>
-                <Typography variant="body1" sx={{ mr: 1 }}>
-                  Initial Spread Index (ISI){' '}
-                </Typography>
-                <Typography color="text.secondary">[Optional]</Typography>
-              </Box>
+              <OptionalHeading>Initial Spread Index (ISI)</OptionalHeading>
               <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
                 <TextField
                   required={!isNull(fireWatch.isiMax) && !isNaN(fireWatch.isiMax)}

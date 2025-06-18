@@ -1,4 +1,5 @@
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
+import OptionalHeading from '@/features/fireWatch/components/OptionalHeading'
 import { FireWatch, FuelTypeEnum, fuelTypes } from '@/features/fireWatch/interfaces'
 import { Autocomplete, Box, Step, TextField, Typography, useTheme } from '@mui/material'
 import { isNull, isUndefined } from 'lodash'
@@ -111,12 +112,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
           {renderConditionalPercentInputField()}
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: theme.spacing(2) }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(4) }}>
-              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', pb: theme.spacing(2) }}>
-                <Typography variant="body1" sx={{ mr: 1 }}>
-                  Fine Fuel Moisture Code (FFMC){' '}
-                </Typography>
-                <Typography color="text.secondary">[Optional]</Typography>
-              </Box>
+              <OptionalHeading>Fine Fuel Moisture Code (FFMC)</OptionalHeading>
               <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
                 <TextField
                   required={!isNull(fireWatch.ffmcMax) && !isNaN(fireWatch.ffmcMax)}
@@ -143,12 +139,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(4) }}>
-            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', pb: theme.spacing(2) }}>
-              <Typography variant="body1" sx={{ mr: 1 }}>
-                Duff Moisture Code (DMC){' '}
-              </Typography>
-              <Typography color="text.secondary">[Optional]</Typography>
-            </Box>
+            <OptionalHeading>Duff Moisture Code (DMC)</OptionalHeading>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
                 required={!isNull(fireWatch.dmcMax) && !isNaN(fireWatch.dmcMax)}
@@ -174,12 +165,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(2) }}>
-            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', pb: theme.spacing(2) }}>
-              <Typography variant="body1" sx={{ mr: 1 }}>
-                Drought Code (DC){' '}
-              </Typography>
-              <Typography color="text.secondary">[Optional]</Typography>
-            </Box>
+            <OptionalHeading>Drought Code (DC)</OptionalHeading>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
                 required={!isNull(fireWatch.dcMax) && !isNaN(fireWatch.dcMax)}
@@ -205,12 +191,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(4) }}>
-            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', pb: theme.spacing(2) }}>
-              <Typography variant="body1" sx={{ mr: 1 }}>
-                Buildup Index (BUI){' '}
-              </Typography>
-              <Typography color="text.secondary">[Optional]</Typography>
-            </Box>
+            <OptionalHeading>Buildup Index (BUI)</OptionalHeading>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
                 required={!isNull(fireWatch.buiMax) && !isNaN(fireWatch.buiMax)}
