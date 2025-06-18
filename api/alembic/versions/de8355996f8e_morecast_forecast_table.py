@@ -7,6 +7,7 @@ Create Date: 2023-02-14 15:00:50.990100
 """
 from alembic import op
 import sqlalchemy as sa
+from wps_shared.db.models.common import TZTimeStamp
 
 
 # revision identifiers, used by Alembic.
@@ -21,15 +22,15 @@ def upgrade():
     op.create_table('morecast_forecast',
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('station_code', sa.Integer(), nullable=False),
-                    sa.Column('for_date', sa.TIMESTAMP(timezone=True), nullable=False),
+                    sa.Column('for_date', TZTimeStamp, nullable=False),
                     sa.Column('temp', sa.Integer(), nullable=False),
                     sa.Column('rh', sa.Integer(), nullable=False),
                     sa.Column('precip', sa.Integer(), nullable=False),
                     sa.Column('wind_speed', sa.Integer(), nullable=False),
                     sa.Column('wind_direction', sa.Integer(), nullable=False),
-                    sa.Column('create_timestamp', sa.TIMESTAMP(timezone=True), nullable=False),
+                    sa.Column('create_timestamp', TZTimeStamp, nullable=False),
                     sa.Column('create_user', sa.String(), nullable=False),
-                    sa.Column('update_timestamp', sa.TIMESTAMP(timezone=True), nullable=False),
+                    sa.Column('update_timestamp', TZTimeStamp, nullable=False),
                     sa.Column('update_user', sa.String(), nullable=False),
                     sa.PrimaryKeyConstraint('id')
                     )

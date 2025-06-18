@@ -7,6 +7,7 @@ Create Date: 2021-12-14 11:27:03.917981
 """
 from alembic import op
 import sqlalchemy as sa
+from wps_shared.db.models.common import TZTimeStamp
 
 
 # revision identifiers, used by Alembic.
@@ -17,7 +18,7 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column('noon_forecasts', sa.Column('wfwx_update_date', sa.TIMESTAMP(timezone=True), nullable=True))
+    op.add_column('noon_forecasts', sa.Column('wfwx_update_date', TZTimeStamp, nullable=True))
     op.execute("UPDATE noon_forecasts SET wfwx_update_date = created_at")
     op.alter_column('noon_forecasts', 'wfwx_update_date', nullable=False)
     op.create_index(op.f('ix_noon_forecasts_wfwx_update_date'),

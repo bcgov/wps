@@ -11,6 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm.session import Session
 from sqlalchemy.dialects import postgresql
 
+from wps_shared.db.models.common import TZTimeStamp
 from wps_shared.utils.time import get_utc_now
 
 
@@ -21,24 +22,30 @@ branch_labels = None
 depends_on = None
 
 
-hfi_request_table = sa.Table('hfi_request', sa.MetaData(),
-                             sa.Column('id', sa.Integer),
-                             sa.Column('fire_centre_id', sa.Integer),
-                             sa.Column('prep_start_day', sa.Date),
-                             sa.Column('prep_end_day', sa.Date),
-                             sa.Column('create_timestamp', sa.TIMESTAMP(timezone=True)),
-                             sa.Column('create_user', sa.String()),
-                             sa.Column('request', sa.JSON()))
+hfi_request_table = sa.Table(
+    "hfi_request",
+    sa.MetaData(),
+    sa.Column("id", sa.Integer),
+    sa.Column("fire_centre_id", sa.Integer),
+    sa.Column("prep_start_day", sa.Date),
+    sa.Column("prep_end_day", sa.Date),
+    sa.Column("create_timestamp", TZTimeStamp),
+    sa.Column("create_user", sa.String()),
+    sa.Column("request", sa.JSON()),
+)
 
-hfi_ready_table = sa.Table('hfi_ready', sa.MetaData(),
-                           sa.Column('id', postgresql.UUID(as_uuid=True)),
-                           sa.Column('hfi_request_id', sa.Integer),
-                           sa.Column('planning_area_id', sa.Integer),
-                           sa.Column('ready', sa.Boolean),
-                           sa.Column('create_timestamp', sa.TIMESTAMP(timezone=True)),
-                           sa.Column('create_user', sa.String()),
-                           sa.Column('update_timestamp', sa.TIMESTAMP(timezone=True)),
-                           sa.Column('update_user', sa.String()))
+hfi_ready_table = sa.Table(
+    "hfi_ready",
+    sa.MetaData(),
+    sa.Column("id", postgresql.UUID(as_uuid=True)),
+    sa.Column("hfi_request_id", sa.Integer),
+    sa.Column("planning_area_id", sa.Integer),
+    sa.Column("ready", sa.Boolean),
+    sa.Column("create_timestamp", TZTimeStamp),
+    sa.Column("create_user", sa.String()),
+    sa.Column("update_timestamp", TZTimeStamp),
+    sa.Column("update_user", sa.String()),
+)
 
 fire_centres_table = sa.Table('fire_centres', sa.MetaData(),
                               sa.Column('id', sa.Integer),
