@@ -29,7 +29,7 @@ hfi_request_table = sa.Table(
     sa.Column("fire_centre_id", sa.Integer),
     sa.Column("prep_start_day", sa.Date),
     sa.Column("prep_end_day", sa.Date),
-    sa.Column("create_timestamp", TZTimeStamp),
+    sa.Column("create_timestamp", TZTimeStamp()),
     sa.Column("create_user", sa.String()),
     sa.Column("request", sa.JSON()),
 )
@@ -41,9 +41,9 @@ hfi_ready_table = sa.Table(
     sa.Column("hfi_request_id", sa.Integer),
     sa.Column("planning_area_id", sa.Integer),
     sa.Column("ready", sa.Boolean),
-    sa.Column("create_timestamp", TZTimeStamp),
+    sa.Column("create_timestamp", TZTimeStamp()),
     sa.Column("create_user", sa.String()),
-    sa.Column("update_timestamp", TZTimeStamp),
+    sa.Column("update_timestamp", TZTimeStamp()),
     sa.Column("update_user", sa.String()),
 )
 

@@ -38,9 +38,9 @@ planning_weather_stations_table = sa.Table(
     sa.Column("station_code", sa.Integer),
     sa.Column("order_of_appearance_in_planning_area_list", sa.Integer),
     sa.Column("create_user", sa.String),
-    sa.Column("create_timestamp", TZTimeStamp),
+    sa.Column("create_timestamp", TZTimeStamp()),
     sa.Column("update_user", sa.String),
-    sa.Column("update_timestamp", TZTimeStamp),
+    sa.Column("update_timestamp", TZTimeStamp()),
     sa.Column("is_deleted", sa.Boolean),
 )
 

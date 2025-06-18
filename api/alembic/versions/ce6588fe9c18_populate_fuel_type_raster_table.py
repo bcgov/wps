@@ -33,7 +33,7 @@ fuel_type_raster_table = sa.Table(
     sa.Column("ysize", sa.Integer),
     sa.Column("object_store_path", sa.String),
     sa.Column("content_hash", sa.String),
-    sa.Column("create_timestamp", TZTimeStamp),
+    sa.Column("create_timestamp", TZTimeStamp()),
 )
 
 
