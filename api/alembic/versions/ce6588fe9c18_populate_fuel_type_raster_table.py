@@ -41,7 +41,7 @@ def upgrade():
     # Clear out existing fuel type raster records and start fresh
     op.execute("DELETE FROM fuel_type_raster")
     session = Session(bind=op.get_bind())
-    years = range(2022, datetime.now().year + 1)
+    years = range(2021, datetime.now().year + 1)
     raster_addresser = RasterKeyAddresser()
     now = get_utc_now()
     for year in years:
