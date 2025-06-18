@@ -24,7 +24,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("create_user", sa.String(), nullable=True),
         sa.Column("path", sa.String(), nullable=False),
-        sa.Column("create_timestamp", TZTimeStamp, nullable=False),
+        sa.Column("create_timestamp", TZTimeStamp(), nullable=False),
         sa.Column("success", sa.Boolean(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         comment="The audit log of an authenticated request by a user.",

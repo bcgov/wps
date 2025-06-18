@@ -25,9 +25,9 @@ def upgrade():
         sa.Column("hfi_request_id", sa.Integer(), nullable=False),
         sa.Column("planning_area_id", sa.Integer(), nullable=False),
         sa.Column("ready", sa.Boolean(), nullable=False),
-        sa.Column("create_timestamp", TZTimeStamp, nullable=False),
+        sa.Column("create_timestamp", TZTimeStamp(), nullable=False),
         sa.Column("create_user", sa.String(), nullable=False),
-        sa.Column("update_timestamp", TZTimeStamp, nullable=False),
+        sa.Column("update_timestamp", TZTimeStamp(), nullable=False),
         sa.Column("update_user", sa.String(), nullable=False),
         sa.ForeignKeyConstraint(
             ["hfi_request_id"],

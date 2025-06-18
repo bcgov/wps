@@ -23,7 +23,7 @@ def upgrade():
     op.create_table(
         "c_haines_model_runs",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("model_run_timestamp", TZTimeStamp, nullable=False),
+        sa.Column("model_run_timestamp", TZTimeStamp(), nullable=False),
         sa.Column("prediction_model_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["prediction_model_id"],
@@ -39,7 +39,7 @@ def upgrade():
     op.create_table(
         "c_haines_predictions",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("prediction_timestamp", TZTimeStamp, nullable=False),
+        sa.Column("prediction_timestamp", TZTimeStamp(), nullable=False),
         sa.Column("model_run_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["model_run_id"],

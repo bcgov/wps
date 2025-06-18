@@ -37,8 +37,8 @@ def upgrade():
         "processed_model_run_files",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("url", sa.String(), nullable=False),
-        sa.Column("create_date", TZTimeStamp, nullable=False),
-        sa.Column("update_date", TZTimeStamp, nullable=False),
+        sa.Column("create_date", TZTimeStamp(), nullable=False),
+        sa.Column("update_date", TZTimeStamp(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("url"),
         comment="Record to indicate that a particular model run file has been processed.",
@@ -75,7 +75,7 @@ def upgrade():
         "prediction_model_runs",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("prediction_model_id", sa.Integer(), nullable=False),
-        sa.Column("prediction_run_timestamp", TZTimeStamp, nullable=False),
+        sa.Column("prediction_run_timestamp", TZTimeStamp(), nullable=False),
         sa.ForeignKeyConstraint(
             ["prediction_model_id"],
             ["prediction_models.id"],
@@ -92,7 +92,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("prediction_model_run_id", sa.Integer(), nullable=False),
         sa.Column("prediction_model_grid_subset_id", sa.Integer(), nullable=False),
-        sa.Column("prediction_timestamp", TZTimeStamp, nullable=False),
+        sa.Column("prediction_timestamp", TZTimeStamp(), nullable=False),
         sa.Column("tmp_tgl_2", postgresql.ARRAY(sa.Float()), nullable=True),
         sa.Column("rh_tgl_2", postgresql.ARRAY(sa.Float()), nullable=True),
         sa.ForeignKeyConstraint(

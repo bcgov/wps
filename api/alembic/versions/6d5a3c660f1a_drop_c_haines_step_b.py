@@ -41,7 +41,7 @@ def downgrade():
             autoincrement=True,
             nullable=False,
         ),
-        sa.Column("model_run_timestamp", TZTimeStamp, autoincrement=False, nullable=False),
+        sa.Column("model_run_timestamp", TZTimeStamp(), autoincrement=False, nullable=False),
         sa.Column("prediction_model_id", sa.INTEGER(), autoincrement=False, nullable=False),
         sa.ForeignKeyConstraint(
             ["prediction_model_id"],
@@ -66,7 +66,7 @@ def downgrade():
     op.create_table(
         "c_haines_predictions",
         sa.Column("id", sa.INTEGER(), autoincrement=True, nullable=False),
-        sa.Column("prediction_timestamp", TZTimeStamp, autoincrement=False, nullable=False),
+        sa.Column("prediction_timestamp", TZTimeStamp(), autoincrement=False, nullable=False),
         sa.Column("model_run_id", sa.INTEGER(), autoincrement=False, nullable=False),
         sa.ForeignKeyConstraint(
             ["model_run_id"],

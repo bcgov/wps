@@ -22,7 +22,7 @@ def upgrade():
     op.create_table(
         "hourly_actuals",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("weather_date", TZTimeStamp, nullable=False),
+        sa.Column("weather_date", TZTimeStamp(), nullable=False),
         sa.Column("station_code", sa.Integer(), nullable=False),
         sa.Column("temp_valid", sa.Boolean(), nullable=False),
         sa.Column("temperature", sa.Float(), nullable=False),
@@ -38,7 +38,7 @@ def upgrade():
         sa.Column("ffmc", sa.Float(), nullable=False),
         sa.Column("isi", sa.Float(), nullable=False),
         sa.Column("fwi", sa.Float(), nullable=False),
-        sa.Column("created_at", TZTimeStamp, nullable=False),
+        sa.Column("created_at", TZTimeStamp(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("weather_date", "station_code"),
         comment="The hourly_actuals for a weather station and weather date.",

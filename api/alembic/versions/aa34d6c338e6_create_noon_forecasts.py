@@ -22,7 +22,7 @@ def upgrade():
     op.create_table(
         "noon_forecasts",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("weather_date", TZTimeStamp, nullable=False),
+        sa.Column("weather_date", TZTimeStamp(), nullable=False),
         sa.Column("station_code", sa.Integer(), nullable=False),
         sa.Column("temp_valid", sa.Boolean(), nullable=False),
         sa.Column("temperature", sa.Float(), nullable=False),
@@ -42,7 +42,7 @@ def upgrade():
         sa.Column("bui", sa.Float(), nullable=False),
         sa.Column("fwi", sa.Float(), nullable=False),
         sa.Column("danger_rating", sa.Integer(), nullable=False),
-        sa.Column("created_at", TZTimeStamp, nullable=False),
+        sa.Column("created_at", TZTimeStamp(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
             "weather_date",

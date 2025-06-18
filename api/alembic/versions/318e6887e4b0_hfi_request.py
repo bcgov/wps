@@ -24,7 +24,7 @@ def upgrade():
         sa.Column("fire_centre_id", sa.Integer(), nullable=False),
         sa.Column("prep_start_day", sa.Date(), nullable=False),
         sa.Column("prep_end_day", sa.Date(), nullable=False),
-        sa.Column("create_timestamp", TZTimeStamp, nullable=False),
+        sa.Column("create_timestamp", TZTimeStamp(), nullable=False),
         sa.Column("create_user", sa.String(), nullable=False),
         sa.Column("request", sa.JSON(), nullable=True),
         sa.ForeignKeyConstraint(

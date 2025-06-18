@@ -27,7 +27,7 @@ def upgrade():
             postgresql.ENUM("actual", "forecast", create_type=False, name="runtypeenum"),
             nullable=False,
         ),
-        sa.Column("run_datetime", TZTimeStamp, nullable=False),
+        sa.Column("run_datetime", TZTimeStamp(), nullable=False),
         sa.Column("for_date", sa.Date(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("run_type", "run_datetime", "for_date"),
