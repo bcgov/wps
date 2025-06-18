@@ -76,8 +76,12 @@ def marshall_fire_watch_input_to_db(
     x, y = reproject_burn_location(fire_watch_input.burn_location, WEB_MERCATOR, NAD83_BC_ALBERS)
     db_fire_watch = DBFireWatch(
         burn_location=f"POINT({x} {y})",
-        burn_window_end=datetime.fromisoformat(fire_watch_input.burn_window_end),
-        burn_window_start=datetime.fromisoformat(fire_watch_input.burn_window_start),
+        burn_window_end=datetime.fromisoformat(fire_watch_input.burn_window_end)
+        if fire_watch_input.burn_window_end
+        else None,
+        burn_window_start=datetime.fromisoformat(fire_watch_input.burn_window_start)
+        if fire_watch_input.burn_window_start
+        else None,
         contact_email=fire_watch_input.contact_email,
         create_timestamp=now,
         create_user=idir_username,
@@ -148,8 +152,12 @@ def create_fire_watch_output(
     return FireWatchOutput(
         id=db_fire_watch.id,
         burn_location=[x, y],
-        burn_window_end=db_fire_watch.burn_window_end.isoformat(),
-        burn_window_start=db_fire_watch.burn_window_start.isoformat(),
+        burn_window_end=db_fire_watch.burn_window_end.isoformat()
+        if db_fire_watch.burn_window_end
+        else None,
+        burn_window_start=db_fire_watch.burn_window_start.isoformat()
+        if db_fire_watch.burn_window_start
+        else None,
         contact_email=db_fire_watch.contact_email,
         create_timestamp=db_fire_watch.create_timestamp.isoformat(),
         create_user=db_fire_watch.create_user,

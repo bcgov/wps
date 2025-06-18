@@ -1,6 +1,5 @@
 import { GeoJsonStation } from '@/api/stationAPI'
 import { selectFireWatchFireCentres, selectFireWeatherStations } from '@/app/rootReducer'
-import WPSDatePicker from '@/components/WPSDatePicker'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import { FireWatch, FireWatchFireCentre } from '@/features/fireWatch/interfaces'
 import { Autocomplete, Box, Step, TextField, Typography, useTheme } from '@mui/material'
@@ -49,7 +48,7 @@ const InfoStep = ({ fireWatch, setFireWatch }: InfoStepProps) => {
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', pt: theme.spacing(2) }}>
             <Typography sx={{ pb: theme.spacing(0.5) }} variant="body1">
-              Burn Name
+              Burn Name*
             </Typography>
             <TextField
               required
@@ -58,25 +57,7 @@ const InfoStep = ({ fireWatch, setFireWatch }: InfoStepProps) => {
               onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleFormUpdate({ title: event.target.value })}
             />
           </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1, pt: theme.spacing(2) }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pr: theme.spacing(2) }}>
-              <Typography sx={{ pb: theme.spacing(0.5) }} variant="body1">
-                Burn Window Start Date
-              </Typography>
-              <WPSDatePicker
-                date={fireWatch.burnWindowStart}
-                label=""
-                updateDate={updateBurnWindowStart}
-                size="small"
-              />
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-              <Typography sx={{ pb: theme.spacing(0.5) }} variant="body1">
-                Burn Window End Date
-              </Typography>
-              <WPSDatePicker date={fireWatch.burnWindowEnd} label="" updateDate={updateBurnWindowEnd} size="small" />
-            </Box>
-          </Box>
+
           <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1, pt: theme.spacing(2) }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', flexBasis: 0, flexGrow: 1, pr: theme.spacing(2) }}>
               <Typography sx={{ pb: theme.spacing(0.5) }} variant="body1">
@@ -90,6 +71,7 @@ const InfoStep = ({ fireWatch, setFireWatch }: InfoStepProps) => {
                 getOptionLabel={option => option?.name}
                 renderInput={params => (
                   <TextField
+                    required
                     {...params}
                     label={isNull(fireWatch.fireCentre) ? 'Select a fire centre' : ''}
                     variant="outlined"
@@ -118,6 +100,7 @@ const InfoStep = ({ fireWatch, setFireWatch }: InfoStepProps) => {
                     label={isNull(fireWatch.station) ? 'Select a station' : ''}
                     variant="outlined"
                     size="small"
+                    required
                   />
                 )}
                 onChange={(_: React.SyntheticEvent<Element, Event>, newValue: StationOption | null) => {
@@ -129,7 +112,7 @@ const InfoStep = ({ fireWatch, setFireWatch }: InfoStepProps) => {
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', pt: theme.spacing(2) }}>
             <Typography sx={{ pb: theme.spacing(0.5) }} variant="body1">
-              Notification Email
+              Notification Email*
             </Typography>
             <TextField
               required

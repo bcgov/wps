@@ -111,33 +111,26 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
           {renderConditionalPercentInputField()}
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: theme.spacing(2) }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(4) }}>
-              <Typography sx={{ pb: theme.spacing(2) }} variant="body1">
-                Fine Fuel Moisture Code (FFMC){' '}
-              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', pb: theme.spacing(2) }}>
+                <Typography variant="body1" sx={{ mr: 1 }}>
+                  Fine Fuel Moisture Code (FFMC){' '}
+                </Typography>
+                <Typography color="text.secondary">[Optional]</Typography>
+              </Box>
               <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
                 <TextField
+                  required={!isNull(fireWatch.ffmcMax) && !isNaN(fireWatch.ffmcMax)}
                   label="Minimum"
                   size="small"
                   type="number"
-                  value={isNull(fireWatch.ffmcMin) || isNaN(fireWatch.ffmcMin) ? '' : fireWatch.ffmcMin}
+                  value={isNull(fireWatch.ffmcMin) || isNaN(fireWatch.ffmcMin) ? null : fireWatch.ffmcMin}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ ffmcMin: parseFloat(event.target.value) })
                   }
                   sx={{ pr: theme.spacing(2) }}
                 />
                 <TextField
-                  label="Preferred"
-                  size="small"
-                  type="number"
-                  value={
-                    isNull(fireWatch.ffmcPreferred) || isNaN(fireWatch.ffmcPreferred) ? '' : fireWatch.ffmcPreferred
-                  }
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    handleFormUpdate({ ffmcPreferred: parseFloat(event.target.value) })
-                  }
-                  sx={{ pr: theme.spacing(2) }}
-                />
-                <TextField
+                  required={!isNull(fireWatch.ffmcMin) && !isNaN(fireWatch.ffmcMin)}
                   label="Maximum"
                   size="small"
                   type="number"
@@ -150,11 +143,15 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(4) }}>
-            <Typography sx={{ pb: theme.spacing(2) }} variant="body1">
-              Duff Moisture Code (DMC){' '}
-            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', pb: theme.spacing(2) }}>
+              <Typography variant="body1" sx={{ mr: 1 }}>
+                Duff Moisture Code (DMC){' '}
+              </Typography>
+              <Typography color="text.secondary">[Optional]</Typography>
+            </Box>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
+                required={!isNull(fireWatch.dmcMax) && !isNaN(fireWatch.dmcMax)}
                 label="Minimum"
                 size="small"
                 type="number"
@@ -165,16 +162,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
                 sx={{ pr: theme.spacing(2) }}
               />
               <TextField
-                label="Preferred"
-                size="small"
-                type="number"
-                value={isNull(fireWatch.dmcPreferred) || isNaN(fireWatch.dmcPreferred) ? '' : fireWatch.dmcPreferred}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate({ dmcPreferred: parseFloat(event.target.value) })
-                }
-                sx={{ pr: theme.spacing(2) }}
-              />
-              <TextField
+                required={!isNull(fireWatch.dmcMin) && !isNaN(fireWatch.dmcMin)}
                 label="Maximum"
                 size="small"
                 type="number"
@@ -186,11 +174,15 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(2) }}>
-            <Typography sx={{ pb: theme.spacing(2) }} variant="body1">
-              Drought Code (DC){' '}
-            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', pb: theme.spacing(2) }}>
+              <Typography variant="body1" sx={{ mr: 1 }}>
+                Drought Code (DC){' '}
+              </Typography>
+              <Typography color="text.secondary">[Optional]</Typography>
+            </Box>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
+                required={!isNull(fireWatch.dcMax) && !isNaN(fireWatch.dcMax)}
                 label="Minimum"
                 size="small"
                 type="number"
@@ -201,22 +193,44 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
                 sx={{ pr: theme.spacing(2) }}
               />
               <TextField
-                label="Preferred"
-                size="small"
-                type="number"
-                value={isNull(fireWatch.dcPreferred) || isNaN(fireWatch.dcPreferred) ? '' : fireWatch.dcPreferred}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate({ dcPreferred: parseFloat(event.target.value) })
-                }
-                sx={{ pr: theme.spacing(2) }}
-              />
-              <TextField
+                required={!isNull(fireWatch.dcMin) && !isNaN(fireWatch.dcMin)}
                 label="Maximum"
                 size="small"
                 type="number"
                 value={isNull(fireWatch.dcMax) || isNaN(fireWatch.dcMax) ? '' : fireWatch.dcMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ dcMax: parseFloat(event.target.value) })
+                }
+              />
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(4) }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', pb: theme.spacing(2) }}>
+              <Typography variant="body1" sx={{ mr: 1 }}>
+                Buildup Index (BUI){' '}
+              </Typography>
+              <Typography color="text.secondary">[Optional]</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
+              <TextField
+                required={!isNull(fireWatch.buiMax) && !isNaN(fireWatch.buiMax)}
+                label="Minimum"
+                size="small"
+                type="number"
+                value={isNull(fireWatch.buiMin) || isNaN(fireWatch.buiMin) ? '' : fireWatch.buiMin}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  handleFormUpdate({ buiMin: parseFloat(event.target.value) })
+                }
+                sx={{ pr: theme.spacing(2) }}
+              />
+              <TextField
+                required={!isNull(fireWatch.buiMin) && !isNaN(fireWatch.buiMin)}
+                label="Maximum"
+                size="small"
+                type="number"
+                value={isNull(fireWatch.buiMax) || isNaN(fireWatch.buiMax) ? '' : fireWatch.buiMax}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  handleFormUpdate({ buiMax: parseFloat(event.target.value) })
                 }
               />
             </Box>

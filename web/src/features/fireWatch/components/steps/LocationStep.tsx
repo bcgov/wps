@@ -4,7 +4,7 @@ import { Collection, Map, MapBrowserEvent, View } from 'ol'
 import TileLayer from 'ol/layer/Tile'
 import { fromLonLat } from 'ol/proj'
 import { CENTER_OF_BC } from '@/utils/constants'
-import { Box, Step, Typography } from '@mui/material'
+import { Alert, Box, Snackbar, Step, Typography } from '@mui/material'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import { theme } from 'app/theme'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
@@ -22,9 +22,11 @@ export const MapContext = React.createContext<Map | null>(null)
 interface LocationStepProps {
   fireWatch: FireWatch
   setFireWatch: React.Dispatch<SetStateAction<FireWatch>>
+  showLocationError?: boolean
+  onCloseLocationError?: () => void
 }
 
-const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
+const LocationStep = ({ fireWatch, setFireWatch, showLocationError, onCloseLocationError }: LocationStepProps) => {
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const [marker, setMarker] = useState<Feature<Geometry>[]>(
@@ -132,6 +134,16 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
           ></Box>
         </MapContext.Provider>
       </Box>
+      <Snackbar
+        open={showLocationError}
+        autoHideDuration={4000}
+        onClose={onCloseLocationError}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={onCloseLocationError} severity="error" sx={{ width: '100%' }}>
+          Please select a burn location before continuing.
+        </Alert>
+      </Snackbar>
     </Step>
   )
 }

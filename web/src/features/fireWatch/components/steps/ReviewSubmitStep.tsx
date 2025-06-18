@@ -161,22 +161,22 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
               <Box sx={{ display: 'flex', pt: theme.spacing(2) }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: '1' }}>
                   <Typography sx={{ fontWeight: 'bold' }} variant="body1">
-                    3. Weather (Min/Preferred/Max)
+                    3. Weather (Min/Max)
                   </Typography>
                   <SummaryTextLine
                     indentLevel={1}
                     left="Temperature (°C)"
-                    right={`${formatNumber(fireWatch.tempMin)}/${formatNumber(fireWatch.tempPreferred)}/${formatNumber(fireWatch.tempMax)}`}
+                    right={`${formatNumber(fireWatch.tempMin)}/${formatNumber(fireWatch.tempMax)}`}
                   />
                   <SummaryTextLine
                     indentLevel={1}
                     left="Relative Humidity (%)"
-                    right={`${formatNumber(fireWatch.rhMin)}/${formatNumber(fireWatch.rhPreferred)}/${formatNumber(fireWatch.rhMax)}`}
+                    right={`${formatNumber(fireWatch.rhMin)}/${formatNumber(fireWatch.rhMax)}`}
                   />
                   <SummaryTextLine
                     indentLevel={1}
                     left="Wind Speed (km/h)"
-                    right={`${formatNumber(fireWatch.windSpeedMin)}/${formatNumber(fireWatch.windSpeedPreferred)}/${formatNumber(fireWatch.windSpeedMax)}`}
+                    right={`${formatNumber(fireWatch.windSpeedMin)}/${formatNumber(fireWatch.windSpeedMax)}`}
                   />
                 </Box>
                 <Box>
@@ -189,21 +189,21 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
                     4. Fuel Type and Fuel Moisture Codes
                   </Typography>
                   <SummaryTextLine indentLevel={1} left="Fuel Type" right={`${formatFuelType()}`} />
-                  <SummaryTextLine indentLevel={1} left="Fuel Moisture Codes (Min/Preferred/Max)" right={''} />
+                  <SummaryTextLine indentLevel={1} left="Fuel Moisture Codes (Min/Max)" right={''} />
                   <SummaryTextLine
                     indentLevel={2}
                     left="FFMC"
-                    right={`${formatNumber(fireWatch.ffmcMin)}/${formatNumber(fireWatch.ffmcPreferred)}/${formatNumber(fireWatch.ffmcMax)}`}
+                    right={`${formatNumber(fireWatch.ffmcMin)}/${formatNumber(fireWatch.ffmcMax)}`}
                   />
                   <SummaryTextLine
                     indentLevel={2}
                     left="DMC"
-                    right={`${formatNumber(fireWatch.dmcMin)}/${formatNumber(fireWatch.dmcPreferred)}/${formatNumber(fireWatch.dmcMax)}`}
+                    right={`${formatNumber(fireWatch.dmcMin)}/${formatNumber(fireWatch.dmcMax)}`}
                   />
                   <SummaryTextLine
                     indentLevel={2}
                     left="DC"
-                    right={`${formatNumber(fireWatch.dcMin)}/${formatNumber(fireWatch.dcPreferred)}/${formatNumber(fireWatch.dcMax)}`}
+                    right={`${formatNumber(fireWatch.dcMin)}/${formatNumber(fireWatch.dcMax)}`}
                   />
                 </Box>
                 <Box>
@@ -213,22 +213,22 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
               <Box sx={{ display: 'flex', pt: theme.spacing(2) }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: '1' }}>
                   <Typography sx={{ fontWeight: 'bold' }} variant="body1">
-                    5. Fire Behavior Indices (Min/Preferred/Max)
+                    5. Fire Behavior Indices (Min/Max)
                   </Typography>
                   <SummaryTextLine
                     indentLevel={1}
                     left="BUI"
-                    right={`${formatNumber(fireWatch.buiMin)}/${formatNumber(fireWatch.buiPreferred)}/${formatNumber(fireWatch.buiMax)}`}
+                    right={`${formatNumber(fireWatch.buiMin)}/${formatNumber(fireWatch.buiMax)}`}
                   />
                   <SummaryTextLine
                     indentLevel={1}
                     left="ISI"
-                    right={`${formatNumber(fireWatch.isiMin)}/${formatNumber(fireWatch.isiPreferred)}/${formatNumber(fireWatch.isiMax)}`}
+                    right={`${formatNumber(fireWatch.isiMin)}/${formatNumber(fireWatch.isiMax)}`}
                   />
                   <SummaryTextLine
                     indentLevel={1}
                     left="HFI (kw/M)"
-                    right={`${formatNumber(fireWatch.hfiMin)}/${formatNumber(fireWatch.hfiPreferred)}/${formatNumber(fireWatch.hfiMax)}`}
+                    right={`${formatNumber(fireWatch.hfiMin)}/${formatNumber(fireWatch.hfiMax)}`}
                   />
                 </Box>
                 <Box>

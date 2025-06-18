@@ -662,7 +662,7 @@ def test_check_optional_fwi_fields_all_fields_in_range(mock_fire_watch):
     assert result == dict.fromkeys(FireWatch.OPTIONAL_FWI_FIELDS, True)
 
 
-def test_check_optional_fwi_fields_some_fields_out_of_range(mocker, mock_fire_watch):
+def test_check_optional_fwi_fields_some_fields_out_of_range(mock_fire_watch):
     mock_fire_watch.ffmc_min = 80
     mock_fire_watch.ffmc_max = 90
     mock_fire_watch.dmc_min = 10

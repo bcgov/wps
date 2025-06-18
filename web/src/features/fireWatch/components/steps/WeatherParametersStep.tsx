@@ -29,6 +29,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
                 <TextField
+                  required
                   label="Minimum"
                   size="small"
                   type="number"
@@ -39,18 +40,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                   sx={{ pr: theme.spacing(2) }}
                 />
                 <TextField
-                  label="Preferred"
-                  size="small"
-                  type="number"
-                  value={
-                    isNull(fireWatch.tempPreferred) || isNaN(fireWatch.tempPreferred) ? '' : fireWatch.tempPreferred
-                  }
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    handleFormUpdate({ tempPreferred: parseFloat(event.target.value) })
-                  }
-                  sx={{ pr: theme.spacing(2) }}
-                />
-                <TextField
+                  required
                   label="Maximum"
                   size="small"
                   type="number"
@@ -68,6 +58,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
+                required
                 label="Minimum"
                 size="small"
                 type="number"
@@ -78,16 +69,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                 sx={{ pr: theme.spacing(2) }}
               />
               <TextField
-                label="Preferred"
-                size="small"
-                type="number"
-                value={isNull(fireWatch.rhPreferred) || isNaN(fireWatch.rhPreferred) ? '' : fireWatch.rhPreferred}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate({ rhPreferred: parseFloat(event.target.value) })
-                }
-                sx={{ pr: theme.spacing(2) }}
-              />
-              <TextField
+                required
                 label="Maximum"
                 size="small"
                 type="number"
@@ -104,6 +86,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
+                required
                 label="Minimum"
                 size="small"
                 type="number"
@@ -114,20 +97,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                 sx={{ pr: theme.spacing(2) }}
               />
               <TextField
-                label="Preferred"
-                size="small"
-                type="number"
-                value={
-                  isNull(fireWatch.windSpeedPreferred) || isNaN(fireWatch.windSpeedPreferred)
-                    ? ''
-                    : fireWatch.windSpeedPreferred
-                }
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate({ windSpeedPreferred: parseFloat(event.target.value) })
-                }
-                sx={{ pr: theme.spacing(2) }}
-              />
-              <TextField
+                required
                 label="Maximum"
                 size="small"
                 type="number"

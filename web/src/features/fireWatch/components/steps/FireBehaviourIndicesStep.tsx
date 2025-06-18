@@ -24,11 +24,15 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: theme.spacing(2) }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(4) }}>
-              <Typography sx={{ pb: theme.spacing(2) }} variant="body1">
-                Initial Spread Index (ISI){' '}
-              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', pb: theme.spacing(2) }}>
+                <Typography variant="body1" sx={{ mr: 1 }}>
+                  Initial Spread Index (ISI){' '}
+                </Typography>
+                <Typography color="text.secondary">[Optional]</Typography>
+              </Box>
               <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
                 <TextField
+                  required={!isNull(fireWatch.isiMax) && !isNaN(fireWatch.isiMax)}
                   label="Minimum"
                   size="small"
                   type="number"
@@ -39,16 +43,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                   sx={{ pr: theme.spacing(2) }}
                 />
                 <TextField
-                  label="Preferred"
-                  size="small"
-                  type="number"
-                  value={isNull(fireWatch.isiPreferred) || isNaN(fireWatch.isiPreferred) ? '' : fireWatch.isiPreferred}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    handleFormUpdate({ isiPreferred: parseFloat(event.target.value) })
-                  }
-                  sx={{ pr: theme.spacing(2) }}
-                />
-                <TextField
+                  required={!isNull(fireWatch.isiMin) && !isNaN(fireWatch.isiMin)}
                   label="Maximum"
                   size="small"
                   type="number"
@@ -60,48 +55,13 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
               </Box>
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(4) }}>
-            <Typography sx={{ pb: theme.spacing(2) }} variant="body1">
-              Buildup Index (BUI){' '}
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
-              <TextField
-                label="Minimum"
-                size="small"
-                type="number"
-                value={isNull(fireWatch.buiMin) || isNaN(fireWatch.buiMin) ? '' : fireWatch.buiMin}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate({ buiMin: parseFloat(event.target.value) })
-                }
-                sx={{ pr: theme.spacing(2) }}
-              />
-              <TextField
-                label="Preferred"
-                size="small"
-                type="number"
-                value={isNull(fireWatch.buiPreferred) || isNaN(fireWatch.buiPreferred) ? '' : fireWatch.buiPreferred}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate({ buiPreferred: parseFloat(event.target.value) })
-                }
-                sx={{ pr: theme.spacing(2) }}
-              />
-              <TextField
-                label="Maximum"
-                size="small"
-                type="number"
-                value={isNull(fireWatch.buiMax) || isNaN(fireWatch.buiMax) ? '' : fireWatch.buiMax}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate({ buiMax: parseFloat(event.target.value) })
-                }
-              />
-            </Box>
-          </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(2) }}>
             <Typography sx={{ pb: theme.spacing(2) }} variant="body1">
               Head Fire Intensity (HFI){' '}
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
+                required
                 label="Minimum"
                 size="small"
                 type="number"
@@ -112,16 +72,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 sx={{ pr: theme.spacing(2) }}
               />
               <TextField
-                label="Preferred"
-                size="small"
-                type="number"
-                value={isNull(fireWatch.hfiPreferred) || isNaN(fireWatch.hfiPreferred) ? '' : fireWatch.hfiPreferred}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate({ hfiPreferred: parseFloat(event.target.value) })
-                }
-                sx={{ pr: theme.spacing(2) }}
-              />
-              <TextField
+                required
                 label="Maximum"
                 size="small"
                 type="number"

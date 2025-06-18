@@ -5,8 +5,8 @@ import { DateTime } from 'luxon'
 export const getBlankFireWatch = (): FireWatch => {
   return {
     id: NaN,
-    burnWindowEnd: DateTime.now(),
-    burnWindowStart: DateTime.now(),
+    burnWindowEnd: null,
+    burnWindowStart: null,
     contactEmail: [],
     fireCentre: null,
     geometry: [],
