@@ -149,6 +149,7 @@ async def test_start_job_failure(monkeypatch):
             start_datetime=datetime(2024, 1, 1),
             unprocessed_object_name="fuel.tif",
         )
+    assert mock_db.added == {}
 
 
 def test_main_fail(mocker: MockerFixture, monkeypatch):
