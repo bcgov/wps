@@ -1,4 +1,4 @@
-import { FORM_MAX_WIDTH } from "@/features/fireWatch/components/CreateFireWatch"
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 import { FireWatch } from '@/features/fireWatch/interfaces'
 import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
 import { SetStateAction } from 'react'
@@ -28,6 +28,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
                 <TextField
+                  required
                   label="Minimum"
                   size="small"
                   type="number"
@@ -38,16 +39,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                   sx={{ pr: theme.spacing(2) }}
                 />
                 <TextField
-                  label="Preferred"
-                  size="small"
-                  type="number"
-                  value={isNaN(fireWatch.tempPreferred) ? '' : fireWatch.tempPreferred}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    handleFormUpdate({ tempPreferred: parseFloat(event.target.value) })
-                  }
-                  sx={{ pr: theme.spacing(2) }}
-                />
-                <TextField
+                  required
                   label="Maximum"
                   size="small"
                   type="number"
@@ -65,6 +57,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
+                required
                 label="Minimum"
                 size="small"
                 type="number"
@@ -75,16 +68,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                 sx={{ pr: theme.spacing(2) }}
               />
               <TextField
-                label="Preferred"
-                size="small"
-                type="number"
-                value={isNaN(fireWatch.rhPreferred) ? '' : fireWatch.rhPreferred}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate({ rhPreferred: parseFloat(event.target.value) })
-                }
-                sx={{ pr: theme.spacing(2) }}
-              />
-              <TextField
+                required
                 label="Maximum"
                 size="small"
                 type="number"
@@ -101,6 +85,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
+                required
                 label="Minimum"
                 size="small"
                 type="number"
@@ -111,16 +96,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                 sx={{ pr: theme.spacing(2) }}
               />
               <TextField
-                label="Preferred"
-                size="small"
-                type="number"
-                value={isNaN(fireWatch.windSpeedPreferred) ? '' : fireWatch.windSpeedPreferred}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormUpdate({ windSpeedPreferred: parseFloat(event.target.value) })
-                }
-                sx={{ pr: theme.spacing(2) }}
-              />
-              <TextField
+                required
                 label="Maximum"
                 size="small"
                 type="number"

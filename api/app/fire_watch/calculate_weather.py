@@ -196,6 +196,23 @@ def map_model_prediction_to_weather_indeterminate(
     """
     Map a ModelPredictionDetails object to a WeatherIndeterminate object, filling in station metadata that is needed for FWI calculations.
     """
+    has_all_bias = (
+        model_prediction.bias_adjusted_temperature is not None
+        and model_prediction.bias_adjusted_rh is not None
+        and model_prediction.bias_adjusted_wdir is not None
+        and model_prediction.bias_adjusted_wind_speed is not None
+    )
+
+    if has_all_bias:
+        temp = model_prediction.bias_adjusted_temperature
+        rh = model_prediction.bias_adjusted_rh
+        wind_dir = model_prediction.bias_adjusted_wdir
+        wind_speed = model_prediction.bias_adjusted_wind_speed
+    else:
+        temp = model_prediction.tmp_tgl_2
+        rh = model_prediction.rh_tgl_2
+        wind_dir = model_prediction.wdir_tgl_10
+        wind_speed = model_prediction.wind_tgl_10
     return WeatherIndeterminate(
         station_code=model_prediction.station_code,
         station_name=station_data.name,
@@ -203,11 +220,11 @@ def map_model_prediction_to_weather_indeterminate(
         longitude=station_data.long,
         determinate=WeatherDeterminate.from_string(model_prediction.abbreviation),
         utc_timestamp=model_prediction.prediction_timestamp,
-        temperature=model_prediction.tmp_tgl_2,
-        relative_humidity=model_prediction.rh_tgl_2,
+        temperature=temp,
+        relative_humidity=rh,
         precipitation=model_prediction.precip_24h,
-        wind_direction=model_prediction.wdir_tgl_10,
-        wind_speed=model_prediction.wind_tgl_10,
+        wind_direction=wind_dir,
+        wind_speed=wind_speed,
         update_date=model_prediction.update_date,
         prediction_run_timestamp=model_prediction.prediction_run_timestamp,
     )
@@ -253,6 +270,22 @@ def calculate_fbp(
     return fbp
 
 
+def in_range(val: int | float, min_val: int | float, max_val: int | float):
+    return min_val <= val <= max_val
+
+
+def check_optional_fwi_fields(fire_watch: FireWatch, weather: FireWatchWeather) -> dict[str, bool]:
+    results = {}
+    for field in FireWatch.OPTIONAL_FWI_FIELDS:
+        min_val = getattr(fire_watch, f"{field}_min", None)
+        max_val = getattr(fire_watch, f"{field}_max", None)
+        if min_val is not None and max_val is not None:
+            value = getattr(weather, field, None)
+            if value is not None:
+                results[field] = in_range(value, min_val, max_val)
+    return results
+
+
 def check_prescription_status(
     fire_watch: FireWatch, weather: FireWatchWeather, status_id_dict: dict[str, int]
 ) -> str:
@@ -263,23 +296,20 @@ def check_prescription_status(
     - No: Neither of the above conditions are met.
     """
 
-    def in_range(val, min_val, max_val):
-        return min_val <= val <= max_val
-
-    checks = [
+    # always required weather checks
+    weather_checks = [
         in_range(weather.temperature, fire_watch.temp_min, fire_watch.temp_max),
         in_range(weather.relative_humidity, fire_watch.rh_min, fire_watch.rh_max),
         in_range(weather.wind_speed, fire_watch.wind_speed_min, fire_watch.wind_speed_max),
-        in_range(weather.ffmc, fire_watch.ffmc_min, fire_watch.ffmc_max),
-        in_range(weather.dmc, fire_watch.dmc_min, fire_watch.dmc_max),
-        in_range(weather.dc, fire_watch.dc_min, fire_watch.dc_max),
-        in_range(weather.isi, fire_watch.isi_min, fire_watch.isi_max),
-        in_range(weather.bui, fire_watch.bui_min, fire_watch.bui_max),
     ]
 
+    # always required FBP check
     hfi_check = in_range(weather.hfi, fire_watch.hfi_min, fire_watch.hfi_max)
 
-    if all(checks) and hfi_check:
+    # optional FWI checks
+    fwi_checks = check_optional_fwi_fields(fire_watch, weather)
+
+    if all(weather_checks) and hfi_check and all(fwi_checks.values()):
         return status_id_dict["all"]
     elif hfi_check:
         return status_id_dict["hfi"]

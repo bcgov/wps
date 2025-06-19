@@ -1,8 +1,7 @@
 import { theme } from '@/app/theme'
-import { BurnWatchRow } from '@/features/fireWatch/components/FireWatchDashboard'
-import { BurnForecast } from '@/features/fireWatch/interfaces'
+import { BurnForecast, BurnWatchRow } from '@/features/fireWatch/interfaces'
 import { Box, Typography } from '@mui/material'
-import { DataGridPro, GridColDef, GridValueFormatterParams } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridColDef, GridRenderCellParams, GridValueFormatterParams } from '@mui/x-data-grid-pro'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 
@@ -19,6 +18,20 @@ const DetailPanelContent = ({ row }: DetailPanelContentProps) => {
       return value
     }
     return value.toFixed(precision)
+  }
+
+  const renderFWICell = (params: GridRenderCellParams<BurnForecast>, min: number | null, max: number | null) => {
+    const isNotRequired = isNull(min) && isNull(max)
+    return (
+      <Typography
+        variant="body2"
+        sx={{
+          color: isNotRequired ? theme.palette.text.disabled : theme.palette.text.primary
+        }}
+      >
+        {numberFormatter(params.value, 0)}
+      </Typography>
+    )
   }
 
   const columns: GridColDef<BurnForecast>[] = [
@@ -52,37 +65,37 @@ const DetailPanelContent = ({ row }: DetailPanelContentProps) => {
       field: 'ffmc',
       headerName: 'FFMC',
       width: 80,
-      valueFormatter: (params: GridValueFormatterParams<number>) => numberFormatter(params.value, 0)
+      renderCell: params => renderFWICell(params, row.fireWatch.ffmcMin, row.fireWatch.ffmcMax)
     },
     {
       field: 'dmc',
       headerName: 'DMC',
       width: 80,
-      valueFormatter: (params: GridValueFormatterParams<number>) => numberFormatter(params.value, 0)
+      renderCell: params => renderFWICell(params, row.fireWatch.dmcMin, row.fireWatch.dmcMax)
     },
     {
       field: 'dc',
       headerName: 'DC',
       width: 80,
-      valueFormatter: (params: GridValueFormatterParams<number>) => numberFormatter(params.value, 0)
+      renderCell: params => renderFWICell(params, row.fireWatch.dcMin, row.fireWatch.dcMax)
     },
     {
       field: 'isi',
       headerName: 'ISI',
       width: 80,
-      valueFormatter: (params: GridValueFormatterParams<number>) => numberFormatter(params.value, 0)
+      renderCell: params => renderFWICell(params, row.fireWatch.isiMin, row.fireWatch.isiMax)
     },
     {
       field: 'bui',
       headerName: 'BUI',
       width: 80,
-      valueFormatter: (params: GridValueFormatterParams<number>) => numberFormatter(params.value, 0)
+      renderCell: params => renderFWICell(params, row.fireWatch.buiMin, row.fireWatch.buiMax)
     },
     {
       field: 'hfi',
       headerName: 'HFI',
       width: 80,
-      valueFormatter: (params: GridValueFormatterParams<number>) => numberFormatter(params.value, 0)
+      renderCell: params => renderFWICell(params, row.fireWatch.hfiMin, row.fireWatch.hfiMax)
     },
     {
       field: 'inPrescription',
