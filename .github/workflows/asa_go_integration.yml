@@ -21,7 +21,4 @@ jobs:
       - name: Test
         working-directory: ./mobile/asa-go
         run: yarn install && yarn test
-      - name: Build
-        working-directory: ./mobile/asa-go
-        run: yarn install && ionic cap build ios && ionic cap build android
 
