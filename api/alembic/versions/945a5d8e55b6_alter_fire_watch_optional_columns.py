@@ -1,7 +1,7 @@
 """Alter fire_watch - optional columns
 
 Revision ID: 945a5d8e55b6
-Revises: a1553ead7fde
+Revises: ce6588fe9c18
 Create Date: 2025-06-17 08:48:51.171800
 
 """
@@ -12,7 +12,7 @@ from wps_shared.db.models.common import TZTimeStamp
 
 # revision identifiers, used by Alembic.
 revision = "945a5d8e55b6"
-down_revision = "a1553ead7fde"
+down_revision = "ce6588fe9c18"
 branch_labels = None
 depends_on = None
 
