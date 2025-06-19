@@ -199,7 +199,7 @@ def map_model_prediction_to_weather_indeterminate(
     temp = (
         model_prediction.bias_adjusted_temperature
         if model_prediction.bias_adjusted_temperature
-        else model_prediction.temperature
+        else model_prediction.tmp_tgl_2
     )
     rh = (
         model_prediction.bias_adjusted_rh
