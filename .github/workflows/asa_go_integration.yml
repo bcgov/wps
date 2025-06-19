@@ -11,6 +11,9 @@ on:
 jobs:
   build_and_test:
     runs-on: macos-14
+    strategy:
+      matrix:
+        node-version: [20.x]
     name: Build and test ASA Go
     steps:
       - name: Checkout
