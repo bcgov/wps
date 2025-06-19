@@ -8,7 +8,7 @@ interface WPSDatePickerProps {
   testId?: string
   label?: string
   size?: 'small' | 'medium'
-  date: DateTime | null
+  date: DateTime
   updateDate: (d: DateTime) => void
   minDate?: DateTime
   maxDate?: DateTime
