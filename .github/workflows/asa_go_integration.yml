@@ -21,7 +21,25 @@ jobs:
       - name: Install Ionic CLI
         working-directory: ./mobile/asa-go
         run: npm install -g @ionic/cli
-      - name: Test
+      - uses: actions/cache@v4
+        id: asa-go-cache
+        with:
+          path: |
+            mobile/asa-go/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - name: Install dependencies
         working-directory: ./mobile/asa-go
-        run: yarn install && yarn test
-
+        if: steps.asa-go-cache.outputs.cache-hit != 'true'
+        run: yarn install
+      - name: Lint
+        working-directory: ./mobile/asa-go
+        run: yarn run lint
+      - name: Test with Coverage
+        working-directory: ./mobile/asa-go
+        run: yarn run test:ci
+      - name: Upload test coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          # we want to ensure code coverage is good, so we fail on error. (default is false)
+          fail_ci_if_error: true
