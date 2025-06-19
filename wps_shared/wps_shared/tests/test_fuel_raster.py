@@ -158,11 +158,10 @@ async def test_process_fuel_type_raster_failure(monkeypatch):
     mock_s3 = MockS3ClientFail()
     monkeypatch.setattr("wps_shared.fuel_raster.S3Client", lambda: mock_s3)
 
-    try:
+    with pytest.raises(ValueError):
         await process_fuel_type_raster(
             raster_addresser=raster_addresser,
             start_datetime=datetime(2024, 1, 1),
             unprocessed_object_name="fuel.tif",
         )
-    except ValueError:
-        assert mock_s3.deleted == "fuel-key-v3"
+    assert mock_s3.deleted == "fuel-key-v3"

@@ -143,14 +143,13 @@ async def test_start_job_failure(monkeypatch):
         "wps_jobs.fuel_raster.process_fuel_type_raster", mock_process_fuel_type_raster_value_error
     )
 
-    try:
+    with pytest.raises(ValueError):
         await start_job(
             raster_addresser=raster_addresser,
             start_datetime=datetime(2024, 1, 1),
             unprocessed_object_name="fuel.tif",
         )
-    except ValueError:
-        assert mock_db.added == {}
+    assert mock_db.added == {}
 
 
 def test_main_fail(mocker: MockerFixture, monkeypatch):
