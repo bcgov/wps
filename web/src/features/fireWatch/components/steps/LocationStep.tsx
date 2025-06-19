@@ -13,7 +13,6 @@ import VectorLayer from 'ol/layer/Vector.js'
 import { Icon, Style } from 'ol/style'
 import { Geometry, Point } from 'ol/geom'
 import Translate from 'ol/interaction/Translate.js'
-import { isUndefined } from 'lodash'
 import { defaults as defaultInteractions } from 'ol/interaction/defaults'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 
@@ -27,12 +26,19 @@ interface LocationStepProps {
 const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
+
+  const isValidGeometry =
+    Array.isArray(fireWatch.geometry) &&
+    fireWatch.geometry.length === 2 &&
+    typeof fireWatch.geometry[0] === 'number' &&
+    typeof fireWatch.geometry[1] === 'number'
+
   const [marker, setMarker] = useState<Feature<Geometry>[]>(
-    !isUndefined(fireWatch.geometry) ? [new Feature({ geometry: new Point(fireWatch.geometry) })] : []
+    isValidGeometry ? [new Feature({ geometry: new Point(fireWatch.geometry) })] : []
   )
   const [featureSource] = useState<VectorSource>(new VectorSource({ features: marker }))
-  const [latInput, setLatInput] = useState(fireWatch.geometry ? toLonLat(fireWatch.geometry)[1].toFixed(6) : '')
-  const [lonInput, setLonInput] = useState(fireWatch.geometry ? toLonLat(fireWatch.geometry)[0].toFixed(6) : '')
+  const [latInput, setLatInput] = useState(isValidGeometry ? toLonLat(fireWatch.geometry)[1].toFixed(6) : '')
+  const [lonInput, setLonInput] = useState(isValidGeometry ? toLonLat(fireWatch.geometry)[0].toFixed(6) : '')
   const [editingField, setEditingField] = useState<'lat' | 'lon' | null>(null)
 
   // Clear all interactions in order to remove the Translate interaction
