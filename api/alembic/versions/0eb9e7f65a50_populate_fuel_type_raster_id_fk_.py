@@ -140,7 +140,7 @@ def populate_for_years_and_fuel_grid(
     update_fk_for_tpi_fuel_area_table(session, fuel_type_raster_id)
 
 
-def depopulate_for_years_and_fuel_grid(session: Session, years: list[int]) -> None:
+def depopulate_for_years(session: Session, years: list[int]) -> None:
     fuel_type_raster_id = None
     run_parameter_ids = get_run_parameter_ids(session, years)
     update_fk_for_advisory_fuel_stats_table(session, fuel_type_raster_id, run_parameter_ids)
@@ -161,6 +161,6 @@ def upgrade():
 def downgrade():
     session = Session(bind=op.get_bind())
     # Data processed in 2022 and 2023 used the fbp2021.tif fuel grid.
-    depopulate_for_years_and_fuel_grid(session, FUEL_GRID_2021_YEARS)
+    depopulate_for_years(session, FUEL_GRID_2021_YEARS)
     # Data processed in 2024 and 2025 used the fbp2024.tif fuel grid.
-    depopulate_for_years_and_fuel_grid(session, FUEL_GRID_2024_YEARS)
+    depopulate_for_years(session, FUEL_GRID_2024_YEARS)
