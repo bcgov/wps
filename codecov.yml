@@ -49,3 +49,8 @@ coverage:
         paths:
           - wps_shared
         threshold: 3%
+      asa_go:
+        paths:
+          - mobile/asa-go
+        target: 73%
+        threshold: 3%
