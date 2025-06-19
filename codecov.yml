@@ -31,6 +31,11 @@ coverage:
         target: 70%
         # threshold: Allow the coverage to drop by X%, and posting a success status.
         threshold: 3%
+        paths:
+          - api/app
+          - web/src
+          - wps_jobs
+          - wps_shared
       # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
       api:
         paths:
