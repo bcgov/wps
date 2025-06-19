@@ -196,6 +196,26 @@ def map_model_prediction_to_weather_indeterminate(
     """
     Map a ModelPredictionDetails object to a WeatherIndeterminate object, filling in station metadata that is needed for FWI calculations.
     """
+    temp = (
+        model_prediction.bias_adjusted_temperature
+        if model_prediction.bias_adjusted_temperature
+        else model_prediction.temperature
+    )
+    rh = (
+        model_prediction.bias_adjusted_rh
+        if model_prediction.bias_adjusted_rh
+        else model_prediction.rh_tgl_2
+    )
+    wind_dir = (
+        model_prediction.bias_adjusted_wdir
+        if model_prediction.bias_adjusted_wdir
+        else model_prediction.wdir_tgl_10
+    )
+    wind_speed = (
+        model_prediction.bias_adjusted_wind_speed
+        if model_prediction.bias_adjusted_wind_speed
+        else model_prediction.wind_tgl_10
+    )
     return WeatherIndeterminate(
         station_code=model_prediction.station_code,
         station_name=station_data.name,
@@ -203,11 +223,11 @@ def map_model_prediction_to_weather_indeterminate(
         longitude=station_data.long,
         determinate=WeatherDeterminate.from_string(model_prediction.abbreviation),
         utc_timestamp=model_prediction.prediction_timestamp,
-        temperature=model_prediction.tmp_tgl_2,
-        relative_humidity=model_prediction.rh_tgl_2,
+        temperature=temp,
+        relative_humidity=rh,
         precipitation=model_prediction.precip_24h,
-        wind_direction=model_prediction.wdir_tgl_10,
-        wind_speed=model_prediction.wind_tgl_10,
+        wind_direction=wind_dir,
+        wind_speed=wind_speed,
         update_date=model_prediction.update_date,
         prediction_run_timestamp=model_prediction.prediction_run_timestamp,
     )
