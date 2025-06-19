@@ -156,7 +156,10 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
           <Typography sx={{ pb: theme.spacing(2) }} variant="h6">
             Step 2: Burn Location
           </Typography>
-          <Typography variant="body1">Click on the map to choose the approximate location of the burn.</Typography>
+          <Typography variant="body1">
+            Click on the map to choose the approximate location of the burn OR enter latitude and longitude in decimal
+            degrees.
+          </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
           <TextField
