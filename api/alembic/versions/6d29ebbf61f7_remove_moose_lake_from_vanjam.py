@@ -8,6 +8,7 @@ Create Date: 2022-07-27 10:36:13.488851
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.orm.session import Session
+from wps_shared.db.models.common import TZTimeStamp
 from wps_shared.utils.time import get_utc_now
 
 
@@ -24,17 +25,20 @@ planning_areas_table = sa.Table('planning_areas', sa.MetaData(),
                                 sa.Column('order_of_appearance_in_list', sa.Integer))
 
 
-planning_weather_stations_table = sa.Table('planning_weather_stations', sa.MetaData(),
-                                           sa.Column('id', sa.Integer),
-                                           sa.Column('fuel_type_id', sa.Integer),
-                                           sa.Column('planning_area_id', sa.Integer),
-                                           sa.Column('station_code', sa.Integer),
-                                           sa.Column('order_of_appearance_in_planning_area_list', sa.Integer),
-                                           sa.Column('create_user', sa.String),
-                                           sa.Column('create_timestamp', sa.TIMESTAMP),
-                                           sa.Column('update_user', sa.String),
-                                           sa.Column('update_timestamp', sa.TIMESTAMP),
-                                           sa.Column('is_deleted', sa.Boolean))
+planning_weather_stations_table = sa.Table(
+    "planning_weather_stations",
+    sa.MetaData(),
+    sa.Column("id", sa.Integer),
+    sa.Column("fuel_type_id", sa.Integer),
+    sa.Column("planning_area_id", sa.Integer),
+    sa.Column("station_code", sa.Integer),
+    sa.Column("order_of_appearance_in_planning_area_list", sa.Integer),
+    sa.Column("create_user", sa.String),
+    sa.Column("create_timestamp", TZTimeStamp()),
+    sa.Column("update_user", sa.String),
+    sa.Column("update_timestamp", TZTimeStamp()),
+    sa.Column("is_deleted", sa.Boolean),
+)
 
 
 moose_lake = 165
