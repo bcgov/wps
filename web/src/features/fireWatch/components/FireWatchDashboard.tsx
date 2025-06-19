@@ -52,17 +52,17 @@ const FireWatchDashboard = () => {
     {
       field: 'title',
       headerName: 'Burn Name',
-      width: 120
+      width: 200
     },
     {
       field: 'fireCentre',
       headerName: 'Fire Centre',
-      width: 120
+      width: 140
     },
     {
       field: 'station',
       headerName: 'Weather Station',
-      width: 120
+      width: 180
     },
     {
       field: 'fuelType',
