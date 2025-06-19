@@ -196,26 +196,23 @@ def map_model_prediction_to_weather_indeterminate(
     """
     Map a ModelPredictionDetails object to a WeatherIndeterminate object, filling in station metadata that is needed for FWI calculations.
     """
-    temp = (
-        model_prediction.bias_adjusted_temperature
-        if model_prediction.bias_adjusted_temperature
-        else model_prediction.tmp_tgl_2
+    has_all_bias = (
+        model_prediction.bias_adjusted_temperature is not None
+        and model_prediction.bias_adjusted_rh is not None
+        and model_prediction.bias_adjusted_wdir is not None
+        and model_prediction.bias_adjusted_wind_speed is not None
     )
-    rh = (
-        model_prediction.bias_adjusted_rh
-        if model_prediction.bias_adjusted_rh
-        else model_prediction.rh_tgl_2
-    )
-    wind_dir = (
-        model_prediction.bias_adjusted_wdir
-        if model_prediction.bias_adjusted_wdir
-        else model_prediction.wdir_tgl_10
-    )
-    wind_speed = (
-        model_prediction.bias_adjusted_wind_speed
-        if model_prediction.bias_adjusted_wind_speed
-        else model_prediction.wind_tgl_10
-    )
+
+    if has_all_bias:
+        temp = model_prediction.bias_adjusted_temperature
+        rh = model_prediction.bias_adjusted_rh
+        wind_dir = model_prediction.bias_adjusted_wdir
+        wind_speed = model_prediction.bias_adjusted_wind_speed
+    else:
+        temp = model_prediction.tmp_tgl_2
+        rh = model_prediction.rh_tgl_2
+        wind_dir = model_prediction.wdir_tgl_10
+        wind_speed = model_prediction.wind_tgl_10
     return WeatherIndeterminate(
         station_code=model_prediction.station_code,
         station_name=station_data.name,

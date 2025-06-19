@@ -168,9 +168,9 @@ def mock_status_id_dict():
     return {"all": 1, "hfi": 2, "no": 3}
 
 
-@pytest.mark.anyio
-async def test_map_model_prediction_to_weather_indeterminate():
-    model_prediction = ModelPredictionDetails(
+@pytest.fixture
+def mock_single_model_prediction():
+    return ModelPredictionDetails(
         station_code=1,
         abbreviation=FIREWATCH_WEATHER_MODEL.value,
         prediction_timestamp=datetime(2025, 4, 25, 20, tzinfo=timezone.utc),
@@ -187,17 +187,44 @@ async def test_map_model_prediction_to_weather_indeterminate():
         prediction_run_timestamp=datetime(2025, 4, 25, 12, tzinfo=timezone.utc),
         prediction_model_run_timestamp_id=1234,
     )
-    station_details = WFWXWeatherStation(
-        code=1, name="Station 1", lat=50.0, long=-120.0, elevation=1, wfwx_id="1", zone_code=None
-    )
-    result = map_model_prediction_to_weather_indeterminate(model_prediction, station_details)
+
+
+@pytest.mark.anyio
+async def test_map_model_prediction_to_weather_indeterminate_bias_values(
+    mock_station_metadata, mock_single_model_prediction
+):
+    model_prediction = mock_single_model_prediction
+
+    # if all bias-adjusted values are present, they should be used
+    result = map_model_prediction_to_weather_indeterminate(model_prediction, mock_station_metadata)
     assert result.station_code == 1
-    assert result.station_name == "Station 1"
+    assert result.station_name == "Test Station"
     assert result.temperature == pytest.approx(25.0)
     assert result.relative_humidity == pytest.approx(50.0)
     assert result.precipitation == pytest.approx(5.0)
     assert result.wind_direction == pytest.approx(180.0)
     assert result.wind_speed == pytest.approx(10.0)
+    assert result.utc_timestamp == datetime(2025, 4, 25, 20, tzinfo=timezone.utc)
+    assert result.update_date == datetime(2025, 4, 25, 14, tzinfo=timezone.utc)
+    assert result.prediction_run_timestamp == datetime(2025, 4, 25, 12, tzinfo=timezone.utc)
+
+
+@pytest.mark.anyio
+async def test_map_model_prediction_to_weather_indeterminate_missing_bias_value(
+    mock_station_metadata, mock_single_model_prediction
+):
+    model_prediction = mock_single_model_prediction
+    model_prediction.bias_adjusted_wind_speed = None
+
+    # if a bias-adjusted value is missing, the non-bias values should be used for all params
+    result = map_model_prediction_to_weather_indeterminate(model_prediction, mock_station_metadata)
+    assert result.station_code == 1
+    assert result.station_name == "Test Station"
+    assert result.temperature == pytest.approx(20.0)
+    assert result.relative_humidity == pytest.approx(55.0)
+    assert result.precipitation == pytest.approx(5.0)
+    assert result.wind_direction == pytest.approx(90.0)
+    assert result.wind_speed == pytest.approx(7.0)
     assert result.utc_timestamp == datetime(2025, 4, 25, 20, tzinfo=timezone.utc)
     assert result.update_date == datetime(2025, 4, 25, 14, tzinfo=timezone.utc)
     assert result.prediction_run_timestamp == datetime(2025, 4, 25, 12, tzinfo=timezone.utc)
