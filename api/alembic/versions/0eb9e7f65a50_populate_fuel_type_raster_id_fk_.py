@@ -16,7 +16,7 @@ down_revision = "f2634e040ee5"
 branch_labels = None
 depends_on = None
 
-FUEL_GRID_2021 = 2022
+FUEL_GRID_2021 = 2021
 FUEL_GRID_2024 = 2024
 FUEL_GRID_2021_YEARS = [2022, 2023]
 FUEL_GRID_2024_YEARS = [2024, 2025]
