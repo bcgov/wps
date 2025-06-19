@@ -7,6 +7,7 @@ Create Date: 2020-09-03 13:21:00.206644
 """
 from alembic import op
 import sqlalchemy as sa
+from wps_shared.db.models.common import TZTimeStamp
 
 
 # revision identifiers, used by Alembic.
@@ -17,22 +18,26 @@ depends_on = None
 
 
 def upgrade():
-    op.create_table('weather_station_model_predictions',
-                    sa.Column('id', sa.Integer(), nullable=False),
-                    sa.Column('station_code', sa.Integer(), nullable=False),
-                    sa.Column('prediction_model_run_timestamp_id', sa.Integer(), nullable=False),
-                    sa.Column('prediction_timestamp', sa.TIMESTAMP(timezone=True), nullable=False),
-                    sa.Column('tmp_tgl_2', sa.Float(), nullable=True),
-                    sa.Column('rh_tgl_2', sa.Float(), nullable=True),
-                    sa.Column('create_date', sa.TIMESTAMP(timezone=True), nullable=False),
-                    sa.Column('update_date', sa.TIMESTAMP(timezone=True), nullable=False),
-                    sa.ForeignKeyConstraint(['prediction_model_run_timestamp_id'], [
-                        'prediction_model_run_timestamps.id'], ),
-                    sa.PrimaryKeyConstraint('id'),
-                    sa.UniqueConstraint('station_code', 'prediction_model_run_timestamp_id',
-                                        'prediction_timestamp'),
-                    comment='The interpolated weather values for a weather station, weather date, and model run'
-                    )
+    op.create_table(
+        "weather_station_model_predictions",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("station_code", sa.Integer(), nullable=False),
+        sa.Column("prediction_model_run_timestamp_id", sa.Integer(), nullable=False),
+        sa.Column("prediction_timestamp", TZTimeStamp(), nullable=False),
+        sa.Column("tmp_tgl_2", sa.Float(), nullable=True),
+        sa.Column("rh_tgl_2", sa.Float(), nullable=True),
+        sa.Column("create_date", TZTimeStamp(), nullable=False),
+        sa.Column("update_date", TZTimeStamp(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["prediction_model_run_timestamp_id"],
+            ["prediction_model_run_timestamps.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint(
+            "station_code", "prediction_model_run_timestamp_id", "prediction_timestamp"
+        ),
+        comment="The interpolated weather values for a weather station, weather date, and model run",
+    )
     op.create_index(op.f('ix_weather_station_model_predictions_id'),
                     'weather_station_model_predictions', ['id'], unique=False)
 

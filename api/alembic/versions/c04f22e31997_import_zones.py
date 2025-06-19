@@ -23,9 +23,12 @@ branch_labels = None
 depends_on = None
 
 
-shape_type_table = sa.Table('advisory_shape_types', sa.MetaData(),
-                            sa.Column('id', sa.Integer),
-                            sa.Column('name', sa.String))
+shape_type_table = sa.Table(
+    "advisory_shape_types",
+    sa.MetaData(),
+    sa.Column("id", sa.Integer),
+    sa.Column("name", sa.Enum("fire_centre", "fire_zone", name="shapetypeenum"), nullable=False),
+)
 
 shape_table = sa.Table('advisory_shapes', sa.MetaData(),
                        sa.Column('id', sa.Integer),
