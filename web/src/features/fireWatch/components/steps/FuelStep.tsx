@@ -164,7 +164,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
               />
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(2) }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, pb: theme.spacing(4) }}>
             <OptionalHeading>Drought Code (DC)</OptionalHeading>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
