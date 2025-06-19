@@ -22,11 +22,9 @@ export const MapContext = React.createContext<Map | null>(null)
 interface LocationStepProps {
   fireWatch: FireWatch
   setFireWatch: React.Dispatch<SetStateAction<FireWatch>>
-  showLocationError?: boolean
-  onCloseLocationError?: () => void
 }
 
-const LocationStep = ({ fireWatch, setFireWatch, showLocationError, onCloseLocationError }: LocationStepProps) => {
+const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const [marker, setMarker] = useState<Feature<Geometry>[]>(
@@ -194,16 +192,6 @@ const LocationStep = ({ fireWatch, setFireWatch, showLocationError, onCloseLocat
           ></Box>
         </MapContext.Provider>
       </Box>
-      <Snackbar
-        open={showLocationError}
-        autoHideDuration={4000}
-        onClose={onCloseLocationError}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={onCloseLocationError} severity="error" sx={{ width: '100%' }}>
-          Please select a burn location before continuing.
-        </Alert>
-      </Snackbar>
     </Step>
   )
 }

@@ -35,7 +35,6 @@ const CreateFireWatch = ({
   // Use props if provided, otherwise fall back to defaults
   const [fireWatch, setFireWatch] = useState<FireWatch>(initialFireWatch ?? getBlankFireWatch())
   const [activeStep, setActiveStep] = useState<number>(initialActiveStep ?? 0)
-  const [locationError, setLocationError] = useState(false)
 
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -72,10 +71,6 @@ const CreateFireWatch = ({
 
   const handleNext = (event: React.FormEvent) => {
     event.preventDefault()
-    if (activeStep === 1 && (!fireWatch.geometry || fireWatch.geometry.length === 0)) {
-      setLocationError(true)
-      return
-    }
     if (formRef.current && !formRef.current.reportValidity()) {
       // if invalid, don't go to the next step
       return
@@ -123,14 +118,7 @@ const CreateFireWatch = ({
       </Stepper>
       <Box component="form" ref={formRef} onSubmit={handleNext}>
         {activeStep === 0 && <InfoStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
-        {activeStep === 1 && (
-          <LocationStep
-            fireWatch={fireWatch}
-            setFireWatch={setFireWatch}
-            showLocationError={locationError}
-            onCloseLocationError={() => setLocationError(false)}
-          />
-        )}
+        {activeStep === 1 && <LocationStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
         {activeStep === 2 && <WeatherParametersStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
         {activeStep === 3 && <FuelStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
         {activeStep === 4 && <FireBehvaiourIndicesStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
