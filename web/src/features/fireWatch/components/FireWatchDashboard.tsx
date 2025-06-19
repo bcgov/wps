@@ -104,22 +104,6 @@ const FireWatchDashboard = () => {
       width: 100
     },
     {
-      field: 'burnWindowStart',
-      headerName: 'Watch Start',
-      width: 120,
-      valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
-        return isNull(params.value) ? '' : params.value.toISODate()
-      }
-    },
-    {
-      field: 'burnWindowEnd',
-      headerName: 'Watch End',
-      width: 120,
-      valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
-        return isNull(params.value) ? '' : params.value.toISODate()
-      }
-    },
-    {
       field: 'inPrescription',
       headerName: 'In Prescription',
       width: 120
