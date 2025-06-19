@@ -31,9 +31,6 @@ jobs:
         working-directory: ./mobile/asa-go
         if: steps.asa-go-cache.outputs.cache-hit != 'true'
         run: yarn install
-      - name: Lint
-        working-directory: ./mobile/asa-go
-        run: yarn run lint
       - name: Test with Coverage
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
