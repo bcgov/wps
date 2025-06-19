@@ -1,8 +1,8 @@
-import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import { Box, CircularProgress, Step, Typography, useTheme } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { fireWatch as fireWatchState, RootState } from 'app/rootReducer'
 import { useEffect } from 'react'
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 
 interface CompleteStepProps {
   isEditMode?: boolean

@@ -1,4 +1,3 @@
-import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import SummaryTextLine from '@/features/fireWatch/components/steps/SummaryTextLine'
 import { FireWatch, FuelTypeEnum } from '@/features/fireWatch/interfaces'
 import { Box, Button, Step, Typography, useTheme } from '@mui/material'
@@ -14,6 +13,7 @@ import { Icon, Style } from 'ol/style'
 import Feature from 'ol/Feature.js'
 import { Point } from 'ol/geom'
 import { CENTER_OF_BC } from '@/utils/constants'
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 
 interface ReviewSubmitStepProps {
   fireWatch: FireWatch
@@ -119,13 +119,6 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
                     left="Name"
                     right={fireWatch.contactEmail.length > 0 ? fireWatch.title : ''}
                   />
-                  {(fireWatch.burnWindowStart || fireWatch.burnWindowEnd) && (
-                    <SummaryTextLine
-                      indentLevel={1}
-                      left="Burn Window"
-                      right={`${fireWatch.burnWindowStart?.toISODate() ?? '-'} - ${fireWatch.burnWindowEnd?.toISODate() ?? '-'}`}
-                    />
-                  )}
                   <SummaryTextLine indentLevel={1} left="Fire Centre" right={fireWatch.fireCentre?.name ?? ''} />
                   <SummaryTextLine indentLevel={1} left="Weather Station" right={fireWatch.station?.name ?? ''} />
                   <SummaryTextLine

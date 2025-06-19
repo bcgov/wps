@@ -16,8 +16,7 @@ import { fetchFireWatchFireCentres } from 'features/fireWatch/slices/fireWatchFi
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
-
-export const FORM_MAX_WIDTH = 768
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 
 interface CreateFireWatchProps {
   fireWatch?: FireWatch

@@ -1,5 +1,5 @@
-import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import OptionalHeading from '@/features/fireWatch/components/OptionalHeading'
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 import { FireWatch } from '@/features/fireWatch/interfaces'
 import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
 import { isNull } from 'lodash'

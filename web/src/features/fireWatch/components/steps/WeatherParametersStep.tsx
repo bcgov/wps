@@ -1,4 +1,4 @@
-import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 import { FireWatch } from '@/features/fireWatch/interfaces'
 import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
 import { SetStateAction } from 'react'

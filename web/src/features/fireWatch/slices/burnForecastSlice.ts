@@ -1,9 +1,14 @@
 import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { getBurnForecasts, patchFireWatchUpdate } from '@/features/fireWatch/fireWatchApi'
-import { BurnForecast, FireWatch, FireWatchBurnForecast, PrescriptionEnum } from '@/features/fireWatch/interfaces'
+import {
+  BurnForecast,
+  BurnWatchRow,
+  FireWatch,
+  FireWatchBurnForecast,
+  PrescriptionEnum
+} from '@/features/fireWatch/interfaces'
 import { RootState } from '@/app/rootReducer'
-import { BurnWatchRow } from '@/features/fireWatch/components/FireWatchDashboard'
 
 export interface BurnForecastsState {
   loading: boolean

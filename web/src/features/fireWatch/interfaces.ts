@@ -143,3 +143,16 @@ export interface FireWatchBurnForecasts {
   fireWatch: FireWatch
   burnForecasts: BurnForecast[]
 }
+export interface BurnWatchRow {
+  id: number
+  title: string
+  fireCentre: string
+  station: string
+  fuelType: FuelTypeEnum
+  status: BurnStatusEnum
+  burnWindowStart: DateTime | null
+  burnWindowEnd: DateTime | null
+  inPrescription: PrescriptionEnum
+  fireWatch: FireWatch
+  burnForecasts: BurnForecast[]
+}

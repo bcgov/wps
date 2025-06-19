@@ -7,7 +7,6 @@ import { CENTER_OF_BC } from '@/utils/constants'
 import { Alert, Box, Snackbar, Step, Typography } from '@mui/material'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import { theme } from 'app/theme'
-import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import Feature from 'ol/Feature.js'
 import VectorSource from 'ol/source/Vector.js'
 import VectorLayer from 'ol/layer/Vector.js'
@@ -16,6 +15,7 @@ import { Geometry, Point } from 'ol/geom'
 import Translate from 'ol/interaction/Translate.js'
 import { isUndefined } from 'lodash'
 import { defaults as defaultInteractions } from 'ol/interaction/defaults'
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 
 export const MapContext = React.createContext<Map | null>(null)
 

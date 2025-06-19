@@ -1,6 +1,6 @@
 import { GeoJsonStation } from '@/api/stationAPI'
 import { selectFireWatchFireCentres, selectFireWeatherStations } from '@/app/rootReducer'
-import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 import { FireWatch, FireWatchFireCentre } from '@/features/fireWatch/interfaces'
 import { Autocomplete, Box, Step, TextField, Typography, useTheme } from '@mui/material'
 import { isEqual, isNull } from 'lodash'

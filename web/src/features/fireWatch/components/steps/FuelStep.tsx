@@ -1,5 +1,5 @@
-import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import OptionalHeading from '@/features/fireWatch/components/OptionalHeading'
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 import { FireWatch, FuelTypeEnum, fuelTypes } from '@/features/fireWatch/interfaces'
 import { Autocomplete, Box, Step, TextField, Typography, useTheme } from '@mui/material'
 import { isNull, isUndefined } from 'lodash'
