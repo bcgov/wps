@@ -205,6 +205,11 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
                     left="DC"
                     right={`${formatNumber(fireWatch.dcMin)}/${formatNumber(fireWatch.dcMax)}`}
                   />
+                  <SummaryTextLine
+                    indentLevel={2}
+                    left="BUI"
+                    right={`${formatNumber(fireWatch.buiMin)}/${formatNumber(fireWatch.buiMax)}`}
+                  />
                 </Box>
                 <Box>
                   <Button onClick={() => setActiveStep(3)}>Edit</Button>
@@ -215,11 +220,6 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
                   <Typography sx={{ fontWeight: 'bold' }} variant="body1">
                     5. Fire Behavior Indices (Min/Max)
                   </Typography>
-                  <SummaryTextLine
-                    indentLevel={1}
-                    left="BUI"
-                    right={`${formatNumber(fireWatch.buiMin)}/${formatNumber(fireWatch.buiMax)}`}
-                  />
                   <SummaryTextLine
                     indentLevel={1}
                     left="ISI"
