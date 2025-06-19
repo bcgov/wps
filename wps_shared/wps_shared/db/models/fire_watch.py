@@ -28,8 +28,8 @@ class FireWatch(Base):
     burn_location = Column(
         Geometry("Point", spatial_index=True, srid=NAD83_BC_ALBERS), nullable=False
     )
-    burn_window_end = Column(TZTimeStamp, nullable=False, index=False)
-    burn_window_start = Column(TZTimeStamp, nullable=False, index=False)
+    burn_window_end = Column(TZTimeStamp, nullable=True, index=False)
+    burn_window_start = Column(TZTimeStamp, nullable=True, index=False)
     contact_email = Column(ARRAY(String), nullable=False, index=False)
     create_timestamp = Column(TZTimeStamp, nullable=False, index=False)
     create_user = Column(String, nullable=False)
@@ -46,33 +46,41 @@ class FireWatch(Base):
     percent_grass_curing = Column(Float, nullable=True, index=False)
     # Weather parameters
     temp_min = Column(Float, nullable=False, index=False)
-    temp_preferred = Column(Float, nullable=False, index=False)
+    temp_preferred = Column(Float, nullable=True, index=False)
     temp_max = Column(Float, nullable=False, index=False)
     rh_min = Column(Float, nullable=False, index=False)
-    rh_preferred = Column(Float, nullable=False, index=False)
+    rh_preferred = Column(Float, nullable=True, index=False)
     rh_max = Column(Float, nullable=False, index=False)
     wind_speed_min = Column(Float, nullable=False, index=False)
-    wind_speed_preferred = Column(Float, nullable=False, index=False)
+    wind_speed_preferred = Column(Float, nullable=True, index=False)
     wind_speed_max = Column(Float, nullable=False, index=False)
     # FWI and FBP parameters
-    ffmc_min = Column(Float, nullable=False, index=False)
-    ffmc_preferred = Column(Float, nullable=False, index=False)
-    ffmc_max = Column(Float, nullable=False, index=False)
-    dmc_min = Column(Float, nullable=False, index=False)
-    dmc_preferred = Column(Float, nullable=False, index=False)
-    dmc_max = Column(Float, nullable=False, index=False)
-    dc_min = Column(Float, nullable=False, index=False)
-    dc_preferred = Column(Float, nullable=False, index=False)
-    dc_max = Column(Float, nullable=False, index=False)
-    isi_min = Column(Float, nullable=False, index=False)
-    isi_preferred = Column(Float, nullable=False, index=False)
-    isi_max = Column(Float, nullable=False, index=False)
-    bui_min = Column(Float, nullable=False, index=False)
-    bui_preferred = Column(Float, nullable=False, index=False)
-    bui_max = Column(Float, nullable=False, index=False)
+    ffmc_min = Column(Float, nullable=True, index=False)
+    ffmc_preferred = Column(Float, nullable=True, index=False)
+    ffmc_max = Column(Float, nullable=True, index=False)
+    dmc_min = Column(Float, nullable=True, index=False)
+    dmc_preferred = Column(Float, nullable=True, index=False)
+    dmc_max = Column(Float, nullable=True, index=False)
+    dc_min = Column(Float, nullable=True, index=False)
+    dc_preferred = Column(Float, nullable=True, index=False)
+    dc_max = Column(Float, nullable=True, index=False)
+    isi_min = Column(Float, nullable=True, index=False)
+    isi_preferred = Column(Float, nullable=True, index=False)
+    isi_max = Column(Float, nullable=True, index=False)
+    bui_min = Column(Float, nullable=True, index=False)
+    bui_preferred = Column(Float, nullable=True, index=False)
+    bui_max = Column(Float, nullable=True, index=False)
     hfi_min = Column(Float, nullable=False, index=False)
-    hfi_preferred = Column(Float, nullable=False, index=False)
+    hfi_preferred = Column(Float, nullable=True, index=False)
     hfi_max = Column(Float, nullable=False, index=False)
+
+    OPTIONAL_FWI_FIELDS = [
+        "ffmc",
+        "dmc",
+        "dc",
+        "isi",
+        "bui",
+    ]
 
 
 class PrescriptionStatus(Base):

@@ -14,10 +14,9 @@ import { getBlankFireWatch } from '@/features/fireWatch/utils'
 import { Box, Button, Step, StepLabel, Stepper, Typography, useTheme } from '@mui/material'
 import { fetchFireWatchFireCentres } from 'features/fireWatch/slices/fireWatchFireCentresSlice'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
-
-export const FORM_MAX_WIDTH = 768
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 
 interface CreateFireWatchProps {
   fireWatch?: FireWatch
@@ -36,6 +35,8 @@ const CreateFireWatch = ({
   // Use props if provided, otherwise fall back to defaults
   const [fireWatch, setFireWatch] = useState<FireWatch>(initialFireWatch ?? getBlankFireWatch())
   const [activeStep, setActiveStep] = useState<number>(initialActiveStep ?? 0)
+
+  const formRef = useRef<HTMLFormElement>(null)
 
   const steps: { key: string; label: string; component?: () => React.ReactNode }[] = [
     {
@@ -68,7 +69,12 @@ const CreateFireWatch = ({
     setActiveStep(prevActiveStep => prevActiveStep - 1)
   }
 
-  const handleNext = () => {
+  const handleNext = (event: React.FormEvent) => {
+    event.preventDefault()
+    if (formRef.current && !formRef.current.reportValidity()) {
+      // if invalid, don't go to the next step
+      return
+    }
     if (activeStep === steps.length - 1) {
       handleSubmit()
     }
@@ -110,25 +116,27 @@ const CreateFireWatch = ({
           )
         })}
       </Stepper>
-      {activeStep === 0 && <InfoStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
-      {activeStep === 1 && <LocationStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
-      {activeStep === 2 && <WeatherParametersStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
-      {activeStep === 3 && <FuelStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
-      {activeStep === 4 && <FireBehvaiourIndicesStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
-      {activeStep === 5 && <ReviewSubmitStep fireWatch={fireWatch} setActiveStep={setActiveStep} />}
-      {activeStep === 6 && <CompleteStep isEditMode={isEditMode} />}
-      {activeStep < steps.length && (
-        <Box sx={{ display: 'flex', flexDirection: 'row', pr: theme.spacing(4), width: `${FORM_MAX_WIDTH}px` }}>
-          <Box sx={{ display: 'flex', flexGrow: 1, pl: theme.spacing(4) }}>
-            <Button disabled={activeStep === 0} onClick={handleBack} variant="outlined">
-              Back
+      <Box component="form" ref={formRef} onSubmit={handleNext}>
+        {activeStep === 0 && <InfoStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
+        {activeStep === 1 && <LocationStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
+        {activeStep === 2 && <WeatherParametersStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
+        {activeStep === 3 && <FuelStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
+        {activeStep === 4 && <FireBehvaiourIndicesStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
+        {activeStep === 5 && <ReviewSubmitStep fireWatch={fireWatch} setActiveStep={setActiveStep} />}
+        {activeStep === 6 && <CompleteStep isEditMode={isEditMode} />}
+        {activeStep < steps.length && (
+          <Box sx={{ display: 'flex', flexDirection: 'row', pr: theme.spacing(4), width: `${FORM_MAX_WIDTH}px` }}>
+            <Box sx={{ display: 'flex', flexGrow: 1, pl: theme.spacing(4) }}>
+              <Button disabled={activeStep === 0} onClick={handleBack} variant="outlined" type="button">
+                Back
+              </Button>
+            </Box>
+            <Button variant="contained" type="submit">
+              {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
             </Button>
           </Box>
-          <Button onClick={handleNext} variant="contained">
-            {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
-          </Button>
-        </Box>
-      )}
+        )}
+      </Box>
       {activeStep === steps.length && (
         <Box
           sx={{

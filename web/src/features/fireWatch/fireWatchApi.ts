@@ -9,14 +9,15 @@ import {
   PrescriptionEnum
 } from '@/features/fireWatch/interfaces'
 import axios from 'api/axios'
+import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 
 // Interfaces for data transfer objects and functions for fetching data.
 
 export interface FireWatchInput {
   burn_location: number[]
-  burn_window_end: string
-  burn_window_start: string
+  burn_window_end: string | null
+  burn_window_start: string | null
   contact_email: string[]
   fire_centre: FireWatchFireCentre | null
   station: FireWatchStation | null
@@ -29,32 +30,32 @@ export interface FireWatchInput {
   percent_grass_curing?: number
   // Weather parameters
   temp_min: number
-  temp_preferred: number
+  temp_preferred: number | null
   temp_max: number
   rh_min: number
-  rh_preferred: number
+  rh_preferred: number | null
   rh_max: number
   wind_speed_min: number
-  wind_speed_preferred: number
+  wind_speed_preferred: number | null
   wind_speed_max: number
   // FWI and FBP parameters
-  ffmc_min: number
-  ffmc_preferred: number
-  ffmc_max: number
-  dmc_min: number
-  dmc_preferred: number
-  dmc_max: number
-  dc_min: number
-  dc_preferred: number
-  dc_max: number
-  isi_min: number
-  isi_preferred: number
-  isi_max: number
-  bui_min: number
-  bui_preferred: number
-  bui_max: number
+  ffmc_min: number | null
+  ffmc_preferred: number | null
+  ffmc_max: number | null
+  dmc_min: number | null
+  dmc_preferred: number | null
+  dmc_max: number | null
+  dc_min: number | null
+  dc_preferred: number | null
+  dc_max: number | null
+  isi_min: number | null
+  isi_preferred: number | null
+  isi_max: number | null
+  bui_min: number | null
+  bui_preferred: number | null
+  bui_max: number | null
   hfi_min: number
-  hfi_preferred: number
+  hfi_preferred: number | null
   hfi_max: number
 }
 
@@ -147,8 +148,8 @@ export async function getBurnForecasts(): Promise<FireWatchBurnForecast[]> {
 const marshalFireWatchToFireWatchInput = (fireWatch: FireWatch): FireWatchInput => {
   return {
     burn_location: fireWatch.geometry,
-    burn_window_end: fireWatch.burnWindowEnd.toISO()!,
-    burn_window_start: fireWatch.burnWindowStart.toISO()!,
+    burn_window_end: fireWatch.burnWindowEnd?.toISO() ?? null,
+    burn_window_start: fireWatch.burnWindowStart?.toISO() ?? null,
     contact_email: fireWatch.contactEmail,
     fire_centre: fireWatch.fireCentre ?? null,
     station: fireWatch.station ?? null,
@@ -199,8 +200,10 @@ const marshalFireWatchOutputToFireWatch = (fireWatchOutput: FireWatchOutput): Fi
     updateTimestamp: DateTime.fromISO(fireWatchOutput.update_timestamp),
     updateUser: fireWatchOutput.update_user,
     geometry: fireWatchOutput.burn_location,
-    burnWindowEnd: DateTime.fromISO(fireWatchOutput.burn_window_end),
-    burnWindowStart: DateTime.fromISO(fireWatchOutput.burn_window_start),
+    burnWindowEnd: isNull(fireWatchOutput.burn_window_end) ? null : DateTime.fromISO(fireWatchOutput.burn_window_end),
+    burnWindowStart: isNull(fireWatchOutput.burn_window_start)
+      ? null
+      : DateTime.fromISO(fireWatchOutput.burn_window_start),
     contactEmail: fireWatchOutput.contact_email,
     fireCentre: fireWatchOutput.fire_centre,
     station: fireWatchOutput.station,

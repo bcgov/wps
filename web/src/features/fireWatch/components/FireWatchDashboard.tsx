@@ -1,43 +1,14 @@
 import { AppDispatch } from '@/app/store'
 import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
 import FireWatchDetailsModal from '@/features/fireWatch/components/FireWatchDetailsModal'
-import {
-  BurnForecast,
-  BurnStatusEnum,
-  FireWatch,
-  FireWatchBurnForecast,
-  FuelTypeEnum,
-  PrescriptionEnum
-} from '@/features/fireWatch/interfaces'
+import { BurnWatchRow, FireWatchBurnForecast } from '@/features/fireWatch/interfaces'
 import { fetchBurnForecasts, selectBurnForecasts } from '@/features/fireWatch/slices/burnForecastSlice'
 import InfoIcon from '@mui/icons-material/Info'
 import { Box, styled, Typography, useTheme } from '@mui/material'
-import {
-  DataGridPro,
-  DataGridProProps,
-  GridActionsCellItem,
-  GridColDef,
-  GridValueFormatterParams
-} from '@mui/x-data-grid-pro'
-import { isNull } from 'lodash'
-import { DateTime } from 'luxon'
+import { DataGridPro, DataGridProProps, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-pro'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { FireWatchPrescriptionColors } from 'app/theme'
-
-export interface BurnWatchRow {
-  id: number
-  title: string
-  fireCentre: string
-  station: string
-  fuelType: FuelTypeEnum
-  status: BurnStatusEnum
-  burnWindowStart: DateTime
-  burnWindowEnd: DateTime
-  inPrescription: PrescriptionEnum
-  fireWatch: FireWatch
-  burnForecasts: BurnForecast[]
-}
 
 const StyledDataGrid = styled(DataGridPro)(({ theme }) => ({
   ['&.in-prescription-all']: { backGroundColor: theme.palette.success },
@@ -81,17 +52,17 @@ const FireWatchDashboard = () => {
     {
       field: 'title',
       headerName: 'Burn Name',
-      width: 120
+      width: 200
     },
     {
       field: 'fireCentre',
       headerName: 'Fire Centre',
-      width: 120
+      width: 140
     },
     {
       field: 'station',
       headerName: 'Weather Station',
-      width: 120
+      width: 180
     },
     {
       field: 'fuelType',
@@ -102,22 +73,6 @@ const FireWatchDashboard = () => {
       field: 'status',
       headerName: 'Status',
       width: 100
-    },
-    {
-      field: 'burnWindowStart',
-      headerName: 'Watch Start',
-      width: 120,
-      valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
-        return isNull(params.value) ? '' : params.value.toISODate()
-      }
-    },
-    {
-      field: 'burnWindowEnd',
-      headerName: 'Watch End',
-      width: 120,
-      valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
-        return isNull(params.value) ? '' : params.value.toISODate()
-      }
     },
     {
       field: 'inPrescription',

@@ -1,6 +1,6 @@
 from unittest import mock
 import pytest
-from datetime import datetime, time, timedelta, timezone
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch, create_autospec
 
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather
@@ -9,9 +9,11 @@ from app.fire_behaviour.prediction import FireBehaviourPrediction
 from app.fire_watch.calculate_weather import (
     FIREWATCH_WEATHER_MODEL,
     calculate_fbp,
+    check_optional_fwi_fields,
     check_prescription_status,
     gather_fire_watch_inputs,
     get_station_metadata,
+    in_range,
     map_model_prediction_to_weather_indeterminate,
     process_all_fire_watch_weather,
     process_predictions,
@@ -49,6 +51,34 @@ def mock_fire_watch():
         isi_max=15,
         bui_min=40,
         bui_max=80,
+        hfi_min=0,
+        hfi_max=4000,
+        percent_grass_curing=0,
+        percent_conifer=0,
+        percent_dead_fir=0,
+    )
+
+
+@pytest.fixture
+def mock_partial_fire_watch():
+    return FireWatch(
+        id=1,
+        station_code=101,
+        fuel_type=FuelTypeEnum.C3,
+        temp_min=10,
+        temp_max=30,
+        rh_min=20,
+        rh_max=60,
+        wind_speed_min=5,
+        wind_speed_max=20,
+        # no ffmc
+        dmc_min=10,
+        dmc_max=30,
+        dc_min=100,
+        dc_max=300,
+        isi_min=5,
+        isi_max=15,
+        # no bui
         hfi_min=0,
         hfi_max=4000,
         percent_grass_curing=0,
@@ -138,32 +168,63 @@ def mock_status_id_dict():
     return {"all": 1, "hfi": 2, "no": 3}
 
 
-@pytest.mark.anyio
-async def test_map_model_prediction_to_weather_indeterminate():
-    model_prediction = ModelPredictionDetails(
+@pytest.fixture
+def mock_single_model_prediction():
+    return ModelPredictionDetails(
         station_code=1,
         abbreviation=FIREWATCH_WEATHER_MODEL.value,
         prediction_timestamp=datetime(2025, 4, 25, 20, tzinfo=timezone.utc),
-        tmp_tgl_2=25.0,
-        rh_tgl_2=50.0,
+        tmp_tgl_2=20.0,
+        rh_tgl_2=55.0,
         precip_24h=5.0,
-        wdir_tgl_10=180.0,
-        wind_tgl_10=10.0,
+        wdir_tgl_10=90.0,
+        wind_tgl_10=7.0,
+        bias_adjusted_wind_speed=10.0,
+        bias_adjusted_wdir=180.0,
+        bias_adjusted_rh=50.0,
+        bias_adjusted_temperature=25.0,
         update_date=datetime(2025, 4, 25, 14, tzinfo=timezone.utc),
         prediction_run_timestamp=datetime(2025, 4, 25, 12, tzinfo=timezone.utc),
         prediction_model_run_timestamp_id=1234,
     )
-    station_details = WFWXWeatherStation(
-        code=1, name="Station 1", lat=50.0, long=-120.0, elevation=1, wfwx_id="1", zone_code=None
-    )
-    result = map_model_prediction_to_weather_indeterminate(model_prediction, station_details)
+
+
+@pytest.mark.anyio
+async def test_map_model_prediction_to_weather_indeterminate_bias_values(
+    mock_station_metadata, mock_single_model_prediction
+):
+    model_prediction = mock_single_model_prediction
+
+    # if all bias-adjusted values are present, they should be used
+    result = map_model_prediction_to_weather_indeterminate(model_prediction, mock_station_metadata)
     assert result.station_code == 1
-    assert result.station_name == "Station 1"
+    assert result.station_name == "Test Station"
     assert result.temperature == pytest.approx(25.0)
     assert result.relative_humidity == pytest.approx(50.0)
     assert result.precipitation == pytest.approx(5.0)
     assert result.wind_direction == pytest.approx(180.0)
     assert result.wind_speed == pytest.approx(10.0)
+    assert result.utc_timestamp == datetime(2025, 4, 25, 20, tzinfo=timezone.utc)
+    assert result.update_date == datetime(2025, 4, 25, 14, tzinfo=timezone.utc)
+    assert result.prediction_run_timestamp == datetime(2025, 4, 25, 12, tzinfo=timezone.utc)
+
+
+@pytest.mark.anyio
+async def test_map_model_prediction_to_weather_indeterminate_missing_bias_value(
+    mock_station_metadata, mock_single_model_prediction
+):
+    model_prediction = mock_single_model_prediction
+    model_prediction.bias_adjusted_wind_speed = None
+
+    # if a bias-adjusted value is missing, the non-bias values should be used for all params
+    result = map_model_prediction_to_weather_indeterminate(model_prediction, mock_station_metadata)
+    assert result.station_code == 1
+    assert result.station_name == "Test Station"
+    assert result.temperature == pytest.approx(20.0)
+    assert result.relative_humidity == pytest.approx(55.0)
+    assert result.precipitation == pytest.approx(5.0)
+    assert result.wind_direction == pytest.approx(90.0)
+    assert result.wind_speed == pytest.approx(7.0)
     assert result.utc_timestamp == datetime(2025, 4, 25, 20, tzinfo=timezone.utc)
     assert result.update_date == datetime(2025, 4, 25, 14, tzinfo=timezone.utc)
     assert result.prediction_run_timestamp == datetime(2025, 4, 25, 12, tzinfo=timezone.utc)
@@ -279,7 +340,9 @@ def test_calculate_fbp(mock_fire_watch, mock_station_metadata, mock_actual_weath
     assert result.hfi == pytest.approx(3350, abs=10)
 
 
-def test_check_prescription_status_all(mock_fire_watch, mock_status_id_dict):
+@pytest.mark.parametrize("fire_watch_name", ["mock_fire_watch", "mock_partial_fire_watch"])
+def test_check_prescription_status_all(request, fire_watch_name, mock_status_id_dict):
+    fire_watch = request.getfixturevalue(fire_watch_name)
     mock_weather = FireWatchWeather(
         temperature=25,
         relative_humidity=40,
@@ -291,27 +354,39 @@ def test_check_prescription_status_all(mock_fire_watch, mock_status_id_dict):
         bui=50,
         hfi=1000,
     )
-    result = check_prescription_status(mock_fire_watch, mock_weather, mock_status_id_dict)
+    result = check_prescription_status(fire_watch, mock_weather, mock_status_id_dict)
     assert result == 1
 
 
-def test_check_prescription_status_hfi(mock_fire_watch, mock_status_id_dict):
+@pytest.mark.parametrize(
+    ("fire_watch_name", "expected_result"),
+    [
+        ("mock_fire_watch", 2),
+        ("mock_partial_fire_watch", 1),
+    ],
+)
+def test_check_prescription_status_hfi(
+    request, fire_watch_name, expected_result, mock_status_id_dict
+):
+    fire_watch = request.getfixturevalue(fire_watch_name)
     mock_weather = FireWatchWeather(
         temperature=25,
         relative_humidity=40,
         wind_speed=10,
-        ffmc=99,
+        ffmc=99,  # ffmc is out of range for mock_fire_watch, but not a required check for mock_partial_fire_watch
         dmc=20,
         dc=200,
         isi=10,
         bui=50,
         hfi=1000,
     )
-    result = check_prescription_status(mock_fire_watch, mock_weather, mock_status_id_dict)
-    assert result == 2
+    result = check_prescription_status(fire_watch, mock_weather, mock_status_id_dict)
+    assert result == expected_result
 
 
-def test_check_prescription_status_none(mock_fire_watch, mock_status_id_dict):
+@pytest.mark.parametrize("fire_watch_name", ["mock_fire_watch", "mock_partial_fire_watch"])
+def test_check_prescription_status_none(request, fire_watch_name, mock_status_id_dict):
+    fire_watch = request.getfixturevalue(fire_watch_name)
     mock_weather = FireWatchWeather(
         temperature=25,
         relative_humidity=40,
@@ -323,7 +398,7 @@ def test_check_prescription_status_none(mock_fire_watch, mock_status_id_dict):
         bui=50,
         hfi=5000,
     )
-    result = check_prescription_status(mock_fire_watch, mock_weather, mock_status_id_dict)
+    result = check_prescription_status(fire_watch, mock_weather, mock_status_id_dict)
     assert result == 3
 
 
@@ -599,3 +674,82 @@ async def test_process_single_fire_watch_no_predictions_to_save(
     assert not any(
         "Saved" in str(call) for call in [c[0][0] for c in mock_logger.info.call_args_list]
     )
+
+
+def test_check_optional_fwi_fields_all_fields_in_range(mock_fire_watch):
+    # Weather values within range
+    weather = FireWatchWeather(
+        ffmc=85,
+        dmc=20,
+        dc=100,
+        isi=14,
+        bui=60,
+        temperature=25,
+        relative_humidity=40,
+        wind_speed=10,
+        hfi=1000,
+    )
+    result = check_optional_fwi_fields(mock_fire_watch, weather)
+    assert result == dict.fromkeys(FireWatch.OPTIONAL_FWI_FIELDS, True)
+
+
+def test_check_optional_fwi_fields_some_fields_out_of_range(mock_fire_watch):
+    mock_fire_watch.ffmc_min = 80
+    mock_fire_watch.ffmc_max = 90
+    mock_fire_watch.dmc_min = 10
+    mock_fire_watch.dmc_max = 30
+    mock_fire_watch.dc_min = 100
+    mock_fire_watch.dc_max = 200
+    weather = FireWatchWeather(
+        ffmc=95,  # out of range
+        dmc=20,  # in range
+        dc=90,  # out of range
+        isi=14,  # in range
+        bui=60,  # in range
+        temperature=25,
+        relative_humidity=40,
+        wind_speed=10,
+        hfi=1000,
+    )
+    result = check_optional_fwi_fields(mock_fire_watch, weather)
+    assert result == {"ffmc": False, "dmc": True, "dc": False, "isi": True, "bui": True}
+
+
+def test_check_optional_fwi_fields_missing_min_max(mock_fire_watch):
+    # ffmc/dmc not required for this fire watch
+    mock_fire_watch.ffmc_min = None
+    mock_fire_watch.ffmc_max = None
+    mock_fire_watch.dmc_min = None
+    mock_fire_watch.dmc_max = None
+    weather = FireWatchWeather(
+        ffmc=95,  # not required
+        dmc=20,  # not required
+        dc=90,  # out of range
+        isi=15,  # in range
+        bui=60,  # in range
+        temperature=25,
+        relative_humidity=40,
+        wind_speed=10,
+        hfi=1000,
+    )
+    result = check_optional_fwi_fields(mock_fire_watch, weather)
+    assert result == {"isi": True, "bui": True, "dc": False}
+
+
+@pytest.mark.parametrize(
+    "val, min_val, max_val, expected",
+    [
+        (5, 1, 10, True),  # value within range
+        (1, 1, 10, True),  # value equal to min
+        (10, 1, 10, True),  # value equal to max
+        (0, 1, 10, False),  # value below min
+        (11, 1, 10, False),  # value above max
+        (5.5, 1.0, 10.0, True),  # float within range
+        (1.0, 1.0, 10.0, True),  # float equal to min
+        (10.0, 1.0, 10.0, True),  # float equal to max
+        (0.9, 1.0, 10.0, False),  # float below min
+        (10.1, 1.0, 10.0, False),  # float above max
+    ],
+)
+def test_in_range(val, min_val, max_val, expected):
+    assert in_range(val, min_val, max_val) is expected

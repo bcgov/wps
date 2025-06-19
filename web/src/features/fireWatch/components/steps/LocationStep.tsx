@@ -2,20 +2,19 @@ import { FireWatch } from '@/features/fireWatch/interfaces'
 import React, { SetStateAction, useEffect, useRef, useState } from 'react'
 import { Collection, Map, MapBrowserEvent, View } from 'ol'
 import TileLayer from 'ol/layer/Tile'
-import { fromLonLat } from 'ol/proj'
+import { fromLonLat, toLonLat } from 'ol/proj'
 import { CENTER_OF_BC } from '@/utils/constants'
-import { Box, Step, Typography } from '@mui/material'
+import { Box, Step, TextField, Typography } from '@mui/material'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import { theme } from 'app/theme'
-import { FORM_MAX_WIDTH } from '@/features/fireWatch/components/CreateFireWatch'
 import Feature from 'ol/Feature.js'
 import VectorSource from 'ol/source/Vector.js'
 import VectorLayer from 'ol/layer/Vector.js'
 import { Icon, Style } from 'ol/style'
 import { Geometry, Point } from 'ol/geom'
 import Translate from 'ol/interaction/Translate.js'
-import { isUndefined } from 'lodash'
 import { defaults as defaultInteractions } from 'ol/interaction/defaults'
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 
 export const MapContext = React.createContext<Map | null>(null)
 
@@ -27,10 +26,20 @@ interface LocationStepProps {
 const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
+
+  const isValidGeometry =
+    Array.isArray(fireWatch.geometry) &&
+    fireWatch.geometry.length === 2 &&
+    typeof fireWatch.geometry[0] === 'number' &&
+    typeof fireWatch.geometry[1] === 'number'
+
   const [marker, setMarker] = useState<Feature<Geometry>[]>(
-    !isUndefined(fireWatch.geometry) ? [new Feature({ geometry: new Point(fireWatch.geometry) })] : []
+    isValidGeometry ? [new Feature({ geometry: new Point(fireWatch.geometry) })] : []
   )
   const [featureSource] = useState<VectorSource>(new VectorSource({ features: marker }))
+  const [latInput, setLatInput] = useState(isValidGeometry ? toLonLat(fireWatch.geometry)[1].toFixed(6) : '')
+  const [lonInput, setLonInput] = useState(isValidGeometry ? toLonLat(fireWatch.geometry)[0].toFixed(6) : '')
+  const [editingField, setEditingField] = useState<'lat' | 'lon' | null>(null)
 
   // Clear all interactions in order to remove the Translate interaction
   // and restore the original interactions in the correct order.
@@ -110,6 +119,31 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
     map?.addInteraction(translate)
   }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // sync textfields with marker coords
+  useEffect(() => {
+    if (marker.length && marker[0].getGeometry()) {
+      const [lon, lat] = toLonLat((marker[0].getGeometry() as Point).getCoordinates())
+      setLatInput(lat.toFixed(6))
+      setLonInput(lon.toFixed(6))
+    }
+  }, [marker])
+
+  // when user finishes editing both fields, update marker
+  const updateMarkerFromInputs = () => {
+    if (!latInput || !lonInput) {
+      setMarker([])
+      handleFormUpdate({ geometry: undefined })
+      return
+    }
+    const lat = parseFloat(latInput)
+    const lon = parseFloat(lonInput)
+    if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+      const coords = fromLonLat([lon, lat])
+      setMarker([new Feature({ geometry: new Point(coords) })])
+      handleFormUpdate({ geometry: coords })
+    }
+  }
+
   const handleFormUpdate = (partialFireWatch: Partial<FireWatch>) => {
     const newFireWatch = { ...fireWatch, ...partialFireWatch }
     setFireWatch(newFireWatch)
@@ -122,7 +156,42 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
           <Typography sx={{ pb: theme.spacing(2) }} variant="h6">
             Step 2: Burn Location
           </Typography>
-          <Typography variant="body1">Click on the map to choose the approximate location of the burn.</Typography>
+          <Typography variant="body1">
+            Click on the map to choose the approximate location of the burn OR enter latitude and longitude in decimal
+            degrees.
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <TextField
+            required
+            label="Latitude"
+            value={latInput}
+            onChange={e => {
+              setLatInput(e.target.value)
+            }}
+            onFocus={() => setEditingField('lat')}
+            onBlur={() => {
+              setEditingField(null)
+              if (editingField !== 'lon') updateMarkerFromInputs()
+            }}
+            inputProps={{ 'data-testid': 'lat-input' }}
+            size="small"
+          />
+          <TextField
+            required
+            label="Longitude"
+            value={lonInput}
+            onChange={e => {
+              setLonInput(e.target.value)
+            }}
+            onFocus={() => setEditingField('lon')}
+            onBlur={() => {
+              setEditingField(null)
+              if (editingField !== 'lat') updateMarkerFromInputs()
+            }}
+            inputProps={{ 'data-testid': 'lon-input' }}
+            size="small"
+          />
         </Box>
         <MapContext.Provider value={map}>
           <Box
