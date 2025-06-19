@@ -31,6 +31,7 @@ objects:
     metadata:
       name: fuel-raster-${NAME}-${SUFFIX}
     spec:
+      suspend: true
       parallelism: 1
       completions: 1
       activeDeadlineSeconds: 3600
