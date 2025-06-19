@@ -1,7 +1,7 @@
 """Add foreign key reference to fuel_type_raster.id
 
 Revision ID: f2634e040ee5
-Revises: ce6588fe9c18
+Revises: 945a5d8e55b6
 Create Date: 2025-06-18 10:07:32.280520
 
 """
@@ -11,7 +11,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "f2634e040ee5"
-down_revision = "ce6588fe9c18"
+down_revision = "945a5d8e55b6"
 branch_labels = None
 depends_on = None
 
