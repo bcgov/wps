@@ -4,9 +4,15 @@ import { DateTime } from 'luxon'
 
 export enum BurnStatusEnum {
   ACTIVE = 'active',
-  CANCELLED = 'cancelled',
+  HOLD = 'hold',
   COMPLETE = 'complete',
-  HOLD = 'hold'
+  CANCELLED = 'cancelled'
+}
+
+export const burnStatusFromString = (status: string): BurnStatusEnum => {
+  const lowercasedStatus = status.toLowerCase()
+  const burnEnum = Object.values(BurnStatusEnum).find(status => status === lowercasedStatus)
+  return burnEnum || BurnStatusEnum.ACTIVE
 }
 
 export enum FuelTypeEnum {
