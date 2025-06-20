@@ -87,6 +87,17 @@ const CreateFireWatch = ({
     setActiveStep(prevActiveStep => prevActiveStep + 1)
   }
 
+  const handleStepLabelClick = (idx: number) => {
+    if (!isEditMode) return
+    if (isLoading || idx === activeStep) return
+
+    if (formRef.current && !formRef.current.reportValidity()) {
+      // invalid form, do not proceed
+      return
+    }
+    setActiveStep(idx)
+  }
+
   const handleReset = () => {
     setFireWatch(getBlankFireWatch())
     setActiveStep(0)
@@ -116,7 +127,7 @@ const CreateFireWatch = ({
         {steps.map((step, idx) => (
           <Step key={step.key}>
             <StepLabel
-              onClick={isEditMode ? () => setActiveStep(idx) : undefined}
+              onClick={() => handleStepLabelClick(idx)}
               sx={
                 isEditMode
                   ? {
