@@ -110,13 +110,15 @@ const getPrescriptionStatus = (burnForecasts: BurnForecast[]): PrescriptionEnum 
 }
 
 export const updateFireWatch =
-  (fireWatch: FireWatch): AppThunk =>
+  (fireWatch: FireWatch): AppThunk<Promise<FireWatchBurnForecast | undefined>> =>
   async dispatch => {
     try {
       dispatch(updateBurnForecastStart())
       const updatedFireWatchForecast = await patchFireWatchUpdate(fireWatch)
       dispatch(updateBurnForecastSuccess(updatedFireWatchForecast))
+      return updatedFireWatchForecast
     } catch (err) {
       dispatch(getBurnForecastsFailed((err as Error).toString()))
+      throw err
     }
   }

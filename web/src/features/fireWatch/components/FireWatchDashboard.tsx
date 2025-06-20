@@ -9,9 +9,13 @@ import {
   FireWatchBurnForecast
 } from '@/features/fireWatch/interfaces'
 import { fetchBurnForecasts, selectBurnForecasts, updateFireWatch } from '@/features/fireWatch/slices/burnForecastSlice'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import InfoIcon from '@mui/icons-material/Info'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import { Backdrop, Box, CircularProgress, Typography, useTheme } from '@mui/material'
+import PauseCircleIcon from '@mui/icons-material/PauseCircle'
+import CancelIcon from '@mui/icons-material/Cancel'
+import PlayCircleIcon from '@mui/icons-material/PlayCircle'
+import { Alert, Backdrop, Box, CircularProgress, Snackbar, Typography, useTheme } from '@mui/material'
 import { DataGridPro, DataGridProProps, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-pro'
 import { FireWatchPrescriptionColors } from 'app/theme'
 import { upperFirst } from 'lodash'
@@ -26,6 +30,8 @@ const FireWatchDashboard = () => {
   const theme = useTheme()
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedFireWatch, setSelectedFireWatch] = useState<FireWatchBurnForecast | null>(null)
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [snackbarMsg, setSnackbarMsg] = useState('')
 
   const getFireWatchDetails = (row: BurnWatchRow) => {
     const fireWatchID = row.id
@@ -48,7 +54,23 @@ const FireWatchDashboard = () => {
     setModalOpen(false)
   }
 
+  const statusIconMap = {
+    [BurnStatusEnum.ACTIVE]: <PlayCircleIcon sx={{ color: '#1976D2CC' }} titleAccess="Active" />,
+    [BurnStatusEnum.HOLD]: <PauseCircleIcon sx={{ color: '#FE6900B3' }} titleAccess="Hold" />,
+    [BurnStatusEnum.COMPLETE]: <CheckCircleIcon sx={{ color: '#8E24AAC0' }} titleAccess="Complete" />,
+    [BurnStatusEnum.CANCELLED]: <CancelIcon sx={{ color: '#757575CC' }} titleAccess="Cancelled" />
+  }
+
   const columns: GridColDef<BurnWatchRow>[] = [
+    {
+      field: 'statusIcon',
+      headerName: '',
+      width: 50,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
+      renderCell: params => statusIconMap[params.row.status] || null
+    },
     {
       field: 'id',
       headerName: 'ID',
@@ -125,7 +147,7 @@ const FireWatchDashboard = () => {
     []
   )
 
-  const processRowUpdate = (newRow: BurnWatchRow, oldRow: BurnWatchRow) => {
+  const processRowUpdate = async (newRow: BurnWatchRow, oldRow: BurnWatchRow): Promise<BurnWatchRow> => {
     const newStatus = burnStatusFromString(newRow.status)
     const oldStatus = oldRow.fireWatch.status
 
@@ -139,12 +161,19 @@ const FireWatchDashboard = () => {
       }
     }
 
-    // only dispatch if status changed
     if (newStatus !== oldStatus) {
-      dispatch(updateFireWatch(updatedRow.fireWatch))
+      try {
+        await dispatch(updateFireWatch(updatedRow.fireWatch))
+        return updatedRow
+      } catch (error) {
+        setSnackbarOpen(true)
+        setSnackbarMsg('Failed to update row status')
+        // on error revert to oldRow
+        return oldRow
+      }
     }
 
-    return updatedRow
+    return oldRow
   }
 
   return (
@@ -192,6 +221,16 @@ const FireWatchDashboard = () => {
           }}
         />
       </Box>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={8000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="error" sx={{ width: '100%' }}>
+          {snackbarMsg}
+        </Alert>
+      </Snackbar>
       <FireWatchDetailsModal open={modalOpen} onClose={handleCloseModal} selectedFireWatch={selectedFireWatch} />
     </Box>
   )
