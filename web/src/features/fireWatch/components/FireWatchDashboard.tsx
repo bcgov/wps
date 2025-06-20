@@ -25,7 +25,7 @@ import { useDispatch, useSelector } from 'react-redux'
 const FireWatchDashboard = () => {
   const dispatch: AppDispatch = useDispatch()
   const burnForecasts = useSelector(selectBurnForecasts)
-  const { loading: updateLoading } = useSelector((state: RootState) => state.burnForecasts)
+  const { loading: updateLoading, error: updateError } = useSelector((state: RootState) => state.burnForecasts)
 
   const theme = useTheme()
   const [modalOpen, setModalOpen] = useState(false)
@@ -69,7 +69,7 @@ const FireWatchDashboard = () => {
       sortable: false,
       filterable: false,
       disableColumnMenu: true,
-      renderCell: params => statusIconMap[params.row.status] || null
+      renderCell: params => statusIconMap[params.row.status] ?? null
     },
     {
       field: 'id',
@@ -167,7 +167,7 @@ const FireWatchDashboard = () => {
         return updatedRow
       } catch (error) {
         setSnackbarOpen(true)
-        setSnackbarMsg('Failed to update row status')
+        setSnackbarMsg(updateError || 'Failed to update row status')
         // on error revert to oldRow
         return oldRow
       }
@@ -210,14 +210,13 @@ const FireWatchDashboard = () => {
               bgcolor: `${FireWatchPrescriptionColors.all.bgcolor} !important`,
               '&:hover': { bgcolor: `${FireWatchPrescriptionColors.all.hover} !important` }
             },
-            '.in-prescription-hfi, .in-prescription-hfi.MuiDataGrid-cell--editing': {
+            '.in-prescription-hfi': {
               bgcolor: `${FireWatchPrescriptionColors.hfi.bgcolor} !important`,
               '&:hover': { bgcolor: `${FireWatchPrescriptionColors.hfi.hover} !important` }
             },
-            '&.MuiDataGrid-root .in-prescription-no, &.MuiDataGrid-root .in-prescription-no.MuiDataGrid-cell--editing':
-              {
-                bgcolor: `${FireWatchPrescriptionColors.no.bgcolor} !important`
-              }
+            '&.MuiDataGrid-root .in-prescription-no': {
+              bgcolor: `${FireWatchPrescriptionColors.no.bgcolor} !important`
+            }
           }}
         />
       </Box>
