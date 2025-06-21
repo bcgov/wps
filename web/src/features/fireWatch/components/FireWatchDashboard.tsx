@@ -167,7 +167,7 @@ const FireWatchDashboard = () => {
         return updatedRow
       } catch (error) {
         setSnackbarOpen(true)
-        setSnackbarMsg(updateError || 'Failed to update row status')
+        setSnackbarMsg(updateError ?? 'Failed to update row status')
         // on error revert to oldRow
         return oldRow
       }
@@ -200,7 +200,7 @@ const FireWatchDashboard = () => {
           initialState={{
             sorting: {
               sortModel: [
-                { field: 'status', sort: 'asc' }, // or 'desc'
+                { field: 'status', sort: 'asc' },
                 { field: 'id', sort: 'asc' }
               ]
             }
