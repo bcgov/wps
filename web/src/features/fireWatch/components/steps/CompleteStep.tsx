@@ -6,12 +6,13 @@ import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 
 interface CompleteStepProps {
   isEditMode?: boolean
+  isLoading?: boolean
 }
 
-const CompleteStep = ({ isEditMode }: CompleteStepProps) => {
+const CompleteStep = ({ isEditMode, isLoading }: CompleteStepProps) => {
   const theme = useTheme()
-  const { fireWatchSubmitting, fireWatchSubmitError } = useSelector(fireWatchState)
-  const { loading: updateLoading, error: updateError } = useSelector((state: RootState) => state.burnForecasts)
+  const { fireWatchSubmitError } = useSelector(fireWatchState)
+  const { error: updateError } = useSelector((state: RootState) => state.burnForecasts)
 
   useEffect(() => {
     if (fireWatchSubmitError) {
@@ -24,27 +25,27 @@ const CompleteStep = ({ isEditMode }: CompleteStepProps) => {
       <Box
         sx={{ display: 'flex', flexDirection: 'column', maxWidth: `${FORM_MAX_WIDTH}px`, padding: theme.spacing(4) }}
       >
-        {(fireWatchSubmitting || updateLoading) && (
+        {isLoading && (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <CircularProgress />
           </Box>
         )}
-        {isEditMode && !updateLoading && updateError && (
+        {isEditMode && !isLoading && updateError && (
           <Typography sx={{ fontWeight: 'bold' }} variant="body1" color="error">
             An error occurred while updating the fire watch.
           </Typography>
         )}
-        {isEditMode && !updateLoading && !updateError && (
+        {isEditMode && !isLoading && !updateError && (
           <Typography sx={{ fontWeight: 'bold' }} variant="body1">
             The fire watch has been successfully updated.
           </Typography>
         )}
-        {!isEditMode && !fireWatchSubmitting && fireWatchSubmitError && (
+        {!isEditMode && !isLoading && fireWatchSubmitError && (
           <Typography sx={{ fontWeight: 'bold' }} variant="body1" color="error">
             An error occurred while submitting the prescribed fire information.
           </Typography>
         )}
-        {!isEditMode && !fireWatchSubmitting && !fireWatchSubmitError && (
+        {!isEditMode && !isLoading && !fireWatchSubmitError && (
           <Typography sx={{ fontWeight: 'bold' }} variant="body1">
             A new fire watch has been successfully submitted.
           </Typography>
