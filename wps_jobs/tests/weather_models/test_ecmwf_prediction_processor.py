@@ -9,7 +9,11 @@ from wps_jobs.weather_model_jobs import ModelEnum
 from wps_jobs.weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
-from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp, WeatherStationModelPrediction
+from wps_shared.db.models.weather_models import (
+    ModelRunPrediction,
+    PredictionModelRunTimestamp,
+    WeatherStationModelPrediction,
+)
 
 
 @pytest.fixture
@@ -37,6 +41,7 @@ def mock_model_run_data():
     station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
     model_run = MagicMock(spec=PredictionModelRunTimestamp)
     model_run.id = 123
+    model_run.prediction_run_timestamp = datetime(2023, 10, 2, 11, 0)
     prediction = MagicMock(spec=ModelRunPrediction)
     prediction.prediction_timestamp = datetime(2023, 10, 2, 12, 0)
     station_prediction = MagicMock()
@@ -77,7 +82,9 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
     processor._process_model_run_for_station(model_run, station)
 
     # Assertions
-    model_run_repository.get_model_run_predictions_for_station.assert_called_once_with(station.code, model_run)
+    model_run_repository.get_model_run_predictions_for_station.assert_called_once_with(
+        station.code, model_run
+    )
     # This should be called for both predictions, 18:00 UTC and 21:00 UTC
     assert processor._apply_bias_adjustments.call_count == 2
     # This is called the 2nd iteration where the previous prediction is for 18:00 UTC and the next prediction is for 21:00 UTC
@@ -96,13 +103,29 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
     "prev_timestamp, next_timestamp, expected",
     [
         # timestamps on the same day surrounding 20:00 UTC
-        (datetime(2023, 10, 1, 18, 0, tzinfo=timezone.utc), datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc), True),
+        (
+            datetime(2023, 10, 1, 18, 0, tzinfo=timezone.utc),
+            datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc),
+            True,
+        ),
         # timestamps on the same day but not surrounding 20:00 UTC
-        (datetime(2023, 10, 1, 10, 0, tzinfo=timezone.utc), datetime(2023, 10, 1, 15, 0, tzinfo=timezone.utc), False),
+        (
+            datetime(2023, 10, 1, 10, 0, tzinfo=timezone.utc),
+            datetime(2023, 10, 1, 15, 0, tzinfo=timezone.utc),
+            False,
+        ),
         # timestamps on different days, later timestamp earlier than 21:00 UTC
-        (datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 0, 0, tzinfo=timezone.utc), False),
+        (
+            datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc),
+            datetime(2023, 10, 2, 0, 0, tzinfo=timezone.utc),
+            False,
+        ),
         # 18:00 UTC and 00:00 UTC on subsequent days should return true
-        (datetime(2023, 10, 1, 18, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 00, 0, tzinfo=timezone.utc), True),
+        (
+            datetime(2023, 10, 1, 18, 0, tzinfo=timezone.utc),
+            datetime(2023, 10, 2, 00, 0, tzinfo=timezone.utc),
+            True,
+        ),
     ],
 )
 def test_should_interpolate(prev_timestamp, next_timestamp, expected, mock_predictions):
@@ -124,12 +147,22 @@ def test_should_interpolate(prev_timestamp, next_timestamp, expected, mock_predi
     "prev_timestamp, next_timestamp, expected",
     [
         # previous timestamp is later than next timestamp
-        (datetime(2023, 10, 2, 1, 0, tzinfo=timezone.utc), datetime(2023, 10, 1, 23, 0, tzinfo=timezone.utc), "Next timestamp must be greater than previous timestamp"),
+        (
+            datetime(2023, 10, 2, 1, 0, tzinfo=timezone.utc),
+            datetime(2023, 10, 1, 23, 0, tzinfo=timezone.utc),
+            "Next timestamp must be greater than previous timestamp",
+        ),
         # timestamps greater than 24 hours apart
-        (datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc), datetime(2023, 10, 2, 22, 0, tzinfo=timezone.utc), "Timestamps must be no more than 24 hours apart"),
+        (
+            datetime(2023, 10, 1, 21, 0, tzinfo=timezone.utc),
+            datetime(2023, 10, 2, 22, 0, tzinfo=timezone.utc),
+            "Timestamps must be no more than 24 hours apart",
+        ),
     ],
 )
-def test_should_interpolate_assertion_error(prev_timestamp, next_timestamp, expected, mock_predictions):
+def test_should_interpolate_assertion_error(
+    prev_timestamp, next_timestamp, expected, mock_predictions
+):
     """
     Test the `_should_interpolate` method to ensure it raises an `AssertionError`
     when the `prediction_timestamp` of the next prediction is earlier than the
@@ -171,7 +204,9 @@ def test_should_interpolate_assertion_error(prev_timestamp, next_timestamp, expe
         (None, datetime(2023, 10, 1, 12, 0)),
     ],
 )
-def test_weather_station_prediction_initializer(existing_station_model_prediction, prediction_timestamp, setup_processor):
+def test_weather_station_prediction_initializer(
+    existing_station_model_prediction, prediction_timestamp, setup_processor
+):
     """
     Test the `_weather_station_prediction_initializer` method of the processor.
 
@@ -193,17 +228,24 @@ def test_weather_station_prediction_initializer(existing_station_model_predictio
     prediction.prediction_model_run_timestamp_id = model_run.id
 
     # Mock repository behavior
-    model_run_repository.get_weather_station_model_prediction.return_value = existing_station_model_prediction
+    model_run_repository.get_weather_station_model_prediction.return_value = (
+        existing_station_model_prediction
+    )
 
     # Call the method
     station_prediction = processor._weather_station_prediction_initializer(prediction)
 
     # Assertions
     model_run_repository.get_weather_station_model_prediction.assert_called_once_with(
-        prediction.station_code, prediction.prediction_model_run_timestamp_id, prediction.prediction_timestamp
+        prediction.station_code,
+        prediction.prediction_model_run_timestamp_id,
+        prediction.prediction_timestamp,
     )
     assert station_prediction.station_code == prediction.station_code
-    assert station_prediction.prediction_model_run_timestamp_id == prediction.prediction_model_run_timestamp_id
+    assert (
+        station_prediction.prediction_model_run_timestamp_id
+        == prediction.prediction_model_run_timestamp_id
+    )
     assert station_prediction.prediction_timestamp == prediction.prediction_timestamp
     if existing_station_model_prediction is not None:
         assert station_prediction.tmp_tgl_2 == existing_station_model_prediction.tmp_tgl_2
@@ -232,7 +274,9 @@ def test_interpolate_20_00_values_valid_interpolation(mock_predictions):
     prev_value = 10.0
     next_value = 20.0
 
-    result = processor.interpolate_20_00_values(prev_datetime, next_datetime, prev_value, next_value, target_datetime)
+    result = processor.interpolate_20_00_values(
+        prev_datetime, next_datetime, prev_value, next_value, target_datetime
+    )
 
     assert result == pytest.approx(16.666, rel=0.1)
 
@@ -240,12 +284,29 @@ def test_interpolate_20_00_values_valid_interpolation(mock_predictions):
 @pytest.mark.parametrize(
     "prev_timestamp, next_timestamp, target_timestamp, expected",
     [
-        (datetime(2023, 10, 1, 18, 0), datetime(2023, 10, 1, 19, 0), datetime(2023, 10, 1, 20, 0), "Next datetime must be after target datetime"),
-        (datetime(2023, 10, 1, 21, 0), datetime(2023, 10, 1, 22, 0), datetime(2023, 10, 1, 20, 0), "Previous datetime must be before target datetime"),
-        (datetime(2023, 10, 1, 18, 0), datetime(2023, 10, 1, 21, 0), datetime(2023, 10, 1, 19, 0), "Target datetime must be at 20:00 UTC"),
+        (
+            datetime(2023, 10, 1, 18, 0),
+            datetime(2023, 10, 1, 19, 0),
+            datetime(2023, 10, 1, 20, 0),
+            "Next datetime must be after target datetime",
+        ),
+        (
+            datetime(2023, 10, 1, 21, 0),
+            datetime(2023, 10, 1, 22, 0),
+            datetime(2023, 10, 1, 20, 0),
+            "Previous datetime must be before target datetime",
+        ),
+        (
+            datetime(2023, 10, 1, 18, 0),
+            datetime(2023, 10, 1, 21, 0),
+            datetime(2023, 10, 1, 19, 0),
+            "Target datetime must be at 20:00 UTC",
+        ),
     ],
 )
-def test_interpolate_20_00_values_invalid_timestamps(prev_timestamp, next_timestamp, target_timestamp, expected, mock_predictions):
+def test_interpolate_20_00_values_invalid_timestamps(
+    prev_timestamp, next_timestamp, target_timestamp, expected, mock_predictions
+):
     """
     Test the `interpolate_20_00_values` method for invalid timestamp scenarios.
 
@@ -258,10 +319,14 @@ def test_interpolate_20_00_values_invalid_timestamps(prev_timestamp, next_timest
 
     # Call the method and assert exception
     with pytest.raises(AssertionError, match=expected):
-        processor.interpolate_20_00_values(prev_timestamp, next_timestamp, prev_value, next_value, target_timestamp)
+        processor.interpolate_20_00_values(
+            prev_timestamp, next_timestamp, prev_value, next_value, target_timestamp
+        )
 
 
-def test_calculate_past_24_hour_precip_with_previous_prediction(setup_processor, mock_model_run_data):
+def test_calculate_past_24_hour_precip_with_previous_prediction(
+    setup_processor, mock_model_run_data
+):
     """
     Test the `_calculate_past_24_hour_precip` method of the processor.
 
@@ -271,7 +336,7 @@ def test_calculate_past_24_hour_precip_with_previous_prediction(setup_processor,
     parameters and that the method returns the expected precipitation value.
     """
     processor, model_run_repository = setup_processor
-    _, _, prediction, station_prediction = mock_model_run_data
+    _, model_run, prediction, station_prediction = mock_model_run_data
 
     # Mock repository behavior
     previous_prediction = MagicMock()
@@ -279,16 +344,20 @@ def test_calculate_past_24_hour_precip_with_previous_prediction(setup_processor,
     model_run_repository.get_weather_station_model_prediction.return_value = previous_prediction
 
     # Call the method
-    result = processor._calculate_past_24_hour_precip(prediction, station_prediction)
+    result = processor._calculate_past_24_hour_precip(prediction, station_prediction, model_run)
 
     # Assertions
     model_run_repository.get_weather_station_model_prediction.assert_called_once_with(
-        prediction.station_code, prediction.prediction_model_run_timestamp_id, prediction.prediction_timestamp - timedelta(days=1)
+        prediction.station_code,
+        prediction.prediction_model_run_timestamp_id,
+        prediction.prediction_timestamp - timedelta(days=1),
     )
     assert result == 5.0
 
 
-def test_calculate_past_24_hour_precip_without_previous_prediction(setup_processor, mock_model_run_data):
+def test_calculate_past_24_hour_precip_without_previous_prediction(
+    setup_processor, mock_model_run_data
+):
     """
     Test the `_calculate_past_24_hour_precip` method when there is no previous prediction.
 
@@ -296,23 +365,25 @@ def test_calculate_past_24_hour_precip_without_previous_prediction(setup_process
     when no previous weather station model prediction exists in the repository.
     """
     processor, model_run_repository = setup_processor
-    _, _, prediction, station_prediction = mock_model_run_data
+    _, model_run, prediction, station_prediction = mock_model_run_data
 
     # Mock repository behavior
     model_run_repository.get_weather_station_model_prediction.return_value = None
     model_run_repository.get_accumulated_precipitation.return_value = 3.0
 
     # Call the method
-    result = processor._calculate_past_24_hour_precip(prediction, station_prediction)
+    result = processor._calculate_past_24_hour_precip(prediction, station_prediction, model_run)
 
     # Assertions
     model_run_repository.get_weather_station_model_prediction.assert_called_once_with(
-        prediction.station_code, prediction.prediction_model_run_timestamp_id, prediction.prediction_timestamp - timedelta(days=1)
+        prediction.station_code,
+        prediction.prediction_model_run_timestamp_id,
+        prediction.prediction_timestamp - timedelta(days=1),
     )
     model_run_repository.get_accumulated_precipitation.assert_called_once_with(
         prediction.station_code,
         prediction.prediction_timestamp - timedelta(days=1),
-        datetime(year=2023, month=10, day=2, tzinfo=timezone.utc),
+        model_run.prediction_run_timestamp,
     )
     assert result == 3.0
 
@@ -326,7 +397,9 @@ def test_calculate_past_24_hour_precip_without_previous_prediction(setup_process
         (5.0, 10.0, 5.0),
     ],
 )
-def test_calculate_delta_precip(prev_prediction, station_value, expected, setup_processor, mock_model_run_data):
+def test_calculate_delta_precip(
+    prev_prediction, station_value, expected, setup_processor, mock_model_run_data
+):
     """
     Test the `_calculate_delta_precip` method of the processor.
     This test verifies that the `_calculate_delta_precip` method correctly calculates
@@ -369,7 +442,9 @@ def test_process(setup_processor):
     # Mock data
     model_run = MagicMock()
     model = MagicMock()
-    model_run_repository.get_prediction_model_run_timestamp_records.return_value = [(model_run, model)]
+    model_run_repository.get_prediction_model_run_timestamp_records.return_value = [
+        (model_run, model)
+    ]
 
     processor._process_model_run = MagicMock()
     model_run_repository.mark_model_run_interpolated = MagicMock()
@@ -378,7 +453,9 @@ def test_process(setup_processor):
     processor.process()
 
     # Assertions
-    model_run_repository.get_prediction_model_run_timestamp_records.assert_called_once_with(complete=True, interpolated=False, model_type=ModelEnum.ECMWF)
+    model_run_repository.get_prediction_model_run_timestamp_records.assert_called_once_with(
+        complete=True, interpolated=False, model_type=ModelEnum.ECMWF
+    )
     processor._process_model_run.assert_called_once_with(model_run)
     model_run_repository.mark_model_run_interpolated.assert_called_once_with(model_run)
 
@@ -423,7 +500,7 @@ def test_initialize_station_prediction(setup_processor, mock_model_run_data):
     calculations and assignments are performed.
     """
     processor, _ = setup_processor
-    _, _, prediction, station_prediction = mock_model_run_data
+    _, model_run, prediction, station_prediction = mock_model_run_data
 
     # Mock methods
     processor._weather_station_prediction_initializer = MagicMock(return_value=station_prediction)
@@ -438,11 +515,13 @@ def test_initialize_station_prediction(setup_processor, mock_model_run_data):
     prediction.get_wind_direction.return_value = 180.0
 
     # Call the method
-    result = processor.initialize_station_prediction(None, prediction)
+    result = processor.initialize_station_prediction(None, prediction, model_run)
 
     # Assertions
     processor._weather_station_prediction_initializer.assert_called_once_with(prediction)
-    processor._calculate_past_24_hour_precip.assert_called_once_with(prediction, station_prediction)
+    processor._calculate_past_24_hour_precip.assert_called_once_with(
+        prediction, station_prediction, model_run
+    )
     processor._calculate_delta_precip.assert_called_once_with(None, station_prediction)
 
     assert result.tmp_tgl_2 == 25.0
@@ -480,11 +559,23 @@ def test_apply_bias_adjustments(setup_processor, mock_model_run_data):
     result = processor._apply_bias_adjustments(station_prediction, machine)
 
     # Assertions
-    machine.predict_temperature.assert_called_once_with(station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp)
-    machine.predict_rh.assert_called_once_with(station_prediction.rh_tgl_2, station_prediction.prediction_timestamp)
-    machine.predict_wind_speed.assert_called_once_with(station_prediction.wind_tgl_10, station_prediction.prediction_timestamp)
-    machine.predict_wind_direction.assert_called_once_with(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, station_prediction.prediction_timestamp)
-    machine.predict_precipitation.assert_called_once_with(station_prediction.precip_24h, station_prediction.prediction_timestamp)
+    machine.predict_temperature.assert_called_once_with(
+        station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp
+    )
+    machine.predict_rh.assert_called_once_with(
+        station_prediction.rh_tgl_2, station_prediction.prediction_timestamp
+    )
+    machine.predict_wind_speed.assert_called_once_with(
+        station_prediction.wind_tgl_10, station_prediction.prediction_timestamp
+    )
+    machine.predict_wind_direction.assert_called_once_with(
+        station_prediction.wind_tgl_10,
+        station_prediction.wdir_tgl_10,
+        station_prediction.prediction_timestamp,
+    )
+    machine.predict_precipitation.assert_called_once_with(
+        station_prediction.precip_24h, station_prediction.prediction_timestamp
+    )
 
     assert result.bias_adjusted_temperature == 22.5
     assert result.bias_adjusted_rh == 55.0
@@ -522,28 +613,74 @@ def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_dat
     processor.interpolate_20_00_values = MagicMock(side_effect=[16.66, 52.5, 5.5, 185.0])
 
     # Call the method
-    result = processor._apply_interpolated_bias_adjustments(station_prediction, prev_prediction, prediction, machine)
+    result = processor._apply_interpolated_bias_adjustments(
+        station_prediction, prev_prediction, prediction, machine
+    )
 
     # Assertions
-    machine.predict_temperature.assert_any_call(station_prediction.tmp_tgl_2, prev_prediction.prediction_timestamp)
-    machine.predict_temperature.assert_any_call(station_prediction.tmp_tgl_2, prediction.prediction_timestamp)
+    machine.predict_temperature.assert_any_call(
+        station_prediction.tmp_tgl_2, prev_prediction.prediction_timestamp
+    )
+    machine.predict_temperature.assert_any_call(
+        station_prediction.tmp_tgl_2, prediction.prediction_timestamp
+    )
 
-    machine.predict_rh.assert_any_call(station_prediction.rh_tgl_2, prev_prediction.prediction_timestamp)
+    machine.predict_rh.assert_any_call(
+        station_prediction.rh_tgl_2, prev_prediction.prediction_timestamp
+    )
     machine.predict_rh.assert_any_call(station_prediction.rh_tgl_2, prediction.prediction_timestamp)
 
-    machine.predict_wind_speed.assert_any_call(station_prediction.wind_tgl_10, prev_prediction.prediction_timestamp)
-    machine.predict_wind_speed.assert_any_call(station_prediction.wind_tgl_10, prediction.prediction_timestamp)
+    machine.predict_wind_speed.assert_any_call(
+        station_prediction.wind_tgl_10, prev_prediction.prediction_timestamp
+    )
+    machine.predict_wind_speed.assert_any_call(
+        station_prediction.wind_tgl_10, prediction.prediction_timestamp
+    )
 
-    machine.predict_wind_direction.assert_any_call(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, prev_prediction.prediction_timestamp)
-    machine.predict_wind_direction.assert_any_call(station_prediction.wind_tgl_10, station_prediction.wdir_tgl_10, prediction.prediction_timestamp)
+    machine.predict_wind_direction.assert_any_call(
+        station_prediction.wind_tgl_10,
+        station_prediction.wdir_tgl_10,
+        prev_prediction.prediction_timestamp,
+    )
+    machine.predict_wind_direction.assert_any_call(
+        station_prediction.wind_tgl_10,
+        station_prediction.wdir_tgl_10,
+        prediction.prediction_timestamp,
+    )
 
-    machine.predict_precipitation.assert_called_once_with(station_prediction.precip_24h, station_prediction.prediction_timestamp)
+    machine.predict_precipitation.assert_called_once_with(
+        station_prediction.precip_24h, station_prediction.prediction_timestamp
+    )
 
     assert processor.interpolate_20_00_values.call_args_list == [
-        call(prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 10.0, 20.0, datetime(2023, 10, 1, 20, 0)),
-        call(prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 50.0, 55.0, datetime(2023, 10, 1, 20, 0)),
-        call(prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 5.0, 6.0, datetime(2023, 10, 1, 20, 0)),
-        call(prev_prediction.prediction_timestamp, prediction.prediction_timestamp, 180.0, 190.0, datetime(2023, 10, 1, 20, 0)),
+        call(
+            prev_prediction.prediction_timestamp,
+            prediction.prediction_timestamp,
+            10.0,
+            20.0,
+            datetime(2023, 10, 1, 20, 0),
+        ),
+        call(
+            prev_prediction.prediction_timestamp,
+            prediction.prediction_timestamp,
+            50.0,
+            55.0,
+            datetime(2023, 10, 1, 20, 0),
+        ),
+        call(
+            prev_prediction.prediction_timestamp,
+            prediction.prediction_timestamp,
+            5.0,
+            6.0,
+            datetime(2023, 10, 1, 20, 0),
+        ),
+        call(
+            prev_prediction.prediction_timestamp,
+            prediction.prediction_timestamp,
+            180.0,
+            190.0,
+            datetime(2023, 10, 1, 20, 0),
+        ),
     ]
 
     # precip is not interpolated
