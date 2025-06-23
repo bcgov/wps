@@ -9,6 +9,7 @@ from typing import List
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 
+from app.auto_spatial_advisory.fuel_type_layer import get_current_fuel_type_raster
 from app.auto_spatial_advisory.process_hfi import RunType
 from app.auto_spatial_advisory.zone_stats import (
     get_fuel_type_area_stats,
@@ -72,9 +73,12 @@ async def get_shapes(
 ):
     """Return area of each zone unit shape, and percentage of area of zone unit shape with high hfi."""
     async with get_async_read_session_scope() as session:
+        fuel_type_raster = get_current_fuel_type_raster(session)
         shapes = []
 
-        rows = await get_hfi_area(session, RunTypeEnum(run_type.value), run_datetime, for_date)
+        rows = await get_hfi_area(
+            session, RunTypeEnum(run_type.value), run_datetime, for_date, fuel_type_raster.id
+        )
 
         # Fetch rows.
         for row in rows:
@@ -102,9 +106,10 @@ async def get_provincial_summary(
     """Return all Fire Centres with their fire shapes and the HFI status of those shapes."""
     logger.info("/fba/provincial_summary/")
     async with get_async_read_session_scope() as session:
+        fuel_type_raster = await get_current_fuel_type_raster(session)
         fire_shape_area_details = []
         rows = await get_provincial_rollup(
-            session, RunTypeEnum(run_type.value), run_datetime, for_date
+            session, RunTypeEnum(run_type.value), run_datetime, for_date, fuel_type_raster.id
         )
         for row in rows:
             elevated_hfi_percentage = 0

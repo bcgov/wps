@@ -59,3 +59,13 @@ async def get_processed_fuel_raster_details(
         )
         result = (await session.execute(stmt)).scalars().one_or_none()
         return result
+
+
+async def get_latest_fuel_type_raster_by_fuel_raster_name(session: AsyncSession, name: str):
+    stmt = (
+        select(FuelTypeRaster)
+        .where(FuelTypeRaster.object_store_path.contains(name))
+        .order_by(FuelTypeRaster.version.desc())
+    )
+    result = await session.execute(stmt)
+    return result.scalar()

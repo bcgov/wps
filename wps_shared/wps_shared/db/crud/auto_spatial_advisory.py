@@ -15,6 +15,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryHFIPercentConifer,
     AdvisoryShapeFuels,
     AdvisoryHFIWindSpeed,
+    CombustibleArea,
     CriticalHours,
     HfiClassificationThresholdEnum,
     Shape,
@@ -428,14 +429,18 @@ async def get_high_hfi_fuel_types(
 
 
 async def get_hfi_area(
-    session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
+    session: AsyncSession,
+    run_type: RunTypeEnum,
+    run_datetime: datetime,
+    for_date: date,
+    fuel_type_raster_id: int,
 ) -> List[Row]:
     logger.info("gathering hfi area data")
     stmt = (
         select(
             Shape.id,
             Shape.source_identifier,
-            Shape.combustible_area,
+            CombustibleArea.combustible_area,
             HighHfiArea.id,
             HighHfiArea.advisory_shape_id,
             HighHfiArea.threshold,
@@ -443,10 +448,12 @@ async def get_hfi_area(
         )
         .join(HighHfiArea, HighHfiArea.advisory_shape_id == Shape.id)
         .join(RunParameters, RunParameters.id == HighHfiArea.run_parameters)
+        .join(CombustibleArea, CombustibleArea.advisory_shape_id, Shape.id)
         .where(
             cast(RunParameters.run_type, String) == run_type.value,
             RunParameters.for_date == for_date,
             RunParameters.run_datetime == run_datetime,
+            CombustibleArea.fuel_type_raster_id == fuel_type_raster_id,
         )
     )
     result = await session.execute(stmt)
@@ -767,7 +774,11 @@ async def get_fire_centre_tpi_fuel_areas(session: AsyncSession, fire_centre_name
 
 
 async def get_provincial_rollup(
-    session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
+    session: AsyncSession,
+    run_type: RunTypeEnum,
+    run_datetime: datetime,
+    for_date: date,
+    fuel_type_raster_id: int,
 ) -> List[Row]:
     logger.info("gathering provincial rollup")
     run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
@@ -775,7 +786,7 @@ async def get_provincial_rollup(
         select(
             Shape.id,
             Shape.source_identifier,
-            Shape.combustible_area,
+            CombustibleArea.combustible_area,
             Shape.placename_label,
             FireCentre.name.label("fire_centre_name"),
             HighHfiArea.id,
@@ -784,6 +795,7 @@ async def get_provincial_rollup(
             HighHfiArea.area.label("hfi_area"),
         )
         .join(FireCentre, FireCentre.id == Shape.fire_centre)
+        .join(CombustibleArea, CombustibleArea.advisory_shape_id == Shape.id)
         .join(
             HighHfiArea,
             and_(
@@ -792,6 +804,7 @@ async def get_provincial_rollup(
             ),
             isouter=True,
         )
+        .where(CombustibleArea.fuel_type_raster_id == fuel_type_raster_id)
     )
     result = await session.execute(stmt)
     return result.all()

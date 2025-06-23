@@ -3,6 +3,7 @@ from sqlalchemy import Integer, Date, String, Float, Column, Index, ForeignKey, 
 from wps_shared.db.models.common import TZTimeStamp
 from geoalchemy2 import Geometry
 from wps_shared.db.models import Base
+from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.hfi_calc import FireCentre
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
 from sqlalchemy.dialects import postgresql
@@ -291,3 +292,17 @@ class AdvisoryHFIPercentConifer(Base):
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False)
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
     min_percent_conifer = Column(Integer, nullable=True)
+
+
+class CombustibleArea(Base):
+    """The combustible area of each advisory shape (aka fire zone unit) per fuel grid."""
+
+    __tablename__ = "combustible_area"
+    __table_args__ = {
+        "comment": "The combustible area of advisory shapes for each unique fuel grid."
+    }
+
+    id = Column(Integer, primary_key=True, index=True)
+    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
+    combustible_area = Column(Float, nullable=False)
+    fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=False, index=True)
