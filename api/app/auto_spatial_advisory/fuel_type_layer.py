@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import save_fuel_type
 from wps_shared.db.crud.fuel_layer import get_latest_fuel_type_raster_by_fuel_raster_name
-from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
+from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import FuelType
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
 from wps_shared.utils.polygonize import polygonize_in_memory
