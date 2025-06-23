@@ -245,7 +245,7 @@ def mock_station_prediction():
 def test_process_prediction_populates_fields_and_accumulates_correct_precip(
     mock_get_accumulated_precipitation,
     mock_get_utc_now,
-    MockWeatherStationModelPrediction,
+    weather_station_model_prediction_mock,
     mock_get_weather_station_model_prediction,
     processor,
     mock_prediction,
@@ -257,7 +257,7 @@ def test_process_prediction_populates_fields_and_accumulates_correct_precip(
     # Simulate no existing prediction
     mock_get_weather_station_model_prediction.return_value = None
     mock_station_prediction = MagicMock()
-    MockWeatherStationModelPrediction.return_value = mock_station_prediction
+    weather_station_model_prediction_mock.return_value = mock_station_prediction
 
     processor._calculate_delta_precip = MagicMock(return_value=1.5)
     processor._add_bias_adjustments_to_prediction = MagicMock()
@@ -272,17 +272,17 @@ def test_process_prediction_populates_fields_and_accumulates_correct_precip(
     )
 
     # Should create a new WeatherStationModelPrediction
-    MockWeatherStationModelPrediction.assert_called_once()
+    weather_station_model_prediction_mock.assert_called_once()
     # Should set fields
     assert mock_station_prediction.station_code == mock_station.code
     assert mock_station_prediction.prediction_model_run_timestamp_id == mock_model_run.id
     assert mock_station_prediction.prediction_timestamp == mock_prediction.prediction_timestamp
-    assert mock_station_prediction.tmp_tgl_2 == 10.0
-    assert mock_station_prediction.rh_tgl_2 == 50.0
-    assert mock_station_prediction.apcp_sfc_0 == 2.0
-    assert mock_station_prediction.wind_tgl_10 == 5.0
-    assert mock_station_prediction.wdir_tgl_10 == 180.0
-    assert mock_station_prediction.delta_precip == 1.5
+    assert mock_station_prediction.tmp_tgl_2 == pytest.approx(10.0)
+    assert mock_station_prediction.rh_tgl_2 == pytest.approx(50.0)
+    assert mock_station_prediction.apcp_sfc_0 == pytest.approx(2.0)
+    assert mock_station_prediction.wind_tgl_10 == pytest.approx(5.0)
+    assert mock_station_prediction.wdir_tgl_10 == pytest.approx(180.0)
+    assert mock_station_prediction.delta_precip == pytest.approx(1.5)
     assert mock_station_prediction.update_date == datetime(2025, 6, 5, 13, 0, 0)
     # Should call add_bias_adjustments_to_prediction
     processor._add_bias_adjustments_to_prediction.assert_called_once_with(
@@ -339,12 +339,12 @@ def test_process_prediction_existing_prediction_is_updated(
     assert existing_prediction.station_code == mock_station.code
     assert existing_prediction.prediction_model_run_timestamp_id == mock_model_run.id
     assert existing_prediction.prediction_timestamp == mock_prediction.prediction_timestamp
-    assert existing_prediction.tmp_tgl_2 == 10.0
-    assert existing_prediction.rh_tgl_2 == 50.0
-    assert existing_prediction.apcp_sfc_0 == 2.0
-    assert existing_prediction.wind_tgl_10 == 5.0
-    assert existing_prediction.wdir_tgl_10 == 180.0
-    assert existing_prediction.precip_24h == 5.0
-    assert existing_prediction.delta_precip == 2.0
+    assert existing_prediction.tmp_tgl_2 == pytest.approx(10.0)
+    assert existing_prediction.rh_tgl_2 == pytest.approx(50.0)
+    assert existing_prediction.apcp_sfc_0 == pytest.approx(2.0)
+    assert existing_prediction.wind_tgl_10 == pytest.approx(5.0)
+    assert existing_prediction.wdir_tgl_10 == pytest.approx(180.0)
+    assert existing_prediction.precip_24h == pytest.approx(5.0)
+    assert existing_prediction.delta_precip == pytest.approx(2.0)
     assert existing_prediction.update_date == datetime(2023, 9, 7, 13, 0, 0)
     mock_session.add.assert_called_with(existing_prediction)
