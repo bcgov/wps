@@ -1,37 +1,39 @@
-from datetime import date, datetime
-from enum import Enum
 import logging
 from collections import defaultdict
+from datetime import date, datetime
+from enum import Enum
 from time import perf_counter
 from typing import List, Optional, Tuple
-from sqlalchemy import and_, extract, select, func, cast, String
+
+from sqlalchemy import String, and_, cast, extract, func, select
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
-from wps_shared.run_type import RunType
-from wps_shared.schemas.fba import HfiThreshold
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from wps_shared.db.models.auto_spatial_advisory import (
+    AdvisoryElevationStats,
     AdvisoryFuelStats,
     AdvisoryHFIPercentConifer,
-    AdvisoryShapeFuels,
     AdvisoryHFIWindSpeed,
+    AdvisoryShapeFuels,
+    AdvisoryTPIStats,
+    ClassifiedHfi,
     CombustibleArea,
     CriticalHours,
-    HfiClassificationThresholdEnum,
-    Shape,
-    ClassifiedHfi,
-    HfiClassificationThreshold,
-    SFMSFuelType,
-    RunTypeEnum,
     FuelType,
+    HfiClassificationThreshold,
+    HfiClassificationThresholdEnum,
     HighHfiArea,
     RunParameters,
-    AdvisoryElevationStats,
-    AdvisoryTPIStats,
+    RunTypeEnum,
+    SFMSFuelType,
+    Shape,
     ShapeType,
     TPIFuelArea,
 )
 from wps_shared.db.models.hfi_calc import FireCentre
+from wps_shared.run_type import RunType
+from wps_shared.schemas.fba import HfiThreshold
 
 logger = logging.getLogger(__name__)
 

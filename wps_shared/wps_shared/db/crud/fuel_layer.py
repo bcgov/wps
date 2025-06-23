@@ -1,8 +1,10 @@
 """CRUD operations relating to processing fuel rasters"""
 
 from typing import Optional
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 
 

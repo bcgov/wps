@@ -97,7 +97,7 @@ async def get_shapes(
 
 
 @router.get(
-    "/provincial-summary/{run_type}/{run_datetime}/{for_date}",
+    "/fuel/{run_type}/{run_datetime}/{for_date}",
     response_model=ProvincialSummaryResponse,
 )
 async def get_provincial_summary(
