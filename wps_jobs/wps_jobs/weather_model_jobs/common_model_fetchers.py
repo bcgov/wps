@@ -361,16 +361,13 @@ class ModelValueProcessor:
 
         # We're within 24 hours of the start of a model run so we don't have cumulative precipitation for a full 24h.
         # We use actual precipitation from our API hourly_actuals table to make up the missing hours.
-        prediction_timestamp = station_prediction.prediction_timestamp
-        # Create new datetime with time of 00:00 hours as the end time.
-        end_prediction_timestamp = datetime(
-            year=prediction_timestamp.year,
-            month=prediction_timestamp.month,
-            day=prediction_timestamp.day,
-            tzinfo=timezone.utc,
-        )
+        # Each model run starts with a total precip of 0.0, so we need all the precip data
+        # from 24 hours before the prediction_timestamp to the start of the current model run.
         actual_precip = get_accumulated_precipitation(
-            self.session, station.code, start_prediction_timestamp, end_prediction_timestamp
+            self.session,
+            station.code,
+            start_prediction_timestamp,
+            model_run.prediction_run_timestamp,
         )
         return actual_precip + station_prediction.apcp_sfc_0
 
