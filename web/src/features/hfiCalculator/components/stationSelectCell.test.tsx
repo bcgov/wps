@@ -36,7 +36,7 @@ describe('StationSelectCell', () => {
 
     const checkbox = screen.getByTestId(`select-station-${station.code}`)
     expect(checkbox).toBeDefined()
-    expect(toggleSelectedStationMock).not.toBeCalled()
+    expect(toggleSelectedStationMock).not.toHaveBeenCalled()
     const input = within(checkbox).getByRole('checkbox') as HTMLInputElement
     expect(input).not.toHaveAttribute('disabled')
     checkbox.focus()

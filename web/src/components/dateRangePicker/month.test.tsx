@@ -81,10 +81,11 @@ describe('Month', () => {
     const month = getByTestId('testMonth')
 
     expect(month).toBeDefined()
-    expect(setValueMock).toBeCalledTimes(0)
-    expect(onDayClickMock).toBeCalledTimes(0)
-    expect(onDayHoverMock).toBeCalledTimes(0)
-    expect(onMonthNavigateMock).toBeCalledTimes(0)
+    expect(setValueMock).toHaveBeenCalledTimes(0)
+    expect(setValueMock).toHaveBeenCalledTimes(0)
+    expect(onDayClickMock).toHaveBeenCalledTimes(0)
+    expect(onDayHoverMock).toHaveBeenCalledTimes(0)
+    expect(onMonthNavigateMock).toHaveBeenCalledTimes(0)
   })
   it('should handle day clicks', async () => {
     const dateRange = { startDate, endDate }
