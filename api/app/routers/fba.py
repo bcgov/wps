@@ -73,7 +73,7 @@ async def get_shapes(
 ):
     """Return area of each zone unit shape, and percentage of area of zone unit shape with high hfi."""
     async with get_async_read_session_scope() as session:
-        fuel_type_raster = get_current_fuel_type_raster(session)
+        fuel_type_raster = await get_current_fuel_type_raster(session)
         shapes = []
 
         rows = await get_hfi_area(
@@ -97,7 +97,7 @@ async def get_shapes(
 
 
 @router.get(
-    "/fuel/{run_type}/{run_datetime}/{for_date}",
+    "/provincial-summary/{run_type}/{run_datetime}/{for_date}",
     response_model=ProvincialSummaryResponse,
 )
 async def get_provincial_summary(
