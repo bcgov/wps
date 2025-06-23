@@ -450,7 +450,7 @@ async def get_hfi_area(
         )
         .join(HighHfiArea, HighHfiArea.advisory_shape_id == Shape.id)
         .join(RunParameters, RunParameters.id == HighHfiArea.run_parameters)
-        .join(CombustibleArea, CombustibleArea.advisory_shape_id, Shape.id)
+        .join(CombustibleArea, CombustibleArea.advisory_shape_id == Shape.id)
         .where(
             cast(RunParameters.run_type, String) == run_type.value,
             RunParameters.for_date == for_date,
