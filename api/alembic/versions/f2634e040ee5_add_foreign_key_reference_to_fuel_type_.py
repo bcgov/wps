@@ -35,6 +35,22 @@ def upgrade():
         ["id"],
     )
     op.add_column(
+        "advisory_fuel_types", sa.Column("fuel_type_raster_id", sa.Integer(), nullable=True)
+    )
+    op.create_index(
+        op.f("ix_advisory_fuel_types_fuel_type_raster_id"),
+        "advisory_fuel_types",
+        ["fuel_type_raster_id"],
+        unique=False,
+    )
+    op.create_foreign_key(
+        "advisory_fuel_types_fuel_type_raster_id_fkey",
+        "advisory_fuel_types",
+        "fuel_type_raster",
+        ["fuel_type_raster_id"],
+        ["id"],
+    )
+    op.add_column(
         "advisory_hfi_percent_conifer",
         sa.Column("fuel_type_raster_id", sa.Integer(), nullable=True),
     )
@@ -127,6 +143,15 @@ def downgrade():
         table_name="advisory_hfi_percent_conifer",
     )
     op.drop_column("advisory_hfi_percent_conifer", "fuel_type_raster_id")
+
+    op.drop_constraint(
+        "advisory_fuel_types_fuel_type_raster_id_fkey", "advisory_fuel_types", type_="foreignkey"
+    )
+    op.drop_index(
+        op.f("ix_advisory_fuel_types_fuel_type_raster_id"), table_name="advisory_fuel_types"
+    )
+    op.drop_column("advisory_fuel_types", "fuel_type_raster_id")
+
     op.drop_constraint(
         "advisory_fuel_stats_fuel_type_raster_id_fkey", "advisory_fuel_stats", type_="foreignkey"
     )

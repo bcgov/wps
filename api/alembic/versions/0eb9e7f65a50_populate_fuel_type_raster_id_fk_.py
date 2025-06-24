@@ -22,7 +22,11 @@ FUEL_GRID_2021_YEARS = [2022, 2023]
 FUEL_GRID_2024_YEARS = [2024, 2025]
 
 fuel_type_raster_table = sa.Table(
-    "fuel_type_raster", sa.MetaData(), sa.Column("id", sa.Integer), sa.Column("year", sa.Integer)
+    "fuel_type_raster",
+    sa.MetaData(),
+    sa.Column("id", sa.Integer),
+    sa.Column("version", sa.Integer),
+    sa.Column("year", sa.Integer),
 )
 
 run_parameters_table = sa.Table(
@@ -34,6 +38,14 @@ advisory_fuel_stats_table = sa.Table(
     sa.MetaData(),
     sa.Column("id", sa.Integer),
     sa.Column("run_parameters", sa.Integer),
+    sa.Column("fuel_type_raster_id", sa.Integer),
+)
+
+advisory_fuel_types_table = sa.Table(
+    "advisory_fuel_types",
+    sa.MetaData(),
+    sa.Column("id", sa.Integer),
+    sa.Column("fuel_type_id", sa.Integer),
     sa.Column("fuel_type_raster_id", sa.Integer),
 )
 
@@ -68,10 +80,14 @@ tpi_fuel_area_table = sa.Table(
 )
 
 
-def get_fuel_type_raster_id(session: Session, year: int) -> int:
-    stmt = fuel_type_raster_table.select().where(fuel_type_raster_table.c.year == year)
-    result = session.execute(stmt).fetchone()
-    return result.id
+def get_fuel_type_raster(session: Session, year: int):
+    stmt = (
+        fuel_type_raster_table.select()
+        .where(fuel_type_raster_table.c.year == year)
+        .order_by(fuel_type_raster_table.c.version.desc())
+    )
+    result = session.execute(stmt)
+    return result.first()
 
 
 def get_run_parameter_ids(session: Session, years: list[int]) -> list[int]:
@@ -93,6 +109,11 @@ def update_fk_for_advisory_fuel_stats_table(
         .where(advisory_fuel_stats_table.c.run_parameters.in_(run_parameter_ids))
         .values(fuel_type_raster_id=fuel_type_raster_id)
     )
+    session.execute(stmt)
+
+
+def update_fk_for_advisory_fuel_types_table(session: Session, fuel_type_raster_id: int) -> None:
+    stmt = advisory_fuel_types_table.update().values(fuel_type_raster_id=fuel_type_raster_id)
     session.execute(stmt)
 
 
@@ -131,9 +152,11 @@ def update_fk_for_tpi_fuel_area_table(session: Session, fuel_type_raster_id: int
 def populate_for_years_and_fuel_grid(
     session: Session, fuel_grid_year: int, years: list[int]
 ) -> None:
-    fuel_type_raster_id = get_fuel_type_raster_id(session, fuel_grid_year)
+    fuel_type_raster = get_fuel_type_raster(session, fuel_grid_year)
+    fuel_type_raster_id = fuel_type_raster.id
     run_parameter_ids = get_run_parameter_ids(session, years)
     update_fk_for_advisory_fuel_stats_table(session, fuel_type_raster_id, run_parameter_ids)
+    update_fk_for_advisory_fuel_types_table(session, fuel_type_raster_id)
     update_fk_for_advisory_hfi_percent_conifer(session, fuel_type_raster_id, run_parameter_ids)
     update_fk_for_advisory_shape_fuels_table(session, fuel_type_raster_id)
     update_fk_for_critical_hours_table(session, fuel_type_raster_id, run_parameter_ids)
@@ -144,6 +167,7 @@ def depopulate_for_years(session: Session, years: list[int]) -> None:
     fuel_type_raster_id = None
     run_parameter_ids = get_run_parameter_ids(session, years)
     update_fk_for_advisory_fuel_stats_table(session, fuel_type_raster_id, run_parameter_ids)
+    update_fk_for_advisory_fuel_types_table(session, fuel_type_raster_id)
     update_fk_for_advisory_hfi_percent_conifer(session, fuel_type_raster_id, run_parameter_ids)
     update_fk_for_advisory_shape_fuels_table(session, fuel_type_raster_id)
     update_fk_for_critical_hours_table(session, fuel_type_raster_id, run_parameter_ids)
