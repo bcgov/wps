@@ -20,7 +20,7 @@ import { useDispatch, useSelector } from 'react-redux'
 const FireWatchDashboard = () => {
   const dispatch: AppDispatch = useDispatch()
   const burnForecasts = useSelector(selectBurnForecasts)
-  const { loading: updateLoading, error: updateError } = useSelector((state: RootState) => state.burnForecasts)
+  const { loading: updateLoading } = useSelector((state: RootState) => state.burnForecasts)
 
   const theme = useTheme()
   const [modalOpen, setModalOpen] = useState(false)
