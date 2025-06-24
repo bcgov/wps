@@ -170,7 +170,7 @@ describe('FireWatchDashboard', async () => {
   })
 })
 
-export const getMockFireWatch = (id: number, title: string): FireWatch => {
+const getMockFireWatch = (id: number, title: string): FireWatch => {
   const now = DateTime.now()
   return {
     id,
