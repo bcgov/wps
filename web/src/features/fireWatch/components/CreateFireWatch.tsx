@@ -104,10 +104,14 @@ const CreateFireWatch = ({
   }
 
   const handleSubmit = async () => {
-    if (isNaN(fireWatch.id)) {
-      dispatch(submitNewFireWatch(fireWatch))
-    } else {
-      dispatch(updateFireWatch(fireWatch))
+    try {
+      if (isNaN(fireWatch.id)) {
+        dispatch(submitNewFireWatch(fireWatch))
+      } else {
+        await dispatch(updateFireWatch(fireWatch))
+      }
+    } catch (err) {
+      console.error('Failed to submit:', err)
     }
   }
 
