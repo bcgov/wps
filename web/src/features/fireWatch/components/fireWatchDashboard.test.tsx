@@ -148,18 +148,21 @@ describe('FireWatchDashboard', async () => {
 
     const statusCells = document.querySelectorAll('.editable-status-cell')
     expect(statusCells.length).toBeGreaterThan(0)
+    expect(statusCells[0].querySelector('[data-testid="active-icon"]')).toBeInTheDocument()
     await user.dblClick(statusCells[0])
 
     // select a new status from dropdown (simulate status change)
     await user.click(screen.getByText('Complete', { selector: 'li' }))
     await user.click(document.body) // click outside to trigger update
     expect(statusCells[0].textContent).toContain('Complete')
+    expect(statusCells[0].querySelector('[data-testid="complete-icon"]')).toBeInTheDocument()
 
     // select a new status from dropdown
     await user.dblClick(statusCells[1])
     await user.click(screen.getByText('Hold', { selector: 'li' }))
     await user.click(document.body) // click outside to trigger update
     expect(statusCells[1].textContent).toContain('Hold')
+    expect(statusCells[1].querySelector('[data-testid="hold-icon"]')).toBeInTheDocument()
 
     // wait for error snackbar to appear
     const alert = screen.queryByTestId('snackbar-alert')

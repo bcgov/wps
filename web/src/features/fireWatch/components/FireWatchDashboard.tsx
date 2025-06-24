@@ -50,10 +50,16 @@ const FireWatchDashboard = () => {
   }
 
   const statusIconMap = {
-    [BurnStatusEnum.ACTIVE]: <PlayCircleIcon sx={{ color: '#1976D280' }} titleAccess="Active" />,
-    [BurnStatusEnum.HOLD]: <PauseCircleIcon sx={{ color: '#FE690080' }} titleAccess="Hold" />,
-    [BurnStatusEnum.COMPLETE]: <CheckCircleIcon sx={{ color: '#8E24AC80' }} titleAccess="Complete" />,
-    [BurnStatusEnum.CANCELLED]: <CancelIcon sx={{ color: '#75757580' }} titleAccess="Cancelled" />
+    [BurnStatusEnum.ACTIVE]: (
+      <PlayCircleIcon sx={{ color: '#1976D280' }} titleAccess="Active" data-testid="active-icon" />
+    ),
+    [BurnStatusEnum.HOLD]: <PauseCircleIcon sx={{ color: '#FE690080' }} titleAccess="Hold" data-testid="hold-icon" />,
+    [BurnStatusEnum.COMPLETE]: (
+      <CheckCircleIcon sx={{ color: '#8E24AC80' }} titleAccess="Complete" data-testid="complete-icon" />
+    ),
+    [BurnStatusEnum.CANCELLED]: (
+      <CancelIcon sx={{ color: '#75757580' }} titleAccess="Cancelled" data-testid="cancelled-icon" />
+    )
   }
 
   const columns: GridColDef<BurnWatchRow>[] = [
