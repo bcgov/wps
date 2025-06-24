@@ -9,6 +9,8 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import * as burnForecastSliceModule from '@/features/fireWatch/slices/burnForecastSlice'
+import userEvent from '@testing-library/user-event'
 
 const buildTestStore = (initialState: BurnForecastsState) => {
   const rootReducer = combineReducers({ burnForecasts: burnForecastSlice })
@@ -146,6 +148,42 @@ describe('FireWatchDashboard', async () => {
     expect(row3).toBeInTheDocument()
     expect(row3).toHaveClass('in-prescription-no')
   })
+
+  it('shows error snackbar when processRowUpdate fails', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(burnForecastSliceModule, 'updateFireWatch').mockImplementation(() => async () => {
+      throw new Error('Update failed')
+    })
+
+    const testStore = buildTestStore({
+      ...initialState
+    })
+
+    await act(async () =>
+      render(
+        <Provider store={testStore}>
+          <FireWatchDashboard />
+        </Provider>
+      )
+    )
+
+    expect(screen.getByText('Dashboard')).toBeInTheDocument()
+    // Check if FireWatch titles are rendered
+    expect(screen.getByText('test-1')).toBeInTheDocument()
+
+    // Find the status cell for the first row and simulate editing
+    const statusCells = document.querySelectorAll('.editable-status-cell')
+    expect(statusCells.length).toBeGreaterThan(0)
+    await user.dblClick(statusCells[0])
+
+    // Select a new status from dropdown (simulate status change)
+    await user.click(screen.getByText('Complete', { selector: 'li' }))
+    await user.click(document.body)
+
+    // Wait for error snackbar to appear
+    const alert = await screen.findByTestId('snackbar-alert')
+    expect(alert).toHaveTextContent('Failed to update row status')
+  })
 })
 
 const getMockFireWatch = (id: number, title: string): FireWatch => {
@@ -215,7 +253,8 @@ const getMockBurnForecast = (id: number, inPrescription: PrescriptionEnum) => {
     dc: 2,
     isi: 2,
     bui: 2,
-    hfi: 2
+    hfi: 2,
+    status: BurnStatusEnum.ACTIVE
   }
 }
 
