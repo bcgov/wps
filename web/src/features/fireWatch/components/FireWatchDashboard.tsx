@@ -58,15 +58,6 @@ const FireWatchDashboard = () => {
 
   const columns: GridColDef<BurnWatchRow>[] = [
     {
-      field: 'statusIcon',
-      headerName: '',
-      width: 50,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: params => statusIconMap[params.row.status] ?? null
-    },
-    {
       field: 'id',
       headerName: 'ID',
       width: 80
@@ -94,7 +85,7 @@ const FireWatchDashboard = () => {
     {
       field: 'status',
       headerName: 'Status',
-      width: 120,
+      width: 140,
       type: 'singleSelect',
       valueOptions: Object.values(BurnStatusEnum),
       getOptionLabel: value => (typeof value === 'string' ? upperFirst(value) : String(value)),
@@ -102,7 +93,8 @@ const FireWatchDashboard = () => {
       cellClassName: 'editable-status-cell',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-          <Typography sx={{ mr: 0.5 }}>{upperFirst(params.value)}</Typography>
+          {statusIconMap[params.row.status] ?? null}
+          <Typography sx={{ mx: 0.5, fontSize: 'inherit' }}>{upperFirst(params.value)}</Typography>
           <KeyboardArrowDownIcon fontSize="small" color="action" sx={{ opacity: 0.7 }} />
         </Box>
       ),
