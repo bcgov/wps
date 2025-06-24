@@ -39,46 +39,35 @@ vi.mock('@/features/fireWatch/components/DetailPanelContent', () => ({
 }))
 
 describe('FireWatchDashboard', async () => {
-  beforeEach(() => LicenseInfo.setLicenseKey(MUI_LICENSE))
+  let testStore: ReturnType<typeof buildTestStore>
+  beforeEach(() => {
+    LicenseInfo.setLicenseKey(MUI_LICENSE)
+    testStore = buildTestStore({ ...initialState })
+  })
 
-  it('dispatches fetchBurnForecasts on mount', () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
-    const dispatchSpy = vi.spyOn(testStore, 'dispatch')
+  const renderDashboard = () =>
     render(
       <Provider store={testStore}>
         <FireWatchDashboard />
       </Provider>
     )
+
+  it('dispatches fetchBurnForecasts on mount', () => {
+    const dispatchSpy = vi.spyOn(testStore, 'dispatch')
+    renderDashboard()
+
     expect(dispatchSpy).toHaveBeenCalled()
   })
 
   it('should render', async () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
-    render(
-      <Provider store={testStore}>
-        <FireWatchDashboard />
-      </Provider>
-    )
+    renderDashboard()
 
     const dashboard = screen.getByTestId('fire-watch-dashboard')
     expect(dashboard).toBeInTheDocument()
   })
 
   it('renders the grid with rows', async () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
-    await act(async () =>
-      render(
-        <Provider store={testStore}>
-          <FireWatchDashboard />
-        </Provider>
-      )
-    )
+    await act(async () => renderDashboard())
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument()
     // Check if FireWatch titles are rendered
@@ -88,16 +77,8 @@ describe('FireWatchDashboard', async () => {
   })
 
   it('opens modal when info icon is clicked', async () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
-    await act(async () =>
-      render(
-        <Provider store={testStore}>
-          <FireWatchDashboard />
-        </Provider>
-      )
-    )
+    await act(async () => renderDashboard())
+
     const infoButton = screen.getAllByLabelText('View details')[0]
     fireEvent.click(infoButton)
 
@@ -107,16 +88,8 @@ describe('FireWatchDashboard', async () => {
   })
 
   it('renders the detail panel when expanded', async () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
-    await act(async () =>
-      render(
-        <Provider store={testStore}>
-          <FireWatchDashboard />
-        </Provider>
-      )
-    )
+    await act(async () => renderDashboard())
+
     const expandButton = screen.getAllByLabelText('Expand')[0]
     fireEvent.click(expandButton)
 
@@ -125,16 +98,7 @@ describe('FireWatchDashboard', async () => {
     })
   })
   it('applies correct row class based on inPrescription value', async () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
-    await act(async () =>
-      render(
-        <Provider store={testStore}>
-          <FireWatchDashboard />
-        </Provider>
-      )
-    )
+    await act(async () => renderDashboard())
 
     const row1 = document.querySelector('[data-id="1"]')
     expect(row1).toBeInTheDocument()
@@ -155,17 +119,7 @@ describe('FireWatchDashboard', async () => {
       throw new Error('Update failed')
     })
 
-    const testStore = buildTestStore({
-      ...initialState
-    })
-
-    await act(async () =>
-      render(
-        <Provider store={testStore}>
-          <FireWatchDashboard />
-        </Provider>
-      )
-    )
+    await act(async () => renderDashboard())
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument()
     expect(screen.getByText('test-1')).toBeInTheDocument()
@@ -190,22 +144,8 @@ describe('FireWatchDashboard', async () => {
       return mockFireWatchBurnForecasts[0]
     })
 
-    const testStore = buildTestStore({
-      ...initialState
-    })
+    await act(async () => renderDashboard())
 
-    await act(async () =>
-      render(
-        <Provider store={testStore}>
-          <FireWatchDashboard />
-        </Provider>
-      )
-    )
-
-    expect(screen.getByText('Dashboard')).toBeInTheDocument()
-    expect(screen.getByText('test-1')).toBeInTheDocument()
-
-    // find the status cell for the first row and simulate editing
     const statusCells = document.querySelectorAll('.editable-status-cell')
     expect(statusCells.length).toBeGreaterThan(0)
     await user.dblClick(statusCells[0])
@@ -215,7 +155,7 @@ describe('FireWatchDashboard', async () => {
     await user.click(document.body) // click outside to trigger update
     expect(statusCells[0].textContent).toContain('Complete')
 
-    // select a new status from dropdown (simulate status change)
+    // select a new status from dropdown
     await user.dblClick(statusCells[1])
     await user.click(screen.getByText('Hold', { selector: 'li' }))
     await user.click(document.body) // click outside to trigger update
