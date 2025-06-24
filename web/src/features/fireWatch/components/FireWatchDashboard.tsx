@@ -2,12 +2,7 @@ import { RootState } from '@/app/rootReducer'
 import { AppDispatch } from '@/app/store'
 import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
 import FireWatchDetailsModal from '@/features/fireWatch/components/FireWatchDetailsModal'
-import {
-  BurnStatusEnum,
-  burnStatusFromString,
-  BurnWatchRow,
-  FireWatchBurnForecast
-} from '@/features/fireWatch/interfaces'
+import { BurnStatusEnum, BurnWatchRow, FireWatchBurnForecast } from '@/features/fireWatch/interfaces'
 import { fetchBurnForecasts, selectBurnForecasts, updateFireWatch } from '@/features/fireWatch/slices/burnForecastSlice'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import InfoIcon from '@mui/icons-material/Info'
@@ -148,7 +143,7 @@ const FireWatchDashboard = () => {
   )
 
   const processRowUpdate = async (newRow: BurnWatchRow, oldRow: BurnWatchRow): Promise<BurnWatchRow> => {
-    const newStatus = burnStatusFromString(newRow.status)
+    const newStatus = newRow.status
     const oldStatus = oldRow.fireWatch.status
 
     const updatedRow: BurnWatchRow = {
@@ -167,7 +162,7 @@ const FireWatchDashboard = () => {
         return updatedRow
       } catch (error) {
         setSnackbarOpen(true)
-        setSnackbarMsg(updateError ?? 'Failed to update row status')
+        setSnackbarMsg('Failed to update row status')
         // on error revert to oldRow
         return oldRow
       }
@@ -206,16 +201,16 @@ const FireWatchDashboard = () => {
             }
           }}
           sx={{
-            '.in-prescription-all': {
-              bgcolor: `${FireWatchPrescriptionColors.all.bgcolor} !important`,
-              '&:hover': { bgcolor: `${FireWatchPrescriptionColors.all.hover} !important` }
+            '.MuiDataGrid-row.in-prescription-all': {
+              bgcolor: `${FireWatchPrescriptionColors.all.bgcolor}`,
+              '&:hover': { bgcolor: `${FireWatchPrescriptionColors.all.hover}` }
             },
-            '.in-prescription-hfi': {
-              bgcolor: `${FireWatchPrescriptionColors.hfi.bgcolor} !important`,
-              '&:hover': { bgcolor: `${FireWatchPrescriptionColors.hfi.hover} !important` }
+            '.MuiDataGrid-row.in-prescription-hfi': {
+              bgcolor: `${FireWatchPrescriptionColors.hfi.bgcolor}`,
+              '&:hover': { bgcolor: `${FireWatchPrescriptionColors.hfi.hover}` }
             },
-            '&.MuiDataGrid-root .in-prescription-no': {
-              bgcolor: `${FireWatchPrescriptionColors.no.bgcolor} !important`
+            '&.MuiDataGrid-root .MuiDataGrid-row.in-prescription-no': {
+              bgcolor: `${FireWatchPrescriptionColors.no.bgcolor}`
             }
           }}
         />
@@ -226,7 +221,12 @@ const FireWatchDashboard = () => {
         onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={() => setSnackbarOpen(false)} severity="error" sx={{ width: '100%' }}>
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="error"
+          sx={{ width: '100%' }}
+          data-testid="snackbar-alert"
+        >
           {snackbarMsg}
         </Alert>
       </Snackbar>

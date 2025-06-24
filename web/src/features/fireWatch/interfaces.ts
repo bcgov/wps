@@ -9,12 +9,6 @@ export enum BurnStatusEnum {
   CANCELLED = 'cancelled'
 }
 
-export const burnStatusFromString = (status: string): BurnStatusEnum => {
-  const lowercasedStatus = status.toLowerCase()
-  const burnEnum = Object.values(BurnStatusEnum).find(status => status === lowercasedStatus)
-  return burnEnum || BurnStatusEnum.ACTIVE
-}
-
 export enum FuelTypeEnum {
   C1 = 'C1',
   C2 = 'C2',
