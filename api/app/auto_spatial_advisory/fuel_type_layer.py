@@ -23,15 +23,19 @@ logger = logging.getLogger(__name__)
 
 
 async def get_current_fuel_type_raster(session: AsyncSession):
+    """
+    Gets the FuelTypeRaster record for the most recent version of the fuel raster
+    that matches the env FUEL_RASTER_NAME
+    :param session: An async database session.
+    :return: A FuelTypeRaster record.
+    """
     # get fuel_type_raster record based on current value of the FUEL_RASTER_NAME env variable
-    fuel_raster_name = config.get("FUEL_RASTER_NAME")
-    if fuel_raster_name:
-        fuel_raster_name = fuel_raster_name.lower()[:-4]
-    async with get_async_read_session_scope() as session:
-        fuel_type_raster = await get_latest_fuel_type_raster_by_fuel_raster_name(
-            session, fuel_raster_name
-        )
-        return fuel_type_raster
+    name = config.get("FUEL_RASTER_NAME")
+    fuel_raster_name = name.lower()[:-4]
+    fuel_type_raster = await get_latest_fuel_type_raster_by_fuel_raster_name(
+        session, fuel_raster_name
+    )
+    return fuel_type_raster
 
 
 async def get_fuel_type_raster_by_year(session: AsyncSession, year: int):
