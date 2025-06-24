@@ -159,6 +159,11 @@ const CreateFireWatch = ({
                 Back
               </Button>
             </Box>
+            {isEditMode && (
+              <Button onClick={onCloseModal} variant="outlined" disabled={isLoading} sx={{ mr: 2 }}>
+                Cancel
+              </Button>
+            )}
             <Button variant="contained" type="submit" disabled={isLoading}>
               {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
             </Button>
