@@ -134,34 +134,37 @@ const FireWatchDashboard = () => {
     []
   )
 
-  const processRowUpdate = async (newRow: BurnWatchRow, oldRow: BurnWatchRow): Promise<BurnWatchRow> => {
-    const newStatus = newRow.status
-    const oldStatus = oldRow.fireWatch.status
+  const processRowUpdate = React.useCallback(
+    async (newRow: BurnWatchRow, oldRow: BurnWatchRow): Promise<BurnWatchRow> => {
+      const newStatus = newRow.status
+      const oldStatus = oldRow.fireWatch.status
 
-    const updatedRow: BurnWatchRow = {
-      ...oldRow,
-      ...newRow,
-      fireWatch: {
-        ...oldRow.fireWatch,
-        ...newRow.fireWatch,
-        status: newStatus
+      const updatedRow: BurnWatchRow = {
+        ...oldRow,
+        ...newRow,
+        fireWatch: {
+          ...oldRow.fireWatch,
+          ...newRow.fireWatch,
+          status: newStatus
+        }
       }
-    }
 
-    if (newStatus !== oldStatus) {
-      try {
-        await dispatch(updateFireWatch(updatedRow.fireWatch))
-        return updatedRow
-      } catch (error) {
-        setSnackbarOpen(true)
-        setSnackbarMsg('Failed to update row status')
-        // on error revert to oldRow
-        return oldRow
+      if (newStatus !== oldStatus) {
+        try {
+          await dispatch(updateFireWatch(updatedRow.fireWatch))
+          return updatedRow
+        } catch (error) {
+          setSnackbarOpen(true)
+          setSnackbarMsg('Failed to update row status')
+          // on error revert to oldRow
+          return oldRow
+        }
       }
-    }
 
-    return oldRow
-  }
+      return oldRow
+    },
+    [dispatch]
+  )
 
   return (
     <Box data-testid="fire-watch-dashboard" id="fire-watch-dashboard" sx={{ flexGrow: 1 }}>
@@ -203,7 +206,8 @@ const FireWatchDashboard = () => {
             },
             '&.MuiDataGrid-root .MuiDataGrid-row.in-prescription-no': {
               bgcolor: `${FireWatchPrescriptionColors.no.bgcolor}`
-            }
+            },
+            fontSize: '0.875rem'
           }}
         />
       </Box>

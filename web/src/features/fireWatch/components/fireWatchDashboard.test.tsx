@@ -168,25 +168,66 @@ describe('FireWatchDashboard', async () => {
     )
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument()
-    // Check if FireWatch titles are rendered
     expect(screen.getByText('test-1')).toBeInTheDocument()
 
-    // Find the status cell for the first row and simulate editing
+    // find the status cell for the first row and simulate editing
     const statusCells = document.querySelectorAll('.editable-status-cell')
     expect(statusCells.length).toBeGreaterThan(0)
     await user.dblClick(statusCells[0])
 
-    // Select a new status from dropdown (simulate status change)
+    // select a new status from dropdown (simulate status change)
     await user.click(screen.getByText('Complete', { selector: 'li' }))
-    await user.click(document.body)
+    await user.click(document.body) // click outside to trigger update
 
-    // Wait for error snackbar to appear
+    // wait for error snackbar to appear
     const alert = await screen.findByTestId('snackbar-alert')
     expect(alert).toHaveTextContent('Failed to update row status')
   })
+
+  it('updates the status with a dropdown', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(burnForecastSliceModule, 'updateFireWatch').mockImplementation(() => async () => {
+      return mockFireWatchBurnForecasts[0]
+    })
+
+    const testStore = buildTestStore({
+      ...initialState
+    })
+
+    await act(async () =>
+      render(
+        <Provider store={testStore}>
+          <FireWatchDashboard />
+        </Provider>
+      )
+    )
+
+    expect(screen.getByText('Dashboard')).toBeInTheDocument()
+    expect(screen.getByText('test-1')).toBeInTheDocument()
+
+    // find the status cell for the first row and simulate editing
+    const statusCells = document.querySelectorAll('.editable-status-cell')
+    expect(statusCells.length).toBeGreaterThan(0)
+    await user.dblClick(statusCells[0])
+
+    // select a new status from dropdown (simulate status change)
+    await user.click(screen.getByText('Complete', { selector: 'li' }))
+    await user.click(document.body) // click outside to trigger update
+    expect(statusCells[0].textContent).toContain('Complete')
+
+    // select a new status from dropdown (simulate status change)
+    await user.dblClick(statusCells[1])
+    await user.click(screen.getByText('Hold', { selector: 'li' }))
+    await user.click(document.body) // click outside to trigger update
+    expect(statusCells[1].textContent).toContain('Hold')
+
+    // wait for error snackbar to appear
+    const alert = screen.queryByTestId('snackbar-alert')
+    expect(alert).not.toBeInTheDocument()
+  })
 })
 
-const getMockFireWatch = (id: number, title: string): FireWatch => {
+export const getMockFireWatch = (id: number, title: string): FireWatch => {
   const now = DateTime.now()
   return {
     id,
