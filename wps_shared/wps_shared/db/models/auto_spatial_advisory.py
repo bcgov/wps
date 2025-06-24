@@ -227,6 +227,7 @@ class AdvisoryFuelStats(Base):
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     area = Column(Float, nullable=False)
+    fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=True, index=True)
 
 
 class AdvisoryTPIStats(Base):
@@ -269,6 +270,7 @@ class CriticalHours(Base):
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     start_hour = Column(Integer, nullable=False)
     end_hour = Column(Integer, nullable=False)
+    fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=True, index=True)
 
 
 class TPIFuelArea(Base):
@@ -282,6 +284,7 @@ class TPIFuelArea(Base):
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
     tpi_class = Column(Enum(TPIClassEnum), nullable=False)
     fuel_area = Column(Float, nullable=False)
+    fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=True, index=True)
 
 
 class AdvisoryShapeFuels(Base):
@@ -295,6 +298,7 @@ class AdvisoryShapeFuels(Base):
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     fuel_area = Column(Float, nullable=False)
+    fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=True, index=True)
 
 
 class AdvisoryHFIWindSpeed(Base):
@@ -329,6 +333,7 @@ class AdvisoryHFIPercentConifer(Base):
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False)
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
     min_percent_conifer = Column(Integer, nullable=True)
+    fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=True, index=True)
 
 
 class CombustibleArea(Base):
