@@ -63,7 +63,7 @@ def create_combustible_area(
     session.execute(stmt)
 
 
-def get_current_fuel_type_raster_id(session: Session):
+def get_current_fuel_type_raster(session: Session):
     name = config.get("FUEL_RASTER_NAME")
     fuel_raster_name = name.lower()[:-4]
     stmt = (
@@ -72,7 +72,7 @@ def get_current_fuel_type_raster_id(session: Session):
         .order_by(fuel_type_raster_table.c.version.desc())
     )
     result = session.execute(stmt)
-    return result.scalars().first()
+    return result.first()
 
 
 def upgrade():
@@ -112,10 +112,10 @@ def upgrade():
     # Populate the table with data from the current advisory_shapes table.
     session = Session(bind=op.get_bind())
     advisory_shapes = get_advisory_shapes(session)
-    latest_fuel_raster_id = get_current_fuel_type_raster_id(session)
+    latest_fuel_raster = get_current_fuel_type_raster(session)
     for advisory_shape in advisory_shapes:
         create_combustible_area(
-            session, advisory_shape.id, advisory_shape.combustible_area, latest_fuel_raster_id
+            session, advisory_shape.id, advisory_shape.combustible_area, latest_fuel_raster.id
         )
     # ### end Alembic commands ###
 

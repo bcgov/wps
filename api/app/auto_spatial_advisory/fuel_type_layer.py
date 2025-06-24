@@ -10,8 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import save_fuel_type
-from wps_shared.db.crud.fuel_layer import get_latest_fuel_type_raster_by_fuel_raster_name
-from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.crud.fuel_layer import (
+    get_latest_fuel_type_raster_by_fuel_raster_name,
+    get_processed_fuel_raster_details,
+)
+from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import FuelType
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
 from wps_shared.utils.polygonize import polygonize_in_memory
@@ -20,23 +23,45 @@ logger = logging.getLogger(__name__)
 
 
 async def get_current_fuel_type_raster(session: AsyncSession):
-    """
-    Gets the FuelTypeRaster record for the most recent version of the fuel raster
-    that matches the env FUEL_RASTER_NAME
-
-    :param session: An async database session.
-    :return: A FuelTypeRaster record.
-    """
     # get fuel_type_raster record based on current value of the FUEL_RASTER_NAME env variable
-    name = config.get("FUEL_RASTER_NAME")
-    fuel_raster_name = name.lower()[:-4]
-    fuel_type_raster = await get_latest_fuel_type_raster_by_fuel_raster_name(
-        session, fuel_raster_name
-    )
-    return fuel_type_raster
+    fuel_raster_name = config.get("FUEL_RASTER_NAME")
+    if fuel_raster_name:
+        fuel_raster_name = fuel_raster_name.lower()[:-4]
+    async with get_async_read_session_scope() as session:
+        fuel_type_raster = await get_latest_fuel_type_raster_by_fuel_raster_name(
+            session, fuel_raster_name
+        )
+        return fuel_type_raster
+
+
+async def get_fuel_type_raster_by_year(session: AsyncSession, year: int):
+    fuel_raster_name = config.get("FUEL_RASTER_NAME")
+    if year >= 2025 and str(year) not in fuel_raster_name:
+        # Covers the case where we have been using last year's fuel grid in the early part of the
+        # current fire season (ie. the fuel grid hasn't been updated yet).
+        # Note: This assumes we are never more than one year behind. If this assumption turns out
+        # to be invalid, we may need to use a regex to full the year out of the FUEL_RASTER_NAME
+        # env.
+        return await get_processed_fuel_raster_details(session, year - 1, None)
+    return await get_processed_fuel_raster_details(session, year, None)
 
 
 def fuel_type_iterator(fuel_grid_filename: str) -> Generator[Tuple[int, str], None, None]:
+    """
+    Yields fuel type id and geom by polygonizing fuel type layer raster stored in S3, and then
+    iterating over feature from the resultant layer.
+
+    NOTE: This works fine with a small FTL file, such as the SFMS one, but the the high resolution
+    FTL file sucks up a large amount of memory when polygonizing.
+    """
+    bucket = config.get("OBJECT_STORE_BUCKET")
+    # Hard coded for a geotiff on our S3 server, but this could be replaced by any raster file
+    # that gdal is able to read.
+    key = f"/vsis3/{bucket}/sfms/static/{fuel_grid_filename}"
+    return fuel_type_iterator_by_key(key)
+
+
+def fuel_type_iterator_by_key(fuel_type_raster_key: str) -> Generator[Tuple[int, str], None, None]:
     """
     Yields fuel type id and geom by polygonizing fuel type layer raster stored in S3, and then
     iterating over feature from the resultant layer.
@@ -48,12 +73,8 @@ def fuel_type_iterator(fuel_grid_filename: str) -> Generator[Tuple[int, str], No
     gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
     gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
     gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
-    bucket = config.get("OBJECT_STORE_BUCKET")
-    # Hard coded for a geotiff on our S3 server, but this could be replaced by any raster file
-    # that gdal is able to read.
-    filename = f"/vsis3/{bucket}/sfms/static/{fuel_grid_filename}"
-    logger.info("Polygonizing %s...", filename)
-    with polygonize_in_memory(filename, "fuel", "fuel") as layer:
+    logger.info("Polygonizing %s...", fuel_type_raster_key)
+    with polygonize_in_memory(fuel_type_raster_key, "fuel", "fuel") as layer:
         spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
         target_srs = osr.SpatialReference()
         target_srs.ImportFromEPSG(NAD83_BC_ALBERS)
