@@ -6,6 +6,8 @@ import { Provider } from "react-redux";
 import { store } from "@/store";
 import { theme } from "@/theme.ts";
 import App from "@/App.tsx";
+import { getKeycloakInstance, kcInitOptions } from "@/utils/keycloak";
+import { authenticateFinished } from "@/slices/authenticationSlice";
 
 const render = () => {
   const container = document.getElementById("root");
@@ -14,18 +16,28 @@ const render = () => {
     throw new Error("Root container is missing in index.html");
   }
   const root = createRoot(container);
-  root.render(
-    <StrictMode>
-      <Provider store={store}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <StyledEngineProvider injectFirst>
-            <App />
-          </StyledEngineProvider>
-        </ThemeProvider>
-      </Provider>
-    </StrictMode>
-  );
+  const keycloak = getKeycloakInstance();
+  keycloak.init(kcInitOptions).then((isAuthenticated) => {
+    store.dispatch(
+      authenticateFinished({
+        isAuthenticated,
+        token: keycloak.token,
+        idToken: keycloak.idToken,
+      })
+    );
+    root.render(
+      <StrictMode>
+        <Provider store={store}>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <StyledEngineProvider injectFirst>
+              <App />
+            </StyledEngineProvider>
+          </ThemeProvider>
+        </Provider>
+      </StrictMode>
+    );
+  });
 };
 
 render();

@@ -3,6 +3,8 @@ PODS:
     - CapacitorCordova
   - CapacitorApp (7.0.0):
     - Capacitor
+  - CapacitorBrowser (7.0.1):
+    - Capacitor
   - CapacitorCordova (7.1.0)
   - CapacitorEmailComposer (7.0.0):
     - Capacitor
@@ -20,6 +22,7 @@ PODS:
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
+  - "CapacitorBrowser (from `../../node_modules/@capacitor/browser`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - CapacitorEmailComposer (from `../../node_modules/capacitor-email-composer`)
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
@@ -33,6 +36,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorApp:
     :path: "../../node_modules/@capacitor/app"
+  CapacitorBrowser:
+    :path: "../../node_modules/@capacitor/browser"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorEmailComposer:
@@ -51,6 +56,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Capacitor: 68ff8eabbcce387e69767c13b5fbcc1c5399eabc
   CapacitorApp: 45cb7cbef4aa380b9236fd6980033eb5cde6fcd2
+  CapacitorBrowser: 081852cf532acf77b9d2953f3a88fe5b9711fb06
   CapacitorCordova: 866217f32c1d25b326c568a10ea3ed0c36b13e29
   CapacitorEmailComposer: 5f0ae4bd516997aba61034ba4387f2a67947ce21
   CapacitorFilesystem: 2881ad012b5c8d0ffbfed1216aadfc2cca16d5b5
@@ -59,6 +65,6 @@ SPEC CHECKSUMS:
   CapacitorNetwork: cd17b98182841055ff58629213242a1f22f4a76b
   CapacitorStatusBar: 438e90beeeefa8276b24e6c5991cb02dd13e51bf
 
-PODFILE CHECKSUM: d3eb99dc925b0c9b7129366eb0ef7674f48fe4fa
+PODFILE CHECKSUM: 7375ae486874a1566fd27af1038f020ac17e6f8f
 
 COCOAPODS: 1.16.2

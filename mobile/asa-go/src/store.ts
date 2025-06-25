@@ -6,7 +6,8 @@ import fireCentreTPIStatsSlice from "@/slices/fireCentreTPIStatsSlice";
 import fireCentreHFIFuelStatsSlice from "@/slices/fireCentreHFIFuelStatsSlice";
 import runDatesSlice from "@/slices/runDatesSlice";
 import fireCentersSlice from "@/slices/fireCentersSlice";
-import networkStatusSlice from "@/slices/networkStatusSlice"
+import networkStatusSlice from "@/slices/networkStatusSlice";
+import authenticationSlice from "@/slices/authenticationSlice";
 
 export const store = configureStore({
   reducer: {
@@ -17,7 +18,8 @@ export const store = configureStore({
     fireCentreTPIStats: fireCentreTPIStatsSlice,
     fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice,
     runDates: runDatesSlice,
-    networkStatus: networkStatusSlice
+    networkStatus: networkStatusSlice,
+    authentication: authenticationSlice,
   },
 });
 
@@ -31,4 +33,6 @@ export type AppThunk = ThunkAction<void, RootState, undefined, Action>;
 export const selectRunDates = (state: RootState) => state.runDates;
 export const selectFireShapeAreas = (state: RootState) => state.fireShapeAreas;
 export const selectFireCenters = (state: RootState) => state.fireCenters;
-export const selectNetworkStatus = (state: RootState) => state.networkStatus
+export const selectNetworkStatus = (state: RootState) => state.networkStatus;
+export const selectAuthentication = (state: RootState) => state.authentication;
+export const selectToken = (state: RootState) => state.authentication.token;

@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
 import { Box } from "@mui/material";
+import {
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+  BrowserRouter,
+} from "react-router-dom";
 
 import FBAMap from "@/components/map/FBAMap";
 import { FireCenter, FireShape, RunType } from "@/api/fbaAPI";
@@ -25,11 +32,18 @@ import { ConnectionStatus, Network } from "@capacitor/network";
 import Profile from "@/components/Profile";
 import Advisory from "@/components/Advisory";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
+import React from "react";
 
-const App = () => {
+const AppContent = () => {
   const dispatch: AppDispatch = useDispatch();
   const { fireCenters } = useSelector(selectFireCenters);
-  const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  let activeTab: NavPanel;
+  if (location.pathname === "/profile") activeTab = NavPanel.PROFILE;
+  else if (location.pathname === "/advisory") activeTab = NavPanel.ADVISORY;
+  else activeTab = NavPanel.MAP;
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(
     undefined
@@ -150,20 +164,40 @@ const App = () => {
       }}
     >
       <AppHeader />
-      {tab === NavPanel.MAP && (
-        <FBAMap
-          selectedFireCenter={fireCenter}
-          selectedFireShape={selectedFireShape}
-          fireShapeAreas={fireShapeAreas}
-          zoomSource={zoomSource}
-          advisoryThreshold={0}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <FBAMap
+              selectedFireCenter={fireCenter}
+              selectedFireShape={selectedFireShape}
+              fireShapeAreas={fireShapeAreas}
+              zoomSource={zoomSource}
+              advisoryThreshold={0}
+            />
+          }
         />
-      )}
-      {tab === NavPanel.PROFILE && <Profile />}
-      {tab === NavPanel.ADVISORY && <Advisory />}
-      <BottomNavigationBar tab={tab} setTab={setTab} />
+
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/advisory" element={<Advisory />} />
+      </Routes>
+
+      <BottomNavigationBar
+        tab={activeTab}
+        setTab={(newTab) => {
+          if (newTab === NavPanel.MAP) navigate("/");
+          if (newTab === NavPanel.PROFILE) navigate("/profile");
+          if (newTab === NavPanel.ADVISORY) navigate("/advisory");
+        }}
+      />
     </Box>
   );
 };
 
-export default App;
+const App = () => (
+  <BrowserRouter>
+    <AppContent />
+  </BrowserRouter>
+);
+
+export default React.memo(App);

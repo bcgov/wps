@@ -1,11 +1,5 @@
-let ENV = {
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL as string,
-  PMTILES_BUCKET: import.meta.env.VITE_PMTILES_BUCKET as string,
-};
-ENV = {
-  // TODO figure out mobile env substitution
-  API_BASE_URL: "http://localhost:8080/api",
-  PMTILES_BUCKET: "https://nrs.objectstore.gov.bc.ca/lwzrin/psu/pmtiles/"
-};
-
-export const { API_BASE_URL, PMTILES_BUCKET } = ENV;
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+export const KC_AUTH_URL = import.meta.env.VITE_KEYCLOAK_AUTH_URL as string;
+export const KC_REALM = import.meta.env.VITE_KEYCLOAK_REALM as string;
+export const KC_CLIENT = import.meta.env.VITE_KEYCLOAK_CLIENT as string;
+export const PMTILES_BUCKET = import.meta.env.VITE_PMTILES_BUCKET as string;
