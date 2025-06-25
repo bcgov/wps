@@ -15,8 +15,12 @@ export const ASAAboutDataContent = ({ advisoryThreshold }: ASAAboutDataProps) =>
     </li>
     <br />
     <li>
-      The fuel types chosen for the text bulletin are the three most common fuel types in a zone that meet or exceed the
-      Fire Behaviour Advisory threshold of 4,000 kW/m.
+      The{' '}
+      <a href="https://cwfis.cfs.nrcan.gc.ca/background/fueltypes/c1" target="_blank" rel="noopener noreferrer">
+        fuel types
+      </a>{' '}
+      chosen for the text bulletin are the most common fuel types in a zone that meet or exceed the Fire Behaviour
+      Advisory threshold of 4,000 kW/m.
     </li>
   </ul>
 )
