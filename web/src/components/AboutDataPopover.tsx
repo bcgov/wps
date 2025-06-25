@@ -53,7 +53,6 @@ const AboutDataPopover = <T,>({
           vertical: 'top',
           horizontal: 'left'
         }}
-        marginThreshold={0}
         onClose={handlePopoverClose}
         disableRestoreFocus
         slotProps={{
@@ -62,7 +61,7 @@ const AboutDataPopover = <T,>({
               maxWidth,
               backgroundColor: INFO_PANEL_CONTENT_BACKGROUND,
               overflowY: 'auto',
-              maxHeight: '70vh'
+              maxHeight: '80%'
             }
           }
         }}
