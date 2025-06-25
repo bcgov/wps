@@ -49,13 +49,20 @@ const AboutDataPopover = <T,>({
           vertical: 'bottom',
           horizontal: 'left'
         }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left'
+        }}
+        marginThreshold={0}
         onClose={handlePopoverClose}
         disableRestoreFocus
         slotProps={{
           paper: {
             sx: {
               maxWidth,
-              backgroundColor: INFO_PANEL_CONTENT_BACKGROUND
+              backgroundColor: INFO_PANEL_CONTENT_BACKGROUND,
+              overflowY: 'auto',
+              maxHeight: '70vh'
             }
           }
         }}

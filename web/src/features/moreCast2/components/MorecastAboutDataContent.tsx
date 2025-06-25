@@ -17,19 +17,23 @@ import {
 
 const StyledListItemText = styled(ListItemText)(({ theme }) => ({
   '& .MuiTypography-root': {
-    fontSize: '0.9rem'
+    fontSize: 'inherit'
   }
 }))
 
 const MorecastAboutDataContent = () => (
-  <Box data-testid="morecast-about-data-content">
+  <Box data-testid="morecast-about-data-content" sx={{ fontSize: '0.9rem' }}>
     <List disablePadding>
       <ListItem disableGutters>
-        <StyledListItemText
-          primary="The temperature, relative humidity, wind speed, and wind direction 
-        columns contain the raw prediction values from numerical weather prediction (NWP) models for 
-        models that predict for 20:00 UTC (13:00 PDT)."
-        />
+        <Box>
+          <Typography fontSize="inherit" fontWeight="bold">
+            Temp, RH, Wind Speed/Direction
+          </Typography>
+          <StyledListItemText
+            primary="Some numerical weather prediction (NWP) models predict for 20:00 UTC (13:00 PDT), while others do not. 
+            For models that do, these columns contain raw prediction values from the NWP models."
+          />
+        </Box>
       </ListItem>
       <ListItem disableGutters>
         <StyledListItemText
@@ -38,22 +42,33 @@ const MorecastAboutDataContent = () => (
         />
       </ListItem>
       <ListItem disableGutters>
-        <StyledListItemText
-          primary="Precipitation is the 24-hour total from a single model run. For forecast hours earlier
+        <Box>
+          <Typography fontSize="inherit" fontWeight="bold">
+            Precipitation
+          </Typography>
+          <StyledListItemText
+            primary="Precipitation is the 24-hour total from a single model run. For forecast hours earlier
           than hour 24, where the model does not provide a full 24-hour accumulation, observed
           station data is used to fill in the missing values."
-        />
+          />
+        </Box>
       </ListItem>
       <ListItem disableGutters>
-        <StyledListItemText
-          primary="Bias-adjusted values use the past 19 days of forecasts and observations to fit a
-          linear regression that improves model accuracy per station."
-        />
+        <Box>
+          <Typography fontSize="inherit" fontWeight="bold">
+            Bias-adjusted Values
+          </Typography>
+          <StyledListItemText
+            primary="Bias-adjusted values are calculated using a linear regression trained 
+        on the past 19 days of model predictions and corresponding observations. This correction is applied on 
+        a per-station basis to improve model accuracy."
+          />
+        </Box>
       </ListItem>
     </List>
 
     <Box mt={3}>
-      <Typography fontWeight="bold" fontSize={'0.9rem'}>
+      <Typography fontWeight="bold" fontSize={'inherit'}>
         Model Run Hours
       </Typography>
 
