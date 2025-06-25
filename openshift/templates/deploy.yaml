@@ -32,9 +32,6 @@ parameters:
   - name: CPU_REQUEST
     description: Requested CPU
     value: 100m
-  - name: CPU_LIMIT
-    description: CPU upper limit
-    value: 500m
   - name: MEMORY_REQUEST
     description: Requested memory
     value: 3Gi
@@ -131,7 +128,6 @@ objects:
                   protocol: TCP
               resources:
                 limits:
-                  cpu: 75m
                   memory: 2Gi
                 requests:
                   cpu: 25m
@@ -428,7 +424,6 @@ objects:
                   protocol: TCP
               resources:
                 limits:
-                  cpu: ${CPU_LIMIT}
                   memory: ${MEMORY_LIMIT}
                 requests:
                   cpu: ${CPU_REQUEST}
