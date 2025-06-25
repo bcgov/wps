@@ -65,6 +65,17 @@ const MorecastAboutDataContent = () => (
           />
         </Box>
       </ListItem>
+      <ListItem disableGutters>
+        <Box>
+          <Typography fontSize="inherit" fontWeight="bold">
+            Grass Curing
+          </Typography>
+          <StyledListItemText
+            primary="Grass curing data for each station is extracted from raster data provided by the 
+             Canadian Wildland Fire Information System (CWFIS)."
+          />
+        </Box>
+      </ListItem>
     </List>
 
     <Box mt={3}>
