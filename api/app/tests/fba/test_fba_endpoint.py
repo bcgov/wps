@@ -2,7 +2,7 @@ import json
 import math
 from collections import namedtuple
 from datetime import date, datetime, timezone
-from unittest.mock import patch
+from unittest.mock import create_autospec, patch
 
 import app.main
 import pytest
@@ -261,12 +261,26 @@ async def mock_zone_ids_in_centre(*_, **__):
     return [1]
 
 
+async def mock_get_fuel_type_raster(*_, **__):
+    mock_record = create_autospec(FuelTypeRaster)
+    mock_record.id = 1
+    mock_record.year = 2024
+    mock_record.version = 2
+    mock_record.xsize = 100
+    mock_record.ysize = 200
+    mock_record.object_store_path = "/path/fbp2024.tif"
+    mock_record.content_hash = "abc123"
+    mock_record.create_timestamp = datetime(2024, 10, 3, 12, 31, tzinfo=timezone.utc)
+    return mock_record
+
+
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
 @patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
 @patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
 @patch("app.routers.fba.get_zone_source_ids_in_centre", mock_zone_ids_in_centre)
+@patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized(client: TestClient):
     """Allowed to get fire centre info when authorized"""
