@@ -21,6 +21,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Log public IP address
+        run: |
+          echo -e "Public IPv4:"
+          curl https://api.ipify.org
+          echo -e "\nPublic IPv4(v6):"
+          curl https://api64.ipify.org
+
       - name: Install OpenShift CLI tools
         uses: redhat-actions/openshift-tools-installer@v1
         with:
@@ -195,7 +202,7 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_fuel_raster_processor_job.sh ${SUFFIX} apply
-          
+
       ## TODO: re-enable once crunchy is deployed: https://app.zenhub.com/workspaces/bcws---agile-psu-5e321393e038fba5bbe203b8/issues/gh/bcgov/wps/2340
       - name: Hourly actuals cronjob
         shell: bash

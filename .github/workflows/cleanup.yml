@@ -22,6 +22,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Log public IP address
+        run: |
+          echo -e "Public IPv4:"
+          curl https://api.ipify.org
+          echo -e "\nPublic IPv4(v6):"
+          curl https://api64.ipify.org
+
       - name: Install OpenShift CLI tools
         uses: redhat-actions/openshift-tools-installer@v1
         with:
