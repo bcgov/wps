@@ -8,8 +8,6 @@ from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 
 @pytest.mark.anyio
 async def test_get_fuel_layer_key_returns_processed(monkeypatch):
-    mock_raster = type("MockRaster", (), {"object_store_path": "sfms/static/2025/fbp2025.tif"})
-
     monkeypatch.setattr(
         "wps_shared.geospatial.fuel_raster.config", {"OBJECT_STORE_BUCKET": "my-bucket"}
     )

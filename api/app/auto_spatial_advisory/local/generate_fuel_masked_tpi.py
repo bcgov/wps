@@ -17,7 +17,11 @@ from wps_shared.utils.s3_client import S3Client
 from app.auto_spatial_advisory.fuel_type_layer import get_fuel_type_raster_by_year
 
 
-def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str, year: int) -> str:
+class MissingFuelTypeRasterError(Exception):
+    """Exception thrown when a fuel type raster record can't be found."""
+
+
+def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
     """
     Creates a masked TPI raster using a classified TPI raster from S3 storage and masking it using
     the specified fuel layer also from S3 storage
@@ -70,10 +74,10 @@ async def create_fuel_masked_tpi_raster(year: int):
     async with get_async_read_session_scope() as session:
         fuel_type_raster = await get_processed_fuel_raster_details(session, year, None)
     if fuel_type_raster is None:
-        raise Exception("Could not find fuel type raster for the specified year.")
+        raise MissingFuelTypeRasterError("Could not find fuel type raster for the specified year.")
     async with S3Client() as s3_client:
         with tempfile.TemporaryDirectory() as temp_dir:
-            masked_tpi_path = prepare_masked_tif(temp_dir, fuel_type_raster.object_store_path, year)
+            masked_tpi_path = prepare_masked_tif(temp_dir, fuel_type_raster.object_store_path)
             masked_tpi_filename = config.get("CLASSIFIED_TPI_DEM_NAME")
             masked_tpi_filename = masked_tpi_filename[:-4]
             masked_tpi_filename = f"{masked_tpi_filename}_fuel_masked_{year}.tif"
@@ -99,7 +103,7 @@ async def main():
         year = int(args.year) if args.year else None
 
         if year is None:
-            raise Exception("Required arguments are missing.")
+            raise argparse.ArgumentError("Required arguments are missing.")
 
         await create_fuel_masked_tpi_raster(year)
 
