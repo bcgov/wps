@@ -6,9 +6,11 @@ import PercentIcon from '@mui/icons-material/Percent'
 import PublicIcon from '@mui/icons-material/Public'
 import InsightsIcon from '@mui/icons-material/Insights'
 import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
-import MedicationIcon from '@mui/icons-material/Medication'
+import WatchIcon from '@mui/icons-material/Watch'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
+import WhatshotIcon from '@mui/icons-material/Whatshot'
+import Box from '@mui/material/Box'
 
 import {
   C_HAINES_NAME,
@@ -156,25 +158,44 @@ export const fireWatchInfo: ToolInfo = {
   route: FIRE_WATCH_ROUTE,
   description: (
     <Typography>
-      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptatibus architecto quaerat nobis, molestias alias
-      incidunt, a repellendus minus ad autem impedit assumenda adipisci consequuntur perferendis at eum error enim
-      ratione?
+      A heads up application that notifies when specified fire weather and fire behaviour could occur over the next ten
+      days.
     </Typography>
   ),
-  icon: <MedicationIcon color="primary" fontSize={ICON_FONT_SIZE} />,
+  icon: (
+    <Box
+      sx={{
+        display: 'flex',
+        position: 'relative'
+      }}
+    >
+      <WatchIcon sx={{ fontSize: 40 }} color="primary" />
+      <WhatshotIcon
+        sx={{
+          fontSize: 16,
+          position: 'absolute',
+          color: 'red',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          pointerEvents: 'none'
+        }}
+      />
+    </Box>
+  ),
   isBeta: true
 }
 
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of CardTravelSharp.
 export const toolInfos = [
-  ...(import.meta.env.MODE === 'development' ? [fireWatchInfo] : []),
   fireBehaviourAdvisoryInfo,
   moreCastInfo,
   hfiCalcInfo,
   fbpGoInfo,
-  sfmsInsightsInfo,
   fireBehaviourCalcInfo,
+  fireWatchInfo,
+  sfmsInsightsInfo,
   percentileCalcInfo,
   cHainesInfo
 ]

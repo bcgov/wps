@@ -5,9 +5,9 @@ import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardActions from '@mui/material/CardActions'
 import CardContent from '@mui/material/CardContent'
-import CardHeader from '@mui/material/CardHeader'
 import { Link } from 'react-router-dom'
 import BetaTag from 'features/landingPage/components/BetaTag'
+import { theme } from '@/app/theme'
 
 const PREFIX = 'ToolCard'
 
@@ -108,7 +108,19 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
 
   return (
     <StyledCard className={classes.card}>
-      <CardHeader action={props.isBeta && <BetaTag />} className={classes.cardHeader} title={renderLink()} />
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        position="relative"
+        className={classes.cardHeader}
+        sx={{ p: theme.spacing(2), fontSize: '1.5rem', fontWeight: 'bold' }}
+      >
+        <Box component="div" sx={{ textAlign: 'center', flex: 1 }}>
+          {renderLink()}
+        </Box>
+        <Box sx={{ position: 'absolute', right: theme.spacing(2) }}>{props.isBeta && <BetaTag />}</Box>
+      </Box>
       <CardContent className={classes.cardContent}>
         <Box className={classes.iconContainer}>{props.icon}</Box>
         <div className={classes.cardDescription}>{props.description}</div>
