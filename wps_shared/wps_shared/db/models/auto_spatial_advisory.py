@@ -139,9 +139,10 @@ class FuelType(Base):
     id = Column(Integer, primary_key=True, index=True)
     fuel_type_id = Column(Integer, nullable=False, index=True)
     geom = Column(Geometry("POLYGON", spatial_index=False, srid=NAD83_BC_ALBERS))
+    fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=True, index=True)
 
 
-# Explict creation of index due to issue with alembic + geoalchemy.
+# Explicit creation of index due to issue with alembic + geoalchemy.
 Index("idx_advisory_fuel_types_geom", FuelType.geom, postgresql_using="gist")
 
 

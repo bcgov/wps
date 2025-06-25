@@ -8,8 +8,10 @@ import asyncio
 import logging
 import numpy as np
 
+from wps_shared.db.crud.fuel_layer import get_processed_fuel_raster_details
 from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
 from wps_shared.db.crud.auto_spatial_advisory import (
@@ -27,9 +29,14 @@ logger = logging.getLogger(__name__)
 
 
 class FuelTypeAreasJob:
-    def _save_fuel_type_area(self, session, advisory_shape_id, fuel_type_id, fuel_area):
+    def _save_fuel_type_area(
+        self, session, advisory_shape_id, fuel_type_id, fuel_area, fuel_type_raster_id
+    ):
         fuel_type_area = AdvisoryShapeFuels(
-            advisory_shape_id=advisory_shape_id, fuel_type=fuel_type_id, fuel_area=fuel_area
+            advisory_shape_id=advisory_shape_id,
+            fuel_type=fuel_type_id,
+            fuel_area=fuel_area,
+            fuel_type_raster_id=fuel_type_raster_id,
         )
         session.add(fuel_type_area)
 
@@ -53,9 +60,12 @@ class FuelTypeAreasJob:
         """
         Entry point for calculating the area of each fuel type in each fire zone unit.
         """
+        set_s3_gdal_config()
         async with get_async_write_session_scope() as session:
-            fuel_raster_key = await get_versioned_fuel_raster_key(
-                session, RasterKeyAddresser(), year, version
+            fuel_type_raster = await get_processed_fuel_raster_details(session, year, version)
+            fuel_type_raster_id = fuel_type_raster.id if fuel_type_raster is not None else None
+            fuel_raster_key = get_versioned_fuel_raster_key(
+                RasterKeyAddresser(), fuel_type_raster.object_store_path
             )
             fuel_raster_ds: gdal.Dataset = gdal.Open(fuel_raster_key, gdal.GA_ReadOnly)
             pixel_size = fuel_raster_ds.GetGeoTransform()[1]
@@ -91,7 +101,11 @@ class FuelTypeAreasJob:
                 )
                 for advisory_shape_id, fuel_type_id, fuel_area in fuel_type_area_data:
                     self._save_fuel_type_area(
-                        session, advisory_shape_id, sfms_fuel_types_dict[fuel_type_id], fuel_area
+                        session,
+                        advisory_shape_id,
+                        sfms_fuel_types_dict[fuel_type_id],
+                        fuel_area,
+                        fuel_type_raster_id,
                     )
         fuel_raster_ds = None
 

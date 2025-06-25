@@ -16,8 +16,8 @@ from wps_shared.db.models.auto_spatial_advisory import (
     RunParameters,
     SFMSFuelType,
     TPIClassEnum,
-    TPIFuelArea,
 )
+from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.schemas.fba import HfiThreshold
 from wps_shared.tests.common import default_mock_client_get
 
@@ -25,7 +25,6 @@ mock_fire_centre_name = "PGFireCentre"
 
 get_fire_centres_url = "/api/fba/fire-centers"
 get_fire_zone_areas_url = "/api/fba/fire-shape-areas/forecast/2022-09-27/2022-09-27"
-get_fire_zone_tpi_stats_url = "/api/fba/fire-zone-tpi-stats/forecast/2022-09-27/2022-09-27/1"
 get_fire_centre_info_url = (
     "/api/fba/fire-centre-hfi-stats/forecast/2022-09-27/2022-09-27/Kamloops%20Fire%20Centre"
 )
@@ -40,19 +39,19 @@ mock_tpi_stats = AdvisoryTPIStats(
     id=1, advisory_shape_id=1, valley_bottom=1, mid_slope=2, upper_slope=3, pixel_size_metres=50
 )
 
-
-def create_mock_tpi_fuel_area(id, advisory_shape_id, tpi_class, fuel_area):
-    return TPIFuelArea(
-        id=id, advisory_shape_id=advisory_shape_id, tpi_class=tpi_class, fuel_area=fuel_area
-    )
-
-
-mock_tpi_fuel_area_1 = create_mock_tpi_fuel_area(1, 1, TPIClassEnum.valley_bottom, 1)
-mock_tpi_fuel_area_2 = create_mock_tpi_fuel_area(2, 1, TPIClassEnum.mid_slope, 2)
-mock_tpi_fuel_area_3 = create_mock_tpi_fuel_area(3, 1, TPIClassEnum.upper_slope, 3)
-mock_tpi_fuel_areas = [mock_tpi_fuel_area_1, mock_tpi_fuel_area_2, mock_tpi_fuel_area_3]
 mock_fire_centre_info = [(9.0, 11.0, 1, 1, 50, 100, 1)]
 mock_fire_centre_info_with_grass = [(9.0, 11.0, 12, 1, 50, 100, None)]
+mock_fuel_type_raster = FuelTypeRaster(
+    id=1,
+    year=2024,
+    version=2,
+    xsize=100,
+    ysize=200,
+    object_store_path="test/path",
+    content_hash="abc123",
+    create_timestamp=datetime(2024, 5, 31, 20, tzinfo=timezone.utc),
+)
+
 mock_sfms_run_datetimes = [
     RunParameters(
         id=1,
@@ -130,20 +129,16 @@ async def mock_get_tpi_stats(*_, **__):
     return mock_tpi_stats
 
 
-async def mock_get_fire_zone_tpi_fuel_areas(*_, **__):
-    return mock_tpi_fuel_areas
-
-
 async def mock_get_tpi_stats_none(*_, **__):
     return None
 
 
-async def mock_get_fire_zone_tpi_fuel_areas_none(*_, **__):
-    return []
-
-
 async def mock_get_fire_centre_info(*_, **__):
     return mock_fire_centre_info
+
+
+async def mock_get_fuel_type_raster_by_year(*_):
+    return mock_fuel_type_raster
 
 
 async def mock_get_fire_centre_info_with_grass(*_, **__):
@@ -167,6 +162,7 @@ async def mock_get_sfms_bounds(*_, **__):
         (2025, "actual", date(2025, 4, 3), date(2025, 9, 23)),
         (2025, "forecast", date(2025, 4, 4), date(2025, 9, 24)),
     ]
+
 
 async def mock_get_sfms_bounds_no_data(*_, **__):
     return []
@@ -205,7 +201,6 @@ def test_fba_endpoint_fire_centers(status, expected_fire_centers, monkeypatch):
     [
         get_fire_centres_url,
         get_fire_zone_areas_url,
-        get_fire_zone_tpi_stats_url,
         get_fire_centre_info_url,
         get_sfms_run_datetimes_url,
         get_sfms_run_bounds_url,
@@ -291,6 +286,10 @@ def test_get_fire_center_info_authorized(client: TestClient):
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
+@patch(
+    "app.routers.fba.get_fuel_type_raster_by_year",
+    mock_get_fuel_type_raster_by_year,
+)
 @patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
 @patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_no_wind_speed)
@@ -313,6 +312,10 @@ def test_get_fire_center_info_authorized_no_min_wind_speeds(client: TestClient):
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info_with_grass)
+@patch(
+    "app.routers.fba.get_fuel_type_raster_by_year",
+    mock_get_fuel_type_raster_by_year,
+)
 @patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_grass_fuel_types)
 @patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
@@ -344,41 +347,6 @@ def test_get_sfms_run_datetimes_authorized(client: TestClient):
     assert response.json()[0] == datetime(
         year=2024, month=1, day=1, hour=1, tzinfo=timezone.utc
     ).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
-@patch("app.routers.fba.get_zonal_tpi_stats", mock_get_tpi_stats)
-@patch("app.routers.fba.get_fire_zone_tpi_fuel_areas", mock_get_fire_zone_tpi_fuel_areas)
-@pytest.mark.usefixtures("mock_jwt_decode")
-def test_get_fire_zone_tpi_stats_authorized(client: TestClient):
-    """Allowed to get fire zone tpi stats when authorized"""
-    response = client.get(get_fire_zone_tpi_stats_url)
-    square_metres = math.pow(mock_tpi_stats.pixel_size_metres, 2)
-    assert response.status_code == 200
-    assert response.json()["fire_zone_id"] == 1
-    assert response.json()["valley_bottom_hfi"] == mock_tpi_stats.valley_bottom * square_metres
-    assert response.json()["mid_slope_hfi"] == mock_tpi_stats.mid_slope * square_metres
-    assert response.json()["upper_slope_hfi"] == mock_tpi_stats.upper_slope * square_metres
-    assert response.json()["valley_bottom_tpi"] == mock_tpi_fuel_area_1.fuel_area
-    assert response.json()["mid_slope_tpi"] == mock_tpi_fuel_area_2.fuel_area
-    assert response.json()["upper_slope_tpi"] == mock_tpi_fuel_area_3.fuel_area
-
-
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
-@patch("app.routers.fba.get_zonal_tpi_stats", mock_get_tpi_stats_none)
-@patch("app.routers.fba.get_fire_zone_tpi_fuel_areas", mock_get_fire_zone_tpi_fuel_areas_none)
-@pytest.mark.usefixtures("mock_jwt_decode")
-def test_get_fire_zone_tpi_stats_authorized_none(client: TestClient):
-    """Returns none for TPI stats when there are no stats available"""
-    response = client.get(get_fire_zone_tpi_stats_url)
-    assert response.status_code == 200
-    assert response.json()["fire_zone_id"] == 1
-    assert response.json()["valley_bottom_hfi"] is None
-    assert response.json()["mid_slope_hfi"] is None
-    assert response.json()["upper_slope_hfi"] is None
-    assert response.json()["valley_bottom_tpi"] is None
-    assert response.json()["mid_slope_tpi"] is None
-    assert response.json()["upper_slope_tpi"] is None
 
 
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)

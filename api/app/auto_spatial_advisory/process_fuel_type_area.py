@@ -1,20 +1,30 @@
 """Code relating to processing high HFI area per fire zone"""
 
 import logging
-import numpy as np
 from datetime import date, datetime
-from osgeo import gdal, ogr, osr
 from time import perf_counter
+
+import numpy as np
+from osgeo import gdal, ogr, osr
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import text
-from sqlalchemy import func
-from wps_shared import config
+
 from app.auto_spatial_advisory.common import get_hfi_s3_key
-from wps_shared.run_type import RunType
+from app.auto_spatial_advisory.fuel_type_layer import (
+    get_fuel_type_raster_by_year,
+)
+from wps_shared import config
+from wps_shared.db.crud.auto_spatial_advisory import (
+    get_all_hfi_thresholds,
+    get_all_sfms_fuel_types,
+    get_run_parameters_id,
+    store_advisory_fuel_stats,
+)
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType, Shape
-from wps_shared.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sfms_fuel_types, get_run_parameters_id, store_advisory_fuel_stats
+from wps_shared.run_type import RunType
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +36,11 @@ def get_fuel_type_s3_key(bucket):
     Returns the key to the fuel type layer that has been reprojected to the Lambert Conformal Conic spatial reference and
     transformed to match the extent and spatial reference of hfi files output by sfms.
     """
-
+    fuel_raster_name = config.get("FUEL_RASTER_NAME")
     # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
     # it's S3 virtual file system driver to read the file.
     # https://gdal.org/user/virtual_file_systems.html
-    key = f"/vsis3/{bucket}/sfms/static/fbp2024.tif"
+    key = f"/vsis3/{bucket}/sfms/static/{fuel_raster_name}"
     return key
 
 
@@ -55,7 +65,14 @@ def classify_by_threshold(source_data: np.array, threshold: int):
     return classified
 
 
-async def calculate_fuel_type_area_by_shape(session: AsyncSession, masked_fuel_type_ds: gdal.Dataset, threshold, run_parameters_id: int, fuel_types: list[SFMSFuelType]):
+async def calculate_fuel_type_area_by_shape(
+    session: AsyncSession,
+    masked_fuel_type_ds: gdal.Dataset,
+    threshold,
+    run_parameters_id: int,
+    fuel_types: list[SFMSFuelType],
+    fuel_type_raster_id: int,
+):
     """
     Process masked fuel type layer with each advisory shape (eg fire zone unit).
 
@@ -69,9 +86,13 @@ async def calculate_fuel_type_area_by_shape(session: AsyncSession, masked_fuel_t
     result = await session.execute(stmt)
     rows = result.all()
     for row in rows:
-        intersected_ds: gdal.Dataset = await intersect_raster_by_advisory_shape(session, threshold, row[0], row[1], masked_fuel_type_ds)
+        intersected_ds: gdal.Dataset = await intersect_raster_by_advisory_shape(
+            session, threshold, row[0], row[1], masked_fuel_type_ds
+        )
         fuel_type_areas = calculate_fuel_type_areas(intersected_ds, fuel_types)
-        await store_advisory_fuel_stats(session, fuel_type_areas, threshold, run_parameters_id, row[0])
+        await store_advisory_fuel_stats(
+            session, fuel_type_areas, threshold, run_parameters_id, row[0], fuel_type_raster_id
+        )
 
 
 def calculate_fuel_type_areas(source: gdal.Dataset, fuel_types: list[SFMSFuelType]):
@@ -87,7 +108,11 @@ def calculate_fuel_type_areas(source: gdal.Dataset, fuel_types: list[SFMSFuelTyp
     y_res = abs(geotransform[5])
     source_band = source.GetRasterBand(1)
     histogram = source_band.GetHistogram()
-    combustible_fuel_type_ids = [fuel_type.fuel_type_id for fuel_type in fuel_types if fuel_type.fuel_type_id < 99 and fuel_type.fuel_type_id > 0]
+    combustible_fuel_type_ids = [
+        fuel_type.fuel_type_id
+        for fuel_type in fuel_types
+        if fuel_type.fuel_type_id < 99 and fuel_type.fuel_type_id > 0
+    ]
     fuel_type_areas = {}
     for fuel_type_id in combustible_fuel_type_ids:
         count = histogram[fuel_type_id]
@@ -97,7 +122,13 @@ def calculate_fuel_type_areas(source: gdal.Dataset, fuel_types: list[SFMSFuelTyp
     return fuel_type_areas
 
 
-async def intersect_raster_by_advisory_shape(session: AsyncSession, threshold: int, advisory_shape_id: int, source_identifier: str, masked_fuel_type_ds: gdal.Dataset):
+async def intersect_raster_by_advisory_shape(
+    session: AsyncSession,
+    threshold: int,
+    advisory_shape_id: int,
+    source_identifier: str,
+    masked_fuel_type_ds: gdal.Dataset,
+):
     """
     Given a raster and a fire shape id, use gdal.Warp to clip out a fire zone from which we can retrieve info.
 
@@ -111,12 +142,22 @@ async def intersect_raster_by_advisory_shape(session: AsyncSession, threshold: i
     input_srs.ImportFromWkt(masked_fuel_type_ds.GetProjectionRef())
 
     advisory_shape_geom = await get_advisory_shape(session, advisory_shape_id, input_srs)
-    warp_options = gdal.WarpOptions(cutlineWKT=advisory_shape_geom, cutlineSRS=advisory_shape_geom.GetSpatialReference(), cropToCutline=True)
-    intersect_ds = gdal.Warp(f"/vsimem/intersect_{source_identifier}_{threshold}.tif", masked_fuel_type_ds, options=warp_options)
+    warp_options = gdal.WarpOptions(
+        cutlineWKT=advisory_shape_geom,
+        cutlineSRS=advisory_shape_geom.GetSpatialReference(),
+        cropToCutline=True,
+    )
+    intersect_ds = gdal.Warp(
+        f"/vsimem/intersect_{source_identifier}_{threshold}.tif",
+        masked_fuel_type_ds,
+        options=warp_options,
+    )
     return intersect_ds
 
 
-async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, projection: osr.SpatialReference) -> ogr.Geometry:
+async def get_advisory_shape(
+    session: AsyncSession, advisory_shape_id: int, projection: osr.SpatialReference
+) -> ogr.Geometry:
     """
     Get advisory_shape from database and store it (typically temporarily) in the specified projection for raster
     intersection. The advisory_shape layer returned by ExecuteSQL must be stored somewhere and can't simply be returned
@@ -149,7 +190,14 @@ async def get_advisory_shape(session: AsyncSession, advisory_shape_id: int, proj
     return geometry
 
 
-def create_masked_fuel_type_tif(masked_fuel_type_data: list[list[float]], threshold: int, geotransform: list[float], projection: str, x_size: int, y_size: int):
+def create_masked_fuel_type_tif(
+    masked_fuel_type_data: list[list[float]],
+    threshold: int,
+    geotransform: list[float],
+    projection: str,
+    x_size: int,
+    y_size: int,
+):
     """
     Creates a new raster (a GeoTiff) file using the provided data and parameters.
 
@@ -162,7 +210,13 @@ def create_masked_fuel_type_tif(masked_fuel_type_data: list[list[float]], thresh
     :param y_size: The number of pixels in the y direction.
     """
     output_driver: gdal.Driver = gdal.GetDriverByName("MEM")
-    masked_fuel_type: gdal.Dataset = output_driver.Create(f"/vsimem/masked_fuel_type_{threshold}.tif", xsize=x_size, ysize=y_size, bands=1, eType=gdal.GDT_Int16)
+    masked_fuel_type: gdal.Dataset = output_driver.Create(
+        f"/vsimem/masked_fuel_type_{threshold}.tif",
+        xsize=x_size,
+        ysize=y_size,
+        bands=1,
+        eType=gdal.GDT_Int16,
+    )
     masked_fuel_type.SetGeoTransform(geotransform)
     masked_fuel_type.SetProjection(projection)
     masked_fuel_type_band: gdal.Band = masked_fuel_type.GetRasterBand(1)
@@ -190,7 +244,12 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
     :param for_date: The date of the hfi to process. (when is the hfi for?)
     """
 
-    logger.info("Processing fuel type area %s for run date: %s, for date: %s", run_type, run_datetime, for_date)
+    logger.info(
+        "Processing fuel type area %s for run date: %s, for date: %s",
+        run_type,
+        run_datetime,
+        for_date,
+    )
     perf_start = perf_counter()
 
     gdal.SetConfigOption("AWS_SECRET_ACCESS_KEY", config.get("OBJECT_STORE_SECRET"))
@@ -200,8 +259,11 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
 
     async with get_async_write_session_scope() as session:
         run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+        fuel_type_raster_record = await get_fuel_type_raster_by_year(session, for_date.year)
 
-        stmt = select(AdvisoryFuelStats).where(AdvisoryFuelStats.run_parameters == run_parameters_id)
+        stmt = select(AdvisoryFuelStats).where(
+            AdvisoryFuelStats.run_parameters == run_parameters_id
+        )
         exists = (await session.execute(stmt)).scalars().first() is not None
 
         if exists:
@@ -231,12 +293,23 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
         for threshold in thresholds:
             classified_hfi_data = classify_by_threshold(hfi_data, threshold.id)
             masked_fuel_type_data = np.multiply(fuel_type_data, classified_hfi_data)
-            masked_fuel_type_ds = create_masked_fuel_type_tif(masked_fuel_type_data, threshold.id, geotransform, projection, x_size, y_size)
-            await calculate_fuel_type_area_by_shape(session, masked_fuel_type_ds, threshold.id, run_parameters_id, fuel_types)
+            masked_fuel_type_ds = create_masked_fuel_type_tif(
+                masked_fuel_type_data, threshold.id, geotransform, projection, x_size, y_size
+            )
+            await calculate_fuel_type_area_by_shape(
+                session,
+                masked_fuel_type_ds,
+                threshold.id,
+                run_parameters_id,
+                fuel_types,
+                fuel_type_raster_record.id,
+            )
     # Clean up open gdal objects
     hfi_raster = None
     fuel_type_raster = None
 
     perf_end = perf_counter()
     delta = perf_end - perf_start
-    logger.info("%f delta count before and after processing fuel type area by hfi per fire shape", delta)
+    logger.info(
+        "%f delta count before and after processing fuel type area by hfi per fire shape", delta
+    )
