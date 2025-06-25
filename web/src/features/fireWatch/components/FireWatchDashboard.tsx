@@ -1,26 +1,32 @@
+import { RootState } from '@/app/rootReducer'
 import { AppDispatch } from '@/app/store'
 import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
 import FireWatchDetailsModal from '@/features/fireWatch/components/FireWatchDetailsModal'
-import { BurnWatchRow, FireWatchBurnForecast } from '@/features/fireWatch/interfaces'
-import { fetchBurnForecasts, selectBurnForecasts } from '@/features/fireWatch/slices/burnForecastSlice'
+import { BurnStatusEnum, BurnWatchRow, FireWatchBurnForecast } from '@/features/fireWatch/interfaces'
+import { fetchBurnForecasts, selectBurnForecasts, updateFireWatch } from '@/features/fireWatch/slices/burnForecastSlice'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import InfoIcon from '@mui/icons-material/Info'
-import { Box, styled, Typography, useTheme } from '@mui/material'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import PauseCircleIcon from '@mui/icons-material/PauseCircle'
+import CancelIcon from '@mui/icons-material/Cancel'
+import PlayCircleIcon from '@mui/icons-material/PlayCircle'
+import { Alert, Backdrop, Box, CircularProgress, Snackbar, Typography, useTheme } from '@mui/material'
 import { DataGridPro, DataGridProProps, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-pro'
+import { FireWatchPrescriptionColors } from 'app/theme'
+import { upperFirst } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { FireWatchPrescriptionColors } from 'app/theme'
-
-const StyledDataGrid = styled(DataGridPro)(({ theme }) => ({
-  ['&.in-prescription-all']: { backGroundColor: theme.palette.success },
-  ['&.in-prescription-hfi']: { backGroundColor: theme.palette.warning }
-}))
 
 const FireWatchDashboard = () => {
   const dispatch: AppDispatch = useDispatch()
   const burnForecasts = useSelector(selectBurnForecasts)
+  const { loading: updateLoading } = useSelector((state: RootState) => state.burnForecasts)
+
   const theme = useTheme()
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedFireWatch, setSelectedFireWatch] = useState<FireWatchBurnForecast | null>(null)
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [snackbarMsg, setSnackbarMsg] = useState('')
 
   const getFireWatchDetails = (row: BurnWatchRow) => {
     const fireWatchID = row.id
@@ -41,6 +47,19 @@ const FireWatchDashboard = () => {
   const handleCloseModal = () => {
     setSelectedFireWatch(null)
     setModalOpen(false)
+  }
+
+  const statusIconMap = {
+    [BurnStatusEnum.ACTIVE]: (
+      <PlayCircleIcon sx={{ color: '#1976D280' }} titleAccess="Active" data-testid="active-icon" />
+    ),
+    [BurnStatusEnum.HOLD]: <PauseCircleIcon sx={{ color: '#FE690080' }} titleAccess="Hold" data-testid="hold-icon" />,
+    [BurnStatusEnum.COMPLETE]: (
+      <CheckCircleIcon sx={{ color: '#8E24AC80' }} titleAccess="Complete" data-testid="complete-icon" />
+    ),
+    [BurnStatusEnum.CANCELLED]: (
+      <CancelIcon sx={{ color: '#75757580' }} titleAccess="Cancelled" data-testid="cancelled-icon" />
+    )
   }
 
   const columns: GridColDef<BurnWatchRow>[] = [
@@ -72,7 +91,23 @@ const FireWatchDashboard = () => {
     {
       field: 'status',
       headerName: 'Status',
-      width: 100
+      width: 140,
+      type: 'singleSelect',
+      valueOptions: Object.values(BurnStatusEnum),
+      getOptionLabel: value => (typeof value === 'string' ? upperFirst(value) : String(value)),
+      editable: true,
+      cellClassName: 'editable-status-cell',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+          {statusIconMap[params.row.status] ?? null}
+          <Typography sx={{ mx: 0.5, fontSize: 'inherit' }}>{upperFirst(params.value)}</Typography>
+          <KeyboardArrowDownIcon fontSize="small" color="action" sx={{ opacity: 0.7 }} />
+        </Box>
+      ),
+      sortComparator: (a, b) => {
+        const order = [BurnStatusEnum.ACTIVE, BurnStatusEnum.HOLD, BurnStatusEnum.COMPLETE, BurnStatusEnum.CANCELLED]
+        return order.indexOf(a) - order.indexOf(b)
+      }
     },
     {
       field: 'inPrescription',
@@ -105,14 +140,51 @@ const FireWatchDashboard = () => {
     []
   )
 
+  const processRowUpdate = React.useCallback(
+    async (newRow: BurnWatchRow, oldRow: BurnWatchRow): Promise<BurnWatchRow> => {
+      const newStatus = newRow.status
+      const oldStatus = oldRow.fireWatch.status
+
+      const updatedRow: BurnWatchRow = {
+        ...oldRow,
+        ...newRow,
+        fireWatch: {
+          ...oldRow.fireWatch,
+          ...newRow.fireWatch,
+          status: newStatus
+        }
+      }
+
+      if (newStatus !== oldStatus) {
+        try {
+          await dispatch(updateFireWatch(updatedRow.fireWatch))
+          return updatedRow
+        } catch (error) {
+          setSnackbarOpen(true)
+          setSnackbarMsg('Failed to update row status')
+          // on error revert to oldRow
+          return oldRow
+        }
+      }
+
+      return oldRow
+    },
+    [dispatch]
+  )
+
   return (
     <Box data-testid="fire-watch-dashboard" id="fire-watch-dashboard" sx={{ flexGrow: 1 }}>
       <Typography sx={{ padding: theme.spacing(2) }} variant="h4">
         Dashboard
       </Typography>
+      <Backdrop open={updateLoading} sx={{ color: '#fff', zIndex: theme => theme.zIndex.drawer + 1 }}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <Box sx={{ padding: theme.spacing(2) }}>
         <DataGridPro
           density="compact"
+          getRowId={row => row.id}
+          processRowUpdate={processRowUpdate}
           disableRowSelectionOnClick
           disableVirtualization
           hideFooter
@@ -123,24 +195,43 @@ const FireWatchDashboard = () => {
           getRowClassName={params => `in-prescription-${params.row.inPrescription}`}
           initialState={{
             sorting: {
-              sortModel: [{ field: 'id', sort: 'asc' }]
+              sortModel: [
+                { field: 'status', sort: 'asc' },
+                { field: 'id', sort: 'asc' }
+              ]
             }
           }}
           sx={{
-            '.in-prescription-all': {
-              bgcolor: FireWatchPrescriptionColors.all.bgcolor,
-              '&:hover': { bgcolor: FireWatchPrescriptionColors.all.hover }
+            '.MuiDataGrid-row.in-prescription-all': {
+              bgcolor: `${FireWatchPrescriptionColors.all.bgcolor}`,
+              '&:hover': { bgcolor: `${FireWatchPrescriptionColors.all.hover}` }
             },
-            '.in-prescription-hfi': {
-              bgcolor: FireWatchPrescriptionColors.hfi.bgcolor,
-              '&:hover': { bgcolor: FireWatchPrescriptionColors.hfi.hover }
+            '.MuiDataGrid-row.in-prescription-hfi': {
+              bgcolor: `${FireWatchPrescriptionColors.hfi.bgcolor}`,
+              '&:hover': { bgcolor: `${FireWatchPrescriptionColors.hfi.hover}` }
             },
-            '&.MuiDataGrid-root .in-prescription-no': {
-              bgcolor: FireWatchPrescriptionColors.no.bgcolor
-            }
+            '&.MuiDataGrid-root .MuiDataGrid-row.in-prescription-no': {
+              bgcolor: `${FireWatchPrescriptionColors.no.bgcolor}`
+            },
+            fontSize: '0.875rem'
           }}
         />
       </Box>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={8000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="error"
+          sx={{ width: '100%' }}
+          data-testid="snackbar-alert"
+        >
+          {snackbarMsg}
+        </Alert>
+      </Snackbar>
       <FireWatchDetailsModal open={modalOpen} onClose={handleCloseModal} selectedFireWatch={selectedFireWatch} />
     </Box>
   )

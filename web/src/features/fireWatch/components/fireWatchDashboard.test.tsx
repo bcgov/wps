@@ -9,6 +9,8 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import * as burnForecastSliceModule from '@/features/fireWatch/slices/burnForecastSlice'
+import userEvent from '@testing-library/user-event'
 
 const buildTestStore = (initialState: BurnForecastsState) => {
   const rootReducer = combineReducers({ burnForecasts: burnForecastSlice })
@@ -37,46 +39,35 @@ vi.mock('@/features/fireWatch/components/DetailPanelContent', () => ({
 }))
 
 describe('FireWatchDashboard', async () => {
-  beforeEach(() => LicenseInfo.setLicenseKey(MUI_LICENSE))
+  let testStore: ReturnType<typeof buildTestStore>
+  beforeEach(() => {
+    LicenseInfo.setLicenseKey(MUI_LICENSE)
+    testStore = buildTestStore({ ...initialState })
+  })
 
-  it('dispatches fetchBurnForecasts on mount', () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
-    const dispatchSpy = vi.spyOn(testStore, 'dispatch')
+  const renderDashboard = () =>
     render(
       <Provider store={testStore}>
         <FireWatchDashboard />
       </Provider>
     )
+
+  it('dispatches fetchBurnForecasts on mount', () => {
+    const dispatchSpy = vi.spyOn(testStore, 'dispatch')
+    renderDashboard()
+
     expect(dispatchSpy).toHaveBeenCalled()
   })
 
   it('should render', async () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
-    render(
-      <Provider store={testStore}>
-        <FireWatchDashboard />
-      </Provider>
-    )
+    renderDashboard()
 
     const dashboard = screen.getByTestId('fire-watch-dashboard')
     expect(dashboard).toBeInTheDocument()
   })
 
   it('renders the grid with rows', async () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
-    await act(async () =>
-      render(
-        <Provider store={testStore}>
-          <FireWatchDashboard />
-        </Provider>
-      )
-    )
+    await act(async () => renderDashboard())
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument()
     // Check if FireWatch titles are rendered
@@ -86,16 +77,8 @@ describe('FireWatchDashboard', async () => {
   })
 
   it('opens modal when info icon is clicked', async () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
-    await act(async () =>
-      render(
-        <Provider store={testStore}>
-          <FireWatchDashboard />
-        </Provider>
-      )
-    )
+    await act(async () => renderDashboard())
+
     const infoButton = screen.getAllByLabelText('View details')[0]
     fireEvent.click(infoButton)
 
@@ -105,16 +88,8 @@ describe('FireWatchDashboard', async () => {
   })
 
   it('renders the detail panel when expanded', async () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
-    await act(async () =>
-      render(
-        <Provider store={testStore}>
-          <FireWatchDashboard />
-        </Provider>
-      )
-    )
+    await act(async () => renderDashboard())
+
     const expandButton = screen.getAllByLabelText('Expand')[0]
     fireEvent.click(expandButton)
 
@@ -123,16 +98,7 @@ describe('FireWatchDashboard', async () => {
     })
   })
   it('applies correct row class based on inPrescription value', async () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
-    await act(async () =>
-      render(
-        <Provider store={testStore}>
-          <FireWatchDashboard />
-        </Provider>
-      )
-    )
+    await act(async () => renderDashboard())
 
     const row1 = document.querySelector('[data-id="1"]')
     expect(row1).toBeInTheDocument()
@@ -145,6 +111,62 @@ describe('FireWatchDashboard', async () => {
     const row3 = document.querySelector('[data-id="3"]')
     expect(row3).toBeInTheDocument()
     expect(row3).toHaveClass('in-prescription-no')
+  })
+
+  it('shows error snackbar when processRowUpdate fails', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(burnForecastSliceModule, 'updateFireWatch').mockImplementation(() => async () => {
+      throw new Error('Update failed')
+    })
+
+    await act(async () => renderDashboard())
+
+    expect(screen.getByText('Dashboard')).toBeInTheDocument()
+    expect(screen.getByText('test-1')).toBeInTheDocument()
+
+    // find the status cell for the first row and simulate editing
+    const statusCells = document.querySelectorAll('.editable-status-cell')
+    expect(statusCells.length).toBeGreaterThan(0)
+    await user.dblClick(statusCells[0])
+
+    // select a new status from dropdown (simulate status change)
+    await user.click(screen.getByText('Complete', { selector: 'li' }))
+    await user.click(document.body) // click outside to trigger update
+
+    // wait for error snackbar to appear
+    const alert = await screen.findByTestId('snackbar-alert')
+    expect(alert).toHaveTextContent('Failed to update row status')
+  })
+
+  it('updates the status with a dropdown', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(burnForecastSliceModule, 'updateFireWatch').mockImplementation(() => async () => {
+      return mockFireWatchBurnForecasts[0]
+    })
+
+    await act(async () => renderDashboard())
+
+    const statusCells = document.querySelectorAll('.editable-status-cell')
+    expect(statusCells.length).toBeGreaterThan(0)
+    expect(statusCells[0].querySelector('[data-testid="active-icon"]')).toBeInTheDocument()
+    await user.dblClick(statusCells[0])
+
+    // select a new status from dropdown (simulate status change)
+    await user.click(screen.getByText('Complete', { selector: 'li' }))
+    await user.click(document.body) // click outside to trigger update
+    expect(statusCells[0].textContent).toContain('Complete')
+    expect(statusCells[0].querySelector('[data-testid="complete-icon"]')).toBeInTheDocument()
+
+    // select a new status from dropdown
+    await user.dblClick(statusCells[1])
+    await user.click(screen.getByText('Hold', { selector: 'li' }))
+    await user.click(document.body) // click outside to trigger update
+    expect(statusCells[1].textContent).toContain('Hold')
+    expect(statusCells[1].querySelector('[data-testid="hold-icon"]')).toBeInTheDocument()
+
+    // wait for error snackbar to appear
+    const alert = screen.queryByTestId('snackbar-alert')
+    expect(alert).not.toBeInTheDocument()
   })
 })
 
@@ -215,7 +237,8 @@ const getMockBurnForecast = (id: number, inPrescription: PrescriptionEnum) => {
     dc: 2,
     isi: 2,
     bui: 2,
-    hfi: 2
+    hfi: 2,
+    status: BurnStatusEnum.ACTIVE
   }
 }
 
