@@ -139,22 +139,35 @@ objects:
                 requests:
                   cpu: 25m
                   memory: 1Gi
+              ###
+              # startupProbe - Runs first during pod startup until it succeeds
+              # readinessProbe - Only starts running after startupProbe succeeds
+              # livenessProbe - Only starts running after startupProbe succeeds
+              startupProbe:
+                httpGet:
+                  path: /ready
+                  port: 3000
+                  scheme: HTTP
+                initialDelaySeconds: 5
+                periodSeconds: 5
+                failureThreshold: 24 # allow up to 2 minutes for startup
+                timeoutSeconds: 1
               readinessProbe:
                 httpGet:
                   path: /ready
                   port: 3000
                   scheme: HTTP
-                initialDelaySeconds: 10
-                periodSeconds: 120
-                timeoutSeconds: 1
+                periodSeconds: 10 # check every 10 seconds
+                timeoutSeconds: 3
+                failureThreshold: 3 # 3 failures before marking unready
               livenessProbe:
                 httpGet:
                   path: /health
                   port: 3000
                   scheme: HTTP
-                initialDelaySeconds: 10
-                periodSeconds: 120
-                timeoutSeconds: 1
+                periodSeconds: 30
+                timeoutSeconds: 5
+                failureThreshold: 3
               volumeMounts:
                 - name: config-env
                   mountPath: "/config.js"
@@ -436,16 +449,27 @@ objects:
                 requests:
                   cpu: ${CPU_REQUEST}
                   memory: ${MEMORY_REQUEST}
+              ###
+              # startupProbe - Runs first during pod startup until it succeeds
+              # readinessProbe - Only starts running after startupProbe succeeds
+              # livenessProbe - Only starts running after startupProbe succeeds
+              startupProbe:
+                httpGet:
+                  path: /api/ready
+                  port: 8080
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                failureThreshold: 30 # allow up to 5 minutes for startup
+                timeoutSeconds: 5
               readinessProbe:
                 httpGet:
                   path: /api/ready
                   port: 8080
                   scheme: HTTP
-                # first probe will fire some time between:
-                # initialDelaySeconds and initialDelaySeconds + periodSeconds
-                initialDelaySeconds: 30
-                periodSeconds: 120
-                timeoutSeconds: 1
+                periodSeconds: 10
+                timeoutSeconds: 5
+                failureThreshold: 3
               livenessProbe:
                 successThreshold: 1
                 failureThreshold: 3
@@ -453,10 +477,7 @@ objects:
                   path: /api/health
                   port: 8080
                   scheme: HTTP
-                # first probe will fire some time between:
-                # initialDelaySeconds and initialDelaySeconds + periodSeconds
-                initialDelaySeconds: 30
-                periodSeconds: 120
+                periodSeconds: 30
                 timeoutSeconds: 20
   - apiVersion: autoscaling.k8s.io/v1
     kind: VerticalPodAutoscaler
