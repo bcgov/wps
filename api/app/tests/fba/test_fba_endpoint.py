@@ -167,18 +167,6 @@ async def mock_get_sfms_bounds(*_, **__):
 async def mock_get_sfms_bounds_no_data(*_, **__):
     return []
 
-async def mock_get_fuel_type_raster(*_, **__):
-    mock_record = create_autospec(FuelTypeRaster)
-    mock_record.id = 1
-    mock_record.year = 2024
-    mock_record.version = 2
-    mock_record.xsize = 100
-    mock_record.ysize = 200
-    mock_record.object_store_path = "/path/fbp2024.tif"
-    mock_record.content_hash = "abc123"
-    mock_record.create_timestamp = datetime(2024, 10, 3, 12, 31, tzinfo=timezone.utc)
-    return mock_record
-
 
 @pytest.fixture()
 def client():
@@ -279,7 +267,7 @@ async def mock_zone_ids_in_centre(*_, **__):
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
 @patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
 @patch("app.routers.fba.get_zone_source_ids_in_centre", mock_zone_ids_in_centre)
-@patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster)
+@patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized(client: TestClient):
     """Allowed to get fire centre info when authorized"""
@@ -365,7 +353,7 @@ def test_get_sfms_run_datetimes_authorized(client: TestClient):
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_centre_tpi_stats", mock_get_centre_tpi_stats)
 @patch("app.routers.fba.get_fire_centre_tpi_fuel_areas", mock_get_fire_centre_tpi_fuel_areas)
-@patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster)
+@patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_centre_tpi_stats_authorized(client: TestClient):
     """Allowed to get fire zone tpi stats when authorized"""
