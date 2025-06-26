@@ -158,7 +158,7 @@ export const fireWatchInfo: ToolInfo = {
   route: FIRE_WATCH_ROUTE,
   description: (
     <Typography>
-      A heads up application that notifies when specified fire weather and fire behaviour could occur over the next ten
+      A heads up application that indicates when specified fire weather and fire behaviour could occur over the next ten
       days.
     </Typography>
   ),
