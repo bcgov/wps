@@ -187,7 +187,7 @@ export const fireWatchInfo: ToolInfo = {
 }
 
 // The order of items in this array determines the order of items as they appear in the landing page
-// side bar and order of CardTravelSharp.
+// side bar and order of tiles.
 export const toolInfos = [
   fireBehaviourAdvisoryInfo,
   moreCastInfo,
