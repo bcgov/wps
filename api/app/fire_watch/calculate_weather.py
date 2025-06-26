@@ -34,7 +34,7 @@ from wps_shared.wildfire_one.wfwx_api import (
 
 logger = logging.getLogger(__name__)
 
-FIREWATCH_WEATHER_MODEL = ModelEnum.GFS
+FIREWATCH_WEATHER_MODEL = ModelEnum.ECMWF
 
 
 class MissingWeatherDataError(Exception):
