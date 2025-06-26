@@ -109,9 +109,6 @@ objects:
           name: ${APP_NAME}-${SUFFIX}
       strategy:
         type: RollingUpdate
-        rollingUpdate:
-          maxUnavailable: 1
-          maxSurge: 1
       template:
         metadata:
           labels:
