@@ -39,10 +39,8 @@ const App = () => {
   const [zoomSource] = useState<"fireCenter" | "fireShape" | undefined>(
     "fireCenter"
   );
-  const [dateOfInterest] = useState(
-    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
-      ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
-      : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
+  const [dateOfInterest, setDateOfInterest] = useState(
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
   );
   const [runType] = useState(RunType.FORECAST);
   const { mostRecentRunDate } = useSelector(selectRunDates);
@@ -152,6 +150,8 @@ const App = () => {
       <AppHeader />
       {tab === NavPanel.MAP && (
         <FBAMap
+          dateOfInterest={dateOfInterest}
+          setDateOfInterest={setDateOfInterest}
           selectedFireCenter={fireCenter}
           selectedFireShape={selectedFireShape}
           fireShapeAreas={fireShapeAreas}

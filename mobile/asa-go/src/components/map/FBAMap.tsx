@@ -33,12 +33,19 @@ import {
 import TileLayer from "ol/layer/Tile";
 import { useSelector } from "react-redux";
 import { selectNetworkStatus } from "@/store";
+import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
+import TodayTomorrowSwitchB from "@/components/TodayTomorrowSwitchB";
+import TodayTomorrowSwitchC from "@/components/TodayTomorrowSwitchC";
+import TodayTomorrowSwitchD from "@/components/TodayTomorrowSwitchD";
+import TodayTomorrowSwitchE from "@/components/TodayTomorrowSwitchE";
 export const MapContext = React.createContext<Map | null>(null);
 
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
 
 export interface FBAMapProps {
   testId?: string;
+  dateOfInterest: DateTime;
+  setDateOfInterest: React.Dispatch<React.SetStateAction<DateTime>>;
   selectedFireCenter: FireCenter | undefined;
   selectedFireShape: FireShape | undefined;
   fireShapeAreas: FireShapeArea[];
@@ -290,6 +297,38 @@ const FBAMap = (props: FBAMapProps) => {
           position: "relative",
         }}
       >
+        <Box
+          sx={{ position: "absolute", left: "8px", bottom: "8px", zIndex: 1 }}
+        >
+          <Box sx={{ paddingBottom: "8px" }}>
+            <TodayTomorrowSwitch
+              date={props.dateOfInterest}
+              setDate={props.setDateOfInterest}
+            />
+          </Box>
+          <Box sx={{ paddingBottom: "8px" }}>
+            <TodayTomorrowSwitchB
+              date={props.dateOfInterest}
+              setDate={props.setDateOfInterest}
+            />
+          </Box>
+          <Box sx={{ paddingBottom: "8px" }}>
+            <TodayTomorrowSwitchC
+              date={props.dateOfInterest}
+              setDate={props.setDateOfInterest}
+            />
+          </Box>
+          <Box sx={{ paddingBottom: "8px" }}>
+            <TodayTomorrowSwitchD
+              date={props.dateOfInterest}
+              setDate={props.setDateOfInterest}
+            />
+          </Box>
+          <TodayTomorrowSwitchE
+            date={props.dateOfInterest}
+            setDate={props.setDateOfInterest}
+          />
+        </Box>
         <ScalebarContainer ref={scaleRef} />
       </Box>
     </MapContext.Provider>
