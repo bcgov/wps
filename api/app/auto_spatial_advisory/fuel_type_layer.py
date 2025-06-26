@@ -14,10 +14,11 @@ from wps_shared.db.crud.fuel_layer import (
     get_latest_fuel_type_raster_by_fuel_raster_name,
     get_processed_fuel_raster_details,
 )
-from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
+from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import FuelType
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
 from wps_shared.utils.polygonize import polygonize_in_memory
+from wps_shared.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,8 @@ async def get_current_fuel_type_raster(session: AsyncSession):
 
 async def get_fuel_type_raster_by_year(session: AsyncSession, year: int):
     fuel_raster_name = config.get("FUEL_RASTER_NAME")
-    if year >= 2025 and str(year) not in fuel_raster_name:
+    now = get_utc_now()
+    if year >= now.year and str(year) not in fuel_raster_name:
         # Covers the case where we have been using last year's fuel grid in the early part of the
         # current fire season (ie. the fuel grid hasn't been updated yet).
         # Note: This assumes we are never more than one year behind. If this assumption turns out

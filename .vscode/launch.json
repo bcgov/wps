@@ -91,6 +91,17 @@
             "console": "integratedTerminal",
         },
         {
+            "name": "generate fuel masked tpi",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.local.generate_fuel_masked_tpi",
+            "console": "integratedTerminal",
+            "args": [
+                "-y",
+                "2025"
+            ]
+        },
+        {
             "name": "app.jobs.rdps_sfms",
             "type": "debugpy",
             "request": "launch",
@@ -141,6 +152,13 @@
             "args": [
                 "2024-10-23 12"
             ]
+        },
+        {
+            "name": "fuel type area per zone job",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.fuel_type_areas_per_zone",
+            "console": "integratedTerminal",
         },
         {
             "name": "Chrome",

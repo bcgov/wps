@@ -16,6 +16,12 @@ from pydantic import BaseModel
 from pydantic_core import to_jsonable_python
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
+from app.auto_spatial_advisory.fuel_type_layer import get_fuel_type_raster_by_year
+from app.fire_behaviour import cffdrs
+from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
+from app.hourlies import get_hourly_readings_in_time_interval
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_containing_zone,
     get_fuel_type_stats_in_advisory_area,
@@ -29,7 +35,6 @@ from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryFuelStats,
     CriticalHours,
     HfiClassificationThresholdEnum,
-    RunTypeEnum,
     SFMSFuelType,
 )
 from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
@@ -43,11 +48,6 @@ from wps_shared.utils.time import get_hour_20_from_date, get_julian_date
 from wps_shared.wildfire_one import wfwx_api
 from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 from wps_shared.wps_logging import configure_logging
-
-from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
-from app.fire_behaviour import cffdrs
-from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
-from app.hourlies import get_hourly_readings_in_time_interval
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +122,7 @@ async def save_critical_hours(
     zone_unit_id: int,
     critical_hours_by_fuel_type: dict,
     run_parameters_id: int,
+    fuel_type_raster_id: int,
 ):
     """
     Saves CriticalHours records to the API database.
@@ -142,6 +143,7 @@ async def save_critical_hours(
             fuel_type=sfms_fuel_types_dict[fuel_type],
             start_hour=start_time,
             end_hour=end_time,
+            fuel_type_raster_id=fuel_type_raster_id,
         )
         critical_hours_to_save.append(critical_hours_record)
     await save_all_critical_hours(db_session, critical_hours_to_save)
@@ -454,6 +456,7 @@ async def calculate_critical_hours_by_zone(
     stations_by_zone: Dict[int, List[WFWXWeatherStation]],
     run_parameters_id: int,
     for_date: date,
+    fuel_type_raster_id: int,
 ):
     """
     Calculates critical hours for fire zone units by heuristically determining critical hours for each station in the fire zone unit that are under advisory conditions (>4k HFI).
@@ -468,10 +471,11 @@ async def calculate_critical_hours_by_zone(
     critical_hours_inputs_by_zone: Dict[int, CriticalHoursIO] = {}
     for zone_key in stations_by_zone.keys():
         advisory_fuel_stats = await get_fuel_type_stats_in_advisory_area(
-            db_session, zone_key, run_parameters_id
+            db_session, zone_key, run_parameters_id, fuel_type_raster_id
         )
         fuel_types_by_area = get_fuel_types_by_area(advisory_fuel_stats)
         wfwx_stations = stations_by_zone[zone_key]
+
         critical_hours_inputs = await get_inputs_for_critical_hours(for_date, header, wfwx_stations)
         critical_hours_by_fuel_type = calculate_critical_hours_by_fuel_type(
             wfwx_stations,
@@ -497,7 +501,7 @@ async def calculate_critical_hours_by_zone(
 
     for zone_id, critical_hours_by_fuel_type in critical_hours_by_zone_and_fuel_type.items():
         await save_critical_hours(
-            db_session, zone_id, critical_hours_by_fuel_type, run_parameters_id
+            db_session, zone_id, critical_hours_by_fuel_type, run_parameters_id, fuel_type_raster_id
         )
 
 
@@ -552,6 +556,7 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
             logger.info("Critical hours already processed.")
             return
 
+        fuel_type_raster = await get_fuel_type_raster_by_year(db_session, for_date.year)
         async with ClientSession() as client_session:
             header = await wfwx_api.get_auth_header(client_session)
             all_stations = await get_stations_asynchronously()
@@ -568,7 +573,12 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
                     stations_by_zone[zone_id[0]].append(station)
 
             await calculate_critical_hours_by_zone(
-                db_session, header, stations_by_zone, run_parameters_id, for_date
+                db_session,
+                header,
+                stations_by_zone,
+                run_parameters_id,
+                for_date,
+                fuel_type_raster.id,
             )
 
     perf_end = perf_counter()

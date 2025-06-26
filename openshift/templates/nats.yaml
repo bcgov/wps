@@ -420,6 +420,11 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.classified_tpi_dem_name
+                - name: FUEL_RASTER_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.fuel_raster_name
               ports:
                 - containerPort: 4222
                   name: client

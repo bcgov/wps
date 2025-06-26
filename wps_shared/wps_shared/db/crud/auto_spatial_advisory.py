@@ -10,6 +10,8 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from wps_shared.run_type import RunType
+from wps_shared.schemas.fba import HfiThreshold
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryElevationStats,
     AdvisoryFuelStats,
@@ -32,8 +34,6 @@ from wps_shared.db.models.auto_spatial_advisory import (
     TPIFuelArea,
 )
 from wps_shared.db.models.hfi_calc import FireCentre
-from wps_shared.run_type import RunType
-from wps_shared.schemas.fba import HfiThreshold
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ async def get_table_srid(session: AsyncSession, model, geom_column: str = "geom"
     return result.scalar_one_or_none()
 
 
-async def get_combustible_area(session: AsyncSession):
+async def get_combustible_area(session: AsyncSession, fuel_type_raster_id: int):
     """Get the combustible area for each "shape". This is slow, and we don't expect it to run
     in real time.
 
@@ -116,7 +116,10 @@ async def get_combustible_area(session: AsyncSession):
             .label("combustible_area"),
         )
         .join(FuelType, FuelType.geom.ST_Intersects(Shape.geom))
-        .where(FuelType.fuel_type_id.not_in((-10000, 99, 100, 102, 103)))
+        .where(
+            FuelType.fuel_type_id.not_in((-10000, 99, 100, 102, 103)),
+            FuelType.fuel_type_raster_id == fuel_type_raster_id,
+        )
         .group_by(Shape.id)
     )
     result = await session.execute(stmt)
@@ -261,6 +264,7 @@ async def get_precomputed_stats_for_shape(
     run_datetime: datetime,
     for_date: date,
     source_identifier: int,
+    fuel_type_raster_id: int,
 ) -> List[Row]:
     perf_start = perf_counter()
     stmt = (
@@ -288,6 +292,7 @@ async def get_precomputed_stats_for_shape(
             AdvisoryShapeFuels,
             and_(
                 AdvisoryShapeFuels.fuel_type == AdvisoryFuelStats.fuel_type,
+                AdvisoryShapeFuels.fuel_type_raster_id == AdvisoryFuelStats.fuel_type_raster_id,
                 AdvisoryShapeFuels.advisory_shape_id == Shape.id,
             ),
         )
@@ -305,6 +310,7 @@ async def get_precomputed_stats_for_shape(
             RunParameters.run_type == run_type.value,
             RunParameters.run_datetime == run_datetime,
             RunParameters.for_date == for_date,
+            AdvisoryShapeFuels.fuel_type_raster_id == fuel_type_raster_id,
         )
     )
 
@@ -317,7 +323,7 @@ async def get_precomputed_stats_for_shape(
 
 
 async def get_fuel_type_stats_in_advisory_area(
-    session: AsyncSession, advisory_shape_id: int, run_parameters_id: int
+    session: AsyncSession, advisory_shape_id: int, run_parameters_id: int, fuel_type_raster_id: int
 ) -> List[Tuple[AdvisoryFuelStats, SFMSFuelType]]:
     stmt = (
         select(AdvisoryFuelStats, SFMSFuelType)
@@ -325,108 +331,10 @@ async def get_fuel_type_stats_in_advisory_area(
         .filter(
             AdvisoryFuelStats.advisory_shape_id == advisory_shape_id,
             AdvisoryFuelStats.run_parameters == run_parameters_id,
+            AdvisoryFuelStats.fuel_type_raster_id == fuel_type_raster_id,
         )
     )
     result = await session.execute(stmt)
-    return result.all()
-
-
-async def get_high_hfi_fuel_types_for_shape(
-    session: AsyncSession,
-    run_type: RunTypeEnum,
-    run_datetime: datetime,
-    for_date: date,
-    shape_id: int,
-) -> List[Row]:
-    """
-    Union of fuel types by fuel_type_id (1 multipolygon for each fuel type)
-    Intersected with union of ClassifiedHfi for given run_type, run_datetime, and for_date
-        for both 4K-10K and 10K+ HFI values
-    Intersected with fire zone geom for a specific fire zone identified by ID
-    """
-    logger.info(
-        "starting fuel types/high hfi/zone intersection query for fire zone %s", str(shape_id)
-    )
-    perf_start = perf_counter()
-
-    stmt = (
-        select(
-            Shape.source_identifier,
-            FuelType.fuel_type_id,
-            ClassifiedHfi.threshold,
-            func.sum(
-                FuelType.geom.ST_Intersection(
-                    ClassifiedHfi.geom.ST_Intersection(Shape.geom)
-                ).ST_Area()
-            ).label("area"),
-        )
-        .join_from(ClassifiedHfi, Shape, ClassifiedHfi.geom.ST_Intersects(Shape.geom))
-        .join_from(ClassifiedHfi, FuelType, ClassifiedHfi.geom.ST_Intersects(FuelType.geom))
-        .where(
-            ClassifiedHfi.run_type == run_type.value,
-            ClassifiedHfi.for_date == for_date,
-            ClassifiedHfi.run_datetime == run_datetime,
-            Shape.source_identifier == str(shape_id),
-        )
-        .group_by(Shape.source_identifier)
-        .group_by(FuelType.fuel_type_id)
-        .group_by(ClassifiedHfi.threshold)
-        .order_by(FuelType.fuel_type_id)
-        .order_by(ClassifiedHfi.threshold)
-    )
-
-    result = await session.execute(stmt)
-    perf_end = perf_counter()
-    delta = perf_end - perf_start
-    logger.info(
-        "%f delta count before and after fuel types/high hfi/zone intersection query", delta
-    )
-    return result.all()
-
-
-async def get_high_hfi_fuel_types(
-    session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
-) -> List[Row]:
-    """
-    Union of fuel types by fuel_type_id (1 multipolygon for each fuel type)
-    Intersected with union of ClassifiedHfi for given run_type, run_datetime, and for_date
-        for both 4K-10K and 10K+ HFI values
-    """
-    logger.info("starting fuel types/high hfi/zone intersection query")
-    perf_start = perf_counter()
-
-    stmt = (
-        select(
-            Shape.source_identifier,
-            FuelType.fuel_type_id,
-            ClassifiedHfi.threshold,
-            func.sum(
-                FuelType.geom.ST_Intersection(
-                    ClassifiedHfi.geom.ST_Intersection(Shape.geom)
-                ).ST_Area()
-            ).label("area"),
-        )
-        .join_from(ClassifiedHfi, Shape, ClassifiedHfi.geom.ST_Intersects(Shape.geom))
-        .join_from(ClassifiedHfi, FuelType, ClassifiedHfi.geom.ST_Intersects(FuelType.geom))
-        .where(
-            ClassifiedHfi.run_type == run_type.value,
-            ClassifiedHfi.for_date == for_date,
-            ClassifiedHfi.run_datetime == run_datetime,
-        )
-        .group_by(Shape.source_identifier)
-        .group_by(FuelType.fuel_type_id)
-        .group_by(ClassifiedHfi.threshold)
-        .order_by(FuelType.fuel_type_id)
-        .order_by(ClassifiedHfi.threshold)
-    )
-
-    logger.info(str(stmt))
-    result = await session.execute(stmt)
-    perf_end = perf_counter()
-    delta = perf_end - perf_start
-    logger.info(
-        "%f delta count before and after fuel types/high hfi/zone intersection query", delta
-    )
     return result.all()
 
 
@@ -560,6 +468,7 @@ async def store_advisory_fuel_stats(
     threshold: int,
     run_parameters_id: int,
     advisory_shape_id: int,
+    fuel_type_raster_id: int,
 ):
     """
     Creates AdvisoryFuelStats objects and save them in the wps database.
@@ -580,6 +489,7 @@ async def store_advisory_fuel_stats(
                 run_parameters=run_parameters_id,
                 fuel_type=sfms_fuel_type_id,
                 area=fuel_type_areas[key],
+                fuel_type_raster_id=fuel_type_raster_id,
             )
         )
     await save_advisory_fuel_stats(session, advisory_fuel_stats)
@@ -754,22 +664,17 @@ async def get_centre_tpi_stats(
     return result.all()
 
 
-async def get_fire_zone_tpi_fuel_areas(session: AsyncSession, fire_zone_id):
-    stmt = (
-        select(TPIFuelArea)
-        .join(Shape, Shape.id == TPIFuelArea.advisory_shape_id)
-        .where(Shape.source_identifier == fire_zone_id)
-    )
-    result = await session.execute(stmt)
-    return result.all()
-
-
-async def get_fire_centre_tpi_fuel_areas(session: AsyncSession, fire_centre_name: str):
+async def get_fire_centre_tpi_fuel_areas(
+    session: AsyncSession, fire_centre_name: str, fuel_type_raster_id: int
+):
     stmt = (
         select(TPIFuelArea.tpi_class, TPIFuelArea.fuel_area, Shape.source_identifier)
         .join(Shape, Shape.id == TPIFuelArea.advisory_shape_id)
         .join(FireCentre, FireCentre.id == Shape.fire_centre)
-        .where(FireCentre.name == fire_centre_name)
+        .where(
+            FireCentre.name == fire_centre_name,
+            TPIFuelArea.fuel_type_raster_id == fuel_type_raster_id,
+        )
     )
     result = await session.execute(stmt)
     return result.all()
