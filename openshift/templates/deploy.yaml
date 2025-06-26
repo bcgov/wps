@@ -440,15 +440,15 @@ objects:
                 timeoutSeconds: 1
               livenessProbe:
                 successThreshold: 1
-                failureThreshold: 3
+                failureThreshold: 5
                 httpGet:
                   path: /api/health
                   port: 8080
                   scheme: HTTP
                 # first probe will fire some time between:
                 # initialDelaySeconds and initialDelaySeconds + periodSeconds
-                initialDelaySeconds: 30
-                periodSeconds: 120
+                initialDelaySeconds: 120
+                periodSeconds: 600
                 timeoutSeconds: 20
   - apiVersion: autoscaling.k8s.io/v1
     kind: VerticalPodAutoscaler
