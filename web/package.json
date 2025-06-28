@@ -98,7 +98,7 @@
     "globals": "^16.0.0",
     "start-server-and-test": "^2.0.0",
     "ts-sinon": "^2.0.2",
-    "vite": "^6.0.0",
+    "vite": "^7.0.0",
     "vite-plugin-istanbul": "^7.0.0",
     "vite-plugin-svgr": "^4.2.0"
   },
