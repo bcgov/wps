@@ -15,7 +15,7 @@ jobs:
     name: Python - Lint
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/bcgov/wps/wps-api-base:04-23-2025
+      image: ghcr.io/bcgov/wps/wps-api-base:06-23-2025
       options: --user 0
     steps:
       - name: Checkout repo
@@ -49,7 +49,7 @@ jobs:
     name: Python - API Test with coverage
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/bcgov/wps/wps-api-base:04-23-2025
+      image: ghcr.io/bcgov/wps/wps-api-base:06-23-2025
       options: --user 0
     steps:
       - name: Checkout repo
@@ -97,7 +97,7 @@ jobs:
     name: Python - WPS Jobs Test with coverage
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/bcgov/wps/wps-api-base:04-23-2025
+      image: ghcr.io/bcgov/wps/wps-api-base:06-23-2025
       options: --user 0
     steps:
       - name: Checkout repo
@@ -143,7 +143,7 @@ jobs:
     name: Python - WPS Shared Test with coverage
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/bcgov/wps/wps-api-base:04-23-2025
+      image: ghcr.io/bcgov/wps/wps-api-base:06-23-2025
       options: --user 0
     steps:
       - name: Checkout repo
