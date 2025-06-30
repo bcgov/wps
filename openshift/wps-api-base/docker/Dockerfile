@@ -16,7 +16,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 # - R (for cffdrs)
 # - xfonts-75dpi, xfonts-base (for wkhtmltopdf)
 # - tippecanoe for generating pmtiles
-RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libudunits2-dev r-base-dev xfonts-base xfonts-75dpi curl git build-essential libproj-dev libgeos-dev libsqlite3-dev libpq-dev libtirpc-dev
+# - Additional libraries for R spatial packages (s2, sf)
+RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libudunits2-dev r-base-dev xfonts-base xfonts-75dpi curl git build-essential libproj-dev libgeos-dev libsqlite3-dev libpq-dev libtirpc-dev \
+    libssl-dev libcurl4-openssl-dev libxml2-dev
 
 RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
 RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
