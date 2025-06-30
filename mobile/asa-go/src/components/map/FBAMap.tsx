@@ -1,6 +1,5 @@
 import { Map, View } from "ol";
 import "ol/ol.css";
-import { defaults as defaultControls, FullScreen } from "ol/control";
 import { fromLonLat } from "ol/proj";
 import { boundingExtent } from "ol/extent";
 import ScaleLine from "ol/control/ScaleLine";
@@ -34,10 +33,6 @@ import TileLayer from "ol/layer/Tile";
 import { useSelector } from "react-redux";
 import { selectNetworkStatus } from "@/store";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
-import TodayTomorrowSwitchB from "@/components/TodayTomorrowSwitchB";
-import TodayTomorrowSwitchC from "@/components/TodayTomorrowSwitchC";
-import TodayTomorrowSwitchD from "@/components/TodayTomorrowSwitchD";
-import TodayTomorrowSwitchE from "@/components/TodayTomorrowSwitchE";
 export const MapContext = React.createContext<Map | null>(null);
 
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
@@ -173,7 +168,6 @@ const FBAMap = (props: FBAMapProps) => {
       }),
       layers: [],
       overlays: [],
-      controls: defaultControls().extend([new FullScreen()]),
     });
     mapObject.setTarget(mapRef.current);
 
@@ -300,31 +294,7 @@ const FBAMap = (props: FBAMapProps) => {
         <Box
           sx={{ position: "absolute", left: "8px", bottom: "8px", zIndex: 1 }}
         >
-          <Box sx={{ paddingBottom: "8px" }}>
-            <TodayTomorrowSwitch
-              date={props.dateOfInterest}
-              setDate={props.setDateOfInterest}
-            />
-          </Box>
-          <Box sx={{ paddingBottom: "8px" }}>
-            <TodayTomorrowSwitchB
-              date={props.dateOfInterest}
-              setDate={props.setDateOfInterest}
-            />
-          </Box>
-          <Box sx={{ paddingBottom: "8px" }}>
-            <TodayTomorrowSwitchC
-              date={props.dateOfInterest}
-              setDate={props.setDateOfInterest}
-            />
-          </Box>
-          <Box sx={{ paddingBottom: "8px" }}>
-            <TodayTomorrowSwitchD
-              date={props.dateOfInterest}
-              setDate={props.setDateOfInterest}
-            />
-          </Box>
-          <TodayTomorrowSwitchE
+          <TodayTomorrowSwitch
             date={props.dateOfInterest}
             setDate={props.setDateOfInterest}
           />
