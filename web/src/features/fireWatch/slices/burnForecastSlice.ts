@@ -45,10 +45,9 @@ const burnForecastsSlice = createSlice({
       state.loading = true
     },
     updateBurnForecastSuccess(state: BurnForecastsState, action: PayloadAction<FireWatchBurnForecast>) {
-      const existing = state.fireWatchBurnForecasts.find(item => item.fireWatch.id === action.payload.fireWatch.id)
-      if (existing) {
-        Object.assign(existing, action.payload)
-      }
+      state.fireWatchBurnForecasts = state.fireWatchBurnForecasts.map(item =>
+        item.fireWatch.id === action.payload.fireWatch.id ? action.payload : item
+      )
       state.error = null
       state.loading = false
     }
@@ -111,13 +110,15 @@ const getPrescriptionStatus = (burnForecasts: BurnForecast[]): PrescriptionEnum 
 }
 
 export const updateFireWatch =
-  (fireWatch: FireWatch): AppThunk =>
+  (fireWatch: FireWatch): AppThunk<Promise<FireWatchBurnForecast | undefined>> =>
   async dispatch => {
     try {
       dispatch(updateBurnForecastStart())
       const updatedFireWatchForecast = await patchFireWatchUpdate(fireWatch)
       dispatch(updateBurnForecastSuccess(updatedFireWatchForecast))
+      return updatedFireWatchForecast
     } catch (err) {
       dispatch(getBurnForecastsFailed((err as Error).toString()))
+      throw err
     }
   }

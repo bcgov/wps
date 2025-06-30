@@ -4,9 +4,9 @@ import { DateTime } from 'luxon'
 
 export enum BurnStatusEnum {
   ACTIVE = 'active',
-  CANCELLED = 'cancelled',
+  HOLD = 'hold',
   COMPLETE = 'complete',
-  HOLD = 'hold'
+  CANCELLED = 'cancelled'
 }
 
 export enum FuelTypeEnum {
