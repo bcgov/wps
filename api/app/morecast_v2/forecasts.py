@@ -213,6 +213,17 @@ def calculate_fwi_values(yesterday: WeatherIndeterminate, today: WeatherIndeterm
     precip = today.precipitation
     wind_spd = today.wind_speed
 
+    if any(value is None for value in [temp, rh, precip, wind_spd]):
+        # All the FWIs should already be None if a weather variable is None but let's explicitly set
+        # them to None to prevent erroneous data from being provided to the front end.
+        today.fine_fuel_moisture_code = None
+        today.duff_moisture_code = None
+        today.drought_code = None
+        today.initial_spread_index = None
+        today.build_up_index = None
+        today.fire_weather_index = None
+        return today
+
     if yesterday.fine_fuel_moisture_code is not None:
         today.fine_fuel_moisture_code = ffmc(ffmc_yda=yesterday.fine_fuel_moisture_code, temp=temp, rh=rh, prec=precip, ws=wind_spd)
     if yesterday.duff_moisture_code is not None:

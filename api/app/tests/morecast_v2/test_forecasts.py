@@ -4,7 +4,15 @@ from unittest.mock import Mock, patch
 import pytest
 from math import isclose
 from wps_shared.db.models.morecast_v2 import MorecastForecastRecord
-from app.morecast_v2.forecasts import actual_exists, construct_wf1_forecast, construct_wf1_forecasts, filter_for_api_forecasts, get_forecasts, get_fwi_values
+from app.morecast_v2.forecasts import (
+    actual_exists,
+    calculate_fwi_values,
+    construct_wf1_forecast,
+    construct_wf1_forecasts,
+    filter_for_api_forecasts,
+    get_forecasts,
+    get_fwi_values,
+)
 from wps_shared.schemas.morecast_v2 import StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate, WF1ForecastRecordType, WF1PostForecast, MoreCastForecastInput
 from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 
@@ -119,6 +127,27 @@ forecast_indeterminate_2 = WeatherIndeterminate(
     latitude=49.4358,
     longitude=-116.7464,
     temperature=27.0,
+    relative_humidity=50.0,
+    precipitation=1.0,
+    wind_direction=176.0,
+    wind_speed=12,
+    fine_fuel_moisture_code=None,
+    duff_moisture_code=None,
+    drought_code=None,
+    initial_spread_index=None,
+    build_up_index=None,
+    fire_weather_index=None,
+    danger_rating=None,
+)
+
+forecast_indeterminate_missing_temperature = WeatherIndeterminate(
+    station_code=321,
+    station_name="TEST_STATION2",
+    determinate=WeatherDeterminate.FORECAST,
+    utc_timestamp=end_time,
+    latitude=49.4358,
+    longitude=-116.7464,
+    temperature=None,
     relative_humidity=50.0,
     precipitation=1.0,
     wind_direction=176.0,
@@ -292,3 +321,25 @@ def test_filter_for_api_forecasts_returns_matching_forecast_when_match_actuals()
     filtered_forecasts = filter_for_api_forecasts([forecast], actuals)
     assert len(filtered_forecasts) == 1
     assert filtered_forecasts[0] == forecast
+
+
+def test_calculate_fwi_values():
+    result = calculate_fwi_values(actual_indeterminate_1, forecast_indeterminate_1)
+    assert isclose(result.build_up_index, 48.4, abs_tol=0.1)
+    assert isclose(result.drought_code, 487.8, abs_tol=0.1)
+    assert isclose(result.duff_moisture_code, 27.6, abs_tol=0.1)
+    assert isclose(result.fine_fuel_moisture_code, 76.6, abs_tol=0.1)
+    assert isclose(result.fire_weather_index, 3.8, abs_tol=0.1)
+    assert isclose(result.initial_spread_index, 1.3, abs_tol=0.1)
+
+
+def test_calculate_fwi_values_missing_weather():
+    result = calculate_fwi_values(
+        actual_indeterminate_1, forecast_indeterminate_missing_temperature
+    )
+    assert result.build_up_index is None
+    assert result.drought_code is None
+    assert result.duff_moisture_code is None
+    assert result.fine_fuel_moisture_code is None
+    assert result.fire_weather_index is None
+    assert result.initial_spread_index is None
