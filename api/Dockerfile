@@ -21,13 +21,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update
 RUN apt-get -y install unixodbc-dev
 # Install old (2.4.*; current debian) version of gdal
-# cffdrs requires libudunits2-dev
-RUN apt-get -y install libgdal-dev libudunits2-dev
+# cffdrs requires libudunits2-dev and additional system dependencies for s2/sf
+RUN apt-get -y install libgdal-dev libudunits2-dev \
+    libssl-dev libcurl4-openssl-dev libxml2-dev \
+    libgeos-dev libproj-dev libsqlite3-dev
 
 # Install R
 RUN apt-get update --fix-missing && apt-get -y install r-base
 
-# Install cffdrs
+# Install cffdrs (this will also install s2 and sf with proper system dependencies)
 RUN R -e "install.packages('cffdrs')"
 
 # Install some other dependancies
