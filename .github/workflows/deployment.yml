@@ -412,7 +412,7 @@ jobs:
     steps:
       - name: Run Schemathesis
         continue-on-error: true
-        uses: schemathesis/action@v1
+        uses: schemathesis/action@v2
         with:
           # Your API schema location
           schema: "https://wps-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca/api/openapi.json"
