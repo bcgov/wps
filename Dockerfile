@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=ghcr.io/bcgov/wps/wps-api-base:06-23-2025
+ARG DOCKER_IMAGE=ghcr.io/bcgov/wps/wps-api-base:06-30-2025
 # To build locally, point to a local base image you've already built (see openshift/wps-api-base)
 # e.g. : docker build --build-arg DOCKER_IMAGE=wps-api-base:my-tag .
 
