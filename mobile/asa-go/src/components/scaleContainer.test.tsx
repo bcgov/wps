@@ -14,13 +14,13 @@ describe("ScaleContainer", () => {
 
   it("renders the ScaleContainer when visible is true", () => {
     const setVisible = vi.fn();
-    render(<ScaleContainer visible={true} timeout={3000} setVisible={setVisible} />);
+    render(<ScaleContainer visible={true} setVisible={setVisible} />);
     expect(screen.getByTestId("scale-container")).toBeInTheDocument();
   });
 
   it("calls setVisible(false) after the specified timeout", () => {
     const setVisible = vi.fn();
-    render(<ScaleContainer visible={true} timeout={3000} setVisible={setVisible} />);
+    render(<ScaleContainer visible={true} setVisible={setVisible} />);
     act(() => {
       vi.advanceTimersByTime(3000);
     });
@@ -29,7 +29,7 @@ describe("ScaleContainer", () => {
 
   it("does not call setVisible if visible is false", () => {
     const setVisible = vi.fn();
-    render(<ScaleContainer visible={false} timeout={3000} setVisible={setVisible} />);
+    render(<ScaleContainer visible={false} setVisible={setVisible} />);
     act(() => {
       vi.advanceTimersByTime(3000);
     });
