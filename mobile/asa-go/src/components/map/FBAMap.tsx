@@ -51,6 +51,7 @@ export interface FBAMapProps {
 
 const FBAMap = (props: FBAMapProps) => {
   const [map, setMap] = useState<Map | null>(null);
+  const [scaleVisible, setScaleVisible] = useState<boolean>(true);
   const [basemapLayer] = useState<TileLayer>(createBasemapLayer());
   const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
     useState<VectorTileLayer>(() => {
@@ -275,7 +276,15 @@ const FBAMap = (props: FBAMapProps) => {
       }
     };
     loadPMTiles();
+
+    const setScalelineVisibility = () => {
+      setScaleVisible(true);
+    };
+
+    // Make the scale line visible when the user zooms in/out
+    mapObject.getView().on("change:resolution", setScalelineVisibility);
     return () => {
+      mapObject.getView().un("change:resolution", setScalelineVisibility);
       mapObject.setTarget("");
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -296,7 +305,11 @@ const FBAMap = (props: FBAMapProps) => {
         >
           <TodayTomorrowSwitch date={props.date} setDate={props.setDate} />
         </Box>
-        <ScalebarContainer ref={scaleRef} />
+        <ScalebarContainer
+          visible={scaleVisible}
+          setVisible={setScaleVisible}
+          ref={scaleRef}
+        />
       </Box>
     </MapContext.Provider>
   );
