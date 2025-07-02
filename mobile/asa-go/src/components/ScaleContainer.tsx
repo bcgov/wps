@@ -1,16 +1,16 @@
 import { Box, Fade } from "@mui/material";
 import React, { forwardRef, useEffect } from "react";
 
-interface ScalebarContainerProps {
+interface ScaleContainerProps {
   visible: boolean;
   setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const ScalebarContainer = forwardRef(
-  ({ visible, setVisible }: ScalebarContainerProps, ref) => {
+const ScaleContainer = forwardRef(
+  ({ visible, setVisible }: ScaleContainerProps, ref) => {
     useEffect(() => {
       if (visible) {
-        const timer = setTimeout(() => setVisible(false), 3000);
+        const timer = setTimeout(() => setVisible(false), 2000);
         return () => clearTimeout(timer);
       }
     }, [visible]);
@@ -18,6 +18,7 @@ const ScalebarContainer = forwardRef(
     return (
       <Fade in={visible} timeout={visible ? 0 : 2000}>
         <Box
+          data-testid="scale-container"
           ref={ref}
           sx={{
             position: "absolute",
@@ -36,6 +37,6 @@ const ScalebarContainer = forwardRef(
     );
   }
 );
-ScalebarContainer.displayName = "ScalebarContainer";
+ScaleContainer.displayName = "ScaleContainer";
 
-export default React.memo(ScalebarContainer);
+export default React.memo(ScaleContainer);
