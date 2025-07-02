@@ -145,7 +145,7 @@ def populate_combustible_area_for_year(session: Session, year: int):
 
 
 def depopulate_combustible_area_for_year(session: Session, year: int):
-    fuel_type_raster = get_fuel_type_raster(session, 2021)
+    fuel_type_raster = get_fuel_type_raster(session, year)
     stmt = combustible_area_table.delete().where(
         combustible_area_table.c.fuel_type_raster_id == fuel_type_raster.id
     )
