@@ -39,6 +39,8 @@ import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import ResetForecastButton from 'features/moreCast2/components/ResetForecastButton'
 import { getDateTimeNowPST } from 'utils/date'
 import { setRequiredInputEmpty } from '@/features/moreCast2/slices/validInputSlice'
+import AboutDataPopover from '@/components/AboutDataPopover'
+import MorecastAboutDataContent from '@/features/moreCast2/components/MorecastAboutDataContent'
 
 export interface ColumnClickHandlerProps {
   colDef: GridColDef | null
@@ -546,64 +548,71 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
           </Stack>
         </Grid>
       </Grid>
-      <List component={Stack} direction="row">
-        <SelectableButton
-          dataTestId="temp-tab-button"
-          onClick={() => setTempVisible(!tempVisible)}
-          selected={tempVisible}
-          weatherParam="temp"
-        >
-          Temp
-        </SelectableButton>
-        <SelectableButton
-          dataTestId="rh-tab-button"
-          onClick={() => setRhVisible(!rhVisible)}
-          selected={rhVisible}
-          weatherParam="rh"
-        >
-          RH
-        </SelectableButton>
-        <SelectableButton
-          dataTestId="wind-direction-tab-button"
-          onClick={() => setWindDirectionVisible(!windDirectionVisible)}
-          selected={windDirectionVisible}
-          weatherParam="windDirection"
-        >
-          Wind Direction
-        </SelectableButton>
-        <SelectableButton
-          dataTestId="wind-speed-tab-button"
-          onClick={() => setWindSpeedVisible(!windSpeedVisible)}
-          selected={windSpeedVisible}
-          weatherParam="windSpeed"
-        >
-          Wind Speed
-        </SelectableButton>
-        <SelectableButton
-          dataTestId="precip-tab-button"
-          onClick={() => setPrecipVisible(!precipVisible)}
-          selected={precipVisible}
-          weatherParam="precip"
-        >
-          Precip
-        </SelectableButton>
-        <SelectableButton
-          dataTestId="grass-curing-tab-button"
-          onClick={() => setGrassCuringVisible(!grassCuringVisible)}
-          selected={grassCuringVisible}
-          weatherParam="gc"
-        >
-          Grass Curing
-        </SelectableButton>
-        <SelectableButton
-          dataTestId="summary-tab-button"
-          onClick={() => setForecastSummaryVisible(!forecastSummaryVisible)}
-          selected={forecastSummaryVisible}
-          weatherParam="summary"
-        >
-          Forecast Summary
-        </SelectableButton>
-      </List>
+      <Grid container alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+        <Grid item>
+          <List component={Stack} direction="row">
+            <SelectableButton
+              dataTestId="temp-tab-button"
+              onClick={() => setTempVisible(!tempVisible)}
+              selected={tempVisible}
+              weatherParam="temp"
+            >
+              Temp
+            </SelectableButton>
+            <SelectableButton
+              dataTestId="rh-tab-button"
+              onClick={() => setRhVisible(!rhVisible)}
+              selected={rhVisible}
+              weatherParam="rh"
+            >
+              RH
+            </SelectableButton>
+            <SelectableButton
+              dataTestId="wind-direction-tab-button"
+              onClick={() => setWindDirectionVisible(!windDirectionVisible)}
+              selected={windDirectionVisible}
+              weatherParam="windDirection"
+            >
+              Wind Direction
+            </SelectableButton>
+            <SelectableButton
+              dataTestId="wind-speed-tab-button"
+              onClick={() => setWindSpeedVisible(!windSpeedVisible)}
+              selected={windSpeedVisible}
+              weatherParam="windSpeed"
+            >
+              Wind Speed
+            </SelectableButton>
+            <SelectableButton
+              dataTestId="precip-tab-button"
+              onClick={() => setPrecipVisible(!precipVisible)}
+              selected={precipVisible}
+              weatherParam="precip"
+            >
+              Precip
+            </SelectableButton>
+            <SelectableButton
+              dataTestId="grass-curing-tab-button"
+              onClick={() => setGrassCuringVisible(!grassCuringVisible)}
+              selected={grassCuringVisible}
+              weatherParam="gc"
+            >
+              Grass Curing
+            </SelectableButton>
+            <SelectableButton
+              dataTestId="summary-tab-button"
+              onClick={() => setForecastSummaryVisible(!forecastSummaryVisible)}
+              selected={forecastSummaryVisible}
+              weatherParam="summary"
+            >
+              Forecast Summary
+            </SelectableButton>
+          </List>
+        </Grid>
+        <Grid item sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
+          <AboutDataPopover content={MorecastAboutDataContent} maxWidth={450} testId={'morecast-about-data-popover'} />
+        </Grid>
+      </Grid>
       {forecastSummaryVisible ? (
         <ForecastSummaryDataGrid
           loading={loading}

@@ -31,7 +31,7 @@ const TABS = [
 // ]
 
 describe('TabbedDataGrid', () => {
-  const fetchWeatherIndeterminatesMock = vi.fn((): void => { })
+  const fetchWeatherIndeterminatesMock = vi.fn((): void => {})
   test('Only temp tab is selected on load', async () => {
     const { getByTestId } = render(
       <Provider store={store}>
@@ -74,6 +74,30 @@ describe('TabbedDataGrid', () => {
     const unselectedTabButton = getByTestId(`${TABS[0]}-unselected`)
     await userEvent.click(unselectedTabButton)
     await waitFor(() => expect(getByTestId('tempForecast-column-header')).toBeDefined())
+  })
+
+  test('AboutDataPopover is rendered and opens on click', async () => {
+    const { getByTestId, queryByTestId } = render(
+      <Provider store={store}>
+        <TabbedDataGrid
+          fromTo={FROM_TO}
+          setFromTo={SET_FROM_TO}
+          fetchWeatherIndeterminates={fetchWeatherIndeterminatesMock}
+        />
+      </Provider>
+    )
+
+    // popover trigger should be in the document
+    const aboutDataTrigger = getByTestId('about-data-trigger')
+    expect(aboutDataTrigger).toBeInTheDocument()
+
+    // content shouldn't be visible initially
+    expect(queryByTestId('morecast-about-data-content')).not.toBeInTheDocument()
+
+    await userEvent.click(aboutDataTrigger)
+
+    // content should be visible after click
+    expect(getByTestId('morecast-about-data-content')).toBeInTheDocument()
   })
 })
 

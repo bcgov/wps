@@ -34,7 +34,7 @@ from wps_shared.wildfire_one.wfwx_api import (
 
 logger = logging.getLogger(__name__)
 
-FIREWATCH_WEATHER_MODEL = ModelEnum.GFS
+FIREWATCH_WEATHER_MODEL = ModelEnum.ECMWF
 
 
 class MissingWeatherDataError(Exception):
@@ -332,7 +332,7 @@ async def get_actuals_and_forecasts(
     async with ClientSession() as session:
         header = await get_auth_header(session)
         wf1_actuals, wf1_forecasts = await get_daily_determinates_for_stations_and_date(
-            session, header, start_date, end_date, station_ids, check_cache=False
+            session, header, start_date, end_date, station_ids
         )
         return wf1_actuals, wf1_forecasts
 

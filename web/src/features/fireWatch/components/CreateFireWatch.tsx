@@ -15,8 +15,9 @@ import { Box, Button, Step, StepLabel, Stepper, Typography, useTheme } from '@mu
 import { fetchFireWatchFireCentres } from 'features/fireWatch/slices/fireWatchFireCentresSlice'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { useEffect, useRef, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
+import { fireWatch as fireWatchState, RootState } from '@/app/rootReducer'
 
 interface CreateFireWatchProps {
   fireWatch?: FireWatch
@@ -35,6 +36,11 @@ const CreateFireWatch = ({
   // Use props if provided, otherwise fall back to defaults
   const [fireWatch, setFireWatch] = useState<FireWatch>(initialFireWatch ?? getBlankFireWatch())
   const [activeStep, setActiveStep] = useState<number>(initialActiveStep ?? 0)
+
+  const { fireWatchSubmitting } = useSelector(fireWatchState)
+  const { loading: updateLoading } = useSelector((state: RootState) => state.burnForecasts)
+
+  const isLoading = fireWatchSubmitting || updateLoading
 
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -81,16 +87,31 @@ const CreateFireWatch = ({
     setActiveStep(prevActiveStep => prevActiveStep + 1)
   }
 
+  const handleStepLabelClick = (idx: number) => {
+    if (!isEditMode) return
+    if (isLoading || idx === activeStep) return
+
+    if (formRef.current && !formRef.current.reportValidity()) {
+      // invalid form, do not proceed
+      return
+    }
+    setActiveStep(idx)
+  }
+
   const handleReset = () => {
     setFireWatch(getBlankFireWatch())
     setActiveStep(0)
   }
 
   const handleSubmit = async () => {
-    if (isNaN(fireWatch.id)) {
-      dispatch(submitNewFireWatch(fireWatch))
-    } else {
-      dispatch(updateFireWatch(fireWatch))
+    try {
+      if (isNaN(fireWatch.id)) {
+        dispatch(submitNewFireWatch(fireWatch))
+      } else {
+        await dispatch(updateFireWatch(fireWatch))
+      }
+    } catch (err) {
+      console.error('Failed to submit:', err)
     }
   }
 
@@ -107,14 +128,25 @@ const CreateFireWatch = ({
         Burn Entry Form
       </Typography>
       <Stepper activeStep={activeStep} alternativeLabel sx={{ width: `${FORM_MAX_WIDTH}px` }}>
-        {steps.map(step => {
-          const stepProps: { completed?: boolean } = {}
-          return (
-            <Step key={step.key} {...stepProps}>
-              <StepLabel>{step.label}</StepLabel>
-            </Step>
-          )
-        })}
+        {steps.map((step, idx) => (
+          <Step key={step.key}>
+            <StepLabel
+              onClick={() => handleStepLabelClick(idx)}
+              sx={
+                isEditMode
+                  ? {
+                      cursor: 'pointer',
+                      '&.Mui-disabled': {
+                        cursor: 'pointer'
+                      }
+                    }
+                  : undefined
+              }
+            >
+              {step.label}
+            </StepLabel>
+          </Step>
+        ))}
       </Stepper>
       <Box component="form" ref={formRef} onSubmit={handleNext}>
         {activeStep === 0 && <InfoStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
@@ -123,15 +155,20 @@ const CreateFireWatch = ({
         {activeStep === 3 && <FuelStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
         {activeStep === 4 && <FireBehvaiourIndicesStep fireWatch={fireWatch} setFireWatch={setFireWatch} />}
         {activeStep === 5 && <ReviewSubmitStep fireWatch={fireWatch} setActiveStep={setActiveStep} />}
-        {activeStep === 6 && <CompleteStep isEditMode={isEditMode} />}
+        {activeStep === 6 && <CompleteStep isEditMode={isEditMode} isLoading={isLoading} />}
         {activeStep < steps.length && (
           <Box sx={{ display: 'flex', flexDirection: 'row', pr: theme.spacing(4), width: `${FORM_MAX_WIDTH}px` }}>
             <Box sx={{ display: 'flex', flexGrow: 1, pl: theme.spacing(4) }}>
-              <Button disabled={activeStep === 0} onClick={handleBack} variant="outlined" type="button">
+              <Button disabled={activeStep === 0 || isLoading} onClick={handleBack} variant="outlined" type="button">
                 Back
               </Button>
             </Box>
-            <Button variant="contained" type="submit">
+            {isEditMode && (
+              <Button onClick={onCloseModal} variant="outlined" disabled={isLoading} sx={{ mr: 2 }}>
+                Cancel
+              </Button>
+            )}
+            <Button variant="contained" type="submit" disabled={isLoading}>
               {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
             </Button>
           </Box>
@@ -148,16 +185,16 @@ const CreateFireWatch = ({
           }}
         >
           <Box sx={{ display: 'flex', flexGrow: 1, pl: theme.spacing(4) }}>
-            <Button disabled={activeStep === 0} onClick={handleBack} variant="outlined">
+            <Button disabled={activeStep === 0 || isLoading} onClick={handleBack} variant="outlined">
               Back
             </Button>
           </Box>
           {isEditMode ? (
-            <Button onClick={onCloseModal} variant="contained">
+            <Button onClick={onCloseModal} variant="contained" disabled={isLoading}>
               Close
             </Button>
           ) : (
-            <Button onClick={handleReset} variant="contained">
+            <Button onClick={handleReset} variant="contained" disabled={isLoading}>
               Reset
             </Button>
           )}
