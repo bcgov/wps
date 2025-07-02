@@ -18,7 +18,7 @@ import {
 import { DateTime } from "luxon";
 import { cloneDeep, isNull, isUndefined } from "lodash";
 import { Box } from "@mui/material";
-import ScalebarContainer from "@/components/ScaleBarContainer";
+import ScaleContainer from "@/components/ScaleContainer";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import { CENTER_OF_BC } from "@/utils/constants";
 import { extentsMap } from "@/fireCentreExtents";
@@ -305,7 +305,7 @@ const FBAMap = (props: FBAMapProps) => {
         >
           <TodayTomorrowSwitch date={props.date} setDate={props.setDate} />
         </Box>
-        <ScalebarContainer
+        <ScaleContainer
           visible={scaleVisible}
           setVisible={setScaleVisible}
           ref={scaleRef}
