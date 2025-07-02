@@ -1,6 +1,6 @@
 import { Map, View } from "ol";
 import "ol/ol.css";
-import { defaults as defaultControls, FullScreen } from "ol/control";
+import { defaults as defaultControls } from "ol/control";
 import { fromLonLat } from "ol/proj";
 import { boundingExtent } from "ol/extent";
 import ScaleLine from "ol/control/ScaleLine";
@@ -33,6 +33,7 @@ import {
 import TileLayer from "ol/layer/Tile";
 import { useSelector } from "react-redux";
 import { selectNetworkStatus } from "@/store";
+import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
 export const MapContext = React.createContext<Map | null>(null);
 
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
@@ -44,6 +45,8 @@ export interface FBAMapProps {
   fireShapeAreas: FireShapeArea[];
   advisoryThreshold: number;
   zoomSource?: "fireCenter" | "fireShape";
+  date: DateTime;
+  setDate: React.Dispatch<React.SetStateAction<DateTime>>;
 }
 
 const FBAMap = (props: FBAMapProps) => {
@@ -166,7 +169,9 @@ const FBAMap = (props: FBAMapProps) => {
       }),
       layers: [],
       overlays: [],
-      controls: defaultControls().extend([new FullScreen()]),
+      controls: defaultControls({
+        zoom: false,
+      }),
     });
     mapObject.setTarget(mapRef.current);
 
@@ -290,6 +295,11 @@ const FBAMap = (props: FBAMapProps) => {
           position: "relative",
         }}
       >
+        <Box
+          sx={{ position: "absolute", left: "8px", bottom: "8px", zIndex: 1 }}
+        >
+          <TodayTomorrowSwitch date={props.date} setDate={props.setDate} />
+        </Box>
         <ScalebarContainer ref={scaleRef} />
       </Box>
     </MapContext.Provider>

@@ -53,3 +53,5 @@ export const theme = createTheme({
     },
   },
 });
+
+export const MAP_BUTTON_GREY = "#7F7F7F"
