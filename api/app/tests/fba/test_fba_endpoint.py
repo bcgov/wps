@@ -2,7 +2,7 @@ import json
 import math
 from collections import namedtuple
 from datetime import date, datetime, timezone
-from unittest.mock import create_autospec, patch
+from unittest.mock import patch
 
 import app.main
 import pytest
