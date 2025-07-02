@@ -175,11 +175,7 @@ const FBAMap = (props: FBAMapProps) => {
     });
     mapObject.setTarget(mapRef.current);
 
-    const scaleBar = new ScaleLine({
-      bar: true,
-      minWidth: 160,
-      steps: 4,
-    });
+    const scaleBar = new ScaleLine({});
     scaleBar.setTarget(scaleRef.current);
     scaleBar.setMap(mapObject);
 
