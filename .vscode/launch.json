@@ -84,24 +84,6 @@
             "console": "integratedTerminal",
         },
         {
-            "name": "generate classified tpi",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "app.auto_spatial_advisory.local.generate_classified_tpi",
-            "console": "integratedTerminal",
-        },
-        {
-            "name": "generate fuel masked tpi",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "app.auto_spatial_advisory.local.generate_fuel_masked_tpi",
-            "console": "integratedTerminal",
-            "args": [
-                "-y",
-                "2025"
-            ]
-        },
-        {
             "name": "app.jobs.rdps_sfms",
             "type": "debugpy",
             "request": "launch",
