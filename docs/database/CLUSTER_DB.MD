@@ -5,7 +5,7 @@
 The diagram below shows an overview of the database cluster. The components circled in red are the pieces we use operationally at the time of writing.
 
 ![Cluster Architecture Overview](cluster-overview.png)
-Source: https://access.crunchydata.com/documentation/postgres-operator/latest/architecture
+Source: <https://access.crunchydata.com/documentation/postgres-operator/latest/architecture>
 
 ## Components
 
@@ -44,7 +44,7 @@ Source: https://access.crunchydata.com/documentation/postgres-operator/latest/ar
 In the rare case where the multi-instance primary cluster is unrecoverable a repo-based standby cluster can be spun up and bootstrapped from the S3 archive repo.
 
 ![Repo-based Standby Architecture](repo-standby-overview.png)
-Source: https://access.crunchydata.com/documentation/postgres-operator/latest/architecture/disaster-recovery#repo-based-standby
+Source: <https://access.crunchydata.com/documentation/postgres-operator/latest/architecture/disaster-recovery#repo-based-standby>
 
 When the repo-standby is spun, it reads and applies the WAL in order to replicate the state of the database and runs as it's own cluster, separate from the primary.
 
@@ -87,7 +87,7 @@ In the event that the cluster can't be restored from pgbackrest you can create a
 
 ```
 oc login --token=<your-token> --server=<openshift-api-url>
-PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=45Gi bash ./oc_provision_crunchy.sh <suffix> apply
+PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> CPU_REQUEST=75m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=45Gi bash ./oc_provision_crunchy.sh <suffix> apply
 ```
 
 ##### Set superuser permissions in new cluster via OpenShift web GUI
