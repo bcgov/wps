@@ -84,13 +84,6 @@
             "console": "integratedTerminal",
         },
         {
-            "name": "generate classified tpi",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "app.auto_spatial_advisory.local.generate_classified_tpi",
-            "console": "integratedTerminal",
-        },
-        {
             "name": "app.jobs.rdps_sfms",
             "type": "debugpy",
             "request": "launch",
@@ -141,6 +134,13 @@
             "args": [
                 "2024-10-23 12"
             ]
+        },
+        {
+            "name": "fuel type area per zone job",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.fuel_type_areas_per_zone",
+            "console": "integratedTerminal",
         },
         {
             "name": "Chrome",
