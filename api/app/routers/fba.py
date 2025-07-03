@@ -9,7 +9,9 @@ from typing import List
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 
-from app.auto_spatial_advisory.fuel_type_layer import get_current_fuel_type_raster
+from app.auto_spatial_advisory.fuel_type_layer import (
+    get_fuel_type_raster_by_year,
+)
 from app.auto_spatial_advisory.process_hfi import RunType
 from app.auto_spatial_advisory.zone_stats import (
     get_fuel_type_area_stats,
@@ -21,14 +23,12 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_sfms_fuel_type_records,
     get_centre_tpi_stats,
     get_fire_centre_tpi_fuel_areas,
-    get_fire_zone_tpi_fuel_areas,
     get_hfi_area,
     get_min_wind_speed_hfi_thresholds,
     get_precomputed_stats_for_shape,
     get_provincial_rollup,
     get_run_datetimes,
     get_sfms_bounds,
-    get_zonal_tpi_stats,
     get_zone_source_ids_in_centre,
 )
 from wps_shared.db.database import get_async_read_session_scope
@@ -73,7 +73,7 @@ async def get_shapes(
 ):
     """Return area of each zone unit shape, and percentage of area of zone unit shape with high hfi."""
     async with get_async_read_session_scope() as session:
-        fuel_type_raster = await get_current_fuel_type_raster(session)
+        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
         shapes = []
 
         rows = await get_hfi_area(
@@ -106,7 +106,7 @@ async def get_provincial_summary(
     """Return all Fire Centres with their fire shapes and the HFI status of those shapes."""
     logger.info("/fba/provincial_summary/")
     async with get_async_read_session_scope() as session:
-        fuel_type_raster = await get_current_fuel_type_raster(session)
+        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
         fire_shape_area_details = []
         rows = await get_provincial_rollup(
             session, RunTypeEnum(run_type.value), run_datetime, for_date, fuel_type_raster.id
@@ -152,8 +152,7 @@ async def get_hfi_fuels_data_for_fire_centre(
         fuel_types = await get_all_sfms_fuel_type_records(session)
         # get fire zone id's within a fire centre
         zone_source_ids = await get_zone_source_ids_in_centre(session, fire_centre_name)
-
-        # wind stats
+        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
         zone_wind_stats_by_source_id = {}
         hfi_thresholds_by_id = await get_all_hfi_thresholds_by_id(session)
         advisory_wind_speed_by_source_id = await get_min_wind_speed_hfi_thresholds(
@@ -174,7 +173,22 @@ async def get_hfi_fuels_data_for_fire_centre(
                 for_date=for_date,
                 run_datetime=run_datetime,
                 source_identifier=zone_source_id,
+                fuel_type_raster_id=fuel_type_raster.id,
             )
+
+            if hfi_fuel_type_ids_for_zone is None or len(hfi_fuel_type_ids_for_zone) == 0:
+                # Handle the situation where data for the current year was actually processed with
+                # last year's fuel grid
+                fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year - 1)
+                hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
+                    session,
+                    run_type=RunTypeEnum(run_type.value),
+                    for_date=for_date,
+                    run_datetime=run_datetime,
+                    source_identifier=zone_source_id,
+                    fuel_type_raster_id=fuel_type_raster.id,
+                )
+
             zone_fuel_stats = []
 
             for (
@@ -240,45 +254,6 @@ async def get_sfms_run_bounds():
 
 
 @router.get(
-    "/fire-zone-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_zone_id}",
-    response_model=FireZoneTPIStats,
-)
-async def get_fire_zone_tpi_stats(
-    fire_zone_id: int,
-    run_type: RunType,
-    run_datetime: datetime,
-    for_date: date,
-    _=Depends(authentication_required),
-):
-    """Return the elevation TPI statistics for each advisory threshold"""
-    logger.info("/fba/fire-zone-tpi-stats/")
-    async with get_async_read_session_scope() as session:
-        stats = await get_zonal_tpi_stats(session, fire_zone_id, run_type, run_datetime, for_date)
-        square_metres = math.pow(stats.pixel_size_metres, 2) if stats is not None else None
-        tpi_fuel_stats = await get_fire_zone_tpi_fuel_areas(session, fire_zone_id)
-        valley_bottom_tpi = None
-        mid_slope_tpi = None
-        upper_slope_tpi = None
-
-        for tpi_fuel_stat in tpi_fuel_stats:
-            if tpi_fuel_stat.tpi_class == TPIClassEnum.valley_bottom:
-                valley_bottom_tpi = tpi_fuel_stat.fuel_area
-            elif tpi_fuel_stat.tpi_class == TPIClassEnum.mid_slope:
-                mid_slope_tpi = tpi_fuel_stat.fuel_area
-            elif tpi_fuel_stat.tpi_class == TPIClassEnum.upper_slope:
-                upper_slope_tpi = tpi_fuel_stat.fuel_area
-        return FireZoneTPIStats(
-            fire_zone_id=fire_zone_id,
-            valley_bottom_hfi=stats.valley_bottom * square_metres if stats is not None else None,
-            valley_bottom_tpi=valley_bottom_tpi,
-            mid_slope_hfi=stats.mid_slope * square_metres if stats is not None else None,
-            mid_slope_tpi=mid_slope_tpi,
-            upper_slope_hfi=stats.upper_slope * square_metres if stats is not None else None,
-            upper_slope_tpi=upper_slope_tpi,
-        )
-
-
-@router.get(
     "/fire-centre-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}",
     response_model=FireCentreTPIResponse,
 )
@@ -295,7 +270,10 @@ async def get_fire_centre_tpi_stats(
         tpi_stats_for_centre = await get_centre_tpi_stats(
             session, fire_centre_name, run_type, run_datetime, for_date
         )
-        tpi_fuel_stats = await get_fire_centre_tpi_fuel_areas(session, fire_centre_name)
+        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
+        tpi_fuel_stats = await get_fire_centre_tpi_fuel_areas(
+            session, fire_centre_name, fuel_type_raster.id
+        )
 
         hfi_tpi_areas_by_zone = []
         for row in tpi_stats_for_centre:
