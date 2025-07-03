@@ -18,7 +18,7 @@ import {
 import { DateTime } from "luxon";
 import { cloneDeep, isNull, isUndefined } from "lodash";
 import { Box } from "@mui/material";
-import ScalebarContainer from "@/components/ScaleBarContainer";
+import ScaleContainer from "@/components/ScaleContainer";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import { CENTER_OF_BC } from "@/utils/constants";
 import { extentsMap } from "@/fireCentreExtents";
@@ -51,6 +51,7 @@ export interface FBAMapProps {
 
 const FBAMap = (props: FBAMapProps) => {
   const [map, setMap] = useState<Map | null>(null);
+  const [scaleVisible, setScaleVisible] = useState<boolean>(true);
   const [basemapLayer] = useState<TileLayer>(createBasemapLayer());
   const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
     useState<VectorTileLayer>(() => {
@@ -175,11 +176,7 @@ const FBAMap = (props: FBAMapProps) => {
     });
     mapObject.setTarget(mapRef.current);
 
-    const scaleBar = new ScaleLine({
-      bar: true,
-      minWidth: 160,
-      steps: 4,
-    });
+    const scaleBar = new ScaleLine({});
     scaleBar.setTarget(scaleRef.current);
     scaleBar.setMap(mapObject);
 
@@ -279,7 +276,15 @@ const FBAMap = (props: FBAMapProps) => {
       }
     };
     loadPMTiles();
+
+    const setScalelineVisibility = () => {
+      setScaleVisible(true);
+    };
+
+    // Make the scale line visible when the user zooms in/out
+    mapObject.getView().on("change:resolution", setScalelineVisibility);
     return () => {
+      mapObject.getView().un("change:resolution", setScalelineVisibility);
       mapObject.setTarget("");
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -300,7 +305,11 @@ const FBAMap = (props: FBAMapProps) => {
         >
           <TodayTomorrowSwitch date={props.date} setDate={props.setDate} />
         </Box>
-        <ScalebarContainer ref={scaleRef} />
+        <ScaleContainer
+          visible={scaleVisible}
+          setVisible={setScaleVisible}
+          ref={scaleRef}
+        />
       </Box>
     </MapContext.Provider>
   );
