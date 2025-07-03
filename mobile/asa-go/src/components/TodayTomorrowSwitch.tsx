@@ -2,17 +2,16 @@ import { Box, Button, styled } from "@mui/material";
 import { useState } from "react";
 import { DateTime } from "luxon";
 import { MAP_BUTTON_GREY } from "@/theme";
+import { BORDER_RADIUS, BUTTON_HEIGHT } from "@/components/MapIconButton";
 
 interface TodayTomorrowSwitchProps {
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
 }
 
-const BORDER_RADIUS = 8;
 const BUTTON_WIDTH = 48;
 const TEXT_BOX_WIDTH = BUTTON_WIDTH - 4;
 const MAX_SWITCH_WIDTH = 2 * BUTTON_WIDTH;
-const BUTTON_HEIGHT = 32;
 const TEXT_BOX_HEIGHT = BUTTON_HEIGHT - 4;
 
 const StyledButton = styled(Button)({

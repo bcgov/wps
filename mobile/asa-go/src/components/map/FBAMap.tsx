@@ -1,40 +1,43 @@
-import { Map, View } from "ol";
-import "ol/ol.css";
-import { defaults as defaultControls } from "ol/control";
-import { fromLonLat } from "ol/proj";
-import { boundingExtent } from "ol/extent";
-import ScaleLine from "ol/control/ScaleLine";
-import VectorTileLayer from "ol/layer/VectorTile";
-import React, { useEffect, useRef, useState } from "react";
-import { BC_EXTENT } from "utils/constants";
-import { FireCenter, FireShape, FireShapeArea, RunType } from "api/fbaAPI";
+import MapIconButton from "@/components/MapIconButton";
+import ScaleContainer from "@/components/ScaleContainer";
+import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
+import { MapContext } from "@/context/MapContext";
 import {
   fireCentreLabelStyler,
-  fireShapeLabelStyler,
   fireCentreLineStyler,
-  hfiStyler,
+  fireShapeLabelStyler,
   fireShapeLineStyler,
+  hfiStyler,
 } from "@/featureStylers";
-import { DateTime } from "luxon";
-import { cloneDeep, isNull, isUndefined } from "lodash";
-import { Box } from "@mui/material";
-import ScaleContainer from "@/components/ScaleContainer";
-import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
-import { CENTER_OF_BC } from "@/utils/constants";
 import { extentsMap } from "@/fireCentreExtents";
-import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
-import { PMTilesCache } from "@/utils/pmtilesCache";
-import { Filesystem } from "@capacitor/filesystem";
+import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import {
   createBasemapLayer,
   createLocalBasemapVectorLayer,
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
+import { startLocationTracking } from "@/slices/geolocationSlice";
+import { AppDispatch, selectGeolocation, selectNetworkStatus } from "@/store";
+import { CENTER_OF_BC, fullMapExtent } from "@/utils/constants";
+import { PMTilesCache } from "@/utils/pmtilesCache";
+import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
+import { Filesystem } from "@capacitor/filesystem";
+import MyLocationIcon from "@mui/icons-material/MyLocation";
+import { Box } from "@mui/material";
+import { FireCenter, FireShape, FireShapeArea, RunType } from "api/fbaAPI";
+import { cloneDeep, isNil, isNull, isUndefined } from "lodash";
+import { DateTime } from "luxon";
+import { Map, Overlay, View } from "ol";
+import { defaults as defaultControls } from "ol/control";
+import ScaleLine from "ol/control/ScaleLine";
+import { boundingExtent } from "ol/extent";
 import TileLayer from "ol/layer/Tile";
-import { useSelector } from "react-redux";
-import { selectNetworkStatus } from "@/store";
-import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
-export const MapContext = React.createContext<Map | null>(null);
+import VectorTileLayer from "ol/layer/VectorTile";
+import "ol/ol.css";
+import { fromLonLat, transformExtent } from "ol/proj";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { BC_EXTENT } from "utils/constants";
 
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
 
@@ -50,7 +53,16 @@ export interface FBAMapProps {
 }
 
 const FBAMap = (props: FBAMapProps) => {
+  const dispatch: AppDispatch = useDispatch();
+
+  // selectors
+  const { networkStatus } = useSelector(selectNetworkStatus);
+  const { position, error, loading, watchId } = useSelector(selectGeolocation);
+
+  // state
   const [map, setMap] = useState<Map | null>(null);
+  const [userLocationOverlay, setUserLocationOverlay] =
+    useState<Overlay | null>(null);
   const [scaleVisible, setScaleVisible] = useState<boolean>(true);
   const [basemapLayer] = useState<TileLayer>(createBasemapLayer());
   const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
@@ -59,13 +71,16 @@ const FBAMap = (props: FBAMapProps) => {
       layer.set("name", LOCAL_BASEMAP_LAYER_NAME);
       return layer;
     });
-  const { networkStatus } = useSelector(selectNetworkStatus);
+  const [shouldCenterOnUpdate, setShouldCenterOnUpdate] = useState(false); // flag to center map on user location after user clicks button, but not on every position update
+
+  // refs
   const mapRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
   const scaleRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
+  const userLocationRef = useRef<HTMLDivElement>(null);
 
   const removeLayerByName = (map: Map, layerName: string) => {
     const layer = map
@@ -76,6 +91,93 @@ const FBAMap = (props: FBAMapProps) => {
       map.removeLayer(layer);
     }
   };
+
+  const centerMapOnCurrentPosition = useCallback(() => {
+    if (!map || !position) return;
+
+    const coords = fromLonLat([
+      position.coords.longitude,
+      position.coords.latitude,
+    ]);
+
+    const currentZoom = map.getView().getZoom() || 5;
+    map.getView().animate({
+      center: coords,
+      zoom: currentZoom < 7.5 ? 7.5 : currentZoom, // Only zoom to 7 if currently less than 7
+      duration: 1000,
+    });
+  }, [map, position]);
+
+  /**
+   *
+   * - Sets a flag to center the map on the user's location upon update.
+   * - If location tracking is not active, dispatches an action to start tracking.
+   * - If location tracking is already active, dispatches an action to fetch the current position.
+   */
+  const handleLocationButtonClick = useCallback(() => {
+    setShouldCenterOnUpdate(true);
+
+    // start location tracking if not already watching
+    if (!watchId) {
+      dispatch(startLocationTracking());
+    }
+    // if already watching, just center on current position
+    else if (position) {
+      centerMapOnCurrentPosition();
+      setShouldCenterOnUpdate(false);
+    }
+  }, [dispatch, watchId, position, centerMapOnCurrentPosition]);
+
+  // user location overlay
+  useEffect(() => {
+    if (!map || !userLocationRef.current) return;
+
+    const overlay = new Overlay({
+      element: userLocationRef.current,
+      positioning: "center-center",
+      stopEvent: false,
+      className: "user-location-overlay",
+    });
+
+    map.addOverlay(overlay);
+    setUserLocationOverlay(overlay);
+
+    return () => {
+      map.removeOverlay(overlay);
+    };
+  }, [map]);
+
+  // update blue dot when location changes without centering map
+  useEffect(() => {
+    if (!userLocationOverlay || !position) {
+      if (userLocationOverlay) {
+        userLocationOverlay.setPosition(undefined);
+      }
+      return;
+    }
+
+    const coords = fromLonLat([
+      position.coords.longitude,
+      position.coords.latitude,
+    ]);
+
+    userLocationOverlay.setPosition(coords);
+  }, [userLocationOverlay, position]);
+
+  // center map when position is received after button click
+  useEffect(() => {
+    if (map && position && shouldCenterOnUpdate) {
+      centerMapOnCurrentPosition();
+      setShouldCenterOnUpdate(false);
+    }
+  }, [map, position, shouldCenterOnUpdate, centerMapOnCurrentPosition]);
+
+  // reset flag on error
+  useEffect(() => {
+    if (error && shouldCenterOnUpdate) {
+      setShouldCenterOnUpdate(false);
+    }
+  }, [error, shouldCenterOnUpdate]);
 
   useEffect(() => {
     // zoom to fire center or whole province
@@ -161,12 +263,19 @@ const FBAMap = (props: FBAMapProps) => {
     // Pattern copied from web/src/features/map/Map.tsx
     if (!mapRef.current) return;
 
+    const transformedExtent = transformExtent(
+      fullMapExtent,
+      "EPSG:4326",
+      "EPSG:3857"
+    );
+
     // Create the map with the options above and set the target
     // To the ref above so that it is rendered in that div
     const mapObject = new Map({
       view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC),
+        extent: transformedExtent,
       }),
       layers: [],
       overlays: [],
@@ -178,7 +287,7 @@ const FBAMap = (props: FBAMapProps) => {
 
     const scaleBar = new ScaleLine({});
     scaleBar.setTarget(scaleRef.current);
-    scaleBar.setMap(mapObject);
+    mapObject.addControl(scaleBar);
 
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] });
 
@@ -284,6 +393,7 @@ const FBAMap = (props: FBAMapProps) => {
     // Make the scale line visible when the user zooms in/out
     mapObject.getView().on("change:resolution", setScalelineVisibility);
     return () => {
+      mapObject.removeControl(scaleBar);
       mapObject.getView().un("change:resolution", setScalelineVisibility);
       mapObject.setTarget("");
     };
@@ -300,9 +410,36 @@ const FBAMap = (props: FBAMapProps) => {
           position: "relative",
         }}
       >
+        <div
+          ref={userLocationRef}
+          style={{
+            width: "20px",
+            height: "20px",
+            borderRadius: "50%",
+            backgroundColor: "rgba(51, 153, 204, 0.8)",
+            border: "3px solid white",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+            pointerEvents: "none",
+            zIndex: 1000,
+          }}
+        />
+
         <Box
-          sx={{ position: "absolute", left: "8px", bottom: "8px", zIndex: 1 }}
+          sx={{
+            position: "absolute",
+            left: "8px",
+            bottom: "8px",
+            zIndex: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+          }}
         >
+          <MapIconButton
+            onClick={handleLocationButtonClick}
+            disabled={loading && isNil(position)}
+            icon={<MyLocationIcon />}
+          />
           <TodayTomorrowSwitch date={props.date} setDate={props.setDate} />
         </Box>
         <ScaleContainer
