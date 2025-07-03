@@ -37,7 +37,6 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-postgres-
     -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \
     -p APP_LABEL=${APP_NAME}-${SUFFIX} \
     -p CLUSTER_NAME=${CLUSTER_NAME} \
-    ${CPU_LIMIT:+ " -p CPU_LIMIT=${CPU_LIMIT}"} \
     ${CPU_REQUEST:+ " -p CPU_REQUEST=${CPU_REQUEST}"} \
     ${SCHEDULE:+ " -p SCHEDULE=\"${SCHEDULE}\""} \
     ${TAG_NAME:+ " -p TAG_NAME=${TAG_NAME}"}"
