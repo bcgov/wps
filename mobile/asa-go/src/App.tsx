@@ -25,6 +25,7 @@ import { ConnectionStatus, Network } from "@capacitor/network";
 import Profile from "@/components/Profile";
 import Advisory from "@/components/Advisory";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
+import { theme } from "@/theme";
 
 const App = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -145,6 +146,8 @@ const App = () => {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        backgroundColor: theme.palette.primary.main,
       }}
     >
       <AppHeader />
