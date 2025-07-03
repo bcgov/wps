@@ -6,6 +6,30 @@ import { Provider } from "react-redux";
 import { store } from "@/store";
 import { theme } from "@/theme.ts";
 import App from "@/App.tsx";
+import { registerPlugin } from "@capacitor/core";
+import type { EchoPlugin } from "./definitions";
+
+console.log("🔌 JS: Registering Echo plugin...");
+const Echo = registerPlugin<EchoPlugin>("Echo", {
+  web: () => import("./web").then((m) => new m.EchoWeb()),
+});
+console.log("🔌 JS: Echo plugin registered:", Echo);
+
+// Example usage
+const echoValue = async (message: string) => {
+  console.log("🔌 JS: Calling echo with message:", message);
+  try {
+    const result = await Echo.echo({ value: message });
+    console.log("🔌 JS: Echo result:", result.value); // Will log the same message back
+    return result.value;
+  } catch (error) {
+    console.error("🔌 JS: Echo failed:", error);
+  }
+};
+
+// Call it
+console.log("🔌 JS: About to call echoValue...");
+echoValue("Hello World!");
 
 const render = () => {
   const container = document.getElementById("root");
