@@ -7,8 +7,11 @@ import { store } from "@/store";
 import { theme } from "@/theme.ts";
 import App from "@/App.tsx";
 import { registerPlugin } from "@capacitor/core";
+import { Capacitor } from "@capacitor/core";
 import type { EchoPlugin } from "./definitions";
 
+console.log("🔌 JS: Platform:", Capacitor.getPlatform());
+console.log("🔌 JS: Is native platform:", Capacitor.isNativePlatform());
 console.log("🔌 JS: Registering Echo plugin...");
 const Echo = registerPlugin<EchoPlugin>("Echo", {
   web: () => import("./web").then((m) => new m.EchoWeb()),
@@ -18,12 +21,14 @@ console.log("🔌 JS: Echo plugin registered:", Echo);
 // Example usage
 const echoValue = async (message: string) => {
   console.log("🔌 JS: Calling echo with message:", message);
+  console.log("🔌 JS: Platform at call time:", Capacitor.getPlatform());
   try {
     const result = await Echo.echo({ value: message });
     console.log("🔌 JS: Echo result:", result.value); // Will log the same message back
     return result.value;
   } catch (error) {
     console.error("🔌 JS: Echo failed:", error);
+    console.error("🔌 JS: Error details:", JSON.stringify(error, null, 2));
   }
 };
 
