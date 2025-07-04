@@ -79,44 +79,6 @@ describe("ASAGoMap", () => {
     expect(mockStartLocationTracking).toHaveBeenCalledTimes(1);
   });
 
-  it("disables location button when loading and no position", () => {
-    const store = createTestStore({
-      geolocation: {
-        ...geolocationInitialState,
-        loading: true,
-        position: null,
-      },
-    });
-
-    render(
-      <Provider store={store}>
-        <ASAGoMap {...defaultProps} />
-      </Provider>
-    );
-
-    const locationButton = screen.getByTestId("location-button");
-    expect(locationButton).toBeDisabled();
-  });
-
-  it("enables location button when not loading", () => {
-    const store = createTestStore({
-      geolocation: {
-        ...geolocationInitialState,
-        loading: false,
-        position: null,
-      },
-    });
-
-    render(
-      <Provider store={store}>
-        <ASAGoMap {...defaultProps} />
-      </Provider>
-    );
-
-    const locationButton = screen.getByTestId("location-button");
-    expect(locationButton).not.toBeDisabled();
-  });
-
   it("enables location button when has position even if loading", () => {
     const store = createTestStore({
       geolocation: {

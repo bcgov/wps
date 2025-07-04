@@ -30,6 +30,9 @@ const MapIconButton: React.FC<MapIconButtonProps> = ({
         "&:disabled": {
           backgroundColor: "grey.200",
         },
+        "&:hover, &:focus, &:focus-visible, &:active": {
+          backgroundColor: "white",
+        },
         ...sx,
       }}
       {...props}

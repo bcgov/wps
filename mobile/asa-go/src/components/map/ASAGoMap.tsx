@@ -26,7 +26,7 @@ import { Filesystem } from "@capacitor/filesystem";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import { Box } from "@mui/material";
 import { FireCenter, FireShape, FireShapeArea, RunType } from "api/fbaAPI";
-import { cloneDeep, isNil, isNull, isUndefined } from "lodash";
+import { cloneDeep, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { Map, Overlay, View } from "ol";
 import { defaults as defaultControls } from "ol/control";
@@ -62,7 +62,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
 
   // selectors
   const { networkStatus } = useSelector(selectNetworkStatus);
-  const { position, error, loading, watchId } = useSelector(selectGeolocation);
+  const { position, error, watchId } = useSelector(selectGeolocation);
 
   // state
   const [map, setMap] = useState<Map | null>(null);
@@ -465,7 +465,6 @@ const ASAGoMap = (props: ASAGoMapProps) => {
         >
           <MapIconButton
             onClick={handleLocationButtonClick}
-            disabled={loading && isNil(position)}
             icon={<MyLocationIcon />}
             testid="location-button"
           />
