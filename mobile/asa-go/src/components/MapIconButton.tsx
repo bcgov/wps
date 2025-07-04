@@ -7,22 +7,19 @@ export const BUTTON_HEIGHT = 42;
 
 interface MapIconButtonProps extends Omit<IconButtonProps, "sx"> {
   icon: React.ReactElement;
-  position?: {
-    top?: number | string;
-    right?: number | string;
-    bottom?: number | string;
-    left?: number | string;
-  };
   sx?: SxProps<Theme>;
+  testid?: string;
 }
 
 const MapIconButton: React.FC<MapIconButtonProps> = ({
   icon,
   sx,
+  testid,
   ...props
 }) => {
   return (
     <IconButton
+      data-testid={testid}
       size="large"
       sx={{
         backgroundColor: "white",

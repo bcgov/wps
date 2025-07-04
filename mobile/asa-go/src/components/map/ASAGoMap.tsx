@@ -6,7 +6,7 @@ import {
   fireCentreLabelStyler,
   fireCentreLineStyler,
   fireShapeLabelStyler,
-  fireShapeLineStyler,
+  fireShapeStyler,
   hfiStyler,
 } from "@/featureStylers";
 import { extentsMap } from "@/fireCentreExtents";
@@ -41,7 +41,7 @@ import { BC_EXTENT } from "utils/constants";
 
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
 
-export interface FBAMapProps {
+export interface ASAGoMapProps {
   testId?: string;
   selectedFireCenter: FireCenter | undefined;
   selectedFireShape: FireShape | undefined;
@@ -52,7 +52,7 @@ export interface FBAMapProps {
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
 }
 
-const FBAMap = (props: FBAMapProps) => {
+const ASAGoMap = (props: ASAGoMapProps) => {
   const dispatch: AppDispatch = useDispatch();
 
   // selectors
@@ -115,16 +115,17 @@ const FBAMap = (props: FBAMapProps) => {
    * - If location tracking is already active, dispatches an action to fetch the current position.
    */
   const handleLocationButtonClick = useCallback(() => {
-    setShouldCenterOnUpdate(true);
-
-    // start location tracking if not already started
-    if (!watchId) {
-      dispatch(startLocationTracking());
-    }
-    // if already watching, just center on current position
-    else if (position) {
+    // if we have a position, center immediately
+    if (position) {
       centerMapOnCurrentPosition();
-      setShouldCenterOnUpdate(false);
+    } else {
+      // set flag to center when position becomes available
+      setShouldCenterOnUpdate(true);
+
+      // start tracking if not already started
+      if (!watchId) {
+        dispatch(startLocationTracking());
+      }
     }
   }, [dispatch, watchId, position, centerMapOnCurrentPosition]);
 
@@ -169,7 +170,7 @@ const FBAMap = (props: FBAMapProps) => {
     userLocationOverlay.setPosition(coords);
   }, [userLocationOverlay, position]);
 
-  // center map when position is received after button click
+  // center map when position is received - handles delayed positioning
   useEffect(() => {
     if (map && position && shouldCenterOnUpdate) {
       centerMapOnCurrentPosition();
@@ -355,10 +356,10 @@ const FBAMap = (props: FBAMapProps) => {
 
         const fireZoneFileLayer = new VectorTileLayer({
           source: fireZoneSource,
-          style: fireShapeLineStyler(
+          style: fireShapeStyler(
             cloneDeep(props.fireShapeAreas),
             props.advisoryThreshold,
-            props.selectedFireShape
+            false
           ),
           zIndex: 53,
           properties: { name: "fireShapeVector" },
@@ -444,6 +445,7 @@ const FBAMap = (props: FBAMapProps) => {
             onClick={handleLocationButtonClick}
             disabled={loading && isNil(position)}
             icon={<MyLocationIcon />}
+            testid="location-button"
           />
           <TodayTomorrowSwitch date={props.date} setDate={props.setDate} />
         </Box>
@@ -457,4 +459,4 @@ const FBAMap = (props: FBAMapProps) => {
   );
 };
 
-export default React.memo(FBAMap);
+export default React.memo(ASAGoMap);

@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Position } from "@capacitor/geolocation";
+import { Position, Geolocation } from "@capacitor/geolocation";
 import { AppDispatch, AppThunk } from "@/store";
-import { Geolocation } from "@capacitor/geolocation";
+import { DateTime } from "luxon";
 
 export interface GeolocationState {
   position: Position | null;
@@ -12,7 +12,7 @@ export interface GeolocationState {
   watchId: string | null;
 }
 
-export const initialState: GeolocationState = {
+export const geolocationInitialState: GeolocationState = {
   position: null,
   error: null,
   loading: false,
@@ -23,7 +23,7 @@ export const initialState: GeolocationState = {
 
 const geolocationSlice = createSlice({
   name: "geolocation",
-  initialState,
+  initialState: geolocationInitialState,
   reducers: {
     getLocationStart(state: GeolocationState) {
       state.loading = true;
@@ -37,7 +37,7 @@ const geolocationSlice = createSlice({
       state.position = action.payload;
       state.error = null;
       state.permissionGranted = true;
-      state.lastUpdated = new Date().toISOString();
+      state.lastUpdated = DateTime.now().toISO();
     },
     getLocationFailed(state: GeolocationState, action: PayloadAction<string>) {
       state.loading = false;
@@ -113,7 +113,7 @@ export const startLocationTracking =
       const watchId = await Geolocation.watchPosition(
         {
           enableHighAccuracy: true,
-          timeout: 10000, // wait up to 10 seconds for a position
+          timeout: 15000, // wait up to 15 seconds for a position
           maximumAge: 5000, // cache position for 5 seconds
         },
         (position, err) => {

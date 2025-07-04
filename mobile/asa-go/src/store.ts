@@ -1,26 +1,8 @@
+import { rootReducer } from "@/rootReducer";
 import { Action, configureStore, ThunkAction } from "@reduxjs/toolkit";
-import provincialSummarySlice from "@/slices/provincialSummarySlice";
-import fireZoneElevationInfoSlice from "@/slices/fireZoneElevationInfoSlice";
-import fireShapeAreasSlice from "@/slices/fireZoneAreasSlice";
-import fireCentreTPIStatsSlice from "@/slices/fireCentreTPIStatsSlice";
-import fireCentreHFIFuelStatsSlice from "@/slices/fireCentreHFIFuelStatsSlice";
-import runDatesSlice from "@/slices/runDatesSlice";
-import fireCentersSlice from "@/slices/fireCentersSlice";
-import networkStatusSlice from "@/slices/networkStatusSlice";
-import geolocationReducer from "@/slices/geolocationSlice";
 
 export const store = configureStore({
-  reducer: {
-    fireCenters: fireCentersSlice,
-    provincialSummary: provincialSummarySlice,
-    fireZoneElevationInfo: fireZoneElevationInfoSlice,
-    fireShapeAreas: fireShapeAreasSlice,
-    fireCentreTPIStats: fireCentreTPIStatsSlice,
-    fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice,
-    runDates: runDatesSlice,
-    networkStatus: networkStatusSlice,
-    geolocation: geolocationReducer,
-  },
+  reducer: rootReducer,
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

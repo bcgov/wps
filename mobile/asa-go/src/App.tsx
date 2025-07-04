@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 
-import FBAMap from "@/components/map/FBAMap";
+import FBAMap from "@/components/map/ASAGoMap";
 import { FireCenter, FireShape, RunType } from "@/api/fbaAPI";
 import { AppHeader } from "@/components/AppHeader";
 import { useDispatch, useSelector } from "react-redux";
