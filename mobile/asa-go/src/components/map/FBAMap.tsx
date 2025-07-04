@@ -117,7 +117,7 @@ const FBAMap = (props: FBAMapProps) => {
   const handleLocationButtonClick = useCallback(() => {
     setShouldCenterOnUpdate(true);
 
-    // start location tracking if not already watching
+    // start location tracking if not already started
     if (!watchId) {
       dispatch(startLocationTracking());
     }
@@ -127,6 +127,11 @@ const FBAMap = (props: FBAMapProps) => {
       setShouldCenterOnUpdate(false);
     }
   }, [dispatch, watchId, position, centerMapOnCurrentPosition]);
+
+  // start location tracking on app open
+  useEffect(() => {
+    dispatch(startLocationTracking());
+  }, [dispatch]);
 
   // user location overlay
   useEffect(() => {
