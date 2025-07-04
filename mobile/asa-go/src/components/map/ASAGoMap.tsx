@@ -1,3 +1,4 @@
+import { findFireZoneForLocation } from "@/components/map/mapOperations";
 import MapIconButton from "@/components/MapIconButton";
 import ScaleContainer from "@/components/ScaleContainer";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
@@ -29,6 +30,10 @@ import { cloneDeep, isNil, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { Map, Overlay, View } from "ol";
 import { defaults as defaultControls } from "ol/control";
+import {
+  defaults as defaultInteractions,
+  DblClickDragZoom,
+} from "ol/interaction";
 import ScaleLine from "ol/control/ScaleLine";
 import { boundingExtent } from "ol/extent";
 import TileLayer from "ol/layer/Tile";
@@ -94,6 +99,20 @@ const ASAGoMap = (props: ASAGoMapProps) => {
 
   const centerMapOnCurrentPosition = useCallback(() => {
     if (!map || !position) return;
+
+    const userFireZone = findFireZoneForLocation(position);
+
+    if (userFireZone) {
+      // Zoom to the fire zone extent instead of just the user's location
+      const zoneExtent = fireZoneExtentsMap.get(userFireZone);
+      if (zoneExtent) {
+        map.getView().fit(zoneExtent, {
+          duration: 1000,
+          padding: [50, 50, 50, 50],
+        });
+        return;
+      }
+    }
 
     const coords = fromLonLat([
       position.coords.longitude,
@@ -288,6 +307,9 @@ const ASAGoMap = (props: ASAGoMapProps) => {
       controls: defaultControls({
         zoom: false,
       }),
+      interactions: defaultInteractions({
+        doubleClickZoom: true,
+      }).extend([new DblClickDragZoom()]),
     });
     mapObject.setTarget(mapRef.current);
 
