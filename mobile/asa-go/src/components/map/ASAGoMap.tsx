@@ -1,4 +1,4 @@
-import { findFireZoneForLocation } from "@/components/map/mapOperations";
+// import { findFireZoneForLocation } from "@/components/map/mapOperations";
 import MapIconButton from "@/components/MapIconButton";
 import ScaleContainer from "@/components/ScaleContainer";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
@@ -17,8 +17,8 @@ import {
   createLocalBasemapVectorLayer,
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
-import { startLocationTracking } from "@/slices/geolocationSlice";
-import { AppDispatch, selectGeolocation, selectNetworkStatus } from "@/store";
+import { usePersistentLocationWatch } from "@/hooks/usePersistentLocation";
+import { selectNetworkStatus } from "@/store";
 import { CENTER_OF_BC, fullMapExtent } from "@/utils/constants";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
@@ -40,8 +40,8 @@ import TileLayer from "ol/layer/Tile";
 import VectorTileLayer from "ol/layer/VectorTile";
 import "ol/ol.css";
 import { fromLonLat, transformExtent } from "ol/proj";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
 import { BC_EXTENT } from "utils/constants";
 
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
@@ -58,11 +58,9 @@ export interface ASAGoMapProps {
 }
 
 const ASAGoMap = (props: ASAGoMapProps) => {
-  const dispatch: AppDispatch = useDispatch();
-
-  // selectors
+  // selectors & hooks
+  const { position } = usePersistentLocationWatch();
   const { networkStatus } = useSelector(selectNetworkStatus);
-  const { position, error, watchId } = useSelector(selectGeolocation);
 
   // state
   const [map, setMap] = useState<Map | null>(null);
@@ -76,7 +74,6 @@ const ASAGoMap = (props: ASAGoMapProps) => {
       layer.set("name", LOCAL_BASEMAP_LAYER_NAME);
       return layer;
     });
-  const [shouldCenterOnUpdate, setShouldCenterOnUpdate] = useState(false); // flag to center map on user location after user clicks button, but not on every position update
 
   // refs
   const mapRef = useRef<HTMLDivElement | null>(
@@ -97,35 +94,35 @@ const ASAGoMap = (props: ASAGoMapProps) => {
     }
   };
 
-  const centerMapOnCurrentPosition = useCallback(() => {
-    if (!map || !position) return;
+  // const centerMapOnCurrentPosition = useCallback(() => {
+  //   if (!map || !position) return;
 
-    const userFireZone = findFireZoneForLocation(position);
+  //   const userFireZone = findFireZoneForLocation(position);
 
-    if (userFireZone) {
-      // Zoom to the fire zone extent instead of just the user's location
-      const zoneExtent = fireZoneExtentsMap.get(userFireZone);
-      if (zoneExtent) {
-        map.getView().fit(zoneExtent, {
-          duration: 1000,
-          padding: [50, 50, 50, 50],
-        });
-        return;
-      }
-    }
+  //   if (userFireZone) {
+  //     // Zoom to the fire zone extent instead of just the user's location
+  //     const zoneExtent = fireZoneExtentsMap.get(userFireZone);
+  //     if (zoneExtent) {
+  //       map.getView().fit(zoneExtent, {
+  //         duration: 1000,
+  //         padding: [50, 50, 50, 50],
+  //       });
+  //       return;
+  //     }
+  //   }
 
-    const coords = fromLonLat([
-      position.coords.longitude,
-      position.coords.latitude,
-    ]);
+  //   const coords = fromLonLat([
+  //     position.coords.longitude,
+  //     position.coords.latitude,
+  //   ]);
 
-    const currentZoom = map.getView().getZoom() || 5;
-    map.getView().animate({
-      center: coords,
-      zoom: currentZoom < 7.5 ? 7.5 : currentZoom, // Only zoom to 7 if currently less than 7
-      duration: 1000,
-    });
-  }, [map, position]);
+  //   const currentZoom = map.getView().getZoom() || 5;
+  //   map.getView().animate({
+  //     center: coords,
+  //     zoom: currentZoom < 7.5 ? 7.5 : currentZoom, // Only zoom to 7 if currently less than 7
+  //     duration: 1000,
+  //   });
+  // }, [map, position]);
 
   /**
    *
@@ -133,25 +130,19 @@ const ASAGoMap = (props: ASAGoMapProps) => {
    * - If location tracking is not active, dispatches an action to start tracking.
    * - If location tracking is already active, dispatches an action to fetch the current position.
    */
-  const handleLocationButtonClick = useCallback(() => {
-    // if we have a position, center immediately
-    if (position) {
-      centerMapOnCurrentPosition();
-    } else {
-      // set flag to center when position becomes available
-      setShouldCenterOnUpdate(true);
-
-      // start tracking if not already started
-      if (!watchId) {
-        dispatch(startLocationTracking());
-      }
-    }
-  }, [dispatch, watchId, position, centerMapOnCurrentPosition]);
-
-  // start location tracking on app open
-  useEffect(() => {
-    dispatch(startLocationTracking());
-  }, [dispatch]);
+  const handleLocationButtonClick = () => {
+    if (!map || !position?.coords) return;
+    const pos = fromLonLat([
+      position.coords.longitude,
+      position.coords.latitude,
+    ]);
+    const currentZoom = map.getView().getZoom() || 5;
+    map.getView().animate({
+      center: pos,
+      zoom: currentZoom < 7.5 ? 7.5 : currentZoom, // Only zoom to 7 if currently less than 7
+      duration: 1000,
+    });
+  };
 
   // user location overlay
   useEffect(() => {
@@ -188,21 +179,6 @@ const ASAGoMap = (props: ASAGoMapProps) => {
 
     userLocationOverlay.setPosition(coords);
   }, [userLocationOverlay, position]);
-
-  // center map when position is received - handles delayed positioning
-  useEffect(() => {
-    if (map && position && shouldCenterOnUpdate) {
-      centerMapOnCurrentPosition();
-      setShouldCenterOnUpdate(false);
-    }
-  }, [map, position, shouldCenterOnUpdate, centerMapOnCurrentPosition]);
-
-  // reset flag on error
-  useEffect(() => {
-    if (error && shouldCenterOnUpdate) {
-      setShouldCenterOnUpdate(false);
-    }
-  }, [error, shouldCenterOnUpdate]);
 
   useEffect(() => {
     // zoom to fire center or whole province
