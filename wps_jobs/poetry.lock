@@ -1082,7 +1082,7 @@ test = ["objgraph", "psutil"]
 
 [[package]]
 name = "herbie-data"
-version = "2025.5.1.dev13+g2dceaba9"
+version = "2025.7.0"
 description = "Download numerical weather prediction GRIB2 model data."
 optional = false
 python-versions = ">=3.10"
@@ -1110,8 +1110,8 @@ scikit-learn = ["scikit-learn"]
 [package.source]
 type = "git"
 url = "https://github.com/blaylockbk/Herbie.git"
-reference = "2dceaba965a666239bfb0ba06929b49c5671fe54"
-resolved_reference = "2dceaba965a666239bfb0ba06929b49c5671fe54"
+reference = "43792b09a416f355cae36b776d972bd8b4de5096"
+resolved_reference = "43792b09a416f355cae36b776d972bd8b4de5096"
 
 [[package]]
 name = "idna"
@@ -3264,4 +3264,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12.3,<4.0"
-content-hash = "dee647bb1039da9e623609b77c5f7ae69fe1b82a11d23da54482302655ea5c5d"
+content-hash = "482d8a03f3b58a0f02a8bb76238f8d40013c3c38dbb9cbcda053c4508ef609e7"
