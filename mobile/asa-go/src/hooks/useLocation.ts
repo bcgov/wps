@@ -9,8 +9,6 @@ export const useLocation = () => {
   const watchIdRef = useRef<string | null>(null);
 
   const startWatching = useCallback(async () => {
-    if (watchIdRef.current) return;
-
     dispatch(setLoading(true));
 
     try {
