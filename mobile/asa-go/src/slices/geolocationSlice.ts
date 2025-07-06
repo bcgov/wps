@@ -1,17 +1,16 @@
-// store/geolocationSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Position } from "@capacitor/geolocation";
 
 interface GeolocationState {
   position: Position | null;
   error: string | null;
-  watching: boolean;
+  loading: boolean;
 }
 
 export const geolocationInitialState: GeolocationState = {
   position: null,
   error: null,
-  watching: false,
+  loading: false,
 };
 
 const geolocationSlice = createSlice({
@@ -19,16 +18,19 @@ const geolocationSlice = createSlice({
   initialState: geolocationInitialState,
   reducers: {
     setPosition(state, action: PayloadAction<Position>) {
+      console.log("Updating position:", action.payload);
       state.position = action.payload;
+      state.loading = false;
     },
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
+      state.loading = false;
     },
-    setWatching(state, action: PayloadAction<boolean>) {
-      state.watching = action.payload;
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.loading = action.payload;
     },
   },
 });
 
-export const { setPosition, setError, setWatching } = geolocationSlice.actions;
+export const { setPosition, setError, setLoading } = geolocationSlice.actions;
 export default geolocationSlice.reducer;

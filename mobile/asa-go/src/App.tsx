@@ -26,8 +26,10 @@ import Profile from "@/components/Profile";
 import Advisory from "@/components/Advisory";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 import { theme } from "@/theme";
+import { useLocation } from "@/hooks/useLocation";
 
 const App = () => {
+  useLocation();
   const dispatch: AppDispatch = useDispatch();
   const { fireCenters } = useSelector(selectFireCenters);
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);

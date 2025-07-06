@@ -17,8 +17,7 @@ import {
   createLocalBasemapVectorLayer,
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
-import { usePersistentLocationWatch } from "@/hooks/usePersistentLocation";
-import { selectNetworkStatus } from "@/store";
+import { selectGeolocation, selectNetworkStatus } from "@/store";
 import { CENTER_OF_BC, fullMapExtent } from "@/utils/constants";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
@@ -59,7 +58,7 @@ export interface ASAGoMapProps {
 
 const ASAGoMap = (props: ASAGoMapProps) => {
   // selectors & hooks
-  const { position } = usePersistentLocationWatch();
+  const { position, loading } = useSelector(selectGeolocation);
   const { networkStatus } = useSelector(selectNetworkStatus);
 
   // state
@@ -443,6 +442,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
             onClick={handleLocationButtonClick}
             icon={<MyLocationIcon />}
             testid="location-button"
+            loading={loading}
           />
           <TodayTomorrowSwitch date={props.date} setDate={props.setDate} />
         </Box>

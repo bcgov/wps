@@ -21,6 +21,7 @@ const MapIconButton: React.FC<MapIconButtonProps> = ({
     <IconButton
       data-testid={testid}
       size="large"
+      loading={props.loading}
       sx={{
         backgroundColor: "white",
         color: MAP_BUTTON_GREY,
@@ -31,6 +32,9 @@ const MapIconButton: React.FC<MapIconButtonProps> = ({
           backgroundColor: "grey.200",
         },
         "&:hover, &:focus, &:focus-visible, &:active": {
+          backgroundColor: "white",
+        },
+        "&.MuiIconButton-loading": {
           backgroundColor: "white",
         },
         ...sx,
