@@ -134,11 +134,25 @@ public struct KeycloakRefreshOptions {
                 // Check for errors
                 if let error = result["error"] as? String {
                     let errorDescription = result["error_description"] as? String ?? error
+                    print("Keycloak: Error from server - error: \(error)")
+                    print("Keycloak: Error from server - description: \(errorDescription)")
+
+                    // Provide specific guidance for common errors
+                    var userFriendlyMessage = errorDescription
+                    if error == "invalid_redirect_uri" {
+                        userFriendlyMessage =
+                            "The redirect URI '\(options.redirectUrl ?? "ca.bc.gov.asago://auth/callback")' is not configured in the Keycloak client. Please add it to the 'Valid Redirect URIs' in the Keycloak admin console."
+                    }
+
                     completion(
                         .failure(
                             NSError(
                                 domain: "KeycloakError", code: 3,
-                                userInfo: [NSLocalizedDescriptionKey: errorDescription])))
+                                userInfo: [
+                                    NSLocalizedDescriptionKey: userFriendlyMessage,
+                                    "keycloakError": error,
+                                    "keycloakErrorDescription": errorDescription,
+                                ])))
                     return
                 }
 
