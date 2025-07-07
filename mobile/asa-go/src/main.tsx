@@ -5,7 +5,7 @@ import { ThemeProvider, StyledEngineProvider } from "@mui/material/styles";
 import { Provider } from "react-redux";
 import { store } from "@/store";
 import { theme } from "@/theme.ts";
-import { Keycloak } from "keycloak";
+import { Keycloak } from "../../keycloak/src";
 import App from "@/App.tsx";
 
 const render = () => {
@@ -32,11 +32,27 @@ const render = () => {
   console.log("Constructed authUrl:", authUrl);
   console.log("Constructed tokenUrl:", tokenUrl);
 
+  // Test the echo method
+  Keycloak.echo({ value: "helloWorld" });
+
+  // Simple authentication - just get the authorization code
   Keycloak.authenticate({
     authorizationBaseUrl: authUrl,
-    accessTokenEndpoint: tokenUrl,
     clientId: import.meta.env.VITE_KEYCLOAK_CLIENT,
-  });
+    redirectUrl: "http://localhost:8100/auth/callback",
+  })
+    .then((result) => {
+      console.log("🎉 Authentication successful:", result);
+      // The result contains: { redirectUrl, code, state, ... }
+      // You can now exchange the code for tokens in JavaScript if needed
+      if (result.code) {
+        console.log("Got authorization code:", result.code);
+        // TODO: Exchange code for tokens using your preferred HTTP library
+      }
+    })
+    .catch((error) => {
+      console.error("❌ Authentication failed:", error);
+    });
 
   // Null check to keep TypeScript happy
   if (container === null) {

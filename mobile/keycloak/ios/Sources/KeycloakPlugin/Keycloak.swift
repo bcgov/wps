@@ -1,5 +1,6 @@
-import Foundation
 import AuthenticationServices
+import Foundation
+import UIKit
 
 // Data structures for Keycloak options
 public struct KeycloakOptions {
@@ -24,54 +25,157 @@ public struct KeycloakRefreshOptions {
     let refreshToken: String
 }
 
-@objc public class Keycloak: NSObject {
+@objc public class Keycloak: NSObject, ASWebAuthenticationPresentationContextProviding {
+    private var session: ASWebAuthenticationSession?
+
     @objc public func echo(_ value: String) -> String {
         print(value)
         return value
     }
-    
-    public func authenticate(options: KeycloakOptions, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+
+    public func authenticate(
+        options: KeycloakOptions, completion: @escaping (Result<[String: Any], Error>) -> Void
+    ) {
         // For now, this is a basic implementation
         // In a real implementation, you would use ASWebAuthenticationSession or similar
-        
+
         print("Keycloak: Starting authentication with clientId: \(options.clientId)")
         print("Keycloak: Base URL: \(options.authorizationBaseUrl)")
 
-        // Build the authorization URL
-        var urlComponents = URLComponents(string: options.authorizationBaseUrl)
-        var queryItems: [URLQueryItem] = [
-            URLQueryItem(name: "client_id", value: options.clientId),
-            URLQueryItem(name: "response_type", value: options.responseType ?? "code"),
-            URLQueryItem(name: "redirect_uri", value: options.redirectUrl ?? "keycloak://callback")
-        ]
-        
+        let redirectUri = options.redirectUrl ?? "ca.bc.gov.asago://auth/callback"
+        print("Keycloak: Using redirect URI: \(redirectUri)")
+
+        // Build the query string manually to avoid double encoding
+        var queryPairs: [String] = []
+        queryPairs.append("client_id=\(options.clientId)")
+        queryPairs.append("response_type=\(options.responseType ?? "code")")
+
+        // Manually encode just the redirect URI value
+        var allowedCharacters = CharacterSet.urlQueryAllowed
+        allowedCharacters.remove(charactersIn: ":/")
+        if let encodedRedirectUri = redirectUri.addingPercentEncoding(
+            withAllowedCharacters: allowedCharacters)
+        {
+            queryPairs.append("redirect_uri=\(encodedRedirectUri)")
+            print("Keycloak: Encoded redirect URI: \(encodedRedirectUri)")
+        }
+
         if let scope = options.scope {
-            queryItems.append(URLQueryItem(name: "scope", value: scope))
+            if let encodedScope = scope.addingPercentEncoding(
+                withAllowedCharacters: .urlQueryAllowed)
+            {
+                queryPairs.append("scope=\(encodedScope)")
+            }
         }
-        
+
         if let state = options.state {
-            queryItems.append(URLQueryItem(name: "state", value: state))
+            if let encodedState = state.addingPercentEncoding(
+                withAllowedCharacters: .urlQueryAllowed)
+            {
+                queryPairs.append("state=\(encodedState)")
+            }
         }
-    
-        
-        urlComponents?.queryItems = queryItems
-        
-        guard let authURL = urlComponents?.url else {
-            completion(.failure(NSError(domain: "KeycloakError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid authorization URL"])))
+
+        let queryString = queryPairs.joined(separator: "&")
+        let fullURLString = "\(options.authorizationBaseUrl)?\(queryString)"
+        print("Keycloak: Final URL string: \(fullURLString)")
+
+        guard let authURL = URL(string: fullURLString) else {
+            completion(
+                .failure(
+                    NSError(
+                        domain: "KeycloakError", code: 1,
+                        userInfo: [NSLocalizedDescriptionKey: "Invalid authorization URL"])))
             return
         }
-        print("Keycloak: authURL: \(authURL)")
-        
-        // TODO impl
+
+        print("Keycloak: Final authURL: \(authURL.absoluteString)")
+
+        let callbackScheme = URLComponents(
+            string: options.redirectUrl ?? "ca.bc.gov.asago://auth/callback")?
+            .scheme
+
+        // Ensure UI operations happen on the main thread
+        DispatchQueue.main.async {
+            let session = ASWebAuthenticationSession(
+                url: authURL, callbackURLScheme: callbackScheme
+            ) { callbackURL, error in
+                if let error = error {
+                    print("Keycloak: Authentication error: \(error.localizedDescription)")
+                    completion(.failure(error))
+                    return
+                }
+
+                guard let callbackURL = callbackURL else {
+                    completion(
+                        .failure(
+                            NSError(
+                                domain: "KeycloakError", code: 2,
+                                userInfo: [NSLocalizedDescriptionKey: "No callback URL received"])))
+                    return
+                }
+
+                print("Keycloak: Callback URL received: \(callbackURL)")
+
+                // Parse the callback URL and extract all parameters
+                let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
+                var result: [String: Any] = [
+                    "redirectUrl": callbackURL.absoluteString
+                ]
+
+                if let queryItems = components?.queryItems {
+                    for item in queryItems {
+                        if let value = item.value {
+                            result[item.name] = value
+                        }
+                    }
+                }
+
+                // Check for errors
+                if let error = result["error"] as? String {
+                    let errorDescription = result["error_description"] as? String ?? error
+                    completion(
+                        .failure(
+                            NSError(
+                                domain: "KeycloakError", code: 3,
+                                userInfo: [NSLocalizedDescriptionKey: errorDescription])))
+                    return
+                }
+
+                // Return the result (contains code, state, etc.)
+                completion(.success(result))
+            }
+            session.presentationContextProvider = self
+            session.start()
+            self.session = session
+        }
 
     }
-    
-    public func refreshToken(options: KeycloakRefreshOptions, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+
+    public func refreshToken(
+        options: KeycloakRefreshOptions,
+        completion: @escaping (Result<[String: Any], Error>) -> Void
+    ) {
         // Mock implementation for token refresh
         // In a real implementation, you would make an HTTP request to the token endpoint
-        
+
         print("Keycloak: Refreshing token for clientId: \(options.clientId)")
-        
+
         // TODO impl
+    }
+
+    // MARK: - ASWebAuthenticationPresentationContextProviding
+    public func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor
+    {
+        // Get the key window from the connected scenes
+        guard
+            let windowScene = UIApplication.shared.connectedScenes
+                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+            let window = windowScene.windows.first(where: { $0.isKeyWindow })
+        else {
+            // Fallback to creating a new window if no key window is found
+            return UIWindow()
+        }
+        return window
     }
 }
