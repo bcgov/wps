@@ -4,11 +4,11 @@ import { App } from "@capacitor/app";
 import { useDispatch } from "react-redux";
 import { setError, setLoading, setPosition } from "@/slices/geolocationSlice";
 
-interface useLocationProps {
+type useLocationOptions = {
   enabled?: boolean;
-}
+};
 
-export const useLocation = ({ enabled }: useLocationProps) => {
+export const useLocation = ({ enabled }: useLocationOptions) => {
   const dispatch = useDispatch();
   const watchIdRef = useRef<string | null>(null);
 
