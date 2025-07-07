@@ -46,11 +46,16 @@ const render = () => {
   })
     .then((result) => {
       console.log("🎉 Authentication successful:", result);
-      // The result contains: { redirectUrl, code, state, ... }
+      // The result contains: { redirectUrl, code, state, codeVerifier, ... }
       // You can now exchange the code for tokens in JavaScript if needed
       if (result.code) {
         console.log("Got authorization code:", result.code);
+        if (result.codeVerifier) {
+          console.log("Got PKCE code verifier:", result.codeVerifier);
+          console.log("Use both code and codeVerifier for token exchange");
+        }
         // TODO: Exchange code for tokens using your preferred HTTP library
+        // For PKCE, include code_verifier in the token exchange request
       }
     })
     .catch((error) => {

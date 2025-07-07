@@ -1,4 +1,5 @@
 import AuthenticationServices
+import CryptoKit
 import Foundation
 import UIKit
 
@@ -27,10 +28,24 @@ public struct KeycloakRefreshOptions {
 
 @objc public class Keycloak: NSObject, ASWebAuthenticationPresentationContextProviding {
     private var session: ASWebAuthenticationSession?
+    private var currentCodeVerifier: String?
 
     @objc public func echo(_ value: String) -> String {
         print(value)
         return value
+    }
+
+    // MARK: - PKCE Helper Methods
+    private func generateCodeVerifier() -> String {
+        var buffer = [UInt8](repeating: 0, count: 32)
+        _ = SecRandomCopyBytes(kSecRandomDefault, buffer.count, &buffer)
+        return Data(buffer).base64URLEncodedString()
+    }
+
+    private func generateCodeChallenge(from verifier: String) -> String {
+        let challenge = Data(verifier.utf8)
+        let hash = SHA256.hash(data: challenge)
+        return Data(hash).base64URLEncodedString()
     }
 
     public func authenticate(
@@ -45,10 +60,22 @@ public struct KeycloakRefreshOptions {
         let redirectUri = options.redirectUrl ?? "ca.bc.gov.asago://auth/callback"
         print("Keycloak: Using redirect URI: \(redirectUri)")
 
+        // Generate PKCE parameters
+        let codeVerifier = generateCodeVerifier()
+        let codeChallenge = generateCodeChallenge(from: codeVerifier)
+        print("Keycloak: Generated PKCE code_challenge: \(codeChallenge)")
+
+        // Store the code verifier for later use
+        self.currentCodeVerifier = codeVerifier
+
         // Build the query string manually to avoid double encoding
         var queryPairs: [String] = []
         queryPairs.append("client_id=\(options.clientId)")
         queryPairs.append("response_type=\(options.responseType ?? "code")")
+
+        // Add PKCE parameters
+        queryPairs.append("code_challenge=\(codeChallenge)")
+        queryPairs.append("code_challenge_method=S256")
 
         // Manually encode just the redirect URI value
         var allowedCharacters = CharacterSet.urlQueryAllowed
@@ -131,6 +158,12 @@ public struct KeycloakRefreshOptions {
                     }
                 }
 
+                // Include the code verifier for PKCE token exchange
+                if let codeVerifier = self.currentCodeVerifier {
+                    result["codeVerifier"] = codeVerifier
+                    print("Keycloak: Including code verifier in result for PKCE token exchange")
+                }
+
                 // Check for errors
                 if let error = result["error"] as? String {
                     let errorDescription = result["error_description"] as? String ?? error
@@ -191,5 +224,15 @@ public struct KeycloakRefreshOptions {
             return UIWindow()
         }
         return window
+    }
+}
+
+// MARK: - Data Extension for Base64URL Encoding
+extension Data {
+    func base64URLEncodedString() -> String {
+        return base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
     }
 }
