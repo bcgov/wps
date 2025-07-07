@@ -1,4 +1,3 @@
-// import { findFireZoneForLocation } from "@/components/map/mapOperations";
 import MapIconButton from "@/components/MapIconButton";
 import ScaleContainer from "@/components/ScaleContainer";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
@@ -92,36 +91,6 @@ const ASAGoMap = (props: ASAGoMapProps) => {
       map.removeLayer(layer);
     }
   };
-
-  // const centerMapOnCurrentPosition = useCallback(() => {
-  //   if (!map || !position) return;
-
-  //   const userFireZone = findFireZoneForLocation(position);
-
-  //   if (userFireZone) {
-  //     // Zoom to the fire zone extent instead of just the user's location
-  //     const zoneExtent = fireZoneExtentsMap.get(userFireZone);
-  //     if (zoneExtent) {
-  //       map.getView().fit(zoneExtent, {
-  //         duration: 1000,
-  //         padding: [50, 50, 50, 50],
-  //       });
-  //       return;
-  //     }
-  //   }
-
-  //   const coords = fromLonLat([
-  //     position.coords.longitude,
-  //     position.coords.latitude,
-  //   ]);
-
-  //   const currentZoom = map.getView().getZoom() || 5;
-  //   map.getView().animate({
-  //     center: coords,
-  //     zoom: currentZoom < 7.5 ? 7.5 : currentZoom, // Only zoom to 7 if currently less than 7
-  //     duration: 1000,
-  //   });
-  // }, [map, position]);
 
   /**
    *
