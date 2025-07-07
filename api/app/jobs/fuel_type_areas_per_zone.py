@@ -1,27 +1,28 @@
-import os
-import sys
 import argparse
-from typing import Optional
-from osgeo import gdal, osr
-from geoalchemy2.shape import to_shape
 import asyncio
 import logging
-import numpy as np
+import os
+import sys
+from typing import Optional
 
-from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
-from wps_shared.utils.time import get_utc_now
-from wps_shared.wps_logging import configure_logging
+import numpy as np
+from geoalchemy2.shape import to_shape
+from osgeo import gdal, osr
+
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_fire_zone_unit_shape_type_id,
     get_fire_zone_units,
     get_fuel_types_id_dict,
 )
+from wps_shared.db.crud.fuel_layer import get_processed_fuel_raster_details
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryShapeFuels
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal
-
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.utils.time import get_utc_now
+from wps_shared.wps_logging import configure_logging
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +55,9 @@ class FuelTypeAreasJob:
         Entry point for calculating the area of each fuel type in each fire zone unit.
         """
         async with get_async_write_session_scope() as session:
-            fuel_raster_key = await get_versioned_fuel_raster_key(
-                session, RasterKeyAddresser(), year, version
+            fuel_type_raster = await get_processed_fuel_raster_details(session, year, version)
+            fuel_raster_key = get_versioned_fuel_raster_key(
+                RasterKeyAddresser(), fuel_type_raster.object_store_path
             )
             fuel_raster_ds: gdal.Dataset = gdal.Open(fuel_raster_key, gdal.GA_ReadOnly)
             pixel_size = fuel_raster_ds.GetGeoTransform()[1]
