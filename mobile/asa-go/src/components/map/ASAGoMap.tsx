@@ -411,6 +411,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
           display: "flex",
           flex: 1,
           position: "relative",
+          backgroundColor: "grey.300",
         }}
       >
         <div

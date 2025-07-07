@@ -4,7 +4,11 @@ import { App } from "@capacitor/app";
 import { useDispatch } from "react-redux";
 import { setError, setLoading, setPosition } from "@/slices/geolocationSlice";
 
-export const useLocation = () => {
+interface useLocationProps {
+  enabled?: boolean;
+}
+
+export const useLocation = ({ enabled }: useLocationProps) => {
   const dispatch = useDispatch();
   const watchIdRef = useRef<string | null>(null);
 
@@ -55,7 +59,7 @@ export const useLocation = () => {
     startWatching();
 
     const appListener = App.addListener("appStateChange", async (state) => {
-      if (state.isActive) {
+      if (state.isActive && enabled) {
         await startWatching();
       } else {
         await stopWatching();
@@ -66,5 +70,5 @@ export const useLocation = () => {
       stopWatching();
       appListener.then((h) => h.remove());
     };
-  }, [startWatching]);
+  }, [startWatching, enabled]);
 };

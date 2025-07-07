@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 
-import FBAMap from "@/components/map/ASAGoMap";
 import { FireCenter, FireShape, RunType } from "@/api/fbaAPI";
 import { AppHeader } from "@/components/AppHeader";
 import { useDispatch, useSelector } from "react-redux";
@@ -27,9 +26,9 @@ import Advisory from "@/components/Advisory";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 import { theme } from "@/theme";
 import { useLocation } from "@/hooks/useLocation";
+import ASAGoMap from "@/components/map/ASAGoMap";
 
 const App = () => {
-  useLocation();
   const dispatch: AppDispatch = useDispatch();
   const { fireCenters } = useSelector(selectFireCenters);
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
@@ -139,6 +138,9 @@ const App = () => {
     }
   }, [mostRecentRunDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const isMapVisible = tab === NavPanel.MAP;
+  useLocation({ enabled: isMapVisible });
+
   return (
     <Box
       sx={{
@@ -154,7 +156,7 @@ const App = () => {
     >
       <AppHeader />
       {tab === NavPanel.MAP && (
-        <FBAMap
+        <ASAGoMap
           selectedFireCenter={fireCenter}
           selectedFireShape={selectedFireShape}
           fireShapeAreas={fireShapeAreas}

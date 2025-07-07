@@ -66,7 +66,7 @@ describe("useLocation", () => {
       },
     });
 
-    renderHook(() => useLocation(), {
+    renderHook(() => useLocation({ enabled: true }), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
@@ -90,7 +90,7 @@ describe("useLocation", () => {
 
     const store = createTestStore();
 
-    renderHook(() => useLocation(), {
+    renderHook(() => useLocation({ enabled: true }), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
@@ -113,7 +113,7 @@ describe("useLocation", () => {
 
     const store = createTestStore();
 
-    renderHook(() => useLocation(), {
+    renderHook(() => useLocation({ enabled: true }), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
