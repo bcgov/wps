@@ -1,10 +1,9 @@
-import {
+import geolocationSlice, {
   geolocationInitialState,
   setError,
   setPosition,
 } from "@/slices/geolocationSlice";
 import { Position } from "@capacitor/geolocation";
-import geolocationSlice from "@/slices/geolocationSlice";
 
 describe("geolocationSlice", () => {
   it("should handle setPosition", () => {
