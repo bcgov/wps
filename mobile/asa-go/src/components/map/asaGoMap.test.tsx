@@ -61,7 +61,7 @@ describe("ASAGoMap", () => {
     expect(mobileMap).toBeVisible();
   });
 
-  it("renders the location button", () => {
+  it("renders the location button and location indicator", () => {
     const store = createTestStore({
       geolocation: {
         ...geolocationInitialState,
@@ -76,6 +76,8 @@ describe("ASAGoMap", () => {
     );
 
     const locationButton = screen.getByTestId("location-button");
+    const locationIndicator = screen.getByTestId("user-location-indicator");
+    expect(locationIndicator).toBeInTheDocument();
     expect(locationButton).toBeInTheDocument();
     expect(locationButton).not.toBeDisabled();
   });

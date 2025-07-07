@@ -26,7 +26,7 @@ import { Box } from "@mui/material";
 import { FireCenter, FireShape, FireShapeArea, RunType } from "api/fbaAPI";
 import { cloneDeep, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
-import { Map, Overlay, View } from "ol";
+import { Map, View } from "ol";
 import { defaults as defaultControls } from "ol/control";
 import {
   defaults as defaultInteractions,
@@ -41,6 +41,7 @@ import { fromLonLat, transformExtent } from "ol/proj";
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { BC_EXTENT } from "utils/constants";
+import UserLocationIndicator from "@/components/map/LocationIndicator";
 
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
 
@@ -62,8 +63,6 @@ const ASAGoMap = (props: ASAGoMapProps) => {
 
   // state
   const [map, setMap] = useState<Map | null>(null);
-  const [userLocationOverlay, setUserLocationOverlay] =
-    useState<Overlay | null>(null);
   const [scaleVisible, setScaleVisible] = useState<boolean>(true);
   const [basemapLayer] = useState<TileLayer>(createBasemapLayer());
   const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
@@ -80,7 +79,6 @@ const ASAGoMap = (props: ASAGoMapProps) => {
   const scaleRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
-  const userLocationRef = useRef<HTMLDivElement>(null);
 
   const removeLayerByName = (map: Map, layerName: string) => {
     const layer = map
@@ -104,49 +102,12 @@ const ASAGoMap = (props: ASAGoMapProps) => {
       position.coords.longitude,
       position.coords.latitude,
     ]);
-    const currentZoom = map.getView().getZoom() || 5;
     map.getView().animate({
       center: pos,
-      zoom: currentZoom < 7.5 ? 7.5 : currentZoom, // Only zoom to 7 if currently less than 7
+      zoom: 7.5,
       duration: 1000,
     });
   };
-
-  // user location overlay
-  useEffect(() => {
-    if (!map || !userLocationRef.current) return;
-
-    const overlay = new Overlay({
-      element: userLocationRef.current,
-      positioning: "center-center",
-      stopEvent: false,
-      className: "user-location-overlay",
-    });
-
-    map.addOverlay(overlay);
-    setUserLocationOverlay(overlay);
-
-    return () => {
-      map.removeOverlay(overlay);
-    };
-  }, [map]);
-
-  // update blue dot when location changes without centering map
-  useEffect(() => {
-    if (!userLocationOverlay || !position) {
-      if (userLocationOverlay) {
-        userLocationOverlay.setPosition(undefined);
-      }
-      return;
-    }
-
-    const coords = fromLonLat([
-      position.coords.longitude,
-      position.coords.latitude,
-    ]);
-
-    userLocationOverlay.setPosition(coords);
-  }, [userLocationOverlay, position]);
 
   useEffect(() => {
     // zoom to fire center or whole province
@@ -383,19 +344,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
           backgroundColor: "grey.300",
         }}
       >
-        <div
-          ref={userLocationRef}
-          style={{
-            width: "20px",
-            height: "20px",
-            borderRadius: "50%",
-            backgroundColor: "rgba(51, 153, 204, 0.8)",
-            border: "3px solid white",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-            pointerEvents: "none",
-            zIndex: 1000,
-          }}
-        />
+        <UserLocationIndicator map={map} position={position} />
 
         <Box
           sx={{
