@@ -6,13 +6,23 @@ import ASAGoMap from "@/components/map/ASAGoMap";
 import { createTestStore } from "@/testUtils";
 import { geolocationInitialState } from "@/slices/geolocationSlice";
 
-global.ResizeObserver = class {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-};
+class ResizeObserver {
+  observe() {
+    // mock no-op
+  }
+  unobserve() {
+    // mock no-op
+  }
+  disconnect() {
+    // mock no-op
+  }
+}
 
 describe("ASAGoMap", () => {
+  beforeAll(() => {
+    window.ResizeObserver = ResizeObserver;
+  });
+
   const defaultProps = {
     selectedFireCenter: undefined,
     selectedFireShape: undefined,
