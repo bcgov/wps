@@ -52,6 +52,13 @@ describe("geolocationSlice thunks", () => {
   describe("startWatchingLocation", () => {
     const store = createTestStore();
 
+    const setupGeolocationMocks = () => {
+      (Geolocation.checkPermissions as Mock).mockResolvedValue({
+        location: "granted",
+      });
+      (Geolocation.clearWatch as Mock).mockResolvedValue(null);
+    };
+
     it("sets error state if permission is denied", async () => {
       (Geolocation.checkPermissions as Mock).mockResolvedValue({
         location: "denied",
@@ -67,10 +74,7 @@ describe("geolocationSlice thunks", () => {
     });
 
     it("updates position state on position update", async () => {
-      (Geolocation.checkPermissions as Mock).mockResolvedValue({
-        location: "granted",
-      });
-      (Geolocation.clearWatch as Mock).mockResolvedValue(null);
+      setupGeolocationMocks();
       let callback: (
         pos?: Position,
         err?: { message: string }
@@ -96,10 +100,7 @@ describe("geolocationSlice thunks", () => {
     });
 
     it("sets error state on watch error", async () => {
-      (Geolocation.checkPermissions as Mock).mockResolvedValue({
-        location: "granted",
-      });
-      (Geolocation.clearWatch as Mock).mockResolvedValue(null);
+      setupGeolocationMocks();
       let callback: (
         pos?: Position,
         err?: { message: string }
