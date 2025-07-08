@@ -10,7 +10,7 @@ source "$(dirname ${0})/common/common"
 #%
 #% Usage:
 #%
-#%   [CPU_REQUEST=<>] [CPU_LIMIT=<>] [MEMORY_REQUEST=<>] [MEMORY_LIMIT=<>] [REPLICAS=<>] \
+#%   [CPU_REQUEST=<>] [MEMORY_REQUEST=<>] [MEMORY_LIMIT=<>] [REPLICAS=<>] \
 #%     ${THIS_FILE} [SUFFIX] [apply]
 #%
 #% Examples:

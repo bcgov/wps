@@ -80,8 +80,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   const { selectedPrepDate, result } = useSelector(selectHFICalculatorState)
   const { /* roles, */ isAuthenticated } = useSelector(selectAuthentication)
 
-  const getDailyForDay = (stationCode: number): StationDaily | undefined => {
-    const dailiesForStation = getDailiesByStationCode(result, stationCode)
+  const getDailyForDay = (stationCode: number, areaId: number): StationDaily | undefined => {
+    const dailiesForStation = getDailiesByStationCode(result, stationCode, areaId)
     if (selectedPrepDate != '') {
       const selectedPrepDateObject = DateTime.fromISO(selectedPrepDate)
       return dailiesForStation.filter(daily => {
@@ -281,7 +281,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         if (isUndefined(result)) {
                           return <React.Fragment key={`daily-undefined-result-${station.code}`}></React.Fragment>
                         }
-                        const daily = getDailyForDay(station.code)
+                        const daily = getDailyForDay(station.code, area.id)
                         const selectedFuelType = getSelectedFuelType(
                           result.planning_area_station_info,
                           area.id,

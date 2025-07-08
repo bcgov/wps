@@ -21,11 +21,12 @@ export const calculateNumPrepDays = (dateRange: PrepDateRange | undefined): numb
   return 0
 }
 
-export const getDailiesByStationCode = (result: HFIResultResponse | undefined, stationCode: number): StationDaily[] => {
+export const getDailiesByStationCode = (result: HFIResultResponse | undefined, stationCode: number, areaId: number): StationDaily[] => {
   if (isUndefined(result)) {
     return []
   }
-  const dailies = result.planning_area_hfi_results.flatMap(areaResult =>
+  const planningArea = result.planning_area_hfi_results.filter(areaResult => areaResult.planning_area_id === areaId)
+  const dailies = planningArea.flatMap(areaResult =>
     areaResult.daily_results.flatMap(dr => dr.dailies.flatMap(validatedDaily => validatedDaily.daily))
   )
   const stationCodeDict = groupBy(dailies, 'code')
