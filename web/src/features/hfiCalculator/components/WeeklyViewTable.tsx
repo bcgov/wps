@@ -185,7 +185,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                       </PlanningAreaTableRow>
                       {sortBy(area.stations, station => station.order_of_appearance_in_planning_area_list).map(
                         station => {
-                          const dailiesForStation = getDailiesByStationCode(result, station.code)
+                          const dailiesForStation = getDailiesByStationCode(result, station.code, area.id)
                           const isRowSelected = stationCodeInSelected(area.id, station.code)
                           const stationCode = station.code
                           const selectedFuelType = getSelectedFuelType(
