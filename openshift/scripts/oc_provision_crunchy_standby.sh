@@ -46,7 +46,6 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy_standby.yam
  ${IMAGE_TAG:+ " -p IMAGE_TAG=${IMAGE_TAG}"} \
  ${IMAGE_REGISTRY:+ " -p IMAGE_REGISTRY=${IMAGE_REGISTRY}"} \
  -p CPU_REQUEST=75m \
- -p CPU_LIMIT=2000m \
  -p MEMORY_REQUEST=2Gi \
  -p MEMORY_LIMIT=16Gi"
 
