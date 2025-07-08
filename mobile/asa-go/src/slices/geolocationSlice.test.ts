@@ -2,9 +2,9 @@ import geolocationSlice, {
   geolocationInitialState,
   setError,
   setPosition,
+  startWatchingLocation,
 } from "@/slices/geolocationSlice";
 import { vi, Mock } from "vitest";
-import { startWatchingLocation } from "@/slices/geolocationSlice";
 import { Geolocation, Position } from "@capacitor/geolocation";
 import { createTestStore } from "@/testUtils";
 
@@ -71,7 +71,6 @@ describe("geolocationSlice thunks", () => {
         location: "granted",
       });
       (Geolocation.clearWatch as Mock).mockResolvedValue(null);
-      // vi.spyOn(Geolocation, "clearWatch").mockResolvedValue();
       let callback: (
         pos?: Position,
         err?: { message: string }
