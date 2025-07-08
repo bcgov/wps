@@ -30,6 +30,7 @@ describe("ASAGoMap", () => {
     advisoryThreshold: 0,
     date: DateTime.now(),
     setDate: vi.fn(),
+    startWatching: vi.fn(),
   };
 
   const mockPosition = {

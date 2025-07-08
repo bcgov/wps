@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box } from "@mui/material";
-
+import { App as CapacitorApp } from "@capacitor/app";
 import { FireCenter, FireShape, RunType } from "@/api/fbaAPI";
 import { AppHeader } from "@/components/AppHeader";
 import { useDispatch, useSelector } from "react-redux";
@@ -25,8 +25,11 @@ import Profile from "@/components/Profile";
 import Advisory from "@/components/Advisory";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 import { theme } from "@/theme";
-import { useLocation } from "@/hooks/useLocation";
 import ASAGoMap from "@/components/map/ASAGoMap";
+import {
+  startWatchingLocation,
+  stopWatchingLocation,
+} from "@/slices/geolocationSlice";
 
 const App = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -138,8 +141,32 @@ const App = () => {
     }
   }, [mostRecentRunDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const isMapVisible = tab === NavPanel.MAP;
-  useLocation({ enabled: isMapVisible });
+  // Start/stop watching location based on tab and app state
+  useEffect(() => {
+    let isActive = true; // set to active initially
+
+    // listen for app state changes
+    const listener = CapacitorApp.addListener("appStateChange", (state) => {
+      isActive = state.isActive;
+      if (isActive && tab === NavPanel.MAP) {
+        dispatch(startWatchingLocation());
+      } else {
+        dispatch(stopWatchingLocation());
+      }
+    });
+
+    // Initial setup - start watching on app open
+    if (tab === NavPanel.MAP && isActive) {
+      dispatch(startWatchingLocation());
+    } else {
+      dispatch(stopWatchingLocation());
+    }
+
+    return () => {
+      listener.then((h) => h.remove());
+      dispatch(stopWatchingLocation());
+    };
+  }, [dispatch, tab]);
 
   return (
     <Box

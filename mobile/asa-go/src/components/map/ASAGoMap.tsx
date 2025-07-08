@@ -16,12 +16,13 @@ import {
   createLocalBasemapVectorLayer,
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
-import { selectGeolocation, selectNetworkStatus } from "@/store";
+import { AppDispatch, selectGeolocation, selectNetworkStatus } from "@/store";
 import { CENTER_OF_BC, fullMapExtent } from "@/utils/constants";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
 import { Filesystem } from "@capacitor/filesystem";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
+import GpsOffIcon from "@mui/icons-material/GpsOff";
 import { Box } from "@mui/material";
 import { FireCenter, FireShape, FireShapeArea, RunType } from "api/fbaAPI";
 import { cloneDeep, isNull, isUndefined } from "lodash";
@@ -39,9 +40,10 @@ import VectorTileLayer from "ol/layer/VectorTile";
 import "ol/ol.css";
 import { fromLonLat, transformExtent } from "ol/proj";
 import React, { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { BC_EXTENT } from "utils/constants";
 import UserLocationIndicator from "@/components/map/LocationIndicator";
+import { startWatchingLocation } from "@/slices/geolocationSlice";
 
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
 
@@ -54,11 +56,14 @@ export interface ASAGoMapProps {
   zoomSource?: "fireCenter" | "fireShape";
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
+  // startWatching: () => Promise<void>;
 }
 
 const ASAGoMap = (props: ASAGoMapProps) => {
+  const dispatch: AppDispatch = useDispatch();
+
   // selectors & hooks
-  const { position, loading } = useSelector(selectGeolocation);
+  const { position, error } = useSelector(selectGeolocation);
   const { networkStatus } = useSelector(selectNetworkStatus);
 
   // state
@@ -96,8 +101,15 @@ const ASAGoMap = (props: ASAGoMapProps) => {
    * - If location tracking is not active, dispatches an action to start tracking.
    * - If location tracking is already active, dispatches an action to fetch the current position.
    */
-  const handleLocationButtonClick = () => {
-    if (!map || !position?.coords) return;
+  const handleLocationButtonClick = async () => {
+    if (!map) return;
+
+    // if no position, or
+    if (!position || error) {
+      console.log(position, error);
+      dispatch(startWatchingLocation());
+      return;
+    }
     const pos = fromLonLat([
       position.coords.longitude,
       position.coords.latitude,
@@ -359,9 +371,8 @@ const ASAGoMap = (props: ASAGoMapProps) => {
         >
           <MapIconButton
             onClick={handleLocationButtonClick}
-            icon={<MyLocationIcon />}
+            icon={error ? <GpsOffIcon color="error" /> : <MyLocationIcon />}
             testid="location-button"
-            loading={loading}
           />
           <TodayTomorrowSwitch date={props.date} setDate={props.setDate} />
         </Box>
