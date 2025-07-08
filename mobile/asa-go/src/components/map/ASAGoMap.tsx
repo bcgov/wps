@@ -56,7 +56,6 @@ export interface ASAGoMapProps {
   zoomSource?: "fireCenter" | "fireShape";
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
-  // startWatching: () => Promise<void>;
 }
 
 const ASAGoMap = (props: ASAGoMapProps) => {
