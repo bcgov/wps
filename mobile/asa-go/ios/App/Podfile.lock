@@ -16,6 +16,8 @@ PODS:
     - Capacitor
   - CapacitorStatusBar (7.0.0):
     - Capacitor
+  - Keycloak (0.0.1):
+    - Capacitor
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
@@ -27,6 +29,7 @@ DEPENDENCIES:
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
+  - Keycloak (from `../../node_modules/keycloak`)
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -47,6 +50,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/network"
   CapacitorStatusBar:
     :path: "../../node_modules/@capacitor/status-bar"
+  Keycloak:
+    :path: "../../node_modules/keycloak"
 
 SPEC CHECKSUMS:
   Capacitor: 68ff8eabbcce387e69767c13b5fbcc1c5399eabc
@@ -58,7 +63,8 @@ SPEC CHECKSUMS:
   CapacitorKeyboard: 2c26c6fccde35023c579fc37d4cae6326d5e6343
   CapacitorNetwork: cd17b98182841055ff58629213242a1f22f4a76b
   CapacitorStatusBar: 438e90beeeefa8276b24e6c5991cb02dd13e51bf
+  Keycloak: 29cb70d3a09dc8da487110f804c77366cb7d6640
 
-PODFILE CHECKSUM: d3eb99dc925b0c9b7129366eb0ef7674f48fe4fa
+PODFILE CHECKSUM: f13cc05f41d05aded2137d0fa47776a9e70b375f
 
 COCOAPODS: 1.16.2

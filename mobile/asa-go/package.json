@@ -30,6 +30,7 @@
     "@reduxjs/toolkit": "^2.5.1",
     "axios": "^1.7.9",
     "capacitor-email-composer": "^7.0.0",
+    "keycloak": "../keycloak",
     "lodash": "^4.17.21",
     "luxon": "^3.5.0",
     "ol": "^10.4.0",
