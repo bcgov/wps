@@ -61,25 +61,6 @@ const render = () => {
     .catch((error) => {
       console.error("❌ Authentication failed:", error);
       console.log("Error details:", error);
-
-      // Check for specific Keycloak errors
-      if (error.message && error.message.includes("invalid_redirect_uri")) {
-        console.error(
-          "🔧 SOLUTION: Add 'ca.bc.gov.asago://auth/callback' to the 'Valid Redirect URIs' in your Keycloak client configuration"
-        );
-        console.error("   1. Log into Keycloak admin console");
-        console.error(
-          "   2. Go to your realm > Clients > wps-3981 (or your client ID)"
-        );
-        console.error(
-          "   3. Add 'ca.bc.gov.asago://auth/callback' to 'Valid Redirect URIs'"
-        );
-        console.error("   4. Save the configuration");
-      } else if (error.message && error.message.includes("redirect_uri")) {
-        console.error(
-          "🔧 This appears to be a redirect URI configuration issue in Keycloak"
-        );
-      }
     });
 
   // Null check to keep TypeScript happy

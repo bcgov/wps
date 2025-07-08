@@ -7,17 +7,8 @@ import UIKit
 public struct KeycloakOptions {
     let clientId: String
     let authorizationBaseUrl: String
-    let responseType: String?
-    let redirectUrl: String?
+    let redirectUrl: String
     let accessTokenEndpoint: String?
-    let resourceUrl: String?
-    let pkceEnabled: Bool
-    let scope: String?
-    let state: String?
-    let additionalParameters: [String: String]?
-    let logsEnabled: Bool
-    let logoutUrl: String?
-    let additionalResourceHeaders: [String: String]?
 }
 
 public struct KeycloakRefreshOptions {
@@ -71,7 +62,7 @@ public struct KeycloakRefreshOptions {
         // Build the query string manually to avoid double encoding
         var queryPairs: [String] = []
         queryPairs.append("client_id=\(options.clientId)")
-        queryPairs.append("response_type=\(options.responseType ?? "code")")
+        queryPairs.append("response_type=code")
 
         // Add PKCE parameters
         queryPairs.append("code_challenge=\(codeChallenge)")
@@ -85,22 +76,6 @@ public struct KeycloakRefreshOptions {
         {
             queryPairs.append("redirect_uri=\(encodedRedirectUri)")
             print("Keycloak: Encoded redirect URI: \(encodedRedirectUri)")
-        }
-
-        if let scope = options.scope {
-            if let encodedScope = scope.addingPercentEncoding(
-                withAllowedCharacters: .urlQueryAllowed)
-            {
-                queryPairs.append("scope=\(encodedScope)")
-            }
-        }
-
-        if let state = options.state {
-            if let encodedState = state.addingPercentEncoding(
-                withAllowedCharacters: .urlQueryAllowed)
-            {
-                queryPairs.append("state=\(encodedState)")
-            }
         }
 
         let queryString = queryPairs.joined(separator: "&")

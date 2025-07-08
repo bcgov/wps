@@ -32,21 +32,16 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
+        guard let redirectUrl = call.getString("redirectUrl") else {
+            call.reject("Missing required parameter: redirectUrl")
+            return
+        }
+
         let options = KeycloakOptions(
             clientId: clientId,
             authorizationBaseUrl: authorizationBaseUrl,
-            responseType: call.getString("responseType"),
-            redirectUrl: call.getString("redirectUrl"),
+            redirectUrl: redirectUrl,
             accessTokenEndpoint: call.getString("accessTokenEndpoint"),
-            resourceUrl: call.getString("resourceUrl"),
-            pkceEnabled: call.getBool("pkceEnabled") ?? true,
-            scope: call.getString("scope"),
-            state: call.getString("state"),
-            additionalParameters: call.getObject("additionalParameters") as? [String: String],
-            logsEnabled: call.getBool("logsEnabled") ?? false,
-            logoutUrl: call.getString("logoutUrl"),
-            additionalResourceHeaders: call.getObject("additionalResourceHeaders")
-                as? [String: String]
         )
 
         implementation.authenticate(options: options) { result in

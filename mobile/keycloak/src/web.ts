@@ -9,24 +9,12 @@ export class KeycloakWeb extends WebPlugin implements KeycloakPlugin {
     // Build the authorization URL
     const params = new URLSearchParams({
       client_id: options.clientId,
-      response_type: options.responseType || 'code',
+      response_type: 'code',
       redirect_uri: options.redirectUrl || `${window.location.origin}/keycloak/callback`,
-      scope: options.scope || 'openid',
-      state: options.state || this.generateRandomString(32),
     });
 
-    // Add additional parameters
-    if (options.additionalParameters) {
-      Object.entries(options.additionalParameters).forEach(([key, value]) => {
-        params.append(key, value);
-      });
-    }
-
     const authUrl = `${options.authorizationBaseUrl}?${params.toString()}`;
-
-    if (options.logsEnabled) {
-      console.log('Keycloak: Authorization URL:', authUrl);
-    }
+    console.log(authUrl);
 
     // For web, we'll simulate the authentication flow
     // In a real implementation, you would redirect to the auth URL or open a popup
@@ -38,7 +26,6 @@ export class KeycloakWeb extends WebPlugin implements KeycloakPlugin {
           token_type: 'Bearer',
           expires_in: 3600,
           refresh_token: `web_mock_refresh_${Date.now()}`,
-          scope: options.scope || 'openid',
           state: params.get('state'),
         };
 
@@ -71,14 +58,5 @@ export class KeycloakWeb extends WebPlugin implements KeycloakPlugin {
   async echo(options: { value: string }): Promise<{ value: string }> {
     console.log('ECHO', options);
     return options;
-  }
-
-  private generateRandomString(length: number): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
   }
 }
