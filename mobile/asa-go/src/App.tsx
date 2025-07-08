@@ -21,7 +21,7 @@ import Profile from "@/components/Profile";
 import Advisory from "@/components/Advisory";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 
-const HFI_THRESHOLD = 5;
+const HFI_THRESHOLD = 20;
 
 const App = () => {
   const dispatch: AppDispatch = useDispatch();
