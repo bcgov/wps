@@ -1,9 +1,6 @@
 import AuthenticationServices
 import CryptoKit
 import Foundation
-import UIKit
-
-// MARK: - Protocols for Testability
 
 protocol PKCEGeneratorProtocol {
     func generateCodeVerifier() -> String
