@@ -7,13 +7,13 @@ import ScaleLine from "ol/control/ScaleLine";
 import VectorTileLayer from "ol/layer/VectorTile";
 import React, { useEffect, useRef, useState } from "react";
 import { BC_EXTENT } from "utils/constants";
-import { FireCenter, FireShape, FireShapeArea, RunType } from "api/fbaAPI";
+import { FireCenter, FireShape, RunType } from "api/fbaAPI";
 import {
   fireCentreLabelStyler,
   fireShapeLabelStyler,
   fireCentreLineStyler,
   hfiStyler,
-  fireShapeLineStyler,
+  fireShapeStyler,
 } from "@/featureStylers";
 import { DateTime } from "luxon";
 import { cloneDeep, isNull, isUndefined } from "lodash";
@@ -32,7 +32,7 @@ import {
 } from "@/layerDefinitions";
 import TileLayer from "ol/layer/Tile";
 import { useSelector } from "react-redux";
-import { selectNetworkStatus } from "@/store";
+import { selectNetworkStatus, selectFireShapeAreas } from "@/store";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
 export const MapContext = React.createContext<Map | null>(null);
 
@@ -42,7 +42,6 @@ export interface FBAMapProps {
   testId?: string;
   selectedFireCenter: FireCenter | undefined;
   selectedFireShape: FireShape | undefined;
-  fireShapeAreas: FireShapeArea[];
   advisoryThreshold: number;
   zoomSource?: "fireCenter" | "fireShape";
   date: DateTime;
@@ -51,7 +50,9 @@ export interface FBAMapProps {
 
 const FBAMap = (props: FBAMapProps) => {
   const [map, setMap] = useState<Map | null>(null);
+  const { networkStatus } = useSelector(selectNetworkStatus);
   const [scaleVisible, setScaleVisible] = useState<boolean>(true);
+  const { fireShapeAreas } = useSelector(selectFireShapeAreas);
   const [basemapLayer] = useState<TileLayer>(createBasemapLayer());
   const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
     useState<VectorTileLayer>(() => {
@@ -59,7 +60,19 @@ const FBAMap = (props: FBAMapProps) => {
       layer.set("name", LOCAL_BASEMAP_LAYER_NAME);
       return layer;
     });
-  const { networkStatus } = useSelector(selectNetworkStatus);
+
+  const [fireZoneFileLayer] = useState<VectorTileLayer>(
+    new VectorTileLayer({
+      style: fireShapeStyler(
+        cloneDeep(fireShapeAreas),
+        props.advisoryThreshold,
+        true
+      ),
+      zIndex: 53,
+      properties: { name: "fireShapeVector" },
+    })
+  );
+
   const mapRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
@@ -116,13 +129,19 @@ const FBAMap = (props: FBAMapProps) => {
   }, [props.selectedFireShape]);
 
   useEffect(() => {
+    fireZoneFileLayer.setStyle(
+      fireShapeStyler(cloneDeep(fireShapeAreas), props.advisoryThreshold, true)
+    );
+  }, [fireShapeAreas]);
+
+  useEffect(() => {
     if (!map) return;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     props.selectedFireCenter,
     props.selectedFireShape,
-    props.fireShapeAreas,
+    fireShapeAreas,
     props.advisoryThreshold,
   ]);
 
@@ -217,6 +236,7 @@ const FBAMap = (props: FBAMapProps) => {
           filename: "fireZoneUnits.pmtiles",
         }
       );
+      fireZoneFileLayer.setSource(fireZoneSource);
 
       const fireZoneLabelVectorSource =
         await PMTilesFileVectorSource.createStaticLayer(
@@ -237,17 +257,6 @@ const FBAMap = (props: FBAMapProps) => {
           style: fireCentreLabelStyler,
           zIndex: 100,
           maxZoom: 6,
-        });
-
-        const fireZoneFileLayer = new VectorTileLayer({
-          source: fireZoneSource,
-          style: fireShapeLineStyler(
-            cloneDeep(props.fireShapeAreas),
-            props.advisoryThreshold,
-            props.selectedFireShape
-          ),
-          zIndex: 53,
-          properties: { name: "fireShapeVector" },
         });
 
         const fireZoneLabelFileLayer = new VectorTileLayer({

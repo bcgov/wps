@@ -2,19 +2,14 @@ import { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 
 import FBAMap from "@/components/map/FBAMap";
-import { FireCenter, FireShape, RunType } from "@/api/fbaAPI";
+import { FireCenter, FireShape } from "@/api/fbaAPI";
 import { AppHeader } from "@/components/AppHeader";
 import { useDispatch, useSelector } from "react-redux";
 import { DateTime } from "luxon";
 import { NavPanel, PST_UTC_OFFSET } from "@/utils/constants";
-import {
-  selectFireCenters,
-  selectRunDates,
-  selectFireShapeAreas,
-  AppDispatch,
-} from "@/store";
+import { selectFireCenters, selectRunParameter, AppDispatch } from "@/store";
 import { isNull, isUndefined } from "lodash";
-import { fetchSFMSRunDates } from "@/slices/runDatesSlice";
+import { fetchMostRecentSFMSRunParameter } from "@/slices/runParameterSlice";
 import { fetchFireCenters } from "@/slices/fireCentersSlice";
 import { fetchFireCentreTPIStats } from "@/slices/fireCentreTPIStatsSlice";
 import { fetchFireCentreHFIFuelStats } from "@/slices/fireCentreHFIFuelStatsSlice";
@@ -26,15 +21,15 @@ import Profile from "@/components/Profile";
 import Advisory from "@/components/Advisory";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 
+const HFI_THRESHOLD = 5;
+
 const App = () => {
   const dispatch: AppDispatch = useDispatch();
   const { fireCenters } = useSelector(selectFireCenters);
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
-
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(
     undefined
   );
-
   const [selectedFireShape] = useState<FireShape | undefined>(undefined);
   const [zoomSource] = useState<"fireCenter" | "fireShape" | undefined>(
     "fireCenter"
@@ -42,16 +37,7 @@ const App = () => {
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
   );
-  const [runType] = useState(RunType.FORECAST);
-  const { mostRecentRunDate } = useSelector(selectRunDates);
-  const { fireShapeAreas } = useSelector(selectFireShapeAreas);
-
-  useEffect(() => {
-    const doiISODate = dateOfInterest.toISODate();
-    if (!isNull(doiISODate)) {
-      dispatch(fetchSFMSRunDates(runType, doiISODate));
-    }
-  }, [runType]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { runDatetime, runType } = useSelector(selectRunParameter);
 
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status
@@ -77,14 +63,14 @@ const App = () => {
     dispatch(fetchFireCenters());
     const doiISODate = dateOfInterest.toISODate();
     if (!isNull(doiISODate)) {
-      dispatch(fetchSFMSRunDates(runType, doiISODate));
+      dispatch(fetchMostRecentSFMSRunParameter(doiISODate));
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate();
     if (!isNull(doiISODate)) {
-      dispatch(fetchSFMSRunDates(runType, doiISODate));
+      dispatch(fetchMostRecentSFMSRunParameter(doiISODate));
     }
   }, [dateOfInterest]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -103,18 +89,19 @@ const App = () => {
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate();
     if (
-      !isNull(mostRecentRunDate) &&
+      !isNull(runDatetime) &&
       !isNull(doiISODate) &&
-      !isUndefined(mostRecentRunDate) &&
+      !isUndefined(runDatetime) &&
       !isUndefined(fireCenter) &&
-      !isNull(fireCenter)
+      !isNull(fireCenter) &&
+      !isNull(runType)
     ) {
       dispatch(
         fetchFireCentreTPIStats(
           fireCenter.name,
           runType,
           doiISODate,
-          mostRecentRunDate.toString()
+          runDatetime
         )
       );
       dispatch(
@@ -122,19 +109,19 @@ const App = () => {
           fireCenter.name,
           runType,
           doiISODate,
-          mostRecentRunDate.toString()
+          runDatetime
         )
       );
     }
-  }, [fireCenter, mostRecentRunDate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fireCenter, runDatetime]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate();
-    if (!isNull(doiISODate)) {
-      dispatch(fetchFireShapeAreas(runType, mostRecentRunDate, doiISODate));
-      dispatch(fetchProvincialSummary(runType, mostRecentRunDate, doiISODate));
+    if (!isNull(doiISODate) && !isNull(runType)) {
+      dispatch(fetchFireShapeAreas(runType, runDatetime, doiISODate));
+      dispatch(fetchProvincialSummary(runType, runDatetime, doiISODate));
     }
-  }, [mostRecentRunDate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [runDatetime]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Box
@@ -152,9 +139,8 @@ const App = () => {
         <FBAMap
           selectedFireCenter={fireCenter}
           selectedFireShape={selectedFireShape}
-          fireShapeAreas={fireShapeAreas}
           zoomSource={zoomSource}
-          advisoryThreshold={0}
+          advisoryThreshold={HFI_THRESHOLD}
           date={dateOfInterest}
           setDate={setDateOfInterest}
         />
