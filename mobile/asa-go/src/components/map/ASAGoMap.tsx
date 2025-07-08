@@ -76,6 +76,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
       layer.set("name", LOCAL_BASEMAP_LAYER_NAME);
       return layer;
     });
+  const [centerOnLocation, setCenterOnLocation] = useState(false);
 
   // refs
   const mapRef = useRef<HTMLDivElement | null>(
@@ -104,10 +105,9 @@ const ASAGoMap = (props: ASAGoMapProps) => {
   const handleLocationButtonClick = async () => {
     if (!map) return;
 
-    // if no position, or
     if (!position || error) {
-      console.log(position, error);
       dispatch(startWatchingLocation());
+      setCenterOnLocation(true); // center map when position arrives
       return;
     }
     const pos = fromLonLat([
@@ -120,6 +120,22 @@ const ASAGoMap = (props: ASAGoMapProps) => {
       duration: 1000,
     });
   };
+
+  // center map when position is updated after requesting location
+  useEffect(() => {
+    if (centerOnLocation && position && map) {
+      const pos = fromLonLat([
+        position.coords.longitude,
+        position.coords.latitude,
+      ]);
+      map.getView().animate({
+        center: pos,
+        zoom: 7.5,
+        duration: 1000,
+      });
+      setCenterOnLocation(false); // Reset flag
+    }
+  }, [centerOnLocation, position, map]);
 
   useEffect(() => {
     // zoom to fire center or whole province

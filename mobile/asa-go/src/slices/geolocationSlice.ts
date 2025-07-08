@@ -16,9 +16,12 @@ const geolocationSlice = createSlice({
   name: "geolocation",
   initialState: geolocationInitialState,
   reducers: {
-    setPosition(state, action: PayloadAction<Position>) {
+    setPosition(state, action: PayloadAction<Position | null>) {
       state.position = action.payload;
-      state.error = null; // clear error on successful position update
+      // Only clear error if we have a valid position
+      if (action.payload) {
+        state.error = null;
+      }
     },
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
