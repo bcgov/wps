@@ -235,6 +235,7 @@ const FBAMap = ({
       fireZoneFileLayer.getFeatures(event.pixel).then((features) => {
         if (!features.length) {
           mapPopup.setPosition(undefined);
+          setSelectedFireShape(undefined);
           return;
         }
         const feature = features[0];
