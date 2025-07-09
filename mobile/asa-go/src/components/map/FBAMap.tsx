@@ -106,7 +106,7 @@ const FBAMap = ({
     null
   ) as React.MutableRefObject<HTMLElement>;
 
-  const [popup, setPopup] = useState<Overlay>(
+  const [popup] = useState<Overlay>(
     new Overlay({
       autoPan: {
         animation: {
@@ -221,20 +221,12 @@ const FBAMap = ({
     /******* End scale line ******/
 
     /******* Start map popup ******/
-    const mapPopup = new Overlay({
-      autoPan: {
-        animation: {
-          duration: 250,
-        },
-      },
-      element: popupRef.current,
-    });
-    setPopup(mapPopup);
-    mapPopup.setMap(mapObject);
+    popup.setElement(popupRef.current);
+    mapObject.addOverlay(popup);
     const mapClickHandler = (event: MapBrowserEvent<UIEvent>) => {
       fireZoneFileLayer.getFeatures(event.pixel).then((features) => {
         if (!features.length) {
-          mapPopup.setPosition(undefined);
+          popup.setPosition(undefined);
           setSelectedFireShape(undefined);
           return;
         }
@@ -248,7 +240,7 @@ const FBAMap = ({
           mof_fire_centre_name: feature.getProperties().FIRE_CENTR,
           area_sqm: feature.getProperties().Shape_Area,
         };
-        mapPopup.setPosition(event.coordinate);
+        popup.setPosition(event.coordinate);
         setSelectedFireShape(fireZone);
       });
     };
