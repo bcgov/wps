@@ -24,7 +24,7 @@ import { Filesystem } from "@capacitor/filesystem";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import GpsOffIcon from "@mui/icons-material/GpsOff";
 import { Box } from "@mui/material";
-import { FireCenter, FireShape, FireShapeArea, RunType } from "api/fbaAPI";
+import { FireCenter, FireShape, RunType } from "api/fbaAPI";
 import { cloneDeep, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { Map, View } from "ol";
@@ -61,7 +61,6 @@ export interface ASAGoMapProps {
   testId?: string;
   selectedFireCenter: FireCenter | undefined;
   selectedFireShape: FireShape | undefined;
-  fireShapeAreas: FireShapeArea[];
   advisoryThreshold: number;
   zoomSource?: "fireCenter" | "fireShape";
   date: DateTime;
@@ -78,6 +77,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
   // state
   const [map, setMap] = useState<Map | null>(null);
   const [scaleVisible, setScaleVisible] = useState<boolean>(true);
+  const { fireShapeAreas } = useSelector(selectFireShapeAreas);
   const [basemapLayer] = useState<TileLayer>(createBasemapLayer());
   const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
     useState<VectorTileLayer>(() => {
@@ -85,9 +85,19 @@ const ASAGoMap = (props: ASAGoMapProps) => {
       layer.set("name", LOCAL_BASEMAP_LAYER_NAME);
       return layer;
     });
-  const [centerOnLocation, setCenterOnLocation] = useState(false);
 
-  // refs
+  const [fireZoneFileLayer] = useState<VectorTileLayer>(
+    new VectorTileLayer({
+      style: fireShapeStyler(
+        cloneDeep(fireShapeAreas),
+        props.advisoryThreshold,
+        true
+      ),
+      zIndex: 53,
+      properties: { name: "fireShapeVector" },
+    })
+  );
+
   const mapRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
@@ -186,13 +196,19 @@ const ASAGoMap = (props: ASAGoMapProps) => {
   }, [props.selectedFireShape]);
 
   useEffect(() => {
+    fireZoneFileLayer.setStyle(
+      fireShapeStyler(cloneDeep(fireShapeAreas), props.advisoryThreshold, true)
+    );
+  }, [fireShapeAreas]);
+
+  useEffect(() => {
     if (!map) return;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     props.selectedFireCenter,
     props.selectedFireShape,
-    props.fireShapeAreas,
+    fireShapeAreas,
     props.advisoryThreshold,
   ]);
 
@@ -291,6 +307,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
           filename: "fireZoneUnits.pmtiles",
         }
       );
+      fireZoneFileLayer.setSource(fireZoneSource);
 
       const fireZoneLabelVectorSource =
         await PMTilesFileVectorSource.createStaticLayer(

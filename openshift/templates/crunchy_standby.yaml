@@ -32,10 +32,6 @@ parameters:
       Starting amount of CPU the container can use.
     displayName: CPU REQUEST
     value: "50m"
-  - name: CPU_LIMIT
-    description: Maximum amount of CPU the container can use.
-    displayName: CPU Limit
-    value: "250m"
   - name: MEMORY_REQUEST
     description: Starting amount of memory the container can use.
     displayName: Memory Request
@@ -86,7 +82,6 @@ objects:
               cpu: ${CPU_REQUEST}
               memory: ${MEMORY_REQUEST}
             limits:
-              cpu: ${CPU_LIMIT}
               memory: ${MEMORY_LIMIT}
           dataVolumeClaimSpec:
             accessModes:

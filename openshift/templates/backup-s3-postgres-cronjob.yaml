@@ -61,8 +61,6 @@ parameters:
     required: true
   - name: CPU_REQUEST
     value: "0.5"
-  - name: CPU_LIMIT
-    value: "1"
   - name: "JOB_BACKOFF_LIMIT"
     displayName: "Job Backoff Limit"
     description: "The number of attempts to try for a successful job outcome"
@@ -120,7 +118,6 @@ objects:
                   imagePullPolicy: Always
                   resources:
                     limits:
-                      cpu: ${CPU_LIMIT}
                       memory: 4Gi
                     requests:
                       cpu: ${CPU_REQUEST}

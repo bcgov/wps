@@ -37,7 +37,7 @@ MODULE_NAME=jobs bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 echo Provision database
 PROJ_TARGET=${PROJ_TARGET} BUCKET=lwzrin CPU_REQUEST=2 MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=15Gi bash $(dirname ${0})/oc_provision_crunchy.sh prod ${RUN_TYPE}
 # TODO: remove once crunchydb satisfactory in prod for sometime
-# CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi PVC_SIZE=45Gi PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_db.sh prod ${RUN_TYPE}
+# CPU_REQUEST=75m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi PVC_SIZE=45Gi PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_db.sh prod ${RUN_TYPE}
 # Using pmtiles now, TODO: remove once pmtiles is satisfactory in prod over sometime
 # echo Provision tileserv
 # PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_tileserv.sh prod ${RUN_TYPE}
@@ -77,7 +77,7 @@ PROJ_TARGET=${PROJ_TARGET} SCHEDULE="15 * * * *" bash $(dirname ${0})/oc_provisi
 echo "Configure partitioner to run every month on day 1 at 00:00"
 PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 6 1 * *" bash $(dirname ${0})/oc_provision_partitioner_cronjob.sh prod ${RUN_TYPE}
 echo Configure backups
-PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=1000m CPU_LIMIT=2000m bash $(dirname ${0})/oc_provision_backup_s3_postgres_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=1000m bash $(dirname ${0})/oc_provision_backup_s3_postgres_cronjob.sh prod ${RUN_TYPE}
 echo Configure hourly pruner
 PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 2 * * *" bash $(dirname ${0})/oc_provision_hourly_prune_cronjob.sh prod ${RUN_TYPE}
 echo Configure

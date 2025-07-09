@@ -12,7 +12,7 @@ export type AppDispatch = typeof store.dispatch;
 
 export type AppThunk = ThunkAction<void, RootState, undefined, Action>;
 
-export const selectRunDates = (state: RootState) => state.runDates;
+export const selectRunParameter = (state: RootState) => state.runParameter;
 export const selectFireShapeAreas = (state: RootState) => state.fireShapeAreas;
 export const selectFireCenters = (state: RootState) => state.fireCenters;
 export const selectNetworkStatus = (state: RootState) => state.networkStatus;
