@@ -17,7 +17,7 @@ import {
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
 import { AppDispatch, selectGeolocation, selectNetworkStatus } from "@/store";
-import { CENTER_OF_BC, fullMapExtent } from "@/utils/constants";
+import { CENTER_OF_BC } from "@/utils/constants";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
 import { Filesystem } from "@capacitor/filesystem";
@@ -38,14 +38,24 @@ import { boundingExtent } from "ol/extent";
 import TileLayer from "ol/layer/Tile";
 import VectorTileLayer from "ol/layer/VectorTile";
 import "ol/ol.css";
-import { fromLonLat, transformExtent } from "ol/proj";
+import { fromLonLat } from "ol/proj";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BC_EXTENT } from "utils/constants";
 import UserLocationIndicator from "@/components/map/LocationIndicator";
 import { startWatchingLocation } from "@/slices/geolocationSlice";
 
+// used for setting the initial map extent
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
+
+// used for bounding the map extent, limit panning to BC + buffer
+const buffer = 1_500_000;
+const BC_FULL_MAP_EXTENT_3857 = [
+  bcExtent[0] - buffer,
+  bcExtent[1] - buffer,
+  bcExtent[2] + buffer,
+  bcExtent[3] + buffer,
+];
 
 export interface ASAGoMapProps {
   testId?: string;
@@ -97,9 +107,10 @@ const ASAGoMap = (props: ASAGoMapProps) => {
 
   /**
    *
-   * - Sets a flag to center the map on the user's location upon update.
    * - If location tracking is not active, dispatches an action to start tracking.
-   * - If location tracking is already active, dispatches an action to fetch the current position.
+   * - Sets a flag to center the map on the user's location upon update.
+   * - If location tracking is already active and we have a position,
+   *   it centers the map on the user's current position.
    */
   const handleLocationButtonClick = async () => {
     if (!map) return;
@@ -220,19 +231,13 @@ const ASAGoMap = (props: ASAGoMapProps) => {
     // Pattern copied from web/src/features/map/Map.tsx
     if (!mapRef.current) return;
 
-    const transformedExtent = transformExtent(
-      fullMapExtent,
-      "EPSG:4326",
-      "EPSG:3857"
-    );
-
     // Create the map with the options above and set the target
     // To the ref above so that it is rendered in that div
     const mapObject = new Map({
       view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC),
-        extent: transformedExtent,
+        extent: BC_FULL_MAP_EXTENT_3857,
       }),
       layers: [],
       overlays: [],

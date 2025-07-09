@@ -26,8 +26,6 @@ export const BC_EXTENT = [
   [-114.1, 60.0], // [maxLon, maxLat]]
 ];
 
-export const fullMapExtent = [-155.2, 36.2, -103.0, 66.5];
-
 // Application names
 export const FIRE_BEHAVIOUR_ADVISORY_NAME = "Auto Spatial Advisory";
 
