@@ -16,7 +16,12 @@ import {
   createLocalBasemapVectorLayer,
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
-import { AppDispatch, selectGeolocation, selectNetworkStatus } from "@/store";
+import {
+  AppDispatch,
+  selectGeolocation,
+  selectNetworkStatus,
+  selectFireShapeAreas,
+} from "@/store";
 import { CENTER_OF_BC } from "@/utils/constants";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
@@ -85,6 +90,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
       layer.set("name", LOCAL_BASEMAP_LAYER_NAME);
       return layer;
     });
+  const [centerOnLocation, setCenterOnLocation] = useState<boolean>(false);
 
   const [fireZoneFileLayer] = useState<VectorTileLayer>(
     new VectorTileLayer({
@@ -199,6 +205,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
     fireZoneFileLayer.setStyle(
       fireShapeStyler(cloneDeep(fireShapeAreas), props.advisoryThreshold, true)
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireShapeAreas]);
 
   useEffect(() => {
@@ -328,17 +335,6 @@ const ASAGoMap = (props: ASAGoMapProps) => {
           style: fireCentreLabelStyler,
           zIndex: 100,
           maxZoom: 6,
-        });
-
-        const fireZoneFileLayer = new VectorTileLayer({
-          source: fireZoneSource,
-          style: fireShapeStyler(
-            cloneDeep(props.fireShapeAreas),
-            props.advisoryThreshold,
-            false
-          ),
-          zIndex: 53,
-          properties: { name: "fireShapeVector" },
         });
 
         const fireZoneLabelFileLayer = new VectorTileLayer({
