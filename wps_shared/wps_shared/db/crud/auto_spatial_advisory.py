@@ -387,6 +387,22 @@ async def get_run_datetimes(
     return result.all()
 
 
+async def get_most_recent_run_datetime_for_date(session: AsyncSession, for_date: date):
+    """
+    Get the most recent sfms run for the given for date whether it is an actual or forecast.
+
+    :param session: An async db session.
+    :param for_date: The date of interest.
+    """
+    stmt = (
+        select(RunParameters)
+        .where(RunParameters.for_date == for_date)
+        .order_by(RunParameters.run_datetime.desc())
+    )
+    result = await session.execute(stmt)
+    return result.scalars().first()
+
+
 async def get_sfms_bounds(session: AsyncSession):
     stmt = (
         select(
