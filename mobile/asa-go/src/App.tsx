@@ -30,10 +30,9 @@ const App = () => {
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(
     undefined
   );
-  const [selectedFireShape] = useState<FireShape | undefined>(undefined);
-  const [zoomSource] = useState<"fireCenter" | "fireShape" | undefined>(
-    "fireCenter"
-  );
+  const [selectedFireShape, setSelectedFireShape] = useState<
+    FireShape | undefined
+  >(undefined);
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
   );
@@ -137,12 +136,12 @@ const App = () => {
       <AppHeader />
       {tab === NavPanel.MAP && (
         <FBAMap
-          selectedFireCenter={fireCenter}
           selectedFireShape={selectedFireShape}
-          zoomSource={zoomSource}
+          setSelectedFireShape={setSelectedFireShape}
           advisoryThreshold={HFI_THRESHOLD}
           date={dateOfInterest}
           setDate={setDateOfInterest}
+          setTab={setTab}
         />
       )}
       {tab === NavPanel.PROFILE && <Profile />}

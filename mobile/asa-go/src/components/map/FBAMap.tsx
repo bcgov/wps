@@ -1,54 +1,65 @@
-import { Map, View } from "ol";
-import "ol/ol.css";
-import { defaults as defaultControls } from "ol/control";
-import { fromLonLat } from "ol/proj";
-import { boundingExtent } from "ol/extent";
-import ScaleLine from "ol/control/ScaleLine";
-import VectorTileLayer from "ol/layer/VectorTile";
-import React, { useEffect, useRef, useState } from "react";
-import { BC_EXTENT } from "utils/constants";
-import { FireCenter, FireShape, RunType } from "api/fbaAPI";
+import MapPopup from "@/components/map/MapPopup";
+import ScaleContainer from "@/components/ScaleContainer";
+import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
 import {
   fireCentreLabelStyler,
-  fireShapeLabelStyler,
   fireCentreLineStyler,
-  hfiStyler,
+  fireShapeLabelStyler,
+  fireShapeLineStyler,
   fireShapeStyler,
+  hfiStyler,
 } from "@/featureStylers";
-import { DateTime } from "luxon";
-import { cloneDeep, isNull, isUndefined } from "lodash";
-import { Box } from "@mui/material";
-import ScaleContainer from "@/components/ScaleContainer";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
-import { CENTER_OF_BC } from "@/utils/constants";
-import { extentsMap } from "@/fireCentreExtents";
-import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
-import { PMTilesCache } from "@/utils/pmtilesCache";
-import { Filesystem } from "@capacitor/filesystem";
 import {
   createBasemapLayer,
   createLocalBasemapVectorLayer,
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
+import { selectFireShapeAreas, selectNetworkStatus } from "@/store";
+import { CENTER_OF_BC } from "@/utils/constants";
+import { PMTilesCache } from "@/utils/pmtilesCache";
+import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
+import { Filesystem } from "@capacitor/filesystem";
+import { Box } from "@mui/material";
+import { FireShape, RunType } from "api/fbaAPI";
+import { cloneDeep, isNull, isUndefined } from "lodash";
+import { DateTime } from "luxon";
+import { Map, MapBrowserEvent, Overlay, View } from "ol";
+import { defaults as defaultControls } from "ol/control";
+import ScaleLine from "ol/control/ScaleLine";
+import { boundingExtent } from "ol/extent";
 import TileLayer from "ol/layer/Tile";
+import VectorTileLayer from "ol/layer/VectorTile";
+import "ol/ol.css";
+import { fromLonLat } from "ol/proj";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { selectNetworkStatus, selectFireShapeAreas } from "@/store";
-import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
+import { BC_EXTENT, NavPanel } from "utils/constants";
 export const MapContext = React.createContext<Map | null>(null);
 
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
 
 export interface FBAMapProps {
   testId?: string;
-  selectedFireCenter: FireCenter | undefined;
   selectedFireShape: FireShape | undefined;
+  setSelectedFireShape: React.Dispatch<
+    React.SetStateAction<FireShape | undefined>
+  >;
   advisoryThreshold: number;
-  zoomSource?: "fireCenter" | "fireShape";
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
+  setTab: React.Dispatch<React.SetStateAction<NavPanel>>;
 }
 
-const FBAMap = (props: FBAMapProps) => {
+const FBAMap = ({
+  testId,
+  selectedFireShape,
+  setSelectedFireShape,
+  advisoryThreshold,
+  date,
+  setDate,
+  setTab,
+}: FBAMapProps) => {
   const [map, setMap] = useState<Map | null>(null);
   const { networkStatus } = useSelector(selectNetworkStatus);
   const [scaleVisible, setScaleVisible] = useState<boolean>(true);
@@ -65,11 +76,23 @@ const FBAMap = (props: FBAMapProps) => {
     new VectorTileLayer({
       style: fireShapeStyler(
         cloneDeep(fireShapeAreas),
-        props.advisoryThreshold,
+        advisoryThreshold,
         true
       ),
       zIndex: 53,
-      properties: { name: "fireShapeVector" },
+      properties: { name: "fireZoneVector" },
+    })
+  );
+
+  const [fireZoneHighlightFileLayer] = useState<VectorTileLayer>(
+    new VectorTileLayer({
+      style: fireShapeLineStyler(
+        cloneDeep(fireShapeAreas),
+        advisoryThreshold,
+        selectedFireShape
+      ),
+      zIndex: 54,
+      properties: { name: "fireZoneHighlightVector" },
     })
   );
 
@@ -79,6 +102,19 @@ const FBAMap = (props: FBAMapProps) => {
   const scaleRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
+  const popupRef = useRef<HTMLDivElement | null>(
+    null
+  ) as React.MutableRefObject<HTMLElement>;
+
+  const [popup, setPopup] = useState<Overlay>(
+    new Overlay({
+      autoPan: {
+        animation: {
+          duration: 250,
+        },
+      },
+    })
+  );
 
   const removeLayerByName = (map: Map, layerName: string) => {
     const layer = map
@@ -91,59 +127,33 @@ const FBAMap = (props: FBAMapProps) => {
   };
 
   useEffect(() => {
-    // zoom to fire center or whole province
-    if (!map) return;
-
-    if (props.selectedFireCenter && props.zoomSource === "fireCenter") {
-      const fireCentreExtent = extentsMap.get(props.selectedFireCenter.name);
-      if (fireCentreExtent) {
-        map.getView().fit(fireCentreExtent.extent, {
-          duration: 400,
-          padding: [50, 50, 50, 50],
-        });
-      }
-    } else if (!props.selectedFireCenter) {
-      // reset map view to full province
-      map.getView().fit(bcExtent, { duration: 600, padding: [50, 50, 50, 50] });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedFireCenter]);
-
-  useEffect(() => {
-    // zoom to fire zone
-    if (!map) return;
-
-    if (props.selectedFireShape && props.zoomSource === "fireShape") {
-      const zoneExtent = fireZoneExtentsMap.get(
-        props.selectedFireShape.fire_shape_id.toString()
-      );
-      if (!isUndefined(zoneExtent)) {
-        map.getView().fit(zoneExtent, {
-          duration: 400,
-          padding: [100, 100, 100, 100],
-          maxZoom: 8,
-        });
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedFireShape]);
-
-  useEffect(() => {
     fireZoneFileLayer.setStyle(
-      fireShapeStyler(cloneDeep(fireShapeAreas), props.advisoryThreshold, true)
+      fireShapeStyler(cloneDeep(fireShapeAreas), advisoryThreshold, true)
     );
+    fireZoneHighlightFileLayer.setStyle(
+      fireShapeLineStyler(
+        cloneDeep(fireShapeAreas),
+        advisoryThreshold,
+        selectedFireShape
+      )
+    );
+    fireZoneFileLayer.changed();
+    fireZoneHighlightFileLayer.changed();
   }, [fireShapeAreas]);
 
   useEffect(() => {
     if (!map) return;
 
+    fireZoneHighlightFileLayer.setStyle(
+      fireShapeLineStyler(
+        cloneDeep(fireShapeAreas),
+        advisoryThreshold,
+        selectedFireShape
+      )
+    );
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    props.selectedFireCenter,
-    props.selectedFireShape,
-    fireShapeAreas,
-    props.advisoryThreshold,
-  ]);
+  }, [selectedFireShape]);
 
   useEffect(() => {
     // Toggle basemap visibility based on network connection status.
@@ -195,9 +205,55 @@ const FBAMap = (props: FBAMapProps) => {
     });
     mapObject.setTarget(mapRef.current);
 
+    /******* Start scale line ******/
+
     const scaleBar = new ScaleLine({});
     scaleBar.setTarget(scaleRef.current);
     scaleBar.setMap(mapObject);
+
+    const setScalelineVisibility = () => {
+      setScaleVisible(true);
+    };
+
+    // Make the scale line visible when the user zooms in/out
+    mapObject.getView().on("change:resolution", setScalelineVisibility);
+
+    /******* End scale line ******/
+
+    /******* Start map popup ******/
+    const mapPopup = new Overlay({
+      autoPan: {
+        animation: {
+          duration: 250,
+        },
+      },
+      element: popupRef.current,
+    });
+    setPopup(mapPopup);
+    mapPopup.setMap(mapObject);
+    const mapClickHandler = (event: MapBrowserEvent<UIEvent>) => {
+      fireZoneFileLayer.getFeatures(event.pixel).then((features) => {
+        if (!features.length) {
+          mapPopup.setPosition(undefined);
+          return;
+        }
+        const feature = features[0];
+        const zonePlacename = `${feature.getProperties().FIRE_ZONE_} - ${
+          feature.getProperties().FIRE_ZON_1
+        }`;
+        const fireZone: FireShape = {
+          fire_shape_id: feature.getProperties().OBJECTID,
+          mof_fire_zone_name: zonePlacename,
+          mof_fire_centre_name: feature.getProperties().FIRE_CENTR,
+          area_sqm: feature.getProperties().Shape_Area,
+        };
+        mapPopup.setPosition(event.coordinate);
+        setSelectedFireShape(fireZone);
+      });
+    };
+    mapObject.on("singleclick", mapClickHandler);
+
+    /******* End map popup ******/
 
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] });
 
@@ -237,6 +293,7 @@ const FBAMap = (props: FBAMapProps) => {
         }
       );
       fireZoneFileLayer.setSource(fireZoneSource);
+      fireZoneHighlightFileLayer.setSource(fireZoneSource);
 
       const fireZoneLabelVectorSource =
         await PMTilesFileVectorSource.createStaticLayer(
@@ -248,7 +305,7 @@ const FBAMap = (props: FBAMapProps) => {
       if (mapObject) {
         const fireCentreFileLayer = new VectorTileLayer({
           source: fireCentresSource,
-          style: fireCentreLineStyler(props.selectedFireCenter),
+          style: fireCentreLineStyler(undefined),
           zIndex: 52,
         });
 
@@ -262,7 +319,7 @@ const FBAMap = (props: FBAMapProps) => {
         const fireZoneLabelFileLayer = new VectorTileLayer({
           source: fireZoneLabelVectorSource,
           declutter: true,
-          style: fireShapeLabelStyler(props.selectedFireShape),
+          style: fireShapeLabelStyler(selectedFireShape),
           zIndex: 99,
           minZoom: 6,
         });
@@ -281,28 +338,47 @@ const FBAMap = (props: FBAMapProps) => {
         mapObject.addLayer(fireCentreFileLayer);
         mapObject.addLayer(fireCentreLabelsFileLayer);
         mapObject.addLayer(fireZoneFileLayer);
+        mapObject.addLayer(fireZoneHighlightFileLayer);
         mapObject.addLayer(fireZoneLabelFileLayer);
       }
     };
     loadPMTiles();
 
-    const setScalelineVisibility = () => {
-      setScaleVisible(true);
-    };
-
-    // Make the scale line visible when the user zooms in/out
-    mapObject.getView().on("change:resolution", setScalelineVisibility);
     return () => {
       mapObject.getView().un("change:resolution", setScalelineVisibility);
+      mapObject.un("click", mapClickHandler);
       mapObject.setTarget("");
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handlePopupClose = () => {
+    popup.setPosition(undefined);
+  };
+
+  const handleZoomToSelectedFireShape = () => {
+    if (isNull(map)) {
+      return;
+    }
+    if (selectedFireShape) {
+      const zoneExtent = fireZoneExtentsMap.get(
+        selectedFireShape.fire_shape_id.toString()
+      );
+      if (!isUndefined(zoneExtent)) {
+        map.getView().fit(zoneExtent, {
+          duration: 400,
+          padding: [100, 100, 100, 100],
+          maxZoom: 8,
+        });
+      }
+    }
+    popup.setPosition(undefined);
+  };
 
   return (
     <MapContext.Provider value={map}>
       <Box
         ref={mapRef}
-        data-testid="fba-map"
+        data-testid={testId}
         sx={{
           display: "flex",
           flex: 1,
@@ -312,12 +388,20 @@ const FBAMap = (props: FBAMapProps) => {
         <Box
           sx={{ position: "absolute", left: "8px", bottom: "8px", zIndex: 1 }}
         >
-          <TodayTomorrowSwitch date={props.date} setDate={props.setDate} />
+          <TodayTomorrowSwitch date={date} setDate={setDate} />
         </Box>
         <ScaleContainer
           visible={scaleVisible}
           setVisible={setScaleVisible}
           ref={scaleRef}
+        />
+        <MapPopup
+          ref={popupRef}
+          selectedFireShape={selectedFireShape}
+          onClose={handlePopupClose}
+          onSelectProfile={() => setTab(NavPanel.PROFILE)}
+          onSelectReport={() => setTab(NavPanel.ADVISORY)}
+          onSelectZoom={handleZoomToSelectedFireShape}
         />
       </Box>
     </MapContext.Provider>
