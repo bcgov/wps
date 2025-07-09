@@ -5,23 +5,25 @@ import React from "react";
 export const BORDER_RADIUS = 8;
 export const BUTTON_HEIGHT = 42;
 
-interface MapIconButtonProps extends Omit<IconButtonProps, "sx"> {
+interface MapIconButtonProps extends Omit<IconButtonProps, "sx" | "children"> {
   icon: React.ReactElement;
   sx?: SxProps<Theme>;
   testid?: string;
+  loading?: boolean;
 }
 
-const MapIconButton: React.FC<MapIconButtonProps> = ({
+const MapIconButton = ({
   icon,
   sx,
   testid,
+  loading,
   ...props
-}) => {
+}: MapIconButtonProps) => {
   return (
     <IconButton
       data-testid={testid}
       size="large"
-      loading={props.loading}
+      loading={loading}
       sx={{
         backgroundColor: "white",
         color: MAP_BUTTON_GREY,
@@ -41,7 +43,7 @@ const MapIconButton: React.FC<MapIconButtonProps> = ({
       }}
       {...props}
     >
-      {icon}
+      {!loading && icon}
     </IconButton>
   );
 };

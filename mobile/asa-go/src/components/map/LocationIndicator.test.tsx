@@ -49,7 +49,11 @@ describe("UserLocationIndicator", () => {
 
   it("renders the blue dot indicator", () => {
     const { getByTestId } = render(
-      <UserLocationIndicator map={mockMap} position={mockPosition} />
+      <UserLocationIndicator
+        map={mockMap}
+        position={mockPosition}
+        error={null}
+      />
     );
 
     const indicator = getByTestId("user-location-indicator");
@@ -63,20 +67,32 @@ describe("UserLocationIndicator", () => {
   });
 
   it("adds overlay to map when map and position are provided", () => {
-    render(<UserLocationIndicator map={mockMap} position={mockPosition} />);
+    render(
+      <UserLocationIndicator
+        map={mockMap}
+        position={mockPosition}
+        error={null}
+      />
+    );
 
     expect(addOverlay).toHaveBeenCalledTimes(1);
   });
 
   it("does not add overlay when map is null", () => {
-    render(<UserLocationIndicator map={null} position={mockPosition} />);
+    render(
+      <UserLocationIndicator map={null} position={mockPosition} error={null} />
+    );
 
     expect(addOverlay).not.toHaveBeenCalled();
   });
 
   it("removes overlay on cleanup", () => {
     const { unmount } = render(
-      <UserLocationIndicator map={mockMap} position={mockPosition} />
+      <UserLocationIndicator
+        map={mockMap}
+        position={mockPosition}
+        error={null}
+      />
     );
 
     unmount();
@@ -86,7 +102,7 @@ describe("UserLocationIndicator", () => {
 
   it("handles null position gracefully", () => {
     const { getByTestId } = render(
-      <UserLocationIndicator map={mockMap} position={null} />
+      <UserLocationIndicator map={mockMap} position={null} error={null} />
     );
 
     const indicator = getByTestId("user-location-indicator");
@@ -96,7 +112,11 @@ describe("UserLocationIndicator", () => {
 
   it("renders with correct styling", () => {
     const { getByTestId } = render(
-      <UserLocationIndicator map={mockMap} position={mockPosition} />
+      <UserLocationIndicator
+        map={mockMap}
+        position={mockPosition}
+        error={null}
+      />
     );
 
     const indicator = getByTestId("user-location-indicator");

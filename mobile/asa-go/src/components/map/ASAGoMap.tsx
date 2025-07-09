@@ -76,7 +76,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
   const dispatch: AppDispatch = useDispatch();
 
   // selectors & hooks
-  const { position, error } = useSelector(selectGeolocation);
+  const { position, error, loading } = useSelector(selectGeolocation);
   const { networkStatus } = useSelector(selectNetworkStatus);
 
   // state
@@ -389,7 +389,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
           backgroundColor: "grey.300",
         }}
       >
-        <UserLocationIndicator map={map} position={position} />
+        <UserLocationIndicator map={map} position={position} error={error} />
 
         <Box
           sx={{
@@ -406,6 +406,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
             onClick={handleLocationButtonClick}
             icon={error ? <GpsOffIcon color="error" /> : <MyLocationIcon />}
             testid="location-button"
+            loading={loading}
           />
           <TodayTomorrowSwitch date={props.date} setDate={props.setDate} />
         </Box>

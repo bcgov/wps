@@ -5,11 +5,13 @@ import { AppDispatch } from "@/store";
 interface GeolocationState {
   position: Position | null;
   error: string | null;
+  loading: boolean;
 }
 
 export const geolocationInitialState: GeolocationState = {
   position: null,
   error: null,
+  loading: false,
 };
 
 const geolocationSlice = createSlice({
@@ -26,17 +28,21 @@ const geolocationSlice = createSlice({
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
     },
+    setLoading(state, action: PayloadAction<boolean>) {
+      state.loading = action.payload;
+    },
   },
 });
 
-export const { setPosition, setError } = geolocationSlice.actions;
+export const { setPosition, setError, setLoading } = geolocationSlice.actions;
 export default geolocationSlice.reducer;
 
 // Store the watch ID
 let watchId: string | null = null;
 
 export const startWatchingLocation = () => async (dispatch: AppDispatch) => {
-  dispatch(setError(null)); // Clear any previous errors
+  dispatch(stopWatchingLocation()); // clear previous watch so we don't start multiple watches
+  dispatch(setLoading(true));
   try {
     const permStatus = await Geolocation.checkPermissions();
     if (permStatus.location !== "granted") {
@@ -47,13 +53,16 @@ export const startWatchingLocation = () => async (dispatch: AppDispatch) => {
       }
     }
 
-    // Clear previous watch if it exists so we don't start multiple watches
-    if (watchId) {
-      await Geolocation.clearWatch({ id: watchId });
-      watchId = null;
-    }
+    // we can't set a loading state or maintain an error state while trying to find a position
+    // with watchPosition, so we first get the current position
+    const pos = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 20000, // give it 20 seconds to find a position
+    });
+    dispatch(setPosition(pos));
+    dispatch(setLoading(false));
 
-    // Start watching position
+    // start watching position
     watchId = await Geolocation.watchPosition(
       { enableHighAccuracy: true, timeout: 60000 },
       (pos, err) => {
@@ -66,6 +75,7 @@ export const startWatchingLocation = () => async (dispatch: AppDispatch) => {
     );
   } catch (e) {
     dispatch(setError((e as Error).message));
+    dispatch(setLoading(false));
   }
 };
 

@@ -6,11 +6,13 @@ import { useEffect, useRef, useState } from "react";
 interface UserLocationIndicatorProps {
   map: Map | null;
   position: Position | null;
+  error: string | null;
 }
 
 const UserLocationIndicator = ({
   map,
   position,
+  error,
 }: UserLocationIndicatorProps) => {
   const [overlay, setOverlay] = useState<Overlay | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
@@ -57,7 +59,9 @@ const UserLocationIndicator = ({
         width: "20px",
         height: "20px",
         borderRadius: "50%",
-        backgroundColor: "rgba(51, 153, 204, 0.8)",
+        backgroundColor: error
+          ? "rgba(128, 128, 128, 0.8)"
+          : "rgba(51, 153, 204, 0.8)",
         border: "3px solid white",
         boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
         pointerEvents: "none",
