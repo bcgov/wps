@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 import logging
 from collections import defaultdict
 from datetime import date, datetime
@@ -207,7 +208,7 @@ async def get_zone_source_ids_in_centre(session: AsyncSession, fire_centre_name:
     return all_results
 
 
-async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuelType]:
+async def get_all_sfms_fuel_type_records(session: AsyncSession) -> Sequence[SFMSFuelType]:
     """
     Retrieve all records from the sfms_fuel_types table.
 
