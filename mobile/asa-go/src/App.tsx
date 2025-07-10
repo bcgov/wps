@@ -159,6 +159,7 @@ const App = () => {
           date={dateOfInterest}
           setDate={setDateOfInterest}
           setTab={setTab}
+          testId="asa-go-map"
         />
       )}
       {tab === NavPanel.PROFILE && <Profile />}
