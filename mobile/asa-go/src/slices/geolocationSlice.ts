@@ -42,17 +42,18 @@ let watchId: string | null = null;
 
 export const startWatchingLocation = () => async (dispatch: AppDispatch) => {
   dispatch(stopWatchingLocation()); // clear previous watch so we don't start multiple watches
-  dispatch(setLoading(true));
   try {
     const permStatus = await Geolocation.checkPermissions();
     if (permStatus.location !== "granted") {
       const req = await Geolocation.requestPermissions();
       if (req.location !== "granted") {
         dispatch(setError("Location permission denied"));
+        dispatch(setPosition(null));
         return;
       }
     }
 
+    dispatch(setLoading(true));
     // we can't set a loading state or maintain an error state while trying to find a position
     // with watchPosition, so we first get the current position
     const pos = await Geolocation.getCurrentPosition({
