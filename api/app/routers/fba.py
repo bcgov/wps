@@ -179,14 +179,16 @@ async def get_hfi_fuels_data_for_fire_centre(
             if hfi_fuel_type_ids_for_zone is None or len(hfi_fuel_type_ids_for_zone) == 0:
                 # Handle the situation where data for the current year was actually processed with
                 # last year's fuel grid
-                fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year - 1)
+                prev_fuel_type_raster = await get_fuel_type_raster_by_year(
+                    session, for_date.year - 1
+                )
                 hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
                     session,
                     run_type=RunTypeEnum(run_type.value),
                     for_date=for_date,
                     run_datetime=run_datetime,
                     source_identifier=zone_source_id,
-                    fuel_type_raster_id=fuel_type_raster.id,
+                    fuel_type_raster_id=prev_fuel_type_raster.id,
                 )
 
             zone_fuel_stats = []
