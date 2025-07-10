@@ -1,44 +1,68 @@
-import { Map, View } from "ol";
-import "ol/ol.css";
-import { defaults as defaultControls } from "ol/control";
-import { fromLonLat } from "ol/proj";
-import { boundingExtent } from "ol/extent";
-import ScaleLine from "ol/control/ScaleLine";
-import VectorTileLayer from "ol/layer/VectorTile";
-import React, { useEffect, useRef, useState } from "react";
-import { BC_EXTENT } from "utils/constants";
-import { FireCenter, FireShape, RunType } from "api/fbaAPI";
+import MapIconButton from "@/components/MapIconButton";
+import ScaleContainer from "@/components/ScaleContainer";
+import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
+import { MapContext } from "@/context/MapContext";
 import {
   fireCentreLabelStyler,
-  fireShapeLabelStyler,
   fireCentreLineStyler,
-  hfiStyler,
+  fireShapeLabelStyler,
   fireShapeStyler,
+  hfiStyler,
 } from "@/featureStylers";
-import { DateTime } from "luxon";
-import { cloneDeep, isNull, isUndefined } from "lodash";
-import { Box } from "@mui/material";
-import ScaleContainer from "@/components/ScaleContainer";
-import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
-import { CENTER_OF_BC } from "@/utils/constants";
 import { extentsMap } from "@/fireCentreExtents";
-import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
-import { PMTilesCache } from "@/utils/pmtilesCache";
-import { Filesystem } from "@capacitor/filesystem";
+import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import {
   createBasemapLayer,
   createLocalBasemapVectorLayer,
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
+import {
+  AppDispatch,
+  selectGeolocation,
+  selectNetworkStatus,
+  selectFireShapeAreas,
+} from "@/store";
+import { CENTER_OF_BC } from "@/utils/constants";
+import { PMTilesCache } from "@/utils/pmtilesCache";
+import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
+import { Filesystem } from "@capacitor/filesystem";
+import MyLocationIcon from "@mui/icons-material/MyLocation";
+import GpsOffIcon from "@mui/icons-material/GpsOff";
+import { Box } from "@mui/material";
+import { FireCenter, FireShape, RunType } from "api/fbaAPI";
+import { cloneDeep, isNull, isUndefined } from "lodash";
+import { DateTime } from "luxon";
+import { Map, View } from "ol";
+import { defaults as defaultControls } from "ol/control";
+import {
+  defaults as defaultInteractions,
+  DblClickDragZoom,
+} from "ol/interaction";
+import ScaleLine from "ol/control/ScaleLine";
+import { boundingExtent } from "ol/extent";
 import TileLayer from "ol/layer/Tile";
-import { useSelector } from "react-redux";
-import { selectNetworkStatus, selectFireShapeAreas } from "@/store";
-import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
-export const MapContext = React.createContext<Map | null>(null);
+import VectorTileLayer from "ol/layer/VectorTile";
+import "ol/ol.css";
+import { fromLonLat } from "ol/proj";
+import React, { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { BC_EXTENT } from "utils/constants";
+import UserLocationIndicator from "@/components/map/LocationIndicator";
+import { startWatchingLocation } from "@/slices/geolocationSlice";
 
+// used for setting the initial map extent
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
 
-export interface FBAMapProps {
+// used for bounding the map extent, limit panning to BC + buffer
+const buffer = 1_500_000;
+const BC_FULL_MAP_EXTENT_3857 = [
+  bcExtent[0] - buffer,
+  bcExtent[1] - buffer,
+  bcExtent[2] + buffer,
+  bcExtent[3] + buffer,
+];
+
+export interface ASAGoMapProps {
   testId?: string;
   selectedFireCenter: FireCenter | undefined;
   selectedFireShape: FireShape | undefined;
@@ -48,9 +72,15 @@ export interface FBAMapProps {
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
 }
 
-const FBAMap = (props: FBAMapProps) => {
-  const [map, setMap] = useState<Map | null>(null);
+const ASAGoMap = (props: ASAGoMapProps) => {
+  const dispatch: AppDispatch = useDispatch();
+
+  // selectors & hooks
+  const { position, error, loading } = useSelector(selectGeolocation);
   const { networkStatus } = useSelector(selectNetworkStatus);
+
+  // state
+  const [map, setMap] = useState<Map | null>(null);
   const [scaleVisible, setScaleVisible] = useState<boolean>(true);
   const { fireShapeAreas } = useSelector(selectFireShapeAreas);
   const [basemapLayer] = useState<TileLayer>(createBasemapLayer());
@@ -60,6 +90,7 @@ const FBAMap = (props: FBAMapProps) => {
       layer.set("name", LOCAL_BASEMAP_LAYER_NAME);
       return layer;
     });
+  const [centerOnLocation, setCenterOnLocation] = useState<boolean>(false);
 
   const [fireZoneFileLayer] = useState<VectorTileLayer>(
     new VectorTileLayer({
@@ -89,6 +120,48 @@ const FBAMap = (props: FBAMapProps) => {
       map.removeLayer(layer);
     }
   };
+
+  /**
+   *
+   * - If location tracking is not active, dispatches an action to start tracking.
+   * - Sets a flag to center the map on the user's location upon update.
+   * - If location tracking is already active and we have a position,
+   *   it centers the map on the user's current position.
+   */
+  const handleLocationButtonClick = async () => {
+    if (!map) return;
+
+    if (!position || error) {
+      dispatch(startWatchingLocation());
+      setCenterOnLocation(true); // center map when position arrives
+      return;
+    }
+    const pos = fromLonLat([
+      position.coords.longitude,
+      position.coords.latitude,
+    ]);
+    map.getView().animate({
+      center: pos,
+      zoom: 7.5,
+      duration: 1000,
+    });
+  };
+
+  // center map when position is updated after requesting location
+  useEffect(() => {
+    if (centerOnLocation && position && map) {
+      const pos = fromLonLat([
+        position.coords.longitude,
+        position.coords.latitude,
+      ]);
+      map.getView().animate({
+        center: pos,
+        zoom: 7.5,
+        duration: 1000,
+      });
+      setCenterOnLocation(false); // Reset flag
+    }
+  }, [centerOnLocation, position, map]);
 
   useEffect(() => {
     // zoom to fire center or whole province
@@ -132,6 +205,7 @@ const FBAMap = (props: FBAMapProps) => {
     fireZoneFileLayer.setStyle(
       fireShapeStyler(cloneDeep(fireShapeAreas), props.advisoryThreshold, true)
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireShapeAreas]);
 
   useEffect(() => {
@@ -186,18 +260,22 @@ const FBAMap = (props: FBAMapProps) => {
       view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC),
+        extent: BC_FULL_MAP_EXTENT_3857,
       }),
       layers: [],
       overlays: [],
       controls: defaultControls({
         zoom: false,
       }),
+      interactions: defaultInteractions({
+        doubleClickZoom: true,
+      }).extend([new DblClickDragZoom()]),
     });
     mapObject.setTarget(mapRef.current);
 
     const scaleBar = new ScaleLine({});
     scaleBar.setTarget(scaleRef.current);
-    scaleBar.setMap(mapObject);
+    mapObject.addControl(scaleBar);
 
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] });
 
@@ -293,6 +371,7 @@ const FBAMap = (props: FBAMapProps) => {
     // Make the scale line visible when the user zooms in/out
     mapObject.getView().on("change:resolution", setScalelineVisibility);
     return () => {
+      mapObject.removeControl(scaleBar);
       mapObject.getView().un("change:resolution", setScalelineVisibility);
       mapObject.setTarget("");
     };
@@ -307,11 +386,28 @@ const FBAMap = (props: FBAMapProps) => {
           display: "flex",
           flex: 1,
           position: "relative",
+          backgroundColor: "grey.300",
         }}
       >
+        <UserLocationIndicator map={map} position={position} error={error} />
+
         <Box
-          sx={{ position: "absolute", left: "8px", bottom: "8px", zIndex: 1 }}
+          sx={{
+            position: "absolute",
+            left: "8px",
+            bottom: "8px",
+            zIndex: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+          }}
         >
+          <MapIconButton
+            onClick={handleLocationButtonClick}
+            icon={error ? <GpsOffIcon color="error" /> : <MyLocationIcon />}
+            testid="location-button"
+            loading={loading}
+          />
           <TodayTomorrowSwitch date={props.date} setDate={props.setDate} />
         </Box>
         <ScaleContainer
@@ -324,4 +420,4 @@ const FBAMap = (props: FBAMapProps) => {
   );
 };
 
-export default React.memo(FBAMap);
+export default React.memo(ASAGoMap);

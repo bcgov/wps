@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Box } from "@mui/material";
-
-import FBAMap from "@/components/map/FBAMap";
 import { FireCenter, FireShape } from "@/api/fbaAPI";
 import { AppHeader } from "@/components/AppHeader";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,10 +18,18 @@ import { ConnectionStatus, Network } from "@capacitor/network";
 import Profile from "@/components/Profile";
 import Advisory from "@/components/Advisory";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
+import { theme } from "@/theme";
+import ASAGoMap from "@/components/map/ASAGoMap";
+import {
+  startWatchingLocation,
+  stopWatchingLocation,
+} from "@/slices/geolocationSlice";
 
 const HFI_THRESHOLD = 20;
+import { useAppIsActive } from "@/hooks/useAppIsActive";
 
 const App = () => {
+  const isActive = useAppIsActive();
   const dispatch: AppDispatch = useDispatch();
   const { fireCenters } = useSelector(selectFireCenters);
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
@@ -123,6 +129,15 @@ const App = () => {
     }
   }, [runDatetime]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // start/stop watching location based on tab and app state
+  useEffect(() => {
+    if (isActive && tab === NavPanel.MAP) {
+      dispatch(startWatchingLocation());
+    } else {
+      dispatch(stopWatchingLocation());
+    }
+  }, [isActive, tab, dispatch]);
+
   return (
     <Box
       sx={{
@@ -132,11 +147,13 @@ const App = () => {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        backgroundColor: theme.palette.primary.main,
       }}
     >
       <AppHeader />
       {tab === NavPanel.MAP && (
-        <FBAMap
+        <ASAGoMap
           selectedFireCenter={fireCenter}
           selectedFireShape={selectedFireShape}
           zoomSource={zoomSource}
