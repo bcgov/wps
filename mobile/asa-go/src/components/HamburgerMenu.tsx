@@ -108,9 +108,10 @@ export const HamburgerMenu = ({
                 url: "mailto:bcws.predictiveservices@gov.bc.ca",
                 title: "Contact Us",
               },
-            ].map((item) => (
+            ].map((item, index) => (
               <ListItemButton
                 divider
+                key={`hamburger-menu-${index}`}
                 onClick={() => handleListButtonClick(item.url)}
               >
                 <Typography variant="subtitle1">{item.title}</Typography>
