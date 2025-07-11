@@ -1,23 +1,15 @@
 import { Box, styled, Typography } from '@mui/material'
 import { DateTime } from 'luxon'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
-import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { calculateStatusText, calculateWindSpeedText } from '@/features/fba/calculateZoneStatus'
 import {
   criticalHoursExtendToNextDay,
   formatCriticalHoursTimeText,
   getMinStartAndMaxEndTime
 } from '@/features/fba/criticalHoursStartEndTime'
-import {
-  AdvisoryMinWindStats,
-  FireCenter,
-  FireCentreHFIStats,
-  FireShape,
-  FireZoneFuelStats,
-  FireZoneHFIStats
-} from 'api/fbaAPI'
+import { AdvisoryMinWindStats, FireCenter, FireShape, FireZoneFuelStats, FireZoneHFIStats } from 'api/fbaAPI'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
 import { AdvisoryStatus } from 'utils/constants'
 import { useFilteredFireCentreHFIFuelStats } from '@/features/fba/hooks/useFilteredFireCentreHFIFuelStats'
