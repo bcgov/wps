@@ -132,7 +132,7 @@ const AdvisoryText = ({
     return getTopFuelsByArea(selectedFilteredZoneUnitFuelStats, forDate)
   }, [selectedFilteredZoneUnitFuelStats, forDate])
 
-  const selectedFireZoneUnitTopFuelsByProportion = useMemo<FireZoneFuelStats[]>(() => {
+  const highHFIFuelsByProportion = useMemo<FireZoneFuelStats[]>(() => {
     return getTopFuelsByProportion(selectedFilteredZoneUnitFuelStats.fuel_area_stats)
   }, [selectedFilteredZoneUnitFuelStats])
 
@@ -189,7 +189,7 @@ const AdvisoryText = ({
 
     const highProportionFuels = [
       ...new Set(
-        selectedFireZoneUnitTopFuelsByProportion
+        highHFIFuelsByProportion
           .filter(fuel => !topFuelCodes.has(fuel.fuel_type.fuel_type_code))
           .map(fuel_type => fuel_type.fuel_type.fuel_type_code)
       )
