@@ -1,7 +1,7 @@
 import { FireCentreHFIStats, FireZoneFuelStats, FireZoneHFIStats } from '@/api/fbaAPI'
 
 // Based on 100 pixels at a 2000m resolution fuel raster measured in square meters.
-const FUEL_AREA_THRESHOLD = 100 * 2000 * 2000
+export const FUEL_AREA_THRESHOLD = 100 * 2000 * 2000
 const FUEL_TYPES_ALWAYS_INCLUDED = ['C-5', 'S-1', 'S-2', 'S-3']
 
 /**
