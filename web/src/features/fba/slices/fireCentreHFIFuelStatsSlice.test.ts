@@ -5,19 +5,24 @@ import fireCentreHFIFuelStatsReducer, {
   initialState
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
 
-const createThreshold = (id: number, name: string, description: string): HfiThreshold => {
+export const createMockThreshold = (id: number, name: string, description: string): HfiThreshold => {
   return { id, name, description }
 }
 
-const createFuelType = (fuel_type_id: number, fuel_type_code: string, description: string): FuelType => {
+export const createMockFuelType = (fuel_type_id: number, fuel_type_code: string, description: string): FuelType => {
   return { fuel_type_id, fuel_type_code, description }
 }
 
-const createCriticalHours = (start_time: number, end_time: number): AdvisoryCriticalHours => {
+export const createMockCriticalHours = (start_time: number, end_time: number): AdvisoryCriticalHours => {
   return { start_time, end_time }
 }
 
-const createMinWindStats = (id: number, name: string, description: string, min_wind_speed: number): AdvisoryMinWindStats => {
+export const createMockMinWindStats = (
+  id: number,
+  name: string,
+  description: string,
+  min_wind_speed: number
+): AdvisoryMinWindStats => {
   return {
     threshold: { id, name, description },
     min_wind_speed
@@ -29,23 +34,23 @@ const fireCentreHfiStats: FireCentreHFIStats = {
     '20': {
       fuel_area_stats: [
         {
-          fuel_type: createFuelType(2, 'C-2', 'Boreal Spruce'),
-          threshold: createThreshold(1, 'advisory', '4000 < hfi < 10000'),
-          critical_hours: createCriticalHours(9, 13),
+          fuel_type: createMockFuelType(2, 'C-2', 'Boreal Spruce'),
+          threshold: createMockThreshold(1, 'advisory', '4000 < hfi < 10000'),
+          critical_hours: createMockCriticalHours(9, 13),
           area: 4000000000,
           fuel_area: 8000000000
         },
         {
-          fuel_type: createFuelType(2, 'S-1', 'Slash'),
-          threshold: createThreshold(1, 'advisory', '4000 < hfi < 10000'),
-          critical_hours: createCriticalHours(9, 13),
+          fuel_type: createMockFuelType(2, 'S-1', 'Slash'),
+          threshold: createMockThreshold(1, 'advisory', '4000 < hfi < 10000'),
+          critical_hours: createMockCriticalHours(9, 13),
           area: 4000000000,
           fuel_area: 8000000000
         }
       ],
       min_wind_stats: [
-        createMinWindStats(1, 'advisory', '4000 < hfi < 10000', 1),
-        createMinWindStats(2, 'warning', 'hfi > 10000', 1),
+        createMockMinWindStats(1, 'advisory', '4000 < hfi < 10000', 1),
+        createMockMinWindStats(2, 'warning', 'hfi > 10000', 1)
       ]
     }
   }
