@@ -1,5 +1,6 @@
 import { selectFireCentreHFIFuelStats, selectFireCentreTPIStats } from '@/app/rootReducer'
 import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
+import { useFilteredFireCentreHFIFuelStats } from '@/features/fba/hooks/useFilteredFireCentreHFIFuelStats'
 import { Box, Grid, Tab, Tabs, Tooltip, Typography } from '@mui/material'
 import { FireCenter, FireShape } from 'api/fbaAPI'
 import { INFO_PANEL_CONTENT_BACKGROUND, theme } from 'app/theme'
@@ -27,10 +28,10 @@ const FireZoneUnitTabs = ({
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
   const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
-  const { fireCentreHFIFuelStats } = useSelector(selectFireCentreHFIFuelStats)
   const [tabNumber, setTabNumber] = useState(0)
 
   const sortedGroupedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
+  const filteredFireCentreHFIFuelStats = useFilteredFireCentreHFIFuelStats()
 
   useEffect(() => {
     if (selectedFireZoneUnit) {
@@ -76,9 +77,9 @@ const FireZoneUnitTabs = ({
 
   const hfiFuelStats = useMemo(() => {
     if (selectedFireCenter) {
-      return fireCentreHFIFuelStats?.[selectedFireCenter?.name]
+      return filteredFireCentreHFIFuelStats?.[selectedFireCenter?.name]
     }
-  }, [fireCentreHFIFuelStats, selectedFireCenter])
+  }, [filteredFireCentreHFIFuelStats, selectedFireCenter])
 
   if (isUndefined(selectedFireCenter) || isNull(selectedFireCenter)) {
     return <div data-testid="fire-zone-unit-tabs-empty"></div>

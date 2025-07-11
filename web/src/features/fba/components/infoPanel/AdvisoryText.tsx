@@ -1,6 +1,6 @@
 import { Box, styled, Typography } from '@mui/material'
 import { DateTime } from 'luxon'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { selectFireCentreHFIFuelStats } from '@/app/rootReducer'
@@ -20,11 +20,8 @@ import {
 } from 'api/fbaAPI'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
 import { AdvisoryStatus } from 'utils/constants'
+import { useFilteredFireCentreHFIFuelStats } from '@/features/fba/hooks/useFilteredFireCentreHFIFuelStats'
 
-// Minimum area of a fuel type to be included in hfi stats.
-// Based on 100 pixels at a 2000m resolution fuel raster measured in square meters.
-const FUEL_AREA_THRESHOLD = 100 * 2000 * 2000
-const FUEL_TYPES_ALWAYS_INCLUDED = ['C-5', 'S-1', 'S-2', 'S-3']
 const SLASH_FUEL_TYPES = ['S-1', 'S-2', 'S-3']
 
 // Return a list of fuel stats for which greater than 90% of the area of each fuel type has high HFI.
@@ -96,37 +93,6 @@ export const getZoneMinWindStatsText = (selectedFireZoneUnitMinWindSpeeds: Advis
   }
 }
 
-/**
- * Filters out fuel types which cover less than 100 pixels at a 2km resolution but always includes
- * all slash fuel types and C5 regardless of their spatial coverage with respect to high HFI area.
- * @returns FireCentreHFIStats with low prevalence fuel types filtered out.
- */
-const filterHFIFuelStatsByArea = (fireCentreHFIFuelStats: FireCentreHFIStats) => {
-  const filteredFireCentreStats: FireCentreHFIStats = {}
-  for (const [key, value] of Object.entries(fireCentreHFIFuelStats)) {
-    const fireZoneStats: { [fire_zone_id: number]: FireZoneHFIStats } = {}
-    for (const [key2, value2] of Object.entries(value)) {
-      fireZoneStats[parseInt(key2)] = {
-        min_wind_stats: value2.min_wind_stats,
-        fuel_area_stats: filterHFIStatsByArea(value2.fuel_area_stats)
-      }
-    }
-    filteredFireCentreStats[key] = fireZoneStats
-  }
-  return filteredFireCentreStats
-}
-
-/**
- * Filters out FireZoneFuelStats that do not meet the area threshold but always includes
- * slash and C-5 fuel types regardless of their prevalence.
- * @param stats The FireZoneFuelStats to filter.
- * @returns An array of filtered FireZoneFuelStats.
- */
-const filterHFIStatsByArea = (stats: FireZoneFuelStats[]) => {
-  return stats.filter(
-    stat => stat.fuel_area > FUEL_AREA_THRESHOLD || FUEL_TYPES_ALWAYS_INCLUDED.includes(stat.fuel_type.fuel_type_code)
-  )
-}
 const SerifTypography = styled(Typography)({
   fontSize: '1.2rem',
   fontFamily: '"Courier", "Monospace"'
@@ -147,67 +113,62 @@ const AdvisoryText = ({
   advisoryThreshold,
   selectedFireZoneUnit
 }: AdvisoryTextProps) => {
+  // selectors
   const provincialSummary = useSelector(selectProvincialSummary)
-  const { fireCentreHFIFuelStats } = useSelector(selectFireCentreHFIFuelStats)
-  const [selectedFireZoneUnitTopFuels, setSelectedFireZoneUnitTopFuels] = useState<FireZoneFuelStats[]>([])
-  const [selectedFireZoneUnitMinWindSpeeds, setSelectedFireZoneUnitMinWindSpeeds] = useState<AdvisoryMinWindStats[]>([])
-  const [filteredFireCentreHFIFuelStats, setFilteredFireCentreHFIFuelStats] = useState<FireCentreHFIStats>({})
-  const [minStartTime, setMinStartTime] = useState<number | undefined>(undefined)
-  const [maxEndTime, setMaxEndTime] = useState<number | undefined>(undefined)
-  const [criticalHoursDuration, setCriticalHoursDuration] = useState<number | undefined>(undefined)
-  const [highHFIFuelsByProportion, setHighHFIFuelsByProportion] = useState<FireZoneFuelStats[]>([])
+  const filteredFireCentreHFIFuelStats = useFilteredFireCentreHFIFuelStats()
 
-  useEffect(() => {
-    if (
-      isUndefined(fireCentreHFIFuelStats) ||
-      isEmpty(fireCentreHFIFuelStats) ||
-      isUndefined(selectedFireCenter) ||
-      isUndefined(selectedFireZoneUnit)
-    ) {
-      setMinStartTime(undefined)
-      setMaxEndTime(undefined)
-      setHighHFIFuelsByProportion([])
-      setFilteredFireCentreHFIFuelStats({})
-      return
-    }
-    const allZoneUnitFuelStats = fireCentreHFIFuelStats?.[selectedFireCenter.name]
-    const selectedZoneUnitFuelStats = allZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? {
-      fuel_area_stats: [],
-      min_wind_stats: []
-    }
-    setSelectedFireZoneUnitMinWindSpeeds(selectedZoneUnitFuelStats.min_wind_stats)
-    const topFuelsByProportion = getTopFuelsByProportion(selectedZoneUnitFuelStats.fuel_area_stats)
-    setHighHFIFuelsByProportion(topFuelsByProportion)
-    const newFilteredFireCentreHFIFuelStats = filterHFIFuelStatsByArea(fireCentreHFIFuelStats)
-    setFilteredFireCentreHFIFuelStats(newFilteredFireCentreHFIFuelStats)
-  }, [fireCentreHFIFuelStats, selectedFireZoneUnit])
-
-  useEffect(() => {
+  // derived state
+  const selectedFilteredZoneUnitFuelStats = useMemo<FireZoneHFIStats>(() => {
     if (
       isUndefined(filteredFireCentreHFIFuelStats) ||
       isEmpty(filteredFireCentreHFIFuelStats) ||
       isUndefined(selectedFireCenter) ||
       isUndefined(selectedFireZoneUnit)
     ) {
-      setSelectedFireZoneUnitTopFuels([])
-      return
+      return { fuel_area_stats: [], min_wind_stats: [] }
     }
+    const allFilteredZoneUnitFuelStats = filteredFireCentreHFIFuelStats[selectedFireCenter.name]
+    return (
+      allFilteredZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? {
+        fuel_area_stats: [],
+        min_wind_stats: []
+      }
+    )
+  }, [filteredFireCentreHFIFuelStats, selectedFireCenter, selectedFireZoneUnit])
 
-    const allFilteredZoneUnitFuelStats = filteredFireCentreHFIFuelStats?.[selectedFireCenter.name]
-    const selectedFilteredZoneUnitFuelStats = allFilteredZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? {
-      fuel_area_stats: [],
-      min_wind_stats: []
-    }
-    const topFuels = getTopFuelsByArea(selectedFilteredZoneUnitFuelStats, forDate)
-    setSelectedFireZoneUnitTopFuels(topFuels)
-  }, [filteredFireCentreHFIFuelStats])
+  const selectedFireZoneUnitTopFuels = useMemo<FireZoneFuelStats[]>(() => {
+    return getTopFuelsByArea(selectedFilteredZoneUnitFuelStats, forDate)
+  }, [selectedFilteredZoneUnitFuelStats, forDate])
 
-  useEffect(() => {
-    const { minStartTime, maxEndTime, duration } = getMinStartAndMaxEndTime(selectedFireZoneUnitTopFuels)
-    setMinStartTime(minStartTime)
-    setMaxEndTime(maxEndTime)
-    setCriticalHoursDuration(duration)
+  const selectedFireZoneUnitTopFuelsByProportion = useMemo<FireZoneFuelStats[]>(() => {
+    return getTopFuelsByProportion(selectedFilteredZoneUnitFuelStats.fuel_area_stats)
+  }, [selectedFilteredZoneUnitFuelStats])
+
+  const selectedFireZoneUnitMinWindSpeeds = selectedFilteredZoneUnitFuelStats.min_wind_stats
+
+  const {
+    minStartTime,
+    maxEndTime,
+    duration: criticalHoursDuration
+  } = useMemo(() => {
+    return getMinStartAndMaxEndTime(selectedFireZoneUnitTopFuels)
   }, [selectedFireZoneUnitTopFuels])
+
+  const getZoneStatus = () => {
+    if (selectedFireCenter) {
+      const fireCenterSummary = provincialSummary[selectedFireCenter.name]
+      const fireZoneUnitInfos = fireCenterSummary?.filter(
+        fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id
+      )
+      const zoneStatus = calculateStatusText(fireZoneUnitInfos, advisoryThreshold)
+      return zoneStatus
+    }
+  }
+
+  const zoneStatus = useMemo(
+    () => getZoneStatus(),
+    [selectedFireCenter, selectedFireZoneUnit, provincialSummary, advisoryThreshold]
+  )
 
   const getCommaSeparatedString = (array: string[]): string => {
     // Slice off the last two items and join then with ' and ' to create a new string. Then take the first n-2 items and
@@ -218,16 +179,16 @@ const AdvisoryText = ({
 
   const getTopFuelsString = () => {
     const topFuelCodes = [...new Set(selectedFireZoneUnitTopFuels.map(topFuel => topFuel.fuel_type.fuel_type_code))]
-    const zoneStatus = getZoneStatus()?.toLowerCase()
+    const lowercaseZoneStatus = zoneStatus?.toLowerCase()
     switch (topFuelCodes.length) {
       case 0:
         return ''
       case 1:
-        return `${topFuelCodes[0]} is the most prevalent fuel type under ${zoneStatus}.`
+        return `${topFuelCodes[0]} is the most prevalent fuel type under ${lowercaseZoneStatus}.`
       case 2:
-        return `${topFuelCodes[0]} and ${topFuelCodes[1]} are the most prevalent fuel types under ${zoneStatus}.`
+        return `${topFuelCodes[0]} and ${topFuelCodes[1]} are the most prevalent fuel types under ${lowercaseZoneStatus}.`
       default:
-        return `${getCommaSeparatedString(topFuelCodes)} are the most prevalent fuel types under ${zoneStatus}.`
+        return `${getCommaSeparatedString(topFuelCodes)} are the most prevalent fuel types under ${lowercaseZoneStatus}.`
     }
   }
 
@@ -236,7 +197,7 @@ const AdvisoryText = ({
 
     const highProportionFuels = [
       ...new Set(
-        highHFIFuelsByProportion
+        selectedFireZoneUnitTopFuelsByProportion
           .filter(fuel => !topFuelCodes.has(fuel.fuel_type.fuel_type_code))
           .map(fuel_type => fuel_type.fuel_type.fuel_type_code)
       )
@@ -300,22 +261,10 @@ const AdvisoryText = ({
     )
   }
 
-  const getZoneStatus = () => {
-    if (selectedFireCenter) {
-      const fireCenterSummary = provincialSummary[selectedFireCenter.name]
-      const fireZoneUnitInfos = fireCenterSummary?.filter(
-        fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id
-      )
-      const zoneStatus = calculateStatusText(fireZoneUnitInfos, advisoryThreshold)
-      return zoneStatus
-    }
-  }
-
   const renderAdvisoryText = () => {
     const zoneTitle = `${selectedFireZoneUnit?.mof_fire_zone_name}:\n\n`
     const forToday = forDate.toISODate() === DateTime.now().toISODate()
     const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
-    const zoneStatus = getZoneStatus()
     const minWindSpeedText = getZoneMinWindStatsText(selectedFireZoneUnitMinWindSpeeds)
 
     const formattedWindText = minWindSpeedText ? (
