@@ -1,4 +1,4 @@
-import { selectFireCentreHFIFuelStats, selectFireCentreTPIStats } from '@/app/rootReducer'
+import { selectFireCentreTPIStats } from '@/app/rootReducer'
 import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
 import { useFilteredFireCentreHFIFuelStats } from '@/features/fba/hooks/useFilteredFireCentreHFIFuelStats'
 import { Box, Grid, Tab, Tabs, Tooltip, Typography } from '@mui/material'
