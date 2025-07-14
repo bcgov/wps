@@ -25,6 +25,7 @@ import fireCentreHFIFuelStatsSlice from 'features/fba/slices/fireCentreHFIFuelSt
 import fireWatchSlice from 'features/fireWatch/slices/fireWatchSlice'
 import fireWatchFireCentresSlice from '@/features/fireWatch/slices/fireWatchFireCentresSlice'
 import burnForecastsSlice from '@/features/fireWatch/slices/burnForecastSlice'
+import { filterHFIFuelStatsByArea } from '@/features/fba/hfiStatsUtils'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -75,6 +76,8 @@ export const selectFireShapeAreas = (state: RootState) => state.fireShapeAreas
 export const selectRunDates = (state: RootState) => state.runDates
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
 export const selectFireCentreHFIFuelStats = (state: RootState) => state.fireCentreHFIFuelStats
+export const selectFilteredFireCentreHFIFuelStats = (state: RootState) =>
+  filterHFIFuelStatsByArea(state.fireCentreHFIFuelStats.fireCentreHFIFuelStats)
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
 export const selectFireCentreTPIStats = (state: RootState) => state.fireCentreTPIStats
 export const selectHFIDailiesLoading = (state: RootState): boolean => state.hfiCalculatorDailies.fireCentresLoading

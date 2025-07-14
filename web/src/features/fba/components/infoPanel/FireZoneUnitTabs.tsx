@@ -1,6 +1,5 @@
-import { selectFireCentreTPIStats } from '@/app/rootReducer'
+import { selectFireCentreTPIStats, selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
-import { useFilteredFireCentreHFIFuelStats } from '@/features/fba/hooks/useFilteredFireCentreHFIFuelStats'
 import { Box, Grid, Tab, Tabs, Tooltip, Typography } from '@mui/material'
 import { FireCenter, FireShape } from 'api/fbaAPI'
 import { INFO_PANEL_CONTENT_BACKGROUND, theme } from 'app/theme'
@@ -31,7 +30,7 @@ const FireZoneUnitTabs = ({
   const [tabNumber, setTabNumber] = useState(0)
 
   const sortedGroupedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
-  const filteredFireCentreHFIFuelStats = useFilteredFireCentreHFIFuelStats()
+  const filteredFireCentreHFIFuelStats = useSelector(selectFilteredFireCentreHFIFuelStats)
 
   useEffect(() => {
     if (selectedFireZoneUnit) {
