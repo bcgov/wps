@@ -81,50 +81,55 @@ export const authenticate = (): AppThunk => (dispatch) => {
     import.meta.env.VITE_KEYCLOAK_AUTH_URL
   }/realms/${realm}/protocol/openid-connect/token`;
 
-  console.log("Constructed authUrl:", authUrl);
-  console.log("Constructed tokenUrl:", tokenUrl);
-
   const customRedirectUri = "ca.bc.gov.asago://auth/callback";
   Keycloak.authenticate({
     authorizationBaseUrl: authUrl,
     clientId: import.meta.env.VITE_KEYCLOAK_CLIENT,
     redirectUrl: customRedirectUri,
-    accessTokenEndpoint: "",
+    accessTokenEndpoint: tokenUrl,
   })
     .then((result) => {
-      console.log("🎉 Authentication successful:", result);
-      // The result contains: { redirectUrl, code, state, codeVerifier, ... }
-      // You can now exchange the code for tokens in JavaScript if needed
-      if (result.code) {
-        console.log("Got authorization code:", result.code);
-        if (result.codeVerifier) {
-          console.log("Got PKCE code verifier:", result.codeVerifier);
-          console.log("Use both code and codeVerifier for token exchange");
-        }
-        // TODO: Exchange code for tokens using your preferred HTTP library
-        // For PKCE, include code_verifier in the token exchange request
+      if (result.isAuthenticated) {
+        dispatch(
+          authenticateFinished({
+            isAuthenticated: result.isAuthenticated,
+            token: result.accessToken,
+            idToken: result.idToken,
+          })
+        );
+      } else {
+        dispatch(authenticateError(result.error ?? ""));
       }
     })
     .catch((error) => {
-      console.error("❌ Authentication failed:", error);
-      console.log("Error details:", error);
+      dispatch(authenticateError(error ?? ""));
     });
 
-  // keycloak.onTokenExpired = () => {
-  //   keycloak
-  //     ?.updateToken(0)
-  //     .then((tokenRefreshed) => {
-  //       dispatch(
-  //         refreshTokenFinished({
-  //           tokenRefreshed,
-  //           token: keycloak?.token,
-  //           idToken: keycloak?.idToken,
-  //         })
-  //       );
-  //     })
-  //     .catch(() => {
-  //       // Restart the authentication flow
-  //       dispatch(authenticate());
-  //     });
-  // };
+  // Handle token refresh callback function
+  const handleTokenRefresh = (tokenResponse: {
+    accessToken: string;
+    refreshToken?: string;
+    tokenType?: string;
+    expiresIn?: number;
+    scope?: string;
+  }) => {
+    console.log("🔄 Token refreshed automatically!", tokenResponse);
+    if (tokenResponse.refreshToken) {
+      dispatch(
+        refreshTokenFinished({
+          tokenRefreshed: true,
+          token: tokenResponse.accessToken,
+          idToken: undefined,
+        })
+      );
+    }
+    // Store the new tokens securely
+    // localStorage.setItem('accessToken', tokenResponse.accessToken);
+    // if (tokenResponse.refreshToken) {
+    //   localStorage.setItem('refreshToken', tokenResponse.refreshToken);
+    // }
+  };
+
+  // Set up event listener for token refresh events (works for both web and iOS)
+  Keycloak.addListener("tokenRefresh", handleTokenRefresh);
 };

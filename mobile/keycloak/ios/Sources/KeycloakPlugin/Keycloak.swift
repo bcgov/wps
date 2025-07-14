@@ -20,7 +20,6 @@ protocol HTTPClientProtocol {
         request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void)
 }
 
-// MARK: - Data structures for Keycloak options
 public struct KeycloakOptions {
     let clientId: String
     let authorizationBaseUrl: String
@@ -32,6 +31,23 @@ public struct KeycloakRefreshOptions {
     let clientId: String
     let accessTokenEndpoint: String
     let refreshToken: String
+}
+
+public struct KeycloakTokenResponse {
+    let accessToken: String
+    let refreshToken: String?
+    let tokenType: String?
+    let expiresIn: Int?
+    let scope: String?
+
+    func toDictionary() -> [String: Any] {
+        var dict: [String: Any] = ["accessToken": accessToken]
+        if let refreshToken = refreshToken { dict["refreshToken"] = refreshToken }
+        if let tokenType = tokenType { dict["tokenType"] = tokenType }
+        if let expiresIn = expiresIn { dict["expiresIn"] = expiresIn }
+        if let scope = scope { dict["scope"] = scope }
+        return dict
+    }
 }
 
 // MARK: - Concrete Implementations
@@ -118,8 +134,11 @@ class DefaultHTTPClient: HTTPClientProtocol {
 @objc public class Keycloak: NSObject, ASWebAuthenticationPresentationContextProviding {
     private var currentCodeVerifier: String?
     private var currentOptions: KeycloakOptions?
+    private var refreshTimer: Timer?
+    private var autoRefreshOptions:
+        (clientId: String, accessTokenEndpoint: String, refreshToken: String)?
+    private weak var plugin: KeycloakPlugin?
 
-    // Dependencies - can be injected for testing
     private let pkceGenerator: PKCEGeneratorProtocol
     private let urlBuilder: URLBuilderProtocol
     private let webAuthSession: WebAuthSessionProtocol
@@ -127,7 +146,7 @@ class DefaultHTTPClient: HTTPClientProtocol {
 
     // Default initializer for production use
     public override init() {
-        let wrapper = ASWebAuthSessionWrapper()
+        let wrapper: ASWebAuthSessionWrapper = ASWebAuthSessionWrapper()
         self.pkceGenerator = DefaultPKCEGenerator()
         self.urlBuilder = DefaultURLBuilder()
         self.webAuthSession = wrapper
@@ -152,9 +171,8 @@ class DefaultHTTPClient: HTTPClientProtocol {
         super.init()
     }
 
-    @objc public func echo(_ value: String) -> String {
-        print(value)
-        return value
+    public func setPlugin(_ plugin: KeycloakPlugin) {
+        self.plugin = plugin
     }
 
     public func authenticate(
@@ -168,8 +186,8 @@ class DefaultHTTPClient: HTTPClientProtocol {
         self.currentOptions = options
 
         // Generate PKCE parameters using injected generator
-        let codeVerifier = pkceGenerator.generateCodeVerifier()
-        let codeChallenge = pkceGenerator.generateCodeChallenge(from: codeVerifier)
+        let codeVerifier: String = pkceGenerator.generateCodeVerifier()
+        let codeChallenge: String = pkceGenerator.generateCodeChallenge(from: codeVerifier)
         print("Keycloak: Generated PKCE code_challenge: \(codeChallenge)")
 
         // Store the code verifier for later use
@@ -193,7 +211,7 @@ class DefaultHTTPClient: HTTPClientProtocol {
 
         print("Keycloak: Final authURL: \(authURL.absoluteString)")
 
-        let callbackScheme = URLComponents(string: options.redirectUrl)?.scheme
+        let callbackScheme: String? = URLComponents(string: options.redirectUrl)?.scheme
 
         // Use injected web auth session
         webAuthSession.start(url: authURL, callbackScheme: callbackScheme) {
@@ -595,6 +613,18 @@ class DefaultHTTPClient: HTTPClientProtocol {
                         }
                     }
 
+                    // Set up automatic token refresh - always enabled
+                    if let refreshToken = jsonResponse["refresh_token"] as? String,
+                        let expiresIn = jsonResponse["expires_in"] as? Int
+                    {
+                        self?.scheduleTokenRefresh(
+                            clientId: options.clientId,
+                            accessTokenEndpoint: options.accessTokenEndpoint,
+                            refreshToken: refreshToken,
+                            expiresIn: expiresIn
+                        )
+                    }
+
                     // Return the structured response
                     completion(.success(structuredResponse))
                 } else {
@@ -614,6 +644,87 @@ class DefaultHTTPClient: HTTPClientProtocol {
                 print(
                     "Keycloak: Failed to parse token response JSON: \(error.localizedDescription)")
                 completion(.failure(error))
+            }
+        }
+    }
+
+    // MARK: - Automatic Token Refresh
+
+    private func scheduleTokenRefresh(
+        clientId: String,
+        accessTokenEndpoint: String,
+        refreshToken: String,
+        expiresIn: Int
+    ) {
+        // Cancel any existing timer
+        refreshTimer?.invalidate()
+
+        // Store refresh options for future refreshes
+        autoRefreshOptions = (
+            clientId: clientId, accessTokenEndpoint: accessTokenEndpoint, refreshToken: refreshToken
+        )
+
+        // Schedule refresh 5 minutes (300 seconds) before expiration
+        let bufferTime = 300
+        let refreshTime = max(expiresIn - bufferTime, 10)  // Minimum 10 seconds
+
+        print("Keycloak: Scheduling token refresh in \(refreshTime) seconds")
+
+        refreshTimer = Timer.scheduledTimer(
+            withTimeInterval: TimeInterval(refreshTime), repeats: false
+        ) { [weak self] _ in
+            self?.performAutomaticRefresh()
+        }
+    }
+
+    private func performAutomaticRefresh() {
+        guard let options = autoRefreshOptions else {
+            print("Keycloak: No auto-refresh options available")
+            return
+        }
+
+        print("Keycloak: Performing automatic token refresh")
+
+        let refreshOptions = KeycloakRefreshOptions(
+            clientId: options.clientId,
+            accessTokenEndpoint: options.accessTokenEndpoint,
+            refreshToken: options.refreshToken
+        )
+
+        refreshToken(options: refreshOptions) { [weak self] result in
+            switch result {
+            case .success(let response):
+                print("Keycloak: Automatic token refresh successful")
+
+                // Create KeycloakTokenResponse object
+                let tokenResponse = KeycloakTokenResponse(
+                    accessToken: response["accessToken"] as? String ?? "",
+                    refreshToken: response["refreshToken"] as? String,
+                    tokenType: response["tokenType"] as? String,
+                    expiresIn: response["expiresIn"] as? Int,
+                    scope: response["scope"] as? String
+                )
+
+                // Send event to JavaScript
+                DispatchQueue.main.async {
+                    self?.plugin?.notifyListeners(
+                        "tokenRefresh", data: tokenResponse.toDictionary())
+                }
+
+                // Schedule next refresh if we got new tokens
+                if let newRefreshToken = response["refreshToken"] as? String,
+                    let expiresIn = response["expiresIn"] as? Int
+                {
+                    self?.scheduleTokenRefresh(
+                        clientId: options.clientId,
+                        accessTokenEndpoint: options.accessTokenEndpoint,
+                        refreshToken: newRefreshToken,
+                        expiresIn: expiresIn
+                    )
+                }
+
+            case .failure(let error):
+                print("Keycloak: Automatic token refresh failed: \(error.localizedDescription)")
             }
         }
     }

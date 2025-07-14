@@ -6,11 +6,11 @@ export interface KeycloakPlugin {
    */
   authenticate(options: KeycloakOptions): Promise<KeycloakAuthResponse>;
   /**
-   * Get a new access token based on the given refresh token.
-   * @param {KeycloakRefreshOptions} options
-   * @returns {Promise<KeycloakTokenResponse>} the token endpoint response
+   * Add a listener for plugin events, specifically for token refreshes.
+   * @param {string} eventName
+   * @param {Function} listenerFunc
    */
-  refreshToken(options: KeycloakRefreshOptions): Promise<KeycloakTokenResponse>;
+  addListener(eventName: string, listenerFunc: (data: any) => void): Promise<void>;
 }
 
 export interface KeycloakOptions {

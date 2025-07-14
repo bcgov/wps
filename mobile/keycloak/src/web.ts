@@ -1,8 +1,8 @@
 import { WebPlugin } from '@capacitor/core';
 
-import type { KeycloakPlugin, KeycloakOptions, KeycloakRefreshOptions } from './definitions';
+import type { KeycloakOptions, KeycloakRefreshOptions } from './definitions';
 
-export class KeycloakWeb extends WebPlugin implements KeycloakPlugin {
+export class KeycloakWeb extends WebPlugin {
   async authenticate(options: KeycloakOptions): Promise<any> {
     console.log('Keycloak Web: Starting authentication', options);
 

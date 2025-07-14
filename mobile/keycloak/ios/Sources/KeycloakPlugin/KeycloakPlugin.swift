@@ -8,17 +8,13 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "KeycloakPlugin"
     public let jsName = "Keycloak"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "echo", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "authenticate", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "refreshToken", returnType: CAPPluginReturnPromise),
     ]
     private let implementation = Keycloak()
 
-    @objc func echo(_ call: CAPPluginCall) {
-        let value = call.getString("value") ?? ""
-        call.resolve([
-            "value": implementation.echo(value)
-        ])
+    public override func load() {
+        implementation.setPlugin(self)
     }
 
     @objc func authenticate(_ call: CAPPluginCall) {
@@ -46,7 +42,7 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
             clientId: clientId,
             authorizationBaseUrl: authorizationBaseUrl,
             redirectUrl: redirectUrl,
-            accessTokenEndpoint: tokenUrl,
+            accessTokenEndpoint: tokenUrl
         )
 
         implementation.authenticate(options: options) { result in

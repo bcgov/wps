@@ -14,7 +14,7 @@ npx cap sync
 <docgen-index>
 
 * [`authenticate(...)`](#authenticate)
-* [`refreshToken(...)`](#refreshtoken)
+* [`addListener(string, ...)`](#addlistenerstring-)
 * [Interfaces](#interfaces)
 
 </docgen-index>
@@ -39,19 +39,18 @@ Authenticate against a Keycloak provider.
 --------------------
 
 
-### refreshToken(...)
+### addListener(string, ...)
 
 ```typescript
-refreshToken(options: KeycloakRefreshOptions) => Promise<KeycloakTokenResponse>
+addListener(eventName: string, listenerFunc: (data: any) => void) => Promise<void>
 ```
 
-Get a new access token based on the given refresh token.
+Add a listener for plugin events, specifically for token refreshes.
 
-| Param         | Type                                                                      |
-| ------------- | ------------------------------------------------------------------------- |
-| **`options`** | <code><a href="#keycloakrefreshoptions">KeycloakRefreshOptions</a></code> |
-
-**Returns:** <code>Promise&lt;<a href="#keycloaktokenresponse">KeycloakTokenResponse</a>&gt;</code>
+| Param              | Type                                |
+| ------------------ | ----------------------------------- |
+| **`eventName`**    | <code>string</code>                 |
+| **`listenerFunc`** | <code>(data: any) =&gt; void</code> |
 
 --------------------
 
@@ -83,25 +82,5 @@ Get a new access token based on the given refresh token.
 | **`authorizationBaseUrl`** | <code>string</code> | The base url for retrieving tokens depending on the response type from a OAuth 2 provider. e.g. https://accounts.google.com/o/oauth2/auth required! |
 | **`redirectUrl`**          | <code>string</code> | Url to which the oauth provider redirects after authentication. required!                                                                           |
 | **`accessTokenEndpoint`**  | <code>string</code> | Url for retrieving the access_token by the authorization code flow. required!                                                                       |
-
-
-#### KeycloakTokenResponse
-
-| Prop               | Type                | Description                                   |
-| ------------------ | ------------------- | --------------------------------------------- |
-| **`accessToken`**  | <code>string</code> | The new access token                          |
-| **`refreshToken`** | <code>string</code> | The new refresh token (if provided)           |
-| **`tokenType`**    | <code>string</code> | Token type, typically "Bearer"                |
-| **`expiresIn`**    | <code>number</code> | Token expiration time in seconds              |
-| **`scope`**        | <code>string</code> | The scope granted by the authorization server |
-
-
-#### KeycloakRefreshOptions
-
-| Prop                      | Type                | Description                                                                      |
-| ------------------------- | ------------------- | -------------------------------------------------------------------------------- |
-| **`clientId`**            | <code>string</code> | The app id (client id) you get from the oauth provider like Google, Facebook,... |
-| **`accessTokenEndpoint`** | <code>string</code> | Url for retrieving the access_token.                                             |
-| **`refreshToken`**        | <code>string</code> | The refresh token that will be used to obtain the new access token.              |
 
 </docgen-api>
