@@ -111,6 +111,7 @@ export const HamburgerMenu = ({
             ].map((item) => (
               <ListItemButton
                 divider
+                key={`hamburger-menu-${item.title}`}
                 onClick={() => handleListButtonClick(item.url)}
               >
                 <Typography variant="subtitle1">{item.title}</Typography>
