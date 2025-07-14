@@ -44,6 +44,9 @@ jobs:
       - name: Test with Coverage
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
+      - name: Test Keycloak Swift Plugin
+        working-directory: ./mobile/asa-go
+        run: ./test.sh
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v4
         with:

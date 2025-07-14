@@ -64,12 +64,40 @@ class MockWebAuthSession: WebAuthSessionProtocol {
     }
 }
 
+class MockHTTPClient: HTTPClientProtocol {
+    var mockResponse: Data?
+    var mockError: Error?
+    var lastRequest: URLRequest?
+
+    func performRequest(
+        request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void
+    ) {
+        lastRequest = request
+
+        // Simulate async behavior
+        DispatchQueue.main.async {
+            if let error = self.mockError {
+                completion(nil, nil, error)
+            } else {
+                let httpResponse = HTTPURLResponse(
+                    url: request.url!,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                )
+                completion(self.mockResponse, httpResponse, nil)
+            }
+        }
+    }
+}
+
 class KeycloakTests: XCTestCase {
 
     var keycloak: Keycloak!
     var mockPKCEGenerator: MockPKCEGenerator!
     var mockURLBuilder: MockURLBuilder!
     var mockWebAuthSession: MockWebAuthSession!
+    var mockHTTPClient: MockHTTPClient!
 
     override func setUp() {
         super.setUp()
@@ -77,11 +105,13 @@ class KeycloakTests: XCTestCase {
         mockPKCEGenerator = MockPKCEGenerator()
         mockURLBuilder = MockURLBuilder()
         mockWebAuthSession = MockWebAuthSession()
+        mockHTTPClient = MockHTTPClient()
 
         keycloak = Keycloak(
             pkceGenerator: mockPKCEGenerator,
             urlBuilder: mockURLBuilder,
-            webAuthSession: mockWebAuthSession
+            webAuthSession: mockWebAuthSession,
+            httpClient: mockHTTPClient
         )
     }
 
@@ -91,8 +121,19 @@ class KeycloakTests: XCTestCase {
             clientId: "test-client",
             authorizationBaseUrl: "https://keycloak.example.com/auth",
             redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: nil
+            accessTokenEndpoint: "https://keycloak.example.com/token"
         )
+
+        // Set up mock HTTP response for token exchange
+        let mockTokenResponse = """
+            {
+                "access_token": "mock_access_token",
+                "token_type": "Bearer",
+                "expires_in": 3600,
+                "refresh_token": "mock_refresh_token"
+            }
+            """.data(using: .utf8)
+        mockHTTPClient.mockResponse = mockTokenResponse
 
         mockWebAuthSession.mockCallbackURL = URL(
             string: "ca.bc.gov.asago://auth/callback?code=test-auth-code&state=test-state")
@@ -104,10 +145,11 @@ class KeycloakTests: XCTestCase {
             // Assert
             switch result {
             case .success(let data):
-                XCTAssertEqual(data["code"] as? String, "test-auth-code")
-                XCTAssertEqual(data["state"] as? String, "test-state")
-                XCTAssertEqual(data["codeVerifier"] as? String, "test-code-verifier-123")
-                XCTAssertNotNil(data["redirectUrl"])
+                XCTAssertEqual(data["isAuthenticated"] as? Bool, true)
+                XCTAssertEqual(data["accessToken"] as? String, "mock_access_token")
+                XCTAssertEqual(data["tokenType"] as? String, "Bearer")
+                XCTAssertEqual(data["expiresIn"] as? Int, 3600)
+                XCTAssertEqual(data["refreshToken"] as? String, "mock_refresh_token")
                 expectation.fulfill()
             case .failure(let error):
                 XCTFail("Expected success but got error: \(error)")
@@ -128,7 +170,7 @@ class KeycloakTests: XCTestCase {
             clientId: "test-client",
             authorizationBaseUrl: "https://keycloak.example.com/auth",
             redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: nil
+            accessTokenEndpoint: "https://keycloak.example.com/token"
         )
 
         mockWebAuthSession.mockCallbackURL = URL(
@@ -143,13 +185,13 @@ class KeycloakTests: XCTestCase {
         keycloak.authenticate(options: options) { result in
             // Assert
             switch result {
-            case .success:
-                XCTFail("Expected failure but got success")
-            case .failure(let error as NSError):
-                XCTAssertEqual(error.domain, "KeycloakError")
-                XCTAssertEqual(error.code, 3)
-                XCTAssertTrue(error.localizedDescription.contains("redirect URI"))
+            case .success(let response):
+                XCTAssertEqual(response["isAuthenticated"] as? Bool, false)
+                XCTAssertEqual(response["error"] as? String, "invalid_redirect_uri")
+                XCTAssertNotNil(response["errorDescription"])
                 expectation.fulfill()
+            case .failure:
+                XCTFail("Expected success with error details but got failure")
             }
         }
 
@@ -162,7 +204,7 @@ class KeycloakTests: XCTestCase {
             clientId: "test-client",
             authorizationBaseUrl: "https://keycloak.example.com/auth",
             redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: nil
+            accessTokenEndpoint: "https://keycloak.example.com/token"
         )
 
         mockWebAuthSession.shouldCallCompletionWithError = true
@@ -195,7 +237,7 @@ class KeycloakTests: XCTestCase {
             clientId: "test-client",
             authorizationBaseUrl: "https://keycloak.example.com/auth",
             redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: nil
+            accessTokenEndpoint: "https://keycloak.example.com/token"
         )
 
         mockURLBuilder.shouldReturnNil = true
@@ -226,7 +268,7 @@ class KeycloakTests: XCTestCase {
             clientId: "test-client",
             authorizationBaseUrl: "https://keycloak.example.com/auth",
             redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: nil
+            accessTokenEndpoint: "https://keycloak.example.com/token"
         )
 
         mockWebAuthSession.mockCallbackURL = URL(
@@ -253,7 +295,7 @@ class URLBuilderTests: XCTestCase {
             clientId: "test-client-123",
             authorizationBaseUrl: "https://keycloak.example.com/auth",
             redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: nil
+            accessTokenEndpoint: "https://keycloak.example.com/token"
         )
 
         let url = urlBuilder.buildAuthorizationURL(
