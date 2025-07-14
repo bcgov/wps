@@ -1,0 +1,6 @@
+coverage_service: cobertura_xml
+xcodeproj: ./Keycloak.xcodeproj
+scheme: Keycloak
+output_directory: ./coverage
+ignore:
+  - 'Tests/*'
