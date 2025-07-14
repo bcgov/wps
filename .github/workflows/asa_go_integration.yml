@@ -45,8 +45,8 @@ jobs:
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
       - name: Test Keycloak Swift Plugin
-        working-directory: ./mobile/asa-go
-        run: ./test.sh
+        working-directory: ./mobile/keycloak
+        run: xcodebuild test -scheme "Keycloak -destination "platform=iOS Simulator,name=iPhone 16 Pro"
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
