@@ -1,4 +1,4 @@
-import { combineReducers } from '@reduxjs/toolkit'
+import { combineReducers, createSelector } from '@reduxjs/toolkit'
 
 import stationReducer from 'features/stations/slices/stationsSlice'
 import percentilesReducer from 'features/percentileCalculator/slices/percentilesSlice'
@@ -76,8 +76,6 @@ export const selectFireShapeAreas = (state: RootState) => state.fireShapeAreas
 export const selectRunDates = (state: RootState) => state.runDates
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
 export const selectFireCentreHFIFuelStats = (state: RootState) => state.fireCentreHFIFuelStats
-export const selectFilteredFireCentreHFIFuelStats = (state: RootState) =>
-  filterHFIFuelStatsByArea(state.fireCentreHFIFuelStats.fireCentreHFIFuelStats)
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
 export const selectFireCentreTPIStats = (state: RootState) => state.fireCentreTPIStats
 export const selectHFIDailiesLoading = (state: RootState): boolean => state.hfiCalculatorDailies.fireCentresLoading
@@ -91,3 +89,8 @@ export const selectStationGroups = (state: RootState) => state.stationGroups
 export const selectStationGroupsMembers = (state: RootState) => state.stationGroupsMembers
 export const fireWatch = (state: RootState) => state.fireWatch
 export const selectFireWatchFireCentres = (state: RootState) => state.fireWatchFireCentres
+
+export const selectFilteredFireCentreHFIFuelStats = createSelector(
+  [selectFireCentreHFIFuelStats],
+  fireCentreHFIFuelStats => filterHFIFuelStatsByArea(fireCentreHFIFuelStats.fireCentreHFIFuelStats)
+)
