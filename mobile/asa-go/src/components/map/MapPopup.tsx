@@ -50,6 +50,7 @@ const MapPopup = forwardRef(
             borderTopLeftRadius: "8px",
             borderTopRightRadius: "8px",
             display: "flex",
+            alignItems: "flex-start",
           }}
         >
           <Box
@@ -67,7 +68,7 @@ const MapPopup = forwardRef(
           <IconButton
             data-testid="map-popup-close-button"
             onClick={onClose}
-            sx={{ color: "white", padding: "2px" }}
+            sx={{ color: "white", padding: "4px" }}
           >
             <Close />
           </IconButton>

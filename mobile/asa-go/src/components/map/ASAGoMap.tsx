@@ -34,10 +34,7 @@ import { cloneDeep, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { Map, MapBrowserEvent, Overlay, View } from "ol";
 import { defaults as defaultControls } from "ol/control";
-import {
-  defaults as defaultInteractions,
-  DblClickDragZoom,
-} from "ol/interaction";
+import { defaults as defaultInteractions } from "ol/interaction";
 import ScaleLine from "ol/control/ScaleLine";
 import { boundingExtent } from "ol/extent";
 import TileLayer from "ol/layer/Tile";
@@ -136,7 +133,6 @@ const ASAGoMap = ({
   const popupRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
-  const doubleClkDragging = useRef<boolean>(false);
 
   const [popup] = useState<Overlay>(
     new Overlay({
@@ -283,27 +279,6 @@ const ASAGoMap = ({
     });
     mapObject.setTarget(mapRef.current);
 
-    /******* Start double click drag zoom interaction ******/
-
-    const dblClickDragZoom = new DblClickDragZoom();
-
-    const originalHandleDownEvent =
-      dblClickDragZoom.handleDownEvent.bind(dblClickDragZoom);
-    dblClickDragZoom.handleDownEvent = (event) => {
-      doubleClkDragging.current = true;
-      return originalHandleDownEvent(event);
-    };
-
-    const originalHandleUpEvent =
-      dblClickDragZoom.handleUpEvent.bind(dblClickDragZoom);
-    dblClickDragZoom.handleUpEvent = (event) => {
-      doubleClkDragging.current = false;
-      return originalHandleUpEvent(event);
-    };
-    mapObject.addInteraction(dblClickDragZoom);
-
-    /******* End double click drag zoom interaction ******/
-
     /******* Start scale line ******/
 
     const scaleBar = new ScaleLine({});
@@ -322,9 +297,6 @@ const ASAGoMap = ({
     popup.setElement(popupRef.current);
     mapObject.addOverlay(popup);
     const mapClickHandler = (event: MapBrowserEvent<UIEvent>) => {
-      if (doubleClkDragging.current) {
-        return;
-      }
       fireZoneFileLayer.getFeatures(event.pixel).then((features) => {
         if (!features.length) {
           popup.setPosition(undefined);
