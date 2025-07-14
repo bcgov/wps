@@ -59,6 +59,17 @@
         "docker-compose"
       ],
       "enabled": false
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "gradle all non-major dependencies",
+      "groupSlug": "gradle all-minor-patch"
     }
   ],
   "lockFileMaintenance": {
