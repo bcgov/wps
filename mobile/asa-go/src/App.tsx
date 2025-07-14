@@ -160,6 +160,8 @@ const App = () => {
           advisoryThreshold={HFI_THRESHOLD}
           date={dateOfInterest}
           setDate={setDateOfInterest}
+          runType={runType}
+          runDatetime={runDatetime ? DateTime.fromISO(runDatetime) : null}
         />
       )}
       {tab === NavPanel.PROFILE && <Profile />}

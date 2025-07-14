@@ -2,18 +2,13 @@ import MapIconButton from "@/components/MapIconButton";
 import ScaleContainer from "@/components/ScaleContainer";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
 import { MapContext } from "@/context/MapContext";
-import {
-  fireCentreLabelStyler,
-  fireCentreLineStyler,
-  fireShapeLabelStyler,
-  fireShapeStyler,
-  hfiStyler,
-} from "@/featureStylers";
+import { fireShapeStyler } from "@/featureStylers";
 import { extentsMap } from "@/fireCentreExtents";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import {
   createBasemapLayer,
-  createLocalBasemapVectorLayer,
+  createHFILayer,
+  loadStaticPMTilesLayers,
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
 import {
@@ -23,9 +18,6 @@ import {
   selectFireShapeAreas,
 } from "@/store";
 import { CENTER_OF_BC } from "@/utils/constants";
-import { PMTilesCache } from "@/utils/pmtilesCache";
-import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
-import { Filesystem } from "@capacitor/filesystem";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import GpsOffIcon from "@mui/icons-material/GpsOff";
 import { Box } from "@mui/material";
@@ -70,6 +62,8 @@ export interface ASAGoMapProps {
   zoomSource?: "fireCenter" | "fireShape";
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
+  runType: RunType | null;
+  runDatetime: DateTime | null;
 }
 
 const ASAGoMap = (props: ASAGoMapProps) => {
@@ -110,6 +104,9 @@ const ASAGoMap = (props: ASAGoMapProps) => {
   const scaleRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
+
+  // hfi layer ref, used to add/remove it from map
+  const hfiLayerRef = useRef<VectorTileLayer | null>(null);
 
   const removeLayerByName = (map: Map, layerName: string) => {
     const layer = map
@@ -281,88 +278,15 @@ const ASAGoMap = (props: ASAGoMapProps) => {
 
     setMap(mapObject);
 
-    const loadPMTiles = async () => {
-      // TODO make for date, run type, run date configurable from UI
-      const hfiVectorSource = await PMTilesFileVectorSource.createHFILayer(
-        new PMTilesCache(Filesystem),
-        {
-          filename: "hfi.pmtiles",
-          for_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
-          run_type: RunType.FORECAST,
-          run_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
-        }
-      );
+    loadStaticPMTilesLayers(
+      mapObject,
+      fireZoneFileLayer,
+      props.selectedFireCenter,
+      props.selectedFireShape,
+      setLocalBasemapVectorLayer
+    );
 
-      const fireCentresSource = await PMTilesFileVectorSource.createStaticLayer(
-        new PMTilesCache(Filesystem),
-        {
-          filename: "fireCentres.pmtiles",
-        }
-      );
-
-      const fireCentreLabelVectorSource =
-        await PMTilesFileVectorSource.createStaticLayer(
-          new PMTilesCache(Filesystem),
-          {
-            filename: "fireCentreLabels.pmtiles",
-          }
-        );
-
-      const fireZoneSource = await PMTilesFileVectorSource.createStaticLayer(
-        new PMTilesCache(Filesystem),
-        {
-          filename: "fireZoneUnits.pmtiles",
-        }
-      );
-      fireZoneFileLayer.setSource(fireZoneSource);
-
-      const fireZoneLabelVectorSource =
-        await PMTilesFileVectorSource.createStaticLayer(
-          new PMTilesCache(Filesystem),
-          {
-            filename: "fireZoneUnitLabels.pmtiles",
-          }
-        );
-      if (mapObject) {
-        const fireCentreFileLayer = new VectorTileLayer({
-          source: fireCentresSource,
-          style: fireCentreLineStyler(props.selectedFireCenter),
-          zIndex: 52,
-        });
-
-        const fireCentreLabelsFileLayer = new VectorTileLayer({
-          source: fireCentreLabelVectorSource,
-          style: fireCentreLabelStyler,
-          zIndex: 100,
-          maxZoom: 6,
-        });
-
-        const fireZoneLabelFileLayer = new VectorTileLayer({
-          source: fireZoneLabelVectorSource,
-          declutter: true,
-          style: fireShapeLabelStyler(props.selectedFireShape),
-          zIndex: 99,
-          minZoom: 6,
-        });
-
-        const hfiFileLayer = new VectorTileLayer({
-          source: hfiVectorSource,
-          style: hfiStyler,
-          zIndex: 52,
-        });
-
-        const localBasemapLayer = await createLocalBasemapVectorLayer();
-        setLocalBasemapVectorLayer(localBasemapLayer);
-
-        mapObject.addLayer(basemapLayer);
-        mapObject.addLayer(hfiFileLayer);
-        mapObject.addLayer(fireCentreFileLayer);
-        mapObject.addLayer(fireCentreLabelsFileLayer);
-        mapObject.addLayer(fireZoneFileLayer);
-        mapObject.addLayer(fireZoneLabelFileLayer);
-      }
-    };
-    loadPMTiles();
+    mapObject.addLayer(basemapLayer);
 
     const setScalelineVisibility = () => {
       setScaleVisible(true);
@@ -376,6 +300,43 @@ const ASAGoMap = (props: ASAGoMapProps) => {
       mapObject.setTarget("");
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!map) return;
+    if (isNull(props.runType) || isNull(props.runDatetime)) {
+      if (hfiLayerRef.current) {
+        map.removeLayer(hfiLayerRef.current);
+        hfiLayerRef.current = null;
+      }
+      return;
+    }
+
+    let isMounted = true;
+    (async () => {
+      let hfiLayer: VectorTileLayer | null = null;
+      if (!isNull(props.runType) && !isNull(props.runDatetime)) {
+        hfiLayer = await createHFILayer({
+          filename: "hfi.pmtiles",
+          for_date: props.date,
+          run_type: props.runType,
+          run_date: props.runDatetime,
+        });
+      }
+
+      // remove previous HFI layer
+      if (hfiLayerRef.current) {
+        map.removeLayer(hfiLayerRef.current);
+      }
+      if (hfiLayer && isMounted) {
+        map.addLayer(hfiLayer);
+        hfiLayerRef.current = hfiLayer;
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [map, props.runType, props.runDatetime, props.date]);
 
   return (
     <MapContext.Provider value={map}>
