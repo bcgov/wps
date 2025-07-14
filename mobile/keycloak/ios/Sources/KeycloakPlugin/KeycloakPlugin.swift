@@ -37,11 +37,16 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
+        guard let tokenUrl = call.getString("accessTokenEndpoint") else {
+            call.reject("Missing required parameter: accessTokenEndpoint")
+            return
+        }
+
         let options = KeycloakOptions(
             clientId: clientId,
             authorizationBaseUrl: authorizationBaseUrl,
             redirectUrl: redirectUrl,
-            accessTokenEndpoint: call.getString("accessTokenEndpoint"),
+            accessTokenEndpoint: tokenUrl,
         )
 
         implementation.authenticate(options: options) { result in

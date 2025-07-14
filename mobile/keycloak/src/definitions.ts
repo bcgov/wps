@@ -1,18 +1,16 @@
 export interface KeycloakPlugin {
-  echo(options: { value: string }): Promise<{ value: string }>;
-
   /**
    * Authenticate against a Keycloak provider.
    * @param {KeycloakOptions} options
-   * @returns {Promise<any>} the resource url response
+   * @returns {Promise<KeycloakAuthResponse>} the authentication response
    */
-  authenticate(options: KeycloakOptions): Promise<any>;
+  authenticate(options: KeycloakOptions): Promise<KeycloakAuthResponse>;
   /**
    * Get a new access token based on the given refresh token.
    * @param {KeycloakRefreshOptions} options
-   * @returns {Promise<any>} the token endpoint response
+   * @returns {Promise<KeycloakTokenResponse>} the token endpoint response
    */
-  refreshToken(options: KeycloakRefreshOptions): Promise<any>;
+  refreshToken(options: KeycloakRefreshOptions): Promise<KeycloakTokenResponse>;
 }
 
 export interface KeycloakOptions {
@@ -36,8 +34,10 @@ export interface KeycloakOptions {
   redirectUrl: string;
   /**
    * Url for retrieving the access_token by the authorization code flow.
+   *
+   * required!
    */
-  accessTokenEndpoint?: string;
+  accessTokenEndpoint: string;
 }
 
 export interface KeycloakRefreshOptions {
@@ -53,4 +53,78 @@ export interface KeycloakRefreshOptions {
    * The refresh token that will be used to obtain the new access token.
    */
   refreshToken: string;
+}
+
+export interface KeycloakAuthResponse {
+  /**
+   * Indicates whether authentication was successful
+   */
+  isAuthenticated: boolean;
+  /**
+   * The access token (if authentication was successful)
+   */
+  accessToken?: string;
+  /**
+   * The refresh token (if provided by the server)
+   */
+  refreshToken?: string;
+  /**
+   * The ID token (if provided by the server and requested in scope)
+   */
+  idToken?: string;
+  /**
+   * Token type, typically "Bearer"
+   */
+  tokenType?: string;
+  /**
+   * Token expiration time in seconds
+   */
+  expiresIn?: number;
+  /**
+   * The scope granted by the authorization server
+   */
+  scope?: string;
+  /**
+   * Error code (if authentication failed)
+   */
+  error?: string;
+  /**
+   * Error description (if authentication failed)
+   */
+  errorDescription?: string;
+  /**
+   * The redirect URL used
+   */
+  redirectUrl?: string;
+  /**
+   * Additional response data
+   */
+  [key: string]: any;
+}
+
+export interface KeycloakTokenResponse {
+  /**
+   * The new access token
+   */
+  accessToken: string;
+  /**
+   * The new refresh token (if provided)
+   */
+  refreshToken?: string;
+  /**
+   * Token type, typically "Bearer"
+   */
+  tokenType?: string;
+  /**
+   * Token expiration time in seconds
+   */
+  expiresIn?: number;
+  /**
+   * The scope granted by the authorization server
+   */
+  scope?: string;
+  /**
+   * Additional token response data
+   */
+  [key: string]: any;
 }

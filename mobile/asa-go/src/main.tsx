@@ -10,17 +10,6 @@ import App from "@/App.tsx";
 
 const render = () => {
   const container = document.getElementById("root");
-
-  // Debug environment variables
-  console.log("All environment variables:", import.meta.env);
-  console.log(
-    "VITE_KEYCLOAK_AUTH_URL:",
-    import.meta.env.VITE_KEYCLOAK_AUTH_URL
-  );
-  console.log("VITE_KEYCLOAK_REALM:", import.meta.env.VITE_KEYCLOAK_REALM);
-  console.log("VITE_KEYCLOAK_CLIENT:", import.meta.env.VITE_KEYCLOAK_CLIENT);
-
-  Keycloak.echo({ value: "helloWorld" });
   const realm = import.meta.env.VITE_KEYCLOAK_REALM;
   const authUrl = `${
     import.meta.env.VITE_KEYCLOAK_AUTH_URL
@@ -32,34 +21,44 @@ const render = () => {
   console.log("Constructed authUrl:", authUrl);
   console.log("Constructed tokenUrl:", tokenUrl);
 
-  // Test the echo method
-  Keycloak.echo({ value: "helloWorld" });
-
-  // Simple authentication - try with custom URI first to debug the issue
   const customRedirectUri = "ca.bc.gov.asago://auth/callback";
-  console.log("🧪 Testing authentication with custom URI:", customRedirectUri);
-
   Keycloak.authenticate({
     authorizationBaseUrl: authUrl,
     clientId: import.meta.env.VITE_KEYCLOAK_CLIENT,
     redirectUrl: customRedirectUri,
+    accessTokenEndpoint: tokenUrl,
   })
     .then((result) => {
-      console.log("🎉 Authentication successful:", result);
-      // The result contains: { redirectUrl, code, state, codeVerifier, ... }
-      // You can now exchange the code for tokens in JavaScript if needed
-      if (result.code) {
-        console.log("Got authorization code:", result.code);
-        if (result.codeVerifier) {
-          console.log("Got PKCE code verifier:", result.codeVerifier);
-          console.log("Use both code and codeVerifier for token exchange");
+      console.log("🎉 Authentication response:", result);
+
+      if (result.isAuthenticated) {
+        console.log("✅ Authentication successful!");
+        console.log("Access Token:", result.accessToken);
+
+        if (result.refreshToken) {
+          console.log("Refresh Token:", result.refreshToken);
         }
-        // TODO: Exchange code for tokens using your preferred HTTP library
-        // For PKCE, include code_verifier in the token exchange request
+
+        if (result.idToken) {
+          console.log("ID Token:", result.idToken);
+        }
+
+        console.log("Token Type:", result.tokenType);
+        console.log("Expires In:", result.expiresIn, "seconds");
+        console.log("Scope:", result.scope);
+
+        // Store tokens securely for your app (consider using secure storage)
+        // localStorage.setItem('accessToken', result.accessToken);
+        // localStorage.setItem('refreshToken', result.refreshToken);
+      } else {
+        console.log("❌ Authentication failed");
+        console.log("Error:", result.error);
+        console.log("Error Description:", result.errorDescription);
+        console.log("Redirect URL:", result.redirectUrl);
       }
     })
     .catch((error) => {
-      console.error("❌ Authentication failed:", error);
+      console.error("❌ Authentication failed with exception:", error);
       console.log("Error details:", error);
     });
 
