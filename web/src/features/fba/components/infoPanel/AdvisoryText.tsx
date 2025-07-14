@@ -1,6 +1,6 @@
 import { Box, styled, Typography } from '@mui/material'
 import { DateTime } from 'luxon'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { calculateStatusText, calculateWindSpeedText } from '@/features/fba/calculateZoneStatus'
@@ -110,20 +110,31 @@ const AdvisoryText = ({
   const filteredFireCentreHFIFuelStats = useSelector(selectFilteredFireCentreHFIFuelStats)
 
   // derived state
-  const selectedFilteredZoneUnitFuelStats: FireZoneHFIStats =
-    isUndefined(filteredFireCentreHFIFuelStats) ||
-    isEmpty(filteredFireCentreHFIFuelStats) ||
-    isUndefined(selectedFireCenter) ||
-    isUndefined(selectedFireZoneUnit)
-      ? { fuel_area_stats: [], min_wind_stats: [] }
-      : (filteredFireCentreHFIFuelStats[selectedFireCenter.name]?.[selectedFireZoneUnit.fire_shape_id] ?? {
-          fuel_area_stats: [],
-          min_wind_stats: []
-        })
+  const selectedFilteredZoneUnitFuelStats = useMemo<FireZoneHFIStats>(() => {
+    if (
+      isUndefined(filteredFireCentreHFIFuelStats) ||
+      isEmpty(filteredFireCentreHFIFuelStats) ||
+      isUndefined(selectedFireCenter) ||
+      isUndefined(selectedFireZoneUnit)
+    ) {
+      return { fuel_area_stats: [], min_wind_stats: [] }
+    }
+    const allFilteredZoneUnitFuelStats = filteredFireCentreHFIFuelStats[selectedFireCenter.name]
+    return (
+      allFilteredZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? {
+        fuel_area_stats: [],
+        min_wind_stats: []
+      }
+    )
+  }, [filteredFireCentreHFIFuelStats, selectedFireZoneUnit])
 
-  const selectedFireZoneUnitTopFuels = getTopFuelsByArea(selectedFilteredZoneUnitFuelStats, forDate)
+  const selectedFireZoneUnitTopFuels = useMemo<FireZoneFuelStats[]>(() => {
+    return getTopFuelsByArea(selectedFilteredZoneUnitFuelStats, forDate)
+  }, [selectedFilteredZoneUnitFuelStats, forDate])
 
-  const highHFIFuelsByProportion = getTopFuelsByProportion(selectedFilteredZoneUnitFuelStats.fuel_area_stats)
+  const highHFIFuelsByProportion = useMemo<FireZoneFuelStats[]>(() => {
+    return getTopFuelsByProportion(selectedFilteredZoneUnitFuelStats.fuel_area_stats)
+  }, [selectedFilteredZoneUnitFuelStats])
 
   const selectedFireZoneUnitMinWindSpeeds = selectedFilteredZoneUnitFuelStats.min_wind_stats
 
@@ -131,7 +142,9 @@ const AdvisoryText = ({
     minStartTime,
     maxEndTime,
     duration: criticalHoursDuration
-  } = getMinStartAndMaxEndTime(selectedFireZoneUnitTopFuels)
+  } = useMemo(() => {
+    return getMinStartAndMaxEndTime(selectedFireZoneUnitTopFuels)
+  }, [selectedFireZoneUnitTopFuels])
 
   const getZoneStatus = () => {
     if (selectedFireCenter) {
@@ -144,6 +157,11 @@ const AdvisoryText = ({
     }
   }
 
+  const zoneStatus = useMemo(
+    () => getZoneStatus(),
+    [selectedFireCenter, selectedFireZoneUnit, provincialSummary, advisoryThreshold]
+  )
+
   const getCommaSeparatedString = (array: string[]): string => {
     // Slice off the last two items and join then with ' and ' to create a new string. Then take the first n-2 items and
     // deconstruct them into a new array along with the new string. Finally, join the items in the new array with ', '.
@@ -153,7 +171,7 @@ const AdvisoryText = ({
 
   const getTopFuelsString = () => {
     const topFuelCodes = [...new Set(selectedFireZoneUnitTopFuels.map(topFuel => topFuel.fuel_type.fuel_type_code))]
-    const lowercaseZoneStatus = getZoneStatus()?.toLowerCase()
+    const lowercaseZoneStatus = zoneStatus?.toLowerCase()
     switch (topFuelCodes.length) {
       case 0:
         return ''
@@ -239,7 +257,6 @@ const AdvisoryText = ({
     const zoneTitle = `${selectedFireZoneUnit?.mof_fire_zone_name}:\n\n`
     const forToday = forDate.toISODate() === DateTime.now().toISODate()
     const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
-    const zoneStatus = getZoneStatus()
     const minWindSpeedText = getZoneMinWindStatsText(selectedFireZoneUnitMinWindSpeeds)
 
     const formattedWindText = minWindSpeedText ? (
