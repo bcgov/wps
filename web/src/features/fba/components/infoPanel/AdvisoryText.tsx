@@ -157,10 +157,7 @@ const AdvisoryText = ({
     }
   }
 
-  const zoneStatus = useMemo(
-    () => getZoneStatus(),
-    [selectedFireCenter, selectedFireZoneUnit, provincialSummary, advisoryThreshold]
-  )
+  const zoneStatus = useMemo(() => getZoneStatus(), [selectedFireCenter, selectedFireZoneUnit, provincialSummary])
 
   const getCommaSeparatedString = (array: string[]): string => {
     // Slice off the last two items and join then with ' and ' to create a new string. Then take the first n-2 items and
