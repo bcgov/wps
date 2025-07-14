@@ -113,7 +113,6 @@ export const authenticate = (): AppThunk => (dispatch) => {
     expiresIn?: number;
     scope?: string;
   }) => {
-    console.log("🔄 Token refreshed automatically!", tokenResponse);
     if (tokenResponse.refreshToken) {
       dispatch(
         refreshTokenFinished({
@@ -123,11 +122,6 @@ export const authenticate = (): AppThunk => (dispatch) => {
         })
       );
     }
-    // Store the new tokens securely
-    // localStorage.setItem('accessToken', tokenResponse.accessToken);
-    // if (tokenResponse.refreshToken) {
-    //   localStorage.setItem('refreshToken', tokenResponse.refreshToken);
-    // }
   };
 
   // Set up event listener for token refresh events (works for both web and iOS)
