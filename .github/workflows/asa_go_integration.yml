@@ -27,6 +27,16 @@ jobs:
           path: |
             mobile/asa-go/node_modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - uses: actions/cache@v4
+        id: asa-go-keycloak-cache
+        with:
+          path: |
+            mobile/keycloak/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - name: Install keycloak plugin
+        working-directory: ./mobile/keycloak
+        if: steps.asa-go-keycloak-cache.outputs.cache-hit != 'true'
+        run: yarn install
       - name: Install dependencies
         working-directory: ./mobile/asa-go
         if: steps.asa-go-cache.outputs.cache-hit != 'true'
