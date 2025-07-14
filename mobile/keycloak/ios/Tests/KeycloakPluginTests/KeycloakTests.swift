@@ -3,8 +3,6 @@ import XCTest
 
 @testable import KeycloakPlugin
 
-// MARK: - Mock Implementations for Testing
-
 class MockPKCEGenerator: PKCEGeneratorProtocol {
     var codeVerifier: String = "test-code-verifier-123"
     var codeChallenge: String = "test-code-challenge-456"
