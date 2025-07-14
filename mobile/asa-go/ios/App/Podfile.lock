@@ -8,6 +8,9 @@ PODS:
     - Capacitor
   - CapacitorFilesystem (7.0.0):
     - Capacitor
+  - CapacitorGeolocation (7.1.2):
+    - Capacitor
+    - IONGeolocationLib (~> 1.0)
   - CapacitorHaptics (7.0.0):
     - Capacitor
   - CapacitorKeyboard (7.0.0):
@@ -16,6 +19,7 @@ PODS:
     - Capacitor
   - CapacitorStatusBar (7.0.0):
     - Capacitor
+  - IONGeolocationLib (1.0.0)
   - Keycloak (0.0.1):
     - Capacitor
 
@@ -25,11 +29,16 @@ DEPENDENCIES:
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - CapacitorEmailComposer (from `../../node_modules/capacitor-email-composer`)
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
+  - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - Keycloak (from `../../node_modules/keycloak`)
+
+SPEC REPOS:
+  trunk:
+    - IONGeolocationLib
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -42,6 +51,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/capacitor-email-composer"
   CapacitorFilesystem:
     :path: "../../node_modules/@capacitor/filesystem"
+  CapacitorGeolocation:
+    :path: "../../node_modules/@capacitor/geolocation"
   CapacitorHaptics:
     :path: "../../node_modules/@capacitor/haptics"
   CapacitorKeyboard:
@@ -59,12 +70,14 @@ SPEC CHECKSUMS:
   CapacitorCordova: 866217f32c1d25b326c568a10ea3ed0c36b13e29
   CapacitorEmailComposer: 5f0ae4bd516997aba61034ba4387f2a67947ce21
   CapacitorFilesystem: 2881ad012b5c8d0ffbfed1216aadfc2cca16d5b5
+  CapacitorGeolocation: 8c86a3afea574c84447c17905da96f2356ad913e
   CapacitorHaptics: 1fba3e460e7614349c6d5f868b1fccdc5c87b66d
   CapacitorKeyboard: 2c26c6fccde35023c579fc37d4cae6326d5e6343
   CapacitorNetwork: cd17b98182841055ff58629213242a1f22f4a76b
   CapacitorStatusBar: 438e90beeeefa8276b24e6c5991cb02dd13e51bf
+  IONGeolocationLib: 81f33f88d025846946de2cf63b0c7628e7c6bc9d
   Keycloak: 29cb70d3a09dc8da487110f804c77366cb7d6640
 
-PODFILE CHECKSUM: f13cc05f41d05aded2137d0fa47776a9e70b375f
+PODFILE CHECKSUM: 2519cc6d65316974f9578551e9993f0be7b33889
 
 COCOAPODS: 1.16.2

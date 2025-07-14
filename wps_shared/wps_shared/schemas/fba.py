@@ -1,8 +1,11 @@
 """This module contains pydantic models related to the new formal/non-tinker fba."""
 
+from datetime import date, datetime
 from typing import List, Optional
 
 from pydantic import BaseModel
+
+from wps_shared.schemas.auto_spatial_advisory import SFMSRunType
 
 
 class FireCenterStation(BaseModel):
@@ -169,3 +172,13 @@ class FireZoneElevationStatsListResponse(BaseModel):
 
 class SFMSBoundsResponse(BaseModel):
     sfms_bounds: dict
+
+
+class LatestSFMSRunParameter(BaseModel):
+    for_date: date
+    run_type: SFMSRunType
+    run_datetime: datetime
+
+
+class LatestSFMSRunParameterResponse(BaseModel):
+    run_parameter: LatestSFMSRunParameter
