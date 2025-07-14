@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - "mobile/**"
 
 jobs:
   prepare-dev-database:
@@ -416,9 +418,9 @@ jobs:
         with:
           # Your API schema location
           schema: "https://wps-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca/api/openapi.json"
-          args: "--experimental=openapi-3.1"
-          # Set your token from secrets
-          token: ${{ secrets.SCHEMATHESIS_TOKEN }}
+          args: >-
+            --experimental=openapi-3.1
+            --header "Authorization: Bearer ${{ secrets.SCHEMATHESIS_TOKEN }}"
 
   deploy-c-haines:
     name: Deploy c-haines cronjob
