@@ -1,4 +1,3 @@
-import { LIGHT_GREY } from "@/theme";
 import { Autocomplete, TextField } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
 import { isEqual, isNull } from "lodash";
@@ -33,20 +32,10 @@ const FireCenterDropdown = (props: FireCenterDropdownProps) => {
       options={props.fireCenterOptions}
       getOptionLabel={(option) => option?.name}
       renderInput={(params) => (
-        <TextField
-          {...params}
-          slotProps={{
-            inputLabel: {
-              shrink: true,
-            },
-          }}
-          label="Select Fire Centre"
-          variant="outlined"
-        />
+        <TextField {...params} label="Select Fire Centre" variant="outlined" />
       )}
       onChange={changeHandler}
       value={props.selectedFireCenter || null}
-      sx={{ backgroundColor: LIGHT_GREY }}
     />
   );
 };

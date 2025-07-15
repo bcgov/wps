@@ -57,3 +57,4 @@ export const theme = createTheme({
 export const MAP_BUTTON_GREY = "#7F7F7F"
 export const LIGHT_GREY = '#DADADA'
 export const INFO_PANEL_CONTENT_BACKGROUND = '#EEEEEE'
+export const HEADER_GREY = "#BFBFBF"

@@ -19,8 +19,8 @@ import {
   formatCriticalHoursTimeText,
   getMinStartAndMaxEndTime,
 } from "@/utils/criticalHoursStartEndTime";
-import { Box, styled, Typography } from "@mui/material";
-import { isEmpty, isNil, isUndefined } from "lodash";
+import { Box, styled, Typography, useTheme } from "@mui/material";
+import { isEmpty, isNil, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
@@ -41,6 +41,7 @@ const AdvisoryText = ({
   selectedFireCenter,
   selectedFireZoneUnit,
 }: AdvisoryTextProps) => {
+  const theme = useTheme();
   // selectors
   const provincialSummary = useSelector(selectProvincialSummary);
   const filteredFireCentreHFIFuelStats = useSelector(
@@ -71,7 +72,10 @@ const AdvisoryText = ({
   }, [filteredFireCentreHFIFuelStats, selectedFireZoneUnit]);
 
   const selectedFireZoneUnitTopFuels = useMemo<FireZoneFuelStats[]>(() => {
-    return getTopFuelsByArea(selectedFilteredZoneUnitFuelStats, forDate!);
+    if (isNull(forDate)) {
+      return [];
+    }
+    return getTopFuelsByArea(selectedFilteredZoneUnitFuelStats, forDate);
   }, [selectedFilteredZoneUnitFuelStats, forDate]);
 
   const highHFIFuelsByProportion = useMemo<FireZoneFuelStats[]>(() => {
@@ -215,7 +219,7 @@ const AdvisoryText = ({
   const renderDefaultMessage = () => {
     return (
       <>
-        {runDatetime?.isValid ? (
+        {isNil(selectedFireCenter) ? (
           <SerifTypography data-testid="default-message">
             Please select a fire center.
           </SerifTypography>
@@ -347,23 +351,23 @@ const AdvisoryText = ({
   };
 
   return (
-    <div data-testid="advisory-text">
-      <Box
-        sx={{
-          maxWidth: "100%",
-          overflow: "auto",
-          border: "1px solid #ccc",
-          padding: 2,
-          borderRadius: 1,
-          backgroundColor: "white",
-          marginBottom: "10px",
-        }}
-      >
-        {!selectedFireCenter || !runDatetime?.isValid || !selectedFireZoneUnit
-          ? renderDefaultMessage()
-          : renderAdvisoryText()}
-      </Box>
-    </div>
+    <Box
+      data-testid="advisory-text"
+      sx={{
+        maxWidth: "100%",
+        minWidth: "100%",
+        overflow: "auto",
+        border: "1px solid #ccc",
+        padding: theme.spacing(2),
+        borderRadius: 1,
+        backgroundColor: "white",
+        marginBottom: "10px",
+      }}
+    >
+      {!selectedFireCenter || !runDatetime?.isValid || !selectedFireZoneUnit
+        ? renderDefaultMessage()
+        : renderAdvisoryText()}
+    </Box>
   );
 };
 

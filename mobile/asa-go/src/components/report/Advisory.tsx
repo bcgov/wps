@@ -1,10 +1,12 @@
 import { FireCenter, FireShape } from "@/api/fbaAPI";
 import FireCenterDropdown from "@/components/FireCenterDropdown";
+import AdvisoryText from "@/components/report/AdvisoryText";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
 import { selectFireCenters } from "@/store";
-import { INFO_PANEL_CONTENT_BACKGROUND, LIGHT_GREY } from "@/theme";
-import { Box, FormControl, useTheme } from "@mui/material";
+import { HEADER_GREY, INFO_PANEL_CONTENT_BACKGROUND } from "@/theme";
+import { TextSnippet } from "@mui/icons-material";
+import { Box, FormControl, Typography, useTheme } from "@mui/material";
 import { DateTime } from "luxon";
 import { useSelector } from "react-redux";
 
@@ -43,13 +45,20 @@ const Advisory = ({
       }}
     >
       <Box
+        data-testid="advisory-control-container"
         sx={{
           alignItems: "center",
-          backgroundColor: LIGHT_GREY,
+          backgroundColor: "white",
           display: "flex",
-          padding: theme.spacing(1),
+          px: theme.spacing(1),
+          pb: theme.spacing(1),
         }}
       >
+        <Box
+          sx={{ alignItems: "center", display: "flex", pr: theme.spacing(1) }}
+        >
+          <TodayTomorrowSwitch border={true} date={date} setDate={setDate} />
+        </Box>
         <Box sx={{ display: "flex", flexGrow: 1, pt: theme.spacing(1) }}>
           <FormControl
             sx={{ backgroundColor: "white", margin: 1, minWidth: 280 }}
@@ -62,17 +71,30 @@ const Advisory = ({
             />
           </FormControl>
         </Box>
-        <Box
-          sx={{ alignItems: "center", display: "flex", pr: theme.spacing(1) }}
-        >
-          <TodayTomorrowSwitch date={date} setDate={setDate} />
-        </Box>
       </Box>
       <Box
+        sx={{
+          alignItems: "center",
+          backgroundColor: HEADER_GREY,
+          display: "flex",
+          p: theme.spacing(1),
+        }}
+      >
+        <TextSnippet />
+        <Typography
+          sx={{ fontWeight: "bold", pl: theme.spacing(1) }}
+          variant="h5"
+        >
+          Advisory Report
+        </Typography>
+      </Box>
+      <Box
+        id="advisory-content-container"
         sx={{
           backgroundColor: INFO_PANEL_CONTENT_BACKGROUND,
           display: "flex",
           flexGrow: 1,
+          padding: theme.spacing(1),
         }}
       >
         <FireZoneUnitTabs
@@ -80,7 +102,13 @@ const Advisory = ({
           selectedFireCenter={selectedFireCenter}
           selectedFireZoneUnit={selectedFireZoneUnit}
           setSelectedFireZoneUnit={setSelectedFireZoneUnit}
-        />
+        >
+          <AdvisoryText
+            advisoryThreshold={advisoryThreshold}
+            selectedFireCenter={selectedFireCenter}
+            selectedFireZoneUnit={selectedFireZoneUnit}
+          />
+        </FireZoneUnitTabs>
       </Box>
     </Box>
   );
