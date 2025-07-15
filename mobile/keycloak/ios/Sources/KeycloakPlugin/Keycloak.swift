@@ -50,8 +50,6 @@ public struct KeycloakTokenResponse {
     }
 }
 
-// MARK: - Concrete Implementations
-
 class DefaultPKCEGenerator: PKCEGeneratorProtocol {
     func generateCodeVerifier() -> String {
         var buffer = [UInt8](repeating: 0, count: 32)
@@ -648,8 +646,6 @@ class DefaultHTTPClient: HTTPClientProtocol {
         }
     }
 
-    // MARK: - Automatic Token Refresh
-
     private func scheduleTokenRefresh(
         clientId: String,
         accessTokenEndpoint: String,
@@ -729,7 +725,6 @@ class DefaultHTTPClient: HTTPClientProtocol {
         }
     }
 
-    // MARK: - ASWebAuthenticationPresentationContextProviding
     public func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor
     {
         // Get the key window from the connected scenes
