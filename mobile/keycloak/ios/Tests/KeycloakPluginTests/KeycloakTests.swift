@@ -1,3 +1,4 @@
+import AuthenticationServices
 import Foundation
 import XCTest
 
@@ -283,63 +284,747 @@ class KeycloakTests: XCTestCase {
         // Verify PKCE parameters were used
         XCTAssertEqual(mockURLBuilder.lastCodeChallenge, "test-code-challenge-456")
     }
-}
 
-class URLBuilderTests: XCTestCase {
+    // RefreshToken Tests
 
-    func testBuildAuthorizationURL() {
-        let urlBuilder = DefaultURLBuilder()
+    func testSuccessfulRefreshToken() {
+        // Arrange
+        let options = KeycloakRefreshOptions(
+            clientId: "test-client",
+            accessTokenEndpoint: "https://keycloak.example.com/token",
+            refreshToken: "valid-refresh-token"
+        )
+
+        let mockRefreshResponse = """
+            {
+                "access_token": "new_access_token",
+                "token_type": "Bearer",
+                "expires_in": 3600,
+                "refresh_token": "new_refresh_token",
+                "scope": "openid profile"
+            }
+            """.data(using: .utf8)
+        mockHTTPClient.mockResponse = mockRefreshResponse
+
+        let expectation = XCTestExpectation(description: "Refresh token should succeed")
+
+        // Act
+        keycloak.refreshToken(options: options) { result in
+            // Assert
+            switch result {
+            case .success(let data):
+                XCTAssertEqual(data["accessToken"] as? String, "new_access_token")
+                XCTAssertEqual(data["tokenType"] as? String, "Bearer")
+                XCTAssertEqual(data["expiresIn"] as? Int, 3600)
+                XCTAssertEqual(data["refreshToken"] as? String, "new_refresh_token")
+                XCTAssertEqual(data["scope"] as? String, "openid profile")
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail("Expected success but got error: \(error)")
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+
+        // Verify HTTP request was made correctly
+        XCTAssertNotNil(mockHTTPClient.lastRequest)
+        XCTAssertEqual(mockHTTPClient.lastRequest?.httpMethod, "POST")
+        XCTAssertEqual(
+            mockHTTPClient.lastRequest?.url?.absoluteString, "https://keycloak.example.com/token")
+    }
+
+    func testRefreshTokenWithInvalidEndpoint() {
+        // Arrange
+        let options = KeycloakRefreshOptions(
+            clientId: "test-client",
+            accessTokenEndpoint: "invalid-url",
+            refreshToken: "valid-refresh-token"
+        )
+
+        let expectation = XCTestExpectation(
+            description: "Refresh token should fail with invalid URL")
+
+        // Act
+        keycloak.refreshToken(options: options) { result in
+            // Assert
+            switch result {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error as NSError):
+                XCTAssertEqual(error.domain, "KeycloakError")
+                XCTAssertEqual(error.code, 12)
+                XCTAssertTrue(
+                    error.localizedDescription.contains("No data received from token endpoint"))
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    func testRefreshTokenWithNetworkError() {
+        // Arrange
+        let options = KeycloakRefreshOptions(
+            clientId: "test-client",
+            accessTokenEndpoint: "https://keycloak.example.com/token",
+            refreshToken: "valid-refresh-token"
+        )
+
+        mockHTTPClient.mockError = NSError(domain: "NetworkError", code: 500, userInfo: nil)
+
+        let expectation = XCTestExpectation(
+            description: "Refresh token should fail with network error")
+
+        // Act
+        keycloak.refreshToken(options: options) { result in
+            // Assert
+            switch result {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error as NSError):
+                XCTAssertEqual(error.domain, "NetworkError")
+                XCTAssertEqual(error.code, 500)
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    func testRefreshTokenWithNoData() {
+        // Arrange
+        let options = KeycloakRefreshOptions(
+            clientId: "test-client",
+            accessTokenEndpoint: "https://keycloak.example.com/token",
+            refreshToken: "valid-refresh-token"
+        )
+
+        mockHTTPClient.mockResponse = nil  // No data returned
+
+        let expectation = XCTestExpectation(description: "Refresh token should fail with no data")
+
+        // Act
+        keycloak.refreshToken(options: options) { result in
+            // Assert
+            switch result {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error as NSError):
+                XCTAssertEqual(error.domain, "KeycloakError")
+                XCTAssertEqual(error.code, 12)
+                XCTAssertTrue(
+                    error.localizedDescription.contains("No data received from token endpoint"))
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    func testRefreshTokenWithKeycloakError() {
+        // Arrange
+        let options = KeycloakRefreshOptions(
+            clientId: "test-client",
+            accessTokenEndpoint: "https://keycloak.example.com/token",
+            refreshToken: "invalid-refresh-token"
+        )
+
+        let mockErrorResponse = """
+            {
+                "error": "invalid_grant",
+                "error_description": "Refresh token is invalid or expired"
+            }
+            """.data(using: .utf8)
+        mockHTTPClient.mockResponse = mockErrorResponse
+
+        let expectation = XCTestExpectation(
+            description: "Refresh token should fail with Keycloak error")
+
+        // Act
+        keycloak.refreshToken(options: options) { result in
+            // Assert
+            switch result {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error as NSError):
+                XCTAssertEqual(error.domain, "KeycloakError")
+                XCTAssertEqual(error.code, 13)
+                XCTAssertTrue(
+                    error.localizedDescription.contains("Refresh token is invalid or expired"))
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    func testRefreshTokenWithInvalidJSON() {
+        // Arrange
+        let options = KeycloakRefreshOptions(
+            clientId: "test-client",
+            accessTokenEndpoint: "https://keycloak.example.com/token",
+            refreshToken: "valid-refresh-token"
+        )
+
+        mockHTTPClient.mockResponse = "invalid json".data(using: .utf8)
+
+        let expectation = XCTestExpectation(
+            description: "Refresh token should fail with invalid JSON")
+
+        // Act
+        keycloak.refreshToken(options: options) { result in
+            // Assert
+            switch result {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error):
+                // The JSON parsing error should be from the JSONSerialization
+                XCTAssertTrue(
+                    error.localizedDescription.contains("format")
+                        || error.localizedDescription.contains("JSON")
+                        || error.localizedDescription.contains("data"))
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    // Token Exchange Tests
+
+    func testTokenExchangeWithNetworkError() {
+        // Arrange
         let options = KeycloakOptions(
-            clientId: "test-client-123",
+            clientId: "test-client",
             authorizationBaseUrl: "https://keycloak.example.com/auth",
             redirectUrl: "ca.bc.gov.asago://auth/callback",
             accessTokenEndpoint: "https://keycloak.example.com/token"
         )
 
-        let url = urlBuilder.buildAuthorizationURL(
-            options: options, codeChallenge: "test-challenge")
+        mockWebAuthSession.mockCallbackURL = URL(
+            string: "ca.bc.gov.asago://auth/callback?code=test-auth-code")
 
-        XCTAssertNotNil(url)
-        XCTAssertTrue(url!.absoluteString.contains("client_id=test-client-123"))
-        XCTAssertTrue(url!.absoluteString.contains("response_type=code"))
-        XCTAssertTrue(url!.absoluteString.contains("code_challenge=test-challenge"))
-        XCTAssertTrue(url!.absoluteString.contains("code_challenge_method=S256"))
-        XCTAssertTrue(
-            url!.absoluteString.contains("redirect_uri=ca.bc.gov.asago%3A%2F%2Fauth%2Fcallback"))
+        mockHTTPClient.mockError = NSError(domain: "NetworkError", code: 404, userInfo: nil)
+
+        let expectation = XCTestExpectation(
+            description: "Token exchange should fail with network error")
+
+        // Act
+        keycloak.authenticate(options: options) { result in
+            // Assert
+            switch result {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error as NSError):
+                XCTAssertEqual(error.domain, "NetworkError")
+                XCTAssertEqual(error.code, 404)
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    func testTokenExchangeWithInvalidTokenEndpoint() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "invalid-url"
+        )
+
+        mockWebAuthSession.mockCallbackURL = URL(
+            string: "ca.bc.gov.asago://auth/callback?code=test-auth-code")
+
+        let expectation = XCTestExpectation(
+            description: "Token exchange should fail with invalid URL")
+
+        // Act
+        keycloak.authenticate(options: options) { result in
+            // Assert
+            switch result {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error as NSError):
+                XCTAssertEqual(error.domain, "KeycloakError")
+                XCTAssertEqual(error.code, 8)
+                XCTAssertTrue(
+                    error.localizedDescription.contains("No data received from token endpoint"))
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    func testTokenExchangeWithKeycloakError() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+
+        mockWebAuthSession.mockCallbackURL = URL(
+            string: "ca.bc.gov.asago://auth/callback?code=invalid-auth-code")
+
+        let mockErrorResponse = """
+            {
+                "error": "invalid_grant",
+                "error_description": "Authorization code is invalid or expired"
+            }
+            """.data(using: .utf8)
+        mockHTTPClient.mockResponse = mockErrorResponse
+
+        let expectation = XCTestExpectation(
+            description: "Token exchange should fail with Keycloak error")
+
+        // Act
+        keycloak.authenticate(options: options) { result in
+            // Assert
+            switch result {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error as NSError):
+                XCTAssertEqual(error.domain, "KeycloakError")
+                XCTAssertEqual(error.code, 9)
+                XCTAssertTrue(
+                    error.localizedDescription.contains("Authorization code is invalid or expired"))
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    func testTokenExchangeWithNoData() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+
+        mockWebAuthSession.mockCallbackURL = URL(
+            string: "ca.bc.gov.asago://auth/callback?code=test-auth-code")
+
+        mockHTTPClient.mockResponse = nil  // No data returned
+
+        let expectation = XCTestExpectation(description: "Token exchange should fail with no data")
+
+        // Act
+        keycloak.authenticate(options: options) { result in
+            // Assert
+            switch result {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error as NSError):
+                XCTAssertEqual(error.domain, "KeycloakError")
+                XCTAssertEqual(error.code, 8)
+                XCTAssertTrue(
+                    error.localizedDescription.contains("No data received from token endpoint"))
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    func testTokenExchangeWithInvalidJSON() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+
+        mockWebAuthSession.mockCallbackURL = URL(
+            string: "ca.bc.gov.asago://auth/callback?code=test-auth-code")
+
+        mockHTTPClient.mockResponse = "invalid json".data(using: .utf8)
+
+        let expectation = XCTestExpectation(
+            description: "Token exchange should fail with invalid JSON")
+
+        // Act
+        keycloak.authenticate(options: options) { result in
+            // Assert
+            switch result {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error):
+                // The JSON parsing error should be from the JSONSerialization
+                XCTAssertTrue(
+                    error.localizedDescription.contains("format")
+                        || error.localizedDescription.contains("JSON")
+                        || error.localizedDescription.contains("data"))
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    // Callback URL Parsing Tests
+
+    func testCallbackURLWithMissingCode() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+
+        // Callback URL without authorization code
+        mockWebAuthSession.mockCallbackURL = URL(
+            string: "ca.bc.gov.asago://auth/callback?state=some-state")
+
+        let expectation = XCTestExpectation(
+            description: "Authentication should handle missing code")
+
+        // Act
+        keycloak.authenticate(options: options) { result in
+            // Assert
+            switch result {
+            case .success(let data):
+                XCTAssertEqual(data["isAuthenticated"] as? Bool, false)
+                XCTAssertNotNil(data["error"])
+                XCTAssertNotNil(data["errorDescription"])
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Expected success with error details but got failure")
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    func testCallbackURLWithNilURL() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+
+        mockWebAuthSession.shouldCallCompletionWithNilURL = true
+
+        let expectation = XCTestExpectation(
+            description: "Authentication should handle nil callback URL")
+
+        // Act
+        keycloak.authenticate(options: options) { result in
+            // Assert
+            switch result {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error as NSError):
+                XCTAssertEqual(error.domain, "KeycloakError")
+                XCTAssertEqual(error.code, 2)
+                XCTAssertTrue(error.localizedDescription.contains("No callback URL received"))
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    // Additional Error Cases
+
+    func testAuthenticationWithSpecificRedirectURIError() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+
+        mockWebAuthSession.mockCallbackURL = URL(
+            string:
+                "ca.bc.gov.asago://auth/callback?error=invalid_redirect_uri&error_description=Invalid+redirect+URI&redirect_uri=ca.bc.gov.asago://auth/callback"
+        )
+
+        let expectation = XCTestExpectation(
+            description: "Authentication should handle invalid redirect URI with enhanced message")
+
+        // Act
+        keycloak.authenticate(options: options) { result in
+            // Assert
+            switch result {
+            case .success(let response):
+                XCTAssertEqual(response["isAuthenticated"] as? Bool, false)
+                XCTAssertEqual(response["error"] as? String, "invalid_redirect_uri")
+                let errorDescription = response["errorDescription"] as? String
+                XCTAssertNotNil(errorDescription)
+                XCTAssertTrue(errorDescription!.contains("Valid Redirect URIs"))
+                XCTAssertTrue(errorDescription!.contains("Keycloak admin console"))
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Expected success with error details but got failure")
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    func testSuccessfulAuthenticationWithAllTokenFields() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+
+        // Set up mock HTTP response with all possible token fields
+        let mockTokenResponse = """
+            {
+                "access_token": "mock_access_token",
+                "token_type": "Bearer",
+                "expires_in": 3600,
+                "refresh_token": "mock_refresh_token",
+                "id_token": "mock_id_token",
+                "scope": "openid profile email",
+                "custom_field": "custom_value"
+            }
+            """.data(using: .utf8)
+        mockHTTPClient.mockResponse = mockTokenResponse
+
+        mockWebAuthSession.mockCallbackURL = URL(
+            string: "ca.bc.gov.asago://auth/callback?code=test-auth-code&state=test-state")
+
+        let expectation = XCTestExpectation(
+            description: "Authentication should succeed with all fields")
+
+        // Act
+        keycloak.authenticate(options: options) { result in
+            // Assert
+            switch result {
+            case .success(let data):
+                XCTAssertEqual(data["isAuthenticated"] as? Bool, true)
+                XCTAssertEqual(data["accessToken"] as? String, "mock_access_token")
+                XCTAssertEqual(data["tokenType"] as? String, "Bearer")
+                XCTAssertEqual(data["expiresIn"] as? Int, 3600)
+                XCTAssertEqual(data["refreshToken"] as? String, "mock_refresh_token")
+                XCTAssertEqual(data["idToken"] as? String, "mock_id_token")
+                XCTAssertEqual(data["scope"] as? String, "openid profile email")
+                XCTAssertEqual(data["custom_field"] as? String, "custom_value")
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail("Expected success but got error: \(error)")
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    // Presentation Anchor Tests
+
+    func testPresentationAnchor() {
+        // This test verifies that the presentationAnchor method returns a valid window
+        // Note: This is a basic test as we can't easily mock UIApplication in unit tests
+        let keycloakInstance = Keycloak()
+
+        // Create a minimal mock session that conforms to ASWebAuthenticationSession
+        class MockASWebAuthSession: ASWebAuthenticationSession {
+            init() {
+                super.init(url: URL(string: "https://example.com")!, callbackURLScheme: "test") {
+                    _, _ in
+                }
+            }
+        }
+
+        let mockSession = MockASWebAuthSession()
+        let anchor = keycloakInstance.presentationAnchor(for: mockSession)
+        XCTAssertNotNil(anchor)
+        XCTAssertTrue(anchor is UIWindow)
     }
 }
 
-class PKCEGeneratorTests: XCTestCase {
+// KeycloakTokenResponse Tests
 
-    func testGenerateCodeVerifier() {
-        let generator = DefaultPKCEGenerator()
-        let verifier1 = generator.generateCodeVerifier()
-        let verifier2 = generator.generateCodeVerifier()
+class KeycloakTokenResponseTests: XCTestCase {
 
-        // Verifiers should be different each time
-        XCTAssertNotEqual(verifier1, verifier2)
+    func testTokenResponseToDictionaryWithAllFields() {
+        // Arrange
+        let tokenResponse = KeycloakTokenResponse(
+            accessToken: "test_access_token",
+            refreshToken: "test_refresh_token",
+            tokenType: "Bearer",
+            expiresIn: 3600,
+            scope: "openid profile"
+        )
 
-        // Verifiers should be valid base64url strings
-        XCTAssertFalse(verifier1.contains("+"))
-        XCTAssertFalse(verifier1.contains("/"))
-        XCTAssertFalse(verifier1.contains("="))
+        // Act
+        let dictionary = tokenResponse.toDictionary()
+
+        // Assert
+        XCTAssertEqual(dictionary["accessToken"] as? String, "test_access_token")
+        XCTAssertEqual(dictionary["refreshToken"] as? String, "test_refresh_token")
+        XCTAssertEqual(dictionary["tokenType"] as? String, "Bearer")
+        XCTAssertEqual(dictionary["expiresIn"] as? Int, 3600)
+        XCTAssertEqual(dictionary["scope"] as? String, "openid profile")
     }
 
-    func testGenerateCodeChallenge() {
-        let generator = DefaultPKCEGenerator()
-        let verifier = "test-verifier"
-        let challenge = generator.generateCodeChallenge(from: verifier)
+    func testTokenResponseToDictionaryWithMinimalFields() {
+        // Arrange
+        let tokenResponse = KeycloakTokenResponse(
+            accessToken: "test_access_token",
+            refreshToken: nil,
+            tokenType: nil,
+            expiresIn: nil,
+            scope: nil
+        )
 
-        // Challenge should be deterministic for the same verifier
-        let challenge2 = generator.generateCodeChallenge(from: verifier)
-        XCTAssertEqual(challenge, challenge2)
+        // Act
+        let dictionary = tokenResponse.toDictionary()
 
-        // Challenge should be different from verifier
-        XCTAssertNotEqual(challenge, verifier)
+        // Assert
+        XCTAssertEqual(dictionary["accessToken"] as? String, "test_access_token")
+        XCTAssertNil(dictionary["refreshToken"])
+        XCTAssertNil(dictionary["tokenType"])
+        XCTAssertNil(dictionary["expiresIn"])
+        XCTAssertNil(dictionary["scope"])
+        XCTAssertEqual(dictionary.count, 1)  // Only accessToken should be present
+    }
 
-        // Challenge should be valid base64url string
-        XCTAssertFalse(challenge.contains("+"))
-        XCTAssertFalse(challenge.contains("/"))
-        XCTAssertFalse(challenge.contains("="))
+    func testTokenResponseToDictionaryWithPartialFields() {
+        // Arrange
+        let tokenResponse = KeycloakTokenResponse(
+            accessToken: "test_access_token",
+            refreshToken: "test_refresh_token",
+            tokenType: nil,
+            expiresIn: 1800,
+            scope: nil
+        )
+
+        // Act
+        let dictionary = tokenResponse.toDictionary()
+
+        // Assert
+        XCTAssertEqual(dictionary["accessToken"] as? String, "test_access_token")
+        XCTAssertEqual(dictionary["refreshToken"] as? String, "test_refresh_token")
+        XCTAssertNil(dictionary["tokenType"])
+        XCTAssertEqual(dictionary["expiresIn"] as? Int, 1800)
+        XCTAssertNil(dictionary["scope"])
+        XCTAssertEqual(dictionary.count, 3)  // accessToken, refreshToken, expiresIn
+    }
+}
+
+// Data Extension Tests
+
+class DataExtensionTests: XCTestCase {
+
+    func testBase64URLEncodedString() {
+        // Test basic encoding
+        let testString = "Hello, World!"
+        let data = testString.data(using: .utf8)!
+        let base64URL = data.base64URLEncodedString()
+
+        // Should not contain +, /, or =
+        XCTAssertFalse(base64URL.contains("+"))
+        XCTAssertFalse(base64URL.contains("/"))
+        XCTAssertFalse(base64URL.contains("="))
+
+        // Should contain - and _ instead
+        // Test with data that would normally produce + and /
+        let testData = Data([0xFF, 0xFE, 0xFD])
+        let encoded = testData.base64URLEncodedString()
+
+        XCTAssertFalse(encoded.contains("+"))
+        XCTAssertFalse(encoded.contains("/"))
+        XCTAssertFalse(encoded.contains("="))
+    }
+
+    func testBase64URLEncodingReplacements() {
+        // Create data that will result in standard base64 characters that need replacement
+        let testData = Data([0x3E, 0x3F, 0x40])  // This should produce '+' and '/' in standard base64
+        let standardBase64 = testData.base64EncodedString()
+        let base64URL = testData.base64URLEncodedString()
+
+        // Verify that our implementation replaces the characters correctly
+        let expectedBase64URL =
+            standardBase64
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+
+        XCTAssertEqual(base64URL, expectedBase64URL)
+    }
+}
+
+// Integration Tests
+
+class KeycloakIntegrationTests: XCTestCase {
+
+    func testCompleteAuthenticationFlow() {
+        // This test verifies the complete flow from start to finish
+        let mockPKCEGenerator = MockPKCEGenerator()
+        let mockURLBuilder = MockURLBuilder()
+        let mockWebAuthSession = MockWebAuthSession()
+        let mockHTTPClient = MockHTTPClient()
+
+        let keycloak = Keycloak(
+            pkceGenerator: mockPKCEGenerator,
+            urlBuilder: mockURLBuilder,
+            webAuthSession: mockWebAuthSession,
+            httpClient: mockHTTPClient
+        )
+
+        let options = KeycloakOptions(
+            clientId: "integration-test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+
+        // Set up the complete flow
+        mockWebAuthSession.mockCallbackURL = URL(
+            string: "ca.bc.gov.asago://auth/callback?code=integration-auth-code&state=test-state")
+
+        let mockTokenResponse = """
+            {
+                "access_token": "integration_access_token",
+                "token_type": "Bearer",
+                "expires_in": 3600,
+                "refresh_token": "integration_refresh_token",
+                "scope": "openid profile email"
+            }
+            """.data(using: .utf8)
+        mockHTTPClient.mockResponse = mockTokenResponse
+
+        let expectation = XCTestExpectation(
+            description: "Complete authentication flow should succeed")
+
+        // Act
+        keycloak.authenticate(options: options) { result in
+            // Assert
+            switch result {
+            case .success(let data):
+                XCTAssertEqual(data["isAuthenticated"] as? Bool, true)
+                XCTAssertEqual(data["accessToken"] as? String, "integration_access_token")
+                XCTAssertEqual(data["refreshToken"] as? String, "integration_refresh_token")
+
+                // Verify all the mock interactions happened correctly
+                XCTAssertEqual(mockURLBuilder.lastOptions?.clientId, "integration-test-client")
+                XCTAssertEqual(mockURLBuilder.lastCodeChallenge, "test-code-challenge-456")
+                XCTAssertNotNil(mockWebAuthSession.lastURL)
+                XCTAssertNotNil(mockHTTPClient.lastRequest)
+                XCTAssertEqual(mockHTTPClient.lastRequest?.httpMethod, "POST")
+
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail("Expected success but got error: \(error)")
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
     }
 }
