@@ -9,7 +9,11 @@
     "test": "vitest",
     "test:ci": "vitest --coverage",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production",
+    "cap:sync:dev": "yarn build:dev && yarn cap sync",
+    "cap:sync:prod": "yarn build:prod && yarn cap sync"
   },
   "dependencies": {
     "@capacitor/android": "7.1.0",
