@@ -1,4 +1,5 @@
 import AuthenticationServices
+import CryptoKit
 import Foundation
 import XCTest
 
@@ -1153,5 +1154,178 @@ class DefaultPKCEGeneratorTests: XCTestCase {
         let codeVerifierCharacterSet = CharacterSet(charactersIn: codeVerifier)
 
         XCTAssertTrue(rfc7636UnreservedChars.isSuperset(of: codeVerifierCharacterSet))
+    }
+
+    func testGenerateCodeChallengeBasicFunctionality() {
+        // Arrange
+        let codeVerifier = "test-code-verifier-123"
+
+        // Act
+        let codeChallenge = pkceGenerator.generateCodeChallenge(from: codeVerifier)
+
+        // Assert
+        XCTAssertFalse(codeChallenge.isEmpty)
+        XCTAssertNotEqual(codeChallenge, codeVerifier)  // Should be different from input
+        XCTAssertEqual(codeChallenge.count, 43)  // SHA256 hash base64URL encoded should be 43 chars
+    }
+
+    func testGenerateCodeChallengeConsistency() {
+        // Arrange
+        let codeVerifier = "test-code-verifier-123"
+
+        // Act
+        let codeChallenge1 = pkceGenerator.generateCodeChallenge(from: codeVerifier)
+        let codeChallenge2 = pkceGenerator.generateCodeChallenge(from: codeVerifier)
+
+        // Assert
+        // Same input should always produce the same output (deterministic)
+        XCTAssertEqual(codeChallenge1, codeChallenge2)
+    }
+
+    func testGenerateCodeChallengeDifferentInputs() {
+        // Arrange
+        let codeVerifier1 = "test-code-verifier-1"
+        let codeVerifier2 = "test-code-verifier-2"
+
+        // Act
+        let codeChallenge1 = pkceGenerator.generateCodeChallenge(from: codeVerifier1)
+        let codeChallenge2 = pkceGenerator.generateCodeChallenge(from: codeVerifier2)
+
+        // Assert
+        // Different inputs should produce different outputs
+        XCTAssertNotEqual(codeChallenge1, codeChallenge2)
+    }
+
+    func testGenerateCodeChallengeFormat() {
+        // Arrange
+        let codeVerifier = "test-code-verifier-123"
+
+        // Act
+        let codeChallenge = pkceGenerator.generateCodeChallenge(from: codeVerifier)
+
+        // Assert
+        // Should only contain URL-safe base64 characters: A-Z, a-z, 0-9, -, _
+        let allowedCharacters = CharacterSet(
+            charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
+        let codeChallengeCharacterSet = CharacterSet(charactersIn: codeChallenge)
+
+        XCTAssertTrue(allowedCharacters.isSuperset(of: codeChallengeCharacterSet))
+
+        // Should not contain standard base64 characters that are replaced in base64URL
+        XCTAssertFalse(codeChallenge.contains("+"))
+        XCTAssertFalse(codeChallenge.contains("/"))
+        XCTAssertFalse(codeChallenge.contains("="))
+    }
+
+    func testGenerateCodeChallengeLength() {
+        // Arrange
+        let shortVerifier = "abc"
+        let longVerifier = "a" + String(repeating: "b", count: 100) + "c"
+
+        // Act
+        let shortChallenge = pkceGenerator.generateCodeChallenge(from: shortVerifier)
+        let longChallenge = pkceGenerator.generateCodeChallenge(from: longVerifier)
+
+        // Assert
+        // SHA256 hash should always produce the same length output regardless of input length
+        XCTAssertEqual(shortChallenge.count, 43)
+        XCTAssertEqual(longChallenge.count, 43)
+        XCTAssertNotEqual(shortChallenge, longChallenge)
+    }
+
+    func testGenerateCodeChallengeEmptyInput() {
+        // Arrange
+        let emptyVerifier = ""
+
+        // Act
+        let codeChallenge = pkceGenerator.generateCodeChallenge(from: emptyVerifier)
+
+        // Assert
+        // Should handle empty input gracefully
+        XCTAssertFalse(codeChallenge.isEmpty)
+        XCTAssertEqual(codeChallenge.count, 43)
+    }
+
+    func testGenerateCodeChallengeUnicodeInput() {
+        // Arrange
+        let unicodeVerifier = "test-验证码-🔐-challénge"
+
+        // Act
+        let codeChallenge = pkceGenerator.generateCodeChallenge(from: unicodeVerifier)
+
+        // Assert
+        // Should handle Unicode characters properly
+        XCTAssertFalse(codeChallenge.isEmpty)
+        XCTAssertEqual(codeChallenge.count, 43)
+
+        // Should be consistent
+        let secondChallenge = pkceGenerator.generateCodeChallenge(from: unicodeVerifier)
+        XCTAssertEqual(codeChallenge, secondChallenge)
+    }
+
+    func testGenerateCodeChallengeSHA256Correctness() {
+        // Arrange
+        let knownVerifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+
+        // Act
+        let codeChallenge = pkceGenerator.generateCodeChallenge(from: knownVerifier)
+
+        // Assert
+        // Verify the SHA256 hash is correctly computed and base64URL encoded
+        // We can verify this by manually calculating the expected result
+        let expectedData = Data(knownVerifier.utf8)
+        let expectedHash = SHA256.hash(data: expectedData)
+        let expectedChallenge = Data(expectedHash).base64URLEncodedString()
+
+        XCTAssertEqual(codeChallenge, expectedChallenge)
+    }
+
+    func testGenerateCodeChallengeRFC7636Compliance() {
+        // Arrange
+        let codeVerifier = "test-code-verifier-for-rfc-compliance"
+
+        // Act
+        let codeChallenge = pkceGenerator.generateCodeChallenge(from: codeVerifier)
+
+        // Assert
+        // Per RFC 7636, code challenge should be base64URL encoded SHA256 hash
+        // Length should be 43 characters (256 bits / 6 bits per base64 char = 42.67, rounded up)
+        XCTAssertEqual(codeChallenge.count, 43)
+
+        // Should be URL-safe (no +, /, =)
+        XCTAssertFalse(codeChallenge.contains("+"))
+        XCTAssertFalse(codeChallenge.contains("/"))
+        XCTAssertFalse(codeChallenge.contains("="))
+
+        // Should be decodable back to 32 bytes (SHA256 output size)
+        let paddedChallenge = codeChallenge.padding(
+            toLength: ((codeChallenge.count + 3) / 4) * 4, withPad: "=", startingAt: 0)
+        let standardBase64 =
+            paddedChallenge
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+
+        let decodedData = Data(base64Encoded: standardBase64)
+        XCTAssertNotNil(decodedData)
+        XCTAssertEqual(decodedData?.count, 32)  // SHA256 produces 32 bytes
+    }
+
+    func testGenerateCodeChallengeWithGeneratedVerifier() {
+        // Integration test: Use a generated code verifier to create a challenge
+
+        // Arrange
+        let generatedVerifier = pkceGenerator.generateCodeVerifier()
+
+        // Act
+        let codeChallenge = pkceGenerator.generateCodeChallenge(from: generatedVerifier)
+
+        // Assert
+        XCTAssertFalse(codeChallenge.isEmpty)
+        XCTAssertEqual(codeChallenge.count, 43)
+        XCTAssertNotEqual(codeChallenge, generatedVerifier)
+
+        // Should be reproducible
+        let secondChallenge = pkceGenerator.generateCodeChallenge(from: generatedVerifier)
+        XCTAssertEqual(codeChallenge, secondChallenge)
     }
 }
