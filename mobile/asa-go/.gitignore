@@ -26,3 +26,7 @@ dist-ssr
 
 # coverage files
 coverage
+
+# env files
+.env*
+!.env.sample

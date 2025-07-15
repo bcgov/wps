@@ -17,19 +17,19 @@ import {
   selectNetworkStatus,
   selectFireShapeAreas,
 } from "@/store";
-import { CENTER_OF_BC } from "@/utils/constants";
+import { CENTER_OF_BC, NavPanel } from "@/utils/constants";
+import { PMTilesCache } from "@/utils/pmtilesCache";
+import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
+import { Filesystem } from "@capacitor/filesystem";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import GpsOffIcon from "@mui/icons-material/GpsOff";
 import { Box } from "@mui/material";
-import { FireCenter, FireShape, RunType } from "api/fbaAPI";
+import { FireShape, RunType } from "api/fbaAPI";
 import { cloneDeep, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
-import { Map, View } from "ol";
+import { Map, MapBrowserEvent, Overlay, View } from "ol";
 import { defaults as defaultControls } from "ol/control";
-import {
-  defaults as defaultInteractions,
-  DblClickDragZoom,
-} from "ol/interaction";
+import { defaults as defaultInteractions } from "ol/interaction";
 import ScaleLine from "ol/control/ScaleLine";
 import { boundingExtent } from "ol/extent";
 import TileLayer from "ol/layer/Tile";
@@ -41,6 +41,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { BC_EXTENT } from "utils/constants";
 import UserLocationIndicator from "@/components/map/LocationIndicator";
 import { startWatchingLocation } from "@/slices/geolocationSlice";
+import MapPopup from "@/components/map/MapPopup";
 
 // used for setting the initial map extent
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
@@ -56,17 +57,27 @@ const BC_FULL_MAP_EXTENT_3857 = [
 
 export interface ASAGoMapProps {
   testId?: string;
-  selectedFireCenter: FireCenter | undefined;
   selectedFireShape: FireShape | undefined;
+  setSelectedFireShape: React.Dispatch<
+    React.SetStateAction<FireShape | undefined>
+  >;
   advisoryThreshold: number;
-  zoomSource?: "fireCenter" | "fireShape";
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
+  setTab: React.Dispatch<React.SetStateAction<NavPanel>>;
   runType: RunType | null;
   runDatetime: DateTime | null;
 }
 
-const ASAGoMap = (props: ASAGoMapProps) => {
+const ASAGoMap = ({
+  testId,
+  selectedFireShape,
+  setSelectedFireShape,
+  advisoryThreshold,
+  date,
+  setDate,
+  setTab,
+}: ASAGoMapProps) => {
   const dispatch: AppDispatch = useDispatch();
 
   // selectors & hooks
@@ -90,11 +101,23 @@ const ASAGoMap = (props: ASAGoMapProps) => {
     new VectorTileLayer({
       style: fireShapeStyler(
         cloneDeep(fireShapeAreas),
-        props.advisoryThreshold,
+        advisoryThreshold,
         true
       ),
       zIndex: 53,
       properties: { name: "fireShapeVector" },
+    })
+  );
+
+  const [fireZoneHighlightFileLayer] = useState<VectorTileLayer>(
+    new VectorTileLayer({
+      style: fireShapeLineStyler(
+        cloneDeep(fireShapeAreas),
+        advisoryThreshold,
+        selectedFireShape
+      ),
+      zIndex: 54,
+      properties: { name: "fireZoneHighlightVector" },
     })
   );
 
@@ -104,6 +127,19 @@ const ASAGoMap = (props: ASAGoMapProps) => {
   const scaleRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
+  const popupRef = useRef<HTMLDivElement | null>(
+    null
+  ) as React.MutableRefObject<HTMLElement>;
+
+  const [popup] = useState<Overlay>(
+    new Overlay({
+      autoPan: {
+        animation: {
+          duration: 250,
+        },
+      },
+    })
+  );
 
   // hfi layer ref, used to add/remove it from map
   const hfiLayerRef = useRef<VectorTileLayer | null>(null);
@@ -161,60 +197,33 @@ const ASAGoMap = (props: ASAGoMapProps) => {
   }, [centerOnLocation, position, map]);
 
   useEffect(() => {
-    // zoom to fire center or whole province
-    if (!map) return;
-
-    if (props.selectedFireCenter && props.zoomSource === "fireCenter") {
-      const fireCentreExtent = extentsMap.get(props.selectedFireCenter.name);
-      if (fireCentreExtent) {
-        map.getView().fit(fireCentreExtent.extent, {
-          duration: 400,
-          padding: [50, 50, 50, 50],
-        });
-      }
-    } else if (!props.selectedFireCenter) {
-      // reset map view to full province
-      map.getView().fit(bcExtent, { duration: 600, padding: [50, 50, 50, 50] });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedFireCenter]);
-
-  useEffect(() => {
-    // zoom to fire zone
-    if (!map) return;
-
-    if (props.selectedFireShape && props.zoomSource === "fireShape") {
-      const zoneExtent = fireZoneExtentsMap.get(
-        props.selectedFireShape.fire_shape_id.toString()
-      );
-      if (!isUndefined(zoneExtent)) {
-        map.getView().fit(zoneExtent, {
-          duration: 400,
-          padding: [100, 100, 100, 100],
-          maxZoom: 8,
-        });
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedFireShape]);
-
-  useEffect(() => {
     fireZoneFileLayer.setStyle(
-      fireShapeStyler(cloneDeep(fireShapeAreas), props.advisoryThreshold, true)
+      fireShapeStyler(cloneDeep(fireShapeAreas), advisoryThreshold, true)
     );
+    fireZoneHighlightFileLayer.setStyle(
+      fireShapeLineStyler(
+        cloneDeep(fireShapeAreas),
+        advisoryThreshold,
+        selectedFireShape
+      )
+    );
+    fireZoneFileLayer.changed();
+    fireZoneHighlightFileLayer.changed();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireShapeAreas]);
 
   useEffect(() => {
     if (!map) return;
 
+    fireZoneHighlightFileLayer.setStyle(
+      fireShapeLineStyler(
+        cloneDeep(fireShapeAreas),
+        advisoryThreshold,
+        selectedFireShape
+      )
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    props.selectedFireCenter,
-    props.selectedFireShape,
-    fireShapeAreas,
-    props.advisoryThreshold,
-  ]);
+  }, [selectedFireShape]);
 
   useEffect(() => {
     // Toggle basemap visibility based on network connection status.
@@ -266,40 +275,172 @@ const ASAGoMap = (props: ASAGoMapProps) => {
       }),
       interactions: defaultInteractions({
         doubleClickZoom: true,
-      }).extend([new DblClickDragZoom()]),
+      }),
     });
     mapObject.setTarget(mapRef.current);
+
+    /******* Start scale line ******/
 
     const scaleBar = new ScaleLine({});
     scaleBar.setTarget(scaleRef.current);
     mapObject.addControl(scaleBar);
-
-    mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] });
-
-    setMap(mapObject);
-
-    loadStaticPMTilesLayers(
-      mapObject,
-      fireZoneFileLayer,
-      props.selectedFireCenter,
-      props.selectedFireShape,
-      setLocalBasemapVectorLayer
-    );
-
-    mapObject.addLayer(basemapLayer);
-
     const setScalelineVisibility = () => {
       setScaleVisible(true);
     };
 
     // Make the scale line visible when the user zooms in/out
     mapObject.getView().on("change:resolution", setScalelineVisibility);
+
+    /******* End scale line ******/
+
+    /******* Start map popup ******/
+    popup.setElement(popupRef.current);
+    mapObject.addOverlay(popup);
+    const mapClickHandler = (event: MapBrowserEvent<UIEvent>) => {
+      fireZoneFileLayer.getFeatures(event.pixel).then((features) => {
+        if (!features.length) {
+          popup.setPosition(undefined);
+          setSelectedFireShape(undefined);
+          return;
+        }
+        const feature = features[0];
+        const zonePlacename = `${feature.getProperties().FIRE_ZONE_} - ${
+          feature.getProperties().FIRE_ZON_1
+        }`;
+        const fireZone: FireShape = {
+          fire_shape_id: feature.getProperties().OBJECTID,
+          mof_fire_zone_name: zonePlacename,
+          mof_fire_centre_name: feature.getProperties().FIRE_CENTR,
+          area_sqm: feature.getProperties().Shape_Area,
+        };
+        popup.setPosition(event.coordinate);
+        setSelectedFireShape(fireZone);
+      });
+    };
+    mapObject.on("singleclick", mapClickHandler);
+
+    /******* End map popup ******/
+
+    mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] });
+
+    setMap(mapObject);
+
+    const loadPMTiles = async () => {
+      // TODO make for date, run type, run date configurable from UI
+      const hfiVectorSource = await PMTilesFileVectorSource.createHFILayer(
+        new PMTilesCache(Filesystem),
+        {
+          filename: "hfi.pmtiles",
+          for_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
+          run_type: RunType.FORECAST,
+          run_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
+        }
+      );
+
+      const fireCentresSource = await PMTilesFileVectorSource.createStaticLayer(
+        new PMTilesCache(Filesystem),
+        {
+          filename: "fireCentres.pmtiles",
+        }
+      );
+
+      const fireCentreLabelVectorSource =
+        await PMTilesFileVectorSource.createStaticLayer(
+          new PMTilesCache(Filesystem),
+          {
+            filename: "fireCentreLabels.pmtiles",
+          }
+        );
+
+      const fireZoneSource = await PMTilesFileVectorSource.createStaticLayer(
+        new PMTilesCache(Filesystem),
+        {
+          filename: "fireZoneUnits.pmtiles",
+        }
+      );
+
+      fireZoneFileLayer.setSource(fireZoneSource);
+      fireZoneHighlightFileLayer.setSource(fireZoneSource);
+
+      const fireZoneLabelVectorSource =
+        await PMTilesFileVectorSource.createStaticLayer(
+          new PMTilesCache(Filesystem),
+          {
+            filename: "fireZoneUnitLabels.pmtiles",
+          }
+        );
+      if (mapObject) {
+        const fireCentreFileLayer = new VectorTileLayer({
+          source: fireCentresSource,
+          style: fireCentreLineStyler(undefined),
+          zIndex: 52,
+        });
+
+        const fireCentreLabelsFileLayer = new VectorTileLayer({
+          source: fireCentreLabelVectorSource,
+          style: fireCentreLabelStyler,
+          zIndex: 100,
+          maxZoom: 6,
+        });
+
+        const fireZoneLabelFileLayer = new VectorTileLayer({
+          source: fireZoneLabelVectorSource,
+          declutter: true,
+          style: fireShapeLabelStyler(selectedFireShape),
+          zIndex: 99,
+          minZoom: 6,
+        });
+
+        const hfiFileLayer = new VectorTileLayer({
+          source: hfiVectorSource,
+          style: hfiStyler,
+          zIndex: 52,
+        });
+
+        const localBasemapLayer = await createLocalBasemapVectorLayer();
+        setLocalBasemapVectorLayer(localBasemapLayer);
+
+        mapObject.addLayer(basemapLayer);
+        mapObject.addLayer(hfiFileLayer);
+        mapObject.addLayer(fireCentreFileLayer);
+        mapObject.addLayer(fireCentreLabelsFileLayer);
+        mapObject.addLayer(fireZoneFileLayer);
+        mapObject.addLayer(fireZoneHighlightFileLayer);
+        mapObject.addLayer(fireZoneLabelFileLayer);
+      }
+    };
+    loadPMTiles();
+
     return () => {
       mapObject.removeControl(scaleBar);
+      mapObject.un("click", mapClickHandler);
       mapObject.getView().un("change:resolution", setScalelineVisibility);
       mapObject.setTarget("");
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handlePopupClose = () => {
+    popup.setPosition(undefined);
+  };
+
+  const handleZoomToSelectedFireShape = () => {
+    if (isNull(map)) {
+      return;
+    }
+    if (selectedFireShape) {
+      const zoneExtent = fireZoneExtentsMap.get(
+        selectedFireShape.fire_shape_id.toString()
+      );
+      if (!isUndefined(zoneExtent)) {
+        map.getView().fit(zoneExtent, {
+          duration: 400,
+          padding: [100, 100, 100, 100],
+          maxZoom: 8,
+        });
+      }
+    }
+    popup.setPosition(undefined);
+  };
 
   useEffect(() => {
     if (!map) return;
@@ -342,7 +483,7 @@ const ASAGoMap = (props: ASAGoMapProps) => {
     <MapContext.Provider value={map}>
       <Box
         ref={mapRef}
-        data-testid="fba-map"
+        data-testid={testId}
         sx={{
           display: "flex",
           flex: 1,
@@ -369,12 +510,20 @@ const ASAGoMap = (props: ASAGoMapProps) => {
             testid="location-button"
             loading={loading}
           />
-          <TodayTomorrowSwitch date={props.date} setDate={props.setDate} />
+          <TodayTomorrowSwitch date={date} setDate={setDate} />
         </Box>
         <ScaleContainer
           visible={scaleVisible}
           setVisible={setScaleVisible}
           ref={scaleRef}
+        />
+        <MapPopup
+          ref={popupRef}
+          selectedFireShape={selectedFireShape}
+          onClose={handlePopupClose}
+          onSelectProfile={() => setTab(NavPanel.PROFILE)}
+          onSelectReport={() => setTab(NavPanel.ADVISORY)}
+          onSelectZoom={handleZoomToSelectedFireShape}
         />
       </Box>
     </MapContext.Provider>

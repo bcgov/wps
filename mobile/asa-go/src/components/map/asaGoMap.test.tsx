@@ -24,12 +24,15 @@ describe("ASAGoMap", () => {
     window.ResizeObserver = ResizeObserver;
   });
 
-  const defaultProps: ASAGoMapProps = {
-    selectedFireCenter: undefined,
+  const defaultProps = {
+    testId: "asa-go-map",
     selectedFireShape: undefined,
+    setSelectedFireShape: vi.fn(),
+    fireShapeAreas: [],
     advisoryThreshold: 0,
     date: DateTime.now(),
     setDate: vi.fn(),
+    setTab: vi.fn(),
     runType: RunType.FORECAST,
     runDatetime: DateTime.now(),
   };
@@ -59,7 +62,7 @@ describe("ASAGoMap", () => {
       </Provider>
     );
 
-    const mobileMap = getByTestId("fba-map");
+    const mobileMap = getByTestId(defaultProps.testId);
     expect(mobileMap).toBeVisible();
   });
 
