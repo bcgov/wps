@@ -76,8 +76,8 @@ export interface FireZoneTPIStats {
 }
 
 export interface FireCentreTPIResponse {
-  fire_centre_name: string
-  firezone_tpi_stats: FireZoneTPIStats[]
+  fire_centre_name: string;
+  firezone_tpi_stats: FireZoneTPIStats[];
 }
 
 export interface FireShapeAreaListResponse {
@@ -120,12 +120,12 @@ export interface FireCentreHFIStats {
 }
 
 export interface RunParameter {
-  for_date: string
-  run_datetime: string
-  run_type: RunType
+  for_date: string;
+  run_datetime: string;
+  run_type: RunType;
 }
 
-const ASA_GO_API_PREFIX = "asa-go"
+const ASA_GO_API_PREFIX = "asa-go";
 
 export async function getFBAFireCenters(): Promise<FBAResponse> {
   const url = `${ASA_GO_API_PREFIX}/fire-centers`;
@@ -139,7 +139,12 @@ export async function getFireShapeAreas(
   run_datetime: string,
   for_date: string
 ): Promise<FireShapeAreaListResponse> {
-  const url = `${ASA_GO_API_PREFIX}/fire-shape-areas/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`;
+  console.log(
+    `Fetching fire shape areas for ${run_type} on ${for_date} at ${run_datetime}`
+  );
+  const url = `${ASA_GO_API_PREFIX}/fire-shape-areas/${run_type.toLowerCase()}/${encodeURI(
+    run_datetime
+  )}/${for_date}`;
   const { data } = await axios.get(url);
   return data;
 }
@@ -150,14 +155,22 @@ export async function getProvincialSummary(
   run_datetime: string,
   for_date: string
 ): Promise<ProvincialSummaryResponse> {
-  const url = `${ASA_GO_API_PREFIX}/provincial-summary/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`;
+  console.log(
+    `Fetching provincial summary for ${run_type} on ${for_date} at ${run_datetime}`
+  );
+  const url = `${ASA_GO_API_PREFIX}/provincial-summary/${run_type.toLowerCase()}/${encodeURI(
+    run_datetime
+  )}/${for_date}`;
   const { data } = await axios.get(url);
   return data;
 }
 
-export async function getMostRecentRunParameter(forDate: string): Promise<RunParameter> {
+export async function getMostRecentRunParameter(
+  forDate: string
+): Promise<RunParameter> {
   const url = `${ASA_GO_API_PREFIX}/latest-sfms-run-datetime/${forDate}`;
   const { data } = await axios.get(url);
+  console.log(`Fetched most recent run parameter for date ${forDate}:`, data);
   return data.run_parameter;
 }
 
@@ -167,6 +180,9 @@ export async function getFireCentreHFIStats(
   run_datetime: string,
   fire_centre: string
 ): Promise<FireCentreHFIStats> {
+  console.log(
+    `Fetching HFI stats for ${fire_centre} on ${for_date} at ${run_datetime}`
+  );
   const url = `${ASA_GO_API_PREFIX}/fire-centre-hfi-stats/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${fire_centre}`;
   const { data } = await axios.get(url);
   return data;

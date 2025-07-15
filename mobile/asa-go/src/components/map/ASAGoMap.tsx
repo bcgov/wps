@@ -2,12 +2,12 @@ import MapIconButton from "@/components/MapIconButton";
 import ScaleContainer from "@/components/ScaleContainer";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
 import { MapContext } from "@/context/MapContext";
-import { fireShapeStyler } from "@/featureStylers";
-import { extentsMap } from "@/fireCentreExtents";
+import { fireShapeLineStyler, fireShapeStyler } from "@/featureStylers";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import {
   createBasemapLayer,
   createHFILayer,
+  createLocalBasemapVectorLayer,
   loadStaticPMTilesLayers,
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
@@ -18,9 +18,6 @@ import {
   selectFireShapeAreas,
 } from "@/store";
 import { CENTER_OF_BC, NavPanel } from "@/utils/constants";
-import { PMTilesCache } from "@/utils/pmtilesCache";
-import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
-import { Filesystem } from "@capacitor/filesystem";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import GpsOffIcon from "@mui/icons-material/GpsOff";
 import { Box } from "@mui/material";
@@ -77,6 +74,8 @@ const ASAGoMap = ({
   date,
   setDate,
   setTab,
+  runType,
+  runDatetime,
 }: ASAGoMapProps) => {
   const dispatch: AppDispatch = useDispatch();
 
@@ -325,91 +324,21 @@ const ASAGoMap = ({
 
     setMap(mapObject);
 
-    const loadPMTiles = async () => {
-      // TODO make for date, run type, run date configurable from UI
-      const hfiVectorSource = await PMTilesFileVectorSource.createHFILayer(
-        new PMTilesCache(Filesystem),
-        {
-          filename: "hfi.pmtiles",
-          for_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
-          run_type: RunType.FORECAST,
-          run_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
-        }
-      );
+    loadStaticPMTilesLayers(
+      mapObject,
+      fireZoneFileLayer,
+      fireZoneHighlightFileLayer,
+      selectedFireShape
+    );
 
-      const fireCentresSource = await PMTilesFileVectorSource.createStaticLayer(
-        new PMTilesCache(Filesystem),
-        {
-          filename: "fireCentres.pmtiles",
-        }
-      );
-
-      const fireCentreLabelVectorSource =
-        await PMTilesFileVectorSource.createStaticLayer(
-          new PMTilesCache(Filesystem),
-          {
-            filename: "fireCentreLabels.pmtiles",
-          }
-        );
-
-      const fireZoneSource = await PMTilesFileVectorSource.createStaticLayer(
-        new PMTilesCache(Filesystem),
-        {
-          filename: "fireZoneUnits.pmtiles",
-        }
-      );
-
-      fireZoneFileLayer.setSource(fireZoneSource);
-      fireZoneHighlightFileLayer.setSource(fireZoneSource);
-
-      const fireZoneLabelVectorSource =
-        await PMTilesFileVectorSource.createStaticLayer(
-          new PMTilesCache(Filesystem),
-          {
-            filename: "fireZoneUnitLabels.pmtiles",
-          }
-        );
-      if (mapObject) {
-        const fireCentreFileLayer = new VectorTileLayer({
-          source: fireCentresSource,
-          style: fireCentreLineStyler(undefined),
-          zIndex: 52,
-        });
-
-        const fireCentreLabelsFileLayer = new VectorTileLayer({
-          source: fireCentreLabelVectorSource,
-          style: fireCentreLabelStyler,
-          zIndex: 100,
-          maxZoom: 6,
-        });
-
-        const fireZoneLabelFileLayer = new VectorTileLayer({
-          source: fireZoneLabelVectorSource,
-          declutter: true,
-          style: fireShapeLabelStyler(selectedFireShape),
-          zIndex: 99,
-          minZoom: 6,
-        });
-
-        const hfiFileLayer = new VectorTileLayer({
-          source: hfiVectorSource,
-          style: hfiStyler,
-          zIndex: 52,
-        });
-
-        const localBasemapLayer = await createLocalBasemapVectorLayer();
-        setLocalBasemapVectorLayer(localBasemapLayer);
-
-        mapObject.addLayer(basemapLayer);
-        mapObject.addLayer(hfiFileLayer);
-        mapObject.addLayer(fireCentreFileLayer);
-        mapObject.addLayer(fireCentreLabelsFileLayer);
-        mapObject.addLayer(fireZoneFileLayer);
-        mapObject.addLayer(fireZoneHighlightFileLayer);
-        mapObject.addLayer(fireZoneLabelFileLayer);
-      }
+    // load local basemap layer
+    const loadLocalBasemapLayer = async () => {
+      const localBasemapLayer = await createLocalBasemapVectorLayer();
+      setLocalBasemapVectorLayer(localBasemapLayer);
     };
-    loadPMTiles();
+    loadLocalBasemapLayer();
+
+    mapObject.addLayer(basemapLayer);
 
     return () => {
       mapObject.removeControl(scaleBar);
@@ -444,7 +373,7 @@ const ASAGoMap = ({
 
   useEffect(() => {
     if (!map) return;
-    if (isNull(props.runType) || isNull(props.runDatetime)) {
+    if (isNull(runType) || isNull(runDatetime)) {
       if (hfiLayerRef.current) {
         map.removeLayer(hfiLayerRef.current);
         hfiLayerRef.current = null;
@@ -455,12 +384,12 @@ const ASAGoMap = ({
     let isMounted = true;
     (async () => {
       let hfiLayer: VectorTileLayer | null = null;
-      if (!isNull(props.runType) && !isNull(props.runDatetime)) {
+      if (!isNull(runType) && !isNull(runDatetime)) {
         hfiLayer = await createHFILayer({
           filename: "hfi.pmtiles",
-          for_date: props.date,
-          run_type: props.runType,
-          run_date: props.runDatetime,
+          for_date: date,
+          run_type: runType,
+          run_date: runDatetime,
         });
       }
 
@@ -477,7 +406,7 @@ const ASAGoMap = ({
     return () => {
       isMounted = false;
     };
-  }, [map, props.runType, props.runDatetime, props.date]);
+  }, [map, runType, runDatetime, date]);
 
   return (
     <MapContext.Provider value={map}>

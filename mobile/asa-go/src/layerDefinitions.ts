@@ -11,13 +11,15 @@ import { PMTilesCache } from "@/utils/pmtilesCache";
 import { Filesystem } from "@capacitor/filesystem";
 import { localBasemapStyle } from "@/components/map/localBasemapStyle";
 import { Map } from "ol";
-import { FireCenter, FireShape } from "@/api/fbaAPI";
+import { FireShape, FireShapeArea } from "@/api/fbaAPI";
 import {
   fireCentreLabelStyler,
   fireCentreLineStyler,
   fireShapeLabelStyler,
+  fireShapeStyler,
   hfiStyler,
 } from "@/featureStylers";
+import { cloneDeep } from "lodash";
 
 export const BASEMAP_LAYER_NAME = "basemapLayer";
 export const LOCAL_BASEMAP_LAYER_NAME = "localBasemapLayer";
@@ -57,11 +59,8 @@ export const createLocalBasemapVectorLayer = async () => {
 export const loadStaticPMTilesLayers = async (
   mapObject: Map,
   fireZoneFileLayer: VectorTileLayer,
-  selectedFireCenter: FireCenter | undefined,
-  selectedFireShape: FireShape | undefined,
-  setLocalBasemapVectorLayer: React.Dispatch<
-    React.SetStateAction<VectorTileLayer>
-  >
+  fireZoneHighlightFileLayer: VectorTileLayer,
+  selectedFireShape: FireShape | undefined
 ) => {
   const fireCentresSource = await PMTilesFileVectorSource.createStaticLayer(
     new PMTilesCache(Filesystem),
@@ -79,6 +78,7 @@ export const loadStaticPMTilesLayers = async (
     { filename: "fireZoneUnits.pmtiles" }
   );
   fireZoneFileLayer.setSource(fireZoneSource);
+  fireZoneHighlightFileLayer.setSource(fireZoneSource);
 
   const fireZoneLabelVectorSource =
     await PMTilesFileVectorSource.createStaticLayer(
@@ -88,7 +88,7 @@ export const loadStaticPMTilesLayers = async (
 
   const fireCentreFileLayer = new VectorTileLayer({
     source: fireCentresSource,
-    style: fireCentreLineStyler(selectedFireCenter),
+    style: fireCentreLineStyler(undefined),
     zIndex: 52,
   });
 
@@ -106,9 +106,6 @@ export const loadStaticPMTilesLayers = async (
     zIndex: 99,
     minZoom: 6,
   });
-
-  const localBasemapLayer = await createLocalBasemapVectorLayer();
-  setLocalBasemapVectorLayer(localBasemapLayer);
 
   mapObject.addLayer(fireCentreFileLayer);
   mapObject.addLayer(fireCentreLabelsFileLayer);
@@ -134,5 +131,21 @@ export const createHFILayer = async (
     style: hfiStyler,
     zIndex,
     properties: { name: `hfiLayer_${options.for_date}` },
+  });
+};
+
+export const createFireZoneFileLayer = async (
+  fireShapeAreas: FireShapeArea[],
+  advisoryThreshold: number
+) => {
+  const fireZoneSource = await PMTilesFileVectorSource.createStaticLayer(
+    new PMTilesCache(Filesystem),
+    { filename: "fireZoneUnits.pmtiles" }
+  );
+  return new VectorTileLayer({
+    source: fireZoneSource,
+    style: fireShapeStyler(cloneDeep(fireShapeAreas), advisoryThreshold, true),
+    zIndex: 53,
+    properties: { name: "fireShapeVector" },
   });
 };
