@@ -18,23 +18,48 @@ describe("AuthWrapper", () => {
 
   let mockStore: ReturnType<typeof createTestStore>;
 
+  // Common initial state for authentication
+  const createInitialAuthState = (): Partial<RootState> => ({
+    authentication: {
+      authenticating: false,
+      isAuthenticated: false,
+      tokenRefreshed: false,
+      token: undefined,
+      idToken: undefined,
+      error: null,
+    },
+  });
+
+  // Helper function to render AuthWrapper with Provider
+  const renderAuthWrapper = (children = <TestChild />) => {
+    return render(
+      <Provider store={mockStore}>
+        <AuthWrapper>{children}</AuthWrapper>
+      </Provider>
+    );
+  };
+
+  // Helper function to create store with initial state
+  const setupMockStore = (initialState = createInitialAuthState()) => {
+    mockStore = createTestStore(initialState);
+  };
+
+  // Common assertions
+  const expectTestChildNotVisible = () => {
+    expect(screen.queryByText("Test Child Component")).not.toBeInTheDocument();
+  };
+
+  const expectTestChildVisible = () => {
+    expect(screen.getByText("Test Child Component")).toBeInTheDocument();
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe("when user is authenticated", () => {
     beforeEach(() => {
-      const initialState: Partial<RootState> = {
-        authentication: {
-          authenticating: false,
-          isAuthenticated: false, // Start as false, will be updated by the authenticate call
-          tokenRefreshed: false,
-          token: undefined,
-          idToken: undefined,
-          error: null,
-        },
-      };
-      mockStore = createTestStore(initialState);
+      setupMockStore();
 
       // Mock successful authentication
       vi.mocked(Keycloak.authenticate).mockResolvedValue({
@@ -45,34 +70,18 @@ describe("AuthWrapper", () => {
     });
 
     it("renders children in StrictMode when authenticated", async () => {
-      render(
-        <Provider store={mockStore}>
-          <AuthWrapper>
-            <TestChild />
-          </AuthWrapper>
-        </Provider>
-      );
+      renderAuthWrapper();
 
       // Wait for the authentication to complete
       await waitFor(() => {
-        expect(screen.getByText("Test Child Component")).toBeInTheDocument();
+        expectTestChildVisible();
       });
     });
   });
 
   describe("when user is not authenticated", () => {
     beforeEach(() => {
-      const initialState: Partial<RootState> = {
-        authentication: {
-          authenticating: false,
-          isAuthenticated: false,
-          tokenRefreshed: false,
-          token: undefined,
-          idToken: undefined,
-          error: null,
-        },
-      };
-      mockStore = createTestStore(initialState);
+      setupMockStore();
 
       // Mock failed authentication - the error should be in result.error field
       vi.mocked(Keycloak.authenticate).mockResolvedValue({
@@ -82,22 +91,14 @@ describe("AuthWrapper", () => {
     });
 
     it("shows not authenticated message when user is not authenticated", async () => {
-      render(
-        <Provider store={mockStore}>
-          <AuthWrapper>
-            <TestChild />
-          </AuthWrapper>
-        </Provider>
-      );
+      renderAuthWrapper();
 
       // Wait for the authentication to complete - it should show the error message, not "not authenticated"
       // because the result contains an error field
       await waitFor(() => {
         expect(screen.getByText("Authentication failed")).toBeInTheDocument();
       });
-      expect(
-        screen.queryByText("Test Child Component")
-      ).not.toBeInTheDocument();
+      expectTestChildNotVisible();
     });
 
     it("shows not authenticated message when authentication succeeds but user is not authenticated", async () => {
@@ -106,13 +107,7 @@ describe("AuthWrapper", () => {
         isAuthenticated: false,
       });
 
-      render(
-        <Provider store={mockStore}>
-          <AuthWrapper>
-            <TestChild />
-          </AuthWrapper>
-        </Provider>
-      );
+      renderAuthWrapper();
 
       // Wait for the authentication to complete
       await waitFor(() => {
@@ -120,25 +115,13 @@ describe("AuthWrapper", () => {
           screen.getByText("You are not authenticated!")
         ).toBeInTheDocument();
       });
-      expect(
-        screen.queryByText("Test Child Component")
-      ).not.toBeInTheDocument();
+      expectTestChildNotVisible();
     });
   });
 
   describe("when authentication is in progress", () => {
     beforeEach(() => {
-      const initialState: Partial<RootState> = {
-        authentication: {
-          authenticating: false,
-          isAuthenticated: false,
-          tokenRefreshed: false,
-          token: undefined,
-          idToken: undefined,
-          error: null,
-        },
-      };
-      mockStore = createTestStore(initialState);
+      setupMockStore();
 
       // Mock slow authentication (never resolves for this test)
       vi.mocked(Keycloak.authenticate).mockImplementation(
@@ -147,34 +130,16 @@ describe("AuthWrapper", () => {
     });
 
     it("shows signing in message when authenticating", () => {
-      render(
-        <Provider store={mockStore}>
-          <AuthWrapper>
-            <TestChild />
-          </AuthWrapper>
-        </Provider>
-      );
+      renderAuthWrapper();
 
       expect(screen.getByText("Signing in...")).toBeInTheDocument();
-      expect(
-        screen.queryByText("Test Child Component")
-      ).not.toBeInTheDocument();
+      expectTestChildNotVisible();
     });
   });
 
   describe("when authentication has an error", () => {
     beforeEach(() => {
-      const initialState: Partial<RootState> = {
-        authentication: {
-          authenticating: false,
-          isAuthenticated: false,
-          tokenRefreshed: false,
-          token: undefined,
-          idToken: undefined,
-          error: null,
-        },
-      };
-      mockStore = createTestStore(initialState);
+      setupMockStore();
 
       // Mock authentication error - the error object will be passed to authenticateError
       vi.mocked(Keycloak.authenticate).mockRejectedValue(
@@ -183,82 +148,40 @@ describe("AuthWrapper", () => {
     });
 
     it("shows error message when there is an authentication error", async () => {
-      render(
-        <Provider store={mockStore}>
-          <AuthWrapper>
-            <TestChild />
-          </AuthWrapper>
-        </Provider>
-      );
+      renderAuthWrapper();
 
       // Wait for the authentication error to be processed
       await waitFor(() => {
         expect(screen.getByText("Authentication failed")).toBeInTheDocument();
       });
-      expect(
-        screen.queryByText("Test Child Component")
-      ).not.toBeInTheDocument();
+      expectTestChildNotVisible();
     });
   });
 
   describe("state transitions", () => {
     it("prioritizes error state over authenticating state", async () => {
-      const initialState: Partial<RootState> = {
-        authentication: {
-          authenticating: false,
-          isAuthenticated: false,
-          tokenRefreshed: false,
-          token: undefined,
-          idToken: undefined,
-          error: null,
-        },
-      };
-      mockStore = createTestStore(initialState);
+      setupMockStore();
 
       // Mock authentication error
       vi.mocked(Keycloak.authenticate).mockRejectedValue("Network error");
 
-      render(
-        <Provider store={mockStore}>
-          <AuthWrapper>
-            <TestChild />
-          </AuthWrapper>
-        </Provider>
-      );
+      renderAuthWrapper();
 
       // Wait for the error to be processed
       await waitFor(() => {
         expect(screen.getByText("Network error")).toBeInTheDocument();
       });
       expect(screen.queryByText("Signing in...")).not.toBeInTheDocument();
-      expect(
-        screen.queryByText("Test Child Component")
-      ).not.toBeInTheDocument();
+      expectTestChildNotVisible();
     });
 
     it("prioritizes error state over not authenticated state", async () => {
-      const initialState: Partial<RootState> = {
-        authentication: {
-          authenticating: false,
-          isAuthenticated: false,
-          tokenRefreshed: false,
-          token: undefined,
-          idToken: undefined,
-          error: null,
-        },
-      };
-      mockStore = createTestStore(initialState);
+      setupMockStore();
 
       // Mock authentication error
       vi.mocked(Keycloak.authenticate).mockRejectedValue("Invalid credentials");
 
-      render(
-        <Provider store={mockStore}>
-          <AuthWrapper>
-            <TestChild />
-          </AuthWrapper>
-        </Provider>
-      );
+      renderAuthWrapper();
 
       // Wait for the error to be processed
       await waitFor(() => {
@@ -267,44 +190,24 @@ describe("AuthWrapper", () => {
       expect(
         screen.queryByText("You are not authenticated!")
       ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText("Test Child Component")
-      ).not.toBeInTheDocument();
+      expectTestChildNotVisible();
     });
 
     it("prioritizes authenticating state over not authenticated state", () => {
-      const initialState: Partial<RootState> = {
-        authentication: {
-          authenticating: false,
-          isAuthenticated: false,
-          tokenRefreshed: false,
-          token: undefined,
-          idToken: undefined,
-          error: null,
-        },
-      };
-      mockStore = createTestStore(initialState);
+      setupMockStore();
 
       // Mock slow authentication that never resolves
       vi.mocked(Keycloak.authenticate).mockImplementation(
         () => new Promise(() => {})
       );
 
-      render(
-        <Provider store={mockStore}>
-          <AuthWrapper>
-            <TestChild />
-          </AuthWrapper>
-        </Provider>
-      );
+      renderAuthWrapper();
 
       expect(screen.getByText("Signing in...")).toBeInTheDocument();
       expect(
         screen.queryByText("You are not authenticated!")
       ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText("Test Child Component")
-      ).not.toBeInTheDocument();
+      expectTestChildNotVisible();
     });
   });
 
@@ -319,17 +222,7 @@ describe("AuthWrapper", () => {
 
   describe("children prop type", () => {
     it("accepts React element as children", async () => {
-      const initialState: Partial<RootState> = {
-        authentication: {
-          authenticating: false,
-          isAuthenticated: false,
-          tokenRefreshed: false,
-          token: undefined,
-          idToken: undefined,
-          error: null,
-        },
-      };
-      mockStore = createTestStore(initialState);
+      setupMockStore();
 
       // Mock successful authentication
       vi.mocked(Keycloak.authenticate).mockResolvedValue({
@@ -345,13 +238,7 @@ describe("AuthWrapper", () => {
         </div>
       );
 
-      render(
-        <Provider store={mockStore}>
-          <AuthWrapper>
-            <ComplexChild />
-          </AuthWrapper>
-        </Provider>
-      );
+      renderAuthWrapper(<ComplexChild />);
 
       await waitFor(() => {
         expect(screen.getByText("Complex Child")).toBeInTheDocument();
