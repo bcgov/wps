@@ -1,4 +1,5 @@
-import { TextField, Autocomplete } from "@mui/material";
+import { LIGHT_GREY } from "@/theme";
+import { Autocomplete, TextField } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
 import { isEqual, isNull } from "lodash";
 import React from "react";
@@ -12,9 +13,6 @@ interface FireCenterDropdownProps {
   setSelectedFireShape: React.Dispatch<
     React.SetStateAction<FireShape | undefined>
   >;
-  setZoomSource: React.Dispatch<
-    React.SetStateAction<"fireCenter" | "fireShape" | undefined>
-  >;
 }
 
 const FireCenterDropdown = (props: FireCenterDropdownProps) => {
@@ -23,7 +21,6 @@ const FireCenterDropdown = (props: FireCenterDropdownProps) => {
     if (!isEqual(props.selectedFireCenter, value)) {
       props.setSelectedFireShape(undefined);
       props.setSelectedFireCenter(value);
-      props.setZoomSource("fireCenter");
     }
     if (isNull(value)) {
       localStorage.removeItem("preferredFireCenter");
@@ -36,10 +33,20 @@ const FireCenterDropdown = (props: FireCenterDropdownProps) => {
       options={props.fireCenterOptions}
       getOptionLabel={(option) => option?.name}
       renderInput={(params) => (
-        <TextField {...params} label="Select Fire Centre" variant="outlined" />
+        <TextField
+          {...params}
+          slotProps={{
+            inputLabel: {
+              shrink: true,
+            },
+          }}
+          label="Select Fire Centre"
+          variant="outlined"
+        />
       )}
       onChange={changeHandler}
       value={props.selectedFireCenter || null}
+      sx={{ backgroundColor: LIGHT_GREY }}
     />
   );
 };

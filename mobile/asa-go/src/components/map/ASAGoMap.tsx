@@ -1,13 +1,15 @@
+import UserLocationIndicator from "@/components/map/LocationIndicator";
+import MapPopup from "@/components/map/MapPopup";
+import ScaleContainer from "@/components/map/ScaleContainer";
 import MapIconButton from "@/components/MapIconButton";
-import ScaleContainer from "@/components/ScaleContainer";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
 import { MapContext } from "@/context/MapContext";
 import {
   fireCentreLabelStyler,
   fireCentreLineStyler,
   fireShapeLabelStyler,
-  fireShapeStyler,
   fireShapeLineStyler,
+  fireShapeStyler,
   hfiStyler,
 } from "@/featureStylers";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
@@ -16,27 +18,28 @@ import {
   createLocalBasemapVectorLayer,
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
+import { startWatchingLocation } from "@/slices/geolocationSlice";
 import {
   AppDispatch,
+  selectFireShapeAreas,
   selectGeolocation,
   selectNetworkStatus,
-  selectFireShapeAreas,
 } from "@/store";
 import { CENTER_OF_BC, NavPanel } from "@/utils/constants";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
 import { Filesystem } from "@capacitor/filesystem";
-import MyLocationIcon from "@mui/icons-material/MyLocation";
 import GpsOffIcon from "@mui/icons-material/GpsOff";
+import MyLocationIcon from "@mui/icons-material/MyLocation";
 import { Box } from "@mui/material";
 import { FireShape, RunType } from "api/fbaAPI";
 import { cloneDeep, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { Map, MapBrowserEvent, Overlay, View } from "ol";
 import { defaults as defaultControls } from "ol/control";
-import { defaults as defaultInteractions } from "ol/interaction";
 import ScaleLine from "ol/control/ScaleLine";
 import { boundingExtent } from "ol/extent";
+import { defaults as defaultInteractions } from "ol/interaction";
 import TileLayer from "ol/layer/Tile";
 import VectorTileLayer from "ol/layer/VectorTile";
 import "ol/ol.css";
@@ -44,9 +47,6 @@ import { fromLonLat } from "ol/proj";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BC_EXTENT } from "utils/constants";
-import UserLocationIndicator from "@/components/map/LocationIndicator";
-import { startWatchingLocation } from "@/slices/geolocationSlice";
-import MapPopup from "@/components/map/MapPopup";
 
 // used for setting the initial map extent
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
