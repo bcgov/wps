@@ -5,6 +5,13 @@ import XCTest
 
 @testable import KeycloakPlugin
 
+let options = KeycloakOptions(
+    clientId: "test-client",
+    authorizationBaseUrl: "https://keycloak.example.com/auth",
+    redirectUrl: "ca.bc.gov.asago://auth/callback",
+    accessTokenEndpoint: "https://keycloak.example.com/token"
+)
+
 class MockPKCEGenerator: PKCEGeneratorProtocol {
     var codeVerifier: String = "test-code-verifier-123"
     var codeChallenge: String = "test-code-challenge-456"
@@ -117,12 +124,6 @@ class KeycloakTests: XCTestCase {
 
     func testSuccessfulAuthentication() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         // Set up mock HTTP response for token exchange
         let mockTokenResponse = """
@@ -166,12 +167,6 @@ class KeycloakTests: XCTestCase {
 
     func testAuthenticationWithKeycloakError() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockWebAuthSession.mockCallbackURL = URL(
             string:
@@ -200,12 +195,6 @@ class KeycloakTests: XCTestCase {
 
     func testAuthenticationWithSessionError() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockWebAuthSession.shouldCallCompletionWithError = true
         mockWebAuthSession.mockError = NSError(
@@ -233,12 +222,6 @@ class KeycloakTests: XCTestCase {
 
     func testAuthenticationWithInvalidURL() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockURLBuilder.shouldReturnNil = true
 
@@ -264,12 +247,6 @@ class KeycloakTests: XCTestCase {
 
     func testPKCEParametersGeneration() {
         // Test that PKCE parameters are generated and used correctly
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockWebAuthSession.mockCallbackURL = URL(
             string: "ca.bc.gov.asago://auth/callback?code=test-code")
@@ -290,7 +267,7 @@ class KeycloakTests: XCTestCase {
 
     func testSuccessfulRefreshToken() {
         // Arrange
-        let options = KeycloakRefreshOptions(
+        let refreshOptions = KeycloakRefreshOptions(
             clientId: "test-client",
             accessTokenEndpoint: "https://keycloak.example.com/token",
             refreshToken: "valid-refresh-token"
@@ -310,7 +287,7 @@ class KeycloakTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Refresh token should succeed")
 
         // Act
-        keycloak.refreshToken(options: options) { result in
+        keycloak.refreshToken(options: refreshOptions) { result in
             // Assert
             switch result {
             case .success(let data):
@@ -365,7 +342,7 @@ class KeycloakTests: XCTestCase {
 
     func testRefreshTokenWithNetworkError() {
         // Arrange
-        let options = KeycloakRefreshOptions(
+        let refreshOptions = KeycloakRefreshOptions(
             clientId: "test-client",
             accessTokenEndpoint: "https://keycloak.example.com/token",
             refreshToken: "valid-refresh-token"
@@ -377,7 +354,7 @@ class KeycloakTests: XCTestCase {
             description: "Refresh token should fail with network error")
 
         // Act
-        keycloak.refreshToken(options: options) { result in
+        keycloak.refreshToken(options: refreshOptions) { result in
             // Assert
             switch result {
             case .success:
@@ -394,7 +371,7 @@ class KeycloakTests: XCTestCase {
 
     func testRefreshTokenWithNoData() {
         // Arrange
-        let options = KeycloakRefreshOptions(
+        let refreshOptions = KeycloakRefreshOptions(
             clientId: "test-client",
             accessTokenEndpoint: "https://keycloak.example.com/token",
             refreshToken: "valid-refresh-token"
@@ -405,7 +382,7 @@ class KeycloakTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Refresh token should fail with no data")
 
         // Act
-        keycloak.refreshToken(options: options) { result in
+        keycloak.refreshToken(options: refreshOptions) { result in
             // Assert
             switch result {
             case .success:
@@ -424,7 +401,7 @@ class KeycloakTests: XCTestCase {
 
     func testRefreshTokenWithKeycloakError() {
         // Arrange
-        let options = KeycloakRefreshOptions(
+        let refreshOptions = KeycloakRefreshOptions(
             clientId: "test-client",
             accessTokenEndpoint: "https://keycloak.example.com/token",
             refreshToken: "invalid-refresh-token"
@@ -442,7 +419,7 @@ class KeycloakTests: XCTestCase {
             description: "Refresh token should fail with Keycloak error")
 
         // Act
-        keycloak.refreshToken(options: options) { result in
+        keycloak.refreshToken(options: refreshOptions) { result in
             // Assert
             switch result {
             case .success:
@@ -461,7 +438,7 @@ class KeycloakTests: XCTestCase {
 
     func testRefreshTokenWithInvalidJSON() {
         // Arrange
-        let options = KeycloakRefreshOptions(
+        let refreshOptions = KeycloakRefreshOptions(
             clientId: "test-client",
             accessTokenEndpoint: "https://keycloak.example.com/token",
             refreshToken: "valid-refresh-token"
@@ -473,7 +450,7 @@ class KeycloakTests: XCTestCase {
             description: "Refresh token should fail with invalid JSON")
 
         // Act
-        keycloak.refreshToken(options: options) { result in
+        keycloak.refreshToken(options: refreshOptions) { result in
             // Assert
             switch result {
             case .success:
@@ -495,12 +472,6 @@ class KeycloakTests: XCTestCase {
 
     func testTokenExchangeWithNetworkError() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockWebAuthSession.mockCallbackURL = URL(
             string: "ca.bc.gov.asago://auth/callback?code=test-auth-code")
@@ -561,12 +532,6 @@ class KeycloakTests: XCTestCase {
 
     func testTokenExchangeWithKeycloakError() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockWebAuthSession.mockCallbackURL = URL(
             string: "ca.bc.gov.asago://auth/callback?code=invalid-auth-code")
@@ -602,12 +567,6 @@ class KeycloakTests: XCTestCase {
 
     func testTokenExchangeWithNoData() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockWebAuthSession.mockCallbackURL = URL(
             string: "ca.bc.gov.asago://auth/callback?code=test-auth-code")
@@ -636,12 +595,6 @@ class KeycloakTests: XCTestCase {
 
     func testTokenExchangeWithInvalidJSON() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockWebAuthSession.mockCallbackURL = URL(
             string: "ca.bc.gov.asago://auth/callback?code=test-auth-code")
@@ -674,12 +627,6 @@ class KeycloakTests: XCTestCase {
 
     func testCallbackURLWithMissingCode() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         // Callback URL without authorization code
         mockWebAuthSession.mockCallbackURL = URL(
@@ -707,12 +654,6 @@ class KeycloakTests: XCTestCase {
 
     func testCallbackURLWithNilURL() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockWebAuthSession.shouldCallCompletionWithNilURL = true
 
@@ -740,12 +681,6 @@ class KeycloakTests: XCTestCase {
 
     func testAuthenticationWithSpecificRedirectURIError() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockWebAuthSession.mockCallbackURL = URL(
             string:
@@ -777,12 +712,6 @@ class KeycloakTests: XCTestCase {
 
     func testSuccessfulAuthenticationWithAllTokenFields() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         // Set up mock HTTP response with all possible token fields
         let mockTokenResponse = """
@@ -1341,12 +1270,6 @@ class DefaultURLBuilderTests: XCTestCase {
 
     func testBuildAuthorizationURLBasicFunctionality() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client-id",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
         let codeChallenge = "test-code-challenge-123"
 
         // Act
@@ -1401,12 +1324,6 @@ class DefaultURLBuilderTests: XCTestCase {
 
     func testBuildAuthorizationURLRedirectUriEncoding() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
         let codeChallenge = "test-challenge"
 
         // Act
@@ -1518,12 +1435,6 @@ class DefaultURLBuilderTests: XCTestCase {
 
     func testBuildAuthorizationURLParameterOrder() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
         let codeChallenge = "test-challenge"
 
         // Act
@@ -1556,12 +1467,6 @@ class DefaultURLBuilderTests: XCTestCase {
 
     func testBuildAuthorizationURLConsistency() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
         let codeChallenge = "test-challenge"
 
         // Act
@@ -1918,12 +1823,6 @@ class HandleAuthenticationResponseTests: XCTestCase {
 
     func testHandleAuthenticationResponseWithValidCallback() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         let mockTokenResponse = """
             {
@@ -1960,12 +1859,6 @@ class HandleAuthenticationResponseTests: XCTestCase {
 
     func testHandleAuthenticationResponseWithError() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         let authError = NSError(
             domain: "ASWebAuthenticationSessionError",
@@ -1995,12 +1888,6 @@ class HandleAuthenticationResponseTests: XCTestCase {
 
     func testHandleAuthenticationResponseWithNilCallbackURL() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockWebAuthSession.shouldCallCompletionWithNilURL = true
 
@@ -2025,12 +1912,6 @@ class HandleAuthenticationResponseTests: XCTestCase {
 
     func testHandleAuthenticationResponseWithServerError() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockWebAuthSession.mockCallbackURL = URL(
             string:
@@ -2058,12 +1939,6 @@ class HandleAuthenticationResponseTests: XCTestCase {
 
     func testHandleAuthenticationResponseWithInvalidRedirectUriError() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         mockWebAuthSession.mockCallbackURL = URL(
             string:
@@ -2095,12 +1970,6 @@ class HandleAuthenticationResponseTests: XCTestCase {
 
     func testHandleAuthenticationResponseWithMissingAuthorizationCode() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         // Callback URL without authorization code
         mockWebAuthSession.mockCallbackURL = URL(
@@ -2129,12 +1998,6 @@ class HandleAuthenticationResponseTests: XCTestCase {
 
     func testHandleAuthenticationResponseTriggersTokenExchange() {
         // Arrange
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
 
         let mockTokenResponse = """
             {
