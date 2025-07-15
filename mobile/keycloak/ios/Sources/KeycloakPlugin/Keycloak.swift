@@ -745,7 +745,6 @@ class DefaultHTTPClient: HTTPClientProtocol {
     }
 }
 
-// MARK: - Data Extension for Base64URL Encoding
 extension Data {
     func base64URLEncodedString() -> String {
         return base64EncodedString()

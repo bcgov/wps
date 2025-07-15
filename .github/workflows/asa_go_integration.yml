@@ -47,13 +47,18 @@ jobs:
       - name: Test Keycloak Swift Plugin
         working-directory: ./mobile/keycloak
         run: xcodebuild test -scheme "Keycloak" -destination "platform=iOS Simulator,name=iPhone 16 Pro" -enableCodeCoverage YES -derivedDataPath ./DerivedData
-      - name: Install Slather for Coverage Conversion
-        run: gem install slather
-      - name: Convert Swift Coverage to Cobertura
+      - name: Convert Swift Coverage to LCOV
         working-directory: ./mobile/keycloak
         run: |
-          # Generate coverage report using existing .slather.yml config
-          slather coverage --cobertura-xml --output-directory ./coverage --scheme Keycloak ./Keycloak.xcodeproj
+          # Find the coverage archive and convert to JSON
+          COVERAGE_DIR=$(find ./DerivedData -name "*.xccovarchive" | head -1)
+          if [ -n "$COVERAGE_DIR" ]; then
+            mkdir -p ./coverage
+            xcrun xccov view --report --json "$COVERAGE_DIR" > ./coverage/coverage.json
+            echo "Coverage converted to JSON format"
+          else
+            echo "No coverage archive found"
+          fi
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
