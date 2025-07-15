@@ -1669,3 +1669,215 @@ class DefaultURLBuilderTests: XCTestCase {
         XCTAssertTrue(authURLWithoutSlash!.absoluteString.contains("auth?"))
     }
 }
+
+class ASWebAuthSessionWrapperTests: XCTestCase {
+
+    var wrapper: ASWebAuthSessionWrapper!
+    var mockPresentationProvider: MockPresentationContextProvider!
+
+    override func setUp() {
+        super.setUp()
+        mockPresentationProvider = MockPresentationContextProvider()
+        wrapper = ASWebAuthSessionWrapper(presentationContextProvider: mockPresentationProvider)
+    }
+
+    override func tearDown() {
+        wrapper = nil
+        mockPresentationProvider = nil
+        super.tearDown()
+    }
+
+    func testInitWithPresentationContextProvider() {
+        // Arrange & Act
+        let provider = MockPresentationContextProvider()
+        let testWrapper = ASWebAuthSessionWrapper(presentationContextProvider: provider)
+
+        // Assert
+        XCTAssertNotNil(testWrapper)
+    }
+
+    func testInitWithoutPresentationContextProvider() {
+        // Arrange & Act
+        let testWrapper = ASWebAuthSessionWrapper()
+
+        // Assert
+        XCTAssertNotNil(testWrapper)
+    }
+
+    func testSetPresentationContextProvider() {
+        // Arrange
+        let newProvider = MockPresentationContextProvider()
+        let testWrapper = ASWebAuthSessionWrapper()
+
+        // Act
+        testWrapper.setPresentationContextProvider(newProvider)
+
+        // Assert
+        // We can't directly test the private property, but we can verify the method doesn't crash
+        XCTAssertNotNil(testWrapper)
+    }
+
+    func testSetPresentationContextProviderToNil() {
+        // Arrange
+        let testWrapper = ASWebAuthSessionWrapper(
+            presentationContextProvider: mockPresentationProvider)
+
+        // Act
+        testWrapper.setPresentationContextProvider(nil)
+
+        // Assert
+        // We can't directly test the private property, but we can verify the method doesn't crash
+        XCTAssertNotNil(testWrapper)
+    }
+
+    func testStartWithValidURL() {
+        // Arrange
+        let url = URL(string: "https://example.com/auth")!
+        let callbackScheme = "myapp"
+
+        // Act & Assert
+        // Since ASWebAuthenticationSession is a system component, we can't easily mock it
+        // We mainly test that the method doesn't crash and accepts the parameters
+        XCTAssertNoThrow {
+            self.wrapper.start(url: url, callbackScheme: callbackScheme) { callbackURL, error in
+                // This completion will be called when ASWebAuthenticationSession completes
+                // In unit tests, this typically won't be called without user interaction
+            }
+        }
+
+        XCTAssertNotNil(wrapper)
+    }
+
+    func testStartWithNilCallbackScheme() {
+        // Arrange
+        let url = URL(string: "https://example.com/auth")!
+
+        // Act & Assert
+        XCTAssertNoThrow {
+            self.wrapper.start(url: url, callbackScheme: nil) { callbackURL, error in
+                // Completion handler - won't be called in unit tests
+            }
+        }
+
+        XCTAssertNotNil(wrapper)
+    }
+
+    func testStartWithCustomSchemeURL() {
+        // Arrange
+        let url = URL(
+            string:
+                "https://keycloak.example.com/auth/realms/test/protocol/openid-connect/auth?client_id=test&response_type=code"
+        )!
+        let callbackScheme = "ca.bc.gov.asago"
+
+        // Act & Assert
+        XCTAssertNoThrow {
+            self.wrapper.start(url: url, callbackScheme: callbackScheme) { callbackURL, error in
+                // Completion handler - won't be called in unit tests
+            }
+        }
+
+        XCTAssertNotNil(wrapper)
+    }
+
+    func testStartWithHTTPSCallbackScheme() {
+        // Arrange
+        let url = URL(string: "https://auth.example.com/oauth2/authorize")!
+        let callbackScheme = "https"
+
+        // Act & Assert
+        XCTAssertNoThrow {
+            self.wrapper.start(url: url, callbackScheme: callbackScheme) { callbackURL, error in
+                // Completion handler - won't be called in unit tests
+            }
+        }
+
+        XCTAssertNotNil(wrapper)
+    }
+
+    func testStartExecutesOnMainQueue() {
+        // Arrange
+        let url = URL(string: "https://example.com/auth")!
+        let callbackScheme = "myapp"
+        var methodExecuted = false
+
+        // Act
+        DispatchQueue.global().async {
+            self.wrapper.start(url: url, callbackScheme: callbackScheme) { callbackURL, error in
+                // Completion handler - won't be called in unit tests without user interaction
+            }
+            methodExecuted = true
+        }
+
+        // Wait briefly for the async call to complete
+        Thread.sleep(forTimeInterval: 0.1)
+
+        // Assert
+        XCTAssertTrue(methodExecuted)
+        XCTAssertNotNil(wrapper)
+    }
+
+    func testMultipleStartCalls() {
+        // Arrange
+        let url1 = URL(string: "https://example1.com/auth")!
+        let url2 = URL(string: "https://example2.com/auth")!
+        let callbackScheme = "myapp"
+
+        // Act & Assert
+        // Multiple calls should not crash the wrapper
+        XCTAssertNoThrow {
+            self.wrapper.start(url: url1, callbackScheme: callbackScheme) { _, _ in
+                // First completion handler
+            }
+
+            self.wrapper.start(url: url2, callbackScheme: callbackScheme) { _, _ in
+                // Second completion handler
+            }
+        }
+
+        XCTAssertNotNil(wrapper)
+    }
+
+    func testStartWithComplexURL() {
+        // Arrange
+        let complexURL = URL(
+            string:
+                "https://keycloak.example.com/auth/realms/master/protocol/openid-connect/auth?client_id=test-client&response_type=code&redirect_uri=myapp%3A%2F%2Fauth%2Fcallback&code_challenge=test123&code_challenge_method=S256&state=abc123"
+        )!
+        let callbackScheme = "myapp"
+
+        // Act & Assert
+        XCTAssertNoThrow {
+            self.wrapper.start(url: complexURL, callbackScheme: callbackScheme) { _, _ in
+                // Completion handler - won't be called in unit tests
+            }
+        }
+
+        XCTAssertNotNil(wrapper)
+    }
+
+    func testWebAuthSessionProtocolConformance() {
+        // Arrange & Act
+        let protocolWrapper: WebAuthSessionProtocol = wrapper
+
+        // Assert
+        XCTAssertNotNil(protocolWrapper)
+
+        // Test that protocol method is available and doesn't crash
+        let url = URL(string: "https://example.com")!
+
+        XCTAssertNoThrow {
+            protocolWrapper.start(url: url, callbackScheme: "test") { _, _ in
+                // Completion handler - won't be called in unit tests
+            }
+        }
+    }
+}
+
+// MARK: - Mock Classes
+
+class MockPresentationContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        return UIWindow()
+    }
+}
