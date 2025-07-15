@@ -1329,3 +1329,343 @@ class DefaultPKCEGeneratorTests: XCTestCase {
         XCTAssertEqual(codeChallenge, secondChallenge)
     }
 }
+
+class DefaultURLBuilderTests: XCTestCase {
+
+    var urlBuilder: DefaultURLBuilder!
+
+    override func setUp() {
+        super.setUp()
+        urlBuilder = DefaultURLBuilder()
+    }
+
+    func testBuildAuthorizationURLBasicFunctionality() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client-id",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let codeChallenge = "test-code-challenge-123"
+
+        // Act
+        let authURL = urlBuilder.buildAuthorizationURL(
+            options: options, codeChallenge: codeChallenge)
+
+        // Assert
+        XCTAssertNotNil(authURL)
+        XCTAssertEqual(authURL?.scheme, "https")
+        XCTAssertEqual(authURL?.host, "keycloak.example.com")
+        XCTAssertEqual(authURL?.path, "/auth")
+    }
+
+    func testBuildAuthorizationURLQueryParameters() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client-id",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let codeChallenge = "test-code-challenge-123"
+
+        // Act
+        let authURL = urlBuilder.buildAuthorizationURL(
+            options: options, codeChallenge: codeChallenge)
+
+        // Assert
+        XCTAssertNotNil(authURL)
+        let urlComponents = URLComponents(url: authURL!, resolvingAgainstBaseURL: false)
+        let queryItems = urlComponents?.queryItems
+
+        // Check required OAuth 2.0 parameters
+        XCTAssertTrue(
+            queryItems?.contains { $0.name == "client_id" && $0.value == "test-client-id" } ?? false
+        )
+        XCTAssertTrue(
+            queryItems?.contains { $0.name == "response_type" && $0.value == "code" } ?? false)
+
+        // Check PKCE parameters
+        XCTAssertTrue(
+            queryItems?.contains {
+                $0.name == "code_challenge" && $0.value == "test-code-challenge-123"
+            } ?? false)
+        XCTAssertTrue(
+            queryItems?.contains { $0.name == "code_challenge_method" && $0.value == "S256" }
+                ?? false)
+
+        // Check redirect URI parameter
+        XCTAssertTrue(queryItems?.contains { $0.name == "redirect_uri" } ?? false)
+    }
+
+    func testBuildAuthorizationURLRedirectUriEncoding() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let codeChallenge = "test-challenge"
+
+        // Act
+        let authURL = urlBuilder.buildAuthorizationURL(
+            options: options, codeChallenge: codeChallenge)
+
+        // Assert
+        XCTAssertNotNil(authURL)
+        let urlString = authURL!.absoluteString
+
+        // The redirect URI should be properly encoded - colons and slashes in the scheme should be encoded
+        XCTAssertTrue(urlString.contains("redirect_uri=ca.bc.gov.asago%3A%2F%2Fauth%2Fcallback"))
+    }
+
+    func testBuildAuthorizationURLWithSpecialCharacters() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client-with-special-chars",
+            authorizationBaseUrl: "https://keycloak.example.com/auth/realms/test-realm",
+            redirectUrl: "myapp://auth/callback?param=value",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let codeChallenge = "challenge-with-special_chars-123"
+
+        // Act
+        let authURL = urlBuilder.buildAuthorizationURL(
+            options: options, codeChallenge: codeChallenge)
+
+        // Assert
+        XCTAssertNotNil(authURL)
+        let urlComponents = URLComponents(url: authURL!, resolvingAgainstBaseURL: false)
+        let queryItems = urlComponents?.queryItems
+
+        XCTAssertTrue(
+            queryItems?.contains {
+                $0.name == "client_id" && $0.value == "test-client-with-special-chars"
+            } ?? false)
+        XCTAssertTrue(
+            queryItems?.contains {
+                $0.name == "code_challenge" && $0.value == "challenge-with-special_chars-123"
+            } ?? false)
+    }
+
+    func testBuildAuthorizationURLWithEmptyValues() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let codeChallenge = ""
+
+        // Act
+        let authURL = urlBuilder.buildAuthorizationURL(
+            options: options, codeChallenge: codeChallenge)
+
+        // Assert
+        XCTAssertNotNil(authURL)
+        let urlComponents = URLComponents(url: authURL!, resolvingAgainstBaseURL: false)
+        let queryItems = urlComponents?.queryItems
+
+        // Should still contain the parameters, even if empty
+        XCTAssertTrue(queryItems?.contains { $0.name == "client_id" } ?? false)
+        XCTAssertTrue(queryItems?.contains { $0.name == "code_challenge" } ?? false)
+    }
+
+    func testBuildAuthorizationURLWithInvalidBaseURL() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "invalid-url",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let codeChallenge = "test-challenge"
+
+        // Act
+        let authURL = urlBuilder.buildAuthorizationURL(
+            options: options, codeChallenge: codeChallenge)
+
+        // Assert
+        // The implementation still creates a URL string, it doesn't validate the base URL
+        XCTAssertNotNil(authURL)
+    }
+
+    func testBuildAuthorizationURLWithComplexRedirectURI() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "https://app.example.com/auth/callback?state=xyz&nonce=abc",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let codeChallenge = "test-challenge"
+
+        // Act
+        let authURL = urlBuilder.buildAuthorizationURL(
+            options: options, codeChallenge: codeChallenge)
+
+        // Assert
+        XCTAssertNotNil(authURL)
+        let urlString = authURL!.absoluteString
+
+        // Complex redirect URI should be properly encoded
+        XCTAssertTrue(urlString.contains("redirect_uri="))
+        XCTAssertTrue(urlString.contains("https%3A%2F%2F"))  // https:// should be encoded to https%3A%2F%2F
+    }
+
+    func testBuildAuthorizationURLParameterOrder() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let codeChallenge = "test-challenge"
+
+        // Act
+        let authURL = urlBuilder.buildAuthorizationURL(
+            options: options, codeChallenge: codeChallenge)
+
+        // Assert
+        XCTAssertNotNil(authURL)
+        let queryString = authURL!.query!
+
+        // Verify the order of parameters as implemented
+        let clientIdIndex = queryString.range(of: "client_id=")?.lowerBound
+        let responseTypeIndex = queryString.range(of: "response_type=")?.lowerBound
+        let codeChallengeIndex = queryString.range(of: "code_challenge=")?.lowerBound
+        let methodIndex = queryString.range(of: "code_challenge_method=")?.lowerBound
+        let redirectIndex = queryString.range(of: "redirect_uri=")?.lowerBound
+
+        XCTAssertNotNil(clientIdIndex)
+        XCTAssertNotNil(responseTypeIndex)
+        XCTAssertNotNil(codeChallengeIndex)
+        XCTAssertNotNil(methodIndex)
+        XCTAssertNotNil(redirectIndex)
+
+        // Verify order matches implementation: client_id, response_type, code_challenge, code_challenge_method, redirect_uri
+        XCTAssertTrue(clientIdIndex! < responseTypeIndex!)
+        XCTAssertTrue(responseTypeIndex! < codeChallengeIndex!)
+        XCTAssertTrue(codeChallengeIndex! < methodIndex!)
+        XCTAssertTrue(methodIndex! < redirectIndex!)
+    }
+
+    func testBuildAuthorizationURLConsistency() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let codeChallenge = "test-challenge"
+
+        // Act
+        let authURL1 = urlBuilder.buildAuthorizationURL(
+            options: options, codeChallenge: codeChallenge)
+        let authURL2 = urlBuilder.buildAuthorizationURL(
+            options: options, codeChallenge: codeChallenge)
+
+        // Assert
+        // Same inputs should produce the same output
+        XCTAssertNotNil(authURL1)
+        XCTAssertNotNil(authURL2)
+        XCTAssertEqual(authURL1?.absoluteString, authURL2?.absoluteString)
+    }
+
+    func testBuildAuthorizationURLDifferentInputs() {
+        // Arrange
+        let options1 = KeycloakOptions(
+            clientId: "client-1",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let options2 = KeycloakOptions(
+            clientId: "client-2",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let codeChallenge = "test-challenge"
+
+        // Act
+        let authURL1 = urlBuilder.buildAuthorizationURL(
+            options: options1, codeChallenge: codeChallenge)
+        let authURL2 = urlBuilder.buildAuthorizationURL(
+            options: options2, codeChallenge: codeChallenge)
+
+        // Assert
+        // Different inputs should produce different outputs
+        XCTAssertNotNil(authURL1)
+        XCTAssertNotNil(authURL2)
+        XCTAssertNotEqual(authURL1?.absoluteString, authURL2?.absoluteString)
+    }
+
+    func testBuildAuthorizationURLOAuth2Compliance() {
+        // Arrange
+        let options = KeycloakOptions(
+            clientId: "oauth2-client",
+            authorizationBaseUrl: "https://auth.example.com/oauth2/authorize",
+            redirectUrl: "https://app.example.com/callback",
+            accessTokenEndpoint: "https://auth.example.com/oauth2/token"
+        )
+        let codeChallenge = "oauth2-challenge"
+
+        // Act
+        let authURL = urlBuilder.buildAuthorizationURL(
+            options: options, codeChallenge: codeChallenge)
+
+        // Assert
+        XCTAssertNotNil(authURL)
+        let urlComponents = URLComponents(url: authURL!, resolvingAgainstBaseURL: false)
+        let queryItems = urlComponents?.queryItems
+
+        // Verify OAuth 2.0 Authorization Code Flow compliance
+        XCTAssertTrue(
+            queryItems?.contains { $0.name == "response_type" && $0.value == "code" } ?? false)
+        XCTAssertTrue(queryItems?.contains { $0.name == "client_id" } ?? false)
+        XCTAssertTrue(queryItems?.contains { $0.name == "redirect_uri" } ?? false)
+
+        // Verify PKCE compliance (RFC 7636)
+        XCTAssertTrue(queryItems?.contains { $0.name == "code_challenge" } ?? false)
+        XCTAssertTrue(
+            queryItems?.contains { $0.name == "code_challenge_method" && $0.value == "S256" }
+                ?? false)
+    }
+
+    func testBuildAuthorizationURLWithBaseURLTrailingSlash() {
+        // Arrange
+        let optionsWithSlash = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth/",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let optionsWithoutSlash = KeycloakOptions(
+            clientId: "test-client",
+            authorizationBaseUrl: "https://keycloak.example.com/auth",
+            redirectUrl: "ca.bc.gov.asago://auth/callback",
+            accessTokenEndpoint: "https://keycloak.example.com/token"
+        )
+        let codeChallenge = "test-challenge"
+
+        // Act
+        let authURLWithSlash = urlBuilder.buildAuthorizationURL(
+            options: optionsWithSlash, codeChallenge: codeChallenge)
+        let authURLWithoutSlash = urlBuilder.buildAuthorizationURL(
+            options: optionsWithoutSlash, codeChallenge: codeChallenge)
+
+        // Assert
+        XCTAssertNotNil(authURLWithSlash)
+        XCTAssertNotNil(authURLWithoutSlash)
+
+        // Both should be valid URLs, but they will be different due to the trailing slash
+        XCTAssertTrue(authURLWithSlash!.absoluteString.contains("auth/?"))
+        XCTAssertTrue(authURLWithoutSlash!.absoluteString.contains("auth?"))
+    }
+}
