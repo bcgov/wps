@@ -2,9 +2,10 @@ import { render, screen } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { DateTime } from "luxon";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import ASAGoMap from "@/components/map/ASAGoMap";
+import ASAGoMap, { ASAGoMapProps } from "@/components/map/ASAGoMap";
 import { createTestStore } from "@/testUtils";
 import { geolocationInitialState } from "@/slices/geolocationSlice";
+import { RunType } from "@/api/fbaAPI";
 
 class ResizeObserver {
   observe() {
@@ -23,14 +24,14 @@ describe("ASAGoMap", () => {
     window.ResizeObserver = ResizeObserver;
   });
 
-  const defaultProps = {
+  const defaultProps: ASAGoMapProps = {
     selectedFireCenter: undefined,
     selectedFireShape: undefined,
-    fireShapeAreas: [],
     advisoryThreshold: 0,
     date: DateTime.now(),
     setDate: vi.fn(),
-    startWatching: vi.fn(),
+    runType: RunType.FORECAST,
+    runDatetime: DateTime.now(),
   };
 
   const mockPosition = {
