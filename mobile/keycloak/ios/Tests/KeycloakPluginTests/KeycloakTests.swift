@@ -1028,3 +1028,130 @@ class KeycloakIntegrationTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
     }
 }
+
+class DefaultPKCEGeneratorTests: XCTestCase {
+
+    var pkceGenerator: DefaultPKCEGenerator!
+
+    override func setUp() {
+        super.setUp()
+        pkceGenerator = DefaultPKCEGenerator()
+    }
+
+    func testGenerateCodeVerifierLength() {
+        // Act
+        let codeVerifier = pkceGenerator.generateCodeVerifier()
+
+        // Assert
+        // Base64URL encoded 32 bytes should be 43 characters (without padding)
+        // 32 bytes * 8 bits/byte = 256 bits
+        // 256 bits / 6 bits per base64 char = 42.67, rounded up to 43 chars
+        XCTAssertEqual(codeVerifier.count, 43)
+    }
+
+    func testGenerateCodeVerifierFormat() {
+        // Act
+        let codeVerifier = pkceGenerator.generateCodeVerifier()
+
+        // Assert
+        // Should only contain URL-safe base64 characters: A-Z, a-z, 0-9, -, _
+        let allowedCharacters = CharacterSet(
+            charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
+        let codeVerifierCharacterSet = CharacterSet(charactersIn: codeVerifier)
+
+        XCTAssertTrue(allowedCharacters.isSuperset(of: codeVerifierCharacterSet))
+
+        // Should not contain standard base64 characters that are replaced in base64URL
+        XCTAssertFalse(codeVerifier.contains("+"))
+        XCTAssertFalse(codeVerifier.contains("/"))
+        XCTAssertFalse(codeVerifier.contains("="))
+    }
+
+    func testGenerateCodeVerifierUniqueness() {
+        // Act
+        let codeVerifier1 = pkceGenerator.generateCodeVerifier()
+        let codeVerifier2 = pkceGenerator.generateCodeVerifier()
+        let codeVerifier3 = pkceGenerator.generateCodeVerifier()
+
+        // Assert
+        // Each call should generate a unique code verifier due to random generation
+        XCTAssertNotEqual(codeVerifier1, codeVerifier2)
+        XCTAssertNotEqual(codeVerifier2, codeVerifier3)
+        XCTAssertNotEqual(codeVerifier1, codeVerifier3)
+    }
+
+    func testGenerateCodeVerifierConsistentLength() {
+        // Act & Assert
+        // Generate multiple code verifiers and ensure they all have the same length
+        for _ in 0..<10 {
+            let codeVerifier = pkceGenerator.generateCodeVerifier()
+            XCTAssertEqual(codeVerifier.count, 43)
+        }
+    }
+
+    func testGenerateCodeVerifierNotEmpty() {
+        // Act
+        let codeVerifier = pkceGenerator.generateCodeVerifier()
+
+        // Assert
+        XCTAssertFalse(codeVerifier.isEmpty)
+        XCTAssertGreaterThan(codeVerifier.count, 0)
+    }
+
+    func testGenerateCodeVerifierCryptographicStrength() {
+        // This test verifies that the generated code verifiers have good entropy
+        // by checking that multiple generations don't have obvious patterns
+
+        // Act
+        var codeVerifiers = Set<String>()
+        let generationCount = 100
+
+        for _ in 0..<generationCount {
+            let codeVerifier = pkceGenerator.generateCodeVerifier()
+            codeVerifiers.insert(codeVerifier)
+        }
+
+        // Assert
+        // All generated code verifiers should be unique (high entropy)
+        XCTAssertEqual(codeVerifiers.count, generationCount)
+    }
+
+    func testGenerateCodeVerifierBase64URLCompliance() {
+        // Act
+        let codeVerifier = pkceGenerator.generateCodeVerifier()
+
+        // Assert
+        // Should be decodable as base64URL
+        // Add padding if needed for standard base64 decoding
+        let paddedCodeVerifier = codeVerifier.padding(
+            toLength: ((codeVerifier.count + 3) / 4) * 4, withPad: "=", startingAt: 0)
+        let standardBase64 =
+            paddedCodeVerifier
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+
+        let decodedData = Data(base64Encoded: standardBase64)
+        XCTAssertNotNil(decodedData)
+        XCTAssertEqual(decodedData?.count, 32)  // Should decode to 32 bytes
+    }
+
+    func testGenerateCodeVerifierRFC7636Compliance() {
+        // Per RFC 7636, code verifier must be 43-128 characters long
+        // and use unreserved characters A-Z, a-z, 0-9, -, ., _, ~
+
+        // Act
+        let codeVerifier = pkceGenerator.generateCodeVerifier()
+
+        // Assert
+        XCTAssertGreaterThanOrEqual(codeVerifier.count, 43)
+        XCTAssertLessThanOrEqual(codeVerifier.count, 128)
+
+        // Check for RFC 7636 unreserved characters
+        // Note: Our implementation uses base64URL which is a subset of unreserved characters
+        let rfc7636UnreservedChars = CharacterSet(
+            charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
+        let codeVerifierCharacterSet = CharacterSet(charactersIn: codeVerifier)
+
+        XCTAssertTrue(rfc7636UnreservedChars.isSuperset(of: codeVerifierCharacterSet))
+    }
+}
