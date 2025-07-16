@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow all cleartext traffic for debug builds -->
+    <debug-overrides>
+        <base-config cleartextTrafficPermitted="true">
+            <trust-anchors>
+                <certificates src="system"/>
+            </trust-anchors>
+        </base-config>
+    </debug-overrides>
+    
+    <!-- Production configuration - strict HTTPS only -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+    
+    <!-- Specific production domains that require HTTPS -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">psu.nrs.gov.bc.ca</domain>
+        <!-- Add any other production domains your app connects to -->
+    </domain-config>
+</network-security-config>
