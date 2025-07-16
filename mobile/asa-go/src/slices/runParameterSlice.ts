@@ -12,7 +12,7 @@ export interface RunParameterState {
   runType: RunType | null;
 }
 
-const initialState: RunParameterState = {
+export const initialState: RunParameterState = {
   loading: false,
   error: null,
   forDate: null,

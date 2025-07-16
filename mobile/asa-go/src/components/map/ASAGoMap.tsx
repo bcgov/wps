@@ -473,7 +473,7 @@ const ASAGoMap = ({
             testid="location-button"
             loading={loading}
           />
-          <TodayTomorrowSwitch date={date} setDate={setDate} />
+          <TodayTomorrowSwitch border={false} date={date} setDate={setDate} />
         </Box>
         <ScaleContainer
           visible={scaleVisible}

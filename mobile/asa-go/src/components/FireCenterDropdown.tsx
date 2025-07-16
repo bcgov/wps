@@ -1,6 +1,6 @@
 import { Autocomplete, TextField } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
-import { isEqual, isNull } from "lodash";
+import { isEqual } from "lodash";
 import React from "react";
 
 interface FireCenterDropdownProps {
@@ -20,9 +20,6 @@ const FireCenterDropdown = (props: FireCenterDropdownProps) => {
     if (!isEqual(props.selectedFireCenter, value)) {
       props.setSelectedFireShape(undefined);
       props.setSelectedFireCenter(value);
-    }
-    if (isNull(value)) {
-      localStorage.removeItem("preferredFireCenter");
     }
   };
 

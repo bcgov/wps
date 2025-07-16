@@ -41,7 +41,11 @@ export const AppHeader = () => {
             <Typography variant="h6" component="div" sx={{ mr: 0.5 }}>
               ASA
             </Typography>
-            <HamburgerMenu drawerTop={drawerTop} drawerHeight={drawerHeight} />
+            <HamburgerMenu
+              testId="hamburger-menu"
+              drawerTop={drawerTop}
+              drawerHeight={drawerHeight}
+            />
           </Toolbar>
         </AppBar>
       </Grid>
