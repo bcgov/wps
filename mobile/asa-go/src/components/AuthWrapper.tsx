@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Capacitor } from "@capacitor/core";
 import { AppDispatch, selectAuthentication } from "@/store";
 import { authenticate } from "@/slices/authenticationSlice";
 
@@ -15,6 +16,11 @@ const AuthWrapper = ({ children }: Props) => {
   useEffect(() => {
     dispatch(authenticate());
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // TODO implement for Android
+  if (Capacitor.getPlatform() === "android") {
+    return <React.StrictMode>{children}</React.StrictMode>;
+  }
 
   if (error) {
     return <div>{error}</div>;
