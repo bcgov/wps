@@ -8,11 +8,11 @@ import {
   fireShapeLabelStyler,
   fireShapeStyler,
   fireShapeLineStyler,
-  hfiStyler,
 } from "@/featureStylers";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import {
   createBasemapLayer,
+  createHFILayer,
   createLocalBasemapVectorLayer,
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
@@ -61,7 +61,7 @@ const BC_FULL_MAP_EXTENT_3857 = [
 ];
 
 export interface ASAGoMapProps {
-  testId?: string;
+  testId: string;
   selectedFireShape: FireShape | undefined;
   setSelectedFireShape: React.Dispatch<
     React.SetStateAction<FireShape | undefined>
@@ -70,6 +70,8 @@ export interface ASAGoMapProps {
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
   setTab: React.Dispatch<React.SetStateAction<NavPanel>>;
+  runType: RunType | null;
+  runDatetime: DateTime | null;
 }
 
 const ASAGoMap = ({
@@ -80,6 +82,8 @@ const ASAGoMap = ({
   date,
   setDate,
   setTab,
+  runType,
+  runDatetime,
 }: ASAGoMapProps) => {
   const dispatch: AppDispatch = useDispatch();
 
@@ -99,6 +103,8 @@ const ASAGoMap = ({
       return layer;
     });
   const [centerOnLocation, setCenterOnLocation] = useState<boolean>(false);
+
+  const hfiLayerRef = useRef<VectorTileLayer | null>(null);
 
   const [fireZoneFileLayer] = useState<VectorTileLayer>(
     new VectorTileLayer({
@@ -326,17 +332,6 @@ const ASAGoMap = ({
     setMap(mapObject);
 
     const loadPMTiles = async () => {
-      // TODO make for date, run type, run date configurable from UI
-      const hfiVectorSource = await PMTilesFileVectorSource.createHFILayer(
-        new PMTilesCache(Filesystem),
-        {
-          filename: "hfi.pmtiles",
-          for_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
-          run_type: RunType.FORECAST,
-          run_date: DateTime.fromFormat("2024/08/08", "yyyy/MM/dd"),
-        }
-      );
-
       const fireCentresSource = await PMTilesFileVectorSource.createStaticLayer(
         new PMTilesCache(Filesystem),
         {
@@ -391,17 +386,10 @@ const ASAGoMap = ({
           minZoom: 6,
         });
 
-        const hfiFileLayer = new VectorTileLayer({
-          source: hfiVectorSource,
-          style: hfiStyler,
-          zIndex: 52,
-        });
-
         const localBasemapLayer = await createLocalBasemapVectorLayer();
         setLocalBasemapVectorLayer(localBasemapLayer);
 
         mapObject.addLayer(basemapLayer);
-        mapObject.addLayer(hfiFileLayer);
         mapObject.addLayer(fireCentreFileLayer);
         mapObject.addLayer(fireCentreLabelsFileLayer);
         mapObject.addLayer(fireZoneFileLayer);
@@ -418,6 +406,38 @@ const ASAGoMap = ({
       mapObject.setTarget("");
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!map) return;
+    if (isNull(runType) || isNull(runDatetime)) {
+      if (hfiLayerRef.current) {
+        map.removeLayer(hfiLayerRef.current);
+        hfiLayerRef.current = null;
+      }
+      return;
+    }
+
+    (async () => {
+      let hfiLayer: VectorTileLayer | null = null;
+      if (!isNull(runType) && !isNull(runDatetime)) {
+        hfiLayer = await createHFILayer({
+          filename: "hfi.pmtiles",
+          for_date: date,
+          run_type: runType,
+          run_date: runDatetime,
+        });
+      }
+
+      // remove previous HFI layer
+      if (hfiLayerRef.current) {
+        map.removeLayer(hfiLayerRef.current);
+      }
+      if (hfiLayer) {
+        map.addLayer(hfiLayer);
+        hfiLayerRef.current = hfiLayer;
+      }
+    })();
+  }, [map, runType, runDatetime, date]);
 
   const handlePopupClose = () => {
     popup.setPosition(undefined);

@@ -26,7 +26,7 @@ import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-const HFI_THRESHOLD = 5;
+const HFI_THRESHOLD = 20;
 
 const App = () => {
   const isActive = useAppIsActive();
@@ -160,6 +160,8 @@ const App = () => {
           setDate={setDateOfInterest}
           setTab={setTab}
           testId="asa-go-map"
+          runType={runType}
+          runDatetime={runDatetime ? DateTime.fromISO(runDatetime) : null}
         />
       )}
       {tab === NavPanel.PROFILE && <Profile />}
