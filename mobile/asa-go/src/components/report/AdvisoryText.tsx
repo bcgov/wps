@@ -361,7 +361,6 @@ const AdvisoryText = ({
         padding: theme.spacing(2),
         borderRadius: 1,
         backgroundColor: "white",
-        marginBottom: "10px",
       }}
     >
       {!selectedFireCenter || !runDatetime?.isValid || !selectedFireZoneUnit

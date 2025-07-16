@@ -139,6 +139,7 @@ const App = () => {
 
   return (
     <Box
+      id="asa-go-app"
       sx={{
         height: "100vh",
         padding: 0,
@@ -150,7 +151,7 @@ const App = () => {
         backgroundColor: theme.palette.primary.main,
       }}
     >
-      <AppHeader tab={tab} />
+      <AppHeader />
       {tab === NavPanel.MAP && (
         <ASAGoMap
           selectedFireShape={selectedFireShape}
@@ -164,15 +165,23 @@ const App = () => {
       )}
       {tab === NavPanel.PROFILE && <Profile />}
       {tab === NavPanel.ADVISORY && (
-        <Advisory
-          advisoryThreshold={ADVISORY_THRESHOLD}
-          date={dateOfInterest}
-          setDate={setDateOfInterest}
-          selectedFireCenter={fireCenter}
-          setSelectedFireCenter={setFireCenter}
-          selectedFireZoneUnit={selectedFireShape}
-          setSelectedFireZoneUnit={setSelectedFireShape}
-        />
+        <Box
+          sx={{
+            display: "flex",
+            flexGrow: 1,
+            overflowY: "hidden",
+          }}
+        >
+          <Advisory
+            advisoryThreshold={ADVISORY_THRESHOLD}
+            date={dateOfInterest}
+            setDate={setDateOfInterest}
+            selectedFireCenter={fireCenter}
+            setSelectedFireCenter={setFireCenter}
+            selectedFireZoneUnit={selectedFireShape}
+            setSelectedFireZoneUnit={setSelectedFireShape}
+          />
+        </Box>
       )}
       <BottomNavigationBar tab={tab} setTab={setTab} />
     </Box>

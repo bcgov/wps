@@ -42,6 +42,8 @@ const Advisory = ({
         display: "flex",
         flex: 1,
         flexDirection: "column",
+        height: "100%",
+        overflowY: "hidden",
       }}
     >
       <Box
@@ -61,7 +63,13 @@ const Advisory = ({
         </Box>
         <Box sx={{ display: "flex", flexGrow: 1, pt: theme.spacing(1) }}>
           <FormControl
-            sx={{ backgroundColor: "white", margin: 1, minWidth: 280 }}
+            sx={{
+              backgroundColor: "white",
+              margin: 1,
+              maxWidth: 300,
+              minWidth: 250,
+              flexGrow: 1,
+            }}
           >
             <FireCenterDropdown
               fireCenterOptions={fireCenters ?? []}
@@ -95,6 +103,7 @@ const Advisory = ({
           display: "flex",
           flexGrow: 1,
           padding: theme.spacing(1),
+          overflowY: "hidden",
         }}
       >
         <FireZoneUnitTabs
