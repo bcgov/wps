@@ -2,8 +2,6 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { AppThunk } from "@/store";
 import { Keycloak } from "../../../keycloak/src";
-import { Capacitor } from "@capacitor/core";
-import { getKeycloakInstance, kcInitOptions } from "@/utils/keycloakWeb";
 
 export interface AuthState {
   authenticating: boolean;
@@ -75,97 +73,57 @@ export default authSlice.reducer;
 export const authenticate = (): AppThunk => (dispatch) => {
   dispatch(authenticateStart());
 
-  if (Capacitor.getPlatform() === "web") {
-    const keycloak = getKeycloakInstance();
-    keycloak
-      .init(kcInitOptions)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .then((isAuthenticated: any) => {
+  const realm = import.meta.env.VITE_KEYCLOAK_REALM;
+  const authUrl = `${
+    import.meta.env.VITE_KEYCLOAK_AUTH_URL
+  }/realms/${realm}/protocol/openid-connect/auth`;
+  const tokenUrl = `${
+    import.meta.env.VITE_KEYCLOAK_AUTH_URL
+  }/realms/${realm}/protocol/openid-connect/token`;
+
+  const customRedirectUri = "ca.bc.gov.asago://auth/callback";
+  Keycloak.authenticate({
+    authorizationBaseUrl: authUrl,
+    clientId: import.meta.env.VITE_KEYCLOAK_CLIENT,
+    redirectUrl: customRedirectUri,
+    accessTokenEndpoint: tokenUrl,
+  })
+    .then((result) => {
+      if (result.isAuthenticated) {
         dispatch(
           authenticateFinished({
-            isAuthenticated,
-            token: keycloak?.token,
-            idToken: keycloak?.idToken,
+            isAuthenticated: result.isAuthenticated,
+            token: result.accessToken,
+            idToken: result.idToken,
           })
         );
-      })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .catch((err: any) => {
-        console.log(err);
-        dispatch(authenticateError("Failed to authenticate."));
-      });
-
-    keycloak.onTokenExpired = () => {
-      keycloak
-        ?.updateToken(0)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .then((tokenRefreshed: any) => {
-          dispatch(
-            refreshTokenFinished({
-              tokenRefreshed,
-              token: keycloak?.token,
-              idToken: keycloak?.idToken,
-            })
-          );
-        })
-        .catch(() => {
-          // Restart the authentication flow
-          dispatch(authenticate());
-        });
-    };
-  } else {
-    const realm = import.meta.env.VITE_KEYCLOAK_REALM;
-    const authUrl = `${
-      import.meta.env.VITE_KEYCLOAK_AUTH_URL
-    }/realms/${realm}/protocol/openid-connect/auth`;
-    const tokenUrl = `${
-      import.meta.env.VITE_KEYCLOAK_AUTH_URL
-    }/realms/${realm}/protocol/openid-connect/token`;
-
-    const customRedirectUri = "ca.bc.gov.asago://auth/callback";
-    Keycloak.authenticate({
-      authorizationBaseUrl: authUrl,
-      clientId: import.meta.env.VITE_KEYCLOAK_CLIENT,
-      redirectUrl: customRedirectUri,
-      accessTokenEndpoint: tokenUrl,
-    })
-      .then((result) => {
-        if (result.isAuthenticated) {
-          dispatch(
-            authenticateFinished({
-              isAuthenticated: result.isAuthenticated,
-              token: result.accessToken,
-              idToken: result.idToken,
-            })
-          );
-        } else {
-          dispatch(authenticateError(result.error ?? ""));
-        }
-      })
-      .catch((error) => {
-        dispatch(authenticateError(error ?? ""));
-      });
-
-    // Handle token refresh callback function
-    const handleTokenRefresh = (tokenResponse: {
-      accessToken: string;
-      refreshToken?: string;
-      tokenType?: string;
-      expiresIn?: number;
-      scope?: string;
-    }) => {
-      if (tokenResponse.refreshToken) {
-        dispatch(
-          refreshTokenFinished({
-            tokenRefreshed: true,
-            token: tokenResponse.accessToken,
-            idToken: undefined,
-          })
-        );
+      } else {
+        dispatch(authenticateError(result.error ?? ""));
       }
-    };
+    })
+    .catch((error) => {
+      dispatch(authenticateError(error ?? ""));
+    });
 
-    // Set up event listener for token refresh events (works for both web and iOS)
-    Keycloak.addListener("tokenRefresh", handleTokenRefresh);
-  }
+  // Handle token refresh callback function
+  const handleTokenRefresh = (tokenResponse: {
+    accessToken: string;
+    refreshToken?: string;
+    tokenType?: string;
+    expiresIn?: number;
+    scope?: string;
+  }) => {
+    if (tokenResponse.refreshToken) {
+      dispatch(
+        refreshTokenFinished({
+          tokenRefreshed: true,
+          token: tokenResponse.accessToken,
+          idToken: undefined,
+        })
+      );
+    }
+  };
+
+  // Set up event listener for token refresh events (works for both web and iOS)
+  Keycloak.addListener("tokenRefresh", handleTokenRefresh);
 };
