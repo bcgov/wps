@@ -64,7 +64,7 @@ const Advisory = ({
             sx={{ backgroundColor: "white", margin: 1, minWidth: 280 }}
           >
             <FireCenterDropdown
-              fireCenterOptions={fireCenters}
+              fireCenterOptions={fireCenters ?? []}
               selectedFireCenter={selectedFireCenter}
               setSelectedFireCenter={setSelectedFireCenter}
               setSelectedFireShape={setSelectedFireZoneUnit}

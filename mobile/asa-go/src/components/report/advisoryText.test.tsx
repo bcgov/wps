@@ -163,6 +163,68 @@ const initialHFIFuelStats = {
   },
 };
 
+const missingCriticalHoursStartFuelStatsState: FireCentreHFIFuelStatsState = {
+  error: null,
+  fireCentreHFIFuelStats: {
+    "Prince George Fire Centre": {
+      "25": {
+        fuel_area_stats: [
+          {
+            fuel_type: {
+              fuel_type_id: 2,
+              fuel_type_code: "C-2",
+              description: "Boreal Spruce",
+            },
+            threshold: {
+              id: 1,
+              name: "advisory",
+              description: "4000 < hfi < 10000",
+            },
+            critical_hours: {
+              start_time: undefined,
+              end_time: 13,
+            },
+            area: 4000,
+            fuel_area: 8000,
+          },
+        ],
+        min_wind_stats: [],
+      },
+    },
+  },
+};
+
+const missingCriticalHoursEndFuelStatsState: FireCentreHFIFuelStatsState = {
+  error: null,
+  fireCentreHFIFuelStats: {
+    "Prince George Fire Centre": {
+      "25": {
+        fuel_area_stats: [
+          {
+            fuel_type: {
+              fuel_type_id: 2,
+              fuel_type_code: "C-2",
+              description: "Boreal Spruce",
+            },
+            threshold: {
+              id: 1,
+              name: "advisory",
+              description: "4000 < hfi < 10000",
+            },
+            critical_hours: {
+              start_time: 9,
+              end_time: undefined,
+            },
+            area: 4000,
+            fuel_area: 8000,
+          },
+        ],
+        min_wind_stats: [],
+      },
+    },
+  },
+};
+
 const runParameterTestState = {
   ...runParameterInitialState,
   forDate: TEST_FOR_DATE,
@@ -404,6 +466,30 @@ describe("AdvisoryText", () => {
     expect(bulletinIssueDate).toBeInTheDocument();
     expect(bulletinIssueDate).toHaveTextContent(
       `Issued on ${EXPECTED_RUN_DATETIME} for ${EXPECTED_FOR_DATE}.`
+    );
+  });
+
+  it("should render forDate as 'today' when forDate parameter matches today's date", () => {
+    const store = buildTestStore(
+      {
+        ...provSummaryInitialState,
+        fireShapeAreaDetails: noAdvisoryDetails,
+      },
+      { ...runParameterTestState, forDate: DateTime.now().toISODate() }
+    );
+    const { queryByTestId } = render(
+      <Provider store={store}>
+        <AdvisoryText
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    );
+    const bulletinIssueDate = queryByTestId("bulletin-issue-date");
+    expect(bulletinIssueDate).toBeInTheDocument();
+    expect(bulletinIssueDate).toHaveTextContent(
+      `Issued on ${EXPECTED_RUN_DATETIME} for today.`
     );
   });
 
@@ -721,65 +807,3 @@ describe("AdvisoryText", () => {
     );
   });
 });
-
-const missingCriticalHoursStartFuelStatsState: FireCentreHFIFuelStatsState = {
-  error: null,
-  fireCentreHFIFuelStats: {
-    "Prince George Fire Centre": {
-      "25": {
-        fuel_area_stats: [
-          {
-            fuel_type: {
-              fuel_type_id: 2,
-              fuel_type_code: "C-2",
-              description: "Boreal Spruce",
-            },
-            threshold: {
-              id: 1,
-              name: "advisory",
-              description: "4000 < hfi < 10000",
-            },
-            critical_hours: {
-              start_time: undefined,
-              end_time: 13,
-            },
-            area: 4000,
-            fuel_area: 8000,
-          },
-        ],
-        min_wind_stats: [],
-      },
-    },
-  },
-};
-
-const missingCriticalHoursEndFuelStatsState: FireCentreHFIFuelStatsState = {
-  error: null,
-  fireCentreHFIFuelStats: {
-    "Prince George Fire Centre": {
-      "25": {
-        fuel_area_stats: [
-          {
-            fuel_type: {
-              fuel_type_id: 2,
-              fuel_type_code: "C-2",
-              description: "Boreal Spruce",
-            },
-            threshold: {
-              id: 1,
-              name: "advisory",
-              description: "4000 < hfi < 10000",
-            },
-            critical_hours: {
-              start_time: 9,
-              end_time: undefined,
-            },
-            area: 4000,
-            fuel_area: 8000,
-          },
-        ],
-        min_wind_stats: [],
-      },
-    },
-  },
-};
