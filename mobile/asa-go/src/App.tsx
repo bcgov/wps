@@ -1,32 +1,32 @@
-import { useEffect, useState } from "react";
-import { Box } from "@mui/material";
 import { FireCenter, FireShape } from "@/api/fbaAPI";
-import { AppHeader } from "@/components/AppHeader";
-import { useDispatch, useSelector } from "react-redux";
-import { DateTime } from "luxon";
-import { NavPanel, PST_UTC_OFFSET } from "@/utils/constants";
-import { selectFireCenters, selectRunParameter, AppDispatch } from "@/store";
-import { isNull, isUndefined } from "lodash";
-import { fetchMostRecentSFMSRunParameter } from "@/slices/runParameterSlice";
-import { fetchFireCenters } from "@/slices/fireCentersSlice";
-import { fetchFireCentreTPIStats } from "@/slices/fireCentreTPIStatsSlice";
-import { fetchFireCentreHFIFuelStats } from "@/slices/fireCentreHFIFuelStatsSlice";
-import { fetchFireShapeAreas } from "@/slices/fireZoneAreasSlice";
-import { fetchProvincialSummary } from "@/slices/provincialSummarySlice";
-import { updateNetworkStatus } from "@/slices/networkStatusSlice";
-import { ConnectionStatus, Network } from "@capacitor/network";
-import Profile from "@/components/Profile";
 import Advisory from "@/components/Advisory";
+import { AppHeader } from "@/components/AppHeader";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
-import { theme } from "@/theme";
 import ASAGoMap from "@/components/map/ASAGoMap";
+import Profile from "@/components/Profile";
+import { useAppIsActive } from "@/hooks/useAppIsActive";
+import { fetchFireCenters } from "@/slices/fireCentersSlice";
+import { fetchFireCentreHFIFuelStats } from "@/slices/fireCentreHFIFuelStatsSlice";
+import { fetchFireCentreTPIStats } from "@/slices/fireCentreTPIStatsSlice";
+import { fetchFireShapeAreas } from "@/slices/fireZoneAreasSlice";
 import {
   startWatchingLocation,
   stopWatchingLocation,
 } from "@/slices/geolocationSlice";
+import { updateNetworkStatus } from "@/slices/networkStatusSlice";
+import { fetchProvincialSummary } from "@/slices/provincialSummarySlice";
+import { fetchMostRecentSFMSRunParameter } from "@/slices/runParameterSlice";
+import { AppDispatch, selectFireCenters, selectRunParameter } from "@/store";
+import { theme } from "@/theme";
+import { NavPanel, PST_UTC_OFFSET } from "@/utils/constants";
+import { ConnectionStatus, Network } from "@capacitor/network";
+import { Box } from "@mui/material";
+import { isNull, isUndefined } from "lodash";
+import { DateTime } from "luxon";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-const HFI_THRESHOLD = 20;
-import { useAppIsActive } from "@/hooks/useAppIsActive";
+const HFI_THRESHOLD = 5;
 
 const App = () => {
   const isActive = useAppIsActive();
@@ -36,10 +36,9 @@ const App = () => {
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(
     undefined
   );
-  const [selectedFireShape] = useState<FireShape | undefined>(undefined);
-  const [zoomSource] = useState<"fireCenter" | "fireShape" | undefined>(
-    "fireCenter"
-  );
+  const [selectedFireShape, setSelectedFireShape] = useState<
+    FireShape | undefined
+  >(undefined);
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
   );
@@ -154,12 +153,13 @@ const App = () => {
       <AppHeader />
       {tab === NavPanel.MAP && (
         <ASAGoMap
-          selectedFireCenter={fireCenter}
           selectedFireShape={selectedFireShape}
-          zoomSource={zoomSource}
+          setSelectedFireShape={setSelectedFireShape}
           advisoryThreshold={HFI_THRESHOLD}
           date={dateOfInterest}
           setDate={setDateOfInterest}
+          setTab={setTab}
+          testId="asa-go-map"
         />
       )}
       {tab === NavPanel.PROFILE && <Profile />}
