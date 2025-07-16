@@ -163,6 +163,13 @@ const initialHFIFuelStats = {
   },
 };
 
+const runParameterTestState = {
+  ...runParameterInitialState,
+  forDate: TEST_FOR_DATE,
+  runDatetime: TEST_RUN_DATETIME,
+  runType: RunType.FORECAST,
+};
+
 const buildTestStore = (
   provincialSummaryInitialState: ProvincialSummaryState,
   runParameterInitialState: RunParameterState,
@@ -190,7 +197,7 @@ describe("AdvisoryText", () => {
       ...provSummaryInitialState,
       fireShapeAreaDetails: advisoryDetails,
     },
-    { ...runParameterInitialState }
+    runParameterInitialState
   );
 
   const getInitialStore = () =>
@@ -199,12 +206,7 @@ describe("AdvisoryText", () => {
         ...provSummaryInitialState,
         fireShapeAreaDetails: warningDetails,
       },
-      {
-        ...runParameterInitialState,
-        forDate: TEST_FOR_DATE,
-        runDatetime: TEST_RUN_DATETIME,
-        runType: RunType.FORECAST,
-      }
+      runParameterTestState
     );
 
   const assertInitialState = () => {
@@ -411,12 +413,7 @@ describe("AdvisoryText", () => {
         ...provSummaryInitialState,
         fireShapeAreaDetails: noAdvisoryDetails,
       },
-      {
-        ...runParameterInitialState,
-        forDate: TEST_FOR_DATE,
-        runDatetime: TEST_RUN_DATETIME,
-        runType: RunType.FORECAST,
-      }
+      runParameterTestState
     );
     const { queryByTestId } = render(
       <Provider store={noAdvisoryStore}>
@@ -453,12 +450,7 @@ describe("AdvisoryText", () => {
         ...provSummaryInitialState,
         fireShapeAreaDetails: warningDetails,
       },
-      {
-        ...runParameterInitialState,
-        forDate: TEST_FOR_DATE,
-        runDatetime: TEST_RUN_DATETIME,
-        runType: RunType.FORECAST,
-      }
+      runParameterTestState
     );
     const { queryByTestId } = render(
       <Provider store={warningStore}>
@@ -496,12 +488,7 @@ describe("AdvisoryText", () => {
         ...provSummaryInitialState,
         fireShapeAreaDetails: advisoryDetails,
       },
-      {
-        ...runParameterInitialState,
-        forDate: TEST_FOR_DATE,
-        runDatetime: TEST_RUN_DATETIME,
-        runType: RunType.FORECAST,
-      }
+      runParameterTestState
     );
     const { queryByTestId } = render(
       <Provider store={advisoryStore}>
@@ -636,12 +623,7 @@ describe("AdvisoryText", () => {
         ...provSummaryInitialState,
         fireShapeAreaDetails: advisoryDetails,
       },
-      {
-        ...runParameterInitialState,
-        forDate: TEST_FOR_DATE,
-        runDatetime: TEST_RUN_DATETIME,
-        runType: RunType.FORECAST,
-      },
+      runParameterTestState,
       {
         ...fuelStatsInitialState,
         fireCentreHFIFuelStats:
@@ -671,12 +653,7 @@ describe("AdvisoryText", () => {
         ...provSummaryInitialState,
         fireShapeAreaDetails: advisoryDetails,
       },
-      {
-        ...runParameterInitialState,
-        forDate: TEST_FOR_DATE,
-        runDatetime: TEST_RUN_DATETIME,
-        runType: RunType.FORECAST,
-      },
+      runParameterTestState,
       {
         ...fuelStatsInitialState,
         fireCentreHFIFuelStats:
@@ -700,8 +677,8 @@ describe("AdvisoryText", () => {
     expect(criticalHoursMessage).toBeInTheDocument();
   });
 
-  it('should not render slash warning when critical hours duration is less than 12 hours', async () => {
-    const store = getInitialStore()
+  it("should not render slash warning when critical hours duration is less than 12 hours", async () => {
+    const store = getInitialStore();
     render(
       <Provider store={store}>
         <AdvisoryText
@@ -710,14 +687,18 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
         />
       </Provider>
-    )
-    assertInitialState()
-    store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
-    await waitFor(() => expect(screen.queryByTestId('advisory-message-slash')).not.toBeInTheDocument())
-  })
+    );
+    assertInitialState();
+    store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats));
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId("advisory-message-slash")
+      ).not.toBeInTheDocument()
+    );
+  });
 
-  it('should render slash warning when critical hours duration is greater than 12 hours', async () => {
-    const store = getInitialStore()
+  it("should render slash warning when critical hours duration is greater than 12 hours", async () => {
+    const store = getInitialStore();
     render(
       <Provider store={store}>
         <AdvisoryText
@@ -726,15 +707,19 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
         />
       </Provider>
-    )
-    assertInitialState()
+    );
+    assertInitialState();
 
-    const newHFIFuelStats = cloneDeep(initialHFIFuelStats)
-    newHFIFuelStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 22
+    const newHFIFuelStats = cloneDeep(initialHFIFuelStats);
+    newHFIFuelStats[
+      "Cariboo Fire Centre"
+    ][20].fuel_area_stats[0].critical_hours.end_time = 22;
 
-    store.dispatch(getFireCentreHFIFuelStatsSuccess(newHFIFuelStats))
-    await waitFor(() => expect(screen.queryByTestId('advisory-message-slash')).toBeInTheDocument())
-  })
+    store.dispatch(getFireCentreHFIFuelStatsSuccess(newHFIFuelStats));
+    await waitFor(() =>
+      expect(screen.queryByTestId("advisory-message-slash")).toBeInTheDocument()
+    );
+  });
 });
 
 const missingCriticalHoursStartFuelStatsState: FireCentreHFIFuelStatsState = {

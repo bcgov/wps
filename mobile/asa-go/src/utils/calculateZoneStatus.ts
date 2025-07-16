@@ -7,7 +7,7 @@ export const calculateStatusColour = (
   details: FireShapeAreaDetail[],
   advisoryThreshold: number,
   defaultColour: string
-) => {
+): string => {
   let status = defaultColour;
 
   if (details.length === 0) {
