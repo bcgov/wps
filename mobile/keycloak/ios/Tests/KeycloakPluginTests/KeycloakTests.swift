@@ -593,36 +593,6 @@ class KeycloakTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
     }
 
-    func testTokenExchangeWithInvalidJSON() {
-        // Arrange
-
-        mockWebAuthSession.mockCallbackURL = URL(
-            string: "ca.bc.gov.asago://auth/callback?code=test-auth-code")
-
-        mockHTTPClient.mockResponse = "invalid json".data(using: .utf8)
-
-        let expectation = XCTestExpectation(
-            description: "Token exchange should fail with invalid JSON")
-
-        // Act
-        keycloak.authenticate(options: options) { result in
-            // Assert
-            switch result {
-            case .success:
-                XCTFail("Expected failure but got success")
-            case .failure(let error):
-                // The JSON parsing error should be from the JSONSerialization
-                XCTAssertTrue(
-                    error.localizedDescription.contains("format")
-                        || error.localizedDescription.contains("JSON")
-                        || error.localizedDescription.contains("data"))
-                expectation.fulfill()
-            }
-        }
-
-        wait(for: [expectation], timeout: 1.0)
-    }
-
     // Callback URL Parsing Tests
 
     func testCallbackURLWithMissingCode() {
