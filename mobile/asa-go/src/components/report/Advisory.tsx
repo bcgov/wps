@@ -52,8 +52,7 @@ const Advisory = ({
           alignItems: "center",
           backgroundColor: "white",
           display: "flex",
-          px: theme.spacing(1),
-          pb: theme.spacing(1),
+          padding: theme.spacing(1),
         }}
       >
         <Box
@@ -61,7 +60,7 @@ const Advisory = ({
         >
           <TodayTomorrowSwitch border={true} date={date} setDate={setDate} />
         </Box>
-        <Box sx={{ display: "flex", flexGrow: 1, pt: theme.spacing(1) }}>
+        <Box sx={{ display: "flex", flexGrow: 1 }}>
           <FormControl
             sx={{
               backgroundColor: "white",

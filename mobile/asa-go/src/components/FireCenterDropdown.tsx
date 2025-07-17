@@ -1,6 +1,6 @@
-import { Autocomplete, TextField } from "@mui/material";
+import { MenuItem, Select } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
-import { isEqual } from "lodash";
+import { isEqual, isNil } from "lodash";
 import React from "react";
 
 interface FireCenterDropdownProps {
@@ -14,35 +14,35 @@ interface FireCenterDropdownProps {
   >;
 }
 
-const FireCenterDropdown = (props: FireCenterDropdownProps) => {
-  // eslint-disable-next-line
-  const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    if (!isEqual(props.selectedFireCenter, value)) {
-      props.setSelectedFireShape(undefined);
-      props.setSelectedFireCenter(value);
+const FireCenterDropdown = ({
+  fireCenterOptions,
+  selectedFireCenter,
+  setSelectedFireCenter,
+  setSelectedFireShape,
+}: FireCenterDropdownProps) => {
+  const handleClick = (value: FireCenter) => {
+    if (!isEqual(selectedFireCenter, value)) {
+      setSelectedFireShape(undefined);
+      setSelectedFireCenter(value);
     }
   };
 
+  if (isNil(selectedFireCenter) && fireCenterOptions.length) {
+    setSelectedFireCenter(fireCenterOptions[0]);
+  }
+
   return (
-    <Autocomplete
-      blurOnSelect
-      data-testid={`fire-center-dropdown`}
-      getOptionLabel={(option) => option?.name}
-      onChange={changeHandler}
-      options={props.fireCenterOptions}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          slotProps={{
-            input: {
-              ...params.InputProps,
-              readOnly: true,
-            },
-          }}
-        />
-      )}
-      value={props.selectedFireCenter || null}
-    />
+    <Select value={selectedFireCenter?.name ?? ""}>
+      {fireCenterOptions.map((option) => (
+        <MenuItem
+          key={option.name}
+          value={option.name}
+          onClick={() => handleClick(option)}
+        >
+          {option.name}
+        </MenuItem>
+      ))}
+    </Select>
   );
 };
 
