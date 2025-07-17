@@ -25,13 +25,22 @@ const FireCenterDropdown = (props: FireCenterDropdownProps) => {
 
   return (
     <Autocomplete
+      blurOnSelect
       data-testid={`fire-center-dropdown`}
-      options={props.fireCenterOptions}
       getOptionLabel={(option) => option?.name}
-      renderInput={(params) => (
-        <TextField {...params} label="Select Fire Centre" variant="outlined" />
-      )}
       onChange={changeHandler}
+      options={props.fireCenterOptions}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          slotProps={{
+            input: {
+              ...params.InputProps,
+              readOnly: true,
+            },
+          }}
+        />
+      )}
       value={props.selectedFireCenter || null}
     />
   );
