@@ -138,32 +138,24 @@ class DefaultHTTPClient: HTTPClientProtocol {
 
     private let pkceGenerator: PKCEGeneratorProtocol
     private let urlBuilder: URLBuilderProtocol
-    private let webAuthSession: WebAuthSessionProtocol
     private let httpClient: HTTPClientProtocol
 
     // Default initializer for production use
     public override init() {
-        let wrapper: ASWebAuthSessionWrapper = ASWebAuthSessionWrapper()
         self.pkceGenerator = DefaultPKCEGenerator()
         self.urlBuilder = DefaultURLBuilder()
-        self.webAuthSession = wrapper
         self.httpClient = DefaultHTTPClient()
         super.init()
-
-        // Set self as presentation context provider after initialization
-        wrapper.setPresentationContextProvider(self)
     }
 
     // Testable initializer with dependency injection
     init(
         pkceGenerator: PKCEGeneratorProtocol,
         urlBuilder: URLBuilderProtocol,
-        webAuthSession: WebAuthSessionProtocol,
         httpClient: HTTPClientProtocol
     ) {
         self.pkceGenerator = pkceGenerator
         self.urlBuilder = urlBuilder
-        self.webAuthSession = webAuthSession
         self.httpClient = httpClient
         super.init()
     }
@@ -207,8 +199,11 @@ class DefaultHTTPClient: HTTPClientProtocol {
 
         let callbackScheme: String? = URLComponents(string: options.redirectUrl)?.scheme
 
+        let session: ASWebAuthSessionWrapper = ASWebAuthSessionWrapper(
+            presentationContextProvider: self)
+
         // Use injected web auth session
-        webAuthSession.start(url: authURL, callbackScheme: callbackScheme) {
+        session.start(url: authURL, callbackScheme: callbackScheme) {
             [weak self] callbackURL, error in
             self?.handleAuthenticationResponse(
                 callbackURL: callbackURL, codeVerifier: codeVerifier, error: error,
