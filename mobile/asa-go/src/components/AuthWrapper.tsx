@@ -23,7 +23,15 @@ const AuthWrapper = ({ children }: Props) => {
   }
 
   if (error) {
-    return <div style={{ marginTop: 100 }}>{error}</div>;
+    setInterval(() => {
+      dispatch(authenticate());
+    }, 3000);
+    return (
+      <div style={{ marginTop: 100 }}>
+        {error}
+        <p>Trying again in 3 seconds</p>
+      </div>
+    );
   }
 
   if (authenticating) {
