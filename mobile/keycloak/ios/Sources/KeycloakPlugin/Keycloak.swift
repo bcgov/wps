@@ -130,7 +130,6 @@ class DefaultHTTPClient: HTTPClientProtocol {
 }
 
 @objc public class Keycloak: NSObject, ASWebAuthenticationPresentationContextProviding {
-    private var currentCodeVerifier: String?
     private var currentOptions: KeycloakOptions?
     private var refreshTimer: Timer?
     private var autoRefreshOptions:
@@ -188,9 +187,6 @@ class DefaultHTTPClient: HTTPClientProtocol {
         let codeChallenge: String = pkceGenerator.generateCodeChallenge(from: codeVerifier)
         print("Keycloak: Generated PKCE code_challenge: \(codeChallenge)")
 
-        // Store the code verifier for later use
-        self.currentCodeVerifier = codeVerifier
-
         // Build authorization URL using injected URL builder
         guard
             let authURL = urlBuilder.buildAuthorizationURL(
@@ -215,17 +211,34 @@ class DefaultHTTPClient: HTTPClientProtocol {
         webAuthSession.start(url: authURL, callbackScheme: callbackScheme) {
             [weak self] callbackURL, error in
             self?.handleAuthenticationResponse(
-                callbackURL: callbackURL, error: error, completion: completion)
+                callbackURL: callbackURL, codeVerifier: codeVerifier, error: error,
+                completion: completion)
         }
     }
 
     // Extracted method for handling authentication response - easier to test
     private func handleAuthenticationResponse(
         callbackURL: URL?,
+        codeVerifier: String,
         error: Error?,
         completion: @escaping (Result<[String: Any], Error>) -> Void
     ) {
         if let error = error {
+            // Check if this is a user cancellation
+            if let authError = error as? ASWebAuthenticationSessionError,
+                authError.code == .canceledLogin
+            {
+                print("Keycloak: User cancelled authentication")
+                // Return a structured response for user cancellation
+                let cancelResponse: [String: Any] = [
+                    "isAuthenticated": false,
+                    "redirectUrl": "",
+                ]
+                completion(.success(cancelResponse))
+                return
+            }
+
+            // Handle other errors normally
             print("Keycloak: Authentication error: \(error.localizedDescription)")
             completion(.failure(error))
             return
@@ -262,15 +275,8 @@ class DefaultHTTPClient: HTTPClientProtocol {
                 "errorDescription": errorDescription,
             ]
 
-            // Provide specific guidance for common errors
-            if error == "invalid_redirect_uri" {
-                var enhancedResponse = errorResponse
-                enhancedResponse["errorDescription"] =
-                    "The redirect URI '\(result["redirect_uri"] ?? "unknown")' is not configured in the Keycloak client. Please add it to the 'Valid Redirect URIs' in the Keycloak admin console."
-                completion(.success(enhancedResponse))
-            } else {
-                completion(.success(errorResponse))
-            }
+            completion(.success(errorResponse))
+
             return
         }
 
@@ -290,7 +296,9 @@ class DefaultHTTPClient: HTTPClientProtocol {
 
         print("Keycloak: Authorization code received, proceeding with automatic token exchange")
         // Exchange authorization code for tokens using PKCE
-        exchangeCodeForTokens(authorizationCode: authorizationCode, completion: completion)
+        exchangeCodeForTokens(
+            authorizationCode: authorizationCode, codeVerifier: codeVerifier, completion: completion
+        )
     }
 
     // Extracted method for parsing callback URL - easier to test
@@ -453,6 +461,7 @@ class DefaultHTTPClient: HTTPClientProtocol {
     // Exchange authorization code for tokens using PKCE
     private func exchangeCodeForTokens(
         authorizationCode: String,
+        codeVerifier: String,
         completion: @escaping (Result<[String: Any], Error>) -> Void
     ) {
         guard let options: KeycloakOptions = currentOptions else {
@@ -472,18 +481,6 @@ class DefaultHTTPClient: HTTPClientProtocol {
 
         // accessTokenEndpoint is now required, so we can use it directly
         let tokenEndpoint: String = options.accessTokenEndpoint
-
-        guard let codeVerifier: String = currentCodeVerifier else {
-            completion(
-                .failure(
-                    NSError(
-                        domain: "KeycloakError",
-                        code: 6,
-                        userInfo: [NSLocalizedDescriptionKey: "Missing PKCE code verifier"]
-                    )
-                ))
-            return
-        }
 
         guard let url: URL = URL(string: tokenEndpoint) else {
             completion(
@@ -568,7 +565,6 @@ class DefaultHTTPClient: HTTPClientProtocol {
                     }
 
                     // Clear stored values after successful exchange
-                    self?.currentCodeVerifier = nil
                     self?.currentOptions = nil
 
                     // Transform the token response to include isAuthenticated flag
