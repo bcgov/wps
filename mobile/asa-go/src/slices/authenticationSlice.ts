@@ -98,11 +98,11 @@ export const authenticate = (): AppThunk => (dispatch) => {
           })
         );
       } else {
-        dispatch(authenticateError(result.error ?? ""));
+        dispatch(authenticateError(JSON.stringify(result.error)));
       }
     })
     .catch((error) => {
-      dispatch(authenticateError(error ?? ""));
+      dispatch(authenticateError(JSON.stringify(error)));
     });
 
   // Handle token refresh callback function

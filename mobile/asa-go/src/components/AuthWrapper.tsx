@@ -23,7 +23,7 @@ const AuthWrapper = ({ children }: Props) => {
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return <div style={{ marginTop: 100 }}>{error}</div>;
   }
 
   if (authenticating) {
