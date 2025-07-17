@@ -145,6 +145,7 @@
 			"wfwx",
 			"Whitebox",
 			"wpsread"
-		]
+		],
+		"java.configuration.updateBuildConfiguration": "interactive"
 	}
 }
