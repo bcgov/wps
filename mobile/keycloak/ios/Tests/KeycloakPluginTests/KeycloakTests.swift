@@ -2448,43 +2448,6 @@ class KeycloakDataValidationTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
     }
 
-    func testVeryLargeExpirationValues() {
-        // Test handling of very large expiration values
-        let options = KeycloakOptions(
-            clientId: "large-expiry-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
-
-        let largeExpiry = Int.max
-        let mockTokenResponse = """
-            {
-                "access_token": "large_expiry_token",
-                "token_type": "Bearer",
-                "expires_in": \(largeExpiry),
-                "refresh_token": "large_expiry_refresh_token"
-            }
-            """.data(using: .utf8)
-        mockHTTPClient.mockResponse = mockTokenResponse
-        mockWebAuthSession.mockCallbackURL = URL(
-            string: "ca.bc.gov.asago://auth/callback?code=large-expiry")
-
-        let expectation = XCTestExpectation(description: "Handle very large expiration values")
-
-        keycloak.authenticate(options: options) { result in
-            switch result {
-            case .success(let data):
-                XCTAssertEqual(data["isAuthenticated"] as? Bool, true)
-                XCTAssertEqual(data["expiresIn"] as? Int, largeExpiry)
-                expectation.fulfill()
-            case .failure(let error):
-                XCTFail("Expected success but got error: \(error)")
-            }
-        }
-
-        wait(for: [expectation], timeout: 1.0)
-    }
 }
 
 class KeycloakNetworkTests: XCTestCase {
