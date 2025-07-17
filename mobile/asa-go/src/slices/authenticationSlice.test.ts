@@ -248,27 +248,27 @@ describe("authenticationSlice", () => {
       });
 
       it("should dispatch authenticateError on failed authentication with error message", async () => {
-        const store = setupStoreWithMockAuth(
-          createFailedAuthResult("Invalid credentials")
-        );
+        const mockResult = createFailedAuthResult("Invalid credentials");
+        const store = setupStoreWithMockAuth(mockResult);
 
         await store.dispatch(authenticate());
 
         expectAuthState(store.getState().authentication, {
           isAuthenticated: false,
-          error: "Invalid credentials",
+          error: JSON.stringify(mockResult.error),
           authenticating: false,
         });
       });
 
       it("should dispatch authenticateError on failed authentication without error message", async () => {
-        const store = setupStoreWithMockAuth(createFailedAuthResult());
+        const mockResult = createFailedAuthResult();
+        const store = setupStoreWithMockAuth(mockResult);
 
         await store.dispatch(authenticate());
 
         expectAuthState(store.getState().authentication, {
           isAuthenticated: false,
-          error: "",
+          error: JSON.stringify(mockResult.error),
           authenticating: false,
         });
       });
