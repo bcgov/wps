@@ -12,7 +12,6 @@ interface TodayTomorrowSwitchProps {
 
 const BUTTON_WIDTH = 48;
 const TEXT_BOX_WIDTH = BUTTON_WIDTH - 4;
-const MAX_SWITCH_WIDTH = 2 * BUTTON_WIDTH;
 const TEXT_BOX_HEIGHT = BUTTON_HEIGHT - 4;
 
 const StyledButton = styled(Button)({
@@ -67,7 +66,6 @@ const TodayTomorrowSwitch = ({
         background: "white",
         borderRadius: `${BORDER_RADIUS}px`,
         display: "flex",
-        maxWidth: `${MAX_SWITCH_WIDTH}px`,
       }}
     >
       <StyledButton disabled={value === 0} onClick={() => handleDayChange(0)}>
