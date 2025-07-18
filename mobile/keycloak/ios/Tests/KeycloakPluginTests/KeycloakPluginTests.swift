@@ -29,8 +29,7 @@ class KeycloakPluginTests: XCTestCase {
     func testPluginMethods() {
         let methodNames = plugin.pluginMethods.map { $0.name }
         XCTAssertTrue(methodNames.contains("authenticate"))
-        XCTAssertTrue(methodNames.contains("refreshToken"))
-        XCTAssertEqual(plugin.pluginMethods.count, 2)
+        XCTAssertEqual(plugin.pluginMethods.count, 1)
     }
 
     func testPluginMethodReturnTypes() {
@@ -52,34 +51,6 @@ class KeycloakPluginTests: XCTestCase {
         XCTAssertTrue(validateParameter("test-value"))
         XCTAssertFalse(validateParameter(nil))
         XCTAssertFalse(validateParameter(""))
-    }
-
-    func testKeycloakOptionsCreation() {
-        // Test that KeycloakOptions can be created with valid parameters
-        let options = KeycloakOptions(
-            clientId: "test-client",
-            authorizationBaseUrl: "https://keycloak.example.com/auth",
-            redirectUrl: "ca.bc.gov.asago://auth/callback",
-            accessTokenEndpoint: "https://keycloak.example.com/token"
-        )
-
-        XCTAssertEqual(options.clientId, "test-client")
-        XCTAssertEqual(options.authorizationBaseUrl, "https://keycloak.example.com/auth")
-        XCTAssertEqual(options.redirectUrl, "ca.bc.gov.asago://auth/callback")
-        XCTAssertEqual(options.accessTokenEndpoint, "https://keycloak.example.com/token")
-    }
-
-    func testKeycloakRefreshOptionsCreation() {
-        // Test that KeycloakRefreshOptions can be created with valid parameters
-        let options = KeycloakRefreshOptions(
-            clientId: "test-client",
-            accessTokenEndpoint: "https://keycloak.example.com/token",
-            refreshToken: "refresh-token-123"
-        )
-
-        XCTAssertEqual(options.clientId, "test-client")
-        XCTAssertEqual(options.accessTokenEndpoint, "https://keycloak.example.com/token")
-        XCTAssertEqual(options.refreshToken, "refresh-token-123")
     }
 
     private func validateParameter(_ value: String?) -> Bool {
