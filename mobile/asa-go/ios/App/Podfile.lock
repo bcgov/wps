@@ -1,4 +1,10 @@
 PODS:
+  - AppAuth (2.0.0):
+    - AppAuth/Core (= 2.0.0)
+    - AppAuth/ExternalUserAgent (= 2.0.0)
+  - AppAuth/Core (2.0.0)
+  - AppAuth/ExternalUserAgent (2.0.0):
+    - AppAuth/Core
   - Capacitor (7.1.0):
     - CapacitorCordova
   - CapacitorApp (7.0.0):
@@ -21,6 +27,7 @@ PODS:
     - Capacitor
   - IONGeolocationLib (1.0.0)
   - Keycloak (0.0.1):
+    - AppAuth
     - Capacitor
 
 DEPENDENCIES:
@@ -38,6 +45,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - AppAuth
     - IONGeolocationLib
 
 EXTERNAL SOURCES:
@@ -65,6 +73,7 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/keycloak"
 
 SPEC CHECKSUMS:
+  AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
   Capacitor: 68ff8eabbcce387e69767c13b5fbcc1c5399eabc
   CapacitorApp: 45cb7cbef4aa380b9236fd6980033eb5cde6fcd2
   CapacitorCordova: 866217f32c1d25b326c568a10ea3ed0c36b13e29
@@ -76,7 +85,7 @@ SPEC CHECKSUMS:
   CapacitorNetwork: cd17b98182841055ff58629213242a1f22f4a76b
   CapacitorStatusBar: 438e90beeeefa8276b24e6c5991cb02dd13e51bf
   IONGeolocationLib: 81f33f88d025846946de2cf63b0c7628e7c6bc9d
-  Keycloak: 29cb70d3a09dc8da487110f804c77366cb7d6640
+  Keycloak: c39abe3ec71f672fbf306a7f37b85d3858ae7f00
 
 PODFILE CHECKSUM: 2519cc6d65316974f9578551e9993f0be7b33889
 

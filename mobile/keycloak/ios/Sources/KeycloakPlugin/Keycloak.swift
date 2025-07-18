@@ -1,24 +1,8 @@
+import AppAuth
 import AuthenticationServices
-import CryptoKit
+import Capacitor
 import Foundation
-
-protocol PKCEGeneratorProtocol {
-    func generateCodeVerifier() -> String
-    func generateCodeChallenge(from verifier: String) -> String
-}
-
-protocol URLBuilderProtocol {
-    func buildAuthorizationURL(options: KeycloakOptions, codeChallenge: String) -> URL?
-}
-
-protocol WebAuthSessionProtocol {
-    func start(url: URL, callbackScheme: String?, completion: @escaping (URL?, Error?) -> Void)
-}
-
-protocol HTTPClientProtocol {
-    func performRequest(
-        request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void)
-}
+import UIKit
 
 public struct KeycloakOptions {
     let clientId: String
@@ -50,113 +34,12 @@ public struct KeycloakTokenResponse {
     }
 }
 
-class DefaultPKCEGenerator: PKCEGeneratorProtocol {
-    func generateCodeVerifier() -> String {
-        var buffer = [UInt8](repeating: 0, count: 32)
-        _ = SecRandomCopyBytes(kSecRandomDefault, buffer.count, &buffer)
-        return Data(buffer).base64URLEncodedString()
-    }
-
-    func generateCodeChallenge(from verifier: String) -> String {
-        let challenge = Data(verifier.utf8)
-        let hash = SHA256.hash(data: challenge)
-        return Data(hash).base64URLEncodedString()
-    }
-}
-
-class DefaultURLBuilder: URLBuilderProtocol {
-    func buildAuthorizationURL(options: KeycloakOptions, codeChallenge: String) -> URL? {
-        let redirectUri = options.redirectUrl
-
-        // Build the query string manually to avoid double encoding
-        var queryPairs: [String] = []
-        queryPairs.append("client_id=\(options.clientId)")
-        queryPairs.append("response_type=code")
-
-        // Add PKCE parameters
-        queryPairs.append("code_challenge=\(codeChallenge)")
-        queryPairs.append("code_challenge_method=S256")
-
-        // Manually encode just the redirect URI value
-        var allowedCharacters: CharacterSet = CharacterSet.urlQueryAllowed
-        allowedCharacters.remove(charactersIn: ":/")
-        if let encodedRedirectUri = redirectUri.addingPercentEncoding(
-            withAllowedCharacters: allowedCharacters)
-        {
-            queryPairs.append("redirect_uri=\(encodedRedirectUri)")
-        }
-
-        let queryString: String = queryPairs.joined(separator: "&")
-        let fullURLString: String = "\(options.authorizationBaseUrl)?\(queryString)"
-
-        return URL(string: fullURLString)
-    }
-}
-
-class ASWebAuthSessionWrapper: WebAuthSessionProtocol {
-    private var session: ASWebAuthenticationSession?
-    private weak var presentationContextProvider: ASWebAuthenticationPresentationContextProviding?
-
-    init(presentationContextProvider: ASWebAuthenticationPresentationContextProviding? = nil) {
-        self.presentationContextProvider = presentationContextProvider
-    }
-
-    func setPresentationContextProvider(
-        _ provider: ASWebAuthenticationPresentationContextProviding?
-    ) {
-        self.presentationContextProvider = provider
-    }
-
-    func start(url: URL, callbackScheme: String?, completion: @escaping (URL?, Error?) -> Void) {
-        DispatchQueue.main.async {
-            self.session = ASWebAuthenticationSession(url: url, callbackURLScheme: callbackScheme) {
-                callbackURL, error in
-                completion(callbackURL, error)
-            }
-            self.session?.presentationContextProvider = self.presentationContextProvider
-            self.session?.start()
-        }
-    }
-}
-
-class DefaultHTTPClient: HTTPClientProtocol {
-    private let session = URLSession.shared
-
-    func performRequest(
-        request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void
-    ) {
-        session.dataTask(with: request, completionHandler: completion).resume()
-    }
-}
-
-@objc public class Keycloak: NSObject, ASWebAuthenticationPresentationContextProviding {
-    private var currentOptions: KeycloakOptions?
+@objc public class Keycloak: NSObject {
     private var refreshTimer: Timer?
-    private var autoRefreshOptions:
-        (clientId: String, accessTokenEndpoint: String, refreshToken: String)?
+    private var autoRefreshOptions: (clientId: String, accessTokenEndpoint: String, refreshToken: String)?
     private weak var plugin: KeycloakPlugin?
 
-    private let pkceGenerator: PKCEGeneratorProtocol
-    private let urlBuilder: URLBuilderProtocol
-    private let httpClient: HTTPClientProtocol
-
-    // Default initializer for production use
     public override init() {
-        self.pkceGenerator = DefaultPKCEGenerator()
-        self.urlBuilder = DefaultURLBuilder()
-        self.httpClient = DefaultHTTPClient()
-        super.init()
-    }
-
-    // Testable initializer with dependency injection
-    init(
-        pkceGenerator: PKCEGeneratorProtocol,
-        urlBuilder: URLBuilderProtocol,
-        httpClient: HTTPClientProtocol
-    ) {
-        self.pkceGenerator = pkceGenerator
-        self.urlBuilder = urlBuilder
-        self.httpClient = httpClient
         super.init()
     }
 
@@ -165,153 +48,171 @@ class DefaultHTTPClient: HTTPClientProtocol {
     }
 
     public func authenticate(
-        options: KeycloakOptions, completion: @escaping (Result<[String: Any], Error>) -> Void
+        options: KeycloakOptions, 
+        completion: @escaping (Result<[String: Any], Error>) -> Void
     ) {
         print("Keycloak: Starting authentication with clientId: \(options.clientId)")
         print("Keycloak: Base URL: \(options.authorizationBaseUrl)")
         print("Keycloak: Using redirect URI: \(options.redirectUrl)")
 
-        // Store options for later use in token exchange
-        self.currentOptions = options
-
-        // Generate PKCE parameters using injected generator
-        let codeVerifier: String = pkceGenerator.generateCodeVerifier()
-        let codeChallenge: String = pkceGenerator.generateCodeChallenge(from: codeVerifier)
-        print("Keycloak: Generated PKCE code_challenge: \(codeChallenge)")
-
-        // Build authorization URL using injected URL builder
-        guard
-            let authURL = urlBuilder.buildAuthorizationURL(
-                options: options, codeChallenge: codeChallenge)
-        else {
-            completion(
-                .failure(
-                    NSError(
-                        domain: "KeycloakError",
-                        code: 1,
-                        userInfo: [NSLocalizedDescriptionKey: "Invalid authorization URL"]
-                    )
-                ))
+        // Create service configuration
+        guard let authorizationURL = URL(string: options.authorizationBaseUrl) else {
+            completion(.failure(NSError(
+                domain: "KeycloakError",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid authorization base URL"]
+            )))
             return
         }
 
-        print("Keycloak: Final authURL: \(authURL.absoluteString)")
+        guard let tokenURL = URL(string: options.accessTokenEndpoint) else {
+            completion(.failure(NSError(
+                domain: "KeycloakError",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid token endpoint URL"]
+            )))
+            return
+        }
 
-        let callbackScheme: String? = URLComponents(string: options.redirectUrl)?.scheme
+        guard let redirectURL = URL(string: options.redirectUrl) else {
+            completion(.failure(NSError(
+                domain: "KeycloakError",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid redirect URL"]
+            )))
+            return
+        }
 
-        let session: ASWebAuthSessionWrapper = ASWebAuthSessionWrapper(
-            presentationContextProvider: self)
+        // Use the provided URLs directly since they should already be complete
+        let configuration = OIDServiceConfiguration(
+            authorizationEndpoint: authorizationURL,
+            tokenEndpoint: tokenURL
+        )
 
-        // Use injected web auth session
-        session.start(url: authURL, callbackScheme: callbackScheme) {
-            [weak self] callbackURL, error in
-            self?.handleAuthenticationResponse(
-                callbackURL: callbackURL, codeVerifier: codeVerifier, error: error,
-                completion: completion)
+        // Create authorization request with PKCE
+        let request = OIDAuthorizationRequest(
+            configuration: configuration,
+            clientId: options.clientId,
+            clientSecret: nil,
+            scopes: ["openid", "profile", "email"],
+            redirectURL: redirectURL,
+            responseType: OIDResponseTypeCode,
+            additionalParameters: nil
+        )
+
+        // Ensure we're on the main thread for UI operations
+        DispatchQueue.main.async { [weak self] in
+            // Get presentation context from the plugin's view controller
+            guard let presentingViewController = self?.plugin?.bridge?.viewController else {
+                print("Keycloak: Could not find presenting view controller from plugin")
+                completion(.failure(NSError(
+                    domain: "KeycloakError",
+                    code: 4,
+                    userInfo: [NSLocalizedDescriptionKey: "Could not find presenting view controller"]
+                )))
+                return
+            }
+            
+            print("Keycloak: Found presenting view controller: \(presentingViewController)")
+            print("Keycloak: Starting authorization request")
+            
+            // Get the app delegate to store the authorization flow
+            guard let appDelegate = UIApplication.shared.delegate as? KeycloakAppDelegate else {
+                print("Keycloak: Could not find AppDelegate conforming to KeycloakAppDelegate protocol")
+                completion(.failure(NSError(
+                    domain: "KeycloakError",
+                    code: 5,
+                    userInfo: [NSLocalizedDescriptionKey: "Could not find AppDelegate conforming to KeycloakAppDelegate protocol"]
+                )))
+                return
+            }
+            
+            // Perform authorization request and store in AppDelegate
+            appDelegate.currentAuthorizationFlow = OIDAuthState.authState(
+                byPresenting: request,
+                presenting: presentingViewController
+            ) { [weak self] authState, error in
+                // Clear the authorization flow from AppDelegate
+                appDelegate.currentAuthorizationFlow = nil
+                
+                self?.handleAuthorizationResponse(
+                    authState: authState,
+                    error: error,
+                    completion: completion
+                )
+            }
         }
     }
 
-    // Extracted method for handling authentication response - easier to test
-    private func handleAuthenticationResponse(
-        callbackURL: URL?,
-        codeVerifier: String,
+    private func handleAuthorizationResponse(
+        authState: OIDAuthState?,
         error: Error?,
         completion: @escaping (Result<[String: Any], Error>) -> Void
     ) {
         if let error = error {
-            // Check if this is a user cancellation
-            if let authError = error as? ASWebAuthenticationSessionError,
-                authError.code == .canceledLogin
-            {
-                print("Keycloak: User cancelled authentication")
-                // Return a structured response for user cancellation
-                let cancelResponse: [String: Any] = [
-                    "isAuthenticated": false,
-                    "redirectUrl": "",
-                ]
-                completion(.success(cancelResponse))
-                return
-            }
-
-            // Handle other errors normally
-            print("Keycloak: Authentication error: \(error.localizedDescription)")
+            print("Keycloak: Authorization error: \(error.localizedDescription)")
             completion(.failure(error))
             return
         }
 
-        guard let callbackURL = callbackURL else {
-            completion(
-                .failure(
-                    NSError(
-                        domain: "KeycloakError",
-                        code: 2,
-                        userInfo: [NSLocalizedDescriptionKey: "No callback URL received"]
-                    )
-                ))
+        guard let authState = authState else {
+            completion(.failure(NSError(
+                domain: "KeycloakError",
+                code: 6,
+                userInfo: [NSLocalizedDescriptionKey: "No auth state received"]
+            )))
             return
         }
 
-        print("Keycloak: Callback URL received: \(callbackURL)")
-
-        // Parse the callback URL and extract all parameters
-        let result = parseCallbackURL(callbackURL)
-
-        // Check for errors in the callback
-        if let error = result["error"] as? String {
-            let errorDescription = result["error_description"] as? String ?? error
-            print("Keycloak: Error from server - error: \(error)")
-            print("Keycloak: Error from server - description: \(errorDescription)")
-
-            // Return structured error response instead of throwing
-            let errorResponse: [String: Any] = [
-                "isAuthenticated": false,
-                "redirectUrl": result["redirectUrl"] ?? "",
-                "error": error,
-                "errorDescription": errorDescription,
-            ]
-
-            completion(.success(errorResponse))
-
+        guard let accessToken = authState.lastTokenResponse?.accessToken else {
+            completion(.failure(NSError(
+                domain: "KeycloakError",
+                code: 7,
+                userInfo: [NSLocalizedDescriptionKey: "No access token received"]
+            )))
             return
         }
 
-        // Check if we have an authorization code to exchange for tokens
-        guard let authorizationCode = result["code"] as? String else {
-            // No authorization code found, return unsuccessful authentication
-            let failureResponse: [String: Any] = [
-                "isAuthenticated": false,
-                "redirectUrl": result["redirectUrl"] ?? "",
-                "error": result["error"] ?? "No authorization code received",
-                "errorDescription": result["error_description"]
-                    ?? "Authentication did not complete successfully",
-            ]
-            completion(.success(failureResponse))
-            return
-        }
+        print("Keycloak: Authentication successful")
 
-        print("Keycloak: Authorization code received, proceeding with automatic token exchange")
-        // Exchange authorization code for tokens using PKCE
-        exchangeCodeForTokens(
-            authorizationCode: authorizationCode, codeVerifier: codeVerifier, completion: completion
-        )
-    }
-
-    // Extracted method for parsing callback URL - easier to test
-    private func parseCallbackURL(_ callbackURL: URL) -> [String: Any] {
-        let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
-        var result: [String: Any] = [
-            "redirectUrl": callbackURL.absoluteString
+        // Create response
+        var response: [String: Any] = [
+            "isAuthenticated": true,
+            "accessToken": accessToken
         ]
 
-        if let queryItems = components?.queryItems {
-            for item in queryItems {
-                if let value = item.value {
-                    result[item.name] = value
-                }
-            }
+        if let refreshToken = authState.lastTokenResponse?.refreshToken {
+            response["refreshToken"] = refreshToken
         }
 
-        return result
+        if let tokenType = authState.lastTokenResponse?.tokenType {
+            response["tokenType"] = tokenType
+        }
+
+        if let expiresIn = authState.lastTokenResponse?.accessTokenExpirationDate {
+            let timeInterval = expiresIn.timeIntervalSinceNow
+            response["expiresIn"] = Int(timeInterval)
+        }
+
+        if let scope = authState.lastTokenResponse?.scope {
+            response["scope"] = scope
+        }
+
+        if let idToken = authState.lastTokenResponse?.idToken {
+            response["idToken"] = idToken
+        }
+
+        // Set up automatic token refresh
+        if let refreshToken = authState.lastTokenResponse?.refreshToken,
+           let expirationDate = authState.lastTokenResponse?.accessTokenExpirationDate {
+            let expiresIn = Int(expirationDate.timeIntervalSinceNow)
+            scheduleTokenRefresh(
+                authState: authState,
+                expiresIn: expiresIn
+            )
+        }
+
+        completion(.success(response))
     }
 
     public func refreshToken(
@@ -321,421 +222,132 @@ class DefaultHTTPClient: HTTPClientProtocol {
         print("Keycloak: Refreshing token for clientId: \(options.clientId)")
         print("Keycloak: Token endpoint: \(options.accessTokenEndpoint)")
 
-        guard let url = URL(string: options.accessTokenEndpoint) else {
-            completion(
-                .failure(
-                    NSError(
-                        domain: "KeycloakError",
-                        code: 11,
-                        userInfo: [NSLocalizedDescriptionKey: "Invalid token endpoint URL"]
-                    )
-                ))
+        guard let tokenURL = URL(string: options.accessTokenEndpoint) else {
+            completion(.failure(NSError(
+                domain: "KeycloakError",
+                code: 8,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid token endpoint URL"]
+            )))
             return
         }
 
-        // Create the refresh token request
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        // Create a minimal configuration for token refresh
+        let configuration = OIDServiceConfiguration(
+            authorizationEndpoint: tokenURL, // Not used for refresh
+            tokenEndpoint: tokenURL
+        )
 
-        // Build the request body for refresh token grant
-        var bodyComponents = URLComponents()
-        bodyComponents.queryItems = [
-            URLQueryItem(name: "grant_type", value: "refresh_token"),
-            URLQueryItem(name: "client_id", value: options.clientId),
-            URLQueryItem(name: "refresh_token", value: options.refreshToken),
-        ]
+        // Create token refresh request
+        let request = OIDTokenRequest(
+            configuration: configuration,
+            grantType: OIDGrantTypeRefreshToken,
+            authorizationCode: nil,
+            redirectURL: nil,
+            clientID: options.clientId,
+            clientSecret: nil,
+            scope: nil,
+            refreshToken: options.refreshToken,
+            codeVerifier: nil,
+            additionalParameters: nil
+        )
 
-        request.httpBody = bodyComponents.percentEncodedQuery?.data(using: .utf8)
-
-        // Perform the refresh token request
-        httpClient.performRequest(request: request) { data, response, error in
+        // Perform token refresh
+        OIDAuthorizationService.perform(request) { response, error in
             if let error = error {
-                print("Keycloak: Refresh token network error: \(error.localizedDescription)")
+                print("Keycloak: Token refresh error: \(error.localizedDescription)")
                 completion(.failure(error))
                 return
             }
 
-            guard let data = data else {
-                completion(
-                    .failure(
-                        NSError(
-                            domain: "KeycloakError",
-                            code: 12,
-                            userInfo: [
-                                NSLocalizedDescriptionKey: "No data received from token endpoint"
-                            ]
-                        )
-                    ))
+            guard let response = response else {
+                completion(.failure(NSError(
+                    domain: "KeycloakError",
+                    code: 9,
+                    userInfo: [NSLocalizedDescriptionKey: "No response received from token endpoint"]
+                )))
                 return
             }
 
-            // Parse the token response
-            do {
-                if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: [])
-                    as? [String: Any]
-                {
-                    print("Keycloak: Token refresh successful")
+            print("Keycloak: Token refresh successful")
 
-                    // Check for errors in the token response
-                    if let error = jsonResponse["error"] as? String {
-                        let errorDescription = jsonResponse["error_description"] as? String ?? error
-                        print("Keycloak: Token refresh error: \(error) - \(errorDescription)")
-                        completion(
-                            .failure(
-                                NSError(
-                                    domain: "KeycloakError",
-                                    code: 13,
-                                    userInfo: [
-                                        NSLocalizedDescriptionKey: errorDescription,
-                                        "keycloakError": error,
-                                        "keycloakErrorDescription": errorDescription,
-                                    ]
-                                )
-                            ))
-                        return
-                    }
+            // Create structured response
+            var structuredResponse: [String: Any] = [:]
 
-                    // Transform the refresh token response
-                    var structuredResponse: [String: Any] = [:]
-
-                    // Map standard OAuth token response fields
-                    if let accessToken = jsonResponse["access_token"] as? String {
-                        structuredResponse["accessToken"] = accessToken
-                    }
-
-                    if let refreshToken = jsonResponse["refresh_token"] as? String {
-                        structuredResponse["refreshToken"] = refreshToken
-                    }
-
-                    if let tokenType = jsonResponse["token_type"] as? String {
-                        structuredResponse["tokenType"] = tokenType
-                    }
-
-                    if let expiresIn = jsonResponse["expires_in"] {
-                        structuredResponse["expiresIn"] = expiresIn
-                    }
-
-                    if let scope = jsonResponse["scope"] as? String {
-                        structuredResponse["scope"] = scope
-                    }
-
-                    // Include any additional fields from the original response
-                    for (key, value) in jsonResponse {
-                        if !["access_token", "refresh_token", "token_type", "expires_in", "scope"]
-                            .contains(key)
-                        {
-                            structuredResponse[key] = value
-                        }
-                    }
-
-                    // Return the structured response
-                    completion(.success(structuredResponse))
-                } else {
-                    completion(
-                        .failure(
-                            NSError(
-                                domain: "KeycloakError",
-                                code: 14,
-                                userInfo: [
-                                    NSLocalizedDescriptionKey:
-                                        "Invalid JSON response from token endpoint"
-                                ]
-                            )
-                        ))
-                }
-            } catch {
-                print(
-                    "Keycloak: Failed to parse refresh token response JSON: \(error.localizedDescription)"
-                )
-                completion(.failure(error))
+            if let accessToken = response.accessToken {
+                structuredResponse["accessToken"] = accessToken
             }
+
+            if let refreshToken = response.refreshToken {
+                structuredResponse["refreshToken"] = refreshToken
+            }
+
+            if let tokenType = response.tokenType {
+                structuredResponse["tokenType"] = tokenType
+            }
+
+            if let expirationDate = response.accessTokenExpirationDate {
+                let expiresIn = Int(expirationDate.timeIntervalSinceNow)
+                structuredResponse["expiresIn"] = expiresIn
+            }
+
+            if let scope = response.scope {
+                structuredResponse["scope"] = scope
+            }
+
+            completion(.success(structuredResponse))
         }
     }
 
-    // Exchange authorization code for tokens using PKCE
-    private func exchangeCodeForTokens(
-        authorizationCode: String,
-        codeVerifier: String,
-        completion: @escaping (Result<[String: Any], Error>) -> Void
-    ) {
-        guard let options: KeycloakOptions = currentOptions else {
-            completion(
-                .failure(
-                    NSError(
-                        domain: "KeycloakError",
-                        code: 4,
-                        userInfo: [
-                            NSLocalizedDescriptionKey:
-                                "Missing authentication options for token exchange"
-                        ]
-                    )
-                ))
-            return
-        }
-
-        // accessTokenEndpoint is now required, so we can use it directly
-        let tokenEndpoint: String = options.accessTokenEndpoint
-
-        guard let url: URL = URL(string: tokenEndpoint) else {
-            completion(
-                .failure(
-                    NSError(
-                        domain: "KeycloakError",
-                        code: 7,
-                        userInfo: [NSLocalizedDescriptionKey: "Invalid token endpoint URL"]
-                    )
-                ))
-            return
-        }
-
-        print("Keycloak: Exchanging authorization code for tokens")
-        print("Keycloak: Token endpoint: \(tokenEndpoint)")
-
-        // Create the token request
-        var request: URLRequest = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-
-        // Build the request body with PKCE parameters
-        var bodyComponents: URLComponents = URLComponents()
-        bodyComponents.queryItems = [
-            URLQueryItem(name: "grant_type", value: "authorization_code"),
-            URLQueryItem(name: "client_id", value: options.clientId),
-            URLQueryItem(name: "code", value: authorizationCode),
-            URLQueryItem(name: "redirect_uri", value: options.redirectUrl),
-            URLQueryItem(name: "code_verifier", value: codeVerifier),
-        ]
-
-        request.httpBody = bodyComponents.percentEncodedQuery?.data(using: .utf8)
-
-        // Perform the token exchange request
-        httpClient.performRequest(request: request) { [weak self] data, response, error in
-            if let error = error {
-                print("Keycloak: Token exchange network error: \(error.localizedDescription)")
-                completion(.failure(error))
-                return
-            }
-
-            guard let data: Data = data else {
-                completion(
-                    .failure(
-                        NSError(
-                            domain: "KeycloakError",
-                            code: 8,
-                            userInfo: [
-                                NSLocalizedDescriptionKey: "No data received from token endpoint"
-                            ]
-                        )
-                    ))
-                return
-            }
-
-            // Parse the token response
-            do {
-                if let jsonResponse: [String: Any] = try JSONSerialization.jsonObject(
-                    with: data, options: [])
-                    as? [String: Any]
-                {
-                    print("Keycloak: Token exchange successful")
-
-                    // Check for errors in the token response
-                    if let error: String = jsonResponse["error"] as? String {
-                        let errorDescription: String =
-                            jsonResponse["error_description"] as? String ?? error
-                        print("Keycloak: Token exchange error: \(error) - \(errorDescription)")
-                        completion(
-                            .failure(
-                                NSError(
-                                    domain: "KeycloakError",
-                                    code: 9,
-                                    userInfo: [
-                                        NSLocalizedDescriptionKey: errorDescription,
-                                        "keycloakError": error,
-                                        "keycloakErrorDescription": errorDescription,
-                                    ]
-                                )
-                            ))
-                        return
-                    }
-
-                    // Clear stored values after successful exchange
-                    self?.currentOptions = nil
-
-                    // Transform the token response to include isAuthenticated flag
-                    var structuredResponse: [String: Any] = [
-                        "isAuthenticated": true
-                    ]
-
-                    // Map standard OAuth token response fields
-                    if let accessToken = jsonResponse["access_token"] as? String {
-                        structuredResponse["accessToken"] = accessToken
-                    }
-
-                    if let refreshToken = jsonResponse["refresh_token"] as? String {
-                        structuredResponse["refreshToken"] = refreshToken
-                    }
-
-                    if let idToken = jsonResponse["id_token"] as? String {
-                        structuredResponse["idToken"] = idToken
-                    }
-
-                    if let tokenType = jsonResponse["token_type"] as? String {
-                        structuredResponse["tokenType"] = tokenType
-                    }
-
-                    if let expiresIn = jsonResponse["expires_in"] {
-                        structuredResponse["expiresIn"] = expiresIn
-                    }
-
-                    if let scope = jsonResponse["scope"] as? String {
-                        structuredResponse["scope"] = scope
-                    }
-
-                    // Include any additional fields from the original response
-                    for (key, value) in jsonResponse {
-                        if ![
-                            "access_token", "refresh_token", "id_token", "token_type", "expires_in",
-                            "scope",
-                        ].contains(key) {
-                            structuredResponse[key] = value
-                        }
-                    }
-
-                    // Set up automatic token refresh - always enabled
-                    if let refreshToken = jsonResponse["refresh_token"] as? String,
-                        let expiresIn = jsonResponse["expires_in"] as? Int
-                    {
-                        self?.scheduleTokenRefresh(
-                            clientId: options.clientId,
-                            accessTokenEndpoint: options.accessTokenEndpoint,
-                            refreshToken: refreshToken,
-                            expiresIn: expiresIn
-                        )
-                    }
-
-                    // Return the structured response
-                    completion(.success(structuredResponse))
-                } else {
-                    completion(
-                        .failure(
-                            NSError(
-                                domain: "KeycloakError",
-                                code: 10,
-                                userInfo: [
-                                    NSLocalizedDescriptionKey:
-                                        "Invalid JSON response from token endpoint"
-                                ]
-                            )
-                        ))
-                }
-            } catch {
-                print(
-                    "Keycloak: Failed to parse token response JSON: \(error.localizedDescription)")
-                completion(.failure(error))
-            }
-        }
-    }
-
-    private func scheduleTokenRefresh(
-        clientId: String,
-        accessTokenEndpoint: String,
-        refreshToken: String,
-        expiresIn: Int
-    ) {
+    private func scheduleTokenRefresh(authState: OIDAuthState, expiresIn: Int) {
         // Cancel any existing timer
         refreshTimer?.invalidate()
 
-        // Store refresh options for future refreshes
-        autoRefreshOptions = (
-            clientId: clientId, accessTokenEndpoint: accessTokenEndpoint, refreshToken: refreshToken
-        )
-
         // Schedule refresh 5 minutes (300 seconds) before expiration
         let bufferTime = 300
-        let refreshTime = max(expiresIn - bufferTime, 10)  // Minimum 10 seconds
+        let refreshTime = max(expiresIn - bufferTime, 10) // Minimum 10 seconds
 
         print("Keycloak: Scheduling token refresh in \(refreshTime) seconds")
 
-        refreshTimer = Timer.scheduledTimer(
-            withTimeInterval: TimeInterval(refreshTime), repeats: false
-        ) { [weak self] _ in
-            self?.performAutomaticRefresh()
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(refreshTime), repeats: false) { [weak self] _ in
+            self?.performAutomaticRefresh(authState: authState)
         }
     }
 
-    private func performAutomaticRefresh() {
-        guard let options = autoRefreshOptions else {
-            print("Keycloak: No auto-refresh options available")
-            return
-        }
-
+    private func performAutomaticRefresh(authState: OIDAuthState) {
         print("Keycloak: Performing automatic token refresh")
 
-        let refreshOptions = KeycloakRefreshOptions(
-            clientId: options.clientId,
-            accessTokenEndpoint: options.accessTokenEndpoint,
-            refreshToken: options.refreshToken
-        )
-
-        refreshToken(options: refreshOptions) { [weak self] result in
-            switch result {
-            case .success(let response):
-                print("Keycloak: Automatic token refresh successful")
-
-                // Create KeycloakTokenResponse object
-                let tokenResponse = KeycloakTokenResponse(
-                    accessToken: response["accessToken"] as? String ?? "",
-                    refreshToken: response["refreshToken"] as? String,
-                    tokenType: response["tokenType"] as? String,
-                    expiresIn: response["expiresIn"] as? Int,
-                    scope: response["scope"] as? String
-                )
-
-                // Send event to JavaScript
-                DispatchQueue.main.async {
-                    self?.plugin?.notifyListeners(
-                        "tokenRefresh", data: tokenResponse.toDictionary())
-                }
-
-                // Schedule next refresh if we got new tokens
-                if let newRefreshToken = response["refreshToken"] as? String,
-                    let expiresIn = response["expiresIn"] as? Int
-                {
-                    self?.scheduleTokenRefresh(
-                        clientId: options.clientId,
-                        accessTokenEndpoint: options.accessTokenEndpoint,
-                        refreshToken: newRefreshToken,
-                        expiresIn: expiresIn
-                    )
-                }
-
-            case .failure(let error):
+        authState.performAction { [weak self] accessToken, idToken, error in
+            if let error = error {
                 print("Keycloak: Automatic token refresh failed: \(error.localizedDescription)")
+                return
+            }
+
+            guard let accessToken = accessToken else {
+                print("Keycloak: No access token received during automatic refresh")
+                return
+            }
+
+            print("Keycloak: Automatic token refresh successful")
+
+            // Create token response for notification
+            let tokenResponse = KeycloakTokenResponse(
+                accessToken: accessToken,
+                refreshToken: authState.lastTokenResponse?.refreshToken,
+                tokenType: authState.lastTokenResponse?.tokenType,
+                expiresIn: authState.lastTokenResponse?.accessTokenExpirationDate.map { Int($0.timeIntervalSinceNow) },
+                scope: authState.lastTokenResponse?.scope
+            )
+
+            // Send event to JavaScript
+            DispatchQueue.main.async {
+                self?.plugin?.notifyListeners("tokenRefresh", data: tokenResponse.toDictionary())
+            }
+
+            // Schedule next refresh
+            if let expirationDate = authState.lastTokenResponse?.accessTokenExpirationDate {
+                let expiresIn = Int(expirationDate.timeIntervalSinceNow)
+                self?.scheduleTokenRefresh(authState: authState, expiresIn: expiresIn)
             }
         }
-    }
-
-    public func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor
-    {
-        // Get the key window from the connected scenes
-        guard
-            let windowScene = UIApplication.shared.connectedScenes
-                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-            let window = windowScene.windows.first(where: { $0.isKeyWindow })
-        else {
-            // Fallback to creating a new window if no key window is found
-            return UIWindow()
-        }
-        return window
-    }
-}
-
-extension Data {
-    func base64URLEncodedString() -> String {
-        return base64EncodedString()
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
     }
 }

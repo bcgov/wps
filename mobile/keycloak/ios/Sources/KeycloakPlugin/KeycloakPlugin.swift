@@ -1,15 +1,23 @@
+import AppAuth
 import Capacitor
 import Foundation
+import UIKit
+
+// Protocol to define the AppDelegate interface for authentication
+public protocol KeycloakAppDelegate: AnyObject {
+    var currentAuthorizationFlow: OIDExternalUserAgentSession? { get set }
+}
 
 /// Please read the Capacitor iOS Plugin Development Guide
 /// here: https://capacitorjs.com/docs/plugins/ios
 @objc(KeycloakPlugin)
 public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
+    private var authState: OIDAuthState?
+
     public let identifier = "KeycloakPlugin"
     public let jsName = "Keycloak"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "authenticate", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "refreshToken", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "authenticate", returnType: CAPPluginReturnPromise)
     ]
     private let implementation = Keycloak()
 
@@ -38,52 +46,80 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        let options = KeycloakOptions(
+        // Convert string URLs to URL objects
+        guard let authorizationEndpointURL = URL(string: authorizationBaseUrl) else {
+            call.reject("Invalid authorizationBaseUrl")
+            return
+        }
+
+        guard let tokenEndpointURL = URL(string: tokenUrl) else {
+            call.reject("Invalid accessTokenEndpoint")
+            return
+        }
+
+        guard let redirectURL = URL(string: redirectUrl) else {
+            call.reject("Invalid redirectUrl")
+            return
+        }
+
+        let configuration = OIDServiceConfiguration(
+            authorizationEndpoint: authorizationEndpointURL,
+            tokenEndpoint: tokenEndpointURL)
+
+        var authorizationParameters = ["prompt": "login"]
+        let request = OIDAuthorizationRequest(
+            configuration: configuration,
             clientId: clientId,
-            authorizationBaseUrl: authorizationBaseUrl,
-            redirectUrl: redirectUrl,
-            accessTokenEndpoint: tokenUrl
-        )
+            scopes: [OIDScopeOpenID, OIDScopeProfile, "offline_access"],
+            redirectURL: redirectURL,
+            responseType: OIDResponseTypeCode,
+            additionalParameters: authorizationParameters)
 
-        implementation.authenticate(options: options) { result in
-            switch result {
-            case .success(let response):
-                call.resolve(response)
-            case .failure(let error):
-                call.reject("Authentication failed", error.localizedDescription)
+        DispatchQueue.main.sync {
+
+            guard let appDelegate = UIApplication.shared.delegate as? KeycloakAppDelegate else {
+                call.reject("AppDelegate must conform to KeycloakAppDelegate protocol")
+                return
             }
-        }
-    }
 
-    @objc func refreshToken(_ call: CAPPluginCall) {
-        guard let clientId = call.getString("clientId") else {
-            call.reject("Missing required parameter: clientId")
-            return
-        }
+            let keyWindow = UIApplication.shared.windows.filter { $0.isKeyWindow }.first
+            var ivc: UIViewController? = nil
 
-        guard let accessTokenEndpoint = call.getString("accessTokenEndpoint") else {
-            call.reject("Missing required parameter: accessTokenEndpoint")
-            return
-        }
-
-        guard let refreshToken = call.getString("refreshToken") else {
-            call.reject("Missing required parameter: refreshToken")
-            return
-        }
-
-        let options = KeycloakRefreshOptions(
-            clientId: clientId,
-            accessTokenEndpoint: accessTokenEndpoint,
-            refreshToken: refreshToken
-        )
-
-        implementation.refreshToken(options: options) { result in
-            switch result {
-            case .success(let response):
-                call.resolve(response)
-            case .failure(let error):
-                call.reject("Token refresh failed", error.localizedDescription)
+            if var topController = keyWindow?.rootViewController {
+                while let presentedViewController = topController.presentedViewController {
+                    topController = presentedViewController
+                }
+                ivc = topController
             }
+
+            appDelegate.currentAuthorizationFlow =
+                OIDAuthState.authState(byPresenting: request, presenting: ivc!) {
+                    authState, error in
+                    if let authState = authState {
+                        self.authState = authState
+                        call.resolve([
+                            "isAuthenticated": true,
+                            "accessToken": authState.lastTokenResponse?.accessToken as Any,
+                            "refreshToken": authState.lastTokenResponse?.refreshToken as Any,
+                            "tokenType": authState.lastTokenResponse?.tokenType as Any,
+                            "expiresIn": authState.lastTokenResponse?.accessTokenExpirationDate
+                                as Any,
+                            "scope": authState.lastTokenResponse?.scope as Any,
+                            "idToken": authState.lastTokenResponse?.idToken as Any,
+                        ])
+                        print(
+                            "Got authorization tokens. Access token: "
+                                + "\(authState.lastTokenResponse?.accessToken ?? "nil")")
+
+                    } else {
+                        print(
+                            "Authorization error: \(error?.localizedDescription ?? "Unknown error")"
+                        )
+                        self.authState = nil
+                        call.reject(
+                            "Authentication failed", error?.localizedDescription ?? "Unknown error")
+                    }
+                }
         }
     }
 }
