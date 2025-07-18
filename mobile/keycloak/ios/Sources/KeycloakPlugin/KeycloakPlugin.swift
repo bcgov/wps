@@ -15,6 +15,8 @@ public protocol KeycloakAppDelegate: AnyObject {
 public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
     private var authState: OIDAuthState?
     private let logger = Logger(subsystem: "com.bcgov.wps.keycloak", category: "authentication")
+    private var refreshTimer: Timer?
+    private var tokenRefreshThreshold: TimeInterval = 60  // 1 minute before expiration
 
     public let identifier = "KeycloakPlugin"
     public let jsName = "Keycloak"
@@ -94,6 +96,10 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
                     authState, error in
                     if let authState = authState {
                         self.authState = authState
+
+                        // Setup automatic token refresh
+                        self.setupTokenRefreshTimer()
+
                         call.resolve([
                             "isAuthenticated": true,
                             "accessToken": authState.lastTokenResponse?.accessToken as Any,
@@ -118,5 +124,99 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
                     }
                 }
         }
+    }
+
+    private func setupTokenRefreshTimer() {
+        // Stop any existing timer
+        stopTokenRefreshTimer()
+
+        guard let authState = self.authState,
+            let expirationDate = authState.lastTokenResponse?.accessTokenExpirationDate
+        else {
+            return
+        }
+
+        // Calculate when to refresh (threshold seconds before expiration)
+        let refreshDate = expirationDate.addingTimeInterval(-tokenRefreshThreshold)
+        let timeUntilRefresh = refreshDate.timeIntervalSinceNow
+
+        // Only set timer if refresh time is in the future
+        if timeUntilRefresh > 0 {
+            refreshTimer = Timer.scheduledTimer(withTimeInterval: timeUntilRefresh, repeats: false)
+            { [weak self] _ in
+                self?.performAutomaticTokenRefresh()
+            }
+
+            logger.debug("Token refresh timer set for \(timeUntilRefresh) seconds")
+        } else {
+            // Token is close to expiration or already expired, refresh immediately
+            performAutomaticTokenRefresh()
+        }
+    }
+
+    private func stopTokenRefreshTimer() {
+        refreshTimer?.invalidate()
+        refreshTimer = nil
+    }
+
+    private func performAutomaticTokenRefresh() {
+        logger.debug("Performing automatic token refresh")
+
+        performTokenRefresh { [weak self] success, tokenResponse, error in
+            if success {
+                self?.logger.debug("Automatic token refresh successful")
+                self?.setupTokenRefreshTimer()  // Schedule next refresh
+
+                // Notify JavaScript layer about token refresh
+                self?.notifyListeners("tokenRefreshed", data: tokenResponse ?? [:])
+            } else {
+                self?.logger.error("Automatic token refresh failed: \(error ?? "Unknown error")")
+
+                // Notify JavaScript layer about refresh failure
+                self?.notifyListeners(
+                    "tokenRefreshFailed", data: ["error": error ?? "Unknown error"])
+            }
+        }
+    }
+
+    private func performTokenRefresh(completion: @escaping (Bool, [String: Any]?, String?) -> Void)
+    {
+        guard let authState = self.authState else {
+            completion(false, nil, "No authentication state available")
+            return
+        }
+
+        authState.performAction { [weak self] accessToken, idToken, error in
+            if let error = error {
+                self?.logger.error("Token refresh error: \(error.localizedDescription)")
+                completion(false, nil, error.localizedDescription)
+            } else {
+                self?.logger.debug("Token refresh successful")
+
+                // Update stored auth state
+                if let authState = self?.authState {
+                    let tokenResponse = self?.createTokenResponse(from: authState)
+                    completion(true, tokenResponse, nil)
+                } else {
+                    completion(false, nil, "Auth state became nil after refresh")
+                }
+            }
+        }
+    }
+
+    private func createTokenResponse(from authState: OIDAuthState) -> [String: Any] {
+        return [
+            "isAuthenticated": true,
+            "accessToken": authState.lastTokenResponse?.accessToken as Any,
+            "refreshToken": authState.lastTokenResponse?.refreshToken as Any,
+            "tokenType": authState.lastTokenResponse?.tokenType as Any,
+            "expiresIn": authState.lastTokenResponse?.accessTokenExpirationDate as Any,
+            "scope": authState.lastTokenResponse?.scope as Any,
+            "idToken": authState.lastTokenResponse?.idToken as Any,
+        ]
+    }
+
+    deinit {
+        stopTokenRefreshTimer()
     }
 }
