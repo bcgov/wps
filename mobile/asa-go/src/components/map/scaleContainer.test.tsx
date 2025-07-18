@@ -1,5 +1,5 @@
-import ScaleContainer from "@/components/ScaleContainer";
-import { render, screen, act } from "@testing-library/react";
+import ScaleContainer from "@/components/map/ScaleContainer";
+import { act, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 describe("ScaleContainer", () => {

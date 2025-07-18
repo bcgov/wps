@@ -181,4 +181,4 @@ class LatestSFMSRunParameter(BaseModel):
 
 
 class LatestSFMSRunParameterResponse(BaseModel):
-    run_parameter: LatestSFMSRunParameter
+    run_parameter: LatestSFMSRunParameter | None

@@ -31,6 +31,7 @@ const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
       sx={{
         backgroundColor: theme.palette.primary.main,
         color: theme.palette.primary.contrastText,
+        py: theme.spacing(1),
       }}
     >
       <StyledBottomNavigationAction
