@@ -1,56 +1,51 @@
 import Capacitor
 import Foundation
-import XCTest
+import Testing
 
 @testable import KeycloakPlugin
 
-class KeycloakPluginTests: XCTestCase {
+struct KeycloakPluginTests {
 
-    var plugin: KeycloakPlugin!
+    var plugin: KeycloakPlugin
 
-    override func setUp() {
-        super.setUp()
+    init() {
         plugin = KeycloakPlugin()
     }
 
-    override func tearDown() {
-        plugin = nil
-        super.tearDown()
+    @Test func testPluginIdentifier() {
+        #expect(plugin.identifier == "KeycloakPlugin")
     }
 
-    func testPluginIdentifier() {
-        XCTAssertEqual(plugin.identifier, "KeycloakPlugin")
+    @Test func testPluginJSName() {
+        #expect(plugin.jsName == "Keycloak")
     }
 
-    func testPluginJSName() {
-        XCTAssertEqual(plugin.jsName, "Keycloak")
-    }
-
-    func testPluginMethods() {
+    @Test func testPluginMethods() {
         let methodNames = plugin.pluginMethods.map { $0.name }
-        XCTAssertTrue(methodNames.contains("authenticate"))
-        XCTAssertEqual(plugin.pluginMethods.count, 1)
+        #expect(methodNames.contains("authenticate"))
+        #expect(plugin.pluginMethods.count == 1)
     }
 
-    func testPluginMethodReturnTypes() {
+    @Test func testPluginMethodReturnTypes() {
         for method in plugin.pluginMethods {
-            XCTAssertEqual(method.returnType, CAPPluginReturnPromise)
+            #expect(method.returnType == CAPPluginReturnPromise)
         }
     }
 
-    func testPluginLoad() {
+    @Test func testPluginLoad() {
         // This test verifies that load() can be called without crashing
-        XCTAssertNoThrow(plugin.load())
+        // In Swift Testing, we just call it and expect no crash
+        plugin.load()
     }
 
-    func testParameterValidation() {
+    @Test func testParameterValidation() {
         // These tests verify the plugin's parameter validation logic
         // by testing the actual logic patterns used in the plugin
 
         // Test required parameter checking pattern
-        XCTAssertTrue(validateParameter("test-value"))
-        XCTAssertFalse(validateParameter(nil))
-        XCTAssertFalse(validateParameter(""))
+        #expect(validateParameter("test-value") == true)
+        #expect(validateParameter(nil) == false)
+        #expect(validateParameter("") == false)
     }
 
     private func validateParameter(_ value: String?) -> Bool {
