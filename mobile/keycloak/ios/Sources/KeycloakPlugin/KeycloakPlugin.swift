@@ -1,6 +1,7 @@
 import AppAuth
 import Capacitor
 import Foundation
+import OSLog
 import UIKit
 
 // Protocol to define the AppDelegate interface for authentication
@@ -13,6 +14,7 @@ public protocol KeycloakAppDelegate: AnyObject {
 @objc(KeycloakPlugin)
 public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
     private var authState: OIDAuthState?
+    private let logger = Logger(subsystem: "com.bcgov.wps.keycloak", category: "authentication")
 
     public let identifier = "KeycloakPlugin"
     public let jsName = "Keycloak"
@@ -102,12 +104,12 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
                             "scope": authState.lastTokenResponse?.scope as Any,
                             "idToken": authState.lastTokenResponse?.idToken as Any,
                         ])
-                        print(
-                            "Got authorization tokens. Access token: "
-                                + "\(authState.lastTokenResponse?.accessToken ?? "nil")")
+                        self.logger.debug(
+                            "Got authorization tokens. Access token: \(authState.lastTokenResponse?.accessToken ?? "nil", privacy: .private)"
+                        )
 
                     } else {
-                        print(
+                        self.logger.error(
                             "Authorization error: \(error?.localizedDescription ?? "Unknown error")"
                         )
                         self.authState = nil
