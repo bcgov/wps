@@ -19,11 +19,6 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "authenticate", returnType: CAPPluginReturnPromise)
     ]
-    private let implementation = Keycloak()
-
-    public override func load() {
-        implementation.setPlugin(self)
-    }
 
     @objc func authenticate(_ call: CAPPluginCall) {
         guard let clientId = call.getString("clientId") else {
