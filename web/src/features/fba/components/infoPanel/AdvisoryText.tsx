@@ -136,8 +136,6 @@ const AdvisoryText = ({
     return getTopFuelsByProportion(selectedFilteredZoneUnitFuelStats.fuel_area_stats)
   }, [selectedFilteredZoneUnitFuelStats])
 
-  const selectedFireZoneUnitMinWindSpeeds = selectedFilteredZoneUnitFuelStats.min_wind_stats
-
   const {
     minStartTime,
     maxEndTime,
@@ -254,7 +252,7 @@ const AdvisoryText = ({
     const zoneTitle = `${selectedFireZoneUnit?.mof_fire_zone_name}:\n\n`
     const forToday = forDate.toISODate() === DateTime.now().toISODate()
     const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
-    const minWindSpeedText = getZoneMinWindStatsText(selectedFireZoneUnitMinWindSpeeds)
+    const minWindSpeedText = getZoneMinWindStatsText(selectedFilteredZoneUnitFuelStats.min_wind_stats)
 
     const formattedWindText = minWindSpeedText ? (
       <SerifTypography component="span" data-testid="advisory-message-wind-speed">

@@ -1,8 +1,8 @@
+import { HamburgerMenu } from "@/components/HamburgerMenu";
+import { theme } from "@/theme";
 import { AppBar, Box, Toolbar, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { useRef, useLayoutEffect, useState } from "react";
-import { theme } from "@/theme";
-import { HamburgerMenu } from "@/components/HamburgerMenu";
+import { useLayoutEffect, useRef, useState } from "react";
 
 export const AppHeader = () => {
   const headerRef = useRef<HTMLDivElement>(null);
@@ -41,7 +41,11 @@ export const AppHeader = () => {
             <Typography variant="h6" component="div" sx={{ mr: 0.5 }}>
               ASA
             </Typography>
-            <HamburgerMenu drawerTop={drawerTop} drawerHeight={drawerHeight} />
+            <HamburgerMenu
+              testId="hamburger-menu"
+              drawerTop={drawerTop}
+              drawerHeight={drawerHeight}
+            />
           </Toolbar>
         </AppBar>
       </Grid>

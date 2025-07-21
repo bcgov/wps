@@ -1,9 +1,9 @@
 import { FireCenter, FireShape } from "@/api/fbaAPI";
-import Advisory from "@/components/Advisory";
 import { AppHeader } from "@/components/AppHeader";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 import ASAGoMap from "@/components/map/ASAGoMap";
 import Profile from "@/components/Profile";
+import Advisory from "@/components/report/Advisory";
 import { useAppIsActive } from "@/hooks/useAppIsActive";
 import { fetchFireCenters } from "@/slices/fireCentersSlice";
 import { fetchFireCentreHFIFuelStats } from "@/slices/fireCentreHFIFuelStatsSlice";
@@ -26,7 +26,7 @@ import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-const HFI_THRESHOLD = 5;
+const ADVISORY_THRESHOLD = 20;
 
 const App = () => {
   const isActive = useAppIsActive();
@@ -139,6 +139,7 @@ const App = () => {
 
   return (
     <Box
+      id="asa-go-app"
       sx={{
         height: "100vh",
         padding: 0,
@@ -155,7 +156,7 @@ const App = () => {
         <ASAGoMap
           selectedFireShape={selectedFireShape}
           setSelectedFireShape={setSelectedFireShape}
-          advisoryThreshold={HFI_THRESHOLD}
+          advisoryThreshold={ADVISORY_THRESHOLD}
           date={dateOfInterest}
           setDate={setDateOfInterest}
           setTab={setTab}
@@ -163,7 +164,25 @@ const App = () => {
         />
       )}
       {tab === NavPanel.PROFILE && <Profile />}
-      {tab === NavPanel.ADVISORY && <Advisory />}
+      {tab === NavPanel.ADVISORY && (
+        <Box
+          sx={{
+            display: "flex",
+            flexGrow: 1,
+            overflowY: "hidden",
+          }}
+        >
+          <Advisory
+            advisoryThreshold={ADVISORY_THRESHOLD}
+            date={dateOfInterest}
+            setDate={setDateOfInterest}
+            selectedFireCenter={fireCenter}
+            setSelectedFireCenter={setFireCenter}
+            selectedFireZoneUnit={selectedFireShape}
+            setSelectedFireZoneUnit={setSelectedFireShape}
+          />
+        </Box>
+      )}
       <BottomNavigationBar tab={tab} setTab={setTab} />
     </Box>
   );
