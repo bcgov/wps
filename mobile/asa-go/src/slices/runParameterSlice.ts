@@ -74,9 +74,9 @@ export const fetchMostRecentSFMSRunParameter =
       const runParameter = await getMostRecentRunParameter(forDate);
       dispatch(
         getRunParameterSuccess({
-          forDate: runParameter.for_date,
-          runDateTime: runParameter.run_datetime,
-          runType: runParameter.run_type,
+          forDate: runParameter?.for_date ?? null,
+          runDateTime: runParameter?.run_datetime ?? null,
+          runType: runParameter?.run_type ?? null,
         })
       );
     } catch (err) {

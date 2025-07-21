@@ -226,14 +226,15 @@ async def get_hfi_fuels_data_for_fire_centre(
 async def get_latest_sfms_run_datetime_for_date(for_date: date):
     async with get_async_read_session_scope() as session:
         latest_run_parameter = await get_most_recent_run_datetime_for_date(session, for_date)
-        run_parameter = None
-        if latest_run_parameter is not None:
-            run_parameter=LatestSFMSRunParameter(
+        if latest_run_parameter is None:
+            return LatestSFMSRunParameterResponse()
+        return LatestSFMSRunParameterResponse(
+            LatestSFMSRunParameter(
                 for_date=latest_run_parameter.for_date,
                 run_datetime=latest_run_parameter.run_datetime,
                 run_type=latest_run_parameter.run_type,
             )
-        return LatestSFMSRunParameterResponse(run_parameter=run_parameter)
+        )
 
 
 @router.get("/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])
