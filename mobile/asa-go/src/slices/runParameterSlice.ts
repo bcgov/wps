@@ -1,6 +1,8 @@
-import { AppThunk } from "@/store";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { AppThunk, RootState } from "@/store";
+import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getMostRecentRunParameter, RunType } from "api/fbaAPI";
+import { isNull } from "lodash";
+import { DateTime } from "luxon";
 
 export interface RunParameterState {
   loading: boolean;
@@ -10,7 +12,7 @@ export interface RunParameterState {
   runType: RunType | null;
 }
 
-const initialState: RunParameterState = {
+export const initialState: RunParameterState = {
   loading: false,
   error: null,
   forDate: null,
@@ -72,9 +74,9 @@ export const fetchMostRecentSFMSRunParameter =
       const runParameter = await getMostRecentRunParameter(forDate);
       dispatch(
         getRunParameterSuccess({
-          forDate: runParameter.for_date,
-          runDateTime: runParameter.run_datetime,
-          runType: runParameter.run_type,
+          forDate: runParameter?.for_date ?? null,
+          runDateTime: runParameter?.run_datetime ?? null,
+          runType: runParameter?.run_type ?? null,
         })
       );
     } catch (err) {
@@ -82,3 +84,21 @@ export const fetchMostRecentSFMSRunParameter =
       console.log(err);
     }
   };
+
+const selectForDateString = (state: RootState) => state.runParameter.forDate;
+const selectRunDatetimeString = (state: RootState) =>
+  state.runParameter.runDatetime;
+
+export const selectForDate = createSelector(
+  [selectForDateString],
+  (forDateString) =>
+    isNull(forDateString) ? null : DateTime.fromISO(forDateString)
+);
+
+export const selectRunDatetime = createSelector(
+  [selectRunDatetimeString],
+  (selectRunDatetimeString) =>
+    isNull(selectRunDatetimeString)
+      ? null
+      : DateTime.fromISO(selectRunDatetimeString)
+);

@@ -5,13 +5,13 @@ import { MAP_BUTTON_GREY } from "@/theme";
 import { BORDER_RADIUS, BUTTON_HEIGHT } from "@/components/MapIconButton";
 
 interface TodayTomorrowSwitchProps {
+  border?: boolean;
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
 }
 
 const BUTTON_WIDTH = 48;
 const TEXT_BOX_WIDTH = BUTTON_WIDTH - 4;
-const MAX_SWITCH_WIDTH = 2 * BUTTON_WIDTH;
 const TEXT_BOX_HEIGHT = BUTTON_HEIGHT - 4;
 
 const StyledButton = styled(Button)({
@@ -40,7 +40,12 @@ const StyledTextContainer = styled(Box)({
   minWidth: `${TEXT_BOX_WIDTH}px`,
 });
 
-const TodayTomorrowSwitch = ({ date, setDate }: TodayTomorrowSwitchProps) => {
+const TodayTomorrowSwitch = ({
+  border = false,
+  date,
+  setDate,
+}: TodayTomorrowSwitchProps) => {
+  const borderStyle = border ? `1px solid ${MAP_BUTTON_GREY}` : "none";
   const [value, setValue] = useState<number>(
     date.day === DateTime.now().day ? 0 : 1
   );
@@ -57,10 +62,10 @@ const TodayTomorrowSwitch = ({ date, setDate }: TodayTomorrowSwitchProps) => {
     <Box
       id="tdy-tmr-switch-d"
       sx={{
+        border: borderStyle,
         background: "white",
         borderRadius: `${BORDER_RADIUS}px`,
         display: "flex",
-        maxWidth: `${MAX_SWITCH_WIDTH}px`,
       }}
     >
       <StyledButton disabled={value === 0} onClick={() => handleDayChange(0)}>
