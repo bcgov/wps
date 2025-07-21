@@ -1,25 +1,41 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import FireCenterDropdown from "@/components/FireCenterDropdown";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { FireCenter, FireShape } from "@/api/fbaAPI";
-import React from "react";
-
-// Sample fire centers
-const fireCenters: FireCenter[] = [
-  { id: 1, name: "Fire Center 1", stations: [] },
-  { id: 2, name: "Fire Center 2", stations: [] },
-];
+import FireCenterDropdown from "./FireCenterDropdown";
+import { FireCenter, FireShape } from "api/fbaAPI";
 
 describe("FireCenterDropdown", () => {
-  let setSelectedFireCenter: React.Dispatch<React.SetStateAction<FireCenter | undefined>>;
-  let setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>;
+  let fireCenters: FireCenter[];
+  let setSelectedFireCenter: React.Dispatch<
+    React.SetStateAction<FireCenter | undefined>
+  >;
+  let setSelectedFireShape: React.Dispatch<
+    React.SetStateAction<FireShape | undefined>
+  >;
 
   beforeEach(() => {
+    fireCenters = [
+      { id: 1, name: "Center A", stations: [] },
+      { id: 2, name: "Center B", stations: [] },
+    ];
     setSelectedFireCenter = vi.fn();
     setSelectedFireShape = vi.fn();
   });
 
-  it("renders with provided options", () => {
+  it("renders dropdown with options", () => {
+    const { queryByTestId } = render(
+      <FireCenterDropdown
+        fireCenterOptions={fireCenters}
+        selectedFireCenter={fireCenters[0]}
+        setSelectedFireCenter={setSelectedFireCenter}
+        setSelectedFireShape={setSelectedFireShape}
+      />
+    );
+    const element = queryByTestId("fire-center-dropdown");
+    expect(element).toHaveTextContent("Center A");
+  });
+
+  it("calls setSelectedFireCenter with first option if none selected", () => {
     render(
       <FireCenterDropdown
         fireCenterOptions={fireCenters}
@@ -29,34 +45,10 @@ describe("FireCenterDropdown", () => {
       />
     );
 
-    expect(screen.getByLabelText("Select Fire Centre")).toBeInTheDocument();
+    expect(setSelectedFireCenter).toHaveBeenCalledWith(fireCenters[0]);
   });
 
-  it("calls setSelectedFireCenter and setSelectedFireShape on selection", () => {
-    render(
-      <FireCenterDropdown
-        fireCenterOptions={fireCenters}
-        selectedFireCenter={undefined}
-        setSelectedFireCenter={setSelectedFireCenter}
-        setSelectedFireShape={setSelectedFireShape}
-      />
-    );
-
-    screen.debug()
-
-    const input = screen.getByRole("combobox");
-    fireEvent.change(input, { target: { value: "Fire Center 1" } });
-    fireEvent.keyDown(input, { key: "ArrowDown" });
-    fireEvent.keyDown(input, { key: "Enter" });
-    screen.debug()
-
-    expect(setSelectedFireShape).toHaveBeenCalledWith(undefined);
-    expect(setSelectedFireCenter).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "Fire Center 1" })
-    );
-  });
-
-  it("clears selection", () => {
+  it("changes selection and resets fire shape", async () => {
     render(
       <FireCenterDropdown
         fireCenterOptions={fireCenters}
@@ -66,10 +58,27 @@ describe("FireCenterDropdown", () => {
       />
     );
 
-    const input = screen.getByRole("combobox");
-    fireEvent.change(input, { target: { value: "" } });
-    fireEvent.keyDown(input, { key: "Backspace" });
+    const user = userEvent.setup();
+    const dropdown = screen.getByRole("combobox");
+    await user.click(dropdown);
 
-    waitFor(() => expect(input).toHaveValue(""))
+    const option = await screen.findByText("Center B");
+    await user.click(option);
+
+    expect(setSelectedFireShape).toHaveBeenCalledWith(undefined);
+    expect(setSelectedFireCenter).toHaveBeenCalledWith(fireCenters[1]);
+  });
+
+  it("does not crash with empty options", () => {
+    render(
+      <FireCenterDropdown
+        fireCenterOptions={[]}
+        selectedFireCenter={undefined}
+        setSelectedFireCenter={setSelectedFireCenter}
+        setSelectedFireShape={setSelectedFireShape}
+      />
+    );
+    // Expect empty select to render with a zero width space.
+    expect(screen.getByRole("combobox")).toHaveTextContent("\u200B");
   });
 });

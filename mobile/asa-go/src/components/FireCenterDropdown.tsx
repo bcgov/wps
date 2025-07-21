@@ -32,7 +32,7 @@ const FireCenterDropdown = ({
   }
 
   return (
-    <Select value={selectedFireCenter?.name ?? ""}>
+    <Select data-testid="fire-center-dropdown" value={selectedFireCenter?.name ?? ""}>
       {fireCenterOptions.map((option) => (
         <MenuItem
           key={option.name}
