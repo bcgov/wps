@@ -17,6 +17,7 @@ ignore:
   - "wps_shared/wps_shared/tests" # We don't care about coverage of the tests themselves.
   - "wps_jobs/tests" # We don't care about coverage of the tests themselves.
   - "web/src/utils/fwi" # We're temporarily hardcoding cffdrs ts modules here. Will switch to npm package eventually.
+  - "mobile/keycloak/ios/Tests/KeycloakPluginTests" # These are tests
 
 coverage:
   # https://docs.codecov.com/docs/commit-status

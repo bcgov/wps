@@ -14,7 +14,13 @@ export default mergeConfig(
       include: ["src/**/*.{spec,test}.{js,jsx,ts,tsx}"],
       globals: true,
       environment: "jsdom",
-      setupFiles: 'src/setupTests.ts'
+      setupFiles: "src/setupTests.ts",
+      // Define environment variables for testing
+      env: {
+        VITE_KEYCLOAK_REALM: "test-realm",
+        VITE_KEYCLOAK_AUTH_URL: "https://auth.test.com",
+        VITE_KEYCLOAK_CLIENT: "test-client",
+      },
     },
   })
 );

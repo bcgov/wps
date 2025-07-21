@@ -6,9 +6,11 @@ import { Provider } from "react-redux";
 import { store } from "@/store";
 import { theme } from "@/theme.ts";
 import App from "@/App.tsx";
+import AuthWrapper from "@/components/AuthWrapper";
 
 const render = () => {
   const container = document.getElementById("root");
+
   // Null check to keep TypeScript happy
   if (container === null) {
     throw new Error("Root container is missing in index.html");
@@ -20,7 +22,9 @@ const render = () => {
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <StyledEngineProvider injectFirst>
-            <App />
+            <AuthWrapper>
+              <App />
+            </AuthWrapper>
           </StyledEngineProvider>
         </ThemeProvider>
       </Provider>

@@ -27,6 +27,16 @@ jobs:
           path: |
             mobile/asa-go/node_modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - uses: actions/cache@v4
+        id: asa-go-keycloak-cache
+        with:
+          path: |
+            mobile/keycloak/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - name: Install keycloak plugin
+        working-directory: ./mobile/keycloak
+        if: steps.asa-go-keycloak-cache.outputs.cache-hit != 'true'
+        run: yarn install
       - name: Install dependencies
         working-directory: ./mobile/asa-go
         if: steps.asa-go-cache.outputs.cache-hit != 'true'
@@ -34,6 +44,9 @@ jobs:
       - name: Test with Coverage
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
+      - name: Test Keycloak Swift Plugin
+        working-directory: ./mobile/keycloak
+        run: xcodebuild test -scheme "Keycloak" -destination "platform=iOS Simulator,name=iPhone 16 Pro" -enableCodeCoverage YES build test
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
