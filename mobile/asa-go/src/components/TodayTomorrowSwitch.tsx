@@ -5,7 +5,7 @@ import { MAP_BUTTON_GREY } from "@/theme";
 import { BORDER_RADIUS, BUTTON_HEIGHT } from "@/components/MapIconButton";
 
 interface TodayTomorrowSwitchProps {
-  border: boolean;
+  border?: boolean;
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
 }
@@ -41,7 +41,7 @@ const StyledTextContainer = styled(Box)({
 });
 
 const TodayTomorrowSwitch = ({
-  border,
+  border = false,
   date,
   setDate,
 }: TodayTomorrowSwitchProps) => {

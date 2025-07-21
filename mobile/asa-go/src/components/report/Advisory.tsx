@@ -58,7 +58,7 @@ const Advisory = ({
         <Box
           sx={{ alignItems: "center", display: "flex", pr: theme.spacing(1) }}
         >
-          <TodayTomorrowSwitch border={true} date={date} setDate={setDate} />
+          <TodayTomorrowSwitch border date={date} setDate={setDate} />
         </Box>
         <Box sx={{ display: "flex", flexGrow: 1 }}>
           <FormControl

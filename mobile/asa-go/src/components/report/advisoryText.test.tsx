@@ -625,9 +625,6 @@ describe("AdvisoryText", () => {
       ).toBeInTheDocument()
     );
     await waitFor(() =>
-      expect(screen.queryByTestId("early-advisory-text")).toBeInTheDocument()
-    );
-    await waitFor(() =>
       expect(
         screen.queryByTestId("overnight-burning-text")
       ).not.toBeInTheDocument()

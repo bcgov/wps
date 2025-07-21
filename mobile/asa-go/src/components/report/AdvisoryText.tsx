@@ -84,9 +84,6 @@ const AdvisoryText = ({
     );
   }, [selectedFilteredZoneUnitFuelStats]);
 
-  const selectedFireZoneUnitMinWindSpeeds =
-    selectedFilteredZoneUnitFuelStats.min_wind_stats;
-
   const {
     minStartTime,
     maxEndTime,
@@ -239,7 +236,7 @@ const AdvisoryText = ({
       ? "today"
       : forDate!.toLocaleString({ month: "short", day: "numeric" });
     const minWindSpeedText = getZoneMinWindStatsText(
-      selectedFireZoneUnitMinWindSpeeds
+      selectedFilteredZoneUnitFuelStats.min_wind_stats
     );
 
     const formattedWindText = minWindSpeedText ? (
