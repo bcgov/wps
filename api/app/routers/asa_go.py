@@ -228,13 +228,12 @@ async def get_latest_sfms_run_datetime_for_date(for_date: date):
         latest_run_parameter = await get_most_recent_run_datetime_for_date(session, for_date)
         if latest_run_parameter is None:
             return LatestSFMSRunParameterResponse()
-        return LatestSFMSRunParameterResponse(
-            LatestSFMSRunParameter(
-                for_date=latest_run_parameter.for_date,
-                run_datetime=latest_run_parameter.run_datetime,
-                run_type=latest_run_parameter.run_type,
-            )
+        run_parameter = LatestSFMSRunParameter(
+            for_date=latest_run_parameter.for_date,
+            run_datetime=latest_run_parameter.run_datetime,
+            run_type=latest_run_parameter.run_type,
         )
+        return LatestSFMSRunParameterResponse(run_parameter=run_parameter)
 
 
 @router.get("/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])
