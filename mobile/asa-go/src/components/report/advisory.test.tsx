@@ -19,10 +19,16 @@ vi.mock("@/components/FireCenterDropdown", () => ({
   }: {
     fireCenterOptions: FireCenter[];
     selectedFireCenter: FireCenter | undefined;
-    setSelectedFireCenter: React.Dispatch<React.SetStateAction<FireCenter | undefined>>;
-    setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>;
+    setSelectedFireCenter: React.Dispatch<
+      React.SetStateAction<FireCenter | undefined>
+    >;
+    setSelectedFireShape: React.Dispatch<
+      React.SetStateAction<FireShape | undefined>
+    >;
   }) => (
-    <div data-testid="fire-center-dropdown">Options: {fireCenterOptions.length}</div>
+    <div data-testid="fire-center-dropdown">
+      Options: {fireCenterOptions.length}
+    </div>
   ),
 }));
 
@@ -33,17 +39,15 @@ vi.mock("@/components/report/FireZoneUnitTabs", () => ({
     advisoryThreshold: number;
     selectedFireCenter: FireCenter | undefined;
     selectedFireZoneUnit: FireShape | undefined;
-    setSelectedFireZoneUnit: React.Dispatch<React.SetStateAction<FireShape | undefined>>;
+    setSelectedFireZoneUnit: React.Dispatch<
+      React.SetStateAction<FireShape | undefined>
+    >;
     children: React.ReactNode;
   }) => <div data-testid="fire-zone-tabs">{children}</div>,
 }));
 
 vi.mock("@/components/report/AdvisoryText", () => ({
-  default: ({
-    advisoryThreshold,
-    selectedFireCenter,
-    selectedFireZoneUnit,
-  }: {
+  default: ({}: {
     advisoryThreshold: number;
     selectedFireCenter: FireCenter | undefined;
     selectedFireZoneUnit: FireShape | undefined;
@@ -72,7 +76,7 @@ describe("Advisory Component", () => {
   const setSelectedFireZoneUnit = vi.fn();
 
   beforeEach(() => {
-    (useSelector as vi.Mock).mockReturnValue({ fireCenters: mockFireCenters });
+    vi.mocked(useSelector).mockReturnValue({ fireCenters: mockFireCenters });
   });
 
   it("renders all key sections and child components", () => {
@@ -89,11 +93,19 @@ describe("Advisory Component", () => {
     );
 
     expect(screen.getByTestId("asa-go-advisory")).toBeInTheDocument();
-    expect(screen.getByTestId("advisory-control-container")).toBeInTheDocument();
-    expect(screen.getByTestId("today-tomorrow-switch")).toHaveTextContent("2025-07-15");
-    expect(screen.getByTestId("fire-center-dropdown")).toHaveTextContent("Options: 2");
+    expect(
+      screen.getByTestId("advisory-control-container")
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("today-tomorrow-switch")).toHaveTextContent(
+      "2025-07-15"
+    );
+    expect(screen.getByTestId("fire-center-dropdown")).toHaveTextContent(
+      "Options: 2"
+    );
     expect(screen.getByText("Advisory Report")).toBeInTheDocument();
     expect(screen.getByTestId("fire-zone-tabs")).toBeInTheDocument();
-    expect(screen.getByTestId("advisory-text")).toHaveTextContent("Advisory Text Content");
+    expect(screen.getByTestId("advisory-text")).toHaveTextContent(
+      "Advisory Text Content"
+    );
   });
 });
