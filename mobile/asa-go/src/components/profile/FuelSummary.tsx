@@ -167,8 +167,6 @@ const FuelSummary = ({
           showColumnVerticalBorder
           sx={{
             backgroundColor: "white",
-            // maxHeight: '147px',
-            // minHeight: '100px',
             overflow: "hidden",
             "& .MuiDataGrid-columnHeaderTitle": {
               fontWeight: "bold",
