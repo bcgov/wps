@@ -1,5 +1,5 @@
 import { Box, Grid2 as Grid, Typography } from "@mui/material";
-import { FireCenter, FireShape, FireZoneTPIStats } from "api/fbaAPI";
+import { FireCenter, FireShape } from "api/fbaAPI";
 import { isNil, isUndefined } from "lodash";
 import React, { useMemo } from "react";
 // import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
@@ -9,6 +9,7 @@ import { useSelector } from "react-redux";
 import { selectFilteredFireCentreHFIFuelStats } from "@/slices/fireCentreHFIFuelStatsSlice";
 import ElevationStatus from "@/components/profile/ElevationStatus";
 import { selectFireCentreTPIStats } from "@/store";
+import { hasRequiredFields } from "@/utils/profileUtils";
 // import { selectForDate } from "@/slices/runParameterSlice";
 // import {
 //   getTopFuelsByArea,
@@ -18,19 +19,6 @@ import { selectFireCentreTPIStats } from "@/store";
 interface FireZoneUnitSummaryProps {
   selectedFireCenter: FireCenter | undefined;
   selectedFireZoneUnit: FireShape | undefined;
-}
-
-function hasRequiredFields(
-  stats: FireZoneTPIStats
-): stats is Required<FireZoneTPIStats> {
-  return (
-    !isNil(stats.mid_slope_hfi) &&
-    !isNil(stats.mid_slope_tpi) &&
-    !isNil(stats.upper_slope_hfi) &&
-    !isNil(stats.upper_slope_tpi) &&
-    !isNil(stats.valley_bottom_hfi) &&
-    !isNil(stats.valley_bottom_tpi)
-  );
 }
 
 const FireZoneUnitSummary = ({
