@@ -2,7 +2,7 @@ import { FireCenter, FireShape } from "@/api/fbaAPI";
 import { AppHeader } from "@/components/AppHeader";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 import ASAGoMap from "@/components/map/ASAGoMap";
-import Profile from "@/components/Profile";
+import Profile from "@/components/profile/Profile";
 import Advisory from "@/components/report/Advisory";
 import { useAppIsActive } from "@/hooks/useAppIsActive";
 import { fetchFireCenters } from "@/slices/fireCentersSlice";
@@ -21,6 +21,7 @@ import { theme } from "@/theme";
 import { NavPanel, PST_UTC_OFFSET } from "@/utils/constants";
 import { ConnectionStatus, Network } from "@capacitor/network";
 import { Box } from "@mui/material";
+import { LicenseInfo } from "@mui/x-license-pro";
 import { isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
@@ -29,6 +30,8 @@ import { useDispatch, useSelector } from "react-redux";
 const ADVISORY_THRESHOLD = 20;
 
 const App = () => {
+  LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
+
   const isActive = useAppIsActive();
   const dispatch: AppDispatch = useDispatch();
   const { fireCenters } = useSelector(selectFireCenters);
@@ -163,7 +166,25 @@ const App = () => {
           testId="asa-go-map"
         />
       )}
-      {tab === NavPanel.PROFILE && <Profile />}
+      {tab === NavPanel.PROFILE && (
+        <Box
+          sx={{
+            display: "flex",
+            flexGrow: 1,
+            overflowY: "hidden",
+          }}
+        >
+          <Profile
+            advisoryThreshold={ADVISORY_THRESHOLD}
+            date={dateOfInterest}
+            setDate={setDateOfInterest}
+            selectedFireCenter={fireCenter}
+            setSelectedFireCenter={setFireCenter}
+            selectedFireZoneUnit={selectedFireShape}
+            setSelectedFireZoneUnit={setSelectedFireShape}
+          />
+        </Box>
+      )}
       {tab === NavPanel.ADVISORY && (
         <Box
           sx={{
