@@ -33,6 +33,7 @@
     "@mui/system": "^6.4.0",
     "@mui/x-data-grid-pro": "^8.9.1",
     "@mui/x-date-pickers": "^7.26.0",
+    "@mui/x-license-pro": "^6.10.2",
     "@reduxjs/toolkit": "^2.5.1",
     "axios": "^1.7.9",
     "capacitor-email-composer": "^7.0.0",
