@@ -1,0 +1,233 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import FuelSummary from "@/components/profile/FuelSummary";
+import { FireShape, FireZoneFuelStats } from "@/api/fbaAPI";
+
+// Mock the child components
+vi.mock("@/components/profile/FuelDistribution", () => ({
+  default: ({ code, percent }: { code: string; percent: number }) => (
+    <div data-testid={`fuel-distribution-${code}`} data-percent={percent}>
+      Fuel Distribution: {code} - {percent}%
+    </div>
+  ),
+}));
+
+vi.mock("@/components/profile/CriticalHours", () => ({
+  default: ({ start, end }: { start?: number; end?: number }) => (
+    <div data-testid="critical-hours">
+      {start !== undefined && end !== undefined
+        ? `${start}:00 - ${end}:00`
+        : "-"}
+    </div>
+  ),
+}));
+
+// Mock lodash groupBy function - simplified approach
+vi.mock("lodash", async () => {
+  const actual = await vi.importActual("lodash");
+  return {
+    ...actual,
+    groupBy: vi.fn().mockImplementation((array: FireZoneFuelStats[]) => {
+      // Simple grouping by fuel_type_id for testing
+      const result: Record<string, FireZoneFuelStats[]> = {};
+      if (Array.isArray(array)) {
+        array.forEach((item) => {
+          const id = item.fuel_type.fuel_type_id.toString();
+          if (!result[id]) {
+            result[id] = [];
+          }
+          result[id].push(item);
+        });
+      }
+      return result;
+    }),
+    isUndefined: (value: unknown) => value === undefined,
+  };
+});
+
+describe("FuelSummary", () => {
+  const mockFireShape: FireShape = {
+    fire_shape_id: 1,
+    mof_fire_zone_name: "Test Zone",
+    mof_fire_centre_name: "Test Centre",
+    area_sqm: 1000,
+  };
+
+  const mockFuelStats: FireZoneFuelStats[] = [
+    {
+      fuel_type: {
+        fuel_type_id: 1,
+        fuel_type_code: "C-1",
+        description: "Spruce-Lichen Woodland",
+      },
+      threshold: {
+        id: 1,
+        name: "advisory",
+        description: "4000 < hfi < 10000",
+      },
+      critical_hours: {
+        start_time: 10,
+        end_time: 18,
+      },
+      area: 500,
+      fuel_area: 1000,
+    },
+    {
+      fuel_type: {
+        fuel_type_id: 2,
+        fuel_type_code: "C-2",
+        description: "Boreal Spruce",
+      },
+      threshold: {
+        id: 1,
+        name: "advisory",
+        description: "4000 < hfi < 10000",
+      },
+      critical_hours: {
+        start_time: 12,
+        end_time: 16,
+      },
+      area: 300,
+      fuel_area: 800,
+    },
+  ];
+
+  const mockFireZoneFuelStats = {
+    1: mockFuelStats,
+  };
+
+  it("should render the DataGridPro when fuel data is available", () => {
+    render(
+      <FuelSummary
+        fireZoneFuelStats={mockFireZoneFuelStats}
+        selectedFireZoneUnit={mockFireShape}
+      />
+    );
+
+    // DataGridPro should be rendered (we can't easily test the grid itself without complex setup)
+    // But we can check that no data message is not shown
+    expect(
+      screen.queryByText("No fuel type information available.")
+    ).not.toBeInTheDocument();
+  });
+
+  it("should show no data message when fuel stats are empty", () => {
+    render(
+      <FuelSummary
+        fireZoneFuelStats={{}}
+        selectedFireZoneUnit={mockFireShape}
+      />
+    );
+
+    expect(
+      screen.getByText("No fuel type information available.")
+    ).toBeInTheDocument();
+  });
+
+  it("should show no data message when selectedFireZoneUnit is undefined", () => {
+    render(
+      <FuelSummary
+        fireZoneFuelStats={mockFireZoneFuelStats}
+        selectedFireZoneUnit={undefined}
+      />
+    );
+
+    expect(
+      screen.getByText("No fuel type information available.")
+    ).toBeInTheDocument();
+  });
+
+  it("should show no data message when fireZoneFuelStats is undefined", () => {
+    render(
+      <FuelSummary
+        fireZoneFuelStats={
+          undefined as unknown as Record<number, FireZoneFuelStats[]>
+        }
+        selectedFireZoneUnit={mockFireShape}
+      />
+    );
+
+    expect(
+      screen.getByText("No fuel type information available.")
+    ).toBeInTheDocument();
+  });
+
+  it("should show no data message when fuel details for selected zone are not available", () => {
+    const emptyFireZoneFuelStats = {
+      2: mockFuelStats, // Different fire_shape_id
+    };
+
+    render(
+      <FuelSummary
+        fireZoneFuelStats={emptyFireZoneFuelStats}
+        selectedFireZoneUnit={mockFireShape}
+      />
+    );
+
+    expect(
+      screen.getByText("No fuel type information available.")
+    ).toBeInTheDocument();
+  });
+
+  it("should handle empty fuel details array", () => {
+    const emptyFireZoneFuelStats = {
+      1: [],
+    };
+
+    render(
+      <FuelSummary
+        fireZoneFuelStats={emptyFireZoneFuelStats}
+        selectedFireZoneUnit={mockFireShape}
+      />
+    );
+
+    expect(
+      screen.getByText("No fuel type information available.")
+    ).toBeInTheDocument();
+  });
+
+  it("should process fuel data correctly with different fire_shape_ids", () => {
+    const differentShapeFireStats = {
+      1: mockFuelStats,
+      2: [
+        {
+          fuel_type: {
+            fuel_type_id: 3,
+            fuel_type_code: "S-1",
+            description: "Slash",
+          },
+          threshold: {
+            id: 1,
+            name: "advisory",
+            description: "4000 < hfi < 10000",
+          },
+          critical_hours: {
+            start_time: 8,
+            end_time: 20,
+          },
+          area: 200,
+          fuel_area: 500,
+        },
+      ],
+    };
+
+    const differentFireShape: FireShape = {
+      fire_shape_id: 2,
+      mof_fire_zone_name: "Different Zone",
+      mof_fire_centre_name: "Different Centre",
+      area_sqm: 2000,
+    };
+
+    render(
+      <FuelSummary
+        fireZoneFuelStats={differentShapeFireStats}
+        selectedFireZoneUnit={differentFireShape}
+      />
+    );
+
+    // Should not show no data message for the different fire shape
+    expect(
+      screen.queryByText("No fuel type information available.")
+    ).not.toBeInTheDocument();
+  });
+});
