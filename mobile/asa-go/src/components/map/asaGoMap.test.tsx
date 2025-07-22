@@ -3,10 +3,15 @@ import { Provider } from "react-redux";
 import { DateTime } from "luxon";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import ASAGoMap, { ASAGoMapProps } from "@/components/map/ASAGoMap";
-import { createTestStore } from "@/testUtils";
+import {
+  createTestStore,
+  setupOpenLayersMocks,
+  baseLayerMock,
+} from "@/testUtils";
 import { geolocationInitialState } from "@/slices/geolocationSlice";
 import { RunType } from "@/api/fbaAPI";
 
+setupOpenLayersMocks();
 class ResizeObserver {
   observe() {
     // mock no-op
@@ -19,6 +24,19 @@ class ResizeObserver {
   }
 }
 
+vi.mock("@/layerDefinitions", async () => {
+  const actual = await import("@/layerDefinitions");
+
+  return {
+    ...actual,
+    createHFILayer: vi
+      .fn()
+      .mockImplementation(() => Promise.resolve(baseLayerMock)),
+  };
+});
+
+import { createHFILayer } from "@/layerDefinitions";
+
 describe("ASAGoMap", () => {
   beforeAll(() => {
     window.ResizeObserver = ResizeObserver;
@@ -29,11 +47,9 @@ describe("ASAGoMap", () => {
     selectedFireShape: undefined,
     setSelectedFireShape: vi.fn(),
     advisoryThreshold: 0,
-    date: DateTime.now(),
+    date: DateTime.fromISO("2024-12-15"),
     setDate: vi.fn(),
     setTab: vi.fn(),
-    runType: RunType.FORECAST,
-    runDatetime: DateTime.now(),
   };
 
   const mockPosition = {
@@ -84,5 +100,58 @@ describe("ASAGoMap", () => {
     expect(locationIndicator).toBeInTheDocument();
     expect(locationButton).toBeInTheDocument();
     expect(locationButton).not.toBeDisabled();
+  });
+
+  it("calls createHFILayer when date, runType, or runDatetime changes", async () => {
+    const runParameter = {
+      forDate: "2024-12-15",
+      runDatetime: "2024-12-15T15:00:00Z",
+      runType: RunType.FORECAST,
+      loading: false,
+      error: null,
+    };
+    const store = createTestStore({
+      runParameter: runParameter,
+    });
+
+    const { rerender } = render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    );
+
+    // initial call
+    expect(createHFILayer).toHaveBeenCalledTimes(1);
+    expect(createHFILayer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filename: "hfi.pmtiles",
+        for_date: DateTime.fromISO("2024-12-15"),
+        run_type: RunType.FORECAST,
+        run_date: DateTime.fromISO("2024-12-15T15:00:00Z"),
+      })
+    );
+
+    store.dispatch({
+      type: "runParameter/getRunParameterSuccess",
+      payload: {
+        forDate: "2024-12-16",
+        runDateTime: "2024-12-16T23:00:00Z",
+        runType: RunType.FORECAST,
+      },
+    });
+    rerender(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} date={DateTime.fromISO("2024-12-16")} />
+      </Provider>
+    );
+    expect(createHFILayer).toHaveBeenCalledTimes(3);
+    expect(createHFILayer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filename: "hfi.pmtiles",
+        for_date: DateTime.fromISO("2024-12-16"),
+        run_type: RunType.FORECAST,
+        run_date: DateTime.fromISO("2024-12-16T23:00:00Z"),
+      })
+    );
   });
 });

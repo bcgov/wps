@@ -160,8 +160,6 @@ const App = () => {
           setDate={setDateOfInterest}
           setTab={setTab}
           testId="asa-go-map"
-          runType={runType}
-          runDatetime={runDatetime ? DateTime.fromISO(runDatetime) : null}
         />
       )}
       {tab === NavPanel.PROFILE && <Profile />}

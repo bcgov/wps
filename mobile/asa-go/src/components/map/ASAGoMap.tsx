@@ -21,6 +21,7 @@ import {
   selectGeolocation,
   selectNetworkStatus,
   selectFireShapeAreas,
+  selectRunParameter,
 } from "@/store";
 import { CENTER_OF_BC, NavPanel } from "@/utils/constants";
 import { PMTilesCache } from "@/utils/pmtilesCache";
@@ -29,7 +30,7 @@ import { Filesystem } from "@capacitor/filesystem";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import GpsOffIcon from "@mui/icons-material/GpsOff";
 import { Box } from "@mui/material";
-import { FireShape, RunType } from "api/fbaAPI";
+import { FireShape } from "api/fbaAPI";
 import { cloneDeep, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { Map, MapBrowserEvent, Overlay, View } from "ol";
@@ -70,8 +71,6 @@ export interface ASAGoMapProps {
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
   setTab: React.Dispatch<React.SetStateAction<NavPanel>>;
-  runType: RunType | null;
-  runDatetime: DateTime | null;
 }
 
 const ASAGoMap = ({
@@ -82,14 +81,13 @@ const ASAGoMap = ({
   date,
   setDate,
   setTab,
-  runType,
-  runDatetime,
 }: ASAGoMapProps) => {
   const dispatch: AppDispatch = useDispatch();
 
   // selectors & hooks
   const { position, error, loading } = useSelector(selectGeolocation);
   const { networkStatus } = useSelector(selectNetworkStatus);
+  const { runDatetime, runType } = useSelector(selectRunParameter);
 
   // state
   const [map, setMap] = useState<Map | null>(null);
@@ -424,7 +422,7 @@ const ASAGoMap = ({
           filename: "hfi.pmtiles",
           for_date: date,
           run_type: runType,
-          run_date: runDatetime,
+          run_date: DateTime.fromISO(runDatetime),
         });
       }
 
