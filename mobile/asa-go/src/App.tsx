@@ -18,7 +18,7 @@ import { fetchProvincialSummary } from "@/slices/provincialSummarySlice";
 import { fetchMostRecentSFMSRunParameter } from "@/slices/runParameterSlice";
 import { AppDispatch, selectFireCenters, selectRunParameter } from "@/store";
 import { theme } from "@/theme";
-import { NavPanel } from "@/utils/constants";
+import { NavPanel, PST_UTC_OFFSET } from "@/utils/constants";
 import { ConnectionStatus, Network } from "@capacitor/network";
 import { Box } from "@mui/material";
 import { isNull, isUndefined } from "lodash";
@@ -40,8 +40,7 @@ const App = () => {
     FireShape | undefined
   >(undefined);
   const [dateOfInterest, setDateOfInterest] = useState(
-    // DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
-    DateTime.fromISO("2025-06-15")
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
   );
   const { runDatetime, runType } = useSelector(selectRunParameter);
 
