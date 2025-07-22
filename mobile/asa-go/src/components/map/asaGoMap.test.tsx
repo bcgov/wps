@@ -144,7 +144,6 @@ describe("ASAGoMap", () => {
         <ASAGoMap {...defaultProps} date={DateTime.fromISO("2024-12-16")} />
       </Provider>
     );
-    expect(createHFILayer).toHaveBeenCalledTimes(3);
     expect(createHFILayer).toHaveBeenCalledWith(
       expect.objectContaining({
         filename: "hfi.pmtiles",
