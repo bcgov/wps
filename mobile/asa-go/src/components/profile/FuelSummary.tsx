@@ -11,8 +11,6 @@ import {
 import { styled } from "@mui/material/styles";
 import CriticalHours from "@/components/profile/CriticalHours";
 import FuelDistribution from "@/components/profile/FuelDistribution";
-// import { useSelector } from 'react-redux'
-// import { selectFilteredFireCentreHFIFuelStats } from '@/slices/fireCentreHFIFuelStatsSlice'
 
 export interface FuelTypeInfoSummary {
   area: number;
@@ -103,28 +101,6 @@ const FuelSummary = ({
   const [fuelTypeInfoRollup, setFuelTypeInfoRollup] = useState<
     FuelTypeInfoSummary[]
   >([]);
-  // const filteredFireCentreHFIFuelStats = useSelector(
-  //   selectFilteredFireCentreHFIFuelStats
-  // );
-  //   // derived state
-  // const selectedFilteredZoneUnitFuelStats = useMemo<FireZoneHFIStats>(() => {
-  //   if (
-  //     isUndefined(filteredFireCentreHFIFuelStats) ||
-  //     isEmpty(filteredFireCentreHFIFuelStats) ||
-  //     isUndefined(selectedFireCenter) ||
-  //     isUndefined(selectedFireZoneUnit)
-  //   ) {
-  //     return { fuel_area_stats: [], min_wind_stats: [] };
-  //   }
-  //   const allFilteredZoneUnitFuelStats =
-  //     filteredFireCentreHFIFuelStats[selectedFireCenter.name];
-  //   return (
-  //     allFilteredZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? {
-  //       fuel_area_stats: [],
-  //       min_wind_stats: [],
-  //     }
-  //   );
-  // }, [filteredFireCentreHFIFuelStats, selectedFireZoneUnit]);
 
   useEffect(() => {
     if (isUndefined(fireZoneFuelStats) || isUndefined(selectedFireZoneUnit)) {
