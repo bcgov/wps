@@ -13,11 +13,13 @@ import { useState } from "react";
 export interface HamburgerMenuProps {
   drawerTop: number;
   drawerHeight: number;
+  testId?: string;
 }
 
 export const HamburgerMenu = ({
   drawerTop,
   drawerHeight,
+  testId,
 }: HamburgerMenuProps) => {
   const [open, setOpen] = useState(false);
 
@@ -35,7 +37,7 @@ export const HamburgerMenu = ({
   };
 
   return (
-    <>
+    <div data-testid={testId}>
       <IconButton onClick={() => setOpen(true)}>
         <MenuIcon fontSize="large" sx={{ color: "white" }} />
       </IconButton>
@@ -120,6 +122,6 @@ export const HamburgerMenu = ({
           </List>
         </Grid>
       </Drawer>
-    </>
+    </div>
   );
 };
