@@ -36,5 +36,9 @@ const render = () => {
   )
 }
 
-render()
+// cache bust any stale js chunks
+window.addEventListener('vite:preloadError', event => {
+  window.location.reload()
+})
 
+render()
