@@ -44,7 +44,7 @@ const FireZoneUnitSummary = ({
   const filteredFireCentreHFIFuelStats = useSelector(
     selectFilteredFireCentreHFIFuelStats
   );
-  const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
+  const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats);
 
   // derived state
   const hfiFuelStats = useMemo(() => {
@@ -55,11 +55,19 @@ const FireZoneUnitSummary = ({
 
   const fireZoneTPIStats = useMemo(() => {
     if (selectedFireCenter && !isNil(fireCentreTPIStats)) {
-      const tpiStatsArray = fireCentreTPIStats?.firezone_tpi_stats
-      return tpiStatsArray ? tpiStatsArray.find(stats => stats.fire_zone_id === selectedFireZoneUnit?.fire_shape_id) : undefined
+      const tpiStatsArray = fireCentreTPIStats?.firezone_tpi_stats;
+      return tpiStatsArray
+        ? tpiStatsArray.find(
+            (stats) =>
+              stats.fire_zone_id === selectedFireZoneUnit?.fire_shape_id
+          )
+        : undefined;
     }
-  }, [fireCentreTPIStats, selectedFireCenter])
-
+  }, [
+    fireCentreTPIStats,
+    selectedFireCenter,
+    selectedFireZoneUnit?.fire_shape_id,
+  ]);
 
   if (isUndefined(selectedFireZoneUnit)) {
     return <div data-testid="fire-zone-unit-summary-empty"></div>;
@@ -72,7 +80,7 @@ const FireZoneUnitSummary = ({
         backgroundColor: "white",
         width: "100%",
         padding: theme.spacing(2),
-        overflowY: "auto"
+        overflowY: "auto",
       }}
     >
       <Typography
@@ -105,7 +113,7 @@ const FireZoneUnitSummary = ({
             }
           />
         </Grid>
-        <Grid sx={{width: "100%"}}>
+        <Grid sx={{ width: "100%" }}>
           {fireZoneTPIStats && hasRequiredFields(fireZoneTPIStats) ? (
             <ElevationStatus tpiStats={fireZoneTPIStats}></ElevationStatus>
           ) : (

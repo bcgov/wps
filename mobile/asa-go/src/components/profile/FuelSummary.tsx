@@ -61,7 +61,7 @@ const columns: GridColDef[] = [
     field: "area",
     flex: 1,
     headerClassName: "fuel-summary-header",
-    headerName: "Portion under advisory",
+    headerName: "% Under Advisory",
     sortable: false,
     renderHeader: (params: GridColumnHeaderParams) => (
       <StyledHeader>{params.colDef.headerName}</StyledHeader>
