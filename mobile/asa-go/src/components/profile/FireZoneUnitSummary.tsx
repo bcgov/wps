@@ -2,7 +2,6 @@ import { Box, Grid2 as Grid, Typography } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
 import { isNil, isUndefined } from "lodash";
 import React, { useMemo } from "react";
-// import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 import FuelSummary from "@/components/profile/FuelSummary";
 import { useTheme } from "@mui/material/styles";
 import { useSelector } from "react-redux";
@@ -10,11 +9,6 @@ import { selectFilteredFireCentreHFIFuelStats } from "@/slices/fireCentreHFIFuel
 import ElevationStatus from "@/components/profile/ElevationStatus";
 import { selectFireCentreTPIStats } from "@/store";
 import { hasRequiredFields } from "@/utils/profileUtils";
-// import { selectForDate } from "@/slices/runParameterSlice";
-// import {
-//   getTopFuelsByArea,
-//   getTopFuelsByProportion,
-// } from "@/utils/advisoryTextUtils";
 
 interface FireZoneUnitSummaryProps {
   selectedFireCenter: FireCenter | undefined;
