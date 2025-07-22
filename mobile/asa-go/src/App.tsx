@@ -26,7 +26,7 @@ import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-const ADVISORY_THRESHOLD = 5;
+const ADVISORY_THRESHOLD = 20;
 
 const App = () => {
   const isActive = useAppIsActive();
