@@ -44,29 +44,6 @@ vi.mock("@/components/profile/CriticalHours", () => ({
   ),
 }));
 
-// Mock lodash groupBy function - simplified approach
-vi.mock("lodash", async () => {
-  const actual = await vi.importActual("lodash");
-  return {
-    ...actual,
-    groupBy: vi.fn().mockImplementation((array: FireZoneFuelStats[]) => {
-      // Simple grouping by fuel_type_id for testing
-      const result: Record<string, FireZoneFuelStats[]> = {};
-      if (Array.isArray(array)) {
-        array.forEach((item) => {
-          const id = item.fuel_type.fuel_type_id.toString();
-          if (!result[id]) {
-            result[id] = [];
-          }
-          result[id].push(item);
-        });
-      }
-      return result;
-    }),
-    isUndefined: (value: unknown) => value === undefined,
-  };
-});
-
 describe("FuelSummary", () => {
   const mockFireShape: FireShape = {
     fire_shape_id: 1,
