@@ -17,6 +17,7 @@ import { updateNetworkStatus } from "@/slices/networkStatusSlice";
 import { fetchProvincialSummary } from "@/slices/provincialSummarySlice";
 import { fetchMostRecentSFMSRunParameter } from "@/slices/runParameterSlice";
 import { AppDispatch, selectFireCenters, selectRunParameter } from "@/store";
+import TabPanel from "@/components/TabPanel";
 import { theme } from "@/theme";
 import { NavPanel, PST_UTC_OFFSET } from "@/utils/constants";
 import { ConnectionStatus, Network } from "@capacitor/network";
@@ -155,25 +156,26 @@ const App = () => {
       }}
     >
       <AppHeader />
-      {tab === NavPanel.MAP && (
-        <ASAGoMap
-          selectedFireShape={selectedFireShape}
-          setSelectedFireShape={setSelectedFireShape}
-          advisoryThreshold={ADVISORY_THRESHOLD}
-          date={dateOfInterest}
-          setDate={setDateOfInterest}
-          setTab={setTab}
-          testId="asa-go-map"
-        />
-      )}
-      {tab === NavPanel.PROFILE && (
-        <Box
-          sx={{
-            display: "flex",
-            flexGrow: 1,
-            overflowY: "hidden",
-          }}
-        >
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <TabPanel value={tab} panel={NavPanel.MAP}>
+          <ASAGoMap
+            selectedFireShape={selectedFireShape}
+            setSelectedFireShape={setSelectedFireShape}
+            advisoryThreshold={ADVISORY_THRESHOLD}
+            date={dateOfInterest}
+            setDate={setDateOfInterest}
+            setTab={setTab}
+            testId="asa-go-map"
+          />
+        </TabPanel>
+        <TabPanel value={tab} panel={NavPanel.PROFILE}>
           <Profile
             advisoryThreshold={ADVISORY_THRESHOLD}
             date={dateOfInterest}
@@ -183,16 +185,8 @@ const App = () => {
             selectedFireZoneUnit={selectedFireShape}
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
-        </Box>
-      )}
-      {tab === NavPanel.ADVISORY && (
-        <Box
-          sx={{
-            display: "flex",
-            flexGrow: 1,
-            overflowY: "hidden",
-          }}
-        >
+        </TabPanel>
+        <TabPanel value={tab} panel={NavPanel.ADVISORY}>
           <Advisory
             advisoryThreshold={ADVISORY_THRESHOLD}
             date={dateOfInterest}
@@ -202,8 +196,8 @@ const App = () => {
             selectedFireZoneUnit={selectedFireShape}
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
-        </Box>
-      )}
+        </TabPanel>
+      </Box>
       <BottomNavigationBar tab={tab} setTab={setTab} />
     </Box>
   );

@@ -51,6 +51,20 @@ const FireZoneUnitSummary = ({
     selectedFireZoneUnit?.fire_shape_id,
   ]);
 
+  const fireZoneFuelStats = useMemo(() => {
+    if (
+      hfiFuelStats &&
+      selectedFireZoneUnit &&
+      hfiFuelStats[selectedFireZoneUnit.fire_shape_id]?.fuel_area_stats
+    ) {
+      return {
+        [selectedFireZoneUnit.fire_shape_id]:
+          hfiFuelStats[selectedFireZoneUnit.fire_shape_id].fuel_area_stats,
+      };
+    }
+    return {};
+  }, [hfiFuelStats, selectedFireZoneUnit]);
+
   if (isUndefined(selectedFireZoneUnit)) {
     return <div data-testid="fire-zone-unit-summary-empty"></div>;
   }
@@ -84,15 +98,7 @@ const FireZoneUnitSummary = ({
         <Grid sx={{ pb: theme.spacing(4), width: "100%" }}>
           <FuelSummary
             selectedFireZoneUnit={selectedFireZoneUnit}
-            fireZoneFuelStats={
-              hfiFuelStats
-                ? {
-                    [selectedFireZoneUnit.fire_shape_id]:
-                      hfiFuelStats[selectedFireZoneUnit.fire_shape_id]
-                        .fuel_area_stats,
-                  }
-                : {}
-            }
+            fireZoneFuelStats={fireZoneFuelStats}
           />
         </Grid>
         <Grid sx={{ width: "100%" }}>
