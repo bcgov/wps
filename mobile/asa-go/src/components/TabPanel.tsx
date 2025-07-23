@@ -7,7 +7,7 @@ interface TabPanelProps {
   children: React.ReactNode;
 }
 
-const TabPanel: React.FC<TabPanelProps> = ({ value, panel, children }) => (
+const TabPanel = ({ value, panel, children }: TabPanelProps) => (
   <Box
     hidden={value !== panel}
     sx={{
