@@ -1,6 +1,5 @@
-import { MenuItem, Select } from "@mui/material";
+import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
-import { isEqual, isNil } from "lodash";
 import React from "react";
 
 interface FireCenterDropdownProps {
@@ -20,25 +19,29 @@ const FireCenterDropdown = ({
   setSelectedFireCenter,
   setSelectedFireShape,
 }: FireCenterDropdownProps) => {
-  const handleClick = (value: FireCenter) => {
-    if (!isEqual(selectedFireCenter, value)) {
-      setSelectedFireShape(undefined);
-      setSelectedFireCenter(value);
-    }
+  const handleChange = (event: SelectChangeEvent<string>): void => {
+    const selectedName = event.target.value;
+    const selected = fireCenterOptions.find((fc) => fc.name === selectedName);
+    setSelectedFireShape(undefined);
+    setSelectedFireCenter(selected ?? undefined);
   };
 
-  if (isNil(selectedFireCenter) && fireCenterOptions.length) {
-    setSelectedFireCenter(fireCenterOptions[0]);
-  }
-
   return (
-    <Select data-testid="fire-center-dropdown" value={selectedFireCenter?.name ?? ""}>
+    <Select
+      data-testid="fire-center-dropdown"
+      value={selectedFireCenter?.name ?? ""}
+      onChange={handleChange}
+      displayEmpty
+      renderValue={(selected) =>
+        selected ? (
+          selected
+        ) : (
+          <span style={{ color: "#aaa" }}>Select Fire Center</span>
+        )
+      }
+    >
       {fireCenterOptions.map((option) => (
-        <MenuItem
-          key={option.name}
-          value={option.name}
-          onClick={() => handleClick(option)}
-        >
+        <MenuItem key={option.name} value={option.name}>
           {option.name}
         </MenuItem>
       ))}

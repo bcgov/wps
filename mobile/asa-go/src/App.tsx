@@ -168,6 +168,7 @@ const App = () => {
           <ASAGoMap
             selectedFireShape={selectedFireShape}
             setSelectedFireShape={setSelectedFireShape}
+            setSelectedFireCenter={setFireCenter}
             advisoryThreshold={ADVISORY_THRESHOLD}
             date={dateOfInterest}
             setDate={setDateOfInterest}
