@@ -502,8 +502,14 @@ const ASAGoMap = ({
           ref={popupRef}
           selectedFireShape={selectedFireShape}
           onClose={handlePopupClose}
-          onSelectProfile={() => setTab(NavPanel.PROFILE)}
-          onSelectReport={() => setTab(NavPanel.ADVISORY)}
+          onSelectProfile={() => {
+            setTab(NavPanel.PROFILE);
+            handlePopupClose();
+          }}
+          onSelectReport={() => {
+            setTab(NavPanel.ADVISORY);
+            handlePopupClose();
+          }}
           onSelectZoom={handleZoomToSelectedFireShape}
         />
       </Box>
