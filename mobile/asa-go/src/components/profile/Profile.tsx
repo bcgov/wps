@@ -86,7 +86,6 @@ const Profile = ({
           backgroundColor: HEADER_GREY,
           display: "flex",
           p: theme.spacing(1),
-          overflowY: "hidden",
         }}
       >
         <TextSnippet />
@@ -116,7 +115,7 @@ const Profile = ({
           <FireZoneUnitSummary
             selectedFireCenter={selectedFireCenter}
             selectedFireZoneUnit={selectedFireZoneUnit}
-            />
+          />
         </FireZoneUnitTabs>
       </Box>
     </Box>
