@@ -35,7 +35,7 @@ describe("FireCenterDropdown", () => {
     expect(element).toHaveTextContent("Center A");
   });
 
-  it("calls setSelectedFireCenter with first option if none selected", () => {
+  it("does not call setSelectedFireCenter if no option is selected", () => {
     render(
       <FireCenterDropdown
         fireCenterOptions={fireCenters}
@@ -45,7 +45,7 @@ describe("FireCenterDropdown", () => {
       />
     );
 
-    expect(setSelectedFireCenter).toHaveBeenCalledWith(fireCenters[0]);
+    expect(setSelectedFireCenter).not.toHaveBeenCalled();
   });
 
   it("changes selection and resets fire shape", async () => {
@@ -69,7 +69,7 @@ describe("FireCenterDropdown", () => {
     expect(setSelectedFireCenter).toHaveBeenCalledWith(fireCenters[1]);
   });
 
-  it("does not crash with empty options", () => {
+  it("has instructional default text if no fire centre is selected", () => {
     render(
       <FireCenterDropdown
         fireCenterOptions={[]}
@@ -79,6 +79,8 @@ describe("FireCenterDropdown", () => {
       />
     );
     // Expect empty select to render with a zero width space.
-    expect(screen.getByRole("combobox")).toHaveTextContent("\u200B");
+    expect(screen.getByRole("combobox")).toHaveTextContent(
+      "Select Fire Center"
+    );
   });
 });
