@@ -26,11 +26,9 @@ PODS:
   - CapacitorStatusBar (7.0.0):
     - Capacitor
   - IONGeolocationLib (1.0.0)
-  - Keycloak (0.0.1):
-    - AppAuth
-    - Capacitor
 
 DEPENDENCIES:
+  - AppAuth
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
@@ -41,7 +39,6 @@ DEPENDENCIES:
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
-  - Keycloak (from `../../node_modules/keycloak`)
 
 SPEC REPOS:
   trunk:
@@ -69,8 +66,6 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/network"
   CapacitorStatusBar:
     :path: "../../node_modules/@capacitor/status-bar"
-  Keycloak:
-    :path: "../../node_modules/keycloak"
 
 SPEC CHECKSUMS:
   AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
@@ -85,8 +80,7 @@ SPEC CHECKSUMS:
   CapacitorNetwork: cd17b98182841055ff58629213242a1f22f4a76b
   CapacitorStatusBar: 438e90beeeefa8276b24e6c5991cb02dd13e51bf
   IONGeolocationLib: 81f33f88d025846946de2cf63b0c7628e7c6bc9d
-  Keycloak: c39abe3ec71f672fbf306a7f37b85d3858ae7f00
 
-PODFILE CHECKSUM: 2519cc6d65316974f9578551e9993f0be7b33889
+PODFILE CHECKSUM: e1baedb367006233f3d28039fa4b7c95f6bf05b6
 
 COCOAPODS: 1.16.2

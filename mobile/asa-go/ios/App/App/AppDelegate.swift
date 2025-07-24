@@ -1,6 +1,5 @@
 import AppAuth
 import Capacitor
-import Keycloak
 import UIKit
 
 @UIApplicationMain
@@ -14,6 +13,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, KeycloakAppDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         // Override point for customization after application launch.
+        currentAuthorizationFlow = nil
         return true
     }
 
@@ -37,6 +37,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, KeycloakAppDelegate {
 
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+        currentAuthorizationFlow = nil
     }
 
     func application(

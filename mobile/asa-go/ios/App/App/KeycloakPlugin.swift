@@ -130,7 +130,7 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
 
                     } else {
                         self.logger.error(
-                            "Authorization error: \(error?.localizedDescription ?? "Unknown error")"
+                            "Authorization error: \(error?.localizedDescription ?? "Unknown error", privacy: .public)"
                         )
                         self.authState = nil
                         call.reject(

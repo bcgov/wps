@@ -15,6 +15,8 @@
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		5D819A602E328F3900F2C3AA /* KeycloakPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D819A5F2E328F3900F2C3AA /* KeycloakPlugin.swift */; };
+		5D819A622E328F4700F2C3AA /* AsaGoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D819A612E328F4700F2C3AA /* AsaGoViewController.swift */; };
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
 /* End PBXBuildFile section */
 
@@ -29,6 +31,8 @@
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
+		5D819A5F2E328F3900F2C3AA /* KeycloakPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeycloakPlugin.swift; sourceTree = "<group>"; };
+		5D819A612E328F4700F2C3AA /* AsaGoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsaGoViewController.swift; sourceTree = "<group>"; };
 		6654B5E52E29AC1C000DA498 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
@@ -77,6 +81,8 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				5D819A612E328F4700F2C3AA /* AsaGoViewController.swift */,
+				5D819A5F2E328F3900F2C3AA /* KeycloakPlugin.swift */,
 				6654B5E52E29AC1C000DA498 /* App.entitlements */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
@@ -216,6 +222,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				5D819A602E328F3900F2C3AA /* KeycloakPlugin.swift in Sources */,
+				5D819A622E328F4700F2C3AA /* AsaGoViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
