@@ -26,15 +26,15 @@ const FireCenterDropdown = ({
     setSelectedFireCenter(selected ?? undefined);
   };
 
-  const getSelectedDisplay = (selected: string) => {
-    if (selected === "") {
+  const getSelectedDisplay = (selected: FireCenter | undefined) => {
+    if (!selected) {
       return (
         <Typography sx={{ color: "text.disabled" }}>
           Select Fire Center
         </Typography>
       );
     }
-    return selected;
+    return selected.name;
   };
 
   return (
@@ -43,7 +43,7 @@ const FireCenterDropdown = ({
       value={selectedFireCenter?.name ?? ""}
       onChange={handleChange}
       displayEmpty
-      renderValue={(selected) => getSelectedDisplay(selected)}
+      renderValue={() => getSelectedDisplay(selectedFireCenter)}
     >
       {fireCenterOptions.map((option) => (
         <MenuItem key={option.name} value={option.name}>
