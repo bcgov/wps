@@ -170,7 +170,9 @@ describe("Profile", () => {
   });
 
   it("should render FireZoneUnitTabs with correct advisory threshold", () => {
-    renderWithProvider(<Profile {...defaultProps} />);
+    renderWithProvider(
+      <Profile {...defaultProps} selectedFireCenter={mockFireCenter} />
+    );
 
     const tabs = screen.getByTestId("fire-zone-unit-tabs");
     expect(tabs).toBeInTheDocument();
@@ -179,12 +181,11 @@ describe("Profile", () => {
     expect(threshold).toHaveTextContent(`${defaultProps.advisoryThreshold}`);
   });
 
-  it("should render FireZoneUnitSummary", () => {
+  it("should render a default message if no fire centre is selected", () => {
     renderWithProvider(<Profile {...defaultProps} />);
 
-    const summary = screen.getByTestId("fire-zone-unit-summary");
+    const summary = screen.getByTestId("default-message");
     expect(summary).toBeInTheDocument();
-    expect(summary).toHaveTextContent("No fire zone selected");
   });
 
   it("should render FireZoneUnitSummary with selected fire zone", () => {

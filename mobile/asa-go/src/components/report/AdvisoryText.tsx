@@ -4,6 +4,7 @@ import {
   FireZoneFuelStats,
   FireZoneHFIStats,
 } from "@/api/fbaAPI";
+import DefaultText from "@/components/report/DefaultText";
 import { selectFilteredFireCentreHFIFuelStats } from "@/slices/fireCentreHFIFuelStatsSlice";
 import { selectProvincialSummary } from "@/slices/provincialSummarySlice";
 import { selectForDate, selectRunDatetime } from "@/slices/runParameterSlice";
@@ -25,7 +26,7 @@ import { DateTime } from "luxon";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 
-const SerifTypography = styled(Typography)({
+export const SerifTypography = styled(Typography)({
   fontSize: "1.2rem",
   fontFamily: '"Courier", "Monospace"',
 }) as typeof Typography;
@@ -217,9 +218,7 @@ const AdvisoryText = ({
     return (
       <>
         {isNil(selectedFireCenter) ? (
-          <SerifTypography data-testid="default-message">
-            Please select a fire center.
-          </SerifTypography>
+          <DefaultText />
         ) : (
           <SerifTypography data-testid="no-data-message">
             No advisory data available for the selected date.

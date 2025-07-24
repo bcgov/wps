@@ -16,7 +16,6 @@ interface FireZoneUnitSummaryProps {
 }
 
 const FireZoneUnitSummary = ({
-  //   fireZoneTPIStats,
   selectedFireCenter,
   selectedFireZoneUnit,
 }: FireZoneUnitSummaryProps) => {

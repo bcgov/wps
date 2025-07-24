@@ -46,6 +46,7 @@ describe("ASAGoMap", () => {
     testId: "asa-go-map",
     selectedFireShape: undefined,
     setSelectedFireShape: vi.fn(),
+    setSelectedFireCenter: vi.fn(),
     advisoryThreshold: 0,
     date: DateTime.fromISO("2024-12-15"),
     setDate: vi.fn(),
