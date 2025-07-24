@@ -226,6 +226,7 @@ const ASAGoMap = ({
         selectedFireShape
       )
     );
+    handleZoomToSelectedFireShape();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireShape]);
 
