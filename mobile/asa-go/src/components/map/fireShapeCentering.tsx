@@ -25,6 +25,7 @@ export const centerOnFireShape = (
         duration: 400,
       });
     }
+  } else {
+    popup.setPosition(undefined);
   }
-  popup.setPosition(undefined);
 };

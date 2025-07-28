@@ -20,7 +20,7 @@ const mockFireZoneExtentsMap = new globalThis.Map([
   ],
 ]);
 
-describe("handleZoomToSelectedFireShape logic", () => {
+describe("centerOnFireShape", () => {
   let mockMap: Map;
   let mockAnimate: ReturnType<typeof vi.fn>;
   let mockPopup: Overlay;
@@ -68,7 +68,7 @@ describe("handleZoomToSelectedFireShape logic", () => {
       duration: 400,
     });
 
-    expect(mockPopup.setPosition).toHaveBeenCalledWith(undefined);
+    expect(mockPopup.setPosition).not.toHaveBeenCalledWith(undefined);
   });
 
   it("does not animate when selected fire shape has no extent", () => {
@@ -80,7 +80,7 @@ describe("handleZoomToSelectedFireShape logic", () => {
     );
 
     expect(mockAnimate).not.toHaveBeenCalled();
-    expect(mockPopup.setPosition).toHaveBeenCalledWith(undefined);
+    expect(mockPopup.setPosition).not.toHaveBeenCalledWith(undefined);
   });
 
   it("does not animate when selectedFireShape is undefined", () => {
