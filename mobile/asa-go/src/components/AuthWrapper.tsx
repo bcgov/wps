@@ -1,11 +1,11 @@
-import React from "react";
-import { useSelector } from "react-redux";
-import { Capacitor } from "@capacitor/core";
+import AsaIcon from "@/assets/asa-go-transparent.png";
+import LoginButton from "@/components/LoginButton";
 import { selectAuthentication } from "@/store";
+import { Capacitor } from "@capacitor/core";
 import { Box, CircularProgress, Typography, useTheme } from "@mui/material";
 import { isNull } from "lodash";
-import LoginButton from "@/components/LoginButton";
-import AsaIcon from "@/assets/asa-go-transparent.png";
+import React from "react";
+import { useSelector } from "react-redux";
 
 interface Props {
   children: React.ReactElement;
@@ -36,26 +36,39 @@ const AuthWrapper = ({ children }: Props) => {
     >
       <Box
         sx={{
-          height: "40%",
+          alignItems: "flex-end",
           display: "flex",
-          alignItems: "end",
+          flexGrow: 1,
           justifyContent: "center",
         }}
       >
-        <Box sx={{ alignItems: "center", display: "flex", height: "200px" }}>
+        <Box sx={{ display: "flex", flexGrow: 1, justifyContent: "Center" }}>
           <Box
             component="img"
-            sx={{ height: "150px", width: "150px" }}
+            sx={{ height: "300px", width: "300px" }}
             src={AsaIcon}
           />
-          <Typography sx={{ color: "white", fontWeight: "bold" }} variant="h2">
-            ASA Go
-          </Typography>
         </Box>
       </Box>
       <Box
         sx={{
-          height: "60%",
+          alignItems: "center",
+          justifyContent: "center",
+          display: "flex",
+        }}
+      >
+        <Typography
+          sx={{
+            color: "white",
+            fontWeight: "bold",
+          }}
+          variant="h2"
+        >
+          ASA Go
+        </Typography>
+      </Box>
+      <Box
+        sx={{
           display: "flex",
           flexDirection: "column",
           flexGrow: 1,
