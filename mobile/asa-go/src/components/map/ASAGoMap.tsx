@@ -142,6 +142,7 @@ const ASAGoMap = ({
   const popupRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
+  const clickSourceRef = useRef<boolean>(false);
 
   const [popup] = useState<Overlay>(
     new Overlay({
@@ -231,7 +232,15 @@ const ASAGoMap = ({
         selectedFireShape
       )
     );
-    centerOnFireShape(map, selectedFireShape, fireZoneExtentsMap, popup);
+
+    // Only center if the change didn't come from a click
+    if (!clickSourceRef.current) {
+      centerOnFireShape(map, selectedFireShape, fireZoneExtentsMap, popup);
+    }
+
+    // Reset the flag for next change
+    clickSourceRef.current = false;
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireShape]);
 
@@ -311,6 +320,7 @@ const ASAGoMap = ({
         if (!features.length) {
           popup.setPosition(undefined);
           setSelectedFireCenter(undefined);
+          clickSourceRef.current = true; // Mark as click source
           setSelectedFireShape(undefined);
           return;
         }
@@ -325,6 +335,7 @@ const ASAGoMap = ({
           area_sqm: feature.getProperties().Shape_Area,
         };
         popup.setPosition(event.coordinate);
+        clickSourceRef.current = true; // Mark as click source
         setSelectedFireShape(fireZone);
       });
     };
