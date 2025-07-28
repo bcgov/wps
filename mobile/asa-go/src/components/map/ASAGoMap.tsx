@@ -1,3 +1,4 @@
+import { centerOnFireShape } from "@/components/map/fireShapeCentering";
 import UserLocationIndicator from "@/components/map/LocationIndicator";
 import MapPopup from "@/components/map/MapPopup";
 import ScaleContainer from "@/components/map/ScaleContainer";
@@ -226,7 +227,7 @@ const ASAGoMap = ({
         selectedFireShape
       )
     );
-    handleZoomToSelectedFireShape();
+    centerOnFireShape(map, selectedFireShape, fireZoneExtentsMap, popup);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireShape]);
 
@@ -453,8 +454,6 @@ const ASAGoMap = ({
       if (!isUndefined(zoneExtent)) {
         map.getView().fit(zoneExtent, {
           duration: 400,
-          padding: [100, 100, 100, 100],
-          maxZoom: 8,
         });
       }
     }
