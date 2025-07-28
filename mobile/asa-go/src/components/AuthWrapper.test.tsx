@@ -45,7 +45,6 @@ describe("AuthWrapper", () => {
       token: "test-token",
     });
 
-    const store = createTestStore();
     renderWithProviders();
 
     expect(screen.getByText("Protected")).toBeInTheDocument();
@@ -62,7 +61,6 @@ describe("AuthWrapper", () => {
       token: "test-token",
     });
 
-    const store = createTestStore();
     renderWithProviders();
 
     expect(screen.getByText("Protected")).toBeInTheDocument();
@@ -79,7 +77,6 @@ describe("AuthWrapper", () => {
       token: "test-token",
     });
 
-    const store = createTestStore();
     renderWithProviders();
 
     expect(screen.getByText("Login")).toBeInTheDocument();
@@ -96,7 +93,6 @@ describe("AuthWrapper", () => {
       token: "test-token",
     });
 
-    const store = createTestStore();
     renderWithProviders();
 
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
@@ -113,7 +109,6 @@ describe("AuthWrapper", () => {
       token: "test-token",
     });
 
-    const store = createTestStore();
     renderWithProviders();
 
     expect(
