@@ -89,6 +89,7 @@ export const selectStationGroups = (state: RootState) => state.stationGroups
 export const selectStationGroupsMembers = (state: RootState) => state.stationGroupsMembers
 export const fireWatch = (state: RootState) => state.fireWatch
 export const selectFireWatchFireCentres = (state: RootState) => state.fireWatchFireCentres
+export const selectProvincialSummaryLoading = (state: RootState) => state.provincialSummary.loading
 
 export const selectFilteredFireCentreHFIFuelStats = createSelector(
   [selectFireCentreHFIFuelStats],

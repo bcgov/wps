@@ -1,10 +1,17 @@
-import { Box, FormControl, Grid, styled } from '@mui/material'
+import { Backdrop, Box, CircularProgress, FormControl, Grid, styled } from '@mui/material'
 import { GeneralHeader, ErrorBoundary } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters, selectRunDates, selectFireShapeAreas } from 'app/rootReducer'
+import {
+  selectFireCenters,
+  selectRunDates,
+  selectFireShapeAreas,
+  selectFireCentreTPIStats,
+  selectFireCentreHFIFuelStats,
+  selectProvincialSummaryLoading
+} from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { theme } from 'app/theme'
@@ -18,7 +25,7 @@ import { fetchSFMSRunDates, fetchSFMSBounds } from 'features/fba/slices/runDates
 import { isEmpty, isNull, isUndefined } from 'lodash'
 import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
-import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
+import { fetchProvincialSummary, selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import FireZoneUnitTabs from 'features/fba/components/infoPanel/FireZoneUnitTabs'
 import { fetchFireCentreTPIStats } from 'features/fba/slices/fireCentreTPIStatsSlice'
@@ -35,9 +42,44 @@ export const FireCentreFormControl = styled(FormControl)({
   minWidth: 280
 })
 
+const LOADING_OVERLAY_DELAY_MS = 300
+
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
+
+  // selectors
   const { fireCenters } = useSelector(selectFireCenters)
+  const { mostRecentRunDate, sfmsBounds } = useSelector(selectRunDates)
+  const { fireShapeAreas, loading: fireShapeLoading } = useSelector(selectFireShapeAreas)
+  const provincialLoading = useSelector(selectProvincialSummaryLoading)
+  const { loading: fireCentreHFIFuelStatsLoading } = useSelector(selectFireCentreHFIFuelStats)
+  const { loading: fireCentreTPIStatsLoading } = useSelector(selectFireCentreTPIStats)
+  const { loading: runDatesLoading } = useSelector(selectRunDates)
+
+  // Combine all loading selectors
+  const loading =
+    fireShapeLoading ||
+    provincialLoading ||
+    fireCentreHFIFuelStatsLoading ||
+    fireCentreTPIStatsLoading ||
+    runDatesLoading
+
+  // Debounced loading state to prevent flicker
+  const [showLoading, setShowLoading] = useState(false)
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout | undefined
+    if (loading) {
+      timeout = setTimeout(() => setShowLoading(true), LOADING_OVERLAY_DELAY_MS)
+    } else {
+      setShowLoading(false)
+    }
+    return () => {
+      if (timeout) clearTimeout(timeout)
+    }
+  }, [loading])
+
+  // state
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
   const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
@@ -47,8 +89,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
-  const { mostRecentRunDate, sfmsBounds } = useSelector(selectRunDates)
-  const { fireShapeAreas } = useSelector(selectFireShapeAreas)
   // Set some reasonable historical min and max dates for ASA (used by the DatePicker).
   const [historicalMinDate, setHistoricalMinDate] = useState<DateTime>(
     DateTime.fromObject({ year: 2022, month: 4, day: 1 })
@@ -209,8 +249,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           </Grid>
         </Grid>
       </Box>
-      <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
-        <Box sx={{ width: 700, overflowY: 'auto' }}>
+      <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden', position: 'relative' }}>
+        <Box sx={{ width: 700, overflowY: 'auto', position: 'relative' }}>
           <AdvisoryReport
             issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
             forDate={dateOfInterest}
@@ -225,6 +265,16 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             advisoryThreshold={ADVISORY_THRESHOLD}
             setSelectedFireShape={setSelectedFireShape}
           />
+          {showLoading && (
+            <Backdrop
+              open
+              sx={{
+                position: 'absolute'
+              }}
+            >
+              <CircularProgress />
+            </Backdrop>
+          )}
         </Box>
         <Grid sx={{ display: 'flex', flex: 1 }} item>
           <FBAMap

@@ -7,11 +7,13 @@ import { FireCentreTPIResponse, getFireCentreTPIStats, RunType } from 'api/fbaAP
 export interface CentreTPIStatsState {
   error: string | null
   fireCentreTPIStats: FireCentreTPIResponse | null
+  loading: boolean
 }
 
 export const initialState: CentreTPIStatsState = {
   error: null,
-  fireCentreTPIStats: null
+  fireCentreTPIStats: null,
+  loading: false
 }
 
 const fireCentreTPIStatsSlice = createSlice({
@@ -21,17 +23,17 @@ const fireCentreTPIStatsSlice = createSlice({
     getFireCentreTPIStatsStart(state: CentreTPIStatsState) {
       state.error = null
       state.fireCentreTPIStats = null
+      state.loading = true
     },
     getFireCentreTPIStatsFailed(state: CentreTPIStatsState, action: PayloadAction<string>) {
       state.error = action.payload
       state.fireCentreTPIStats = null
+      state.loading = false
     },
-    getFireCentreTPIStatsSuccess(
-      state: CentreTPIStatsState,
-      action: PayloadAction<FireCentreTPIResponse>
-    ) {
+    getFireCentreTPIStatsSuccess(state: CentreTPIStatsState, action: PayloadAction<FireCentreTPIResponse>) {
       state.error = null
       state.fireCentreTPIStats = action.payload
+      state.loading = false
     }
   }
 })

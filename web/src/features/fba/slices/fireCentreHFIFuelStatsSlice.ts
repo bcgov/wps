@@ -3,15 +3,18 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FireCentreHFIStats, getFireCentreHFIStats, RunType } from 'api/fbaAPI'
+import { stat } from 'fs'
 
 export interface FireCentreHFIFuelStatsState {
   error: string | null
   fireCentreHFIFuelStats: FireCentreHFIStats
+  loading: boolean
 }
 
 export const initialState: FireCentreHFIFuelStatsState = {
   error: null,
-  fireCentreHFIFuelStats: {}
+  fireCentreHFIFuelStats: {},
+  loading: false
 }
 
 const fireCentreHFIFuelStatsSlice = createSlice({
@@ -21,13 +24,16 @@ const fireCentreHFIFuelStatsSlice = createSlice({
     getFireCentreHFIFuelStatsStart(state: FireCentreHFIFuelStatsState) {
       state.error = null
       state.fireCentreHFIFuelStats = {}
+      state.loading = true
     },
     getFireCentreHFIFuelStatsFailed(state: FireCentreHFIFuelStatsState, action: PayloadAction<string>) {
       state.error = action.payload
+      state.loading = false
     },
     getFireCentreHFIFuelStatsSuccess(state: FireCentreHFIFuelStatsState, action: PayloadAction<FireCentreHFIStats>) {
       state.error = null
       state.fireCentreHFIFuelStats = action.payload
+      state.loading = false
     }
   }
 })
