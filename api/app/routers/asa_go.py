@@ -176,14 +176,16 @@ async def get_hfi_fuels_data_for_fire_centre(
             if hfi_fuel_type_ids_for_zone is None or len(hfi_fuel_type_ids_for_zone) == 0:
                 # Handle the situation where data for the current year was actually processed with
                 # last year's fuel grid
-                fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year - 1)
+                prev_fuel_type_raster = await get_fuel_type_raster_by_year(
+                    session, for_date.year - 1
+                )
                 hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
                     session,
                     run_type=RunTypeEnum(run_type.value),
                     for_date=for_date,
                     run_datetime=run_datetime,
                     source_identifier=zone_source_id,
-                    fuel_type_raster_id=fuel_type_raster.id,
+                    fuel_type_raster_id=prev_fuel_type_raster.id,
                 )
 
             zone_fuel_stats = []
@@ -226,13 +228,14 @@ async def get_hfi_fuels_data_for_fire_centre(
 async def get_latest_sfms_run_datetime_for_date(for_date: date):
     async with get_async_read_session_scope() as session:
         latest_run_parameter = await get_most_recent_run_datetime_for_date(session, for_date)
-        return LatestSFMSRunParameterResponse(
-            run_parameter=LatestSFMSRunParameter(
-                for_date=latest_run_parameter.for_date,
-                run_datetime=latest_run_parameter.run_datetime,
-                run_type=latest_run_parameter.run_type,
-            )
+        if latest_run_parameter is None:
+            return LatestSFMSRunParameterResponse()
+        run_parameter = LatestSFMSRunParameter(
+            for_date=latest_run_parameter.for_date,
+            run_datetime=latest_run_parameter.run_datetime,
+            run_type=latest_run_parameter.run_type,
         )
+        return LatestSFMSRunParameterResponse(run_parameter=run_parameter)
 
 
 @router.get("/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])

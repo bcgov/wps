@@ -42,7 +42,9 @@ const columns: GridColDef[] = [
     renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => (
       <Tooltip followCursor placement="right" title={params.row['description']}>
-        <Typography sx={{ fontSize: '0.75rem', display: 'flex', flexGrow: 1 }}>{params.row[params.field]}</Typography>
+        <Typography sx={{ fontSize: '0.75rem', height: '100%', alignItems: 'center', display: 'flex', flexGrow: 1 }}>
+          {params.row[params.field]}
+        </Typography>
       </Tooltip>
     )
   },

@@ -1,6 +1,5 @@
-import { TextField, Autocomplete } from "@mui/material";
+import { MenuItem, Select, SelectChangeEvent, Typography } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
-import { isEqual, isNull } from "lodash";
 import React from "react";
 
 interface FireCenterDropdownProps {
@@ -12,35 +11,46 @@ interface FireCenterDropdownProps {
   setSelectedFireShape: React.Dispatch<
     React.SetStateAction<FireShape | undefined>
   >;
-  setZoomSource: React.Dispatch<
-    React.SetStateAction<"fireCenter" | "fireShape" | undefined>
-  >;
 }
 
-const FireCenterDropdown = (props: FireCenterDropdownProps) => {
-  // eslint-disable-next-line
-  const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    if (!isEqual(props.selectedFireCenter, value)) {
-      props.setSelectedFireShape(undefined);
-      props.setSelectedFireCenter(value);
-      props.setZoomSource("fireCenter");
+const FireCenterDropdown = ({
+  fireCenterOptions,
+  selectedFireCenter,
+  setSelectedFireCenter,
+  setSelectedFireShape,
+}: FireCenterDropdownProps) => {
+  const handleChange = (event: SelectChangeEvent<string>): void => {
+    const selectedName = event.target.value;
+    const selected = fireCenterOptions.find((fc) => fc.name === selectedName);
+    setSelectedFireShape(undefined);
+    setSelectedFireCenter(selected ?? undefined);
+  };
+
+  const getSelectedDisplay = (selected: FireCenter | undefined) => {
+    if (!selected) {
+      return (
+        <Typography sx={{ color: "text.disabled" }}>
+          Select Fire Center
+        </Typography>
+      );
     }
-    if (isNull(value)) {
-      localStorage.removeItem("preferredFireCenter");
-    }
+    return selected.name;
   };
 
   return (
-    <Autocomplete
-      data-testid={`fire-center-dropdown`}
-      options={props.fireCenterOptions}
-      getOptionLabel={(option) => option?.name}
-      renderInput={(params) => (
-        <TextField {...params} label="Select Fire Centre" variant="outlined" />
-      )}
-      onChange={changeHandler}
-      value={props.selectedFireCenter || null}
-    />
+    <Select
+      data-testid="fire-center-dropdown"
+      value={selectedFireCenter?.name ?? ""}
+      onChange={handleChange}
+      displayEmpty
+      renderValue={() => getSelectedDisplay(selectedFireCenter)}
+    >
+      {fireCenterOptions.map((option) => (
+        <MenuItem key={option.name} value={option.name}>
+          {option.name}
+        </MenuItem>
+      ))}
+    </Select>
   );
 };
 
