@@ -34,7 +34,7 @@ import { Filesystem } from "@capacitor/filesystem";
 import GpsOffIcon from "@mui/icons-material/GpsOff";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import { Box } from "@mui/material";
-import { FireShape } from "api/fbaAPI";
+import { FireCenter, FireShape } from "api/fbaAPI";
 import { cloneDeep, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { Map, MapBrowserEvent, Overlay, View } from "ol";
@@ -68,6 +68,9 @@ export interface ASAGoMapProps {
   setSelectedFireShape: React.Dispatch<
     React.SetStateAction<FireShape | undefined>
   >;
+  setSelectedFireCenter: React.Dispatch<
+    React.SetStateAction<FireCenter | undefined>
+  >;
   advisoryThreshold: number;
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
@@ -78,6 +81,7 @@ const ASAGoMap = ({
   testId,
   selectedFireShape,
   setSelectedFireShape,
+  setSelectedFireCenter,
   advisoryThreshold,
   date,
   setDate,
@@ -306,6 +310,7 @@ const ASAGoMap = ({
       fireZoneFileLayer.getFeatures(event.pixel).then((features) => {
         if (!features.length) {
           popup.setPosition(undefined);
+          setSelectedFireCenter(undefined);
           setSelectedFireShape(undefined);
           return;
         }
