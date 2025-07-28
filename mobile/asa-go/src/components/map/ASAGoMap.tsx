@@ -459,6 +459,8 @@ const ASAGoMap = ({
       if (!isUndefined(zoneExtent)) {
         map.getView().fit(zoneExtent, {
           duration: 400,
+          padding: [50, 50, 50, 50],
+          maxZoom: 10,
         });
       }
     }
