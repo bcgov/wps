@@ -65,14 +65,13 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
             authorizationEndpoint: authorizationEndpointURL,
             tokenEndpoint: tokenEndpointURL)
 
-        var authorizationParameters = ["prompt": "login"]
         let request = OIDAuthorizationRequest(
             configuration: configuration,
             clientId: clientId,
             scopes: [OIDScopeOpenID, OIDScopeProfile, "offline_access"],
             redirectURL: redirectURL,
             responseType: OIDResponseTypeCode,
-            additionalParameters: authorizationParameters)
+            additionalParameters: nil)
 
         DispatchQueue.main.sync {
 
