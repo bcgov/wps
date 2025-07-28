@@ -15,14 +15,28 @@ public protocol KeycloakAppDelegate: AnyObject {
 public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
     private var authState: OIDAuthState?
     private let logger = Logger(subsystem: "com.bcgov.wps.keycloak", category: "authentication")
-    private var refreshTimer: Timer?
     private var tokenRefreshThreshold: TimeInterval = 60  // 1 minute before expiration
+
+    // Services for dependency injection
+    private let services: KeycloakServices
 
     public let identifier = "KeycloakPlugin"
     public let jsName = "Keycloak"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "authenticate", returnType: CAPPluginReturnPromise)
     ]
+
+    // Default initializer uses default services
+    public override init() {
+        self.services = KeycloakServices()
+        super.init()
+    }
+
+    // Internal initializer for testing with injected services
+    internal init(services: KeycloakServices) {
+        self.services = services
+        super.init()
+    }
 
     @objc func authenticate(_ call: CAPPluginCall) {
         guard let clientId = call.getString("clientId") else {
@@ -73,42 +87,35 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
             responseType: OIDResponseTypeCode,
             additionalParameters: nil)
 
-        DispatchQueue.main.sync {
-
-            guard let appDelegate = UIApplication.shared.delegate as? KeycloakAppDelegate else {
+        services.uiService.executeOnMainQueue {
+            guard let appDelegate = self.services.uiService.getAppDelegate() else {
                 call.reject("AppDelegate must conform to KeycloakAppDelegate protocol")
                 return
             }
 
-            let keyWindow = UIApplication.shared.windows.filter { $0.isKeyWindow }.first
-            var ivc: UIViewController? = nil
-
-            if var topController = keyWindow?.rootViewController {
-                while let presentedViewController = topController.presentedViewController {
-                    topController = presentedViewController
-                }
-                ivc = topController
+            guard
+                let presentingViewController = self.services.uiService.getPresentingViewController()
+            else {
+                call.reject("Unable to find presenting view controller")
+                return
             }
 
-            appDelegate.currentAuthorizationFlow =
-                OIDAuthState.authState(byPresenting: request, presenting: ivc!) {
-                    authState, error in
+            appDelegate.currentAuthorizationFlow = self.services.authenticationService
+                .performAuthentication(
+                    request: request,
+                    appDelegate: appDelegate,
+                    presentingViewController: presentingViewController
+                ) { authState, error in
                     if let authState = authState {
                         self.authState = authState
 
                         // Setup automatic token refresh
                         self.setupTokenRefreshTimer()
 
-                        call.resolve([
-                            "isAuthenticated": true,
-                            "accessToken": authState.lastTokenResponse?.accessToken as Any,
-                            "refreshToken": authState.lastTokenResponse?.refreshToken as Any,
-                            "tokenType": authState.lastTokenResponse?.tokenType as Any,
-                            "expiresIn": authState.lastTokenResponse?.accessTokenExpirationDate
-                                as Any,
-                            "scope": authState.lastTokenResponse?.scope as Any,
-                            "idToken": authState.lastTokenResponse?.idToken as Any,
-                        ])
+                        let tokenResponse = self.services.tokenResponseService.createTokenResponse(
+                            from: authState)
+                        call.resolve(tokenResponse)
+
                         self.logger.debug(
                             "Got authorization tokens. Access token: \(authState.lastTokenResponse?.accessToken ?? "nil", privacy: .private)"
                         )
@@ -126,93 +133,43 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     private func setupTokenRefreshTimer() {
-        // Stop any existing timer
-        stopTokenRefreshTimer()
-
-        guard let authState = self.authState,
-            let expirationDate = authState.lastTokenResponse?.accessTokenExpirationDate
-        else {
-            return
-        }
-
-        // Calculate when to refresh (threshold seconds before expiration)
-        let refreshDate = expirationDate.addingTimeInterval(-tokenRefreshThreshold)
-        let timeUntilRefresh = refreshDate.timeIntervalSinceNow
-
-        // Only set timer if refresh time is in the future
-        if timeUntilRefresh > 0 {
-            refreshTimer = Timer.scheduledTimer(withTimeInterval: timeUntilRefresh, repeats: false)
-            { [weak self] _ in
-                self?.performAutomaticTokenRefresh()
-            }
-
-            logger.debug("Token refresh timer set for \(timeUntilRefresh) seconds")
-        } else {
-            // Token is close to expiration or already expired, refresh immediately
-            performAutomaticTokenRefresh()
+        services.tokenTimerService.setupTokenRefreshTimer(
+            authState: authState,
+            tokenRefreshThreshold: tokenRefreshThreshold
+        ) { [weak self] in
+            self?.performAutomaticTokenRefresh()
         }
     }
 
     private func stopTokenRefreshTimer() {
-        refreshTimer?.invalidate()
-        refreshTimer = nil
+        services.tokenTimerService.stopTokenRefreshTimer()
     }
 
     private func performAutomaticTokenRefresh() {
-        logger.debug("Performing automatic token refresh")
-
-        performTokenRefresh { [weak self] success, tokenResponse, error in
-            if success {
-                self?.logger.debug("Automatic token refresh successful")
-                self?.setupTokenRefreshTimer()  // Schedule next refresh
-
+        services.tokenRefreshService.performAutomaticTokenRefresh(
+            authState: authState,
+            onSuccess: { [weak self] tokenResponse in
                 // Notify JavaScript layer about token refresh
-                self?.notifyListeners("tokenRefreshed", data: tokenResponse ?? [:])
-            } else {
-                self?.logger.error("Automatic token refresh failed: \(error ?? "Unknown error")")
-
+                self?.notifyListeners("tokenRefreshed", data: tokenResponse)
+            },
+            onFailure: { [weak self] error in
                 // Notify JavaScript layer about refresh failure
-                self?.notifyListeners(
-                    "tokenRefreshFailed", data: ["error": error ?? "Unknown error"])
+                self?.notifyListeners("tokenRefreshFailed", data: ["error": error])
+            },
+            onTokenRefreshed: { [weak self] in
+                self?.setupTokenRefreshTimer()  // Schedule next refresh
             }
-        }
+        )
     }
 
     private func performTokenRefresh(completion: @escaping (Bool, [String: Any]?, String?) -> Void)
     {
-        guard let authState = self.authState else {
-            completion(false, nil, "No authentication state available")
-            return
-        }
-
-        authState.performAction { [weak self] accessToken, idToken, error in
-            if let error = error {
-                self?.logger.error("Token refresh error: \(error.localizedDescription)")
-                completion(false, nil, error.localizedDescription)
-            } else {
-                self?.logger.debug("Token refresh successful")
-
-                // Update stored auth state
-                if let authState = self?.authState {
-                    let tokenResponse = self?.createTokenResponse(from: authState)
-                    completion(true, tokenResponse, nil)
-                } else {
-                    completion(false, nil, "Auth state became nil after refresh")
-                }
-            }
-        }
+        services.tokenRefreshService.performTokenRefresh(
+            authState: authState, completion: completion)
     }
 
     private func createTokenResponse(from authState: OIDAuthState) -> [String: Any] {
-        return [
-            "isAuthenticated": true,
-            "accessToken": authState.lastTokenResponse?.accessToken as Any,
-            "refreshToken": authState.lastTokenResponse?.refreshToken as Any,
-            "tokenType": authState.lastTokenResponse?.tokenType as Any,
-            "expiresIn": authState.lastTokenResponse?.accessTokenExpirationDate as Any,
-            "scope": authState.lastTokenResponse?.scope as Any,
-            "idToken": authState.lastTokenResponse?.idToken as Any,
-        ]
+        return services.tokenResponseService.createTokenResponse(from: authState)
     }
 
     deinit {

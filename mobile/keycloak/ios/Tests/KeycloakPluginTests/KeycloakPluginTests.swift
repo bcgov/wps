@@ -1,3 +1,4 @@
+import AppAuth
 import Capacitor
 import Foundation
 import Testing
@@ -54,5 +55,51 @@ struct KeycloakPluginTests {
             return false
         }
         return true
+    }
+
+    @Test func testPluginWithMockServices() {
+        // Test that the plugin can be created with custom services
+        let customServices = KeycloakServices()
+        let pluginWithServices = KeycloakPlugin(services: customServices)
+
+        #expect(pluginWithServices.identifier == "KeycloakPlugin")
+        #expect(pluginWithServices.jsName == "Keycloak")
+        #expect(pluginWithServices.pluginMethods.count == 1)
+    }
+
+    @Test func testDefaultServicesInitialization() {
+        // Test that services are properly initialized
+        let services = KeycloakServices()
+
+        // Test that all services are available
+        #expect(services.authenticationService is DefaultAuthenticationService)
+        #expect(services.tokenTimerService is DefaultTokenTimerService)
+        #expect(services.tokenRefreshService is DefaultTokenRefreshService)
+        #expect(services.tokenResponseService is DefaultTokenResponseService)
+        #expect(services.uiService is DefaultUIService)
+    }
+
+    @Test func testTokenResponseService() {
+        // Test the token response service independently
+        let service = DefaultTokenResponseService()
+        let mockAuthState = createMockAuthState()
+
+        let response = service.createTokenResponse(from: mockAuthState)
+
+        #expect(response["isAuthenticated"] as? Bool == true)
+        #expect(response.keys.contains("accessToken"))
+        #expect(response.keys.contains("refreshToken"))
+        #expect(response.keys.contains("tokenType"))
+    }
+
+    private func createMockAuthState() -> OIDAuthState {
+        let config = OIDServiceConfiguration(
+            authorizationEndpoint: URL(string: "https://auth.example.com/auth")!,
+            tokenEndpoint: URL(string: "https://auth.example.com/token")!
+        )
+
+        // Create a minimal auth state for testing
+        return OIDAuthState(
+            authorizationResponse: nil, tokenResponse: nil, registrationResponse: nil)
     }
 }
