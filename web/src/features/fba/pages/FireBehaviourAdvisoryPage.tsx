@@ -18,7 +18,7 @@ import { fetchSFMSRunDates, fetchSFMSBounds } from 'features/fba/slices/runDates
 import { isEmpty, isNull, isUndefined } from 'lodash'
 import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
-import { fetchProvincialSummary, selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
+import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import FireZoneUnitTabs from 'features/fba/components/infoPanel/FireZoneUnitTabs'
 import { fetchFireCentreTPIStats } from 'features/fba/slices/fireCentreTPIStatsSlice'
