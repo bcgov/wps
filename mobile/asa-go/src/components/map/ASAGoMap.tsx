@@ -317,10 +317,10 @@ const ASAGoMap = ({
     mapObject.addOverlay(popup);
     const mapClickHandler = (event: MapBrowserEvent<UIEvent>) => {
       fireZoneFileLayer.getFeatures(event.pixel).then((features) => {
+        clickSourceRef.current = true; // Mark as click source
         if (!features.length) {
           popup.setPosition(undefined);
           setSelectedFireCenter(undefined);
-          clickSourceRef.current = true; // Mark as click source
           setSelectedFireShape(undefined);
           return;
         }
@@ -335,7 +335,6 @@ const ASAGoMap = ({
           area_sqm: feature.getProperties().Shape_Area,
         };
         popup.setPosition(event.coordinate);
-        clickSourceRef.current = true; // Mark as click source
         setSelectedFireShape(fireZone);
       });
     };
