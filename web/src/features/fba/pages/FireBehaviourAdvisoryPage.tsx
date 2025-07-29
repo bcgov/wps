@@ -1,17 +1,10 @@
-import { Backdrop, Box, CircularProgress, FormControl, Grid, styled } from '@mui/material'
+import { Box, FormControl, Grid, styled } from '@mui/material'
 import { GeneralHeader, ErrorBoundary } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import {
-  selectFireCenters,
-  selectRunDates,
-  selectFireShapeAreas,
-  selectFireCentreTPIStats,
-  selectFireCentreHFIFuelStats,
-  selectProvincialSummaryLoading
-} from 'app/rootReducer'
+import { selectFireCenters, selectRunDates, selectFireShapeAreas } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { theme } from 'app/theme'
@@ -42,42 +35,13 @@ export const FireCentreFormControl = styled(FormControl)({
   minWidth: 280
 })
 
-const LOADING_OVERLAY_DELAY_MS = 300
-
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
 
   // selectors
   const { fireCenters } = useSelector(selectFireCenters)
   const { mostRecentRunDate, sfmsBounds } = useSelector(selectRunDates)
-  const { fireShapeAreas, loading: fireShapeLoading } = useSelector(selectFireShapeAreas)
-  const provincialLoading = useSelector(selectProvincialSummaryLoading)
-  const { loading: fireCentreHFIFuelStatsLoading } = useSelector(selectFireCentreHFIFuelStats)
-  const { loading: fireCentreTPIStatsLoading } = useSelector(selectFireCentreTPIStats)
-  const { loading: runDatesLoading } = useSelector(selectRunDates)
-
-  // Combine all loading selectors
-  const loading =
-    fireShapeLoading ||
-    provincialLoading ||
-    fireCentreHFIFuelStatsLoading ||
-    fireCentreTPIStatsLoading ||
-    runDatesLoading
-
-  // Debounced loading state to prevent flicker
-  const [showLoading, setShowLoading] = useState(false)
-
-  useEffect(() => {
-    let timeout: NodeJS.Timeout | undefined
-    if (loading) {
-      timeout = setTimeout(() => setShowLoading(true), LOADING_OVERLAY_DELAY_MS)
-    } else {
-      setShowLoading(false)
-    }
-    return () => {
-      if (timeout) clearTimeout(timeout)
-    }
-  }, [loading])
+  const { fireShapeAreas } = useSelector(selectFireShapeAreas)
 
   // state
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
@@ -265,16 +229,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             advisoryThreshold={ADVISORY_THRESHOLD}
             setSelectedFireShape={setSelectedFireShape}
           />
-          {showLoading && (
-            <Backdrop
-              open
-              sx={{
-                position: 'absolute'
-              }}
-            >
-              <CircularProgress />
-            </Backdrop>
-          )}
         </Box>
         <Grid sx={{ display: 'flex', flex: 1 }} item>
           <FBAMap

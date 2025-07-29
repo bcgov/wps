@@ -1,4 +1,4 @@
-import { Box, styled, Typography } from '@mui/material'
+import { Box, Skeleton, styled, Typography } from '@mui/material'
 import { DateTime } from 'luxon'
 import React, { useMemo } from 'react'
 import { useSelector } from 'react-redux'
@@ -13,6 +13,7 @@ import { AdvisoryMinWindStats, FireCenter, FireShape, FireZoneFuelStats, FireZon
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
 import { AdvisoryStatus } from 'utils/constants'
 import { selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
+import { useLoading } from '@/features/fba/hooks/useLoading'
 
 const SLASH_FUEL_TYPES = ['S-1', 'S-2', 'S-3']
 
@@ -108,6 +109,7 @@ const AdvisoryText = ({
   // selectors
   const provincialSummary = useSelector(selectProvincialSummary)
   const filteredFireCentreHFIFuelStats = useSelector(selectFilteredFireCentreHFIFuelStats)
+  const isLoading = useLoading()
 
   // derived state
   const selectedFilteredZoneUnitFuelStats = useMemo<FireZoneHFIStats>(() => {
@@ -349,9 +351,21 @@ const AdvisoryText = ({
           marginBottom: '10px'
         }}
       >
-        {!selectedFireCenter || !issueDate?.isValid || !selectedFireZoneUnit
-          ? renderDefaultMessage()
-          : renderAdvisoryText()}
+        {(() => {
+          if (isLoading) {
+            return (
+              <>
+                <Skeleton variant="text" width="30%" height={32} />
+                <Skeleton variant="text" width="80%" height={32} />
+                <Skeleton variant="rectangular" width="100%" height={180} sx={{ my: 2 }} />
+              </>
+            )
+          }
+          if (!selectedFireCenter || !issueDate?.isValid || !selectedFireZoneUnit) {
+            return renderDefaultMessage()
+          }
+          return renderAdvisoryText()
+        })()}
       </Box>
     </div>
   )
