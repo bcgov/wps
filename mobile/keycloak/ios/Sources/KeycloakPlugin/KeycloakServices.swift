@@ -54,6 +54,94 @@ public protocol UIServiceProtocol {
     func executeOnMainQueue<T>(_ block: @escaping () -> T) -> T
 }
 
+/// Protocol for validating authentication parameters
+public protocol AuthenticationParameterValidatorProtocol {
+    func validateAuthenticationParameters(_ call: CAPPluginCall) -> Result<
+        AuthenticationParameters, ValidationError
+    >
+}
+
+public class AuthenticationParameterValidator: AuthenticationParameterValidatorProtocol {
+
+    public init() {}
+
+    public func validateAuthenticationParameters(_ call: CAPPluginCall) -> Result<
+        AuthenticationParameters, ValidationError
+    > {
+
+        // Validate required string parameters
+        guard let clientId = call.getString("clientId") else {
+            return .failure(.missingParameter("clientId"))
+        }
+
+        guard let authorizationBaseUrl = call.getString("authorizationBaseUrl") else {
+            return .failure(.missingParameter("authorizationBaseUrl"))
+        }
+
+        guard let redirectUrl = call.getString("redirectUrl") else {
+            return .failure(.missingParameter("redirectUrl"))
+        }
+
+        guard let tokenUrl = call.getString("accessTokenEndpoint") else {
+            return .failure(.missingParameter("accessTokenEndpoint"))
+        }
+
+        // Validate URL formats
+        guard let authorizationEndpointURL = URL(string: authorizationBaseUrl) else {
+            return .failure(.invalidURL("authorizationBaseUrl", authorizationBaseUrl))
+        }
+
+        guard let tokenEndpointURL = URL(string: tokenUrl) else {
+            return .failure(.invalidURL("accessTokenEndpoint", tokenUrl))
+        }
+
+        guard let redirectURL = URL(string: redirectUrl) else {
+            return .failure(.invalidURL("redirectUrl", redirectUrl))
+        }
+
+        let parameters = AuthenticationParameters(
+            clientId: clientId,
+            authorizationEndpointURL: authorizationEndpointURL,
+            tokenEndpointURL: tokenEndpointURL,
+            redirectURL: redirectURL
+        )
+
+        return .success(parameters)
+    }
+}
+
+/// Struct containing validated authentication parameters
+public struct AuthenticationParameters {
+    public let clientId: String
+    public let authorizationEndpointURL: URL
+    public let tokenEndpointURL: URL
+    public let redirectURL: URL
+
+    public init(
+        clientId: String, authorizationEndpointURL: URL, tokenEndpointURL: URL, redirectURL: URL
+    ) {
+        self.clientId = clientId
+        self.authorizationEndpointURL = authorizationEndpointURL
+        self.tokenEndpointURL = tokenEndpointURL
+        self.redirectURL = redirectURL
+    }
+}
+
+/// Enumeration of possible validation errors
+public enum ValidationError: Error, Equatable {
+    case missingParameter(String)
+    case invalidURL(String, String)  // parameter name, invalid value
+
+    public var localizedDescription: String {
+        switch self {
+        case .missingParameter(let parameter):
+            return "Missing required parameter: \(parameter)"
+        case .invalidURL(let parameter, let value):
+            return "Invalid \(parameter): \(value)"
+        }
+    }
+}
+
 /// Default implementation of AuthenticationServiceProtocol
 public class DefaultAuthenticationService: AuthenticationServiceProtocol {
     public init() {}
@@ -225,6 +313,56 @@ public class DefaultUIService: UIServiceProtocol {
     }
 }
 
+/// Default implementation of the authentication parameter validator
+public class DefaultAuthenticationParameterValidator: AuthenticationParameterValidatorProtocol {
+
+    public init() {}
+
+    public func validateAuthenticationParameters(_ call: CAPPluginCall) -> Result<
+        AuthenticationParameters, ValidationError
+    > {
+
+        // Validate required string parameters
+        guard let clientId = call.getString("clientId") else {
+            return .failure(.missingParameter("clientId"))
+        }
+
+        guard let authorizationBaseUrl = call.getString("authorizationBaseUrl") else {
+            return .failure(.missingParameter("authorizationBaseUrl"))
+        }
+
+        guard let redirectUrl = call.getString("redirectUrl") else {
+            return .failure(.missingParameter("redirectUrl"))
+        }
+
+        guard let tokenUrl = call.getString("accessTokenEndpoint") else {
+            return .failure(.missingParameter("accessTokenEndpoint"))
+        }
+
+        // Validate URL formats
+        guard let authorizationEndpointURL = URL(string: authorizationBaseUrl) else {
+            return .failure(.invalidURL("authorizationBaseUrl", authorizationBaseUrl))
+        }
+
+        guard let tokenEndpointURL = URL(string: tokenUrl) else {
+            return .failure(.invalidURL("accessTokenEndpoint", tokenUrl))
+        }
+
+        guard let redirectURL = URL(string: redirectUrl) else {
+            return .failure(.invalidURL("redirectUrl", redirectUrl))
+        }
+
+        let parameters = AuthenticationParameters(
+            clientId: clientId,
+            authorizationEndpointURL: authorizationEndpointURL,
+            tokenEndpointURL: tokenEndpointURL,
+            redirectURL: redirectURL
+        )
+
+        return .success(parameters)
+    }
+}
+
 /// Container for all services used by KeycloakPlugin
 public struct KeycloakServices {
     public let authenticationService: AuthenticationServiceProtocol
@@ -232,18 +370,22 @@ public struct KeycloakServices {
     public let tokenRefreshService: TokenRefreshServiceProtocol
     public let tokenResponseService: TokenResponseServiceProtocol
     public let uiService: UIServiceProtocol
+    public let parameterValidator: AuthenticationParameterValidatorProtocol
 
     public init(
         authenticationService: AuthenticationServiceProtocol = DefaultAuthenticationService(),
         tokenTimerService: TokenTimerServiceProtocol = DefaultTokenTimerService(),
         tokenRefreshService: TokenRefreshServiceProtocol = DefaultTokenRefreshService(),
         tokenResponseService: TokenResponseServiceProtocol = DefaultTokenResponseService(),
-        uiService: UIServiceProtocol = DefaultUIService()
+        uiService: UIServiceProtocol = DefaultUIService(),
+        parameterValidator: AuthenticationParameterValidatorProtocol =
+            DefaultAuthenticationParameterValidator()
     ) {
         self.authenticationService = authenticationService
         self.tokenTimerService = tokenTimerService
         self.tokenRefreshService = tokenRefreshService
         self.tokenResponseService = tokenResponseService
         self.uiService = uiService
+        self.parameterValidator = parameterValidator
     }
 }

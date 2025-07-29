@@ -39,51 +39,27 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func authenticate(_ call: CAPPluginCall) {
-        guard let clientId = call.getString("clientId") else {
-            call.reject("Missing required parameter: clientId")
-            return
-        }
+        // Validate parameters using the injected validator
+        let validationResult = services.parameterValidator.validateAuthenticationParameters(call)
 
-        guard let authorizationBaseUrl = call.getString("authorizationBaseUrl") else {
-            call.reject("Missing required parameter: authorizationBaseUrl")
-            return
-        }
-
-        guard let redirectUrl = call.getString("redirectUrl") else {
-            call.reject("Missing required parameter: redirectUrl")
-            return
-        }
-
-        guard let tokenUrl = call.getString("accessTokenEndpoint") else {
-            call.reject("Missing required parameter: accessTokenEndpoint")
-            return
-        }
-
-        // Convert string URLs to URL objects
-        guard let authorizationEndpointURL = URL(string: authorizationBaseUrl) else {
-            call.reject("Invalid authorizationBaseUrl")
-            return
-        }
-
-        guard let tokenEndpointURL = URL(string: tokenUrl) else {
-            call.reject("Invalid accessTokenEndpoint")
-            return
-        }
-
-        guard let redirectURL = URL(string: redirectUrl) else {
-            call.reject("Invalid redirectUrl")
+        let parameters: AuthenticationParameters
+        switch validationResult {
+        case .success(let validatedParameters):
+            parameters = validatedParameters
+        case .failure(let error):
+            call.reject(error.localizedDescription)
             return
         }
 
         let configuration = OIDServiceConfiguration(
-            authorizationEndpoint: authorizationEndpointURL,
-            tokenEndpoint: tokenEndpointURL)
+            authorizationEndpoint: parameters.authorizationEndpointURL,
+            tokenEndpoint: parameters.tokenEndpointURL)
 
         let request = OIDAuthorizationRequest(
             configuration: configuration,
-            clientId: clientId,
+            clientId: parameters.clientId,
             scopes: [OIDScopeOpenID, OIDScopeProfile, "offline_access"],
-            redirectURL: redirectURL,
+            redirectURL: parameters.redirectURL,
             responseType: OIDResponseTypeCode,
             additionalParameters: nil)
 
