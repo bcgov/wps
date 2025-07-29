@@ -581,36 +581,20 @@ describe('AdvisoryText', () => {
     await waitFor(() => expect(screen.queryByTestId('advisory-message-slash')).toBeInTheDocument())
   })
 
-  it('should render the loading indicator when fuel stats are loading', async () => {
-    const store = createTestStore({
-      fireShapeAreas: { ...fireZoneAreasInitialState, loading: false },
-      provincialSummary: { ...provSummaryInitialState, loading: false },
-      fireCentreHFIFuelStats: { ...fuelStatsInitialState, loading: true },
-      fireCentreTPIStats: { ...fireCentreTPIStatsInitialState, loading: false },
-      runDates: { ...runDatesInitialState, loading: false }
-    })
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          issueDate={issueDate}
-          forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
-          selectedFireCenter={mockFireCenter}
-          selectedFireZoneUnit={mockFireZoneUnit}
-        />
-      </Provider>
-    )
-    await waitFor(() => expect(screen.queryByTestId('advisory-text-loading')).toBeInTheDocument())
-  })
+  const allInitialStates = {
+    fireShapeAreas: fireZoneAreasInitialState,
+    provincialSummary: provSummaryInitialState,
+    fireCentreHFIFuelStats: fuelStatsInitialState,
+    fireCentreTPIStats: fireCentreTPIStatsInitialState,
+    runDates: runDatesInitialState
+  }
 
-  it('should render the loading indicator when provincial summary is loading', async () => {
-    const store = createTestStore({
-      fireShapeAreas: { ...fireZoneAreasInitialState, loading: false },
-      provincialSummary: { ...provSummaryInitialState, loading: true },
-      fireCentreHFIFuelStats: { ...fuelStatsInitialState, loading: false },
-      fireCentreTPIStats: { ...fireCentreTPIStatsInitialState, loading: false },
-      runDates: { ...runDatesInitialState, loading: false }
-    })
+  it.each(Object.keys(allInitialStates))('should render the loading indicator when %s is loading', async loadingKey => {
+    const stateOverrides = Object.fromEntries(
+      Object.entries(allInitialStates).map(([key, state]) => [key, { ...state, loading: key === loadingKey }])
+    )
+
+    const store = createTestStore(stateOverrides)
     render(
       <Provider store={store}>
         <AdvisoryText
