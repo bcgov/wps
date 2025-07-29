@@ -354,11 +354,11 @@ const AdvisoryText = ({
         {(() => {
           if (isLoading) {
             return (
-              <>
+              <Box data-testid="advisory-text-loading">
                 <Skeleton variant="text" width="30%" height={32} />
                 <Skeleton variant="text" width="80%" height={32} />
                 <Skeleton variant="rectangular" width="100%" height={180} sx={{ my: 2 }} />
-              </>
+              </Box>
             )
           }
           if (!selectedFireCenter || !issueDate?.isValid || !selectedFireZoneUnit) {

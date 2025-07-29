@@ -1,9 +1,12 @@
-import fireCentreHFIFuelStatsSlice, {
+import {
   FireCentreHFIFuelStatsState,
   initialState as fuelStatsInitialState,
   getFireCentreHFIFuelStatsSuccess
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
-import { combineReducers, configureStore } from '@reduxjs/toolkit'
+import { initialState as fireZoneAreasInitialState } from '@/features/fba/slices/fireZoneAreasSlice'
+import { initialState as runDatesInitialState } from '@/features/fba/slices/runDatesSlice'
+import { initialState as fireCentreTPIStatsInitialState } from '@/features/fba/slices/fireCentreTPIStatsSlice'
+import { createTestStore } from '@/test/testUtils'
 import { render, screen, waitFor } from '@testing-library/react'
 import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneHFIStats } from 'api/fbaAPI'
 import AdvisoryText, {
@@ -11,31 +14,10 @@ import AdvisoryText, {
   getTopFuelsByProportion,
   getZoneMinWindStatsText
 } from 'features/fba/components/infoPanel/AdvisoryText'
-import provincialSummarySlice, {
-  ProvincialSummaryState,
-  initialState as provSummaryInitialState
-} from 'features/fba/slices/provincialSummarySlice'
+import { initialState as provSummaryInitialState } from 'features/fba/slices/provincialSummarySlice'
 import { cloneDeep } from 'lodash'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
-
-const buildTestStore = (
-  provincialSummaryInitialState: ProvincialSummaryState,
-  fuelStatsInitialState?: FireCentreHFIFuelStatsState
-) => {
-  const rootReducer = combineReducers({
-    provincialSummary: provincialSummarySlice,
-    fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice
-  })
-  const testStore = configureStore({
-    reducer: rootReducer,
-    preloadedState: {
-      provincialSummary: provincialSummaryInitialState,
-      fireCentreHFIFuelStats: fuelStatsInitialState
-    }
-  })
-  return testStore
-}
 
 const createDateTime = (year: number, month: number, day: number) => {
   return DateTime.fromObject({ year, month, day })
@@ -179,15 +161,19 @@ const initialHFIFuelStats = {
 }
 
 describe('AdvisoryText', () => {
-  const testStore = buildTestStore({
-    ...provSummaryInitialState,
-    fireShapeAreaDetails: advisoryDetails
+  const testStore = createTestStore({
+    provincialSummary: {
+      ...provSummaryInitialState,
+      fireShapeAreaDetails: advisoryDetails
+    }
   })
 
   const getInitialStore = () =>
-    buildTestStore({
-      ...provSummaryInitialState,
-      fireShapeAreaDetails: warningDetails
+    createTestStore({
+      provincialSummary: {
+        ...provSummaryInitialState,
+        fireShapeAreaDetails: warningDetails
+      }
     })
 
   const assertInitialState = () => {
@@ -323,9 +309,11 @@ describe('AdvisoryText', () => {
   })
 
   it('should render a no advisories message when there are no advisories/warnings', () => {
-    const noAdvisoryStore = buildTestStore({
-      ...provSummaryInitialState,
-      fireShapeAreaDetails: noAdvisoryDetails
+    const noAdvisoryStore = createTestStore({
+      provincialSummary: {
+        ...provSummaryInitialState,
+        fireShapeAreaDetails: noAdvisoryDetails
+      }
     })
     const { queryByTestId } = render(
       <Provider store={noAdvisoryStore}>
@@ -357,9 +345,11 @@ describe('AdvisoryText', () => {
   })
 
   it('should render warning status', () => {
-    const warningStore = buildTestStore({
-      ...provSummaryInitialState,
-      fireShapeAreaDetails: warningDetails
+    const warningStore = createTestStore({
+      provincialSummary: {
+        ...provSummaryInitialState,
+        fireShapeAreaDetails: warningDetails
+      }
     })
     const { queryByTestId } = render(
       <Provider store={warningStore}>
@@ -496,16 +486,16 @@ describe('AdvisoryText', () => {
   })
 
   it('should render critical hours missing message when critical hours start time is missing', () => {
-    const store = buildTestStore(
-      {
+    const store = createTestStore({
+      provincialSummary: {
         ...provSummaryInitialState,
         fireShapeAreaDetails: advisoryDetails
       },
-      {
+      fireCentreHFIFuelStats: {
         ...fuelStatsInitialState,
-        fireCentreHFIFuelStats: missingCriticalHoursStartFuelStatsState.fireCentreHFIFuelStats
+        ...missingCriticalHoursStartFuelStatsState.fireCentreHFIFuelStats
       }
-    )
+    })
     const { queryByTestId } = render(
       <Provider store={store}>
         <AdvisoryText
@@ -524,16 +514,16 @@ describe('AdvisoryText', () => {
   })
 
   it('should render critical hours missing message when critical hours end time is missing', () => {
-    const store = buildTestStore(
-      {
+    const store = createTestStore({
+      provincialSummary: {
         ...provSummaryInitialState,
         fireShapeAreaDetails: advisoryDetails
       },
-      {
+      fireCentreHFIFuelStats: {
         ...fuelStatsInitialState,
-        fireCentreHFIFuelStats: missingCriticalHoursEndFuelStatsState.fireCentreHFIFuelStats
+        ...missingCriticalHoursEndFuelStatsState.fireCentreHFIFuelStats
       }
-    )
+    })
     const { queryByTestId } = render(
       <Provider store={store}>
         <AdvisoryText
@@ -590,10 +580,77 @@ describe('AdvisoryText', () => {
     store.dispatch(getFireCentreHFIFuelStatsSuccess(newHFIFuelStats))
     await waitFor(() => expect(screen.queryByTestId('advisory-message-slash')).toBeInTheDocument())
   })
+
+  it('should render the loading indicator when fuel stats are loading', async () => {
+    const store = createTestStore({
+      fireShapeAreas: { ...fireZoneAreasInitialState, loading: false },
+      provincialSummary: { ...provSummaryInitialState, loading: false },
+      fireCentreHFIFuelStats: { ...fuelStatsInitialState, loading: true },
+      fireCentreTPIStats: { ...fireCentreTPIStatsInitialState, loading: false },
+      runDates: { ...runDatesInitialState, loading: false }
+    })
+    render(
+      <Provider store={store}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    await waitFor(() => expect(screen.queryByTestId('advisory-text-loading')).toBeInTheDocument())
+  })
+
+  it('should render the loading indicator when provincial summary is loading', async () => {
+    const store = createTestStore({
+      fireShapeAreas: { ...fireZoneAreasInitialState, loading: false },
+      provincialSummary: { ...provSummaryInitialState, loading: true },
+      fireCentreHFIFuelStats: { ...fuelStatsInitialState, loading: false },
+      fireCentreTPIStats: { ...fireCentreTPIStatsInitialState, loading: false },
+      runDates: { ...runDatesInitialState, loading: false }
+    })
+    render(
+      <Provider store={store}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    await waitFor(() => expect(screen.queryByTestId('advisory-text-loading')).toBeInTheDocument())
+  })
+
+  it('should not render the loading indicator when no ASA state is loading', async () => {
+    const store = createTestStore({
+      fireShapeAreas: { ...fireZoneAreasInitialState, loading: false },
+      provincialSummary: { ...provSummaryInitialState, loading: false },
+      fireCentreHFIFuelStats: { ...fuelStatsInitialState, loading: false },
+      fireCentreTPIStats: { ...fireCentreTPIStatsInitialState, loading: false },
+      runDates: { ...runDatesInitialState, loading: false }
+    })
+    render(
+      <Provider store={store}>
+        <AdvisoryText
+          issueDate={issueDate}
+          forDate={forDate}
+          advisoryThreshold={advisoryThreshold}
+          selectedFireCenter={mockFireCenter}
+          selectedFireZoneUnit={mockFireZoneUnit}
+        />
+      </Provider>
+    )
+    await waitFor(() => expect(screen.queryByTestId('advisory-text-loading')).not.toBeInTheDocument())
+  })
 })
 
 const missingCriticalHoursStartFuelStatsState: FireCentreHFIFuelStatsState = {
   error: null,
+  loading: false,
   fireCentreHFIFuelStats: {
     'Prince George Fire Centre': {
       '25': {
@@ -625,6 +682,7 @@ const missingCriticalHoursStartFuelStatsState: FireCentreHFIFuelStatsState = {
 
 const missingCriticalHoursEndFuelStatsState: FireCentreHFIFuelStatsState = {
   error: null,
+  loading: false,
   fireCentreHFIFuelStats: {
     'Prince George Fire Centre': {
       '25': {

@@ -13,7 +13,7 @@ export interface RunDateState {
   sfmsBounds: SFMSBounds | null
 }
 
-const initialState: RunDateState = {
+export const initialState: RunDateState = {
   loading: false,
   error: null,
   runDates: [],
