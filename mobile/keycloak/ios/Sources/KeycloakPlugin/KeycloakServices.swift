@@ -70,6 +70,17 @@ public protocol AuthenticationFlowServiceProtocol {
     )
 }
 
+/// Protocol for managing token refresh lifecycle
+public protocol TokenRefreshManagerServiceProtocol {
+    func startTokenRefreshManager(
+        authState: OIDAuthState,
+        tokenRefreshThreshold: TimeInterval,
+        onTokenRefreshed: @escaping ([String: Any]) -> Void,
+        onTokenRefreshFailed: @escaping (String) -> Void
+    )
+    func stopTokenRefreshManager()
+}
+
 public class AuthenticationParameterValidator: AuthenticationParameterValidatorProtocol {
 
     public init() {}
@@ -463,12 +474,77 @@ public class DefaultAuthenticationFlowService: AuthenticationFlowServiceProtocol
     }
 }
 
+/// Default implementation of TokenRefreshManagerServiceProtocol
+public class DefaultTokenRefreshManagerService: TokenRefreshManagerServiceProtocol {
+    private let tokenTimerService: TokenTimerServiceProtocol
+    private let tokenRefreshService: TokenRefreshServiceProtocol
+    private var currentAuthState: OIDAuthState?
+    private var tokenRefreshThreshold: TimeInterval = 60
+    private var onTokenRefreshed: (([String: Any]) -> Void)?
+    private var onTokenRefreshFailed: ((String) -> Void)?
+
+    public init(
+        tokenTimerService: TokenTimerServiceProtocol,
+        tokenRefreshService: TokenRefreshServiceProtocol
+    ) {
+        self.tokenTimerService = tokenTimerService
+        self.tokenRefreshService = tokenRefreshService
+    }
+
+    public func startTokenRefreshManager(
+        authState: OIDAuthState,
+        tokenRefreshThreshold: TimeInterval,
+        onTokenRefreshed: @escaping ([String: Any]) -> Void,
+        onTokenRefreshFailed: @escaping (String) -> Void
+    ) {
+        self.currentAuthState = authState
+        self.tokenRefreshThreshold = tokenRefreshThreshold
+        self.onTokenRefreshed = onTokenRefreshed
+        self.onTokenRefreshFailed = onTokenRefreshFailed
+
+        setupTokenRefreshTimer(with: authState)
+    }
+
+    public func stopTokenRefreshManager() {
+        tokenTimerService.stopTokenRefreshTimer()
+        currentAuthState = nil
+        onTokenRefreshed = nil
+        onTokenRefreshFailed = nil
+    }
+
+    private func setupTokenRefreshTimer(with authState: OIDAuthState) {
+        tokenTimerService.setupTokenRefreshTimer(
+            authState: authState,
+            tokenRefreshThreshold: tokenRefreshThreshold
+        ) { [weak self] in
+            self?.performAutomaticTokenRefresh()
+        }
+    }
+
+    private func performAutomaticTokenRefresh() {
+        tokenRefreshService.performAutomaticTokenRefresh(
+            authState: currentAuthState,
+            onSuccess: { [weak self] tokenResponse in
+                self?.onTokenRefreshed?(tokenResponse)
+            },
+            onFailure: { [weak self] error in
+                self?.onTokenRefreshFailed?(error)
+            },
+            onTokenRefreshed: { [weak self] in
+                guard let self = self, let authState = self.currentAuthState else { return }
+                self.setupTokenRefreshTimer(with: authState)
+            }
+        )
+    }
+}
+
 /// Container for all services used by KeycloakPlugin
 public struct KeycloakServices {
     public let authenticationService: AuthenticationServiceProtocol
     public let authenticationFlowService: AuthenticationFlowServiceProtocol
     public let tokenTimerService: TokenTimerServiceProtocol
     public let tokenRefreshService: TokenRefreshServiceProtocol
+    public let tokenRefreshManagerService: TokenRefreshManagerServiceProtocol
     public let tokenResponseService: TokenResponseServiceProtocol
     public let uiService: UIServiceProtocol
     public let parameterValidator: AuthenticationParameterValidatorProtocol
@@ -490,6 +566,10 @@ public struct KeycloakServices {
         )
         self.tokenTimerService = tokenTimerService
         self.tokenRefreshService = tokenRefreshService
+        self.tokenRefreshManagerService = DefaultTokenRefreshManagerService(
+            tokenTimerService: tokenTimerService,
+            tokenRefreshService: tokenRefreshService
+        )
         self.tokenResponseService = tokenResponseService
         self.uiService = uiService
         self.parameterValidator = parameterValidator

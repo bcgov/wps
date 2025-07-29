@@ -55,54 +55,28 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
             parameters: parameters,
             call: call
         ) { [weak self] authState in
-            self?.authState = authState
-            if authState != nil {
-                self?.setupTokenRefreshTimer()
+            guard let self = self else { return }
+
+            self.authState = authState
+
+            if let authState = authState {
+                self.services.tokenRefreshManagerService.startTokenRefreshManager(
+                    authState: authState,
+                    tokenRefreshThreshold: self.tokenRefreshThreshold,
+                    onTokenRefreshed: { [weak self] tokenResponse in
+                        // Notify JavaScript layer about token refresh
+                        self?.notifyListeners("tokenRefreshed", data: tokenResponse)
+                    },
+                    onTokenRefreshFailed: { [weak self] error in
+                        // Notify JavaScript layer about refresh failure
+                        self?.notifyListeners("tokenRefreshFailed", data: ["error": error])
+                    }
+                )
             }
         }
-    }
-
-    private func setupTokenRefreshTimer() {
-        services.tokenTimerService.setupTokenRefreshTimer(
-            authState: authState,
-            tokenRefreshThreshold: tokenRefreshThreshold
-        ) { [weak self] in
-            self?.performAutomaticTokenRefresh()
-        }
-    }
-
-    private func stopTokenRefreshTimer() {
-        services.tokenTimerService.stopTokenRefreshTimer()
-    }
-
-    private func performAutomaticTokenRefresh() {
-        services.tokenRefreshService.performAutomaticTokenRefresh(
-            authState: authState,
-            onSuccess: { [weak self] tokenResponse in
-                // Notify JavaScript layer about token refresh
-                self?.notifyListeners("tokenRefreshed", data: tokenResponse)
-            },
-            onFailure: { [weak self] error in
-                // Notify JavaScript layer about refresh failure
-                self?.notifyListeners("tokenRefreshFailed", data: ["error": error])
-            },
-            onTokenRefreshed: { [weak self] in
-                self?.setupTokenRefreshTimer()  // Schedule next refresh
-            }
-        )
-    }
-
-    private func performTokenRefresh(completion: @escaping (Bool, [String: Any]?, String?) -> Void)
-    {
-        services.tokenRefreshService.performTokenRefresh(
-            authState: authState, completion: completion)
-    }
-
-    private func createTokenResponse(from authState: OIDAuthState) -> [String: Any] {
-        return services.tokenResponseService.createTokenResponse(from: authState)
     }
 
     deinit {
-        stopTokenRefreshTimer()
+        services.tokenRefreshManagerService.stopTokenRefreshManager()
     }
 }
