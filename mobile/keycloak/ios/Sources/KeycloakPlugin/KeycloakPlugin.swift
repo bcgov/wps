@@ -69,8 +69,7 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
                     },
                     onTokenRefreshFailed: { [weak self] error in
                         // Notify JavaScript layer about refresh failure
-                        self?.notifyListeners(
-                            "tokenRefreshFailed", data: ["error": error.localizedDescription])
+                        self?.notifyListeners("tokenRefreshFailed", data: ["error": error])
                     }
                 )
             }
