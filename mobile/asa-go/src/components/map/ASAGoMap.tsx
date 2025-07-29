@@ -1,3 +1,4 @@
+import { centerOnFireShape } from "@/components/map/fireShapeCentering";
 import UserLocationIndicator from "@/components/map/LocationIndicator";
 import MapPopup from "@/components/map/MapPopup";
 import ScaleContainer from "@/components/map/ScaleContainer";
@@ -141,6 +142,7 @@ const ASAGoMap = ({
   const popupRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
+  const clickSourceRef = useRef<boolean>(false);
 
   const [popup] = useState<Overlay>(
     new Overlay({
@@ -230,6 +232,15 @@ const ASAGoMap = ({
         selectedFireShape
       )
     );
+
+    // Only center if the change didn't come from a click
+    if (!clickSourceRef.current) {
+      centerOnFireShape(map, selectedFireShape, fireZoneExtentsMap, popup);
+    }
+
+    // Reset the flag for next change
+    clickSourceRef.current = false;
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireShape]);
 
@@ -306,6 +317,7 @@ const ASAGoMap = ({
     mapObject.addOverlay(popup);
     const mapClickHandler = (event: MapBrowserEvent<UIEvent>) => {
       fireZoneFileLayer.getFeatures(event.pixel).then((features) => {
+        clickSourceRef.current = true; // Mark as click source
         if (!features.length) {
           popup.setPosition(undefined);
           setSelectedFireCenter(undefined);
@@ -457,8 +469,8 @@ const ASAGoMap = ({
       if (!isUndefined(zoneExtent)) {
         map.getView().fit(zoneExtent, {
           duration: 400,
-          padding: [100, 100, 100, 100],
-          maxZoom: 8,
+          padding: [50, 50, 50, 50],
+          maxZoom: 10,
         });
       }
     }
