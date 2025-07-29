@@ -61,6 +61,15 @@ public protocol AuthenticationParameterValidatorProtocol {
     >
 }
 
+/// Protocol for handling the complete authentication flow
+public protocol AuthenticationFlowServiceProtocol {
+    func performAuthenticationFlow(
+        parameters: AuthenticationParameters,
+        call: CAPPluginCall,
+        completion: @escaping (OIDAuthState?) -> Void
+    )
+}
+
 public class AuthenticationParameterValidator: AuthenticationParameterValidatorProtocol {
 
     public init() {}
@@ -363,9 +372,101 @@ public class DefaultAuthenticationParameterValidator: AuthenticationParameterVal
     }
 }
 
+/// Default implementation of AuthenticationFlowServiceProtocol
+public class DefaultAuthenticationFlowService: AuthenticationFlowServiceProtocol {
+    private let authenticationService: AuthenticationServiceProtocol
+    private let tokenResponseService: TokenResponseServiceProtocol
+    private let uiService: UIServiceProtocol
+    private let logger = Logger(
+        subsystem: "com.bcgov.wps.keycloak", category: "authentication-flow")
+
+    public init(
+        authenticationService: AuthenticationServiceProtocol,
+        tokenResponseService: TokenResponseServiceProtocol,
+        uiService: UIServiceProtocol
+    ) {
+        self.authenticationService = authenticationService
+        self.tokenResponseService = tokenResponseService
+        self.uiService = uiService
+    }
+
+    public func performAuthenticationFlow(
+        parameters: AuthenticationParameters,
+        call: CAPPluginCall,
+        completion: @escaping (OIDAuthState?) -> Void
+    ) {
+        let configuration = OIDServiceConfiguration(
+            authorizationEndpoint: parameters.authorizationEndpointURL,
+            tokenEndpoint: parameters.tokenEndpointURL
+        )
+
+        let request = OIDAuthorizationRequest(
+            configuration: configuration,
+            clientId: parameters.clientId,
+            scopes: [OIDScopeOpenID, OIDScopeProfile, "offline_access"],
+            redirectURL: parameters.redirectURL,
+            responseType: OIDResponseTypeCode,
+            additionalParameters: nil
+        )
+
+        uiService.executeOnMainQueue {
+            guard let appDelegate = self.uiService.getAppDelegate() else {
+                call.reject("AppDelegate must conform to KeycloakAppDelegate protocol")
+                return
+            }
+
+            guard let presentingViewController = self.uiService.getPresentingViewController() else {
+                call.reject("Unable to find presenting view controller")
+                return
+            }
+
+            appDelegate.currentAuthorizationFlow = self.authenticationService.performAuthentication(
+                request: request,
+                appDelegate: appDelegate,
+                presentingViewController: presentingViewController
+            ) { authState, error in
+                self.handleAuthenticationResult(
+                    authState: authState,
+                    error: error,
+                    call: call,
+                    completion: completion
+                )
+            }
+        }
+    }
+
+    private func handleAuthenticationResult(
+        authState: OIDAuthState?,
+        error: Error?,
+        call: CAPPluginCall,
+        completion: @escaping (OIDAuthState?) -> Void
+    ) {
+        if let authState = authState {
+            let tokenResponse = tokenResponseService.createTokenResponse(from: authState)
+            call.resolve(tokenResponse)
+
+            logger.debug(
+                "Got authorization tokens. Access token: \(authState.lastTokenResponse?.accessToken ?? "nil", privacy: .private)"
+            )
+
+            completion(authState)
+        } else {
+            logger.error(
+                "Authorization error: \(error?.localizedDescription ?? "Unknown error")"
+            )
+            call.reject(
+                "Authentication failed", error?.localizedDescription ?? "Unknown error"
+            )
+
+            completion(nil)
+        }
+    }
+}
+
 /// Container for all services used by KeycloakPlugin
 public struct KeycloakServices {
     public let authenticationService: AuthenticationServiceProtocol
+    public let authenticationFlowService: AuthenticationFlowServiceProtocol
     public let tokenTimerService: TokenTimerServiceProtocol
     public let tokenRefreshService: TokenRefreshServiceProtocol
     public let tokenResponseService: TokenResponseServiceProtocol
@@ -382,6 +483,11 @@ public struct KeycloakServices {
             DefaultAuthenticationParameterValidator()
     ) {
         self.authenticationService = authenticationService
+        self.authenticationFlowService = DefaultAuthenticationFlowService(
+            authenticationService: authenticationService,
+            tokenResponseService: tokenResponseService,
+            uiService: uiService
+        )
         self.tokenTimerService = tokenTimerService
         self.tokenRefreshService = tokenRefreshService
         self.tokenResponseService = tokenResponseService

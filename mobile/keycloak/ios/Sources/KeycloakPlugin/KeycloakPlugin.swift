@@ -51,60 +51,14 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        let configuration = OIDServiceConfiguration(
-            authorizationEndpoint: parameters.authorizationEndpointURL,
-            tokenEndpoint: parameters.tokenEndpointURL)
-
-        let request = OIDAuthorizationRequest(
-            configuration: configuration,
-            clientId: parameters.clientId,
-            scopes: [OIDScopeOpenID, OIDScopeProfile, "offline_access"],
-            redirectURL: parameters.redirectURL,
-            responseType: OIDResponseTypeCode,
-            additionalParameters: nil)
-
-        services.uiService.executeOnMainQueue {
-            guard let appDelegate = self.services.uiService.getAppDelegate() else {
-                call.reject("AppDelegate must conform to KeycloakAppDelegate protocol")
-                return
+        services.authenticationFlowService.performAuthenticationFlow(
+            parameters: parameters,
+            call: call
+        ) { [weak self] authState in
+            self?.authState = authState
+            if authState != nil {
+                self?.setupTokenRefreshTimer()
             }
-
-            guard
-                let presentingViewController = self.services.uiService.getPresentingViewController()
-            else {
-                call.reject("Unable to find presenting view controller")
-                return
-            }
-
-            appDelegate.currentAuthorizationFlow = self.services.authenticationService
-                .performAuthentication(
-                    request: request,
-                    appDelegate: appDelegate,
-                    presentingViewController: presentingViewController
-                ) { authState, error in
-                    if let authState = authState {
-                        self.authState = authState
-
-                        // Setup automatic token refresh
-                        self.setupTokenRefreshTimer()
-
-                        let tokenResponse = self.services.tokenResponseService.createTokenResponse(
-                            from: authState)
-                        call.resolve(tokenResponse)
-
-                        self.logger.debug(
-                            "Got authorization tokens. Access token: \(authState.lastTokenResponse?.accessToken ?? "nil", privacy: .private)"
-                        )
-
-                    } else {
-                        self.logger.error(
-                            "Authorization error: \(error?.localizedDescription ?? "Unknown error")"
-                        )
-                        self.authState = nil
-                        call.reject(
-                            "Authentication failed", error?.localizedDescription ?? "Unknown error")
-                    }
-                }
         }
     }
 
