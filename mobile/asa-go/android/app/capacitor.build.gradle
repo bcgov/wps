@@ -17,6 +17,7 @@ dependencies {
     implementation project(':capacitor-network')
     implementation project(':capacitor-status-bar')
     implementation project(':capacitor-email-composer')
+    implementation project(':keycloak')
 
 }
 

@@ -19,6 +19,7 @@ def capacitor_pods
   pod 'CapacitorNetwork', :path => '../../node_modules/@capacitor/network'
   pod 'CapacitorStatusBar', :path => '../../node_modules/@capacitor/status-bar'
   pod 'CapacitorEmailComposer', :path => '../../node_modules/capacitor-email-composer'
+  pod 'Keycloak', :path => '../../node_modules/keycloak'
 end
 
 target 'App' do
