@@ -25,6 +25,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_fire_centre_tpi_fuel_areas,
     get_hfi_area,
     get_min_wind_speed_hfi_thresholds,
+    get_most_recent_run_datetime_for_date,
     get_precomputed_stats_for_shape,
     get_provincial_rollup,
     get_run_datetimes,
@@ -41,6 +42,8 @@ from wps_shared.schemas.fba import (
     FireShapeAreaListResponse,
     FireZoneHFIStats,
     FireZoneTPIStats,
+    LatestSFMSRunParameter,
+    LatestSFMSRunParameterResponse,
     ProvincialSummaryResponse,
     SFMSBoundsResponse,
 )
@@ -225,6 +228,20 @@ async def get_hfi_fuels_data_for_fire_centre(
             )
 
         return {fire_centre_name: all_zone_data}
+
+
+@router.get("/latest-sfms-run-datetime/{for_date}", response_model=LatestSFMSRunParameterResponse)
+async def get_latest_sfms_run_datetime_for_date(for_date: date):
+    async with get_async_read_session_scope() as session:
+        latest_run_parameter = await get_most_recent_run_datetime_for_date(session, for_date)
+        if latest_run_parameter is None:
+            return LatestSFMSRunParameterResponse()
+        run_parameter = LatestSFMSRunParameter(
+            for_date=latest_run_parameter.for_date,
+            run_datetime=latest_run_parameter.run_datetime,
+            run_type=latest_run_parameter.run_type,
+        )
+        return LatestSFMSRunParameterResponse(run_parameter=run_parameter)
 
 
 @router.get("/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])
