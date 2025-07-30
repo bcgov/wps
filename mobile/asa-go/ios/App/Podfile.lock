@@ -23,6 +23,8 @@ PODS:
     - Capacitor
   - CapacitorNetwork (7.0.0):
     - Capacitor
+  - CapacitorSplashScreen (7.0.1):
+    - Capacitor
   - CapacitorStatusBar (7.0.0):
     - Capacitor
   - IONGeolocationLib (1.0.0)
@@ -40,6 +42,7 @@ DEPENDENCIES:
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
+  - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - Keycloak (from `../../node_modules/keycloak`)
 
@@ -67,6 +70,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/keyboard"
   CapacitorNetwork:
     :path: "../../node_modules/@capacitor/network"
+  CapacitorSplashScreen:
+    :path: "../../node_modules/@capacitor/splash-screen"
   CapacitorStatusBar:
     :path: "../../node_modules/@capacitor/status-bar"
   Keycloak:
@@ -83,10 +88,11 @@ SPEC CHECKSUMS:
   CapacitorHaptics: 1fba3e460e7614349c6d5f868b1fccdc5c87b66d
   CapacitorKeyboard: 2c26c6fccde35023c579fc37d4cae6326d5e6343
   CapacitorNetwork: cd17b98182841055ff58629213242a1f22f4a76b
+  CapacitorSplashScreen: 19cd3573e57507e02d6f34597a8c421e00931487
   CapacitorStatusBar: 438e90beeeefa8276b24e6c5991cb02dd13e51bf
   IONGeolocationLib: 81f33f88d025846946de2cf63b0c7628e7c6bc9d
   Keycloak: c39abe3ec71f672fbf306a7f37b85d3858ae7f00
 
-PODFILE CHECKSUM: 2519cc6d65316974f9578551e9993f0be7b33889
+PODFILE CHECKSUM: efd7c9a0b160963af2013e4bf2bbeb0463175140
 
 COCOAPODS: 1.16.2
