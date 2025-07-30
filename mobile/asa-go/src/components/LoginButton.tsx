@@ -1,22 +1,8 @@
-import axios from "@/api/axios";
 import { authenticate } from "@/slices/authenticationSlice";
-import { AppDispatch, AppThunk, selectToken } from "@/store";
+import { AppDispatch } from "@/store";
+import { setAxiosRequestInterceptors } from "@/utils/axiosInterceptor";
 import { Button, Typography, useTheme } from "@mui/material";
-
-import { isNil } from "lodash";
 import { useDispatch } from "react-redux";
-
-const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
-  // Use axios interceptors to intercept any requests and add authorization headers.
-  axios.interceptors.request.use((config) => {
-    const token = selectToken(getState());
-    if (!isNil(token)) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  });
-};
 
 interface LoginButonProps {
   label: string;
