@@ -1,4 +1,5 @@
 import AsaIcon from "@/assets/asa-go-transparent.png";
+import AppDescription from "@/components/AppDescription";
 import LoginButton from "@/components/LoginButton";
 import { selectAuthentication } from "@/store";
 import { Capacitor } from "@capacitor/core";
@@ -55,17 +56,20 @@ const AuthWrapper = ({ children }: Props) => {
           alignItems: "center",
           justifyContent: "center",
           display: "flex",
+          flexDirection: "column",
         }}
       >
         <Typography
           sx={{
             color: "white",
             fontWeight: "bold",
+            mb: theme.spacing(2),
           }}
           variant="h2"
         >
           ASA Go
         </Typography>
+        <AppDescription />
       </Box>
       <Box
         sx={{
