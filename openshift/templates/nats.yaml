@@ -91,6 +91,7 @@ objects:
               users: [ 
                   {user:sys, password:sys}
               ]
+            }
         }
         no_auth_user: consumer
         leafnodes {
