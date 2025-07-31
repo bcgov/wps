@@ -136,7 +136,7 @@ export interface RunParameter {
   run_type: RunType
 }
 
-const ASA_GO_API_PREFIX = "asa-go"
+const ASA_GO_API_PREFIX = "fba"
 
 export async function getFBAFireCenters(): Promise<FBAResponse> {
   const url = `${ASA_GO_API_PREFIX}/fire-centers`;

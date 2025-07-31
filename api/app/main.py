@@ -19,7 +19,6 @@ from app import health
 from app import hourlies
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from app.routers import (
-    asa_go,
     fba,
     forecasts,
     weather_models,
@@ -125,7 +124,6 @@ api.add_middleware(
 )
 api.middleware("http")(catch_exception_middleware)
 
-api.include_router(asa_go.router, tags=["ASA Go"])
 api.include_router(forecasts.router, tags=["Forecasts"])
 api.include_router(weather_models.router, tags=["Weather Models"])
 api.include_router(c_haines.router, tags=["C Haines"])
