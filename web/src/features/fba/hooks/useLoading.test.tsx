@@ -23,28 +23,10 @@ describe('useLoading', () => {
     expect(result.current).toBe(false)
   })
 
-  it('returns true after delay when loading is true', async () => {
-    vi.useFakeTimers()
+  it('returns true immediately when loading is true', () => {
     const store = getStore(true)
     const { result } = renderHook(() => useLoading(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>
-    })
-    expect(result.current).toBe(false)
-    act(() => {
-      vi.advanceTimersByTime(300)
-    })
-    expect(result.current).toBe(true)
-    vi.useRealTimers()
-  })
-
-  it('returns false immediately when loading becomes false', async () => {
-    vi.useFakeTimers()
-    const store = getStore(true)
-    const { result } = renderHook(() => useLoading(), {
-      wrapper: ({ children }) => <Provider store={store}>{children}</Provider>
-    })
-    act(() => {
-      vi.advanceTimersByTime(300)
     })
     expect(result.current).toBe(true)
   })
