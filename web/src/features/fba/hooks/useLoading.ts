@@ -11,9 +11,9 @@ export const useLoading = (): boolean => {
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout> | undefined
     if (loading) {
-      timeout = setTimeout(() => setShowLoading(true), LOADING_OVERLAY_DELAY_MS)
+      setShowLoading(true)
     } else {
-      setShowLoading(false)
+      timeout = setTimeout(() => setShowLoading(false), LOADING_OVERLAY_DELAY_MS)
     }
     return () => {
       if (timeout) clearTimeout(timeout)

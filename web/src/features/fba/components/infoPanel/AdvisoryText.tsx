@@ -348,7 +348,8 @@ const AdvisoryText = ({
           padding: 2,
           borderRadius: 1,
           backgroundColor: 'white',
-          marginBottom: '10px'
+          marginBottom: '10px',
+          minHeight: 310
         }}
       >
         {(() => {
