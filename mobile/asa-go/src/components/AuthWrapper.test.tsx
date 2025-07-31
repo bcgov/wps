@@ -82,6 +82,24 @@ describe("AuthWrapper", () => {
     expect(screen.getByText("Login")).toBeInTheDocument();
   });
 
+    it("renders app description and title when unauthenticated and not authenticating", () => {
+      vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
+      vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
+        isAuthenticated: false,
+        authenticating: false,
+        error: null,
+        tokenRefreshed: false,
+        idToken: undefined,
+        token: "test-token",
+      });
+
+      renderWithProviders();
+
+      expect(screen.getByText("ASA Go")).toBeInTheDocument();
+      const description = screen.getByTestId("app-description");
+      expect(description).toBeInTheDocument();
+    });
+
   it("renders loading spinner when authenticating", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
