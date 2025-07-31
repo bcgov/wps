@@ -4,6 +4,7 @@ const config: CapacitorConfig = {
   appId: "ca.bc.gov.asago",
   appName: "asa-go",
   webDir: "dist",
+  ios: { scheme: "ASA Go" },
   plugins: {
     SplashScreen: {
       launchAutoHide: true,

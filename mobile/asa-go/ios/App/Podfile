@@ -23,7 +23,7 @@ def capacitor_pods
   pod 'Keycloak', :path => '../../node_modules/keycloak'
 end
 
-target 'App' do
+target 'ASA Go' do
   capacitor_pods
   # Add your Pods here
 end
