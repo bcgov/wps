@@ -450,7 +450,6 @@ objects:
                 initialDelaySeconds: 30
                 periodSeconds: 120
                 timeoutSeconds: 20
-
       targetRef:
         apiVersion: "apps/v1"
         kind: Deployment
