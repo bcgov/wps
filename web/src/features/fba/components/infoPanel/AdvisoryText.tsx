@@ -1,6 +1,6 @@
 import { Box, Skeleton, styled, Typography } from '@mui/material'
 import { DateTime } from 'luxon'
-import React, { useMemo, useRef, useLayoutEffect, useState } from 'react'
+import React, { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { calculateStatusText, calculateWindSpeedText } from '@/features/fba/calculateZoneStatus'
@@ -12,9 +12,8 @@ import {
 import { AdvisoryMinWindStats, FireCenter, FireShape, FireZoneFuelStats, FireZoneHFIStats } from 'api/fbaAPI'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
 import { AdvisoryStatus } from 'utils/constants'
-import { selectCombinedASALoading, selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
+import { selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { useLoading } from '@/features/fba/hooks/useLoading'
-import { Height } from '@mui/icons-material'
 
 const SLASH_FUEL_TYPES = ['S-1', 'S-2', 'S-3']
 
@@ -110,13 +109,7 @@ const AdvisoryText = ({
   // selectors
   const provincialSummary = useSelector(selectProvincialSummary)
   const filteredFireCentreHFIFuelStats = useSelector(selectFilteredFireCentreHFIFuelStats)
-  // const loading = useLoading()
-  const loading = useSelector(selectCombinedASALoading)
-
-  const boxRef = useRef<HTMLDivElement | null>(null)
-
-  // state
-  const [lastBoxHeight, setLastBoxHeight] = useState<number | undefined>(undefined)
+  const isLoading = useLoading()
 
   // derived state
   const selectedFilteredZoneUnitFuelStats = useMemo<FireZoneHFIStats>(() => {
@@ -165,23 +158,6 @@ const AdvisoryText = ({
   }
 
   const zoneStatus = useMemo(() => getZoneStatus(), [selectedFireCenter, selectedFireZoneUnit, provincialSummary])
-
-  const hasZoneStats =
-    !!selectedFireCenter &&
-    !!selectedFireZoneUnit &&
-    !!filteredFireCentreHFIFuelStats?.[selectedFireCenter.name]?.[selectedFireZoneUnit.fire_shape_id] &&
-    !isEmpty(
-      filteredFireCentreHFIFuelStats[selectedFireCenter.name][selectedFireZoneUnit.fire_shape_id].fuel_area_stats
-    )
-
-  useLayoutEffect(() => {
-    if (!loading && hasZoneStats && boxRef.current) {
-      const measured = boxRef.current.offsetHeight
-      if (measured !== lastBoxHeight) {
-        setLastBoxHeight(measured)
-      }
-    }
-  }, [loading, hasZoneStats])
 
   const getCommaSeparatedString = (array: string[]): string => {
     // Slice off the last two items and join then with ' and ' to create a new string. Then take the first n-2 items and
@@ -275,10 +251,6 @@ const AdvisoryText = ({
   }
 
   const renderAdvisoryText = () => {
-    if (!hasZoneStats) {
-      return <Box sx={{ height: lastBoxHeight }} />
-    }
-
     const zoneTitle = `${selectedFireZoneUnit?.mof_fire_zone_name}:\n\n`
     const forToday = forDate.toISODate() === DateTime.now().toISODate()
     const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
@@ -369,7 +341,6 @@ const AdvisoryText = ({
   return (
     <div data-testid="advisory-text">
       <Box
-        ref={boxRef}
         sx={{
           maxWidth: '100%',
           overflow: 'auto',
@@ -377,27 +348,15 @@ const AdvisoryText = ({
           padding: 2,
           borderRadius: 1,
           backgroundColor: 'white',
-          marginBottom: '10px',
-          boxSizing: 'border-box',
-          minHeight: loading && lastBoxHeight ? `${lastBoxHeight}px` : undefined
+          marginBottom: '10px'
         }}
       >
         {(() => {
-          if (loading) {
+          if (isLoading) {
             return (
-              <Box
-                data-testid="advisory-text-loading"
-                sx={{
-                  height: '100%',
-                  width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  overflow: 'hidden',
-                  boxSizing: 'border-box'
-                }}
-              >
-                <Skeleton variant="text" width="30%" height={40} />
-                <Skeleton variant="text" width="80%" height={40} />
+              <Box data-testid="advisory-text-loading">
+                <Skeleton variant="text" width="30%" height={32} />
+                <Skeleton variant="text" width="80%" height={32} />
                 <Skeleton variant="rectangular" width="100%" height={180} sx={{ my: 2 }} />
               </Box>
             )
