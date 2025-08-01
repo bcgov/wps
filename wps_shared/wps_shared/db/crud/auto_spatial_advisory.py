@@ -5,7 +5,7 @@ from enum import Enum
 from time import perf_counter
 from typing import List, Optional, Tuple
 
-from sqlalchemy import String, and_, cast, extract, func, select
+from sqlalchemy import String, and_, cast, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -248,6 +248,7 @@ async def get_min_wind_speed_hfi_thresholds(
             RunParameters.run_type == run_type.value,
             RunParameters.run_datetime == run_datetime,
             RunParameters.for_date == for_date,
+            RunParameters.complete.is_(True),
         )
     )
 
@@ -310,6 +311,7 @@ async def get_precomputed_stats_for_shape(
             RunParameters.run_type == run_type.value,
             RunParameters.run_datetime == run_datetime,
             RunParameters.for_date == for_date,
+            RunParameters.complete.is_(True),
             AdvisoryShapeFuels.fuel_type_raster_id == fuel_type_raster_id,
         )
     )
@@ -379,7 +381,11 @@ async def get_run_datetimes(
     """
     stmt = (
         select(RunParameters.run_datetime)
-        .where(RunParameters.run_type == run_type.value, RunParameters.for_date == for_date)
+        .where(
+            RunParameters.run_type == run_type.value,
+            RunParameters.for_date == for_date,
+            RunParameters.complete.is_(True),
+        )
         .distinct()
         .order_by(RunParameters.run_datetime.desc())
     )
@@ -396,7 +402,7 @@ async def get_most_recent_run_datetime_for_date(session: AsyncSession, for_date:
     """
     stmt = (
         select(RunParameters)
-        .where(RunParameters.for_date == for_date)
+        .where(RunParameters.for_date == for_date, RunParameters.complete.is_(True))
         .order_by(RunParameters.run_datetime.desc())
     )
     result = await session.execute(stmt)
@@ -554,12 +560,17 @@ async def calculate_high_hfi_areas(
 
 
 async def get_run_parameters_id(
-    session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
+    session: AsyncSession,
+    run_type: RunType,
+    run_datetime: datetime,
+    for_date: date,
+    complete: bool = True,
 ) -> List[Row]:
     stmt = select(RunParameters.id).where(
         cast(RunParameters.run_type, String) == run_type.value,
         RunParameters.run_datetime == run_datetime,
         RunParameters.for_date == for_date,
+        RunParameters.complete.is_(complete),
     )
     result = await session.execute(stmt)
     return result.scalar()
@@ -576,6 +587,22 @@ async def save_run_parameters(
         .values(run_type=run_type.value, run_datetime=run_datetime, for_date=for_date)
         .on_conflict_do_nothing()
     )
+    await session.execute(stmt)
+
+
+async def mark_run_parameter_complete(
+    session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
+):
+    """Mark the run parameters as complete."""
+    logger.info(
+        f"Marking run parameters as complete. RunType: {run_type.value}; run_datetime: {run_datetime.isoformat()}; for_date: {for_date.isoformat()}"
+    )
+    run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+    if not run_parameters_id:
+        logger.warning(f"Run parameters not found for {run_type} {run_datetime} {for_date}")
+        return
+
+    stmt = update(RunParameters).where(RunParameters.id == run_parameters_id).values(complete=True)
     await session.execute(stmt)
 
 
