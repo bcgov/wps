@@ -62,11 +62,22 @@ describe('fireCentreHFIFuelStatsSlice', () => {
       expect(fireCentreHFIFuelStatsReducer(undefined, { type: '' })).toEqual(initialState)
     })
     it('should set a value for error state when getFireCentreHFIFuelStatsFailed is called', () => {
-      expect(fireCentreHFIFuelStatsReducer(initialState, getFireCentreHFIFuelStatsFailed('error')).error).not.toBeNull()
+      const result = fireCentreHFIFuelStatsReducer(initialState, getFireCentreHFIFuelStatsFailed('error'))
+      expect(result.error).not.toBeNull()
+      expect(result.loading).toBe(false)
     })
     it('should set a value for fireCentreHFIFuelStats when getFireCentreHFIFuelStatsSuccess is called', () => {
       const result = fireCentreHFIFuelStatsReducer(initialState, getFireCentreHFIFuelStatsSuccess(fireCentreHfiStats))
       expect(result.fireCentreHFIFuelStats).toEqual(fireCentreHfiStats)
+      expect(result.loading).toBe(false)
+    })
+    it('should set loading true when getFireCentreHFIFuelStatsStart is called', () => {
+      const result = fireCentreHFIFuelStatsReducer(initialState, {
+        type: 'fireCentreHfiFuelStats/getFireCentreHFIFuelStatsStart'
+      })
+      expect(result.loading).toBe(true)
+      expect(result.error).toBeNull()
+      expect(result.fireCentreHFIFuelStats).toEqual({})
     })
   })
 })
