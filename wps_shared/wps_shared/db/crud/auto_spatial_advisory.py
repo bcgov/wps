@@ -571,12 +571,12 @@ async def save_run_parameters(
     logger.info(
         f"Writing run parameters. RunType: {run_type.value}; run_datetime: {run_datetime.isoformat()}; for_date: {for_date.isoformat()}"
     )
-    stmt = (
-        insert(RunParameters)
-        .values(run_type=run_type.value, run_datetime=run_datetime, for_date=for_date)
-        .on_conflict_do_nothing()
-    )
-    await session.execute(stmt)
+
+    run_parameter = RunParameters(run_type=run_type, run_datetime=run_datetime, for_date=for_date)
+
+    await session.add(run_parameter)
+    # Ensure the run_parameter is available for subsequent operations during the session
+    await session.flush()
 
 
 async def save_advisory_elevation_stats(
