@@ -26,6 +26,8 @@
 	<string>Your app requires access to the Documents folder for file management.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs location access to show your position and provide location-based fire advisory information.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs location access to show your position and provide location-based fire advisory information.</string>
 	<key>UIBackgroundModes</key>
 	<array/>
 	<key>UILaunchStoryboardName</key>
@@ -51,6 +53,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

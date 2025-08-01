@@ -142,7 +142,7 @@ export interface SFMSBoundsByRunType {
 }
 
 // Keys are years (eg. 2024, 2024)
-export interface SFMSBounds{
+export interface SFMSBounds {
   [key: string]: SFMSBoundsByRunType
 }
 

@@ -86,7 +86,12 @@ objects:
                 users: [
                     {user: consumer, password: consumer, permissions: {publish: ">", subscribe: ">"}}
                   ]
-            } 
+            },
+            $SYS: {
+              users: [ 
+                  {user:sys, password:sys}
+              ]
+            }
         }
         no_auth_user: consumer
         leafnodes {

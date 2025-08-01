@@ -20,3 +20,4 @@ export const selectAuthentication = (state: RootState) => state.authentication;
 export const selectNetworkStatus = (state: RootState) => state.networkStatus;
 export const selectFireCentreTPIStats = (state: RootState) =>
   state.fireCentreTPIStats;
+export const selectToken = (state: RootState) => state.authentication.token;

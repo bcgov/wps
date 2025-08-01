@@ -1,5 +1,6 @@
 import { authenticate } from "@/slices/authenticationSlice";
 import { AppDispatch } from "@/store";
+import { setAxiosRequestInterceptors } from "@/utils/axiosInterceptor";
 import { Button, Typography, useTheme } from "@mui/material";
 import { useDispatch } from "react-redux";
 
@@ -13,6 +14,7 @@ const LoginButton = ({ label }: LoginButonProps) => {
 
   const handleLogin = () => {
     dispatch(authenticate());
+    dispatch(setAxiosRequestInterceptors());
   };
   return (
     <Button
