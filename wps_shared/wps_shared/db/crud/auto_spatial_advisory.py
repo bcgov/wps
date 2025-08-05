@@ -616,22 +616,26 @@ async def check_and_mark_sfms_run_processing_complete(
     session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
 ):
     """Check if the SFMS run processing is complete."""
-    run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+    run_parameters_id = await get_run_parameters_id(
+        session, run_type, run_datetime, for_date, complete=False
+    )
     if not run_parameters_id:
-        logger.warning(f"Run parameters not found for {run_type} {run_datetime} {for_date}")
-        return False
+        logger.warning(
+            f"No incomplete run parameters found for {run_type} {run_datetime} {for_date}"
+        )
+        return
 
     complete = await check_run_parameters_id_exists_in_all(session, run_parameters_id)
 
     if complete:
         logger.info(f"SFMS run processing is complete for {run_type} {run_datetime} {for_date}")
         await mark_run_parameter_complete(session, run_parameters_id)
-    return complete
 
 
 async def mark_run_parameter_complete(session: AsyncSession, run_parameters_id: int):
     stmt = update(RunParameters).where(RunParameters.id == run_parameters_id).values(complete=True)
     await session.execute(stmt)
+    await session.commit()
 
 
 async def save_advisory_elevation_stats(
