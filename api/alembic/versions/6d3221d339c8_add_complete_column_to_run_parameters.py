@@ -22,7 +22,7 @@ def upgrade():
         "run_parameters", sa.Column("complete", sa.Boolean(), nullable=True, default=False)
     )
 
-    # step 2: update all existing rows to have the default value
+    # step 2: update all existing rows to have complete = True
     op.execute("UPDATE run_parameters SET complete = true WHERE complete IS NULL")
 
     # step 3: alter the column to be non-nullable
