@@ -584,10 +584,12 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
                     for_date,
                     fuel_type_raster.id,
                 )
-    except Exception:
+    except Exception as e:
         logger.error(
-            f"Fatal error calculating and storing critical hours for run parameters: {run_parameters_id}"
+            f"Fatal error calculating and storing critical hours for run parameters: {run_parameters_id}",
+            exc_info=True,
         )
+        raise e
 
     perf_end = perf_counter()
     delta = perf_end - perf_start
