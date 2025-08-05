@@ -104,7 +104,7 @@ async def run():
                 await process_hfi_percent_conifer(run_type, run_datetime, for_date)
                 await calculate_critical_hours(run_type, run_datetime, for_date)
 
-                with get_async_write_session_scope() as session:
+                async with get_async_write_session_scope() as session:
                     await check_and_mark_sfms_run_processing_complete(
                         session, run_type, run_datetime, for_date
                     )

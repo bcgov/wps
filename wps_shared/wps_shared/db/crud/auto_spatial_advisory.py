@@ -10,7 +10,6 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.run_type import RunType
 from wps_shared.schemas.fba import HfiThreshold
 from wps_shared.db.models.auto_spatial_advisory import (
@@ -619,24 +618,23 @@ async def check_run_parameters_id_exists_in_all(
 
 
 async def check_and_mark_sfms_run_processing_complete(
-    run_type: RunType, run_datetime: datetime, for_date: date
+    session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
 ):
     """Check if the SFMS run processing is complete."""
-    with get_async_write_session_scope() as session:
-        run_parameters_id = await get_run_parameters_id(
-            session, run_type, run_datetime, for_date, complete=False
+    run_parameters_id = await get_run_parameters_id(
+        session, run_type, run_datetime, for_date, complete=False
+    )
+    if not run_parameters_id:
+        logger.warning(
+            f"No incomplete run parameters found for {run_type} {run_datetime} {for_date}"
         )
-        if not run_parameters_id:
-            logger.warning(
-                f"No incomplete run parameters found for {run_type} {run_datetime} {for_date}"
-            )
-            return
+        return
 
-        complete = await check_run_parameters_id_exists_in_all(session, run_parameters_id)
+    complete = await check_run_parameters_id_exists_in_all(session, run_parameters_id)
 
-        if complete:
-            logger.info(f"SFMS run processing is complete for {run_type} {run_datetime} {for_date}")
-            await mark_run_parameter_complete(session, run_parameters_id)
+    if complete:
+        logger.info(f"SFMS run processing is complete for {run_type} {run_datetime} {for_date}")
+        await mark_run_parameter_complete(session, run_parameters_id)
 
 
 async def mark_run_parameter_complete(session: AsyncSession, run_parameters_id: int):
