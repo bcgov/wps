@@ -12,8 +12,8 @@ from starlette.background import BackgroundTasks
 import nats
 from nats.js.api import StreamConfig, RetentionPolicy
 from nats.aio.msg import Msg
-from wps_shared.db.crud.auto_spatial_advisory import mark_run_parameter_complete
-from wps_shared.db.database import get_async_read_session_scope
+from wps_shared.db.crud.auto_spatial_advisory import check_and_mark_sfms_run_processing_complete
+from wps_shared.db.database import get_async_write_session_scope
 from app.auto_spatial_advisory.critical_hours import calculate_critical_hours
 from app.auto_spatial_advisory.hfi_minimum_wind_speed import process_hfi_min_wind_speed
 from app.auto_spatial_advisory.hfi_percent_conifer import process_hfi_percent_conifer
@@ -104,8 +104,10 @@ async def run():
                 await process_hfi_percent_conifer(run_type, run_datetime, for_date)
                 await calculate_critical_hours(run_type, run_datetime, for_date)
 
-                async with get_async_read_session_scope() as session:
-                    await mark_run_parameter_complete(session, run_type, run_datetime, for_date)
+                with get_async_write_session_scope() as session:
+                    await check_and_mark_sfms_run_processing_complete(
+                        session, run_type, run_datetime, for_date
+                    )
 
             except Exception as e:
                 logger.error(

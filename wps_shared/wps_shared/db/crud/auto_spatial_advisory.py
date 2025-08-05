@@ -5,7 +5,7 @@ from enum import Enum
 from time import perf_counter
 from typing import List, Optional, Tuple
 
-from sqlalchemy import String, and_, cast, extract, func, select, update
+from sqlalchemy import String, and_, cast, exists, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -590,18 +590,46 @@ async def save_run_parameters(
     await session.execute(stmt)
 
 
-async def mark_run_parameter_complete(
+async def check_run_parameters_id_exists_in_all(
+    session: AsyncSession, run_parameters_id: int
+) -> bool:
+    """
+    Returns True if run_parameters_id exists in all required tables, False otherwise.
+    """
+    tables = [
+        HighHfiArea,
+        AdvisoryFuelStats,
+        AdvisoryTPIStats,
+        AdvisoryHFIWindSpeed,
+        AdvisoryHFIPercentConifer,
+        CriticalHours,
+    ]
+    for table in tables:
+        stmt = select(exists().where(table.run_parameters == run_parameters_id))
+        result = await session.execute(stmt)
+        if not result.scalar():
+            return False
+    return True
+
+
+async def check_and_mark_sfms_run_processing_complete(
     session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
 ):
-    """Mark the run parameters as complete."""
-    logger.info(
-        f"Marking run parameters as complete. RunType: {run_type.value}; run_datetime: {run_datetime.isoformat()}; for_date: {for_date.isoformat()}"
-    )
+    """Check if the SFMS run processing is complete."""
     run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
     if not run_parameters_id:
         logger.warning(f"Run parameters not found for {run_type} {run_datetime} {for_date}")
-        return
+        return False
 
+    complete = await check_run_parameters_id_exists_in_all(session, run_parameters_id)
+
+    if complete:
+        logger.info(f"SFMS run processing is complete for {run_type} {run_datetime} {for_date}")
+        await mark_run_parameter_complete(session, run_parameters_id)
+    return complete
+
+
+async def mark_run_parameter_complete(session: AsyncSession, run_parameters_id: int):
     stmt = update(RunParameters).where(RunParameters.id == run_parameters_id).values(complete=True)
     await session.execute(stmt)
 
