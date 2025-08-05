@@ -564,14 +564,15 @@ async def get_run_parameters_id(
     run_type: RunType,
     run_datetime: datetime,
     for_date: date,
-    complete: bool = True,
-) -> List[Row]:
+    complete: Optional[bool] = None,
+) -> Optional[int]:
     stmt = select(RunParameters.id).where(
         cast(RunParameters.run_type, String) == run_type.value,
         RunParameters.run_datetime == run_datetime,
         RunParameters.for_date == for_date,
-        RunParameters.complete.is_(complete),
     )
+    if complete is not None:
+        stmt = stmt.where(RunParameters.complete.is_(complete))
     result = await session.execute(stmt)
     return result.scalar()
 
