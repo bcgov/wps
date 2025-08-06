@@ -597,21 +597,23 @@ async def check_run_parameters_id_exists_in_all(
 ) -> bool:
     """
     Returns True if run_parameters_id exists in all required tables, False otherwise.
+    Uses a single join query for efficiency.
     """
-    tables = [
-        HighHfiArea,
-        AdvisoryFuelStats,
-        AdvisoryTPIStats,
-        AdvisoryHFIWindSpeed,
-        AdvisoryHFIPercentConifer,
-        CriticalHours,
-    ]
-    for table in tables:
-        stmt = select(exists().where(table.run_parameters == run_parameters_id))
-        result = await session.execute(stmt)
-        if not result.scalar():
-            return False
-    return True
+    stmt = (
+        select(1)
+        .select_from(RunParameters)
+        .join(HighHfiArea, HighHfiArea.run_parameters == RunParameters.id)
+        .join(AdvisoryFuelStats, AdvisoryFuelStats.run_parameters == RunParameters.id)
+        .join(AdvisoryTPIStats, AdvisoryTPIStats.run_parameters == RunParameters.id)
+        .join(AdvisoryHFIWindSpeed, AdvisoryHFIWindSpeed.run_parameters == RunParameters.id)
+        .join(
+            AdvisoryHFIPercentConifer, AdvisoryHFIPercentConifer.run_parameters == RunParameters.id
+        )
+        .join(CriticalHours, CriticalHours.run_parameters == RunParameters.id)
+        .where(RunParameters.id == run_parameters_id)
+    )
+    result = await session.execute(stmt)
+    return result.scalar() is not None
 
 
 async def check_and_mark_sfms_run_processing_complete(
