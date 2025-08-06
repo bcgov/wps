@@ -248,7 +248,6 @@ async def get_min_wind_speed_hfi_thresholds(
             RunParameters.run_type == run_type.value,
             RunParameters.run_datetime == run_datetime,
             RunParameters.for_date == for_date,
-            RunParameters.complete.is_(True),
         )
     )
 
@@ -423,7 +422,7 @@ async def get_sfms_bounds(session: AsyncSession):
     return result.all()
 
 
-async def get_most_recent_run_parameters_for_date_by_type(
+async def get_most_recent_run_parameters(
     session: AsyncSession, run_type: RunTypeEnum, for_date: date
 ) -> List[Row]:
     """
@@ -439,7 +438,6 @@ async def get_most_recent_run_parameters_for_date_by_type(
         .where(
             RunParameters.run_type == run_type.value,
             RunParameters.for_date == for_date,
-            RunParameters.complete.is_(True),
         )
         .distinct()
         .order_by(RunParameters.run_datetime.desc())
