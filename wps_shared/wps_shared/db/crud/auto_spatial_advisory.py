@@ -311,7 +311,6 @@ async def get_precomputed_stats_for_shape(
             RunParameters.run_type == run_type.value,
             RunParameters.run_datetime == run_datetime,
             RunParameters.for_date == for_date,
-            RunParameters.complete.is_(True),
             AdvisoryShapeFuels.fuel_type_raster_id == fuel_type_raster_id,
         )
     )
