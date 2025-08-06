@@ -11,7 +11,7 @@ export interface FireZoneAreasState {
   fireShapeAreas: FireShapeArea[]
 }
 
-const initialState: FireZoneAreasState = {
+export const initialState: FireZoneAreasState = {
   loading: false,
   error: null,
   fireShapeAreas: []

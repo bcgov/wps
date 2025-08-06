@@ -89,8 +89,31 @@ export const selectStationGroups = (state: RootState) => state.stationGroups
 export const selectStationGroupsMembers = (state: RootState) => state.stationGroupsMembers
 export const fireWatch = (state: RootState) => state.fireWatch
 export const selectFireWatchFireCentres = (state: RootState) => state.fireWatchFireCentres
+export const selectProvincialSummaryLoading = (state: RootState) => state.provincialSummary.loading
 
 export const selectFilteredFireCentreHFIFuelStats = createSelector(
   [selectFireCentreHFIFuelStats],
   fireCentreHFIFuelStats => filterHFIFuelStatsByArea(fireCentreHFIFuelStats.fireCentreHFIFuelStats)
+)
+
+export const selectCombinedASALoading = createSelector(
+  [
+    (state: RootState) => state.fireShapeAreas.loading,
+    (state: RootState) => state.provincialSummary.loading,
+    (state: RootState) => state.fireCentreHFIFuelStats.loading,
+    (state: RootState) => state.fireCentreTPIStats.loading,
+    (state: RootState) => state.runDates.loading
+  ],
+  (
+    fireShapeLoading,
+    provincialLoading,
+    fireCentreHFIFuelStatsLoading,
+    fireCentreTPIStatsLoading,
+    runDatesLoading
+  ): boolean =>
+    fireShapeLoading ||
+    provincialLoading ||
+    fireCentreHFIFuelStatsLoading ||
+    fireCentreTPIStatsLoading ||
+    runDatesLoading
 )

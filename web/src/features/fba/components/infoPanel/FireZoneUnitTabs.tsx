@@ -107,6 +107,7 @@ const FireZoneUnitTabs = ({
                     height: '4px'
                   }
                 }}
+                TabIndicatorProps={{ style: { transition: 'none' } }}
               >
                 {sortedGroupedFireZoneUnits.map((zone, index) => {
                   const isActive = tabNumber === index

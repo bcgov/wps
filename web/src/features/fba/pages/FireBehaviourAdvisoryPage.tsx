@@ -37,7 +37,13 @@ export const FireCentreFormControl = styled(FormControl)({
 
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
+
+  // selectors
   const { fireCenters } = useSelector(selectFireCenters)
+  const { mostRecentRunDate, sfmsBounds } = useSelector(selectRunDates)
+  const { fireShapeAreas } = useSelector(selectFireShapeAreas)
+
+  // state
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
   const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
@@ -47,8 +53,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
-  const { mostRecentRunDate, sfmsBounds } = useSelector(selectRunDates)
-  const { fireShapeAreas } = useSelector(selectFireShapeAreas)
   // Set some reasonable historical min and max dates for ASA (used by the DatePicker).
   const [historicalMinDate, setHistoricalMinDate] = useState<DateTime>(
     DateTime.fromObject({ year: 2022, month: 4, day: 1 })
