@@ -1,4 +1,5 @@
 """Dependency functions used for authenticating and auditing requests"""
+
 import logging
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
@@ -15,93 +16,115 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 
 async def permissive_oauth2_scheme(request: Request):
-    """ Returns parsed auth token if authorized, None otherwise. """
+    """Returns parsed auth token if authorized, None otherwise."""
     try:
         return await oauth2_scheme.__call__(request)
     except HTTPException as exception:
-        logger.error('Could not validate the credential %s', exception)
+        logger.error("Could not validate the credential %s", exception)
         return None
 
+
 async def sfms_authenticate(request: Request):
-    """ Returns parsed auth token if authorized, None otherwise. """
-    secret = request.headers.get('Secret')
-    if not secret or secret != config.get('SFMS_SECRET'):
+    """Returns parsed auth token if authorized, None otherwise."""
+    secret = request.headers.get("Secret")
+    if not secret or secret != config.get("SFMS_SECRET"):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-    
+
 
 async def authenticate(token: str = Depends(permissive_oauth2_scheme)):
-    """ Returns Decoded token when validation of the token is successful.
-        Returns empty dictionary on failure to decode """
+    """Returns Decoded token when validation of the token is successful.
+    Returns empty dictionary on failure to decode"""
     # RSA public key format
-    keycloak_public_key = '-----BEGIN PUBLIC KEY-----\n' + \
-        config.get('KEYCLOAK_PUBLIC_KEY') + '\n-----END PUBLIC KEY-----'
-    keycloak_client = config.get('KEYCLOAK_CLIENT')
+    keycloak_public_key = (
+        "-----BEGIN PUBLIC KEY-----\n"
+        + config.get("KEYCLOAK_PUBLIC_KEY")
+        + "\n-----END PUBLIC KEY-----"
+    )
+    keycloak_client = config.get("KEYCLOAK_CLIENT")
 
     try:
         decoded_token = jwt.decode(
-            token, keycloak_public_key, algorithms=['RS256'], audience=keycloak_client)
+            token, keycloak_public_key, algorithms=["RS256"], audience=keycloak_client
+        )
         return decoded_token
     except InvalidTokenError as exception:
-        logger.error('Could not validate the credential %s', exception)
+        logger.error("Could not validate the credential %s", exception)
         return {}
 
 
-async def audit(request: Request, token=Depends(authenticate)):
-    """ Audits attempted requests based on bearer token. """
+async def default_authenticate(request: Request, token=Depends(authenticate)):
+    """
+    Only allows non-mobile test IDIRs
+    """
+    guid = token.get("idir_user_guid", None)
+    if guid is None or str(guid).upper() == "4F488A419BD843C4ABF631094C6F04A2":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+
+
+async def audit(request: Request, token=Depends(default_authenticate)):
+    """Audits attempted requests based on bearer token."""
     path = request.url.path
-    username = token.get('idir_username', None)
+    username = token.get("idir_username", None)
 
     create_api_access_audit_log(username, bool(token), path)
     return token
 
 
-async def authentication_required(token=Depends(authenticate)):
-    """ Raises HTTPException with status code 401 if authentication fails."""
+async def authentication_required(token=Depends(default_authenticate)):
+    """Raises HTTPException with status code 401 if authentication fails."""
     if not token:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            headers={'WWW-Authenticate': 'Bearer'}
+            status_code=status.HTTP_401_UNAUTHORIZED, headers={"WWW-Authenticate": "Bearer"}
         )
-    set_user({"email": token.get('email', None)})
+    set_user({"email": token.get("email", None)})
+    return token
+
+
+async def asa_authentication_required(token=Depends(authenticate)):
+    """Raises HTTPException with status code 401 if authentication fails."""
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, headers={"WWW-Authenticate": "Bearer"}
+        )
+    set_user({"email": token.get("email", None)})
     return token
 
 
 async def check_token_for_role(role: str, token):
-    """ Return token if role exists in roles, 401 exception otherwise """
-    roles = token.get('client_roles', {})
+    """Return token if role exists in roles, 401 exception otherwise"""
+    roles = token.get("client_roles", {})
     if role not in roles:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            headers={'WWW-Authenticate': 'Bearer'}
+            status_code=status.HTTP_401_UNAUTHORIZED, headers={"WWW-Authenticate": "Bearer"}
         )
     return token
 
 
 async def auth_with_set_fire_starts_role_required(token=Depends(authentication_required)):
-    """ Only return requests that have set fire starts permission """
-    return await check_token_for_role('hfi_set_fire_starts', token)
+    """Only return requests that have set fire starts permission"""
+    return await check_token_for_role("hfi_set_fire_starts", token)
 
 
 async def auth_with_select_station_role_required(token=Depends(authentication_required)):
-    """ Only return requests that have set fire starts permission """
-    return await check_token_for_role('hfi_select_station', token)
+    """Only return requests that have set fire starts permission"""
+    return await check_token_for_role("hfi_select_station", token)
 
 
 async def auth_with_station_admin_role_required(token=Depends(authentication_required)):
-    """ Only return requests that have station admin permission """
-    return await check_token_for_role('hfi_station_admin', token)
+    """Only return requests that have station admin permission"""
+    return await check_token_for_role("hfi_station_admin", token)
 
 
 async def auth_with_set_fuel_type_role_required(token=Depends(authentication_required)):
-    """ Only return requests that have set fuel type permission """
-    return await check_token_for_role('hfi_set_fuel_type', token)
+    """Only return requests that have set fuel type permission"""
+    return await check_token_for_role("hfi_set_fuel_type", token)
 
 
 async def auth_with_set_ready_state_required(token=Depends(authentication_required)):
-    """ Only return requests that have set ready state permission """
-    return await check_token_for_role('hfi_set_ready_state', token)
+    """Only return requests that have set ready state permission"""
+    return await check_token_for_role("hfi_set_ready_state", token)
 
 
 async def auth_with_forecaster_role_required(token=Depends(authentication_required)):
-    """ Only return requests that have forecaster permission """
-    return await check_token_for_role('morecast2_write_forecast', token)
+    """Only return requests that have forecaster permission"""
+    return await check_token_for_role("morecast2_write_forecast", token)

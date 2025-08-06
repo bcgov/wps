@@ -17,7 +17,7 @@ from app.auto_spatial_advisory.zone_stats import (
     get_fuel_type_area_stats,
     get_zone_wind_stats_for_source_id,
 )
-from wps_shared.auth import audit, authentication_required
+from wps_shared.auth import audit, asa_authentication_required
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_hfi_thresholds_by_id,
     get_all_sfms_fuel_type_records,
@@ -53,12 +53,12 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/fba",
-    dependencies=[Depends(authentication_required), Depends(audit)],
+    dependencies=[Depends(asa_authentication_required), Depends(audit)],
 )
 
 
 @router.get("/fire-centers", response_model=FireCenterListResponse)
-async def get_all_fire_centers(_=Depends(authentication_required)):
+async def get_all_fire_centers(_=Depends(asa_authentication_required)):
     """Returns fire centers for all active stations."""
     logger.info("/fba/fire-centers/")
     async with ClientSession() as session:
@@ -72,7 +72,10 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
     response_model=FireShapeAreaListResponse,
 )
 async def get_shapes(
-    run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)
+    run_type: RunType,
+    run_datetime: datetime,
+    for_date: date,
+    _=Depends(asa_authentication_required),
 ):
     """Return area of each zone unit shape, and percentage of area of zone unit shape with high hfi."""
     async with get_async_read_session_scope() as session:
@@ -104,7 +107,10 @@ async def get_shapes(
     response_model=ProvincialSummaryResponse,
 )
 async def get_provincial_summary(
-    run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)
+    run_type: RunType,
+    run_datetime: datetime,
+    for_date: date,
+    _=Depends(asa_authentication_required),
 ):
     """Return all Fire Centres with their fire shapes and the HFI status of those shapes."""
     logger.info("/fba/provincial_summary/")
@@ -137,7 +143,11 @@ async def get_provincial_summary(
     response_model=dict[str, dict[int, FireZoneHFIStats]],
 )
 async def get_hfi_fuels_data_for_fire_centre(
-    run_type: RunType, for_date: date, run_datetime: datetime, fire_centre_name: str
+    run_type: RunType,
+    for_date: date,
+    run_datetime: datetime,
+    fire_centre_name: str,
+    _=Depends(asa_authentication_required),
 ):
     """
     Fetch fuel type and critical hours data for all fire zones in a fire centre for a given date
@@ -231,7 +241,9 @@ async def get_hfi_fuels_data_for_fire_centre(
 
 
 @router.get("/latest-sfms-run-datetime/{for_date}", response_model=LatestSFMSRunParameterResponse)
-async def get_latest_sfms_run_datetime_for_date(for_date: date):
+async def get_latest_sfms_run_datetime_for_date(
+    for_date: date, _=Depends(asa_authentication_required)
+):
     async with get_async_read_session_scope() as session:
         latest_run_parameter = await get_most_recent_run_datetime_for_date(session, for_date)
         if latest_run_parameter is None:
@@ -246,7 +258,7 @@ async def get_latest_sfms_run_datetime_for_date(for_date: date):
 
 @router.get("/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])
 async def get_run_datetimes_for_date_and_runtype(
-    run_type: RunType, for_date: date, _=Depends(authentication_required)
+    run_type: RunType, for_date: date, _=Depends(asa_authentication_required)
 ):
     """Return list of datetimes for which SFMS has run, given a specific for_date and run_type.
     Datetimes should be ordered with most recent first."""
@@ -281,7 +293,7 @@ async def get_fire_centre_tpi_stats(
     run_type: RunType,
     run_datetime: datetime,
     for_date: date,
-    _=Depends(authentication_required),
+    _=Depends(asa_authentication_required),
 ):
     """Return the elevation TPI statistics for each advisory threshold for a fire centre"""
     logger.info("/fba/fire-centre-tpi-stats/")
