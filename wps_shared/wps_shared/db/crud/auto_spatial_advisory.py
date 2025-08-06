@@ -617,13 +617,13 @@ async def check_run_parameters_id_exists_in_all(
 async def check_and_mark_sfms_run_processing_complete(
     session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
 ):
-    """Check if the SFMS run processing is complete."""
+    """Check if the SFMS run processing is complete. If it is, mark the run parameters as complete."""
     run_parameters_id = await get_run_parameters_id(
         session, run_type, run_datetime, for_date, complete=False
     )
     if not run_parameters_id:
         logger.warning(
-            f"No incomplete run parameters found for {run_type} {run_datetime} {for_date}"
+            f"Run parameters already marked as complete for {run_type} {run_datetime} {for_date}"
         )
         return
 
