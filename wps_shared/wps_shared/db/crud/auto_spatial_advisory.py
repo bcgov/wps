@@ -639,17 +639,20 @@ async def mark_run_parameter_complete(
 ):
     run_parameters = await get_run_parameters(session, run_type, run_datetime, for_date)
     if not run_parameters:
-        logger.warning(
+        logger.info(
             f"Run parameters already marked as complete for {run_type} {run_datetime} {for_date}"
         )
 
     if run_parameters.complete:
-        logger.warning(
+        logger.info(
             f"Run parameters already marked as complete for {run_type} {run_datetime} {for_date}"
         )
         return
 
     stmt = update(RunParameters).where(RunParameters.id == run_parameters.id).values(complete=True)
+    logger.info(
+        f"Marking run parameter {run_parameters.id} as complete for {run_type} {run_datetime} {for_date}"
+    )
     await session.execute(stmt)
     await session.commit()
 
