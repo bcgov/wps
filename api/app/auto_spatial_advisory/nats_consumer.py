@@ -12,14 +12,15 @@ from starlette.background import BackgroundTasks
 import nats
 from nats.js.api import StreamConfig, RetentionPolicy
 from nats.aio.msg import Msg
-from app.auto_spatial_advisory.critical_hours import calculate_critical_hours
-from app.auto_spatial_advisory.hfi_minimum_wind_speed import process_hfi_min_wind_speed
-from app.auto_spatial_advisory.hfi_percent_conifer import process_hfi_percent_conifer
-from app.auto_spatial_advisory.nats_config import server, stream_name, sfms_file_subject, subjects, hfi_classify_durable_group
-from app.auto_spatial_advisory.process_elevation_hfi import process_hfi_elevation
-from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
-from app.auto_spatial_advisory.process_high_hfi_area import process_high_hfi_area
-from app.auto_spatial_advisory.process_fuel_type_area import process_fuel_type_hfi_by_shape
+from app.auto_spatial_advisory.nats_config import (
+    server,
+    stream_name,
+    sfms_file_subject,
+    subjects,
+    hfi_classify_durable_group,
+)
+from app.auto_spatial_advisory.process_hfi import RunType
+from app.auto_spatial_advisory.process_stats import process_sfms_hfi_stats
 from app.nats_publish import publish
 from wps_shared.wps_logging import configure_logging
 from wps_shared.utils.time import get_utc_datetime
@@ -70,8 +71,14 @@ async def run():
     jetstream = nats_connection.jetstream()
     # we create a stream, this is important, we need to messages to stick around for a while!
     # idempotent operation, IFF stream with same configuration is added each time
-    await jetstream.add_stream(name=stream_name, config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE), subjects=subjects)
-    sfms_sub = await jetstream.pull_subscribe(stream=stream_name, subject=sfms_file_subject, durable=hfi_classify_durable_group)
+    await jetstream.add_stream(
+        name=stream_name,
+        config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE),
+        subjects=subjects,
+    )
+    sfms_sub = await jetstream.pull_subscribe(
+        stream=stream_name, subject=sfms_file_subject, durable=hfi_classify_durable_group
+    )
     while True:
         msgs: List[Msg] = await sfms_sub.fetch(batch=1, timeout=None)
         for msg in msgs:
@@ -79,16 +86,17 @@ async def run():
                 logger.info("Msg received - {}\n".format(msg))
                 await msg.ack()
                 run_type, run_datetime, for_date = parse_nats_message(msg)
-                logger.info("Awaiting process_hfi({}, {}, {})\n".format(run_type, run_datetime, for_date))
-                await process_hfi(run_type, run_datetime, for_date)
-                await process_hfi_elevation(run_type, run_datetime, for_date)
-                await process_high_hfi_area(run_type, run_datetime, for_date)
-                await process_fuel_type_hfi_by_shape(run_type, run_datetime, for_date)
-                await process_hfi_min_wind_speed(run_type, run_datetime, for_date)
-                await process_hfi_percent_conifer(run_type, run_datetime, for_date)
-                await calculate_critical_hours(run_type, run_datetime, for_date)
+                logger.info(
+                    "Awaiting process_sfms_hfi_stats({}, {}, {})\n".format(
+                        run_type, run_datetime, for_date
+                    )
+                )
+                await process_sfms_hfi_stats(run_type, run_datetime, for_date)
+
             except Exception as e:
-                logger.error("Error processing HFI message: %s, adding back to queue", msg.data, exc_info=e)
+                logger.error(
+                    "Error processing HFI message: %s, adding back to queue", msg.data, exc_info=e
+                )
                 background_tasks = BackgroundTasks()
                 background_tasks.add_task(publish, stream_name, sfms_file_subject, msg, subjects)
 

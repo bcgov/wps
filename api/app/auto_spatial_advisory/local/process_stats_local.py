@@ -49,7 +49,7 @@ async def main(for_dates: list[date], run_type: RunType):
             run_param = await get_most_recent_run_parameters(session, run_type, for_date)
             if run_param:
                 run_datetime = run_param[0].run_datetime
-                await process_stats.process_stats(run_type, run_datetime, for_date)
+                await process_stats.process_sfms_hfi_stats(run_type, run_datetime, for_date)
             else:
                 print(f"No run params found for {for_date} - {run_type.value}")
 
