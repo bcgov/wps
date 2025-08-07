@@ -8,12 +8,13 @@ from jwt import InvalidTokenError
 from sentry_sdk import set_user
 from wps_shared import config
 from wps_shared.db.crud.api_access_audits import create_api_access_audit_log
-from wps_shared.tests.common import ASA_TEST_IDIR_GUID
 
 logger = logging.getLogger(__name__)
 
 # Parse request header and pass the token
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
+
+ASA_TEST_IDIR_GUID = "4F488A419BD843C4ABF631094C6F04A2"
 
 
 async def permissive_oauth2_scheme(request: Request):

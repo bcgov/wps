@@ -5,11 +5,10 @@ import os
 import json
 from typing import Optional
 from contextlib import asynccontextmanager
+from wps_shared.auth import ASA_TEST_IDIR_GUID
 from wps_shared.tests.fixtures.loader import FixtureFinder
 
 logger = logging.getLogger(__name__)
-
-ASA_TEST_IDIR_GUID = "4F488A419BD843C4ABF631094C6F04A2"
 
 
 class MockJWTDecode:
