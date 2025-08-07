@@ -610,30 +610,6 @@ async def save_run_parameters(
     await session.execute(stmt)
 
 
-async def check_run_parameters_id_exists_in_all(
-    session: AsyncSession, run_parameters_id: int
-) -> bool:
-    """
-    Returns True if run_parameters_id exists in all required tables, False otherwise.
-    Uses a single join query for efficiency.
-    """
-    stmt = (
-        select(1)
-        .select_from(RunParameters)
-        .join(HighHfiArea, HighHfiArea.run_parameters == RunParameters.id)
-        .join(AdvisoryFuelStats, AdvisoryFuelStats.run_parameters == RunParameters.id)
-        .join(AdvisoryTPIStats, AdvisoryTPIStats.run_parameters == RunParameters.id)
-        .join(AdvisoryHFIWindSpeed, AdvisoryHFIWindSpeed.run_parameters == RunParameters.id)
-        .join(
-            AdvisoryHFIPercentConifer, AdvisoryHFIPercentConifer.run_parameters == RunParameters.id
-        )
-        .join(CriticalHours, CriticalHours.run_parameters == RunParameters.id)
-        .where(RunParameters.id == run_parameters_id)
-    )
-    result = await session.execute(stmt)
-    return result.scalar() is not None
-
-
 async def mark_run_parameter_complete(
     session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
 ):
