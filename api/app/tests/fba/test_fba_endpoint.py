@@ -19,7 +19,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.schemas.fba import HfiThreshold
-from wps_shared.tests.common import default_mock_client_get
+from wps_shared.tests.common import MockTestIDIRJWTDecode, default_mock_client_get
 
 mock_fire_centre_name = "PGFireCentre"
 
@@ -440,28 +440,6 @@ FBA_ENDPOINTS = [
     "/api/fba/sfms-run-datetimes/forecast/2022-09-27",
     "/api/fba/sfms-run-bounds",
 ]
-
-
-class MockTestIDIRJWTDecode:
-    """Mock pyjwt module with test idir"""
-
-    def __init__(self):
-        self.decoded_token = {
-            "idir_username": "test_username",
-            "email": "test@email.com",
-            "idir_user_guid": "4F488A419BD843C4ABF631094C6F04A2",
-        }
-
-    def __getitem__(self, key):
-        return self.decoded_token[key]
-
-    def get(self, key, _):
-        "Returns the mock decoded token"
-        return self.decoded_token.get(key, {})
-
-    def decode(self):
-        "Returns the mock decoded token"
-        return self.decoded_token
 
 
 @pytest.fixture()

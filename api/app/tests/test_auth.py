@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from datetime import datetime, timezone
 import pytest
-import wps_shared.auth
+from fastapi.routing import APIRoute
 import app.main
 from app.tests import load_json_file
 
@@ -87,3 +87,39 @@ def test_authenticated_requests(status, endpoint, verb, utc_time, spy_access_log
 
     assert response.status_code == status
     spy_access_logging.assert_called_once_with("test_username", True, endpoint)
+
+
+FBA_PREFIXES = ["/api/fba"]
+
+
+def is_fba_route(route):
+    return any(route.path.startswith(prefix) for prefix in FBA_PREFIXES)
+
+
+def get_non_fba_routes(app):
+    routes = []
+    for route in app.routes:
+        if isinstance(route, APIRoute) and not is_fba_route(route):
+            # Only include routes that require authentication (i.e., have dependencies)
+            if any(
+                "authentication_required" in str(dep.dependency)
+                for dep in route.dependant.dependencies
+            ):
+                for method in route.methods:
+                    if method in {"GET", "POST"}:
+                        routes.append((route.path, method))
+    return routes
+
+
+@pytest.mark.usefixtures("mock_test_idir_jwt_decode")
+def test_non_fba_routes_blocked_for_test_guid():
+    client = TestClient(app.main.app)
+    routes = get_non_fba_routes(app.main.app)
+    headers = {"Authorization": "Bearer token"}
+    payload = {"stations": [838]}
+    for path, method in routes:
+        if method == "POST":
+            response = client.post(path, headers=headers, json=payload)
+        else:
+            response = client.get(path, headers=headers)
+        assert response.status_code == 401

@@ -8,6 +8,7 @@ from wps_shared.tests.conftest import (
     mock_get_pst_today_start_and_end,
     mock_session,
     mock_jwt_decode,
+    mock_test_idir_jwt_decode,
     mock_sentry,
     mock_requests_session,
     mock_client_session,
