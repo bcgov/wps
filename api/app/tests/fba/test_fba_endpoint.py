@@ -430,3 +430,64 @@ def test_get_sfms_run_bounds_no_bounds(client: TestClient):
     assert response.status_code == 200
     json_response = response.json()
     assert json_response["sfms_bounds"] == {}
+
+
+FBA_ENDPOINTS = [
+    "/api/fba/fire-centers",
+    "/api/fba/fire-shape-areas/forecast/2022-09-27/2022-09-27",
+    "/api/fba/fire-centre-hfi-stats/forecast/2022-09-27/2022-09-27/Kamloops%20Fire%20Centre",
+    "/api/fba/fire-centre-tpi-stats/forecast/2024-08-10/2024-08-10/PGFireCentre",
+    "/api/fba/sfms-run-datetimes/forecast/2022-09-27",
+    "/api/fba/sfms-run-bounds",
+]
+
+
+class MockTestIDIRJWTDecode:
+    """Mock pyjwt module with test idir"""
+
+    def __init__(self):
+        self.decoded_token = {
+            "idir_username": "test_username",
+            "email": "test@email.com",
+            "idir_user_guid": "4F488A419BD843C4ABF631094C6F04A2",
+        }
+
+    def __getitem__(self, key):
+        return self.decoded_token[key]
+
+    def get(self, key, _):
+        "Returns the mock decoded token"
+        return self.decoded_token.get(key, {})
+
+    def decode(self):
+        "Returns the mock decoded token"
+        return self.decoded_token
+
+
+@pytest.fixture()
+def mock_test_idir_jwt_decode(monkeypatch):
+    """Mock pyjwt's decode method"""
+
+    def mock_function(*args, **kwargs):
+        return MockTestIDIRJWTDecode()
+
+    monkeypatch.setattr("jwt.decode", mock_function)
+
+
+@pytest.mark.usefixtures("mock_test_idir_jwt_decode")
+@pytest.mark.parametrize("endpoint", FBA_ENDPOINTS)
+@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
+@patch("app.routers.fba.get_fire_centers", mock_get_fire_centres)
+@patch("app.routers.fba.get_hfi_area", mock_get_hfi_area)
+@patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
+@patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
+@patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
+@patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
+@patch("app.routers.fba.get_zone_source_ids_in_centre", mock_zone_ids_in_centre)
+@patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
+@patch("app.routers.fba.get_fire_centre_tpi_fuel_areas", mock_get_fire_centre_tpi_fuel_areas)
+@patch("app.routers.fba.get_centre_tpi_stats", mock_get_centre_tpi_stats)
+def test_fba_endpoints_allowed_for_test_idir(client, endpoint):
+    headers = {"Authorization": "Bearer token"}
+    response = client.get(endpoint, headers=headers)
+    assert response.status_code == 200

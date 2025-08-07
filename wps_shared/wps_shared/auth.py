@@ -71,6 +71,15 @@ async def audit(request: Request, token=Depends(default_authenticate)):
     return token
 
 
+async def audit_asa(request: Request, token=Depends(authenticate)):
+    """Audits attempted requests based on bearer token."""
+    path = request.url.path
+    username = token.get("idir_username", None)
+
+    create_api_access_audit_log(username, bool(token), path)
+    return token
+
+
 async def authentication_required(token=Depends(default_authenticate)):
     """Raises HTTPException with status code 401 if authentication fails."""
     if not token:

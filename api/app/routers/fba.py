@@ -17,7 +17,7 @@ from app.auto_spatial_advisory.zone_stats import (
     get_fuel_type_area_stats,
     get_zone_wind_stats_for_source_id,
 )
-from wps_shared.auth import audit, asa_authentication_required
+from wps_shared.auth import audit, asa_authentication_required, audit_asa
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_hfi_thresholds_by_id,
     get_all_sfms_fuel_type_records,
@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/fba",
-    dependencies=[Depends(asa_authentication_required), Depends(audit)],
+    dependencies=[Depends(asa_authentication_required), Depends(audit_asa)],
 )
 
 
