@@ -70,6 +70,12 @@ async def test_mark_run_parameter_complete(async_session, session_factory):
     async_session.add(run_param)
     await async_session.commit()
 
+    result = await async_session.execute(
+        select(RunParameters).where(RunParameters.id == run_param.id)
+    )
+    fetched_param = result.scalar_one()
+    assert fetched_param.complete is False
+
     # use new session
     async with session_factory() as separate_session:
         await mark_run_parameter_complete(
