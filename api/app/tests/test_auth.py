@@ -9,11 +9,41 @@ from app.tests import load_json_file
 @pytest.mark.parametrize(
     "token, status, endpoint, verb, payload",
     [
-        ("Basic token", 401, "/api/weather_models/GDPS/predictions/summaries/", "post", "test_auth_stations_payload.json"),
-        ("just_token", 401, "/api/weather_models/GDPS/predictions/summaries/", "post", "test_auth_stations_payload.json"),
-        ("Bearer token", 401, "/api/weather_models/GDPS/predictions/summaries/", "post", "test_auth_stations_payload.json"),
-        ("just_token", 401, "/api/weather_models/GDPS/predictions/most_recent/", "post", "test_auth_stations_payload.json"),
-        ("Bearer token", 401, "/api/weather_models/GDPS/predictions/most_recent/", "post", "test_auth_stations_payload.json"),
+        (
+            "Basic token",
+            401,
+            "/api/weather_models/GDPS/predictions/summaries/",
+            "post",
+            "test_auth_stations_payload.json",
+        ),
+        (
+            "just_token",
+            401,
+            "/api/weather_models/GDPS/predictions/summaries/",
+            "post",
+            "test_auth_stations_payload.json",
+        ),
+        (
+            "Bearer token",
+            401,
+            "/api/weather_models/GDPS/predictions/summaries/",
+            "post",
+            "test_auth_stations_payload.json",
+        ),
+        (
+            "just_token",
+            401,
+            "/api/weather_models/GDPS/predictions/most_recent/",
+            "post",
+            "test_auth_stations_payload.json",
+        ),
+        (
+            "Bearer token",
+            401,
+            "/api/weather_models/GDPS/predictions/most_recent/",
+            "post",
+            "test_auth_stations_payload.json",
+        ),
         ("just_token", 401, "/api/stations/details/", "get", "test_auth_stations_payload.json"),
     ],
 )
@@ -49,7 +79,9 @@ def test_authenticated_requests(status, endpoint, verb, utc_time, spy_access_log
     client = TestClient(app.main.app)
     response = None
     if verb == "post":
-        response = client.post(endpoint, headers={"Authorization": "Bearer token"}, json={"stations": [838]})
+        response = client.post(
+            endpoint, headers={"Authorization": "Bearer token"}, json={"stations": [838]}
+        )
     if verb == "get":
         response = client.get(endpoint, headers={"Authorization": "Bearer token"})
 

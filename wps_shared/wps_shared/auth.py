@@ -57,8 +57,9 @@ async def default_authenticate(request: Request, token=Depends(authenticate)):
     Only allows non-mobile test IDIRs
     """
     guid = token.get("idir_user_guid", None)
-    if guid is None or str(guid).upper() == "4F488A419BD843C4ABF631094C6F04A2":
+    if str(guid).upper() == "4F488A419BD843C4ABF631094C6F04A2":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    return token
 
 
 async def audit(request: Request, token=Depends(default_authenticate)):
