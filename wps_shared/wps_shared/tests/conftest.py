@@ -15,6 +15,7 @@ import wps_shared.utils.time
 from wps_shared import auth
 from wps_shared.tests.common import (
     MockJWTDecode,
+    MockTestIDIRJWTDecode,
     default_aiobotocore_get_session,
     default_mock_requests_get,
     default_mock_requests_post,
@@ -51,7 +52,9 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("PROJECT_NAMESPACE", "project_namespace")
     monkeypatch.setenv("STATUS_CHECKER_SECRET", "some_secret")
     monkeypatch.setenv("PATRONI_CLUSTER_NAME", "some_suffix")
-    monkeypatch.setenv("ROCKET_URL_POST_MESSAGE", "https://rc-notifications-test.ca/api/v1/chat.postMessage")
+    monkeypatch.setenv(
+        "ROCKET_URL_POST_MESSAGE", "https://rc-notifications-test.ca/api/v1/chat.postMessage"
+    )
     monkeypatch.setenv("ROCKET_AUTH_TOKEN", "sometoken")
     monkeypatch.setenv("ROCKET_USER_ID", "someid")
     monkeypatch.setenv("ROCKET_CHANNEL", "#channel")
@@ -110,7 +113,9 @@ def mock_get_now(monkeypatch):
     # The default value for WeatherDataRequest cannot be mocked out, as it
     # is declared prior to test mocks being loaded. We manipulate the class
     # directly in order to have the desire default be deterministic.
-    WeatherDataRequest.__fields__["time_of_interest"].default = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+    WeatherDataRequest.__fields__["time_of_interest"].default = datetime.fromtimestamp(
+        timestamp, tz=timezone.utc
+    )
 
     def mock_utc_now():
         return datetime.fromtimestamp(timestamp, tz=timezone.utc)
@@ -147,6 +152,16 @@ def mock_jwt_decode(monkeypatch):
 
     def mock_function(*args, **kwargs):
         return MockJWTDecode()
+
+    monkeypatch.setattr("jwt.decode", mock_function)
+
+
+@pytest.fixture()
+def mock_test_idir_jwt_decode(monkeypatch):
+    """Mock pyjwt's decode method to always return the blocked guid."""
+
+    def mock_function(*args, **kwargs):
+        return MockTestIDIRJWTDecode()
 
     monkeypatch.setattr("jwt.decode", mock_function)
 
