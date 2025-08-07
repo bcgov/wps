@@ -62,42 +62,58 @@ async def default_authenticate(request: Request, token=Depends(authenticate)):
     return token
 
 
-async def audit(request: Request, token=Depends(default_authenticate)):
-    """Audits attempted requests based on bearer token."""
+async def _audit_with_token(request: Request, token: dict):
+    """Core audit logic that can be reused."""
     path = request.url.path
     username = token.get("idir_username", None)
-
     create_api_access_audit_log(username, bool(token), path)
     return token
 
 
-async def audit_asa(request: Request, token=Depends(authenticate)):
+async def audit(request: Request, token=Depends(permissive_oauth2_scheme)):
     """Audits attempted requests based on bearer token."""
-    path = request.url.path
-    username = token.get("idir_username", None)
+    # Use the same authentication logic as default_authenticate for consistency
+    try:
+        decoded_token = await authenticate(token)
+        # Apply the same test IDIR check as default_authenticate
+        guid = decoded_token.get("idir_user_guid", None)
+        if str(guid).upper() == "4F488A419BD843C4ABF631094C6F04A2":
+            decoded_token = {}
+    except Exception:
+        decoded_token = {}
 
-    create_api_access_audit_log(username, bool(token), path)
+    return await _audit_with_token(request, decoded_token)
+
+
+async def audit_asa(request: Request, token=Depends(permissive_oauth2_scheme)):
+    """Audits attempted requests based on bearer token."""
+    # Use the same authentication logic but without test IDIR check (like asa_authentication_required)
+    try:
+        decoded_token = await authenticate(token)
+    except Exception:
+        decoded_token = {}
+
+    return await _audit_with_token(request, decoded_token)
+
+
+async def _require_authentication(token: dict):
+    """Core authentication requirement logic."""
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, headers={"WWW-Authenticate": "Bearer"}
+        )
+    set_user({"email": token.get("email", None)})
     return token
 
 
 async def authentication_required(token=Depends(default_authenticate)):
     """Raises HTTPException with status code 401 if authentication fails."""
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, headers={"WWW-Authenticate": "Bearer"}
-        )
-    set_user({"email": token.get("email", None)})
-    return token
+    return await _require_authentication(token)
 
 
 async def asa_authentication_required(token=Depends(authenticate)):
     """Raises HTTPException with status code 401 if authentication fails."""
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, headers={"WWW-Authenticate": "Bearer"}
-        )
-    set_user({"email": token.get("email", None)})
-    return token
+    return await _require_authentication(token)
 
 
 async def check_token_for_role(role: str, token):
@@ -110,31 +126,19 @@ async def check_token_for_role(role: str, token):
     return token
 
 
-async def auth_with_set_fire_starts_role_required(token=Depends(authentication_required)):
-    """Only return requests that have set fire starts permission"""
-    return await check_token_for_role("hfi_set_fire_starts", token)
+def create_role_auth_dependency(role: str):
+    """Factory function to create role-based authentication dependencies."""
+
+    async def auth_with_role_required(token=Depends(authentication_required)):
+        return await check_token_for_role(role, token)
+
+    return auth_with_role_required
 
 
-async def auth_with_select_station_role_required(token=Depends(authentication_required)):
-    """Only return requests that have set fire starts permission"""
-    return await check_token_for_role("hfi_select_station", token)
-
-
-async def auth_with_station_admin_role_required(token=Depends(authentication_required)):
-    """Only return requests that have station admin permission"""
-    return await check_token_for_role("hfi_station_admin", token)
-
-
-async def auth_with_set_fuel_type_role_required(token=Depends(authentication_required)):
-    """Only return requests that have set fuel type permission"""
-    return await check_token_for_role("hfi_set_fuel_type", token)
-
-
-async def auth_with_set_ready_state_required(token=Depends(authentication_required)):
-    """Only return requests that have set ready state permission"""
-    return await check_token_for_role("hfi_set_ready_state", token)
-
-
-async def auth_with_forecaster_role_required(token=Depends(authentication_required)):
-    """Only return requests that have forecaster permission"""
-    return await check_token_for_role("morecast2_write_forecast", token)
+# Role-based authentication dependencies
+auth_with_set_fire_starts_role_required = create_role_auth_dependency("hfi_set_fire_starts")
+auth_with_select_station_role_required = create_role_auth_dependency("hfi_select_station")
+auth_with_station_admin_role_required = create_role_auth_dependency("hfi_station_admin")
+auth_with_set_fuel_type_role_required = create_role_auth_dependency("hfi_set_fuel_type")
+auth_with_set_ready_state_required = create_role_auth_dependency("hfi_set_ready_state")
+auth_with_forecaster_role_required = create_role_auth_dependency("morecast2_write_forecast")
