@@ -9,6 +9,8 @@ from wps_shared.tests.fixtures.loader import FixtureFinder
 
 logger = logging.getLogger(__name__)
 
+ASA_TEST_IDIR_GUID = "4F488A419BD843C4ABF631094C6F04A2"
+
 
 class MockJWTDecode:
     """Mock pyjwt module"""
@@ -35,7 +37,7 @@ class MockTestIDIRJWTDecode:
         self.decoded_token = {
             "idir_username": "test_username",
             "email": "test@email.com",
-            "idir_user_guid": "4F488A419BD843C4ABF631094C6F04A2",
+            "idir_user_guid": ASA_TEST_IDIR_GUID,
         }
 
     def __getitem__(self, key):

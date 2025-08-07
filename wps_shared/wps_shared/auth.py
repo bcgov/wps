@@ -8,6 +8,7 @@ from jwt import InvalidTokenError
 from sentry_sdk import set_user
 from wps_shared import config
 from wps_shared.db.crud.api_access_audits import create_api_access_audit_log
+from wps_shared.tests.common import ASA_TEST_IDIR_GUID
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ async def default_authenticate(request: Request, token=Depends(authenticate)):
     Only allows non-mobile test IDIRs
     """
     guid = token.get("idir_user_guid", None)
-    if str(guid).upper() == "4F488A419BD843C4ABF631094C6F04A2":
+    if str(guid).upper() == ASA_TEST_IDIR_GUID:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
     return token
 
@@ -77,7 +78,7 @@ async def audit(request: Request, token=Depends(permissive_oauth2_scheme)):
         decoded_token = await authenticate(token)
         # Apply the same test IDIR check as default_authenticate
         guid = decoded_token.get("idir_user_guid", None)
-        if str(guid).upper() == "4F488A419BD843C4ABF631094C6F04A2":
+        if str(guid).upper() == ASA_TEST_IDIR_GUID:
             decoded_token = {}
     except Exception:
         decoded_token = {}
