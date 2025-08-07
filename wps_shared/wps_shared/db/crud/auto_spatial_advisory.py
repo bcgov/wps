@@ -669,38 +669,6 @@ async def save_advisory_elevation_tpi_stats(
     session.add_all(advisory_elevation_stats)
 
 
-async def get_zonal_elevation_stats(
-    session: AsyncSession,
-    fire_zone_id: int,
-    run_type: RunType,
-    run_datetime: datetime,
-    for_date: date,
-) -> List[Row]:
-    run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
-    stmt = select(Shape.id).where(Shape.source_identifier == str(fire_zone_id))
-    result = await session.execute(stmt)
-    shape_id = result.scalar()
-
-    stmt = (
-        select(
-            AdvisoryElevationStats.advisory_shape_id,
-            AdvisoryElevationStats.minimum,
-            AdvisoryElevationStats.quartile_25,
-            AdvisoryElevationStats.median,
-            AdvisoryElevationStats.quartile_75,
-            AdvisoryElevationStats.maximum,
-            AdvisoryElevationStats.threshold,
-        )
-        .where(
-            AdvisoryElevationStats.advisory_shape_id == shape_id,
-            AdvisoryElevationStats.run_parameters == run_parameters_id,
-        )
-        .order_by(AdvisoryElevationStats.threshold)
-    )
-
-    return await session.execute(stmt)
-
-
 async def get_zonal_tpi_stats(
     session: AsyncSession,
     fire_zone_id: int,
