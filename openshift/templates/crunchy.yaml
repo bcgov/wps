@@ -91,6 +91,8 @@ objects:
             requests:
               cpu: ${CPU_REQUEST}
               memory: ${MEMORY_REQUEST}
+            limits:
+              memory: 32Gi
           dataVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"

@@ -450,11 +450,6 @@ objects:
                 initialDelaySeconds: 30
                 periodSeconds: 120
                 timeoutSeconds: 20
-  - apiVersion: autoscaling.k8s.io/v1
-    kind: VerticalPodAutoscaler
-    metadata:
-      name: vpa-recommender-${SUFFIX}
-    spec:
       targetRef:
         apiVersion: "apps/v1"
         kind: Deployment
