@@ -10,7 +10,7 @@ from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
 from datetime import date, datetime
 
 
-async def process_stats(run_type: RunType, run_datetime: datetime, for_date: date):
+async def process_sfms_hfi_stats(run_type: RunType, run_datetime: datetime, for_date: date):
     await process_hfi(run_type, run_datetime, for_date)
     await process_hfi_elevation(run_type, run_datetime, for_date)
     await process_high_hfi_area(run_type, run_datetime, for_date)
