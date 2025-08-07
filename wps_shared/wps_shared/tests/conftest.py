@@ -156,7 +156,7 @@ def mock_jwt_decode(monkeypatch):
     monkeypatch.setattr("jwt.decode", mock_function)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def mock_test_idir_jwt_decode(monkeypatch):
     """Mock pyjwt's decode method to always return the blocked guid."""
 

@@ -19,7 +19,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.schemas.fba import HfiThreshold
-from wps_shared.tests.common import MockTestIDIRJWTDecode, default_mock_client_get
+from wps_shared.tests.common import default_mock_client_get
 
 mock_fire_centre_name = "PGFireCentre"
 
@@ -196,6 +196,7 @@ def test_fba_endpoint_fire_centers(status, expected_fire_centers, monkeypatch):
     assert response.json() == expected_response
 
 
+@pytest.mark.usefixtures("mock_client_session")
 @pytest.mark.parametrize(
     "endpoint",
     [
@@ -442,16 +443,6 @@ FBA_ENDPOINTS = [
 ]
 
 
-@pytest.fixture()
-def mock_test_idir_jwt_decode(monkeypatch):
-    """Mock pyjwt's decode method"""
-
-    def mock_function(*args, **kwargs):
-        return MockTestIDIRJWTDecode()
-
-    monkeypatch.setattr("jwt.decode", mock_function)
-
-
 @pytest.mark.usefixtures("mock_test_idir_jwt_decode")
 @pytest.mark.parametrize("endpoint", FBA_ENDPOINTS)
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
@@ -465,6 +456,7 @@ def mock_test_idir_jwt_decode(monkeypatch):
 @patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
 @patch("app.routers.fba.get_fire_centre_tpi_fuel_areas", mock_get_fire_centre_tpi_fuel_areas)
 @patch("app.routers.fba.get_centre_tpi_stats", mock_get_centre_tpi_stats)
+@patch("app.routers.fba.get_sfms_bounds", mock_get_sfms_bounds)
 def test_fba_endpoints_allowed_for_test_idir(client, endpoint):
     headers = {"Authorization": "Bearer token"}
     response = client.get(endpoint, headers=headers)
