@@ -146,6 +146,9 @@ async def save_critical_hours(
             fuel_type_raster_id=fuel_type_raster_id,
         )
         critical_hours_to_save.append(critical_hours_record)
+    logger.info(
+        f"Saving {len(critical_hours_to_save)} critical hours for run parameter {run_parameters_id}"
+    )
     await save_all_critical_hours(db_session, critical_hours_to_save)
 
 
@@ -545,41 +548,48 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
     )
     perf_start = perf_counter()
 
-    async with get_async_write_session_scope() as db_session:
-        run_parameters_id = await get_run_parameters_id(
-            db_session, RunType(run_type), run_datetime, for_date
+    try:
+        async with get_async_write_session_scope() as db_session:
+            run_parameters_id = await get_run_parameters_id(
+                db_session, RunType(run_type), run_datetime, for_date
+            )
+            stmt = select(CriticalHours).where(CriticalHours.run_parameters == run_parameters_id)
+            exists = (await db_session.execute(stmt)).scalars().first() is not None
+
+            if exists:
+                logger.info("Critical hours already processed.")
+                return
+
+            fuel_type_raster = await get_fuel_type_raster_by_year(db_session, for_date.year)
+            async with ClientSession() as client_session:
+                header = await wfwx_api.get_auth_header(client_session)
+                all_stations = await get_stations_asynchronously()
+                station_codes = list(station.code for station in all_stations)
+                stations = await wfwx_api.get_wfwx_stations_from_station_codes(
+                    client_session, header, station_codes
+                )
+                stations_by_zone: Dict[int, List[WFWXWeatherStation]] = defaultdict(list)
+                transformer = PointTransformer(4326, 3005)
+                for station in stations:
+                    (x, y) = transformer.transform_coordinate(station.lat, station.long)
+                    zone_id = await get_containing_zone(db_session, f"POINT({x} {y})", 3005)
+                    if zone_id is not None:
+                        stations_by_zone[zone_id[0]].append(station)
+
+                await calculate_critical_hours_by_zone(
+                    db_session,
+                    header,
+                    stations_by_zone,
+                    run_parameters_id,
+                    for_date,
+                    fuel_type_raster.id,
+                )
+    except Exception as e:
+        logger.error(
+            f"Fatal error calculating and storing critical hours for run parameters: {run_parameters_id}",
+            exc_info=True,
         )
-        stmt = select(CriticalHours).where(CriticalHours.run_parameters == run_parameters_id)
-        exists = (await db_session.execute(stmt)).scalars().first() is not None
-
-        if exists:
-            logger.info("Critical hours already processed.")
-            return
-
-        fuel_type_raster = await get_fuel_type_raster_by_year(db_session, for_date.year)
-        async with ClientSession() as client_session:
-            header = await wfwx_api.get_auth_header(client_session)
-            all_stations = await get_stations_asynchronously()
-            station_codes = list(station.code for station in all_stations)
-            stations = await wfwx_api.get_wfwx_stations_from_station_codes(
-                client_session, header, station_codes
-            )
-            stations_by_zone: Dict[int, List[WFWXWeatherStation]] = defaultdict(list)
-            transformer = PointTransformer(4326, 3005)
-            for station in stations:
-                (x, y) = transformer.transform_coordinate(station.lat, station.long)
-                zone_id = await get_containing_zone(db_session, f"POINT({x} {y})", 3005)
-                if zone_id is not None:
-                    stations_by_zone[zone_id[0]].append(station)
-
-            await calculate_critical_hours_by_zone(
-                db_session,
-                header,
-                stations_by_zone,
-                run_parameters_id,
-                for_date,
-                fuel_type_raster.id,
-            )
+        raise e
 
     perf_end = perf_counter()
     delta = perf_end - perf_start

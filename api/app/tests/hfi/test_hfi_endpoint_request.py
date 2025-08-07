@@ -13,8 +13,18 @@ import app.main
 import app.routers.hfi_calc
 from wps_shared.tests.common import default_mock_client_get
 from app.tests import load_json_file
-from wps_shared.db.models.hfi_calc import PlanningWeatherStation, FuelType, FireCentre, PlanningArea, HFIRequest, FireStartRange, FireStartLookup
+from wps_shared.db.models.hfi_calc import (
+    PlanningWeatherStation,
+    FuelType,
+    FireCentre,
+    PlanningArea,
+    HFIRequest,
+    FireStartRange,
+    FireStartLookup,
+)
 import wps_shared.db.crud.hfi_calc
+
+from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
 
 def _setup_mock(monkeypatch: pytest.MonkeyPatch):
@@ -22,18 +32,58 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
     # mock anything that uses aiohttp.ClientSession::get
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
 
-    fuel_type_1 = FuelType(id=1, abbrev="O1B", fuel_type_code="O1B", description="O1B", percentage_conifer=0, percentage_dead_fir=0)
-    fuel_type_2 = FuelType(id=2, abbrev="C7B", fuel_type_code="C7B", description="C7B", percentage_conifer=100, percentage_dead_fir=0)
-    fuel_type_3 = FuelType(id=3, abbrev="C3", fuel_type_code="C3", description="C3", percentage_conifer=100, percentage_dead_fir=0)
+    fuel_type_1 = FuelType(
+        id=1,
+        abbrev="O1B",
+        fuel_type_code="O1B",
+        description="O1B",
+        percentage_conifer=0,
+        percentage_dead_fir=0,
+    )
+    fuel_type_2 = FuelType(
+        id=2,
+        abbrev="C7B",
+        fuel_type_code="C7B",
+        description="C7B",
+        percentage_conifer=100,
+        percentage_dead_fir=0,
+    )
+    fuel_type_3 = FuelType(
+        id=3,
+        abbrev="C3",
+        fuel_type_code="C3",
+        description="C3",
+        percentage_conifer=100,
+        percentage_dead_fir=0,
+    )
 
     def mock_get_fire_weather_stations(_):
         fire_centre = FireCentre(id=1, name="Kamloops Fire Centre")
-        planning_area_1 = PlanningArea(id=1, name="Kamloops (K2)", fire_centre_id=1, order_of_appearance_in_list=1)
-        planning_area_2 = PlanningArea(id=2, name="Vernon (K4)", fire_centre_id=1, order_of_appearance_in_list=2)
+        planning_area_1 = PlanningArea(
+            id=1, name="Kamloops (K2)", fire_centre_id=1, order_of_appearance_in_list=1
+        )
+        planning_area_2 = PlanningArea(
+            id=2, name="Vernon (K4)", fire_centre_id=1, order_of_appearance_in_list=2
+        )
         return [
-            (PlanningWeatherStation(station_code=230, fuel_type_id=1, planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
-            (PlanningWeatherStation(station_code=239, fuel_type_id=1, planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
-            (PlanningWeatherStation(station_code=230, fuel_type_id=2, planning_area_id=2), fuel_type_2, planning_area_2, fire_centre),
+            (
+                PlanningWeatherStation(station_code=230, fuel_type_id=1, planning_area_id=1),
+                fuel_type_1,
+                planning_area_1,
+                fire_centre,
+            ),
+            (
+                PlanningWeatherStation(station_code=239, fuel_type_id=1, planning_area_id=1),
+                fuel_type_1,
+                planning_area_1,
+                fire_centre,
+            ),
+            (
+                PlanningWeatherStation(station_code=230, fuel_type_id=2, planning_area_id=2),
+                fuel_type_2,
+                planning_area_2,
+                fire_centre,
+            ),
         ]
 
     code1 = 230
@@ -79,7 +129,12 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
             (25, 5, 5, 6),
         )
         return [
-            FireStartLookup(id=id, fire_start_range_id=fire_start_range_id, mean_intensity_group=mean_intensity_group, prep_level=prep_level)
+            FireStartLookup(
+                id=id,
+                fire_start_range_id=fire_start_range_id,
+                mean_intensity_group=mean_intensity_group,
+                prep_level=prep_level,
+            )
             for id, fire_start_range_id, mean_intensity_group, prep_level in data
         ]
 
@@ -100,39 +155,41 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
         filename = os.path.join(dirname, "test_hfi_endpoint_request.json")
         with open(filename) as f:
             request = json.dumps(json.load(f))
-            return HFIRequest(fire_centre_id=1, prep_start_day=date(2020, 5, 21), prep_end_day=date(2020, 5, 25), request=request)
+            return HFIRequest(
+                fire_centre_id=1,
+                prep_start_day=date(2020, 5, 21),
+                prep_end_day=date(2020, 5, 25),
+                request=request,
+            )
 
-    monkeypatch.setattr(app.hfi.hfi_calc, "get_fire_weather_stations", mock_get_fire_weather_stations)
+    monkeypatch.setattr(
+        app.hfi.hfi_calc, "get_fire_weather_stations", mock_get_fire_weather_stations
+    )
     monkeypatch.setattr(wps_shared.db.crud.hfi_calc, "get_all_stations", mock_get_all_stations)
-    monkeypatch.setattr(app.hfi.hfi_calc, "get_fire_centre_fire_start_ranges", mock_get_fire_centre_fire_start_ranges)
+    monkeypatch.setattr(
+        app.hfi.hfi_calc,
+        "get_fire_centre_fire_start_ranges",
+        mock_get_fire_centre_fire_start_ranges,
+    )
     monkeypatch.setattr(app.hfi.hfi_calc, "get_fuel_types", mock_get_fuel_types)
     monkeypatch.setattr(app.hfi.hfi_calc, "get_fire_start_lookup", mock_get_fire_start_lookup)
     monkeypatch.setattr(app.routers.hfi_calc, "get_fuel_type_by_id", mock_get_fuel_type_by_id)
     monkeypatch.setattr(app.routers.hfi_calc, "crud_get_fuel_types", mock_get_fuel_types)
-    monkeypatch.setattr(app.routers.hfi_calc, "get_most_recent_updated_hfi_request_for_current_date", mock_get_most_recent_updated_hfi_request)
-    monkeypatch.setattr(app.routers.hfi_calc, "get_most_recent_updated_hfi_request", mock_get_most_recent_updated_hfi_request)
+    monkeypatch.setattr(
+        app.routers.hfi_calc,
+        "get_most_recent_updated_hfi_request_for_current_date",
+        mock_get_most_recent_updated_hfi_request,
+    )
+    monkeypatch.setattr(
+        app.routers.hfi_calc,
+        "get_most_recent_updated_hfi_request",
+        mock_get_most_recent_updated_hfi_request,
+    )
 
 
 def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):
     """Prepare jwt decode to be mocked with permission"""
     _setup_mock(monkeypatch)
-
-    class MockJWTDecodeWithRole:
-        """Mock pyjwt module with role"""
-
-        def __init__(self, role):
-            self.decoded_token = {"idir_username": "test_username", "email": "test@email.com", "client_roles": [role]}
-
-        def __getitem__(self, key):
-            return self.decoded_token[key]
-
-        def get(self, key, _):
-            "Returns the mock decoded token"
-            return self.decoded_token[key]
-
-        def decode(self):
-            "Returns the mock decoded token"
-            return self.decoded_token
 
     def mock_fire_start_role_function(*args, **kwargs):
         return MockJWTDecodeWithRole(role)
@@ -148,16 +205,48 @@ headers = {"Content-Type": "application/json", "Authorization": "Bearer token"}
     "url, status_code, response_json, request_saved, stored_request_json",
     [
         ("/api/hfi-calc/fire_centre/1", 200, "test_hfi_endpoint_load_response.json", False, None),
-        ("/api/hfi-calc/fire_centre/1", 200, "test_hfi_endpoint_load_response.json", False, "test_hfi_endpoint_stored_request.json"),
-        ("/api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25", 200, "test_hfi_endpoint_load_response.json", False, None),
-        ("/api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25", 200, "test_hfi_endpoint_load_response.json", False, "test_hfi_endpoint_stored_request.json"),
+        (
+            "/api/hfi-calc/fire_centre/1",
+            200,
+            "test_hfi_endpoint_load_response.json",
+            False,
+            "test_hfi_endpoint_stored_request.json",
+        ),
+        (
+            "/api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25",
+            200,
+            "test_hfi_endpoint_load_response.json",
+            False,
+            None,
+        ),
+        (
+            "/api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25",
+            200,
+            "test_hfi_endpoint_load_response.json",
+            False,
+            "test_hfi_endpoint_stored_request.json",
+        ),
         # pdf
         ("api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/pdf", 200, None, False, None),
-        ("api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/pdf", 200, None, False, "test_hfi_endpoint_stored_request.json"),
+        (
+            "api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/pdf",
+            200,
+            None,
+            False,
+            "test_hfi_endpoint_stored_request.json",
+        ),
     ],
 )
 @pytest.mark.usefixtures("mock_jwt_decode")
-def test_hfi_get_request(url, status_code, response_json, request_saved, stored_request_json, monkeypatch, mocker: MockerFixture):
+def test_hfi_get_request(
+    url,
+    status_code,
+    response_json,
+    request_saved,
+    stored_request_json,
+    monkeypatch,
+    mocker: MockerFixture,
+):
     """Request endpoints and verify responses"""
     _setup_mock(monkeypatch)
     spy_store_hfi_request = mocker.spy(app.routers.hfi_calc, "store_hfi_request")
@@ -242,10 +331,26 @@ def test_hfi_get_request(url, status_code, response_json, request_saved, stored_
             "test_hfi_endpoint_stored_request.json",
         ),
         # Invalid fuel type should return 500 error, and not be saved.
-        ("/api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/fuel_type/-1", "hfi_set_fuel_type", 500, None, False, None),
+        (
+            "/api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/fuel_type/-1",
+            "hfi_set_fuel_type",
+            500,
+            None,
+            False,
+            None,
+        ),
     ],
 )
-def test_hfi_post_request(url, role, status_code, response_json, request_saved, stored_request_json, monkeypatch, mocker: MockerFixture):
+def test_hfi_post_request(
+    url,
+    role,
+    status_code,
+    response_json,
+    request_saved,
+    stored_request_json,
+    monkeypatch,
+    mocker: MockerFixture,
+):
     """Request endpoints and verify responses"""
     _setup_mock_with_role(monkeypatch, role)
     spy_store_hfi_request = mocker.spy(app.routers.hfi_calc, "store_hfi_request")

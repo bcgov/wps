@@ -18,6 +18,7 @@ from wps_shared import auth
 from wps_shared.schemas.shared import WeatherDataRequest
 from wps_shared.tests.common import (
     MockJWTDecode,
+    MockTestIDIRJWTDecode,
     default_aiobotocore_get_session,
     default_mock_client_get,
     default_mock_requests_get,
@@ -150,6 +151,16 @@ def mock_jwt_decode(monkeypatch):
 
     def mock_function(*args, **kwargs):
         return MockJWTDecode()
+
+    monkeypatch.setattr("jwt.decode", mock_function)
+
+
+@pytest.fixture()
+def mock_test_idir_jwt_decode(monkeypatch):
+    """Mock pyjwt's decode method to always return the blocked guid."""
+
+    def mock_function(*args, **kwargs):
+        return MockTestIDIRJWTDecode()
 
     monkeypatch.setattr("jwt.decode", mock_function)
 
