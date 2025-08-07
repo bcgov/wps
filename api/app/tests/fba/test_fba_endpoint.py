@@ -456,6 +456,7 @@ FBA_ENDPOINTS = [
 @patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
 @patch("app.routers.fba.get_fire_centre_tpi_fuel_areas", mock_get_fire_centre_tpi_fuel_areas)
 @patch("app.routers.fba.get_centre_tpi_stats", mock_get_centre_tpi_stats)
+@patch("app.routers.fba.get_run_datetimes", mock_get_sfms_run_datetimes)
 @patch("app.routers.fba.get_sfms_bounds", mock_get_sfms_bounds)
 def test_fba_endpoints_allowed_for_test_idir(client, endpoint):
     headers = {"Authorization": "Bearer token"}
