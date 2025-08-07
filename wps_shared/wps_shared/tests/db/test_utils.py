@@ -44,6 +44,6 @@ def session_factory(engine):
 
 
 @pytest.fixture(scope="function")
-async def db_session(session_factory):
+async def async_session(session_factory):
     async with session_factory() as session:
         yield session

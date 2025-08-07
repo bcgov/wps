@@ -11,7 +11,7 @@ pytest_plugins = ["wps_shared.tests.db.test_utils"]
 
 
 @pytest.mark.anyio
-async def test_mark_run_parameter_complete(db_session, session_factory):
+async def test_mark_run_parameter_complete(async_session, session_factory):
     run_datetime = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
     for_date = run_datetime.date()
 
@@ -21,8 +21,8 @@ async def test_mark_run_parameter_complete(db_session, session_factory):
         for_date=for_date,
         complete=False,
     )
-    db_session.add(run_param)
-    await db_session.commit()
+    async_session.add(run_param)
+    await async_session.commit()
 
     # use new session
     async with session_factory() as separate_session:
