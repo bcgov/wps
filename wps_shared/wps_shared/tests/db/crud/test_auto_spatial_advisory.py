@@ -4,8 +4,10 @@ import pytest
 from sqlalchemy.future import select
 
 from wps_shared.db.crud.auto_spatial_advisory import mark_run_parameter_complete
-from wps_shared.db.models.auto_spatial_advisory import Base, RunParameters
+from wps_shared.db.models.auto_spatial_advisory import RunParameters
 from wps_shared.run_type import RunType
+
+pytest_plugins = ["wps_shared.tests.db.test_utils"]
 
 
 @pytest.mark.anyio
