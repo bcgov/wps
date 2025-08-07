@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from datetime import datetime, timezone
 import pytest
 from fastapi.routing import APIRoute
+from wps_shared.auth import authentication_required
 import app.main
 from app.tests import load_json_file
 
@@ -102,8 +103,7 @@ def get_non_fba_routes(app):
         if isinstance(route, APIRoute) and not is_fba_route(route):
             # Only include routes that require authentication (i.e., have dependencies)
             if any(
-                "authentication_required" in str(dep.dependency)
-                for dep in route.dependant.dependencies
+                dep.dependency is authentication_required for dep in route.dependant.dependencies
             ):
                 for method in route.methods:
                     if method in {"GET", "POST"}:
