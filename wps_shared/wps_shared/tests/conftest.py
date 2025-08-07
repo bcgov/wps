@@ -1,32 +1,34 @@
 """Global fixtures"""
 
-from datetime import timezone, datetime
 import logging
-from typing import Optional
-from aiohttp import ClientSession
+from datetime import datetime, timezone
 from unittest.mock import MagicMock
-import requests
+
 import pytest
+import requests
+from aiohttp import ClientSession
 from pytest_mock import MockerFixture
-from wps_shared.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from testcontainers.postgres import PostgresContainer
+
+import wps_shared.db.database
+from wps_shared.db.models import Base
+import wps_shared.utils.redis
 import wps_shared.utils.s3
-from wps_shared.utils.time import get_pst_tz, get_utc_now
 import wps_shared.utils.time
 from wps_shared import auth
+from wps_shared.schemas.shared import WeatherDataRequest
 from wps_shared.tests.common import (
     MockJWTDecode,
     default_aiobotocore_get_session,
+    default_mock_client_get,
     default_mock_requests_get,
     default_mock_requests_post,
-    default_mock_client_get,
     default_mock_requests_session_get,
     default_mock_requests_session_post,
 )
-import wps_shared.db.database
-from wps_shared.weather_models import ModelEnum, ProjectionEnum
-from wps_shared.schemas.shared import WeatherDataRequest
-import wps_shared.wildfire_one.wildfire_fetchers
-import wps_shared.utils.redis
+from wps_shared.utils.time import get_pst_tz
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +53,9 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("PROJECT_NAMESPACE", "project_namespace")
     monkeypatch.setenv("STATUS_CHECKER_SECRET", "some_secret")
     monkeypatch.setenv("PATRONI_CLUSTER_NAME", "some_suffix")
-    monkeypatch.setenv("ROCKET_URL_POST_MESSAGE", "https://rc-notifications-test.ca/api/v1/chat.postMessage")
+    monkeypatch.setenv(
+        "ROCKET_URL_POST_MESSAGE", "https://rc-notifications-test.ca/api/v1/chat.postMessage"
+    )
     monkeypatch.setenv("ROCKET_AUTH_TOKEN", "sometoken")
     monkeypatch.setenv("ROCKET_USER_ID", "someid")
     monkeypatch.setenv("ROCKET_CHANNEL", "#channel")
@@ -110,7 +114,9 @@ def mock_get_now(monkeypatch):
     # The default value for WeatherDataRequest cannot be mocked out, as it
     # is declared prior to test mocks being loaded. We manipulate the class
     # directly in order to have the desire default be deterministic.
-    WeatherDataRequest.__fields__["time_of_interest"].default = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+    WeatherDataRequest.__fields__["time_of_interest"].default = datetime.fromtimestamp(
+        timestamp, tz=timezone.utc
+    )
 
     def mock_utc_now():
         return datetime.fromtimestamp(timestamp, tz=timezone.utc)
@@ -182,3 +188,47 @@ def mock_client_session(monkeypatch):
 def spy_access_logging(mocker: MockerFixture):
     """Spies on access audting logging for tests"""
     return mocker.spy(auth, "create_api_access_audit_log")
+
+
+@pytest.fixture(scope="function")
+def postgres_container():
+    with PostgresContainer("postgis/postgis:15-3.3") as postgres:
+        yield postgres
+
+
+@pytest.fixture(scope="function")
+async def engine(postgres_container):
+    host = postgres_container.get_container_host_ip()
+    port = postgres_container.get_exposed_port(5432)
+    db_url = f"postgresql+asyncpg://test:test@{host}:{port}/test"
+
+    engine = create_async_engine(db_url, echo=False)
+
+    async with engine.begin() as conn:
+        await conn.execute(
+            text("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'hficlassificationthresholdenum') THEN
+                    CREATE TYPE hficlassificationthresholdenum AS ENUM ('advisory', 'warning');
+                END IF;
+            END
+            $$;
+        """)
+        )
+        await conn.run_sync(Base.metadata.create_all)
+
+    yield engine
+
+    await engine.dispose()
+
+
+@pytest.fixture(scope="function")
+def session_factory(engine):
+    return async_sessionmaker(engine, expire_on_commit=False)
+
+
+@pytest.fixture(scope="function")
+async def db_session(session_factory):
+    async with session_factory() as session:
+        yield session

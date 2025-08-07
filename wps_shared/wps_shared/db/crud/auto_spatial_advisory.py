@@ -5,7 +5,7 @@ from enum import Enum
 from time import perf_counter
 from typing import List, Optional, Tuple
 
-from sqlalchemy import String, and_, cast, exists, extract, func, select, update
+from sqlalchemy import String, and_, cast, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -460,6 +460,27 @@ async def get_run_parameters_by_id(session: AsyncSession, id: int) -> RunParamet
     return result.first()
 
 
+async def get_run_parameters(
+    session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
+) -> RunParameters:
+    """
+    Retrieve the RunParameters record for the specified run type, run datetime, and for date.
+
+    :param session: Async database session.
+    :param run_type: Type of run (forecast or actual).
+    :param run_datetime: The datetime of the run.
+    :param for_date: The date of interest.
+    :return: The RunParameters record for the specified run type, run datetime, and for date.
+    """
+    stmt = select(RunParameters).where(
+        RunParameters.run_type == run_type.value,
+        RunParameters.run_datetime == run_datetime,
+        RunParameters.for_date == for_date,
+    )
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
+
+
 async def get_high_hfi_area(
     session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
 ) -> List[Row]:
@@ -565,15 +586,12 @@ async def get_run_parameters_id(
     run_type: RunType,
     run_datetime: datetime,
     for_date: date,
-    complete: Optional[bool] = None,
 ) -> Optional[int]:
     stmt = select(RunParameters.id).where(
         cast(RunParameters.run_type, String) == run_type.value,
         RunParameters.run_datetime == run_datetime,
         RunParameters.for_date == for_date,
     )
-    if complete is not None:
-        stmt = stmt.where(RunParameters.complete.is_(complete))
     result = await session.execute(stmt)
     return result.scalar()
 
@@ -616,28 +634,22 @@ async def check_run_parameters_id_exists_in_all(
     return result.scalar() is not None
 
 
-async def check_and_mark_sfms_run_processing_complete(
+async def mark_run_parameter_complete(
     session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
 ):
-    """Check if the SFMS run processing is complete. If it is, mark the run parameters as complete."""
-    run_parameters_id = await get_run_parameters_id(
-        session, run_type, run_datetime, for_date, complete=False
-    )
-    if not run_parameters_id:
+    run_parameters = await get_run_parameters(session, run_type, run_datetime, for_date)
+    if not run_parameters:
+        logger.warning(
+            f"Run parameters already marked as complete for {run_type} {run_datetime} {for_date}"
+        )
+
+    if run_parameters.complete:
         logger.warning(
             f"Run parameters already marked as complete for {run_type} {run_datetime} {for_date}"
         )
         return
 
-    complete = await check_run_parameters_id_exists_in_all(session, run_parameters_id)
-
-    if complete:
-        logger.info(f"SFMS run processing is complete for {run_type} {run_datetime} {for_date}")
-        await mark_run_parameter_complete(session, run_parameters_id)
-
-
-async def mark_run_parameter_complete(session: AsyncSession, run_parameters_id: int):
-    stmt = update(RunParameters).where(RunParameters.id == run_parameters_id).values(complete=True)
+    stmt = update(RunParameters).where(RunParameters.id == run_parameters.id).values(complete=True)
     await session.execute(stmt)
     await session.commit()
 
