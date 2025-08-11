@@ -630,7 +630,6 @@ async def mark_run_parameter_complete(
         f"Marking run parameter {run_parameters.id} as complete for {run_type} {run_datetime} {for_date}"
     )
     await session.execute(stmt)
-    await session.commit()
 
 
 async def save_advisory_elevation_stats(
