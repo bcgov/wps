@@ -2,6 +2,7 @@ import enum
 
 from geoalchemy2 import Geometry
 from sqlalchemy import (
+    Boolean,
     Column,
     Date,
     Enum,
@@ -173,6 +174,7 @@ class RunParameters(Base):
     )
     run_datetime = Column(TZTimeStamp, nullable=False, index=True)
     for_date = Column(Date, nullable=False, index=True)
+    complete = Column(Boolean, nullable=True, default=False)
 
 
 class HighHfiArea(Base):
