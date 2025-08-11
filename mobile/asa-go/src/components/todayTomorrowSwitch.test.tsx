@@ -57,4 +57,29 @@ describe("TodayTomorrowSwitch", () => {
 
     expect(mockSetDate).toHaveBeenCalledWith(tomorrow.plus({ day: -1 }));
   });
+
+
+it("updates internal state when date prop changes", () => {
+  const today = DateTime.now();
+  const tomorrow = today.plus({ day: 1 });
+  const setDateMock = vi.fn();
+
+  const { rerender } = render(
+    <TodayTomorrowSwitch date={today} setDate={setDateMock} />
+  );
+
+  // Initially, NOW button should be disabled (today selected)
+  const nowButton = screen.getByRole("button", { name: /NOW/i });
+  const tmrButton = screen.getByRole("button", { name: /TMR/i });
+
+  expect(nowButton).toBeDisabled();
+  expect(tmrButton).not.toBeDisabled();
+
+  // Re-render with tomorrow's date
+  rerender(<TodayTomorrowSwitch date={tomorrow} setDate={setDateMock} />);
+
+  // NOW should now be enabled, TMR should be disabled
+  expect(nowButton).not.toBeDisabled();
+  expect(tmrButton).toBeDisabled();
+});
 });
