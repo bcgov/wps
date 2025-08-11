@@ -108,6 +108,7 @@ export const authenticate = (): AppThunk => (dispatch) => {
   // Handle token refresh callback function
   const handleTokenRefresh = (tokenResponse: {
     accessToken: string;
+    idToken: string;
     refreshToken?: string;
     tokenType?: string;
     expiresIn?: number;
@@ -118,7 +119,7 @@ export const authenticate = (): AppThunk => (dispatch) => {
         refreshTokenFinished({
           tokenRefreshed: true,
           token: tokenResponse.accessToken,
-          idToken: undefined,
+          idToken: tokenResponse.idToken,
         })
       );
     }
