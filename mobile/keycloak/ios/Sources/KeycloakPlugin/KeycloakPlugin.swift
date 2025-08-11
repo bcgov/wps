@@ -65,7 +65,7 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
                     tokenRefreshThreshold: self.tokenRefreshThreshold,
                     onTokenRefreshed: { [weak self] tokenResponse in
                         // Notify JavaScript layer about token refresh
-                        self?.notifyListeners("tokenRefreshed", data: tokenResponse)
+                        self?.notifyListeners("tokenRefresh", data: tokenResponse)
                     },
                     onTokenRefreshFailed: { [weak self] error in
                         // Notify JavaScript layer about refresh failure
