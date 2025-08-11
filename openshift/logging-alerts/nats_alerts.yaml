@@ -19,6 +19,7 @@ spec:
           # Get the rate of error logs per second over the last minute, alert if any errors occurred.
           expr: |
             sum(rate({ kubernetes_namespace_name="e1e498-prod", kubernetes_pod_name=~"wps-prod-nats.*" } | json | level=~"critical|emerg|fatal|alert|crit|error|err|eror" [1m])) > 0
+          for: 0s
           labels:
             namespace: e1e498-prod
             severity: critical
