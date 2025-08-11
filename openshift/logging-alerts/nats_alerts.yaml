@@ -14,7 +14,7 @@ spec:
       rules:
         - alert: NatsErrors
           annotations:
-            description: Alerts fire when the rate of error/critical logs are above a threshold
+            description: Alerts fire when any error/critical logs occur.
             summary: Nats is generating too many errors
           # Get the rate of error logs per second over the last minute, alert if any errors occurred.
           expr: |
