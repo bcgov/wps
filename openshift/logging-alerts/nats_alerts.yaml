@@ -1,0 +1,27 @@
+apiVersion: loki.grafana.com/v1
+kind: AlertingRule
+metadata:
+  labels:
+    openshift.io/loki: "true" # This is required for Loki to pick up the config
+    app: "nats-logging"
+  name: nats-alerts
+  namespace: [-prod]
+spec:
+  groups:
+    - interval: 1m
+      name: LoggingAlerts
+      rules:
+        - alert: NatsErrors
+          annotations:
+            description: Alerts fire when the rate of error/critical logs are above a threshold
+            summary: Nats is generating too many errors
+          # Get the rate of error logs per second over the last minute from each
+          # logging pod, sum those together. If they are higher than 0.1 error logs per second
+          # for more than 5 minutes, generate an alert
+          expr: |
+            sum(rate({ kubernetes_namespace_name="e1e498-prod", kubernetes_pod_name=~"wps-prod-nats.*" } | json | level=~"critical|emerg|fatal|alert|crit|error|err|eror" [1m]))
+          for: 5m
+          labels:
+            namespace: [-prod]
+            severity: critical
+  tenantID: application
