@@ -10,6 +10,7 @@ spec:
   groups:
     - interval: 1m
       name: LoggingAlerts
+      repeat_interval: 30m
       rules:
         - alert: NatsErrors
           annotations:
@@ -19,8 +20,7 @@ spec:
           # logging pod, sum those together. If they are higher than 0.1 error logs per second
           # for more than 5 minutes, generate an alert
           expr: |
-            sum(rate({ kubernetes_namespace_name="e1e498-prod", kubernetes_pod_name=~"wps-prod-nats.*" } | json | level=~"critical|emerg|fatal|alert|crit|error|err|eror" [1m]))
-          for: 5m
+            sum(rate({ kubernetes_namespace_name="e1e498-prod", kubernetes_pod_name=~"wps-prod-nats.*" } | json | level=~"critical|emerg|fatal|alert|crit|error|err|eror" [1m])) > 0
           labels:
             namespace: [-prod]
             severity: critical
