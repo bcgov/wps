@@ -5,7 +5,7 @@ metadata:
     openshift.io/loki: "true" # This is required for Loki to pick up the config
     app: "nats-logging"
   name: nats-alerts
-  namespace: [-prod]
+  namespace: e1e498-prod
 spec:
   groups:
     - interval: 1m
@@ -20,6 +20,6 @@ spec:
           expr: |
             sum(rate({ kubernetes_namespace_name="e1e498-prod", kubernetes_pod_name=~"wps-prod-nats.*" } | json | level=~"critical|emerg|fatal|alert|crit|error|err|eror" [1m])) > 0
           labels:
-            namespace: [-prod]
+            namespace: e1e498-prod
             severity: critical
   tenantID: application
