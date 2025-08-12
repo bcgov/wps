@@ -221,16 +221,17 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   }
 
   const getVisibleColumnsByWeatherParam = (weatherParam: string, visible: boolean) => {
-    const updatedColumnVisibilityModel = DataGridColumns.updateGridColumnVisibilityModel(
-      [{ columnName: weatherParam, visible: visible }],
-      columnVisibilityModel
-    )
-    if (visible) {
+    const updatedColumnVisibilityModel = { ...columnVisibilityModel }
+
+    if (weatherParam in showHideColumnsModel) {
       const showHideColumns = showHideColumnsModel[weatherParam] || []
       for (const column of showHideColumns) {
-        updatedColumnVisibilityModel[column.columnName] = column.visible
+        // If tab is visible, restore column's individual visibility state
+        // If tab is hidden, hide all columns for this weather parameter
+        updatedColumnVisibilityModel[column.columnName] = visible ? column.visible : false
       }
     }
+
     return updatedColumnVisibilityModel
   }
 
@@ -259,18 +260,72 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
   useEffect(() => {
     const colGroupingModel = getTabColumnGroupModel(showHideColumnsModel, handleShowHideChange, allRows)
-    setColumnGroupingModel(colGroupingModel)
-  }, [showHideColumnsModel, allRows]) // eslint-disable-line react-hooks/exhaustive-deps
+    // Filter the grouping model to only include visible tabs
+    const visibleGroupIds: string[] = []
+    if (tempVisible) visibleGroupIds.push('Temp')
+    if (rhVisible) visibleGroupIds.push('RH')
+    if (precipVisible) visibleGroupIds.push('Precip')
+    if (windDirectionVisible) visibleGroupIds.push('Wind Dir')
+    if (windSpeedVisible) visibleGroupIds.push('Wind Speed')
+    if (grassCuringVisible) visibleGroupIds.push('Grass Curing')
+
+    const filteredGroupingModel = colGroupingModel.filter(
+      group => group.groupId === 'ID' || visibleGroupIds.includes(group.groupId)
+    )
+    setColumnGroupingModel(filteredGroupingModel)
+  }, [
+    showHideColumnsModel,
+    allRows,
+    tempVisible,
+    rhVisible,
+    precipVisible,
+    windDirectionVisible,
+    windSpeedVisible,
+    grassCuringVisible
+  ]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const visibleTabs = getVisibleTabs()
-    const visibleColumns = getVisibleColumns(visibleTabs)
-    const newColumnVisibilityModel = {
-      ...columnVisibilityModel,
-      ...visibleColumns
+    // Build a complete column visibility model that handles both visible and hidden tabs
+    const newColumnVisibilityModel = { ...columnVisibilityModel }
+
+    // Map of tab visibility states to weather parameter keys
+    const tabStates: { [key: string]: boolean } = {
+      temp: tempVisible,
+      rh: rhVisible,
+      precip: precipVisible,
+      windDirection: windDirectionVisible,
+      windSpeed: windSpeedVisible,
+      grassCuring: grassCuringVisible
     }
+
+    // Update column visibility for each weather parameter
+    Object.entries(tabStates).forEach(([param, isVisible]) => {
+      // Handle weather model columns from showHideColumnsModel
+      if (param in showHideColumnsModel) {
+        for (const column of showHideColumnsModel[param]) {
+          // If tab is visible, use the column's individual visibility setting
+          // If tab is hidden, set all its columns to false
+          newColumnVisibilityModel[column.columnName] = isVisible ? column.visible : false
+        }
+      }
+
+      // Handle forecast columns (which are not in showHideColumnsModel)
+      const forecastColumnName = `${param}Forecast`
+      if (forecastColumnName in newColumnVisibilityModel || isVisible) {
+        newColumnVisibilityModel[forecastColumnName] = isVisible
+      }
+    })
+
     setColumnVisibilityModel(newColumnVisibilityModel)
-  }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    showHideColumnsModel,
+    tempVisible,
+    rhVisible,
+    precipVisible,
+    windDirectionVisible,
+    windSpeedVisible,
+    grassCuringVisible
+  ]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setAllRows(morecast2Rows)
@@ -290,41 +345,18 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   /********** Start useEffects for managing visibility of column groups *************/
 
   useEffect(() => {
-    tempVisible && setForecastSummaryVisible(false)
-    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('temp', tempVisible)
-    setColumnVisibilityModel(updatedColumnVisibilityModel)
-  }, [tempVisible]) // eslint-disable-line react-hooks/exhaustive-deps
+    // Manage forecast summary visibility based on weather parameter tabs
+    const anyWeatherTabVisible =
+      tempVisible || rhVisible || precipVisible || windDirectionVisible || windSpeedVisible || grassCuringVisible
 
-  useEffect(() => {
-    rhVisible && setForecastSummaryVisible(false)
-    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('rh', rhVisible)
-    setColumnVisibilityModel(updatedColumnVisibilityModel)
-  }, [rhVisible]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    precipVisible && setForecastSummaryVisible(false)
-    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('precip', precipVisible)
-    setColumnVisibilityModel(updatedColumnVisibilityModel)
-  }, [precipVisible]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    windDirectionVisible && setForecastSummaryVisible(false)
-    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('windDirection', windDirectionVisible)
-    setColumnVisibilityModel(updatedColumnVisibilityModel)
-  }, [windDirectionVisible]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    setForecastSummaryVisible(false)
-    windSpeedVisible && setForecastSummaryVisible(false)
-    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('windSpeed', windSpeedVisible)
-    setColumnVisibilityModel(updatedColumnVisibilityModel)
-  }, [windSpeedVisible]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    grassCuringVisible && setForecastSummaryVisible(false)
-    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('grassCuring', grassCuringVisible)
-    setColumnVisibilityModel(updatedColumnVisibilityModel)
-  }, [grassCuringVisible]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (anyWeatherTabVisible) {
+      // Turn off forecast summary when any weather parameter tab is selected
+      setForecastSummaryVisible(false)
+    } else {
+      // Turn on forecast summary when no weather parameter tabs are selected
+      setForecastSummaryVisible(true)
+    }
+  }, [tempVisible, rhVisible, precipVisible, windDirectionVisible, windSpeedVisible, grassCuringVisible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // if the forecast summary is visible, we need to toggle off the weather parameter buttons
