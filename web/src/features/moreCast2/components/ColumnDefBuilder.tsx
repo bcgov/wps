@@ -11,6 +11,10 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid-pro'
 import { WeatherDeterminate, WeatherDeterminateType } from 'api/moreCast2API'
+import { MoreCast2Row } from 'features/moreCast2/interfaces'
+import { DateTime } from 'luxon'
+import { Typography, Tooltip, IconButton } from '@mui/material'
+import { Info as InfoIcon } from '@mui/icons-material'
 import { modelColorClass, modelHeaderColorClass } from 'app/theme'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
@@ -36,6 +40,35 @@ export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
 ]
 
 export const PINNED_COLUMNS = ['stationName', 'forDate']
+
+// Helper function to get prediction run timestamp for a weather model
+const getPredictionRunTimestamp = (modelType: WeatherDeterminate, allRows: MoreCast2Row[]): string | null => {
+  if (!allRows.length) return null
+
+  const timestampField = `predictionRunTimestamp${modelType}` as keyof MoreCast2Row
+  const timestamp = allRows[0][timestampField] as string | null | undefined
+
+  return timestamp || null
+}
+
+// Helper function to render weather model header with info icon
+const renderWeatherModelHeader = (modelType: WeatherDeterminate, allRows?: MoreCast2Row[]) => {
+  const timestamp = allRows ? getPredictionRunTimestamp(modelType, allRows) : null
+  const displayName = modelType.endsWith('_BIAS') ? `${modelType.replace('_BIAS', '')} bias` : modelType
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <Typography style={{ fontWeight: 'bold', fontSize: '12px' }}>{displayName}</Typography>
+      {timestamp && (
+        <Tooltip title={`Model run: ${DateTime.fromISO(timestamp).toFormat('MMM dd, yyyy HH:mm')} UTC`} arrow>
+          <IconButton size="small" style={{ padding: '2px' }}>
+            <InfoIcon style={{ fontSize: '14px' }} />
+          </IconButton>
+        </Tooltip>
+      )}
+    </div>
+  )
+}
 
 // Columns that can have values entered as part of a forecast
 export const TEMP_HEADER = 'Temp'
@@ -69,7 +102,8 @@ export interface ColDefGenerator {
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
     includeBiasFields?: boolean,
-    validator?: (value: string) => string
+    validator?: (value: string) => string,
+    allRows?: MoreCast2Row[]
   ) => GridColDef[]
 }
 
@@ -125,26 +159,34 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
     includeBiasFields = true,
-    validator?: (value: string) => string
+    validator?: (value: string) => string,
+    allRows?: MoreCast2Row[]
   ) => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
     const forecastColDef = this.generateForecastColDef(columnClickHandlerProps, headerName, validator)
     gridColDefs.push(forecastColDef)
 
-    for (const colDef of this.generateNonForecastColDefs(includeBiasFields)) {
+    for (const colDef of this.generateNonForecastColDefs(includeBiasFields, allRows)) {
       gridColDefs.push(colDef)
     }
 
     return gridColDefs
   }
 
-  public generateNonForecastColDefs = (includeBiasFields: boolean) => {
+  public generateNonForecastColDefs = (includeBiasFields: boolean, allRows?: MoreCast2Row[]) => {
     const fields = includeBiasFields
       ? ORDERED_COLUMN_HEADERS
       : ORDERED_COLUMN_HEADERS.filter(header => !header.endsWith('_BIAS'))
     return fields.map(header =>
-      this.generateColDefWith(`${this.field}${header}`, header, this.precision, DEFAULT_COLUMN_WIDTH)
+      this.generateColDefWith(
+        `${this.field}${header}`,
+        header,
+        this.precision,
+        DEFAULT_COLUMN_WIDTH,
+        undefined,
+        allRows
+      )
     )
   }
 
@@ -153,7 +195,8 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     headerName: string,
     precision: number,
     width?: number,
-    validator?: (value: string) => string
+    validator?: (value: string) => string,
+    allRows?: MoreCast2Row[]
   ) => {
     return {
       field,
@@ -178,6 +221,25 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
         return this.gridComponentRenderer.renderCellWith(params)
       },
       renderHeader: (params: GridColumnHeaderParams) => {
+        // Check if this is a weather model column that should show tooltip
+        const weatherModelsWithTooltips = [
+          WeatherDeterminate.HRDPS,
+          WeatherDeterminate.HRDPS_BIAS,
+          WeatherDeterminate.RDPS,
+          WeatherDeterminate.RDPS_BIAS,
+          WeatherDeterminate.GDPS,
+          WeatherDeterminate.GDPS_BIAS,
+          WeatherDeterminate.NAM,
+          WeatherDeterminate.NAM_BIAS,
+          WeatherDeterminate.GFS,
+          WeatherDeterminate.GFS_BIAS
+        ]
+
+        const modelType = weatherModelsWithTooltips.find(model => headerName === model)
+        if (modelType && allRows) {
+          return renderWeatherModelHeader(modelType, allRows)
+        }
+
         return this.gridComponentRenderer.renderHeaderWith(params)
       },
       valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>

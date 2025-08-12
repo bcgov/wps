@@ -3,7 +3,6 @@ import { isEqual } from 'lodash'
 import { DateTime } from 'luxon'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 
-
 export enum ModelChoice {
   ACTUAL = 'ACTUAL',
   FORECAST = 'FORECAST',
@@ -144,6 +143,7 @@ export interface WeatherIndeterminate {
   fire_weather_index: number | null
   danger_rating: number | null
   grass_curing: number | null
+  prediction_run_timestamp: string | null
 }
 
 export interface WeatherIndeterminatePayload {

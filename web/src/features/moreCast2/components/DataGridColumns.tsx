@@ -1,7 +1,9 @@
 import React from 'react'
-import { Typography } from '@mui/material'
+import { Typography, Tooltip, IconButton } from '@mui/material'
+import { Info as InfoIcon } from '@mui/icons-material'
 import { GridColumnVisibilityModel, GridColDef, GridColumnGroup } from '@mui/x-data-grid-pro'
 import { WeatherDeterminate, WeatherDeterminateChoices } from 'api/moreCast2API'
+import { ORDERED_COLUMN_HEADERS } from 'features/moreCast2/components/ColumnDefBuilder'
 import {
   MORECAST2_FIELDS,
   MORECAST2_FORECAST_FIELDS,
@@ -13,6 +15,8 @@ import {
 import GroupHeader from 'features/moreCast2/components/GroupHeader'
 import { ColumnClickHandlerProps, handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
 import { MoreCastParams } from 'app/theme'
+import { MoreCast2Row } from 'features/moreCast2/interfaces'
+import { DateTime } from 'luxon'
 
 export interface ColumnVis {
   columnName: string
@@ -30,9 +34,12 @@ export enum GroupHeaderName {
 }
 
 export class DataGridColumns {
-  public static initGridColumnVisibilityModel(columnClickHandlerProps: ColumnClickHandlerProps) {
+  public static initGridColumnVisibilityModel(
+    columnClickHandlerProps: ColumnClickHandlerProps,
+    allRows?: MoreCast2Row[]
+  ) {
     const model: GridColumnVisibilityModel = {}
-    const weatherParameterColumns = this.getWeatherParameterColumns(columnClickHandlerProps)
+    const weatherParameterColumns = this.getWeatherParameterColumns(columnClickHandlerProps, allRows)
     weatherParameterColumns.forEach(columnName => {
       // temperature columns are visible by default
       if (columnName.startsWith('temp')) {
@@ -73,10 +80,16 @@ export class DataGridColumns {
     return newModel
   }
 
-  public static getTabColumns(columnClickHandlerProps: ColumnClickHandlerProps): GridColDef[] {
+  public static getTabColumns(
+    columnClickHandlerProps: ColumnClickHandlerProps,
+    allRows?: MoreCast2Row[]
+  ): GridColDef[] {
     let tabColumns: GridColDef[] = []
     MORECAST2_FIELDS.forEach(field => {
-      tabColumns = [...tabColumns, ...field.generateColDefs(columnClickHandlerProps, WeatherDeterminate.FORECAST)]
+      tabColumns = [
+        ...tabColumns,
+        ...field.generateColDefs(columnClickHandlerProps, WeatherDeterminate.FORECAST, undefined, undefined, allRows)
+      ]
     })
     const gcForecastField = MORECAST2_GRASS_CURING_FORECAST_FIELD.generateForecastColDef(columnClickHandlerProps)
     const gcCwfisField = MORECAST2_GRASS_CURING_CWFIS_FIELD.generateColDef(columnClickHandlerProps)
@@ -94,17 +107,48 @@ export class DataGridColumns {
     )
   }
 
-  public static getWeatherParameterColumns(columnClickHandlerProps: ColumnClickHandlerProps) {
-    const fields = DataGridColumns.getTabColumns(columnClickHandlerProps).map(column => column.field)
+  public static getWeatherParameterColumns(columnClickHandlerProps: ColumnClickHandlerProps, allRows?: MoreCast2Row[]) {
+    const fields = DataGridColumns.getTabColumns(columnClickHandlerProps, allRows).map(column => column.field)
     return fields.filter(field => field !== 'stationName' && field !== 'forDate')
   }
 
-  public static getWeatherModelColumns(columnClickHandlerProps: ColumnClickHandlerProps) {
-    const columns = DataGridColumns.getTabColumns(columnClickHandlerProps)
+  public static getWeatherModelColumns(columnClickHandlerProps: ColumnClickHandlerProps, allRows?: MoreCast2Row[]) {
+    const columns = DataGridColumns.getTabColumns(columnClickHandlerProps, allRows)
     return columns.filter(
       column => column.field !== 'stationName' && column.field !== 'forDate' && !column.field.endsWith('Forecast')
     )
   }
+}
+
+// Helper function to get prediction run timestamp for a weather model
+const getPredictionRunTimestamp = (modelType: WeatherDeterminate, allRows: MoreCast2Row[]): string | null => {
+  if (!allRows.length) return null
+
+  const timestampField = `predictionRunTimestamp${modelType}` as keyof MoreCast2Row
+  const timestamp = allRows[0][timestampField] as string | null | undefined
+
+  return timestamp || null
+}
+
+// Helper function to render weather model header with info icon
+const renderWeatherModelHeader = (modelType: WeatherDeterminate, allRows?: MoreCast2Row[]) => {
+  console.log('renderWeatherModelHeader called for:', modelType, 'with allRows:', allRows?.length || 0)
+  const timestamp = allRows ? getPredictionRunTimestamp(modelType, allRows) : null
+  console.log('Timestamp for', modelType, ':', timestamp)
+  const displayName = modelType.endsWith('_BIAS') ? `${modelType.replace('_BIAS', '')} bias` : modelType
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <Typography style={{ fontWeight: 'bold', fontSize: '12px' }}>{displayName}</Typography>
+      {timestamp && (
+        <Tooltip title={`Model run: ${DateTime.fromISO(timestamp).toFormat('MMM dd, yyyy HH:mm')} UTC`} arrow>
+          <IconButton size="small" style={{ padding: '2px' }}>
+            <InfoIcon style={{ fontSize: '14px' }} />
+          </IconButton>
+        </Tooltip>
+      )}
+    </div>
+  )
 }
 
 const renderSimpleGroupHeader = (id: string) => <Typography style={{ fontWeight: 'bold' }}>{id}</Typography>
@@ -122,7 +166,8 @@ const renderGroupHeader = (
 
 export const getTabColumnGroupModel = (
   showHideColumnsModel: Record<string, ColumnVis[]>,
-  handleShowHideChange: handleShowHideChangeType
+  handleShowHideChange: handleShowHideChangeType,
+  allRows?: MoreCast2Row[]
 ): GridColumnGroup[] => {
   const model = [
     {
@@ -132,28 +177,28 @@ export const getTabColumnGroupModel = (
     },
     {
       groupId: 'Temp',
-      children: columnGroupingModelChildGenerator('temp'),
+      children: columnGroupingModelChildGenerator('temp', allRows),
       headerClassName: 'temp',
       renderHeaderGroup: () =>
         renderGroupHeader(GroupHeaderName.TEMP, 'temp', showHideColumnsModel['temp'], handleShowHideChange)
     },
     {
       groupId: 'RH',
-      children: columnGroupingModelChildGenerator('rh'),
+      children: columnGroupingModelChildGenerator('rh', allRows),
       headerClassName: 'rh',
       renderHeaderGroup: () =>
         renderGroupHeader(GroupHeaderName.RH, 'rh', showHideColumnsModel['rh'], handleShowHideChange)
     },
     {
       groupId: 'Precip',
-      children: columnGroupingModelChildGenerator('precip'),
+      children: columnGroupingModelChildGenerator('precip', allRows),
       headerClassName: 'precip',
       renderHeaderGroup: () =>
         renderGroupHeader(GroupHeaderName.PRECIP, 'precip', showHideColumnsModel['precip'], handleShowHideChange)
     },
     {
       groupId: 'Wind Dir',
-      children: columnGroupingModelChildGenerator('windDirection'),
+      children: columnGroupingModelChildGenerator('windDirection', allRows),
       headerClassName: 'windDirection',
       renderHeaderGroup: () =>
         renderGroupHeader(
@@ -165,7 +210,7 @@ export const getTabColumnGroupModel = (
     },
     {
       groupId: 'Wind Speed',
-      children: columnGroupingModelChildGenerator('windSpeed'),
+      children: columnGroupingModelChildGenerator('windSpeed', allRows),
       headerClassName: 'windSpeed',
       renderHeaderGroup: () =>
         renderGroupHeader(
@@ -290,15 +335,25 @@ export const getSummaryColumnGroupModel = () => {
 // Returns an array of objects of the shape { field: weather parameter + weather determinate }. For example,
 // eg. { field: 'tempACTUAL' }  These objects are used in the column grouping model to help manage grouping
 // and visibility of our weather parameter tabs
-function columnGroupingModelChildGenerator(weatherParam: string) {
-  // For a given weather model, there are tabs present in the datagrid for each WeatherDetermiante except
-  // WeatherDeterminate.NULL
-  let determinates: WeatherDeterminate[] = []
-  determinates = WeatherDeterminateChoices.filter(choice => choice !== WeatherDeterminate.NULL)
+function columnGroupingModelChildGenerator(weatherParam: string, allRows?: MoreCast2Row[]) {
+  // Match the column creation pattern from ColumnDefBuilder.generateColDefs():
+  // 1. First a Forecast column is created
+  // 2. Then columns for each determinate in ORDERED_COLUMN_HEADERS are created
+  const determinates = [WeatherDeterminate.FORECAST, ...ORDERED_COLUMN_HEADERS] as WeatherDeterminate[]
+
   const children = determinates.map(determinate => {
-    return {
+    const childGroup: any = {
       field: `${weatherParam}${determinate}`
     }
+
+    // Add custom header rendering for weather model columns (not Actual or Forecast)
+    // These should show tooltips for the weather models defined in ORDERED_COLUMN_HEADERS
+    if (determinate !== WeatherDeterminate.ACTUAL && determinate !== WeatherDeterminate.FORECAST) {
+      childGroup.renderHeaderGroup = () => renderWeatherModelHeader(determinate, allRows)
+    }
+
+    return childGroup
   })
+
   return children
 }

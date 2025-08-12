@@ -238,6 +238,7 @@ export const createMoreCast2Rows = (
           row.tempGDPS = getNumberOrNaN(value.temperature)
           row.windDirectionGDPS = getNumberOrNaN(value.wind_direction)
           row.windSpeedGDPS = getNumberOrNaN(value.wind_speed)
+          row.predictionRunTimestampGDPS = value.prediction_run_timestamp
           break
         case WeatherDeterminate.GDPS_BIAS:
           row.precipGDPS_BIAS = getNumberOrNaN(value.precipitation)
@@ -245,6 +246,7 @@ export const createMoreCast2Rows = (
           row.tempGDPS_BIAS = getNumberOrNaN(value.temperature)
           row.windDirectionGDPS_BIAS = getNumberOrNaN(value.wind_direction)
           row.windSpeedGDPS_BIAS = getNumberOrNaN(value.wind_speed)
+          row.predictionRunTimestampGDPS_BIAS = value.prediction_run_timestamp
           break
         case WeatherDeterminate.GFS:
           row.precipGFS = getNumberOrNaN(value.precipitation)
@@ -252,6 +254,7 @@ export const createMoreCast2Rows = (
           row.tempGFS = getNumberOrNaN(value.temperature)
           row.windDirectionGFS = getNumberOrNaN(value.wind_direction)
           row.windSpeedGFS = getNumberOrNaN(value.wind_speed)
+          row.predictionRunTimestampGFS = value.prediction_run_timestamp
           break
         case WeatherDeterminate.GFS_BIAS:
           row.precipGFS_BIAS = getNumberOrNaN(value.precipitation)
@@ -259,6 +262,7 @@ export const createMoreCast2Rows = (
           row.tempGFS_BIAS = getNumberOrNaN(value.temperature)
           row.windDirectionGFS_BIAS = getNumberOrNaN(value.wind_direction)
           row.windSpeedGFS_BIAS = getNumberOrNaN(value.wind_speed)
+          row.predictionRunTimestampGFS_BIAS = value.prediction_run_timestamp
           break
         case WeatherDeterminate.HRDPS:
           row.precipHRDPS = getNumberOrNaN(value.precipitation)
@@ -266,6 +270,7 @@ export const createMoreCast2Rows = (
           row.tempHRDPS = getNumberOrNaN(value.temperature)
           row.windDirectionHRDPS = getNumberOrNaN(value.wind_direction)
           row.windSpeedHRDPS = getNumberOrNaN(value.wind_speed)
+          row.predictionRunTimestampHRDPS = value.prediction_run_timestamp
           break
         case WeatherDeterminate.HRDPS_BIAS:
           row.precipHRDPS_BIAS = getNumberOrNaN(value.precipitation)
@@ -273,6 +278,7 @@ export const createMoreCast2Rows = (
           row.tempHRDPS_BIAS = getNumberOrNaN(value.temperature)
           row.windDirectionHRDPS_BIAS = getNumberOrNaN(value.wind_direction)
           row.windSpeedHRDPS_BIAS = getNumberOrNaN(value.wind_speed)
+          row.predictionRunTimestampHRDPS_BIAS = value.prediction_run_timestamp
           break
         case WeatherDeterminate.NAM:
           row.precipNAM = getNumberOrNaN(value.precipitation)
@@ -280,6 +286,7 @@ export const createMoreCast2Rows = (
           row.tempNAM = getNumberOrNaN(value.temperature)
           row.windDirectionNAM = getNumberOrNaN(value.wind_direction)
           row.windSpeedNAM = getNumberOrNaN(value.wind_speed)
+          row.predictionRunTimestampNAM = value.prediction_run_timestamp
           break
         case WeatherDeterminate.NAM_BIAS:
           row.precipNAM_BIAS = getNumberOrNaN(value.precipitation)
@@ -287,6 +294,7 @@ export const createMoreCast2Rows = (
           row.tempNAM_BIAS = getNumberOrNaN(value.temperature)
           row.windDirectionNAM_BIAS = getNumberOrNaN(value.wind_direction)
           row.windSpeedNAM_BIAS = getNumberOrNaN(value.wind_speed)
+          row.predictionRunTimestampNAM_BIAS = value.prediction_run_timestamp
           break
         case WeatherDeterminate.RDPS:
           row.precipRDPS = getNumberOrNaN(value.precipitation)
@@ -294,6 +302,7 @@ export const createMoreCast2Rows = (
           row.tempRDPS = getNumberOrNaN(value.temperature)
           row.windDirectionRDPS = getNumberOrNaN(value.wind_direction)
           row.windSpeedRDPS = getNumberOrNaN(value.wind_speed)
+          row.predictionRunTimestampRDPS = value.prediction_run_timestamp
           break
         case WeatherDeterminate.RDPS_BIAS:
           row.precipRDPS_BIAS = getNumberOrNaN(value.precipitation)
@@ -301,6 +310,7 @@ export const createMoreCast2Rows = (
           row.tempRDPS_BIAS = getNumberOrNaN(value.temperature)
           row.windDirectionRDPS_BIAS = getNumberOrNaN(value.wind_direction)
           row.windSpeedRDPS_BIAS = getNumberOrNaN(value.wind_speed)
+          row.predictionRunTimestampRDPS_BIAS = value.prediction_run_timestamp
           break
         default:
         // no-op
@@ -744,6 +754,7 @@ const createEmptyWeatherIndeterminate = (
     build_up_index: null,
     fire_weather_index: null,
     danger_rating: null,
-    grass_curing: null
+    grass_curing: null,
+    prediction_run_timestamp: null
   }
 }

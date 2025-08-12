@@ -52,6 +52,7 @@ interface ForecastSummaryDataGridProps {
   columnClickHandlerProps: ColumnClickHandlerProps
   handleColumnHeaderClick: GridEventListener<'columnHeaderClick'>
   processRowUpdate: (newRow: MoreCast2Row) => MoreCast2Row
+  allRows?: MoreCast2Row[]
 }
 
 const ForecastSummaryDataGrid = ({
@@ -59,7 +60,8 @@ const ForecastSummaryDataGrid = ({
   rows,
   columnClickHandlerProps,
   handleColumnHeaderClick,
-  processRowUpdate
+  processRowUpdate,
+  allRows
 }: ForecastSummaryDataGridProps) => {
   const isCellEditable = (params: GridCellParams) => {
     // Actual fields and FWI fields (containing the 'Calc' substring) are not editable.
@@ -82,7 +84,7 @@ const ForecastSummaryDataGrid = ({
           pinnedColumns: { left: PINNED_COLUMNS }
         }}
         experimentalFeatures={{ columnGrouping: true }}
-        columnGroupingModel={getSummaryColumnGroupModel()}
+        columnGroupingModel={getSummaryColumnGroupModel(allRows)}
         onColumnHeaderClick={handleColumnHeaderClick}
         loading={loading}
         columns={DataGridColumns.getSummaryColumns(columnClickHandlerProps)}

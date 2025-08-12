@@ -13,6 +13,7 @@ import {
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
+import { MoreCast2Row } from 'features/moreCast2/interfaces'
 
 export class StationForecastField implements ColDefGenerator {
   private static instance: StationForecastField
@@ -169,12 +170,19 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
     return this.colDefBuilder.generateColDefWith(this.field, this.headerName, this.precision, undefined, this.validator)
   }
 
-  public generateColDefs = (columnClickHandlerProps: ColumnClickHandlerProps, headerName?: string) => {
+  public generateColDefs = (
+    columnClickHandlerProps: ColumnClickHandlerProps,
+    headerName?: string,
+    includeBiasFields?: boolean,
+    validator?: (value: string) => string,
+    allRows?: MoreCast2Row[]
+  ) => {
     return this.colDefBuilder.generateColDefs(
       columnClickHandlerProps,
       headerName ?? this.headerName,
       this.includeBias,
-      this.validator
+      this.validator,
+      allRows
     )
   }
 }

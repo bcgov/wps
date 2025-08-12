@@ -113,14 +113,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     setContextMenu(null)
   }
 
-  const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
-    DataGridColumns.initGridColumnVisibilityModel({
-      colDef: clickedColDef,
-      contextMenu: contextMenu,
-      updateColumnWithModel: updateColumnWithModel,
-      handleClose: handleClose
-    })
-  )
+  const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({})
 
   const [tempVisible, setTempVisible] = useState(true)
   const [rhVisible, setRhVisible] = useState(false)
@@ -265,9 +258,9 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const colGroupingModel = getTabColumnGroupModel(showHideColumnsModel, handleShowHideChange)
+    const colGroupingModel = getTabColumnGroupModel(showHideColumnsModel, handleShowHideChange, allRows)
     setColumnGroupingModel(colGroupingModel)
-  }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showHideColumnsModel, allRows]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const visibleTabs = getVisibleTabs()
@@ -625,6 +618,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
           }}
           handleColumnHeaderClick={handleColumnHeaderClick}
           processRowUpdate={processRowUpdate}
+          allRows={allRows}
         />
       ) : (
         <ForecastDataGrid
