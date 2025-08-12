@@ -618,7 +618,6 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
           }}
           handleColumnHeaderClick={handleColumnHeaderClick}
           processRowUpdate={processRowUpdate}
-          allRows={allRows}
         />
       ) : (
         <ForecastDataGrid

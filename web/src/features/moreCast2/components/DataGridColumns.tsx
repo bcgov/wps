@@ -132,9 +132,7 @@ const getPredictionRunTimestamp = (modelType: WeatherDeterminate, allRows: MoreC
 
 // Helper function to render weather model header with info icon
 const renderWeatherModelHeader = (modelType: WeatherDeterminate, allRows?: MoreCast2Row[]) => {
-  console.log('renderWeatherModelHeader called for:', modelType, 'with allRows:', allRows?.length || 0)
   const timestamp = allRows ? getPredictionRunTimestamp(modelType, allRows) : null
-  console.log('Timestamp for', modelType, ':', timestamp)
   const displayName = modelType.endsWith('_BIAS') ? `${modelType.replace('_BIAS', '')} bias` : modelType
 
   return (
