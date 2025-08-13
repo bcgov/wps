@@ -1,4 +1,10 @@
 import { centerOnFireShape } from "@/components/map/fireShapeCentering";
+import {
+  defaultLayerVisibility,
+  LayerVisibility,
+  loadLayerVisibility,
+  saveLayerVisibility,
+} from "@/components/map/layerVisibility";
 import UserLocationIndicator from "@/components/map/LocationIndicator";
 import MapPopup from "@/components/map/MapPopup";
 import ScaleContainer from "@/components/map/ScaleContainer";
@@ -17,7 +23,9 @@ import {
   createBasemapLayer,
   createHFILayer,
   createLocalBasemapVectorLayer,
+  ZONE_STATUS_LAYER_NAME,
   LOCAL_BASEMAP_LAYER_NAME,
+  HFI_LAYER_NAME,
 } from "@/layerDefinitions";
 import { startWatchingLocation } from "@/slices/geolocationSlice";
 import {
@@ -33,6 +41,7 @@ import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
 import { Filesystem } from "@capacitor/filesystem";
 import GpsOffIcon from "@mui/icons-material/GpsOff";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
+import LayersIcon from "@mui/icons-material/Layers";
 import { Box } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
 import { cloneDeep, isNull, isUndefined } from "lodash";
@@ -49,6 +58,7 @@ import { fromLonLat } from "ol/proj";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BC_EXTENT } from "utils/constants";
+import LegendPopover from "@/components/map/LegendPopover";
 
 // used for setting the initial map extent
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
@@ -93,11 +103,11 @@ const ASAGoMap = ({
   const { position, error, loading } = useSelector(selectGeolocation);
   const { networkStatus } = useSelector(selectNetworkStatus);
   const { runDatetime, runType } = useSelector(selectRunParameter);
+  const { fireShapeAreas } = useSelector(selectFireShapeAreas);
 
   // state
   const [map, setMap] = useState<Map | null>(null);
   const [scaleVisible, setScaleVisible] = useState<boolean>(true);
-  const { fireShapeAreas } = useSelector(selectFireShapeAreas);
   const [basemapLayer] = useState<TileLayer>(createBasemapLayer());
   const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
     useState<VectorTileLayer>(() => {
@@ -106,6 +116,11 @@ const ASAGoMap = ({
       return layer;
     });
   const [centerOnLocation, setCenterOnLocation] = useState<boolean>(false);
+  const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>(
+    defaultLayerVisibility
+  );
+  const [legendAnchorEl, setLegendAnchorEl] =
+    useState<HTMLButtonElement | null>(null);
 
   const hfiLayerRef = useRef<VectorTileLayer | null>(null);
 
@@ -117,7 +132,7 @@ const ASAGoMap = ({
         true
       ),
       zIndex: 53,
-      properties: { name: "fireShapeVector" },
+      properties: { name: ZONE_STATUS_LAYER_NAME },
     })
   );
 
@@ -189,6 +204,46 @@ const ASAGoMap = ({
       duration: 1000,
     });
   };
+
+  const handleLegendButtonClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    setLegendAnchorEl(event.currentTarget);
+  };
+
+  const handleLegendClose = () => {
+    setLegendAnchorEl(null);
+  };
+
+  useEffect(() => {
+    const fetchVisibility = async () => {
+      const loaded = await loadLayerVisibility(defaultLayerVisibility);
+      setLayerVisibility(loaded);
+    };
+    fetchVisibility();
+  }, []);
+
+  useEffect(() => {
+    saveLayerVisibility(layerVisibility);
+  }, [layerVisibility]);
+
+  // Update OpenLayers layers when visibility changes
+  useEffect(() => {
+    if (!map) return;
+    map
+      .getLayers()
+      .getArray()
+      .forEach((layer) => {
+        const name = layer.getProperties()?.name;
+        if (
+          name &&
+          name !== ZONE_STATUS_LAYER_NAME &&
+          name in layerVisibility
+        ) {
+          layer.setVisible(layerVisibility[name]);
+        }
+      });
+  }, [map, layerVisibility]);
 
   // center map when position is updated after requesting location
   useEffect(() => {
@@ -435,12 +490,15 @@ const ASAGoMap = ({
     (async () => {
       let hfiLayer: VectorTileLayer | null = null;
       if (!isNull(runType) && !isNull(runDatetime)) {
-        hfiLayer = await createHFILayer({
-          filename: "hfi.pmtiles",
-          for_date: date,
-          run_type: runType,
-          run_date: DateTime.fromISO(runDatetime),
-        });
+        hfiLayer = await createHFILayer(
+          {
+            filename: "hfi.pmtiles",
+            for_date: date,
+            run_type: runType,
+            run_date: DateTime.fromISO(runDatetime),
+          },
+          layerVisibility[HFI_LAYER_NAME]
+        );
       }
 
       // remove previous HFI layer
@@ -452,7 +510,7 @@ const ASAGoMap = ({
         hfiLayerRef.current = hfiLayer;
       }
     })();
-  }, [map, runType, runDatetime, date]);
+  }, [map, runType, runDatetime, date, layerVisibility]);
 
   const handlePopupClose = () => {
     popup.setPosition(undefined);
@@ -477,6 +535,24 @@ const ASAGoMap = ({
     popup.setPosition(undefined);
   };
 
+  const handleLayerVisibilityChange = (
+    layerName: string,
+    visible: boolean
+  ): void => {
+    setLayerVisibility((prev) => ({
+      ...prev,
+      [layerName]: visible,
+    }));
+
+    if (layerName === ZONE_STATUS_LAYER_NAME) {
+      // always keep the layer visible, just update its style
+      fireZoneFileLayer.setStyle(
+        fireShapeStyler(cloneDeep(fireShapeAreas), advisoryThreshold, visible)
+      );
+      fireZoneFileLayer.changed();
+    }
+  };
+
   return (
     <MapContext.Provider value={map}>
       <Box
@@ -496,12 +572,17 @@ const ASAGoMap = ({
             position: "absolute",
             left: "8px",
             bottom: "8px",
-            zIndex: 1,
+            zIndex: 2,
             display: "flex",
             flexDirection: "column",
             gap: 1,
           }}
         >
+          <MapIconButton
+            onClick={handleLegendButtonClick}
+            icon={<LayersIcon />}
+            testid="legend-toggle-button"
+          />
           <MapIconButton
             onClick={handleLocationButtonClick}
             icon={error ? <GpsOffIcon color="error" /> : <MyLocationIcon />}
@@ -510,6 +591,14 @@ const ASAGoMap = ({
           />
           <TodayTomorrowSwitch date={date} setDate={setDate} />
         </Box>
+
+        <LegendPopover
+          anchorEl={legendAnchorEl}
+          onClose={handleLegendClose}
+          layerVisibility={layerVisibility}
+          onLayerVisibilityChange={handleLayerVisibilityChange}
+        />
+
         <ScaleContainer
           visible={scaleVisible}
           setVisible={setScaleVisible}
