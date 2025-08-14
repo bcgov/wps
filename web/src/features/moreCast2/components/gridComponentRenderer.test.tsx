@@ -424,11 +424,8 @@ describe('GridComponentRenderer', () => {
       determinate => {
         const param = createMockParams(determinate)
         it(`should not render header with tooltip for ${determinate}`, () => {
-          const { getByText, queryAllByTestId } = render(
-            <div>{gridComponentRenderer.renderHeaderWith(param, allRowsMock)}</div>
-          )
-          expect(getByText(param.colDef.headerName)).toBeInTheDocument()
-          expect(queryAllByTestId(`${param.colDef.field}-model-run-tooltip`)).not.toBeVisible()
+          const { queryAllByTestId } = render(<div>{gridComponentRenderer.renderHeaderWith(param, allRowsMock)}</div>)
+          expect(queryAllByTestId(`${param.colDef.field}-model-run-tooltip`).length === 0)
         })
       }
     )

@@ -121,33 +121,6 @@ export class DataGridColumns {
   }
 }
 
-const getPredictionRunTimestamp = (modelType: WeatherDeterminate, allRows: MoreCast2Row[]): string | null => {
-  if (!allRows.length) return null
-
-  const timestampField = `predictionRunTimestamp${modelType}` as keyof MoreCast2Row
-  const timestamp = allRows[0][timestampField] as string | null | undefined
-
-  return timestamp || null
-}
-
-const renderWeatherModelHeader = (modelType: WeatherDeterminate, allRows?: MoreCast2Row[]) => {
-  const timestamp = allRows ? getPredictionRunTimestamp(modelType, allRows) : null
-  const displayName = modelType.endsWith('_BIAS') ? `${modelType.replace('_BIAS', '')} bias` : modelType
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-      <Typography style={{ fontWeight: 'bold', fontSize: '12px' }}>{displayName}</Typography>
-      {timestamp && (
-        <Tooltip title={`Model run: ${DateTime.fromISO(timestamp).toFormat('MMM dd, yyyy HH:mm')} UTC`} arrow>
-          <IconButton size="small" style={{ padding: '2px' }}>
-            <InfoIcon style={{ fontSize: '14px' }} />
-          </IconButton>
-        </Tooltip>
-      )}
-    </div>
-  )
-}
-
 const renderSimpleGroupHeader = (id: string) => <Typography style={{ fontWeight: 'bold' }}>{id}</Typography>
 
 const renderGroupHeader = (
