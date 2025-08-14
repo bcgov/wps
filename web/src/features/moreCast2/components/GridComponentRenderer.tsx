@@ -28,6 +28,7 @@ import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/
 import ActualCell from 'features/moreCast2/components/ActualCell'
 import { MoreCast2Row } from '@/features/moreCast2/interfaces'
 import { DateTime } from 'luxon'
+import ModelHeader from '@/features/moreCast2/components/ModelHeader'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -59,32 +60,7 @@ export class GridComponentRenderer {
         </div>
       )
     }
-    const modelType = weatherModelsWithTooltips.find(model => headerName === model)
-    if (modelType && allRows && allRows.length > 0) {
-      const timestampField = `predictionRunTimestamp${modelType}` as keyof MoreCast2Row
-      const timestamp = allRows[0][timestampField] as string | null | undefined
-      return (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Typography style={{ fontSize: '14px' }}>{headerName}</Typography>
-          {timestamp && (
-            <Tooltip
-              data-testid={`${params.colDef.field}-model-run-tooltip`}
-              title={`Model run: ${DateTime.fromISO(timestamp).toFormat('MMM dd, yyyy HH:mm ZZZZ')}`}
-              arrow
-            >
-              <IconButton size="small" style={{ padding: '2px' }}>
-                <InfoIcon style={{ fontSize: '12px' }} />
-              </IconButton>
-            </Tooltip>
-          )}
-        </div>
-      )
-    }
-    return (
-      <Typography data-testid={`${params.colDef.field}-column-header`} style={{ fontSize: '14px' }}>
-        {headerName}
-      </Typography>
-    )
+    return <ModelHeader params={params} allRows={allRows} />
   }
 
   public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue' | 'field' | 'row'>) => {
