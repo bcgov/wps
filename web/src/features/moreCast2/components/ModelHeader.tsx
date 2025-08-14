@@ -30,24 +30,23 @@ const ModelHeader = ({ params, allRows }: ModelHeaderProps) => {
 
     return timestamps.length > 0 ? timestamps[timestamps.length - 1] : null
   }
+  const timestamp = latestTimestamp()
 
-  if (modelType && allRows && allRows.length > 0) {
-    const timestamp = latestTimestamp()
-
+  if (modelType && allRows && allRows.length > 0 && timestamp) {
     return (
       <Box style={{ display: 'flex', alignItems: 'center' }}>
-        <Typography style={{ fontSize: '14px' }}>{headerName}</Typography>
-        {timestamp && (
-          <Tooltip
-            data-testid={`${params.colDef.field}-model-run-tooltip`}
-            title={`Model run: ${timestamp.toFormat('MMM dd, yyyy HH:mm ZZZZ')}`}
-            arrow
-          >
+        <Tooltip
+          data-testid={`${params.colDef.field}-model-run-tooltip`}
+          title={`Model run: ${timestamp.toFormat('MMM dd, yyyy HH:mm ZZZZ')}`}
+          arrow
+        >
+          <Box style={{ display: 'flex', alignItems: 'center' }}>
+            <Typography style={{ fontSize: '14px' }}>{headerName}</Typography>
             <IconButton size="small" style={{ padding: '2px' }}>
               <InfoIcon style={{ fontSize: '12px' }} />
             </IconButton>
-          </Tooltip>
-        )}
+          </Box>
+        </Tooltip>
       </Box>
     )
   }
