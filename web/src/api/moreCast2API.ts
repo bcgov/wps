@@ -122,6 +122,14 @@ export const WeatherDeterminateChoices = [
   WeatherDeterminate.RDPS_BIAS
 ]
 
+export const weatherModelsWithTooltips = [
+  WeatherDeterminate.HRDPS,
+  WeatherDeterminate.RDPS,
+  WeatherDeterminate.GDPS,
+  WeatherDeterminate.NAM,
+  WeatherDeterminate.GFS
+]
+
 export interface WeatherIndeterminate {
   id: string
   station_code: number

@@ -10,7 +10,7 @@ import {
   GridValueGetterParams,
   GridValueSetterParams
 } from '@mui/x-data-grid-pro'
-import { WeatherDeterminate, WeatherDeterminateType } from 'api/moreCast2API'
+import { WeatherDeterminate, WeatherDeterminateType, weatherModelsWithTooltips } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { DateTime } from 'luxon'
 import { Typography, Tooltip, IconButton } from '@mui/material'
@@ -221,26 +221,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
         return this.gridComponentRenderer.renderCellWith(params)
       },
       renderHeader: (params: GridColumnHeaderParams) => {
-        // Check if this is a weather model column that should show tooltip
-        const weatherModelsWithTooltips = [
-          WeatherDeterminate.HRDPS,
-          WeatherDeterminate.HRDPS_BIAS,
-          WeatherDeterminate.RDPS,
-          WeatherDeterminate.RDPS_BIAS,
-          WeatherDeterminate.GDPS,
-          WeatherDeterminate.GDPS_BIAS,
-          WeatherDeterminate.NAM,
-          WeatherDeterminate.NAM_BIAS,
-          WeatherDeterminate.GFS,
-          WeatherDeterminate.GFS_BIAS
-        ]
-
-        const modelType = weatherModelsWithTooltips.find(model => headerName === model)
-        if (modelType && allRows) {
-          return renderWeatherModelHeader(modelType, allRows)
-        }
-
-        return this.gridComponentRenderer.renderHeaderWith(params)
+        return this.gridComponentRenderer.renderHeaderWith(params, allRows)
       },
       valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>
         this.gridComponentRenderer.valueGetter(params, precision, field, headerName),

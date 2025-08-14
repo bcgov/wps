@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, TextField } from '@mui/material'
+import { Box, IconButton, TextField, Tooltip, Typography } from '@mui/material'
 import {
   GridColumnHeaderParams,
   GridRenderCellParams,
@@ -7,7 +7,8 @@ import {
   GridValueGetterParams,
   GridValueSetterParams
 } from '@mui/x-data-grid-pro'
-import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
+import { Info as InfoIcon } from '@mui/icons-material'
+import { ModelChoice, WeatherDeterminate, weatherModelsWithTooltips } from 'api/moreCast2API'
 import { createWeatherModelLabel, isBeforeToday, isForecastRow, rowContainsActual } from 'features/moreCast2/util'
 import {
   GC_HEADER,
@@ -25,6 +26,8 @@ import ForecastCell from 'features/moreCast2/components/ForecastCell'
 import ValidatedGrassCureForecastCell from '@/features/moreCast2/components/ValidatedGrassCureForecastCell'
 import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/ValidatedWindDirectionForecastCell'
 import ActualCell from 'features/moreCast2/components/ActualCell'
+import { MoreCast2Row } from '@/features/moreCast2/interfaces'
+import { DateTime } from 'luxon'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -36,19 +39,43 @@ export class GridComponentRenderer {
   ) => {
     return <ForecastHeader colDef={params.colDef} columnClickHandlerProps={columnClickHandlerProps} />
   }
-  public renderHeaderWith = (params: GridColumnHeaderParams) => {
+  public renderHeaderWith = (params: GridColumnHeaderParams, allRows?: MoreCast2Row[]) => {
+    const headerName = params.colDef.headerName ?? ''
+
     if (params.field.endsWith('_BIAS')) {
-      const headerName = params.colDef.headerName ?? ''
       const index = headerName.indexOf('_BIAS')
       const prefix = headerName.slice(0, index)
       return (
         <div data-testid={`${params.colDef.field}-column-header`}>
-          <Box sx={{ height: '1rem' }}>{prefix}</Box>
-          <Box>bias</Box>
+          <Typography data-testid={`${params.colDef.field}-column-header`} style={{ fontSize: '14px' }}>
+            {prefix}
+          </Typography>
+          <Typography style={{ fontSize: '14px' }}>bias</Typography>
         </div>
       )
     }
-    return <div data-testid={`${params.colDef.field}-column-header`}>{params.colDef.headerName}</div>
+    const modelType = weatherModelsWithTooltips.find(model => headerName === model)
+    if (modelType && allRows && allRows.length > 0) {
+      const timestampField = `predictionRunTimestamp${modelType}` as keyof MoreCast2Row
+      const timestamp = allRows[0][timestampField] as string | null | undefined
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <Typography style={{ fontSize: '14px' }}>{headerName}</Typography>
+          {timestamp && (
+            <Tooltip title={`Model run: ${DateTime.fromISO(timestamp).toFormat('MMM dd, yyyy HH:mm')} UTC`} arrow>
+              <IconButton size="small" style={{ padding: '2px' }}>
+                <InfoIcon style={{ fontSize: '14px' }} />
+              </IconButton>
+            </Tooltip>
+          )}
+        </div>
+      )
+    }
+    return (
+      <Typography data-testid={`${params.colDef.field}-column-header`} style={{ fontSize: '14px' }}>
+        {headerName}
+      </Typography>
+    )
   }
 
   public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue' | 'field' | 'row'>) => {
