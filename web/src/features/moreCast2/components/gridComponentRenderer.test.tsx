@@ -3,7 +3,7 @@ import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 import { GridColumnHeaderParams, GridValueSetterParams } from '@mui/x-data-grid-pro'
 import { GridStateColDef } from '@mui/x-data-grid-pro/internals'
 import { render } from '@testing-library/react'
-import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
+import { ModelChoice, WeatherDeterminate, WeatherDeterminateChoices, weatherModelsWithTooltips } from 'api/moreCast2API'
 import { GC_HEADER } from 'features/moreCast2/components/ColumnDefBuilder'
 import {
   GridComponentRenderer,
@@ -375,7 +375,11 @@ describe('GridComponentRenderer', () => {
         forDate: DateTime.fromISO('2016-05-25T09:08:34.123'),
         latitude: 0,
         longitude: 0,
-        predictionRunTimestampRDPS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO()
+        predictionRunTimestampRDPS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO(),
+        predictionRunTimestampGDPS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO(),
+        predictionRunTimestampHRDPS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO(),
+        predictionRunTimestampNAM: DateTime.fromISO('2016-05-25T09:08:34.123').toISO(),
+        predictionRunTimestampGFS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO()
       }
     ]
     const mockParams = {
@@ -385,6 +389,13 @@ describe('GridComponentRenderer', () => {
         headerName: WeatherDeterminate.RDPS
       }
     }
+    const createMockParams = (determinate: WeatherDeterminate) => ({
+      field: determinate,
+      colDef: {
+        field: determinate,
+        headerName: determinate
+      }
+    })
 
     it('should render header with the correct headerName text', () => {
       const { getByText } = render(<div>{gridComponentRenderer.renderHeaderWith(mockParams)}</div>)
@@ -398,5 +409,28 @@ describe('GridComponentRenderer', () => {
       expect(getByText(mockParams.colDef.headerName)).toBeInTheDocument()
       expect(getByTestId(`${mockParams.colDef.field}-model-run-tooltip`)).toBeVisible()
     })
+    describe.each(weatherModelsWithTooltips)('should render header with tooltip for determinate %s', determinate => {
+      const param = createMockParams(determinate)
+      it(`should render header with tooltip for ${determinate}`, () => {
+        const { getByText, getByTestId } = render(
+          <div>{gridComponentRenderer.renderHeaderWith(param, allRowsMock)}</div>
+        )
+        expect(getByText(param.colDef.headerName)).toBeInTheDocument()
+        expect(getByTestId(`${param.colDef.field}-model-run-tooltip`)).toBeVisible()
+      })
+    })
+    describe.each(WeatherDeterminateChoices.filter(determinate => !weatherModelsWithTooltips.includes(determinate)))(
+      'should not render header with tooltip for bias determinate %s',
+      determinate => {
+        const param = createMockParams(determinate)
+        it(`should not render header with tooltip for ${determinate}`, () => {
+          const { getByText, queryAllByTestId } = render(
+            <div>{gridComponentRenderer.renderHeaderWith(param, allRowsMock)}</div>
+          )
+          expect(getByText(param.colDef.headerName)).toBeInTheDocument()
+          expect(queryAllByTestId(`${param.colDef.field}-model-run-tooltip`)).not.toBeVisible()
+        })
+      }
+    )
   })
 })
