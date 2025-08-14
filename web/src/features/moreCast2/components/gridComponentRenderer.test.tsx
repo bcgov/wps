@@ -397,18 +397,20 @@ describe('GridComponentRenderer', () => {
       }
     })
 
-    it('should render header with the correct headerName text', () => {
-      const { getByText } = render(<div>{gridComponentRenderer.renderHeaderWith(mockParams)}</div>)
-      expect(getByText(mockParams.colDef.headerName)).toBeInTheDocument()
+    it('should render header when no header name exists', () => {
+      const { getByRole } = render(
+        gridComponentRenderer.renderHeaderWith({
+          field: WeatherDeterminate.RDPS,
+          colDef: {
+            field: WeatherDeterminate.RDPS,
+            headerName: undefined
+          }
+        })
+      )
+      const headerText = getByRole('paragraph')
+      expect(headerText).toBeEmptyDOMElement()
     })
 
-    it('should render header with model run tooltip', () => {
-      const { getByText, getByTestId } = render(
-        <div>{gridComponentRenderer.renderHeaderWith(mockParams, allRowsMock)}</div>
-      )
-      expect(getByText(mockParams.colDef.headerName)).toBeInTheDocument()
-      expect(getByTestId(`${mockParams.colDef.field}-model-run-tooltip`)).toBeVisible()
-    })
     describe.each(weatherModelsWithTooltips)('should render header with tooltip for determinate %s', determinate => {
       const param = createMockParams(determinate)
       it(`should render header with tooltip for ${determinate}`, () => {
