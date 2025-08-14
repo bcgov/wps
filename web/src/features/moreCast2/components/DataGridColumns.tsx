@@ -1,8 +1,8 @@
 import React from 'react'
 import { Typography, Tooltip, IconButton } from '@mui/material'
 import { Info as InfoIcon } from '@mui/icons-material'
-import { GridColumnVisibilityModel, GridColDef, GridColumnGroup } from '@mui/x-data-grid-pro'
-import { WeatherDeterminate, WeatherDeterminateChoices } from 'api/moreCast2API'
+import { GridColumnVisibilityModel, GridColDef, GridColumnGroup, GridColumnHeaderParams } from '@mui/x-data-grid-pro'
+import { WeatherDeterminate } from 'api/moreCast2API'
 import { ORDERED_COLUMN_HEADERS } from 'features/moreCast2/components/ColumnDefBuilder'
 import {
   MORECAST2_FIELDS,
@@ -17,6 +17,7 @@ import { ColumnClickHandlerProps, handleShowHideChangeType } from 'features/more
 import { MoreCastParams } from 'app/theme'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { DateTime } from 'luxon'
+import { GridComponentRenderer } from '@/features/moreCast2/components/GridComponentRenderer'
 
 export interface ColumnVis {
   columnName: string
@@ -120,7 +121,6 @@ export class DataGridColumns {
   }
 }
 
-// Helper function to get prediction run timestamp for a weather model
 const getPredictionRunTimestamp = (modelType: WeatherDeterminate, allRows: MoreCast2Row[]): string | null => {
   if (!allRows.length) return null
 
@@ -130,7 +130,6 @@ const getPredictionRunTimestamp = (modelType: WeatherDeterminate, allRows: MoreC
   return timestamp || null
 }
 
-// Helper function to render weather model header with info icon
 const renderWeatherModelHeader = (modelType: WeatherDeterminate, allRows?: MoreCast2Row[]) => {
   const timestamp = allRows ? getPredictionRunTimestamp(modelType, allRows) : null
   const displayName = modelType.endsWith('_BIAS') ? `${modelType.replace('_BIAS', '')} bias` : modelType
@@ -347,7 +346,16 @@ function columnGroupingModelChildGenerator(weatherParam: string, allRows?: MoreC
     // Add custom header rendering for weather model columns (not Actual or Forecast)
     // These should show tooltips for the weather models defined in ORDERED_COLUMN_HEADERS
     if (determinate !== WeatherDeterminate.ACTUAL && determinate !== WeatherDeterminate.FORECAST) {
-      childGroup.renderHeaderGroup = () => renderWeatherModelHeader(determinate, allRows)
+      childGroup.renderHeaderGroup = () =>
+        new GridComponentRenderer().renderHeaderWith(
+          {
+            field: `${weatherParam}${determinate}`,
+            colDef: {
+              field: `${weatherParam}${determinate}`
+            }
+          },
+          allRows
+        )
     }
 
     return childGroup

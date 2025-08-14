@@ -39,7 +39,12 @@ export class GridComponentRenderer {
   ) => {
     return <ForecastHeader colDef={params.colDef} columnClickHandlerProps={columnClickHandlerProps} />
   }
-  public renderHeaderWith = (params: GridColumnHeaderParams, allRows?: MoreCast2Row[]) => {
+  public renderHeaderWith = (
+    params: Pick<GridColumnHeaderParams, 'field'> & {
+      colDef: Pick<GridColumnHeaderParams['colDef'], 'field' | 'headerName'>
+    },
+    allRows?: MoreCast2Row[]
+  ) => {
     const headerName = params.colDef.headerName ?? ''
 
     if (params.field.endsWith('_BIAS')) {
@@ -62,7 +67,11 @@ export class GridComponentRenderer {
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <Typography style={{ fontSize: '14px' }}>{headerName}</Typography>
           {timestamp && (
-            <Tooltip title={`Model run: ${DateTime.fromISO(timestamp).toFormat('MMM dd, yyyy HH:mm ZZZZ')}`} arrow>
+            <Tooltip
+              data-testid={`${params.colDef.field}-model-run-tooltip`}
+              title={`Model run: ${DateTime.fromISO(timestamp).toFormat('MMM dd, yyyy HH:mm ZZZZ')}`}
+              arrow
+            >
               <IconButton size="small" style={{ padding: '2px' }}>
                 <InfoIcon style={{ fontSize: '14px' }} />
               </IconButton>
