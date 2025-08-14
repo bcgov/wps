@@ -64,7 +64,7 @@ export class GridComponentRenderer {
       const timestampField = `predictionRunTimestamp${modelType}` as keyof MoreCast2Row
       const timestamp = allRows[0][timestampField] as string | null | undefined
       return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           <Typography style={{ fontSize: '14px' }}>{headerName}</Typography>
           {timestamp && (
             <Tooltip
@@ -73,7 +73,7 @@ export class GridComponentRenderer {
               arrow
             >
               <IconButton size="small" style={{ padding: '2px' }}>
-                <InfoIcon style={{ fontSize: '14px' }} />
+                <InfoIcon style={{ fontSize: '12px' }} />
               </IconButton>
             </Tooltip>
           )}
