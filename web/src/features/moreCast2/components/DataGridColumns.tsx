@@ -69,18 +69,6 @@ export class DataGridColumns {
     return newModel
   }
 
-  public static updateGridColumnVisibilityFromShowHideColumnsModel(
-    parameters: ColumnVis[],
-    columnVisibilityModel: GridColumnVisibilityModel
-  ) {
-    const newModel: GridColumnVisibilityModel = {}
-    Object.assign(newModel, columnVisibilityModel)
-    for (const param of parameters) {
-      newModel[param.columnName] = param.visible
-    }
-    return newModel
-  }
-
   public static getTabColumns(
     columnClickHandlerProps: ColumnClickHandlerProps,
     allRows?: MoreCast2Row[]
