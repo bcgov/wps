@@ -62,7 +62,7 @@ export class GridComponentRenderer {
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <Typography style={{ fontSize: '14px' }}>{headerName}</Typography>
           {timestamp && (
-            <Tooltip title={`Model run: ${DateTime.fromISO(timestamp).toFormat('MMM dd, yyyy HH:mm')} UTC`} arrow>
+            <Tooltip title={`Model run: ${DateTime.fromISO(timestamp).toFormat('MMM dd, yyyy HH:mm ZZZZ')}`} arrow>
               <IconButton size="small" style={{ padding: '2px' }}>
                 <InfoIcon style={{ fontSize: '14px' }} />
               </IconButton>
