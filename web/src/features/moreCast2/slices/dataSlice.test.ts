@@ -72,7 +72,8 @@ export const weatherIndeterminateGenerator = (
     build_up_index: BUI,
     fire_weather_index: FWI,
     danger_rating: DGR,
-    grass_curing: GC
+    grass_curing: GC,
+    prediction_run_timestamp: null
   }
 }
 
@@ -130,7 +131,8 @@ describe('dataSlice', () => {
           build_up_index: 110,
           fire_weather_index: 25,
           danger_rating: 5,
-          grass_curing: 50
+          grass_curing: 50,
+          prediction_run_timestamp: null
         }
       ]
       const forecasts: [] = []
@@ -156,7 +158,8 @@ describe('dataSlice', () => {
           build_up_index: 110,
           fire_weather_index: 25,
           danger_rating: 5,
-          grass_curing: 50
+          grass_curing: 50,
+          prediction_run_timestamp: null
         }
       ]
       const payload: WeatherIndeterminatePayload = {
