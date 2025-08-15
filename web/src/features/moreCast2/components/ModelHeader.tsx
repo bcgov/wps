@@ -37,8 +37,9 @@ const ModelHeader = ({ params, allRows }: ModelHeaderProps) => {
       <Box style={{ display: 'flex', alignItems: 'center' }}>
         <Tooltip
           data-testid={`${params.colDef.field}-model-run-tooltip`}
-          title={`Model run: ${timestamp.toFormat('MMM dd, yyyy HH:mm ZZZZ')}`}
+          title={`Model run: ${timestamp.toUTC().toFormat('MMM dd, yyyy HH:mm ZZZZ')}`}
           arrow
+          placement="top"
         >
           <Box style={{ display: 'flex', alignItems: 'center' }}>
             <Typography style={{ fontSize: '14px' }}>{headerName}</Typography>
