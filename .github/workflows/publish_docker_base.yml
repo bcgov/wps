@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Login to GitHub Container Registry
         # this step requires a GH_TOKEN with read:packages write:packages and delete:packages
         # tested with a classic token with the above permissions
