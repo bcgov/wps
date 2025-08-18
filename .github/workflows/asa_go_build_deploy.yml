@@ -104,12 +104,12 @@ jobs:
           -derivedDataPath ${{ runner.temp }}/DerivedData \
           -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
           archive
-      - name: Export Archive 
-        # This is the step that signs the build
-        run: |
-          xcodebuild \
-          -exportArchive \
-          -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
-          -exportPath ${{ runner.temp }}/Export \
-          -exportOptionsPlist exportOptions.plist \
-          -verbose
+    #   - name: Export Archive TODO: enable when new certs created
+    #     # This is the step that signs the build
+    #     run: |
+    #       xcodebuild \
+    #       -exportArchive \
+    #       -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
+    #       -exportPath ${{ runner.temp }}/Export \
+    #       -exportOptionsPlist exportOptions.plist \
+    #       -verbose
