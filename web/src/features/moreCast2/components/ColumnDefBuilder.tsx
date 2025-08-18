@@ -11,6 +11,7 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid-pro'
 import { WeatherDeterminate, WeatherDeterminateType } from 'api/moreCast2API'
+import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { modelColorClass, modelHeaderColorClass } from 'app/theme'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
@@ -69,7 +70,8 @@ export interface ColDefGenerator {
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
     includeBiasFields?: boolean,
-    validator?: (value: string) => string
+    validator?: (value: string) => string,
+    allRows?: MoreCast2Row[]
   ) => GridColDef[]
 }
 
@@ -125,26 +127,34 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
     includeBiasFields = true,
-    validator?: (value: string) => string
+    validator?: (value: string) => string,
+    allRows?: MoreCast2Row[]
   ) => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
     const forecastColDef = this.generateForecastColDef(columnClickHandlerProps, headerName, validator)
     gridColDefs.push(forecastColDef)
 
-    for (const colDef of this.generateNonForecastColDefs(includeBiasFields)) {
+    for (const colDef of this.generateNonForecastColDefs(includeBiasFields, allRows)) {
       gridColDefs.push(colDef)
     }
 
     return gridColDefs
   }
 
-  public generateNonForecastColDefs = (includeBiasFields: boolean) => {
+  public generateNonForecastColDefs = (includeBiasFields: boolean, allRows?: MoreCast2Row[]) => {
     const fields = includeBiasFields
       ? ORDERED_COLUMN_HEADERS
       : ORDERED_COLUMN_HEADERS.filter(header => !header.endsWith('_BIAS'))
     return fields.map(header =>
-      this.generateColDefWith(`${this.field}${header}`, header, this.precision, DEFAULT_COLUMN_WIDTH)
+      this.generateColDefWith(
+        `${this.field}${header}`,
+        header,
+        this.precision,
+        DEFAULT_COLUMN_WIDTH,
+        undefined,
+        allRows
+      )
     )
   }
 
@@ -153,7 +163,8 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     headerName: string,
     precision: number,
     width?: number,
-    validator?: (value: string) => string
+    validator?: (value: string) => string,
+    allRows?: MoreCast2Row[]
   ) => {
     return {
       field,
@@ -178,7 +189,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
         return this.gridComponentRenderer.renderCellWith(params)
       },
       renderHeader: (params: GridColumnHeaderParams) => {
-        return this.gridComponentRenderer.renderHeaderWith(params)
+        return this.gridComponentRenderer.renderHeaderWith(params, allRows)
       },
       valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>
         this.gridComponentRenderer.valueGetter(params, precision, field, headerName),

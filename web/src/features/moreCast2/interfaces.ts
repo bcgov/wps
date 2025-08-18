@@ -134,6 +134,13 @@ export interface MoreCast2Row extends BaseRow {
   tempRDPS_BIAS: number
   windDirectionRDPS_BIAS: number
   windSpeedRDPS_BIAS: number
+
+  // Prediction run timestamps for each weather model
+  predictionRunTimestampGDPS?: string | null
+  predictionRunTimestampGFS?: string | null
+  predictionRunTimestampHRDPS?: string | null
+  predictionRunTimestampNAM?: string | null
+  predictionRunTimestampRDPS?: string | null
 }
 
 export interface ForecastMorecast2Row extends BaseRow {

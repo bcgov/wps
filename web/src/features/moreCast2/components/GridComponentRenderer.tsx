@@ -1,5 +1,4 @@
-import React from 'react'
-import { Box, TextField } from '@mui/material'
+import { TextField, Typography } from '@mui/material'
 import {
   GridColumnHeaderParams,
   GridRenderCellParams,
@@ -25,6 +24,8 @@ import ForecastCell from 'features/moreCast2/components/ForecastCell'
 import ValidatedGrassCureForecastCell from '@/features/moreCast2/components/ValidatedGrassCureForecastCell'
 import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/ValidatedWindDirectionForecastCell'
 import ActualCell from 'features/moreCast2/components/ActualCell'
+import { MoreCast2Row } from '@/features/moreCast2/interfaces'
+import ModelHeader from '@/features/moreCast2/components/ModelHeader'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -36,19 +37,27 @@ export class GridComponentRenderer {
   ) => {
     return <ForecastHeader colDef={params.colDef} columnClickHandlerProps={columnClickHandlerProps} />
   }
-  public renderHeaderWith = (params: GridColumnHeaderParams) => {
+  public renderHeaderWith = (
+    params: Pick<GridColumnHeaderParams, 'field'> & {
+      colDef: Pick<GridColumnHeaderParams['colDef'], 'field' | 'headerName'>
+    },
+    allRows?: MoreCast2Row[]
+  ) => {
+    const headerName = params.colDef.headerName ?? ''
+
     if (params.field.endsWith('_BIAS')) {
-      const headerName = params.colDef.headerName ?? ''
       const index = headerName.indexOf('_BIAS')
       const prefix = headerName.slice(0, index)
       return (
         <div data-testid={`${params.colDef.field}-column-header`}>
-          <Box sx={{ height: '1rem' }}>{prefix}</Box>
-          <Box>bias</Box>
+          <Typography data-testid={`${params.colDef.field}-column-header`} style={{ fontSize: '14px' }}>
+            {prefix}
+          </Typography>
+          <Typography style={{ fontSize: '14px' }}>bias</Typography>
         </div>
       )
     }
-    return <div data-testid={`${params.colDef.field}-column-header`}>{params.colDef.headerName}</div>
+    return <ModelHeader params={params} allRows={allRows} />
   }
 
   public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue' | 'field' | 'row'>) => {

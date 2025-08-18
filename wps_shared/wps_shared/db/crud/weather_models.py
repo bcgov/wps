@@ -270,6 +270,7 @@ def get_latest_station_prediction(
         session.query(
             WeatherStationModelPrediction.prediction_timestamp,
             PredictionModel.abbreviation,
+            PredictionModelRunTimestamp.prediction_run_timestamp,
             WeatherStationModelPrediction.station_code,
             WeatherStationModelPrediction.rh_tgl_2,
             WeatherStationModelPrediction.tmp_tgl_2,
