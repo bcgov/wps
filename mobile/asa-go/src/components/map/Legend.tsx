@@ -137,7 +137,7 @@ const Legend = ({ layerVisibility, onLayerVisibilityChange }: LegendProps) => {
       </LegendTitle>
       <LegendItem
         label="Zone Unit Status"
-        checked={layerVisibility[ZONE_STATUS_LAYER_NAME] ?? true}
+        checked={layerVisibility[ZONE_STATUS_LAYER_NAME]}
         onChange={(_, checked) =>
           onLayerVisibilityChange(ZONE_STATUS_LAYER_NAME, checked)
         }
@@ -145,7 +145,7 @@ const Legend = ({ layerVisibility, onLayerVisibilityChange }: LegendProps) => {
       />
       <LegendItem
         label="HFI Potential (kW/m)"
-        checked={layerVisibility[HFI_LAYER_NAME] ?? false}
+        checked={layerVisibility[HFI_LAYER_NAME]}
         onChange={(_, checked) =>
           onLayerVisibilityChange(HFI_LAYER_NAME, checked)
         }
