@@ -97,19 +97,19 @@ jobs:
       - name: Build For Release
         run: |
           xcodebuild \
-          -workspace $PROJECT \
+          -workspace mobile/asa-go/ios/App/App.xcworkspace \
           -scheme "Keycloak" \
           -configuration Release \
           -sdk iphoneos \
-          -derivedDataPath $DATA_DIR \
-          -archivePath ${DATA_DIR}/${ARCHIVE_NAME} \
+          -derivedDataPath ${{ runner.temp }}/DerivedData \
+          -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
           archive
       - name: Export Archive 
         # This is the step that signs the build
         run: |
           xcodebuild \
           -exportArchive \
-          -archivePath ${DATA_DIR}/${ARCHIVE_NAME} \
-          -exportPath $EXPORT_DIR \
+          -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
+          -exportPath ${{ runner.temp }}/Export \
           -exportOptionsPlist exportOptions.plist \
           -verbose
