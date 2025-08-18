@@ -44,6 +44,11 @@ jobs:
       - name: Test with Coverage
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
+      - name: Download iOS 18 platform
+        run: |
+          sudo xcodebuild -license accept || true
+          sudo xcodebuild -downloadPlatform iOS
+          xcrun simctl list runtimes
       - name: Test Keycloak Swift Plugin
         working-directory: ./mobile/keycloak
         run: xcodebuild test -scheme "Keycloak" -destination "platform=iOS Simulator,name=iPhone 16 Pro" -enableCodeCoverage YES build test
