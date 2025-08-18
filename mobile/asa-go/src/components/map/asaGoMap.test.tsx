@@ -11,6 +11,15 @@ import {
 import { geolocationInitialState } from "@/slices/geolocationSlice";
 import { RunType } from "@/api/fbaAPI";
 
+vi.mock("@capacitor/filesystem", () => ({
+  Filesystem: {
+    readFile: vi.fn().mockResolvedValue({ data: JSON.stringify({}) }),
+    writeFile: vi.fn().mockResolvedValue(undefined),
+  },
+  Directory: { Data: "DATA" },
+  Encoding: { UTF8: "utf8" },
+}));
+
 setupOpenLayersMocks();
 class ResizeObserver {
   observe() {
@@ -129,7 +138,8 @@ describe("ASAGoMap", () => {
         for_date: DateTime.fromISO("2024-12-15"),
         run_type: RunType.FORECAST,
         run_date: DateTime.fromISO("2024-12-15T15:00:00Z"),
-      })
+      }),
+      true
     );
 
     store.dispatch({
@@ -151,7 +161,8 @@ describe("ASAGoMap", () => {
         for_date: DateTime.fromISO("2024-12-16"),
         run_type: RunType.FORECAST,
         run_date: DateTime.fromISO("2024-12-16T23:00:00Z"),
-      })
+      }),
+      true
     );
   });
 });

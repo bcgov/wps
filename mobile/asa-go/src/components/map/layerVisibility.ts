@@ -7,7 +7,7 @@ export interface LayerVisibility {
 
 export const defaultLayerVisibility: LayerVisibility = {
   [ZONE_STATUS_LAYER_NAME]: true,
-  [HFI_LAYER_NAME]: false,
+  [HFI_LAYER_NAME]: true,
 };
 
 const LAYER_VISIBILITY_FILE = "layer_visibility.json";
