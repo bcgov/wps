@@ -246,7 +246,6 @@ export const createMoreCast2Rows = (
           row.tempGDPS_BIAS = getNumberOrNaN(value.temperature)
           row.windDirectionGDPS_BIAS = getNumberOrNaN(value.wind_direction)
           row.windSpeedGDPS_BIAS = getNumberOrNaN(value.wind_speed)
-          row.predictionRunTimestampGDPS_BIAS = value.prediction_run_timestamp
           break
         case WeatherDeterminate.GFS:
           row.precipGFS = getNumberOrNaN(value.precipitation)
@@ -262,7 +261,6 @@ export const createMoreCast2Rows = (
           row.tempGFS_BIAS = getNumberOrNaN(value.temperature)
           row.windDirectionGFS_BIAS = getNumberOrNaN(value.wind_direction)
           row.windSpeedGFS_BIAS = getNumberOrNaN(value.wind_speed)
-          row.predictionRunTimestampGFS_BIAS = value.prediction_run_timestamp
           break
         case WeatherDeterminate.HRDPS:
           row.precipHRDPS = getNumberOrNaN(value.precipitation)
@@ -278,7 +276,6 @@ export const createMoreCast2Rows = (
           row.tempHRDPS_BIAS = getNumberOrNaN(value.temperature)
           row.windDirectionHRDPS_BIAS = getNumberOrNaN(value.wind_direction)
           row.windSpeedHRDPS_BIAS = getNumberOrNaN(value.wind_speed)
-          row.predictionRunTimestampHRDPS_BIAS = value.prediction_run_timestamp
           break
         case WeatherDeterminate.NAM:
           row.precipNAM = getNumberOrNaN(value.precipitation)
@@ -294,7 +291,6 @@ export const createMoreCast2Rows = (
           row.tempNAM_BIAS = getNumberOrNaN(value.temperature)
           row.windDirectionNAM_BIAS = getNumberOrNaN(value.wind_direction)
           row.windSpeedNAM_BIAS = getNumberOrNaN(value.wind_speed)
-          row.predictionRunTimestampNAM_BIAS = value.prediction_run_timestamp
           break
         case WeatherDeterminate.RDPS:
           row.precipRDPS = getNumberOrNaN(value.precipitation)
@@ -310,7 +306,6 @@ export const createMoreCast2Rows = (
           row.tempRDPS_BIAS = getNumberOrNaN(value.temperature)
           row.windDirectionRDPS_BIAS = getNumberOrNaN(value.wind_direction)
           row.windSpeedRDPS_BIAS = getNumberOrNaN(value.wind_speed)
-          row.predictionRunTimestampRDPS_BIAS = value.prediction_run_timestamp
           break
         default:
         // no-op
