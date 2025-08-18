@@ -81,7 +81,7 @@ jobs:
           echo "VITE_KEYCLOAK_CLIENT=${VITE_KEYCLOAK_CLIENT}" >>.env.production
           echo "VITE_PMTILES_BUCKET=${VITE_PMTILES_BUCKET}" >>.env.production
           echo "VITE_MUI_LICENSE_KEY=${VITE_MUI_LICENSE_KEY}" >>.env.production
-      - name: Bump Build No.
+      - name: Bump Build Number
         working-directory: mobile/asa-go/ios
         env:
           CURRENT_PROJECT_VERSION: ${{ env.appBuildNumber }}
@@ -89,7 +89,7 @@ jobs:
         run: |
           agvtool new-version ${CURRENT_PROJECT_VERSION} && \
           agvtool new-marketing-version ${MARKETING_VERSION}
-      - name: Build
+      - name: Build Capacitor and Sync
         working-directory: ./mobile/asa-go
         run: |
             yarn build:prod
