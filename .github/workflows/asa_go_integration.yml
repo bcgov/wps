@@ -10,7 +10,7 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: macos-15
+    runs-on: macos-14
     strategy:
       matrix:
         node-version: [20.x]
@@ -44,9 +44,11 @@ jobs:
       - name: Test with Coverage
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
+      - name: List available Xcode simulators
+        run: xcrun simctl list devices available
       - name: Test Keycloak Swift Plugin
         working-directory: ./mobile/keycloak
-        run: xcodebuild test -scheme "Keycloak" -destination "platform=iOS Simulator" -enableCodeCoverage YES build test
+        run: xcodebuild test -scheme "Keycloak" -destination "platform=iOS Simulator,name=iPhone 15" -enableCodeCoverage YES build test
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
