@@ -1,4 +1,4 @@
-name: Build and deploy ASA Go
+name: ASA Go - Build and deploy 
 
 env:
   appBuildNumber: ${{ github.run_number }}
