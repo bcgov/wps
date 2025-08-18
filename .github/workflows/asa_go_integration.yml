@@ -59,15 +59,17 @@ jobs:
         working-directory: ./mobile/keycloak
         if: steps.asa-go-keycloak-cache.outputs.cache-hit != 'true'
         run: yarn install
-      - name: Setup Xcode and check available platforms
+      - name: Setup iOS Simulator
         run: |
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-          xcodebuild -version
-          xcrun simctl list runtimes
-          xcrun simctl list devices available
+          xcrun simctl list runtimes | head -20
+          xcrun simctl list devices | head -20
+          # Try to create a simple simulator
+          xcrun simctl create TestDevice "iPhone 16" || xcrun simctl create TestDevice "iPhone 15" || true
+          xcrun simctl list devices | grep TestDevice || true
       - name: Test Keycloak Swift Plugin
         working-directory: ./mobile/keycloak
-        run: xcodebuild test -scheme "Keycloak" -destination "platform=macOS,variant=Mac Catalyst" -enableCodeCoverage YES build test
+        run: xcodebuild test -scheme "Keycloak" -destination "generic/platform=iOS Simulator" -enableCodeCoverage YES build test
       - name: Upload Swift plugin test coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
