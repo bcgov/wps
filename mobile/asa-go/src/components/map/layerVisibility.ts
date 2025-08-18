@@ -22,7 +22,7 @@ export const loadLayerVisibility = async (
       encoding: Encoding.UTF8,
     });
     const parsed: LayerVisibility = JSON.parse(result.data as string);
-    return { ...defaultVisibility, ...parsed };
+    return { ...defaultVisibility, ...parsed, [ZONE_STATUS_LAYER_NAME]: true };
   } catch {
     // file may not exist yet; use defaults
     return defaultVisibility;

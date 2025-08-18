@@ -230,19 +230,12 @@ const ASAGoMap = ({
   // Update OpenLayers layers when visibility changes
   useEffect(() => {
     if (!map) return;
-    map
-      .getLayers()
-      .getArray()
-      .forEach((layer) => {
-        const name = layer.getProperties()?.name;
-        if (
-          name &&
-          name !== ZONE_STATUS_LAYER_NAME &&
-          name in layerVisibility
-        ) {
-          layer.setVisible(layerVisibility[name]);
-        }
-      });
+
+    if (hfiLayerRef.current) {
+      hfiLayerRef.current.setVisible(layerVisibility[HFI_LAYER_NAME]);
+    }
+
+    // fireZoneFileLayer: always visible, style managed elsewhere
   }, [map, layerVisibility]);
 
   // center map when position is updated after requesting location
