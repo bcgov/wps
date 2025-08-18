@@ -44,8 +44,8 @@ jobs:
       - name: Test with Coverage
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
-      - name: List available Xcode simulators
-        run: xcrun simctl list devices available
+      - name: Install ios sim
+        run: xcodebuild -downloadPlatform iOS
       - name: Test Keycloak Swift Plugin
         working-directory: ./mobile/keycloak
         run: xcodebuild test -scheme "Keycloak" -destination "platform=iOS Simulator,name=iPhone 15" -enableCodeCoverage YES build test
