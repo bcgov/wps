@@ -131,7 +131,7 @@ const Legend = ({ layerVisibility, onLayerVisibilityChange }: LegendProps) => {
   ];
 
   return (
-    <LegendGrid padding={"0 0.5rem"} data-testid={`asa-map-legend`}>
+    <LegendGrid padding={"0 0.5rem"} data-testid={`asa-go-map-legend`}>
       <LegendTitle align="center" gutterBottom>
         Layers
       </LegendTitle>
