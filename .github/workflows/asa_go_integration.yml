@@ -10,7 +10,7 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: macos-15
+    runs-on: macos-latest
     strategy:
       matrix:
         node-version: [20.x]
