@@ -1,5 +1,4 @@
-import React from 'react'
-import { Box, IconButton, TextField, Tooltip, Typography } from '@mui/material'
+import { TextField, Typography } from '@mui/material'
 import {
   GridColumnHeaderParams,
   GridRenderCellParams,
@@ -7,8 +6,7 @@ import {
   GridValueGetterParams,
   GridValueSetterParams
 } from '@mui/x-data-grid-pro'
-import { Info as InfoIcon } from '@mui/icons-material'
-import { ModelChoice, WeatherDeterminate, weatherModelsWithTooltips } from 'api/moreCast2API'
+import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
 import { createWeatherModelLabel, isBeforeToday, isForecastRow, rowContainsActual } from 'features/moreCast2/util'
 import {
   GC_HEADER,
@@ -27,7 +25,6 @@ import ValidatedGrassCureForecastCell from '@/features/moreCast2/components/Vali
 import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/ValidatedWindDirectionForecastCell'
 import ActualCell from 'features/moreCast2/components/ActualCell'
 import { MoreCast2Row } from '@/features/moreCast2/interfaces'
-import { DateTime } from 'luxon'
 import ModelHeader from '@/features/moreCast2/components/ModelHeader'
 
 export const NOT_AVAILABLE = 'N/A'

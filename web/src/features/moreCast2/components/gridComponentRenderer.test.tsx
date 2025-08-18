@@ -382,13 +382,6 @@ describe('GridComponentRenderer', () => {
         predictionRunTimestampGFS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO()
       }
     ]
-    const mockParams = {
-      field: WeatherDeterminate.RDPS,
-      colDef: {
-        field: WeatherDeterminate.RDPS,
-        headerName: WeatherDeterminate.RDPS
-      }
-    }
     const createMockParams = (determinate: WeatherDeterminate) => ({
       field: determinate,
       colDef: {

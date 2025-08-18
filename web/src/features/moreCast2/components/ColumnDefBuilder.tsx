@@ -10,7 +10,7 @@ import {
   GridValueGetterParams,
   GridValueSetterParams
 } from '@mui/x-data-grid-pro'
-import { WeatherDeterminate, WeatherDeterminateType, weatherModelsWithTooltips } from 'api/moreCast2API'
+import { WeatherDeterminate, WeatherDeterminateType } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { modelColorClass, modelHeaderColorClass } from 'app/theme'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'

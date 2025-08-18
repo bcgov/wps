@@ -1,5 +1,4 @@
-import React from 'react'
-import { fireEvent, prettyDOM, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { DateTime } from 'luxon'
 import ModelHeader from './ModelHeader'
 import { WeatherDeterminate, weatherModelsWithTooltips } from '@/api/moreCast2API'
@@ -229,7 +228,7 @@ describe('ModelHeader', () => {
 
   describe('component props', () => {
     it('should handle undefined headerName', () => {
-      const params = createMockParams('test', undefined)
+      const params = createMockParams('test')
 
       const { getByTestId } = render(<ModelHeader params={params} />)
 
