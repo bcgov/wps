@@ -5,7 +5,7 @@ from enum import Enum
 from time import perf_counter
 from typing import List, Optional, Tuple
 
-from sqlalchemy import String, and_, cast, extract, func, select
+from sqlalchemy import String, and_, cast, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -379,7 +379,11 @@ async def get_run_datetimes(
     """
     stmt = (
         select(RunParameters.run_datetime)
-        .where(RunParameters.run_type == run_type.value, RunParameters.for_date == for_date)
+        .where(
+            RunParameters.run_type == run_type.value,
+            RunParameters.for_date == for_date,
+            RunParameters.complete.is_(True),
+        )
         .distinct()
         .order_by(RunParameters.run_datetime.desc())
     )
@@ -396,7 +400,7 @@ async def get_most_recent_run_datetime_for_date(session: AsyncSession, for_date:
     """
     stmt = (
         select(RunParameters)
-        .where(RunParameters.for_date == for_date)
+        .where(RunParameters.for_date == for_date, RunParameters.complete.is_(True))
         .order_by(RunParameters.run_datetime.desc())
     )
     result = await session.execute(stmt)
@@ -431,7 +435,10 @@ async def get_most_recent_run_parameters(
     """
     stmt = (
         select(RunParameters)
-        .where(RunParameters.run_type == run_type.value, RunParameters.for_date == for_date)
+        .where(
+            RunParameters.run_type == run_type.value,
+            RunParameters.for_date == for_date,
+        )
         .distinct()
         .order_by(RunParameters.run_datetime.desc())
         .limit(1)
@@ -451,6 +458,27 @@ async def get_run_parameters_by_id(session: AsyncSession, id: int) -> RunParamet
     stmt = select(RunParameters).where(RunParameters.id == id)
     result = await session.execute(stmt)
     return result.first()
+
+
+async def get_run_parameters(
+    session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
+) -> RunParameters:
+    """
+    Retrieve the RunParameters record for the specified run type, run datetime, and for date.
+
+    :param session: Async database session.
+    :param run_type: Type of run (forecast or actual).
+    :param run_datetime: The datetime of the run.
+    :param for_date: The date of interest.
+    :return: The RunParameters record for the specified run type, run datetime, and for date.
+    """
+    stmt = select(RunParameters).where(
+        RunParameters.run_type == run_type.value,
+        RunParameters.run_datetime == run_datetime,
+        RunParameters.for_date == for_date,
+    )
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
 
 
 async def get_high_hfi_area(
@@ -554,8 +582,11 @@ async def calculate_high_hfi_areas(
 
 
 async def get_run_parameters_id(
-    session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
-) -> List[Row]:
+    session: AsyncSession,
+    run_type: RunType,
+    run_datetime: datetime,
+    for_date: date,
+) -> Optional[int]:
     stmt = select(RunParameters.id).where(
         cast(RunParameters.run_type, String) == run_type.value,
         RunParameters.run_datetime == run_datetime,
@@ -579,6 +610,28 @@ async def save_run_parameters(
     await session.execute(stmt)
 
 
+async def mark_run_parameter_complete(
+    session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
+):
+    run_parameters = await get_run_parameters(session, run_type, run_datetime, for_date)
+    if not run_parameters:
+        logger.info(
+            f"Run parameters already marked as complete for {run_type} {run_datetime} {for_date}"
+        )
+
+    if run_parameters.complete:
+        logger.info(
+            f"Run parameters already marked as complete for {run_type} {run_datetime} {for_date}"
+        )
+        return
+
+    stmt = update(RunParameters).where(RunParameters.id == run_parameters.id).values(complete=True)
+    logger.info(
+        f"Marking run parameter {run_parameters.id} as complete for {run_type} {run_datetime} {for_date}"
+    )
+    await session.execute(stmt)
+
+
 async def save_advisory_elevation_stats(
     session: AsyncSession, advisory_elevation_stats: AdvisoryElevationStats
 ):
@@ -589,38 +642,6 @@ async def save_advisory_elevation_tpi_stats(
     session: AsyncSession, advisory_elevation_stats: List[AdvisoryTPIStats]
 ):
     session.add_all(advisory_elevation_stats)
-
-
-async def get_zonal_elevation_stats(
-    session: AsyncSession,
-    fire_zone_id: int,
-    run_type: RunType,
-    run_datetime: datetime,
-    for_date: date,
-) -> List[Row]:
-    run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
-    stmt = select(Shape.id).where(Shape.source_identifier == str(fire_zone_id))
-    result = await session.execute(stmt)
-    shape_id = result.scalar()
-
-    stmt = (
-        select(
-            AdvisoryElevationStats.advisory_shape_id,
-            AdvisoryElevationStats.minimum,
-            AdvisoryElevationStats.quartile_25,
-            AdvisoryElevationStats.median,
-            AdvisoryElevationStats.quartile_75,
-            AdvisoryElevationStats.maximum,
-            AdvisoryElevationStats.threshold,
-        )
-        .where(
-            AdvisoryElevationStats.advisory_shape_id == shape_id,
-            AdvisoryElevationStats.run_parameters == run_parameters_id,
-        )
-        .order_by(AdvisoryElevationStats.threshold)
-    )
-
-    return await session.execute(stmt)
 
 
 async def get_zonal_tpi_stats(

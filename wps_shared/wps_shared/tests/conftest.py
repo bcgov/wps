@@ -1,33 +1,32 @@
 """Global fixtures"""
 
-from datetime import timezone, datetime
 import logging
-from typing import Optional
-from aiohttp import ClientSession
+from datetime import datetime, timezone
 from unittest.mock import MagicMock
-import requests
+
 import pytest
+import requests
+from aiohttp import ClientSession
 from pytest_mock import MockerFixture
-from wps_shared.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
+
+
+import wps_shared.db.database
+import wps_shared.utils.redis
 import wps_shared.utils.s3
-from wps_shared.utils.time import get_pst_tz, get_utc_now
 import wps_shared.utils.time
 from wps_shared import auth
+from wps_shared.schemas.shared import WeatherDataRequest
 from wps_shared.tests.common import (
     MockJWTDecode,
     MockTestIDIRJWTDecode,
     default_aiobotocore_get_session,
+    default_mock_client_get,
     default_mock_requests_get,
     default_mock_requests_post,
-    default_mock_client_get,
     default_mock_requests_session_get,
     default_mock_requests_session_post,
 )
-import wps_shared.db.database
-from wps_shared.weather_models import ModelEnum, ProjectionEnum
-from wps_shared.schemas.shared import WeatherDataRequest
-import wps_shared.wildfire_one.wildfire_fetchers
-import wps_shared.utils.redis
+from wps_shared.utils.time import get_pst_tz
 
 logger = logging.getLogger(__name__)
 

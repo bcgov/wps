@@ -82,3 +82,5 @@ echo Configure hourly pruner
 PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 2 * * *" bash $(dirname ${0})/oc_provision_hourly_prune_cronjob.sh prod ${RUN_TYPE}
 echo Configure
 PROJ_TARGET=${PROJ_TARGET} CERTBOT_STAGING=false DRYRUN=false bash $(dirname ${0})/oc_provision_certbot_cronjob.sh
+echo Logging alerts
+oc apply -f $(dirname ${0})/../logging-alerts/nats_alerts.yaml

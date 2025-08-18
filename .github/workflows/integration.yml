@@ -238,7 +238,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v4
         with:

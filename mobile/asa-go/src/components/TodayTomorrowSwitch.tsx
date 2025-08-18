@@ -1,5 +1,5 @@
 import { Box, Button, styled } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import { MAP_BUTTON_GREY } from "@/theme";
 import { BORDER_RADIUS, BUTTON_HEIGHT } from "@/components/MapIconButton";
@@ -49,6 +49,10 @@ const TodayTomorrowSwitch = ({
   const [value, setValue] = useState<number>(
     date.day === DateTime.now().day ? 0 : 1
   );
+
+  useEffect(() => {
+    setValue(date.day === DateTime.now().day ? 0 : 1);
+  }, [date]);
 
   const handleDayChange = (newValue: number) => {
     if (value !== newValue) {
