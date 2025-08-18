@@ -1,4 +1,4 @@
-name: ASA Go - Build and deploy 
+name: ASA Go
 
 env:
   appBuildNumber: ${{ github.run_number }}
@@ -36,7 +36,7 @@ jobs:
             KEYCHAIN_PASSWD: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_PASSWD }}
             # PROVISIONING_PROFILE: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
   build-and-publish:
-    name: Build and test ASA Go
+    name: Build and deploy 
     needs: [check-secrets]
     runs-on: macos-latest
     steps:
