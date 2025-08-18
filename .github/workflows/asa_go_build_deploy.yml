@@ -1,5 +1,9 @@
 name: Build and deploy ASA Go
 
+env:
+  appBuildNumber: ${{ github.run_number }}
+  appBuildVersion: "1.0.0"
+
 permissions:
   contents: read
 
@@ -10,9 +14,31 @@ on:
   workflow_dispatch:
 
 jobs:
+  check-secrets:
+    runs-on: ubuntu-22.04
+    steps:
+        - name: Check secrets
+          shell: bash
+          run: |
+            required_env_vars=(
+            "CERTIFICATE"
+            "KEYCHAIN_PASSWD"
+            "PROVISIONING_PROFILE"
+            )
+            for var in "${required_env_vars[@]}"; do
+            if [ -z "${!var}" ]; then
+                echo "error: $var is not set."
+                exit 1
+            fi
+            done
+          env:
+            CERTIFICATE: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_BASE64 }}
+            KEYCHAIN_PASSWD: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_PASSWD }}
+            PROVISIONING_PROFILE: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
   build-and-publish:
     name: Build and test ASA Go
-    runs-on: ubuntu-24.04
+    needs: [check-secrets]
+    runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,9 +81,35 @@ jobs:
           echo "VITE_KEYCLOAK_CLIENT=${VITE_KEYCLOAK_CLIENT}" >>.env.production
           echo "VITE_PMTILES_BUCKET=${VITE_PMTILES_BUCKET}" >>.env.production
           echo "VITE_MUI_LICENSE_KEY=${VITE_MUI_LICENSE_KEY}" >>.env.production
+      - name: Bump Build No.
+        working-directory: mobile/asa-go/ios
+        env:
+          CURRENT_PROJECT_VERSION: ${{ env.appBuildNumber }}
+          MARKETING_VERSION: ${{ env.appBuildVersion }}
+        run: |
+          agvtool new-version ${CURRENT_PROJECT_VERSION} && \
+          agvtool new-marketing-version ${MARKETING_VERSION}
       - name: Build
         working-directory: ./mobile/asa-go
         run: |
             yarn build:prod
             yarn cap sync ios
-
+      - name: Build For Release
+        run: |
+          xcodebuild \
+          -workspace $PROJECT \
+          -scheme "Keycloak" \
+          -configuration Release \
+          -sdk iphoneos \
+          -derivedDataPath $DATA_DIR \
+          -archivePath ${DATA_DIR}/${ARCHIVE_NAME} \
+          archive
+      - name: Export Archive 
+        # This is the step that signs the build
+        run: |
+          xcodebuild \
+          -exportArchive \
+          -archivePath ${DATA_DIR}/${ARCHIVE_NAME} \
+          -exportPath $EXPORT_DIR \
+          -exportOptionsPlist exportOptions.plist \
+          -verbose
