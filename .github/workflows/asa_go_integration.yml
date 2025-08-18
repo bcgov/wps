@@ -10,7 +10,7 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: macos-15
+    runs-on: macos-latest
     strategy:
       matrix:
         node-version: [20.x]
@@ -44,6 +44,15 @@ jobs:
       - name: Test with Coverage
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
+      - name: Use Xcode 16.4
+        uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd
+        with:
+          xcode-version: "16.4"
+      - name: Download iOS 18 platform
+        run: |
+          sudo xcodebuild -license accept || true
+          sudo xcodebuild -downloadPlatform iOS
+          xcrun simctl list runtimes
       - name: Test Keycloak Swift Plugin
         working-directory: ./mobile/keycloak
         run: xcodebuild test -scheme "Keycloak" -destination "platform=iOS Simulator,name=iPhone 16 Pro" -enableCodeCoverage YES build test
