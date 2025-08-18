@@ -8,6 +8,9 @@ permissions:
   contents: read
 
 on:
+  push:
+    branches:
+      - task/build-and-deploy-asa-go
   workflow_dispatch:
 
 jobs:
