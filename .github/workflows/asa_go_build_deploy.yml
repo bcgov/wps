@@ -20,7 +20,7 @@ jobs:
             required_env_vars=(
             "CERTIFICATE"
             "KEYCHAIN_PASSWD"
-            "PROVISIONING_PROFILE"
+            # "PROVISIONING_PROFILE"
             )
             for var in "${required_env_vars[@]}"; do
             if [ -z "${!var}" ]; then
@@ -31,7 +31,7 @@ jobs:
           env:
             CERTIFICATE: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_BASE64 }}
             KEYCHAIN_PASSWD: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_PASSWD }}
-            PROVISIONING_PROFILE: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
+            # PROVISIONING_PROFILE: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
   build-and-publish:
     name: Build and test ASA Go
     needs: [check-secrets]
