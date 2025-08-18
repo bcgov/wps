@@ -108,7 +108,7 @@ const ForecastDataGrid = ({
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellDoubleClick={onCellDoubleClickHandler}
         loading={loading}
-        columns={DataGridColumns.getTabColumns(columnClickHandlerProps)}
+        columns={DataGridColumns.getTabColumns(columnClickHandlerProps, allMoreCast2Rows)}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
         rows={allMoreCast2Rows}
         processRowUpdate={processRowUpdate}
