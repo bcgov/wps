@@ -44,6 +44,10 @@ jobs:
       - name: Test with Coverage
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
+      - name: Use Xcode 16.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "16.4"
       - name: Download iOS 18 platform
         run: |
           sudo xcodebuild -license accept || true
