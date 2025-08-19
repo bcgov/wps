@@ -139,8 +139,33 @@ jobs:
             yarn cap sync ios
       - name: Build For Release
         run: |
-          # First, let's see if we can build successfully by skipping the problematic Pods
-          # We'll modify the scheme to exclude the problematic Pods targets
+          # Directly modify the project file to use manual signing for the main target
+          cd mobile/asa-go/ios/App
+          
+          # Backup the original project file
+          cp App.xcodeproj/project.pbxproj App.xcodeproj/project.pbxproj.backup
+          
+          # Replace automatic signing with manual signing in the project file
+          # This targets the main app's Release configuration specifically
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' App.xcodeproj/project.pbxproj
+          
+          # Add our signing settings to the Release configuration for the main target
+          # Find the Release configuration that has PRODUCT_BUNDLE_IDENTIFIER = ca.bc.gov.asago
+          awk '
+          BEGIN { in_release_config = 0; found_bundle_id = 0 }
+          /name = Release;/ { in_release_config = 1; found_bundle_id = 0; next }
+          in_release_config && /PRODUCT_BUNDLE_IDENTIFIER = ca\.bc\.gov\.asago/ { found_bundle_id = 1 }
+          in_release_config && found_bundle_id && /};$/ { 
+            print "\t\t\t\tCODE_SIGN_IDENTITY = \"Apple Distribution: Government of British Columbia (L796QSLV3E)\";"
+            print "\t\t\t\tDEVELOPMENT_TEAM = L796QSLV3E;"
+            print "\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"0f953119-eb72-44d5-bf7f-6315c95aa00e\";"
+            in_release_config = 0; found_bundle_id = 0
+          }
+          { print }
+          ' App.xcodeproj/project.pbxproj > App.xcodeproj/project.pbxproj.tmp && mv App.xcodeproj/project.pbxproj.tmp App.xcodeproj/project.pbxproj
+          
+          cd ../../../..
+          
           xcodebuild \
           -workspace mobile/asa-go/ios/App/App.xcworkspace \
           -scheme "ASA Go" \
@@ -149,7 +174,6 @@ jobs:
           -derivedDataPath ${{ runner.temp }}/DerivedData \
           -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
           -verbose \
-          -skipUnavailableActions \
           archive
       - name: Export Archive
         # This is the step that signs the build
