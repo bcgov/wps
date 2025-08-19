@@ -127,13 +127,12 @@ jobs:
           
           # Archive the app
           xcodebuild \
-          -workspace ASA-Go.xcworkspace' \
-          -scheme ASA-Go \
-          -configuration Release \
-          -sdk iphoneos \
-          -derivedDataPath xcbuild \
-          -archivePath xcbuild/ASA-Go.xcarchive \
-          archive
+            -workspace App.xcworkspace \
+            -scheme "ASA Go" \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath ${{ runner.temp }}/ASA-Go.xcarchive \
+            archive
       - name: Export IPA
         working-directory: mobile/asa-go/ios/App
         run: |
