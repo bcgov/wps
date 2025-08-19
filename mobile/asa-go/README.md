@@ -41,3 +41,7 @@ pmtiles extract https://build.protomaps.com/20250326.pmtiles bc_basemap_20250326
 - The pmtiles data was sourced from the Protomaps Basemap daily build which is derived from OpenStreetMap. See https://docs.protomaps.com/basemaps/downloads.
 - The MapBox/MapLibre style for the pmtiles basemap was generated using the [protomaps/basemaps styles package](https://github.com/protomaps/basemaps/tree/main/styles). The style can also be created at https://maps.protomaps.com/.
 - The MapBox/MapLibre style is applied to the OpenLayers VectorTile layer using [ol-mapbox-style](https://github.com/openlayers/ol-mapbox-style)'s `applyStyle` function.
+
+### Distributing 
+
+Run: `gh workflow run "Publish ASA Go"`
