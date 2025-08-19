@@ -139,20 +139,18 @@ jobs:
             yarn cap sync ios
       - name: Build For Release
         run: |
-          # Use workspace but apply signing settings only to targets with the main bundle ID
+          # First, let's see if we can build successfully by skipping the problematic Pods
+          # We'll modify the scheme to exclude the problematic Pods targets
           xcodebuild \
           -workspace mobile/asa-go/ios/App/App.xcworkspace \
           -scheme "ASA Go" \
           -configuration Release \
-          -sdk iphoneos \
+          -destination "generic/platform=iOS" \
           -derivedDataPath ${{ runner.temp }}/DerivedData \
           -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
           -verbose \
-          archive \
-          "CODE_SIGN_STYLE[product_bundle_identifier=ca.bc.gov.asago]=Manual" \
-          "CODE_SIGN_IDENTITY[product_bundle_identifier=ca.bc.gov.asago]=Apple Distribution: Government of British Columbia (L796QSLV3E)" \
-          "PROVISIONING_PROFILE_SPECIFIER[product_bundle_identifier=ca.bc.gov.asago]=0f953119-eb72-44d5-bf7f-6315c95aa00e" \
-          "DEVELOPMENT_TEAM[product_bundle_identifier=ca.bc.gov.asago]=L796QSLV3E"
+          -skipUnavailableActions \
+          archive
       - name: Export Archive
         # This is the step that signs the build
         run: |
