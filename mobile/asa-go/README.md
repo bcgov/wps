@@ -43,5 +43,6 @@ pmtiles extract https://build.protomaps.com/20250326.pmtiles bc_basemap_20250326
 - The MapBox/MapLibre style is applied to the OpenLayers VectorTile layer using [ol-mapbox-style](https://github.com/openlayers/ol-mapbox-style)'s `applyStyle` function.
 
 ### Distributing 
-This will build and publish the app that is on the `main` branch.
+Bump `appBuildVersion` appropriately via semvar, in `.github/workflows/asa_go_build_deploy.yml`.
 Run: `gh workflow run "Publish ASA Go"`
+This will build and publish the app that is on the `main` branch.
