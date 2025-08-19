@@ -146,6 +146,7 @@ jobs:
           -destination "generic/platform=iOS" \
           -derivedDataPath ${{ runner.temp }}/DerivedData \
           -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
+          -xcconfig mobile/asa-go/ios/App/release.xcconfig \
           -verbose \
           archive
       - name: Export Archive
