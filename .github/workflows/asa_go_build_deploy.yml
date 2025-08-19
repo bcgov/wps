@@ -118,13 +118,15 @@ jobs:
           # Install provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
-      - name: Build and Archive
+      - name: Bump Build Number
         working-directory: mobile/asa-go/ios/App
         run: |
           # Update version and build number
           agvtool new-version ${{ env.appBuildNumber }}
           agvtool new-marketing-version ${{ env.appBuildVersion }}
-          
+      - name: Build and Archive
+        working-directory: mobile/asa-go/ios/App
+        run: |         
           # Archive the app
           xcodebuild \
             -workspace App.xcworkspace \
@@ -141,3 +143,9 @@ jobs:
             -archivePath ${{ runner.temp }}/ASA-Go.xcarchive \
             -exportPath ${{ runner.temp }}/export \
             -exportOptionsPlist exportOptions.plist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Exported
+          path: app/ios/App/export/ASA-Go.ipa
+          retention-days: 1
+          if-no-files-found: error
