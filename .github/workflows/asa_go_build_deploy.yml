@@ -141,14 +141,17 @@ jobs:
         run: |
           xcodebuild \
           -workspace mobile/asa-go/ios/App/App.xcworkspace \
-          -target "ASA Go" \
+          -scheme "ASA Go" \
           -configuration Release \
           -destination "generic/platform=iOS" \
           -derivedDataPath ${{ runner.temp }}/DerivedData \
           -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
-          -xcconfig mobile/asa-go/ios/App/release.xcconfig \
           -verbose \
-          archive
+          archive \
+          CODE_SIGN_STYLE=Manual \
+          CODE_SIGN_IDENTITY="Apple Distribution: Government of British Columbia (L796QSLV3E)" \
+          PROVISIONING_PROFILE_SPECIFIER="0f953119-eb72-44d5-bf7f-6315c95aa00e" \
+          DEVELOPMENT_TEAM="L796QSLV3E"
       - name: Export Archive
         # This is the step that signs the build
         run: |
