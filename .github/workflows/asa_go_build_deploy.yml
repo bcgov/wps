@@ -143,5 +143,5 @@ jobs:
           -exportArchive \
           -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
           -exportPath ${{ runner.temp }}/Export \
-          -exportOptionsPlist exportOptions.plist \
+          -exportOptionsPlist mobile/asa-go/ios/App/exportOptions.plist \
           -verbose
