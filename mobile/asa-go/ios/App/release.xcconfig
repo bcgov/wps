@@ -1,9 +1,0 @@
-// Only apply manual signing to the main app, not to dependencies
-CODE_SIGN_STYLE = Manual
-CODE_SIGN_IDENTITY = Apple Distribution: Government of British Columbia (L796QSLV3E)
-PROVISIONING_PROFILE_SPECIFIER = 0f953119-eb72-44d5-bf7f-6315c95aa00e
-DEVELOPMENT_TEAM = L796QSLV3E
-PRODUCT_BUNDLE_IDENTIFIER = ca.bc.gov.asago
-
-// Don't override signing for targets that don't need it
-CODE_SIGN_STYLE[config=Release][sdk=iphoneos*] = Manual
