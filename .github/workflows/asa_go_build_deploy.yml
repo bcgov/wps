@@ -8,6 +8,9 @@ permissions:
   contents: read
 
 on:
+  push:
+    branches:
+      - task/build-and-deploy-asa-go
   workflow_dispatch:
 
 jobs:
@@ -84,6 +87,14 @@ jobs:
 
       - name: Build Capacitor and Sync
         working-directory: ./mobile/asa-go
+        env:
+          # Make sure VITE vars are also available during build
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_KEYCLOAK_AUTH_URL: ${{ secrets.VITE_KEYCLOAK_AUTH_URL }}
+          VITE_KEYCLOAK_REALM: ${{ secrets.VITE_KEYCLOAK_REALM }}
+          VITE_KEYCLOAK_CLIENT: ${{ secrets.VITE_KEYCLOAK_CLIENT }}
+          VITE_PMTILES_BUCKET: ${{ secrets.VITE_PMTILES_BUCKET }}
+          VITE_MUI_LICENSE_KEY: ${{ secrets.VITE_MUI_LICENSE_KEY }}
         run: |
             yarn build:prod
             yarn cap sync ios
