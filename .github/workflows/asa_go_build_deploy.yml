@@ -141,7 +141,7 @@ jobs:
         run: |
           xcodebuild \
           -workspace mobile/asa-go/ios/App/App.xcworkspace \
-          -scheme "ASA Go" \
+          -target "ASA Go" \
           -configuration Release \
           -destination "generic/platform=iOS" \
           -derivedDataPath ${{ runner.temp }}/DerivedData \
