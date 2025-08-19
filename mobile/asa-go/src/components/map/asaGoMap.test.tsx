@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { DateTime } from "luxon";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { userEvent } from "@testing-library/user-event";
 import ASAGoMap, { ASAGoMapProps } from "@/components/map/ASAGoMap";
 import {
   createTestStore,
@@ -164,5 +165,21 @@ describe("ASAGoMap", () => {
       }),
       true
     );
+  });
+  it("renders the layer switcher button and legend on click", async () => {
+    const store = createTestStore();
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    );
+
+    const legendButton = getByTestId("legend-toggle-button");
+    expect(legendButton).toBeInTheDocument();
+
+    await userEvent.click(legendButton);
+    const legendPopover = getByTestId("asa-go-map-legend-popover");
+    expect(legendPopover).toBeInTheDocument();
   });
 });

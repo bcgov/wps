@@ -18,6 +18,7 @@ const LegendPopover = ({
   const open = Boolean(anchorEl);
   return (
     <Popover
+      data-testid="asa-go-map-legend-popover"
       open={open}
       anchorEl={anchorEl}
       onClose={onClose}
