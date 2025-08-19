@@ -129,7 +129,7 @@ jobs:
         run: |
           xcodebuild \
           -workspace mobile/asa-go/ios/App/App.xcworkspace \
-          -scheme "Keycloak" \
+          -scheme "ASA Go" \
           -configuration Release \
           -sdk iphoneos \
           -derivedDataPath ${{ runner.temp }}/DerivedData \
