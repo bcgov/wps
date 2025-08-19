@@ -146,6 +146,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ASA-Go-IPA
-          path: ${{ runner.temp }}/export/ASA-Go.ipa
+          path: ${{ runner.temp }}/export/*.ipa
           retention-days: 1
           if-no-files-found: error
