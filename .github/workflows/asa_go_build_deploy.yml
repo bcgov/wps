@@ -149,3 +149,16 @@ jobs:
           path: ${{ runner.temp }}/export/*.ipa
           retention-days: 1
           if-no-files-found: error
+
+      - name: Push to app store
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_KEY_IDENTIFIER_95 }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY_95 }}
+        working-directory: mobile/asa-go/ios/App
+        run: |
+          mkdir $HOME/.private_keys/
+          echo -n "$APP_STORE_CONNECT_PRIVATE_KEY" > $HOME/.private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8
+
+          xcrun altool --validate-app -f ${{ runner.temp }}/export/*.ipa -t ios --apiKey ${APP_STORE_CONNECT_KEY_IDENTIFIER} --apiIssuer ${APP_STORE_CONNECT_ISSUER_ID}
+          xcrun altool --upload-app -f ${{ runner.temp }}/export/*.ipa -t ios --apiKey ${APP_STORE_CONNECT_KEY_IDENTIFIER} --apiIssuer ${APP_STORE_CONNECT_ISSUER_ID}
