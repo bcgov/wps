@@ -146,8 +146,8 @@ jobs:
           -sdk iphoneos \
           -derivedDataPath ${{ runner.temp }}/DerivedData \
           -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
+          -xcconfig mobile/asa-go/ios/App/release.xcconfig \
           -verbose \
-          -allowProvisioningUpdates \
           archive
       - name: Export Archive
         # This is the step that signs the build
