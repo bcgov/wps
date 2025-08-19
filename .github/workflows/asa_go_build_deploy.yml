@@ -147,11 +147,8 @@ jobs:
           -derivedDataPath ${{ runner.temp }}/DerivedData \
           -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
           -verbose \
-          archive \
-          CODE_SIGN_STYLE=Manual \
-          CODE_SIGN_IDENTITY="Apple Distribution: Government of British Columbia (L796QSLV3E)" \
-          PROVISIONING_PROFILE_SPECIFIER="0f953119-eb72-44d5-bf7f-6315c95aa00e" \
-          DEVELOPMENT_TEAM="L796QSLV3E"
+          -allowProvisioningUpdates \
+          archive
       - name: Export Archive
         # This is the step that signs the build
         run: |
