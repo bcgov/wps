@@ -111,7 +111,19 @@ jobs:
 
           # apply provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles  
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+          
+          # Debug: Check provisioning profile details
+          echo "=== Provisioning Profile Details ==="
+          security cms -D -i $PP_PATH | plutil -p -
+          
+          # Debug: List installed provisioning profiles
+          echo "=== Installed Provisioning Profiles ==="
+          ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
+          
+          # Debug: Check certificates in keychain
+          echo "=== Certificates in Keychain ==="
+          security find-identity -v -p codesigning $KEYCHAIN_PATH  
       - name: Bump Build Number
         working-directory: mobile/asa-go/ios/App
         env:
