@@ -145,7 +145,7 @@ jobs:
             -exportOptionsPlist exportOptions.plist
       - uses: actions/upload-artifact@v4
         with:
-          name: Exported
-          path: app/ios/App/export/ASA-Go.ipa
+          name: ASA-Go-IPA
+          path: ${{ runner.temp }}/export/ASA-Go.ipa
           retention-days: 1
           if-no-files-found: error
