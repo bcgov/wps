@@ -131,7 +131,7 @@ jobs:
           -workspace mobile/asa-go/ios/App/App.xcworkspace \
           -scheme "ASA Go" \
           -configuration Release \
-          -sdk iphoneos \
+          -destination "generic/platform=iOS" \
           -derivedDataPath ${{ runner.temp }}/DerivedData \
           -archivePath ${{ runner.temp }}/DerivedData/App.xcarchive \
           -verbose \
