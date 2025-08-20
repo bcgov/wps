@@ -123,8 +123,6 @@ const ASAGoMap = ({
   const [legendAnchorEl, setLegendAnchorEl] =
     useState<HTMLButtonElement | null>(null);
 
-  const hfiLayerRef = useRef<VectorTileLayer | null>(null);
-
   const [fireZoneFileLayer] = useState<VectorTileLayer>(
     new VectorTileLayer({
       style: fireShapeStyler(
@@ -148,6 +146,8 @@ const ASAGoMap = ({
       properties: { name: "fireZoneHighlightVector" },
     })
   );
+
+  const toggleLayersRef = useRef<Record<string, VectorTileLayer | null>>({});
 
   const mapRef = useRef<HTMLDivElement | null>(
     null
@@ -179,6 +179,20 @@ const ASAGoMap = ({
       map.removeLayer(layer);
     }
   };
+
+  const replaceMapLayer = React.useCallback(
+    (layerName: string, layer: VectorTileLayer | null) => {
+      if (!map) return;
+      if (toggleLayersRef.current[layerName]) {
+        map.removeLayer(toggleLayersRef.current[layerName]);
+      }
+      if (layer) {
+        map.addLayer(layer);
+      }
+      toggleLayersRef.current[layerName] = layer;
+    },
+    [map]
+  );
 
   /**
    *
@@ -232,12 +246,13 @@ const ASAGoMap = ({
   useEffect(() => {
     if (!map) return;
 
-    // we're currently on toggling one layer on and off
-    if (hfiLayerRef.current) {
-      hfiLayerRef.current.setVisible(layerVisibility[HFI_LAYER_NAME]);
-    }
+    Object.entries(toggleLayersRef.current).forEach(([layerName, layer]) => {
+      if (!layer) return;
 
-    // fireZoneFileLayer: always visible, style managed elsewhere
+      if (Object.prototype.hasOwnProperty.call(layerVisibility, layerName)) {
+        layer.setVisible(layerVisibility[layerName]);
+      }
+    });
   }, [map, layerVisibility]);
 
   // center map when position is updated after requesting location
@@ -474,13 +489,6 @@ const ASAGoMap = ({
 
   useEffect(() => {
     if (!map) return;
-    if (isNull(runType) || isNull(runDatetime)) {
-      if (hfiLayerRef.current) {
-        map.removeLayer(hfiLayerRef.current);
-        hfiLayerRef.current = null;
-      }
-      return;
-    }
 
     (async () => {
       let hfiLayer: VectorTileLayer | null = null;
@@ -495,17 +503,9 @@ const ASAGoMap = ({
           layerVisibility[HFI_LAYER_NAME]
         );
       }
-
-      // remove previous HFI layer
-      if (hfiLayerRef.current) {
-        map.removeLayer(hfiLayerRef.current);
-      }
-      if (hfiLayer) {
-        map.addLayer(hfiLayer);
-        hfiLayerRef.current = hfiLayer;
-      }
+      replaceMapLayer(HFI_LAYER_NAME, hfiLayer);
     })();
-  }, [map, runType, runDatetime, date, layerVisibility]);
+  }, [map, runType, runDatetime, date, layerVisibility, replaceMapLayer]);
 
   const handlePopupClose = () => {
     popup.setPosition(undefined);
@@ -540,7 +540,7 @@ const ASAGoMap = ({
     }));
 
     // The Zone Status layer is unique because it's always visible, but we'll change it's style
-    // so it isn't filled in anymore.
+    // so it isn't filled in anymore if it's "off".
     if (layerName === ZONE_STATUS_LAYER_NAME) {
       setZoneStatusLayerVisibility(
         fireZoneFileLayer,
