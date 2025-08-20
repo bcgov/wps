@@ -8,6 +8,9 @@ permissions:
   contents: read
 
 on:
+  push:
+    branches:
+      - task/build-and-deploy-asa-go
   workflow_dispatch:
 
 jobs:
@@ -39,9 +42,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install Ionic CLI
-        working-directory: ./mobile/asa-go
-        run: npm install -g @ionic/cli
       - name: XCode select 16.4
         run: |
           sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
