@@ -1,5 +1,9 @@
+import { FireShapeArea } from "@/api/fbaAPI";
+import { fireShapeStyler } from "@/featureStylers";
 import { ZONE_STATUS_LAYER_NAME, HFI_LAYER_NAME } from "@/layerDefinitions";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
+import { cloneDeep } from "lodash";
+import VectorTileLayer from "ol/layer/VectorTile";
 
 export interface LayerVisibility {
   [layerName: string]: boolean;
@@ -38,4 +42,16 @@ export const saveLayerVisibility = async (
     directory: Directory.Data,
     encoding: Encoding.UTF8,
   });
+};
+
+export const setZoneStatusLayerVisibility = (
+  layer: VectorTileLayer,
+  fireShapeAreas: FireShapeArea[],
+  advisoryThreshold: number,
+  visible: boolean
+): void => {
+  layer.setStyle(
+    fireShapeStyler(cloneDeep(fireShapeAreas), advisoryThreshold, visible)
+  );
+  layer.changed();
 };

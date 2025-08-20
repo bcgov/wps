@@ -4,6 +4,7 @@ import {
   LayerVisibility,
   loadLayerVisibility,
   saveLayerVisibility,
+  setZoneStatusLayerVisibility,
 } from "@/components/map/layerVisibility";
 import UserLocationIndicator from "@/components/map/LocationIndicator";
 import MapPopup from "@/components/map/MapPopup";
@@ -231,6 +232,7 @@ const ASAGoMap = ({
   useEffect(() => {
     if (!map) return;
 
+    // we're currently on toggling one layer on and off
     if (hfiLayerRef.current) {
       hfiLayerRef.current.setVisible(layerVisibility[HFI_LAYER_NAME]);
     }
@@ -537,12 +539,15 @@ const ASAGoMap = ({
       [layerName]: visible,
     }));
 
+    // The Zone Status layer is unique because it's always visible, but we'll change it's style
+    // so it isn't filled in anymore.
     if (layerName === ZONE_STATUS_LAYER_NAME) {
-      // always keep the layer visible, just update its style
-      fireZoneFileLayer.setStyle(
-        fireShapeStyler(cloneDeep(fireShapeAreas), advisoryThreshold, visible)
+      setZoneStatusLayerVisibility(
+        fireZoneFileLayer,
+        fireShapeAreas,
+        advisoryThreshold,
+        visible
       );
-      fireZoneFileLayer.changed();
     }
   };
 
