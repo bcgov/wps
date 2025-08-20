@@ -128,7 +128,7 @@ const ASAGoMap = ({
       style: fireShapeStyler(
         cloneDeep(fireShapeAreas),
         advisoryThreshold,
-        true
+        layerVisibility[ZONE_STATUS_LAYER_NAME]
       ),
       zIndex: 53,
       properties: { name: ZONE_STATUS_LAYER_NAME },
@@ -242,19 +242,6 @@ const ASAGoMap = ({
     saveLayerVisibility(layerVisibility);
   }, [layerVisibility]);
 
-  // Update OpenLayers layers when visibility changes
-  useEffect(() => {
-    if (!map) return;
-
-    Object.entries(toggleLayersRef.current).forEach(([layerName, layer]) => {
-      if (!layer) return;
-
-      if (Object.prototype.hasOwnProperty.call(layerVisibility, layerName)) {
-        layer.setVisible(layerVisibility[layerName]);
-      }
-    });
-  }, [map, layerVisibility]);
-
   // center map when position is updated after requesting location
   useEffect(() => {
     if (centerOnLocation && position && map) {
@@ -273,7 +260,11 @@ const ASAGoMap = ({
 
   useEffect(() => {
     fireZoneFileLayer.setStyle(
-      fireShapeStyler(cloneDeep(fireShapeAreas), advisoryThreshold, true)
+      fireShapeStyler(
+        cloneDeep(fireShapeAreas),
+        advisoryThreshold,
+        layerVisibility[ZONE_STATUS_LAYER_NAME]
+      )
     );
     fireZoneHighlightFileLayer.setStyle(
       fireShapeLineStyler(
@@ -548,6 +539,11 @@ const ASAGoMap = ({
         advisoryThreshold,
         visible
       );
+    } else {
+      const layer = toggleLayersRef.current[layerName];
+      if (layer) {
+        layer.setVisible(visible);
+      }
     }
   };
 
