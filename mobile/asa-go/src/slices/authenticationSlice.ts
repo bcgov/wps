@@ -58,6 +58,13 @@ const authSlice = createSlice({
       state.idToken = action.payload.idToken;
       state.tokenRefreshed = action.payload.tokenRefreshed;
     },
+    resetAuthentication(
+      state: AuthState
+    ) {
+      state.isAuthenticated = false;
+      state.idToken = undefined
+      state.token = undefined
+    },
   },
 });
 
@@ -66,6 +73,7 @@ export const {
   authenticateFinished,
   authenticateError,
   refreshTokenFinished,
+  resetAuthentication,
 } = authSlice.actions;
 
 export default authSlice.reducer;
