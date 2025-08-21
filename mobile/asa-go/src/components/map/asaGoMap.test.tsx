@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { DateTime } from "luxon";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { userEvent } from "@testing-library/user-event";
 import ASAGoMap, { ASAGoMapProps } from "@/components/map/ASAGoMap";
 import {
   createTestStore,
@@ -10,6 +11,15 @@ import {
 } from "@/testUtils";
 import { geolocationInitialState } from "@/slices/geolocationSlice";
 import { RunType } from "@/api/fbaAPI";
+
+vi.mock("@capacitor/filesystem", () => ({
+  Filesystem: {
+    readFile: vi.fn().mockResolvedValue({ data: JSON.stringify({}) }),
+    writeFile: vi.fn().mockResolvedValue(undefined),
+  },
+  Directory: { Data: "DATA" },
+  Encoding: { UTF8: "utf8" },
+}));
 
 setupOpenLayersMocks();
 class ResizeObserver {
@@ -35,7 +45,7 @@ vi.mock("@/layerDefinitions", async () => {
   };
 });
 
-import { createHFILayer } from "@/layerDefinitions";
+import { createHFILayer, HFI_LAYER_NAME } from "@/layerDefinitions";
 
 describe("ASAGoMap", () => {
   beforeAll(() => {
@@ -47,7 +57,7 @@ describe("ASAGoMap", () => {
     selectedFireShape: undefined,
     setSelectedFireShape: vi.fn(),
     setSelectedFireCenter: vi.fn(),
-    advisoryThreshold: 0,
+    advisoryThreshold: 20,
     date: DateTime.fromISO("2024-12-15"),
     setDate: vi.fn(),
     setTab: vi.fn(),
@@ -129,7 +139,8 @@ describe("ASAGoMap", () => {
         for_date: DateTime.fromISO("2024-12-15"),
         run_type: RunType.FORECAST,
         run_date: DateTime.fromISO("2024-12-15T15:00:00Z"),
-      })
+      }),
+      true
     );
 
     store.dispatch({
@@ -151,7 +162,129 @@ describe("ASAGoMap", () => {
         for_date: DateTime.fromISO("2024-12-16"),
         run_type: RunType.FORECAST,
         run_date: DateTime.fromISO("2024-12-16T23:00:00Z"),
-      })
+      }),
+      true
     );
+  });
+  it("renders the layer switcher button and legend on click", async () => {
+    const store = createTestStore();
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    );
+
+    const legendButton = getByTestId("legend-toggle-button");
+    expect(legendButton).toBeInTheDocument();
+
+    await userEvent.click(legendButton);
+    const legendPopover = getByTestId("asa-go-map-legend-popover");
+    expect(legendPopover).toBeInTheDocument();
+  });
+
+  it("calls handleLayerVisibilityChange and updates layerVisibility state", async () => {
+    const store = createTestStore();
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    );
+
+    // Open legend popover
+    const legendButton = screen.getByTestId("legend-toggle-button");
+    await userEvent.click(legendButton);
+
+    // Find a layer toggle (simulate Zone Status layer toggle)
+    const zoneStatusToggle = screen.getByTestId("zone-checkbox");
+    const zoneStatusCheckbox = within(zoneStatusToggle).getByRole("checkbox");
+    expect(zoneStatusToggle).toBeInTheDocument();
+
+    // Toggle off
+    await userEvent.click(zoneStatusToggle);
+
+    // The toggle should now be unchecked
+    expect(zoneStatusCheckbox).not.toBeChecked();
+
+    // Toggle on
+    await userEvent.click(zoneStatusToggle);
+    expect(zoneStatusCheckbox).toBeChecked();
+  });
+
+  it("calls setZoneStatusLayerVisibility for ZONE_STATUS_LAYER_NAME", async () => {
+    const store = createTestStore();
+    const setZoneStatusLayerVisibilityMock = vi.spyOn(
+      await import("@/components/map/layerVisibility"),
+      "setZoneStatusLayerVisibility"
+    );
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    );
+
+    // Open legend popover
+    const legendButton = screen.getByTestId("legend-toggle-button");
+    await userEvent.click(legendButton);
+
+    // Toggle Zone Status layer
+    const zoneStatusToggle = screen.getByTestId("zone-checkbox");
+    const zoneStatusCheckbox = within(zoneStatusToggle).getByRole("checkbox");
+    await waitFor(() => expect(zoneStatusCheckbox).toBeChecked());
+    await userEvent.click(zoneStatusToggle);
+
+    expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalled();
+    expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalledWith(
+      expect.any(Object), // layer instance
+      expect.any(Array), // fireShapeAreas
+      20, // advisoryThreshold
+      false // visibility
+    );
+    await waitFor(() => expect(zoneStatusCheckbox).not.toBeChecked());
+
+    await userEvent.click(zoneStatusToggle);
+    expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalledWith(
+      expect.any(Object), // layer instance
+      expect.any(Array), // fireShapeAreas
+      20, // advisoryThreshold
+      true // visibility
+    );
+    await waitFor(() => expect(zoneStatusCheckbox).toBeChecked());
+  });
+  it("calls setDefaultLayerVisibility on the correct layer", async () => {
+    const store = createTestStore();
+    const setDefaultLayerVisibilityMock = vi.spyOn(
+      await import("@/components/map/layerVisibility"),
+      "setDefaultLayerVisibility"
+    );
+    const mockToggleLayersRef = {
+      hfiVectorLayer: null,
+    };
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    );
+
+    // Open legend popover
+    const legendButton = screen.getByTestId("legend-toggle-button");
+    await userEvent.click(legendButton);
+
+    // Toggle HFI layer
+    const hfiToggle = screen.getByTestId("hfi-checkbox");
+    // should be checked at first
+    const hfiCheckbox = within(hfiToggle).getByRole("checkbox");
+    await waitFor(() => expect(hfiCheckbox).toBeChecked());
+    await userEvent.click(hfiToggle);
+
+    // test that we're turning it off
+    expect(setDefaultLayerVisibilityMock).toHaveBeenCalledWith(
+      mockToggleLayersRef,
+      HFI_LAYER_NAME,
+      false
+    );
+    await waitFor(() => expect(hfiCheckbox).not.toBeChecked());
   });
 });

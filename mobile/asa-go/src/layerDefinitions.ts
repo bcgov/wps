@@ -14,6 +14,8 @@ import { hfiStyler } from "@/featureStylers";
 
 export const BASEMAP_LAYER_NAME = "basemapLayer";
 export const LOCAL_BASEMAP_LAYER_NAME = "localBasemapLayer";
+export const HFI_LAYER_NAME = "hfiVectorLayer";
+export const ZONE_STATUS_LAYER_NAME = "fireShapeVector";
 
 // Static source is allocated since our tile source does not change and
 // a new source is not allocated every time WeatherMap is re-rendered,
@@ -49,7 +51,7 @@ export const createLocalBasemapVectorLayer = async () => {
 
 export const createHFILayer = async (
   options: HFIPMTilesFileVectorOptions,
-  zIndex: number = 51
+  visible: boolean = true
 ): Promise<VectorTileLayer> => {
   const hfiVectorSource = await PMTilesFileVectorSource.createHFILayer(
     new PMTilesCache(Filesystem),
@@ -63,7 +65,8 @@ export const createHFILayer = async (
   return new VectorTileLayer({
     source: hfiVectorSource,
     style: hfiStyler,
-    zIndex,
-    properties: { name: `hfiLayer_${options.for_date}` },
+    zIndex: 51,
+    properties: { name: HFI_LAYER_NAME },
+    visible: visible,
   });
 };
