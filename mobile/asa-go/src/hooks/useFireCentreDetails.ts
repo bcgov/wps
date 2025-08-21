@@ -1,8 +1,8 @@
-import { selectProvincialSummary } from "@/slices/provincialSummarySlice";
+import { useProvincialSummaryForDate } from "@/hooks/useProvincialSummaryForDate";
 import { FireCenter, FireShapeAreaDetail } from "api/fbaAPI";
 import { groupBy } from "lodash";
+import { DateTime } from "luxon";
 import { useMemo } from "react";
-import { useSelector } from "react-redux";
 
 export interface GroupedFireZoneUnitDetails {
   fire_shape_id: number;
@@ -19,14 +19,15 @@ export interface GroupedFireZoneUnitDetails {
  * @returns
  */
 export const useFireCentreDetails = (
-  selectedFireCenter: FireCenter | undefined
+  selectedFireCenter: FireCenter | undefined,
+  forDate: DateTime
 ): GroupedFireZoneUnitDetails[] => {
-  const provincialSummary = useSelector(selectProvincialSummary);
+  const provincialSummary = useProvincialSummaryForDate(forDate)
 
   return useMemo(() => {
     if (!selectedFireCenter) return [];
 
-    const fireCenterSummary = provincialSummary[selectedFireCenter.name] || [];
+    const fireCenterSummary = provincialSummary?.[selectedFireCenter.name] || [];
     const groupedFireZoneUnits = groupBy(fireCenterSummary, "fire_shape_id");
 
     return Object.values(groupedFireZoneUnits)

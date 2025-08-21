@@ -13,6 +13,8 @@ import {
   fireShapeStyler,
 } from "@/featureStylers";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
+import { useFireShapeAreasForDate } from "@/hooks/useFireShapeAreasForDate";
+import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import {
   createBasemapLayer,
   createHFILayer,
@@ -20,13 +22,7 @@ import {
   LOCAL_BASEMAP_LAYER_NAME,
 } from "@/layerDefinitions";
 import { startWatchingLocation } from "@/slices/geolocationSlice";
-import {
-  AppDispatch,
-  selectFireShapeAreas,
-  selectGeolocation,
-  selectNetworkStatus,
-  selectRunParameter,
-} from "@/store";
+import { AppDispatch, selectGeolocation, selectNetworkStatus } from "@/store";
 import { CENTER_OF_BC, NavPanel } from "@/utils/constants";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
@@ -35,7 +31,7 @@ import GpsOffIcon from "@mui/icons-material/GpsOff";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import { Box } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
-import { cloneDeep, isNull, isUndefined } from "lodash";
+import { cloneDeep, isNil, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { Map, MapBrowserEvent, Overlay, View } from "ol";
 import { defaults as defaultControls } from "ol/control";
@@ -92,12 +88,12 @@ const ASAGoMap = ({
   // selectors & hooks
   const { position, error, loading } = useSelector(selectGeolocation);
   const { networkStatus } = useSelector(selectNetworkStatus);
-  const { runDatetime, runType } = useSelector(selectRunParameter);
+  const runParameter = useRunParameterForDate(date);
 
   // state
   const [map, setMap] = useState<Map | null>(null);
   const [scaleVisible, setScaleVisible] = useState<boolean>(true);
-  const { fireShapeAreas } = useSelector(selectFireShapeAreas);
+  const fireShapeAreas = useFireShapeAreasForDate(date);
   const [basemapLayer] = useState<TileLayer>(createBasemapLayer());
   const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
     useState<VectorTileLayer>(() => {
@@ -424,7 +420,7 @@ const ASAGoMap = ({
 
   useEffect(() => {
     if (!map) return;
-    if (isNull(runType) || isNull(runDatetime)) {
+    if (isNil(runParameter?.run_type) || isNil(runParameter.run_datetime)) {
       if (hfiLayerRef.current) {
         map.removeLayer(hfiLayerRef.current);
         hfiLayerRef.current = null;
@@ -434,12 +430,12 @@ const ASAGoMap = ({
 
     (async () => {
       let hfiLayer: VectorTileLayer | null = null;
-      if (!isNull(runType) && !isNull(runDatetime)) {
+      if (!isNil(runParameter.run_type) && !isNull(runParameter.run_datetime)) {
         hfiLayer = await createHFILayer({
           filename: "hfi.pmtiles",
           for_date: date,
-          run_type: runType,
-          run_date: DateTime.fromISO(runDatetime),
+          run_type: runParameter.run_type,
+          run_date: DateTime.fromISO(runParameter.run_datetime),
         });
       }
 
@@ -452,7 +448,7 @@ const ASAGoMap = ({
         hfiLayerRef.current = hfiLayer;
       }
     })();
-  }, [map, runType, runDatetime, date]);
+  }, [map, runParameter, date]);
 
   const handlePopupClose = () => {
     popup.setPosition(undefined);

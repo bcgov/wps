@@ -4,6 +4,7 @@ import { calculateStatusColour } from "@/utils/calculateZoneStatus";
 import { Tab, Tabs } from "@mui/material";
 import { Box } from "@mui/system";
 import { isEmpty } from "lodash";
+import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 
 interface FireZoneUnitTabsProps {
@@ -14,6 +15,7 @@ interface FireZoneUnitTabsProps {
     React.SetStateAction<FireShape | undefined>
   >;
   children: React.ReactNode;
+  date: DateTime;
 }
 
 const FireZoneUnitTabs = ({
@@ -22,9 +24,13 @@ const FireZoneUnitTabs = ({
   selectedFireCenter,
   selectedFireZoneUnit,
   setSelectedFireZoneUnit,
+  date,
 }: FireZoneUnitTabsProps) => {
   const [tabNumber, setTabNumber] = useState(0);
-  const sortedGroupedFireZoneUnits = useFireCentreDetails(selectedFireCenter);
+  const sortedGroupedFireZoneUnits = useFireCentreDetails(
+    selectedFireCenter,
+    date
+  );
 
   const getTabFireShape = (tabNumber: number): FireShape | undefined => {
     if (sortedGroupedFireZoneUnits.length > 0) {

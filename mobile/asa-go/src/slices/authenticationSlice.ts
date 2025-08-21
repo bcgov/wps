@@ -58,12 +58,10 @@ const authSlice = createSlice({
       state.idToken = action.payload.idToken;
       state.tokenRefreshed = action.payload.tokenRefreshed;
     },
-    resetAuthentication(
-      state: AuthState
-    ) {
+    resetAuthentication(state: AuthState) {
       state.isAuthenticated = false;
-      state.idToken = undefined
-      state.token = undefined
+      state.idToken = undefined;
+      state.token = undefined;
     },
   },
 });
