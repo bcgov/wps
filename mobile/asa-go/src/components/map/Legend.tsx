@@ -18,6 +18,7 @@ import {
   HFI_WARNING,
 } from "@/featureStylers";
 import { HFI_LAYER_NAME, ZONE_STATUS_LAYER_NAME } from "@/layerDefinitions";
+import { LayerVisibility } from "@/components/map/layerVisibility";
 
 const LegendGrid = styled(Grid)({
   display: "flex",
@@ -110,10 +111,6 @@ const LegendItem = ({
     </Grid>
   </div>
 );
-
-interface LayerVisibility {
-  [layerName: string]: boolean;
-}
 
 interface LegendProps {
   layerVisibility: LayerVisibility;
