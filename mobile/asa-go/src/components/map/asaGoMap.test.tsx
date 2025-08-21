@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { DateTime } from "luxon";
 import { describe, expect, it, vi, beforeEach } from "vitest";
@@ -45,7 +45,7 @@ vi.mock("@/layerDefinitions", async () => {
   };
 });
 
-import { createHFILayer } from "@/layerDefinitions";
+import { createHFILayer, HFI_LAYER_NAME } from "@/layerDefinitions";
 
 describe("ASAGoMap", () => {
   beforeAll(() => {
@@ -240,6 +240,9 @@ describe("ASAGoMap", () => {
       await import("@/components/map/layerVisibility"),
       "setDefaultLayerVisibility"
     );
+    const mockToggleLayersRef = {
+      hfiVectorLayer: null,
+    };
 
     render(
       <Provider store={store}>
@@ -253,8 +256,16 @@ describe("ASAGoMap", () => {
 
     // Toggle HFI layer
     const hfiToggle = screen.getByTestId("hfi-checkbox");
+    // should be checked at first
+    const hfiCheckbox = within(hfiToggle).getByRole("checkbox");
+    await waitFor(() => expect(hfiCheckbox).toBeChecked());
     await userEvent.click(hfiToggle);
 
-    expect(setDefaultLayerVisibilityMock).toHaveBeenCalled();
+    // test that we're turning it off
+    expect(setDefaultLayerVisibilityMock).toHaveBeenCalledWith(
+      mockToggleLayersRef,
+      HFI_LAYER_NAME,
+      false
+    );
   });
 });
