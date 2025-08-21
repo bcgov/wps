@@ -57,7 +57,7 @@ describe("ASAGoMap", () => {
     selectedFireShape: undefined,
     setSelectedFireShape: vi.fn(),
     setSelectedFireCenter: vi.fn(),
-    advisoryThreshold: 0,
+    advisoryThreshold: 20,
     date: DateTime.fromISO("2024-12-15"),
     setDate: vi.fn(),
     setTab: vi.fn(),
@@ -230,9 +230,27 @@ describe("ASAGoMap", () => {
 
     // Toggle Zone Status layer
     const zoneStatusToggle = screen.getByTestId("zone-checkbox");
+    const zoneStatusCheckbox = within(zoneStatusToggle).getByRole("checkbox");
+    await waitFor(() => expect(zoneStatusCheckbox).toBeChecked());
     await userEvent.click(zoneStatusToggle);
 
     expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalled();
+    expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalledWith(
+      expect.any(Object), // layer instance
+      expect.any(Array), // fireShapeAreas
+      20, // advisoryThreshold
+      false // visibility
+    );
+    await waitFor(() => expect(zoneStatusCheckbox).not.toBeChecked());
+
+    await userEvent.click(zoneStatusToggle);
+    expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalledWith(
+      expect.any(Object), // layer instance
+      expect.any(Array), // fireShapeAreas
+      20, // advisoryThreshold
+      true // visibility
+    );
+    await waitFor(() => expect(zoneStatusCheckbox).toBeChecked());
   });
   it("calls setDefaultLayerVisibility on the correct layer", async () => {
     const store = createTestStore();
@@ -267,5 +285,6 @@ describe("ASAGoMap", () => {
       HFI_LAYER_NAME,
       false
     );
+    await waitFor(() => expect(hfiCheckbox).not.toBeChecked());
   });
 });
