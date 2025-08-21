@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { DateTime } from "luxon";
 import { describe, expect, it, vi, beforeEach } from "vitest";
@@ -181,5 +181,57 @@ describe("ASAGoMap", () => {
     await userEvent.click(legendButton);
     const legendPopover = getByTestId("asa-go-map-legend-popover");
     expect(legendPopover).toBeInTheDocument();
+  });
+
+  it("calls handleLayerVisibilityChange and updates layerVisibility state", async () => {
+    const store = createTestStore();
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    );
+
+    // Open legend popover
+    const legendButton = screen.getByTestId("legend-toggle-button");
+    await userEvent.click(legendButton);
+
+    // Find a layer toggle (simulate Zone Status layer toggle)
+    const zoneStatusToggle = screen.getByTestId("zone-checkbox");
+    const zoneStatusCheckbox = within(zoneStatusToggle).getByRole("checkbox");
+    expect(zoneStatusToggle).toBeInTheDocument();
+
+    // Toggle off
+    await userEvent.click(zoneStatusToggle);
+
+    // The toggle should now be unchecked
+    expect(zoneStatusCheckbox).not.toBeChecked();
+
+    // Toggle on
+    await userEvent.click(zoneStatusToggle);
+    expect(zoneStatusCheckbox).toBeChecked();
+  });
+
+  it("calls setZoneStatusLayerVisibility for ZONE_STATUS_LAYER_NAME", async () => {
+    const store = createTestStore();
+    const setZoneStatusLayerVisibilityMock = vi.spyOn(
+      await import("@/components/map/layerVisibility"),
+      "setZoneStatusLayerVisibility"
+    );
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    );
+
+    // Open legend popover
+    const legendButton = screen.getByTestId("legend-toggle-button");
+    await userEvent.click(legendButton);
+
+    // Toggle Zone Status layer
+    const zoneStatusToggle = screen.getByTestId("zone-checkbox");
+    await userEvent.click(zoneStatusToggle);
+
+    expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalled();
   });
 });
