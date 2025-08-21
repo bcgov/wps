@@ -55,3 +55,14 @@ export const setZoneStatusLayerVisibility = (
   );
   layer.changed();
 };
+
+export const setDefaultLayerVisibility = (
+  layers: Record<string, VectorTileLayer | null>,
+  layerName: string,
+  visible: boolean
+): void => {
+  const layer = layers[layerName];
+  if (layer) {
+    layer.setVisible(visible);
+  }
+};

@@ -234,4 +234,27 @@ describe("ASAGoMap", () => {
 
     expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalled();
   });
+  it("calls setDefaultLayerVisibility on the correct layer", async () => {
+    const store = createTestStore();
+    const setDefaultLayerVisibilityMock = vi.spyOn(
+      await import("@/components/map/layerVisibility"),
+      "setDefaultLayerVisibility"
+    );
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    );
+
+    // Open legend popover
+    const legendButton = screen.getByTestId("legend-toggle-button");
+    await userEvent.click(legendButton);
+
+    // Toggle HFI layer
+    const hfiToggle = screen.getByTestId("hfi-checkbox");
+    await userEvent.click(hfiToggle);
+
+    expect(setDefaultLayerVisibilityMock).toHaveBeenCalled();
+  });
 });

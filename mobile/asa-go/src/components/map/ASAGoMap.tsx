@@ -4,6 +4,7 @@ import {
   LayerVisibility,
   loadLayerVisibility,
   saveLayerVisibility,
+  setDefaultLayerVisibility,
   setZoneStatusLayerVisibility,
 } from "@/components/map/layerVisibility";
 import UserLocationIndicator from "@/components/map/LocationIndicator";
@@ -540,10 +541,7 @@ const ASAGoMap = ({
         visible
       );
     } else {
-      const layer = toggleLayersRef.current[layerName];
-      if (layer) {
-        layer.setVisible(visible);
-      }
+      setDefaultLayerVisibility(toggleLayersRef.current, layerName, visible);
     }
   };
 
