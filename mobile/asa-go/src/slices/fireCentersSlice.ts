@@ -1,7 +1,16 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { AppThunk } from "@/store";
-import { FBAResponse, FireCenter, getFBAFireCenters } from "api/fbaAPI";
+import {
+  FIRE_CENTERS_CACHE_EXPIRATION,
+  FIRE_CENTERS_KEY,
+  readFromFilesystem,
+  writeToFileSystem,
+} from "@/utils/storage";
+import { Filesystem } from "@capacitor/filesystem";
+import { FireCenter, getFBAFireCenters } from "api/fbaAPI";
+import { isNull } from "lodash";
+import { DateTime } from "luxon";
 
 export interface FireCentresState {
   loading: boolean;
@@ -33,10 +42,10 @@ const fireCentersSlice = createSlice({
     },
     getFireCentersSuccess(
       state: FireCentresState,
-      action: PayloadAction<FBAResponse>
+      action: PayloadAction<FireCenter[]>
     ) {
       state.error = null;
-      state.fireCenters = action.payload.fire_centers;
+      state.fireCenters = action.payload;
       state.loading = false;
     },
   },
@@ -50,13 +59,43 @@ export const {
 
 export default fireCentersSlice.reducer;
 
-export const fetchFireCenters = (): AppThunk => async (dispatch) => {
-  try {
-    dispatch(getFireCentersStart());
-    const fireCenters = await getFBAFireCenters();
-    dispatch(getFireCentersSuccess(fireCenters));
-  } catch (err) {
-    dispatch(getFireCentersFailed((err as Error).toString()));
-    console.log(err);
+export const fetchFireCenters = (): AppThunk => async (dispatch, getState) => {
+  const now = DateTime.now();
+  // Check for cached fire centers data. If the data is not stale save it in redux state.
+  const cachedFireCenters = await readFromFilesystem(
+    Filesystem,
+    FIRE_CENTERS_KEY
+  );
+  if (!isNull(cachedFireCenters)) {
+    const lastUpdated = DateTime.fromISO(cachedFireCenters.lastUpdated);
+    if (lastUpdated.plus({ hours: FIRE_CENTERS_CACHE_EXPIRATION }) > now) {
+      dispatch(getFireCentersSuccess(cachedFireCenters.data));
+      return;
+    }
+  }
+  // Cached data is not available or is stale so we need to fetch and cache if we're online.
+  const networkStatus = getState().networkStatus;
+  if (networkStatus.networkStatus.connected) {
+    try {
+      dispatch(getFireCentersStart());
+      const fireCenters = await getFBAFireCenters();
+      await writeToFileSystem(
+        Filesystem,
+        FIRE_CENTERS_KEY,
+        fireCenters.fire_centers,
+        now
+      );
+      dispatch(getFireCentersSuccess(fireCenters.fire_centers));
+    } catch (err) {
+      dispatch(getFireCentersFailed((err as Error).toString()));
+      console.log(err);
+    }
+  } else {
+    // We're offline so there is nothing to do but set the error state.
+    dispatch(
+      getFireCentersFailed(
+        "Unable to refresh fire center data. Data may be stale."
+      )
+    );
   }
 };

@@ -136,6 +136,10 @@ export interface RunParameter {
   run_type: RunType
 }
 
+export interface RunParametersResponse {
+  [key: string]: RunParameter
+}
+
 const ASA_GO_API_PREFIX = "fba"
 
 export async function getFBAFireCenters(): Promise<FBAResponse> {
@@ -170,6 +174,12 @@ export async function getMostRecentRunParameter(forDate: string): Promise<RunPar
   const url = `${ASA_GO_API_PREFIX}/latest-sfms-run-datetime/${forDate}`;
   const { data } = await axios.get(url);
   return data.run_parameter;
+}
+
+export async function getMostRecentRunParameters(startDate: string, endDate: string): Promise<RunParametersResponse> {
+  const url = `${ASA_GO_API_PREFIX}/latest-sfms-run-parameters/${startDate}/${endDate}`;
+  const { data } = await axios.get(url);
+  return data.run_parameters;
 }
 
 export async function getFireCentreHFIStats(
