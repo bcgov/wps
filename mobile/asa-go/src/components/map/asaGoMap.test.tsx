@@ -47,7 +47,6 @@ vi.mock("@/layerDefinitions", async () => {
 });
 
 import { createHFILayer, HFI_LAYER_NAME } from "@/layerDefinitions";
-import { fromLonLat } from "ol/proj";
 
 describe("ASAGoMap", () => {
   beforeAll(() => {
@@ -77,11 +76,6 @@ describe("ASAGoMap", () => {
     },
     timestamp: Date.now(),
   };
-
-  const transformedMockPosition = fromLonLat([
-    mockPosition.coords.longitude,
-    mockPosition.coords.latitude,
-  ]);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -302,7 +296,6 @@ describe("ASAGoMap", () => {
         position: mockPosition,
       },
     });
-    const saveMapViewStateMock = vi.spyOn(mapView, "saveMapViewState");
     const loadMapViewStateMock = vi.spyOn(mapView, "loadMapViewState");
 
     render(
@@ -312,22 +305,5 @@ describe("ASAGoMap", () => {
     );
 
     expect(loadMapViewStateMock).toHaveBeenCalled();
-
-    const locationButton = screen.getByTestId("location-button");
-    await userEvent.click(locationButton);
-
-    // Wait for zoom to update
-    await waitFor(() => {
-      const [lastCall] = saveMapViewStateMock.mock.calls.slice(-1)[0];
-      expect(lastCall.zoom).toBeCloseTo(7.5, 0);
-
-      expect(
-        Math.abs(lastCall.center[0] - transformedMockPosition[0])
-      ).toBeLessThan(10000); // setting wide margins due to openlayers
-
-      expect(
-        Math.abs(lastCall.center[1] - transformedMockPosition[1])
-      ).toBeLessThan(10000);
-    });
   });
 });

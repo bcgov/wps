@@ -420,8 +420,7 @@ const ASAGoMap = ({
         });
       }
     };
-    mapObject.getView().on("change:center", saveStateHandler);
-    mapObject.getView().on("change:resolution", saveStateHandler);
+    mapObject.on("moveend", saveStateHandler);
 
     /******* End map state restoration *******/
 
@@ -500,8 +499,7 @@ const ASAGoMap = ({
       mapObject.un("click", mapClickHandler);
       mapObject.getView().un("change:resolution", setScalelineVisibility);
       mapObject.setTarget("");
-      mapObject.getView().un("change:center", saveStateHandler);
-      mapObject.getView().un("change:resolution", saveStateHandler);
+      mapObject.un("moveend", saveStateHandler);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
