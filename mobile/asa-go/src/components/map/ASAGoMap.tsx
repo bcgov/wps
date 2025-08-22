@@ -37,7 +37,7 @@ import {
   selectNetworkStatus,
   selectRunParameter,
 } from "@/store";
-import { CENTER_OF_BC, NavPanel } from "@/utils/constants";
+import { NavPanel } from "@/utils/constants";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
 import { Filesystem } from "@capacitor/filesystem";
@@ -61,6 +61,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BC_EXTENT } from "utils/constants";
 import LegendPopover from "@/components/map/LegendPopover";
+import { loadMapViewState, saveMapViewState } from "@/components/map/mapView";
 
 // used for setting the initial map extent
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
@@ -340,9 +341,7 @@ const ASAGoMap = ({
     // To the ref above so that it is rendered in that div
     const mapObject = new Map({
       view: new View({
-        zoom: 5,
-        center: fromLonLat(CENTER_OF_BC),
-        extent: BC_FULL_MAP_EXTENT_3857,
+        extent: BC_FULL_MAP_EXTENT_3857, // constrains panning
       }),
       layers: [],
       overlays: [],
@@ -399,7 +398,32 @@ const ASAGoMap = ({
 
     /******* End map popup ******/
 
-    mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] });
+    /******* Start map state restoration ******/
+    (async () => {
+      const savedState = await loadMapViewState();
+      if (savedState) {
+        mapObject.getView().setZoom(savedState.zoom);
+        mapObject.getView().setCenter(savedState.center);
+      } else {
+        mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] });
+      }
+    })();
+
+    const saveStateHandler = () => {
+      const view = mapObject.getView();
+      const zoom = view.getZoom();
+      const center = view.getCenter();
+      if (zoom && center) {
+        saveMapViewState({
+          zoom,
+          center,
+        });
+      }
+    };
+    mapObject.getView().on("change:center", saveStateHandler);
+    mapObject.getView().on("change:resolution", saveStateHandler);
+
+    /******* End map state restoration *******/
 
     setMap(mapObject);
 
@@ -476,6 +500,8 @@ const ASAGoMap = ({
       mapObject.un("click", mapClickHandler);
       mapObject.getView().un("change:resolution", setScalelineVisibility);
       mapObject.setTarget("");
+      mapObject.getView().un("change:center", saveStateHandler);
+      mapObject.getView().un("change:resolution", saveStateHandler);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
