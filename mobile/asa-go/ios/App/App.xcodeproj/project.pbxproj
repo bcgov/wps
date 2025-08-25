@@ -30,6 +30,8 @@
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
 		6654B5E52E29AC1C000DA498 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
+		66C99EF62E5CCB26003A1475 /* App-Debug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "App-Debug.entitlements"; sourceTree = "<group>"; };
+		66C99EF72E5CCC8B003A1475 /* App-Release.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "App-Release.entitlements"; sourceTree = "<group>"; };
 		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
 		BEB1CB68C85A338353E59F87 /* Pods_ASA_Go.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ASA_Go.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5BF8FB19E4A8C9DE7D16845 /* Pods-ASA Go.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ASA Go.release.xcconfig"; path = "Pods/Target Support Files/Pods-ASA Go/Pods-ASA Go.release.xcconfig"; sourceTree = "<group>"; };
@@ -79,6 +81,8 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				66C99EF72E5CCC8B003A1475 /* App-Release.entitlements */,
+				66C99EF62E5CCB26003A1475 /* App-Debug.entitlements */,
 				6654B5E52E29AC1C000DA498 /* App.entitlements */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
