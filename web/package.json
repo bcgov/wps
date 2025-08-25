@@ -91,7 +91,7 @@
     "@types/jest": "^30.0.0",
     "@types/recharts": "^1.8.23",
     "@vitejs/plugin-react": "^4.3.1",
-    "cypress": "^14.0.0",
+    "cypress": "^15.0.0",
     "eslint": "^9.7.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.7",
