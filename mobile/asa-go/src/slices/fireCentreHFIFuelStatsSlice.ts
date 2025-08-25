@@ -1,7 +1,6 @@
-import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { AppThunk, RootState } from "@/store";
-import { filterHFIFuelStatsByArea } from "@/utils/hfiStatsUtils";
 import { FireCentreHFIStats, getFireCentreHFIStats, RunType } from "api/fbaAPI";
 
 export interface FireCentreHFIFuelStatsState {
@@ -71,9 +70,3 @@ export const fetchFireCentreHFIFuelStats =
 
 export const selectFireCentreHFIFuelStats = (state: RootState) =>
   state.fireCentreHFIFuelStats;
-
-export const selectFilteredFireCentreHFIFuelStats = createSelector(
-  [selectFireCentreHFIFuelStats],
-  (fireCentreHFIFuelStats) =>
-    filterHFIFuelStatsByArea(fireCentreHFIFuelStats.fireCentreHFIFuelStats)
-);

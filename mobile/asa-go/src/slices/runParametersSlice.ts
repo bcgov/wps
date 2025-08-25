@@ -141,14 +141,14 @@ export const fetchSFMSRunParameters =
     }
   };
 
-
-export const selectRunParameters = (state: RootState) => state.runParameters.runParameters
+export const selectRunParameters = (state: RootState) =>
+  state.runParameters.runParameters;
 
 export const selectRunParameterByForDate = (forDate: string) => {
-  createSelector(
-  [selectRunParameters], (runParameters) => {
-    return isNil(runParameters) ? null : runParameters[forDate]
-  })}  
+  createSelector([selectRunParameters], (runParameters) => {
+    return isNil(runParameters) ? null : runParameters[forDate];
+  });
+};
 
 const stateUpdateRequired = (
   todayKey: string,

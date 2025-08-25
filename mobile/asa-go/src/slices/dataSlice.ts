@@ -3,8 +3,10 @@ import {
   CacheableData,
   CacheableDataType,
   FIRE_SHAPE_AREAS_KEY,
+  HFI_STATS_KEY,
   PROVINCIAL_SUMMARY_KEY,
   readFromFilesystem,
+  TPI_STATS_KEY,
   writeToFileSystem,
 } from "@/utils/storage";
 import { Filesystem } from "@capacitor/filesystem";
@@ -12,8 +14,12 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   FireShapeArea,
   FireShapeAreaDetail,
+  FireZoneHFIStatsDictionary,
+  FireZoneTPIStats,
   getFireShapeAreas,
+  getHFIStats,
   getProvincialSummary,
+  getTPIStats,
   RunParameter,
 } from "api/fbaAPI";
 import { isEqual, isNil } from "lodash";
@@ -25,6 +31,8 @@ export interface DataState {
   lastUpdated: string | null;
   fireShapeAreas: CacheableData<FireShapeArea[]> | null;
   provincialSummaries: CacheableData<FireShapeAreaDetail[]> | null;
+  tpiStats: CacheableData<FireZoneTPIStats[]> | null;
+  hfiStats: CacheableData<FireZoneHFIStatsDictionary> | null;
 }
 
 export const initialState: DataState = {
@@ -33,6 +41,8 @@ export const initialState: DataState = {
   lastUpdated: null,
   provincialSummaries: null,
   fireShapeAreas: null,
+  tpiStats: null,
+  hfiStats: null,
 };
 
 const dataSlice = createSlice({
@@ -52,13 +62,17 @@ const dataSlice = createSlice({
       action: PayloadAction<{
         lastUpdated: string;
         fireShapeAreas: CacheableData<FireShapeArea[]> | null;
-        provincialSummaries: CacheableData<FireShapeAreaDetail[]>;
+        provincialSummaries: CacheableData<FireShapeAreaDetail[]> | null;
+        tpiStats: CacheableData<FireZoneTPIStats[]> | null;
+        hfiStats: CacheableData<FireZoneHFIStatsDictionary> | null;
       }>
     ) {
       state.error = null;
       state.lastUpdated = action.payload.lastUpdated;
       state.fireShapeAreas = action.payload.fireShapeAreas;
       state.provincialSummaries = action.payload.provincialSummaries;
+      state.tpiStats = action.payload.tpiStats;
+      state.hfiStats = action.payload.hfiStats;
       state.loading = false;
     },
   },
@@ -109,19 +123,45 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       cachedFireShapeAreas.data
     );
 
+  const cachedTPIStats = await readFromFilesystem(Filesystem, TPI_STATS_KEY);
+  isCurrent =
+    !isNil(cachedTPIStats?.data) &&
+    runParametersMatch(
+      todayKey,
+      tomorrowKey,
+      runParameters,
+      cachedTPIStats.data
+    );
+
+  const cachedHFIStats = await readFromFilesystem(Filesystem, HFI_STATS_KEY);
+  isCurrent =
+    !isNil(cachedHFIStats?.data) &&
+    runParametersMatch(
+      todayKey,
+      tomorrowKey,
+      runParameters,
+      cachedHFIStats.data
+    );
+
   if (isCurrent) {
     // No need to fetch new data, compare cached data to state data to see if state update required
     const stateProvincialSummaries = state.data.provincialSummaries;
     const stateFireShapeAreas = state.data.fireShapeAreas;
+    const stateTPIStats = state.data.tpiStats;
+    const stateHFIStats = state.data.hfiStats;
     if (
       !dataAreEqual(stateProvincialSummaries, cachedProvincialSummaries.data) &&
-      !dataAreEqual(stateFireShapeAreas, cachedFireShapeAreas.data)
+      !dataAreEqual(stateFireShapeAreas, cachedFireShapeAreas.data) &&
+      !dataAreEqual(stateTPIStats, cachedTPIStats.data) &&
+      !dataAreEqual(stateHFIStats, cachedHFIStats.data)
     ) {
       dispatch(
         getDataSuccess({
           lastUpdated: DateTime.now().toISODate(),
           fireShapeAreas: cachedFireShapeAreas.data,
           provincialSummaries: cachedProvincialSummaries.data,
+          tpiStats: cachedTPIStats.data,
+          hfiStats: cachedHFIStats.data,
         })
       );
     }
@@ -143,6 +183,16 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
         tomorrowKey,
         runParameters
       );
+      const tpiStats = await fetchTpiStats(
+        todayKey,
+        tomorrowKey,
+        runParameters
+      );
+      const hfiStats = await fetchHFIStats(
+        todayKey,
+        tomorrowKey,
+        runParameters
+      );
 
       // Should we validate the new data in some way or assume a happy path?
       // Write all new data to cache
@@ -152,13 +202,14 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
         provincialSummaries,
         today
       );
-
       await writeToFileSystem(
         Filesystem,
         FIRE_SHAPE_AREAS_KEY,
         fireShapeAreas,
         today
       );
+      await writeToFileSystem(Filesystem, TPI_STATS_KEY, tpiStats, today);
+      await writeToFileSystem(Filesystem, HFI_STATS_KEY, hfiStats, today);
 
       // Update state
       dispatch(
@@ -166,15 +217,17 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
           lastUpdated: DateTime.now().toISODate(),
           fireShapeAreas: fireShapeAreas,
           provincialSummaries,
+          tpiStats,
+          hfiStats,
         })
       );
-      return;
     } catch (err) {
       dispatch(getDataFailed((err as Error).toString()));
       console.error(err);
     }
+  } else {
+    dispatch(getDataFailed("Unable to update data. Data may be stale."));
   }
-  dispatch(getDataFailed("Unable to update data. Data may be stale."));
 };
 
 const runParametersMatch = (
@@ -184,8 +237,8 @@ const runParametersMatch = (
   data: CacheableData<CacheableDataType>
 ): boolean => {
   return (
-    isEqual(runParameters[todayKey], data[todayKey].runParameter) &&
-    isEqual(runParameters[tomorrowKey], data[tomorrowKey].runParameter)
+    isEqual(runParameters[todayKey], data[todayKey]?.runParameter) &&
+    isEqual(runParameters[tomorrowKey], data[tomorrowKey]?.runParameter)
   );
 };
 
@@ -206,7 +259,49 @@ const fetchFireShapeAreas = async (
     todayFireShapeArea,
     tomorrowFireShapeArea
   );
-  return fireShapeAreas;
+  return fireShapeAreas as CacheableData<FireShapeArea[]>;
+};
+
+const fetchHFIStats = async (
+  todayKey: string,
+  tomorrowKey: string,
+  runParameters: { [key: string]: RunParameter }
+): Promise<CacheableData<FireZoneHFIStatsDictionary>> => {
+  const hfiStatsForToday = await fetchHFIStatsForRunParameter(
+    runParameters[todayKey]
+  );
+  const hfiStatsForTommorow = await fetchHFIStatsForRunParameter(
+    runParameters[tomorrowKey]
+  );
+  const hfiStats = shapeDataForCaching(
+    todayKey,
+    tomorrowKey,
+    runParameters,
+    hfiStatsForToday,
+    hfiStatsForTommorow
+  );
+  return hfiStats as CacheableData<FireZoneHFIStatsDictionary>;
+};
+
+const fetchTpiStats = async (
+  todayKey: string,
+  tomorrowKey: string,
+  runParameters: { [key: string]: RunParameter }
+): Promise<CacheableData<FireZoneTPIStats[]>> => {
+  const tpiStatsForToday = await fetchTpiStatsForRunParameter(
+    runParameters[todayKey]
+  );
+  const tpiStatsForTommorow = await fetchTpiStatsForRunParameter(
+    runParameters[tomorrowKey]
+  );
+  const tpiStats = shapeDataForCaching(
+    todayKey,
+    tomorrowKey,
+    runParameters,
+    tpiStatsForToday,
+    tpiStatsForTommorow
+  );
+  return tpiStats as CacheableData<FireZoneTPIStats[]>;
 };
 
 const fetchProvincialSummaries = async (
@@ -255,7 +350,12 @@ const shapeDataForCaching = (
   };
 };
 
-const fetchFireShapeArea = async (runParameter: RunParameter) => {
+const fetchFireShapeArea = async (
+  runParameter: RunParameter
+): Promise<FireShapeArea[]> => {
+  if (isNil(runParameter)) {
+    return [];
+  }
   const fireShapeArea = await getFireShapeAreas(
     runParameter.run_type,
     runParameter.run_datetime,
@@ -264,7 +364,12 @@ const fetchFireShapeArea = async (runParameter: RunParameter) => {
   return fireShapeArea?.shapes;
 };
 
-const fetchProvincialSummary = async (runParameter: RunParameter) => {
+const fetchProvincialSummary = async (
+  runParameter: RunParameter
+): Promise<FireShapeAreaDetail[]> => {
+  if (isNil(runParameter)) {
+    return [];
+  }
   const provincialSummary = await getProvincialSummary(
     runParameter.run_type,
     runParameter.run_datetime,
@@ -273,50 +378,37 @@ const fetchProvincialSummary = async (runParameter: RunParameter) => {
   return provincialSummary?.provincial_summary;
 };
 
+const fetchHFIStatsForRunParameter = async (
+  runParameter: RunParameter
+): Promise<FireZoneHFIStatsDictionary> => {
+  if (isNil(runParameter)) {
+    return [];
+  }
+  const hfiStatsForRunParameter = await getHFIStats(
+    runParameter.run_type,
+    runParameter.run_datetime,
+    runParameter.for_date
+  );
+  return hfiStatsForRunParameter?.zone_data;
+};
+
+const fetchTpiStatsForRunParameter = async (
+  runParameter: RunParameter
+): Promise<FireZoneTPIStats[]> => {
+  if (isNil(runParameter)) {
+    return [];
+  }
+  const tpiStatsForRunParameter = await getTPIStats(
+    runParameter.run_type,
+    runParameter.run_datetime,
+    runParameter.for_date
+  );
+  return tpiStatsForRunParameter?.firezone_tpi_stats;
+};
+
 const dataAreEqual = (
   a: CacheableData<CacheableDataType> | null,
   b: CacheableData<CacheableDataType> | null
 ): boolean => {
   return isEqual(a, b);
 };
-
-// const selectFireShapeAreaDetails = (state: RootState) => state.data;
-
-// export const selectProvincialSummary = createSelector(
-//   [selectFireShapeAreaDetails],
-//   (fireShapeAreaDetails) => {
-//     const groupedByFireCenter = groupBy(
-//       fireShapeAreaDetails.fireShapeAreaDetails,
-//       "fire_centre_name"
-//     );
-//     return groupedByFireCenter;
-//   }
-// );
-
-// const fetchAndCacheProvincialSummaries = async (
-//   todayKey: string,
-//   tomorrowKey: string,
-//   runParameters: { [key: string]: RunParameter }
-// ): Promise<CacheableData<CacheableDataType>> => {
-//   // API calls to get data for today and tomorrow
-//   const todayProvincialSummary = await fetchProvincialSummary(
-//     runParameters[todayKey]
-//   );
-//   const tomorrowProvincialSummary = await fetchProvincialSummary(
-//     runParameters[tomorrowKey]
-//   );
-//   // Shape the data for caching
-//   const cacheableSummaries = {
-//     [todayKey]: {
-//       runParameter: runParameters[todayKey],
-//       data: todayProvincialSummary,
-//     },
-//     [tomorrowKey]: {
-//       runParameter: runParameters[tomorrowKey],
-//       data: tomorrowProvincialSummary,
-//     },
-//   };
-//   // Cache the data
-//   await writeToFileSystem(Filesystem, PROVINCIAL_SUMMARY_KEY, cacheableSummaries, DateTime.now())
-//   return cacheableSummaries
-// };

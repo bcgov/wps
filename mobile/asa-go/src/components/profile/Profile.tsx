@@ -121,6 +121,7 @@ const Profile = ({
             <FireZoneUnitSummary
               selectedFireCenter={selectedFireCenter}
               selectedFireZoneUnit={selectedFireZoneUnit}
+              date={date}
             />
           </FireZoneUnitTabs>
         )}

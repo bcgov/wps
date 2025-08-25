@@ -1,42 +1,42 @@
+import ElevationStatus from "@/components/profile/ElevationStatus";
+import FuelSummary from "@/components/profile/FuelSummary";
+import { useFilteredHFIStatsForDate } from "@/hooks/dataHooks";
+import { useTPIStatsForDate } from "@/hooks/useTpiStatsForDate";
+import { hasRequiredFields } from "@/utils/profileUtils";
 import { Box, Grid2 as Grid, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { FireCenter, FireShape } from "api/fbaAPI";
 import { isNil, isUndefined } from "lodash";
+import { DateTime } from "luxon";
 import React, { useMemo } from "react";
-import FuelSummary from "@/components/profile/FuelSummary";
-import { useTheme } from "@mui/material/styles";
-import { useSelector } from "react-redux";
-import { selectFilteredFireCentreHFIFuelStats } from "@/slices/fireCentreHFIFuelStatsSlice";
-import ElevationStatus from "@/components/profile/ElevationStatus";
-import { selectFireCentreTPIStats } from "@/store";
-import { hasRequiredFields } from "@/utils/profileUtils";
 
 interface FireZoneUnitSummaryProps {
+  date: DateTime;
   selectedFireCenter: FireCenter | undefined;
   selectedFireZoneUnit: FireShape | undefined;
 }
 
 const FireZoneUnitSummary = ({
+  date,
   selectedFireCenter,
   selectedFireZoneUnit,
 }: FireZoneUnitSummaryProps) => {
   const theme = useTheme();
 
-  // selectors
-  const filteredFireCentreHFIFuelStats = useSelector(
-    selectFilteredFireCentreHFIFuelStats
-  );
-  const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats);
+  // hooks
+  const filteredFireZoneUnitHFIStats = useFilteredHFIStatsForDate(date);
+  const fireCentreTPIStats = useTPIStatsForDate(date);
 
   // derived state
   const hfiFuelStats = useMemo(() => {
     if (selectedFireCenter) {
-      return filteredFireCentreHFIFuelStats?.[selectedFireCenter?.name];
+      return filteredFireZoneUnitHFIStats;
     }
-  }, [filteredFireCentreHFIFuelStats, selectedFireCenter]);
+  }, [filteredFireZoneUnitHFIStats, selectedFireCenter]);
 
   const fireZoneTPIStats = useMemo(() => {
     if (selectedFireCenter && !isNil(fireCentreTPIStats)) {
-      const tpiStatsArray = fireCentreTPIStats?.firezone_tpi_stats;
+      const tpiStatsArray = fireCentreTPIStats;
       return tpiStatsArray
         ? tpiStatsArray.find(
             (stats) =>

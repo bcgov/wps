@@ -5,13 +5,12 @@ from enum import Enum
 from time import perf_counter
 from typing import List, Optional, Tuple
 
-from sqlalchemy import String, and_, cast, extract, func, select, update
+from sqlalchemy import String, and_, cast, desc, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
-from wps_shared.run_type import RunType
-from wps_shared.schemas.fba import HfiThreshold
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryElevationStats,
     AdvisoryFuelStats,
@@ -34,6 +33,8 @@ from wps_shared.db.models.auto_spatial_advisory import (
     TPIFuelArea,
 )
 from wps_shared.db.models.hfi_calc import FireCentre
+from wps_shared.run_type import RunType
+from wps_shared.schemas.fba import HfiThreshold
 
 logger = logging.getLogger(__name__)
 
@@ -205,6 +206,19 @@ async def get_zone_source_ids_in_centre(session: AsyncSession, fire_centre_name:
     all_results = result.scalars().all()
 
     return all_results
+
+
+async def get_all_zone_source_ids(session: AsyncSession):
+    """
+    Retrieve the ids of all fire shapes (aka fire zone units).
+
+    :param session: An async database session.
+    :return: A list of the ids of all fire shapes/fire zone units.
+    """
+    logger.info("retrieving all fire zone source ids from advisory_shapes table")
+    stmt = select(Shape.source_identifier)
+    result = await session.execute(stmt)
+    return result.scalars().all()
 
 
 async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuelType]:
@@ -405,6 +419,37 @@ async def get_most_recent_run_datetime_for_date(session: AsyncSession, for_date:
     )
     result = await session.execute(stmt)
     return result.scalars().first()
+
+
+async def get_most_recent_run_datetime_for_date_range(
+    session: AsyncSession, start_date: date, end_date: date
+):
+    """
+    Return the most recent SFMS run parameters for each date from the start_date to the end_date (inclusive).
+
+    :param session: An async database session.
+    :param start_date: The start date.
+    :param end_date: The end date.
+    :return: A list of the most recent SFMS run parameter per date within the specified range.
+    """
+    subquery = (
+        select(
+            RunParameters,
+            func.row_number()
+            .over(partition_by=RunParameters.for_date, order_by=desc(RunParameters.run_datetime))
+            .label("row_num"),
+        )
+        .where(RunParameters.for_date.between(start_date, end_date))
+        .subquery()
+    )
+
+    # Alias the subquery for querying
+    RunParamsAlias = aliased(RunParameters, subquery)
+
+    # Final query: only rows with row_num == 1
+    stmt = select(RunParamsAlias).where(subquery.c.row_num == 1)
+    result = await session.execute(stmt)
+    return result.scalars()
 
 
 async def get_sfms_bounds(session: AsyncSession):
@@ -677,7 +722,7 @@ async def get_centre_tpi_stats(
     run_type: RunType,
     run_datetime: datetime,
     for_date: date,
-) -> AdvisoryTPIStats:
+):
     run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
     stmt = (
@@ -701,6 +746,41 @@ async def get_centre_tpi_stats(
     return result.all()
 
 
+async def get_tpi_stats(
+    session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
+):
+    """
+    Return the TPI stats for all fire zone units for the SFMS run parameter corresponding to the provided run type, for date and run date time.
+
+    :param session: An async database session.
+    :param run_type: The RunType.
+    :param run_datetime: The date and time of the SFMS run.
+    :param for_date: The for date of the SFMS run.
+    :return: TPI fuel stats for all fire zone units.
+    """
+    run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+    stmt = (
+        select(
+            AdvisoryTPIStats.advisory_shape_id,
+            Shape.source_identifier,
+            AdvisoryTPIStats.valley_bottom,
+            AdvisoryTPIStats.mid_slope,
+            AdvisoryTPIStats.upper_slope,
+            AdvisoryTPIStats.pixel_size_metres,
+            FireCentre.id,
+            FireCentre.name,
+        )
+        .join(Shape, Shape.id == AdvisoryTPIStats.advisory_shape_id)
+        .join(FireCentre, FireCentre.id == Shape.fire_centre)
+        .where(
+            AdvisoryTPIStats.run_parameters == run_parameters_id,
+        )
+    )
+
+    result = await session.execute(stmt)
+    return result.all()
+
+
 async def get_fire_centre_tpi_fuel_areas(
     session: AsyncSession, fire_centre_name: str, fuel_type_raster_id: int
 ):
@@ -710,6 +790,32 @@ async def get_fire_centre_tpi_fuel_areas(
         .join(FireCentre, FireCentre.id == Shape.fire_centre)
         .where(
             FireCentre.name == fire_centre_name,
+            TPIFuelArea.fuel_type_raster_id == fuel_type_raster_id,
+        )
+    )
+    result = await session.execute(stmt)
+    return result.all()
+
+
+async def get_tpi_fuel_areas(session: AsyncSession, fuel_type_raster_id: int):
+    """
+    Retrieve TPI fuel stats for all fire zone units in the province.
+
+    :param session: An async database session.
+    :param fuel_type_raster_id: The fuel grid raster id.
+    :return: The TPI fuel stats for all fire zone units.
+    """
+    stmt = (
+        select(
+            TPIFuelArea.tpi_class,
+            TPIFuelArea.fuel_area,
+            Shape.source_identifier,
+            FireCentre.id,
+            FireCentre.name,
+        )
+        .join(Shape, Shape.id == TPIFuelArea.advisory_shape_id)
+        .join(FireCentre, FireCentre.id == Shape.fire_centre)
+        .where(
             TPIFuelArea.fuel_type_raster_id == fuel_type_raster_id,
         )
     )

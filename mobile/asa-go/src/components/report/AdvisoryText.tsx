@@ -5,9 +5,9 @@ import {
   FireZoneHFIStats,
 } from "@/api/fbaAPI";
 import DefaultText from "@/components/report/DefaultText";
-import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
-import { selectFilteredFireCentreHFIFuelStats } from "@/slices/fireCentreHFIFuelStatsSlice";
+import { useFilteredHFIStatsForDate } from "@/hooks/dataHooks";
 import { useProvincialSummaryForDate } from "@/hooks/useProvincialSummaryForDate";
+import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import {
   getTopFuelsByArea,
   getTopFuelsByProportion,
@@ -24,7 +24,6 @@ import { Box, styled, Typography, useTheme } from "@mui/material";
 import { isEmpty, isNil, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { useMemo } from "react";
-import { useSelector } from "react-redux";
 
 export const SerifTypography = styled(Typography)({
   fontSize: "1.2rem",
@@ -45,33 +44,29 @@ const AdvisoryText = ({
   date,
 }: AdvisoryTextProps) => {
   const theme = useTheme();
-  // selectors
+
+  // hooks
   const provincialSummary = useProvincialSummaryForDate(date);
-  const filteredFireCentreHFIFuelStats = useSelector(
-    selectFilteredFireCentreHFIFuelStats
-  );
+  const filteredFireZoneUnitHFIStats = useFilteredHFIStatsForDate(date);
   const runParameter = useRunParameterForDate(date);
 
   // derived state
   const selectedFilteredZoneUnitFuelStats = useMemo<FireZoneHFIStats>(() => {
     if (
-      isUndefined(filteredFireCentreHFIFuelStats) ||
-      isEmpty(filteredFireCentreHFIFuelStats) ||
-      isUndefined(selectedFireCenter) ||
+      isUndefined(filteredFireZoneUnitHFIStats) ||
+      isEmpty(filteredFireZoneUnitHFIStats) ||
       isUndefined(selectedFireZoneUnit) ||
       isNil(runParameter)
     ) {
       return { fuel_area_stats: [], min_wind_stats: [] };
     }
-    const allFilteredZoneUnitFuelStats =
-      filteredFireCentreHFIFuelStats[selectedFireCenter.name];
     return (
-      allFilteredZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? {
+      filteredFireZoneUnitHFIStats?.[selectedFireZoneUnit.fire_shape_id] ?? {
         fuel_area_stats: [],
         min_wind_stats: [],
       }
     );
-  }, [filteredFireCentreHFIFuelStats, selectedFireZoneUnit]);
+  }, [filteredFireZoneUnitHFIStats, selectedFireZoneUnit]);
 
   const selectedFireZoneUnitTopFuels = useMemo<FireZoneFuelStats[]>(() => {
     if (isNil(runParameter?.for_date)) {
