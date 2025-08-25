@@ -242,6 +242,20 @@ const runParametersMatch = (
   );
 };
 
+const fetchFireShapeArea = async (
+  runParameter: RunParameter
+): Promise<FireShapeArea[]> => {
+  if (isNil(runParameter)) {
+    return [];
+  }
+  const fireShapeArea = await getFireShapeAreas(
+    runParameter.run_type,
+    runParameter.run_datetime,
+    runParameter.for_date
+  );
+  return fireShapeArea?.shapes;
+};
+
 const fetchFireShapeAreas = async (
   todayKey: string,
   tomorrowKey: string,
@@ -260,6 +274,20 @@ const fetchFireShapeAreas = async (
     tomorrowFireShapeArea
   );
   return fireShapeAreas as CacheableData<FireShapeArea[]>;
+};
+
+const fetchHFIStatsForRunParameter = async (
+  runParameter: RunParameter
+): Promise<FireZoneHFIStatsDictionary> => {
+  if (isNil(runParameter)) {
+    return [];
+  }
+  const hfiStatsForRunParameter = await getHFIStats(
+    runParameter.run_type,
+    runParameter.run_datetime,
+    runParameter.for_date
+  );
+  return hfiStatsForRunParameter?.zone_data;
 };
 
 const fetchHFIStats = async (
@@ -283,6 +311,20 @@ const fetchHFIStats = async (
   return hfiStats as CacheableData<FireZoneHFIStatsDictionary>;
 };
 
+const fetchTpiStatsForRunParameter = async (
+  runParameter: RunParameter
+): Promise<FireZoneTPIStats[]> => {
+  if (isNil(runParameter)) {
+    return [];
+  }
+  const tpiStatsForRunParameter = await getTPIStats(
+    runParameter.run_type,
+    runParameter.run_datetime,
+    runParameter.for_date
+  );
+  return tpiStatsForRunParameter?.firezone_tpi_stats;
+};
+
 const fetchTpiStats = async (
   todayKey: string,
   tomorrowKey: string,
@@ -302,6 +344,20 @@ const fetchTpiStats = async (
     tpiStatsForTommorow
   );
   return tpiStats as CacheableData<FireZoneTPIStats[]>;
+};
+
+const fetchProvincialSummary = async (
+  runParameter: RunParameter
+): Promise<FireShapeAreaDetail[]> => {
+  if (isNil(runParameter)) {
+    return [];
+  }
+  const provincialSummary = await getProvincialSummary(
+    runParameter.run_type,
+    runParameter.run_datetime,
+    runParameter.for_date
+  );
+  return provincialSummary?.provincial_summary;
 };
 
 const fetchProvincialSummaries = async (
@@ -348,62 +404,6 @@ const shapeDataForCaching = (
       data: tomorrowData,
     },
   };
-};
-
-const fetchFireShapeArea = async (
-  runParameter: RunParameter
-): Promise<FireShapeArea[]> => {
-  if (isNil(runParameter)) {
-    return [];
-  }
-  const fireShapeArea = await getFireShapeAreas(
-    runParameter.run_type,
-    runParameter.run_datetime,
-    runParameter.for_date
-  );
-  return fireShapeArea?.shapes;
-};
-
-const fetchProvincialSummary = async (
-  runParameter: RunParameter
-): Promise<FireShapeAreaDetail[]> => {
-  if (isNil(runParameter)) {
-    return [];
-  }
-  const provincialSummary = await getProvincialSummary(
-    runParameter.run_type,
-    runParameter.run_datetime,
-    runParameter.for_date
-  );
-  return provincialSummary?.provincial_summary;
-};
-
-const fetchHFIStatsForRunParameter = async (
-  runParameter: RunParameter
-): Promise<FireZoneHFIStatsDictionary> => {
-  if (isNil(runParameter)) {
-    return [];
-  }
-  const hfiStatsForRunParameter = await getHFIStats(
-    runParameter.run_type,
-    runParameter.run_datetime,
-    runParameter.for_date
-  );
-  return hfiStatsForRunParameter?.zone_data;
-};
-
-const fetchTpiStatsForRunParameter = async (
-  runParameter: RunParameter
-): Promise<FireZoneTPIStats[]> => {
-  if (isNil(runParameter)) {
-    return [];
-  }
-  const tpiStatsForRunParameter = await getTPIStats(
-    runParameter.run_type,
-    runParameter.run_datetime,
-    runParameter.for_date
-  );
-  return tpiStatsForRunParameter?.firezone_tpi_stats;
 };
 
 const dataAreEqual = (

@@ -1,7 +1,7 @@
 """This module contains pydantic models related to the new formal/non-tinker fba."""
 
 from datetime import date, datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -130,6 +130,12 @@ class FireZoneHFIStats(BaseModel):
     fuel_area_stats: List[ClassifiedHfiThresholdFuelTypeArea]
 
 
+class HFIStatsResponse(BaseModel):
+    """HFI Stats for all zones for a run parameter"""
+
+    zone_data: Dict[int, FireZoneHFIStats]
+
+
 class FireZoneElevationStats(BaseModel):
     """Basic elevation statistics for a firezone"""
 
@@ -152,9 +158,12 @@ class FireZoneTPIStats(BaseModel):
     upper_slope_tpi: Optional[float]
 
 
-class FireCentreTPIResponse(BaseModel):
-    fire_centre_name: str
+class TPIResponse(BaseModel):
     firezone_tpi_stats: List[FireZoneTPIStats]
+
+
+class FireCentreTPIResponse(TPIResponse):
+    fire_centre_name: str
 
 
 class FireZoneElevationStatsByThreshold(BaseModel):
@@ -182,3 +191,12 @@ class LatestSFMSRunParameter(BaseModel):
 
 class LatestSFMSRunParameterResponse(BaseModel):
     run_parameter: Optional[LatestSFMSRunParameter] = None
+
+class SFMSRunParameter(BaseModel):
+    for_date: date
+    run_type: SFMSRunType
+    run_datetime: datetime
+
+
+class LatestSFMSRunParameterRangeResponse(BaseModel):
+    run_parameters: Dict[date, SFMSRunParameter]
