@@ -398,32 +398,6 @@ const ASAGoMap = ({
 
     /******* End map popup ******/
 
-    /******* Start map state restoration ******/
-    (async () => {
-      const savedState = await loadMapViewState();
-      if (savedState) {
-        mapObject.getView().setZoom(savedState.zoom);
-        mapObject.getView().setCenter(savedState.center);
-      } else {
-        mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] });
-      }
-    })();
-
-    const saveStateHandler = () => {
-      const view = mapObject.getView();
-      const zoom = view.getZoom();
-      const center = view.getCenter();
-      if (zoom && center) {
-        saveMapViewState({
-          zoom,
-          center,
-        });
-      }
-    };
-    mapObject.on("moveend", saveStateHandler);
-
-    /******* End map state restoration *******/
-
     setMap(mapObject);
 
     const loadPMTiles = async () => {
@@ -499,9 +473,39 @@ const ASAGoMap = ({
       mapObject.un("click", mapClickHandler);
       mapObject.getView().un("change:resolution", setScalelineVisibility);
       mapObject.setTarget("");
-      mapObject.un("moveend", saveStateHandler);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // map state storage and restoration
+  useEffect(() => {
+    if (!map) return;
+    (async () => {
+      const savedState = await loadMapViewState();
+      if (savedState) {
+        map.getView().setZoom(savedState.zoom);
+        map.getView().setCenter(savedState.center);
+      } else {
+        map.getView().fit(bcExtent, { padding: [50, 50, 50, 50] });
+      }
+    })();
+
+    const saveStateHandler = () => {
+      const view = map.getView();
+      const zoom = view.getZoom();
+      const center = view.getCenter();
+      if (zoom && center) {
+        saveMapViewState({
+          zoom,
+          center,
+        });
+      }
+    };
+    map.on("moveend", saveStateHandler);
+
+    return () => {
+      map.un("moveend", saveStateHandler);
+    };
+  }, [map]);
 
   useEffect(() => {
     if (!map) return;
