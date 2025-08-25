@@ -28,6 +28,7 @@ from app.routers import (
     fba_calc,
     sfms,
     morecast_v2,
+    push_notifications,
     snow,
     fire_watch,
 )
@@ -135,6 +136,9 @@ api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
 api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
+api.include_router(
+    push_notifications.router, prefix="/push-notifications", tags=["Push Notifications"]
+)
 
 
 @api.get("/ready")

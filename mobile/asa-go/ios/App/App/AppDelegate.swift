@@ -2,9 +2,12 @@ import AppAuth
 import Capacitor
 import Keycloak
 import UIKit
+import UserNotifications
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, KeycloakAppDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, KeycloakAppDelegate,
+    UNUserNotificationCenterDelegate
+{
 
     var window: UIWindow?
     var currentAuthorizationFlow: OIDExternalUserAgentSession?
@@ -13,6 +16,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, KeycloakAppDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        // Configure push notifications
+        UNUserNotificationCenter.current().delegate = self
+
         // Override point for customization after application launch.
         return true
     }
@@ -62,6 +68,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate, KeycloakAppDelegate {
         // tracking app url opens, make sure to keep this call
         return ApplicationDelegateProxy.shared.application(
             application, continue: userActivity, restorationHandler: restorationHandler)
+    }
+
+    // Called when a notification is delivered to a foreground app
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) ->
+            Void
+    ) {
+        // Show the notification even when the app is in foreground
+        completionHandler([.alert, .badge, .sound])
+    }
+
+    // Called when the user responds to a notification
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        // Handle the notification response
+        completionHandler()
     }
 
 }

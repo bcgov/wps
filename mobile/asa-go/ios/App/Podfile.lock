@@ -10,11 +10,13 @@ PODS:
   - CapacitorApp (7.0.0):
     - Capacitor
   - CapacitorCordova (7.1.0)
+  - CapacitorDevice (7.0.2):
+    - Capacitor
   - CapacitorEmailComposer (7.0.0):
     - Capacitor
   - CapacitorFilesystem (7.0.0):
     - Capacitor
-  - CapacitorGeolocation (7.1.2):
+  - CapacitorGeolocation (7.1.4):
     - Capacitor
     - IONGeolocationLib (~> 1.0)
   - CapacitorHaptics (7.0.0):
@@ -23,7 +25,9 @@ PODS:
     - Capacitor
   - CapacitorNetwork (7.0.0):
     - Capacitor
-  - CapacitorSplashScreen (7.0.1):
+  - CapacitorPushNotifications (7.0.2):
+    - Capacitor
+  - CapacitorSplashScreen (7.0.2):
     - Capacitor
   - CapacitorStatusBar (7.0.0):
     - Capacitor
@@ -36,12 +40,14 @@ DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorDevice (from `../../node_modules/@capacitor/device`)"
   - CapacitorEmailComposer (from `../../node_modules/capacitor-email-composer`)
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
   - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
+  - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - Keycloak (from `../../node_modules/keycloak`)
@@ -58,6 +64,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/app"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorDevice:
+    :path: "../../node_modules/@capacitor/device"
   CapacitorEmailComposer:
     :path: "../../node_modules/capacitor-email-composer"
   CapacitorFilesystem:
@@ -70,6 +78,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/keyboard"
   CapacitorNetwork:
     :path: "../../node_modules/@capacitor/network"
+  CapacitorPushNotifications:
+    :path: "../../node_modules/@capacitor/push-notifications"
   CapacitorSplashScreen:
     :path: "../../node_modules/@capacitor/splash-screen"
   CapacitorStatusBar:
@@ -82,17 +92,19 @@ SPEC CHECKSUMS:
   Capacitor: 68ff8eabbcce387e69767c13b5fbcc1c5399eabc
   CapacitorApp: 45cb7cbef4aa380b9236fd6980033eb5cde6fcd2
   CapacitorCordova: 866217f32c1d25b326c568a10ea3ed0c36b13e29
+  CapacitorDevice: a50a45f0d075e55e2392c7a4be5404d4f69515de
   CapacitorEmailComposer: 5f0ae4bd516997aba61034ba4387f2a67947ce21
   CapacitorFilesystem: 2881ad012b5c8d0ffbfed1216aadfc2cca16d5b5
-  CapacitorGeolocation: 8c86a3afea574c84447c17905da96f2356ad913e
+  CapacitorGeolocation: 5583eb25815522c4b4cb38936ac7fea8a34996d9
   CapacitorHaptics: 1fba3e460e7614349c6d5f868b1fccdc5c87b66d
   CapacitorKeyboard: 2c26c6fccde35023c579fc37d4cae6326d5e6343
   CapacitorNetwork: cd17b98182841055ff58629213242a1f22f4a76b
-  CapacitorSplashScreen: 19cd3573e57507e02d6f34597a8c421e00931487
+  CapacitorPushNotifications: 6ffcf5df95f17d71a1b02893549bc4727f80540c
+  CapacitorSplashScreen: 8d6c8cb0542a8e81585c593815db8785ed8ce454
   CapacitorStatusBar: 438e90beeeefa8276b24e6c5991cb02dd13e51bf
   IONGeolocationLib: 81f33f88d025846946de2cf63b0c7628e7c6bc9d
   Keycloak: c39abe3ec71f672fbf306a7f37b85d3858ae7f00
 
-PODFILE CHECKSUM: f6bca02298de844371df6d72f4c8fdc0f670f010
+PODFILE CHECKSUM: e79750229e811c0f15b0bcbd201a1c2f8d428f9e
 
 COCOAPODS: 1.16.2
