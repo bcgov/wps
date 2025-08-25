@@ -1,4 +1,4 @@
-import { useProvincialSummaryForDate } from "@/hooks/useProvincialSummaryForDate";
+import { useProvincialSummaryForDate } from "@/hooks/dataHooks";
 import { FireCenter, FireShapeAreaDetail } from "api/fbaAPI";
 import { groupBy } from "lodash";
 import { DateTime } from "luxon";

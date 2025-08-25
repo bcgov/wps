@@ -21,7 +21,7 @@ import {
   fireShapeStyler,
 } from "@/featureStylers";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
-import { useFireShapeAreasForDate } from "@/hooks/useFireShapeAreasForDate";
+import { useFireShapeAreasForDate } from "@/hooks/dataHooks";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import {
   createBasemapLayer,
