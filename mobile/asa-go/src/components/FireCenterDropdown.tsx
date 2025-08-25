@@ -30,7 +30,7 @@ const FireCenterDropdown = ({
     if (!selected) {
       return (
         <Typography sx={{ color: "text.disabled" }}>
-          Select Fire Center
+          Select Fire Centre
         </Typography>
       );
     }
