@@ -80,7 +80,7 @@ describe("FireCenterDropdown", () => {
     );
     // Expect empty select to render with a zero width space.
     expect(screen.getByRole("combobox")).toHaveTextContent(
-      "Select Fire Center"
+      "Select Fire Centre"
     );
   });
 });

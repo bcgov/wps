@@ -240,7 +240,7 @@ const AdvisoryText = ({
     return (
       <>
         {issueDate?.isValid ? (
-          <SerifTypography data-testid="default-message">Please select a fire center.</SerifTypography>
+          <SerifTypography data-testid="default-message">Please select a fire centre.</SerifTypography>
         ) : (
           <SerifTypography data-testid="no-data-message">
             No advisory data available for the selected date.
