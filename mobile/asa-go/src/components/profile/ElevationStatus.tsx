@@ -47,7 +47,6 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
               color: "#003366",
               fontWeight: "bold",
               textAlign: "left",
-              width: "50%",
             }}
           >
             Topographic Position:
@@ -59,7 +58,6 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
               color: "#003366",
               fontWeight: "bold",
               textAlign: "right",
-              width: "65%",
             }}
           >
             Portion under advisory:

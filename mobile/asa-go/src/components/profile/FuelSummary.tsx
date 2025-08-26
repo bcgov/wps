@@ -174,6 +174,9 @@ const FuelSummary = ({
             "& .fuel-summary-header": {
               background: "#F1F1F1",
             },
+            "& .MuiDataGrid-sortIcon": {
+              display: "none",
+            },
           }}
         ></DataGridPro>
       )}
