@@ -60,7 +60,11 @@ const SidebarToolList: React.FunctionComponent = () => {
             <ListItem className={classes.listItem} disablePadding>
               <ListItemButton component={'a'} href={item.route}>
                 <ListItemIcon className={classes.icon}>{item.icon}</ListItemIcon>
-                <ListItemText className={classes.text} primary={item.name} secondary={isSmall && item.description} />
+                <ListItemText
+                  primary={item.name}
+                  secondary={isSmall && item.description}
+                  primaryTypographyProps={{ className: classes.text }}
+                />
                 {item.isBeta && (
                   <div className={classes.beta}>
                     <BetaTag />
