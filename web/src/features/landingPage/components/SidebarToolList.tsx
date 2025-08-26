@@ -63,7 +63,10 @@ const SidebarToolList: React.FunctionComponent = () => {
                 <ListItemText
                   primary={item.name}
                   secondary={isSmall && item.description}
-                  primaryTypographyProps={{ className: classes.text }}
+                  primaryTypographyProps={{
+                    className: classes.text,
+                    ...(isSmall ? { sx: { fontWeight: 'bold' } } : {})
+                  }}
                 />
                 {item.isBeta && (
                   <div className={classes.beta}>
