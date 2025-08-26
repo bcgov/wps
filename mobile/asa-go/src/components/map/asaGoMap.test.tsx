@@ -113,16 +113,20 @@ describe("ASAGoMap", () => {
     expect(locationButton).not.toBeDisabled();
   });
 
-  it("calls createHFILayer when date, runType, or runDatetime changes", async () => {
+  it("calls createHFILayer when runParameter changes", async () => {
     const runParameter = {
-      forDate: "2024-12-15",
-      runDatetime: "2024-12-15T15:00:00Z",
-      runType: RunType.FORECAST,
+      for_date: "2024-12-15",
+      run_datetime: "2024-12-15T15:00:00Z",
+      run_type: RunType.FORECAST,
       loading: false,
       error: null,
     };
     const store = createTestStore({
-      runParameter: runParameter,
+      runParameters: {
+        runParameters: { "2024-12-15": runParameter },
+        loading: false,
+        error: null,
+      },
     });
 
     const { rerender } = render(
@@ -144,11 +148,13 @@ describe("ASAGoMap", () => {
     );
 
     store.dispatch({
-      type: "runParameter/getRunParameterSuccess",
+      type: "runParameters/getRunParametersSuccess",
       payload: {
-        forDate: "2024-12-16",
-        runDateTime: "2024-12-16T23:00:00Z",
-        runType: RunType.FORECAST,
+        "2024-12-16": {
+          forDate: "2024-12-16",
+          runDateTime: "2024-12-16T23:00:00Z",
+          runType: RunType.FORECAST,
+        },
       },
     });
     rerender(
@@ -156,19 +162,20 @@ describe("ASAGoMap", () => {
         <ASAGoMap {...defaultProps} date={DateTime.fromISO("2024-12-16")} />
       </Provider>
     );
-    expect(createHFILayer).toHaveBeenCalledWith(
-      expect.objectContaining({
-        filename: "hfi.pmtiles",
-        for_date: DateTime.fromISO("2024-12-16"),
-        run_type: RunType.FORECAST,
-        run_date: DateTime.fromISO("2024-12-16T23:00:00Z"),
-      }),
-      true
+    waitFor(() =>
+      expect(createHFILayer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filename: "hfi.pmtiles",
+          for_date: DateTime.fromISO("2024-12-16"),
+          run_type: RunType.FORECAST,
+          run_date: DateTime.fromISO("2024-12-16T23:00:00Z"),
+        }),
+        true
+      )
     );
   });
   it("renders the layer switcher button and legend on click", async () => {
     const store = createTestStore();
-
     const { getByTestId } = render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
@@ -258,6 +265,7 @@ describe("ASAGoMap", () => {
       await import("@/components/map/layerVisibility"),
       "setDefaultLayerVisibility"
     );
+
     const mockToggleLayersRef = {
       hfiVectorLayer: null,
     };

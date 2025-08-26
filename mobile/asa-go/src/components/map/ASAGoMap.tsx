@@ -42,7 +42,7 @@ import MyLocationIcon from "@mui/icons-material/MyLocation";
 import LayersIcon from "@mui/icons-material/Layers";
 import { Box } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
-import { cloneDeep, isNull, isUndefined } from "lodash";
+import { cloneDeep, isNil, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { Map, MapBrowserEvent, Overlay, View } from "ol";
 import { defaults as defaultControls } from "ol/control";
@@ -104,7 +104,7 @@ const ASAGoMap = ({
   // hooks
   const fireShapeAreas = useFireShapeAreasForDate(date);
   const runParameter = useRunParameterForDate(date);
-  
+
   // state
   const [map, setMap] = useState<Map | null>(null);
   const [scaleVisible, setScaleVisible] = useState<boolean>(true);
@@ -482,7 +482,10 @@ const ASAGoMap = ({
 
     (async () => {
       let hfiLayer: VectorTileLayer | null = null;
-      if (!isNull(runParameter?.run_type) && !isNull(runParameter?.run_datetime)) {
+      if (
+        !isNil(runParameter?.run_type) &&
+        !isNil(runParameter?.run_datetime)
+      ) {
         hfiLayer = await createHFILayer(
           {
             filename: "hfi.pmtiles",
