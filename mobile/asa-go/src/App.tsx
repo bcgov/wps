@@ -27,7 +27,7 @@ import { isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { PushNotifications } from "@capacitor/push-notifications";
+import { setupPushNotifications } from "@/notifications/setup";
 
 const ADVISORY_THRESHOLD = 20;
 
@@ -70,30 +70,7 @@ const App = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const addListeners = async () => {
-      await PushNotifications.addListener("registration", (token) => {
-        console.info("Registration token: ", token.value);
-      });
-
-      await PushNotifications.addListener("registrationError", (err) => {
-        console.error("Registration error: ", err.error);
-      });
-    };
-    const registerNotifications = async () => {
-      let permStatus = await PushNotifications.checkPermissions();
-
-      if (permStatus.receive === "prompt") {
-        permStatus = await PushNotifications.requestPermissions();
-      }
-
-      if (permStatus.receive !== "granted") {
-        throw new Error("User denied permissions!");
-      }
-
-      await PushNotifications.register();
-    };
-    addListeners();
-    registerNotifications();
+    setupPushNotifications();
   }, []);
 
   useEffect(() => {
