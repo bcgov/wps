@@ -278,6 +278,11 @@
   resolved "https://registry.npmjs.org/@capacitor/network/-/network-7.0.0.tgz"
   integrity sha512-cIr0tElqiAKxbRJ7/OGOPssSyaVpyU8ushjcOItdYaGu/L9RAI+4tKdRCoL9cngCycgcUGWn+SkuN9oJCf8iHw==
 
+"@capacitor/push-notifications@^7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@capacitor/push-notifications/-/push-notifications-7.0.2.tgz#755c2eeed58626304ab72d19d08626ace89916d5"
+  integrity sha512-naw1R61V0qlEBa4CsF7+w3ay7V1PdZ4bQ1cJum+lgZB/yz3ASb6fRHm5GPjJFgTR9ET8zN0Q9y7lfgMTBgDOiA==
+
 "@capacitor/splash-screen@^7.0.1":
   version "7.0.2"
   resolved "https://registry.npmjs.org/@capacitor/splash-screen/-/splash-screen-7.0.2.tgz"

@@ -27,6 +27,7 @@ import { isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { setupPushNotifications } from "@/notifications/setup";
 
 const ADVISORY_THRESHOLD = 20;
 
@@ -67,6 +68,10 @@ const App = () => {
       Network.removeAllListeners();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    setupPushNotifications();
+  }, []);
 
   useEffect(() => {
     dispatch(fetchFireCenters());
