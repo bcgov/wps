@@ -18,7 +18,14 @@ from wps_shared.db.models.auto_spatial_advisory import (
     TPIClassEnum,
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
-from wps_shared.schemas.fba import HfiThreshold
+from wps_shared.schemas.auto_spatial_advisory import SFMSRunType
+from wps_shared.schemas.fba import (
+    FireZoneHFIStats,
+    HFIStatsResponse,
+    HfiThreshold,
+    LatestSFMSRunParameterRangeResponse,
+    SFMSRunParameter,
+)
 from wps_shared.tests.common import default_mock_client_get
 
 mock_fire_centre_name = "PGFireCentre"
@@ -166,6 +173,32 @@ async def mock_get_sfms_bounds(*_, **__):
 
 async def mock_get_sfms_bounds_no_data(*_, **__):
     return []
+
+
+async def mock_get_latest_sfms_run_datetime_for_date_range(*_, **__):
+    for_date_1 = date(2025, 8, 25)
+    for_date_2 = date(2025, 8, 26)
+    run_datetime = datetime(2025, 8, 25)
+    run_parameter_1 = SFMSRunParameter(
+        for_date=for_date_1, run_datetime=run_datetime, run_type=SFMSRunType.FORECAST
+    )
+    run_parameter_2 = SFMSRunParameter(
+        for_date=for_date_2, run_datetime=run_datetime, run_type=SFMSRunType.FORECAST
+    )
+    return {for_date_1: run_parameter_1, for_date_2: run_parameter_2}
+
+
+async def mock_get_all_zone_source_ids(*_, **__):
+    return [1, 2, 3]
+
+
+async def mock_get_tpi_fuel_areas(*_, **__):
+    return [{TPIClassEnum.mid_slope, 500, "20", 2, "Coastal"}]
+
+
+async def mock_get_hfi_fuels_data_for_run_parameter(*_, **__):
+    mock_fire_zone_hfi_stats = FireZoneHFIStats(min_wind_stats=[], fuel_area_stats=[])
+    return HFIStatsResponse(zone_data={1: mock_fire_zone_hfi_stats})
 
 
 @pytest.fixture()
@@ -440,6 +473,9 @@ FBA_ENDPOINTS = [
     "/api/fba/fire-centre-tpi-stats/forecast/2024-08-10/2024-08-10/PGFireCentre",
     "/api/fba/sfms-run-datetimes/forecast/2022-09-27",
     "/api/fba/sfms-run-bounds",
+    "/api/fba/latest-sfms-run-parameters/2025-08-25/2025-08-26",
+    "/api/fba/hfi-stats/forecast/2025-08-25/2025-08-26",
+    "/api/fba/tpi-stats/forecast/2025-08-25T15:01:47.340947Z/2025-08-26",
 ]
 
 
@@ -458,6 +494,15 @@ FBA_ENDPOINTS = [
 @patch("app.routers.fba.get_centre_tpi_stats", mock_get_centre_tpi_stats)
 @patch("app.routers.fba.get_run_datetimes", mock_get_sfms_run_datetimes)
 @patch("app.routers.fba.get_sfms_bounds", mock_get_sfms_bounds)
+@patch(
+    "app.routers.fba.get_latest_sfms_run_datetime_for_date_range",
+    mock_get_latest_sfms_run_datetime_for_date_range,
+)
+@patch(
+    "app.routers.fba.get_all_zone_source_ids",
+    mock_get_all_zone_source_ids,
+)
+@patch("app.routers.fba.get_tpi_fuel_areas", mock_get_tpi_fuel_areas)
 def test_fba_endpoints_allowed_for_test_idir(client, endpoint):
     headers = {"Authorization": "Bearer token"}
     response = client.get(endpoint, headers=headers)

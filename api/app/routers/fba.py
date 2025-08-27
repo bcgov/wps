@@ -333,6 +333,25 @@ async def get_fire_centre_tpi_stats(
     )
 
 
+@router.get("/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])
+async def get_run_datetimes_for_date_and_runtype(
+    run_type: RunType,
+    for_date: date,
+    _=Depends(asa_authentication_required),
+):
+    """Return list of datetimes for which SFMS has run, given a specific for_date and run_type.
+    Datetimes should be ordered with most recent first."""
+    async with get_async_read_session_scope() as session:
+        datetimes = []
+
+        rows = await get_run_datetimes(session, RunTypeEnum(run_type.value), for_date)
+
+        for row in rows:
+            datetimes.append(row.run_datetime)  # type: ignore
+
+        return datetimes
+
+
 #### ASA Go Specific Routes ####
 
 
@@ -354,25 +373,6 @@ async def get_latest_sfms_run_datetime_for_date_range(
             )
             latest_run_parameters[row.for_date] = run_parameter
         return LatestSFMSRunParameterRangeResponse(run_parameters=latest_run_parameters)
-
-
-@router.get("/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])
-async def get_run_datetimes_for_date_and_runtype(
-    run_type: RunType,
-    for_date: date,
-    _=Depends(asa_authentication_required),
-):
-    """Return list of datetimes for which SFMS has run, given a specific for_date and run_type.
-    Datetimes should be ordered with most recent first."""
-    async with get_async_read_session_scope() as session:
-        datetimes = []
-
-        rows = await get_run_datetimes(session, RunTypeEnum(run_type.value), for_date)
-
-        for row in rows:
-            datetimes.append(row.run_datetime)  # type: ignore
-
-        return datetimes
 
 
 @router.get(
