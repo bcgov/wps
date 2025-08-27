@@ -11,6 +11,7 @@ import {
 } from "@/testUtils";
 import { geolocationInitialState } from "@/slices/geolocationSlice";
 import { RunType } from "@/api/fbaAPI";
+import * as mapView from "@/components/map/mapView";
 
 vi.mock("@capacitor/filesystem", () => ({
   Filesystem: {
@@ -286,5 +287,23 @@ describe("ASAGoMap", () => {
       false
     );
     await waitFor(() => expect(hfiCheckbox).not.toBeChecked());
+  });
+
+  it("calls save and load map view state", async () => {
+    const store = createTestStore({
+      geolocation: {
+        ...geolocationInitialState,
+        position: mockPosition,
+      },
+    });
+    const loadMapViewStateMock = vi.spyOn(mapView, "loadMapViewState");
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    );
+
+    expect(loadMapViewStateMock).toHaveBeenCalled();
   });
 });
