@@ -62,7 +62,7 @@ export const writeToFileSystem = async (
 export const readFromFilesystem = async (
   filesystem: FilesystemPlugin,
   key: string
-): Promise<CacheableData<CacheableDataType> | null> => {
+) => {
   try {
     const result = await filesystem.readFile({
       path: getPath(key),
@@ -75,19 +75,27 @@ export const readFromFilesystem = async (
   }
 };
 
-
-export const clearStaleHFIPMTiles = async (filesystem: FilesystemPlugin, hfiFilesToKeep: string[]) => {
+export const clearStaleHFIPMTiles = async (
+  filesystem: FilesystemPlugin,
+  hfiFilesToKeep: string[]
+) => {
   try {
     const { files } = await filesystem.readdir({
-      path: "", 
+      path: "",
       directory: Directory.Data,
     });
-    for(const file of files) {
-      if (file.name.endsWith("hfi.pmtiles") && !hfiFilesToKeep.includes(file.name)) {
-        await filesystem.deleteFile({path: file.name, directory: Directory.Data})
+    for (const file of files) {
+      if (
+        file.name.endsWith("hfi.pmtiles") &&
+        !hfiFilesToKeep.includes(file.name)
+      ) {
+        await filesystem.deleteFile({
+          path: file.name,
+          directory: Directory.Data,
+        });
       }
     }
   } catch (e) {
-    console.error(e)
+    console.error(e);
   }
-}
+};
