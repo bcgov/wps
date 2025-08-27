@@ -32,15 +32,8 @@ import {
   HFI_LAYER_NAME,
 } from "@/layerDefinitions";
 import { startWatchingLocation } from "@/slices/geolocationSlice";
+import { NavPanel } from "@/utils/constants";
 import { AppDispatch, selectGeolocation, selectNetworkStatus } from "@/store";
-import { CENTER_OF_BC, NavPanel } from "@/utils/constants";
-import {
-  AppDispatch,
-  selectFireShapeAreas,
-  selectGeolocation,
-  selectNetworkStatus,
-  selectRunParameter,
-} from "@/store";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
 import { Filesystem } from "@capacitor/filesystem";
