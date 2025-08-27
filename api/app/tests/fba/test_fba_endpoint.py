@@ -42,9 +42,8 @@ get_sfms_run_datetimes_url = "/api/fba/sfms-run-datetimes/forecast/2022-09-27"
 get_sfms_run_bounds_url = "/api/fba/sfms-run-bounds"
 
 decode_fn = "jwt.decode"
-mock_tpi_stats = AdvisoryTPIStats(
-    id=1, advisory_shape_id=1, valley_bottom=1, mid_slope=2, upper_slope=3, pixel_size_metres=50
-)
+
+mock_tpi_stats = []
 
 mock_fire_centre_info = [(9.0, 11.0, 1, 1, 50, 100, 1)]
 mock_fire_centre_info_with_grass = [(9.0, 11.0, 12, 1, 50, 100, None)]
@@ -79,7 +78,6 @@ CentreHFIFuelResponse = namedtuple(
         "pixel_size_metres",
     ],
 )
-
 
 def create_mock_centre_tpi_stats(
     advisory_shape_id, source_identifier, valley_bottom, mid_slope, upper_slope, pixel_size_metres
@@ -474,7 +472,7 @@ FBA_ENDPOINTS = [
     "/api/fba/sfms-run-datetimes/forecast/2022-09-27",
     "/api/fba/sfms-run-bounds",
     "/api/fba/latest-sfms-run-parameters/2025-08-25/2025-08-26",
-    "/api/fba/hfi-stats/forecast/2025-08-25/2025-08-26",
+    "/api/fba/hfi-stats/forecast/2025-08-25T15:01:47.340947Z/2025-08-26",
     "/api/fba/tpi-stats/forecast/2025-08-25T15:01:47.340947Z/2025-08-26",
 ]
 
@@ -503,6 +501,7 @@ FBA_ENDPOINTS = [
     mock_get_all_zone_source_ids,
 )
 @patch("app.routers.fba.get_tpi_fuel_areas", mock_get_tpi_fuel_areas)
+@patch("app.routers.fba.get_tpi_stats", mock_get_tpi_stats)
 def test_fba_endpoints_allowed_for_test_idir(client, endpoint):
     headers = {"Authorization": "Bearer token"}
     response = client.get(endpoint, headers=headers)
