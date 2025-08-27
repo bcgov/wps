@@ -15,9 +15,17 @@ import {
 } from "@/slices/geolocationSlice";
 import { updateNetworkStatus } from "@/slices/networkStatusSlice";
 import { fetchSFMSRunParameters } from "@/slices/runParametersSlice";
-import { AppDispatch, selectFireCenters, selectNetworkStatus } from "@/store";
+import {
+  AppDispatch,
+  selectFireCenters,
+  selectNetworkStatus,
+  selectRunParameters,
+} from "@/store";
 import { theme } from "@/theme";
 import { NavPanel, PST_UTC_OFFSET } from "@/utils/constants";
+import { PMTilesCache } from "@/utils/pmtilesCache";
+import { clearStaleHFIPMTiles } from "@/utils/storage";
+import { Filesystem } from "@capacitor/filesystem";
 import { ConnectionStatus, Network } from "@capacitor/network";
 import { Box } from "@mui/material";
 import { LicenseInfo } from "@mui/x-license-pro";
@@ -48,6 +56,7 @@ const App = () => {
   // selected redux state
   const { fireCenters } = useSelector(selectFireCenters);
   const { networkStatus } = useSelector(selectNetworkStatus);
+  const runParameters = useSelector(selectRunParameters);
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest);
@@ -104,6 +113,30 @@ const App = () => {
       }
     }
   }, [selectedFireShape, fireCenters]);
+
+  useEffect(() => {
+    if (!isNil(runParameters)) {
+      const hfiFilesToKeep: string[] = [];
+      for (const value of Object.values(runParameters)) {
+        const pmtilesCache = new PMTilesCache(Filesystem);
+        pmtilesCache.loadHFIPMTiles(
+          DateTime.fromISO(value.for_date),
+          value.run_type,
+          DateTime.fromISO(value.run_datetime),
+          "hfi.pmtiles"
+        );
+        hfiFilesToKeep.push(
+          pmtilesCache.getHFIFileName(
+            value.for_date,
+            value.run_type,
+            value.run_datetime,
+            "hfi.pmtiles"
+          )
+        );
+      }
+      clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep);
+    }
+  }, [runParameters]);
 
   useEffect(() => {
     if (!isNil(runParameter)) {

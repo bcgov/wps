@@ -333,6 +333,9 @@ async def get_fire_centre_tpi_stats(
     )
 
 
+#### ASA Go Specific Routes ####
+
+
 @router.get(
     "/latest-sfms-run-parameters/{start_date}/{end_date}",
     response_model=LatestSFMSRunParameterRangeResponse,
@@ -351,9 +354,6 @@ async def get_latest_sfms_run_datetime_for_date_range(
             )
             latest_run_parameters[row.for_date] = run_parameter
         return LatestSFMSRunParameterRangeResponse(run_parameters=latest_run_parameters)
-
-
-#### ASA Go Specific Routes ####
 
 
 @router.get("/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])

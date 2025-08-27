@@ -66,7 +66,7 @@ describe("AuthWrapper", () => {
     expect(screen.getByText("Protected")).toBeInTheDocument();
   });
 
-  it("renders login button when unauthenticated and not authenticating", () => {
+  it("renders children when not authenticated and offline", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
       isAuthenticated: false,
@@ -76,29 +76,54 @@ describe("AuthWrapper", () => {
       idToken: undefined,
       token: "test-token",
     });
+    vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
+      networkStatus: { connected: false, connectionType: "wifi" },
+    });
+
+    renderWithProviders();
+
+    expect(screen.getByText("Protected")).toBeInTheDocument();
+  });
+
+  it("renders login button when online, unauthenticated and not authenticating", () => {
+    vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
+    vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
+      isAuthenticated: false,
+      authenticating: false,
+      error: null,
+      tokenRefreshed: false,
+      idToken: undefined,
+      token: "test-token",
+    });
+    vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
+      networkStatus: { connected: true, connectionType: "wifi" },
+    });
 
     renderWithProviders();
 
     expect(screen.getByText("Login")).toBeInTheDocument();
   });
 
-    it("renders app description and title when unauthenticated and not authenticating", () => {
-      vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
-      vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-        isAuthenticated: false,
-        authenticating: false,
-        error: null,
-        tokenRefreshed: false,
-        idToken: undefined,
-        token: "test-token",
-      });
-
-      renderWithProviders();
-
-      expect(screen.getByText("ASA Go")).toBeInTheDocument();
-      const description = screen.getByTestId("app-description");
-      expect(description).toBeInTheDocument();
+  it("renders app description and title when unauthenticated and not authenticating", () => {
+    vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
+    vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
+      isAuthenticated: false,
+      authenticating: false,
+      error: null,
+      tokenRefreshed: false,
+      idToken: undefined,
+      token: "test-token",
     });
+    vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
+      networkStatus: { connected: true, connectionType: "wifi" },
+    });
+
+    renderWithProviders();
+
+    expect(screen.getByText("ASA Go")).toBeInTheDocument();
+    const description = screen.getByTestId("app-description");
+    expect(description).toBeInTheDocument();
+  });
 
   it("renders loading spinner when authenticating", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
@@ -109,6 +134,9 @@ describe("AuthWrapper", () => {
       tokenRefreshed: false,
       idToken: undefined,
       token: "test-token",
+    });
+    vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
+      networkStatus: { connected: true, connectionType: "wifi" },
     });
 
     renderWithProviders();
@@ -125,6 +153,9 @@ describe("AuthWrapper", () => {
       tokenRefreshed: false,
       idToken: undefined,
       token: "test-token",
+    });
+    vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
+      networkStatus: { connected: true, connectionType: "wifi" },
     });
 
     renderWithProviders();
