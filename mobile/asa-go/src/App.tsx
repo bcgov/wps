@@ -28,6 +28,7 @@ import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
+import { isTablet } from "@/utils/deviceUtils";
 
 const ADVISORY_THRESHOLD = 20;
 
@@ -50,7 +51,9 @@ const App = () => {
   const { runDatetime, runType } = useSelector(selectRunParameter);
 
   useEffect(() => {
-    ScreenOrientation.lock({ orientation: "portrait" });
+    if (!isTablet()) {
+      ScreenOrientation.lock({ orientation: "portrait" });
+    }
   }, []);
 
   useEffect(() => {
