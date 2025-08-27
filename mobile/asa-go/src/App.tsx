@@ -27,6 +27,7 @@ import { isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 
 const ADVISORY_THRESHOLD = 20;
 
@@ -47,6 +48,10 @@ const App = () => {
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
   );
   const { runDatetime, runType } = useSelector(selectRunParameter);
+
+  useEffect(() => {
+    ScreenOrientation.lock({ orientation: "portrait" });
+  }, []);
 
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status
