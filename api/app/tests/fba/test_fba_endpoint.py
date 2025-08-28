@@ -173,7 +173,7 @@ async def mock_get_sfms_bounds_no_data(*_, **__):
     return []
 
 
-async def mock_get_latest_sfms_run_datetime_for_date_range(*_, **__):
+async def mock_get_most_recent_run_datetime_for_date_range(*_, **__):
     for_date_1 = date(2025, 8, 25)
     for_date_2 = date(2025, 8, 26)
     run_datetime = datetime(2025, 8, 25)
@@ -183,7 +183,7 @@ async def mock_get_latest_sfms_run_datetime_for_date_range(*_, **__):
     run_parameter_2 = SFMSRunParameter(
         for_date=for_date_2, run_datetime=run_datetime, run_type=SFMSRunType.FORECAST
     )
-    return {for_date_1: run_parameter_1, for_date_2: run_parameter_2}
+    return [run_parameter_1, run_parameter_2]
 
 
 async def mock_get_all_zone_source_ids(*_, **__):
@@ -493,8 +493,8 @@ FBA_ENDPOINTS = [
 @patch("app.routers.fba.get_run_datetimes", mock_get_sfms_run_datetimes)
 @patch("app.routers.fba.get_sfms_bounds", mock_get_sfms_bounds)
 @patch(
-    "app.routers.fba.get_latest_sfms_run_datetime_for_date_range",
-    mock_get_latest_sfms_run_datetime_for_date_range,
+    "app.routers.fba.get_most_recent_run_datetime_for_date_range",
+    mock_get_most_recent_run_datetime_for_date_range,
 )
 @patch(
     "app.routers.fba.get_all_zone_source_ids",
