@@ -63,7 +63,7 @@ rope = "^1"
 pytest-watch = "^4.2.0"
 pytest-testmon = "^2.0.0"
 ruff = "^0.11.5"
-pytest-cov = "^6.0.0"
+pytest-cov = "^7.0.0"
 
 [build-system]
 requires = ["poetry>=1.1.11"]
