@@ -398,7 +398,7 @@ jobs:
     steps:
       # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
       - name: ZAP Scan
-        uses: zaproxy/action-baseline@v0.14.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: "https://wps-pr-${{ github.event.number }}-e1e498-dev.apps.silver.devops.gov.bc.ca"
           rules_file_name: ".zap/rules.tsv"
