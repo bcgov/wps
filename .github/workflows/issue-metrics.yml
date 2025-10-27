@@ -45,7 +45,7 @@ jobs:
           SEARCH_QUERY: "repo:bcgov/wps is:issue closed:${{ env.biweekly_period }} reason:completed"
 
       - name: Create issue
-        uses: peter-evans/create-issue-from-file@v5
+        uses: peter-evans/create-issue-from-file@v6
         if: ${{ env.skip_run != 'true' }}
         with:
           title: Sprint metrics report - ${{ env.biweekly_period }}
