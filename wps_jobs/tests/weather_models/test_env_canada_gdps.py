@@ -23,7 +23,6 @@ from wps_shared.tests.common import default_mock_client_get
 from tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 from tests.weather_models.test_models_common import (
     MockResponse,
-    mock_get_processed_file_count,
     mock_get_stations,
 )
 
@@ -59,7 +58,7 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
 def mock_database(monkeypatch):
     """Mocked out database queries"""
     gdps_url = (
-        "https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/000/"
+        "https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/000/"
         "CMC_glb_TMP_TGL_2_latlon.15x.15_2020052100_P000.grib2"
     )
     gdps_processed_model_run = ProcessedModelRunUrl(url=gdps_url)
