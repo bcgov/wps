@@ -71,9 +71,24 @@ def test_c_haines_generator(tmp_700, tmp_850, dew_850, c_haines_data):
 @pytest.mark.parametrize(
     "model, model_run_start, forecast_hour, expected_result",
     [
-        ("GDPS", "00", "120", "https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/120/"),
-        ("RDPS", "12", "010", "https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/010/"),
-        ("HRDPS", "00", "001", "https://dd.weather.gc.ca/model_hrdps/continental/grib2/00/001/"),
+        (
+            "GDPS",
+            "00",
+            "120",
+            "https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/120/",
+        ),
+        (
+            "RDPS",
+            "12",
+            "010",
+            "https://dd.weather.gc.ca/today/model_gem_regional/10km/grib2/12/010/",
+        ),
+        (
+            "HRDPS",
+            "00",
+            "001",
+            "https://dd.weather.gc.ca/today/model_hrdps/continental/grib2/00/001/",
+        ),
     ],
 )
 def test_generate_url(model, model_run_start, forecast_hour, expected_result):
@@ -83,13 +98,37 @@ def test_generate_url(model, model_run_start, forecast_hour, expected_result):
 @pytest.mark.parametrize(
     "model, level, date, model_run_start, forecast_hour, expected_result",
     [
-        ("HRDPS", "DEPR_ISBL", "2021012618", "048", "00", "CMC_hrdps_continental_DEPR_ISBL_ps2.5km_2021012618048_P00-00.grib2"),
-        ("RDPS", "DEPR_ISBL", "2021012618", "0", "12", "CMC_reg_DEPR_ISBL_ps10km_20210126180_P12.grib2"),
-        ("GDPS", "DEPR_ISBL", "2021012618", "0", "13", "CMC_glb_DEPR_ISBL_latlon.15x.15_20210126180_P13.grib2"),
+        (
+            "HRDPS",
+            "DEPR_ISBL",
+            "2021012618",
+            "048",
+            "00",
+            "CMC_hrdps_continental_DEPR_ISBL_ps2.5km_2021012618048_P00-00.grib2",
+        ),
+        (
+            "RDPS",
+            "DEPR_ISBL",
+            "2021012618",
+            "0",
+            "12",
+            "CMC_reg_DEPR_ISBL_ps10km_20210126180_P12.grib2",
+        ),
+        (
+            "GDPS",
+            "DEPR_ISBL",
+            "2021012618",
+            "0",
+            "13",
+            "CMC_glb_DEPR_ISBL_latlon.15x.15_20210126180_P13.grib2",
+        ),
     ],
 )
 def test_generate_file_name(model, level, date, model_run_start, forecast_hour, expected_result):
-    assert make_model_run_filename(model, level, date, model_run_start, forecast_hour) == expected_result
+    assert (
+        make_model_run_filename(model, level, date, model_run_start, forecast_hour)
+        == expected_result
+    )
 
 
 @pytest.mark.parametrize(
@@ -101,9 +140,9 @@ def test_generate_file_name(model, level, date, model_run_start, forecast_hour, 
             12,
             240,
             {
-                "TMP_ISBL_0700": "https://dd.weather.gc.ca/model_hrdps/continental/grib2/12/240/CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021031112_P240-00.grib2",
-                "TMP_ISBL_0850": "https://dd.weather.gc.ca/model_hrdps/continental/grib2/12/240/CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021031112_P240-00.grib2",
-                "DEPR_ISBL_0850": "https://dd.weather.gc.ca/model_hrdps/continental/grib2/12/240/CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021031112_P240-00.grib2",
+                "TMP_ISBL_0700": "https://dd.weather.gc.ca/today/model_hrdps/continental/grib2/12/240/CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021031112_P240-00.grib2",
+                "TMP_ISBL_0850": "https://dd.weather.gc.ca/today/model_hrdps/continental/grib2/12/240/CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021031112_P240-00.grib2",
+                "DEPR_ISBL_0850": "https://dd.weather.gc.ca/today/model_hrdps/continental/grib2/12/240/CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021031112_P240-00.grib2",
             },
             "2021-03-11 12:00:00+00:00",
             "2021-03-21 12:00:00+00:00",
@@ -114,9 +153,9 @@ def test_generate_file_name(model, level, date, model_run_start, forecast_hour, 
             12,
             240,
             {
-                "TMP_ISBL_700": "https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/240/CMC_reg_TMP_ISBL_700_ps10km_2021041112_P240.grib2",
-                "TMP_ISBL_850": "https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/240/CMC_reg_TMP_ISBL_850_ps10km_2021041112_P240.grib2",
-                "DEPR_ISBL_850": "https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/240/CMC_reg_DEPR_ISBL_850_ps10km_2021041112_P240.grib2",
+                "TMP_ISBL_700": "https://dd.weather.gc.ca/today/model_gem_regional/10km/grib2/12/240/CMC_reg_TMP_ISBL_700_ps10km_2021041112_P240.grib2",
+                "TMP_ISBL_850": "https://dd.weather.gc.ca/today/model_gem_regional/10km/grib2/12/240/CMC_reg_TMP_ISBL_850_ps10km_2021041112_P240.grib2",
+                "DEPR_ISBL_850": "https://dd.weather.gc.ca/today/model_gem_regional/10km/grib2/12/240/CMC_reg_DEPR_ISBL_850_ps10km_2021041112_P240.grib2",
             },
             "2021-04-11 12:00:00+00:00",
             "2021-04-21 12:00:00+00:00",
@@ -127,18 +166,28 @@ def test_generate_file_name(model, level, date, model_run_start, forecast_hour, 
             00,
             6,
             {
-                "TMP_ISBL_700": "https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/006/CMC_glb_TMP_ISBL_700_latlon.15x.15_2021051100_P006.grib2",
-                "TMP_ISBL_850": "https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/006/CMC_glb_TMP_ISBL_850_latlon.15x.15_2021051100_P006.grib2",
-                "DEPR_ISBL_850": "https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/006/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2021051100_P006.grib2",
+                "TMP_ISBL_700": "https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/006/CMC_glb_TMP_ISBL_700_latlon.15x.15_2021051100_P006.grib2",
+                "TMP_ISBL_850": "https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/006/CMC_glb_TMP_ISBL_850_latlon.15x.15_2021051100_P006.grib2",
+                "DEPR_ISBL_850": "https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/006/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2021051100_P006.grib2",
             },
             "2021-05-11 00:00:00+00:00",
             "2021-05-11 06:00:00+00:00",
         ),
     ],
 )
-def test_generate_urls_and_timestamps(model, now, model_run_hour, prediction_hour, expected_urls, expected_model_run_timestamp, expected_prediction_timestamp):
+def test_generate_urls_and_timestamps(
+    model,
+    now,
+    model_run_hour,
+    prediction_hour,
+    expected_urls,
+    expected_model_run_timestamp,
+    expected_prediction_timestamp,
+):
     now = datetime.fromisoformat(now)
-    urls, model_run_timestamp, prediction_timestamp = make_model_run_download_urls(model, now, model_run_hour, prediction_hour)
+    urls, model_run_timestamp, prediction_timestamp = make_model_run_download_urls(
+        model, now, model_run_hour, prediction_hour
+    )
 
     assert urls == expected_urls
     assert model_run_timestamp == datetime.fromisoformat(expected_model_run_timestamp)

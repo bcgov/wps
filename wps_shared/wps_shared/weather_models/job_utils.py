@@ -7,7 +7,9 @@ GRIB_LAYERS = ("TMP_TGL_2", "RH_TGL_2", "APCP_SFC_0", "WDIR_TGL_10", "WIND_TGL_1
 HRDPS_GRIB_LAYERS = ("TMP_AGL-2m", "APCP_Sfc", "WDIR_AGL-10m", "WIND_AGL-10m", "RH_AGL-2m")
 
 
-def get_global_model_run_download_urls(now: datetime, model_run_hour: int) -> Generator[str, None, None]:
+def get_global_model_run_download_urls(
+    now: datetime, model_run_hour: int
+) -> Generator[str, None, None]:
     """Yield urls to download GDPS (global) model runs"""
 
     # hh: model run start, in UTC [00, 12]
@@ -20,7 +22,9 @@ def get_global_model_run_download_urls(now: datetime, model_run_hour: int) -> Ge
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
             if hhh == "000" and level == "APCP_SFC_0":
                 continue
-            base_url = f"https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{hh}/{hhh}/"
+            base_url = (
+                f"https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/{hh}/{hhh}/"
+            )
             date = get_file_date_part(now, model_run_hour)
             filename = f"CMC_glb_{level}_latlon.15x.15_{date}{hh}_P{hhh}.grib2"
             url = base_url + filename
@@ -37,14 +41,16 @@ def get_high_res_model_run_download_urls(now: datetime, hour: int) -> Generator[
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
             if hhh == "000" and level == "APCP_Sfc":
                 continue
-            base_url = f"https://dd.weather.gc.ca/model_hrdps/continental/2.5km/{hh}/{hhh}/"
+            base_url = f"https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/{hh}/{hhh}/"
             date = get_file_date_part(now, hour, True)
             filename = f"{date}_MSC_HRDPS_{level}_RLatLon0.0225_PT{hhh}H.grib2"
             url = base_url + filename
             yield url
 
 
-def get_regional_model_run_download_urls(now: datetime, hour: int, grib_layers: list[str] = GRIB_LAYERS, limit: int = 85) -> Generator[str, None, None]:
+def get_regional_model_run_download_urls(
+    now: datetime, hour: int, grib_layers: list[str] = GRIB_LAYERS, limit: int = 85
+) -> Generator[str, None, None]:
     """Yield urls to download RDPS model runs"""
     hh = f"{hour:02d}"
     # For the RDPS model, predictions are at 1 hour intervals up to 84 hours.
@@ -54,7 +60,7 @@ def get_regional_model_run_download_urls(now: datetime, hour: int, grib_layers: 
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
             if hhh == "000" and level == "APCP_SFC_0":
                 continue
-            base_url = f"https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{hh}/{hhh}/"
+            base_url = f"https://dd.weather.gc.ca/today/model_gem_regional/10km/grib2/{hh}/{hhh}/"
             date = get_file_date_part(now, hour)
             filename = f"CMC_reg_{level}_ps10km_{date}{hh}_P{hhh}.grib2"
             url = base_url + filename
