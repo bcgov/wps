@@ -10,7 +10,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import PauseCircleIcon from '@mui/icons-material/PauseCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import PlayCircleIcon from '@mui/icons-material/PlayCircle'
-import { Alert, Backdrop, Box, CircularProgress, Snackbar, Typography, useTheme } from '@mui/material'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import { Alert, Backdrop, Box, CircularProgress, Snackbar, Tooltip, Typography, useTheme } from '@mui/material'
 import { DataGridPro, DataGridProProps, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-pro'
 import { FireWatchPrescriptionColors } from 'app/theme'
 import { upperFirst } from 'lodash'
@@ -81,7 +82,17 @@ const FireWatchDashboard = () => {
     {
       field: 'station',
       headerName: 'Weather Station',
-      width: 180
+      width: 180,
+      renderCell: params => {
+        if (!params.row.fireWatch.station) {
+          return (
+            <Tooltip placement="right" title="Station unavailable">
+              <ErrorOutlineIcon sx={{ color: 'red' }} />
+            </Tooltip>
+          )
+        }
+        return <Typography>{params.row.fireWatch.station.name}</Typography>
+      }
     },
     {
       field: 'fuelType',
