@@ -30,36 +30,6 @@ from app.fire_watch.calculate_weather import MissingWeatherDataError
 
 
 @pytest.fixture
-def mock_fire_watch():
-    return FireWatch(
-        id=1,
-        station_code=101,
-        fuel_type=FuelTypeEnum.C3,
-        temp_min=10,
-        temp_max=30,
-        rh_min=20,
-        rh_max=60,
-        wind_speed_min=5,
-        wind_speed_max=20,
-        ffmc_min=80,
-        ffmc_max=95,
-        dmc_min=10,
-        dmc_max=30,
-        dc_min=100,
-        dc_max=300,
-        isi_min=5,
-        isi_max=15,
-        bui_min=40,
-        bui_max=80,
-        hfi_min=0,
-        hfi_max=4000,
-        percent_grass_curing=0,
-        percent_conifer=0,
-        percent_dead_fir=0,
-    )
-
-
-@pytest.fixture
 def mock_partial_fire_watch():
     return FireWatch(
         id=1,
