@@ -2477,19 +2477,20 @@ cffi = {version = "*", markers = "implementation_name == \"pypy\""}
 
 [[package]]
 name = "redis"
-version = "6.0.0"
+version = "7.0.1"
 description = "Python client for Redis database and key-value store"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "redis-6.0.0-py3-none-any.whl", hash = "sha256:a2e040aee2cdd947be1fa3a32e35a956cd839cc4c1dbbe4b2cdee5b9623fd27c"},
-    {file = "redis-6.0.0.tar.gz", hash = "sha256:5446780d2425b787ed89c91ddbfa1be6d32370a636c8fdb687f11b1c26c1fa88"},
+    {file = "redis-7.0.1-py3-none-any.whl", hash = "sha256:4977af3c7d67f8f0eb8b6fec0dafc9605db9343142f634041fb0235f67c0588a"},
+    {file = "redis-7.0.1.tar.gz", hash = "sha256:c949df947dca995dc68fdf5a7863950bf6df24f8d6022394585acc98e81624f1"},
 ]
 
 [package.extras]
-hiredis = ["hiredis (>=3.0.0)"]
-jwt = ["pyjwt (>=2.9.0,<2.10.0)"]
+circuit-breaker = ["pybreaker (>=1.4.0)"]
+hiredis = ["hiredis (>=3.2.0)"]
+jwt = ["pyjwt (>=2.9.0)"]
 ocsp = ["cryptography (>=36.0.1)", "pyopenssl (>=20.0.1)", "requests (>=2.31.0)"]
 
 [[package]]
@@ -3072,7 +3073,7 @@ psycopg2-binary = "^2.9.10"
 pydantic = "^2.10.6"
 pyjwt = "^2.10.1"
 python-decouple = "^3"
-redis = "^6.0.0"
+redis = "^7.0.0"
 requests = "^2"
 sentry-sdk = "^2.22.0"
 shapely = "^2.0.5"
@@ -3297,4 +3298,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12.3,<4.0"
-content-hash = "aec5a857e303d8ee36a95db9b2b9e11429356edfeecf019e8f21b2759694c126"
+content-hash = "e0fbb3afd56c91e4ca9855479013ab79cf63fabf0ff618d1d9ab8dd6da9b4efe"

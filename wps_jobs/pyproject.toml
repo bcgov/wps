@@ -11,7 +11,7 @@ wps-shared = { path = "../wps_shared" }
 scipy = "^1.15.2"
 scikit-learn = "^1.6.1"
 sqlalchemy = "^2.0.38"
-redis = "^6.0.0"
+redis = "^7.0.0"
 psycopg2-binary = "^2.9.10"
 asyncpg = "^0.30.0"
 affine = "^2.4.0"
