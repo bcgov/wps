@@ -137,7 +137,7 @@ jobs:
             -archivePath ${{ runner.temp }}/ASA-Go.xcarchive \
             -exportPath ${{ runner.temp }}/export \
             -exportOptionsPlist exportOptions.plist
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: ASA-Go-IPA
           path: ${{ runner.temp }}/export/*.ipa
