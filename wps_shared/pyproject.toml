@@ -22,7 +22,7 @@ sentry-sdk = "^2.22.0"
 pyjwt = "^2.10.1"
 psycopg2-binary = "^2.9.10"
 asyncpg = "^0.30.0"
-redis = "^6.0.0"
+redis = "^7.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
