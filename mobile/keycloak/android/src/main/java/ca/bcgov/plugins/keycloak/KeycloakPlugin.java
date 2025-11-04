@@ -59,112 +59,17 @@ public class KeycloakPlugin extends Plugin {
     @Override
     protected void handleOnResume() {
         super.handleOnResume();
-        Log.d(TAG, "App resumed - checking for authorization response");
-        
-        // Check if this is a completion from AppAuth performAuthorizationRequest
-        Intent intent = getActivity().getIntent();
-        if (intent != null) {
-            Log.d(TAG, "=== Intent Analysis on Resume ===");
-            Log.d(TAG, "Intent action: " + intent.getAction());
-            Log.d(TAG, "Intent data: " + intent.getData());
-            Log.d(TAG, "Intent categories: " + intent.getCategories());
-            Log.d(TAG, "Intent extras keys: " + (intent.getExtras() != null ? intent.getExtras().keySet() : "null"));
-            
-            // Try to extract AppAuth response from the completion intent
-            AuthorizationResponse authResponse = AuthorizationResponse.fromIntent(intent);
-            AuthorizationException authException = AuthorizationException.fromIntent(intent);
-            
-            if (authResponse != null || authException != null) {
-                Log.d(TAG, "Found AppAuth response data in completion intent");
-                Log.d(TAG, "Auth response present: " + (authResponse != null));
-                Log.d(TAG, "Auth exception present: " + (authException != null));
-                implementation.handleAuthorizationResponse(intent);
-                // Clear the intent to prevent re-processing
-                getActivity().setIntent(new Intent());
-                return;
-            }
-            
-            // Also check for custom scheme redirect (fallback)
-            Uri uri = intent.getData();
-            if (uri != null) {
-                Log.d(TAG, "=== URI Analysis ===");
-                Log.d(TAG, "URI scheme: " + uri.getScheme());
-                Log.d(TAG, "URI host: " + uri.getHost());
-                Log.d(TAG, "URI path: " + uri.getPath());
-                Log.d(TAG, "URI query: " + uri.getQuery());
-
-                Log.d(TAG, "Checking bundle extras");
-                Bundle extras = intent.getExtras();
-                if (extras != null) {
-                    for (String key : extras.keySet()) {
-                        Log.d(TAG, "Intent extra: " + key + " = " + extras.get(key));
-                    }
-                }
-
-
-                if ("ca.bc.gov.asago".equals(uri.getScheme()) && "auth".equals(uri.getHost())) {
-                    Log.d(TAG, "Handling custom scheme authorization response on resume");
-                    implementation.handleAuthorizationResponse(intent);
-                    // Clear the intent to prevent re-processing
-                    getActivity().setIntent(new Intent());
-                    return;
-                }
-            }
-            
-            Log.d(TAG, "No authorization response found on resume");
-            Log.d(TAG, "Calling handleAuthorizationResponse anyway to check state");
-            implementation.handleAuthorizationResponse(intent);
-        } else {
-            Log.d(TAG, "No intent found on resume");
-        }
+        // MainActivity now handles all authorization responses via onCreate/onNewIntent
+        // This handler is left empty to avoid duplicate processing
+        Log.d(TAG, "App resumed - MainActivity handles authorization responses");
     }
 
     @Override
     protected void handleOnNewIntent(Intent intent) {
         super.handleOnNewIntent(intent);
-        Log.d(TAG, "New intent received");
-        
-        if (intent != null) {
-            Log.d(TAG, "=== New Intent Analysis ===");
-            Log.d(TAG, "Intent action: " + intent.getAction());
-            Log.d(TAG, "Intent data: " + intent.getData());
-            Log.d(TAG, "Intent categories: " + intent.getCategories());
-            Log.d(TAG, "Intent extras keys: " + (intent.getExtras() != null ? intent.getExtras().keySet() : "null"));
-            
-            // Try to extract AppAuth response from the new intent
-            AuthorizationResponse authResponse = AuthorizationResponse.fromIntent(intent);
-            AuthorizationException authException = AuthorizationException.fromIntent(intent);
-            
-            if (authResponse != null || authException != null) {
-                Log.d(TAG, "Found AppAuth response data in new intent");
-                Log.d(TAG, "Auth response present: " + (authResponse != null));
-                Log.d(TAG, "Auth exception present: " + (authException != null));
-                implementation.handleAuthorizationResponse(intent);
-                return;
-            }
-            
-            // Also check for custom scheme redirect (fallback)
-            Uri uri = intent.getData();
-            if (uri != null) {
-                Log.d(TAG, "=== New Intent URI Analysis ===");
-                Log.d(TAG, "URI scheme: " + uri.getScheme());
-                Log.d(TAG, "URI host: " + uri.getHost());
-                Log.d(TAG, "URI path: " + uri.getPath());
-                Log.d(TAG, "URI query: " + uri.getQuery());
-                
-                if ("ca.bc.gov.asago".equals(uri.getScheme()) && "auth".equals(uri.getHost())) {
-                    Log.d(TAG, "Handling custom scheme authorization response on new intent");
-                    implementation.handleAuthorizationResponse(intent);
-                    return;
-                }
-            }
-            
-            Log.d(TAG, "No authorization response found in new intent");
-            Log.d(TAG, "Calling handleAuthorizationResponse anyway to check state");
-            implementation.handleAuthorizationResponse(intent);
-        } else {
-            Log.d(TAG, "New intent is null");
-        }
+        // MainActivity now handles all authorization responses via onNewIntent
+        // This handler is left empty to avoid duplicate processing
+        Log.d(TAG, "New intent received - MainActivity handles authorization responses");
     }
 
     @PluginMethod

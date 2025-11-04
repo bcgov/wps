@@ -51,6 +51,8 @@ public class MainActivity extends BridgeActivity {
             if (plugin != null) {
                 // Forward the full intent with AppAuth extras to the plugin
                 plugin.handleAuthorizationResponse(intent);
+                // Clear the intent to prevent re-processing
+                setIntent(new Intent());
             } else {
                 Log.e(TAG, "KeycloakPlugin instance is null");
             }
@@ -65,6 +67,8 @@ public class MainActivity extends BridgeActivity {
             KeycloakPlugin plugin = KeycloakPlugin.getInstance();
             if (plugin != null) {
                 plugin.handleAuthCallback(data);
+                // Clear the intent to prevent re-processing
+                setIntent(new Intent());
             } else {
                 Log.e(TAG, "KeycloakPlugin instance is null");
             }
