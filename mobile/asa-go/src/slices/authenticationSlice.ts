@@ -95,6 +95,7 @@ export const authenticate = (): AppThunk => (dispatch) => {
     accessTokenEndpoint: tokenUrl,
   })
     .then((result) => {
+      console.log("Auth result:", result);
       if (result.isAuthenticated) {
         dispatch(
           authenticateFinished({
