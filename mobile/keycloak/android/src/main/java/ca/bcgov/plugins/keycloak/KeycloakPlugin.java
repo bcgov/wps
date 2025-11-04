@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 import java.util.List;
 import androidx.browser.customtabs.CustomTabsIntent;
@@ -27,11 +28,32 @@ public class KeycloakPlugin extends Plugin {
     private static final String TAG = "KeycloakPlugin";
     private Keycloak implementation;
 
+    private static KeycloakPlugin instance;
+
     @Override
     public void load() {
         super.load();
         implementation = new Keycloak(getContext());
+        instance = this;
         Log.d(TAG, "KeycloakPlugin loaded and initialized");
+    }
+
+    public static KeycloakPlugin getInstance() {
+        return instance;
+    }
+
+    public void handleAuthCallback(Uri callbackUri) {
+        Log.d(TAG, "handleAuthCallback called with URI: " + callbackUri.toString());
+
+        // Create intent from URI for proper AppAuth handling
+        Intent intent = new Intent();
+        intent.setData(callbackUri);
+        implementation.handleAuthorizationResponse(intent);
+    }
+
+    public void handleAuthorizationResponse(Intent intent) {
+        Log.d(TAG, "handleAuthorizationResponse called from MainActivity");
+        implementation.handleAuthorizationResponse(intent);
     }
 
     @Override
@@ -70,7 +92,16 @@ public class KeycloakPlugin extends Plugin {
                 Log.d(TAG, "URI host: " + uri.getHost());
                 Log.d(TAG, "URI path: " + uri.getPath());
                 Log.d(TAG, "URI query: " + uri.getQuery());
-                
+
+                Log.d(TAG, "Checking bundle extras");
+                Bundle extras = intent.getExtras();
+                if (extras != null) {
+                    for (String key : extras.keySet()) {
+                        Log.d(TAG, "Intent extra: " + key + " = " + extras.get(key));
+                    }
+                }
+
+
                 if ("ca.bc.gov.asago".equals(uri.getScheme()) && "auth".equals(uri.getHost())) {
                     Log.d(TAG, "Handling custom scheme authorization response on resume");
                     implementation.handleAuthorizationResponse(intent);
@@ -217,13 +248,13 @@ public class KeycloakPlugin extends Plugin {
             testIntent.addCategory(Intent.CATEGORY_BROWSABLE);
             PackageManager packageManager = getContext().getPackageManager();
             List<ResolveInfo> activities = packageManager.queryIntentActivities(testIntent, PackageManager.MATCH_DEFAULT_ONLY);
-            
+
             Log.d(TAG, "=== Available Browsers Debug ===");
             Log.d(TAG, "Found " + activities.size() + " browser activities:");
             for (ResolveInfo activity : activities) {
                 Log.d(TAG, "Browser: " + activity.activityInfo.packageName + " / " + activity.activityInfo.name);
             }
-            
+
             // Create CustomTabsIntent for proper browser handling
             CustomTabsIntent.Builder customTabsBuilder = authService.createCustomTabsIntentBuilder(authRequest.toUri());
             
@@ -244,34 +275,36 @@ public class KeycloakPlugin extends Plugin {
             customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             
             Log.d(TAG, "CustomTabs intent created successfully with external browser forcing");
-            
-            // Create PendingIntent that will handle the result - this points back to the main activity
-            Intent completionIntent = new Intent(getContext(), getActivity().getClass());
-            completionIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            
-            // Add debugging info to the completion intent
-            Log.d(TAG, "=== PendingIntent Configuration ===");
-            Log.d(TAG, "Target activity: " + getActivity().getClass().getName());
-            Log.d(TAG, "Completion intent action: " + completionIntent.getAction());
-            Log.d(TAG, "Completion intent flags: " + completionIntent.getFlags());
-            
-            android.app.PendingIntent completionPendingIntent = android.app.PendingIntent.getActivity(
-                getContext(), 
-                0, 
-                completionIntent, 
-                android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE
-            );
-            
-            Log.d(TAG, "PendingIntent created for activity: " + completionIntent.getComponent());
-            
+
             Log.d(TAG, "=== Launching Browser ===");
             Log.d(TAG, "About to call performAuthorizationRequest");
             Log.d(TAG, "Auth request state: " + authRequest.state);
-            Log.d(TAG, "Completion PendingIntent: " + completionPendingIntent.toString());
-            
+
+            // Create PendingIntent for RedirectUriReceiverActivity
+            // This activity will receive the OAuth callback and forward to MainActivity
+            Intent completionIntent = new Intent(getContext(), getActivity().getClass());
+            completionIntent.setAction(Intent.ACTION_VIEW);
+            completionIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+            android.app.PendingIntent completionPendingIntent = android.app.PendingIntent.getActivity(
+                getContext(),
+                authRequest.hashCode(),
+                completionIntent,
+                android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_MUTABLE
+            );
+
+            Log.d(TAG, "Created PendingIntent for completion: " + completionPendingIntent);
+            Log.d(TAG, "RedirectUriReceiverActivity will forward to MainActivity via manifest meta-data");
+
             try {
                 // Use AppAuth's performAuthorizationRequest
-                authService.performAuthorizationRequest(authRequest, completionPendingIntent, null, customTabsIntent);
+                // The RedirectUriReceiverActivity will receive the callback and forward to our completion intent
+                authService.performAuthorizationRequest(
+                    authRequest,
+                    completionPendingIntent,
+                    null,  // canceledIntent - use default behavior
+                    customTabsIntent
+                );
                 Log.d(TAG, "performAuthorizationRequest completed successfully");
             } catch (Exception authException) {
                 Log.e(TAG, "Error in performAuthorizationRequest: " + authException.getMessage(), authException);

@@ -58,12 +58,10 @@ const authSlice = createSlice({
       state.idToken = action.payload.idToken;
       state.tokenRefreshed = action.payload.tokenRefreshed;
     },
-    resetAuthentication(
-      state: AuthState
-    ) {
+    resetAuthentication(state: AuthState) {
       state.isAuthenticated = false;
-      state.idToken = undefined
-      state.token = undefined
+      state.idToken = undefined;
+      state.token = undefined;
     },
   },
 });
@@ -89,7 +87,7 @@ export const authenticate = (): AppThunk => (dispatch) => {
     import.meta.env.VITE_KEYCLOAK_AUTH_URL
   }/realms/${realm}/protocol/openid-connect/token`;
 
-  const customRedirectUri = "ca.bc.gov.asago://auth/callback";
+  const customRedirectUri = "ca.bc.gov.asago://auth";
   Keycloak.authenticate({
     authorizationBaseUrl: authUrl,
     clientId: import.meta.env.VITE_KEYCLOAK_CLIENT,
