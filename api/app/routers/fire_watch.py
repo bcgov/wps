@@ -146,6 +146,10 @@ def create_fire_watch_output(
         (station for station in stations if station.properties.code == db_fire_watch.station_code),
         None,
     )
+    fw_station = None
+    if station:
+        fw_station = FireWatchStation(code=station.properties.code, name=station.properties.name)
+
     location = get_coordinates_from_geometry(db_fire_watch.burn_location)
     coords = location.coords[0]
     x, y = reproject_burn_location(coords, NAD83_BC_ALBERS, WEB_MERCATOR)
@@ -162,7 +166,7 @@ def create_fire_watch_output(
         create_timestamp=db_fire_watch.create_timestamp.isoformat(),
         create_user=db_fire_watch.create_user,
         fire_centre=FireWatchFireCentre(id=fire_centre.id, name=fire_centre.name),
-        station=FireWatchStation(code=station.properties.code, name=station.properties.name),
+        station=fw_station,
         status=db_fire_watch.status,
         title=db_fire_watch.title,
         update_timestamp=db_fire_watch.update_timestamp.isoformat(),

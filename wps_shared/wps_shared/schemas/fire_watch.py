@@ -69,6 +69,7 @@ class FireWatchOutput(FireWatchInput):
     create_user: str
     update_timestamp: str
     update_user: str
+    station: Optional[FireWatchStation] = None
 
 
 class FireWatchResponse(BaseModel):
