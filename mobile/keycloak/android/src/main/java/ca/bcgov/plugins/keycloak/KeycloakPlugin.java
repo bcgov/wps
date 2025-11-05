@@ -35,7 +35,17 @@ public class KeycloakPlugin extends Plugin {
         super.load();
         implementation = new Keycloak(getContext());
         instance = this;
-        Log.d(TAG, "KeycloakPlugin loaded and initialized");
+
+        // Set up automatic token refresh callback
+        implementation.setTokenRefreshCallback(new Keycloak.TokenRefreshCallback() {
+            @Override
+            public void onTokenRefreshed(JSObject tokens) {
+                Log.d(TAG, "Notifying JavaScript of token refresh");
+                notifyListeners("tokenRefresh", tokens);
+            }
+        });
+
+        Log.d(TAG, "KeycloakPlugin loaded and initialized with automatic token refresh");
     }
 
     public static KeycloakPlugin getInstance() {
@@ -230,5 +240,13 @@ public class KeycloakPlugin extends Plugin {
         // The actual listener registration happens on the JavaScript side
         // We just need to acknowledge the call
         call.resolve();
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        super.handleOnDestroy();
+        if (implementation != null) {
+            implementation.dispose();
+        }
     }
 }
