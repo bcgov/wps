@@ -149,19 +149,6 @@ public class Keycloak {
         this.currentAuthRequest = request;
     }
 
-    /**
-     * Get the current authorization request
-     */
-    public AuthorizationRequest getPendingAuthRequest() {
-        return currentAuthRequest;
-    }
-
-    /**
-     * Get current auth state
-     */
-    public AuthState getAuthState() {
-        return authState;
-    }
 
     /**
      * Handle the authorization response from intent
@@ -308,30 +295,6 @@ public class Keycloak {
         Intent intent = new Intent();
         intent.setData(callbackUri);
         handleAuthorizationResponse(intent);
-    }
-
-    /**
-     * Logout and clear auth state
-     */
-    public void logout() {
-        authState = new AuthState();
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().clear().apply();
-        Log.d(TAG, "User logged out, auth state cleared");
-    }
-
-    /**
-     * Check if user is authenticated
-     */
-    public boolean isAuthenticated() {
-        return authState.isAuthorized();
-    }
-
-    /**
-     * Get current access token
-     */
-    public String getAccessToken() {
-        return authState.getAccessToken();
     }
 
     /**
