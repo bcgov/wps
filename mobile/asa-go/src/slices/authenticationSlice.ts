@@ -87,7 +87,7 @@ export const authenticate = (): AppThunk => (dispatch) => {
     import.meta.env.VITE_KEYCLOAK_AUTH_URL
   }/realms/${realm}/protocol/openid-connect/token`;
 
-  const customRedirectUri = "ca.bc.gov.asago://auth";
+  const customRedirectUri = "ca.bc.gov.asago://auth/callback";
   Keycloak.authenticate({
     authorizationBaseUrl: authUrl,
     clientId: import.meta.env.VITE_KEYCLOAK_CLIENT,
