@@ -60,7 +60,7 @@
     "react-router-dom": "^7.6.2",
     "recharts": "^3.0.0",
     "typescript": "^5.2.2",
-    "vitest": "^3.0.0",
+    "vitest": "^4.0.0",
     "whatwg-fetch": "^3.6.20"
   },
   "scripts": {
