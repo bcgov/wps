@@ -27,12 +27,14 @@ import { isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const ADVISORY_THRESHOLD = 20;
 
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
 
+  usePushNotifications();
   const isActive = useAppIsActive();
   const dispatch: AppDispatch = useDispatch();
   const { fireCenters } = useSelector(selectFireCenters);
