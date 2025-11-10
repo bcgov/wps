@@ -2,7 +2,6 @@ import AsaIcon from "@/assets/asa-go-transparent.png";
 import AppDescription from "@/components/AppDescription";
 import LoginButton from "@/components/LoginButton";
 import { selectAuthentication } from "@/store";
-import { Capacitor } from "@capacitor/core";
 import { Box, CircularProgress, Typography, useTheme } from "@mui/material";
 import { isNull } from "lodash";
 import React from "react";
@@ -16,11 +15,6 @@ const AuthWrapper = ({ children }: Props) => {
   const theme = useTheme();
   const { isAuthenticated, authenticating, error } =
     useSelector(selectAuthentication);
-
-  // TODO implement for Android
-  if (Capacitor.getPlatform() === "android") {
-    return <React.StrictMode>{children}</React.StrictMode>;
-  }
 
   if (isAuthenticated) {
     return <React.StrictMode>{children}</React.StrictMode>;
