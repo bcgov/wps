@@ -18,7 +18,7 @@ affine = "^2.4.0"
 numpy = "2.1"
 fastapi = "0.115.11"
 xarray = "^2025.3.1"
-herbie-data = {git = "https://github.com/blaylockbk/Herbie.git", rev = "87a5f486400d4d46d9a731d18e6e8961b8390c68"}
+herbie-data = {git = "https://github.com/blaylockbk/Herbie.git", rev = "0c7a911ae64cc820d8e446e6af88af6141a0420d"}
 
 
 [tool.poetry.group.dev.dependencies]
