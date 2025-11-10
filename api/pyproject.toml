@@ -6,7 +6,7 @@ authors = ["Sybrand Strauss <sybrand.strauss@gov.bc.ca>"]
 package-mode = false
 
 [tool.poetry.dependencies]
-python = ">=3.12.3"
+python = ">=3.12.3,<4.0"
 fastapi = "^0"
 requests = "^2"
 aiodns = "^3"
