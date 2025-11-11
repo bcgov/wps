@@ -14,26 +14,26 @@ jobs:
   check-secrets:
     runs-on: ubuntu-22.04
     steps:
-        - name: Check secrets
-          shell: bash
-          run: |
-            required_env_vars=(
-            "CERTIFICATE"
-            "KEYCHAIN_PASSWD"
-            # "PROVISIONING_PROFILE"
-            )
-            for var in "${required_env_vars[@]}"; do
-            if [ -z "${!var}" ]; then
-                echo "error: $var is not set."
-                exit 1
-            fi
-            done
-          env:
-            CERTIFICATE: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_BASE64 }}
-            KEYCHAIN_PASSWD: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_PASSWD }}
-            PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+      - name: Check secrets
+        shell: bash
+        run: |
+          required_env_vars=(
+          "CERTIFICATE"
+          "KEYCHAIN_PASSWD"
+          # "PROVISIONING_PROFILE"
+          )
+          for var in "${required_env_vars[@]}"; do
+          if [ -z "${!var}" ]; then
+              echo "error: $var is not set."
+              exit 1
+          fi
+          done
+        env:
+          CERTIFICATE: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_BASE64 }}
+          KEYCHAIN_PASSWD: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_PASSWD }}
+          PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
   build-and-publish:
-    name: Build and deploy 
+    name: Build and deploy
     needs: [check-secrets]
     runs-on: macos-15
     steps:
@@ -82,8 +82,8 @@ jobs:
       - name: Build Capacitor and Sync
         working-directory: ./mobile/asa-go
         run: |
-            yarn build:prod
-            yarn cap sync ios
+          yarn build:prod
+          yarn cap sync ios
       - name: Setup iOS Signing
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_BASE64 }}
@@ -120,7 +120,7 @@ jobs:
           agvtool new-marketing-version ${{ env.appBuildVersion }}
       - name: Build and Archive
         working-directory: mobile/asa-go/ios/App
-        run: |         
+        run: |
           # Archive the app
           xcodebuild \
             -workspace App.xcworkspace \
