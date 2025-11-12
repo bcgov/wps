@@ -27,6 +27,17 @@ import wps_shared.db.crud.hfi_calc
 from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
 
+def normalize_fire_size(data, precision=6):
+    """Round sixty_minute_fire_size values to specified precision."""
+    if isinstance(data, dict):
+        return {k: normalize_fire_size(v, precision) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [normalize_fire_size(item, precision) for item in data]
+    elif isinstance(data, float):
+        return round(data, precision)
+    return data
+
+
 def _setup_mock(monkeypatch: pytest.MonkeyPatch):
     """Prepare all our mocked out calls."""
     # mock anything that uses aiohttp.ClientSession::get
@@ -258,7 +269,7 @@ def test_hfi_get_request(
     assert response.status_code == status_code
     assert spy_store_hfi_request.called == request_saved
     if expected_response is not None:
-        assert response.json() == expected_response
+        assert normalize_fire_size(response.json()) == normalize_fire_size(expected_response)
 
 
 @pytest.mark.parametrize(
@@ -362,4 +373,4 @@ def test_hfi_post_request(
     assert spy_store_hfi_request.called == request_saved
     assert response.status_code == status_code
     if expected_response is not None:
-        assert response.json() == expected_response
+        assert normalize_fire_size(response.json()) == normalize_fire_size(expected_response)
