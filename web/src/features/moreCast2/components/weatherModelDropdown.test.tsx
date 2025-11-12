@@ -8,7 +8,7 @@ describe('WeatherModelDropdown', () => {
   it('should call selected model handler when new model selected', async () => {
     const handleSelectedModelTypeMock = vi.fn()
 
-    const { getByTestId } = render(
+    const { getByTestId, unmount } = render(
       <WeatherModelDropdown
         selectedModelType={ModelChoice.HRDPS_BIAS}
         weatherModelOptions={ModelChoices}
@@ -19,9 +19,9 @@ describe('WeatherModelDropdown', () => {
     const autocomplete = getByTestId('weather-model-dropdown')
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
     autocomplete.focus()
-    userEvent.type(autocomplete, ModelChoice.PERSISTENCE)
-    userEvent.type(autocomplete, '{arrowdown}')
-    userEvent.type(autocomplete, '{enter}')
+    await userEvent.type(autocomplete, ModelChoice.PERSISTENCE)
+    await userEvent.type(autocomplete, '{arrowdown}')
+    await userEvent.type(autocomplete, '{enter}')
 
     await waitFor(() => expect(input.value).toBe(ModelChoice.PERSISTENCE))
     await waitFor(() => expect(handleSelectedModelTypeMock).toHaveBeenCalledTimes(1))
