@@ -8,7 +8,7 @@ describe('WeatherModelDropdown', () => {
   it('should call selected model handler when new model selected', async () => {
     const handleSelectedModelTypeMock = vi.fn()
 
-    const { getByTestId, unmount } = render(
+    const { getByTestId } = render(
       <WeatherModelDropdown
         selectedModelType={ModelChoice.HRDPS_BIAS}
         weatherModelOptions={ModelChoices}
