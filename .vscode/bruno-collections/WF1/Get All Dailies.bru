@@ -1,0 +1,15 @@
+meta {
+  name: GET All Dailies
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{WFWX_BASE_URL}}/v1/dailies
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WFWX_TOKEN}}
+}

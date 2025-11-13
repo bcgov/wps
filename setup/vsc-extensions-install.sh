@@ -26,3 +26,4 @@ code --install-extension streetsidesoftware.code-spell-checker
 code --install-extension njpwerner.autodocstring
 code --install-extension vitest.explorer
 code --install-extension swiftlang.swift-vscode
+code --install-extension bruno-api-client.bruno

@@ -1,0 +1,20 @@
+meta {
+  name: GET Auth Token
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://apps.nrs.gov.bc.ca/pub/oauth2/v1/oauth/token?grant_type=client_credentials
+  body: none
+  auth: basic
+}
+
+params:query {
+  grant_type: client_credentials
+}
+
+auth:basic {
+  username: {{WFWX_USER}}
+  password: {{WFWX_SECRET}}
+}

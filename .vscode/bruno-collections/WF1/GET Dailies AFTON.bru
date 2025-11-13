@@ -1,0 +1,21 @@
+meta {
+  name: GET Dailies AFTON
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{WFWX_BASE_URL}}/v1/dailies/search/findDailiesByStationIdIsInAndWeatherTimestampBetweenOrderByStationIdAscWeatherTimestampAsc?stationIds=bfe0a6e2-e3d0-0210-e053-259e228e58c7&startingTimestamp=1713662556000&endingTimestamp=1714008156000
+  body: none
+  auth: bearer
+}
+
+params:query {
+  stationIds: bfe0a6e2-e3d0-0210-e053-259e228e58c7
+  startingTimestamp: 1713662556000
+  endingTimestamp: 1714008156000
+}
+
+auth:bearer {
+  token: {{WFWX_TOKEN}}
+}
