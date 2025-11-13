@@ -160,3 +160,6 @@ build
 Pods
 .xcode.env.local
 *.xcuserstate
+
+# bruno envs
+**/prod.bru

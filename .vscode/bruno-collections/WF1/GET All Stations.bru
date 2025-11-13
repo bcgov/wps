@@ -1,0 +1,24 @@
+meta {
+  name: GET All Stations
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{WFWX_BASE_URL}}/v1/stations?size=9999&page=0&sort=displayLabel,asc&query=stationStatus.id==%22ACTIVE%22;stationStatus.id==%22ACTIVE%22&fetchReadings=true&date=1695327148497
+  body: none
+  auth: bearer
+}
+
+params:query {
+  size: 9999
+  page: 0
+  sort: displayLabel,asc
+  query: stationStatus.id==%22ACTIVE%22;stationStatus.id==%22ACTIVE%22
+  fetchReadings: true
+  date: 1695327148497
+}
+
+auth:bearer {
+  token: {{WFWX_TOKEN}}
+}

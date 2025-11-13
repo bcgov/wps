@@ -1,0 +1,21 @@
+meta {
+  name: GET Hourlies By Station ID and Timestamp
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{WFWX_BASE_URL}}/v1/hourlies/search/findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc?stationId=bfe0a6e2-e746-0210-e053-259e228e58c7&startTimestamp=1661234400000&endTimestamp=1661320800000
+  body: none
+  auth: bearer
+}
+
+params:query {
+  stationId: bfe0a6e2-e746-0210-e053-259e228e58c7
+  startTimestamp: 1661234400000
+  endTimestamp: 1661320800000
+}
+
+auth:bearer {
+  token: {{WFWX_TOKEN}}
+}

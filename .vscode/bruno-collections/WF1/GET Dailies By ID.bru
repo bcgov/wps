@@ -1,0 +1,15 @@
+meta {
+  name: GET Dailies By ID
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{WFWX_BASE_URL}}/v1/dailies/bfe0a6e2-e265-0210-e053-259e228e58c7
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WFWX_TOKEN}}
+}
