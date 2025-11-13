@@ -17,7 +17,6 @@ code --install-extension ms-toolsai.vscode-jupyter-cell-tags
 code --install-extension ms-toolsai.vscode-jupyter-slideshow
 code --install-extension ms-vscode-remote.remote-containers
 code --install-extension ms-vscode.makefile-tools
-code --install-extension rangav.vscode-thunder-client
 code --install-extension REditorSupport.r
 code --install-extension shd101wyy.markdown-preview-enhanced
 code --install-extension SonarSource.sonarlint-vscode
