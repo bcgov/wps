@@ -1,0 +1,32 @@
+meta {
+  name: Save Forecasts
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{API_BASE_URL}}/morecast-v2/forecast
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "forecasts": [
+      {
+        "station_code": 0,
+        "for_date": 0,
+        "temp": "",
+        "rh": "",
+        "precip": "",
+        "wind_speed": "",
+        "wind_direction": "",
+        "grass_curing": ""
+      }
+    ]
+  }
+}

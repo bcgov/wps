@@ -1,0 +1,26 @@
+meta {
+  name: Get Determinates For Date Range
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{API_BASE_URL}}/morecast-v2/determinates/:start_date/:end_date
+  body: json
+  auth: bearer
+}
+
+params:path {
+  start_date: 
+  end_date: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "stations": []
+  }
+}

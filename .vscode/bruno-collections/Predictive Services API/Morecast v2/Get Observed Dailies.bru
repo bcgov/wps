@@ -1,0 +1,26 @@
+meta {
+  name: Get Observed Dailies
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{API_BASE_URL}}/morecast-v2/observed-dailies/:start_date/:end_date
+  body: json
+  auth: bearer
+}
+
+params:path {
+  start_date: 
+  end_date: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "station_codes": []
+  }
+}

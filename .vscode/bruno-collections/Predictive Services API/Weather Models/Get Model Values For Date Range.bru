@@ -1,0 +1,27 @@
+meta {
+  name: Get Model Values For Date Range
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{API_BASE_URL}}/weather_models/:model/predictions/most_recent/:start_date/:end_date
+  body: json
+  auth: bearer
+}
+
+params:path {
+  model: 
+  start_date: 
+  end_date: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "stations": []
+  }
+}

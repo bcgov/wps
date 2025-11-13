@@ -1,0 +1,22 @@
+meta {
+  name: Get Percentiles
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{API_BASE_URL}}/percentiles/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "stations": [],
+    "percentile": 0,
+    "year_range": {
+      "start": 0,
+      "end": 0
+    }
+  }
+}

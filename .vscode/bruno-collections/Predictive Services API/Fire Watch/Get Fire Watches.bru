@@ -1,0 +1,15 @@
+meta {
+  name: Get Fire Watches
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_BASE_URL}}/fire-watch/
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

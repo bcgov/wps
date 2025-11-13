@@ -163,3 +163,4 @@ Pods
 
 # bruno envs
 **/prod.bru
+**/local.bru
