@@ -7,10 +7,14 @@ import { Position } from "@capacitor/geolocation";
 // Mock OpenLayers
 vi.mock("ol", () => ({
   Map: vi.fn(),
-  Overlay: vi.fn().mockImplementation(() => ({
-    setPosition: vi.fn(),
-    getElement: vi.fn(),
-  })),
+  Overlay: class MockOverlay {
+    constructor() {
+      this.setPosition = vi.fn();
+      this.getElement = vi.fn();
+    }
+    setPosition: ReturnType<typeof vi.fn>;
+    getElement: ReturnType<typeof vi.fn>;
+  },
 }));
 
 vi.mock("ol/proj", () => ({
