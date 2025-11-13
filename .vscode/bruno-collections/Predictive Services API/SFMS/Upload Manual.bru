@@ -1,0 +1,15 @@
+meta {
+  name: Upload Manual
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{API_BASE_URL}}/sfms/manual
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: 
+}

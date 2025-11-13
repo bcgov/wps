@@ -1,0 +1,17 @@
+meta {
+  name: Get Provincial Summary
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{API_BASE_URL}}/fba/provincial-summary/:run_type/:run_datetime/:for_date
+  body: none
+  auth: none
+}
+
+params:path {
+  run_type: 
+  run_datetime: 
+  for_date: 
+}

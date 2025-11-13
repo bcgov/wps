@@ -1,0 +1,22 @@
+meta {
+  name: Toggle Planning Area Ready
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{API_BASE_URL}}/hfi-calc/fire_centre/:fire_centre_id/planning_area/:planning_area_id/:start_date/:end_date/ready
+  body: none
+  auth: bearer
+}
+
+params:path {
+  fire_centre_id: 
+  planning_area_id: 
+  start_date: 
+  end_date: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

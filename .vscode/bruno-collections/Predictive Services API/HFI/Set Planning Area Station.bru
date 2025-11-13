@@ -1,0 +1,24 @@
+meta {
+  name: Set Planning Area Station
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_BASE_URL}}/hfi-calc/fire_centre/:fire_centre_id/:start_date/:end_date/planning_area/:planning_area_id/station/:station_code/selected/:enable
+  body: none
+  auth: bearer
+}
+
+params:path {
+  fire_centre_id: 
+  start_date: 
+  end_date: 
+  planning_area_id: 
+  station_code: 
+  enable: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

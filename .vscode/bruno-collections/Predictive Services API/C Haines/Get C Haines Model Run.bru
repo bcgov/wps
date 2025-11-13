@@ -1,0 +1,20 @@
+meta {
+  name: Get C Haines Model Run
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_BASE_URL}}/c-haines/:model/predictions
+  body: none
+  auth: none
+}
+
+params:query {
+  ~model_run_timestamp: 
+  ~response_format: 
+}
+
+params:path {
+  model: 
+}

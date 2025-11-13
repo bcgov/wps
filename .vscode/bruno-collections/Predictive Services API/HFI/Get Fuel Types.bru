@@ -1,0 +1,15 @@
+meta {
+  name: Get Fuel Types
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_BASE_URL}}/hfi-calc/fuel_types
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

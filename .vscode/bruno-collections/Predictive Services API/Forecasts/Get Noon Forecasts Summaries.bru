@@ -1,0 +1,22 @@
+meta {
+  name: Get Noon Forecasts Summaries
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_BASE_URL}}/forecasts/noon/summaries/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "stations": [],
+    "time_of_interest": ""
+  }
+}

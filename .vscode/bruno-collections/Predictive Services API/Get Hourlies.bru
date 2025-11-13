@@ -1,0 +1,22 @@
+meta {
+  name: Get Hourlies
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{API_BASE_URL}}/observations/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "stations": [],
+    "time_of_interest": ""
+  }
+}

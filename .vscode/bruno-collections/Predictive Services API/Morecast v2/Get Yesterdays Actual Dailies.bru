@@ -1,0 +1,25 @@
+meta {
+  name: Get Yesterdays Actual Dailies
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{API_BASE_URL}}/morecast-v2/yesterday-dailies/:today
+  body: json
+  auth: bearer
+}
+
+params:path {
+  today: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "station_codes": []
+  }
+}

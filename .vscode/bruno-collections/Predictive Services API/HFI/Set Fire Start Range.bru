@@ -1,0 +1,20 @@
+meta {
+  name: Set Fire Start Range
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{API_BASE_URL}}/hfi-calc/fire_centre/:fire_centre_id/:start_date/:end_date/planning_area/:planning_area_id/fire_starts/:prep_day_date/fire_start_range/:fire_start_range_id
+  body: none
+  auth: none
+}
+
+params:path {
+  fire_centre_id: 
+  start_date: 
+  end_date: 
+  planning_area_id: 
+  prep_day_date: 
+  fire_start_range_id: 
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Get Forecasts For Date And User
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_BASE_URL}}/morecast-v2/forecasts/:for_date
+  body: none
+  auth: bearer
+}
+
+params:path {
+  for_date: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

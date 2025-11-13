@@ -1,0 +1,26 @@
+meta {
+  name: Get Forecasts By Date Range
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_BASE_URL}}/morecast-v2/forecasts/:start_date/:end_date
+  body: json
+  auth: bearer
+}
+
+params:path {
+  start_date: 
+  end_date: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "stations": []
+  }
+}

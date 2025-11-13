@@ -1,0 +1,35 @@
+meta {
+  name: Get Stations Data
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{API_BASE_URL}}/fba-calc/stations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "date": "",
+    "stations": [
+      {
+        "id": "",
+        "station_code": 0,
+        "fuel_type": "",
+        "percentage_conifer": "",
+        "percentage_dead_balsam_fir": "",
+        "grass_cure": "",
+        "crown_base_height": "",
+        "crown_fuel_load": "",
+        "wind_speed": "",
+        "precipitation": ""
+      }
+    ]
+  }
+}

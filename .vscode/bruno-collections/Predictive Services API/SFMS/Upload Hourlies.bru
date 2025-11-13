@@ -1,0 +1,15 @@
+meta {
+  name: Upload Hourlies
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_BASE_URL}}/sfms/upload/hourlies
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: 
+}

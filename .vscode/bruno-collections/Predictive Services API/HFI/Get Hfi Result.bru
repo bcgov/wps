@@ -1,0 +1,19 @@
+meta {
+  name: Get Hfi Result
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{API_BASE_URL}}/hfi-calc/fire_centre/:fire_centre_id
+  body: none
+  auth: bearer
+}
+
+params:path {
+  fire_centre_id: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

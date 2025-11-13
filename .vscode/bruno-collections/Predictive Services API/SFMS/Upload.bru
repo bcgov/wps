@@ -1,0 +1,15 @@
+meta {
+  name: Upload
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{API_BASE_URL}}/sfms/upload
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: 
+}

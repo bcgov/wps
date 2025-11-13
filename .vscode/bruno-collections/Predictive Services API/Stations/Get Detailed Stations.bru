@@ -1,0 +1,19 @@
+meta {
+  name: Get Detailed Stations
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_BASE_URL}}/stations/details/
+  body: none
+  auth: bearer
+}
+
+params:query {
+  ~toi: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

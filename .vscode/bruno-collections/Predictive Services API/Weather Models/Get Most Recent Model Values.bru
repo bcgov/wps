@@ -1,0 +1,26 @@
+meta {
+  name: Get Most Recent Model Values
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_BASE_URL}}/weather_models/:model/predictions/most_recent/
+  body: json
+  auth: bearer
+}
+
+params:path {
+  model: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "stations": [],
+    "time_of_interest": ""
+  }
+}

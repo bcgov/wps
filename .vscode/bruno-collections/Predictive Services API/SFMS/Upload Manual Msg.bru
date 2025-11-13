@@ -1,0 +1,24 @@
+meta {
+  name: Upload Manual Msg
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{API_BASE_URL}}/sfms/manual/msgOnly
+  body: json
+  auth: none
+}
+
+headers {
+  ~secret: 
+}
+
+body:json {
+  {
+    "key": "",
+    "for_date": "",
+    "runtype": "",
+    "run_date": ""
+  }
+}

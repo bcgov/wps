@@ -1,0 +1,19 @@
+meta {
+  name: Get Latest Sfms Run Datetime For Date
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{API_BASE_URL}}/fba/latest-sfms-run-datetime/:for_date
+  body: none
+  auth: bearer
+}
+
+params:path {
+  for_date: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

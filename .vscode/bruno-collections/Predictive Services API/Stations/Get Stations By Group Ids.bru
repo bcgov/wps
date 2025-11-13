@@ -1,0 +1,21 @@
+meta {
+  name: Get Stations By Group Ids
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{API_BASE_URL}}/stations/groups/members
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "group_ids": []
+  }
+}
