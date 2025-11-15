@@ -83,7 +83,7 @@
   },
   "devDependencies": {
     "@cypress/code-coverage": "^3.10.0",
-    "@eslint/compat": "^1.1.1",
+    "@eslint/compat": "^2.0.0",
     "@testing-library/dom": "^10.1.0",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^16.0.0",
