@@ -50,7 +50,7 @@ shapely = "^2.0.5"
 wps-shared = { path = "../wps_shared" }
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.2.1"
+pytest = "^9.0.0"
 jupyter = "^1"
 notebook = "^7.0.7"
 coverage = "^7.6.4"
