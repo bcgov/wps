@@ -1,0 +1,22 @@
+meta {
+  name: Get Fire Centre Tpi Stats
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{API_BASE_URL}}/fba/fire-centre-tpi-stats/:run_type/:for_date/:run_datetime/:fire_centre_name
+  body: none
+  auth: bearer
+}
+
+params:path {
+  fire_centre_name: 
+  run_type: 
+  run_datetime: 
+  for_date: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Get Run Datetimes For Date And Runtype
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{API_BASE_URL}}/fba/sfms-run-datetimes/:run_type/:for_date
+  body: none
+  auth: bearer
+}
+
+params:path {
+  run_type: 
+  for_date: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

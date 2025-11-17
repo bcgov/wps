@@ -1,0 +1,15 @@
+meta {
+  name: Get Burn Forecasts
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{API_BASE_URL}}/fire-watch/burn-forecasts
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

@@ -1,0 +1,22 @@
+meta {
+  name: Get Hfi Fuels Data For Fire Centre
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{API_BASE_URL}}/fba/fire-centre-hfi-stats/:run_type/:for_date/:run_datetime/:fire_centre_name
+  body: none
+  auth: bearer
+}
+
+params:path {
+  run_type: 
+  for_date: 
+  run_datetime: 
+  fire_centre_name: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

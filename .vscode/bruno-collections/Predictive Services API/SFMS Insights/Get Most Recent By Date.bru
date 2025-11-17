@@ -1,0 +1,19 @@
+meta {
+  name: Get Most Recent By Date
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_BASE_URL}}/snow/most-recent-by-date/:for_date
+  body: none
+  auth: bearer
+}
+
+params:path {
+  for_date: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

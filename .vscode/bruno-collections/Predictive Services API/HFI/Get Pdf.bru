@@ -1,0 +1,17 @@
+meta {
+  name: Get Pdf
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{API_BASE_URL}}/hfi-calc/fire_centre/:fire_centre_id/:start_date/:end_date/pdf
+  body: none
+  auth: none
+}
+
+params:path {
+  fire_centre_id: 
+  start_date: 
+  end_date: 
+}
