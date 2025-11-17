@@ -102,6 +102,7 @@ export const fetchSFMSRunParameters =
             );
           }
         }
+        dispatch(getRunParametersFailed("Unable to update runParameters from the API."))
       } catch (err) {
         dispatch(getRunParametersFailed((err as Error).toString()));
         console.log(err);

@@ -83,8 +83,21 @@ describe("fetchSFMSRunParameters thunk", () => {
     });
     await store.dispatch(fetchSFMSRunParameters())
     expect(store.getState().runParameters.runParameters).toBe(mockRunParameters)
+    expect(writeToFileSystem).toBeCalled()
   });
 
+    it("does not dispatch success when online and API returns data if current state matches API response", async () => {
+    (getMostRecentRunParameters as Mock).mockResolvedValue(mockRunParameters);
+    (writeToFileSystem as Mock).mockResolvedValue(undefined);
+    const store = createTestStore({
+      runParameters: { ...initialState, runParameters: mockRunParameters },
+      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
+    });
+    await store.dispatch(fetchSFMSRunParameters())
+    expect(store.getState().runParameters.runParameters).toBe(mockRunParameters)
+    expect(writeToFileSystem).toBeCalled()
+  });
+  
   it("dispatches failure when API throws", async () => {
     const errorMessage = "API error";
     (getMostRecentRunParameters as Mock).mockRejectedValue(new Error(errorMessage));

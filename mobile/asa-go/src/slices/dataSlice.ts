@@ -1,7 +1,7 @@
+import { dataAreEqual, fetchFireShapeAreas, fetchHFIStats, fetchProvincialSummaries, fetchTpiStats, runParametersMatch } from "@/slices/dataSliceUtils";
 import { AppThunk } from "@/store";
 import {
   CacheableData,
-  CacheableDataType,
   FIRE_SHAPE_AREAS_KEY,
   HFI_STATS_KEY,
   PROVINCIAL_SUMMARY_KEY,
@@ -15,14 +15,9 @@ import {
   FireShapeArea,
   FireShapeAreaDetail,
   FireZoneHFIStatsDictionary,
-  FireZoneTPIStats,
-  getFireShapeAreas,
-  getHFIStats,
-  getProvincialSummary,
-  getTPIStats,
-  RunParameter,
+  FireZoneTPIStats
 } from "api/fbaAPI";
-import { isEqual, isNil } from "lodash";
+import { isNil } from "lodash";
 import { DateTime } from "luxon";
 
 export interface DataState {
@@ -92,8 +87,8 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
   const runParameters = state.runParameters.runParameters;
   let isCurrent = true; // A flag indicating if the cached data and state are current
   if (isNil(runParameters)) {
-    // Run parameters are required to fetch data. Should this be an error state?
-    return;
+    dispatch(getDataFailed("Unable to fetch and cache data; runParameters can't be null."))
+    return
   }
   // Grab cached data and check if we have cached data for the run parameters in state, if so, set
   // redux state with this data.
@@ -101,7 +96,7 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
     Filesystem,
     PROVINCIAL_SUMMARY_KEY
   );
-  isCurrent =
+  isCurrent = isCurrent &&
     !isNil(cachedProvincialSummaries?.data) &&
     runParametersMatch(
       todayKey,
@@ -114,7 +109,7 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
     Filesystem,
     FIRE_SHAPE_AREAS_KEY
   );
-  isCurrent =
+  isCurrent = isCurrent &&
     !isNil(cachedFireShapeAreas?.data) &&
     runParametersMatch(
       todayKey,
@@ -124,7 +119,7 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
     );
 
   const cachedTPIStats = await readFromFilesystem(Filesystem, TPI_STATS_KEY);
-  isCurrent =
+  isCurrent = isCurrent &&
     !isNil(cachedTPIStats?.data) &&
     runParametersMatch(
       todayKey,
@@ -134,7 +129,7 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
     );
 
   const cachedHFIStats = await readFromFilesystem(Filesystem, HFI_STATS_KEY);
-  isCurrent =
+  isCurrent = isCurrent &&
     !isNil(cachedHFIStats?.data) &&
     runParametersMatch(
       todayKey,
@@ -155,6 +150,7 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       !dataAreEqual(stateTPIStats, cachedTPIStats.data) &&
       !dataAreEqual(stateHFIStats, cachedHFIStats.data)
     ) {
+      // Update state from cached data if required
       dispatch(
         getDataSuccess({
           lastUpdated: DateTime.now().toISODate(),
@@ -228,187 +224,4 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
   } else {
     dispatch(getDataFailed("Unable to update data. Data may be stale."));
   }
-};
-
-const runParametersMatch = (
-  todayKey: string,
-  tomorrowKey: string,
-  runParameters: { [key: string]: RunParameter },
-  data: CacheableData<CacheableDataType>
-): boolean => {
-  return (
-    isEqual(runParameters[todayKey], data[todayKey]?.runParameter) &&
-    isEqual(runParameters[tomorrowKey], data[tomorrowKey]?.runParameter)
-  );
-};
-
-const fetchFireShapeArea = async (
-  runParameter: RunParameter
-): Promise<FireShapeArea[]> => {
-  if (isNil(runParameter)) {
-    return [];
-  }
-  const fireShapeArea = await getFireShapeAreas(
-    runParameter.run_type,
-    runParameter.run_datetime,
-    runParameter.for_date
-  );
-  return fireShapeArea?.shapes;
-};
-
-const fetchFireShapeAreas = async (
-  todayKey: string,
-  tomorrowKey: string,
-  runParameters: { [key: string]: RunParameter }
-): Promise<CacheableData<FireShapeArea[]>> => {
-  // API calls to get data for today and tomorrow
-  const todayFireShapeArea = await fetchFireShapeArea(runParameters[todayKey]);
-  const tomorrowFireShapeArea = await fetchFireShapeArea(
-    runParameters[tomorrowKey]
-  );
-  const fireShapeAreas = shapeDataForCaching(
-    todayKey,
-    tomorrowKey,
-    runParameters,
-    todayFireShapeArea,
-    tomorrowFireShapeArea
-  );
-  return fireShapeAreas as CacheableData<FireShapeArea[]>;
-};
-
-const fetchHFIStatsForRunParameter = async (
-  runParameter: RunParameter
-): Promise<FireZoneHFIStatsDictionary> => {
-  if (isNil(runParameter)) {
-    return [];
-  }
-  const hfiStatsForRunParameter = await getHFIStats(
-    runParameter.run_type,
-    runParameter.run_datetime,
-    runParameter.for_date
-  );
-  return hfiStatsForRunParameter?.zone_data;
-};
-
-const fetchHFIStats = async (
-  todayKey: string,
-  tomorrowKey: string,
-  runParameters: { [key: string]: RunParameter }
-): Promise<CacheableData<FireZoneHFIStatsDictionary>> => {
-  const hfiStatsForToday = await fetchHFIStatsForRunParameter(
-    runParameters[todayKey]
-  );
-  const hfiStatsForTommorow = await fetchHFIStatsForRunParameter(
-    runParameters[tomorrowKey]
-  );
-  const hfiStats = shapeDataForCaching(
-    todayKey,
-    tomorrowKey,
-    runParameters,
-    hfiStatsForToday,
-    hfiStatsForTommorow
-  );
-  return hfiStats as CacheableData<FireZoneHFIStatsDictionary>;
-};
-
-const fetchTpiStatsForRunParameter = async (
-  runParameter: RunParameter
-): Promise<FireZoneTPIStats[]> => {
-  if (isNil(runParameter)) {
-    return [];
-  }
-  const tpiStatsForRunParameter = await getTPIStats(
-    runParameter.run_type,
-    runParameter.run_datetime,
-    runParameter.for_date
-  );
-  return tpiStatsForRunParameter?.firezone_tpi_stats;
-};
-
-const fetchTpiStats = async (
-  todayKey: string,
-  tomorrowKey: string,
-  runParameters: { [key: string]: RunParameter }
-): Promise<CacheableData<FireZoneTPIStats[]>> => {
-  const tpiStatsForToday = await fetchTpiStatsForRunParameter(
-    runParameters[todayKey]
-  );
-  const tpiStatsForTommorow = await fetchTpiStatsForRunParameter(
-    runParameters[tomorrowKey]
-  );
-  const tpiStats = shapeDataForCaching(
-    todayKey,
-    tomorrowKey,
-    runParameters,
-    tpiStatsForToday,
-    tpiStatsForTommorow
-  );
-  return tpiStats as CacheableData<FireZoneTPIStats[]>;
-};
-
-const fetchProvincialSummary = async (
-  runParameter: RunParameter
-): Promise<FireShapeAreaDetail[]> => {
-  if (isNil(runParameter)) {
-    return [];
-  }
-  const provincialSummary = await getProvincialSummary(
-    runParameter.run_type,
-    runParameter.run_datetime,
-    runParameter.for_date
-  );
-  return provincialSummary?.provincial_summary;
-};
-
-const fetchProvincialSummaries = async (
-  todayKey: string,
-  tomorrowKey: string,
-  runParameters: { [key: string]: RunParameter }
-): Promise<CacheableData<FireShapeAreaDetail[]>> => {
-  // API calls to get data for today and tomorrow
-  const todayProvincialSummary = await fetchProvincialSummary(
-    runParameters[todayKey]
-  );
-  const tomorrowProvincialSummary = await fetchProvincialSummary(
-    runParameters[tomorrowKey]
-  );
-  // Shape the data for caching and storing in state
-  const provincialSummaries = {
-    [todayKey]: {
-      runParameter: runParameters[todayKey],
-      data: todayProvincialSummary,
-    },
-    [tomorrowKey]: {
-      runParameter: runParameters[tomorrowKey],
-      data: tomorrowProvincialSummary,
-    },
-  };
-
-  return provincialSummaries;
-};
-
-const shapeDataForCaching = (
-  todayKey: string,
-  tomorrowKey: string,
-  runParameters: { [key: string]: RunParameter },
-  todayData: CacheableDataType,
-  tomorrowData: CacheableDataType
-): CacheableData<CacheableDataType> => {
-  return {
-    [todayKey]: {
-      runParameter: runParameters[todayKey],
-      data: todayData,
-    },
-    [tomorrowKey]: {
-      runParameter: runParameters[tomorrowKey],
-      data: tomorrowData,
-    },
-  };
-};
-
-const dataAreEqual = (
-  a: CacheableData<CacheableDataType> | null,
-  b: CacheableData<CacheableDataType> | null
-): boolean => {
-  return isEqual(a, b);
 };
