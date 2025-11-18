@@ -8,6 +8,7 @@ from typing import List
 
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auto_spatial_advisory.fuel_type_layer import (
     get_fuel_type_raster_by_year,
@@ -37,7 +38,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_zone_source_ids_in_centre,
 )
 from wps_shared.db.database import get_async_read_session_scope
-from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum, TPIClassEnum
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum, SFMSFuelType, TPIClassEnum
 from wps_shared.schemas.fba import (
     FireCenterListResponse,
     FireCentreTPIResponse,
@@ -65,6 +66,84 @@ router = APIRouter(
 )
 
 
+async def get_all_zone_data_for_source_ids(
+    session: AsyncSession,
+    zone_source_ids: List[SFMSFuelType],
+    run_type: RunType,
+    for_date: date,
+    run_datetime: datetime,
+):
+    # get fuel type ids data
+    fuel_types = await get_all_sfms_fuel_type_records(session)
+    fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
+    zone_wind_stats_by_source_id = {}
+    hfi_thresholds_by_id = await get_all_hfi_thresholds_by_id(session)
+    advisory_wind_speed_by_source_id = await get_min_wind_speed_hfi_thresholds(
+        session, zone_source_ids, run_type, run_datetime, for_date
+    )
+    for source_id, wind_speed_stats in advisory_wind_speed_by_source_id.items():
+        min_wind_stats = get_zone_wind_stats_for_source_id(wind_speed_stats, hfi_thresholds_by_id)
+        zone_wind_stats_by_source_id[source_id] = min_wind_stats
+
+    all_zone_data: dict[int, FireZoneHFIStats] = {}
+    for zone_source_id in zone_source_ids:
+        # get HFI/fuels data for specific zone
+        hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
+            session,
+            run_type=RunTypeEnum(run_type.value),
+            for_date=for_date,
+            run_datetime=run_datetime,
+            source_identifier=zone_source_id,
+            fuel_type_raster_id=fuel_type_raster.id,
+        )
+
+        if hfi_fuel_type_ids_for_zone is None or len(hfi_fuel_type_ids_for_zone) == 0:
+            # Handle the situation where data for the current year was actually processed with
+            # last year's fuel grid
+            prev_fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year - 1)
+            hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
+                session,
+                run_type=RunTypeEnum(run_type.value),
+                for_date=for_date,
+                run_datetime=run_datetime,
+                source_identifier=zone_source_id,
+                fuel_type_raster_id=prev_fuel_type_raster.id,
+            )
+
+        zone_fuel_stats = []
+        for (
+            critical_hour_start,
+            critical_hour_end,
+            fuel_type_id,
+            threshold_id,
+            area,
+            fuel_area,
+            percent_conifer,
+        ) in hfi_fuel_type_ids_for_zone:
+            hfi_threshold = hfi_thresholds_by_id.get(threshold_id)
+            if hfi_threshold is None:
+                logger.error(f"No hfi threshold for id: {threshold_id}")
+                continue
+            fuel_type_area_stats = get_fuel_type_area_stats(
+                for_date,
+                fuel_types,
+                hfi_threshold,
+                percent_conifer,
+                critical_hour_start,
+                critical_hour_end,
+                fuel_type_id,
+                area,
+                fuel_area,
+            )
+            zone_fuel_stats.append(fuel_type_area_stats)
+
+        all_zone_data[int(zone_source_id)] = FireZoneHFIStats(
+            min_wind_stats=zone_wind_stats_by_source_id.get(int(zone_source_id), []),
+            fuel_area_stats=zone_fuel_stats,
+        )
+    return all_zone_data
+
+
 @router.get("/fire-centers", response_model=FireCenterListResponse)
 async def get_all_fire_centers(_=Depends(asa_authentication_required)):
     """Returns fire centers for all active stations."""
@@ -89,7 +168,6 @@ async def get_shapes(
     async with get_async_read_session_scope() as session:
         fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
         shapes = []
-
         rows = await get_hfi_area(
             session, RunTypeEnum(run_type.value), run_datetime, for_date, fuel_type_raster.id
         )
@@ -169,83 +247,13 @@ async def get_hfi_fuels_data_for_fire_centre(
     )
 
     async with get_async_read_session_scope() as session:
-        # get fuel type ids data
-        fuel_types = await get_all_sfms_fuel_type_records(session)
         # get fire zone id's within a fire centre
         zone_source_ids = await get_zone_source_ids_in_centre(session, fire_centre_name)
-        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
-        zone_wind_stats_by_source_id = {}
-        hfi_thresholds_by_id = await get_all_hfi_thresholds_by_id(session)
-        advisory_wind_speed_by_source_id = await get_min_wind_speed_hfi_thresholds(
-            session, zone_source_ids, run_type, run_datetime, for_date
+        all_zone_data = await get_all_zone_data_for_source_ids(
+            session, zone_source_ids, run_type, for_date, run_datetime
         )
-        for source_id, wind_speed_stats in advisory_wind_speed_by_source_id.items():
-            min_wind_stats = get_zone_wind_stats_for_source_id(
-                wind_speed_stats, hfi_thresholds_by_id
-            )
-            zone_wind_stats_by_source_id[source_id] = min_wind_stats
 
-        all_zone_data: dict[int, FireZoneHFIStats] = {}
-        for zone_source_id in zone_source_ids:
-            # get HFI/fuels data for specific zone
-            hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
-                session,
-                run_type=RunTypeEnum(run_type.value),
-                for_date=for_date,
-                run_datetime=run_datetime,
-                source_identifier=zone_source_id,
-                fuel_type_raster_id=fuel_type_raster.id,
-            )
-
-            if hfi_fuel_type_ids_for_zone is None or len(hfi_fuel_type_ids_for_zone) == 0:
-                # Handle the situation where data for the current year was actually processed with
-                # last year's fuel grid
-                prev_fuel_type_raster = await get_fuel_type_raster_by_year(
-                    session, for_date.year - 1
-                )
-                hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
-                    session,
-                    run_type=RunTypeEnum(run_type.value),
-                    for_date=for_date,
-                    run_datetime=run_datetime,
-                    source_identifier=zone_source_id,
-                    fuel_type_raster_id=prev_fuel_type_raster.id,
-                )
-
-            zone_fuel_stats = []
-
-            for (
-                critical_hour_start,
-                critical_hour_end,
-                fuel_type_id,
-                threshold_id,
-                area,
-                fuel_area,
-                percent_conifer,
-            ) in hfi_fuel_type_ids_for_zone:
-                hfi_threshold = hfi_thresholds_by_id.get(threshold_id)
-                if hfi_threshold is None:
-                    logger.error(f"No hfi threshold for id: {threshold_id}")
-                    continue
-                fuel_type_area_stats = get_fuel_type_area_stats(
-                    for_date,
-                    fuel_types,
-                    hfi_threshold,
-                    percent_conifer,
-                    critical_hour_start,
-                    critical_hour_end,
-                    fuel_type_id,
-                    area,
-                    fuel_area,
-                )
-                zone_fuel_stats.append(fuel_type_area_stats)
-
-            all_zone_data[int(zone_source_id)] = FireZoneHFIStats(
-                min_wind_stats=zone_wind_stats_by_source_id.get(int(zone_source_id), []),
-                fuel_area_stats=zone_fuel_stats,
-            )
-
-        return {fire_centre_name: all_zone_data}
+    return {fire_centre_name: all_zone_data}
 
 
 @router.get("/latest-sfms-run-datetime/{for_date}", response_model=LatestSFMSRunParameterResponse)
@@ -396,83 +404,13 @@ async def get_hfi_fuels_data_for_run_parameter(
     )
 
     async with get_async_read_session_scope() as session:
-        # get fuel type ids data
-        fuel_types = await get_all_sfms_fuel_type_records(session)
         # get fire zone id's within a fire centre
         zone_source_ids = await get_all_zone_source_ids(session)
-        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
-        zone_wind_stats_by_source_id = {}
-        hfi_thresholds_by_id = await get_all_hfi_thresholds_by_id(session)
-        advisory_wind_speed_by_source_id = await get_min_wind_speed_hfi_thresholds(
-            session, zone_source_ids, run_type, run_datetime, for_date
+        all_zone_data = await get_all_zone_data_for_source_ids(
+            session, zone_source_ids, run_type, for_date, run_datetime
         )
-        for source_id, wind_speed_stats in advisory_wind_speed_by_source_id.items():
-            min_wind_stats = get_zone_wind_stats_for_source_id(
-                wind_speed_stats, hfi_thresholds_by_id
-            )
-            zone_wind_stats_by_source_id[source_id] = min_wind_stats
 
-        all_zone_data: dict[int, FireZoneHFIStats] = {}
-        for zone_source_id in zone_source_ids:
-            # get HFI/fuels data for specific zone
-            hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
-                session,
-                run_type=RunTypeEnum(run_type.value),
-                for_date=for_date,
-                run_datetime=run_datetime,
-                source_identifier=zone_source_id,
-                fuel_type_raster_id=fuel_type_raster.id,
-            )
-
-            if hfi_fuel_type_ids_for_zone is None or len(hfi_fuel_type_ids_for_zone) == 0:
-                # Handle the situation where data for the current year was actually processed with
-                # last year's fuel grid
-                prev_fuel_type_raster = await get_fuel_type_raster_by_year(
-                    session, for_date.year - 1
-                )
-                hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
-                    session,
-                    run_type=RunTypeEnum(run_type.value),
-                    for_date=for_date,
-                    run_datetime=run_datetime,
-                    source_identifier=zone_source_id,
-                    fuel_type_raster_id=prev_fuel_type_raster.id,
-                )
-
-            zone_fuel_stats = []
-
-            for (
-                critical_hour_start,
-                critical_hour_end,
-                fuel_type_id,
-                threshold_id,
-                area,
-                fuel_area,
-                percent_conifer,
-            ) in hfi_fuel_type_ids_for_zone:
-                hfi_threshold = hfi_thresholds_by_id.get(threshold_id)
-                if hfi_threshold is None:
-                    logger.error(f"No hfi threshold for id: {threshold_id}")
-                    continue
-                fuel_type_area_stats = get_fuel_type_area_stats(
-                    for_date,
-                    fuel_types,
-                    hfi_threshold,
-                    percent_conifer,
-                    critical_hour_start,
-                    critical_hour_end,
-                    fuel_type_id,
-                    area,
-                    fuel_area,
-                )
-                zone_fuel_stats.append(fuel_type_area_stats)
-
-            all_zone_data[int(zone_source_id)] = FireZoneHFIStats(
-                min_wind_stats=zone_wind_stats_by_source_id.get(int(zone_source_id), []),
-                fuel_area_stats=zone_fuel_stats,
-            )
-
-        return HFIStatsResponse(zone_data=all_zone_data)
+    return HFIStatsResponse(zone_data=all_zone_data)
 
 
 @router.get(
