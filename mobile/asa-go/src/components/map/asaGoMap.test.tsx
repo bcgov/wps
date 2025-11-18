@@ -148,7 +148,7 @@ describe("ASAGoMap", () => {
       true
     );
 
-    store.dispatch({
+    await store.dispatch({
       type: "runParameters/getRunParametersSuccess",
       payload: {
         "2024-12-16": {
