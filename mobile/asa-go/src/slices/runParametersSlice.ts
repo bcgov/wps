@@ -114,11 +114,11 @@ export const fetchSFMSRunParameters =
         Filesystem,
         RUN_PARAMETERS_CACHE_KEY
       );
-      const cachedRunParameters: { [key: string]: RunParameter } = !isNil(
+      const cachedRunParameters: { [key: string]: RunParameter } = isNil(
         cachedData
       )
-        ? cachedData.data
-        : null;
+        ? null
+        : cachedData.data;
       if (
         !isNil(cachedRunParameters) &&
         (isNil(reduxRunParameters) ||

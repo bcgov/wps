@@ -5,8 +5,10 @@ import {
   FireZoneHFIStats,
 } from "@/api/fbaAPI";
 import DefaultText from "@/components/report/DefaultText";
-import { useFilteredHFIStatsForDate } from "@/hooks/dataHooks";
-import { useProvincialSummaryForDate } from "@/hooks/dataHooks";
+import {
+  useFilteredHFIStatsForDate,
+  useProvincialSummaryForDate,
+} from "@/hooks/dataHooks";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import {
   getTopFuelsByArea,

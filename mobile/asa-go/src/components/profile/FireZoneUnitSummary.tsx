@@ -1,7 +1,9 @@
 import ElevationStatus from "@/components/profile/ElevationStatus";
 import FuelSummary from "@/components/profile/FuelSummary";
-import { useFilteredHFIStatsForDate } from "@/hooks/dataHooks";
-import { useTPIStatsForDate } from "@/hooks/dataHooks";
+import {
+  useFilteredHFIStatsForDate,
+  useTPIStatsForDate,
+} from "@/hooks/dataHooks";
 import { hasRequiredFields } from "@/utils/profileUtils";
 import { Box, Grid2 as Grid, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";

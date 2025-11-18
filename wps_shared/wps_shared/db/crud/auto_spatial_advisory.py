@@ -444,10 +444,10 @@ async def get_most_recent_run_datetime_for_date_range(
     )
 
     # Alias the subquery for querying
-    RunParamsAlias = aliased(RunParameters, subquery)
+    run_params_alias = aliased(RunParameters, subquery)
 
     # Final query: only rows with row_num == 1
-    stmt = select(RunParamsAlias).where(subquery.c.row_num == 1)
+    stmt = select(run_params_alias).where(subquery.c.row_num == 1)
     result = await session.execute(stmt)
     return result.scalars()
 

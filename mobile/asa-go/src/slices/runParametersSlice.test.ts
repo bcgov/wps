@@ -7,7 +7,6 @@ import reducer, {
   fetchSFMSRunParameters,
   selectRunParameters,
   } from "@/slices/runParametersSlice";
-import { RunParameter, RunType } from "api/fbaAPI";
 import { DateTime } from "luxon";
 import {
   createTestStore
@@ -28,7 +27,7 @@ vi.mock("@/utils/storage", () => ({
   RUN_PARAMETERS_CACHE_KEY: "runParameters",
 }));
 
-import { getMostRecentRunParameters } from "api/fbaAPI";
+import { getMostRecentRunParameters, RunParameter, RunType } from "api/fbaAPI";
 import { writeToFileSystem, readFromFilesystem } from "@/utils/storage";
 import { RootState } from "@/store";
 

@@ -109,13 +109,6 @@ describe("AuthWrapper", () => {
     expect(description).toBeInTheDocument();
   });
 
-    renderWithProviders();
-
-    expect(screen.getByText("ASA Go")).toBeInTheDocument();
-    const description = screen.getByTestId("app-description");
-    expect(description).toBeInTheDocument();
-  });
-
   it("renders loading spinner when authenticating", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({

@@ -466,7 +466,6 @@ describe("AdvisoryText", () => {
     );
     screen.debug();
     assertInitialState();
-    // act(() => store.dispatch(getDataSuccess(initialDataStateWithHFIFuelStats)));
     await waitFor(() =>
       expect(
         screen.queryByTestId("advisory-message-warning")

@@ -17,7 +17,7 @@ export const filterHFIFuelStatsByArea = (
 ) => {
   const filteredFireZoneStats: FireZoneHFIStatsDictionary = {};
     for (const [key, value] of Object.entries(fireCentreHFIFuelStats)) {
-      filteredFireZoneStats[parseInt(key)] = {
+      filteredFireZoneStats[Number.parseInt(key)] = {
         min_wind_stats: value.min_wind_stats,
         fuel_area_stats: filterHFIStatsByArea(value.fuel_area_stats),
       };

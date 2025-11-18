@@ -9,7 +9,6 @@ import {
   CacheableDataType,
   CacheableData,
 } from '@/utils/storage'; // adjust path as needed
-import { Directory, Encoding } from '@capacitor/filesystem';
 
 vi.mock("@capacitor/filesystem", () => ({
   Filesystem: {
@@ -21,7 +20,7 @@ vi.mock("@capacitor/filesystem", () => ({
   Directory: { Data: "DATA" },
   Encoding: { UTF8: "utf8" },
 }));
-import { Filesystem} from '@capacitor/filesystem';
+import { Directory, Encoding, Filesystem} from '@capacitor/filesystem';
 import { FireShapeArea, RunType } from '@/api/fbaAPI';
 
 const mockData: FireShapeArea[] = []

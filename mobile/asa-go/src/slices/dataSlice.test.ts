@@ -310,17 +310,8 @@ describe("fetchAndCacheData thunk", () => {
     })
   }
   const mockCacheWithNoData = () => {
-    (readFromFilesystem as Mock).mockImplementation((filesystem, key) => {
-      switch (key) {
-        case PROVINCIAL_SUMMARY_KEY:
-          return null
-        case FIRE_SHAPE_AREAS_KEY:
-          return null
-        case TPI_STATS_KEY:
-          return null
-        case HFI_STATS_KEY:
-          return null
-      }
+    (readFromFilesystem as Mock).mockImplementation(() => {
+      return null
     })
   }
   const mockAPIData = () => {
