@@ -21,6 +21,7 @@ import TabPanel from "@/components/TabPanel";
 import { theme } from "@/theme";
 import { NavPanel, PST_UTC_OFFSET } from "@/utils/constants";
 import { ConnectionStatus, Network } from "@capacitor/network";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Box } from "@mui/material";
 import { LicenseInfo } from "@mui/x-license-pro";
 import { isNull, isUndefined } from "lodash";
@@ -47,6 +48,19 @@ const App = () => {
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
   );
   const { runDatetime, runType } = useSelector(selectRunParameter);
+
+  // Lock screen orientation to portrait on app start
+  useEffect(() => {
+    const lockOrientation = async () => {
+      try {
+        await ScreenOrientation.lock({ orientation: "portrait" });
+        console.log("Screen orientation locked to portrait");
+      } catch (error) {
+        console.error("Failed to lock screen orientation:", error);
+      }
+    };
+    lockOrientation();
+  }, []);
 
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status

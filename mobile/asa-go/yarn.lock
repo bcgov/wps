@@ -329,6 +329,11 @@
   resolved "https://registry.yarnpkg.com/@capacitor/preferences/-/preferences-7.0.2.tgz#9557bd817b2f4cde942d3ce1cdf5abdb1292357f"
   integrity sha512-JVCy0/oc6RsRencLOZ8rMqjNxAlHs7awPJU/MXqangsJ48oO2PnYGHfCvci6WgIJlqyC0QhvWZaO1BR1lVkHWQ==
 
+"@capacitor/screen-orientation@^7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@capacitor/screen-orientation/-/screen-orientation-7.0.2.tgz#4206de5b708ace5d6e54f3e7fdb7fc08085e5c3d"
+  integrity sha512-73+ZeD0eZYJjTL/gcSCBuqmlCdO3LqIMcHgS21olrQE5MAmOodmmDwPV523OJbs8T0Ye3FXK7TSsq0BCZ3EQdQ==
+
 "@capacitor/splash-screen@^7.0.1":
   version "7.0.2"
   resolved "https://registry.npmjs.org/@capacitor/splash-screen/-/splash-screen-7.0.2.tgz"
