@@ -1,0 +1,15 @@
+meta {
+  name: Get Sfms Run Bounds
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{API_BASE_URL}}/fba/sfms-run-bounds
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

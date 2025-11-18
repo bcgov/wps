@@ -35,12 +35,6 @@ Code must pass all unit tests.
 make test
 ```
 
-Or run continuously with pytest-testmon and pytest-watch (`ptw --runner "pytest --testmon"` or `ptw -- --testmon`):
-
-```bash
-make test-watch
-```
-
 ### Troubleshooting
 
 **Poetry can't install rpy2**

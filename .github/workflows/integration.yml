@@ -15,7 +15,7 @@ jobs:
     name: Python - Lint
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/bcgov/wps/wps-api-base:06-30-2025
+      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
       options: --user 0
     steps:
       - name: Checkout repo
@@ -49,7 +49,7 @@ jobs:
     name: Python - API Test with coverage
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/bcgov/wps/wps-api-base:06-30-2025
+      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
       options: --user 0
     steps:
       - name: Checkout repo
@@ -89,7 +89,7 @@ jobs:
           export SFMS_SECRET=secret
           poetry run pytest -n auto --cov=app --cov-branch --cov-report=xml:coverage-reports/api-coverage-report.xml app/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (api)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: api-coverage-report
           path: ./api/coverage-reports/api-coverage-report.xml
@@ -97,7 +97,7 @@ jobs:
     name: Python - WPS Jobs Test with coverage
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/bcgov/wps/wps-api-base:06-30-2025
+      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
       options: --user 0
     steps:
       - name: Checkout repo
@@ -135,7 +135,7 @@ jobs:
           export SFMS_SECRET=secret
           poetry run pytest -n auto --cov=wps_jobs --cov-branch --cov-report=xml:coverage-reports/wps-jobs-coverage-report.xml tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_jobs)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wps-jobs-coverage-report
           path: ./wps_jobs/coverage-reports/wps-jobs-coverage-report.xml
@@ -143,7 +143,7 @@ jobs:
     name: Python - WPS Shared Test with coverage
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/bcgov/wps/wps-api-base:06-30-2025
+      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
       options: --user 0
     steps:
       - name: Checkout repo
@@ -177,7 +177,7 @@ jobs:
           export SFMS_SECRET=secret
           poetry run pytest --cov=wps_shared --cov-branch --cov-report=xml:coverage-reports/wps-shared-coverage-report.xml wps_shared/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_shared)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wps-shared-coverage-report
           path: ./wps_shared/coverage-reports/wps-shared-coverage-report.xml
@@ -194,7 +194,7 @@ jobs:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
       - uses: actions/cache@v4
@@ -225,7 +225,7 @@ jobs:
         working-directory: ./web
         run: yarn run finalizeCoverage
       - name: Archive coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: web-coverage-report
           path: ./web/finalCoverage
@@ -238,7 +238,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v5
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -260,7 +260,7 @@ jobs:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
       - name: Setup Python ${{ matrix.python-version }} (api)
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Cache poetry installer

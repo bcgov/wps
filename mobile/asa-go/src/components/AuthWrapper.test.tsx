@@ -34,22 +34,6 @@ describe("AuthWrapper", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders children when platform is android", () => {
-    vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("android");
-    vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: false,
-      authenticating: false,
-      error: null,
-      tokenRefreshed: false,
-      idToken: undefined,
-      token: "test-token",
-    });
-
-    renderWithProviders();
-
-    expect(screen.getByText("Protected")).toBeInTheDocument();
-  });
-
   it("renders children when authenticated", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
@@ -117,6 +101,13 @@ describe("AuthWrapper", () => {
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
       networkStatus: { connected: true, connectionType: "wifi" },
     });
+
+    renderWithProviders();
+
+    expect(screen.getByText("ASA Go")).toBeInTheDocument();
+    const description = screen.getByTestId("app-description");
+    expect(description).toBeInTheDocument();
+  });
 
     renderWithProviders();
 

@@ -1,0 +1,67 @@
+meta {
+  name: Save New Fire Watch
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_BASE_URL}}/fire-watch/watch
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "fire_watch": {
+      "burn_location": [],
+      "burn_window_end": "",
+      "burn_window_start": "",
+      "contact_email": [],
+      "fire_centre": {
+        "id": 0,
+        "name": ""
+      },
+      "station": {
+        "code": 0,
+        "name": ""
+      },
+      "status": "",
+      "title": "",
+      "fuel_type": "",
+      "percent_conifer": "",
+      "percent_dead_fir": "",
+      "percent_grass_curing": "",
+      "temp_min": "",
+      "temp_preferred": "",
+      "temp_max": "",
+      "rh_min": "",
+      "rh_preferred": "",
+      "rh_max": "",
+      "wind_speed_min": "",
+      "wind_speed_preferred": "",
+      "wind_speed_max": "",
+      "ffmc_min": "",
+      "ffmc_preferred": "",
+      "ffmc_max": "",
+      "dmc_min": "",
+      "dmc_preferred": "",
+      "dmc_max": "",
+      "dc_min": "",
+      "dc_preferred": "",
+      "dc_max": "",
+      "isi_min": "",
+      "isi_preferred": "",
+      "isi_max": "",
+      "bui_min": "",
+      "bui_preferred": "",
+      "bui_max": "",
+      "hfi_min": "",
+      "hfi_preferred": "",
+      "hfi_max": ""
+    }
+  }
+}

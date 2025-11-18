@@ -1,0 +1,26 @@
+meta {
+  name: Get Model Prediction Summaries
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{API_BASE_URL}}/weather_models/:model/predictions/summaries/
+  body: json
+  auth: bearer
+}
+
+params:path {
+  model: 
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "stations": [],
+    "time_of_interest": ""
+  }
+}

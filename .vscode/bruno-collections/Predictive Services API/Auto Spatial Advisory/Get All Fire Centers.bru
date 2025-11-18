@@ -1,0 +1,15 @@
+meta {
+  name: Get All Fire Centers
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_BASE_URL}}/fba/fire-centers
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

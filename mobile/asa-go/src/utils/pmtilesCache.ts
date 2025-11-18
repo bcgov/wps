@@ -146,13 +146,14 @@ export class PMTilesCache implements IPMTilesCache {
       return toPMTiles(file, filename);
     } catch (e) {
       console.log("Error reading file, attempting to re-fetch", e);
-      while (this.retries-- > 0) {
+      let retriesLeft = this.retries;
+      while (retriesLeft-- > 0) {
         try {
           const pmTiles = await fetchAndStore();
           return pmTiles;
         } catch (error) {
           console.log(
-            `Re-fetch attempted, ${this.retries + 1} retries left:`,
+            `Re-fetch attempted, ${retriesLeft + 1} retries left:`,
             error
           );
         }

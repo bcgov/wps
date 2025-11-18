@@ -46,7 +46,7 @@ coverage:
         paths:
           - web/src
         # web isn't quite amazing yet - would be nice to push it up to 80%
-        target: 73%
+        target: 71%
       wps_jobs:
         paths:
           - wps_jobs

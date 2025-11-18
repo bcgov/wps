@@ -1,0 +1,33 @@
+meta {
+  name: GET Daily Simulate Indices
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{WFWX_BASE_URL}}/v1/dailies/daily-indices/simulate-indices?temperature=25.2&relativeHumidity=31.0&windspeed=9.2&precipitation=0.0&ffmc=90.6826508096408&dailyCalc=true&dmc=17&dc=17
+  body: none
+  auth: bearer
+}
+
+params:query {
+  temperature: 25.2
+  relativeHumidity: 31.0
+  windspeed: 9.2
+  precipitation: 0.0
+  ffmc: 90.6826508096408
+  dailyCalc: true
+  dmc: 17
+  dc: 17
+}
+
+headers {
+  ~size: 1000
+  ~page: 0
+  ~startingTimestamp: 1692993600000
+  ~endingTimestamp: 1692993600000
+}
+
+auth:bearer {
+  token: {{WFWX_TOKEN}}
+}

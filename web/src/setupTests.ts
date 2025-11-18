@@ -7,16 +7,15 @@ import { afterEach, vi } from 'vitest'
 import crypto from 'crypto'
 import { fetch } from 'whatwg-fetch'
 
-
 afterEach(() => {
   cleanup()
 })
 
 beforeAll(() => {
-  global.fetch = fetch
+  globalThis.fetch = fetch
 })
 
-Object.defineProperty(global, 'crypto', {
+Object.defineProperty(globalThis, 'crypto', {
   value: {
     randomUUID: () => crypto.randomUUID()
   }

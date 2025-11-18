@@ -1,0 +1,16 @@
+meta {
+  name: Get Model Runs
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{API_BASE_URL}}/c-haines/model-runs
+  body: none
+  auth: none
+}
+
+params:query {
+  ~model_run_timestamp: 
+  ~response_format: 
+}

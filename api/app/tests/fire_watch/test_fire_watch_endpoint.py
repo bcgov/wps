@@ -1,7 +1,13 @@
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock, create_autospec
+from unittest.mock import AsyncMock, patch, MagicMock
 from fastapi import HTTPException
-from app.routers.fire_watch import update_existing_fire_watch, MissingWeatherDataError
+from wps_shared.schemas.fire_watch import FireWatchFireCentre, FireWatchOutput
+from wps_shared.schemas.stations import GeoJsonWeatherStation
+from app.routers.fire_watch import (
+    create_fire_watch_output,
+    update_existing_fire_watch,
+    MissingWeatherDataError,
+)
 
 
 @pytest.fixture
@@ -15,6 +21,22 @@ def fire_watch_input_request():
 @pytest.fixture
 def token():
     return {"idir_username": "testuser"}
+
+
+@pytest.fixture
+def mock_stations():
+    return [
+        GeoJsonWeatherStation(
+            type="Feature",
+            geometry={"type": "Point", "coordinates": [-120.0, 50.0]},
+            properties={"code": 101, "name": "Test Station"},
+        )
+    ]
+
+
+@pytest.fixture
+def mock_fire_centre():
+    return FireWatchFireCentre(id=1, name="Test Fire Centre")
 
 
 @pytest.mark.anyio
@@ -176,3 +198,26 @@ async def test_update_existing_fire_watch_other_exception(
         await update_existing_fire_watch(1, fire_watch_input_request, token)
     assert exc.value.status_code == 500
     assert "Failed to reprocess fire watch weather" in exc.value.detail
+
+
+@pytest.mark.anyio
+async def test_create_fire_watch_output_success(mock_fire_watch, mock_fire_centre, mock_stations):
+    result = create_fire_watch_output(mock_fire_watch, mock_fire_centre, mock_stations)
+
+    assert isinstance(result, FireWatchOutput)
+    assert result.id == mock_fire_watch.id
+    assert result.fire_centre == mock_fire_centre
+    assert result.station.code == 101
+    assert result.station.name == "Test Station"
+
+
+@pytest.mark.anyio
+async def test_create_fire_watch_output_station_not_found(
+    mock_fire_watch, mock_fire_centre, mock_stations
+):
+    # Test when station is not found in stations list, station should be None but it shouldn't raise an error
+    mock_stations[0].properties.code = 999  # Different code
+
+    result = create_fire_watch_output(mock_fire_watch, mock_fire_centre, mock_stations)
+
+    assert result.station is None

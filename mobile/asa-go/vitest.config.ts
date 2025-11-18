@@ -7,7 +7,7 @@ export default mergeConfig(
   defineConfig({
     test: {
       coverage: {
-        provider: "istanbul",
+        provider: "v8",
         reportsDirectory: "./coverage",
         include: ["src/**/*.{ts,tsx}", "!src/**/*.d.ts", "!src/index.tsx"],
       },

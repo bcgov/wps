@@ -114,17 +114,18 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
                   <Typography sx={{ fontWeight: 'bold' }} variant="body1">
                     1. Burn Information
                   </Typography>
+                  <SummaryTextLine indentLevel={1} left="Name" right={fireWatch.title} />
+                  <SummaryTextLine indentLevel={1} left="Fire Centre" right={fireWatch.fireCentre?.name ?? ''} />
                   <SummaryTextLine
                     indentLevel={1}
-                    left="Name"
-                    right={fireWatch.contactEmail.length > 0 ? fireWatch.title : ''}
+                    left="Weather Station"
+                    right={fireWatch.station?.name ?? 'Station Unavailable'}
+                    rightColor={isNil(fireWatch.station) ? 'red' : undefined}
                   />
-                  <SummaryTextLine indentLevel={1} left="Fire Centre" right={fireWatch.fireCentre?.name ?? ''} />
-                  <SummaryTextLine indentLevel={1} left="Weather Station" right={fireWatch.station?.name ?? ''} />
                   <SummaryTextLine
                     indentLevel={1}
                     left="Contact Email"
-                    right={fireWatch.contactEmail.length > 0 ? fireWatch.contactEmail[0].toString() : ''}
+                    right={fireWatch.contactEmail.length > 0 ? fireWatch.contactEmail[0] : ''}
                   />
                 </Box>
                 <Box>

@@ -1,0 +1,15 @@
+meta {
+  name: GET Fintry Station
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{WFWX_BASE_URL}}/v1/stations/bfe0a6e2-e3b8-0210-e053-259e228e58c7
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WFWX_TOKEN}}
+}

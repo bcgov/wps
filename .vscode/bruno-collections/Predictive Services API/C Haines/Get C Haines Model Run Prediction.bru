@@ -1,0 +1,19 @@
+meta {
+  name: Get C Haines Model Run Prediction
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{API_BASE_URL}}/c-haines/:model/prediction
+  body: none
+  auth: none
+}
+
+params:query {
+  ~response_format: 
+}
+
+params:path {
+  model: 
+}

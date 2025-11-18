@@ -1,0 +1,35 @@
+meta {
+  name: Admin Update Stations
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{API_BASE_URL}}/hfi-calc/admin/stations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "fire_centre_id": 0,
+    "added": [
+      {
+        "planning_area_id": 0,
+        "station_code": 0,
+        "fuel_type_id": 0
+      }
+    ],
+    "removed": [
+      {
+        "planning_area_id": 0,
+        "station_code": 0,
+        "row_id": 0
+      }
+    ]
+  }
+}
