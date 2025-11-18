@@ -3,6 +3,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+
+import androidx.activity.EdgeToEdge;
+
 import com.getcapacitor.BridgeActivity;
 import net.openid.appauth.AuthorizationResponse;
 import net.openid.appauth.AuthorizationException;
@@ -16,6 +19,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(KeycloakPlugin.class);
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this); // enable edge-to-edge mode
 
         // Check if this activity was started with an intent containing auth data
         handleAuthIntent(getIntent());
