@@ -173,8 +173,8 @@ describe("fetchFireCenters thunk", () => {
     });
     await store.dispatch(fetchFireCenters());
     const state = store.getState().fireCenters;
+    expect(getFBAFireCenters).not.toBeCalled();
     expect(state.loading).toBe(false);
     expect(state.fireCenters).toEqual([mockFireCenterB]);
-    expect(getFBAFireCenters).not.toBeCalled();
   });
 });
