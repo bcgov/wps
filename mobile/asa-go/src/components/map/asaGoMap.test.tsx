@@ -10,7 +10,6 @@ import {
   baseLayerMock,
 } from "@/testUtils";
 import { geolocationInitialState } from "@/slices/geolocationSlice";
-import { RunType } from "@/api/fbaAPI";
 import * as mapView from "@/components/map/mapView";
 
 vi.mock("@capacitor/filesystem", () => ({
@@ -46,7 +45,7 @@ vi.mock("@/layerDefinitions", async () => {
   };
 });
 
-import { createHFILayer, HFI_LAYER_NAME } from "@/layerDefinitions";
+import { HFI_LAYER_NAME } from "@/layerDefinitions";
 
 describe("ASAGoMap", () => {
   beforeAll(() => {

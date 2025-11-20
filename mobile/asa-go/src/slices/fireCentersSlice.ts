@@ -1,5 +1,3 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
 import { AppThunk } from "@/store";
 import {
   FIRE_CENTERS_CACHE_EXPIRATION,
@@ -8,6 +6,7 @@ import {
   writeToFileSystem,
 } from "@/utils/storage";
 import { Filesystem } from "@capacitor/filesystem";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { FireCenter, getFBAFireCenters } from "api/fbaAPI";
 import { isNull } from "lodash";
 import { DateTime } from "luxon";
@@ -18,7 +17,7 @@ export interface FireCentresState {
   fireCenters: FireCenter[];
 }
 
-const initialState: FireCentresState = {
+export const initialState: FireCentresState = {
   loading: false,
   error: null,
   fireCenters: [],
