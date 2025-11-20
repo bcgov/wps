@@ -15,7 +15,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install dependancies needed by python developer packages
 # One should really run all these installs and the update in one go - for a consistent install
 # but ease of development trumps consistency in this instance: it's easer to have more
-# faster running steps that can fail, that one big monster install that takes forever 
+# faster running steps that can fail, that one big monster install that takes forever
 # and fails.
 # NOTE: Once we no longer need pyodbc, please remove the apt-get update and install commands below.
 RUN apt-get -y update
@@ -36,11 +36,11 @@ RUN apt-get -y install git build-essential python3 python3-dev python3-pip curl 
 # Install JDK
 RUN apt-get -y install default-jdk
 
-# We could install poetry manually, but it's easier to use apt.
-RUN apt-get -y install python3-poetry
-# Poetry expects "python", but by default, on ubuntu, you need to specify "python3", so
-# we work around that, by using the python3-poetry command.
+# Install python-is-python3 so "python" works
 RUN apt-get -y install python-is-python3
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # from: https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
 RUN groupadd --gid $USER_GID $USERNAME \
@@ -56,19 +56,20 @@ WORKDIR /app
 # Update pip
 RUN python3 -m pip install --upgrade pip
 
-# Copy poetry files.
-COPY pyproject.toml poetry.lock ./
+# Copy workspace configuration and package manifests
+COPY --chown=worker:worker ../pyproject.toml /app/../
+COPY --chown=worker:worker pyproject.toml ./
+COPY --chown=worker:worker ../wps_shared/pyproject.toml /app/../wps_shared/
 
-COPY --chown=worker:worker poetry.lock pyproject.toml ./
-RUN python3 -m pip install cachecontrol
-
-RUN poetry install
+# Install dependencies using uv
+RUN uv sync --package wps-api
 
 # We can't have this inside pyproject.toml because the gdal version differs from platform to platform.
 # To figure out what version of pygdal you need, run gdal-config
-RUN poetry run python -m pip install pygdal==3.4.1.10
+RUN uv pip install pygdal==3.4.1.10
 
-ENV PATH="/home/worker/.local/bin:${PATH}"
+ENV PATH="/app/.venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/app/.venv"
 
 COPY ./app /app/app
 # TODO: we need to do this better.
@@ -79,7 +80,7 @@ COPY ./libs /app/libs
 
 # root user please
 USER 0
-# We don't know what user poetry is going to run as, so we give everyone write access directories
+# We don't know what user uv is going to run as, so we give everyone write access directories
 # in the app folder. We need write access for .pyc files to be created. .pyc files are good,
 # they speed up python.
 RUN chmod a+w $(find /app/app -type d)
@@ -89,5 +90,5 @@ USER worker
 EXPOSE 8080
 
 ENV CLASSPATH=/app/libs/REDapp_Lib.jar:/app/libs/WTime.jar:/app/libs/hss-java.jar:${CLASSPATH}
-CMD PYTHONPATH=. poetry run alembic upgrade head && poetry run uvicorn app.main:app --timeout-keep-alive 120 --host 0.0.0.0 --reload --port 8080
+CMD PYTHONPATH=. alembic upgrade head && uvicorn app.main:app --timeout-keep-alive 120 --host 0.0.0.0 --reload --port 8080
 

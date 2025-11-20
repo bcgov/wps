@@ -3,4 +3,4 @@
 
 set -euo pipefail
 
-poetry run ruff .
+uv run ruff .
