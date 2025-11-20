@@ -37,7 +37,7 @@ export const calculateStatusColour = (
 };
 
 export const calculateStatusText = (
-  details: FireShapeAreaDetail[],
+  details: FireShapeAreaDetail[] | undefined,
   advisoryThreshold: number
 ): AdvisoryStatus | undefined => {
   if (isUndefined(details) || details.length === 0) {

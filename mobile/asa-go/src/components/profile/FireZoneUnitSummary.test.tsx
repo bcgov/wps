@@ -5,6 +5,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 import FireZoneUnitSummary from "@/components/profile/FireZoneUnitSummary";
 import { FireCenter, FireShape, FireZoneTPIStats } from "@/api/fbaAPI";
+import { DateTime } from "luxon";
 
 // Mock child components
 vi.mock("@/components/profile/FuelSummary", () => ({
@@ -29,13 +30,10 @@ vi.mock("@/components/profile/ElevationStatus", () => ({
   ),
 }));
 
-// Mock redux selectors
-vi.mock("@/slices/fireCentreHFIFuelStatsSlice", () => ({
-  selectFilteredFireCentreHFIFuelStats: vi.fn(),
-}));
-
-vi.mock("@/store", () => ({
-  selectFireCentreTPIStats: vi.fn(),
+// Mock hooks
+vi.mock("@/hooks/datahooks", () => ({
+  useFilteredHFIStatsForDate: vi.fn(),
+  useTPIStatsForDate: vi.fn(),
 }));
 
 // Mock theme
@@ -55,6 +53,7 @@ vi.mock("react-redux", async () => {
 });
 
 describe("FireZoneUnitSummary", () => {
+  const testDate = DateTime.fromISO("2025-08-25");
   const mockFireCenter: FireCenter = {
     id: 1,
     name: "Test Fire Center",
@@ -106,6 +105,7 @@ describe("FireZoneUnitSummary", () => {
       <FireZoneUnitSummary
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={undefined}
+        date={testDate}
       />
     );
 
@@ -118,6 +118,7 @@ describe("FireZoneUnitSummary", () => {
       <FireZoneUnitSummary
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireZoneUnit}
+        date={testDate}
       />
     );
 
@@ -130,6 +131,7 @@ describe("FireZoneUnitSummary", () => {
       <FireZoneUnitSummary
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireZoneUnit}
+        date={testDate}
       />
     );
 
@@ -143,6 +145,7 @@ describe("FireZoneUnitSummary", () => {
       <FireZoneUnitSummary
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireZoneUnit}
+        date={testDate}
       />
     );
 
@@ -156,6 +159,7 @@ describe("FireZoneUnitSummary", () => {
       <FireZoneUnitSummary
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireZoneUnit}
+        date={testDate}
       />
     );
 
@@ -169,6 +173,7 @@ describe("FireZoneUnitSummary", () => {
       <FireZoneUnitSummary
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireZoneUnit}
+        date={testDate}
       />
     );
 
@@ -186,6 +191,7 @@ describe("FireZoneUnitSummary", () => {
       <FireZoneUnitSummary
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireZoneUnit}
+        date={testDate}
       />
     );
 
@@ -198,6 +204,7 @@ describe("FireZoneUnitSummary", () => {
       <FireZoneUnitSummary
         selectedFireCenter={undefined}
         selectedFireZoneUnit={mockFireZoneUnit}
+        date={testDate}
       />
     );
 
