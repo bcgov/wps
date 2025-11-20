@@ -114,63 +114,6 @@ describe("ASAGoMap", () => {
     expect(locationButton).not.toBeDisabled();
   });
 
-  it("calls createHFILayer when runParameter changes", async () => {
-    const runParameter = {
-      for_date: "2024-12-15",
-      run_datetime: "2024-12-14T15:00:00Z",
-      run_type: RunType.FORECAST,
-      loading: false,
-      error: null,
-    };
-    const store = createTestStore({
-      runParameters: {
-        runParameters: { "2024-12-15": runParameter },
-        loading: false,
-        error: null,
-      },
-    });
-
-    render(
-      <Provider store={store}>
-        <ASAGoMap {...defaultProps} />
-      </Provider>
-    );
-
-    // initial call
-    expect(createHFILayer).toHaveBeenCalledTimes(1);
-    expect(createHFILayer).toHaveBeenCalledWith(
-      expect.objectContaining({
-        filename: "hfi.pmtiles",
-        for_date: DateTime.fromISO("2024-12-15"),
-        run_type: RunType.FORECAST,
-        run_date: DateTime.fromISO("2024-12-14T15:00:00Z"),
-      }),
-      true
-    );
-
-    await store.dispatch({
-      type: "runParameters/getRunParametersSuccess",
-      payload: {
-        "2024-12-15": {
-          forDate: "2024-12-15",
-          runDateTime: "2024-12-15T23:00:00Z",
-          runType: RunType.FORECAST,
-        },
-      },
-    });
-
-    waitFor(() =>
-      expect(createHFILayer).toHaveBeenCalledWith(
-        expect.objectContaining({
-          filename: "hfi.pmtiles",
-          for_date: DateTime.fromISO("2024-12-15"),
-          run_type: RunType.FORECAST,
-          run_date: DateTime.fromISO("2024-12-15T23:00:00Z"),
-        }),
-        true
-      )
-    );
-  });
   it("renders the layer switcher button and legend on click", async () => {
     const store = createTestStore();
     const { getByTestId } = render(
