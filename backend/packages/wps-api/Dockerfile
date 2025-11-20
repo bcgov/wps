@@ -25,7 +25,7 @@ RUN apt-get -y install git build-essential python3 python3-dev python3-pip curl 
 RUN apt-get -y install default-jdk python-is-python3
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.9.11 /uv /uvx /bin/
 
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
