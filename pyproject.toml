@@ -1,0 +1,5 @@
+[tool.uv.workspace]
+members = ["api", "wps_jobs", "wps_shared"]
+
+[dependency-groups]
+dev = []

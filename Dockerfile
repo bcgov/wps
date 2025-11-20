@@ -13,6 +13,9 @@ ARG USER_GID=1000
 # Switch to root
 USER 0
 
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 # Create a directory for the app to run in, and grant worker access
 RUN mkdir /app
 RUN chown "$USERNAME" /app
@@ -23,19 +26,17 @@ USER $USERNAME
 
 WORKDIR /app
 
-# Copy poetry files.
-COPY --chown=$USERNAME:$USER_GID ./api/pyproject.toml ./api/poetry.lock /app/
+# Copy workspace configuration and package manifests
+COPY --chown=$USERNAME:$USER_GID ./pyproject.toml /app/
+COPY --chown=$USERNAME:$USER_GID ./api/pyproject.toml /app/api/
+COPY --chown=$USERNAME:$USER_GID ./wps_shared/pyproject.toml /app/wps_shared/
+COPY --chown=$USERNAME:$USER_GID ./wps_shared/wps_shared /app/wps_shared/wps_shared
 
-COPY ./wps_shared /wps_shared
+# Install dependencies using uv
+RUN uv sync --frozen --no-dev --package wps-api
 
-# Install dependencies.
-RUN poetry install --without dev
-
-RUN poetry run python -m pip install --upgrade pip
-
-RUN poetry run python -m pip install -U setuptools wheel
 # Get a python binding for gdal that matches the version of gdal we have installed.
-RUN poetry run python -m pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
+RUN uv pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
 
 # Stage 2: Prepare the final image, including copying Python packages from Stage 1.
 FROM ${DOCKER_IMAGE}
@@ -48,13 +49,17 @@ ARG USER_GID=1000
 # Switch to root
 USER 0
 
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 # Create a directory for the app to run in, and grant worker access
 RUN mkdir /app
 RUN chown "$USERNAME" /app
 WORKDIR /app
 
-# Copy poetry files.
-COPY --from=builder --chown=$USERNAME:$USER_GID /app/pyproject.toml /app/poetry.lock /app/
+# Copy workspace and package configuration
+COPY --from=builder --chown=$USERNAME:$USER_GID /app/pyproject.toml /app/
+COPY --from=builder --chown=$USERNAME:$USER_GID /app/api/pyproject.toml /app/api/
 
 # Switch back to our non-root user
 USER $USERNAME
@@ -74,25 +79,25 @@ COPY ./api/alembic.ini /app
 COPY ./api/prestart.sh /app
 COPY ./api/start.sh /app
 
-# Make poetry happy by copying wps_shared
-COPY ./wps_shared /wps_shared
+# Make uv happy by copying wps_shared
+COPY ./wps_shared /app/wps_shared
 
 # Copy installed Python packages (the chown lets us install the dev packages later without root if we want)
-COPY --from=builder --chown=$USERNAME:$USER_GID /home/worker/.cache/pypoetry/virtualenvs /home/worker/.cache/pypoetry/virtualenvs
+COPY --from=builder --chown=$USERNAME:$USER_GID /app/.venv /app/.venv
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080
 
 # Set the classpath to include copied libs
 ENV CLASSPATH=/app/libs/REDapp_Lib.jar:/app/libs/WTime.jar:/app/libs/hss-java.jar:${CLASSPATH}
-# Tell poetry where to find the cache
-ENV POETRY_CACHE_DIR="/home/${USERNAME}/.cache/pypoetry"
-# Put poetry on the path
-ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
+# Add .venv to PATH
+ENV PATH="/app/.venv/bin:${PATH}"
+# Set virtual env location
+ENV VIRTUAL_ENV="/app/.venv"
 
 # root user please
 USER 0
-# We don't know what user poetry is going to run as, so we give everyone write access directories
+# We don't know what user uv is going to run as, so we give everyone write access directories
 # in the app folder. We need write access for .pyc files to be created. .pyc files are good,
 # they speed up python.
 RUN chmod a+w $(find /app/app -type d)
