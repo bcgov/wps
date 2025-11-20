@@ -1,4 +1,4 @@
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from aiohttp import ClientSession
 import pytest
 import math
@@ -15,7 +15,7 @@ CFFDRS.instance()
 async def async_client():
     from app.main import app as test_app
 
-    async with AsyncClient(app=test_app, base_url="https://test") as test_client:
+    async with AsyncClient(transport=ASGITransport(app=test_app), base_url="https://test") as test_client:
         yield test_client
 
 

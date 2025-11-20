@@ -1,6 +1,6 @@
 import aiohttp
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 import pytest
 from datetime import datetime
 from aiohttp import ClientSession
@@ -38,7 +38,7 @@ def client():
 async def async_client():
     from app.main import app as test_app
 
-    async with AsyncClient(app=test_app, base_url="https://test") as test_client:
+    async with AsyncClient(transport=ASGITransport(app=test_app), base_url="https://test") as test_client:
         yield test_client
 
 
