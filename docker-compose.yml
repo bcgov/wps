@@ -7,16 +7,16 @@ volumes:
 services:
   api:
     build:
-      context: api
-      dockerfile: Dockerfile
+      context: backend
+      dockerfile: packages/wps-api/Dockerfile
     env_file:
-      - ./api/app/.env.docker
+      - ./backend/packages/wps-api/src/app/.env.docker
     environment:
       - PYTHONPYCACHEPREFIX=python_cache
     ports:
       - "8080:8080"
     volumes:
-      - ./api:/app:delegated
+      - ./backend:/app:delegated
       - static:/app/static # point to docker volume for static files
       - python_cache:/app/python_cache
     networks:

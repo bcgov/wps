@@ -1,10 +1,20 @@
 {
-    "python.defaultInterpreterPath": "${workspaceFolder}/api/.venv/bin/python",
+    "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+    "python.terminal.activateEnvironment": true,
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
-    "python.testing.promptToConfigure": true,
+    "python.testing.promptToConfigure": false,
     "python.envFile": "${workspaceFolder}/.env.python",
+    "python.testing.cwd": "${workspaceFolder}/backend",
     "python.testing.pytestArgs": [
-        "api"
+        "-v",
+        "--tb=short",
+        "packages"
     ],
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/backend/packages/wps-api/src",
+        "${workspaceFolder}/backend/packages/wps-jobs/src",
+        "${workspaceFolder}/backend/packages/wps-shared/src"
+    ],
+    "python.analysis.autoImportCompletions": true
 }
