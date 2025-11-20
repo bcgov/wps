@@ -3,12 +3,11 @@
     "python.terminal.activateEnvironment": true,
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
-    "python.testing.promptToConfigure": false,
-    "python.envFile": "${workspaceFolder}/.env.python",
     "python.testing.cwd": "${workspaceFolder}/backend",
     "python.testing.pytestArgs": [
         "-v",
         "--tb=short",
+        "--import-mode=importlib",
         "packages"
     ],
     "python.analysis.extraPaths": [
@@ -16,5 +15,9 @@
         "${workspaceFolder}/backend/packages/wps-jobs/src",
         "${workspaceFolder}/backend/packages/wps-shared/src"
     ],
-    "python.analysis.autoImportCompletions": true
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/python_cache": true
+    }
 }
