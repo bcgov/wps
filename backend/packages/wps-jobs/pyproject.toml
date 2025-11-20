@@ -1,0 +1,44 @@
+[project]
+name = "wps-jobs"
+version = "0.1.0"
+description = "Wildfire Predictive Services Unit Jobs"
+authors = [
+    {name = "Darren Boss", email = "darren.boss@gov.bc.ca"}
+]
+readme = "README.md"
+requires-python = ">=3.12.3,<4.0"
+dependencies = [
+    "wps-shared",
+    "scipy>=1.15.2,<2",
+    "scikit-learn>=1.6.1,<2",
+    "sqlalchemy>=2.0.38,<3",
+    "redis>=7.0.0,<8",
+    "psycopg2-binary>=2.9.10,<3",
+    "asyncpg>=0.30.0,<1",
+    "affine>=2.4.0,<3",
+    "numpy==2.1.*",
+    "fastapi==0.115.11",
+    "xarray>=2025.3.1,<2026",
+    "herbie-data>=2025.11.1,<2026",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.0,<10",
+    "pytest-mock>=3,<4",
+    "coverage>=7.6.4,<8",
+    "ruff>=0.11.5,<1",
+    "ipykernel>=6.29.5,<7",
+    "pytest-cov>=7.0.0,<8",
+    "pytest-xdist>=3.6.1,<4",
+]
+
+[tool.uv.sources]
+wps-shared = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wps_jobs"]

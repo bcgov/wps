@@ -27,10 +27,11 @@ USER $USERNAME
 WORKDIR /app
 
 # Copy workspace configuration and package manifests
-COPY --chown=$USERNAME:$USER_GID ./pyproject.toml /app/
-COPY --chown=$USERNAME:$USER_GID ./api/pyproject.toml /app/api/
-COPY --chown=$USERNAME:$USER_GID ./wps_shared/pyproject.toml /app/wps_shared/
-COPY --chown=$USERNAME:$USER_GID ./wps_shared/wps_shared /app/wps_shared/wps_shared
+COPY --chown=$USERNAME:$USER_GID ./backend/pyproject.toml /app/
+COPY --chown=$USERNAME:$USER_GID ./backend/uv.lock /app/
+COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-api/pyproject.toml /app/packages/wps-api/
+COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
+COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 
 # Install dependencies using uv
 RUN uv sync --frozen --no-dev --package wps-api
@@ -59,28 +60,28 @@ WORKDIR /app
 
 # Copy workspace and package configuration
 COPY --from=builder --chown=$USERNAME:$USER_GID /app/pyproject.toml /app/
-COPY --from=builder --chown=$USERNAME:$USER_GID /app/api/pyproject.toml /app/api/
+COPY --from=builder --chown=$USERNAME:$USER_GID /app/packages/wps-api/pyproject.toml /app/packages/wps-api/
 
 # Switch back to our non-root user
 USER $USERNAME
 
-# Copy the app:
-COPY ./api/app /app/app
+# Copy the app from new src layout:
+COPY ./backend/packages/wps-api/src/app /app/app
 # TODO: we need to do this better.
 RUN mkdir /app/advisory
-COPY ./api/advisory /app/advisory
+COPY ./backend/packages/wps-api/advisory /app/advisory
 # Copy java libs:
 RUN mkdir /app/libs
-COPY ./api/libs /app/libs
+COPY ./backend/packages/wps-api/libs /app/libs
 # Copy alembic:
-COPY ./api/alembic /app/alembic
-COPY ./api/alembic.ini /app
+COPY ./backend/packages/wps-api/alembic /app/alembic
+COPY ./backend/packages/wps-api/alembic.ini /app
 # Copy pre-start.sh (it will be run on startup):
-COPY ./api/prestart.sh /app
-COPY ./api/start.sh /app
+COPY ./backend/packages/wps-api/prestart.sh /app
+COPY ./backend/packages/wps-api/start.sh /app
 
 # Make uv happy by copying wps_shared
-COPY ./wps_shared /app/wps_shared
+COPY ./backend/packages/wps-shared/src/wps_shared /app/packages/wps-shared/src/wps_shared
 
 # Copy installed Python packages (the chown lets us install the dev packages later without root if we want)
 COPY --from=builder --chown=$USERNAME:$USER_GID /app/.venv /app/.venv

@@ -25,10 +25,11 @@ WORKDIR /app
 USER $USERNAME
 
 # Copy workspace configuration and package manifests
-COPY --chown=$USERNAME:$USER_GID ./pyproject.toml /app/
-COPY --chown=$USERNAME:$USER_GID ./wps_jobs/pyproject.toml /app/wps_jobs/
-COPY --chown=$USERNAME:$USER_GID ./wps_shared/pyproject.toml /app/wps_shared/
-COPY --chown=$USERNAME:$USER_GID ./wps_shared/wps_shared /app/wps_shared/wps_shared
+COPY --chown=$USERNAME:$USER_GID ./backend/pyproject.toml /app/
+COPY --chown=$USERNAME:$USER_GID ./backend/uv.lock /app/
+COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-jobs/pyproject.toml /app/packages/wps-jobs/
+COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
+COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 
 # Install dependencies using uv
 RUN uv sync --frozen --no-dev --package wps-jobs
@@ -57,14 +58,14 @@ WORKDIR /app
 
 # Copy workspace and package configuration
 COPY --from=builder --chown=$USERNAME:$USER_GID /app/pyproject.toml /app/
-COPY --from=builder --chown=$USERNAME:$USER_GID /app/wps_jobs/pyproject.toml /app/wps_jobs/
+COPY --from=builder --chown=$USERNAME:$USER_GID /app/packages/wps-jobs/pyproject.toml /app/packages/wps-jobs/
 
 # Switch back to our non-root user
 USER $USERNAME
 
-# Copy the app:
-COPY ./wps_jobs/wps_jobs /app/wps_jobs
-COPY ./wps_shared /app/wps_shared
+# Copy the app from new src layout:
+COPY ./backend/packages/wps-jobs/src/wps_jobs /app/wps_jobs
+COPY ./backend/packages/wps-shared/src/wps_shared /app/packages/wps-shared/src/wps_shared
 
 # Copy installed Python packages (the chown lets us install the dev packages later without root if we want)
 COPY --from=builder --chown=$USERNAME:$USER_GID /app/.venv /app/.venv
