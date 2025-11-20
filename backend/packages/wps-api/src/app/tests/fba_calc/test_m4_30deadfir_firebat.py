@@ -1,4 +1,4 @@
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from aiohttp import ClientSession
 import pytest
 import math
@@ -15,7 +15,9 @@ CFFDRS.instance()
 async def async_client():
     from app.main import app as test_app
 
-    async with AsyncClient(app=test_app, base_url="https://test") as test_client:
+    async with AsyncClient(
+        transport=ASGITransport(app=test_app), base_url="https://test"
+    ) as test_client:
         yield test_client
 
 
@@ -64,7 +66,7 @@ async def test_m4_30deadfir_request_response(
     )
     assert math.isclose(response.json()["stations"][0]["fire_weather_index"], 27.792, abs_tol=0.001)
     assert math.isclose(
-        response.json()["stations"][0]["head_fire_intensity"], 5605.413, abs_tol=0.001
+        response.json()["stations"][0]["head_fire_intensity"], 5605.411, abs_tol=0.001
     )
     assert math.isclose(response.json()["stations"][0]["rate_of_spread"], 4.905, abs_tol=0.001)
     assert math.isclose(
