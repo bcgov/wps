@@ -20,9 +20,10 @@ def postgres_container():
 
 @pytest.fixture(scope="function")
 async def engine(postgres_container):
-    host = postgres_container.get_container_host_ip()
-    port = postgres_container.get_exposed_port(5432)
-    db_url = f"postgresql+asyncpg://test:test@{host}:{port}/test"
+    # Get the connection URL from the container (includes correct credentials)
+    sync_url = postgres_container.get_connection_url()
+    # Convert to asyncpg URL for async operations (psycopg2 -> asyncpg)
+    db_url = sync_url.replace("postgresql+psycopg2://", "postgresql+asyncpg://")
 
     engine = create_async_engine(db_url, echo=False)
 
