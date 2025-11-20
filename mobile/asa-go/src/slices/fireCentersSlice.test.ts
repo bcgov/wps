@@ -53,8 +53,8 @@ describe("fetchFireCenters thunk", () => {
     // Reset all mocks before each test
     vi.clearAllMocks();
   });
-  const today = DateTime.now().toISODate();
-  const yesterday = DateTime.now().plus({ days: -1 }).toISODate();
+  const today = DateTime.now().toISO();
+  const yesterday = DateTime.now().plus({ days: -1 }).toISO();
   const mockFireCenterA: FireCenter = {
     id: 1,
     name: "test",
