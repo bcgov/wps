@@ -1,3 +1,4 @@
+import asyncio
 import json
 import math
 from collections import namedtuple
@@ -200,6 +201,7 @@ async def mock_get_auth_header(*_, **__):
 
 
 async def mock_get_tpi_stats_empty(*_, **__):
+    await asyncio.sleep(0)
     return mock_tpi_stats_empty
 
 
@@ -243,10 +245,12 @@ async def mock_get_sfms_bounds(*_, **__):
 
 
 async def mock_get_sfms_bounds_no_data(*_, **__):
+    await asyncio.sleep(0)
     return []
 
 
 async def mock_get_most_recent_run_datetime_for_date_range(*_, **__):
+    await asyncio.sleep(0)
     for_date_1 = date(2025, 8, 25)
     for_date_2 = date(2025, 8, 26)
     run_datetime = datetime(2025, 8, 25)
@@ -260,14 +264,17 @@ async def mock_get_most_recent_run_datetime_for_date_range(*_, **__):
 
 
 async def mock_get_all_zone_source_ids(*_, **__):
+    await asyncio.sleep(0)
     return [1, 2, 3]
 
 
 async def mock_get_tpi_fuel_areas(*_, **__):
+    await asyncio.sleep(0)
     return [mock_tpi_fuel_area_1, mock_centre_tpi_fuel_area_2, mock_tpi_fuel_area_3]
 
 
 async def mock_get_hfi_fuels_data_for_run_parameter(*_, **__):
+    await asyncio.sleep(0)
     mock_fire_zone_hfi_stats = FireZoneHFIStats(min_wind_stats=[], fuel_area_stats=[])
     return HFIStatsResponse(zone_data={1: mock_fire_zone_hfi_stats})
 
@@ -526,7 +533,7 @@ def test_get_tpi_stats_authorized(client: TestClient):
     assert json_response["firezone_tpi_stats"][0]["valley_bottom_hfi"] == 4
     assert json_response["firezone_tpi_stats"][0]["valley_bottom_tpi"] is None
     assert json_response["firezone_tpi_stats"][0]["mid_slope_hfi"] == 8
-    assert json_response["firezone_tpi_stats"][0]["mid_slope_tpi"] == 2.0
+    assert math.isclose(json_response["firezone_tpi_stats"][0]["mid_slope_tpi"], 2.0)
     assert json_response["firezone_tpi_stats"][0]["upper_slope_hfi"] == 12
     assert json_response["firezone_tpi_stats"][0]["upper_slope_tpi"] is None
     assert json_response["firezone_tpi_stats"][1]["fire_zone_id"] == 2

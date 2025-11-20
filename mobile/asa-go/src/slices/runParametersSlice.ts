@@ -100,12 +100,15 @@ export const fetchSFMSRunParameters =
                 runParameters: latestRunParameters,
               })
             );
+            return
           }
         }
         dispatch(getRunParametersFailed("Unable to update runParameters from the API."))
+        return
       } catch (err) {
         dispatch(getRunParametersFailed((err as Error).toString()));
         console.log(err);
+        return
       }
     } else {
       // We're offline, so check the cache for existing run parameters and update state with the
@@ -135,10 +138,10 @@ export const fetchSFMSRunParameters =
             runParameters: cachedRunParameters,
           })
         );
-      } else {
-        // We're offline and there are no cached run parameters for today
-        dispatch(getRunParametersFailed("No run parameters available."));
+        return
       }
+      // We're offline and there are no cached run parameters for today
+      dispatch(getRunParametersFailed("No run parameters available."));
     }
   };
 
