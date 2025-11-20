@@ -1,30 +1,26 @@
 {
 	"folders": [
 		{
-			"path": "..",
-			"name": "WPS Root"
-		},
-		{
-			"path": "../backend",
-			"name": "Backend"
+			"path": ".."
 		}
 	],
 	"settings": {
-		// Python (for backend folder)
-		"python.defaultInterpreterPath": "${workspaceFolder:Backend}/.venv/bin/python",
+		// Python
+		"python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
 		"python.terminal.activateEnvironment": true,
 		"python.testing.pytestEnabled": true,
 		"python.testing.unittestEnabled": false,
-		"python.testing.cwd": "${workspaceFolder:Backend}",
+		"python.testing.cwd": "${workspaceFolder}/backend",
 		"python.testing.pytestArgs": [
 			"-v",
 			"--tb=short",
+			"--import-mode=importlib",
 			"packages"
 		],
 		"python.analysis.extraPaths": [
-			"${workspaceFolder:Backend}/packages/wps-api/src",
-			"${workspaceFolder:Backend}/packages/wps-jobs/src",
-			"${workspaceFolder:Backend}/packages/wps-shared/src"
+			"${workspaceFolder}/backend/packages/wps-api/src",
+			"${workspaceFolder}/backend/packages/wps-jobs/src",
+			"${workspaceFolder}/backend/packages/wps-shared/src"
 		],
 		// General
 		"editor.codeActionsOnSave": {

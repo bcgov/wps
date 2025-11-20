@@ -8,17 +8,22 @@
             "name": "api",
             "type": "debugpy",
             "request": "launch",
-            "program": "backend/packages/wps-api/src/app/main.py",
+            "program": "${workspaceFolder}/backend/packages/wps-api/src/app/main.py",
             "console": "integratedTerminal",
             "justMyCode": false,
             "cwd": "${workspaceFolder}/backend",
-            "python": "${workspaceFolder}/backend/.venv/bin/python"
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/backend/packages/wps-api/src:${workspaceFolder}/backend/packages/wps-shared/src",
+                "R_HOME": "/Library/Frameworks/R.framework/Resources",
+                "DYLD_LIBRARY_PATH": "/Library/Frameworks/R.framework/Resources/lib"
+            }
         },
         {
             "name": "nats",
             "type": "debugpy",
             "request": "launch",
-            "program": "backend/packages/wps-api/src/app/auto_spatial_advisory/nats_consumer.py",
+            "program": "${workspaceFolder}/backend/packages/wps-api/src/app/auto_spatial_advisory/nats_consumer.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/.venv/bin/python"
