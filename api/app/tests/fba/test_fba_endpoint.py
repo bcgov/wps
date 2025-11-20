@@ -40,10 +40,11 @@ get_fire_centre_tpi_stats_url = (
 )
 get_sfms_run_datetimes_url = "/api/fba/sfms-run-datetimes/forecast/2022-09-27"
 get_sfms_run_bounds_url = "/api/fba/sfms-run-bounds"
+get_tpi_stats_url = "api/fba/tpi-stats/forecast/2022-09-27/2022-09-27"
 
 decode_fn = "jwt.decode"
 
-mock_tpi_stats = []
+mock_tpi_stats_empty = []
 
 mock_fire_centre_info = [(9.0, 11.0, 1, 1, 50, 100, 1)]
 mock_fire_centre_info_with_grass = [(9.0, 11.0, 12, 1, 50, 100, None)]
@@ -95,6 +96,74 @@ def create_mock_centre_tpi_stats(
 mock_centre_tpi_stats_1 = create_mock_centre_tpi_stats(1, 1, 1, 2, 3, 2)
 mock_centre_tpi_stats_2 = create_mock_centre_tpi_stats(2, 2, 1, 2, 3, 2)
 
+TPIFuelAreasResponse = namedtuple(
+    "TPIFuelAreasResponse",
+    [
+        "tpi_class",
+        "fuel_area",
+        "source_identifier",
+        "id",
+        "name",
+    ],
+)
+
+
+def mock_create_tpi_fuel_area(tpi_class, fuel_area, source_identifier, id, name):
+    return TPIFuelAreasResponse(
+        tpi_class=tpi_class,
+        fuel_area=fuel_area,
+        source_identifier=source_identifier,
+        id=id,
+        name=name,
+    )
+
+
+mock_tpi_fuel_area_1 = mock_create_tpi_fuel_area(
+    TPIClassEnum.valley_bottom, 100, "20", 2, "Coastal"
+)
+mock_tpi_fuel_area_2 = mock_create_tpi_fuel_area(TPIClassEnum.mid_slope, 200, "20", 2, "Coastal")
+mock_tpi_fuel_area_3 = mock_create_tpi_fuel_area(TPIClassEnum.upper_slope, 300, "20", 2, "Coastal")
+
+TPIStatsResponse = namedtuple(
+    "TPIStatsResponse",
+    [
+        "advisory_shape_id",
+        "source_identifier",
+        "valley_bottom",
+        "mid_slope",
+        "upper_slope",
+        "pixel_size_metres",
+        "fire_centre_id",
+        "fire_centre_name",
+    ],
+)
+
+
+def create_mock_tpi_stats(
+    advisory_shape_id,
+    source_identifier,
+    valley_bottom,
+    mid_slope,
+    upper_slope,
+    pixel_size_metres,
+    fire_centre_id,
+    fire_centre_name,
+):
+    return TPIStatsResponse(
+        advisory_shape_id=advisory_shape_id,
+        source_identifier=source_identifier,
+        valley_bottom=valley_bottom,
+        mid_slope=mid_slope,
+        upper_slope=upper_slope,
+        pixel_size_metres=pixel_size_metres,
+        fire_centre_id=fire_centre_id,
+        fire_centre_name=fire_centre_name,
+    )
+
+
+mock_tpi_stats_1 = create_mock_tpi_stats(1, 1, 1, 2, 3, 2, 1, "foo")
+mock_tpi_stats_2 = create_mock_tpi_stats(2, 2, 1, 2, 3, 2, 2, "bar")
+
 
 CentreTPIFuelAreasResponse = namedtuple(
     "CentreTPIFuelAreasResponse", ["tpi_class", "fuel_area", "source_identifier"]
@@ -130,8 +199,8 @@ async def mock_get_auth_header(*_, **__):
     return {}
 
 
-async def mock_get_tpi_stats(*_, **__):
-    return mock_tpi_stats
+async def mock_get_tpi_stats_empty(*_, **__):
+    return mock_tpi_stats_empty
 
 
 async def mock_get_tpi_stats_none(*_, **__):
@@ -152,6 +221,10 @@ async def mock_get_fire_centre_info_with_grass(*_, **__):
 
 async def mock_get_centre_tpi_stats(*_, **__):
     return [mock_centre_tpi_stats_1, mock_centre_tpi_stats_2]
+
+
+async def mock_get_tpi_stats(*_, **__):
+    return [mock_tpi_stats_1, mock_tpi_stats_2]
 
 
 async def mock_get_fire_centre_tpi_fuel_areas(*_, **__):
@@ -191,7 +264,7 @@ async def mock_get_all_zone_source_ids(*_, **__):
 
 
 async def mock_get_tpi_fuel_areas(*_, **__):
-    return [{TPIClassEnum.mid_slope, 500, "20", 2, "Coastal"}]
+    return [mock_tpi_fuel_area_1, mock_centre_tpi_fuel_area_2, mock_tpi_fuel_area_3]
 
 
 async def mock_get_hfi_fuels_data_for_run_parameter(*_, **__):
@@ -236,6 +309,7 @@ def test_fba_endpoint_fire_centers(status, expected_fire_centers, monkeypatch):
         get_fire_centre_info_url,
         get_sfms_run_datetimes_url,
         get_sfms_run_bounds_url,
+        get_tpi_stats_url,
     ],
 )
 def test_get_endpoints_unauthorized(client: TestClient, endpoint: str):
@@ -437,6 +511,32 @@ def test_get_fire_centre_tpi_stats_authorized(client: TestClient):
     assert json_response["firezone_tpi_stats"][1]["mid_slope_tpi"] is None
     assert json_response["firezone_tpi_stats"][1]["upper_slope_tpi"] is None
 
+@pytest.mark.usefixtures("mock_jwt_decode")
+@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
+@patch("app.routers.fba.get_tpi_stats", mock_get_tpi_stats)
+@patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
+@patch("app.routers.fba.get_tpi_fuel_areas", mock_get_tpi_fuel_areas)
+def test_get_tpi_stats_authorized(client: TestClient):
+    """Allowed to get tpi stats for run parameters when authorized"""
+    response = client.get(get_tpi_stats_url)
+
+    json_response = response.json()
+    assert response.status_code == 200
+    assert json_response["firezone_tpi_stats"][0]["fire_zone_id"] == 1
+    assert json_response["firezone_tpi_stats"][0]["valley_bottom_hfi"] == 4
+    assert json_response["firezone_tpi_stats"][0]["valley_bottom_tpi"] is None
+    assert json_response["firezone_tpi_stats"][0]["mid_slope_hfi"] == 8
+    assert json_response["firezone_tpi_stats"][0]["mid_slope_tpi"] == 2.0
+    assert json_response["firezone_tpi_stats"][0]["upper_slope_hfi"] == 12
+    assert json_response["firezone_tpi_stats"][0]["upper_slope_tpi"] is None
+    assert json_response["firezone_tpi_stats"][1]["fire_zone_id"] == 2
+    assert json_response["firezone_tpi_stats"][1]["valley_bottom_hfi"] == 4
+    assert json_response["firezone_tpi_stats"][1]["valley_bottom_tpi"] is None
+    assert json_response["firezone_tpi_stats"][1]["mid_slope_hfi"] == 8
+    assert json_response["firezone_tpi_stats"][1]["mid_slope_tpi"] is None
+    assert json_response["firezone_tpi_stats"][1]["upper_slope_hfi"] == 12
+    assert json_response["firezone_tpi_stats"][1]["upper_slope_tpi"] is None
+
 
 @pytest.mark.usefixtures("mock_jwt_decode")
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
@@ -490,6 +590,7 @@ FBA_ENDPOINTS = [
 @patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
 @patch("app.routers.fba.get_fire_centre_tpi_fuel_areas", mock_get_fire_centre_tpi_fuel_areas)
 @patch("app.routers.fba.get_centre_tpi_stats", mock_get_centre_tpi_stats)
+@patch("app.routers.fba.get_tpi_stats", mock_get_tpi_stats)
 @patch("app.routers.fba.get_run_datetimes", mock_get_sfms_run_datetimes)
 @patch("app.routers.fba.get_sfms_bounds", mock_get_sfms_bounds)
 @patch(
