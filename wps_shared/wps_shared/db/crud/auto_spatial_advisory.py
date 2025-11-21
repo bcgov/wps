@@ -5,13 +5,13 @@ from enum import Enum
 from time import perf_counter
 from typing import List, Optional, Tuple
 
-from sqlalchemy import String, and_, cast, extract, func, select, update
+from sqlalchemy import Integer, String, and_, cast, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wps_shared.run_type import RunType
-from wps_shared.schemas.fba import HfiThreshold
+from wps_shared.schemas.fba import FireZoneStatus, HfiArea, HfiThreshold
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryElevationStats,
     AdvisoryFuelStats,
@@ -19,6 +19,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryHFIWindSpeed,
     AdvisoryShapeFuels,
     AdvisoryTPIStats,
+    AdvisoryZoneStatus,
     ClassifiedHfi,
     CombustibleArea,
     CriticalHours,
@@ -36,13 +37,6 @@ from wps_shared.db.models.auto_spatial_advisory import (
 from wps_shared.db.models.hfi_calc import FireCentre
 
 logger = logging.getLogger(__name__)
-
-
-class HfiClassificationThresholdEnum(Enum):
-    """Enum for the different HFI classification thresholds."""
-
-    ADVISORY = "advisory"
-    WARNING = "warning"
 
 
 async def get_hfi_classification_threshold(
@@ -344,15 +338,14 @@ async def get_hfi_area(
     run_datetime: datetime,
     for_date: date,
     fuel_type_raster_id: int,
-) -> List[Row]:
+) -> List[HfiArea]:
     logger.info("gathering hfi area data")
     stmt = (
         select(
-            Shape.id,
+            Shape.id.label("shape_id"),
             Shape.source_identifier,
             CombustibleArea.combustible_area,
-            HighHfiArea.id,
-            HighHfiArea.advisory_shape_id,
+            HighHfiArea.id.label("high_hfi_area_id"),
             HighHfiArea.threshold,
             HighHfiArea.area.label("hfi_area"),
         )
@@ -367,7 +360,7 @@ async def get_hfi_area(
         )
     )
     result = await session.execute(stmt)
-    return result.all()
+    return [HfiArea.model_validate(row) for row in result.mappings().all()]
 
 
 async def get_run_datetimes(
@@ -808,3 +801,39 @@ async def get_fuel_types_id_dict(db_session: AsyncSession):
     for fuel_type in sfms_fuel_types:
         fuel_types_dict[fuel_type.fuel_type_id] = fuel_type.id
     return fuel_types_dict
+
+
+async def get_advisory_zone_statuses(
+    db_session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
+):
+    """
+    Gets a list of advisory zone statuses for the specified run parameters.
+
+    :param db_session: An async database session.
+    :param run_type: The type of run (forecast or actual).
+    :param run_datetime: The datetime of the run.
+    :param for_date: The date of interest.
+    :return: A list of advisory zone statuses.
+    """
+    logger.info("gathering advisory zone statuses")
+
+    stmt = (
+        select(
+            cast(Shape.source_identifier, Integer).label("zone_source_id"),
+            HfiClassificationThreshold.name.label("status"),
+            AdvisoryZoneStatus.advisory_percentage,
+            AdvisoryZoneStatus.warning_percentage,
+        )
+        .join(RunParameters, AdvisoryZoneStatus.run_parameters == RunParameters.id)
+        .join(Shape, AdvisoryZoneStatus.advisory_shape_id == Shape.id)
+        .join(
+            HfiClassificationThreshold, HfiClassificationThreshold.id == AdvisoryZoneStatus.status
+        )
+        .where(
+            RunParameters.run_type == run_type.value,
+            RunParameters.run_datetime == run_datetime,
+            RunParameters.for_date == for_date,
+        )
+    )
+    result = await db_session.execute(stmt)
+    return [FireZoneStatus.model_validate(row) for row in result.mappings().all()]

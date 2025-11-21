@@ -19,6 +19,7 @@ from app.auto_spatial_advisory.zone_stats import (
 )
 from wps_shared.auth import audit, asa_authentication_required, audit_asa
 from wps_shared.db.crud.auto_spatial_advisory import (
+    get_advisory_zone_statuses,
     get_all_hfi_thresholds_by_id,
     get_all_sfms_fuel_type_records,
     get_centre_tpi_stats,
@@ -41,6 +42,7 @@ from wps_shared.schemas.fba import (
     FireShapeAreaDetail,
     FireShapeAreaListResponse,
     FireZoneHFIStats,
+    FireZoneStatusListResponse,
     FireZoneTPIStats,
     LatestSFMSRunParameter,
     LatestSFMSRunParameterResponse,
@@ -100,6 +102,24 @@ async def get_shapes(
                 )
             )
         return FireShapeAreaListResponse(shapes=shapes)
+
+
+@router.get(
+    "/zone-advisory-status/{run_type}/{run_datetime}/{for_date}",
+    response_model=FireZoneStatusListResponse,
+)
+async def get_zone_advisory_status(
+    run_type: RunType,
+    run_datetime: datetime,
+    for_date: date,
+    _=Depends(asa_authentication_required),
+):
+    """Return advisory status for all fire zones."""
+    logger.info("/fba/zone-advisory-status/")
+    async with get_async_read_session_scope() as session:
+        zone_statuses = await get_advisory_zone_statuses(session, run_type, run_datetime, for_date)
+
+    return FireZoneStatusListResponse(zones=zone_statuses)
 
 
 @router.get(
