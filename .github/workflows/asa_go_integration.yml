@@ -19,7 +19,7 @@ jobs:
     name: Build and test ASA Go
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Install Ionic CLI
         working-directory: ./mobile/asa-go
         run: npm install -g @ionic/cli

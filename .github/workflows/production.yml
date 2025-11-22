@@ -30,7 +30,7 @@ jobs:
             // find an open PR (potentially problematic if you have multiple PR's on the same hash open!)
             const pr = pulls.data.find( ({state}) => state === 'open')
             core.exportVariable('SUFFIX', `pr-${pr.number}`);
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Log public IP address
         run: |
           echo -e "Public IPv4:"
