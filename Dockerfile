@@ -30,7 +30,9 @@ WORKDIR /app
 COPY --chown=$USERNAME:$USER_GID ./backend/pyproject.toml /app/
 COPY --chown=$USERNAME:$USER_GID ./backend/uv.lock /app/
 COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-api/pyproject.toml /app/packages/wps-api/
+COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-api/README.md /app/packages/wps-api/
 COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
+COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-shared/README.md /app/packages/wps-shared/
 COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 
 # Install dependencies using uv
