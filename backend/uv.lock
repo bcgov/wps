@@ -11,6 +11,7 @@ members = [
     "wps-api",
     "wps-jobs",
     "wps-shared",
+    "wps-tools",
 ]
 
 [[package]]
@@ -393,6 +394,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/35/c1/8c4c199ae1663feee579a15861e34f10b29da11ae6ea0ad7b6a847ef3823/botocore-1.40.70.tar.gz", hash = "sha256:61b1f2cecd54d1b28a081116fa113b97bf4e17da57c62ae2c2751fe4c528af1f", size = 14444592, upload-time = "2025-11-10T20:29:04.046Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/55/d2/507fd0ee4dd574d2bdbdeac5df83f39d2cae1ffe97d4622cca6f6bab39f1/botocore-1.40.70-py3-none-any.whl", hash = "sha256:4a394ad25f5d9f1ef0bed610365744523eeb5c22de6862ab25d8c93f9f6d295c", size = 14106829, upload-time = "2025-11-10T20:29:01.101Z" },
+]
+
+[[package]]
+name = "botocore-stubs"
+version = "1.41.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "types-awscrt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ec/8f/a42c3ae68d0b9916f6e067546d73e9a24a6af8793999a742e7af0b7bffa2/botocore_stubs-1.41.3.tar.gz", hash = "sha256:bacd1647cd95259aa8fc4ccdb5b1b3893f495270c120cda0d7d210e0ae6a4170", size = 42404, upload-time = "2025-11-24T20:29:27.47Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/57/b7/f4a051cefaf76930c77558b31646bcce7e9b3fbdcbc89e4073783e961519/botocore_stubs-1.41.3-py3-none-any.whl", hash = "sha256:6ab911bd9f7256f1dcea2e24a4af7ae0f9f07e83d0a760bba37f028f4a2e5589", size = 66749, upload-time = "2025-11-24T20:29:26.142Z" },
 ]
 
 [[package]]
@@ -3848,6 +3861,41 @@ wheels = [
 ]
 
 [[package]]
+name = "types-aiobotocore"
+version = "2.25.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "botocore-stubs" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/77/b3/15e487a2a84ca827cbd80af1de4485d25dc3014f3122d8069665bee725bc/types_aiobotocore-2.25.2.tar.gz", hash = "sha256:6b2458ac1c0999de0ba4a1dcfbf3bc0d5c7ca2ea0c72f6732abe67d08ebf0240", size = 85272, upload-time = "2025-11-12T01:58:58.83Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fe/1f/0115f843090b969ef4902eb8ef128c613fdc91787c34a4b9e4140cf763fa/types_aiobotocore-2.25.2-py3-none-any.whl", hash = "sha256:b6027aa2dc020a9e2eeaa0ab9178f5c2cb6bb5e07613b7ea26174cc491d33b39", size = 53655, upload-time = "2025-11-12T01:58:55.575Z" },
+]
+
+[package.optional-dependencies]
+s3 = [
+    { name = "types-aiobotocore-s3" },
+]
+
+[[package]]
+name = "types-aiobotocore-s3"
+version = "2.25.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a7/c6/9bb91a44eed1114690edb15d8251f32392e355dfa0a5b8e1c190b4cf89a4/types_aiobotocore_s3-2.25.2.tar.gz", hash = "sha256:678aa425491af19bd6d011d59ecdbbb7ae7e95800efddcf4fd559ab72c94e194", size = 75955, upload-time = "2025-11-12T01:52:06.536Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b4/0a/d0d9faefd7caa8536eb97647c38c711e73ab83341a65119d08c2cb20957d/types_aiobotocore_s3-2.25.2-py3-none-any.whl", hash = "sha256:151301e84bb2f1cbf30f0d1ef791bb75c141cfbfe47b93fd317b7f1ba3eb35e4", size = 83626, upload-time = "2025-11-12T01:52:04.763Z" },
+]
+
+[[package]]
+name = "types-awscrt"
+version = "0.29.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6e/77/c25c0fbdd3b269b13139c08180bcd1521957c79bd133309533384125810c/types_awscrt-0.29.0.tar.gz", hash = "sha256:7f81040846095cbaf64e6b79040434750d4f2f487544d7748b778c349d393510", size = 17715, upload-time = "2025-11-21T21:01:24.223Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/37/a9/6b7a0ceb8e6f2396cc290ae2f1520a1598842119f09b943d83d6ff01bc49/types_awscrt-0.29.0-py3-none-any.whl", hash = "sha256:ece1906d5708b51b6603b56607a702ed1e5338a2df9f31950e000f03665ac387", size = 42343, upload-time = "2025-11-21T21:01:22.979Z" },
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.15.0"
 source = { registry = "https://pypi.org/simple" }
@@ -4224,6 +4272,36 @@ requires-dist = [
     { name = "shapely", specifier = ">=2.0.5,<3" },
     { name = "sqlalchemy", specifier = ">=2,<3" },
     { name = "testcontainers", extras = ["postgres"], marker = "extra == 'dev'", specifier = ">=4.10.0,<5" },
+]
+provides-extras = ["dev"]
+
+[[package]]
+name = "wps-tools"
+version = "0.1.0"
+source = { editable = "packages/wps-tools" }
+dependencies = [
+    { name = "aiobotocore" },
+    { name = "pandas" },
+    { name = "python-decouple" },
+    { name = "requests" },
+    { name = "types-aiobotocore", extra = ["s3"] },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiobotocore", specifier = ">=2.4.1,<3" },
+    { name = "pandas", specifier = ">=1.5.2,<3" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.0,<10" },
+    { name = "python-decouple", specifier = ">=3.6,<4" },
+    { name = "requests", specifier = ">=2.31.0,<3" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11.5,<1" },
+    { name = "types-aiobotocore", extras = ["s3"], specifier = ">=2.4.1,<3" },
 ]
 provides-extras = ["dev"]
 
