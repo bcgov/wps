@@ -61,11 +61,11 @@ objects:
                   imagePullPolicy: "Always"
                   command:
                     [
-                      "poetry",
+                      "uv",
                       "run",
                       "python",
                       "-m",
-                      "wps_jobs.weather_model_jobs.ecmwf",
+                      "weather_model_jobs.ecmwf",
                     ]
                   env:
                     - name: POSTGRES_READ_USER

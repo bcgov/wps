@@ -71,7 +71,7 @@ objects:
                   image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
                   imagePullPolicy: "Always"
                   command:
-                    ["poetry", "run", "python", "-m", "app.c_haines.worker"]
+                    ["uv", "run", "python", "-m", "app.c_haines.worker"]
                   env:
                     - name: POSTGRES_READ_USER
                       valueFrom:

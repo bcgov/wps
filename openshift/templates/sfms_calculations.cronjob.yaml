@@ -55,7 +55,7 @@ objects:
                   imagePullPolicy: "Always"
                   command:
                     [
-                      "poetry",
+                      "uv",
                       "run",
                       "python",
                       "-m",
