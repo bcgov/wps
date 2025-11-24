@@ -60,11 +60,11 @@ objects:
                   imagePullPolicy: "Always"
                   command:
                     [
-                      "poetry",
+                      "uv",
                       "run",
                       "python",
                       "-m",
-                      "wps_jobs.weather_model_jobs.noaa",
+                      "weather_model_jobs.noaa",
                       "NAM",
                     ]
                   env:

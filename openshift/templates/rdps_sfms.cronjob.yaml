@@ -58,7 +58,7 @@ objects:
                   image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-api-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
-                    ["poetry", "run", "python", "-m", "app.jobs.rdps_sfms"]
+                    ["uv", "run", "python", "-m", "app.jobs.rdps_sfms"]
                   env:
                     - name: POSTGRES_READ_USER
                       valueFrom:

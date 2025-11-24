@@ -63,11 +63,11 @@ objects:
                   imagePullPolicy: "Always"
                   command:
                     [
-                      "poetry",
+                      "uv",
                       "run",
                       "python",
                       "-m",
-                      "wps_jobs.weather_model_jobs.env_canada",
+                      "weather_model_jobs.env_canada",
                       "HRDPS",
                     ]
                   env:
