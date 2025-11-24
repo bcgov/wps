@@ -36,13 +36,14 @@ ENV PATH="/home/worker/.local/bin:${PATH}"
 WORKDIR /app
 
 # Copy workspace configuration (build context is backend dir)
-COPY --chown=worker:worker pyproject.toml /app/
-COPY --chown=worker:worker uv.lock /app/
-COPY --chown=worker:worker packages/wps-api/pyproject.toml /app/packages/wps-api/
-COPY --chown=worker:worker packages/wps-api/README.md /app/packages/wps-api/
-COPY --chown=worker:worker packages/wps-shared/pyproject.toml /app/packages/wps-shared/
-COPY --chown=worker:worker packages/wps-shared/README.md /app/packages/wps-shared/
-COPY --chown=worker:worker packages/wps-shared/src /app/packages/wps-shared/src
+COPY pyproject.toml /app/
+COPY uv.lock /app/
+COPY packages/wps-api/pyproject.toml /app/packages/wps-api/
+COPY packages/wps-api/README.md /app/packages/wps-api/
+COPY packages/wps-shared/pyproject.toml /app/packages/wps-shared/
+COPY packages/wps-shared/README.md /app/packages/wps-shared/
+COPY packages/wps-shared/src /app/packages/wps-shared/src
+RUN chmod -R a-w /app/pyproject.toml /app/uv.lock /app/packages/wps-api /app/packages/wps-shared
 
 # Install dependencies
 RUN uv sync --package wps-api
@@ -56,6 +57,7 @@ RUN mkdir /app/advisory
 COPY packages/wps-api/advisory /app/advisory
 RUN mkdir /app/libs
 COPY packages/wps-api/libs /app/libs
+RUN chmod -R a-w /app/advisory /app/libs
 
 USER 0
 RUN chmod a+w $(find /app/app -type d)
