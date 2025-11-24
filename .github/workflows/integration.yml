@@ -31,6 +31,7 @@ jobs:
         working-directory: ./backend
         run: |
           uv sync --all-extras
+          uv pip install setuptools
           uv pip install --no-build-isolation gdal==$(gdal-config --version)
       - name: Lint (api/wps_shared/wps_jobs)
         working-directory: ./backend
@@ -63,6 +64,7 @@ jobs:
           apt-get update --fix-missing
           apt-get -y install default-jdk
           uv sync --all-extras
+          uv pip install setuptools
           uv pip install --no-build-isolation gdal==$(gdal-config --version)
       - name: Unit Test with coverage (api)
         working-directory: ./backend
@@ -103,6 +105,7 @@ jobs:
           apt-get update --fix-missing
           apt-get -y install default-jdk
           uv sync --all-extras
+          uv pip install setuptools
           uv pip install --no-build-isolation gdal==$(gdal-config --version)
       - name: Unit Test with coverage (wps_jobs)
         working-directory: ./backend
@@ -141,6 +144,7 @@ jobs:
           apt-get update --fix-missing
           apt-get -y install default-jdk
           uv sync --all-extras
+          uv pip install setuptools
           uv pip install --no-build-isolation gdal==$(gdal-config --version)
       - name: Unit Test with coverage (wps_shared)
         working-directory: ./backend
