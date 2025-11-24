@@ -78,7 +78,9 @@ WORKDIR /app
 # Copy workspace and package configuration
 COPY --from=builder /app/pyproject.toml /app/
 COPY --from=builder /app/packages/wps-api/pyproject.toml /app/packages/wps-api/
+COPY --from=builder /app/packages/wps-api/README.md /app/packages/wps-api/
 COPY --from=builder /app/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
+COPY --from=builder /app/packages/wps-shared/README.md /app/packages/wps-shared/
 
 # Switch back to our non-root user
 USER $USERNAME
