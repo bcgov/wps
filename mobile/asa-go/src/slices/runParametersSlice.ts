@@ -60,8 +60,8 @@ export default runParameterSlice.reducer;
 
 export const fetchSFMSRunParameters =
   (): AppThunk => async (dispatch, getState) => {
-    const todayKey = getTodayKey()
-    const tomorrowKey = getTomorrowKey()
+    const todayKey = getTodayKey();
+    const tomorrowKey = getTomorrowKey();
     const state = getState();
     const connected = state.networkStatus.networkStatus.connected;
     const reduxRunParameters = state.runParameters.runParameters;
@@ -99,15 +99,17 @@ export const fetchSFMSRunParameters =
                 runParameters: latestRunParameters,
               })
             );
-            return
+            return;
           }
         }
-        dispatch(getRunParametersFailed("Unable to update runParameters from the API."))
-        return
+        dispatch(
+          getRunParametersFailed("Unable to update runParameters from the API.")
+        );
+        return;
       } catch (err) {
         dispatch(getRunParametersFailed((err as Error).toString()));
         console.log(err);
-        return
+        return;
       }
     } else {
       // We're offline, so check the cache for existing run parameters and update state with the
@@ -137,7 +139,7 @@ export const fetchSFMSRunParameters =
             runParameters: cachedRunParameters,
           })
         );
-        return
+        return;
       }
       // We're offline and there are no cached run parameters for today
       dispatch(getRunParametersFailed("No run parameters available."));

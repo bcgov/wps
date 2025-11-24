@@ -1,4 +1,14 @@
-import { dataAreEqual, fetchFireShapeAreas, fetchHFIStats, fetchProvincialSummaries, fetchTpiStats, getTodayKey, getTomorrowKey, runParametersMatch, today } from "@/slices/dataSliceUtils";
+import {
+  dataAreEqual,
+  fetchFireShapeAreas,
+  fetchHFIStats,
+  fetchProvincialSummaries,
+  fetchTpiStats,
+  getTodayKey,
+  getTomorrowKey,
+  runParametersMatch,
+  today,
+} from "@/slices/dataSliceUtils";
 import { AppThunk } from "@/store";
 import {
   CacheableData,
@@ -15,7 +25,7 @@ import {
   FireShapeArea,
   FireShapeAreaDetail,
   FireZoneHFIStatsDictionary,
-  FireZoneTPIStats
+  FireZoneTPIStats,
 } from "api/fbaAPI";
 import { isNil } from "lodash";
 import { DateTime } from "luxon";
@@ -79,14 +89,18 @@ export const { getDataStart, getDataFailed, getDataSuccess } =
 export default dataSlice.reducer;
 
 export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
-  const todayKey = getTodayKey()
-  const tomorrowKey = getTomorrowKey()
+  const todayKey = getTodayKey();
+  const tomorrowKey = getTomorrowKey();
   const state = getState();
   const runParameters = state.runParameters.runParameters;
   let isCurrent = true; // A flag indicating if the cached data and state are current
   if (isNil(runParameters)) {
-    dispatch(getDataFailed("Unable to fetch and cache data; runParameters can't be null."))
-    return
+    dispatch(
+      getDataFailed(
+        "Unable to fetch and cache data; runParameters can't be null."
+      )
+    );
+    return;
   }
   // Grab cached data and check if we have cached data for the run parameters in state, if so, set
   // redux state with this data.
@@ -94,7 +108,8 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
     Filesystem,
     PROVINCIAL_SUMMARY_KEY
   );
-  isCurrent = isCurrent &&
+  isCurrent =
+    isCurrent &&
     !isNil(cachedProvincialSummaries?.data) &&
     runParametersMatch(
       todayKey,
@@ -107,7 +122,8 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
     Filesystem,
     FIRE_SHAPE_AREAS_KEY
   );
-  isCurrent = isCurrent &&
+  isCurrent =
+    isCurrent &&
     !isNil(cachedFireShapeAreas?.data) &&
     runParametersMatch(
       todayKey,
@@ -117,7 +133,8 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
     );
 
   const cachedTPIStats = await readFromFilesystem(Filesystem, TPI_STATS_KEY);
-  isCurrent = isCurrent &&
+  isCurrent =
+    isCurrent &&
     !isNil(cachedTPIStats?.data) &&
     runParametersMatch(
       todayKey,
@@ -127,7 +144,8 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
     );
 
   const cachedHFIStats = await readFromFilesystem(Filesystem, HFI_STATS_KEY);
-  isCurrent = isCurrent &&
+  isCurrent =
+    isCurrent &&
     !isNil(cachedHFIStats?.data) &&
     runParametersMatch(
       todayKey,

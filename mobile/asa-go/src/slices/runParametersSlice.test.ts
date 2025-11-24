@@ -1,24 +1,22 @@
-import { describe, it, expect, vi, Mock } from "vitest";
 import reducer, {
-  initialState,
-  getRunParametersStart,
-  getRunParametersFailed,
-  getRunParametersSuccess,
   fetchSFMSRunParameters,
+  getRunParametersFailed,
+  getRunParametersStart,
+  getRunParametersSuccess,
+  initialState,
   selectRunParameters,
-  } from "@/slices/runParametersSlice";
-import {
-  createTestStore
-} from "@/testUtils";
+} from "@/slices/runParametersSlice";
+import { createTestStore } from "@/testUtils";
+import { describe, expect, it, Mock, vi } from "vitest";
 
 // Mocks
 vi.mock(import("api/fbaAPI"), async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = await importOriginal();
   return {
     ...actual,
     getMostRecentRunParameters: vi.fn(),
-  }
-})
+  };
+});
 
 vi.mock("@/utils/storage", () => ({
   writeToFileSystem: vi.fn(),
@@ -26,13 +24,13 @@ vi.mock("@/utils/storage", () => ({
   RUN_PARAMETERS_CACHE_KEY: "runParameters",
 }));
 
-import { getMostRecentRunParameters, RunParameter, RunType } from "api/fbaAPI";
-import { writeToFileSystem, readFromFilesystem } from "@/utils/storage";
-import { RootState } from "@/store";
 import { getTodayKey, getTomorrowKey } from "@/slices/dataSliceUtils";
+import { RootState } from "@/store";
+import { readFromFilesystem, writeToFileSystem } from "@/utils/storage";
+import { getMostRecentRunParameters, RunParameter, RunType } from "api/fbaAPI";
 
-const todayKey = getTodayKey()
-const tomorrowKey = getTomorrowKey()
+const todayKey = getTodayKey();
+const tomorrowKey = getTomorrowKey();
 
 const mockRunParameters: { [key: string]: RunParameter } = {
   [todayKey]: {
@@ -78,54 +76,74 @@ describe("fetchSFMSRunParameters thunk", () => {
     (writeToFileSystem as Mock).mockResolvedValue(undefined);
     const store = createTestStore({
       runParameters: { ...initialState },
-      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
     });
-    await store.dispatch(fetchSFMSRunParameters())
-    expect(store.getState().runParameters.runParameters).toBe(mockRunParameters)
-    expect(writeToFileSystem).toBeCalled()
+    await store.dispatch(fetchSFMSRunParameters());
+    expect(store.getState().runParameters.runParameters).toBe(
+      mockRunParameters
+    );
+    expect(writeToFileSystem).toBeCalled();
   });
 
-    it("does not dispatch success when online and API returns data if current state matches API response", async () => {
+  it("does not dispatch success when online and API returns data if current state matches API response", async () => {
     (getMostRecentRunParameters as Mock).mockResolvedValue(mockRunParameters);
     (writeToFileSystem as Mock).mockResolvedValue(undefined);
     const store = createTestStore({
       runParameters: { ...initialState, runParameters: mockRunParameters },
-      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
-    });
-    await store.dispatch(fetchSFMSRunParameters())
-    expect(store.getState().runParameters.runParameters).toBe(mockRunParameters)
-    expect(writeToFileSystem).toBeCalled()
-  });
-  
-  it("dispatches failure when API throws", async () => {
-    const errorMessage = "API error";
-    (getMostRecentRunParameters as Mock).mockRejectedValue(new Error(errorMessage));
-    const store = createTestStore({
-      runParameters: { ...initialState },
-      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
     });
     await store.dispatch(fetchSFMSRunParameters());
-    expect(store.getState().runParameters.error).toContain(errorMessage)
+    expect(store.getState().runParameters.runParameters).toBe(
+      mockRunParameters
+    );
+    expect(writeToFileSystem).toBeCalled();
+  });
+
+  it("dispatches failure when API throws", async () => {
+    const errorMessage = "API error";
+    (getMostRecentRunParameters as Mock).mockRejectedValue(
+      new Error(errorMessage)
+    );
+    const store = createTestStore({
+      runParameters: { ...initialState },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+    await store.dispatch(fetchSFMSRunParameters());
+    expect(store.getState().runParameters.error).toContain(errorMessage);
   });
 
   it("dispatches success from cache when offline", async () => {
     (readFromFilesystem as Mock).mockResolvedValue({ data: mockRunParameters });
     const store = createTestStore({
       runParameters: { ...initialState },
-      networkStatus: { networkStatus: { connected: false, connectionType: "none" } },
+      networkStatus: {
+        networkStatus: { connected: false, connectionType: "none" },
+      },
     });
     await store.dispatch(fetchSFMSRunParameters());
-    expect(store.getState().runParameters.runParameters).toBe(mockRunParameters);
+    expect(store.getState().runParameters.runParameters).toBe(
+      mockRunParameters
+    );
   });
 
   it("dispatches failure when offline and no cache", async () => {
     (readFromFilesystem as Mock).mockResolvedValue(null);
     const store = createTestStore({
       runParameters: { ...initialState },
-      networkStatus: { networkStatus: { connected: false, connectionType: "none" } },
+      networkStatus: {
+        networkStatus: { connected: false, connectionType: "none" },
+      },
     });
     await store.dispatch(fetchSFMSRunParameters());
-    expect(store.getState().runParameters.error).toBe("No run parameters available.")
+    expect(store.getState().runParameters.error).toBe(
+      "No run parameters available."
+    );
   });
 });
 
