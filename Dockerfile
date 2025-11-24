@@ -42,6 +42,7 @@ USER 0
 RUN chmod 444 /app/pyproject.toml /app/uv.lock \
     /app/packages/wps-api/pyproject.toml /app/packages/wps-api/README.md \
     /app/packages/wps-shared/pyproject.toml /app/packages/wps-shared/README.md
+RUN chmod -R a-w /app/packages/wps-shared/src
 
 # Switch back to non-root user
 USER $USERNAME
@@ -75,8 +76,8 @@ RUN chown "$USERNAME" /app
 WORKDIR /app
 
 # Copy workspace and package configuration
-COPY --from=builder --chown=$USERNAME:$USER_GID /app/pyproject.toml /app/
-COPY --from=builder --chown=$USERNAME:$USER_GID /app/packages/wps-api/pyproject.toml /app/packages/wps-api/
+COPY --from=builder /app/pyproject.toml /app/
+COPY --from=builder /app/packages/wps-api/pyproject.toml /app/packages/wps-api/
 
 # Switch back to our non-root user
 USER $USERNAME
@@ -99,8 +100,8 @@ COPY ./backend/packages/wps-api/start.sh /app
 # Make uv happy by copying wps_shared
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 
-# Copy installed Python packages (the chown lets us install the dev packages later without root if we want)
-COPY --from=builder --chown=$USERNAME:$USER_GID /app/.venv /app/.venv
+# Copy installed Python packages (writable so we can install dev packages later without root if we want)
+COPY --from=builder /app/.venv /app/.venv
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080
@@ -114,6 +115,8 @@ ENV VIRTUAL_ENV="/app/.venv"
 
 # root user please
 USER 0
+# Remove write permissions from copied configuration and source files for security
+RUN chmod -R a-w /app/pyproject.toml /app/packages/wps-api/pyproject.toml /app/advisory /app/libs /app/alembic /app/alembic.ini /app/prestart.sh /app/start.sh /app/packages/wps-shared/src
 # We don't know what user uv is going to run as, so we give everyone write access directories
 # in the app folder. We need write access for .pyc files to be created. .pyc files are good,
 # they speed up python.
