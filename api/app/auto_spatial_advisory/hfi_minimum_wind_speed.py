@@ -10,9 +10,20 @@ from osgeo import gdal, osr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared import config
-from wps_shared.db.crud.auto_spatial_advisory import get_fire_zone_unit_shape_type_id, get_fire_zone_units, get_run_parameters_by_id, get_run_parameters_id, get_table_srid
+from wps_shared.db.crud.auto_spatial_advisory import (
+    get_fire_zone_unit_shape_type_id,
+    get_fire_zone_units,
+    get_hfi_threshold_ids,
+    get_run_parameters_by_id,
+    get_run_parameters_id,
+    get_table_srid,
+)
 from wps_shared.db.database import get_async_write_session_scope
-from wps_shared.db.models.auto_spatial_advisory import HfiClassificationThresholdEnum, AdvisoryHFIWindSpeed, Shape, HfiClassificationThreshold
+from wps_shared.db.models.auto_spatial_advisory import (
+    HfiClassificationThresholdEnum,
+    AdvisoryHFIWindSpeed,
+    Shape,
+)
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal, rasters_match
 from wps_shared.wps_logging import configure_logging
 from wps_shared.run_type import RunType
@@ -42,25 +53,39 @@ async def process_hfi_min_wind_speed(run_type: RunType, run_datetime: datetime, 
     :param run_datetime: The date and time of the sfms run in UTC.
     :param for_date: The date being calculated for.
     """
-    logger.info(f"Calculating minimum wind speed for {run_type} run type on run date: {run_datetime}, for date: {for_date}")
+    logger.info(
+        f"Calculating minimum wind speed for {run_type} run type on run date: {run_datetime}, for date: {for_date}"
+    )
     perf_start = perf_counter()
 
     async with get_async_write_session_scope() as session:
-        run_parameters_id = await get_run_parameters_id(session, RunType(run_type), run_datetime, for_date)
-        stmt = select(AdvisoryHFIWindSpeed).where(AdvisoryHFIWindSpeed.run_parameters == run_parameters_id)
+        run_parameters_id = await get_run_parameters_id(
+            session, RunType(run_type), run_datetime, for_date
+        )
+        stmt = select(AdvisoryHFIWindSpeed).where(
+            AdvisoryHFIWindSpeed.run_parameters == run_parameters_id
+        )
         exists = (await session.execute(stmt)).scalars().first() is not None
 
         if exists:
             logger.info("HFI minimum wind speed already processed.")
             return
 
-        await process_min_wind_speed_by_zone(session, run_parameters_id, RunType(run_type), run_datetime, for_date)
+        await process_min_wind_speed_by_zone(
+            session, run_parameters_id, RunType(run_type), run_datetime, for_date
+        )
 
     delta = perf_counter() - perf_start
     logger.info(f"delta count before and after calculating minimum hfi wind speed: {delta}")
 
 
-async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_id: int, run_type: RunType, run_datetime: date, for_date: date):
+async def process_min_wind_speed_by_zone(
+    session: AsyncSession,
+    run_parameters_id: int,
+    run_type: RunType,
+    run_datetime: date,
+    for_date: date,
+):
     """
     Calculates minimum wind speed for each advisory threshold per fire zone unit. Determines the minimum wind speed by
     comparing wind speed and hfi rasters. Where the hfi raster meets a certain threshold, the wind speed will be taken
@@ -96,7 +121,9 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
             zone_wkt = shapely_geom.wkt
             zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, source_srs)
 
-            warp_options = gdal.WarpOptions(cutlineWKT=zone_geom, cutlineSRS=zone_geom.GetSpatialReference(), cropToCutline=True)
+            warp_options = gdal.WarpOptions(
+                cutlineWKT=zone_geom, cutlineSRS=zone_geom.GetSpatialReference(), cropToCutline=True
+            )
 
             wind_path = "/vsimem/zone_wind.tif"
             intersected_ds: gdal.Dataset = gdal.Warp(wind_path, wind_ds, options=warp_options)
@@ -113,16 +140,25 @@ async def process_min_wind_speed_by_zone(session: AsyncSession, run_parameters_i
             gdal.Unlink(hfi_path)
 
             # Compute minimum wind speed for each HFI range
-            hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(wind_array_clip, hfi_array_clip, advisory_id_lut, wind_nodata)
+            hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(
+                wind_array_clip, hfi_array_clip, advisory_id_lut, wind_nodata
+            )
 
-            records_to_save = create_hfi_wind_speed_record(zone.id, hfi_min_wind_speeds, run_parameters_id)
+            records_to_save = create_hfi_wind_speed_record(
+                zone.id, hfi_min_wind_speeds, run_parameters_id
+            )
 
             all_hfi_min_wind_speeds_to_save.extend(records_to_save)
 
     await save_all_hfi_wind_speeds(session, all_hfi_min_wind_speeds_to_save)
 
 
-def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.ndarray, advisory_id_lut: dict[str, int], wind_nodata_value: float | None) -> dict[int, float | None]:
+def get_minimum_wind_speed_for_hfi(
+    wind_speed_array: np.ndarray,
+    hfi_array: np.ndarray,
+    advisory_id_lut: dict[str, int],
+    wind_nodata_value: float | None,
+) -> dict[int, float | None]:
     """
     Calculates the minimum wind speed for each HfiClassificationThresholdEnum given a wind speed array and an hfi array.
 
@@ -133,7 +169,8 @@ def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.n
     :return: Dict of advisory level and it's corresponding minimum wind speed
     """
     hfi_class_ids = {
-        advisory_id_lut[HfiClassificationThresholdEnum.ADVISORY.value]: (hfi_array >= 4000) & (hfi_array < 10000),
+        advisory_id_lut[HfiClassificationThresholdEnum.ADVISORY.value]: (hfi_array >= 4000)
+        & (hfi_array < 10000),
         advisory_id_lut[HfiClassificationThresholdEnum.WARNING.value]: (hfi_array >= 10000),
     }
 
@@ -148,16 +185,9 @@ def get_minimum_wind_speed_for_hfi(wind_speed_array: np.ndarray, hfi_array: np.n
     return min_wind_speeds
 
 
-async def get_hfi_threshold_ids(session: AsyncSession) -> dict[str, int]:
-    """
-    Returns dict of {name: id} for advisory, warning threshold records
-    """
-    stmt = select(HfiClassificationThreshold.id, HfiClassificationThreshold.name)
-    result = await session.execute(stmt)
-    return {name: id_ for id_, name in result.all()}
-
-
-def create_hfi_wind_speed_record(zone_unit_id: int, hfi_min_wind_speeds: dict[int, float | None], run_parameters_id: int) -> list[AdvisoryHFIWindSpeed]:
+def create_hfi_wind_speed_record(
+    zone_unit_id: int, hfi_min_wind_speeds: dict[int, float | None], run_parameters_id: int
+) -> list[AdvisoryHFIWindSpeed]:
     """
     Creates a list of HFIMinWindSpeed records for a given fire zone.
     """
@@ -173,7 +203,9 @@ def create_hfi_wind_speed_record(zone_unit_id: int, hfi_min_wind_speeds: dict[in
     ]
 
 
-async def save_all_hfi_wind_speeds(session: AsyncSession, hfi_wind_speeds: list[AdvisoryHFIWindSpeed]):
+async def save_all_hfi_wind_speeds(
+    session: AsyncSession, hfi_wind_speeds: list[AdvisoryHFIWindSpeed]
+):
     logger.info("Writing HFI Advisory Minimum Wind Speeds")
     session.add_all(hfi_wind_speeds)
 
@@ -188,13 +220,21 @@ async def start_hfi_wind_speed(args: argparse.Namespace):
             return
 
         run_param = run_parameters[0]
-        run_type, run_datetime, for_date = run_param.run_type, run_param.run_datetime, run_param.for_date
+        run_type, run_datetime, for_date = (
+            run_param.run_type,
+            run_param.run_datetime,
+            run_param.for_date,
+        )
         await process_hfi_min_wind_speed(run_type, run_datetime, for_date)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Process hfi wind speed from command line")
-    parser.add_argument("-r", "--run_parameters_id", help="The id of the run parameters of interest from the run_parameters table")
+    parser.add_argument(
+        "-r",
+        "--run_parameters_id",
+        help="The id of the run parameters of interest from the run_parameters table",
+    )
 
     args = parser.parse_args()
 

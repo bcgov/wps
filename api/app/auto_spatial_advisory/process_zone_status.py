@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auto_spatial_advisory.fuel_type_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.auto_spatial_advisory import (
-    get_all_hfi_thresholds_by_id,
     get_hfi_area,
+    get_hfi_threshold_ids,
     get_run_parameters_id,
 )
 from wps_shared.db.database import get_async_write_session_scope
@@ -73,15 +73,10 @@ async def calculate_zone_statuses(
     run_datetime: datetime,
     for_date: date,
     fuel_type_raster_id: int,
-    advisory_threshold: float = 20.0,
 ) -> list[AdvisoryZoneStatus]:
-    thresholds = await get_all_hfi_thresholds_by_id(session)
-    advisory_id = next(
-        t.id for t in thresholds.values() if t.name == HfiClassificationThresholdEnum.ADVISORY.value
-    )
-    warning_id = next(
-        t.id for t in thresholds.values() if t.name == HfiClassificationThresholdEnum.WARNING.value
-    )
+    thresholds_lut = await get_hfi_threshold_ids(session)
+    advisory_id = thresholds_lut[HfiClassificationThresholdEnum.ADVISORY.value]
+    warning_id = thresholds_lut[HfiClassificationThresholdEnum.WARNING.value]
 
     rows = await get_hfi_area(
         session,

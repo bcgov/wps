@@ -161,6 +161,15 @@ async def get_all_hfi_thresholds_by_id(session: AsyncSession) -> dict[int, HfiTh
     return all_hfi_thresholds_by_id
 
 
+async def get_hfi_threshold_ids(session: AsyncSession) -> dict[str, int]:
+    """
+    Returns dict of {name: id} for advisory, warning threshold records
+    """
+    stmt = select(HfiClassificationThreshold.id, HfiClassificationThreshold.name)
+    result = await session.execute(stmt)
+    return {name: id_ for id_, name in result.all()}
+
+
 async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
     """
     Retrieve all records from sfms_fuel_types table excluding record IDs.
@@ -816,13 +825,9 @@ async def get_advisory_zone_statuses(
     """
     logger.info("gathering advisory zone statuses")
 
-    thresholds = await get_all_hfi_thresholds_by_id(db_session)
-    advisory_id = next(
-        t.id for t in thresholds.values() if t.name == HfiClassificationThresholdEnum.ADVISORY.value
-    )
-    warning_id = next(
-        t.id for t in thresholds.values() if t.name == HfiClassificationThresholdEnum.WARNING.value
-    )
+    thresholds_lut = await get_hfi_threshold_ids(db_session)
+    advisory_id = thresholds_lut[HfiClassificationThresholdEnum.ADVISORY.name]
+    warning_id = thresholds_lut[HfiClassificationThresholdEnum.WARNING.name]
 
     status_case = case(
         (AdvisoryZoneStatus.warning_percentage > 20, warning_id),
