@@ -26,7 +26,6 @@ from wps_shared.schemas.hfi_calc import (
     WeatherStationProperties,
     FireStartRange,
 )
-from wps_shared.schemas.hfi_calc import HFIResultResponse
 from wps_shared.schemas.shared import FuelType
 
 test_hfi_result = os.path.join(os.path.dirname(__file__), 'test_hfi_result.json')

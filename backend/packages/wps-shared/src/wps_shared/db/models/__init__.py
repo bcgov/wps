@@ -1,4 +1,5 @@
 """Class models that reflect resources and map to database tables"""
+# ruff: noqa
 
 from sqlalchemy.ext.declarative import declarative_base
 

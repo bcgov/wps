@@ -90,21 +90,6 @@ def test_get_prediction_run(repository: ModelRunRepository, db_session: Session)
     assert result == mock_prediction_run
 
 
-def test_get_prediction_model(repository: ModelRunRepository, db_session: Session):
-    # Insert a mock record
-    mock_prediction_model = PredictionModel(
-        name="GFS Global Forecast System",
-        abbreviation=ModelEnum.GFS.value,
-        projection=ProjectionEnum.GFS_LONLAT.value,
-    )
-    db_session.add(mock_prediction_model)
-    db_session.commit()
-
-    result = repository.get_prediction_model(ModelEnum.GFS, ProjectionEnum.GFS_LONLAT)
-
-    assert result == mock_prediction_model
-
-
 def test_get_processed_file_record(repository: ModelRunRepository, db_session: Session):
     url = "https://example.com/file"
 

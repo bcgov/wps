@@ -5,7 +5,14 @@ import pytest
 import os
 import json
 from pytest_mock import MockerFixture
-from app.hfi.hfi_calc import calculate_hfi_results, calculate_mean_intensity, calculate_max_intensity_group, calculate_prep_level, validate_date_range, validate_station_daily
+from app.hfi.hfi_calc import (
+    calculate_hfi_results,
+    calculate_mean_intensity,
+    calculate_max_intensity_group,
+    calculate_prep_level,
+    validate_date_range,
+    validate_station_daily,
+)
 import wps_shared.db.models.hfi_calc as hfi_calc_models
 from wps_shared.schemas.hfi_calc import (
     DailyResult,
@@ -64,7 +71,12 @@ kamloops_fc = FireCentre(
 fire_start_ranges = [FireStartRange(label="moo", id=1), FireStartRange(label="moo", id=2)]
 fire_start_lookup = {1: {1: 1}, 2: {1: 1}}
 
-planning_area_station_info = {kamloops_fc.planning_areas[0].id: [StationInfo(station_code=1, selected=True, fuel_type_id=1), StationInfo(station_code=2, selected=True, fuel_type_id=1)]}
+planning_area_station_info = {
+    kamloops_fc.planning_areas[0].id: [
+        StationInfo(station_code=1, selected=True, fuel_type_id=1),
+        StationInfo(station_code=2, selected=True, fuel_type_id=1),
+    ]
+}
 
 
 def test_no_dailies_handled():
@@ -88,11 +100,41 @@ def test_no_dailies_handled():
             highest_daily_intensity_group=None,
             mean_prep_level=None,
             daily_results=[
-                DailyResult(date=datetime.now().date(), dailies=[], fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
-                DailyResult(date=datetime.now().date() + timedelta(days=1), dailies=[], fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
-                DailyResult(date=datetime.now().date() + timedelta(days=2), dailies=[], fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
-                DailyResult(date=datetime.now().date() + timedelta(days=3), dailies=[], fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
-                DailyResult(date=datetime.now().date() + timedelta(days=4), dailies=[], fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
+                DailyResult(
+                    date=datetime.now().date(),
+                    dailies=[],
+                    fire_starts=fire_start_ranges[0],
+                    mean_intensity_group=None,
+                    prep_level=None,
+                ),
+                DailyResult(
+                    date=datetime.now().date() + timedelta(days=1),
+                    dailies=[],
+                    fire_starts=fire_start_ranges[0],
+                    mean_intensity_group=None,
+                    prep_level=None,
+                ),
+                DailyResult(
+                    date=datetime.now().date() + timedelta(days=2),
+                    dailies=[],
+                    fire_starts=fire_start_ranges[0],
+                    mean_intensity_group=None,
+                    prep_level=None,
+                ),
+                DailyResult(
+                    date=datetime.now().date() + timedelta(days=3),
+                    dailies=[],
+                    fire_starts=fire_start_ranges[0],
+                    mean_intensity_group=None,
+                    prep_level=None,
+                ),
+                DailyResult(
+                    date=datetime.now().date() + timedelta(days=4),
+                    dailies=[],
+                    fire_starts=fire_start_ranges[0],
+                    mean_intensity_group=None,
+                    prep_level=None,
+                ),
             ],
         )
     ]
@@ -102,10 +144,31 @@ def test_requested_fire_starts_unaltered(mocker: MockerFixture):
     """Fire starts from user request remain unchanged"""
 
     start_date = datetime.now().date()
-    fuel_type_lookup = {1: hfi_calc_models.FuelType(id=1, abbrev="C1", description="C1", fuel_type_code="C1", percentage_conifer=100, percentage_dead_fir=0)}
+    fuel_type_lookup = {
+        1: hfi_calc_models.FuelType(
+            id=1,
+            abbrev="C1",
+            description="C1",
+            fuel_type_code="C1",
+            percentage_conifer=100,
+            percentage_dead_fir=0,
+        )
+    }
     planning_area_fire_starts = {kamloops_fc.planning_areas[0].id: [fire_start_ranges[-1]]}
-    wfwx_station = WFWXWeatherStation(wfwx_id="1", code=1, name="station1", latitude=12.1, longitude=12.1, elevation=123, zone_code="1")
-    raw_daily = {"stationId": "1", "weatherTimestamp": get_utc_now().timestamp() * 1000, "lastEntityUpdateTimestamp": get_utc_now().timestamp() * 1000}
+    wfwx_station = WFWXWeatherStation(
+        wfwx_id="1",
+        code=1,
+        name="station1",
+        latitude=12.1,
+        longitude=12.1,
+        elevation=123,
+        zone_code="1",
+    )
+    raw_daily = {
+        "stationId": "1",
+        "weatherTimestamp": get_utc_now().timestamp() * 1000,
+        "lastEntityUpdateTimestamp": get_utc_now().timestamp() * 1000,
+    }
 
     result = calculate_hfi_results(
         fuel_type_lookup,
@@ -202,16 +265,34 @@ def test_calculate_prep_level_empty():
     assert calculate_prep_level(None, FireStartRange(id=1, label="blah"), None) is None
 
 
-def test_valid_daily():
+def test_valid_daily_all_required():
     """Daily with all required fields is valid"""
-    daily = StationDaily(code=1, date=datetime.now(), temperature=1, relative_humidity=1, wind_speed=1, wind_direction=1, precipitation=1, intensity_group=1)
+    daily = StationDaily(
+        code=1,
+        date=datetime.now(),
+        temperature=1,
+        relative_humidity=1,
+        wind_speed=1,
+        wind_direction=1,
+        precipitation=1,
+        intensity_group=1,
+    )
     result = validate_station_daily(daily)
     assert result.valid is True
 
 
-def test_valid_daily():
+def test_invalid_daily_any_required():
     """Daily missing any required field is invalid"""
-    base_daily = StationDaily(code=1, date=datetime.now(), temperature=1, relative_humidity=1, wind_speed=1, wind_direction=1, precipitation=1, intensity_group=1)
+    base_daily = StationDaily(
+        code=1,
+        date=datetime.now(),
+        temperature=1,
+        relative_humidity=1,
+        wind_speed=1,
+        wind_direction=1,
+        precipitation=1,
+        intensity_group=1,
+    )
     for field in required_daily_fields:
         daily = StationDaily(**base_daily.__dict__)
         setattr(daily, field, None)
@@ -224,13 +305,36 @@ def test_valid_fuel_types_response(monkeypatch):
     """Assert that list of FuelType objects is converted to FuelTypesResponse object correctly"""
 
     def mock_get_fuel_types(*args, **kwargs):
-        fuel_type_1 = FuelType(id=1, abbrev="T1", fuel_type_code="T1", description="blah", percentage_conifer=0, percentage_dead_fir=0)
-        fuel_type_2 = FuelType(id=2, abbrev="T2", fuel_type_code="T2", description="bleep", percentage_conifer=0, percentage_dead_fir=0)
-        fuel_type_3 = FuelType(id=3, abbrev="T3", fuel_type_code="T3", description="bloop", percentage_conifer=0, percentage_dead_fir=0)
+        fuel_type_1 = FuelType(
+            id=1,
+            abbrev="T1",
+            fuel_type_code="T1",
+            description="blah",
+            percentage_conifer=0,
+            percentage_dead_fir=0,
+        )
+        fuel_type_2 = FuelType(
+            id=2,
+            abbrev="T2",
+            fuel_type_code="T2",
+            description="bleep",
+            percentage_conifer=0,
+            percentage_dead_fir=0,
+        )
+        fuel_type_3 = FuelType(
+            id=3,
+            abbrev="T3",
+            fuel_type_code="T3",
+            description="bloop",
+            percentage_conifer=0,
+            percentage_dead_fir=0,
+        )
         return [fuel_type_1, fuel_type_2, fuel_type_3]
 
     monkeypatch.setattr(app.routers.hfi_calc, "crud_get_fuel_types", mock_get_fuel_types)
-    correct_response_file = os.path.join(os.path.dirname(__file__), "test_valid_fuel_types_response.json")
+    correct_response_file = os.path.join(
+        os.path.dirname(__file__), "test_valid_fuel_types_response.json"
+    )
 
     client = TestClient(starlette_app)
     response = client.get("/api/hfi-calc/fuel_types")

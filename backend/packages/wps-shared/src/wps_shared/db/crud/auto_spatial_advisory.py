@@ -39,13 +39,6 @@ from wps_shared.schemas.fba import HfiThreshold
 logger = logging.getLogger(__name__)
 
 
-class HfiClassificationThresholdEnum(Enum):
-    """Enum for the different HFI classification thresholds."""
-
-    ADVISORY = "advisory"
-    WARNING = "warning"
-
-
 async def get_hfi_classification_threshold(
     session: AsyncSession, name: HfiClassificationThresholdEnum
 ) -> HfiClassificationThreshold:
