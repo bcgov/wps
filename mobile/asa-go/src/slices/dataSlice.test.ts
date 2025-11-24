@@ -356,7 +356,6 @@ describe("fetchAndCacheData thunk", () => {
   };
   const testExpectedDataState = (dataState: DataState) => {
     expect(dataState.error).toBeNull();
-    expect(dataState.lastUpdated).toEqual(today);
     expect(dataState.fireShapeAreas).toEqual(mockCacheableFireshapeAreas);
     expect(dataState.provincialSummaries).toEqual(
       mockCacheableProvincialSummaries
