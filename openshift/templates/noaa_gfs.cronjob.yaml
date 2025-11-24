@@ -71,6 +71,8 @@ objects:
                       "GFS",
                     ]
                   env:
+                    - name: UV_NO_CACHE
+                      value: "1"
                     - name: POSTGRES_READ_USER
                       valueFrom:
                         secretKeyRef:

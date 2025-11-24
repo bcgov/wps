@@ -60,6 +60,8 @@ objects:
                   command:
                     ["uv", "run", "python", "-m", "app.jobs.viirs_snow"]
                   env:
+                    - name: UV_NO_CACHE
+                      value: "1"
                     - name: POSTGRES_READ_USER
                       valueFrom:
                         secretKeyRef:

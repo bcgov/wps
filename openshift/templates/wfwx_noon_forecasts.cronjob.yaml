@@ -62,6 +62,8 @@ objects:
                   command:
                     ["uv", "run", "python", "-m", "app.jobs.noon_forecasts"]
                   env:
+                    - name: UV_NO_CACHE
+                      value: "1"
                     - name: WFWX_MAX_PAGE_SIZE
                       value: ${WFWX_MAX_PAGE_SIZE}
                     - name: WFWX_AUTH_URL
