@@ -87,6 +87,17 @@ export interface FireCentreTPIResponse {
   firezone_tpi_stats: FireZoneTPIStats[]
 }
 
+export interface FireZoneStatus {
+  zone_source_id: number
+  status: number
+  advisory_percentage: number
+  warning_percentage: number
+}
+
+export interface FireZoneStatusListResponse {
+  zones: FireZoneStatus[]
+}
+
 export interface FireShapeAreaListResponse {
   shapes: FireShapeArea[]
 }
@@ -163,6 +174,16 @@ export async function getFireShapeAreas(
   for_date: string
 ): Promise<FireShapeAreaListResponse> {
   const url = `/fba/fire-shape-areas/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
+  const { data } = await axios.get(url)
+  return data
+}
+
+export async function getZoneAdvisoryStatus(
+  run_type: RunType,
+  run_datetime: string,
+  for_date: string
+): Promise<FireZoneStatusListResponse> {
+  const url = `/fba/zone-advisory-status/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
   const { data } = await axios.get(url)
   return data
 }

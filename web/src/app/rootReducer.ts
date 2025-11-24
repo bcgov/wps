@@ -10,7 +10,6 @@ import hfiStationsReducer from 'features/hfiCalculator/slices/stationsSlice'
 import hfiReadyReducer, { HFIReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 import fbaCalculatorSlice from 'features/fbaCalculator/slices/fbaCalculatorSlice'
 import fireCentersSlice from 'commonSlices/fireCentersSlice'
-import fireShapeAreasSlice from 'features/fba/slices/fireZoneAreasSlice'
 import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
 import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
@@ -26,6 +25,7 @@ import fireWatchSlice from 'features/fireWatch/slices/fireWatchSlice'
 import fireWatchFireCentresSlice from '@/features/fireWatch/slices/fireWatchFireCentresSlice'
 import burnForecastsSlice from '@/features/fireWatch/slices/burnForecastSlice'
 import { filterHFIFuelStatsByArea } from '@/features/fba/hfiStatsUtils'
+import fireZoneStatusSlice from '@/features/fba/slices/fireZoneStatusSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -39,7 +39,7 @@ const rootReducer = combineReducers({
   hfiReady: hfiReadyReducer,
   fbaCalculatorResults: fbaCalculatorSlice,
   fireCenters: fireCentersSlice,
-  fireShapeAreas: fireShapeAreasSlice,
+  fireZoneStatus: fireZoneStatusSlice,
   runDates: runDatesSlice,
   valueAtCoordinate: valueAtCoordinateSlice,
   fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice,
@@ -72,7 +72,7 @@ export const selectToken = (state: RootState) => state.authentication.token
 export const selectFireBehaviourCalcResult = (state: RootState) => state.fbaCalculatorResults
 export const selectHFIStations = (state: RootState) => state.hfiStations
 export const selectFireCenters = (state: RootState) => state.fireCenters
-export const selectFireShapeAreas = (state: RootState) => state.fireShapeAreas
+export const selectFireZoneStatuses = (state: RootState) => state.fireZoneStatus
 export const selectRunDates = (state: RootState) => state.runDates
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
 export const selectFireCentreHFIFuelStats = (state: RootState) => state.fireCentreHFIFuelStats
@@ -98,20 +98,20 @@ export const selectFilteredFireCentreHFIFuelStats = createSelector(
 
 export const selectCombinedASALoading = createSelector(
   [
-    (state: RootState) => state.fireShapeAreas.loading,
+    (state: RootState) => state.fireZoneStatus.loading,
     (state: RootState) => state.provincialSummary.loading,
     (state: RootState) => state.fireCentreHFIFuelStats.loading,
     (state: RootState) => state.fireCentreTPIStats.loading,
     (state: RootState) => state.runDates.loading
   ],
   (
-    fireShapeLoading,
+    fireZoneStatusLoading,
     provincialLoading,
     fireCentreHFIFuelStatsLoading,
     fireCentreTPIStatsLoading,
     runDatesLoading
   ): boolean =>
-    fireShapeLoading ||
+    fireZoneStatusLoading ||
     provincialLoading ||
     fireCentreHFIFuelStatsLoading ||
     fireCentreTPIStatsLoading ||

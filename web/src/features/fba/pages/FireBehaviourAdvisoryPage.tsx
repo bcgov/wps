@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters, selectRunDates, selectFireShapeAreas } from 'app/rootReducer'
+import { selectFireCenters, selectRunDates, selectFireZoneStatuses } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { theme } from 'app/theme'
@@ -16,7 +16,6 @@ import { AppDispatch } from 'app/store'
 import ActualForecastControl from 'features/fba/components/ActualForecastControl'
 import { fetchSFMSRunDates, fetchSFMSBounds } from 'features/fba/slices/runDatesSlice'
 import { isEmpty, isNull, isUndefined } from 'lodash'
-import { fetchFireShapeAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { StyledFormControl } from 'components/StyledFormControl'
 import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
@@ -27,6 +26,7 @@ import Footer from '@/features/landingPage/components/Footer'
 import AboutDataPopover from '@/components/AboutDataPopover'
 import { ASAAboutDataContent } from '@/features/fba/components/ASAAboutDataContent'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
+import { fetchFireZoneStatuses } from '@/features/fba/slices/fireZoneStatusSlice'
 
 const ADVISORY_THRESHOLD = 20
 
@@ -41,7 +41,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   // selectors
   const { fireCenters } = useSelector(selectFireCenters)
   const { mostRecentRunDate, sfmsBounds } = useSelector(selectRunDates)
-  const { fireShapeAreas } = useSelector(selectFireShapeAreas)
+  const { fireZoneStatuses } = useSelector(selectFireZoneStatuses)
 
   // state
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
@@ -166,7 +166,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
-      dispatch(fetchFireShapeAreas(runType, mostRecentRunDate, doiISODate))
+      dispatch(fetchFireZoneStatuses(runType, mostRecentRunDate, doiISODate))
       dispatch(fetchProvincialSummary(runType, mostRecentRunDate, doiISODate))
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -238,7 +238,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             selectedFireCenter={fireCenter}
             advisoryThreshold={ADVISORY_THRESHOLD}
             setSelectedFireShape={setSelectedFireShape}
-            fireShapeAreas={fireShapeAreas}
+            fireZoneStatuses={fireZoneStatuses}
             zoomSource={zoomSource}
             setZoomSource={setZoomSource}
           />
