@@ -87,7 +87,7 @@ USER $USERNAME
 COPY ./backend/packages/wps-jobs/src /app
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 
-# Copy installed Python packages (writable so we can install dev packages later without root if we want)
+# Copy installed Python packages
 COPY --from=builder /app/.venv /app/.venv
 
 # Add .venv to PATH

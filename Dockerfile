@@ -103,7 +103,7 @@ COPY ./backend/packages/wps-api/start.sh /app
 # Make uv happy by copying wps_shared
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 
-# Copy installed Python packages (writable so we can install dev packages later without root if we want)
+# Copy installed Python packages
 COPY --from=builder /app/.venv /app/.venv
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
