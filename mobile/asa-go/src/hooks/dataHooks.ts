@@ -16,7 +16,7 @@ export const useFilteredHFIStatsForDate = (
 ): FireZoneHFIStatsDictionary => {
   const hfiStats = useSelector(selectHFIStats);
   return useMemo(() => {
-    const forDateString = forDate.toISODate();
+    const forDateString = forDate?.toISODate();
     if (
       isNil(forDate) ||
       isNil(forDateString) ||
@@ -40,7 +40,7 @@ export const useFireShapeAreasForDate = (
 ): FireShapeArea[] => {
   const fireShapeAreas = useSelector(selectFireShapeAreas);
   return useMemo(() => {
-    const forDateString = forDate.toISODate();
+    const forDateString = forDate?.toISODate();
     if (
       isNil(forDate) ||
       isNil(forDateString) ||
@@ -63,7 +63,7 @@ export const useProvincialSummaryForDate = (
 ): Dictionary<FireShapeAreaDetail[]> | undefined  => {
   const provincialSummaries = useSelector(selectProvincialSummaries);
   return useMemo(() => {
-    const forDateString = forDate.toISODate()
+    const forDateString = forDate?.toISODate()
     if (isNil(forDate) || isNil(forDateString) || isNil(provincialSummaries?.[forDateString]?.data)) {
         return undefined;
     }
@@ -80,7 +80,7 @@ export const useProvincialSummaryForDate = (
 export const useTPIStatsForDate = (forDate: DateTime): FireZoneTPIStats[] => {
   const tpiStats = useSelector(selectTPIStats);
   return useMemo(() => {
-    const forDateString = forDate.toISODate();
+    const forDateString = forDate?.toISODate();
     if (
       isNil(forDate) ||
       isNil(forDateString) ||
