@@ -66,6 +66,8 @@ objects:
                       "app.jobs.fire_watch_calculations",
                     ]
                   env:
+                    - name: UV_NO_CACHE
+                      value: "1"
                     - name: ROCKET_URL_POST_MESSAGE
                       valueFrom:
                         configMapKeyRef:
