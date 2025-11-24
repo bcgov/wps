@@ -35,10 +35,16 @@ COPY ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
 COPY ./backend/packages/wps-shared/README.md /app/packages/wps-shared/
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 
+# Switch to root to set file permissions
+USER 0
+
 # Set configuration files to read-only for security
 RUN chmod 444 /app/pyproject.toml /app/uv.lock \
     /app/packages/wps-api/pyproject.toml /app/packages/wps-api/README.md \
     /app/packages/wps-shared/pyproject.toml /app/packages/wps-shared/README.md
+
+# Switch back to non-root user
+USER $USERNAME
 
 # Install dependencies using uv
 RUN uv sync --frozen --no-dev --package wps-api
