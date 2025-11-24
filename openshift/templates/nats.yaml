@@ -294,8 +294,9 @@ objects:
                   memory: ${MEMORY_LIMIT}
               command:
                 [
-                  "poetry",
+                  "uv",
                   "run",
+                  "--no-sync",
                   "python",
                   "-m",
                   "app.auto_spatial_advisory.nats_consumer",
