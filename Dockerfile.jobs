@@ -97,6 +97,8 @@ ENV VIRTUAL_ENV="/app/.venv"
 
 # root user please
 USER 0
+# Create writable data directory for library caches (e.g., herbie BallTree)
+RUN mkdir -p /data && chmod 777 /data
 # Remove write permissions from copied configuration and source files for security
 RUN chmod -R a-w /app/pyproject.toml /app/packages/wps-jobs/pyproject.toml /app/weather_model_jobs /app/packages/wps-shared/src
 # We don't know what user uv is going to run as, so we give everyone write access directories
