@@ -54,7 +54,7 @@ objects:
                   image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
-                    ["uv", "run", "python", "-m", "app.jobs.hourly_actuals"]
+                    ["uv", "run", "--no-sync", "python", "-m", "app.jobs.hourly_actuals"]
                   env:
                     - name: UV_NO_CACHE
                       value: "1"

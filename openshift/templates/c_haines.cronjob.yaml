@@ -71,7 +71,7 @@ objects:
                   image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
                   imagePullPolicy: "Always"
                   command:
-                    ["uv", "run", "python", "-m", "app.c_haines.worker"]
+                    ["uv", "run", "--no-sync", "python", "-m", "app.c_haines.worker"]
                   env:
                     - name: UV_NO_CACHE
                       value: "1"

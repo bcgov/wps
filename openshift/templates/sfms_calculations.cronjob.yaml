@@ -57,6 +57,7 @@ objects:
                     [
                       "uv",
                       "run",
+                      "--no-sync",
                       "python",
                       "-m",
                       "app.jobs.sfms_calculations",

@@ -63,6 +63,7 @@ objects:
                     [
                       "uv",
                       "run",
+                      "--no-sync",
                       "python",
                       "-m",
                       "weather_model_jobs.ecmwf",
