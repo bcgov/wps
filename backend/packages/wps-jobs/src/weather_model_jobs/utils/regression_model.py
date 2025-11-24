@@ -6,8 +6,8 @@ from collections import defaultdict
 from abc import abstractmethod
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.db.models.weather_models import ModelRunPrediction
-from wps_jobs.weather_model_jobs.utils.linear_model import LinearModel
-from wps_jobs.weather_model_jobs.utils.sample import Samples
+from weather_model_jobs.utils.linear_model import LinearModel
+from weather_model_jobs.utils.sample import Samples
 
 logger = logging.getLogger(__name__)
 

@@ -18,7 +18,7 @@ from wps_shared.db.crud.weather_models import (
 from wps_shared.weather_models.job_utils import (
     get_model_run_urls,
 )
-from wps_jobs.weather_model_jobs.common_model_fetchers import (
+from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
     apply_data_retention_policy,
     check_if_model_run_complete,
@@ -32,7 +32,7 @@ from wps_shared.weather_models import (
 )
 from wps_shared.wps_logging import configure_logging
 import wps_shared.utils.time as time_utils
-from wps_jobs.weather_model_jobs.utils.process_grib import (
+from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
 )

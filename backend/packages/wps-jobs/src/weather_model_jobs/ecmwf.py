@@ -18,15 +18,15 @@ from wps_shared.wps_logging import configure_logging
 from wps_shared.stations import get_stations_asynchronously
 from wps_shared.db.database import get_write_session_scope
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
-from wps_jobs.weather_model_jobs import (
+from weather_model_jobs import (
     ModelEnum,
     ModelRunInfo,
     ModelRunProcessResult,
     ProjectionEnum,
 )
-from wps_jobs.weather_model_jobs.ecmwf_model_processor import ECMWFModelProcessor, TEMP
-from wps_jobs.weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
-from wps_jobs.weather_model_jobs.utils.process_grib import PredictionModelNotFound
+from weather_model_jobs.ecmwf_model_processor import ECMWFModelProcessor, TEMP
+from weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
+from weather_model_jobs.utils.process_grib import PredictionModelNotFound
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
 
 gdal.UseExceptions()

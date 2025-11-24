@@ -18,13 +18,13 @@ from wps_shared.db.crud.observations import (
     get_actuals_left_outer_join_with_predictions,
     get_predicted_daily_precip,
 )
-from wps_jobs.weather_model_jobs.utils.interpolate import (
+from weather_model_jobs.utils.interpolate import (
     construct_interpolated_noon_prediction,
 )
-from wps_jobs.weather_model_jobs.utils.sample import Samples
-from wps_jobs.weather_model_jobs.utils.weather_models import RegressionModelsV2
-from wps_jobs.weather_model_jobs.utils.wind_direction_model import compute_u_v
-from wps_jobs.weather_model_jobs.utils.wind_direction_utils import (
+from weather_model_jobs.utils.sample import Samples
+from weather_model_jobs.utils.weather_models import RegressionModelsV2
+from weather_model_jobs.utils.wind_direction_model import compute_u_v
+from weather_model_jobs.utils.wind_direction_utils import (
     calculate_wind_dir_from_u_v,
 )
 

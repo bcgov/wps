@@ -63,9 +63,9 @@ COPY --from=builder --chown=$USERNAME:$USER_GID /app/packages/wps-jobs/pyproject
 # Switch back to our non-root user
 USER $USERNAME
 
-# Copy the app from new src layout:
-COPY ./backend/packages/wps-jobs/src/wps_jobs /app/wps_jobs
-COPY ./backend/packages/wps-shared/src/wps_shared /app/packages/wps-shared/src/wps_shared
+# Copy the jobs from src layout:
+COPY ./backend/packages/wps-jobs/src /app
+COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 
 # Copy installed Python packages (the chown lets us install the dev packages later without root if we want)
 COPY --from=builder --chown=$USERNAME:$USER_GID /app/.venv /app/.venv

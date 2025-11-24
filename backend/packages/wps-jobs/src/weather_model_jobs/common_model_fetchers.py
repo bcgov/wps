@@ -14,11 +14,11 @@ from wps_shared.db.crud.weather_models import (
     get_weather_station_model_prediction,
     delete_model_run_predictions,
 )
-from wps_jobs.weather_model_jobs.utils.interpolate import (
+from weather_model_jobs.utils.interpolate import (
     construct_interpolated_noon_prediction,
     interpolate_between_two_points,
 )
-from wps_jobs.weather_model_jobs.machine_learning import StationMachineLearning
+from weather_model_jobs.machine_learning import StationMachineLearning
 from wps_shared.weather_models import ModelEnum
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.wps_logging import configure_logging

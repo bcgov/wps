@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
-from wps_jobs.weather_model_jobs.utils.linear_model import LinearModel
-from wps_jobs.weather_model_jobs.utils.regression_model import RegressionModelBase
+from weather_model_jobs.utils.linear_model import LinearModel
+from weather_model_jobs.utils.regression_model import RegressionModelBase
 
 logger = logging.getLogger(__name__)
 
