@@ -27,13 +27,18 @@ USER $USERNAME
 WORKDIR /app
 
 # Copy workspace configuration and package manifests
-COPY --chown=$USERNAME:$USER_GID ./backend/pyproject.toml /app/
-COPY --chown=$USERNAME:$USER_GID ./backend/uv.lock /app/
-COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-api/pyproject.toml /app/packages/wps-api/
-COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-api/README.md /app/packages/wps-api/
-COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
-COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-shared/README.md /app/packages/wps-shared/
-COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-shared/src /app/packages/wps-shared/src
+COPY ./backend/pyproject.toml /app/
+COPY ./backend/uv.lock /app/
+COPY ./backend/packages/wps-api/pyproject.toml /app/packages/wps-api/
+COPY ./backend/packages/wps-api/README.md /app/packages/wps-api/
+COPY ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
+COPY ./backend/packages/wps-shared/README.md /app/packages/wps-shared/
+COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
+
+# Set configuration files to read-only for security
+RUN chmod 444 /app/pyproject.toml /app/uv.lock \
+    /app/packages/wps-api/pyproject.toml /app/packages/wps-api/README.md \
+    /app/packages/wps-shared/pyproject.toml /app/packages/wps-shared/README.md
 
 # Install dependencies using uv
 RUN uv sync --frozen --no-dev --package wps-api
