@@ -39,7 +39,9 @@ WORKDIR /app
 COPY --chown=worker:worker pyproject.toml /app/
 COPY --chown=worker:worker uv.lock /app/
 COPY --chown=worker:worker packages/wps-api/pyproject.toml /app/packages/wps-api/
+COPY --chown=worker:worker packages/wps-api/README.md /app/packages/wps-api/
 COPY --chown=worker:worker packages/wps-shared/pyproject.toml /app/packages/wps-shared/
+COPY --chown=worker:worker packages/wps-shared/README.md /app/packages/wps-shared/
 COPY --chown=worker:worker packages/wps-shared/src /app/packages/wps-shared/src
 
 # Install dependencies
