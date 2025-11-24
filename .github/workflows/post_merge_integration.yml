@@ -21,6 +21,10 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.9.11"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
@@ -51,6 +55,10 @@ jobs:
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.9.11"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
@@ -92,6 +100,10 @@ jobs:
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.9.11"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
@@ -131,6 +143,10 @@ jobs:
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.9.11"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
