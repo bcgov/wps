@@ -20,7 +20,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Log public IP address
         run: |
@@ -64,7 +64,7 @@ jobs:
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install OpenShift CLI tools
         uses: redhat-actions/openshift-tools-installer@v1
