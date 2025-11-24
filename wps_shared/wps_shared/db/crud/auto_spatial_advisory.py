@@ -1,11 +1,10 @@
 import logging
 from collections import defaultdict
 from datetime import date, datetime
-from enum import Enum
 from time import perf_counter
 from typing import List, Optional, Tuple
 
-from sqlalchemy import Integer, String, and_, cast, extract, func, select, update
+from sqlalchemy import Integer, String, and_, case, cast, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -817,23 +816,38 @@ async def get_advisory_zone_statuses(
     """
     logger.info("gathering advisory zone statuses")
 
+    thresholds = await get_all_hfi_thresholds_by_id(db_session)
+    advisory_id = next(
+        t.id for t in thresholds.values() if t.name == HfiClassificationThresholdEnum.ADVISORY.value
+    )
+    warning_id = next(
+        t.id for t in thresholds.values() if t.name == HfiClassificationThresholdEnum.WARNING.value
+    )
+
+    status_case = case(
+        (AdvisoryZoneStatus.warning_percentage > 20, warning_id),
+        (
+            AdvisoryZoneStatus.advisory_percentage + AdvisoryZoneStatus.warning_percentage > 20,
+            advisory_id,
+        ),
+        else_=None,
+    )
+
     stmt = (
         select(
             cast(Shape.source_identifier, Integer).label("zone_source_id"),
-            HfiClassificationThreshold.name.label("status"),
+            status_case.label("status"),
             AdvisoryZoneStatus.advisory_percentage,
             AdvisoryZoneStatus.warning_percentage,
         )
         .join(RunParameters, AdvisoryZoneStatus.run_parameters == RunParameters.id)
         .join(Shape, AdvisoryZoneStatus.advisory_shape_id == Shape.id)
-        .join(
-            HfiClassificationThreshold, HfiClassificationThreshold.id == AdvisoryZoneStatus.status
-        )
         .where(
             RunParameters.run_type == run_type.value,
             RunParameters.run_datetime == run_datetime,
             RunParameters.for_date == for_date,
         )
+        .where(status_case.isnot(None))
     )
     result = await db_session.execute(stmt)
     return [FireZoneStatus.model_validate(row) for row in result.mappings().all()]

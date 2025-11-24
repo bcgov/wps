@@ -51,7 +51,7 @@ class FireZoneStatus(BaseModel):
     """Advisory status of a fire zone."""
 
     zone_source_id: int
-    status: Optional[str] = None
+    status: Optional[int] = None
     advisory_percentage: Optional[float] = None
     warning_percentage: Optional[float] = None
 

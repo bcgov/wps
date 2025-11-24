@@ -106,17 +106,10 @@ async def calculate_zone_statuses(
         advisory_percent = (advisory_area / combustible_area) * 100 if combustible_area > 0 else 0
         warning_percent = (warning_area / combustible_area) * 100 if combustible_area > 0 else 0
 
-        status = None
-        if warning_percent > advisory_threshold:
-            status = warning_id
-        elif advisory_percent + warning_percent > advisory_threshold:
-            status = advisory_id
-
         zone_statuses.append(
             AdvisoryZoneStatus(
                 run_parameters=run_parameters_id,
                 advisory_shape_id=shape_id,
-                status=status,
                 advisory_percentage=advisory_percent,
                 warning_percentage=warning_percent,
             )

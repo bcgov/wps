@@ -365,6 +365,5 @@ class AdvisoryZoneStatus(Base):
     id = Column(Integer, primary_key=True, index=True)
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
-    status = Column(Integer, ForeignKey(HfiClassificationThreshold.id), nullable=True)
     advisory_percentage = Column(Float, nullable=True)
     warning_percentage = Column(Float, nullable=True)

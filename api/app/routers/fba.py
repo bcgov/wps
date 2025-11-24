@@ -34,7 +34,10 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_zone_source_ids_in_centre,
 )
 from wps_shared.db.database import get_async_read_session_scope
-from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum, TPIClassEnum
+from wps_shared.db.models.auto_spatial_advisory import (
+    RunTypeEnum,
+    TPIClassEnum,
+)
 from wps_shared.schemas.fba import (
     FireCenterListResponse,
     FireCentreTPIResponse,
