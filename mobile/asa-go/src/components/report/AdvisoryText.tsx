@@ -10,6 +10,7 @@ import {
   useProvincialSummaryForDate,
 } from "@/hooks/dataHooks";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
+import { today } from "@/slices/dataSliceUtils";
 import {
   getTopFuelsByArea,
   getTopFuelsByProportion,
@@ -231,7 +232,7 @@ const AdvisoryText = ({
 
   const renderAdvisoryText = () => {
     const zoneTitle = `${selectedFireZoneUnit?.mof_fire_zone_name}:\n\n`;
-    const forToday = runParameter?.for_date === DateTime.now().toISODate();
+    const forToday = runParameter?.for_date === today.toISODate();
     const displayForDate = forToday
       ? "today"
       : DateTime.fromISO(runParameter!.for_date).toLocaleString({

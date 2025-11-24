@@ -1,4 +1,4 @@
-import { dataAreEqual, fetchFireShapeAreas, fetchHFIStats, fetchProvincialSummaries, fetchTpiStats, runParametersMatch } from "@/slices/dataSliceUtils";
+import { dataAreEqual, fetchFireShapeAreas, fetchHFIStats, fetchProvincialSummaries, fetchTpiStats, getTodayKey, getTomorrowKey, runParametersMatch, today } from "@/slices/dataSliceUtils";
 import { AppThunk } from "@/store";
 import {
   CacheableData,
@@ -79,10 +79,8 @@ export const { getDataStart, getDataFailed, getDataSuccess } =
 export default dataSlice.reducer;
 
 export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
-  const today = DateTime.now();
-  const tomorrow = today.plus({ days: 1 });
-  const todayKey = today.toISODate();
-  const tomorrowKey = tomorrow.toISODate();
+  const todayKey = getTodayKey()
+  const tomorrowKey = getTomorrowKey()
   const state = getState();
   const runParameters = state.runParameters.runParameters;
   let isCurrent = true; // A flag indicating if the cached data and state are current
@@ -153,7 +151,7 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       // Update state from cached data if required
       dispatch(
         getDataSuccess({
-          lastUpdated: DateTime.now().toISODate(),
+          lastUpdated: DateTime.now().toISO(),
           fireShapeAreas: cachedFireShapeAreas.data,
           provincialSummaries: cachedProvincialSummaries.data,
           tpiStats: cachedTPIStats.data,
@@ -210,7 +208,7 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       // Update state
       dispatch(
         getDataSuccess({
-          lastUpdated: DateTime.now().toISODate(),
+          lastUpdated: DateTime.now().toISO(),
           fireShapeAreas: fireShapeAreas,
           provincialSummaries,
           tpiStats,

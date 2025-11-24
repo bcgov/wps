@@ -1,3 +1,4 @@
+import { getTodayKey, getTomorrowKey, today } from "@/slices/dataSliceUtils";
 import { AppThunk, RootState } from "@/store";
 import {
   readFromFilesystem,
@@ -8,7 +9,6 @@ import { Filesystem } from "@capacitor/filesystem";
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getMostRecentRunParameters, RunParameter } from "api/fbaAPI";
 import { isNil } from "lodash";
-import { DateTime } from "luxon";
 
 export interface RunParametersState {
   loading: boolean;
@@ -60,9 +60,8 @@ export default runParameterSlice.reducer;
 
 export const fetchSFMSRunParameters =
   (): AppThunk => async (dispatch, getState) => {
-    const now = DateTime.now();
-    const todayKey = now.toISODate();
-    const tomorrowKey = now.plus({ days: 1 }).toISODate();
+    const todayKey = getTodayKey()
+    const tomorrowKey = getTomorrowKey()
     const state = getState();
     const connected = state.networkStatus.networkStatus.connected;
     const reduxRunParameters = state.runParameters.runParameters;
@@ -82,7 +81,7 @@ export const fetchSFMSRunParameters =
             Filesystem,
             RUN_PARAMETERS_CACHE_KEY,
             latestRunParameters,
-            now
+            today
           );
 
           if (

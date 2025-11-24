@@ -1,6 +1,26 @@
-import { FireShapeArea, FireShapeAreaDetail, FireZoneHFIStatsDictionary, FireZoneTPIStats, getFireShapeAreas, getHFIStats, getProvincialSummary, getTPIStats, RunParameter } from "@/api/fbaAPI";
+import {
+  FireShapeArea,
+  FireShapeAreaDetail,
+  FireZoneHFIStatsDictionary,
+  FireZoneTPIStats,
+  getFireShapeAreas,
+  getHFIStats,
+  getProvincialSummary,
+  getTPIStats,
+  RunParameter,
+} from "@/api/fbaAPI";
+import { PST_UTC_OFFSET } from "@/utils/constants";
 import { CacheableData, CacheableDataType } from "@/utils/storage";
 import { isEqual, isNil } from "lodash";
+import { DateTime } from "luxon";
+
+export const today = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`);
+export const getTodayKey = () => {
+  return today.isValid ? today.toISODate() : "";
+};
+export const getTomorrowKey = () => {
+  return today.isValid ? today.plus({ days: 1 }).toISODate() : "";
+};
 
 export const runParametersMatch = (
   todayKey: string,

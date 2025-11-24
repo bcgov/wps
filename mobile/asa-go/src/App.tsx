@@ -8,6 +8,7 @@ import TabPanel from "@/components/TabPanel";
 import { useAppIsActive } from "@/hooks/useAppIsActive";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import { fetchAndCacheData } from "@/slices/dataSlice";
+import { today } from "@/slices/dataSliceUtils";
 import { fetchFireCenters } from "@/slices/fireCentersSlice";
 import {
   startWatchingLocation,
@@ -22,7 +23,7 @@ import {
   selectRunParameters,
 } from "@/store";
 import { theme } from "@/theme";
-import { NavPanel, PST_UTC_OFFSET } from "@/utils/constants";
+import { NavPanel } from "@/utils/constants";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { clearStaleHFIPMTiles } from "@/utils/storage";
 import { Filesystem } from "@capacitor/filesystem";
@@ -49,9 +50,7 @@ const App = () => {
   const [selectedFireShape, setSelectedFireShape] = useState<
     FireShape | undefined
   >(undefined);
-  const [dateOfInterest, setDateOfInterest] = useState<DateTime>(
-    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
-  );
+  const [dateOfInterest, setDateOfInterest] = useState<DateTime>(today);
 
   // selected redux state
   const { fireCenters } = useSelector(selectFireCenters);

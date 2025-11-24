@@ -7,7 +7,6 @@ import reducer, {
   fetchSFMSRunParameters,
   selectRunParameters,
   } from "@/slices/runParametersSlice";
-import { DateTime } from "luxon";
 import {
   createTestStore
 } from "@/testUtils";
@@ -30,18 +29,19 @@ vi.mock("@/utils/storage", () => ({
 import { getMostRecentRunParameters, RunParameter, RunType } from "api/fbaAPI";
 import { writeToFileSystem, readFromFilesystem } from "@/utils/storage";
 import { RootState } from "@/store";
+import { getTodayKey, getTomorrowKey } from "@/slices/dataSliceUtils";
 
-const today = DateTime.now().toISODate();
-const tomorrow = DateTime.now().plus({ days: 1 }).toISODate();
+const todayKey = getTodayKey()
+const tomorrowKey = getTomorrowKey()
 
 const mockRunParameters: { [key: string]: RunParameter } = {
-  [today]: {
-    for_date: today,
+  [todayKey]: {
+    for_date: todayKey,
     run_datetime: "2025-08-27T08:00:00Z",
     run_type: RunType.FORECAST,
   },
-  [tomorrow]: {
-    for_date: tomorrow,
+  [tomorrowKey]: {
+    for_date: tomorrowKey,
     run_datetime: "2025-08-28T08:00:00Z",
     run_type: RunType.FORECAST,
   },

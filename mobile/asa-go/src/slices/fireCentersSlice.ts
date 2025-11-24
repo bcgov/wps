@@ -1,3 +1,4 @@
+import { today } from "@/slices/dataSliceUtils";
 import { AppThunk } from "@/store";
 import {
   FIRE_CENTERS_CACHE_EXPIRATION,
@@ -59,7 +60,6 @@ export const {
 export default fireCentersSlice.reducer;
 
 export const fetchFireCenters = (): AppThunk => async (dispatch, getState) => {
-  const now = DateTime.now();
   // Check for cached fire centers data. If the data is not stale save it in redux state.
   const cachedFireCenters = await readFromFilesystem(
     Filesystem,
@@ -67,7 +67,7 @@ export const fetchFireCenters = (): AppThunk => async (dispatch, getState) => {
   );
   if (!isNull(cachedFireCenters)) {
     const lastUpdated = DateTime.fromISO(cachedFireCenters.lastUpdated);
-    if (lastUpdated.plus({ hours: FIRE_CENTERS_CACHE_EXPIRATION }) > now) {
+    if (lastUpdated.plus({ hours: FIRE_CENTERS_CACHE_EXPIRATION }) > today) {
       dispatch(getFireCentersSuccess(cachedFireCenters.data));
       return;
     }
@@ -82,7 +82,7 @@ export const fetchFireCenters = (): AppThunk => async (dispatch, getState) => {
         Filesystem,
         FIRE_CENTERS_KEY,
         fireCenters.fire_centers,
-        now
+        today
       );
       dispatch(getFireCentersSuccess(fireCenters.fire_centers));
     } catch (err) {
