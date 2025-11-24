@@ -302,6 +302,8 @@ objects:
                   "app.auto_spatial_advisory.nats_consumer",
                 ]
               env:
+                - name: UV_NO_CACHE
+                  value: "1"
                 - name: NATS_STREAM_PREFIX
                   value: ${APP_NAME}-${SUFFIX}
                 - name: NATS_SERVER
