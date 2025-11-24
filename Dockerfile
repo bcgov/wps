@@ -38,6 +38,9 @@ COPY --chown=$USERNAME:$USER_GID ./backend/packages/wps-shared/src /app/packages
 # Install dependencies using uv
 RUN uv sync --frozen --no-dev --package wps-api
 
+# Install setuptools required for GDAL build
+RUN uv pip install setuptools
+
 # Get a python binding for gdal that matches the version of gdal we have installed.
 RUN uv pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
 
