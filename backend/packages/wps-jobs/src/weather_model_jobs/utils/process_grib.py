@@ -14,7 +14,7 @@ from wps_shared.stations import get_stations_synchronously
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp
 from wps_shared.db.crud.weather_models import get_prediction_model, get_or_create_prediction_run
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
-from wps_jobs.weather_model_jobs.utils.wind_direction_utils import calculate_wind_dir_from_u_v, calculate_wind_speed_from_u_v
+from weather_model_jobs.utils.wind_direction_utils import calculate_wind_dir_from_u_v, calculate_wind_speed_from_u_v
 
 logger = logging.getLogger(__name__)
 

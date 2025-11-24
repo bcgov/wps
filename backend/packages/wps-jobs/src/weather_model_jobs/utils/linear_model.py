@@ -4,7 +4,7 @@ from typing import List
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
 from collections import defaultdict
-from wps_jobs.weather_model_jobs.utils.sample import Samples
+from weather_model_jobs.utils.sample import Samples
 
 logger = logging.getLogger(__name__)
 

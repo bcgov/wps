@@ -11,9 +11,9 @@ from wps_shared.db.models.weather_models import (
 )
 from wps_shared.schemas.stations import WeatherStation
 
-from wps_jobs.weather_model_jobs import ModelEnum
-from wps_jobs.weather_model_jobs.machine_learning import StationMachineLearning
-from wps_jobs.weather_model_jobs.utils.interpolate import (
+from weather_model_jobs import ModelEnum
+from weather_model_jobs.machine_learning import StationMachineLearning
+from weather_model_jobs.utils.interpolate import (
     SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION,
     construct_interpolated_noon_prediction,
     interpolate_between_two_points,

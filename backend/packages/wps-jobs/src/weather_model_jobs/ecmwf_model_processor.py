@@ -3,8 +3,8 @@ import pandas as pd
 import xarray as xr
 from herbie import Herbie
 from wps_shared.db.models.weather_models import ModelRunPrediction
-from wps_jobs.weather_model_jobs import ModelRunInfo, ModelRunProcessResult
-from wps_jobs.weather_model_jobs.utils.process_grib import convert_mps_to_kph, convert_kelvin_to_celsius, calculate_relative_humidity
+from weather_model_jobs import ModelRunInfo, ModelRunProcessResult
+from weather_model_jobs.utils.process_grib import convert_mps_to_kph, convert_kelvin_to_celsius, calculate_relative_humidity
 
 # ECMWF regex search strings
 TEMP = ":2t:"  # Temperature at 2 meters

@@ -81,7 +81,7 @@ COPY ./backend/packages/wps-api/prestart.sh /app
 COPY ./backend/packages/wps-api/start.sh /app
 
 # Make uv happy by copying wps_shared
-COPY ./backend/packages/wps-shared/src/wps_shared /app/packages/wps-shared/src/wps_shared
+COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 
 # Copy installed Python packages (the chown lets us install the dev packages later without root if we want)
 COPY --from=builder --chown=$USERNAME:$USER_GID /app/.venv /app/.venv

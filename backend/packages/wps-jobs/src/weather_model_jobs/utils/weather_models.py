@@ -3,20 +3,20 @@ import math
 from typing import List, Optional
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.db.models.weather_models import ModelRunPrediction
-from wps_jobs.weather_model_jobs.utils.interpolate import (
+from weather_model_jobs.utils.interpolate import (
     construct_interpolated_noon_prediction,
 )
-from wps_jobs.weather_model_jobs.utils.linear_model import LinearModel
-from wps_jobs.weather_model_jobs.utils.precip_model import PrecipModel
-from wps_jobs.weather_model_jobs.utils.regression_model import (
+from weather_model_jobs.utils.linear_model import LinearModel
+from weather_model_jobs.utils.precip_model import PrecipModel
+from weather_model_jobs.utils.regression_model import (
     RegressionModelProto,
     model_2_actual_keys,
 )
-from wps_jobs.weather_model_jobs.utils.sample import Samples
-from wps_jobs.weather_model_jobs.utils.utils import (
+from weather_model_jobs.utils.sample import Samples
+from weather_model_jobs.utils.utils import (
     construct_dictionary_from_list_by_property,
 )
-from wps_jobs.weather_model_jobs.utils.wind_direction_model import WindDirectionModel
+from weather_model_jobs.utils.wind_direction_model import WindDirectionModel
 
 logger = logging.getLogger(__name__)
 
