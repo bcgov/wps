@@ -1,7 +1,7 @@
 from dateutil.tz import tzutc
 import datetime
 
-from tileserv.tools.s3 import get_hfi_objects
+from wps_tools.s3 import get_hfi_objects
 
 utc = tzutc()
 
