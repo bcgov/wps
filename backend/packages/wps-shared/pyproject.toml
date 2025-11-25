@@ -2,9 +2,7 @@
 name = "wps-shared"
 version = "0.1.0"
 description = "Wildfire Predictive Services Unit Shared Library"
-authors = [
-    {name = "Darren Boss", email = "darren.boss@gov.bc.ca"}
-]
+authors = [{ name = "Darren Boss", email = "darren.boss@gov.bc.ca" }]
 readme = "README.md"
 requires-python = ">=3.12.3,<4.0"
 dependencies = [
@@ -24,7 +22,7 @@ dependencies = [
     "psycopg2-binary>=2.9.10,<3",
     "asyncpg>=0.30.0,<1",
     "redis>=7.0.0,<8",
-    "gdal==3.10.3",
+    "gdal==3.9.2",
 ]
 
 [project.optional-dependencies]
