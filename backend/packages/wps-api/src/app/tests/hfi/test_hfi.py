@@ -276,6 +276,12 @@ def test_valid_daily_all_required():
         wind_direction=1,
         precipitation=1,
         intensity_group=1,
+        bui=1,
+        ffmc=1,
+        dmc=1,
+        dc=1,
+        isi=1,
+        fwi=1,
     )
     result = validate_station_daily(daily)
     assert result.valid is True
