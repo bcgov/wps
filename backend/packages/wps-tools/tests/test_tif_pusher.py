@@ -1,6 +1,6 @@
 import datetime
 
-from tileserv.tools.tif_pusher import build_post_body_for_tiff
+from wps_tools.tif_pusher import build_post_body_for_tiff
 
 
 def test_get_post_body_forecast():
