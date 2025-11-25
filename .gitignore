@@ -164,3 +164,6 @@ Pods
 # bruno envs
 **/prod.bru
 **/local.bru
+
+# hypothesis directories
+.hypothesis/
