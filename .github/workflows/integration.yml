@@ -130,6 +130,50 @@ jobs:
         with:
           name: wps-shared-coverage-report
           path: ./backend/packages/wps-shared/coverage-reports/wps-shared-coverage-report.xml
+  test-wps-jobs:
+    name: Python - WPS Jobs Test with coverage
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
+      options: --user 0
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          # For sonar-scanner to work properly we can't use a shallow fetch.
+          fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.9.11"
+      - name: Cache .venv
+        id: cache-venv
+        uses: actions/cache@v4
+        with:
+          path: ~/work/wps/wps/backend/.venv
+          key: ${{ runner.os }}-venv-uv-0.9.11-${{ hashFiles('**/uv.lock') }}
+      - name: Install python dependencies using uv
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+        working-directory: ./backend
+        run: |
+          # Install JDK
+          apt-get update --fix-missing
+          apt-get -y install default-jdk
+          uv sync --all-extras
+          uv pip install setuptools
+          uv pip install --no-build-isolation gdal==$(gdal-config --version)
+      - name: Unit Test with coverage (wps_jobs)
+        working-directory: ./backend
+        run: |
+          export LD_LIBRARY_PATH=$(uv run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
+          export ORIGINS=testorigin
+          export SFMS_SECRET=secret
+          uv run pytest --cov=packages/wps-jobs/src --cov-branch --cov-report=xml:packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml packages/wps-jobs/tests -x -o log_cli=true --disable-warnings -vvv
+      - name: Archive coverage report (wps_jobs)
+        uses: actions/upload-artifact@v5
+        with:
+          name: wps-jobs-coverage-report
+          path: ./backend/packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml
   lint-and-test-web:
     name: Web - Lint, Test with coverage
     runs-on: ubuntu-24.04
@@ -181,7 +225,7 @@ jobs:
   upload-code-coverage:
     name: Coverage with CodeCov
     runs-on: ubuntu-24.04
-    needs: [lint-and-test-web, test-api, test-wps-shared]
+    needs: [lint-and-test-web, test-api, test-wps-shared, test-wps-jobs]
     steps:
       # we need to checkout, so that we have codecov.yml
       - name: Checkout repo
