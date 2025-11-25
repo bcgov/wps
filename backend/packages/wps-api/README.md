@@ -20,19 +20,28 @@ Assumes:
 
 - Installation section above is completed
 - `.env` is correctly configured in the project root
+- this dynamic library is set in the env: `DYLD_LIBRARY_PATH=/Library/Frameworks/R.framework/Resources/lib`
+
+Installing:
+
+````
+cd wps/backend
+uv sync --all-extras
+```
+
 
 Run API with:
 
 ```bash
-make run
-```
+uv run --package wps-api python -m app.main
+````
 
 ### Testing
 
 Code must pass all unit tests.
 
 ```bash
-make test
+uv run pytest
 ```
 
 ### Troubleshooting

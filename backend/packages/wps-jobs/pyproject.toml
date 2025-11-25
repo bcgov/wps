@@ -20,6 +20,7 @@ dependencies = [
     "fastapi==0.115.11",
     "xarray>=2025.3.1,<2026",
     "herbie-data>=2025.11.1,<2026",
+    "gdal==3.10.3",
 ]
 
 [project.optional-dependencies]
