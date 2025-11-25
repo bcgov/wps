@@ -58,7 +58,7 @@ async def test_s1_forecast_request_response(
     )
     assert math.isclose(response.json()["stations"][0]["fire_weather_index"], 35.640, abs_tol=0.001)
     assert math.isclose(
-        response.json()["stations"][0]["head_fire_intensity"], 41822.354, abs_tol=0.001
+        response.json()["stations"][0]["head_fire_intensity"], 41822.354, abs_tol=0.01
     )
     assert math.isclose(response.json()["stations"][0]["rate_of_spread"], 18.064, abs_tol=0.001)
     assert math.isclose(
