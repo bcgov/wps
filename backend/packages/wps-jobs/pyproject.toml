@@ -2,9 +2,7 @@
 name = "wps-jobs"
 version = "0.1.0"
 description = "Wildfire Predictive Services Unit Jobs"
-authors = [
-    {name = "Darren Boss", email = "darren.boss@gov.bc.ca"}
-]
+authors = [{ name = "Darren Boss", email = "darren.boss@gov.bc.ca" }]
 readme = "README.md"
 requires-python = ">=3.12.3,<4.0"
 dependencies = [
@@ -20,7 +18,7 @@ dependencies = [
     "fastapi==0.115.11",
     "xarray>=2025.3.1,<2026",
     "herbie-data>=2025.11.1,<2026",
-    "gdal==3.10.3",
+    "gdal==3.9.2",
 ]
 
 [project.optional-dependencies]
