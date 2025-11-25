@@ -1,7 +1,7 @@
 from typing import List
 import logging
 import numpy
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pyproj import Geod
 import numpy as np
 from sqlalchemy.orm import Session
