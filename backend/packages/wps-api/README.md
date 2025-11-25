@@ -49,13 +49,11 @@ uv run pytest
 **Poetry can't install rpy2**
 Error: `ld: library not found for -lpcre2-8`
 
-pcre2 should be installed after running [mac.sh](../setup/mac.sh). This can be verified by running
+pcre2 should be installed after running [mac.sh](../../../setup/mac.sh). This can be verified by running
 
 ```bash
 brew list pcre2
 ```
-
-This issue can be resolved by running the following command before `poetry_setup.sh`: (adjust path as necessary)
 
 ```bash
 export LIBRARY_PATH="/opt/homebrew/Cellar/pcre2/10.42/lib/:$LIBRARY_PATH"
