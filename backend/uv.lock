@@ -1099,6 +1099,12 @@ wheels = [
 ]
 
 [[package]]
+name = "gdal"
+version = "3.10.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/06/f9/a9a9496c8dc558c4c16a0c53283501fe3098b26536d5f475d378c8ed3437/gdal-3.10.3.tar.gz", hash = "sha256:b5550650daeeae8e41091581d9aea7d75a9f15b0ebbeb8c96e37458fa02264cd", size = 838170, upload-time = "2025-04-07T09:57:20.729Z" }
+
+[[package]]
 name = "geoalchemy2"
 version = "0.18.1"
 source = { registry = "https://pypi.org/simple" }
@@ -4052,6 +4058,7 @@ dependencies = [
     { name = "cffdrs" },
     { name = "cryptography" },
     { name = "fastapi" },
+    { name = "gdal" },
     { name = "geoalchemy2" },
     { name = "geopandas" },
     { name = "greenlet" },
@@ -4116,6 +4123,7 @@ requires-dist = [
     { name = "coverage", marker = "extra == 'dev'", specifier = ">=7.6.4,<8" },
     { name = "cryptography", specifier = ">=46.0.0,<47" },
     { name = "fastapi", specifier = ">=0,<1" },
+    { name = "gdal", specifier = "==3.10.3" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
     { name = "greenlet", specifier = ">=3.0.0,<4" },
@@ -4169,6 +4177,7 @@ dependencies = [
     { name = "affine" },
     { name = "asyncpg" },
     { name = "fastapi" },
+    { name = "gdal" },
     { name = "herbie-data" },
     { name = "numpy" },
     { name = "psycopg2-binary" },
@@ -4197,6 +4206,7 @@ requires-dist = [
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "coverage", marker = "extra == 'dev'", specifier = ">=7.6.4,<8" },
     { name = "fastapi", specifier = "==0.115.11" },
+    { name = "gdal", specifier = "==3.10.3" },
     { name = "herbie-data", specifier = ">=2025.11.1,<2026" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29.5,<7" },
     { name = "numpy", specifier = "==2.1.*" },
@@ -4225,6 +4235,7 @@ dependencies = [
     { name = "aiohttp" },
     { name = "asyncpg" },
     { name = "fastapi" },
+    { name = "gdal" },
     { name = "geoalchemy2" },
     { name = "geopandas" },
     { name = "psycopg2-binary" },
@@ -4256,6 +4267,7 @@ requires-dist = [
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "coverage", marker = "extra == 'dev'", specifier = ">=7.6.4,<8" },
     { name = "fastapi", specifier = ">=0.115.11,<1" },
+    { name = "gdal", specifier = "==3.10.3" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
     { name = "psycopg2-binary", specifier = ">=2.9.10,<3" },

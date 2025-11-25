@@ -48,6 +48,7 @@ dependencies = [
     "cffdrs",
     "geopandas>=1.0.1,<2",
     "shapely>=2.0.5,<3",
+    "gdal==3.10.3",
 ]
 
 [project.optional-dependencies]
