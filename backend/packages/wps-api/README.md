@@ -1,40 +1,10 @@
-## Getting Started
-
-You will need an environment file. See: `.env.example`. Contact current maintainers for current variable settings.
-
-### Installing
-
-- Automated (mac only):
-  - Run `setup/mac.sh` in parent folder
-  - Follow [manual setup](../docs/MANUAL_SETUP.md) for database setup notes as of Nov 2024.
-  - Follow [lima setup steps](../setup/LIMA.md)
-  - then add run `eval "$(pyenv init -)"` in your current shell and add it to your `rc` or `zshrc` file
-  - then run `poetry-workspaces-setup.sh` from the root of the wps project
-  - Follow [vsc setup steps](../setup/VSC.md)
-- Manual (linux): See [manual setup](../docs/MANUAL_SETUP.md).
-  Note: you may want to alias `python3` as `python` in your profile
-
-### Running
-
-Assumes:
-
-- Installation section above is completed
-- `.env` is correctly configured in the project root
-- this dynamic library is set in the env: `DYLD_LIBRARY_PATH=/Library/Frameworks/R.framework/Resources/lib`
-
-Installing:
-
-````
-cd wps/backend
-uv sync --all-extras
-```
-
+Assumes installation and setup is done in [backend/README.md](../../../backend/README.md)
 
 Run API with:
 
 ```bash
 uv run --package wps-api python -m app.main
-````
+```
 
 ### Testing
 
