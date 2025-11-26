@@ -15,25 +15,30 @@ backend/
 └── uv.lock           # Dependency lock file
 ```
 
-## Setup
+## Getting Started
+
+You will need an environment file. See: `.env.example`. Contact current maintainers for current variable settings.
+
+### Installing
+
+- Automated (mac only):
+  - Run `setup/mac.sh` in parent folder
+  - Follow [manual setup](../docs/MANUAL_SETUP.md) for database setup notes as of Nov 2024.
+  - Follow [vsc setup steps](../setup/VSC.md)
+- Manual (linux): See [manual setup](../docs/MANUAL_SETUP.md).
+  Note: you may want to alias `python3` as `python` in your profile
+
+### Setup
+
+- Installation section above is completed
+- `.env` is correctly configured in the project root
+- this dynamic library is set in the env: `DYLD_LIBRARY_PATH=/Library/Frameworks/R.framework/Resources/lib`
 
 ### Install Dependencies
 
 ```bash
-cd backend
-uv sync
-```
-
-### Install GDAL (Development)
-
-GDAL is platform-specific and installed separately:
-
-```bash
-# Check your system GDAL version
-gdal-config --version
-
-# Install matching Python bindings (replace X.X.X with your version)
-uv pip install --no-build-isolation gdal==$(gdal-config --version)
+cd wps/backend
+uv sync --all-extras
 ```
 
 ## Running Tests
@@ -54,6 +59,7 @@ uv run pytest packages/wps-shared/src/wps_shared/tests/test_fuel_raster.py
 ## VSCode Integration
 
 The workspace is configured for VSCode with:
+
 - Python interpreter: `backend/.venv/bin/python`
 - Test discovery working directory: `backend/`
 - Pytest configuration in `backend/pytest.ini`
@@ -84,7 +90,7 @@ Each package can be built independently:
 # API image
 docker build -f Dockerfile -t wps-api .
 
-# Jobs image  
+# Jobs image
 docker build -f Dockerfile.jobs -t wps-jobs .
 ```
 
