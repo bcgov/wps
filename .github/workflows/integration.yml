@@ -168,7 +168,7 @@ jobs:
           export LD_LIBRARY_PATH=$(uv run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
-          uv run pytest --cov=packages/wps-jobs/src --cov-branch --cov-report=xml:packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml packages/wps-jobs/tests -x -o log_cli=true --disable-warnings -vvv
+          uv run pytest --cov=packages/wps-jobs/src --cov-branch --cov-report=xml:packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml packages/wps-jobs/src/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_jobs)
         uses: actions/upload-artifact@v5
         with:
