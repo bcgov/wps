@@ -10,6 +10,7 @@ from datetime import timedelta, datetime, timezone
 from collections.abc import Generator
 import logging
 import tempfile
+import aiofiles
 from sqlalchemy.orm import Session
 from wps_shared.db.database import get_write_session_scope
 from wps_shared.db.crud.weather_models import (
@@ -92,8 +93,8 @@ class RDPSGrib:
                             # If we've downloaded the file ok, we can now save it to S3 storage.
                             try:
                                 async with get_client() as (client, bucket):
-                                    with open(downloaded, "rb") as f:
-                                        file_content = f.read()
+                                    async with aiofiles.open(downloaded, "rb") as f:
+                                        file_content = await f.read()
                                     await client.put_object(Bucket=bucket, Key=key, Body=file_content)
                                     create_saved_model_run_for_sfms_url(self.session, url, key)
                             finally:
