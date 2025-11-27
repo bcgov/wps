@@ -1,35 +1,39 @@
-import VectorTileLayer from "ol/layer/VectorTile";
-import { applyStyle } from "ol-mapbox-style";
-import { BC_ROAD_BASE_MAP_SERVER_URL } from "utils/constants";
-import XYZ from "ol/source/XYZ";
-import TileLayer from "ol/layer/Tile";
+import { localBasemapStyle } from "@/components/map/localBasemapStyle";
+import { hfiStyler } from "@/featureStylers";
+import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from "@/utils/env";
+import { PMTilesCache } from "@/utils/pmtilesCache";
 import {
   HFIPMTilesFileVectorOptions,
   PMTilesFileVectorSource,
 } from "@/utils/pmtilesVectorSource";
-import { PMTilesCache } from "@/utils/pmtilesCache";
 import { Filesystem } from "@capacitor/filesystem";
-import { localBasemapStyle } from "@/components/map/localBasemapStyle";
-import { hfiStyler } from "@/featureStylers";
+import { applyStyle } from "ol-mapbox-style";
+import MVT from "ol/format/MVT";
+import VectorTileLayer from "ol/layer/VectorTile";
+import VectorSource from "ol/source/VectorTile";
 
 export const BASEMAP_LAYER_NAME = "basemapLayer";
 export const LOCAL_BASEMAP_LAYER_NAME = "localBasemapLayer";
 export const HFI_LAYER_NAME = "hfiVectorLayer";
 export const ZONE_STATUS_LAYER_NAME = "fireShapeVector";
 
-// Static source is allocated since our tile source does not change and
-// a new source is not allocated every time WeatherMap is re-rendered,
-// which causes the TileLayer to re-render.
-const basemapSource = new XYZ({
-  url: `${BC_ROAD_BASE_MAP_SERVER_URL}/tile/{z}/{y}/{x}`,
-  // Normally we would get attribution text from `${BC_ROAD_BASE_MAP_SERVER_URL}?f=pjson`
-  // however this endpoint only allows the origin of http://localhost:3000, so the text has been just copied from that link
-  // attributions: 'Government of British Columbia, DataBC, GeoBC'
+const basemapSource = new VectorSource({
+  format: new MVT({ layerName: "mvt:layer" }),
+  url: BASEMAP_TILE_URL,
 });
 
-export const createBasemapLayer = () => {
-  const basemapLayer = new TileLayer({ source: basemapSource, zIndex: 20 });
+export const createBasemapLayer = async () => {
+  const basemapLayer = new VectorTileLayer({
+    source: basemapSource
+  });
   basemapLayer.set("name", BASEMAP_LAYER_NAME);
+  // Fetch the style json from ArcGIS Online
+  const response = await fetch(BASEMAP_STYLE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  const style = await response.json();
+  applyStyle(basemapLayer, style, { updateSource: false });
   return basemapLayer;
 };
 
