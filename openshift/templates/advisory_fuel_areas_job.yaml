@@ -33,8 +33,9 @@ objects:
             - name: advisory-fuel-areas-container
               image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-${SUFFIX}:${SUFFIX}
               command:
-                - poetry
+                - uv
                 - run
+                - --no-sync
                 - python
                 - "-m"
                 - app.jobs.fuel_type_areas_per_zone

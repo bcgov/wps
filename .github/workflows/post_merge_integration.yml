@@ -21,29 +21,27 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.9.11"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
         with:
-          path: ~/work/wps/wps/api/.venv
-          key: ${{ runner.os }}-venv-poetry-1.8.3-${{ hashFiles('**/poetry.lock') }}
-      - name: Install python dependencies using poetry (api)
+          path: ~/work/wps/wps/backend/.venv
+          key: ${{ runner.os }}-venv-uv-0.9.11-${{ hashFiles('**/uv.lock') }}
+      - name: Install python dependencies using uv
         if: steps.cache-venv.outputs.cache-hit != 'true'
-        working-directory: ./api
+        working-directory: ./backend
         run: |
-          poetry run python -m pip install --upgrade pip
-          poetry install
-          poetry run python -m pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
-      - name: Reinstall wps_shared
-        working-directory: ./api
+          uv sync --all-extras
+          uv pip install setuptools
+          uv pip install --no-build-isolation gdal==$(gdal-config --version)
+      - name: Lint (api/wps_shared/wps_jobs)
+        working-directory: ./backend
         run: |
-          poetry run python -m pip install --no-deps --force-reinstall ../wps_shared
-      - name: Lint (api/wps_shared)
-        # We used to be able to do linting before installing gdal, but it's not possible anymore.
-        # We can however place it ahead of the R installs.
-        working-directory: ./api
-        run: |
-          poetry run ruff check app/*.py app/**/*.py ../wps_shared/wps_shared/*.py ../wps_shared/wps_shared/**/*.py ../wps_jobs/wps_jobs/*.py ../wps_jobs/wps_jobs/**/*.py
+          uv run ruff check packages/wps-api/src packages/wps-shared/src packages/wps-jobs/src
 
   test-api:
     name: Python - API Test with coverage
@@ -57,87 +55,39 @@ jobs:
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.9.11"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
         with:
-          path: ~/work/wps/wps/api/.venv
-          key: ${{ runner.os }}-venv-poetry-1.8.3-${{ hashFiles('**/poetry.lock') }}
-      - name: Install python dependencies using poetry (api)
+          path: ~/work/wps/wps/backend/.venv
+          key: ${{ runner.os }}-venv-uv-0.9.11-${{ hashFiles('**/uv.lock') }}
+      - name: Install python dependencies using uv
         if: steps.cache-venv.outputs.cache-hit != 'true'
-        working-directory: ./api
+        working-directory: ./backend
         run: |
           # Install JDK
           apt-get update --fix-missing
           apt-get -y install default-jdk
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project false
-          poetry run python -m pip install --upgrade pip
-          poetry install
-          poetry run python -m pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
-      - name: Reinstall wps_shared
-        working-directory: ./api
-        run: |
-          poetry run python -m pip install --no-deps --force-reinstall ../wps_shared
+          uv sync --all-extras
+          uv pip install setuptools
+          uv pip install --no-build-isolation gdal==$(gdal-config --version)
       - name: Unit Test with coverage (api)
-        working-directory: ./api
+        working-directory: ./backend
         run: |
-          export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
-          export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATH
+          export LD_LIBRARY_PATH=$(uv run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
+          export CLASSPATH=./packages/wps-api/libs/REDapp_Lib.jar:./packages/wps-api/libs/WTime.jar:./packages/wps-api/libs/hss-java.jar:$CLASSPATH
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
-          poetry run pytest -n auto --cov=app --cov-branch --cov-report=xml:coverage-reports/api-coverage-report.xml app/tests -x -o log_cli=true --disable-warnings -vvv
+          uv run pytest -n auto --cov=packages/wps-api/src/app --cov-branch --cov-report=xml:packages/wps-api/coverage-reports/api-coverage-report.xml packages/wps-api/src/app/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (api)
         uses: actions/upload-artifact@v5
         with:
           name: api-coverage-report
-          path: ./api/coverage-reports/api-coverage-report.xml
-  test-wps-jobs:
-    name: Python - WPS Jobs Test with coverage
-    runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
-      options: --user 0
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v6
-        with:
-          # For sonar-scanner to work properly we can't use a shallow fetch.
-          fetch-depth: 0
-      - name: Cache .venv
-        id: cache-venv
-        uses: actions/cache@v4
-        with:
-          path: ~/work/wps/wps/wps_jobs/.venv
-          key: ${{ runner.os }}-venv-poetry-1.8.3-${{ hashFiles('**/poetry.lock') }}
-      - name: Install python dependencies using poetry (wps_jobs)
-        if: steps.cache-venv.outputs.cache-hit != 'true'
-        working-directory: ./wps_jobs
-        run: |
-          # Install JDK
-          apt-get update --fix-missing
-          apt-get -y install default-jdk
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project false
-          poetry run python -m pip install --upgrade pip
-          poetry install
-          poetry run python -m pip install -U setuptools wheel
-          poetry run python -m pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
-      - name: Reinstall wps_shared
-        working-directory: ./wps_jobs
-        run: |
-          poetry run python -m pip install --force-reinstall ../wps_shared
-      - name: Unit Test with coverage (wps_jobs)
-        working-directory: ./wps_jobs
-        run: |
-          export ORIGINS=testorigin
-          export SFMS_SECRET=secret
-          poetry run pytest -n auto --cov=wps_jobs --cov-branch --cov-report=xml:coverage-reports/wps-jobs-coverage-report.xml tests -x -o log_cli=true --disable-warnings -vvv
-      - name: Archive coverage report (wps_jobs)
-        uses: actions/upload-artifact@v5
-        with:
-          name: wps-jobs-coverage-report
-          path: ./wps_jobs/coverage-reports/wps-jobs-coverage-report.xml
+          path: ./backend/packages/wps-api/coverage-reports/api-coverage-report.xml
   test-wps-shared:
     name: Python - WPS Shared Test with coverage
     runs-on: ubuntu-24.04
@@ -150,36 +100,81 @@ jobs:
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.9.11"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
         with:
-          path: ~/work/wps/wps/wps_shared/.venv
-          key: ${{ runner.os }}-venv-poetry-1.8.3-${{ hashFiles('**/poetry.lock') }}
-      - name: Install python dependencies using poetry (wps_shared)
+          path: ~/work/wps/wps/backend/.venv
+          key: ${{ runner.os }}-venv-uv-0.9.11-${{ hashFiles('**/uv.lock') }}
+      - name: Install python dependencies using uv
         if: steps.cache-venv.outputs.cache-hit != 'true'
-        working-directory: ./wps_shared
+        working-directory: ./backend
         run: |
           # Install JDK
           apt-get update --fix-missing
           apt-get -y install default-jdk
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project false
-          poetry run python -m pip install --upgrade pip
-          poetry install
-          poetry run python -m pip install -U setuptools wheel
-          poetry run python -m pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
+          uv sync --all-extras
+          uv pip install setuptools
+          uv pip install --no-build-isolation gdal==$(gdal-config --version)
       - name: Unit Test with coverage (wps_shared)
-        working-directory: ./wps_shared
+        working-directory: ./backend
         run: |
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
-          poetry run pytest --cov=wps_shared --cov-branch --cov-report=xml:coverage-reports/wps-shared-coverage-report.xml wps_shared/tests -x -o log_cli=true --disable-warnings -vvv
+          uv run pytest --cov=packages/wps-shared/src/wps_shared --cov-branch --cov-report=xml:packages/wps-shared/coverage-reports/wps-shared-coverage-report.xml packages/wps-shared/src/wps_shared/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_shared)
         uses: actions/upload-artifact@v5
         with:
           name: wps-shared-coverage-report
-          path: ./wps_shared/coverage-reports/wps-shared-coverage-report.xml
+          path: ./backend/packages/wps-shared/coverage-reports/wps-shared-coverage-report.xml
+  test-wps-jobs:
+    name: Python - WPS Jobs Test with coverage
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
+      options: --user 0
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          # For sonar-scanner to work properly we can't use a shallow fetch.
+          fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.9.11"
+      - name: Cache .venv
+        id: cache-venv
+        uses: actions/cache@v4
+        with:
+          path: ~/work/wps/wps/backend/.venv
+          key: ${{ runner.os }}-venv-uv-0.9.11-${{ hashFiles('**/uv.lock') }}
+      - name: Install python dependencies using uv
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+        working-directory: ./backend
+        run: |
+          # Install JDK
+          apt-get update --fix-missing
+          apt-get -y install default-jdk
+          uv sync --all-extras
+          uv pip install setuptools
+          uv pip install --no-build-isolation gdal==$(gdal-config --version)
+      - name: Unit Test with coverage (wps_jobs)
+        working-directory: ./backend
+        run: |
+          export LD_LIBRARY_PATH=$(uv run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
+          export ORIGINS=testorigin
+          export SFMS_SECRET=secret
+          uv run pytest --cov=packages/wps-jobs/src --cov-branch --cov-report=xml:packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml packages/wps-jobs/src/tests -x -o log_cli=true --disable-warnings -vvv
+      - name: Archive coverage report (wps_jobs)
+        uses: actions/upload-artifact@v5
+        with:
+          name: wps-jobs-coverage-report
+          path: ./backend/packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml
   lint-and-test-web:
     name: Web - Lint, Test with coverage
     runs-on: ubuntu-24.04
@@ -237,7 +232,7 @@ jobs:
   upload-code-coverage:
     name: Coverage with CodeCov
     runs-on: ubuntu-24.04
-    needs: [lint-and-test-web, test-api, test-wps-jobs, test-wps-shared]
+    needs: [lint-and-test-web, test-api, test-wps-shared, test-wps-jobs]
     steps:
       # we need to checkout, so that we have codecov.yml
       - name: Checkout repo
