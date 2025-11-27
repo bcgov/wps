@@ -88,12 +88,13 @@ class RDPSGrib:
                         if downloaded:
                             self.files_downloaded += 1
                             file_name = self._get_file_name_from_url(url)
-                            file_path = os.path.join(temporary_path, file_name)
                             key = self._generate_s3_key(model_run_hour, weather_param, file_name)
                             # If we've downloaded the file ok, we can now save it to S3 storage.
                             try:
                                 async with get_client() as (client, bucket):
-                                    await client.put_object(Bucket=bucket, Key=key, Body=open(file_path, "rb"))
+                                    with open(downloaded, "rb") as f:
+                                        file_content = f.read()
+                                    await client.put_object(Bucket=bucket, Key=key, Body=file_content)
                                     create_saved_model_run_for_sfms_url(self.session, url, key)
                             finally:
                                 # delete the file when done.
