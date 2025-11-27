@@ -65,15 +65,16 @@ export const fetchFireCenters = (): AppThunk => async (dispatch, getState) => {
     Filesystem,
     FIRE_CENTERS_KEY
   );
+  const networkStatus = getState().networkStatus;
   if (!isNull(cachedFireCenters)) {
     const lastUpdated = DateTime.fromISO(cachedFireCenters.lastUpdated);
-    if (lastUpdated.plus({ hours: FIRE_CENTERS_CACHE_EXPIRATION }) > today) {
+    // Update state from the cached data if it isn't stale or if we're offline.
+    if (lastUpdated.plus({ hours: FIRE_CENTERS_CACHE_EXPIRATION }) > today || !networkStatus.networkStatus.connected) {
       dispatch(getFireCentersSuccess(cachedFireCenters.data));
       return;
     }
   }
   // Cached data is not available or is stale so we need to fetch and cache if we're online.
-  const networkStatus = getState().networkStatus;
   if (networkStatus.networkStatus.connected) {
     try {
       dispatch(getFireCentersStart());
