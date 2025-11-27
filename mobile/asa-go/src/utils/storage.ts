@@ -1,6 +1,5 @@
 import {
   FireCenter,
-  FireCentreTPIResponse,
   FireShapeArea,
   FireShapeAreaDetail,
   FireZoneHFIStatsDictionary,
@@ -24,10 +23,14 @@ export type CacheableData<T extends CacheableDataType> = {
 };
 
 type Cacheable =
-  | FireShapeAreaDetail[]
-  | FireCentreTPIResponse
   | FireCenter[]
   | { [key: string]: RunParameter };
+
+// Type returned by readFromFilesystem function
+export type CachedData<T extends CacheableData<CacheableDataType> | Cacheable>  = {
+  lastUpdated: string,
+  data: T
+}
 
 const CACHE_KEY = "_asa_go";
 export const FIRE_CENTERS_KEY = "fireCenters";
@@ -62,7 +65,7 @@ export const writeToFileSystem = async (
 export const readFromFilesystem = async (
   filesystem: FilesystemPlugin,
   key: string
-) => {
+): Promise<CachedData<CacheableData<CacheableDataType> | Cacheable> | null> => {
   try {
     const result = await filesystem.readFile({
       path: getPath(key),

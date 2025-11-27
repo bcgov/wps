@@ -1,3 +1,4 @@
+import { AppThunk } from "@/store";
 import {
   dataAreEqual,
   fetchFireShapeAreas,
@@ -9,9 +10,9 @@ import {
   runParametersMatch,
   today,
 } from "@/utils/dataSliceUtils";
-import { AppThunk } from "@/store";
 import {
   CacheableData,
+  CachedData,
   FIRE_SHAPE_AREAS_KEY,
   HFI_STATS_KEY,
   PROVINCIAL_SUMMARY_KEY,
@@ -104,10 +105,10 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
   }
   // Grab cached data and check if we have cached data for the run parameters in state, if so, set
   // redux state with this data.
-  const cachedProvincialSummaries = await readFromFilesystem(
+  const cachedProvincialSummaries = (await readFromFilesystem(
     Filesystem,
     PROVINCIAL_SUMMARY_KEY
-  );
+  )) as CachedData<CacheableData<FireShapeAreaDetail[]>>;
   isCurrent =
     isCurrent &&
     !isNil(cachedProvincialSummaries?.data) &&
@@ -118,10 +119,10 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       cachedProvincialSummaries.data
     );
 
-  const cachedFireShapeAreas = await readFromFilesystem(
+  const cachedFireShapeAreas = (await readFromFilesystem(
     Filesystem,
     FIRE_SHAPE_AREAS_KEY
-  );
+  )) as CachedData<CacheableData<FireShapeArea[]>>;
   isCurrent =
     isCurrent &&
     !isNil(cachedFireShapeAreas?.data) &&
@@ -132,7 +133,10 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       cachedFireShapeAreas.data
     );
 
-  const cachedTPIStats = await readFromFilesystem(Filesystem, TPI_STATS_KEY);
+  const cachedTPIStats = (await readFromFilesystem(
+    Filesystem,
+    TPI_STATS_KEY
+  )) as CachedData<CacheableData<FireZoneTPIStats[]>>;
   isCurrent =
     isCurrent &&
     !isNil(cachedTPIStats?.data) &&
@@ -143,7 +147,10 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       cachedTPIStats.data
     );
 
-  const cachedHFIStats = await readFromFilesystem(Filesystem, HFI_STATS_KEY);
+  const cachedHFIStats = (await readFromFilesystem(
+    Filesystem,
+    HFI_STATS_KEY
+  )) as CachedData<CacheableData<FireZoneHFIStatsDictionary>>;
   isCurrent =
     isCurrent &&
     !isNil(cachedHFIStats?.data) &&

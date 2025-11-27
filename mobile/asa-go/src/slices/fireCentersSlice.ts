@@ -70,7 +70,7 @@ export const fetchFireCenters = (): AppThunk => async (dispatch, getState) => {
     const lastUpdated = DateTime.fromISO(cachedFireCenters.lastUpdated);
     // Update state from the cached data if it isn't stale or if we're offline.
     if (lastUpdated.plus({ hours: FIRE_CENTERS_CACHE_EXPIRATION }) > today || !networkStatus.networkStatus.connected) {
-      dispatch(getFireCentersSuccess(cachedFireCenters.data));
+      dispatch(getFireCentersSuccess(cachedFireCenters.data as FireCenter[]));
       return;
     }
   }
