@@ -113,11 +113,7 @@ const ASAGoMap = ({
   const [scaleVisible, setScaleVisible] = useState<boolean>(true);
   const [basemapLayer] = useState<TileLayer>(createBasemapLayer());
   const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
-    useState<VectorTileLayer>(() => {
-      const layer = new VectorTileLayer();
-      layer.set("name", LOCAL_BASEMAP_LAYER_NAME);
-      return layer;
-    });
+    useState<VectorTileLayer | null>(null);
   const [centerOnLocation, setCenterOnLocation] = useState<boolean>(false);
   const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>(
     defaultLayerVisibility
@@ -305,11 +301,11 @@ const ASAGoMap = ({
   useEffect(() => {
     // Toggle basemap visibility based on network connection status.
     if (networkStatus.connected === true) {
-      localBasemapVectorLayer.setVisible(false);
+      localBasemapVectorLayer?.setVisible(false);
       basemapLayer.setVisible(true);
     } else {
       basemapLayer.setVisible(false);
-      localBasemapVectorLayer.setVisible(true);
+      localBasemapVectorLayer?.setVisible(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [networkStatus]);
