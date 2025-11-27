@@ -39,8 +39,8 @@ USER 0
 # Set configuration files to read-only for security
 RUN chmod 444 /app/pyproject.toml /app/uv.lock \
     /app/packages/wps-api/pyproject.toml \
-    /app/packages/wps-shared/pyproject.toml \
-    RUN chmod -R a-w /app/packages/wps-shared/src
+    /app/packages/wps-shared/pyproject.toml
+RUN chmod -R a-w /app/packages/wps-shared/src
 
 # Switch back to non-root user
 USER $USERNAME
