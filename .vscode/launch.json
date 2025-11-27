@@ -175,6 +175,80 @@
             "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
+            "name": "env_canada GDPS",
+            "type": "debugpy",
+            "justMyCode": false,
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "weather_model_jobs.env_canada",
+            "args": [
+                "GDPS"
+            ]
+        },
+        {
+            "name": "env_canada HRDPS",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "weather_model_jobs.env_canada",
+            "args": [
+                "HRDPS"
+            ]
+        },
+        {
+            "name": "env_canada RDPS",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "weather_model_jobs.env_canada",
+            "args": [
+                "RDPS"
+            ]
+        },
+        {
+            "name": "noaa GFS",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "weather_model_jobs.noaa",
+            "args": [
+                "GFS"
+            ]
+        },
+        {
+            "name": "noaa NAM",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "weather_model_jobs.noaa",
+            "args": [
+                "NAM"
+            ]
+        },
+        {
+            "name": "fuel layer processor job",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "fuel_raster",
+            "console": "integratedTerminal",
+            "args": []
+        },
+        {
+            "name": "ecmwf IFS",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "weather_model_jobs.ecmwf",
+        },
+        {
             "name": "Chrome",
             "type": "chrome",
             "request": "launch",
