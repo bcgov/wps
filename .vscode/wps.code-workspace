@@ -14,8 +14,7 @@
 		"python.testing.pytestArgs": [
 			"-v",
 			"--tb=short",
-			"--import-mode=importlib",
-			"packages"
+			"--import-mode=importlib"
 		],
 		"python.analysis.extraPaths": [
 			"${workspaceFolder}/backend/packages/wps-api/src",
