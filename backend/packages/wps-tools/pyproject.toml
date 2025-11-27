@@ -3,7 +3,6 @@ name = "wps-tools"
 version = "0.1.0"
 description = "Wildfire Predictive Services Unit Tools"
 authors = [{ name = "Conor Brady", email = "conor.brady@gov.bc.ca" }]
-readme = "README.md"
 requires-python = ">=3.12.3,<4.0"
 dependencies = [
     "python-decouple>=3.6,<4",

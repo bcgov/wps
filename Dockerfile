@@ -30,9 +30,7 @@ WORKDIR /app
 COPY ./backend/pyproject.toml /app/
 COPY ./backend/uv.lock /app/
 COPY ./backend/packages/wps-api/pyproject.toml /app/packages/wps-api/
-COPY ./backend/packages/wps-api/README.md /app/packages/wps-api/
 COPY ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
-COPY ./backend/packages/wps-shared/README.md /app/packages/wps-shared/
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 
 # Switch to root to set file permissions
@@ -40,9 +38,9 @@ USER 0
 
 # Set configuration files to read-only for security
 RUN chmod 444 /app/pyproject.toml /app/uv.lock \
-    /app/packages/wps-api/pyproject.toml /app/packages/wps-api/README.md \
-    /app/packages/wps-shared/pyproject.toml /app/packages/wps-shared/README.md
-RUN chmod -R a-w /app/packages/wps-shared/src
+    /app/packages/wps-api/pyproject.toml \
+    /app/packages/wps-shared/pyproject.toml \
+    RUN chmod -R a-w /app/packages/wps-shared/src
 
 # Switch back to non-root user
 USER $USERNAME
@@ -78,9 +76,7 @@ WORKDIR /app
 # Copy workspace and package configuration
 COPY --from=builder /app/pyproject.toml /app/
 COPY --from=builder /app/packages/wps-api/pyproject.toml /app/packages/wps-api/
-COPY --from=builder /app/packages/wps-api/README.md /app/packages/wps-api/
 COPY --from=builder /app/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
-COPY --from=builder /app/packages/wps-shared/README.md /app/packages/wps-shared/
 
 # Switch back to our non-root user
 USER $USERNAME
