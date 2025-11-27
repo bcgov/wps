@@ -3,7 +3,6 @@ name = "wps-jobs"
 version = "0.1.0"
 description = "Wildfire Predictive Services Unit Jobs"
 authors = [{ name = "Darren Boss", email = "darren.boss@gov.bc.ca" }]
-readme = "README.md"
 requires-python = ">=3.12.3,<4.0"
 dependencies = [
     "wps-shared",
