@@ -1,4 +1,4 @@
-import { today } from "@/slices/dataSliceUtils";
+import { today } from "@/utils/dataSliceUtils";
 import { AppThunk } from "@/store";
 import {
   FIRE_CENTERS_CACHE_EXPIRATION,

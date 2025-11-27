@@ -21,7 +21,7 @@ vi.mock("@/utils/storage", () => ({
 
 vi.mock("@/slices/dataSliceUtils", async () => {
   const actual = await vi.importActual<
-    typeof import("@/slices/dataSliceUtils")
+    typeof import("@/utils/dataSliceUtils")
   >("@/slices/dataSliceUtils");
   return {
     ...actual,
@@ -45,7 +45,7 @@ import {
   fetchHFIStats,
   fetchProvincialSummaries,
   fetchTpiStats,
-} from "@/slices/dataSliceUtils";
+} from "@/utils/dataSliceUtils";
 import { initialState as runParametersInitialState } from "@/slices/runParametersSlice";
 import { createTestStore } from "@/testUtils";
 import {

@@ -17,7 +17,7 @@ import {
   fetchTpiStatsForRunParameter,
   runParametersMatch,
   shapeDataForCaching,
-} from "@/slices/dataSliceUtils"; // adjust path
+} from "@/utils/dataSliceUtils";
 import { CacheableData } from "@/utils/storage";
 import { DateTime } from "luxon";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";

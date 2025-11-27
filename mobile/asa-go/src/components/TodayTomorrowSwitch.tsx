@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import { MAP_BUTTON_GREY } from "@/theme";
 import { BORDER_RADIUS, BUTTON_HEIGHT } from "@/components/MapIconButton";
-import { today } from "@/slices/dataSliceUtils";
+import { today } from "@/utils/dataSliceUtils";
 
 interface TodayTomorrowSwitchProps {
   border?: boolean;

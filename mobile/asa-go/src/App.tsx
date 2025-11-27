@@ -8,7 +8,7 @@ import TabPanel from "@/components/TabPanel";
 import { useAppIsActive } from "@/hooks/useAppIsActive";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import { fetchAndCacheData } from "@/slices/dataSlice";
-import { today } from "@/slices/dataSliceUtils";
+import { today } from "@/utils/dataSliceUtils";
 import { fetchFireCenters } from "@/slices/fireCentersSlice";
 import {
   startWatchingLocation,

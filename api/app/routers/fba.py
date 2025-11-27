@@ -68,7 +68,7 @@ router = APIRouter(
 
 async def get_all_zone_data_for_source_ids(
     session: AsyncSession,
-    zone_source_ids: List[SFMSFuelType],
+    zone_source_ids: List[str],
     run_type: RunType,
     for_date: date,
     run_datetime: datetime,
@@ -174,14 +174,14 @@ async def get_shapes(
 
         # Fetch rows.
         for row in rows:
-            combustible_area = row.combustible_area  # type: ignore
-            hfi_area = row.hfi_area  # type: ignore
+            combustible_area = row.combustible_area
+            hfi_area = row.hfi_area
             shapes.append(
                 FireShapeArea(
-                    fire_shape_id=row.source_identifier,  # type: ignore
-                    threshold=row.threshold,  # type: ignore
-                    combustible_area=row.combustible_area,  # type: ignore
-                    elevated_hfi_area=row.hfi_area,  # type: ignore
+                    fire_shape_id=row.source_identifier,
+                    threshold=row.threshold,
+                    combustible_area=row.combustible_area,
+                    elevated_hfi_area=row.hfi_area,
                     elevated_hfi_percentage=hfi_area / combustible_area * 100,
                 )
             )
@@ -355,7 +355,7 @@ async def get_run_datetimes_for_date_and_runtype(
         rows = await get_run_datetimes(session, RunTypeEnum(run_type.value), for_date)
 
         for row in rows:
-            datetimes.append(row.run_datetime)  # type: ignore
+            datetimes.append(row.run_datetime)
 
         return datetimes
 

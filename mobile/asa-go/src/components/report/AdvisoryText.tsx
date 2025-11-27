@@ -10,7 +10,7 @@ import {
   useProvincialSummaryForDate,
 } from "@/hooks/dataHooks";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
-import { today } from "@/slices/dataSliceUtils";
+import { today } from "@/utils/dataSliceUtils";
 import {
   getTopFuelsByArea,
   getTopFuelsByProportion,
