@@ -35,6 +35,7 @@ vi.mock(import("@/hooks/dataHooks"), async (importOriginal) => {
 });
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import { useFilteredHFIStatsForDate } from "@/hooks/dataHooks";
+import { PST_UTC_OFFSET } from "@/utils/constants";
 
 const advisoryThreshold = 20;
 const TEST_FOR_DATE = "2025-07-14";
@@ -534,7 +535,7 @@ describe("AdvisoryText", () => {
     const todayRunParameter = cloneDeep(testRunParameter);
     (useRunParameterForDate as Mock).mockReturnValue({
       ...todayRunParameter,
-      for_date: DateTime.now().toISODate(),
+      for_date: DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toISODate(),
     });
     (useFilteredHFIStatsForDate as Mock).mockReturnValue({});
     const store = buildTestStore(
