@@ -7,7 +7,7 @@ import ASAGoMap, { ASAGoMapProps } from "@/components/map/ASAGoMap";
 import {
   createTestStore,
   setupOpenLayersMocks,
-  baseLayerMock,
+  createLayerMock,
 } from "@/testUtils";
 import { geolocationInitialState } from "@/slices/geolocationSlice";
 import * as mapView from "@/components/map/mapView";
@@ -41,7 +41,12 @@ vi.mock("@/layerDefinitions", async () => {
     ...actual,
     createHFILayer: vi
       .fn()
-      .mockImplementation(() => Promise.resolve(baseLayerMock)),
+      .mockImplementation(() => Promise.resolve(createLayerMock("HFILayer"))),
+    createBasemapLayer: vi
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve(createLayerMock("vectorBasemapLayer"))
+      ),
   };
 });
 

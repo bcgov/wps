@@ -7,8 +7,10 @@ import {
   setDefaultLayerVisibility,
   setZoneStatusLayerVisibility,
 } from "@/components/map/layerVisibility";
+import LegendPopover from "@/components/map/LegendPopover";
 import UserLocationIndicator from "@/components/map/LocationIndicator";
 import MapPopup from "@/components/map/MapPopup";
+import { loadMapViewState, saveMapViewState } from "@/components/map/mapView";
 import ScaleContainer from "@/components/map/ScaleContainer";
 import MapIconButton from "@/components/MapIconButton";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
@@ -24,12 +26,13 @@ import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
 import { useFireShapeAreasForDate } from "@/hooks/dataHooks";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import {
+  BASEMAP_LAYER_NAME,
   createBasemapLayer,
   createHFILayer,
   createLocalBasemapVectorLayer,
-  ZONE_STATUS_LAYER_NAME,
-  LOCAL_BASEMAP_LAYER_NAME,
   HFI_LAYER_NAME,
+  LOCAL_BASEMAP_LAYER_NAME,
+  ZONE_STATUS_LAYER_NAME,
 } from "@/layerDefinitions";
 import { startWatchingLocation } from "@/slices/geolocationSlice";
 import { NavPanel } from "@/utils/constants";
@@ -38,8 +41,8 @@ import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
 import { Filesystem } from "@capacitor/filesystem";
 import GpsOffIcon from "@mui/icons-material/GpsOff";
-import MyLocationIcon from "@mui/icons-material/MyLocation";
 import LayersIcon from "@mui/icons-material/Layers";
+import MyLocationIcon from "@mui/icons-material/MyLocation";
 import { Box } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
 import { cloneDeep, isNil, isNull, isUndefined } from "lodash";
@@ -49,15 +52,12 @@ import { defaults as defaultControls } from "ol/control";
 import ScaleLine from "ol/control/ScaleLine";
 import { boundingExtent } from "ol/extent";
 import { defaults as defaultInteractions } from "ol/interaction";
-import TileLayer from "ol/layer/Tile";
 import VectorTileLayer from "ol/layer/VectorTile";
 import "ol/ol.css";
 import { fromLonLat } from "ol/proj";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BC_EXTENT } from "utils/constants";
-import LegendPopover from "@/components/map/LegendPopover";
-import { loadMapViewState, saveMapViewState } from "@/components/map/mapView";
 
 // used for setting the initial map extent
 const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
@@ -109,13 +109,11 @@ const ASAGoMap = ({
   // state
   const [map, setMap] = useState<Map | null>(null);
   const [scaleVisible, setScaleVisible] = useState<boolean>(true);
-  const [basemapLayer] = useState<TileLayer>(createBasemapLayer());
+  const [basemapLayer, setBasemapLayer] = useState<VectorTileLayer | null>(
+    null
+  );
   const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
-    useState<VectorTileLayer>(() => {
-      const layer = new VectorTileLayer();
-      layer.set("name", LOCAL_BASEMAP_LAYER_NAME);
-      return layer;
-    });
+    useState<VectorTileLayer | null>(null);
   const [centerOnLocation, setCenterOnLocation] = useState<boolean>(false);
   const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>(
     defaultLayerVisibility
@@ -302,12 +300,17 @@ const ASAGoMap = ({
 
   useEffect(() => {
     // Toggle basemap visibility based on network connection status.
+    if (isNil(map)) {
+      return;
+    }
+    removeLayerByName(map, BASEMAP_LAYER_NAME);
     if (networkStatus.connected === true) {
-      localBasemapVectorLayer.setVisible(false);
-      basemapLayer.setVisible(true);
+      localBasemapVectorLayer?.setVisible(false);
+      if (!isNil(basemapLayer)) {
+        map.addLayer(basemapLayer);
+      }
     } else {
-      basemapLayer.setVisible(false);
-      localBasemapVectorLayer.setVisible(true);
+      localBasemapVectorLayer?.setVisible(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [networkStatus]);
@@ -455,6 +458,9 @@ const ASAGoMap = ({
 
         const localBasemapLayer = await createLocalBasemapVectorLayer();
         setLocalBasemapVectorLayer(localBasemapLayer);
+
+        const basemapLayer = await createBasemapLayer();
+        setBasemapLayer(basemapLayer);
 
         mapObject.addLayer(basemapLayer);
         mapObject.addLayer(fireCentreFileLayer);
