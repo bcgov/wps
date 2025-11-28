@@ -19,10 +19,10 @@ vi.mock("@/utils/storage", () => ({
   TPI_STATS_KEY: "tpiStats",
 }));
 
-vi.mock("@/slices/dataSliceUtils", async () => {
+vi.mock("@/utils/dataSliceUtils", async () => {
   const actual = await vi.importActual<
     typeof import("@/utils/dataSliceUtils")
-  >("@/slices/dataSliceUtils");
+  >("@/utils/dataSliceUtils");
   return {
     ...actual,
     fetchFireShapeAreas: vi.fn(),

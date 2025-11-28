@@ -149,8 +149,22 @@ describe("fetchFireCenters thunk", () => {
     expect(state.error).toMatch(/Unable to refresh fire center data/);
   });
 
-  it("should dispatch error when cache is stale and app is offline", async () => {
+  it("should dispatch success when cache is stale and app is offline", async () => {
     mockCacheWithData(true);
+    const store = createTestStore({
+      fireCenters: { ...initialState },
+      networkStatus: {
+        networkStatus: { connected: false, connectionType: "none" },
+      },
+    });
+    await store.dispatch(fetchFireCenters());
+    const state = store.getState().fireCenters;
+    expect(state.loading).toBe(false);
+    expect(state.fireCenters).toEqual([mockFireCenterA])
+  });
+
+  it("should dispatch error when cache is empty and app is offline", async () => {
+    mockCacheWithNoData();
     const store = createTestStore({
       fireCenters: { ...initialState },
       networkStatus: {
