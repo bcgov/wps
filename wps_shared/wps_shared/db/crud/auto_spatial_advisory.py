@@ -37,6 +37,8 @@ from wps_shared.db.models.hfi_calc import FireCentre
 
 logger = logging.getLogger(__name__)
 
+ADVISORY_THRESHOLD = 20
+
 
 async def get_hfi_classification_threshold(
     session: AsyncSession, name: HfiClassificationThresholdEnum
@@ -825,15 +827,15 @@ async def get_advisory_zone_statuses(
     """
     logger.info("gathering advisory zone statuses")
 
-    thresholds_lut = await get_hfi_threshold_ids(db_session)
-    advisory_id = thresholds_lut[HfiClassificationThresholdEnum.ADVISORY.name]
-    warning_id = thresholds_lut[HfiClassificationThresholdEnum.WARNING.name]
-
     status_case = case(
-        (AdvisoryZoneStatus.warning_percentage > 20, warning_id),
         (
-            AdvisoryZoneStatus.advisory_percentage + AdvisoryZoneStatus.warning_percentage > 20,
-            advisory_id,
+            AdvisoryZoneStatus.warning_percentage > ADVISORY_THRESHOLD,
+            HfiClassificationThresholdEnum.WARNING.value,
+        ),
+        (
+            AdvisoryZoneStatus.advisory_percentage + AdvisoryZoneStatus.warning_percentage
+            > ADVISORY_THRESHOLD,
+            HfiClassificationThresholdEnum.ADVISORY.value,
         ),
         else_=None,
     )
