@@ -43,6 +43,8 @@ objects:
                 - "-m"
                 - app.jobs.fuel_type_areas_per_zone
               env:
+                - name: UV_NO_CACHE
+                  value: "1"
                 - name: POSTGRES_DATABASE
                   value: ${NAME}
                 - name: POSTGRES_WRITE_USER
