@@ -111,11 +111,13 @@ const Advisory = ({
           selectedFireCenter={selectedFireCenter}
           selectedFireZoneUnit={selectedFireZoneUnit}
           setSelectedFireZoneUnit={setSelectedFireZoneUnit}
+          date={date}
         >
           <AdvisoryText
             advisoryThreshold={advisoryThreshold}
             selectedFireCenter={selectedFireCenter}
             selectedFireZoneUnit={selectedFireZoneUnit}
+            date={date}
           />
         </FireZoneUnitTabs>
       </Box>

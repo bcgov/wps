@@ -168,7 +168,7 @@ export class PMTilesCache implements IPMTilesCache {
     filename: string,
     fetchAndStoreCallback?: () => Promise<PMTiles | undefined>
   ) => {
-    const cachedFilename = `${for_date.toISODate()}_${run_type}_${run_date.toISODate()}_${filename}`;
+    const cachedFilename = this.getHFIFileName(for_date.toISODate()!, run_type, run_date.toISODate()!, filename)
     const fetchAndStore =
       fetchAndStoreCallback ??
       fetchAndStoreHFIPMTiles(
@@ -180,4 +180,8 @@ export class PMTilesCache implements IPMTilesCache {
       );
     return this.loadPMTiles(cachedFilename, fetchAndStore);
   };
+
+  public readonly getHFIFileName = (for_date: string, run_type: string, run_date: string, filename: string) => {
+    return `${for_date}_${run_type}_${run_date}_${filename}`;
+  }
 }

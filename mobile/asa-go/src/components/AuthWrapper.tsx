@@ -1,7 +1,7 @@
 import AsaIcon from "@/assets/asa-go-transparent.png";
 import AppDescription from "@/components/AppDescription";
 import LoginButton from "@/components/LoginButton";
-import { selectAuthentication } from "@/store";
+import { selectAuthentication, selectNetworkStatus } from "@/store";
 import { Box, CircularProgress, Typography, useTheme } from "@mui/material";
 import { isNull } from "lodash";
 import React from "react";
@@ -15,8 +15,9 @@ const AuthWrapper = ({ children }: Props) => {
   const theme = useTheme();
   const { isAuthenticated, authenticating, error } =
     useSelector(selectAuthentication);
+  const { networkStatus } = useSelector(selectNetworkStatus);
 
-  if (isAuthenticated) {
+  if (isAuthenticated || !networkStatus.connected) {
     return <React.StrictMode>{children}</React.StrictMode>;
   }
 

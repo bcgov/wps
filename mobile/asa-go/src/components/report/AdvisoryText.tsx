@@ -5,9 +5,12 @@ import {
   FireZoneHFIStats,
 } from "@/api/fbaAPI";
 import DefaultText from "@/components/report/DefaultText";
-import { selectFilteredFireCentreHFIFuelStats } from "@/slices/fireCentreHFIFuelStatsSlice";
-import { selectProvincialSummary } from "@/slices/provincialSummarySlice";
-import { selectForDate, selectRunDatetime } from "@/slices/runParameterSlice";
+import {
+  useFilteredHFIStatsForDate,
+  useProvincialSummaryForDate,
+} from "@/hooks/dataHooks";
+import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
+import { today } from "@/utils/dataSliceUtils";
 import {
   getTopFuelsByArea,
   getTopFuelsByProportion,
@@ -21,10 +24,9 @@ import {
   getMinStartAndMaxEndTime,
 } from "@/utils/criticalHoursStartEndTime";
 import { Box, styled, Typography, useTheme } from "@mui/material";
-import { isEmpty, isNil, isNull, isUndefined } from "lodash";
+import { isEmpty, isNil, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { useMemo } from "react";
-import { useSelector } from "react-redux";
 
 export const SerifTypography = styled(Typography)({
   fontSize: "1.2rem",
@@ -35,49 +37,49 @@ interface AdvisoryTextProps {
   advisoryThreshold: number;
   selectedFireCenter: FireCenter | undefined;
   selectedFireZoneUnit: FireShape | undefined;
+  date: DateTime;
 }
 
 const AdvisoryText = ({
   advisoryThreshold,
   selectedFireCenter,
   selectedFireZoneUnit,
+  date,
 }: AdvisoryTextProps) => {
   const theme = useTheme();
-  // selectors
-  const provincialSummary = useSelector(selectProvincialSummary);
-  const filteredFireCentreHFIFuelStats = useSelector(
-    selectFilteredFireCentreHFIFuelStats
-  );
 
-  const forDate = useSelector(selectForDate);
-  const runDatetime = useSelector(selectRunDatetime);
+  // hooks
+  const provincialSummary = useProvincialSummaryForDate(date);
+  const filteredFireZoneUnitHFIStats = useFilteredHFIStatsForDate(date);
+  const runParameter = useRunParameterForDate(date);
 
   // derived state
   const selectedFilteredZoneUnitFuelStats = useMemo<FireZoneHFIStats>(() => {
     if (
-      isUndefined(filteredFireCentreHFIFuelStats) ||
-      isEmpty(filteredFireCentreHFIFuelStats) ||
-      isUndefined(selectedFireCenter) ||
-      isUndefined(selectedFireZoneUnit)
+      isUndefined(filteredFireZoneUnitHFIStats) ||
+      isEmpty(filteredFireZoneUnitHFIStats) ||
+      isUndefined(selectedFireZoneUnit) ||
+      isNil(runParameter)
     ) {
       return { fuel_area_stats: [], min_wind_stats: [] };
     }
-    const allFilteredZoneUnitFuelStats =
-      filteredFireCentreHFIFuelStats[selectedFireCenter.name];
     return (
-      allFilteredZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? {
+      filteredFireZoneUnitHFIStats?.[selectedFireZoneUnit.fire_shape_id] ?? {
         fuel_area_stats: [],
         min_wind_stats: [],
       }
     );
-  }, [filteredFireCentreHFIFuelStats, selectedFireZoneUnit]);
+  }, [filteredFireZoneUnitHFIStats, selectedFireZoneUnit]);
 
   const selectedFireZoneUnitTopFuels = useMemo<FireZoneFuelStats[]>(() => {
-    if (isNull(forDate)) {
+    if (isNil(runParameter?.for_date)) {
       return [];
     }
-    return getTopFuelsByArea(selectedFilteredZoneUnitFuelStats, forDate);
-  }, [selectedFilteredZoneUnitFuelStats, forDate]);
+    return getTopFuelsByArea(
+      selectedFilteredZoneUnitFuelStats,
+      DateTime.fromISO(runParameter.for_date)
+    );
+  }, [selectedFilteredZoneUnitFuelStats, runParameter]);
 
   const highHFIFuelsByProportion = useMemo<FireZoneFuelStats[]>(() => {
     return getTopFuelsByProportion(
@@ -95,7 +97,7 @@ const AdvisoryText = ({
 
   const zoneStatus = useMemo(() => {
     if (selectedFireCenter) {
-      const fireCenterSummary = provincialSummary[selectedFireCenter.name];
+      const fireCenterSummary = provincialSummary?.[selectedFireCenter.name];
       const fireZoneUnitInfos = fireCenterSummary?.filter(
         (fc) => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id
       );
@@ -105,7 +107,12 @@ const AdvisoryText = ({
       );
       return zoneStatus;
     }
-  }, [selectedFireCenter, selectedFireZoneUnit, provincialSummary]);
+  }, [
+    advisoryThreshold,
+    selectedFireCenter,
+    selectedFireZoneUnit,
+    provincialSummary,
+  ]);
 
   const getCommaSeparatedString = (array: string[]): string => {
     // Slice off the last two items and join then with ' and ' to create a new string. Then take the first n-2 items and
@@ -230,10 +237,13 @@ const AdvisoryText = ({
 
   const renderAdvisoryText = () => {
     const zoneTitle = `${selectedFireZoneUnit?.mof_fire_zone_name}:\n\n`;
-    const forToday = forDate!.toISODate() === DateTime.now().toISODate();
+    const forToday = runParameter?.for_date === today.toISODate();
     const displayForDate = forToday
       ? "today"
-      : forDate!.toLocaleString({ month: "short", day: "numeric" });
+      : DateTime.fromISO(runParameter!.for_date).toLocaleString({
+          month: "short",
+          day: "numeric",
+        });
     const minWindSpeedText = getZoneMinWindStatsText(
       selectedFilteredZoneUnitFuelStats.min_wind_stats
     );
@@ -291,12 +301,14 @@ const AdvisoryText = ({
           </SerifTypography>
         )}
 
-        {runDatetime?.isValid && (
+        {runParameter?.run_datetime && (
           <SerifTypography
             data-testid="bulletin-issue-date"
             sx={{ whiteSpace: "pre-wrap" }}
           >
-            {`Issued on ${runDatetime?.toLocaleString(
+            {`Issued on ${DateTime.fromISO(
+              runParameter.run_datetime
+            )?.toLocaleString(
               DateTime.DATETIME_FULL
             )} for ${displayForDate}.\n\n`}
           </SerifTypography>
@@ -359,7 +371,9 @@ const AdvisoryText = ({
         backgroundColor: "white",
       }}
     >
-      {!selectedFireCenter || !runDatetime?.isValid || !selectedFireZoneUnit
+      {!selectedFireCenter ||
+      isNil(runParameter?.run_datetime) ||
+      !selectedFireZoneUnit
         ? renderDefaultMessage()
         : renderAdvisoryText()}
     </Box>

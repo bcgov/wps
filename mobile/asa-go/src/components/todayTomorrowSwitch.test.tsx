@@ -2,11 +2,12 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { DateTime } from "luxon";
 import { describe, expect, it, vi } from "vitest";
 import TodayTomorrowSwitch from "./TodayTomorrowSwitch";
+import { PST_UTC_OFFSET } from "@/utils/constants";
 
 describe("TodayTomorrowSwitch", () => {
   it("renders both buttons", () => {
     const mockSetDate = vi.fn();
-    const today = DateTime.now();
+    const today = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`);
 
     render(<TodayTomorrowSwitch date={today} setDate={mockSetDate} />);
 
@@ -16,7 +17,7 @@ describe("TodayTomorrowSwitch", () => {
 
   it("disables the NOW button when date is today", () => {
     const mockSetDate = vi.fn();
-    const today = DateTime.now();
+    const today = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`);
 
     render(<TodayTomorrowSwitch date={today} setDate={mockSetDate} />);
 
@@ -26,7 +27,9 @@ describe("TodayTomorrowSwitch", () => {
 
   it("disables the TMR button when date is tomorrow", () => {
     const mockSetDate = vi.fn();
-    const tomorrow = DateTime.now().plus({ days: 1 });
+    const tomorrow = DateTime.now()
+      .plus({ days: 1 })
+      .setZone(`UTC${PST_UTC_OFFSET}`);
 
     render(<TodayTomorrowSwitch date={tomorrow} setDate={mockSetDate} />);
 
@@ -36,7 +39,7 @@ describe("TodayTomorrowSwitch", () => {
 
   it("clicking TMR updates the date to tomorrow", () => {
     const mockSetDate = vi.fn();
-    const today = DateTime.now();
+    const today = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`);
 
     render(<TodayTomorrowSwitch date={today} setDate={mockSetDate} />);
 
@@ -48,7 +51,9 @@ describe("TodayTomorrowSwitch", () => {
 
   it("clicking NOW updates the date to today", () => {
     const mockSetDate = vi.fn();
-    const tomorrow = DateTime.now().plus({ days: 1 });
+    const tomorrow = DateTime.now()
+      .plus({ days: 1 })
+      .setZone(`UTC${PST_UTC_OFFSET}`);
 
     render(<TodayTomorrowSwitch date={tomorrow} setDate={mockSetDate} />);
 
@@ -58,28 +63,27 @@ describe("TodayTomorrowSwitch", () => {
     expect(mockSetDate).toHaveBeenCalledWith(tomorrow.plus({ day: -1 }));
   });
 
+  it("updates internal state when date prop changes", () => {
+    const today = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`);
+    const tomorrow = today.plus({ day: 1 });
+    const setDateMock = vi.fn();
 
-it("updates internal state when date prop changes", () => {
-  const today = DateTime.now();
-  const tomorrow = today.plus({ day: 1 });
-  const setDateMock = vi.fn();
+    const { rerender } = render(
+      <TodayTomorrowSwitch date={today} setDate={setDateMock} />
+    );
 
-  const { rerender } = render(
-    <TodayTomorrowSwitch date={today} setDate={setDateMock} />
-  );
+    // Initially, NOW button should be disabled (today selected)
+    const nowButton = screen.getByRole("button", { name: /NOW/i });
+    const tmrButton = screen.getByRole("button", { name: /TMR/i });
 
-  // Initially, NOW button should be disabled (today selected)
-  const nowButton = screen.getByRole("button", { name: /NOW/i });
-  const tmrButton = screen.getByRole("button", { name: /TMR/i });
+    expect(nowButton).toBeDisabled();
+    expect(tmrButton).not.toBeDisabled();
 
-  expect(nowButton).toBeDisabled();
-  expect(tmrButton).not.toBeDisabled();
+    // Re-render with tomorrow's date
+    rerender(<TodayTomorrowSwitch date={tomorrow} setDate={setDateMock} />);
 
-  // Re-render with tomorrow's date
-  rerender(<TodayTomorrowSwitch date={tomorrow} setDate={setDateMock} />);
-
-  // NOW should now be enabled, TMR should be disabled
-  expect(nowButton).not.toBeDisabled();
-  expect(tmrButton).toBeDisabled();
-});
+    // NOW should now be enabled, TMR should be disabled
+    expect(nowButton).not.toBeDisabled();
+    expect(tmrButton).toBeDisabled();
+  });
 });

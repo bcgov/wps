@@ -48,7 +48,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
       .getZxy(z, x, y)
       .then((tile_result) => {
         if (tile_result) {
-          const format = new MVT(); // Create the MVT format
+          const format = new MVT({layerName: 'mvt:layer'}); // Create the MVT format
           const features = format.readFeatures(tile_result.data, {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
@@ -89,7 +89,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
       ...options,
       state: "loading",
       url: "pmtiles://{z}/{x}/{y}", // only used for parsing out the z, x, y parameters when tile loading
-      format: options.format || new MVT(),
+      format: options.format || new MVT({layerName: 'mvt:layer'}),
     });
   }
 
