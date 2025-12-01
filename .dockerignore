@@ -6,6 +6,7 @@
 .zap
 .architecture
 .gitignore
+.ipynb_checkpoints
 node_modules
 web/build
 web/coverage-cypress
@@ -22,8 +23,14 @@ web/.yarn/*
 !web/.yarn/versions
 r
 .dockerignore
+grib
 **/Dockerfile*
 **/junk
 **/scripts
 **/python_cache*
+**/__pycache__
+**/*.pyc
+**/*.zip
+**/*.grib2
 **.venv
+*/nbconvert/*
