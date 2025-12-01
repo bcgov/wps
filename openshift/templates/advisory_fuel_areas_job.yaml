@@ -28,6 +28,9 @@ objects:
       completions: 1
       backoffLimit: 6
       template:
+        metadata:
+          labels:
+            app: ${NAME}-${SUFFIX}
         spec:
           containers:
             - name: advisory-fuel-areas-container

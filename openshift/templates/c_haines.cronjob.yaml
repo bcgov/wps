@@ -68,10 +68,19 @@ objects:
                     requests:
                       cpu: "75m"
                       memory: 1Gi
-                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-api-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
-                    ["uv", "run", "--no-sync", "python", "-m", "app.c_haines.worker"]
+                    [
+                      "uv",
+                      "run",
+                      "--package",
+                      "wps-api",
+                      "--no-sync",
+                      "python",
+                      "-m",
+                      "app.c_haines.worker",
+                    ]
                   env:
                     - name: UV_NO_CACHE
                       value: "1"

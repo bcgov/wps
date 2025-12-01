@@ -58,7 +58,7 @@ objects:
                   image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-api-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
-                    ["uv", "run", "--no-sync", "python", "-m", "app.jobs.grass_curing"]
+                    ["uv", "run", "--package", "wps-api", "--no-sync", "python", "-m", "app.jobs.grass_curing"]
                   env:
                     - name: UV_NO_CACHE
                       value: "1"
