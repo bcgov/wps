@@ -192,6 +192,7 @@ class LatestSFMSRunParameter(BaseModel):
 class LatestSFMSRunParameterResponse(BaseModel):
     run_parameter: Optional[LatestSFMSRunParameter] = None
 
+
 class SFMSRunParameter(BaseModel):
     for_date: date
     run_type: SFMSRunType

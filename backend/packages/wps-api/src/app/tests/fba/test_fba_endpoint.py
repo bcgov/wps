@@ -81,6 +81,7 @@ CentreHFIFuelResponse = namedtuple(
     ],
 )
 
+
 def create_mock_centre_tpi_stats(
     advisory_shape_id, source_identifier, valley_bottom, mid_slope, upper_slope, pixel_size_metres
 ):
@@ -511,6 +512,7 @@ def test_get_fire_centre_tpi_stats_authorized(client: TestClient):
     assert json_response["firezone_tpi_stats"][1]["valley_bottom_tpi"] is None
     assert json_response["firezone_tpi_stats"][1]["mid_slope_tpi"] is None
     assert json_response["firezone_tpi_stats"][1]["upper_slope_tpi"] is None
+
 
 @pytest.mark.usefixtures("mock_jwt_decode")
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
