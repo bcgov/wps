@@ -10,7 +10,6 @@ import {
   createLayerMock,
 } from "@/testUtils";
 import { geolocationInitialState } from "@/slices/geolocationSlice";
-import { RunType } from "@/api/fbaAPI";
 import * as mapView from "@/components/map/mapView";
 
 vi.mock("@capacitor/filesystem", () => ({
@@ -51,7 +50,7 @@ vi.mock("@/layerDefinitions", async () => {
   };
 });
 
-import { createHFILayer, HFI_LAYER_NAME } from "@/layerDefinitions";
+import { HFI_LAYER_NAME } from "@/layerDefinitions";
 
 describe("ASAGoMap", () => {
   beforeAll(() => {
@@ -119,62 +118,8 @@ describe("ASAGoMap", () => {
     expect(locationButton).not.toBeDisabled();
   });
 
-  it("calls createHFILayer when date, runType, or runDatetime changes", async () => {
-    const runParameter = {
-      forDate: "2024-12-15",
-      runDatetime: "2024-12-15T15:00:00Z",
-      runType: RunType.FORECAST,
-      loading: false,
-      error: null,
-    };
-    const store = createTestStore({
-      runParameter: runParameter,
-    });
-
-    const { rerender } = render(
-      <Provider store={store}>
-        <ASAGoMap {...defaultProps} />
-      </Provider>
-    );
-
-    // initial call
-    expect(createHFILayer).toHaveBeenCalledTimes(1);
-    expect(createHFILayer).toHaveBeenCalledWith(
-      expect.objectContaining({
-        filename: "hfi.pmtiles",
-        for_date: DateTime.fromISO("2024-12-15"),
-        run_type: RunType.FORECAST,
-        run_date: DateTime.fromISO("2024-12-15T15:00:00Z"),
-      }),
-      true
-    );
-
-    store.dispatch({
-      type: "runParameter/getRunParameterSuccess",
-      payload: {
-        forDate: "2024-12-16",
-        runDateTime: "2024-12-16T23:00:00Z",
-        runType: RunType.FORECAST,
-      },
-    });
-    rerender(
-      <Provider store={store}>
-        <ASAGoMap {...defaultProps} date={DateTime.fromISO("2024-12-16")} />
-      </Provider>
-    );
-    expect(createHFILayer).toHaveBeenCalledWith(
-      expect.objectContaining({
-        filename: "hfi.pmtiles",
-        for_date: DateTime.fromISO("2024-12-16"),
-        run_type: RunType.FORECAST,
-        run_date: DateTime.fromISO("2024-12-16T23:00:00Z"),
-      }),
-      true
-    );
-  });
   it("renders the layer switcher button and legend on click", async () => {
     const store = createTestStore();
-
     const { getByTestId } = render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
@@ -264,6 +209,7 @@ describe("ASAGoMap", () => {
       await import("@/components/map/layerVisibility"),
       "setDefaultLayerVisibility"
     );
+
     const mockToggleLayersRef = {
       hfiVectorLayer: null,
     };

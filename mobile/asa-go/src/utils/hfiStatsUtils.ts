@@ -1,7 +1,6 @@
 import {
-  FireCentreHFIStats,
   FireZoneFuelStats,
-  FireZoneHFIStats,
+  FireZoneHFIStatsDictionary,
 } from "@/api/fbaAPI";
 
 // Based on 100 pixels at a 2000m resolution fuel raster measured in square meters.
@@ -14,20 +13,16 @@ const FUEL_TYPES_ALWAYS_INCLUDED = ["C-5", "S-1", "S-2", "S-3"];
  * @returns FireCentreHFIStats with low prevalence fuel types filtered out.
  */
 export const filterHFIFuelStatsByArea = (
-  fireCentreHFIFuelStats: FireCentreHFIStats
+  fireCentreHFIFuelStats: FireZoneHFIStatsDictionary
 ) => {
-  const filteredFireCentreStats: FireCentreHFIStats = {};
-  for (const [key, value] of Object.entries(fireCentreHFIFuelStats)) {
-    const fireZoneStats: { [fire_zone_id: number]: FireZoneHFIStats } = {};
-    for (const [key2, value2] of Object.entries(value)) {
-      fireZoneStats[parseInt(key2)] = {
-        min_wind_stats: value2.min_wind_stats,
-        fuel_area_stats: filterHFIStatsByArea(value2.fuel_area_stats),
+  const filteredFireZoneStats: FireZoneHFIStatsDictionary = {};
+    for (const [key, value] of Object.entries(fireCentreHFIFuelStats)) {
+      filteredFireZoneStats[Number.parseInt(key)] = {
+        min_wind_stats: value.min_wind_stats,
+        fuel_area_stats: filterHFIStatsByArea(value.fuel_area_stats),
       };
-    }
-    filteredFireCentreStats[key] = fireZoneStats;
   }
-  return filteredFireCentreStats;
+  return filteredFireZoneStats;
 };
 
 /**

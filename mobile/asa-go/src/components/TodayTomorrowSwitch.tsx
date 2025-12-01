@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import { MAP_BUTTON_GREY } from "@/theme";
 import { BORDER_RADIUS, BUTTON_HEIGHT } from "@/components/MapIconButton";
+import { today } from "@/utils/dataSliceUtils";
 
 interface TodayTomorrowSwitchProps {
   border?: boolean;
@@ -46,12 +47,10 @@ const TodayTomorrowSwitch = ({
   setDate,
 }: TodayTomorrowSwitchProps) => {
   const borderStyle = border ? `1px solid ${MAP_BUTTON_GREY}` : "none";
-  const [value, setValue] = useState<number>(
-    date.day === DateTime.now().day ? 0 : 1
-  );
+  const [value, setValue] = useState<number>(date.day === today.day ? 0 : 1);
 
   useEffect(() => {
-    setValue(date.day === DateTime.now().day ? 0 : 1);
+    setValue(date.day === today.day ? 0 : 1);
   }, [date]);
 
   const handleDayChange = (newValue: number) => {

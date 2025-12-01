@@ -23,6 +23,8 @@ import {
   fireShapeStyler,
 } from "@/featureStylers";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
+import { useFireShapeAreasForDate } from "@/hooks/dataHooks";
+import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import {
   BASEMAP_LAYER_NAME,
   createBasemapLayer,
@@ -33,14 +35,8 @@ import {
   ZONE_STATUS_LAYER_NAME,
 } from "@/layerDefinitions";
 import { startWatchingLocation } from "@/slices/geolocationSlice";
-import {
-  AppDispatch,
-  selectFireShapeAreas,
-  selectGeolocation,
-  selectNetworkStatus,
-  selectRunParameter,
-} from "@/store";
 import { NavPanel } from "@/utils/constants";
+import { AppDispatch, selectGeolocation, selectNetworkStatus } from "@/store";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
 import { Filesystem } from "@capacitor/filesystem";
@@ -105,8 +101,10 @@ const ASAGoMap = ({
   // selectors & hooks
   const { position, error, loading } = useSelector(selectGeolocation);
   const { networkStatus } = useSelector(selectNetworkStatus);
-  const { runDatetime, runType } = useSelector(selectRunParameter);
-  const { fireShapeAreas } = useSelector(selectFireShapeAreas);
+
+  // hooks
+  const fireShapeAreas = useFireShapeAreasForDate(date);
+  const runParameter = useRunParameterForDate(date);
 
   // state
   const [map, setMap] = useState<Map | null>(null);
@@ -518,20 +516,23 @@ const ASAGoMap = ({
 
     (async () => {
       let hfiLayer: VectorTileLayer | null = null;
-      if (!isNull(runType) && !isNull(runDatetime)) {
+      if (
+        !isNil(runParameter?.run_type) &&
+        !isNil(runParameter?.run_datetime)
+      ) {
         hfiLayer = await createHFILayer(
           {
             filename: "hfi.pmtiles",
             for_date: date,
-            run_type: runType,
-            run_date: DateTime.fromISO(runDatetime),
+            run_type: runParameter.run_type,
+            run_date: DateTime.fromISO(runParameter.run_datetime),
           },
           layerVisibility[HFI_LAYER_NAME]
         );
       }
       replaceMapLayer(HFI_LAYER_NAME, hfiLayer);
     })();
-  }, [map, runType, runDatetime, date, layerVisibility, replaceMapLayer]);
+  }, [map, runParameter, date, layerVisibility, replaceMapLayer]);
 
   const handlePopupClose = () => {
     popup.setPosition(undefined);
