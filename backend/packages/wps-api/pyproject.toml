@@ -51,19 +51,13 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=9.0.0,<10",
     "jupyter>=1,<2",
     "notebook>=7.0.7,<8",
-    "coverage>=7.6.4,<8",
     "pycodestyle>=2,<3",
     "autopep8>=2,<3",
     "matplotlib>=3,<4",
-    "pytest-xdist>=3,<4",
-    "pytest-mock>=3,<4",
     "rope>=1,<2",
     "pytest-watch>=4.2.0,<5",
-    "ruff>=0.11.5,<1",
-    "pytest-cov>=7.0.0,<8",
 ]
 
 [tool.uv.sources]

@@ -22,13 +22,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=9.0.0,<10",
-    "pytest-mock>=3,<4",
-    "coverage>=7.6.4,<8",
-    "ruff>=0.11.5,<1",
     "ipykernel>=6.29.5,<7",
-    "pytest-cov>=7.0.0,<8",
-    "pytest-xdist>=3.6.1,<4",
 ]
 
 [tool.uv.sources]
