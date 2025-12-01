@@ -39,6 +39,19 @@ logger = logging.getLogger(__name__)
 
 ADVISORY_THRESHOLD = 20
 
+advisory_status_case = case(
+    (
+        AdvisoryZoneStatus.warning_percentage > ADVISORY_THRESHOLD,
+        HfiClassificationThresholdEnum.WARNING.value,
+    ),
+    (
+        AdvisoryZoneStatus.advisory_percentage + AdvisoryZoneStatus.warning_percentage
+        > ADVISORY_THRESHOLD,
+        HfiClassificationThresholdEnum.ADVISORY.value,
+    ),
+    else_=None,
+)
+
 
 async def get_hfi_classification_threshold(
     session: AsyncSession, name: HfiClassificationThresholdEnum
@@ -733,25 +746,20 @@ async def get_provincial_rollup(
         select(
             Shape.id,
             Shape.source_identifier,
-            CombustibleArea.combustible_area,
             Shape.placename_label,
             FireCentre.name.label("fire_centre_name"),
-            HighHfiArea.id,
-            HighHfiArea.advisory_shape_id,
-            HighHfiArea.threshold,
-            HighHfiArea.area.label("hfi_area"),
+            advisory_status_case.label("status"),
         )
         .join(FireCentre, FireCentre.id == Shape.fire_centre)
-        .join(CombustibleArea, CombustibleArea.advisory_shape_id == Shape.id)
         .join(
-            HighHfiArea,
+            AdvisoryZoneStatus,
             and_(
-                HighHfiArea.advisory_shape_id == Shape.id,
-                HighHfiArea.run_parameters == run_parameter_id,
+                AdvisoryZoneStatus.advisory_shape_id == Shape.id,
+                AdvisoryZoneStatus.run_parameters == run_parameter_id,
             ),
             isouter=True,
         )
-        .where(CombustibleArea.fuel_type_raster_id == fuel_type_raster_id)
+        .where(advisory_status_case.isnot(None))
     )
     result = await session.execute(stmt)
     return result.all()
@@ -827,25 +835,10 @@ async def get_advisory_zone_statuses(
     """
     logger.info("gathering advisory zone statuses")
 
-    status_case = case(
-        (
-            AdvisoryZoneStatus.warning_percentage > ADVISORY_THRESHOLD,
-            HfiClassificationThresholdEnum.WARNING.value,
-        ),
-        (
-            AdvisoryZoneStatus.advisory_percentage + AdvisoryZoneStatus.warning_percentage
-            > ADVISORY_THRESHOLD,
-            HfiClassificationThresholdEnum.ADVISORY.value,
-        ),
-        else_=None,
-    )
-
     stmt = (
         select(
-            cast(Shape.source_identifier, Integer).label("zone_source_id"),
-            status_case.label("status"),
-            AdvisoryZoneStatus.advisory_percentage,
-            AdvisoryZoneStatus.warning_percentage,
+            cast(Shape.source_identifier, Integer).label("fire_shape_id"),
+            advisory_status_case.label("status"),
         )
         .join(RunParameters, AdvisoryZoneStatus.run_parameters == RunParameters.id)
         .join(Shape, AdvisoryZoneStatus.advisory_shape_id == Shape.id)
@@ -854,7 +847,7 @@ async def get_advisory_zone_statuses(
             RunParameters.run_datetime == run_datetime,
             RunParameters.for_date == for_date,
         )
-        .where(status_case.isnot(None))
+        .where(advisory_status_case.isnot(None))
     )
     result = await db_session.execute(stmt)
     return [FireZoneStatus.model_validate(row) for row in result.mappings().all()]

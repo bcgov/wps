@@ -50,10 +50,8 @@ class FireShapeAreaListResponse(BaseModel):
 class FireZoneStatus(BaseModel):
     """Advisory status of a fire zone."""
 
-    zone_source_id: int
+    fire_shape_id: int
     status: Optional[str] = None
-    advisory_percentage: Optional[float] = None
-    warning_percentage: Optional[float] = None
 
 
 class FireZoneStatusListResponse(BaseModel):
@@ -62,7 +60,7 @@ class FireZoneStatusListResponse(BaseModel):
     zones: List[FireZoneStatus]
 
 
-class FireShapeAreaDetail(FireShapeArea):
+class FireShapeAreaDetail(FireZoneStatus):
     """Summary information about an advisory shape"""
 
     fire_shape_name: str

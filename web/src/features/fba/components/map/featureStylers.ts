@@ -83,7 +83,7 @@ export const fireCentreLineStyler = (selectedFireCenter: FireCenter | undefined)
 export const fireShapeStyler = (fireZoneStatuses: FireZoneStatus[], showZoneStatus: boolean) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fire_shape_id = feature.getProperties().OBJECTID
-    const fireZone = fireZoneStatuses.find(f => f.zone_source_id == fire_shape_id)
+    const fireZone = fireZoneStatuses.find(f => f.fire_shape_id == fire_shape_id)
     const advisoryStatus = fireZone ? toAdvisoryStatus(fireZone.status) : FireShapeStatus.NONE
 
     return new Style({
@@ -100,7 +100,7 @@ export const fireShapeStyler = (fireZoneStatuses: FireZoneStatus[], showZoneStat
 export const fireShapeLineStyler = (fireZoneStatuses: FireZoneStatus[], selectedFireShape: FireShape | undefined) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fire_shape_id = feature.getProperties().OBJECTID
-    const fireZone = fireZoneStatuses.find(f => f.zone_source_id === fire_shape_id)
+    const fireZone = fireZoneStatuses.find(f => f.fire_shape_id === fire_shape_id)
     const selected = !!(selectedFireShape?.fire_shape_id && selectedFireShape.fire_shape_id === fire_shape_id)
     const advisoryStatus = fireZone ? toAdvisoryStatus(fireZone.status) : FireShapeStatus.NONE
 

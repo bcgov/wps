@@ -88,10 +88,8 @@ export interface FireCentreTPIResponse {
 }
 
 export interface FireZoneStatus {
-  zone_source_id: number
+  fire_shape_id: number
   status: string
-  advisory_percentage: number
-  warning_percentage: number
 }
 
 export interface FireZoneStatusListResponse {
