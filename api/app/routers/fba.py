@@ -144,18 +144,12 @@ async def get_provincial_summary(
             session, RunTypeEnum(run_type.value), run_datetime, for_date, fuel_type_raster.id
         )
         for row in rows:
-            elevated_hfi_percentage = 0
-            if row.hfi_area is not None and row.combustible_area is not None:
-                elevated_hfi_percentage = row.hfi_area / row.combustible_area * 100
             fire_shape_area_details.append(
                 FireShapeAreaDetail(
                     fire_shape_id=row.source_identifier,
                     fire_shape_name=row.placename_label,
                     fire_centre_name=row.fire_centre_name,
-                    threshold=row.threshold,
-                    combustible_area=row.combustible_area,
-                    elevated_hfi_area=row.hfi_area,
-                    elevated_hfi_percentage=elevated_hfi_percentage,
+                    status=row.status,
                 )
             )
     return ProvincialSummaryResponse(provincial_summary=fire_shape_area_details)
