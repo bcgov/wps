@@ -8,7 +8,7 @@ import { fromLonLat } from 'ol/proj'
 import { Box } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
 import {
-  basemapLayer,
+  createBasemapLayer,
   fuelCOGTiles,
   getSnowPMTilesLayer,
   SNOW_LAYER_NAME
@@ -42,7 +42,7 @@ const SFMSMap = ({ snowDate }: SFMSMapProps) => {
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [basemapLayer, fuelCOGTiles],
+      layers: [fuelCOGTiles],
       controls: defaultControls(),
       view: new View({
         zoom: 5,
@@ -51,6 +51,12 @@ const SFMSMap = ({ snowDate }: SFMSMapProps) => {
     })
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
     setMap(mapObject)
+
+    const loadBaseMap = async () => {
+      const basemapLayer = await createBasemapLayer()
+      mapObject.addLayer(basemapLayer)
+    }
+    loadBaseMap()
 
     return () => {
       mapObject.setTarget('')

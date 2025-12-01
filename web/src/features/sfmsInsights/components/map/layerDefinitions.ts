@@ -1,5 +1,5 @@
 import { PMTilesVectorSource } from 'ol-pmtiles'
-import { PMTILES_BUCKET, PSU_BUCKET } from 'utils/env'
+import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL, PMTILES_BUCKET, PSU_BUCKET } from 'utils/env'
 import { fuelCOGColourExpression, snowStyler } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import { XYZ } from 'ol/source'
@@ -7,15 +7,32 @@ import TileLayer from 'ol/layer/Tile'
 import { DateTime } from 'luxon'
 import WebGLTile from 'ol/layer/WebGLTile'
 import GeoTIFF from 'ol/source/GeoTIFF'
+import VectorSource from 'ol/source/VectorTile'
+import MVT from "ol/format/MVT"
+import { applyStyle } from "ol-mapbox-style"
 
-export const BC_ROAD_BASE_MAP_SERVER_URL = 'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
+export const BASEMAP_LAYER_NAME = "basemapLayer";
 export const SNOW_LAYER_NAME = 'snowVector'
 
-const basemapSource = new XYZ({
-  url: `${BC_ROAD_BASE_MAP_SERVER_URL}/tile/{z}/{y}/{x}`
-})
+const basemapSource = new VectorSource({
+  format: new MVT({ layerName: "mvt:layer" }),
+  url: BASEMAP_TILE_URL,
+});
 
-export const basemapLayer = new TileLayer({ source: basemapSource })
+export const createBasemapLayer = async () => {
+  const basemapLayer = new VectorTileLayer({
+    source: basemapSource
+  });
+  basemapLayer.set("name", BASEMAP_LAYER_NAME);
+  // Fetch the style json from ArcGIS Online
+  const response = await fetch(BASEMAP_STYLE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  const style = await response.json();
+  applyStyle(basemapLayer, style, { updateSource: false });
+  return basemapLayer;
+};
 
 export const getSnowPMTilesLayer = (snowDate: DateTime) => {
   const url = `${PMTILES_BUCKET}snow/${snowDate.toISODate()}/snowCoverage${snowDate.toISODate({ format: 'basic' })}.pmtiles`
