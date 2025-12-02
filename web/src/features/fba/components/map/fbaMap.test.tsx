@@ -1,4 +1,14 @@
+vi.mock('@/features/sfmsInsights/components/map/layerDefinitions', async () => {
+  const actual = await import('@/features/sfmsInsights/components/map/layerDefinitions')
+
+  return {
+    ...actual,
+    createBasemapLayer: vi.fn().mockImplementation(() => Promise.resolve(baseLayerMock))
+  }
+})
+
 import { RunType } from '@/api/fbaAPI'
+import { baseLayerMock } from '@/test/testUtils'
 import { render } from '@testing-library/react'
 import store from 'app/store'
 import FBAMap from 'features/fba/components/map/FBAMap'
