@@ -11,6 +11,8 @@ describe('Fire Behaviour Advisory Page', () => {
       },
       { fixture: 'fba/vectors.json' }
     ).as('getVectors')
+    cy.intercept('GET', 'tiles.arcgis.com/*')
+    cy.intercept('GET', 'www.arcgis.com/*')
 
     cy.visit(FIRE_BEHAVIOUR_ADVISORY_ROUTE)
   })
