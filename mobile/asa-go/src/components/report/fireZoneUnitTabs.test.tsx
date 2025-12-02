@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
 import { FireCenter, FireShape } from "@/api/fbaAPI";
+import { DateTime } from "luxon";
 
 // Mock calculateStatusColour
 vi.mock("@/utils/calculateZoneStatus", () => ({
@@ -30,7 +31,7 @@ describe("FireZoneUnitTabs", () => {
   const mockFireCenter: FireCenter = {
     id: 1,
     name: "Fire Center 1",
-    stations: []
+    stations: [],
   };
 
   const mockFireShape: FireShape = {
@@ -52,6 +53,7 @@ describe("FireZoneUnitTabs", () => {
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireShape}
         setSelectedFireZoneUnit={setSelectedFireZoneUnit}
+        date={DateTime.now()}
       >
         <div data-testid="child-content">Child Content</div>
       </FireZoneUnitTabs>
@@ -69,6 +71,7 @@ describe("FireZoneUnitTabs", () => {
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireShape}
         setSelectedFireZoneUnit={setSelectedFireZoneUnit}
+        date={DateTime.now()}
       >
         <div />
       </FireZoneUnitTabs>
