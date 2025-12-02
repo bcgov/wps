@@ -11,10 +11,11 @@ describe('Fire Behaviour Advisory Page', () => {
       },
       { fixture: 'fba/vectors.json' }
     ).as('getVectors')
-    
+
     cy.intercept(
-      'GET',
-      '**/VectorTileServer/tile/*/*/*.pbf', // wildcard for z/x/y
+      {
+        hostname: 'tiles.arcgis.com'
+      },
       {
         statusCode: 200,
         headers: {
@@ -22,11 +23,14 @@ describe('Fire Behaviour Advisory Page', () => {
         },
         body: new Uint8Array([0x1a, 0x02, 0x08, 0x01]) // minimal PBF mock
       }
-    ).as('mockVectorTile');
+    ).as('mockVectorTile')
 
-    cy.intercept('GET', '**/resources/styles/root.json', {
-      fixture: 'fba/style.json'
-    })
+    cy.intercept(
+      { hostname: 'www.arcgis.com' },
+      {
+        fixture: 'fba/style.json'
+      }
+    )
 
     cy.visit(FIRE_BEHAVIOUR_ADVISORY_ROUTE)
   })
