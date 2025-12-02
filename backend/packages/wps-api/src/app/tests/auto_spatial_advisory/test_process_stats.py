@@ -20,6 +20,7 @@ from app.auto_spatial_advisory.process_hfi import RunType
 @patch(
     "app.auto_spatial_advisory.process_stats.mark_run_parameter_complete", new_callable=AsyncMock
 )
+@patch("app.auto_spatial_advisory.process_stats.process_zone_statuses", new_callable=AsyncMock)
 @patch("app.auto_spatial_advisory.process_stats.get_async_write_session_scope")
 async def test_process_stats_marks_complete(
     mock_session_scope,
@@ -45,6 +46,7 @@ async def test_process_stats_marks_complete(
         "process_hfi_min_wind_speed",
         "process_hfi_percent_conifer",
         "calculate_critical_hours",
+        "process_zone_statuses",
     ],
 )
 @patch(
@@ -64,7 +66,9 @@ async def test_process_stats_marks_complete(
     "app.auto_spatial_advisory.process_stats.process_hfi_percent_conifer", new_callable=AsyncMock
 )
 @patch("app.auto_spatial_advisory.process_stats.calculate_critical_hours", new_callable=AsyncMock)
+@patch("app.auto_spatial_advisory.process_stats.process_zone_statuses", new_callable=AsyncMock)
 async def test_process_stats_does_not_mark_complete_on_failure(
+    mock_zone_statuses,
     mock_critical_hours,
     mock_percent_conifer,
     mock_min_wind_speed,
@@ -88,6 +92,7 @@ async def test_process_stats_does_not_mark_complete_on_failure(
         "process_hfi_min_wind_speed": mock_min_wind_speed,
         "process_hfi_percent_conifer": mock_percent_conifer,
         "calculate_critical_hours": mock_critical_hours,
+        "process_zone_statuses": mock_zone_statuses,
     }
 
     # simulate failure in the specified step
