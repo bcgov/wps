@@ -63,14 +63,17 @@ objects:
                   imagePullPolicy: "Always"
                   command:
                     [
-                      "poetry",
+                      "uv",
                       "run",
+                      "--no-sync",
                       "python",
                       "-m",
-                      "wps_jobs.weather_model_jobs.env_canada",
+                      "weather_model_jobs.env_canada",
                       "HRDPS",
                     ]
                   env:
+                    - name: UV_NO_CACHE
+                      value: "1"
                     - name: POSTGRES_READ_USER
                       valueFrom:
                         secretKeyRef:

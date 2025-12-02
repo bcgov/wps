@@ -33,7 +33,7 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 #### Running the api alone
 
-Refer to [api/README.md](api/README.md).
+Refer to [backend/packages/wps-api/README.md](backend/packages/wps-api/README.md).
 
 #### Running the front end alone
 

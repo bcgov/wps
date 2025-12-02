@@ -8,16 +8,24 @@
             "name": "api",
             "type": "debugpy",
             "request": "launch",
-            "program": "api/app/main.py",
+            "program": "${workspaceFolder}/backend/packages/wps-api/src/app/main.py",
             "console": "integratedTerminal",
-            "justMyCode": false
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "env": {
+                "R_HOME": "/Library/Frameworks/R.framework/Resources",
+                "DYLD_LIBRARY_PATH": "/Library/Frameworks/R.framework/Resources/lib"
+            }
         },
         {
             "name": "nats",
             "type": "debugpy",
             "request": "launch",
-            "program": "api/app/auto_spatial_advisory/nats_consumer.py",
-            "console": "integratedTerminal"
+            "program": "${workspaceFolder}/backend/packages/wps-api/src/app/auto_spatial_advisory/nats_consumer.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
             "name": "sfms",
@@ -30,13 +38,17 @@
             "name": "app.jobs.noon_forecasts",
             "type": "debugpy",
             "request": "launch",
-            "module": "app.jobs.noon_forecasts"
+            "module": "app.jobs.noon_forecasts",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
             "name": "app.jobs.hourly_actuals",
             "type": "debugpy",
             "request": "launch",
-            "module": "app.jobs.hourly_actuals"
+            "module": "app.jobs.hourly_actuals",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
             "name": "backup unit tests",
@@ -51,6 +63,8 @@
             "request": "launch",
             "module": "app.auto_spatial_advisory.local.process_hfi_local",
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
                 "2024-09-01",
                 "2024-09-01",
@@ -62,7 +76,9 @@
             "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.fuel_type_areas_per_zone",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
             "name": "asa - process stats",
@@ -70,6 +86,8 @@
             "request": "launch",
             "module": "app.auto_spatial_advisory.local.process_stats_local",
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
                 "2024-08-06",
                 "2024-08-08",
@@ -82,13 +100,17 @@
             "request": "launch",
             "module": "app.auto_spatial_advisory.local.import_fire_zones",
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
             "name": "app.jobs.rdps_sfms",
             "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.rdps_sfms",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
             "name": "local critical hours",
@@ -96,6 +118,8 @@
             "request": "launch",
             "module": "app.auto_spatial_advisory.critical_hours",
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
                 "-r",
                 "3460"
@@ -109,6 +133,8 @@
             "request": "launch",
             "module": "app.auto_spatial_advisory.hfi_minimum_wind_speed",
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
                 "-r",
                 "3460"
@@ -120,6 +146,8 @@
             "request": "launch",
             "module": "app.auto_spatial_advisory.hfi_percent_conifer",
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
                 "-r",
                 "3460"
@@ -131,6 +159,8 @@
             "request": "launch",
             "module": "app.jobs.sfms_calculations",
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
                 "2024-10-23 12"
             ]
@@ -141,6 +171,82 @@
             "request": "launch",
             "module": "app.jobs.fuel_type_areas_per_zone",
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
+        },
+        {
+            "name": "env_canada GDPS",
+            "type": "debugpy",
+            "justMyCode": false,
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "weather_model_jobs.env_canada",
+            "args": [
+                "GDPS"
+            ]
+        },
+        {
+            "name": "env_canada HRDPS",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "weather_model_jobs.env_canada",
+            "args": [
+                "HRDPS"
+            ]
+        },
+        {
+            "name": "env_canada RDPS",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "weather_model_jobs.env_canada",
+            "args": [
+                "RDPS"
+            ]
+        },
+        {
+            "name": "noaa GFS",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "weather_model_jobs.noaa",
+            "args": [
+                "GFS"
+            ]
+        },
+        {
+            "name": "noaa NAM",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "weather_model_jobs.noaa",
+            "args": [
+                "NAM"
+            ]
+        },
+        {
+            "name": "fuel layer processor job",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "fuel_raster",
+            "console": "integratedTerminal",
+            "args": []
+        },
+        {
+            "name": "ecmwf IFS",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "weather_model_jobs.ecmwf",
         },
         {
             "name": "Chrome",
