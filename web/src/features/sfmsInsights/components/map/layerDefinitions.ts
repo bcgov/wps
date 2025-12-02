@@ -8,6 +8,7 @@ import GeoTIFF from 'ol/source/GeoTIFF'
 import VectorSource from 'ol/source/VectorTile'
 import MVT from "ol/format/MVT"
 import { applyStyle } from "ol-mapbox-style"
+import axios from 'axios'
 
 export const BASEMAP_LAYER_NAME = "basemapLayer";
 export const SNOW_LAYER_NAME = 'snowVector'
@@ -22,13 +23,9 @@ export const createBasemapLayer = async () => {
     source: basemapSource
   });
   basemapLayer.set("name", BASEMAP_LAYER_NAME);
-  // Fetch the style json from ArcGIS Online
-  const response = await fetch(BASEMAP_STYLE_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-  });
-  const style = await response.json();
-  applyStyle(basemapLayer, style, { updateSource: false });
+  // Get the style json from ArcGIS Online
+  const { data } = await axios.get(BASEMAP_STYLE_URL );
+  applyStyle(basemapLayer, data, { updateSource: false });
   return basemapLayer;
 };
 
