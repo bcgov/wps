@@ -72,8 +72,21 @@ const AuthWrapper = ({ children }: Props) => {
           flexDirection: "column",
           flexGrow: 1,
           alignItems: "center",
+          justifyContent: "space-between",
+          pb: theme.spacing(6),
         }}
       >
+        <Typography
+          sx={{
+            color: "white",
+            textAlign: "center",
+            fontWeight: "bold",
+            mt: theme.spacing(4),
+          }}
+          variant="body1"
+        >
+          A Government of BC IDIR is required for login.
+        </Typography>
         {!authenticating && (
           <>
             <LoginButton label="Login" />
