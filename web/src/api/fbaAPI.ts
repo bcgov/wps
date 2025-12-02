@@ -1,3 +1,4 @@
+import { AdvisoryStatus } from '@/utils/constants'
 import axios, { raster } from 'api/axios'
 import { DateTime } from 'luxon'
 
@@ -89,7 +90,7 @@ export interface FireCentreTPIResponse {
 
 export interface FireZoneStatus {
   fire_shape_id: number
-  status: string
+  status: AdvisoryStatus
 }
 
 export interface FireZoneStatusListResponse {
@@ -101,7 +102,7 @@ export interface FireShapeAreaListResponse {
 }
 
 // Fire shape area (aka fire zone unit) data transfer object
-export interface FireShapeAreaDetail extends FireShapeArea {
+export interface FireShapeAreaDetail extends FireZoneStatus {
   fire_shape_name: string
   fire_centre_name: string
 }

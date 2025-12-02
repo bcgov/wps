@@ -6,6 +6,7 @@ import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
 import { range, startCase, lowerCase, isUndefined } from 'lodash'
 import { FireCenter, FireShape, FireZoneStatus } from 'api/fbaAPI'
+import { AdvisoryStatus } from '@/utils/constants'
 
 const GREY_FILL = 'rgba(128, 128, 128, 0.8)'
 const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
@@ -25,7 +26,7 @@ enum FireShapeStatus {
   WARNING = 2
 }
 
-export const toAdvisoryStatus = (status: string): FireShapeStatus => {
+export const toAdvisoryStatus = (status: AdvisoryStatus | undefined): FireShapeStatus => {
   switch (status) {
     case 'advisory':
       return FireShapeStatus.ADVISORY
@@ -84,14 +85,14 @@ export const fireShapeStyler = (fireZoneStatuses: FireZoneStatus[], showZoneStat
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fire_shape_id = feature.getProperties().OBJECTID
     const fireZone = fireZoneStatuses.find(f => f.fire_shape_id == fire_shape_id)
-    const advisoryStatus = fireZone ? toAdvisoryStatus(fireZone.status) : FireShapeStatus.NONE
+    const advisoryStatus = toAdvisoryStatus(fireZone?.status)
 
     return new Style({
       stroke: new Stroke({
         color: 'black',
         width: 1
       }),
-      fill: showZoneStatus && fireZone ? getAdvisoryFillColor(advisoryStatus) : new Fill({ color: EMPTY_FILL })
+      fill: showZoneStatus ? getAdvisoryFillColor(advisoryStatus) : new Fill({ color: EMPTY_FILL })
     })
   }
   return a
@@ -102,11 +103,11 @@ export const fireShapeLineStyler = (fireZoneStatuses: FireZoneStatus[], selected
     const fire_shape_id = feature.getProperties().OBJECTID
     const fireZone = fireZoneStatuses.find(f => f.fire_shape_id === fire_shape_id)
     const selected = !!(selectedFireShape?.fire_shape_id && selectedFireShape.fire_shape_id === fire_shape_id)
-    const advisoryStatus = fireZone ? toAdvisoryStatus(fireZone.status) : FireShapeStatus.NONE
+    const advisoryStatus = toAdvisoryStatus(fireZone?.status)
 
     return new Style({
       stroke: new Stroke({
-        color: selected && fireZone ? getFireShapeStrokeColor(advisoryStatus) : EMPTY_FILL,
+        color: selected ? getFireShapeStrokeColor(advisoryStatus) : EMPTY_FILL,
         width: selected ? 8 : 1
       })
     })
@@ -114,7 +115,7 @@ export const fireShapeLineStyler = (fireZoneStatuses: FireZoneStatus[], selected
   return a
 }
 
-const getFireShapeStrokeColor = (fireShapeStatus: FireShapeStatus) => {
+const getFireShapeStrokeColor = (fireShapeStatus: FireShapeStatus | undefined) => {
   switch (fireShapeStatus) {
     case FireShapeStatus.ADVISORY:
       return ADVISORY_ORANGE_LINE

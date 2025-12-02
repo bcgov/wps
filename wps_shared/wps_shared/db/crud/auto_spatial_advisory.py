@@ -865,7 +865,6 @@ async def get_provincial_rollup(
             ),
             isouter=True,
         )
-        .where(advisory_status_case.isnot(None))
     )
     result = await session.execute(stmt)
     return result.all()

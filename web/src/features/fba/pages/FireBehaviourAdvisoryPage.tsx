@@ -218,7 +218,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <AdvisoryReport
             issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
             forDate={dateOfInterest}
-            advisoryThreshold={ADVISORY_THRESHOLD}
             selectedFireCenter={fireCenter}
             selectedFireZoneUnit={selectedFireShape}
           />
@@ -226,7 +225,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             selectedFireZoneUnit={selectedFireShape}
             setZoomSource={setZoomSource}
             selectedFireCenter={fireCenter}
-            advisoryThreshold={ADVISORY_THRESHOLD}
             setSelectedFireShape={setSelectedFireShape}
           />
         </Box>
@@ -236,7 +234,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             runType={runType}
             selectedFireShape={selectedFireShape}
             selectedFireCenter={fireCenter}
-            advisoryThreshold={ADVISORY_THRESHOLD}
             setSelectedFireShape={setSelectedFireShape}
             fireZoneStatuses={fireZoneStatuses}
             zoomSource={zoomSource}

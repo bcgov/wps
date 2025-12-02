@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import React, { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
-import { calculateStatusText, calculateWindSpeedText } from '@/features/fba/calculateZoneStatus'
+import { calculateWindSpeedText } from '@/features/fba/calculateZoneStatus'
 import {
   criticalHoursExtendToNextDay,
   formatCriticalHoursTimeText,
@@ -95,17 +95,10 @@ interface AdvisoryTextProps {
   issueDate: DateTime | null
   forDate: DateTime
   selectedFireCenter?: FireCenter
-  advisoryThreshold: number
   selectedFireZoneUnit?: FireShape
 }
 
-const AdvisoryText = ({
-  issueDate,
-  forDate,
-  selectedFireCenter,
-  advisoryThreshold,
-  selectedFireZoneUnit
-}: AdvisoryTextProps) => {
+const AdvisoryText = ({ issueDate, forDate, selectedFireCenter, selectedFireZoneUnit }: AdvisoryTextProps) => {
   // selectors
   const provincialSummary = useSelector(selectProvincialSummary)
   const filteredFireCentreHFIFuelStats = useSelector(selectFilteredFireCentreHFIFuelStats)
@@ -149,11 +142,8 @@ const AdvisoryText = ({
   const getZoneStatus = () => {
     if (selectedFireCenter) {
       const fireCenterSummary = provincialSummary[selectedFireCenter.name]
-      const fireZoneUnitInfos = fireCenterSummary?.filter(
-        fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id
-      )
-      const zoneStatus = calculateStatusText(fireZoneUnitInfos, advisoryThreshold)
-      return zoneStatus
+      const fireZoneUnitInfo = fireCenterSummary?.find(fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id)
+      return fireZoneUnitInfo?.status
     }
   }
 

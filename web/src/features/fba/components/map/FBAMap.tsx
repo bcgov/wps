@@ -51,7 +51,6 @@ export interface FBAMapProps {
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
   fireZoneStatuses: FireZoneStatus[]
   runType: RunType
-  advisoryThreshold: number
   zoomSource?: 'fireCenter' | 'fireShape'
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
 }
@@ -231,7 +230,7 @@ const FBAMap = (props: FBAMapProps) => {
     fireCentreLineVTL.changed()
     fireCentreVTL.changed()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedFireCenter, props.selectedFireShape, props.fireZoneStatuses, props.advisoryThreshold])
+  }, [props.selectedFireCenter, props.selectedFireShape, props.fireZoneStatuses])
 
   useEffect(() => {
     if (!map) return
