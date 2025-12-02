@@ -37,8 +37,8 @@ if (import.meta.env.MODE === 'production') {
     SENTRY_DSN: window.env.REACT_APP_SENTRY_DSN,
     SENTRY_ENV: window.env.REACT_APP_SENTRY_ENV,
     PSU_BUCKET: window.env.REACT_APP_PSU_BUCKET,
-    BASEMAP_TILE_URL: window.env.REACT_BASEMAP_TILE_URL,
-    BASEMAP_STYLE_URL: window.env.REACT_BASEMAP_STYLE_URL
+    BASEMAP_TILE_URL: window.env.REACT_APP_BASEMAP_TILE_URL,
+    BASEMAP_STYLE_URL: window.env.REACT_APP_BASEMAP_STYLE_URL
   }
 }
 
