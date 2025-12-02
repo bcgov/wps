@@ -7,7 +7,7 @@ import { RootState } from '@/app/rootReducer'
 
 const getStore = (asaLoading: boolean) =>
   createTestStore({
-    fireShapeAreas: { loading: asaLoading },
+    fireZoneStatus: { loading: asaLoading },
     provincialSummary: { loading: false },
     fireCentreHFIFuelStats: { loading: false },
     fireCentreTPIStats: { loading: false },
