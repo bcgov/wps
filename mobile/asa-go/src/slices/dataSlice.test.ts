@@ -318,7 +318,7 @@ describe("data reducer", () => {
 
 describe("fetchAndCacheData thunk", () => {
   const mockCacheWithData = () => {
-    (readFromFilesystem as Mock).mockImplementation((filesystem, key) => {
+    (readFromFilesystem as Mock).mockImplementation((_filesystem, key) => {
       switch (key) {
         case PROVINCIAL_SUMMARY_KEY:
           return {
