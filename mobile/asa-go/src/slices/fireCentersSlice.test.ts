@@ -66,13 +66,13 @@ describe("fetchFireCenters thunk", () => {
     stations: [],
   };
   const mockCacheWithNoData = () => {
-    (readFromFilesystem as Mock).mockImplementation((filesystem, key) => {
+    (readFromFilesystem as Mock).mockImplementation(() => {
       console.log("Reading from null file system");
       return null;
     });
   };
   const mockCacheWithData = (isStale: boolean) => {
-    (readFromFilesystem as Mock).mockImplementation((filesystem, key) => {
+    (readFromFilesystem as Mock).mockImplementation((_filesystem, key) => {
       if (key === FIRE_CENTERS_KEY) {
         return {
           lastUpdated: isStale ? yesterday : today,
