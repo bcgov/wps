@@ -1,4 +1,3 @@
-
 import { Provider } from 'react-redux'
 import { render } from '@testing-library/react'
 import ProvincialSummary, { NO_DATA_MESSAGE } from 'features/fba/components/infoPanel/ProvincialSummary'
@@ -8,6 +7,7 @@ import provincialSummarySlice, {
 } from 'features/fba/slices/provincialSummarySlice'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import { FireShapeAreaDetail } from 'api/fbaAPI'
+import { AdvisoryStatus } from '@/utils/constants'
 
 const buildTestStore = (initialState: ProvincialSummaryState) => {
   const rootReducer = combineReducers({ provincialSummary: provincialSummarySlice })
@@ -27,7 +27,7 @@ describe('ProvincialSummary', () => {
     })
     const { getByTestId } = render(
       <Provider store={testStore}>
-        <ProvincialSummary advisoryThreshold={20} />
+        <ProvincialSummary />
       </Provider>
     )
     const provincialSummary = getByTestId('provincial-summary')
@@ -39,7 +39,7 @@ describe('ProvincialSummary', () => {
     })
     const { getByTestId } = render(
       <Provider store={testStore}>
-        <ProvincialSummary advisoryThreshold={20} />
+        <ProvincialSummary />
       </Provider>
     )
     const noDataMessage = getByTestId('provincial-summary-no-data')
@@ -52,10 +52,7 @@ describe('ProvincialSummary', () => {
         fire_shape_id: 1,
         fire_shape_name: 'foo',
         fire_centre_name: 'fizz',
-        combustible_area: 2,
-        threshold: 1,
-        elevated_hfi_area: 100,
-        elevated_hfi_percentage: 0
+        status: AdvisoryStatus.ADVISORY
       }
     ]
     const testStore = buildTestStore({
@@ -64,7 +61,7 @@ describe('ProvincialSummary', () => {
     })
     const { getByTestId } = render(
       <Provider store={testStore}>
-        <ProvincialSummary advisoryThreshold={20} />
+        <ProvincialSummary />
       </Provider>
     )
     const fireCentreInfo = getByTestId('fire-centre-info')

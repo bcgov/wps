@@ -24,10 +24,9 @@ describe('FBAMap', () => {
       <Provider store={store}>
         <FBAMap
           forDate={DateTime.fromISO('2016-05-25')}
-          advisoryThreshold={0}
           selectedFireCenter={undefined}
           selectedFireShape={undefined}
-          fireShapeAreas={[]}
+          fireZoneStatuses={[]}
           runType={RunType.FORECAST}
           setSelectedFireShape={function (): void {
             throw new Error('Function not implemented.')

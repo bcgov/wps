@@ -14,31 +14,19 @@ import fireCentreHFIFuelStatsSlice, {
   initialState as hfiInitialState
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
 import { Provider } from 'react-redux'
+import { AdvisoryStatus } from '@/utils/constants'
 
 const getAdvisoryDetails = (
   fireZoneName: string,
   fireShapeId: number,
-  advisoryPercent: number,
-  warningPercent: number
+  advisoryStatus: AdvisoryStatus
 ): FireShapeAreaDetail[] => {
   return [
     {
       fire_shape_id: fireShapeId,
-      threshold: 1,
-      combustible_area: 1,
-      elevated_hfi_area: 2,
-      elevated_hfi_percentage: advisoryPercent,
       fire_shape_name: fireZoneName,
-      fire_centre_name: fireCentre1
-    },
-    {
-      fire_shape_id: fireShapeId,
-      threshold: 2,
-      combustible_area: 1,
-      elevated_hfi_area: 2,
-      elevated_hfi_percentage: warningPercent,
-      fire_shape_name: fireZoneName,
-      fire_centre_name: fireCentre1
+      fire_centre_name: fireCentre1,
+      status: advisoryStatus
     }
   ]
 }
@@ -128,23 +116,23 @@ const mockFireCentreHFIFuelStats: FireCentreHFIStats = {
   }
 }
 
-const mockSortedGroupedFireZoneUnits = [
+const mockSortedFireZoneUnits: FireShapeAreaDetail[] = [
   {
     fire_shape_id: 1,
     fire_shape_name: zoneA,
     fire_centre_name: fireCentre1,
-    fireShapeDetails: getAdvisoryDetails(zoneA, 1, 30, 10)
+    status: AdvisoryStatus.ADVISORY
   },
   {
     fire_shape_id: 2,
     fire_shape_name: zoneB,
     fire_centre_name: fireCentre1,
-    fireShapeDetails: getAdvisoryDetails(zoneB, 2, 30, 30)
+    status: AdvisoryStatus.WARNING
   }
 ]
 
 vi.mock('features/fba/hooks/useFireCentreDetails', () => ({
-  useFireCentreDetails: () => mockSortedGroupedFireZoneUnits
+  useFireCentreDetails: () => mockSortedFireZoneUnits
 }))
 
 const setSelectedFireShapeMock = vi.fn()
@@ -157,7 +145,6 @@ const renderComponent = (testStore: any) =>
         selectedFireZoneUnit={undefined}
         setZoomSource={setZoomSourceMock}
         selectedFireCenter={mockSelectedFireCenter}
-        advisoryThreshold={20}
         setSelectedFireShape={setSelectedFireShapeMock}
       />
     </Provider>
@@ -216,7 +203,6 @@ describe('FireZoneUnitTabs', () => {
           selectedFireZoneUnit={undefined}
           setZoomSource={setZoomSourceMock}
           selectedFireCenter={undefined}
-          advisoryThreshold={20}
           setSelectedFireShape={setSelectedFireShapeMock}
         />
       </Provider>

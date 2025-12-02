@@ -90,7 +90,7 @@ export interface FireCentreTPIResponse {
 
 export interface FireZoneStatus {
   fire_shape_id: number
-  status: AdvisoryStatus
+  status: AdvisoryStatus | null
 }
 
 export interface FireZoneStatusListResponse {

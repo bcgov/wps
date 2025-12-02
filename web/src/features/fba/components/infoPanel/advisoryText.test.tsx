@@ -3,8 +3,8 @@ import {
   initialState as fuelStatsInitialState,
   getFireCentreHFIFuelStatsSuccess
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
-import { initialState as fireZoneAreasInitialState } from '@/features/fba/slices/fireZoneAreasSlice'
 import { initialState as runDatesInitialState } from '@/features/fba/slices/runDatesSlice'
+import { initialState as zoneStatusInitialState } from '@/features/fba/slices/fireZoneStatusSlice'
 import { initialState as fireCentreTPIStatsInitialState } from '@/features/fba/slices/fireCentreTPIStatsSlice'
 import { createTestStore } from '@/test/testUtils'
 import { render, screen, waitFor } from '@testing-library/react'
@@ -18,6 +18,7 @@ import { initialState as provSummaryInitialState } from 'features/fba/slices/pro
 import { cloneDeep } from 'lodash'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
+import { AdvisoryStatus } from '@/utils/constants'
 
 const createDateTime = (year: number, month: number, day: number) => {
   return DateTime.fromObject({ year, month, day })
@@ -30,7 +31,6 @@ const postCoreSeasonDate = createDateTime(2025, 10, 1)
 
 const issueDate = DateTime.now()
 const forDate = DateTime.now()
-const advisoryThreshold = 20
 
 const mockFireCenter: FireCenter = {
   id: 1,
@@ -55,19 +55,7 @@ const mockAdvisoryFireZoneUnit: FireShape = {
 const advisoryDetails: FireShapeAreaDetail[] = [
   {
     fire_shape_id: 18,
-    threshold: 1,
-    combustible_area: 11014999365,
-    elevated_hfi_area: 4158676298,
-    elevated_hfi_percentage: 37,
-    fire_shape_name: 'C4-100 Mile House Fire Zone',
-    fire_centre_name: 'Cariboo Fire Centre'
-  },
-  {
-    fire_shape_id: 18,
-    threshold: 2,
-    combustible_area: 11014999365,
-    elevated_hfi_area: 2079887078,
-    elevated_hfi_percentage: 18,
+    status: AdvisoryStatus.ADVISORY,
     fire_shape_name: 'C4-100 Mile House Fire Zone',
     fire_centre_name: 'Cariboo Fire Centre'
   }
@@ -76,19 +64,7 @@ const advisoryDetails: FireShapeAreaDetail[] = [
 const warningDetails: FireShapeAreaDetail[] = [
   {
     fire_shape_id: 20,
-    threshold: 1,
-    combustible_area: 11836638228,
-    elevated_hfi_area: 3716282050,
-    elevated_hfi_percentage: 31,
-    fire_shape_name: 'C2-Central Cariboo Fire Zone',
-    fire_centre_name: 'Cariboo Fire Centre'
-  },
-  {
-    fire_shape_id: 20,
-    threshold: 2,
-    combustible_area: 11836638228,
-    elevated_hfi_area: 2229415672,
-    elevated_hfi_percentage: 21,
+    status: AdvisoryStatus.WARNING,
     fire_shape_name: 'C2-Central Cariboo Fire Zone',
     fire_centre_name: 'Cariboo Fire Centre'
   }
@@ -97,19 +73,7 @@ const warningDetails: FireShapeAreaDetail[] = [
 const noAdvisoryDetails: FireShapeAreaDetail[] = [
   {
     fire_shape_id: 20,
-    threshold: 1,
-    combustible_area: 11836638228,
-    elevated_hfi_area: 3716282050,
-    elevated_hfi_percentage: 10,
-    fire_shape_name: 'C2-Central Cariboo Fire Zone',
-    fire_centre_name: 'Cariboo Fire Centre'
-  },
-  {
-    fire_shape_id: 20,
-    threshold: 2,
-    combustible_area: 11836638228,
-    elevated_hfi_area: 2229415672,
-    elevated_hfi_percentage: 2,
+    status: null,
     fire_shape_name: 'C2-Central Cariboo Fire Zone',
     fire_centre_name: 'Cariboo Fire Centre'
   }
@@ -189,7 +153,7 @@ describe('AdvisoryText', () => {
   it('should render the advisory text container', () => {
     const { getByTestId } = render(
       <Provider store={testStore}>
-        <AdvisoryText issueDate={issueDate} forDate={forDate} advisoryThreshold={advisoryThreshold} />
+        <AdvisoryText issueDate={issueDate} forDate={forDate} />
       </Provider>
     )
     const advisoryText = getByTestId('advisory-text')
@@ -199,7 +163,7 @@ describe('AdvisoryText', () => {
   it('should render default message when no fire center is selected', () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
-        <AdvisoryText issueDate={issueDate} forDate={forDate} advisoryThreshold={advisoryThreshold} />
+        <AdvisoryText issueDate={issueDate} forDate={forDate} />
       </Provider>
     )
     const message = getByTestId('default-message')
@@ -211,12 +175,7 @@ describe('AdvisoryText', () => {
   it('should render default message when no fire zone unit is selected', () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
-        <AdvisoryText
-          issueDate={issueDate}
-          forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
-          selectedFireCenter={mockFireCenter}
-        />
+        <AdvisoryText issueDate={issueDate} forDate={forDate} selectedFireCenter={mockFireCenter} />
       </Provider>
     )
     const message = getByTestId('default-message')
@@ -228,7 +187,7 @@ describe('AdvisoryText', () => {
   it('should render no data message when the issueDate is invalid', () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
-        <AdvisoryText issueDate={DateTime.invalid('test')} forDate={forDate} advisoryThreshold={advisoryThreshold} />
+        <AdvisoryText issueDate={DateTime.invalid('test')} forDate={forDate} />
       </Provider>
     )
     const message = getByTestId('no-data-message')
@@ -244,7 +203,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
@@ -267,7 +225,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
@@ -295,7 +252,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
@@ -311,8 +267,7 @@ describe('AdvisoryText', () => {
   it('should render a no advisories message when there are no advisories/warnings', () => {
     const noAdvisoryStore = createTestStore({
       provincialSummary: {
-        ...provSummaryInitialState,
-        fireShapeAreaDetails: noAdvisoryDetails
+        ...provSummaryInitialState
       }
     })
     const { queryByTestId } = render(
@@ -320,7 +275,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
@@ -356,7 +310,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
@@ -385,7 +338,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
         />
@@ -415,7 +367,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
@@ -435,7 +386,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
@@ -463,7 +413,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
@@ -501,7 +450,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
         />
@@ -529,7 +477,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
         />
@@ -548,7 +495,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
@@ -566,7 +512,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
@@ -582,7 +527,7 @@ describe('AdvisoryText', () => {
   })
 
   const allInitialStates = {
-    fireShapeAreas: fireZoneAreasInitialState,
+    fireZoneStatus: zoneStatusInitialState,
     provincialSummary: provSummaryInitialState,
     fireCentreHFIFuelStats: fuelStatsInitialState,
     fireCentreTPIStats: fireCentreTPIStatsInitialState,
@@ -600,7 +545,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
@@ -611,7 +555,7 @@ describe('AdvisoryText', () => {
 
   it('should not render the loading indicator when no ASA state is loading', async () => {
     const store = createTestStore({
-      fireShapeAreas: { ...fireZoneAreasInitialState, loading: false },
+      fireZoneStatus: { ...zoneStatusInitialState, loading: false },
       provincialSummary: { ...provSummaryInitialState, loading: false },
       fireCentreHFIFuelStats: { ...fuelStatsInitialState, loading: false },
       fireCentreTPIStats: { ...fireCentreTPIStatsInitialState, loading: false },
@@ -622,7 +566,6 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
         />

@@ -26,7 +26,7 @@ enum FireShapeStatus {
   WARNING = 2
 }
 
-export const toAdvisoryStatus = (status: AdvisoryStatus | undefined): FireShapeStatus => {
+export const toAdvisoryStatus = (status: AdvisoryStatus | undefined | null): FireShapeStatus => {
   switch (status) {
     case 'advisory':
       return FireShapeStatus.ADVISORY
