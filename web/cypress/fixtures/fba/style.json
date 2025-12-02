@@ -1,7 +1,5 @@
 {
     "version": 8,
-    "sprite": "https://www.arcgis.com/sharing/rest/content/items/bbe05270d3a642f5b62203d6c454f457/resources/sprites/sprite-1723150528504",
-    "glyphs": "https://tiles.arcgis.com/tiles/ubm4tcTYICKBpist/arcgis/rest/services/BC_BASEMAP_20240307/VectorTileServer/resources/styles/../fonts/{fontstack}/{range}.pbf",
     "sources": {
         "esri": {
             "type": "vector",
