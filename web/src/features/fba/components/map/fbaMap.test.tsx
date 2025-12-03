@@ -2,10 +2,11 @@ vi.mock('@/features/fba/components/map/layerDefinitions', async () => {
   const actual = await import('@/features/fba/components/map/layerDefinitions')
   return {
     ...actual,
-    createBasemapLayer: vi.fn()
+    createBasemapLayer: vi.fn(),
+    createHillshadeLayer: vi.fn()
   }
 })
-import { createBasemapLayer } from '@/features/fba/components/map/layerDefinitions'
+import { createBasemapLayer, createHillshadeLayer } from '@/features/fba/components/map/layerDefinitions'
 import { RunType } from '@/api/fbaAPI'
 import { baseLayerMock } from '@/test/testUtils'
 import { render } from '@testing-library/react'
@@ -30,6 +31,7 @@ describe('FBAMap', () => {
   window.ResizeObserver = ResizeObserver
   it('should render height with height and width properties set', () => {
     (createBasemapLayer as Mock).mockResolvedValue(baseLayerMock)
+    (createHillshadeLayer as Mock).mockResolvedValue(baseLayerMock)
     const { getByTestId } = render(
       <Provider store={store}>
         <FBAMap
