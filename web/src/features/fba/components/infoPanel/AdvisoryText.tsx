@@ -293,7 +293,11 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCenter, selectedFireZone
           </SerifTypography>
         )}
 
-        {!isNil(zoneStatus) ? (
+        {isNil(zoneStatus) ? (
+          <SerifTypography data-testid="no-advisory-message">
+            No advisories or warnings issued for the selected fire zone unit.
+          </SerifTypography>
+        ) : (
           <>
             {zoneStatus === AdvisoryStatus.ADVISORY && (
               <SerifTypography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-advisory">
@@ -319,10 +323,6 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCenter, selectedFireZone
               </SerifTypography>
             )}
           </>
-        ) : (
-          <SerifTypography data-testid="no-advisory-message">
-            No advisories or warnings issued for the selected fire zone unit.
-          </SerifTypography>
         )}
       </>
     )
