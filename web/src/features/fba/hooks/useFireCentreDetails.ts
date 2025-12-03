@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
-import { groupBy } from 'lodash'
 import { FireCenter, FireShapeAreaDetail } from 'api/fbaAPI'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 

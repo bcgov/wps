@@ -15,7 +15,7 @@ import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectRunDates } from 'app/rootReducer'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import TileLayer from 'ol/layer/Tile'
-import { FireCenter, FireShape, FireShapeArea, FireZoneStatus, RunType } from 'api/fbaAPI'
+import { FireCenter, FireShape, FireZoneStatus, RunType } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
 import {
   fireCentreStyler,
