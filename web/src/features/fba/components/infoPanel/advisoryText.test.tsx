@@ -4,11 +4,10 @@ import {
   getFireCentreHFIFuelStatsSuccess
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
 import { initialState as runDatesInitialState } from '@/features/fba/slices/runDatesSlice'
-import { initialState as zoneStatusInitialState } from '@/features/fba/slices/fireZoneStatusSlice'
 import { initialState as fireCentreTPIStatsInitialState } from '@/features/fba/slices/fireCentreTPIStatsSlice'
 import { createTestStore } from '@/test/testUtils'
 import { render, screen, waitFor } from '@testing-library/react'
-import { FireCenter, FireShape, FireShapeAreaDetail, FireZoneHFIStats } from 'api/fbaAPI'
+import { FireCenter, FireShape, FireShapeStatusDetail, FireZoneHFIStats } from 'api/fbaAPI'
 import AdvisoryText, {
   getTopFuelsByArea,
   getTopFuelsByProportion,
@@ -52,7 +51,7 @@ const mockAdvisoryFireZoneUnit: FireShape = {
   area_sqm: undefined
 }
 
-const advisoryDetails: FireShapeAreaDetail[] = [
+const advisoryDetails: FireShapeStatusDetail[] = [
   {
     fire_shape_id: 18,
     status: AdvisoryStatus.ADVISORY,
@@ -61,7 +60,7 @@ const advisoryDetails: FireShapeAreaDetail[] = [
   }
 ]
 
-const warningDetails: FireShapeAreaDetail[] = [
+const warningDetails: FireShapeStatusDetail[] = [
   {
     fire_shape_id: 20,
     status: AdvisoryStatus.WARNING,
@@ -70,7 +69,7 @@ const warningDetails: FireShapeAreaDetail[] = [
   }
 ]
 
-const noAdvisoryDetails: FireShapeAreaDetail[] = [
+const noAdvisoryDetails: FireShapeStatusDetail[] = [
   {
     fire_shape_id: 20,
     status: null,
@@ -527,7 +526,6 @@ describe('AdvisoryText', () => {
   })
 
   const allInitialStates = {
-    fireZoneStatus: zoneStatusInitialState,
     provincialSummary: provSummaryInitialState,
     fireCentreHFIFuelStats: fuelStatsInitialState,
     fireCentreTPIStats: fireCentreTPIStatsInitialState,
@@ -555,7 +553,6 @@ describe('AdvisoryText', () => {
 
   it('should not render the loading indicator when no ASA state is loading', async () => {
     const store = createTestStore({
-      fireZoneStatus: { ...zoneStatusInitialState, loading: false },
       provincialSummary: { ...provSummaryInitialState, loading: false },
       fireCentreHFIFuelStats: { ...fuelStatsInitialState, loading: false },
       fireCentreTPIStats: { ...fireCentreTPIStatsInitialState, loading: false },

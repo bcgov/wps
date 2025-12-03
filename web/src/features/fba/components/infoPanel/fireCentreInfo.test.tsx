@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 import { render } from '@testing-library/react'
 import FireCentreInfo from 'features/fba/components/infoPanel/FireCentreInfo'
-import { FireShapeAreaDetail } from 'api/fbaAPI'
+import { FireShapeStatusDetail } from 'api/fbaAPI'
 import { AdvisoryStatus } from '@/utils/constants'
 
 describe('FireCentreInfo', () => {
@@ -21,7 +21,7 @@ describe('FireCentreInfo', () => {
     expect(fireCentreInfo).toHaveTextContent('foo')
   })
   it('should render fireZoneUnit children', () => {
-    const fireShapeAreaDetails: FireShapeAreaDetail[] = [
+    const fireShapeAreaDetails: FireShapeStatusDetail[] = [
       {
         fire_shape_id: 1,
         fire_shape_name: 'foo',

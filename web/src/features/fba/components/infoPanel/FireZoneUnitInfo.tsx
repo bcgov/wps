@@ -1,13 +1,13 @@
 import React from 'react'
 import { Box, ListItem, ListItemIcon, Typography } from '@mui/material'
-import { FireShapeAreaDetail } from 'api/fbaAPI'
+import { FireShapeStatusDetail } from 'api/fbaAPI'
 import { useTheme } from '@mui/material/styles'
 import { TRANSPARENT_COLOUR } from 'app/theme'
 import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
 
 interface FireZoneUnitInfoProps {
   fireZoneUnitName: string
-  fireZoneUnitDetails: FireShapeAreaDetail
+  fireZoneUnitDetails: FireShapeStatusDetail
 }
 
 const FireZoneUnitInfo = ({ fireZoneUnitName, fireZoneUnitDetails }: FireZoneUnitInfoProps) => {

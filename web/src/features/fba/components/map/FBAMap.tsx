@@ -12,10 +12,10 @@ import GeoJSON from 'ol/format/GeoJSON'
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'components'
-import { selectFireWeatherStations, selectRunDates } from 'app/rootReducer'
+import { selectFireWeatherStations, selectProvincialSummaryZones, selectRunDates } from 'app/rootReducer'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import TileLayer from 'ol/layer/Tile'
-import { FireCenter, FireShape, FireZoneStatus, RunType } from 'api/fbaAPI'
+import { FireCenter, FireShape, RunType } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
 import {
   fireCentreStyler,
@@ -49,7 +49,6 @@ export interface FBAMapProps {
   selectedFireShape: FireShape | undefined
   forDate: DateTime
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
-  fireZoneStatuses: FireZoneStatus[]
   runType: RunType
   zoomSource?: 'fireCenter' | 'fireShape'
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
@@ -67,6 +66,7 @@ const removeLayerByName = (map: Map, layerName: string) => {
 
 const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
+  const provincialSummaryZones = useSelector(selectProvincialSummaryZones)
   const [showShapeStatus, setShowShapeStatus] = useState(true)
   const [showHFI, setShowHFI] = useState(() => {
     const stored = localStorage.getItem(hfiLayerName)
@@ -98,7 +98,7 @@ const FBAMap = (props: FBAMapProps) => {
         .find(l => l.getProperties()?.name === layerName)
 
       if (layerName === 'fireShapeVector') {
-        fireShapeVTL.setStyle(fireShapeStyler(cloneDeep(props.fireZoneStatuses), isVisible))
+        fireShapeVTL.setStyle(fireShapeStyler(cloneDeep(provincialSummaryZones), isVisible))
       } else if (layer) {
         layer.setVisible(isVisible)
       }
@@ -124,7 +124,7 @@ const FBAMap = (props: FBAMapProps) => {
   const [fireShapeVTL] = useState(
     new VectorTileLayer({
       source: fireShapeVectorSource,
-      style: fireShapeStyler(cloneDeep(props.fireZoneStatuses), showShapeStatus),
+      style: fireShapeStyler(cloneDeep(provincialSummaryZones), showShapeStatus),
       zIndex: 50,
       properties: { name: 'fireShapeVector' }
     })
@@ -132,7 +132,7 @@ const FBAMap = (props: FBAMapProps) => {
   const [fireShapeHighlightVTL] = useState(
     new VectorTileLayer({
       source: fireShapeVectorSource,
-      style: fireShapeLineStyler(cloneDeep(props.fireZoneStatuses), props.selectedFireShape),
+      style: fireShapeLineStyler(cloneDeep(provincialSummaryZones), props.selectedFireShape),
       zIndex: 53,
       properties: { name: 'fireShapeVector' }
     })
@@ -219,9 +219,9 @@ const FBAMap = (props: FBAMapProps) => {
     if (!map) return
 
     fireCentreVTL.setStyle(fireCentreStyler(props.selectedFireCenter))
-    fireShapeVTL.setStyle(fireShapeStyler(cloneDeep(props.fireZoneStatuses), showShapeStatus))
+    fireShapeVTL.setStyle(fireShapeStyler(cloneDeep(provincialSummaryZones), showShapeStatus))
     fireShapeLabelVTL.setStyle(fireShapeLabelStyler(props.selectedFireShape))
-    fireShapeHighlightVTL.setStyle(fireShapeLineStyler(cloneDeep(props.fireZoneStatuses), props.selectedFireShape))
+    fireShapeHighlightVTL.setStyle(fireShapeLineStyler(cloneDeep(provincialSummaryZones), props.selectedFireShape))
     fireCentreLineVTL.setStyle(fireCentreLineStyler(props.selectedFireCenter))
 
     fireShapeVTL.changed()
@@ -230,7 +230,7 @@ const FBAMap = (props: FBAMapProps) => {
     fireCentreLineVTL.changed()
     fireCentreVTL.changed()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedFireCenter, props.selectedFireShape, props.fireZoneStatuses])
+  }, [props.selectedFireCenter, props.selectedFireShape, provincialSummaryZones])
 
   useEffect(() => {
     if (!map) return

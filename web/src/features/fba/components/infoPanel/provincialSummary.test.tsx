@@ -6,7 +6,7 @@ import provincialSummarySlice, {
   ProvincialSummaryState
 } from 'features/fba/slices/provincialSummarySlice'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
-import { FireShapeAreaDetail } from 'api/fbaAPI'
+import { FireShapeStatusDetail } from 'api/fbaAPI'
 import { AdvisoryStatus } from '@/utils/constants'
 
 const buildTestStore = (initialState: ProvincialSummaryState) => {
@@ -47,7 +47,7 @@ describe('ProvincialSummary', () => {
     expect(noDataMessage).toHaveTextContent(NO_DATA_MESSAGE)
   })
   it('should render fireCenterInfo component as children', () => {
-    const fireShapeAreaDetails: FireShapeAreaDetail[] = [
+    const fireShapeAreaDetails: FireShapeStatusDetail[] = [
       {
         fire_shape_id: 1,
         fire_shape_name: 'foo',

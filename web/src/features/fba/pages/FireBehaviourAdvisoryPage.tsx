@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters, selectRunDates, selectFireZoneStatuses } from 'app/rootReducer'
+import { selectFireCenters, selectRunDates } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { theme } from 'app/theme'
@@ -26,7 +26,6 @@ import Footer from '@/features/landingPage/components/Footer'
 import AboutDataPopover from '@/components/AboutDataPopover'
 import { ASAAboutDataContent } from '@/features/fba/components/ASAAboutDataContent'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
-import { fetchFireZoneStatuses } from '@/features/fba/slices/fireZoneStatusSlice'
 
 const ADVISORY_THRESHOLD = 20
 
@@ -41,7 +40,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   // selectors
   const { fireCenters } = useSelector(selectFireCenters)
   const { mostRecentRunDate, sfmsBounds } = useSelector(selectRunDates)
-  const { fireZoneStatuses } = useSelector(selectFireZoneStatuses)
 
   // state
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
@@ -166,7 +164,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
-      dispatch(fetchFireZoneStatuses(runType, mostRecentRunDate, doiISODate))
       dispatch(fetchProvincialSummary(runType, mostRecentRunDate, doiISODate))
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -235,7 +232,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             selectedFireShape={selectedFireShape}
             selectedFireCenter={fireCenter}
             setSelectedFireShape={setSelectedFireShape}
-            fireZoneStatuses={fireZoneStatuses}
             zoomSource={zoomSource}
             setZoomSource={setZoomSource}
           />

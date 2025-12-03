@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
-import { FireCenter, FireShapeAreaDetail } from 'api/fbaAPI'
+import { FireCenter, FireShapeStatusDetail } from 'api/fbaAPI'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 
 export interface GroupedFireZoneUnitDetails {
   fire_shape_id: number
   fire_shape_name: string
   fire_centre_name: string
-  fireShapeDetails: FireShapeAreaDetail[]
+  fireShapeDetails: FireShapeStatusDetail[]
 }
 
 /**
@@ -17,7 +17,7 @@ export interface GroupedFireZoneUnitDetails {
  * @param selectedFireCenter
  * @returns
  */
-export const useFireCentreDetails = (selectedFireCenter: FireCenter | undefined): FireShapeAreaDetail[] => {
+export const useFireCentreDetails = (selectedFireCenter: FireCenter | undefined): FireShapeStatusDetail[] => {
   const provincialSummary = useSelector(selectProvincialSummary)
 
   return useMemo(() => {

@@ -5,7 +5,7 @@ import CircleStyle from 'ol/style/Circle'
 import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
 import { range, startCase, lowerCase, isUndefined } from 'lodash'
-import { FireCenter, FireShape, FireZoneStatus } from 'api/fbaAPI'
+import { FireCenter, FireShape, FireShapeStatusDetail, FireZoneStatus } from 'api/fbaAPI'
 import { AdvisoryStatus } from '@/utils/constants'
 
 const GREY_FILL = 'rgba(128, 128, 128, 0.8)'
@@ -81,7 +81,7 @@ export const fireCentreLineStyler = (selectedFireCenter: FireCenter | undefined)
   }
 }
 
-export const fireShapeStyler = (fireZoneStatuses: FireZoneStatus[], showZoneStatus: boolean) => {
+export const fireShapeStyler = (fireZoneStatuses: FireShapeStatusDetail[], showZoneStatus: boolean) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fire_shape_id = feature.getProperties().OBJECTID
     const fireZone = fireZoneStatuses.find(f => f.fire_shape_id == fire_shape_id)
@@ -98,7 +98,10 @@ export const fireShapeStyler = (fireZoneStatuses: FireZoneStatus[], showZoneStat
   return a
 }
 
-export const fireShapeLineStyler = (fireZoneStatuses: FireZoneStatus[], selectedFireShape: FireShape | undefined) => {
+export const fireShapeLineStyler = (
+  fireZoneStatuses: FireShapeStatusDetail[],
+  selectedFireShape: FireShape | undefined
+) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fire_shape_id = feature.getProperties().OBJECTID
     const fireZone = fireZoneStatuses.find(f => f.fire_shape_id === fire_shape_id)

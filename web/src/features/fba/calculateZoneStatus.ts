@@ -1,9 +1,9 @@
-import { AdvisoryMinWindStats, FireShapeAreaDetail } from '@/api/fbaAPI'
+import { AdvisoryMinWindStats, FireShapeStatusDetail } from '@/api/fbaAPI'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 import { AdvisoryStatus } from '@/utils/constants'
 import { isNil } from 'lodash'
 
-export const calculateStatusColour = (details: FireShapeAreaDetail | undefined, defaultColour: string) => {
+export const calculateStatusColour = (details: FireShapeStatusDetail | undefined, defaultColour: string) => {
   switch (details?.status) {
     case AdvisoryStatus.ADVISORY:
       return ADVISORY_ORANGE_FILL

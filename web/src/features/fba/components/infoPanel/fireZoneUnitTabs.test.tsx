@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import FireZoneUnitTabs from './FireZoneUnitTabs'
-import { FireCenter, FireCentreHFIStats, FireCentreTPIResponse, FireShape, FireShapeAreaDetail } from 'api/fbaAPI'
+import { FireCenter, FireCentreHFIStats, FireCentreTPIResponse, FireShape, FireShapeStatusDetail } from 'api/fbaAPI'
 import { vi } from 'vitest'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
@@ -20,7 +20,7 @@ const getAdvisoryDetails = (
   fireZoneName: string,
   fireShapeId: number,
   advisoryStatus: AdvisoryStatus
-): FireShapeAreaDetail[] => {
+): FireShapeStatusDetail[] => {
   return [
     {
       fire_shape_id: fireShapeId,
@@ -116,7 +116,7 @@ const mockFireCentreHFIFuelStats: FireCentreHFIStats = {
   }
 }
 
-const mockSortedFireZoneUnits: FireShapeAreaDetail[] = [
+const mockSortedFireZoneUnits: FireShapeStatusDetail[] = [
   {
     fire_shape_id: 1,
     fire_shape_name: zoneA,
