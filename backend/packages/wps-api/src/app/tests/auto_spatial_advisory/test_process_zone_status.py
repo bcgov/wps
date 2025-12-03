@@ -1,4 +1,5 @@
 import pytest
+from pytest import approx
 from datetime import date, datetime
 from unittest.mock import AsyncMock, MagicMock
 
@@ -176,9 +177,9 @@ async def test_calculate_zone_statuses(mocker):
     assert len(result) == 1
     status = result[0]
     assert status.run_parameters == 1
-    assert status.advisory_shape_id == 100
-    assert status.advisory_percentage == 20.0  # 200 / 1000 * 100
-    assert status.warning_percentage == 10.0  # 100 / 1000 * 100
+    assert status.advisory_shape_id == approx(100)
+    assert status.advisory_percentage == approx(20.0)  # 200 / 1000 * 100
+    assert status.warning_percentage == approx(10.0)  # 100 / 1000 * 100
 
     mock_get_hfi_threshold_ids.assert_called_once_with(session)
     mock_get_hfi_area.assert_called_once_with(
