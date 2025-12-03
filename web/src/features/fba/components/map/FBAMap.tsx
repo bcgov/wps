@@ -36,7 +36,7 @@ import { Box } from '@mui/material'
 import Legend from 'features/fba/components/map/Legend'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
 import { fireZoneExtentsMap } from 'features/fba/fireZoneUnitExtents'
-export const MapContext = React.createContext<Map | null>(null)
+import { MapContext } from '@/features/fba/context/MapContext'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
