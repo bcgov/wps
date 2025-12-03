@@ -5,7 +5,7 @@ import CircleStyle from 'ol/style/Circle'
 import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
 import { range, startCase, lowerCase, isUndefined } from 'lodash'
-import { FireCenter, FireShape, FireShapeStatusDetail, FireZoneStatus } from 'api/fbaAPI'
+import { FireCenter, FireShape, FireShapeStatusDetail } from 'api/fbaAPI'
 import { AdvisoryStatus } from '@/utils/constants'
 
 const GREY_FILL = 'rgba(128, 128, 128, 0.8)'
