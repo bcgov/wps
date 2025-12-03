@@ -93,10 +93,6 @@ export interface FireZoneStatus {
   status: AdvisoryStatus | null
 }
 
-export interface FireZoneStatusListResponse {
-  zones: FireZoneStatus[]
-}
-
 export interface FireShapeAreaListResponse {
   shapes: FireShapeArea[]
 }
