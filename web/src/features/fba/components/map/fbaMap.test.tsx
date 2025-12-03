@@ -8,7 +8,7 @@ vi.mock('@/features/fba/components/map/layerDefinitions', async () => {
 })
 import { createBasemapLayer, createHillshadeLayer } from '@/features/fba/components/map/layerDefinitions'
 import { RunType } from '@/api/fbaAPI'
-import { baseLayerMock, createLayerMock } from '@/test/testUtils'
+import { createLayerMock } from '@/test/testUtils'
 import { render } from '@testing-library/react'
 import store from 'app/store'
 import FBAMap from 'features/fba/components/map/FBAMap'
