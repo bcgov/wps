@@ -4,14 +4,14 @@ from datetime import date, datetime
 from time import perf_counter
 from typing import List, Optional, Tuple
 
-from sqlalchemy import Integer, String, and_, case, cast, desc, extract, func, select, update
+from sqlalchemy import String, and_, case, cast, desc, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from wps_shared.run_type import RunType
-from wps_shared.schemas.fba import FireShapeStatus, FireShapeStatusDetail, HfiArea, HfiThreshold
+from wps_shared.schemas.fba import FireShapeStatusDetail, HfiArea, HfiThreshold
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryElevationStats,
     AdvisoryFuelStats,

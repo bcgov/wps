@@ -46,7 +46,6 @@ from wps_shared.schemas.fba import (
     FireCenterListResponse,
     FireCentreTPIResponse,
     FireShapeArea,
-    FireShapeStatusDetail,
     FireShapeAreaListResponse,
     FireZoneHFIStats,
     FireZoneTPIStats,
