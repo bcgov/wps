@@ -1,4 +1,4 @@
-import { createBasemapLayer } from '@/features/fba/components/map/layerDefinitions'
+import { createBasemapLayer, createHillshadeLayer } from '@/features/fba/components/map/layerDefinitions'
 import { Box } from '@mui/material'
 import { FireCenter, FireShape, FireShapeArea, RunType } from 'api/fbaAPI'
 import { selectFireWeatherStations, selectRunDates } from 'app/rootReducer'
@@ -299,6 +299,8 @@ const FBAMap = (props: FBAMapProps) => {
 
     const loadBaseMap = async () => {
       const basemapLayer = await createBasemapLayer()
+      const hillshadeLayer = await createHillshadeLayer()
+      mapObject.addLayer(hillshadeLayer)
       mapObject.addLayer(basemapLayer)
     }
     loadBaseMap()

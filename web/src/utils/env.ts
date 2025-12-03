@@ -15,7 +15,9 @@ let ENV = {
   SENTRY_ENV: import.meta.env.VITE_SENTRY_ENV as string,
   PSU_BUCKET: import.meta.env.VITE_PSU_BUCKET as string,
   BASEMAP_TILE_URL: import.meta.env.VITE_BASEMAP_TILE_URL as string,
-  BASEMAP_STYLE_URL: import.meta.env.VITE_BASEMAP_STYLE_URL as string
+  BASEMAP_STYLE_URL: import.meta.env.VITE_BASEMAP_STYLE_URL as string,
+  HILLSHADE_TILE_URL: import.meta.env.VITE_HILLSHADE_TILE_URL as string,
+  HILLSHADE_STYLE_URL: import.meta.env.VITE_HILLSHADE_STYLE_URL as string,
 }
 // If the app is built using 'npm run build'
 if (import.meta.env.MODE === 'production') {
@@ -38,7 +40,9 @@ if (import.meta.env.MODE === 'production') {
     SENTRY_ENV: window.env.REACT_APP_SENTRY_ENV,
     PSU_BUCKET: window.env.REACT_APP_PSU_BUCKET,
     BASEMAP_TILE_URL: window.env.REACT_APP_BASEMAP_TILE_URL,
-    BASEMAP_STYLE_URL: window.env.REACT_APP_BASEMAP_STYLE_URL
+    BASEMAP_STYLE_URL: window.env.REACT_APP_BASEMAP_STYLE_URL,
+    HILLSHADE_TILE_URL: window.env.REACT_APP_HILLSHADE_TILE_URL,
+    HILLSHADE_STYLE_URL: window.env.REACT_APP_HILLSHADE_STYLE_URL
   }
 }
 
@@ -59,5 +63,7 @@ export const {
   SENTRY_ENV,
   PSU_BUCKET,
   BASEMAP_TILE_URL,
-  BASEMAP_STYLE_URL
+  BASEMAP_STYLE_URL,
+  HILLSHADE_TILE_URL,
+  HILLSHADE_STYLE_URL
 } = ENV
