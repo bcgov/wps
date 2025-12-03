@@ -12,7 +12,7 @@ export default mergeConfig(
         include: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts', '!src/index.tsx', '!src/app/*.{ts,tsx}']
       },
       include: ['src/**/*.{spec,test}.{js,jsx,ts,tsx}'],
-      exclude: ['src/features/auth/slices/authenticationSlice.test.ts'],
+      exclude: ['src/features/auth/slices/authenticationSlice.test.ts', '**/layerDefnitions.ts'],
       globals: true,
       environment: 'jsdom',
       setupFiles: 'src/setupTests.ts'
