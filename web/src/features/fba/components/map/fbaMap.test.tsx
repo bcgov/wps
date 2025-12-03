@@ -1,12 +1,11 @@
-vi.mock('@/features/sfmsInsights/components/map/layerDefinitions', async () => {
-  const actual = await import('@/features/sfmsInsights/components/map/layerDefinitions')
-
+vi.mock('@/features/fba/components/map/layerDefinitions', async () => {
+  const actual = await import('@/features/fba/components/map/layerDefinitions')
   return {
     ...actual,
     createBasemapLayer: vi.fn()
   }
 })
-import { createBasemapLayer } from '@/features/sfmsInsights/components/map/layerDefinitions'
+import { createBasemapLayer } from '@/features/fba/components/map/layerDefinitions'
 import { RunType } from '@/api/fbaAPI'
 import { baseLayerMock } from '@/test/testUtils'
 import { render } from '@testing-library/react'
@@ -17,19 +16,19 @@ import { Provider } from 'react-redux'
 import { Mock } from 'vitest'
 
 describe('FBAMap', () => {
-  it('should render height with height and width properties set', () => {
-    class ResizeObserver {
-      observe() {
-        // mock no-op
-      }
-      unobserve() {
-        // mock no-op
-      }
-      disconnect() {
-        // mock no-op
-      }
+  class ResizeObserver {
+    observe() {
+      // mock no-op
     }
-    window.ResizeObserver = ResizeObserver;
+    unobserve() {
+      // mock no-op
+    }
+    disconnect() {
+      // mock no-op
+    }
+  }
+  window.ResizeObserver = ResizeObserver
+  it('should render height with height and width properties set', () => {
     (createBasemapLayer as Mock).mockResolvedValue(baseLayerMock)
     const { getByTestId } = render(
       <Provider store={store}>
