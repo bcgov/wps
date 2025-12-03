@@ -47,20 +47,14 @@ class FireShapeAreaListResponse(BaseModel):
     shapes: List[FireShapeArea]
 
 
-class FireZoneStatus(BaseModel):
+class FireShapeStatus(BaseModel):
     """Advisory status of a fire zone."""
 
     fire_shape_id: int
     status: Optional[str] = None
 
 
-class FireZoneStatusListResponse(BaseModel):
-    """Response for all fire zones and their advisory statuses."""
-
-    zones: List[FireZoneStatus]
-
-
-class FireShapeAreaDetail(FireZoneStatus):
+class FireShapeStatusDetail(FireShapeStatus):
     """Summary information about an advisory shape"""
 
     fire_shape_name: str
@@ -68,7 +62,7 @@ class FireShapeAreaDetail(FireZoneStatus):
 
 
 class ProvincialSummaryResponse(BaseModel):
-    provincial_summary: List[FireShapeAreaDetail]
+    provincial_summary: List[FireShapeStatusDetail]
 
 
 class FireShapeHighHfiAreas(BaseModel):

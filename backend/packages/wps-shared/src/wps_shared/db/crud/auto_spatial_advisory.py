@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from wps_shared.run_type import RunType
-from wps_shared.schemas.fba import FireZoneStatus, HfiArea, HfiThreshold
+from wps_shared.schemas.fba import FireShapeStatus, FireShapeStatusDetail, HfiArea, HfiThreshold
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryElevationStats,
     AdvisoryFuelStats,
@@ -849,9 +849,8 @@ async def get_provincial_rollup(
     run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
     stmt = (
         select(
-            Shape.id,
-            Shape.source_identifier,
-            Shape.placename_label,
+            Shape.source_identifier.label("fire_shape_id"),
+            Shape.placename_label.label("fire_shape_name"),
             FireCentre.name.label("fire_centre_name"),
             advisory_status_case.label("status"),
         )
@@ -866,7 +865,7 @@ async def get_provincial_rollup(
         )
     )
     result = await session.execute(stmt)
-    return result.all()
+    return [FireShapeStatusDetail.model_validate(row) for row in result.mappings().all()]
 
 
 async def get_containing_zone(session: AsyncSession, geometry: str, srid: int):
@@ -923,35 +922,3 @@ async def get_fuel_types_id_dict(db_session: AsyncSession):
     for fuel_type in sfms_fuel_types:
         fuel_types_dict[fuel_type.fuel_type_id] = fuel_type.id
     return fuel_types_dict
-
-
-async def get_advisory_zone_statuses(
-    db_session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
-):
-    """
-    Gets a list of advisory zone statuses for the specified run parameters.
-
-    :param db_session: An async database session.
-    :param run_type: The type of run (forecast or actual).
-    :param run_datetime: The datetime of the run.
-    :param for_date: The date of interest.
-    :return: A list of advisory zone statuses.
-    """
-    logger.info("gathering advisory zone statuses")
-
-    stmt = (
-        select(
-            cast(Shape.source_identifier, Integer).label("fire_shape_id"),
-            advisory_status_case.label("status"),
-        )
-        .join(RunParameters, AdvisoryZoneStatus.run_parameters == RunParameters.id)
-        .join(Shape, AdvisoryZoneStatus.advisory_shape_id == Shape.id)
-        .where(
-            RunParameters.run_type == run_type.value,
-            RunParameters.run_datetime == run_datetime,
-            RunParameters.for_date == for_date,
-        )
-        .where(advisory_status_case.isnot(None))
-    )
-    result = await db_session.execute(stmt)
-    return [FireZoneStatus.model_validate(row) for row in result.mappings().all()]

@@ -18,9 +18,8 @@ from app.auto_spatial_advisory.zone_stats import (
     get_fuel_type_area_stats,
     get_zone_wind_stats_for_source_id,
 )
-from wps_shared.auth import asa_authentication_required, audit, audit_asa
+from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.auto_spatial_advisory import (
-    get_advisory_zone_statuses,
     get_all_hfi_thresholds_by_id,
     get_all_sfms_fuel_type_records,
     get_all_zone_source_ids,
@@ -47,10 +46,9 @@ from wps_shared.schemas.fba import (
     FireCenterListResponse,
     FireCentreTPIResponse,
     FireShapeArea,
-    FireShapeAreaDetail,
+    FireShapeStatusDetail,
     FireShapeAreaListResponse,
     FireZoneHFIStats,
-    FireZoneStatusListResponse,
     FireZoneTPIStats,
     HFIStatsResponse,
     LatestSFMSRunParameter,
@@ -194,24 +192,6 @@ async def get_shapes(
 
 
 @router.get(
-    "/zone-advisory-status/{run_type}/{run_datetime}/{for_date}",
-    response_model=FireZoneStatusListResponse,
-)
-async def get_zone_advisory_status(
-    run_type: RunType,
-    run_datetime: datetime,
-    for_date: date,
-    _=Depends(asa_authentication_required),
-):
-    """Return advisory status for all fire zones."""
-    logger.info("/fba/zone-advisory-status/")
-    async with get_async_read_session_scope() as session:
-        zone_statuses = await get_advisory_zone_statuses(session, run_type, run_datetime, for_date)
-
-    return FireZoneStatusListResponse(zones=zone_statuses)
-
-
-@router.get(
     "/provincial-summary/{run_type}/{run_datetime}/{for_date}",
     response_model=ProvincialSummaryResponse,
 )
@@ -224,20 +204,11 @@ async def get_provincial_summary(
     """Return all Fire Centres with their fire shapes and the HFI status of those shapes."""
     logger.info("/fba/provincial_summary/")
     async with get_async_read_session_scope() as session:
-        fire_shape_area_details = []
-        rows = await get_provincial_rollup(
+        fire_shape_status_details = await get_provincial_rollup(
             session, RunTypeEnum(run_type.value), run_datetime, for_date
         )
-        for row in rows:
-            fire_shape_area_details.append(
-                FireShapeAreaDetail(
-                    fire_shape_id=row.source_identifier,
-                    fire_shape_name=row.placename_label,
-                    fire_centre_name=row.fire_centre_name,
-                    status=row.status,
-                )
-            )
-    return ProvincialSummaryResponse(provincial_summary=fire_shape_area_details)
+
+    return ProvincialSummaryResponse(provincial_summary=fire_shape_status_details)
 
 
 @router.get(
