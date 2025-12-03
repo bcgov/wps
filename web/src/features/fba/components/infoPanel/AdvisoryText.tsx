@@ -293,7 +293,7 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCenter, selectedFireZone
           </SerifTypography>
         )}
 
-        {!isUndefined(zoneStatus) ? (
+        {!isNil(zoneStatus) ? (
           <>
             {zoneStatus === AdvisoryStatus.ADVISORY && (
               <SerifTypography sx={{ whiteSpace: 'pre-line' }} data-testid="advisory-message-advisory">
