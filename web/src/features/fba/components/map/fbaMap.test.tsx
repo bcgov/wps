@@ -3,18 +3,18 @@ vi.mock('@/features/sfmsInsights/components/map/layerDefinitions', async () => {
 
   return {
     ...actual,
-    createBasemapLayer: vi.fn().mockImplementation(() => Promise.resolve(baseLayerMock))
+    createBasemapLayer: vi.fn()
   }
 })
-
+import { createBasemapLayer } from '@/features/sfmsInsights/components/map/layerDefinitions'
 import { RunType } from '@/api/fbaAPI'
 import { baseLayerMock } from '@/test/testUtils'
 import { render } from '@testing-library/react'
 import store from 'app/store'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import { DateTime } from 'luxon'
-
 import { Provider } from 'react-redux'
+import { Mock } from 'vitest'
 
 describe('FBAMap', () => {
   it('should render height with height and width properties set', () => {
@@ -29,7 +29,8 @@ describe('FBAMap', () => {
         // mock no-op
       }
     }
-    window.ResizeObserver = ResizeObserver
+    window.ResizeObserver = ResizeObserver;
+    (createBasemapLayer as Mock).mockResolvedValue(baseLayerMock)
     const { getByTestId } = render(
       <Provider store={store}>
         <FBAMap
