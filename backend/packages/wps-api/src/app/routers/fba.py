@@ -224,10 +224,9 @@ async def get_provincial_summary(
     """Return all Fire Centres with their fire shapes and the HFI status of those shapes."""
     logger.info("/fba/provincial_summary/")
     async with get_async_read_session_scope() as session:
-        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
         fire_shape_area_details = []
         rows = await get_provincial_rollup(
-            session, RunTypeEnum(run_type.value), run_datetime, for_date, fuel_type_raster.id
+            session, RunTypeEnum(run_type.value), run_datetime, for_date
         )
         for row in rows:
             fire_shape_area_details.append(

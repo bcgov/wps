@@ -844,7 +844,6 @@ async def get_provincial_rollup(
     run_type: RunTypeEnum,
     run_datetime: datetime,
     for_date: date,
-    fuel_type_raster_id: int,
 ) -> List[Row]:
     logger.info("gathering provincial rollup")
     run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
