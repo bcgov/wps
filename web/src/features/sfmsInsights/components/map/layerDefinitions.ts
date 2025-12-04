@@ -1,33 +1,13 @@
 import { PMTilesVectorSource } from 'ol-pmtiles'
-import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL, PMTILES_BUCKET, PSU_BUCKET } from 'utils/env'
+import { PMTILES_BUCKET, PSU_BUCKET } from 'utils/env'
 import { fuelCOGColourExpression, snowStyler } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import { DateTime } from 'luxon'
 import WebGLTile from 'ol/layer/WebGLTile'
 import GeoTIFF from 'ol/source/GeoTIFF'
-import VectorSource from 'ol/source/VectorTile'
-import MVT from 'ol/format/MVT'
-import { applyStyle } from 'ol-mapbox-style'
-import axios from 'axios'
 
 export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
-
-const basemapSource = new VectorSource({
-  format: new MVT({ layerName: 'mvt:layer' }),
-  url: BASEMAP_TILE_URL
-})
-
-export const createBasemapLayer = async () => {
-  const basemapLayer = new VectorTileLayer({
-    source: basemapSource
-  })
-  basemapLayer.set('name', BASEMAP_LAYER_NAME)
-  // Get the style json from ArcGIS Online
-  const { data } = await axios.get(BASEMAP_STYLE_URL)
-  applyStyle(basemapLayer, data, { updateSource: false })
-  return basemapLayer
-}
 
 export const getSnowPMTilesLayer = (snowDate: DateTime) => {
   const url = `${PMTILES_BUCKET}snow/${snowDate.toISODate()}/snowCoverage${snowDate.toISODate({ format: 'basic' })}.pmtiles`
