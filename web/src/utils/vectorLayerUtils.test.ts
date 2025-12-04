@@ -1,10 +1,8 @@
-
-
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 // Mock applyStyle from ol-mapbox-style
 vi.mock('ol-mapbox-style', () => ({
-  applyStyle: vi.fn(),
+  applyStyle: vi.fn()
 }))
 
 // Strong type for our axios.get mock
@@ -14,20 +12,19 @@ type AxiosGet = (url: string) => Promise<{ data: unknown }>
 vi.mock('axios', () => {
   return {
     default: {
-      get: vi.fn(),
-    },
+      get: vi.fn()
+    }
   }
 })
 
-import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
-import { applyStyle } from 'ol-mapbox-style'
+import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
 import axios from 'axios'
+import { applyStyle } from 'ol-mapbox-style'
 
 afterEach(() => {
   vi.clearAllMocks()
   vi.restoreAllMocks()
 })
-
 
 describe('getStyleJson', () => {
   it('returns data on success', async () => {
@@ -62,7 +59,6 @@ describe('getStyleJson', () => {
   })
 })
 
-
 describe('createVectorBasemapLayer', () => {
   it('creates a VectorTileLayer with the given source, opacity, sets name, and applies style (object style)', async () => {
     const sourceUrl = 'https://tiles.example.com/{z}/{x}/{y}.mvt'
@@ -70,6 +66,25 @@ describe('createVectorBasemapLayer', () => {
     const opacity = 0.5
     const name = 'Basemap'
     const layer = await createVectorTileLayer(sourceUrl, glstyle as unknown, opacity, name)
+
+    expect(layer.getOpacity()).toBe(opacity)
+    const source = layer.getSource()
+    expect(source).toBeDefined()
+    const urls = source?.getUrls()
+    expect(urls?.[0]).toBe(sourceUrl)
+    expect(layer.get('name')).toBe(name)
+    expect(applyStyle).toHaveBeenCalledTimes(1)
+    expect(applyStyle).toHaveBeenCalledWith(layer, glstyle, { updateSource: false })
+  })
+})
+
+describe('createHillshadeVectorTileLayer', () => {
+  it('creates a VectorTileLayer with the given source, opacity, sets name, and applies style (object style)', async () => {
+    const sourceUrl = 'https://tiles.example.com/{z}/{x}/{y}.mvt'
+    const glstyle = { version: 8, name: 'mock-style' } // object style
+    const opacity = 0.5
+    const name = 'Hillshade'
+    const layer = await createHillshadeVectorTileLayer(sourceUrl, glstyle as unknown, opacity, name)
 
     expect(layer.getOpacity()).toBe(opacity)
     const source = layer.getSource()
