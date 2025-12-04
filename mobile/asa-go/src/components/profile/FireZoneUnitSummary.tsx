@@ -1,5 +1,6 @@
 import ElevationStatus from "@/components/profile/ElevationStatus";
 import FuelSummary from "@/components/profile/FuelSummary";
+import { SerifTypography } from "@/components/report/AdvisoryText";
 import {
   useFilteredHFIStatsForDate,
   useTPIStatsForDate,
@@ -67,7 +68,11 @@ const FireZoneUnitSummary = ({
   }, [hfiFuelStats, selectedFireZoneUnit]);
 
   if (isUndefined(selectedFireZoneUnit)) {
-    return <div data-testid="fire-zone-unit-summary-empty"></div>;
+    return (
+      <SerifTypography data-testid="fire-zone-unit-summary-empty">
+        {`No profile data available for the ${selectedFireCenter?.name}.`}
+      </SerifTypography>
+    );
   }
 
   return (
