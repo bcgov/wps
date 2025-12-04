@@ -9,3 +9,19 @@ export const createTestStore = (initialState: Partial<RootState> = {}) => {
     }
   })
 }
+
+export const createLayerMock = (name: string) => {
+  return {
+    set: vi.fn(),
+    setStyle: vi.fn(),
+    changed: vi.fn(),
+    getProperties: vi.fn(() => ({ name })),
+    setVisible: vi.fn(),
+    setSource: vi.fn(),
+    on: vi.fn(),
+    un: vi.fn(),
+    once: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  };
+};

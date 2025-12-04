@@ -14,6 +14,10 @@ interface Window {
     REACT_APP_SENTRY_DSN: string
     REACT_APP_SENTRY_ENV: string
     REACT_APP_PSU_BUCKET: string
+    REACT_APP_BASEMAP_TILE_URL: string
+    REACT_APP_BASEMAP_STYLE_URL: string
+    REACT_APP_HILLSHADE_TILE_URL: string
+    REACT_APP_HILLSHADE_STYLE_URL: string
   }
   Cypress: {} | undefined
 }
