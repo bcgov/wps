@@ -20,23 +20,6 @@ const ADVISORY_GREY_LINE = 'rgba(127, 127, 127, 1)'
 export const HFI_ADVISORY = 'rgba(255, 128, 0, 0.4)'
 export const HFI_WARNING = 'rgba(255, 0, 0, 0.4)'
 
-enum FireShapeStatus {
-  NONE = 0,
-  ADVISORY = 1,
-  WARNING = 2
-}
-
-export const toAdvisoryStatus = (status: AdvisoryStatus | undefined | null): FireShapeStatus => {
-  switch (status) {
-    case 'advisory':
-      return FireShapeStatus.ADVISORY
-    case 'warning':
-      return FireShapeStatus.WARNING
-    default:
-      return FireShapeStatus.NONE
-  }
-}
-
 const fireCentreTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
   const text = feature.get('mof_fire_centre_name').replace(' Fire Centre', '\nFire Centre')
   return new Text({
@@ -85,14 +68,13 @@ export const fireShapeStyler = (fireZoneStatuses: FireShapeStatusDetail[], showZ
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fire_shape_id = feature.getProperties().OBJECTID
     const fireZone = fireZoneStatuses.find(f => f.fire_shape_id == fire_shape_id)
-    const advisoryStatus = toAdvisoryStatus(fireZone?.status)
 
     return new Style({
       stroke: new Stroke({
         color: 'black',
         width: 1
       }),
-      fill: showZoneStatus ? getAdvisoryFillColor(advisoryStatus) : new Fill({ color: EMPTY_FILL })
+      fill: showZoneStatus ? getAdvisoryFillColor(fireZone?.status) : new Fill({ color: EMPTY_FILL })
     })
   }
   return a
@@ -106,11 +88,10 @@ export const fireShapeLineStyler = (
     const fire_shape_id = feature.getProperties().OBJECTID
     const fireZone = fireZoneStatuses.find(f => f.fire_shape_id === fire_shape_id)
     const selected = !!(selectedFireShape?.fire_shape_id && selectedFireShape.fire_shape_id === fire_shape_id)
-    const advisoryStatus = toAdvisoryStatus(fireZone?.status)
 
     return new Style({
       stroke: new Stroke({
-        color: selected ? getFireShapeStrokeColor(advisoryStatus) : EMPTY_FILL,
+        color: selected ? getFireShapeStrokeColor(fireZone?.status) : EMPTY_FILL,
         width: selected ? 8 : 1
       })
     })
@@ -118,22 +99,22 @@ export const fireShapeLineStyler = (
   return a
 }
 
-const getFireShapeStrokeColor = (fireShapeStatus: FireShapeStatus | undefined) => {
-  switch (fireShapeStatus) {
-    case FireShapeStatus.ADVISORY:
+const getFireShapeStrokeColor = (status: AdvisoryStatus | undefined | null) => {
+  switch (status) {
+    case AdvisoryStatus.ADVISORY:
       return ADVISORY_ORANGE_LINE
-    case FireShapeStatus.WARNING:
+    case AdvisoryStatus.WARNING:
       return ADVISORY_RED_LINE
     default:
       return ADVISORY_GREY_LINE
   }
 }
 
-export const getAdvisoryFillColor = (fireShapeStatus: FireShapeStatus) => {
-  switch (fireShapeStatus) {
-    case FireShapeStatus.ADVISORY:
+export const getAdvisoryFillColor = (status: AdvisoryStatus | undefined | null) => {
+  switch (status) {
+    case AdvisoryStatus.ADVISORY:
       return new Fill({ color: ADVISORY_ORANGE_FILL })
-    case FireShapeStatus.WARNING:
+    case AdvisoryStatus.WARNING:
       return new Fill({ color: ADVISORY_RED_FILL })
     default:
       return new Fill({ color: EMPTY_FILL })
