@@ -1,14 +1,13 @@
-vi.mock('@/features/sfmsInsights/components/map/layerDefinitions', async () => {
-  const actual = await import('@/features/sfmsInsights/components/map/layerDefinitions')
+vi.mock('@/utils/vectorLayerUtils', async () => {
   return {
-    ...actual,
-    createBasemapLayer: vi.fn()
+    getStyleJson: vi.fn(),
+    createVectorTileLayer: vi.fn()
   }
 })
 
-import { createBasemapLayer } from '@/features/sfmsInsights/components/map/layerDefinitions'
 import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
-import { baseLayerMock } from '@/test/testUtils'
+import { createLayerMock } from '@/test/testUtils'
+import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
 import { render } from '@testing-library/react'
 import { Mock } from 'vitest'
 
@@ -26,7 +25,8 @@ describe('SFMSMap', () => {
   }
   window.ResizeObserver = ResizeObserver
   it('should render the map', () => {
-    (createBasemapLayer as Mock).mockResolvedValue(baseLayerMock)
+    ;(getStyleJson as Mock).mockResolvedValue({})
+    ;(createVectorTileLayer as Mock).mockResolvedValue(createLayerMock('base'))
     const { getByTestId } = render(<SFMSMap snowDate={null} />)
     const map = getByTestId('sfms-map')
     expect(map).toBeVisible()

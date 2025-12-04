@@ -1,4 +1,5 @@
-import { createBasemapLayer, createHillshadeLayer } from '@/features/fba/components/map/layerDefinitions'
+import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
+import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
 import { Box } from '@mui/material'
 import { FireCenter, FireShape, FireShapeArea, RunType } from 'api/fbaAPI'
 import { selectFireWeatherStations, selectRunDates } from 'app/rootReducer'
@@ -34,7 +35,7 @@ import VectorSource from 'ol/source/Vector'
 import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { BC_EXTENT, CENTER_OF_BC } from 'utils/constants'
-import { PMTILES_BUCKET } from 'utils/env'
+import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL, HILLSHADE_STYLE_URL, HILLSHADE_TILE_URL, PMTILES_BUCKET } from 'utils/env'
 export const MapContext = React.createContext<Map | null>(null)
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -298,9 +299,17 @@ const FBAMap = (props: FBAMapProps) => {
     setMap(mapObject)
 
     const loadBaseMap = async () => {
-      const basemapLayer = await createBasemapLayer()
-      const hillshadeLayer = await createHillshadeLayer()
+      // Create and add the hillshade layer first so it renders below the vector basemap layer
+      const hillshadeStyle = await getStyleJson(HILLSHADE_STYLE_URL)
+      const hillshadeLayer = await createHillshadeVectorTileLayer(
+        HILLSHADE_TILE_URL,
+        hillshadeStyle,
+        1,
+        BASEMAP_LAYER_NAME
+      )
       mapObject.addLayer(hillshadeLayer)
+      const basemapStyle = await getStyleJson(BASEMAP_STYLE_URL)
+      const basemapLayer = await createVectorTileLayer(BASEMAP_TILE_URL, basemapStyle, 0.8, BASEMAP_LAYER_NAME)
       mapObject.addLayer(basemapLayer)
     }
     loadBaseMap()

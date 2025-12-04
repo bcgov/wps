@@ -1,14 +1,14 @@
-vi.mock('@/features/fba/components/map/layerDefinitions', async () => {
-  const actual = await import('@/features/fba/components/map/layerDefinitions')
+vi.mock('@/utils/vectorLayerUtils', async () => {
   return {
-    ...actual,
-    createBasemapLayer: vi.fn(),
-    createHillshadeLayer: vi.fn()
+    getStyleJson: vi.fn(),
+    createVectorTileLayer: vi.fn(),
+    createHillshadeVectorTileLayer: vi.fn()
   }
 })
-import { createBasemapLayer, createHillshadeLayer } from '@/features/fba/components/map/layerDefinitions'
+
 import { RunType } from '@/api/fbaAPI'
 import { createLayerMock } from '@/test/testUtils'
+import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
 import { render } from '@testing-library/react'
 import store from 'app/store'
 import FBAMap from 'features/fba/components/map/FBAMap'
@@ -30,8 +30,10 @@ describe('FBAMap', () => {
   }
   window.ResizeObserver = ResizeObserver
   it('should render height with height and width properties set', () => {
-    ;(createBasemapLayer as Mock).mockResolvedValue(createLayerMock('base'))
-    ;(createHillshadeLayer as Mock).mockResolvedValue(createLayerMock('hillshade'))
+    ;(getStyleJson as Mock).mockResolvedValue({})
+    ;(createVectorTileLayer as Mock).mockResolvedValue(createLayerMock('basemap'))
+    ;(createHillshadeVectorTileLayer as Mock).mockResolvedValue(createLayerMock('hillshade'))
+
     const { getByTestId } = render(
       <Provider store={store}>
         <FBAMap

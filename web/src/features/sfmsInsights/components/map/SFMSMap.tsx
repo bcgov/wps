@@ -1,20 +1,22 @@
-import React, { useEffect, useRef, useState } from 'react'
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
+import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@/utils/env'
+import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
+import { Box } from '@mui/material'
+import { ErrorBoundary } from '@sentry/react'
+import {
+  BASEMAP_LAYER_NAME,
+  fuelCOGTiles,
+  getSnowPMTilesLayer,
+  SNOW_LAYER_NAME
+} from 'features/sfmsInsights/components/map/layerDefinitions'
+import { isNull } from 'lodash'
+import { DateTime } from 'luxon'
 import { Map, View } from 'ol'
 import { defaults as defaultControls } from 'ol/control'
 import { boundingExtent } from 'ol/extent'
 import 'ol/ol.css'
 import { fromLonLat } from 'ol/proj'
-import { Box } from '@mui/material'
-import { ErrorBoundary } from '@sentry/react'
-import {
-  createBasemapLayer,
-  fuelCOGTiles,
-  getSnowPMTilesLayer,
-  SNOW_LAYER_NAME
-} from 'features/sfmsInsights/components/map/layerDefinitions'
-import { DateTime } from 'luxon'
-import { isNull } from 'lodash'
+import React, { useEffect, useRef, useState } from 'react'
 
 const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -53,7 +55,8 @@ const SFMSMap = ({ snowDate }: SFMSMapProps) => {
     setMap(mapObject)
 
     const loadBaseMap = async () => {
-      const basemapLayer = await createBasemapLayer()
+      const style = await getStyleJson(BASEMAP_STYLE_URL)
+      const basemapLayer = await createVectorTileLayer(BASEMAP_TILE_URL, style, 1, BASEMAP_LAYER_NAME)
       mapObject.addLayer(basemapLayer)
     }
     loadBaseMap()
