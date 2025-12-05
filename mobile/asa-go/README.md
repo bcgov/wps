@@ -28,7 +28,14 @@ Capacitor app using react/vite.
    - Set `$ANDROID_HOME` to the path of the Android SDK
 3. Go to `mobile/asa-go`
 4. Run `yarn cap sync` to synchronize app with native platforms
-5. Build and run with live reload: `ionic cap run android -l --external`
+5. Navigate to the android directory and run Gradle commands:
+   ```bash
+   cd android
+   ./gradlew clean
+   ./gradlew build
+   cd ..
+   ```
+6. Build and run with live reload: `ionic cap run android -l --external`
 
 ### Offline Basemap
 
