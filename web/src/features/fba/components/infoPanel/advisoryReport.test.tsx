@@ -8,7 +8,6 @@ import { createTestStore } from '@/test/testUtils'
 
 const issueDate = DateTime.now()
 const forDate = DateTime.now()
-const advisoryThreshold = 20
 
 const mockFireCenter: FireCenter = {
   id: 1,
@@ -21,12 +20,7 @@ describe('AdvisoryReport', () => {
   it('should render', () => {
     const { getByTestId } = render(
       <Provider store={testStore}>
-        <AdvisoryReport
-          issueDate={issueDate}
-          forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
-          selectedFireCenter={mockFireCenter}
-        />
+        <AdvisoryReport issueDate={issueDate} forDate={forDate} selectedFireCenter={mockFireCenter} />
       </Provider>
     )
     const advisoryReport = getByTestId('advisory-report')
@@ -35,12 +29,7 @@ describe('AdvisoryReport', () => {
   it('should render advisoryText as children', () => {
     const { getByTestId } = render(
       <Provider store={testStore}>
-        <AdvisoryReport
-          issueDate={issueDate}
-          forDate={forDate}
-          advisoryThreshold={advisoryThreshold}
-          selectedFireCenter={mockFireCenter}
-        />
+        <AdvisoryReport issueDate={issueDate} forDate={forDate} selectedFireCenter={mockFireCenter} />
       </Provider>
     )
     const advisoryText = getByTestId('advisory-text')

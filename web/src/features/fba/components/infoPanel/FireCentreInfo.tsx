@@ -4,14 +4,13 @@ import { styled, useTheme } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import FireZoneUnitInfo from 'features/fba/components/infoPanel/FireZoneUnitInfo'
 import { groupBy } from 'lodash'
-import { FireShapeAreaDetail } from 'api/fbaAPI'
+import { FireShapeStatusDetail } from 'api/fbaAPI'
 import { INFO_PANEL_CONTENT_BACKGROUND } from 'app/theme'
 
 interface FireCentreInfoProps {
-  advisoryThreshold: number
   expanded: boolean
   fireCentreName: string
-  fireZoneUnitInfos: FireShapeAreaDetail[]
+  fireZoneUnitInfos: FireShapeStatusDetail[]
   onChangeExpanded: (name: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void
 }
 
@@ -26,13 +25,7 @@ const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
   }
 }))
 
-const FireCenterInfo = ({
-  advisoryThreshold,
-  expanded,
-  fireCentreName,
-  fireZoneUnitInfos,
-  onChangeExpanded
-}: FireCentreInfoProps) => {
+const FireCenterInfo = ({ expanded, fireCentreName, fireZoneUnitInfos, onChangeExpanded }: FireCentreInfoProps) => {
   const theme = useTheme()
   const groupedFireZoneUnitInfos = groupBy(fireZoneUnitInfos, 'fire_shape_name')
   return (
@@ -56,14 +49,8 @@ const FireCenterInfo = ({
         {Object.keys(groupedFireZoneUnitInfos)
           .sort((a, b) => a.localeCompare(b))
           .map(key => {
-            return (
-              <FireZoneUnitInfo
-                key={key}
-                advisoryThreshold={advisoryThreshold}
-                fireZoneUnitName={key}
-                fireZoneUnitDetails={groupedFireZoneUnitInfos[key]}
-              />
-            )
+            const detail = groupedFireZoneUnitInfos[key][0]
+            return <FireZoneUnitInfo key={key} fireZoneUnitName={key} fireZoneUnitDetails={detail} />
           })}
       </AccordionDetails>
     </Accordion>

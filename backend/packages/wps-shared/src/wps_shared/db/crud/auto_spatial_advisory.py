@@ -1,16 +1,17 @@
 import logging
 from collections import defaultdict
 from datetime import date, datetime
-from enum import Enum
 from time import perf_counter
 from typing import List, Optional, Tuple
 
-from sqlalchemy import String, and_, cast, desc, extract, func, select, update
+from sqlalchemy import String, and_, case, cast, desc, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
+from wps_shared.run_type import RunType
+from wps_shared.schemas.fba import FireShapeStatusDetail, HfiArea, HfiThreshold
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryElevationStats,
     AdvisoryFuelStats,
@@ -18,6 +19,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryHFIWindSpeed,
     AdvisoryShapeFuels,
     AdvisoryTPIStats,
+    AdvisoryZoneStatus,
     ClassifiedHfi,
     CombustibleArea,
     CriticalHours,
@@ -33,10 +35,23 @@ from wps_shared.db.models.auto_spatial_advisory import (
     TPIFuelArea,
 )
 from wps_shared.db.models.hfi_calc import FireCentre
-from wps_shared.run_type import RunType
-from wps_shared.schemas.fba import HfiThreshold
 
 logger = logging.getLogger(__name__)
+
+ADVISORY_THRESHOLD = 20
+
+advisory_status_case = case(
+    (
+        AdvisoryZoneStatus.warning_percentage > ADVISORY_THRESHOLD,
+        HfiClassificationThresholdEnum.WARNING.value,
+    ),
+    (
+        AdvisoryZoneStatus.advisory_percentage + AdvisoryZoneStatus.warning_percentage
+        > ADVISORY_THRESHOLD,
+        HfiClassificationThresholdEnum.ADVISORY.value,
+    ),
+    else_=None,
+)
 
 
 async def get_hfi_classification_threshold(
@@ -160,6 +175,15 @@ async def get_all_hfi_thresholds_by_id(session: AsyncSession) -> dict[int, HfiTh
             id=hfi_threshold.id, name=hfi_threshold.name, description=hfi_threshold.description
         )
     return all_hfi_thresholds_by_id
+
+
+async def get_hfi_threshold_ids(session: AsyncSession) -> dict[str, int]:
+    """
+    Returns dict of {name: id} for advisory, warning threshold records
+    """
+    stmt = select(HfiClassificationThreshold.id, HfiClassificationThreshold.name)
+    result = await session.execute(stmt)
+    return {name: id_ for id_, name in result.all()}
 
 
 async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
@@ -351,15 +375,14 @@ async def get_hfi_area(
     run_datetime: datetime,
     for_date: date,
     fuel_type_raster_id: int,
-) -> List[Row]:
+) -> List[HfiArea]:
     logger.info("gathering hfi area data")
     stmt = (
         select(
-            Shape.id,
+            Shape.id.label("shape_id"),
             Shape.source_identifier,
             CombustibleArea.combustible_area,
-            HighHfiArea.id,
-            HighHfiArea.advisory_shape_id,
+            HighHfiArea.id.label("high_hfi_area_id"),
             HighHfiArea.threshold,
             HighHfiArea.area.label("hfi_area"),
         )
@@ -374,7 +397,7 @@ async def get_hfi_area(
         )
     )
     result = await session.execute(stmt)
-    return result.all()
+    return [HfiArea.model_validate(row) for row in result.mappings().all()]
 
 
 async def get_run_datetimes(
@@ -821,36 +844,28 @@ async def get_provincial_rollup(
     run_type: RunTypeEnum,
     run_datetime: datetime,
     for_date: date,
-    fuel_type_raster_id: int,
 ) -> List[Row]:
     logger.info("gathering provincial rollup")
     run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
     stmt = (
         select(
-            Shape.id,
-            Shape.source_identifier,
-            CombustibleArea.combustible_area,
-            Shape.placename_label,
+            Shape.source_identifier.label("fire_shape_id"),
+            Shape.placename_label.label("fire_shape_name"),
             FireCentre.name.label("fire_centre_name"),
-            HighHfiArea.id,
-            HighHfiArea.advisory_shape_id,
-            HighHfiArea.threshold,
-            HighHfiArea.area.label("hfi_area"),
+            advisory_status_case.label("status"),
         )
         .join(FireCentre, FireCentre.id == Shape.fire_centre)
-        .join(CombustibleArea, CombustibleArea.advisory_shape_id == Shape.id)
         .join(
-            HighHfiArea,
+            AdvisoryZoneStatus,
             and_(
-                HighHfiArea.advisory_shape_id == Shape.id,
-                HighHfiArea.run_parameters == run_parameter_id,
+                AdvisoryZoneStatus.advisory_shape_id == Shape.id,
+                AdvisoryZoneStatus.run_parameters == run_parameter_id,
             ),
             isouter=True,
         )
-        .where(CombustibleArea.fuel_type_raster_id == fuel_type_raster_id)
     )
     result = await session.execute(stmt)
-    return result.all()
+    return [FireShapeStatusDetail.model_validate(row) for row in result.mappings().all()]
 
 
 async def get_containing_zone(session: AsyncSession, geometry: str, srid: int):

@@ -1,54 +1,16 @@
-import { AdvisoryMinWindStats, FireShapeAreaDetail } from '@/api/fbaAPI'
+import { AdvisoryMinWindStats, FireShapeStatusDetail } from '@/api/fbaAPI'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 import { AdvisoryStatus } from '@/utils/constants'
-import { isNil, isUndefined } from 'lodash'
+import { isNil } from 'lodash'
 
-export const calculateStatusColour = (
-  details: FireShapeAreaDetail[],
-  advisoryThreshold: number,
-  defaultColour: string
-) => {
-  let status = defaultColour
-
-  if (details.length === 0) {
-    return status
-  }
-
-  const advisoryThresholdDetail = details.find(detail => detail.threshold == 1)
-  const warningThresholdDetail = details.find(detail => detail.threshold == 2)
-  const advisoryPercentage = advisoryThresholdDetail?.elevated_hfi_percentage ?? 0
-  const warningPercentage = warningThresholdDetail?.elevated_hfi_percentage ?? 0
-
-  if (advisoryPercentage + warningPercentage > advisoryThreshold) {
-    status = ADVISORY_ORANGE_FILL
-  }
-
-  if (warningPercentage > advisoryThreshold) {
-    status = ADVISORY_RED_FILL
-  }
-
-  return status
-}
-
-export const calculateStatusText = (
-  details: FireShapeAreaDetail[],
-  advisoryThreshold: number
-): AdvisoryStatus | undefined => {
-  if (isUndefined(details) || details.length === 0) {
-    return undefined
-  }
-
-  const advisoryThresholdDetail = details.find(detail => detail.threshold == 1)
-  const warningThresholdDetail = details.find(detail => detail.threshold == 2)
-  const advisoryPercentage = advisoryThresholdDetail?.elevated_hfi_percentage ?? 0
-  const warningPercentage = warningThresholdDetail?.elevated_hfi_percentage ?? 0
-
-  if (warningPercentage > advisoryThreshold) {
-    return AdvisoryStatus.WARNING
-  }
-
-  if (advisoryPercentage + warningPercentage > advisoryThreshold) {
-    return AdvisoryStatus.ADVISORY
+export const calculateStatusColour = (details: FireShapeStatusDetail | undefined, defaultColour: string) => {
+  switch (details?.status) {
+    case AdvisoryStatus.ADVISORY:
+      return ADVISORY_ORANGE_FILL
+    case AdvisoryStatus.WARNING:
+      return ADVISORY_RED_FILL
+    default:
+      return defaultColour
   }
 }
 

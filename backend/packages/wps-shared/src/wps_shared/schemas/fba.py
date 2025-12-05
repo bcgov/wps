@@ -47,7 +47,14 @@ class FireShapeAreaListResponse(BaseModel):
     shapes: List[FireShapeArea]
 
 
-class FireShapeAreaDetail(FireShapeArea):
+class FireShapeStatus(BaseModel):
+    """Advisory status of a fire zone."""
+
+    fire_shape_id: int
+    status: Optional[str] = None
+
+
+class FireShapeStatusDetail(FireShapeStatus):
     """Summary information about an advisory shape"""
 
     fire_shape_name: str
@@ -55,7 +62,7 @@ class FireShapeAreaDetail(FireShapeArea):
 
 
 class ProvincialSummaryResponse(BaseModel):
-    provincial_summary: List[FireShapeAreaDetail]
+    provincial_summary: List[FireShapeStatusDetail]
 
 
 class FireShapeHighHfiAreas(BaseModel):
@@ -201,3 +208,12 @@ class SFMSRunParameter(BaseModel):
 
 class LatestSFMSRunParameterRangeResponse(BaseModel):
     run_parameters: Dict[date, SFMSRunParameter]
+
+
+class HfiArea(BaseModel):
+    shape_id: int
+    source_identifier: str
+    combustible_area: float
+    high_hfi_area_id: int
+    threshold: int
+    hfi_area: float

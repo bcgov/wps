@@ -2,13 +2,13 @@ import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { groupBy, isNull, isUndefined } from 'lodash'
-import { FireShapeAreaDetail, getProvincialSummary, ProvincialSummaryResponse, RunType } from 'api/fbaAPI'
+import { FireShapeStatusDetail, getProvincialSummary, ProvincialSummaryResponse, RunType } from 'api/fbaAPI'
 import { RootState } from 'app/rootReducer'
 
 export interface ProvincialSummaryState {
   loading: boolean
   error: string | null
-  fireShapeAreaDetails: FireShapeAreaDetail[]
+  fireShapeAreaDetails: FireShapeStatusDetail[]
 }
 
 export const initialState: ProvincialSummaryState = {
