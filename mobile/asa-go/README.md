@@ -22,7 +22,7 @@ Capacitor app using react/vite.
 
 ### Building/Running Android
 
-1. Install Android Studio (Jetbrains Toolbox recommended: https://www.jetbrains.com/toolbox-app/)
+1. Install Android Studio (Jetbrains Toolbox recommended: <https://www.jetbrains.com/toolbox-app/>)
 2. Find where the Android SDK is installed
    - With Jetbrains Toolbox it should be /Users/<user>/Library/Android/sdk/
    - Set `$ANDROID_HOME` to the path of the Android SDK
@@ -37,6 +37,10 @@ Capacitor app using react/vite.
    ```
 6. Build and run with live reload: `ionic cap run android -l --external`
 
+### Asset Generation
+
+The `@capacitor/assets` npm package was used to generate icon and splash screen assets for Android with the following command: `npx capacitor-assets generate --android`
+
 ### Offline Basemap
 
 - The pmtiles file for the offline basemap was extracted using the [pmtiles cli extract command](https://docs.protomaps.com/pmtiles/cli#extract) using a `maxzoom` of 6 to keep the file small for offline caching.
@@ -45,11 +49,12 @@ Capacitor app using react/vite.
 pmtiles extract https://build.protomaps.com/20250326.pmtiles bc_basemap_20250326.pmtiles --maxzoom=6 --bbox=-139.06,60,-114.03,48.3
 ```
 
-- The pmtiles data was sourced from the Protomaps Basemap daily build which is derived from OpenStreetMap. See https://docs.protomaps.com/basemaps/downloads.
-- The MapBox/MapLibre style for the pmtiles basemap was generated using the [protomaps/basemaps styles package](https://github.com/protomaps/basemaps/tree/main/styles). The style can also be created at https://maps.protomaps.com/.
+- The pmtiles data was sourced from the Protomaps Basemap daily build which is derived from OpenStreetMap. See <https://docs.protomaps.com/basemaps/downloads>.
+- The MapBox/MapLibre style for the pmtiles basemap was generated using the [protomaps/basemaps styles package](https://github.com/protomaps/basemaps/tree/main/styles). The style can also be created at <https://maps.protomaps.com/>.
 - The MapBox/MapLibre style is applied to the OpenLayers VectorTile layer using [ol-mapbox-style](https://github.com/openlayers/ol-mapbox-style)'s `applyStyle` function.
 
-### Distributing 
+### Distributing
+
 Bump `appBuildVersion` appropriately via semvar, in `.github/workflows/asa_go_build_deploy.yml`.
 Run: `gh workflow run "Publish ASA Go"`
 This will build and publish the app that is on the `main` branch.
