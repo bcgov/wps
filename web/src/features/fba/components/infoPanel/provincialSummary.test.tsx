@@ -57,7 +57,7 @@ describe('ProvincialSummary', () => {
     ]
     const testStore = buildTestStore({
       ...initialState,
-      fireShapeAreaDetails
+      fireShapeStatusDetails: fireShapeAreaDetails
     })
     const { getByTestId } = render(
       <Provider store={testStore}>

@@ -127,7 +127,7 @@ describe('AdvisoryText', () => {
   const testStore = createTestStore({
     provincialSummary: {
       ...provSummaryInitialState,
-      fireShapeAreaDetails: advisoryDetails
+      fireShapeStatusDetails: advisoryDetails
     }
   })
 
@@ -135,7 +135,7 @@ describe('AdvisoryText', () => {
     createTestStore({
       provincialSummary: {
         ...provSummaryInitialState,
-        fireShapeAreaDetails: warningDetails
+        fireShapeStatusDetails: warningDetails
       }
     })
 
@@ -301,7 +301,7 @@ describe('AdvisoryText', () => {
     const warningStore = createTestStore({
       provincialSummary: {
         ...provSummaryInitialState,
-        fireShapeAreaDetails: warningDetails
+        fireShapeStatusDetails: warningDetails
       }
     })
     const { queryByTestId } = render(
@@ -437,7 +437,7 @@ describe('AdvisoryText', () => {
     const store = createTestStore({
       provincialSummary: {
         ...provSummaryInitialState,
-        fireShapeAreaDetails: advisoryDetails
+        fireShapeStatusDetails: advisoryDetails
       },
       fireCentreHFIFuelStats: {
         ...fuelStatsInitialState,
@@ -464,7 +464,7 @@ describe('AdvisoryText', () => {
     const store = createTestStore({
       provincialSummary: {
         ...provSummaryInitialState,
-        fireShapeAreaDetails: advisoryDetails
+        fireShapeStatusDetails: advisoryDetails
       },
       fireCentreHFIFuelStats: {
         ...fuelStatsInitialState,

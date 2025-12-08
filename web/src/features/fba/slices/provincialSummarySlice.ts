@@ -8,13 +8,13 @@ import { RootState } from 'app/rootReducer'
 export interface ProvincialSummaryState {
   loading: boolean
   error: string | null
-  fireShapeAreaDetails: FireShapeStatusDetail[]
+  fireShapeStatusDetails: FireShapeStatusDetail[]
 }
 
 export const initialState: ProvincialSummaryState = {
   loading: false,
   error: null,
-  fireShapeAreaDetails: []
+  fireShapeStatusDetails: []
 }
 
 const provincialSummarySlice = createSlice({
@@ -24,7 +24,7 @@ const provincialSummarySlice = createSlice({
     getProvincialSummaryStart(state: ProvincialSummaryState) {
       state.error = null
       state.loading = true
-      state.fireShapeAreaDetails = []
+      state.fireShapeStatusDetails = []
     },
     getProvincialSummaryFailed(state: ProvincialSummaryState, action: PayloadAction<string>) {
       state.error = action.payload
@@ -32,7 +32,7 @@ const provincialSummarySlice = createSlice({
     },
     getProvincialSummarySuccess(state: ProvincialSummaryState, action: PayloadAction<ProvincialSummaryResponse>) {
       state.error = null
-      state.fireShapeAreaDetails = action.payload.provincial_summary
+      state.fireShapeStatusDetails = action.payload.provincial_summary
       state.loading = false
     }
   }
@@ -68,6 +68,6 @@ export const fetchProvincialSummary =
 const selectFireShapeAreaDetails = (state: RootState) => state.provincialSummary
 
 export const selectProvincialSummary = createSelector([selectFireShapeAreaDetails], fireShapeAreaDetails => {
-  const groupedByFireCenter = groupBy(fireShapeAreaDetails.fireShapeAreaDetails, 'fire_centre_name')
+  const groupedByFireCenter = groupBy(fireShapeAreaDetails.fireShapeStatusDetails, 'fire_centre_name')
   return groupedByFireCenter
 })
