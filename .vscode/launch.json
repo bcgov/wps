@@ -175,6 +175,15 @@
             "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
+            "name": "backfill_zone_statuses",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "packages/wps-api/src/app/jobs/backfill_zone_statuses.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
+        },
+        {
             "name": "env_canada GDPS",
             "type": "debugpy",
             "justMyCode": false,
