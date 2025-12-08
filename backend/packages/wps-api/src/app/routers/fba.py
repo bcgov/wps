@@ -25,7 +25,6 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_zone_source_ids,
     get_centre_tpi_stats,
     get_fire_centre_tpi_fuel_areas,
-    get_hfi_area,
     get_min_wind_speed_hfi_thresholds,
     get_most_recent_run_datetime_for_date,
     get_most_recent_run_datetime_for_date_range,
@@ -45,8 +44,6 @@ from wps_shared.db.models.auto_spatial_advisory import (
 from wps_shared.schemas.fba import (
     FireCenterListResponse,
     FireCentreTPIResponse,
-    FireShapeArea,
-    FireShapeAreaListResponse,
     FireZoneHFIStats,
     FireZoneTPIStats,
     HFIStatsResponse,
@@ -154,40 +151,6 @@ async def get_all_fire_centers(_=Depends(asa_authentication_required)):
         header = await get_auth_header(session)
         fire_centers = await get_fire_centers(session, header)
     return FireCenterListResponse(fire_centers=fire_centers)
-
-
-@router.get(
-    "/fire-shape-areas/{run_type}/{run_datetime}/{for_date}",
-    response_model=FireShapeAreaListResponse,
-)
-async def get_shapes(
-    run_type: RunType,
-    run_datetime: datetime,
-    for_date: date,
-    _=Depends(asa_authentication_required),
-):
-    """Return area of each zone unit shape, and percentage of area of zone unit shape with high hfi."""
-    async with get_async_read_session_scope() as session:
-        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
-        shapes = []
-        rows = await get_hfi_area(
-            session, RunTypeEnum(run_type.value), run_datetime, for_date, fuel_type_raster.id
-        )
-
-        # Fetch rows.
-        for row in rows:
-            combustible_area = row.combustible_area
-            hfi_area = row.hfi_area
-            shapes.append(
-                FireShapeArea(
-                    fire_shape_id=row.source_identifier,
-                    threshold=row.threshold,
-                    combustible_area=row.combustible_area,
-                    elevated_hfi_area=row.hfi_area,
-                    elevated_hfi_percentage=hfi_area / combustible_area * 100,
-                )
-            )
-        return FireShapeAreaListResponse(shapes=shapes)
 
 
 @router.get(

@@ -31,22 +31,6 @@ class FireCenterListResponse(BaseModel):
     fire_centers: List[FireCentre]
 
 
-class FireShapeArea(BaseModel):
-    """A zone is a grouping of planning areas within a fire centre."""
-
-    fire_shape_id: int
-    threshold: Optional[int] = None
-    combustible_area: float
-    elevated_hfi_area: Optional[float] = None
-    elevated_hfi_percentage: float
-
-
-class FireShapeAreaListResponse(BaseModel):
-    """Response for all planning areas, in a list"""
-
-    shapes: List[FireShapeArea]
-
-
 class FireShapeStatus(BaseModel):
     """Advisory status of a fire zone."""
 
