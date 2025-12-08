@@ -24,7 +24,7 @@ dependencies = [
     "geoalchemy2>=0,<1",
     "aiofiles>=25.0.0,<26",
     "jinja2>=3,<4",
-    "numpy==2.1.*",
+    "numpy==2.3.*",
     "aiobotocore==2.26.0",
     "rpy2>=3.4.5,<4",
     "redis>=7.0.0,<8",
