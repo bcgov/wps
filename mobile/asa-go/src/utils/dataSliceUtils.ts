@@ -7,12 +7,12 @@ import {
   getTPIStats,
   RunParameter,
 } from "@/api/fbaAPI";
-// import { PST_UTC_OFFSET } from "@/utils/constants";
+import { PST_UTC_OFFSET } from "@/utils/constants";
 import { CacheableData, CacheableDataType } from "@/utils/storage";
 import { isEqual, isNil } from "lodash";
 import { DateTime } from "luxon";
 
-export const today = DateTime.fromISO("2025-07-13");
+export const today = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`);
 export const getTodayKey = () => {
   return today.isValid ? today.toISODate() : "";
 };
