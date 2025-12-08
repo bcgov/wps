@@ -1,4 +1,4 @@
-import { AdvisoryMinWindStats, FireShapeAreaDetail } from "@/api/fbaAPI";
+import { AdvisoryMinWindStats, FireShapeStatusDetail } from "@/api/fbaAPI";
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from "@/featureStylers";
 import {
   calculateStatusColour,
@@ -10,7 +10,7 @@ import { AdvisoryStatus } from "@/utils/constants";
 
 const DEFAULT_COLOR = "#fff000";
 
-const fireShapeDetails: FireShapeAreaDetail[] = [
+const fireShapeDetails: FireShapeStatusDetail[] = [
   {
     fire_shape_id: 18,
     threshold: 1,

@@ -11,8 +11,7 @@ import { Box, FormControl, Typography, useTheme } from "@mui/material";
 import { DateTime } from "luxon";
 import { useSelector } from "react-redux";
 
-interface ProfileProps {
-  advisoryThreshold: number;
+export interface ProfileProps {
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
   selectedFireCenter: FireCenter | undefined;
@@ -26,7 +25,6 @@ interface ProfileProps {
 }
 
 const Profile = ({
-  advisoryThreshold,
   date,
   setDate,
   selectedFireCenter,
@@ -112,7 +110,6 @@ const Profile = ({
           <DefaultText />
         ) : (
           <FireZoneUnitTabs
-            advisoryThreshold={advisoryThreshold}
             selectedFireCenter={selectedFireCenter}
             selectedFireZoneUnit={selectedFireZoneUnit}
             setSelectedFireZoneUnit={setSelectedFireZoneUnit}

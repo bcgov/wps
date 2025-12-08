@@ -1,7 +1,7 @@
 // useFireCentreDetails.test.tsx
-import { renderHook } from '@testing-library/react';
-import { useFireCentreDetails } from './useFireCentreDetails';
-import { FireCenter, FireShapeAreaDetail } from 'api/fbaAPI';
+import { renderHook } from "@testing-library/react";
+import { useFireCentreDetails } from "./useFireCentreDetails";
+import { FireCenter, FireShapeStatusDetail } from "api/fbaAPI";
 import { Provider } from "react-redux";
 import { configureStore, Store } from "@reduxjs/toolkit";
 import { Mock, vi } from "vitest";
@@ -30,7 +30,7 @@ describe("useFireCentreDetails", () => {
       stations: [],
     };
 
-    const mockSummary: Record<string, FireShapeAreaDetail[]> = {
+    const mockSummary: Record<string, FireShapeStatusDetail[]> = {
       "Test Centre": [
         {
           fire_shape_id: 2,

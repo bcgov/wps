@@ -49,7 +49,6 @@ describe("FireZoneUnitTabs", () => {
   it("renders tabs and children", () => {
     render(
       <FireZoneUnitTabs
-        advisoryThreshold={5}
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireShape}
         setSelectedFireZoneUnit={setSelectedFireZoneUnit}
@@ -67,7 +66,6 @@ describe("FireZoneUnitTabs", () => {
   it("calls setSelectedFireZoneUnit when a tab is clicked", () => {
     render(
       <FireZoneUnitTabs
-        advisoryThreshold={5}
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireShape}
         setSelectedFireZoneUnit={setSelectedFireZoneUnit}

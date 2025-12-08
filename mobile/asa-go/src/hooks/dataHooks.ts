@@ -1,5 +1,13 @@
-import { FireShapeArea, FireShapeAreaDetail, FireZoneHFIStatsDictionary, FireZoneTPIStats } from "@/api/fbaAPI";
-import { selectFireShapeAreas, selectHFIStats, selectProvincialSummaries, selectTPIStats } from "@/store";
+import {
+  FireShapeStatusDetail,
+  FireZoneHFIStatsDictionary,
+  FireZoneTPIStats,
+} from "@/api/fbaAPI";
+import {
+  selectHFIStats,
+  selectProvincialSummaries,
+  selectTPIStats,
+} from "@/store";
 import { filterHFIFuelStatsByArea } from "@/utils/hfiStatsUtils";
 import { Dictionary, groupBy, isNil } from "lodash";
 import { DateTime } from "luxon";
@@ -25,50 +33,54 @@ export const useFilteredHFIStatsForDate = (
       return [];
     }
     const hfiStatsForDate = hfiStats[forDateString].data;
-    const filteredHFIStatsForDate = filterHFIFuelStatsByArea(hfiStatsForDate)
+    const filteredHFIStatsForDate = filterHFIFuelStatsByArea(hfiStatsForDate);
     return filteredHFIStatsForDate;
   }, [hfiStats, forDate]);
 };
 
 /**
- * A hook for retrieving the FireShapeAreas for the provided forDate.
+ * A hook for retrieving the provincial summary for the provided forDate.
  * @param forDate
- * @returns FireShapeArea[]
+ * @returns Dictionary<FireShapeStatusDetail[]> | undefined
  */
-export const useFireShapeAreasForDate = (
+export const useProvincialSummaryForDate = (
   forDate: DateTime
-): FireShapeArea[] => {
-  const fireShapeAreas = useSelector(selectFireShapeAreas);
+): Dictionary<FireShapeStatusDetail[]> | undefined => {
+  const provincialSummaries = useSelector(selectProvincialSummaries);
   return useMemo(() => {
     const forDateString = forDate?.toISODate();
     if (
       isNil(forDate) ||
       isNil(forDateString) ||
-      isNil(fireShapeAreas?.[forDateString]?.data)
+      isNil(provincialSummaries?.[forDateString]?.data)
     ) {
-      return [];
+      return undefined;
     }
-    const fireShapeAreasForDate = fireShapeAreas[forDateString].data;
-    return fireShapeAreasForDate;
-  }, [fireShapeAreas, forDate]);
+    const provincialSummary = provincialSummaries[forDateString].data;
+    return groupBy(provincialSummary, "fire_centre_name");
+  }, [provincialSummaries, forDate]);
 };
 
 /**
  * A hook for retrieving the provincial summary for the provided forDate.
- * @param forDate 
- * @returns FireShapeAreDetail[]
+ * @param forDate
+ * @returns FireShapeStatusDetail[] | undefined
  */
-export const useProvincialSummaryForDate = (
+export const useProvincialSummaryZonesForDate = (
   forDate: DateTime
-): Dictionary<FireShapeAreaDetail[]> | undefined  => {
+): FireShapeStatusDetail[] | undefined => {
   const provincialSummaries = useSelector(selectProvincialSummaries);
   return useMemo(() => {
-    const forDateString = forDate?.toISODate()
-    if (isNil(forDate) || isNil(forDateString) || isNil(provincialSummaries?.[forDateString]?.data)) {
-        return undefined;
+    const forDateString = forDate?.toISODate();
+    if (
+      isNil(forDate) ||
+      isNil(forDateString) ||
+      isNil(provincialSummaries?.[forDateString]?.data)
+    ) {
+      return undefined;
     }
-    const provincialSummary =  provincialSummaries[forDateString].data
-    return groupBy(provincialSummary, "fire_centre_name")
+    const provincialSummary = provincialSummaries[forDateString].data;
+    return provincialSummary;
   }, [provincialSummaries, forDate]);
 };
 

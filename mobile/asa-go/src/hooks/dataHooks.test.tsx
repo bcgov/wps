@@ -11,7 +11,7 @@ import {
 } from "@/hooks/dataHooks";
 import {
   FireShapeArea,
-  FireShapeAreaDetail,
+  FireShapeStatusDetail,
   FireZoneHFIStatsDictionary,
   FireZoneTPIStats,
   RunParameter,
@@ -100,9 +100,15 @@ describe("Custom Hooks", () => {
   });
 
   it("useProvincialSummaryForDate groups by fire_centre_name", () => {
-    const mockSummary: FireShapeAreaDetail[] = [
-      { fire_shape_id: 1, fire_centre_name: "Centre A" } as FireShapeAreaDetail,
-      { fire_shape_id: 2, fire_centre_name: "Centre A" } as FireShapeAreaDetail,
+    const mockSummary: FireShapeStatusDetail[] = [
+      {
+        fire_shape_id: 1,
+        fire_centre_name: "Centre A",
+      } as FireShapeStatusDetail,
+      {
+        fire_shape_id: 2,
+        fire_centre_name: "Centre A",
+      } as FireShapeStatusDetail,
     ];
     const store = createMockStore({
       data: {

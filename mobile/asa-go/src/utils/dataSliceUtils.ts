@@ -1,20 +1,18 @@
 import {
-  FireShapeArea,
-  FireShapeAreaDetail,
+  FireShapeStatusDetail,
   FireZoneHFIStatsDictionary,
   FireZoneTPIStats,
-  getFireShapeAreas,
   getHFIStats,
   getProvincialSummary,
   getTPIStats,
   RunParameter,
 } from "@/api/fbaAPI";
-import { PST_UTC_OFFSET } from "@/utils/constants";
+// import { PST_UTC_OFFSET } from "@/utils/constants";
 import { CacheableData, CacheableDataType } from "@/utils/storage";
 import { isEqual, isNil } from "lodash";
 import { DateTime } from "luxon";
 
-export const today = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`);
+export const today = DateTime.fromISO("2025-07-13");
 export const getTodayKey = () => {
   return today.isValid ? today.toISODate() : "";
 };
@@ -32,40 +30,6 @@ export const runParametersMatch = (
     isEqual(runParameters[todayKey], data[todayKey]?.runParameter) &&
     isEqual(runParameters[tomorrowKey], data[tomorrowKey]?.runParameter)
   );
-};
-
-export const fetchFireShapeArea = async (
-  runParameter: RunParameter
-): Promise<FireShapeArea[]> => {
-  if (isNil(runParameter)) {
-    return [];
-  }
-  const fireShapeArea = await getFireShapeAreas(
-    runParameter.run_type,
-    runParameter.run_datetime,
-    runParameter.for_date
-  );
-  return fireShapeArea?.shapes;
-};
-
-export const fetchFireShapeAreas = async (
-  todayKey: string,
-  tomorrowKey: string,
-  runParameters: { [key: string]: RunParameter }
-): Promise<CacheableData<FireShapeArea[]>> => {
-  // API calls to get data for today and tomorrow
-  const todayFireShapeArea = await fetchFireShapeArea(runParameters[todayKey]);
-  const tomorrowFireShapeArea = await fetchFireShapeArea(
-    runParameters[tomorrowKey]
-  );
-  const fireShapeAreas = shapeDataForCaching(
-    todayKey,
-    tomorrowKey,
-    runParameters,
-    todayFireShapeArea,
-    tomorrowFireShapeArea
-  );
-  return fireShapeAreas as CacheableData<FireShapeArea[]>;
 };
 
 export const fetchHFIStatsForRunParameter = async (
@@ -140,7 +104,7 @@ export const fetchTpiStats = async (
 
 export const fetchProvincialSummary = async (
   runParameter: RunParameter
-): Promise<FireShapeAreaDetail[]> => {
+): Promise<FireShapeStatusDetail[]> => {
   if (isNil(runParameter)) {
     return [];
   }
@@ -156,7 +120,7 @@ export const fetchProvincialSummaries = async (
   todayKey: string,
   tomorrowKey: string,
   runParameters: { [key: string]: RunParameter }
-): Promise<CacheableData<FireShapeAreaDetail[]>> => {
+): Promise<CacheableData<FireShapeStatusDetail[]>> => {
   // API calls to get data for today and tomorrow
   const todayProvincialSummary = await fetchProvincialSummary(
     runParameters[todayKey]

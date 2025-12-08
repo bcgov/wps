@@ -20,9 +20,9 @@ vi.mock("@/utils/storage", () => ({
 }));
 
 vi.mock("@/utils/dataSliceUtils", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/utils/dataSliceUtils")
-  >("@/utils/dataSliceUtils");
+  const actual = await vi.importActual<typeof import("@/utils/dataSliceUtils")>(
+    "@/utils/dataSliceUtils"
+  );
   return {
     ...actual,
     fetchFireShapeAreas: vi.fn(),
@@ -41,7 +41,6 @@ import reducer, {
   initialState,
 } from "@/slices/dataSlice";
 import {
-  fetchFireShapeAreas,
   fetchHFIStats,
   fetchProvincialSummaries,
   fetchTpiStats,
@@ -50,7 +49,6 @@ import { initialState as runParametersInitialState } from "@/slices/runParameter
 import { createTestStore } from "@/testUtils";
 import {
   CacheableData,
-  FIRE_SHAPE_AREAS_KEY,
   HFI_STATS_KEY,
   PROVINCIAL_SUMMARY_KEY,
   readFromFilesystem,
@@ -59,10 +57,10 @@ import {
 import {
   AdvisoryCriticalHours,
   AdvisoryMinWindStats,
-  FireShapeArea,
-  FireShapeAreaDetail,
+  FireShapeStatusDetail,
   FireZoneFuelStats,
   FireZoneHFIStatsDictionary,
+  FireZoneStatus,
   FireZoneTPIStats,
   FuelType,
   HfiThreshold,
@@ -71,6 +69,7 @@ import {
 } from "api/fbaAPI";
 import { DateTime } from "luxon";
 import { describe, expect, it, Mock, vi } from "vitest";
+import { AdvisoryStatus } from "@/utils/constants";
 
 const yesterday = DateTime.now().plus({ days: -1 }).toISODate();
 const today = DateTime.now().toISODate();
@@ -104,65 +103,41 @@ const mockRunParameters: { [key: string]: RunParameter } = {
   [tomorrow]: mockTomorrowRunParameter,
 };
 
-const mockFireShapeArea: FireShapeArea = {
+const mockFireShapeStatus: FireZoneStatus = {
   fire_shape_id: 1,
-  threshold: 1,
-  combustible_area: 10,
-  elevated_hfi_area: 5,
-  elevated_hfi_percentage: 50,
+  status: AdvisoryStatus.ADVISORY,
 };
 
-const mockStaleCacheableFireshapeAreas: CacheableData<FireShapeArea[]> = {
-  [yesterday]: {
-    runParameter: mockYesterdayRunParameter,
-    data: [mockFireShapeArea],
-  },
-  [today]: {
-    runParameter: mockTodayRunParameter,
-    data: [mockFireShapeArea],
-  },
-};
-
-const mockCacheableFireshapeAreas: CacheableData<FireShapeArea[]> = {
-  [today]: {
-    runParameter: mockTodayRunParameter,
-    data: [mockFireShapeArea],
-  },
-  [tomorrow]: {
-    runParameter: mockTomorrowRunParameter,
-    data: [mockFireShapeArea],
-  },
-};
-
-const mockFireShapeAreaDetail: FireShapeAreaDetail = {
-  ...mockFireShapeArea,
+const mockFireShapeStatusDetail: FireShapeStatusDetail = {
+  ...mockFireShapeStatus,
   fire_shape_name: "test_fire_zone_unit",
   fire_centre_name: "test_fire_centre",
 };
 
 const mockStaleCacheableProvincialSummaries: CacheableData<
-  FireShapeAreaDetail[]
+  FireShapeStatusDetail[]
 > = {
   [yesterday]: {
     runParameter: mockYesterdayRunParameter,
-    data: [mockFireShapeAreaDetail],
+    data: [mockFireShapeStatusDetail],
   },
   [today]: {
     runParameter: mockTodayRunParameter,
-    data: [mockFireShapeAreaDetail],
+    data: [mockFireShapeStatusDetail],
   },
 };
 
-const mockCacheableProvincialSummaries: CacheableData<FireShapeAreaDetail[]> = {
-  [today]: {
-    runParameter: mockTodayRunParameter,
-    data: [mockFireShapeAreaDetail],
-  },
-  [tomorrow]: {
-    runParameter: mockTomorrowRunParameter,
-    data: [mockFireShapeAreaDetail],
-  },
-};
+const mockCacheableProvincialSummaries: CacheableData<FireShapeStatusDetail[]> =
+  {
+    [today]: {
+      runParameter: mockTodayRunParameter,
+      data: [mockFireShapeStatusDetail],
+    },
+    [tomorrow]: {
+      runParameter: mockTomorrowRunParameter,
+      data: [mockFireShapeStatusDetail],
+    },
+  };
 
 const mockFireZoneTPIStats: FireZoneTPIStats = {
   fire_zone_id: 1,
@@ -268,7 +243,6 @@ const mockCacheableHFIStats: CacheableData<FireZoneHFIStatsDictionary> = {
 
 const mockStaleData = {
   lastUpdated: yesterday,
-  fireShapeAreas: mockStaleCacheableFireshapeAreas,
   provincialSummaries: mockStaleCacheableProvincialSummaries,
   tpiStats: mockStaleCacheableFireZoneTPIStats,
   hfiStats: mockStaleCacheableHFIStats,
@@ -276,7 +250,6 @@ const mockStaleData = {
 
 const mockData = {
   lastUpdated: today,
-  fireShapeAreas: mockCacheableFireshapeAreas,
   provincialSummaries: mockCacheableProvincialSummaries,
   tpiStats: mockCacheableFireZoneTPIStats,
   hfiStats: mockCacheableHFIStats,
@@ -307,7 +280,6 @@ describe("data reducer", () => {
     expect(nextState.loading).toBe(false);
     expect(nextState.error).toBeNull();
     expect(nextState.lastUpdated).toEqual(today);
-    expect(nextState.fireShapeAreas).toEqual(mockCacheableFireshapeAreas);
     expect(nextState.provincialSummaries).toEqual(
       mockCacheableProvincialSummaries
     );
@@ -323,10 +295,6 @@ describe("fetchAndCacheData thunk", () => {
         case PROVINCIAL_SUMMARY_KEY:
           return {
             data: mockCacheableProvincialSummaries,
-          };
-        case FIRE_SHAPE_AREAS_KEY:
-          return {
-            data: mockCacheableFireshapeAreas,
           };
         case TPI_STATS_KEY:
           return {
@@ -345,9 +313,6 @@ describe("fetchAndCacheData thunk", () => {
     });
   };
   const mockAPIData = () => {
-    vi.mocked(fetchFireShapeAreas).mockResolvedValue(
-      mockCacheableFireshapeAreas
-    );
     vi.mocked(fetchHFIStats).mockResolvedValue(mockCacheableHFIStats);
     vi.mocked(fetchProvincialSummaries).mockResolvedValue(
       mockCacheableProvincialSummaries
@@ -356,7 +321,6 @@ describe("fetchAndCacheData thunk", () => {
   };
   const testExpectedDataState = (dataState: DataState) => {
     expect(dataState.error).toBeNull();
-    expect(dataState.fireShapeAreas).toEqual(mockCacheableFireshapeAreas);
     expect(dataState.provincialSummaries).toEqual(
       mockCacheableProvincialSummaries
     );
@@ -394,7 +358,6 @@ describe("fetchAndCacheData thunk", () => {
     await store.dispatch(fetchAndCacheData());
 
     // API should not be called
-    expect(fetchFireShapeAreas).not.toHaveBeenCalled();
     expect(fetchHFIStats).not.toHaveBeenCalled();
     expect(fetchProvincialSummaries).not.toHaveBeenCalled();
     expect(fetchTpiStats).not.toHaveBeenCalled();
@@ -418,7 +381,6 @@ describe("fetchAndCacheData thunk", () => {
     await store.dispatch(fetchAndCacheData());
 
     // Utility functions which call the API should not be called
-    expect(fetchFireShapeAreas).not.toHaveBeenCalled();
     expect(fetchHFIStats).not.toHaveBeenCalled();
     expect(fetchProvincialSummaries).not.toHaveBeenCalled();
     expect(fetchTpiStats).not.toHaveBeenCalled();
@@ -443,7 +405,6 @@ describe("fetchAndCacheData thunk", () => {
     await store.dispatch(fetchAndCacheData());
 
     // Utility functions which call the API should be called
-    expect(fetchFireShapeAreas).toHaveBeenCalled();
     expect(fetchHFIStats).toHaveBeenCalled();
     expect(fetchProvincialSummaries).toHaveBeenCalled();
     expect(fetchTpiStats).toHaveBeenCalled();
@@ -468,7 +429,6 @@ describe("fetchAndCacheData thunk", () => {
     await store.dispatch(fetchAndCacheData());
 
     // Utility functions which call the API should be called
-    expect(fetchFireShapeAreas).toHaveBeenCalled();
     expect(fetchHFIStats).toHaveBeenCalled();
     expect(fetchProvincialSummaries).toHaveBeenCalled();
     expect(fetchTpiStats).toHaveBeenCalled();
