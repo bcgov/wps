@@ -1,6 +1,5 @@
 import {
-  FireShapeArea,
-  getFireShapeAreas,
+  FireShapeStatusDetail,
   getHFIStats,
   getProvincialSummary,
   getTPIStats,
@@ -9,8 +8,6 @@ import {
 } from "@/api/fbaAPI";
 import {
   dataAreEqual,
-  fetchFireShapeArea,
-  fetchFireShapeAreas,
   fetchHFIStatsForRunParameter,
   fetchProvincialSummaries,
   fetchProvincialSummary,
@@ -55,7 +52,7 @@ describe("Utility Functions", () => {
         [todayKey]: mockRunParameter,
         [tomorrowKey]: mockRunParameter,
       };
-      const data: CacheableData<FireShapeArea[]> = {
+      const data: CacheableData<FireShapeStatusDetail[]> = {
         [todayKey]: { runParameter: mockRunParameter, data: [] },
         [tomorrowKey]: { runParameter: mockRunParameter, data: [] },
       };
@@ -70,7 +67,7 @@ describe("Utility Functions", () => {
         [todayKey]: mockRunParameter,
         [tomorrowKey]: { ...mockRunParameter, for_date: "2025-11-22" },
       };
-      const data: CacheableData<FireShapeArea[]> = {
+      const data: CacheableData<FireShapeStatusDetail[]> = {
         [todayKey]: { runParameter: mockRunParameter, data: [] },
         [tomorrowKey]: { runParameter: mockRunParameter, data: [] },
       };
@@ -87,20 +84,22 @@ describe("Utility Functions", () => {
         todayKey,
         tomorrowKey,
         { [todayKey]: mockRunParameter, [tomorrowKey]: mockRunParameter },
-        [{ fire_shape_id: 1 } as FireShapeArea],
-        [{ fire_shape_id: 2 } as FireShapeArea]
+        [{ fire_shape_id: 1 } as FireShapeStatusDetail],
+        [{ fire_shape_id: 2 } as FireShapeStatusDetail]
       );
 
-      expect((result[todayKey].data[0] as FireShapeArea).fire_shape_id).toBe(1);
-      expect((result[tomorrowKey].data[0] as FireShapeArea).fire_shape_id).toBe(
-        2
-      );
+      expect(
+        (result[todayKey].data[0] as FireShapeStatusDetail).fire_shape_id
+      ).toBe(1);
+      expect(
+        (result[tomorrowKey].data[0] as FireShapeStatusDetail).fire_shape_id
+      ).toBe(2);
     });
   });
 
   describe("dataAreEqual", () => {
     it("returns true for equal data", () => {
-      const a: CacheableData<FireShapeArea[]> = {
+      const a: CacheableData<FireShapeStatusDetail[]> = {
         [todayKey]: { runParameter: mockRunParameter, data: [] },
         [tomorrowKey]: { runParameter: mockRunParameter, data: [] },
       };
@@ -110,14 +109,14 @@ describe("Utility Functions", () => {
     });
 
     it("returns false for different data", () => {
-      const a: CacheableData<FireShapeArea[]> = {
+      const a: CacheableData<FireShapeStatusDetail[]> = {
         [todayKey]: { runParameter: mockRunParameter, data: [] },
         [tomorrowKey]: { runParameter: mockRunParameter, data: [] },
       };
-      const b: CacheableData<FireShapeArea[]> = {
+      const b: CacheableData<FireShapeStatusDetail[]> = {
         [todayKey]: {
           runParameter: mockRunParameter,
-          data: [{ fire_shape_id: 1 } as FireShapeArea],
+          data: [{ fire_shape_id: 1 } as FireShapeStatusDetail],
         },
         [tomorrowKey]: { runParameter: mockRunParameter, data: [] },
       };
@@ -130,35 +129,6 @@ describe("Utility Functions", () => {
 describe("Async Fetch Functions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  it("fetchFireShapeArea returns empty array if runParameter is nil", async () => {
-    const result = await fetchFireShapeArea(null as unknown as RunParameter);
-    expect(result).toEqual([]);
-  });
-
-  it("fetchFireShapeArea calls API and returns shapes", async () => {
-    (getFireShapeAreas as Mock).mockResolvedValue({
-      shapes: [{ fire_shape_id: 1 }],
-    });
-    const result = await fetchFireShapeArea(mockRunParameter);
-    expect(result).toEqual([{ fire_shape_id: 1 }]);
-    expect(getFireShapeAreas).toHaveBeenCalledWith(
-      mockRunParameter.run_type,
-      mockRunParameter.run_datetime,
-      mockRunParameter.for_date
-    );
-  });
-
-  it("fetchFireShapeAreas returns shaped data", async () => {
-    (getFireShapeAreas as Mock).mockResolvedValue({
-      shapes: [{ fire_shape_id: 1 }],
-    });
-    const result = await fetchFireShapeAreas(todayKey, tomorrowKey, {
-      [todayKey]: mockRunParameter,
-      [tomorrowKey]: mockRunParameter,
-    });
-    expect(result[todayKey].data[0].fire_shape_id).toBe(1);
   });
 
   it("fetchHFIStatsForRunParameter returns zone_data", async () => {

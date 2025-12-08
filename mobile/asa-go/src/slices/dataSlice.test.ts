@@ -25,7 +25,6 @@ vi.mock("@/utils/dataSliceUtils", async () => {
   );
   return {
     ...actual,
-    fetchFireShapeAreas: vi.fn(),
     fetchHFIStats: vi.fn(),
     fetchProvincialSummaries: vi.fn(),
     fetchTpiStats: vi.fn(),
