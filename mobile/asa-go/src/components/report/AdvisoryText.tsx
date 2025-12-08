@@ -302,7 +302,11 @@ const AdvisoryText = ({
           </SerifTypography>
         )}
 
-        {!isNil(zoneStatus) ? (
+        {isNil(zoneStatus) ? (
+          <SerifTypography data-testid="no-advisory-message">
+            No advisories or warnings issued for the selected fire zone unit.
+          </SerifTypography>
+        ) : (
           <>
             {zoneStatus === AdvisoryStatus.ADVISORY && (
               <SerifTypography
@@ -337,10 +341,6 @@ const AdvisoryText = ({
               </SerifTypography>
             )}
           </>
-        ) : (
-          <SerifTypography data-testid="no-advisory-message">
-            No advisories or warnings issued for the selected fire zone unit.
-          </SerifTypography>
         )}
       </>
     );

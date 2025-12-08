@@ -181,9 +181,7 @@ export const fireShapeLabelStyler = (
     const feature_fire_shape_id = feature.getProperties().OBJECTID;
     const selected =
       !isUndefined(selectedFireShape) &&
-      feature_fire_shape_id === selectedFireShape.fire_shape_id
-        ? true
-        : false;
+      feature_fire_shape_id === selectedFireShape.fire_shape_id;
     return new Style({
       text: new Text({
         overflow: true,

@@ -53,7 +53,7 @@ const FireZoneUnitTabs = ({
       (zone) => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id
     );
 
-    return idx !== -1 ? idx : 0;
+    return idx >= 0 ? idx : 0;
   }, [selectedFireZoneUnit, sortedGroupedFireZoneUnits]);
 
   useEffect(() => {
