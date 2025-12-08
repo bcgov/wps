@@ -266,7 +266,8 @@ describe('AdvisoryText', () => {
   it('should render a no advisories message when there are no advisories/warnings', () => {
     const noAdvisoryStore = createTestStore({
       provincialSummary: {
-        ...provSummaryInitialState
+        ...provSummaryInitialState,
+        fireShapeStatusDetails: noAdvisoryDetails
       }
     })
     const { queryByTestId } = render(
