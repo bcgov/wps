@@ -3,13 +3,6 @@ import { useSelector } from 'react-redux'
 import { FireCenter, FireShapeStatusDetail } from 'api/fbaAPI'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 
-export interface GroupedFireZoneUnitDetails {
-  fire_shape_id: number
-  fire_shape_name: string
-  fire_centre_name: string
-  fireShapeDetails: FireShapeStatusDetail[]
-}
-
 /**
  * Hook for grabbing a fire centre from the provincial summary, grouping by unique 'fire_shape_id' and
  * providing easy access to the shape name, centre, and FireShapeAreaDetails for calculating zone status
