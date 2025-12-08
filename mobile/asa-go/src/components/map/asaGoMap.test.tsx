@@ -12,53 +12,6 @@ import {
 import { geolocationInitialState } from "@/slices/geolocationSlice";
 import * as mapView from "@/components/map/mapView";
 
-// Mock PMTilesFileVectorSource to prevent real PMTiles loading
-vi.mock("@/utils/pmtilesVectorSource", () => ({
-  PMTilesFileVectorSource: {
-    createStaticLayer: vi.fn().mockResolvedValue({
-      // Mock VectorTileSource with minimal required methods
-      setState: vi.fn(),
-      setTileLoadFunction: vi.fn(),
-      getTileGrid: vi.fn(() => ({
-        getTileCoordExtent: vi.fn(),
-      })),
-      on: vi.fn(),
-      un: vi.fn(),
-    }),
-    createBasemapSource: vi.fn().mockResolvedValue({
-      setState: vi.fn(),
-      setTileLoadFunction: vi.fn(),
-      getTileGrid: vi.fn(() => ({
-        getTileCoordExtent: vi.fn(),
-      })),
-      on: vi.fn(),
-      un: vi.fn(),
-    }),
-  },
-}));
-
-// Update the layerDefinitions mock to include createLocalBasemapVectorLayer
-vi.mock("@/layerDefinitions", async () => {
-  const actual = await import("@/layerDefinitions");
-
-  return {
-    ...actual,
-    createHFILayer: vi
-      .fn()
-      .mockImplementation(() => Promise.resolve(createLayerMock("HFILayer"))),
-    createBasemapLayer: vi
-      .fn()
-      .mockImplementation(() =>
-        Promise.resolve(createLayerMock("vectorBasemapLayer"))
-      ),
-    createLocalBasemapVectorLayer: vi
-      .fn()
-      .mockImplementation(() =>
-        Promise.resolve(createLayerMock("localBasemapLayer"))
-      ),
-  };
-});
-
 vi.mock("@capacitor/filesystem", () => ({
   Filesystem: {
     readFile: vi.fn().mockResolvedValue({ data: JSON.stringify({}) }),
