@@ -22,8 +22,8 @@ const ScaleContainer = forwardRef(
           ref={ref}
           sx={{
             position: "absolute",
-            bottom: "0.5rem",
-            right: "0.5rem",
+            bottom: "max(0.5rem, env(safe-area-inset-bottom))",
+            right: "max(0.5rem, env(safe-area-inset-right))",
             zIndex: 1,
             ["& div.ol-scale-line"]: {
               background: "none",

@@ -597,8 +597,8 @@ const ASAGoMap = ({
         <Box
           sx={{
             position: "absolute",
-            left: "8px",
-            bottom: "8px",
+            left: "max(8px, env(safe-area-inset-left))",
+            bottom: "max(calc(8px + env(safe-area-inset-top)), env(safe-area-inset-bottom))",
             zIndex: 2,
             display: "flex",
             flexDirection: "column",

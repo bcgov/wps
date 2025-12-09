@@ -1,6 +1,6 @@
 import { HamburgerMenu } from "@/components/HamburgerMenu";
 import { theme } from "@/theme";
-import { AppBar, Box, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Toolbar, Typography, useMediaQuery } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useLayoutEffect, useRef, useState } from "react";
 
@@ -8,6 +8,7 @@ export const AppHeader = () => {
   const headerRef = useRef<HTMLDivElement>(null);
   const [drawerTop, setDrawerTop] = useState(0);
   const [drawerHeight, setDrawerHeight] = useState(0);
+  const isLandscape = useMediaQuery("(orientation: landscape)");
 
   useLayoutEffect(() => {
     if (headerRef.current) {
@@ -16,6 +17,10 @@ export const AppHeader = () => {
       setDrawerHeight(window.innerHeight - headerRect.bottom);
     }
   }, []);
+
+  if (isLandscape) {
+    return null;
+  }
 
   return (
     <Box
