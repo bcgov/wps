@@ -69,6 +69,12 @@ const FireZoneUnitTabs = ({
     setZoomSource('fireShape')
   }
 
+  useEffect(() => {
+    if (!selectedFireZoneUnit) {
+      setSelectedFireShape(getTabFireShape(0))
+    }
+  }, [getTabFireShape, selectedFireZoneUnit, setSelectedFireShape])
+
   if (isUndefined(selectedFireCenter) || isNull(selectedFireCenter)) {
     return <div data-testid="fire-zone-unit-tabs-empty"></div>
   }
