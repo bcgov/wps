@@ -178,9 +178,9 @@
             "name": "backfill_zone_statuses",
             "type": "debugpy",
             "request": "launch",
-            "program": "packages/wps-api/src/app/jobs/backfill_zone_statuses.py",
+            "program": "app/jobs/backfill_zone_statuses.py",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/backend",
+            "cwd": "${workspaceFolder}/backend/packages/wps-api/src",
             "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
@@ -199,7 +199,7 @@
             "name": "env_canada HRDPS",
             "type": "debugpy",
             "request": "launch",
-            "cwd": "${workspaceFolder}/backend",
+            "cwd": "${workspaceFolder}/backend/wps-jobs/src",
             "python": "${workspaceFolder}/backend/.venv/bin/python",
             "module": "weather_model_jobs.env_canada",
             "args": [
