@@ -199,7 +199,7 @@
             "name": "env_canada HRDPS",
             "type": "debugpy",
             "request": "launch",
-            "cwd": "${workspaceFolder}/backend/wps-jobs/src",
+            "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/.venv/bin/python",
             "module": "weather_model_jobs.env_canada",
             "args": [
