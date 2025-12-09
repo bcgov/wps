@@ -24,12 +24,13 @@ async def backfill_all_zone_statuses():
         runs = await session.execute(stmt)
         runs_list = runs.scalars().all()
 
-        for run in runs_list:
-            await process_zone_statuses(
-                RunType(run.run_type),
-                run.run_datetime,
-                run.for_date,
-            )
+        if len(runs_list) > 0:
+            for run in runs_list:
+                await process_zone_statuses(
+                    RunType(run.run_type),
+                    run.run_datetime,
+                    run.for_date,
+                )
 
     logger.info("Backfill of advisory zone statuses completed.")
 
