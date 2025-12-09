@@ -4,7 +4,7 @@ import CriticalHours from '@/features/fba/components/viz/CriticalHours'
 
 describe('CriticalHours', () => {
   it('should not render hours in 24 hour format', () => {
-    const { getByTestId } = render(<CriticalHours start={8.0} end={11.0} />)
+    const { getByTestId } = render(<CriticalHours start={8} end={11} />)
 
     const element = getByTestId('critical-hours')
     expect(element).toBeInTheDocument()
