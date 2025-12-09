@@ -178,7 +178,7 @@
             "name": "backfill_zone_statuses",
             "type": "debugpy",
             "request": "launch",
-            "program": "app/jobs/backfill_zone_statuses.py",
+            "module": "app.jobs.backfill_zone_statuses",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/backend/packages/wps-api/src",
             "python": "${workspaceFolder}/backend/.venv/bin/python"
