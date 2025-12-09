@@ -7,7 +7,7 @@ import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitS
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import TabPanel from 'features/fba/components/infoPanel/TabPanel'
 import { useFireCentreDetails } from 'features/fba/hooks/useFireCentreDetails'
-import { isEmpty, isNil, isNull, isUndefined, set } from 'lodash'
+import { isEmpty, isNil, isNull, isUndefined } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 
@@ -25,29 +25,22 @@ const FireZoneUnitTabs = ({
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
   const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
+  const [tabNumber, setTabNumber] = useState(0)
 
   const sortedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
   const filteredFireCentreHFIFuelStats = useSelector(selectFilteredFireCentreHFIFuelStats)
 
-  const tabNumber = useMemo(() => {
-    if (!selectedFireZoneUnit) return 0
-
-    const idx = sortedFireZoneUnits.findIndex(zone => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id)
-
-    return Math.max(idx, 0)
+  useEffect(() => {
+    if (selectedFireZoneUnit) {
+      const newIndex = sortedFireZoneUnits.findIndex(zone => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id)
+      if (newIndex !== -1) {
+        setTabNumber(newIndex)
+      }
+    } else {
+      setTabNumber(0)
+      setSelectedFireShape(getTabFireShape(0)) // if no selected FireShape, select the first one in the sorted tabs
+    }
   }, [selectedFireZoneUnit, sortedFireZoneUnits])
-
-  const tpiStatsArray = useMemo(() => {
-    if (selectedFireCenter && !isNil(fireCentreTPIStats)) {
-      return fireCentreTPIStats?.firezone_tpi_stats
-    }
-  }, [fireCentreTPIStats, selectedFireCenter])
-
-  const hfiFuelStats = useMemo(() => {
-    if (selectedFireCenter) {
-      return filteredFireCentreHFIFuelStats?.[selectedFireCenter?.name]
-    }
-  }, [filteredFireCentreHFIFuelStats, selectedFireCenter])
 
   const getTabFireShape = (tabNumber: number): FireShape | undefined => {
     if (sortedFireZoneUnits.length > 0) {
@@ -64,16 +57,24 @@ const FireZoneUnitTabs = ({
   }
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    setTabNumber(newValue)
+
     const fireShape = getTabFireShape(newValue)
     setSelectedFireShape(fireShape)
     setZoomSource('fireShape')
   }
 
-  useEffect(() => {
-    if (!selectedFireZoneUnit) {
-      setSelectedFireShape(getTabFireShape(0))
+  const tpiStatsArray = useMemo(() => {
+    if (selectedFireCenter && !isNil(fireCentreTPIStats)) {
+      return fireCentreTPIStats?.firezone_tpi_stats
     }
-  }, [getTabFireShape, selectedFireZoneUnit, setSelectedFireShape])
+  }, [fireCentreTPIStats, selectedFireCenter])
+
+  const hfiFuelStats = useMemo(() => {
+    if (selectedFireCenter) {
+      return filteredFireCentreHFIFuelStats?.[selectedFireCenter?.name]
+    }
+  }, [filteredFireCentreHFIFuelStats, selectedFireCenter])
 
   if (isUndefined(selectedFireCenter) || isNull(selectedFireCenter)) {
     return <div data-testid="fire-zone-unit-tabs-empty"></div>
