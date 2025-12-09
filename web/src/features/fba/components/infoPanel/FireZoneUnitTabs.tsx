@@ -25,21 +25,16 @@ const FireZoneUnitTabs = ({
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
   const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
-  const [tabNumber, setTabNumber] = useState(0)
 
   const sortedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
   const filteredFireCentreHFIFuelStats = useSelector(selectFilteredFireCentreHFIFuelStats)
 
-  useEffect(() => {
-    if (selectedFireZoneUnit) {
-      const newIndex = sortedFireZoneUnits.findIndex(zone => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id)
-      if (newIndex !== -1) {
-        setTabNumber(newIndex)
-      }
-    } else {
-      setTabNumber(0)
-      setSelectedFireShape(getTabFireShape(0)) // if no selected FireShape, select the first one in the sorted tabs
-    }
+  const tabNumber = useMemo(() => {
+    if (!selectedFireZoneUnit) return 0
+
+    const idx = sortedFireZoneUnits.findIndex(zone => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id)
+
+    return Math.max(idx, 0)
   }, [selectedFireZoneUnit, sortedFireZoneUnits])
 
   const getTabFireShape = (tabNumber: number): FireShape | undefined => {
@@ -57,8 +52,6 @@ const FireZoneUnitTabs = ({
   }
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setTabNumber(newValue)
-
     const fireShape = getTabFireShape(newValue)
     setSelectedFireShape(fireShape)
     setZoomSource('fireShape')
@@ -75,6 +68,12 @@ const FireZoneUnitTabs = ({
       return filteredFireCentreHFIFuelStats?.[selectedFireCenter?.name]
     }
   }, [filteredFireCentreHFIFuelStats, selectedFireCenter])
+
+  useEffect(() => {
+    if (!selectedFireZoneUnit) {
+      setSelectedFireShape(getTabFireShape(0))
+    }
+  }, [getTabFireShape, selectedFireZoneUnit, setSelectedFireShape])
 
   if (isUndefined(selectedFireCenter) || isNull(selectedFireCenter)) {
     return <div data-testid="fire-zone-unit-tabs-empty"></div>

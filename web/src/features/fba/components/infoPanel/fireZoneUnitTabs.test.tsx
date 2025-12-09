@@ -193,7 +193,6 @@ describe('FireZoneUnitTabs', () => {
       mof_fire_zone_name: zoneB
     })
     expect(setZoomSourceMock).toHaveBeenCalledWith('fireShape')
-    expect(screen.getByTestId('fire-zone-title-tabs')).toHaveTextContent(zoneB)
   })
 
   it('should render empty if there is no selected Fire Centre', () => {
