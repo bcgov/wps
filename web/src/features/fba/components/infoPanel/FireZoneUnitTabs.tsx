@@ -8,7 +8,7 @@ import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import TabPanel from 'features/fba/components/infoPanel/TabPanel'
 import { useFireCentreDetails } from 'features/fba/hooks/useFireCentreDetails'
 import { isEmpty, isNil, isNull, isUndefined } from 'lodash'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 
 interface FireZoneUnitTabs {
