@@ -77,7 +77,7 @@ const columns: GridColDef[] = [
     field: "criticalHours",
     headerClassName: "fuel-summary-header",
     headerName: "Critical Hours",
-    minWidth: 110,
+    minWidth: 120,
     sortable: false,
     renderHeader: (params: GridColumnHeaderParams) => (
       <StyledHeader>{params.colDef.headerName}</StyledHeader>
