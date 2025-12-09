@@ -312,7 +312,7 @@ describe("ASAGoMap", () => {
       expect(styles.left).toContain("max(");
     });
 
-    it("applies safe-area-inset-top and bottom to button container for landscape camera avoidance", () => {
+    it("applies fixed bottom positioning to button container so buttons align with bottom bar", () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -332,14 +332,11 @@ describe("ASAGoMap", () => {
       ) as HTMLElement;
 
       // MUI compiles the sx prop to CSS classes
-      // The bottom style should include:
-      // max(calc(8px + env(safe-area-inset-top)), env(safe-area-inset-bottom))
-      // This accounts for camera notch in landscape mode
+      // The bottom style should be fixed at 8px since the bottom nav bar
+      // already handles safe area insets
       const styles = window.getComputedStyle(buttonContainer);
       expect(styles.bottom).toBeTruthy();
-      expect(styles.bottom).toContain("safe-area-inset-top");
-      expect(styles.bottom).toContain("safe-area-inset-bottom");
-      expect(styles.bottom).toContain("max(");
+      expect(styles.bottom).toBe("8px");
     });
 
     it("renders all control buttons within the safe area container", () => {
