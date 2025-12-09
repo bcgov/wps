@@ -29,6 +29,16 @@ const FireZoneUnitTabs = ({
     date
   );
 
+  const tabNumber = useMemo(() => {
+    if (!selectedFireZoneUnit) return 0;
+
+    const idx = sortedGroupedFireZoneUnits.findIndex(
+      (zone) => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id
+    );
+
+    return Math.max(idx, 0);
+  }, [selectedFireZoneUnit, sortedGroupedFireZoneUnits]);
+
   const getTabFireShape = useCallback(
     (tabNumber: number): FireShape | undefined => {
       if (sortedGroupedFireZoneUnits.length > 0) {
@@ -46,26 +56,16 @@ const FireZoneUnitTabs = ({
     [sortedGroupedFireZoneUnits]
   );
 
-  const tabNumber = useMemo(() => {
-    if (!selectedFireZoneUnit) return 0;
-
-    const idx = sortedGroupedFireZoneUnits.findIndex(
-      (zone) => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id
-    );
-
-    return Math.max(idx, 0);
-  }, [selectedFireZoneUnit, sortedGroupedFireZoneUnits]);
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    const fireShape = getTabFireShape(newValue);
+    setSelectedFireZoneUnit(fireShape);
+  };
 
   useEffect(() => {
     if (!selectedFireZoneUnit) {
       setSelectedFireZoneUnit(getTabFireShape(0));
     }
   }, [getTabFireShape, selectedFireZoneUnit, setSelectedFireZoneUnit]);
-
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    const fireShape = getTabFireShape(newValue);
-    setSelectedFireZoneUnit(fireShape);
-  };
 
   return (
     <Box
