@@ -52,6 +52,7 @@
     "match-sorter": "^8.0.0",
     "nyc": "^17.0.0",
     "ol": "10.0.0",
+    "ol-mapbox-style": "^13.1.1",
     "ol-pmtiles": "^2.0.0",
     "prettier": "^3.3.3",
     "react": "^18.3.1",
