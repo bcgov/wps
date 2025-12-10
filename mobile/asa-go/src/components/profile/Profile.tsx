@@ -4,6 +4,7 @@ import FireZoneUnitSummary from "@/components/profile/FireZoneUnitSummary";
 import { DefaultText } from "@/components/report/DefaultText";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
+import { useSafeAreaInsets } from "@/hooks/useSafeAreaInsets";
 import { selectFireCenters } from "@/store";
 import { HEADER_GREY, INFO_PANEL_CONTENT_BACKGROUND } from "@/theme";
 import { TextSnippet } from "@mui/icons-material";
@@ -36,6 +37,8 @@ const Profile = ({
 }: ProfileProps) => {
   const { fireCenters } = useSelector(selectFireCenters);
   const theme = useTheme();
+  const safePadding = useSafeAreaInsets();
+
   return (
     <Box
       data-testid="asa-go-profile"
@@ -45,9 +48,7 @@ const Profile = ({
         flexDirection: "column",
         height: "100%",
         overflowY: "hidden",
-        paddingTop: "env(safe-area-inset-top)",
-        paddingLeft: "env(safe-area-inset-left)",
-        paddingRight: "env(safe-area-inset-right)",
+        ...safePadding,
       }}
     >
       <Box
