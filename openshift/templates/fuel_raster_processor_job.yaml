@@ -46,6 +46,8 @@ objects:
               imagePullPolicy: "Always"
               command: ["uv", "run", "--no-sync", "python", "-m", "fuel_raster"]
               env:
+                - name: UV_NO_CACHE
+                  value: "1"
                 - name: OBJECT_STORE_SERVER
                   valueFrom:
                     secretKeyRef:
