@@ -3,9 +3,8 @@ import FireCenterDropdown from "@/components/FireCenterDropdown";
 import AdvisoryText from "@/components/report/AdvisoryText";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
-import { useSafeAreaInsets } from "@/hooks/useSafeAreaInsets";
 import { selectFireCenters } from "@/store";
-import { HEADER_GREY, INFO_PANEL_CONTENT_BACKGROUND } from "@/theme";
+import { getSafeAreaInsets, HEADER_GREY, INFO_PANEL_CONTENT_BACKGROUND } from "@/theme";
 import { TextSnippet } from "@mui/icons-material";
 import { Box, FormControl, Typography, useTheme } from "@mui/material";
 import { DateTime } from "luxon";
@@ -36,7 +35,6 @@ const Advisory = ({
 }: AdvisoryProps) => {
   const { fireCenters } = useSelector(selectFireCenters);
   const theme = useTheme();
-  const safePadding = useSafeAreaInsets();
 
   return (
     <Box
@@ -47,7 +45,7 @@ const Advisory = ({
         flexDirection: "column",
         height: "100%",
         overflowY: "hidden",
-        ...safePadding,
+        ...getSafeAreaInsets(),
       }}
     >
       <Box

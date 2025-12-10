@@ -1,6 +1,5 @@
 import { HamburgerMenu } from "@/components/HamburgerMenu";
-import { useSafeAreaInsets } from "@/hooks/useSafeAreaInsets";
-import { theme } from "@/theme";
+import { getSafeAreaInsets, theme } from "@/theme";
 import { AppBar, Box, Toolbar, Typography, useMediaQuery } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useLayoutEffect, useRef, useState } from "react";
@@ -13,7 +12,6 @@ export const AppHeader = () => {
   // iPads typically have min-width of 1024px in landscape (iPad Mini+)
   // iPhones max out at ~932px in landscape, so 1024px reliably detects iPads
   const isLargeDevice = useMediaQuery("(min-width: 1024px)");
-  const safePadding = useSafeAreaInsets();
 
   useLayoutEffect(() => {
     if (headerRef.current) {
@@ -38,7 +36,7 @@ export const AppHeader = () => {
         borderBottomWidth: 2,
         borderBottomStyle: "solid",
         borderBottomColor: theme.palette.secondary.main,
-        ...safePadding,
+        ...getSafeAreaInsets(),
       }}
     >
       <Grid
