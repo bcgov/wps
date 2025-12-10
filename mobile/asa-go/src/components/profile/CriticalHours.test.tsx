@@ -1,14 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import CriticalHours from "@/components/profile/CriticalHours";
-
-// Mock the formatCriticalHoursTimeText utility
-vi.mock("@/utils/criticalHoursStartEndTime", () => ({
-  formatCriticalHoursTimeText: vi.fn((start: number, end: number) => [
-    `${String(start).padStart(2, "0")}:00`,
-    `${String(end).padStart(2, "0")}:00`,
-  ]),
-}));
 
 describe("CriticalHours", () => {
   it("should render formatted critical hours when both start and end are provided", () => {
@@ -16,7 +8,7 @@ describe("CriticalHours", () => {
 
     const element = screen.getByTestId("critical-hours");
     expect(element).toBeInTheDocument();
-    expect(element).toHaveTextContent("08:00 - 18:00");
+    expect(element).toHaveTextContent("8 - 18");
   });
 
   it("should render dash when start is undefined", () => {
@@ -64,7 +56,7 @@ describe("CriticalHours", () => {
 
     const element = screen.getByTestId("critical-hours");
     expect(element).toBeInTheDocument();
-    expect(element).toHaveTextContent("00:00 - 23:00");
+    expect(element).toHaveTextContent("0 - 23");
   });
 
   it("should have correct Typography styling", () => {
