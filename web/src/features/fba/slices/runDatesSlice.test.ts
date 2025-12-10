@@ -14,6 +14,17 @@ import reducer, {
   initialState
 } from '@/features/fba/slices/runDatesSlice'
 
+import { createTestStore } from '@/test/testUtils'
+import {
+  getAllRunDates,
+  getMostRecentRunDate,
+  getSFMSBounds,
+  RunType,
+  SFMSBoundsResponse,
+  type SFMSBounds
+} from 'api/fbaAPI'
+import { logError } from 'utils/error'
+
 // We mock the API and error logger while keeping TS types
 vi.mock('@/api/fbaAPI', async () => {
   const actual = await vi.importActual<typeof import('@/api/fbaAPI')>('@/api/fbaAPI')
@@ -28,17 +39,6 @@ vi.mock('@/api/fbaAPI', async () => {
 vi.mock('utils/error', () => ({
   logError: vi.fn()
 }))
-
-import { createTestStore } from '@/test/testUtils'
-import {
-  getAllRunDates,
-  getMostRecentRunDate,
-  getSFMSBounds,
-  RunType,
-  SFMSBoundsResponse,
-  type SFMSBounds
-} from 'api/fbaAPI'
-import { logError } from 'utils/error'
 
 // Convenience helpers for typed mocks
 const mockedGetAllRunDates = vi.mocked(getAllRunDates)

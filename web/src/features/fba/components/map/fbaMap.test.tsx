@@ -1,11 +1,3 @@
-vi.mock('@/utils/vectorLayerUtils', async () => {
-  return {
-    getStyleJson: vi.fn(),
-    createVectorTileLayer: vi.fn(),
-    createHillshadeVectorTileLayer: vi.fn()
-  }
-})
-
 import { RunType } from '@/api/fbaAPI'
 import { createLayerMock } from '@/test/testUtils'
 import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
@@ -15,6 +7,14 @@ import FBAMap from 'features/fba/components/map/FBAMap'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { Mock } from 'vitest'
+
+vi.mock('@/utils/vectorLayerUtils', async () => {
+  return {
+    getStyleJson: vi.fn(),
+    createVectorTileLayer: vi.fn(),
+    createHillshadeVectorTileLayer: vi.fn()
+  }
+})
 
 describe('FBAMap', () => {
   class ResizeObserver {

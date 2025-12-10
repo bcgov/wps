@@ -1,15 +1,15 @@
+import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
+import { createLayerMock } from '@/test/testUtils'
+import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
+import { render } from '@testing-library/react'
+import { Mock } from 'vitest'
+
 vi.mock('@/utils/vectorLayerUtils', async () => {
   return {
     getStyleJson: vi.fn(),
     createVectorTileLayer: vi.fn()
   }
 })
-
-import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
-import { createLayerMock } from '@/test/testUtils'
-import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
-import { render } from '@testing-library/react'
-import { Mock } from 'vitest'
 
 describe('SFMSMap', () => {
   class ResizeObserver {
