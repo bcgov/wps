@@ -4,8 +4,8 @@ from datetime import datetime
 import pytest
 from pytest_mock import MockerFixture
 
-import fuel_raster
-from fuel_raster import start_job
+import fuel_raster.__main__
+from fuel_raster.__main__ import start_job
 from wps_shared.db.models import FuelTypeRaster
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 
@@ -83,7 +83,7 @@ def setup_mocks(monkeypatch):
     async def mock_process_fuel_type_raster(_, __, ___):
         return (START_TIMESTAMP.year, 3, 100, 200, "fuel-key-v3", "abc123", CREATE_TIMESTAMP)
 
-    monkeypatch.setattr("fuel_raster.process_fuel_type_raster", mock_process_fuel_type_raster)
+    monkeypatch.setattr("fuel_raster.__main__.process_fuel_type_raster", mock_process_fuel_type_raster)
 
     raster_addresser = RasterKeyAddresser()
     monkeypatch.setattr(
@@ -104,7 +104,7 @@ def setup_mocks(monkeypatch):
 
     mock_db = MockDB()
     monkeypatch.setattr(
-        "fuel_raster.get_async_write_session_scope", lambda: mock_db.MockDBScope(mock_db)
+        "fuel_raster.__main__.get_async_write_session_scope", lambda: mock_db.MockDBScope(mock_db)
     )
 
     # UTC now
@@ -138,7 +138,7 @@ async def test_start_job_failure(monkeypatch):
         raise ValueError("error")
 
     monkeypatch.setattr(
-        "fuel_raster.process_fuel_type_raster", mock_process_fuel_type_raster_value_error
+        "fuel_raster.__main__.process_fuel_type_raster", mock_process_fuel_type_raster_value_error
     )
 
     with pytest.raises(ValueError):
@@ -154,11 +154,11 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     async def mock_start_job(_, __, ___, ____):
         raise Exception()
 
-    rocket_chat_spy = mocker.spy(fuel_raster, "send_rocketchat_notification")
-    monkeypatch.setattr(fuel_raster, "start_job", mock_start_job)
+    rocket_chat_spy = mocker.spy(fuel_raster.__main__, "send_rocketchat_notification")
+    monkeypatch.setattr(fuel_raster.__main__, "start_job", mock_start_job)
 
     with pytest.raises(SystemExit) as excinfo:
-        fuel_raster.main()
+        fuel_raster.__main__.main()
 
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_SOFTWARE
@@ -170,11 +170,11 @@ def test_main_success(mocker: MockerFixture, monkeypatch):
     async def mock_start_job(_, __, ___):
         pass
 
-    rocket_chat_spy = mocker.spy(fuel_raster, "send_rocketchat_notification")
-    monkeypatch.setattr(fuel_raster, "start_job", mock_start_job)
+    rocket_chat_spy = mocker.spy(fuel_raster.__main__, "send_rocketchat_notification")
+    monkeypatch.setattr(fuel_raster.__main__, "start_job", mock_start_job)
 
     with pytest.raises(SystemExit) as excinfo:
-        fuel_raster.main()
+        fuel_raster.__main__.main()
 
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_OK
