@@ -1,4 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
+import axios from 'axios'
+import { applyStyle } from 'ol-mapbox-style'
 
 // Mock applyStyle from ol-mapbox-style
 vi.mock('ol-mapbox-style', () => ({
@@ -16,10 +19,6 @@ vi.mock('axios', () => {
     }
   }
 })
-
-import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
-import axios from 'axios'
-import { applyStyle } from 'ol-mapbox-style'
 
 afterEach(() => {
   vi.clearAllMocks()
