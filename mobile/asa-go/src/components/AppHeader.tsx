@@ -9,6 +9,8 @@ export const AppHeader = () => {
   const [drawerTop, setDrawerTop] = useState(0);
   const [drawerHeight, setDrawerHeight] = useState(0);
   const isLandscape = useMediaQuery("(orientation: landscape)");
+  // iPads typically have min-width of 768px in portrait, 1024px in landscape
+  const isLargeDevice = useMediaQuery("(min-width: 768px)");
 
   useLayoutEffect(() => {
     if (headerRef.current) {
@@ -18,7 +20,9 @@ export const AppHeader = () => {
     }
   }, []);
 
-  if (isLandscape) {
+  // Hide header only on small devices in landscape (e.g., phones)
+  // Keep header visible on large devices (e.g., iPads) even in landscape
+  if (isLandscape && !isLargeDevice) {
     return null;
   }
 
