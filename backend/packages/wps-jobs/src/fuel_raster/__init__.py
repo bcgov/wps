@@ -1,0 +1,3 @@
+"""
+Fuel raster processing package
+"""
