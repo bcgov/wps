@@ -58,12 +58,6 @@ vi.mock("@/components/TodayTomorrowSwitch", () => ({
 vi.mock("@/theme", () => ({
   HEADER_GREY: "#f5f5f5",
   INFO_PANEL_CONTENT_BACKGROUND: "#ffffff",
-  getSafeAreaInsets: () => ({
-    paddingTop: "0px",
-    paddingRight: "0px",
-    paddingBottom: "0px",
-    paddingLeft: "0px",
-  }),
 }));
 
 // Mock theme

@@ -58,14 +58,3 @@ export const MAP_BUTTON_GREY = "#7F7F7F"
 export const LIGHT_GREY = '#DADADA'
 export const INFO_PANEL_CONTENT_BACKGROUND = '#EEEEEE'
 export const HEADER_GREY = "#BFBFBF"
-
-/**
- * Utility to get safe area insets as CSS values.
- * Returns env() values that will be evaluated by the browser at runtime.
- */
-export const getSafeAreaInsets = () => ({
-  paddingTop: "env(safe-area-inset-top)",
-  paddingRight: "env(safe-area-inset-right)",
-  paddingBottom: "env(safe-area-inset-bottom)",
-  paddingLeft: "env(safe-area-inset-left)",
-});

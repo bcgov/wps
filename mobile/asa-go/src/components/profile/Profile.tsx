@@ -3,9 +3,10 @@ import FireCenterDropdown from "@/components/FireCenterDropdown";
 import FireZoneUnitSummary from "@/components/profile/FireZoneUnitSummary";
 import { DefaultText } from "@/components/report/DefaultText";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
+import { SafeAreaBox } from "@/components/SafeAreaBox";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
 import { selectFireCenters } from "@/store";
-import { getSafeAreaInsets, HEADER_GREY, INFO_PANEL_CONTENT_BACKGROUND } from "@/theme";
+import { HEADER_GREY, INFO_PANEL_CONTENT_BACKGROUND } from "@/theme";
 import { TextSnippet } from "@mui/icons-material";
 import { Box, FormControl, Typography, useTheme } from "@mui/material";
 import { DateTime } from "luxon";
@@ -38,7 +39,7 @@ const Profile = ({
   const theme = useTheme();
 
   return (
-    <Box
+    <SafeAreaBox
       data-testid="asa-go-profile"
       sx={{
         display: "flex",
@@ -46,7 +47,6 @@ const Profile = ({
         flexDirection: "column",
         height: "100%",
         overflowY: "hidden",
-        ...getSafeAreaInsets(),
       }}
     >
       <Box
@@ -128,7 +128,7 @@ const Profile = ({
           </FireZoneUnitTabs>
         )}
       </Box>
-    </Box>
+    </SafeAreaBox>
   );
 };
 

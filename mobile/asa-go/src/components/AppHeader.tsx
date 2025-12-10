@@ -1,6 +1,7 @@
 import { HamburgerMenu } from "@/components/HamburgerMenu";
-import { getSafeAreaInsets, theme } from "@/theme";
-import { AppBar, Box, Toolbar, Typography, useMediaQuery } from "@mui/material";
+import { SafeAreaBox } from "@/components/SafeAreaBox";
+import { theme } from "@/theme";
+import { AppBar, Toolbar, Typography, useMediaQuery } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useLayoutEffect, useRef, useState } from "react";
 
@@ -28,7 +29,7 @@ export const AppHeader = () => {
   }
 
   return (
-    <Box
+    <SafeAreaBox
       ref={headerRef}
       sx={{
         height: 100,
@@ -36,7 +37,6 @@ export const AppHeader = () => {
         borderBottomWidth: 2,
         borderBottomStyle: "solid",
         borderBottomColor: theme.palette.secondary.main,
-        ...getSafeAreaInsets(),
       }}
     >
       <Grid
@@ -60,6 +60,6 @@ export const AppHeader = () => {
           </Toolbar>
         </AppBar>
       </Grid>
-    </Box>
+    </SafeAreaBox>
   );
 };
