@@ -44,7 +44,7 @@ objects:
             - name: fuel-raster-${NAME}-${SUFFIX}
               image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-jobs-${SUFFIX}:${SUFFIX}
               imagePullPolicy: "Always"
-              command: ["poetry", "run", "python", "-m", "fuel_raster"]
+              command: ["uv", "run", "--no-sync", "python", "-m", "fuel_raster"]
               env:
                 - name: OBJECT_STORE_SERVER
                   valueFrom:
