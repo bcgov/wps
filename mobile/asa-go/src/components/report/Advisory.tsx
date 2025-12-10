@@ -44,6 +44,9 @@ const Advisory = ({
         flexDirection: "column",
         height: "100%",
         overflowY: "hidden",
+        paddingTop: "env(safe-area-inset-top)",
+        paddingLeft: "env(safe-area-inset-left)",
+        paddingRight: "env(safe-area-inset-right)",
       }}
     >
       <Box

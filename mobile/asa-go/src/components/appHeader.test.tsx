@@ -64,7 +64,7 @@ describe("AppHeader", () => {
     // Mock: portrait orientation, small device
     vi.mocked(useMediaQuery).mockImplementation((query) => {
       if (query === "(orientation: landscape)") return false;
-      if (query === "(min-width: 768px)") return false;
+      if (query === "(min-width: 1024px)") return false;
       return false;
     });
     render(<AppHeader />);
@@ -78,11 +78,11 @@ describe("AppHeader", () => {
     expect(hamburger).toHaveTextContent("drawerHeight: 680");
   });
 
-  it("hides the AppHeader on small devices in landscape mode", () => {
-    // Mock: landscape orientation, small device
+  it("hides the AppHeader on small devices (iPhones) in landscape mode", () => {
+    // Mock: landscape orientation, small device (iPhone: <1024px)
     vi.mocked(useMediaQuery).mockImplementation((query) => {
       if (query === "(orientation: landscape)") return true;
-      if (query === "(min-width: 768px)") return false;
+      if (query === "(min-width: 1024px)") return false;
       return false;
     });
     const { container } = render(<AppHeader />);
@@ -98,10 +98,10 @@ describe("AppHeader", () => {
   });
 
   it("shows the AppHeader on large devices (iPads) in landscape mode", () => {
-    // Mock: landscape orientation, large device
+    // Mock: landscape orientation, large device (iPad: >=1024px)
     vi.mocked(useMediaQuery).mockImplementation((query) => {
       if (query === "(orientation: landscape)") return true;
-      if (query === "(min-width: 768px)") return true;
+      if (query === "(min-width: 1024px)") return true;
       return false;
     });
     render(<AppHeader />);
@@ -115,7 +115,7 @@ describe("AppHeader", () => {
     // Start in landscape on small device
     vi.mocked(useMediaQuery).mockImplementation((query) => {
       if (query === "(orientation: landscape)") return true;
-      if (query === "(min-width: 768px)") return false;
+      if (query === "(min-width: 1024px)") return false;
       return false;
     });
     const { rerender } = render(<AppHeader />);
@@ -124,7 +124,7 @@ describe("AppHeader", () => {
     // Change to portrait on small device
     vi.mocked(useMediaQuery).mockImplementation((query) => {
       if (query === "(orientation: landscape)") return false;
-      if (query === "(min-width: 768px)") return false;
+      if (query === "(min-width: 1024px)") return false;
       return false;
     });
     rerender(<AppHeader />);

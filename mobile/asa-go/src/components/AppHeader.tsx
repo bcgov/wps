@@ -9,8 +9,9 @@ export const AppHeader = () => {
   const [drawerTop, setDrawerTop] = useState(0);
   const [drawerHeight, setDrawerHeight] = useState(0);
   const isLandscape = useMediaQuery("(orientation: landscape)");
-  // iPads typically have min-width of 768px in portrait, 1024px in landscape
-  const isLargeDevice = useMediaQuery("(min-width: 768px)");
+  // iPads typically have min-width of 1024px in landscape (iPad Mini+)
+  // iPhones max out at ~932px in landscape, so 1024px reliably detects iPads
+  const isLargeDevice = useMediaQuery("(min-width: 1024px)");
 
   useLayoutEffect(() => {
     if (headerRef.current) {
