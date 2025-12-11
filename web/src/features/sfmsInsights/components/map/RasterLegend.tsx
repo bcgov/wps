@@ -1,5 +1,30 @@
-import { Box, Typography } from '@mui/material'
+import { Grid, Icon, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import { ColorBreak } from './rasterColorBreaks'
+
+const LegendGrid = styled(Grid)({
+  position: 'absolute',
+  bottom: '1rem',
+  left: '1rem',
+  display: 'flex',
+  flexDirection: 'column',
+  minWidth: '200px',
+  backgroundColor: '#fffafa',
+  border: '2px solid black',
+  zIndex: 1000
+})
+
+const LegendTitle = styled(Typography)({
+  fontVariant: 'h1',
+  fontSize: '1.2rem',
+  fontWeight: 'bold',
+  margin: '0.8rem 0.6rem'
+})
+
+const LegendSymbol = styled(Icon)({
+  width: '2.5rem',
+  height: '1rem'
+})
 
 interface RasterLegendProps {
   title: string
@@ -8,48 +33,21 @@ interface RasterLegendProps {
 
 const RasterLegend = ({ title, colorBreaks }: RasterLegendProps) => {
   return (
-    <Box
-      sx={{
-        position: 'absolute',
-        bottom: 20,
-        right: 20,
-        bgcolor: 'rgba(255, 255, 255, 0.95)',
-        padding: '12px',
-        borderRadius: '4px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-        zIndex: 1000,
-        minWidth: '120px'
-      }}
-    >
-      <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1, fontSize: '13px' }}>
+    <LegendGrid padding={'0 0.5rem'}>
+      <LegendTitle align="center" gutterBottom>
         {title}
-      </Typography>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      </LegendTitle>
+      <List dense={true} sx={{ padding: 0 }}>
         {colorBreaks.map((colorBreak, index) => (
-          <Box
-            key={index}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <Box
-              sx={{
-                width: '30px',
-                height: '16px',
-                bgcolor: colorBreak.color,
-                border: '1px solid rgba(0,0,0,0.2)',
-                flexShrink: 0
-              }}
-            />
-            <Typography variant="caption" sx={{ fontSize: '11px' }}>
-              {colorBreak.label}
-            </Typography>
-          </Box>
+          <ListItem disablePadding key={index}>
+            <ListItemIcon>
+              <LegendSymbol sx={{ backgroundColor: colorBreak.color }} />
+            </ListItemIcon>
+            <ListItemText>{colorBreak.label}</ListItemText>
+          </ListItem>
         ))}
-      </Box>
-    </Box>
+      </List>
+    </LegendGrid>
   )
 }
 
