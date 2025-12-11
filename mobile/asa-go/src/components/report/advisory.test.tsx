@@ -2,7 +2,6 @@ import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import Advisory from "@/components/report/Advisory";
 import { DateTime } from "luxon";
-import React from "react";
 import { useSelector } from "react-redux";
 import { FireCenter } from "@/api/fbaAPI";
 import { AdvisoryTextProps } from "@/components/report/AdvisoryText";

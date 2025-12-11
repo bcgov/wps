@@ -49,8 +49,8 @@ export const fetchProvincialSummary =
     if (!isUndefined(run_datetime) && !isNull(run_datetime)) {
       try {
         dispatch(getProvincialSummaryStart())
-        const fireShapeAreas = await getProvincialSummary(runType, run_datetime, for_date)
-        dispatch(getProvincialSummarySuccess(fireShapeAreas))
+        const fireShapeStatuses = await getProvincialSummary(runType, run_datetime, for_date)
+        dispatch(getProvincialSummarySuccess(fireShapeStatuses))
       } catch (err) {
         dispatch(getProvincialSummaryFailed((err as Error).toString()))
         logError(err)
@@ -65,9 +65,9 @@ export const fetchProvincialSummary =
     }
   }
 
-const selectFireShapeAreaDetails = (state: RootState) => state.provincialSummary
+const selectFireShapeStatusDetails = (state: RootState) => state.provincialSummary
 
-export const selectProvincialSummary = createSelector([selectFireShapeAreaDetails], fireShapeAreaDetails => {
-  const groupedByFireCenter = groupBy(fireShapeAreaDetails.fireShapeStatusDetails, 'fire_centre_name')
+export const selectProvincialSummary = createSelector([selectFireShapeStatusDetails], fireShapeStatusDetails => {
+  const groupedByFireCenter = groupBy(fireShapeStatusDetails.fireShapeStatusDetails, 'fire_centre_name')
   return groupedByFireCenter
 })

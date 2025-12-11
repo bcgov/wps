@@ -25,7 +25,6 @@ vi.mock("@/api/fbaAPI", async () => {
   );
   return {
     ...actual,
-    getFireShapeAreas: vi.fn(),
     getHFIStats: vi.fn(),
     getTPIStats: vi.fn(),
     getProvincialSummary: vi.fn(),

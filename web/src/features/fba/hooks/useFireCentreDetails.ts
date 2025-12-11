@@ -5,7 +5,7 @@ import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySl
 
 /**
  * Hook for grabbing a fire centre from the provincial summary, grouping by unique 'fire_shape_id' and
- * providing easy access to the shape name, centre, and FireShapeAreaDetails for calculating zone status
+ * providing easy access to the shape name, centre, and FireShapeStatusDetails for calculating zone status
  *
  * @param selectedFireCenter
  * @returns

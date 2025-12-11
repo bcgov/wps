@@ -12,7 +12,6 @@ vi.mock("@/utils/storage", () => ({
   writeToFileSystem: vi.fn(),
   readFromFilesystem: vi.fn(),
   FIRE_CENTERS_KEY: "fireCenters",
-  FIRE_SHAPE_AREAS_KEY: "fireShapeAreas",
   HFI_STATS_KEY: "hfiStats",
   PROVINCIAL_SUMMARY_KEY: "provincialSummary",
   RUN_PARAMETERS_CACHE_KEY: "runParameters",

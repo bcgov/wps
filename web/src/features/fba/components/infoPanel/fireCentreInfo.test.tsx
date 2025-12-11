@@ -21,7 +21,7 @@ describe('FireCentreInfo', () => {
     expect(fireCentreInfo).toHaveTextContent('foo')
   })
   it('should render fireZoneUnit children', () => {
-    const fireShapeAreaDetails: FireShapeStatusDetail[] = [
+    const fireShapeStatusDetails: FireShapeStatusDetail[] = [
       {
         fire_shape_id: 1,
         fire_shape_name: 'foo',
@@ -33,7 +33,7 @@ describe('FireCentreInfo', () => {
       <FireCentreInfo
         expanded={true}
         fireCentreName="foo"
-        fireZoneUnitInfos={fireShapeAreaDetails}
+        fireZoneUnitInfos={fireShapeStatusDetails}
         onChangeExpanded={vi.fn()}
       />
     )

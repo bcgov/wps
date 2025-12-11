@@ -2,7 +2,6 @@ import { renderHook } from "@testing-library/react";
 import { useFireCentreDetails } from "./useFireCentreDetails";
 import { FireCenter, RunParameter, RunType } from "api/fbaAPI";
 import { Provider } from "react-redux";
-import React from "react";
 import { DateTime } from "luxon";
 import { AdvisoryStatus } from "@/utils/constants";
 import { createTestStore } from "@/testUtils";

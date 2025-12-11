@@ -47,7 +47,7 @@ describe('ProvincialSummary', () => {
     expect(noDataMessage).toHaveTextContent(NO_DATA_MESSAGE)
   })
   it('should render fireCenterInfo component as children', () => {
-    const fireShapeAreaDetails: FireShapeStatusDetail[] = [
+    const fireShapeStatusDetails: FireShapeStatusDetail[] = [
       {
         fire_shape_id: 1,
         fire_shape_name: 'foo',
@@ -57,7 +57,7 @@ describe('ProvincialSummary', () => {
     ]
     const testStore = buildTestStore({
       ...initialState,
-      fireShapeStatusDetails: fireShapeAreaDetails
+      fireShapeStatusDetails: fireShapeStatusDetails
     })
     const { getByTestId } = render(
       <Provider store={testStore}>
