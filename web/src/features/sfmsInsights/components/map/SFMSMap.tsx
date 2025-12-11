@@ -15,7 +15,7 @@ import {
 } from 'features/sfmsInsights/components/map/layerDefinitions'
 import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
 import RasterLegend from 'features/sfmsInsights/components/map/RasterLegend'
-import { FWI_COLOR_BREAKS } from 'features/sfmsInsights/components/map/rasterColorBreaks'
+import { RASTER_COLOR_BREAKS } from 'features/sfmsInsights/components/map/rasterColorBreaks'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { Map, View } from 'ol'
@@ -171,7 +171,9 @@ const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps)
             }}
           ></Box>
           <RasterTooltip label={rasterLabel} value={rasterValue} pixelCoords={pixelCoords} />
-          {fwiDate && <RasterLegend title={FIRE_WEATHER_RASTER_LABELS[rasterType]} colorBreaks={FWI_COLOR_BREAKS} />}
+          {fwiDate && (
+            <RasterLegend title={FIRE_WEATHER_RASTER_LABELS[rasterType]} colorBreaks={RASTER_COLOR_BREAKS[rasterType]} />
+          )}
           {isLoading && (
             <Box
               sx={{

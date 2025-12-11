@@ -2,7 +2,7 @@ import { PMTilesVectorSource } from 'ol-pmtiles'
 import { API_BASE_URL, PMTILES_BUCKET, PSU_BUCKET } from 'utils/env'
 import {
   fuelCOGColourExpression,
-  fwiColourExpression,
+  getFireWeatherColourExpression,
   snowStyler
 } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
 import VectorTileLayer from 'ol/layer/VectorTile'
@@ -76,7 +76,7 @@ export const getFireWeatherRasterLayer = (
     extent: bcExtent,
     properties: { name: layerName, rasterType },
     style: {
-      color: fwiColourExpression() // Uses threshold-based nodata detection
+      color: getFireWeatherColourExpression(rasterType)
     }
   })
 
