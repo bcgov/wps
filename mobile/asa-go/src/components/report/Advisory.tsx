@@ -11,7 +11,6 @@ import { DateTime } from "luxon";
 import { useSelector } from "react-redux";
 
 interface AdvisoryProps {
-  advisoryThreshold: number;
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
   selectedFireCenter: FireCenter | undefined;
@@ -25,7 +24,6 @@ interface AdvisoryProps {
 }
 
 const Advisory = ({
-  advisoryThreshold,
   date,
   setDate,
   selectedFireCenter,
@@ -107,14 +105,12 @@ const Advisory = ({
         }}
       >
         <FireZoneUnitTabs
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={selectedFireCenter}
           selectedFireZoneUnit={selectedFireZoneUnit}
           setSelectedFireZoneUnit={setSelectedFireZoneUnit}
           date={date}
         >
           <AdvisoryText
-            advisoryThreshold={advisoryThreshold}
             selectedFireCenter={selectedFireCenter}
             selectedFireZoneUnit={selectedFireZoneUnit}
             date={date}

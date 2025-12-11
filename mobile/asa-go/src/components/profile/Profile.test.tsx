@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { DateTime } from "luxon";
-import Profile from "@/components/profile/Profile";
+import Profile, { ProfileProps } from "@/components/profile/Profile";
 import { FireCenter, FireShape } from "@/api/fbaAPI";
 
 // Mock child components
@@ -34,17 +34,8 @@ vi.mock("@/components/profile/FireZoneUnitSummary", () => ({
 }));
 
 vi.mock("@/components/report/FireZoneUnitTabs", () => ({
-  default: ({
-    children,
-    advisoryThreshold,
-  }: {
-    children: React.ReactNode;
-    advisoryThreshold: number;
-  }) => (
-    <div data-testid="fire-zone-unit-tabs">
-      <div data-testid="advisory-threshold">{advisoryThreshold}</div>
-      {children}
-    </div>
+  default: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="fire-zone-unit-tabs">{children}</div>
   ),
 }));
 
@@ -119,8 +110,7 @@ describe("Profile", () => {
     });
   });
 
-  const defaultProps = {
-    advisoryThreshold: 50,
+  const defaultProps: ProfileProps = {
     date: mockDate,
     setDate: mockSetDate,
     selectedFireCenter: undefined,
@@ -169,16 +159,13 @@ describe("Profile", () => {
     expect(dropdown).toHaveTextContent("Test Fire Center");
   });
 
-  it("should render FireZoneUnitTabs with correct advisory threshold", () => {
+  it("should render FireZoneUnitTabs", () => {
     renderWithProvider(
       <Profile {...defaultProps} selectedFireCenter={mockFireCenter} />
     );
 
     const tabs = screen.getByTestId("fire-zone-unit-tabs");
     expect(tabs).toBeInTheDocument();
-
-    const threshold = screen.getByTestId("advisory-threshold");
-    expect(threshold).toHaveTextContent(`${defaultProps.advisoryThreshold}`);
   });
 
   it("should render a default message if no fire centre is selected", () => {
@@ -234,8 +221,7 @@ describe("Profile", () => {
   });
 
   it("should pass all props correctly to child components", () => {
-    const propsWithAllValues = {
-      advisoryThreshold: 75,
+    const propsWithAllValues: ProfileProps = {
       date: mockDate,
       setDate: mockSetDate,
       selectedFireCenter: mockFireCenter,
@@ -245,11 +231,6 @@ describe("Profile", () => {
     };
 
     renderWithProvider(<Profile {...propsWithAllValues} />);
-
-    // Check that advisory threshold is passed
-    expect(screen.getByTestId("advisory-threshold")).toHaveTextContent(
-      `${propsWithAllValues.advisoryThreshold}`
-    );
 
     // Check that fire center is passed
     expect(screen.getByTestId("fire-center-dropdown")).toHaveTextContent(

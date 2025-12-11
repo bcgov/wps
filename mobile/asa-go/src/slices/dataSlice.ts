@@ -1,7 +1,6 @@
 import { AppThunk } from "@/store";
 import {
   dataAreEqual,
-  fetchFireShapeAreas,
   fetchHFIStats,
   fetchProvincialSummaries,
   fetchTpiStats,
@@ -13,7 +12,6 @@ import {
 import {
   CacheableData,
   CachedData,
-  FIRE_SHAPE_AREAS_KEY,
   HFI_STATS_KEY,
   PROVINCIAL_SUMMARY_KEY,
   readFromFilesystem,
@@ -23,8 +21,7 @@ import {
 import { Filesystem } from "@capacitor/filesystem";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
-  FireShapeArea,
-  FireShapeAreaDetail,
+  FireShapeStatusDetail,
   FireZoneHFIStatsDictionary,
   FireZoneTPIStats,
 } from "api/fbaAPI";
@@ -35,8 +32,7 @@ export interface DataState {
   loading: boolean;
   error: string | null;
   lastUpdated: string | null;
-  fireShapeAreas: CacheableData<FireShapeArea[]> | null;
-  provincialSummaries: CacheableData<FireShapeAreaDetail[]> | null;
+  provincialSummaries: CacheableData<FireShapeStatusDetail[]> | null;
   tpiStats: CacheableData<FireZoneTPIStats[]> | null;
   hfiStats: CacheableData<FireZoneHFIStatsDictionary> | null;
 }
@@ -46,7 +42,6 @@ export const initialState: DataState = {
   error: null,
   lastUpdated: null,
   provincialSummaries: null,
-  fireShapeAreas: null,
   tpiStats: null,
   hfiStats: null,
 };
@@ -67,15 +62,13 @@ const dataSlice = createSlice({
       state: DataState,
       action: PayloadAction<{
         lastUpdated: string;
-        fireShapeAreas: CacheableData<FireShapeArea[]> | null;
-        provincialSummaries: CacheableData<FireShapeAreaDetail[]> | null;
+        provincialSummaries: CacheableData<FireShapeStatusDetail[]> | null;
         tpiStats: CacheableData<FireZoneTPIStats[]> | null;
         hfiStats: CacheableData<FireZoneHFIStatsDictionary> | null;
       }>
     ) {
       state.error = null;
       state.lastUpdated = action.payload.lastUpdated;
-      state.fireShapeAreas = action.payload.fireShapeAreas;
       state.provincialSummaries = action.payload.provincialSummaries;
       state.tpiStats = action.payload.tpiStats;
       state.hfiStats = action.payload.hfiStats;
@@ -108,7 +101,7 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
   const cachedProvincialSummaries = (await readFromFilesystem(
     Filesystem,
     PROVINCIAL_SUMMARY_KEY
-  )) as CachedData<CacheableData<FireShapeAreaDetail[]>>;
+  )) as CachedData<CacheableData<FireShapeStatusDetail[]>>;
   isCurrent =
     isCurrent &&
     !isNil(cachedProvincialSummaries?.data) &&
@@ -117,20 +110,6 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       tomorrowKey,
       runParameters,
       cachedProvincialSummaries.data
-    );
-
-  const cachedFireShapeAreas = (await readFromFilesystem(
-    Filesystem,
-    FIRE_SHAPE_AREAS_KEY
-  )) as CachedData<CacheableData<FireShapeArea[]>>;
-  isCurrent =
-    isCurrent &&
-    !isNil(cachedFireShapeAreas?.data) &&
-    runParametersMatch(
-      todayKey,
-      tomorrowKey,
-      runParameters,
-      cachedFireShapeAreas.data
     );
 
   const cachedTPIStats = (await readFromFilesystem(
@@ -164,12 +143,10 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
   if (isCurrent) {
     // No need to fetch new data, compare cached data to state data to see if state update required
     const stateProvincialSummaries = state.data.provincialSummaries;
-    const stateFireShapeAreas = state.data.fireShapeAreas;
     const stateTPIStats = state.data.tpiStats;
     const stateHFIStats = state.data.hfiStats;
     if (
       !dataAreEqual(stateProvincialSummaries, cachedProvincialSummaries.data) &&
-      !dataAreEqual(stateFireShapeAreas, cachedFireShapeAreas.data) &&
       !dataAreEqual(stateTPIStats, cachedTPIStats.data) &&
       !dataAreEqual(stateHFIStats, cachedHFIStats.data)
     ) {
@@ -177,7 +154,6 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       dispatch(
         getDataSuccess({
           lastUpdated: DateTime.now().toISO(),
-          fireShapeAreas: cachedFireShapeAreas.data,
           provincialSummaries: cachedProvincialSummaries.data,
           tpiStats: cachedTPIStats.data,
           hfiStats: cachedHFIStats.data,
@@ -193,11 +169,6 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
     try {
       dispatch(getDataStart());
       const provincialSummaries = await fetchProvincialSummaries(
-        todayKey,
-        tomorrowKey,
-        runParameters
-      );
-      const fireShapeAreas = await fetchFireShapeAreas(
         todayKey,
         tomorrowKey,
         runParameters
@@ -221,12 +192,6 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
         provincialSummaries,
         today
       );
-      await writeToFileSystem(
-        Filesystem,
-        FIRE_SHAPE_AREAS_KEY,
-        fireShapeAreas,
-        today
-      );
       await writeToFileSystem(Filesystem, TPI_STATS_KEY, tpiStats, today);
       await writeToFileSystem(Filesystem, HFI_STATS_KEY, hfiStats, today);
 
@@ -234,7 +199,6 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       dispatch(
         getDataSuccess({
           lastUpdated: DateTime.now().toISO(),
-          fireShapeAreas: fireShapeAreas,
           provincialSummaries,
           tpiStats,
           hfiStats,

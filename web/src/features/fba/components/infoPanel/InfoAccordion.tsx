@@ -7,7 +7,7 @@ import { INFO_PANEL_CONTENT_BACKGROUND, INFO_PANEL_HEADER_BACKGROUND } from 'app
 import { AdvisoryStatus } from '@/utils/constants'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_LINE } from '@/features/fba/components/map/featureStylers'
 
-const getAdvisoryBarColour = (advisoryStatus: AdvisoryStatus | undefined) => {
+const getAdvisoryBarColour = (advisoryStatus?: AdvisoryStatus | null) => {
   switch (advisoryStatus) {
     case AdvisoryStatus.WARNING:
       return ADVISORY_RED_LINE
@@ -18,7 +18,7 @@ const getAdvisoryBarColour = (advisoryStatus: AdvisoryStatus | undefined) => {
   }
 }
 interface AdvisoryStatusBarProps {
-  advisoryStatus: AdvisoryStatus | undefined
+  advisoryStatus?: AdvisoryStatus | null
 }
 
 const AdvisoryStatusBar = ({ advisoryStatus }: AdvisoryStatusBarProps) => {
@@ -45,7 +45,7 @@ interface InfoAccordionProps {
   defaultExpanded: boolean
   title: string
   showAdvisoryStatusBar?: boolean
-  advisoryStatus?: AdvisoryStatus
+  advisoryStatus?: AdvisoryStatus | null
 }
 
 const StyledAccordionSummary = styled(AccordionSummary)(() => ({

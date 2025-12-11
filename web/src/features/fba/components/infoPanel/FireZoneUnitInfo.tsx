@@ -1,17 +1,16 @@
 import React from 'react'
 import { Box, ListItem, ListItemIcon, Typography } from '@mui/material'
-import { FireShapeAreaDetail } from 'api/fbaAPI'
+import { FireShapeStatusDetail } from 'api/fbaAPI'
 import { useTheme } from '@mui/material/styles'
 import { TRANSPARENT_COLOUR } from 'app/theme'
 import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
 
 interface FireZoneUnitInfoProps {
-  advisoryThreshold: number
   fireZoneUnitName: string
-  fireZoneUnitDetails: FireShapeAreaDetail[]
+  fireZoneUnitDetails: FireShapeStatusDetail
 }
 
-const FireZoneUnitInfo = ({ advisoryThreshold, fireZoneUnitName, fireZoneUnitDetails }: FireZoneUnitInfoProps) => {
+const FireZoneUnitInfo = ({ fireZoneUnitName, fireZoneUnitDetails }: FireZoneUnitInfoProps) => {
   const theme = useTheme()
 
   return (
@@ -20,7 +19,7 @@ const FireZoneUnitInfo = ({ advisoryThreshold, fireZoneUnitName, fireZoneUnitDet
         <Box
           data-testid="fire-zone-unit-info-swatch"
           sx={{
-            backgroundColor: calculateStatusColour(fireZoneUnitDetails, advisoryThreshold, TRANSPARENT_COLOUR),
+            backgroundColor: calculateStatusColour(fireZoneUnitDetails, TRANSPARENT_COLOUR),
             border: '1px solid #777',
             height: '0.7rem',
             width: '1rem'

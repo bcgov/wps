@@ -75,8 +75,8 @@ export enum FireCentres {
 }
 
 export enum AdvisoryStatus {
-  ADVISORY = 'Advisory',
-  WARNING = 'Warning'
+  ADVISORY = 'advisory',
+  WARNING = 'warning'
 }
 
 export const DRAWER_WIDTH = 240

@@ -1,7 +1,7 @@
 import {
   FireCenter,
   FireShape,
-  FireShapeAreaDetail,
+  FireShapeStatusDetail,
   FireZoneHFIStatsDictionary,
   RunParameter,
   RunType,
@@ -35,9 +35,8 @@ vi.mock(import("@/hooks/dataHooks"), async (importOriginal) => {
 });
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import { useFilteredHFIStatsForDate } from "@/hooks/dataHooks";
-import { PST_UTC_OFFSET } from "@/utils/constants";
+import { AdvisoryStatus, PST_UTC_OFFSET } from "@/utils/constants";
 
-const advisoryThreshold = 20;
 const TEST_FOR_DATE = "2025-07-14";
 const TEST_FOR_DATE_LUXON = DateTime.fromISO(TEST_FOR_DATE);
 const TEST_RUN_DATETIME = "2025-07-13";
@@ -75,64 +74,28 @@ const mockAdvisoryFireZoneUnit: FireShape = {
   area_sqm: undefined,
 };
 
-const advisoryDetails: FireShapeAreaDetail[] = [
+const advisoryDetails: FireShapeStatusDetail[] = [
   {
     fire_shape_id: 18,
-    threshold: 1,
-    combustible_area: 11014999365,
-    elevated_hfi_area: 4158676298,
-    elevated_hfi_percentage: 37,
-    fire_shape_name: "C4-100 Mile House Fire Zone",
-    fire_centre_name: "Cariboo Fire Centre",
-  },
-  {
-    fire_shape_id: 18,
-    threshold: 2,
-    combustible_area: 11014999365,
-    elevated_hfi_area: 2079887078,
-    elevated_hfi_percentage: 18,
+    status: AdvisoryStatus.ADVISORY,
     fire_shape_name: "C4-100 Mile House Fire Zone",
     fire_centre_name: "Cariboo Fire Centre",
   },
 ];
 
-const warningDetails: FireShapeAreaDetail[] = [
+const warningDetails: FireShapeStatusDetail[] = [
   {
     fire_shape_id: 20,
-    threshold: 1,
-    combustible_area: 11836638228,
-    elevated_hfi_area: 3716282050,
-    elevated_hfi_percentage: 31,
-    fire_shape_name: "C2-Central Cariboo Fire Zone",
-    fire_centre_name: "Cariboo Fire Centre",
-  },
-  {
-    fire_shape_id: 20,
-    threshold: 2,
-    combustible_area: 11836638228,
-    elevated_hfi_area: 2229415672,
-    elevated_hfi_percentage: 21,
+    status: AdvisoryStatus.WARNING,
     fire_shape_name: "C2-Central Cariboo Fire Zone",
     fire_centre_name: "Cariboo Fire Centre",
   },
 ];
 
-const noAdvisoryDetails: FireShapeAreaDetail[] = [
+const noAdvisoryDetails: FireShapeStatusDetail[] = [
   {
     fire_shape_id: 20,
-    threshold: 1,
-    combustible_area: 11836638228,
-    elevated_hfi_area: 3716282050,
-    elevated_hfi_percentage: 10,
-    fire_shape_name: "C2-Central Cariboo Fire Zone",
-    fire_centre_name: "Cariboo Fire Centre",
-  },
-  {
-    fire_shape_id: 20,
-    threshold: 2,
-    combustible_area: 11836638228,
-    elevated_hfi_area: 2229415672,
-    elevated_hfi_percentage: 2,
+    status: null,
     fire_shape_name: "C2-Central Cariboo Fire Zone",
     fire_centre_name: "Cariboo Fire Centre",
   },
@@ -348,7 +311,6 @@ describe("AdvisoryText", () => {
         <AdvisoryText
           selectedFireCenter={undefined}
           selectedFireZoneUnit={undefined}
-          advisoryThreshold={advisoryThreshold}
           date={TEST_FOR_DATE_LUXON}
         />
       </Provider>
@@ -363,7 +325,6 @@ describe("AdvisoryText", () => {
         <AdvisoryText
           selectedFireCenter={undefined}
           selectedFireZoneUnit={undefined}
-          advisoryThreshold={advisoryThreshold}
           date={TEST_FOR_DATE_LUXON}
         />
       </Provider>
@@ -378,7 +339,6 @@ describe("AdvisoryText", () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={undefined}
           date={TEST_FOR_DATE_LUXON}
@@ -409,7 +369,6 @@ describe("AdvisoryText", () => {
         <AdvisoryText
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={undefined}
-          advisoryThreshold={advisoryThreshold}
           date={TEST_FOR_DATE_LUXON}
         />
       </Provider>
@@ -438,7 +397,6 @@ describe("AdvisoryText", () => {
         <AdvisoryText
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={undefined}
-          advisoryThreshold={advisoryThreshold}
           date={TEST_FOR_DATE_LUXON}
         />
       </Provider>
@@ -458,7 +416,6 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -490,7 +447,6 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -517,7 +473,6 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={getInitialStore()}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -553,7 +508,6 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={store}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -585,7 +539,6 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={noAdvisoryStore}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -617,7 +570,6 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={warningStore}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -649,7 +601,6 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -686,7 +637,6 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -714,7 +664,6 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -744,7 +693,6 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -788,7 +736,6 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={store}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -825,7 +772,6 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={store}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -849,7 +795,6 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
@@ -876,7 +821,6 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          advisoryThreshold={advisoryThreshold}
           selectedFireCenter={mockFireCenter}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}

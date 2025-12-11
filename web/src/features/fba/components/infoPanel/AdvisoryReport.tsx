@@ -1,4 +1,3 @@
-import { calculateStatusText } from '@/features/fba/calculateZoneStatus'
 import { useFireCentreDetails } from '@/features/fba/hooks/useFireCentreDetails'
 import { Grid } from '@mui/material'
 import { FireCenter, FireShape } from 'api/fbaAPI'
@@ -11,18 +10,11 @@ import React from 'react'
 interface AdvisoryReportProps {
   issueDate: DateTime | null
   forDate: DateTime
-  advisoryThreshold: number
   selectedFireCenter?: FireCenter
   selectedFireZoneUnit?: FireShape
 }
 
-const AdvisoryReport = ({
-  issueDate,
-  forDate,
-  advisoryThreshold,
-  selectedFireCenter,
-  selectedFireZoneUnit
-}: AdvisoryReportProps) => {
+const AdvisoryReport = ({ issueDate, forDate, selectedFireCenter, selectedFireZoneUnit }: AdvisoryReportProps) => {
   const groupedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
   const fireZoneUnitDetails = groupedFireZoneUnits.find(
     zone => zone.fire_shape_id === selectedFireZoneUnit?.fire_shape_id
@@ -35,14 +27,13 @@ const AdvisoryReport = ({
         title={'Advisory Report'}
         accordionDetailBackgroundColour={INFO_PANEL_CONTENT_BACKGROUND}
         showAdvisoryStatusBar={true}
-        advisoryStatus={calculateStatusText(fireZoneUnitDetails?.fireShapeDetails || [], advisoryThreshold)}
+        advisoryStatus={fireZoneUnitDetails?.status}
       >
         <Grid container justifyContent="center">
           <Grid item sx={{ width: '90%' }}>
             <AdvisoryText
               issueDate={issueDate}
               forDate={forDate}
-              advisoryThreshold={advisoryThreshold}
               selectedFireCenter={selectedFireCenter}
               selectedFireZoneUnit={selectedFireZoneUnit}
             ></AdvisoryText>

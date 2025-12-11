@@ -32,7 +32,6 @@ from wps_shared.tests.common import default_mock_client_get
 mock_fire_centre_name = "PGFireCentre"
 
 get_fire_centres_url = "/api/fba/fire-centers"
-get_fire_zone_areas_url = "/api/fba/fire-shape-areas/forecast/2022-09-27/2022-09-27"
 get_fire_centre_info_url = (
     "/api/fba/fire-centre-hfi-stats/forecast/2022-09-27/2022-09-27/Kamloops%20Fire%20Centre"
 )
@@ -307,7 +306,6 @@ def test_fba_endpoint_fire_centers(status, expected_fire_centers, monkeypatch):
     "endpoint",
     [
         get_fire_centres_url,
-        get_fire_zone_areas_url,
         get_fire_centre_info_url,
         get_sfms_run_datetimes_url,
         get_sfms_run_bounds_url,
@@ -569,7 +567,6 @@ def test_get_sfms_run_bounds_no_bounds(client: TestClient):
 
 FBA_ENDPOINTS = [
     "/api/fba/fire-centers",
-    "/api/fba/fire-shape-areas/forecast/2022-09-27/2022-09-27",
     "/api/fba/fire-centre-hfi-stats/forecast/2022-09-27/2022-09-27/Kamloops%20Fire%20Centre",
     "/api/fba/fire-centre-tpi-stats/forecast/2024-08-10/2024-08-10/PGFireCentre",
     "/api/fba/sfms-run-datetimes/forecast/2022-09-27",
@@ -584,7 +581,6 @@ FBA_ENDPOINTS = [
 @pytest.mark.parametrize("endpoint", FBA_ENDPOINTS)
 @patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_fire_centers", mock_get_fire_centres)
-@patch("app.routers.fba.get_hfi_area", mock_get_hfi_area)
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
 @patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)

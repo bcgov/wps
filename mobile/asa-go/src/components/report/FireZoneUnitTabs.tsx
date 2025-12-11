@@ -5,10 +5,9 @@ import { Tab, Tabs } from "@mui/material";
 import { Box } from "@mui/system";
 import { isEmpty } from "lodash";
 import { DateTime } from "luxon";
-import { useEffect, useState } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 
-interface FireZoneUnitTabsProps {
-  advisoryThreshold: number;
+export interface FireZoneUnitTabsProps {
   selectedFireCenter: FireCenter | undefined;
   selectedFireZoneUnit: FireShape | undefined;
   setSelectedFireZoneUnit: React.Dispatch<
@@ -19,53 +18,54 @@ interface FireZoneUnitTabsProps {
 }
 
 const FireZoneUnitTabs = ({
-  advisoryThreshold,
   children,
   selectedFireCenter,
   selectedFireZoneUnit,
   setSelectedFireZoneUnit,
   date,
 }: FireZoneUnitTabsProps) => {
-  const [tabNumber, setTabNumber] = useState(0);
   const sortedGroupedFireZoneUnits = useFireCentreDetails(
     selectedFireCenter,
     date
   );
 
-  const getTabFireShape = (tabNumber: number): FireShape | undefined => {
-    if (sortedGroupedFireZoneUnits.length > 0) {
-      const selectedTabZone = sortedGroupedFireZoneUnits[tabNumber];
+  const tabNumber = useMemo(() => {
+    if (!selectedFireZoneUnit) return 0;
 
-      const fireShape: FireShape = {
-        fire_shape_id: selectedTabZone.fire_shape_id,
-        mof_fire_centre_name: selectedTabZone.fire_centre_name,
-        mof_fire_zone_name: selectedTabZone.fire_shape_name,
-      };
+    const idx = sortedGroupedFireZoneUnits.findIndex(
+      (zone) => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id
+    );
 
-      return fireShape;
-    }
-  };
-
-  useEffect(() => {
-    if (selectedFireZoneUnit) {
-      const newIndex = sortedGroupedFireZoneUnits.findIndex(
-        (zone) => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id
-      );
-      if (newIndex !== -1) {
-        setTabNumber(newIndex);
-      }
-    } else {
-      setTabNumber(0);
-      setSelectedFireZoneUnit(getTabFireShape(0)); // if no selected FireShape, select the first one in the sorted tabs
-    }
+    return Math.max(idx, 0);
   }, [selectedFireZoneUnit, sortedGroupedFireZoneUnits]);
 
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setTabNumber(newValue);
+  const getTabFireShape = useCallback(
+    (tabNumber: number): FireShape | undefined => {
+      if (sortedGroupedFireZoneUnits.length > 0) {
+        const selectedTabZone = sortedGroupedFireZoneUnits[tabNumber];
 
+        const fireShape: FireShape = {
+          fire_shape_id: selectedTabZone.fire_shape_id,
+          mof_fire_centre_name: selectedTabZone.fire_centre_name,
+          mof_fire_zone_name: selectedTabZone.fire_shape_name,
+        };
+
+        return fireShape;
+      }
+    },
+    [sortedGroupedFireZoneUnits]
+  );
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     const fireShape = getTabFireShape(newValue);
     setSelectedFireZoneUnit(fireShape);
   };
+
+  useEffect(() => {
+    if (!selectedFireZoneUnit) {
+      setSelectedFireZoneUnit(getTabFireShape(0));
+    }
+  }, [getTabFireShape, selectedFireZoneUnit, setSelectedFireZoneUnit]);
 
   return (
     <Box
@@ -98,11 +98,7 @@ const FireZoneUnitTabs = ({
                 key={key}
                 data-testid={`zone-${key}-tab`}
                 sx={{
-                  backgroundColor: calculateStatusColour(
-                    zone.fireShapeDetails,
-                    advisoryThreshold,
-                    "#FFFFFF"
-                  ),
+                  backgroundColor: calculateStatusColour(zone, "#FFFFFF"),
                   fontWeight: "bold",
                   color: isActive ? "black" : "grey",
                   minHeight: "30px",

@@ -1,8 +1,8 @@
 import {
   FireCenter,
-  FireShapeArea,
-  FireShapeAreaDetail,
+  FireShapeStatusDetail,
   FireZoneHFIStatsDictionary,
+  FireZoneStatus,
   FireZoneTPIStats,
   RunParameter,
 } from "@/api/fbaAPI";
@@ -10,8 +10,8 @@ import { Directory, Encoding, FilesystemPlugin } from "@capacitor/filesystem";
 import { DateTime } from "luxon";
 
 export type CacheableDataType =
-  | FireShapeAreaDetail[]
-  | FireShapeArea[]
+  | FireShapeStatusDetail[]
+  | FireZoneStatus[]
   | FireZoneTPIStats[]
   | FireZoneHFIStatsDictionary;
 
@@ -22,19 +22,17 @@ export type CacheableData<T extends CacheableDataType> = {
   };
 };
 
-type Cacheable =
-  | FireCenter[]
-  | { [key: string]: RunParameter };
+type Cacheable = FireCenter[] | { [key: string]: RunParameter };
 
 // Type returned by readFromFilesystem function
-export type CachedData<T extends CacheableData<CacheableDataType> | Cacheable>  = {
-  lastUpdated: string,
-  data: T
-}
+export type CachedData<T extends CacheableData<CacheableDataType> | Cacheable> =
+  {
+    lastUpdated: string;
+    data: T;
+  };
 
 const CACHE_KEY = "_asa_go";
 export const FIRE_CENTERS_KEY = "fireCenters";
-export const FIRE_SHAPE_AREAS_KEY = "fireShapeAreas";
 export const HFI_STATS_KEY = "hfiStats";
 export const PROVINCIAL_SUMMARY_KEY = "provincialSummary";
 export const RUN_PARAMETERS_CACHE_KEY = "runParameters";

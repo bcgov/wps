@@ -23,7 +23,7 @@ import {
   fireShapeStyler,
 } from "@/featureStylers";
 import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
-import { useFireShapeAreasForDate } from "@/hooks/dataHooks";
+import { useProvincialSummaryZonesForDate } from "@/hooks/dataHooks";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import {
   BASEMAP_LAYER_NAME,
@@ -80,7 +80,6 @@ export interface ASAGoMapProps {
   setSelectedFireCenter: React.Dispatch<
     React.SetStateAction<FireCenter | undefined>
   >;
-  advisoryThreshold: number;
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
   setTab: React.Dispatch<React.SetStateAction<NavPanel>>;
@@ -91,7 +90,6 @@ const ASAGoMap = ({
   selectedFireShape,
   setSelectedFireShape,
   setSelectedFireCenter,
-  advisoryThreshold,
   date,
   setDate,
   setTab,
@@ -103,7 +101,7 @@ const ASAGoMap = ({
   const { networkStatus } = useSelector(selectNetworkStatus);
 
   // hooks
-  const fireShapeAreas = useFireShapeAreasForDate(date);
+  const fireShapeStatusDetails = useProvincialSummaryZonesForDate(date);
   const runParameter = useRunParameterForDate(date);
 
   // state
@@ -124,8 +122,7 @@ const ASAGoMap = ({
   const [fireZoneFileLayer] = useState<VectorTileLayer>(
     new VectorTileLayer({
       style: fireShapeStyler(
-        cloneDeep(fireShapeAreas),
-        advisoryThreshold,
+        cloneDeep(fireShapeStatusDetails),
         layerVisibility[ZONE_STATUS_LAYER_NAME]
       ),
       zIndex: 53,
@@ -136,8 +133,7 @@ const ASAGoMap = ({
   const [fireZoneHighlightFileLayer] = useState<VectorTileLayer>(
     new VectorTileLayer({
       style: fireShapeLineStyler(
-        cloneDeep(fireShapeAreas),
-        advisoryThreshold,
+        cloneDeep(fireShapeStatusDetails),
         selectedFireShape
       ),
       zIndex: 54,
@@ -259,32 +255,23 @@ const ASAGoMap = ({
   useEffect(() => {
     fireZoneFileLayer.setStyle(
       fireShapeStyler(
-        cloneDeep(fireShapeAreas),
-        advisoryThreshold,
+        cloneDeep(fireShapeStatusDetails),
         layerVisibility[ZONE_STATUS_LAYER_NAME]
       )
     );
     fireZoneHighlightFileLayer.setStyle(
-      fireShapeLineStyler(
-        cloneDeep(fireShapeAreas),
-        advisoryThreshold,
-        selectedFireShape
-      )
+      fireShapeLineStyler(cloneDeep(fireShapeStatusDetails), selectedFireShape)
     );
     fireZoneFileLayer.changed();
     fireZoneHighlightFileLayer.changed();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fireShapeAreas]);
+  }, [fireShapeStatusDetails]);
 
   useEffect(() => {
     if (!map) return;
 
     fireZoneHighlightFileLayer.setStyle(
-      fireShapeLineStyler(
-        cloneDeep(fireShapeAreas),
-        advisoryThreshold,
-        selectedFireShape
-      )
+      fireShapeLineStyler(cloneDeep(fireShapeStatusDetails), selectedFireShape)
     );
 
     // Only center if the change didn't come from a click
@@ -571,8 +558,7 @@ const ASAGoMap = ({
     if (layerName === ZONE_STATUS_LAYER_NAME) {
       setZoneStatusLayerVisibility(
         fireZoneFileLayer,
-        fireShapeAreas,
-        advisoryThreshold,
+        fireShapeStatusDetails,
         visible
       );
     } else {

@@ -234,6 +234,12 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_advisory_fuel_areas_job.sh ${SUFFIX} apply
 
+      - name: Backfill zone status job
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_backfill_zone_status_job.sh ${SUFFIX} apply
+
       - name: Fuel raster job
         shell: bash
         run: |

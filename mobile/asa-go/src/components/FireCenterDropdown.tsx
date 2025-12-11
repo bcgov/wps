@@ -2,7 +2,7 @@ import { MenuItem, Select, SelectChangeEvent, Typography } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
 import React from "react";
 
-interface FireCenterDropdownProps {
+export interface FireCenterDropdownProps {
   selectedFireCenter?: FireCenter;
   fireCenterOptions: FireCenter[];
   setSelectedFireCenter: React.Dispatch<
