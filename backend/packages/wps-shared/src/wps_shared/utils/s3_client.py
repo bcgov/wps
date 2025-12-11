@@ -25,20 +25,21 @@ class S3Client:
         self.session = get_session()
 
     async def __aenter__(self):
-        client_context = self.session.create_client(
+        self.client_context = self.session.create_client(
             "s3",
             endpoint_url=f"https://{self.server}",
             aws_secret_access_key=self.secret_key,
             aws_access_key_id=self.user_id,
         )
-        self.client = await client_context.__aenter__()
+        self.client = await self.client_context.__aenter__()
         return self
 
-    async def __aexit__(self, *_):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.client_context:
+            await self.client_context.__aexit__(exc_type, exc_val, exc_tb)
         self.client = None
+        self.client_context = None
         self.session = None
-        del self.client
-        del self.session
 
     async def object_exists(self, target_path: str):
         """Check if and object exists in the object store"""
@@ -114,3 +115,23 @@ class S3Client:
         logger.info(f"Writing to s3 -- {key}")
         await self.put_object(key=key, body=open(temp_geotiff, "rb"))
         return temp_geotiff
+
+    async def stream_object(self, key: str, chunk_size: int = 65536):
+        """
+        Stream an object from S3 in chunks.
+
+        :param key: s3 key to stream
+        :param chunk_size: size of chunks to yield (default: 64KB)
+        :yield: chunks of bytes from the S3 object
+        """
+        logger.info(f"Streaming from s3 -- {key}")
+        response = await self.client.get_object(Bucket=self.bucket, Key=key)
+        stream = response["Body"]
+        try:
+            while True:
+                chunk = await stream.read(amt=chunk_size)
+                if not chunk:
+                    break
+                yield chunk
+        finally:
+            stream.close()

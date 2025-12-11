@@ -69,3 +69,18 @@ export const fuelCOGColourExpression = () => {
 
   return ['case', ...colourCases]
 }
+
+// FWI (Fire Weather Index) color ramp
+// Class breaks: 0-8, 8-17, 17-27, 27-38, 38-47, 47+
+export const fwiColourExpression = () => {
+  return [
+    'case',
+    ['<', ['band', 1], 8], [0, 0, 255, 1],           // 0-8: Blue
+    ['<', ['band', 1], 17], [0, 127, 255, 1],        // 8-17: Light blue
+    ['<', ['band', 1], 27], [0, 255, 0, 1],          // 17-27: Green
+    ['<', ['band', 1], 38], [255, 255, 0, 1],        // 27-38: Yellow
+    ['<', ['band', 1], 47], [255, 170, 0, 1],        // 38-47: Orange
+    ['>=', ['band', 1], 47], [255, 0, 0, 1],         // 47+: Red
+    [255, 0, 255, 1]                                  // Magenta for debugging (no data)
+  ]
+}

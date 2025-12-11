@@ -6,6 +6,8 @@ import { ErrorBoundary } from '@sentry/react'
 import {
   BASEMAP_LAYER_NAME,
   fuelCOGTiles,
+  getFWILayer,
+  FWI_LAYER_NAME,
   getSnowPMTilesLayer,
   SNOW_LAYER_NAME
 } from 'features/sfmsInsights/components/map/layerDefinitions'
@@ -23,9 +25,10 @@ const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 interface SFMSMapProps {
   snowDate: DateTime | null
+  fwiDate?: DateTime | null
 }
 
-const SFMSMap = ({ snowDate }: SFMSMapProps) => {
+const SFMSMap = ({ snowDate, fwiDate = null }: SFMSMapProps) => {
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
 
@@ -44,7 +47,7 @@ const SFMSMap = ({ snowDate }: SFMSMapProps) => {
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [fuelCOGTiles],
+      layers: [],
       controls: defaultControls(),
       view: new View({
         zoom: 5,
@@ -59,22 +62,40 @@ const SFMSMap = ({ snowDate }: SFMSMapProps) => {
       const basemapLayer = await createVectorTileLayer(BASEMAP_TILE_URL, style, 1, BASEMAP_LAYER_NAME)
       mapObject.addLayer(basemapLayer)
     }
+
+    const loadFWILayer = async () => {
+      const fwiLayer = fwiDate && getFWILayer(fwiDate)
+      if (fwiLayer) {
+        mapObject.addLayer(fwiLayer)
+      }
+    }
     loadBaseMap()
+    loadFWILayer()
 
     return () => {
       mapObject.setTarget('')
     }
   }, [])
 
-  useEffect(() => {
-    if (!map) {
-      return
-    }
-    removeLayerByName(map, SNOW_LAYER_NAME)
-    if (!isNull(snowDate)) {
-      map.addLayer(getSnowPMTilesLayer(snowDate))
-    }
-  }, [snowDate])
+  // useEffect(() => {
+  //   if (!map) {
+  //     return
+  //   }
+  //   removeLayerByName(map, SNOW_LAYER_NAME)
+  //   if (!isNull(snowDate)) {
+  //     map.addLayer(getSnowPMTilesLayer(snowDate))
+  //   }
+  // }, [snowDate])
+
+  // useEffect(() => {
+  //   if (!map) {
+  //     return
+  //   }
+  //   removeLayerByName(map, FWI_LAYER_NAME)
+  //   if (!isNull(fwiDate)) {
+  //     map.addLayer(getFWILayer(fwiDate))
+  //   }
+  // }, [fwiDate, map])
 
   return (
     <ErrorBoundary>
