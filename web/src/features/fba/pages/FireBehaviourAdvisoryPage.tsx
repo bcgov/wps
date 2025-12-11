@@ -27,8 +27,6 @@ import AboutDataPopover from '@/components/AboutDataPopover'
 import { ASAAboutDataContent } from '@/features/fba/components/ASAAboutDataContent'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
 
-const ADVISORY_THRESHOLD = 20
-
 export const FireCentreFormControl = styled(FormControl)({
   margin: theme.spacing(1),
   minWidth: 280
@@ -206,7 +204,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             </FireCentreFormControl>
           </Grid>
           <Grid item sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
-            <AboutDataPopover content={ASAAboutDataContent} props={{ advisoryThreshold: ADVISORY_THRESHOLD }} />
+            <AboutDataPopover content={ASAAboutDataContent} />
           </Grid>
         </Grid>
       </Box>
