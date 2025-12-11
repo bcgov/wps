@@ -10,6 +10,7 @@ from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
+from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.run_type import RunType
 from wps_shared.schemas.fba import FireShapeStatusDetail, HfiArea, HfiThreshold
 from wps_shared.db.models.auto_spatial_advisory import (
@@ -847,6 +848,24 @@ async def get_provincial_rollup(
 ) -> List[Row]:
     logger.info("gathering provincial rollup")
     run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+
+    # subquery to find the fuel_type_raster_id for the most recent year
+    # for AdvisoryZoneStatus records matching the run_parameters
+    most_recent_raster_subquery = (
+        select(FuelTypeRaster.id)
+        .where(
+            FuelTypeRaster.year
+            == select(func.max(FuelTypeRaster.year)).where(
+                FuelTypeRaster.id.in_(
+                    select(AdvisoryZoneStatus.fuel_type_raster_id).where(
+                        AdvisoryZoneStatus.run_parameters == run_parameter_id
+                    )
+                )
+            )
+        )
+        .scalar_subquery()
+    )
+
     stmt = (
         select(
             Shape.source_identifier.label("fire_shape_id"),
@@ -863,6 +882,7 @@ async def get_provincial_rollup(
             ),
             isouter=True,
         )
+        .where(AdvisoryZoneStatus.fuel_type_raster_id == most_recent_raster_subquery)
     )
     result = await session.execute(stmt)
     return [FireShapeStatusDetail.model_validate(row) for row in result.mappings().all()]

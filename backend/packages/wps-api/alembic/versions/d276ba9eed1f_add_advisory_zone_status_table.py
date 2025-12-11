@@ -25,6 +25,7 @@ def upgrade():
         sa.Column("advisory_shape_id", sa.Integer(), nullable=False),
         sa.Column("advisory_percentage", sa.Float(), nullable=True),
         sa.Column("warning_percentage", sa.Float(), nullable=True),
+        sa.Column("fuel_type_raster_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["advisory_shape_id"],
             ["advisory_shapes.id"],
@@ -33,8 +34,12 @@ def upgrade():
             ["run_parameters"],
             ["run_parameters.id"],
         ),
+        sa.ForeignKeyConstraint(
+            ["fuel_type_raster_id"],
+            ["fuel_type_raster.id"],
+        ),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("run_parameters", "advisory_shape_id"),
+        sa.UniqueConstraint("run_parameters", "advisory_shape_id", "fuel_type_raster_id"),
         comment="Status of zones (advisory/warning) for a given run parameter.",
     )
     op.create_index(
@@ -52,6 +57,12 @@ def upgrade():
         ["advisory_shape_id"],
         unique=False,
     )
+    op.create_index(
+        op.f("ix_advisory_zone_status_fuel_type_raster_id"),
+        "advisory_zone_status",
+        ["fuel_type_raster_id"],
+        unique=False,
+    )
     # ### end Alembic commands ###
 
 
@@ -63,5 +74,8 @@ def downgrade():
     )
     op.drop_index(op.f("ix_advisory_zone_status_run_parameters"), table_name="advisory_zone_status")
     op.drop_index(op.f("ix_advisory_zone_status_id"), table_name="advisory_zone_status")
+    op.drop_index(
+        op.f("ix_advisory_zone_status_fuel_type_raster_id"), table_name="advisory_zone_status"
+    )
     op.drop_table("advisory_zone_status")
     # ### end Alembic commands ###

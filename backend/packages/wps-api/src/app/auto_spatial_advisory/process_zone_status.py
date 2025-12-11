@@ -23,8 +23,15 @@ from wps_shared.run_type import RunType
 logger = logging.getLogger(__name__)
 
 
-async def advisory_status_already_processed(session: AsyncSession, run_param_id: int) -> bool:
-    stmt = select(exists().where(AdvisoryZoneStatus.run_parameters == run_param_id))
+async def advisory_status_already_processed(
+    session: AsyncSession, run_param_id: int, fuel_type_raster_id: int
+) -> bool:
+    stmt = select(
+        exists().where(
+            AdvisoryZoneStatus.run_parameters == run_param_id,
+            AdvisoryZoneStatus.fuel_type_raster_id == fuel_type_raster_id,
+        )
+    )
 
     result = await session.execute(stmt)
     return result.scalar()
@@ -45,12 +52,11 @@ async def process_zone_statuses(run_type: RunType, run_datetime: datetime, for_d
 
     async with get_async_write_session_scope() as session:
         run_param_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
 
-        if await advisory_status_already_processed(session, run_param_id):
+        if await advisory_status_already_processed(session, run_param_id, fuel_type_raster.id):
             logger.info("Advisory zone statuses already processed.")
             return
-
-        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
 
         zone_statuses = await calculate_zone_statuses(
             session,
@@ -107,6 +113,7 @@ async def calculate_zone_statuses(
                 advisory_shape_id=shape_id,
                 advisory_percentage=advisory_percent,
                 warning_percentage=warning_percent,
+                fuel_type_raster_id=fuel_type_raster_id,
             )
         )
 

@@ -367,3 +367,4 @@ class AdvisoryZoneStatus(Base):
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
     advisory_percentage = Column(Float, nullable=True)
     warning_percentage = Column(Float, nullable=True)
+    fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=False, index=True)
