@@ -14,6 +14,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
     HfiClassificationThresholdEnum,
     RunTypeEnum,
 )
+from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.run_type import RunType
 
 
@@ -52,6 +53,12 @@ async def test_advisory_status_already_processed_false():
 @pytest.mark.anyio
 async def test_process_zone_statuses_already_processed(mocker):
     """Test process_zone_statuses when statuses are already processed."""
+    mock_fuel_type_raster = MagicMock(spec=FuelTypeRaster)
+    mock_fuel_type_raster.id = 10
+    mocker.patch(
+        "app.auto_spatial_advisory.process_zone_status.get_fuel_type_raster_by_year",
+        return_value=mock_fuel_type_raster,
+    )
     mock_session_scope = mocker.patch(
         "app.auto_spatial_advisory.process_zone_status.get_async_write_session_scope"
     )
@@ -75,7 +82,7 @@ async def test_process_zone_statuses_already_processed(mocker):
     mock_get_run_parameters_id.assert_called_once_with(
         mock_session, run_type, run_datetime, for_date
     )
-    mock_advisory_status_already_processed.assert_called_once_with(mock_session, 1)
+    mock_advisory_status_already_processed.assert_called_once_with(mock_session, 1, 10)
 
     mock_session.add_all.assert_not_called()
 
@@ -97,7 +104,7 @@ async def test_process_zone_statuses_success(mocker):
         return_value=False,
     )
 
-    fuel_type_raster_mock = MagicMock()
+    fuel_type_raster_mock = MagicMock(spec=FuelTypeRaster)
     fuel_type_raster_mock.id = 10
     mock_get_fuel_type_raster_by_year = mocker.patch(
         "app.auto_spatial_advisory.process_zone_status.get_fuel_type_raster_by_year",
@@ -109,6 +116,7 @@ async def test_process_zone_statuses_success(mocker):
         advisory_shape_id=100,
         advisory_percentage=20.0,
         warning_percentage=10.0,
+        fuel_type_raster_id=10,
     )
     mock_calculate_zone_statuses = mocker.patch(
         "app.auto_spatial_advisory.process_zone_status.calculate_zone_statuses",
@@ -127,7 +135,7 @@ async def test_process_zone_statuses_success(mocker):
     mock_get_run_parameters_id.assert_called_once_with(
         mock_session, run_type, run_datetime, for_date
     )
-    mock_advisory_status_already_processed.assert_called_once_with(mock_session, 1)
+    mock_advisory_status_already_processed.assert_called_once_with(mock_session, 1, 10)
     mock_get_fuel_type_raster_by_year.assert_called_once_with(mock_session, 2023)
     mock_calculate_zone_statuses.assert_called_once_with(
         mock_session, 1, run_type, run_datetime, for_date, 10
