@@ -25,8 +25,9 @@ async def test_advisory_status_already_processed_true():
     result_mock.scalar.return_value = True
     session.execute = AsyncMock(return_value=result_mock)
     run_param_id = 1
+    fuel_id = 1
 
-    result = await advisory_status_already_processed(session, run_param_id)
+    result = await advisory_status_already_processed(session, run_param_id, fuel_id)
 
     assert result is True
     session.execute.assert_called_once()
@@ -40,8 +41,9 @@ async def test_advisory_status_already_processed_false():
     result_mock.scalar.return_value = False
     session.execute = AsyncMock(return_value=result_mock)
     run_param_id = 1
+    fuel_id = 1
 
-    result = await advisory_status_already_processed(session, run_param_id)
+    result = await advisory_status_already_processed(session, run_param_id, fuel_id)
 
     assert result is False
     session.execute.assert_called_once()
