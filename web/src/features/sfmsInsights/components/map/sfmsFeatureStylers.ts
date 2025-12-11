@@ -77,6 +77,15 @@ export const getFireWeatherColourExpression = (rasterType: string) => {
   const colorBreaks = RASTER_COLOR_BREAKS[rasterType as FireWeatherRasterType]
   const expression: any[] = ['case']
 
+  // Handle nodata values - GeoTIFF nodata is -3.4028235e+38
+  // Use threshold checks for floating-point reliability
+  expression.push(
+    ['>', ['band', 1], 10000000000.0],
+    [0, 0, 0, 0], // Very large positive values (nodata): transparent
+    ['<', ['band', 1], -10000000000.0],
+    [0, 0, 0, 0] // Very large negative values (nodata): transparent
+  )
+
   // Dynamically build expression from color breaks
   colorBreaks.forEach(colorBreak => {
     const [r, g, b] = colorBreak.color.match(/\d+/g)!.map(Number)
