@@ -5,12 +5,15 @@ import { Box } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
 import {
   BASEMAP_LAYER_NAME,
+  FIRE_WEATHER_RASTER_LABELS,
+  FireWeatherRasterType,
   fuelCOGTiles,
   getFWILayer,
   FWI_LAYER_NAME,
   getSnowPMTilesLayer,
   SNOW_LAYER_NAME
 } from 'features/sfmsInsights/components/map/layerDefinitions'
+import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { Map, View } from 'ol'
@@ -30,6 +33,9 @@ interface SFMSMapProps {
 
 const SFMSMap = ({ snowDate, fwiDate = null }: SFMSMapProps) => {
   const [map, setMap] = useState<Map | null>(null)
+  const [rasterValue, setRasterValue] = useState<number | null>(null)
+  const [rasterLabel, setRasterLabel] = useState<string>('FWI')
+  const [pixelCoords, setPixelCoords] = useState<[number, number] | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
 
   const removeLayerByName = (map: Map, layerName: string) => {
@@ -77,37 +83,75 @@ const SFMSMap = ({ snowDate, fwiDate = null }: SFMSMapProps) => {
     }
   }, [])
 
-  // useEffect(() => {
-  //   if (!map) {
-  //     return
-  //   }
-  //   removeLayerByName(map, SNOW_LAYER_NAME)
-  //   if (!isNull(snowDate)) {
-  //     map.addLayer(getSnowPMTilesLayer(snowDate))
-  //   }
-  // }, [snowDate])
+  // Add hover listener to get raster pixel values
+  useEffect(() => {
+    if (!map) return
 
-  // useEffect(() => {
-  //   if (!map) {
-  //     return
-  //   }
-  //   removeLayerByName(map, FWI_LAYER_NAME)
-  //   if (!isNull(fwiDate)) {
-  //     map.addLayer(getFWILayer(fwiDate))
-  //   }
-  // }, [fwiDate, map])
+    const handlePointerMove = (evt: any) => {
+      const pixel = map.getEventPixel(evt.originalEvent)
+      setPixelCoords([pixel[0], pixel[1]])
+
+      // Find any fire weather raster layer (has a rasterType property)
+      const rasterLayer = map
+        .getLayers()
+        .getArray()
+        .find(l => l.getProperties()?.rasterType !== undefined)
+
+      if (rasterLayer) {
+        const data = rasterLayer.getData(pixel)
+        const properties = rasterLayer.getProperties()
+        const rasterType = properties?.rasterType as FireWeatherRasterType | undefined
+
+        if (data && data[0] !== undefined) {
+          setRasterValue(Math.round(data[0]))
+          setRasterLabel(rasterType ? FIRE_WEATHER_RASTER_LABELS[rasterType] : 'FWI')
+        } else {
+          setRasterValue(null)
+        }
+      }
+    }
+
+    map.on('pointermove', handlePointerMove)
+
+    return () => {
+      map.un('pointermove', handlePointerMove)
+    }
+  }, [map])
+
+  useEffect(() => {
+    if (!map) {
+      return
+    }
+    removeLayerByName(map, SNOW_LAYER_NAME)
+    if (!isNull(snowDate)) {
+      map.addLayer(getSnowPMTilesLayer(snowDate))
+    }
+  }, [snowDate])
+
+  useEffect(() => {
+    if (!map) {
+      return
+    }
+    removeLayerByName(map, FWI_LAYER_NAME)
+    if (!isNull(fwiDate)) {
+      map.addLayer(getFWILayer(fwiDate))
+    }
+  }, [fwiDate, map])
 
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
-        <Box
-          ref={mapRef}
-          data-testid={'sfms-map'}
-          sx={{
-            width: '100%',
-            height: '100%'
-          }}
-        ></Box>
+        <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+          <Box
+            ref={mapRef}
+            data-testid={'sfms-map'}
+            sx={{
+              width: '100%',
+              height: '100%'
+            }}
+          ></Box>
+          <RasterTooltip label={rasterLabel} value={rasterValue} pixelCoords={pixelCoords} />
+        </Box>
       </MapContext.Provider>
     </ErrorBoundary>
   )

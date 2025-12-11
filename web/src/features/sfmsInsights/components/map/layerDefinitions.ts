@@ -24,6 +24,17 @@ export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
 export const FWI_LAYER_NAME = 'fwiRaster'
 
+export type FireWeatherRasterType = 'fwi' | 'dmc' | 'dc' | 'ffmc' | 'bui' | 'isi'
+
+export const FIRE_WEATHER_RASTER_LABELS: Record<FireWeatherRasterType, string> = {
+  fwi: 'FWI',
+  dmc: 'DMC',
+  dc: 'DC',
+  ffmc: 'FFMC',
+  bui: 'BUI',
+  isi: 'ISI'
+}
+
 export const getSnowPMTilesLayer = (snowDate: DateTime) => {
   const url = `${PMTILES_BUCKET}snow/${snowDate.toISODate()}/snowCoverage${snowDate.toISODate({ format: 'basic' })}.pmtiles`
   const snowPMTilesSource = new PMTilesVectorSource({
@@ -39,13 +50,17 @@ export const getSnowPMTilesLayer = (snowDate: DateTime) => {
   return snowPMTilesLayer
 }
 
-export const getFWILayer = (fwiDate: DateTime) => {
-  const dateString = fwiDate.toISODate() ?? '' // Format: YYYY-MM-DD
+export const getFireWeatherRasterLayer = (
+  date: DateTime,
+  rasterType: FireWeatherRasterType,
+  layerName: string = FWI_LAYER_NAME
+) => {
+  const dateString = date.toISODate() ?? '' // Format: YYYY-MM-DD
   // Use API proxy to bypass CORS restrictions
-  const path = `sfms/calculated/forecast/${dateString}/fwi${dateString.replace(/-/g, '')}.tif`
+  const path = `sfms/calculated/forecast/${dateString}/${rasterType}${dateString.replace(/-/g, '')}.tif`
   const url = `${API_BASE_URL}/object-store-proxy/${path}`
 
-  const fwiSource = new GeoTIFF({
+  const source = new GeoTIFF({
     sources: [{ url }],
     interpolate: false,
     normalize: false,
@@ -54,18 +69,23 @@ export const getFWILayer = (fwiDate: DateTime) => {
 
   const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
-  const fwiLayer = new WebGLTile({
-    source: fwiSource,
+  const layer = new WebGLTile({
+    source: source,
     zIndex: 52,
     opacity: 0.6,
     extent: bcExtent,
-    properties: { name: FWI_LAYER_NAME },
+    properties: { name: layerName, rasterType },
     style: {
       color: fwiColourExpression()
     }
   })
 
-  return fwiLayer
+  return layer
+}
+
+// Backward compatibility
+export const getFWILayer = (fwiDate: DateTime) => {
+  return getFireWeatherRasterLayer(fwiDate, 'fwi', FWI_LAYER_NAME)
 }
 
 export const fuelGridCOG = new GeoTIFF({
