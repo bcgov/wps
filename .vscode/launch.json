@@ -95,6 +95,19 @@
             ]
         },
         {
+            "name": "asa - sfms tif pusher",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "wps_tools.tif_pusher",
+            "console": "integratedTerminal",
+            "args": [
+                "2025-07-02",
+                "2025-07-03"
+            ]
+        },
+        {
             "name": "fetch fire zones",
             "type": "debugpy",
             "request": "launch",
@@ -263,6 +276,6 @@
             "request": "launch",
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}/web"
-        }
+        },
     ]
 }
