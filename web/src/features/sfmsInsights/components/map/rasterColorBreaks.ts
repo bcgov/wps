@@ -24,11 +24,52 @@ export const DMC_COLOR_BREAKS: ColorBreak[] = [
   { min: 100, max: null, color: 'rgb(255, 0, 0)', label: '100+' }
 ]
 
+export const DC_COLOR_BREAKS: ColorBreak[] = [
+  { min: 0, max: 150, color: 'rgb(0, 0, 255)', label: '0-150' },
+  { min: 150, max: 250, color: 'rgb(0, 127, 255)', label: '150-250' },
+  { min: 250, max: 350, color: 'rgb(0, 255, 0)', label: '250-350' },
+  { min: 350, max: 500, color: 'rgb(255, 255, 0)', label: '350-500' },
+  { min: 500, max: 750, color: 'rgb(255, 170, 0)', label: '500-750' },
+  { min: 750, max: null, color: 'rgb(255, 0, 0)', label: '750+' }
+]
+
+export const BUI_COLOR_BREAKS: ColorBreak[] = [
+  { min: 0, max: 50, color: 'rgb(0, 0, 255)', label: '0-50' },
+  { min: 50, max: 90, color: 'rgb(0, 127, 255)', label: '50-90' },
+  { min: 90, max: 140, color: 'rgb(0, 255, 0)', label: '90-140' },
+  { min: 140, max: 160, color: 'rgb(255, 255, 0)', label: '140-160' },
+  { min: 160, max: 200, color: 'rgb(255, 170, 0)', label: '160-200' },
+  { min: 200, max: null, color: 'rgb(255, 0, 0)', label: '200+' }
+]
+
+export const FFMC_COLOR_BREAKS: ColorBreak[] = [
+  { min: 0, max: 25, color: 'rgb(210, 255, 255)', label: '0-25' },
+  { min: 25, max: 35, color: 'rgb(160, 210, 255)', label: '25-35' },
+  { min: 35, max: 45, color: 'rgb(0, 127, 255)', label: '35-45' },
+  { min: 45, max: 55, color: 'rgb(0, 0, 255)', label: '45-55' },
+  { min: 55, max: 65, color: 'rgb(0, 255, 0)', label: '55-65' },
+  { min: 65, max: 75, color: 'rgb(0, 127, 0)', label: '65-75' },
+  { min: 75, max: 85, color: 'rgb(255, 255, 0)', label: '75-85' },
+  { min: 85, max: 90, color: 'rgb(255, 170, 0)', label: '85-90' },
+  { min: 90, max: 93, color: 'rgb(255, 0, 0)', label: '90-93' },
+  { min: 93, max: 96, color: 'rgb(190, 50, 0)', label: '93-96' },
+  { min: 96, max: null, color: 'rgb(127, 0, 0)', label: '96+' }
+]
+
+export const ISI_COLOR_BREAKS: ColorBreak[] = [
+  { min: 0, max: 4, color: 'rgb(0, 0, 255)', label: '0-4' },
+  { min: 4, max: 7, color: 'rgb(0, 127, 255)', label: '4-7' },
+  { min: 7, max: 11, color: 'rgb(0, 255, 0)', label: '7-11' },
+  { min: 11, max: 16, color: 'rgb(255, 255, 0)', label: '11-16' },
+  { min: 16, max: 26, color: 'rgb(255, 170, 0)', label: '16-26' },
+  { min: 26, max: null, color: 'rgb(255, 0, 0)', label: '26+' }
+]
+
 export const RASTER_COLOR_BREAKS: Record<FireWeatherRasterType, ColorBreak[]> = {
   fwi: FWI_COLOR_BREAKS,
   dmc: DMC_COLOR_BREAKS,
-  dc: FWI_COLOR_BREAKS, // TODO: Define DC color breaks
-  ffmc: FWI_COLOR_BREAKS, // TODO: Define FFMC color breaks
-  bui: FWI_COLOR_BREAKS, // TODO: Define BUI color breaks
-  isi: FWI_COLOR_BREAKS // TODO: Define ISI color breaks
+  dc: DC_COLOR_BREAKS,
+  ffmc: FFMC_COLOR_BREAKS,
+  bui: BUI_COLOR_BREAKS,
+  isi: ISI_COLOR_BREAKS
 }
