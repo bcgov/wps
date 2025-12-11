@@ -61,8 +61,8 @@ export const getFireWeatherRasterLayer = (
   const url = `${API_BASE_URL}/object-store-proxy/${path}`
 
   const source = new GeoTIFF({
-    sources: [{ url }],
-    interpolate: false,
+    sources: [{ url, nodata: -3.4028235e38 }],
+    interpolate: false, // Use bilinear interpolation to reduce reprojection artifacts
     normalize: false,
     projection: 'BC_LCC' // Specify source projection for reprojection
   })
@@ -76,7 +76,7 @@ export const getFireWeatherRasterLayer = (
     extent: bcExtent,
     properties: { name: layerName, rasterType },
     style: {
-      color: fwiColourExpression()
+      color: fwiColourExpression() // Uses threshold-based nodata detection
     }
   })
 

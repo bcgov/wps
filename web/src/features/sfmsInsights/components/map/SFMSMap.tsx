@@ -1,7 +1,7 @@
 import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@/utils/env'
 import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
-import { Box } from '@mui/material'
+import { Box, CircularProgress } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
 import {
   BASEMAP_LAYER_NAME,
@@ -39,6 +39,7 @@ const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps)
   const [rasterValue, setRasterValue] = useState<number | null>(null)
   const [rasterLabel, setRasterLabel] = useState<string>('FWI')
   const [pixelCoords, setPixelCoords] = useState<[number, number] | null>(null)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
 
   const removeLayerByName = (map: Map, layerName: string) => {
@@ -137,7 +138,23 @@ const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps)
     }
     removeLayerByName(map, FWI_LAYER_NAME)
     if (!isNull(fwiDate)) {
-      map.addLayer(getFireWeatherRasterLayer(fwiDate, rasterType, FWI_LAYER_NAME))
+      setIsLoading(true)
+      const rasterLayer = getFireWeatherRasterLayer(fwiDate, rasterType, FWI_LAYER_NAME)
+
+      // Listen for when the source finishes loading
+      const source = rasterLayer.getSource()
+      if (source) {
+        source.on('tileloadend', () => {
+          setIsLoading(false)
+        })
+        source.on('tileloaderror', () => {
+          setIsLoading(false)
+        })
+      }
+
+      map.addLayer(rasterLayer)
+    } else {
+      setIsLoading(false)
     }
   }, [fwiDate, rasterType, map])
 
@@ -155,6 +172,28 @@ const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps)
           ></Box>
           <RasterTooltip label={rasterLabel} value={rasterValue} pixelCoords={pixelCoords} />
           {fwiDate && <RasterLegend title={FIRE_WEATHER_RASTER_LABELS[rasterType]} colorBreaks={FWI_COLOR_BREAKS} />}
+          {isLoading && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 2000,
+                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                padding: 3,
+                borderRadius: 2,
+                boxShadow: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2
+              }}
+            >
+              <CircularProgress />
+              <Box sx={{ fontSize: '14px', fontWeight: 'medium' }}>Loading {FIRE_WEATHER_RASTER_LABELS[rasterType]}...</Box>
+            </Box>
+          )}
         </Box>
       </MapContext.Provider>
     </ErrorBoundary>

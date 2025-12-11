@@ -72,15 +72,34 @@ export const fuelCOGColourExpression = () => {
 
 // FWI (Fire Weather Index) color ramp
 // Class breaks: 0-8, 8-17, 17-27, 27-38, 38-47, 47+
-export const fwiColourExpression = () => {
-  return [
-    'case',
-    ['<', ['band', 1], 8], [0, 0, 255, 1],           // 0-8: Blue
-    ['<', ['band', 1], 17], [0, 127, 255, 1],        // 8-17: Light blue
-    ['<', ['band', 1], 27], [0, 255, 0, 1],          // 17-27: Green
-    ['<', ['band', 1], 38], [255, 255, 0, 1],        // 27-38: Yellow
-    ['<', ['band', 1], 47], [255, 170, 0, 1],        // 38-47: Orange
-    ['>=', ['band', 1], 47], [255, 0, 0, 1],         // 47+: Red
-    [255, 0, 255, 1]                                  // Magenta for debugging (no data)
-  ]
+export const fwiColourExpression = (nodataValue: number | null = null) => {
+  const expression: any[] = ['case']
+
+  // Check for very large values (nodata in Float32 GeoTIFFs)
+  // Use threshold check instead of exact equality for floating-point reliability
+  expression.push(
+    ['>', ['band', 1], 1e10],
+    [0, 0, 0, 0], // Very large positive values (nodata): transparent
+    ['<', ['band', 1], -1e10],
+    [0, 0, 0, 0] // Very large negative values (nodata): transparent
+  )
+
+  // Data values
+  expression.push(
+    ['<', ['band', 1], 8],
+    [0, 0, 255, 1], // 0-8: Blue
+    ['<', ['band', 1], 17],
+    [0, 127, 255, 1], // 8-17: Light blue
+    ['<', ['band', 1], 27],
+    [0, 255, 0, 1], // 17-27: Green
+    ['<', ['band', 1], 38],
+    [255, 255, 0, 1], // 27-38: Yellow
+    ['<', ['band', 1], 47],
+    [255, 170, 0, 1], // 38-47: Orange
+    ['>=', ['band', 1], 47],
+    [255, 0, 0, 1], // 47+: Red
+    [0, 0, 0, 0] // Fallback: transparent
+  )
+
+  return expression
 }
