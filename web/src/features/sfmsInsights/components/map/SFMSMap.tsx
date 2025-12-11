@@ -14,6 +14,8 @@ import {
   SNOW_LAYER_NAME
 } from 'features/sfmsInsights/components/map/layerDefinitions'
 import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
+import RasterLegend from 'features/sfmsInsights/components/map/RasterLegend'
+import { FWI_COLOR_BREAKS } from 'features/sfmsInsights/components/map/rasterColorBreaks'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { Map, View } from 'ol'
@@ -151,6 +153,7 @@ const SFMSMap = ({ snowDate, fwiDate = null }: SFMSMapProps) => {
             }}
           ></Box>
           <RasterTooltip label={rasterLabel} value={rasterValue} pixelCoords={pixelCoords} />
+          {fwiDate && <RasterLegend title="FWI" colorBreaks={FWI_COLOR_BREAKS} />}
         </Box>
       </MapContext.Provider>
     </ErrorBoundary>
