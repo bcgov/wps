@@ -48,14 +48,6 @@ export interface FireZoneFuelStats {
   fuel_area: number
 }
 
-export interface FireShapeArea {
-  fire_shape_id: number
-  threshold?: number
-  combustible_area: number
-  elevated_hfi_area?: number
-  elevated_hfi_percentage: number
-}
-
 export interface ElevationInfo {
   minimum: number
   quartile_25: number
@@ -91,10 +83,6 @@ export interface FireCentreTPIResponse {
 export interface FireZoneStatus {
   fire_shape_id: number
   status: AdvisoryStatus | null
-}
-
-export interface FireShapeAreaListResponse {
-  shapes: FireShapeArea[]
 }
 
 // Fire shape area (aka fire zone unit) data transfer object
