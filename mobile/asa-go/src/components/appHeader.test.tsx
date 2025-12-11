@@ -19,6 +19,17 @@ vi.mock("@/components/HamburgerMenu", () => ({
   ),
 }));
 
+// Mock useMediaQuery
+vi.mock("@mui/material", async () => {
+  const actual = await vi.importActual("@mui/material");
+  return {
+    ...actual,
+    useMediaQuery: vi.fn(),
+  };
+});
+
+import { useMediaQuery } from "@mui/material";
+
 describe("AppHeader", () => {
   beforeEach(() => {
     // Mock getBoundingClientRect
@@ -40,13 +51,22 @@ describe("AppHeader", () => {
       configurable: true,
       value: 800,
     });
+
+    // Reset all mocks
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("renders the AppHeader with title and HamburgerMenu", () => {
+  it("renders the AppHeader with title and HamburgerMenu in portrait mode", () => {
+    // Mock: portrait orientation, small device
+    vi.mocked(useMediaQuery).mockImplementation((query) => {
+      if (query === "(orientation: landscape)") return false;
+      if (query === "(min-width: 1024px)") return false;
+      return false;
+    });
     render(<AppHeader />);
 
     // Check for title
@@ -56,5 +76,61 @@ describe("AppHeader", () => {
     const hamburger = screen.getByTestId("hamburger-menu");
     expect(hamburger).toHaveTextContent("drawerTop: 120");
     expect(hamburger).toHaveTextContent("drawerHeight: 680");
+  });
+
+  it("hides the AppHeader on small devices (iPhones) in landscape mode", () => {
+    // Mock: landscape orientation, small device (iPhone: <1024px)
+    vi.mocked(useMediaQuery).mockImplementation((query) => {
+      if (query === "(orientation: landscape)") return true;
+      if (query === "(min-width: 1024px)") return false;
+      return false;
+    });
+    const { container } = render(<AppHeader />);
+
+    // Component should return null, so container should be empty
+    expect(container.firstChild).toBeNull();
+
+    // Title should not be in the document
+    expect(screen.queryByText("ASA")).not.toBeInTheDocument();
+
+    // HamburgerMenu should not be in the document
+    expect(screen.queryByTestId("hamburger-menu")).not.toBeInTheDocument();
+  });
+
+  it("shows the AppHeader on large devices (iPads) in landscape mode", () => {
+    // Mock: landscape orientation, large device (iPad: >=1024px)
+    vi.mocked(useMediaQuery).mockImplementation((query) => {
+      if (query === "(orientation: landscape)") return true;
+      if (query === "(min-width: 1024px)") return true;
+      return false;
+    });
+    render(<AppHeader />);
+
+    // Should show the header even in landscape on large devices
+    expect(screen.getByText("ASA")).toBeInTheDocument();
+    expect(screen.getByTestId("hamburger-menu")).toBeInTheDocument();
+  });
+
+  it("shows the AppHeader when orientation changes from landscape to portrait on small device", () => {
+    // Start in landscape on small device
+    vi.mocked(useMediaQuery).mockImplementation((query) => {
+      if (query === "(orientation: landscape)") return true;
+      if (query === "(min-width: 1024px)") return false;
+      return false;
+    });
+    const { rerender } = render(<AppHeader />);
+    expect(screen.queryByText("ASA")).not.toBeInTheDocument();
+
+    // Change to portrait on small device
+    vi.mocked(useMediaQuery).mockImplementation((query) => {
+      if (query === "(orientation: landscape)") return false;
+      if (query === "(min-width: 1024px)") return false;
+      return false;
+    });
+    rerender(<AppHeader />);
+
+    // Should now show the header
+    expect(screen.getByText("ASA")).toBeInTheDocument();
+    expect(screen.getByTestId("hamburger-menu")).toBeInTheDocument();
   });
 });

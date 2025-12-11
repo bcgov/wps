@@ -54,7 +54,7 @@ import { HFI_LAYER_NAME } from "@/layerDefinitions";
 
 describe("ASAGoMap", () => {
   beforeAll(() => {
-    window.ResizeObserver = ResizeObserver;
+    globalThis.ResizeObserver = ResizeObserver;
   });
 
   const defaultProps: ASAGoMapProps = {
@@ -256,5 +256,120 @@ describe("ASAGoMap", () => {
     );
 
     expect(loadMapViewStateMock).toHaveBeenCalled();
+  });
+
+  describe("safe area - camera/notch overlap prevention", () => {
+    it("applies absolute positioning to button container", () => {
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ASAGoMap {...defaultProps} />
+        </Provider>
+      );
+
+      const mapContainer = getByTestId(defaultProps.testId);
+      const buttonContainer = Array.from(mapContainer.children).find(
+        (child) => {
+          const element = child as HTMLElement;
+          return (
+            element.querySelector('[data-testid="legend-toggle-button"]') !==
+            null
+          );
+        }
+      ) as HTMLElement;
+
+      expect(buttonContainer).toBeInTheDocument();
+      // MUI compiles sx props to CSS classes, so we check computed styles
+      const styles = globalThis.getComputedStyle(buttonContainer);
+      expect(styles.position).toBe("absolute");
+      expect(styles.zIndex).toBe("2");
+    });
+
+    it("applies safe-area-inset-left to button container left positioning", () => {
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ASAGoMap {...defaultProps} />
+        </Provider>
+      );
+
+      const mapContainer = getByTestId(defaultProps.testId);
+      const buttonContainer = Array.from(mapContainer.children).find(
+        (child) => {
+          const element = child as HTMLElement;
+          return (
+            element.querySelector('[data-testid="legend-toggle-button"]') !==
+            null
+          );
+        }
+      ) as HTMLElement;
+
+      // MUI compiles the sx prop to CSS classes
+      // The left style should include safe-area-inset-left
+      const styles = globalThis.getComputedStyle(buttonContainer);
+      expect(styles.left).toBeTruthy();
+      expect(styles.left).toContain("safe-area-inset-left");
+      expect(styles.left).toContain("max(");
+    });
+
+    it("applies fixed bottom positioning to button container so buttons align with bottom bar", () => {
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ASAGoMap {...defaultProps} />
+        </Provider>
+      );
+
+      const mapContainer = getByTestId(defaultProps.testId);
+      const buttonContainer = Array.from(mapContainer.children).find(
+        (child) => {
+          const element = child as HTMLElement;
+          return (
+            element.querySelector('[data-testid="legend-toggle-button"]') !==
+            null
+          );
+        }
+      ) as HTMLElement;
+
+      // MUI compiles the sx prop to CSS classes
+      // The bottom style should be fixed at 8px since the bottom nav bar
+      // already handles safe area insets
+      const styles = globalThis.getComputedStyle(buttonContainer);
+      expect(styles.bottom).toBeTruthy();
+      expect(styles.bottom).toBe("8px");
+    });
+
+    it("renders all control buttons within the safe area container", () => {
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ASAGoMap {...defaultProps} />
+        </Provider>
+      );
+
+      const mapContainer = getByTestId(defaultProps.testId);
+      const buttonContainer = Array.from(mapContainer.children).find(
+        (child) => {
+          const element = child as HTMLElement;
+          return (
+            element.querySelector('[data-testid="legend-toggle-button"]') !==
+            null
+          );
+        }
+      ) as HTMLElement;
+
+      // Verify all buttons are children of the safe area container
+      const legendButton = within(buttonContainer as HTMLElement).getByTestId(
+        "legend-toggle-button"
+      );
+      const locationButton = within(buttonContainer as HTMLElement).getByTestId(
+        "location-button"
+      );
+      const dateSwitch = buttonContainer.querySelector("#tdy-tmr-switch-d");
+
+      expect(legendButton).toBeInTheDocument();
+      expect(locationButton).toBeInTheDocument();
+      expect(dateSwitch).toBeInTheDocument();
+    });
   });
 });

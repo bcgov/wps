@@ -1,6 +1,7 @@
 import { HamburgerMenu } from "@/components/HamburgerMenu";
+import { SafeAreaBox } from "@/components/SafeAreaBox";
 import { theme } from "@/theme";
-import { AppBar, Box, Toolbar, Typography } from "@mui/material";
+import { AppBar, Toolbar, Typography, useMediaQuery } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useLayoutEffect, useRef, useState } from "react";
 
@@ -8,6 +9,10 @@ export const AppHeader = () => {
   const headerRef = useRef<HTMLDivElement>(null);
   const [drawerTop, setDrawerTop] = useState(0);
   const [drawerHeight, setDrawerHeight] = useState(0);
+  const isLandscape = useMediaQuery("(orientation: landscape)");
+  // iPads typically have min-width of 1024px in landscape (iPad Mini+)
+  // iPhones max out at ~932px in landscape, so 1024px reliably detects iPads
+  const isLargeDevice = useMediaQuery("(min-width: 1024px)");
 
   useLayoutEffect(() => {
     if (headerRef.current) {
@@ -17,8 +22,14 @@ export const AppHeader = () => {
     }
   }, []);
 
+  // Hide header only on small devices in landscape (e.g., phones)
+  // Keep header visible on large devices (e.g., iPads) even in landscape
+  if (isLandscape && !isLargeDevice) {
+    return null;
+  }
+
   return (
-    <Box
+    <SafeAreaBox
       ref={headerRef}
       sx={{
         height: 100,
@@ -49,6 +60,6 @@ export const AppHeader = () => {
           </Toolbar>
         </AppBar>
       </Grid>
-    </Box>
+    </SafeAreaBox>
   );
 };

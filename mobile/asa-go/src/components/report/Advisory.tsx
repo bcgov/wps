@@ -2,6 +2,7 @@ import { FireCenter, FireShape } from "@/api/fbaAPI";
 import FireCenterDropdown from "@/components/FireCenterDropdown";
 import AdvisoryText from "@/components/report/AdvisoryText";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
+import { SafeAreaBox } from "@/components/SafeAreaBox";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
 import { selectFireCenters } from "@/store";
 import { HEADER_GREY, INFO_PANEL_CONTENT_BACKGROUND } from "@/theme";
@@ -35,8 +36,9 @@ const Advisory = ({
 }: AdvisoryProps) => {
   const { fireCenters } = useSelector(selectFireCenters);
   const theme = useTheme();
+
   return (
-    <Box
+    <SafeAreaBox
       data-testid="asa-go-advisory"
       sx={{
         display: "flex",
@@ -121,7 +123,7 @@ const Advisory = ({
           />
         </FireZoneUnitTabs>
       </Box>
-    </Box>
+    </SafeAreaBox>
   );
 };
 

@@ -3,6 +3,7 @@ import FireCenterDropdown from "@/components/FireCenterDropdown";
 import FireZoneUnitSummary from "@/components/profile/FireZoneUnitSummary";
 import { DefaultText } from "@/components/report/DefaultText";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
+import { SafeAreaBox } from "@/components/SafeAreaBox";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
 import { selectFireCenters } from "@/store";
 import { HEADER_GREY, INFO_PANEL_CONTENT_BACKGROUND } from "@/theme";
@@ -36,8 +37,9 @@ const Profile = ({
 }: ProfileProps) => {
   const { fireCenters } = useSelector(selectFireCenters);
   const theme = useTheme();
+
   return (
-    <Box
+    <SafeAreaBox
       data-testid="asa-go-profile"
       sx={{
         display: "flex",
@@ -126,7 +128,7 @@ const Profile = ({
           </FireZoneUnitTabs>
         )}
       </Box>
-    </Box>
+    </SafeAreaBox>
   );
 };
 
