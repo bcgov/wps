@@ -70,10 +70,15 @@ export const formatCriticalHoursTimeText = (
 
   let endSuffix = ''
   if (extendsNextDay) {
-    endSuffix = shorthand ? '+1' : ' tomorrow'
+    endSuffix = shorthand ? ' (+1 day)' : ' tomorrow'
   }
 
-  const formatHour = (hour: number) => `${String(hour).padStart(2, '0')}:00`
+  const formatHour = (hour: number, shorthand: boolean) => {
+    if (shorthand) {
+      return `${String(hour)}`
+    }
+    return `${String(hour).padStart(2, '0')}:00`
+  }
 
-  return [formatHour(startTime), `${formatHour(endTime)}${endSuffix}`]
+  return [formatHour(startTime, shorthand), `${formatHour(endTime, shorthand)}${endSuffix}`]
 }

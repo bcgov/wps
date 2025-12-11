@@ -1,41 +1,41 @@
-import { PMTilesVectorSource } from 'ol-pmtiles'
-import { Map, View } from 'ol'
-import 'ol/ol.css'
-import { defaults as defaultControls, FullScreen } from 'ol/control'
-import { fromLonLat } from 'ol/proj'
-import { boundingExtent } from 'ol/extent'
-import ScaleLine from 'ol/control/ScaleLine'
-import VectorLayer from 'ol/layer/Vector'
-import VectorTileLayer from 'ol/layer/VectorTile'
-import VectorSource from 'ol/source/Vector'
-import GeoJSON from 'ol/format/GeoJSON'
-import { useSelector } from 'react-redux'
-import React, { useEffect, useRef, useState } from 'react'
-import { ErrorBoundary } from 'components'
-import { selectFireWeatherStations, selectProvincialSummaryZones, selectRunDates } from 'app/rootReducer'
-import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
-import TileLayer from 'ol/layer/Tile'
-import { FireCenter, FireShape, RunType } from 'api/fbaAPI'
-import { extentsMap } from 'features/fba/fireCentreExtents'
-import {
-  fireCentreStyler,
-  fireCentreLabelStyler,
-  fireShapeStyler,
-  fireShapeLineStyler,
-  fireShapeLabelStyler,
-  stationStyler,
-  hfiStyler,
-  fireCentreLineStyler
-} from 'features/fba/components/map/featureStylers'
-import { BC_EXTENT, CENTER_OF_BC } from 'utils/constants'
-import { DateTime } from 'luxon'
-import { PMTILES_BUCKET } from 'utils/env'
-import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
-import { isUndefined, cloneDeep, isNull } from 'lodash'
+import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
+import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
 import { Box } from '@mui/material'
+import { FireCenter, FireShape, RunType } from 'api/fbaAPI'
+import { selectFireWeatherStations, selectRunDates, selectProvincialSummaryZones } from 'app/rootReducer'
+import { ErrorBoundary } from 'components'
+import {
+  fireCentreLabelStyler,
+  fireCentreLineStyler,
+  fireCentreStyler,
+  fireShapeLabelStyler,
+  fireShapeLineStyler,
+  fireShapeStyler,
+  hfiStyler,
+  stationStyler
+} from 'features/fba/components/map/featureStylers'
 import Legend from 'features/fba/components/map/Legend'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
+import { extentsMap } from 'features/fba/fireCentreExtents'
 import { fireZoneExtentsMap } from 'features/fba/fireZoneUnitExtents'
+import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
+import { cloneDeep, isNull, isUndefined } from 'lodash'
+import { DateTime } from 'luxon'
+import { Map, View } from 'ol'
+import { PMTilesVectorSource } from 'ol-pmtiles'
+import { defaults as defaultControls, FullScreen } from 'ol/control'
+import ScaleLine from 'ol/control/ScaleLine'
+import { boundingExtent } from 'ol/extent'
+import GeoJSON from 'ol/format/GeoJSON'
+import VectorLayer from 'ol/layer/Vector'
+import VectorTileLayer from 'ol/layer/VectorTile'
+import 'ol/ol.css'
+import { fromLonLat } from 'ol/proj'
+import VectorSource from 'ol/source/Vector'
+import React, { useEffect, useRef, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { BC_EXTENT, CENTER_OF_BC } from 'utils/constants'
+import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL, HILLSHADE_STYLE_URL, HILLSHADE_TILE_URL, PMTILES_BUCKET } from 'utils/env'
 import { MapContext } from '@/features/fba/context/MapContext'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -271,9 +271,6 @@ const FBAMap = (props: FBAMapProps) => {
         center: fromLonLat(CENTER_OF_BC)
       }),
       layers: [
-        new TileLayer({
-          source: baseMapSource
-        }),
         fireCentreVTL,
         fireCentreLineVTL,
         fireShapeVTL,
@@ -297,6 +294,23 @@ const FBAMap = (props: FBAMapProps) => {
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
 
     setMap(mapObject)
+
+    const loadBaseMap = async () => {
+      // Create and add the hillshade layer first so it renders below the vector basemap layer
+      const hillshadeStyle = await getStyleJson(HILLSHADE_STYLE_URL)
+      const hillshadeLayer = await createHillshadeVectorTileLayer(
+        HILLSHADE_TILE_URL,
+        hillshadeStyle,
+        1,
+        BASEMAP_LAYER_NAME
+      )
+      mapObject.addLayer(hillshadeLayer)
+      const basemapStyle = await getStyleJson(BASEMAP_STYLE_URL)
+      const basemapLayer = await createVectorTileLayer(BASEMAP_TILE_URL, basemapStyle, 0.8, BASEMAP_LAYER_NAME)
+      mapObject.addLayer(basemapLayer)
+    }
+    loadBaseMap()
+
     return () => {
       mapObject.setTarget('')
     }

@@ -44,8 +44,10 @@ objects:
             - name: fuel-raster-${NAME}-${SUFFIX}
               image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-jobs-${SUFFIX}:${SUFFIX}
               imagePullPolicy: "Always"
-              command: ["poetry", "run", "python", "-m", "wps_jobs.fuel_raster"]
+              command: ["uv", "run", "--no-sync", "python", "-m", "fuel_raster"]
               env:
+                - name: UV_NO_CACHE
+                  value: "1"
                 - name: OBJECT_STORE_SERVER
                   valueFrom:
                     secretKeyRef:
