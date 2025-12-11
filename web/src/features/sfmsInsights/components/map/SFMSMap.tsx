@@ -8,7 +8,7 @@ import {
   FIRE_WEATHER_RASTER_LABELS,
   FireWeatherRasterType,
   fuelCOGTiles,
-  getFWILayer,
+  getFireWeatherRasterLayer,
   FWI_LAYER_NAME,
   getSnowPMTilesLayer,
   SNOW_LAYER_NAME
@@ -31,9 +31,10 @@ const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 interface SFMSMapProps {
   snowDate: DateTime | null
   fwiDate?: DateTime | null
+  rasterType?: FireWeatherRasterType
 }
 
-const SFMSMap = ({ snowDate, fwiDate = null }: SFMSMapProps) => {
+const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps) => {
   const [map, setMap] = useState<Map | null>(null)
   const [rasterValue, setRasterValue] = useState<number | null>(null)
   const [rasterLabel, setRasterLabel] = useState<string>('FWI')
@@ -71,14 +72,14 @@ const SFMSMap = ({ snowDate, fwiDate = null }: SFMSMapProps) => {
       mapObject.addLayer(basemapLayer)
     }
 
-    const loadFWILayer = async () => {
-      const fwiLayer = fwiDate && getFWILayer(fwiDate)
-      if (fwiLayer) {
-        mapObject.addLayer(fwiLayer)
+    const loadRasterLayer = async () => {
+      const rasterLayer = fwiDate && getFireWeatherRasterLayer(fwiDate, rasterType, FWI_LAYER_NAME)
+      if (rasterLayer) {
+        mapObject.addLayer(rasterLayer)
       }
     }
     loadBaseMap()
-    loadFWILayer()
+    loadRasterLayer()
 
     return () => {
       mapObject.setTarget('')
@@ -136,9 +137,9 @@ const SFMSMap = ({ snowDate, fwiDate = null }: SFMSMapProps) => {
     }
     removeLayerByName(map, FWI_LAYER_NAME)
     if (!isNull(fwiDate)) {
-      map.addLayer(getFWILayer(fwiDate))
+      map.addLayer(getFireWeatherRasterLayer(fwiDate, rasterType, FWI_LAYER_NAME))
     }
-  }, [fwiDate, map])
+  }, [fwiDate, rasterType, map])
 
   return (
     <ErrorBoundary>
@@ -153,7 +154,7 @@ const SFMSMap = ({ snowDate, fwiDate = null }: SFMSMapProps) => {
             }}
           ></Box>
           <RasterTooltip label={rasterLabel} value={rasterValue} pixelCoords={pixelCoords} />
-          {fwiDate && <RasterLegend title="FWI" colorBreaks={FWI_COLOR_BREAKS} />}
+          {fwiDate && <RasterLegend title={FIRE_WEATHER_RASTER_LABELS[rasterType]} colorBreaks={FWI_COLOR_BREAKS} />}
         </Box>
       </MapContext.Provider>
     </ErrorBoundary>

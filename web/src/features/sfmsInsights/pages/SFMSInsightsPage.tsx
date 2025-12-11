@@ -2,6 +2,8 @@ import { GeneralHeader } from '@/components/GeneralHeader'
 import Footer from '@/features/landingPage/components/Footer'
 import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
+import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
+import { FireWeatherRasterType } from '@/features/sfmsInsights/components/map/layerDefinitions'
 import { StyledFormControl } from '@/components/StyledFormControl'
 import { SFMS_INSIGHTS_NAME } from '@/utils/constants'
 import { getMostRecentProcessedSnowByDate } from '@/api/snow'
@@ -14,6 +16,7 @@ export const SFMSInsightsPage = () => {
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const [forDate] = useState<DateTime>(DateTime.now())
   const [fwiDate, setFwiDate] = useState<DateTime>(DateTime.fromISO('2025-11-02'))
+  const [rasterType, setRasterType] = useState<FireWeatherRasterType>('fwi')
 
   // Set date ranges for the date picker
   const historicalMinDate = DateTime.fromISO('2024-01-01')
@@ -60,10 +63,15 @@ export const SFMSInsightsPage = () => {
               />
             </StyledFormControl>
           </Grid>
+          <Grid item>
+            <StyledFormControl>
+              <RasterTypeDropdown selectedRasterType={rasterType} setSelectedRasterType={setRasterType} />
+            </StyledFormControl>
+          </Grid>
         </Grid>
       </Box>
       <Box sx={{ flex: 1, position: 'relative' }}>
-        <SFMSMap snowDate={snowDate} fwiDate={fwiDate} />
+        <SFMSMap snowDate={snowDate} fwiDate={fwiDate} rasterType={rasterType} />
       </Box>
       <Footer />
     </Box>
