@@ -26,15 +26,6 @@ export const FWI_LAYER_NAME = 'fwiRaster'
 
 export type FireWeatherRasterType = 'fwi' | 'dmc' | 'dc' | 'ffmc' | 'bui' | 'isi'
 
-export const FIRE_WEATHER_RASTER_LABELS: Record<FireWeatherRasterType, string> = {
-  fwi: 'FWI',
-  dmc: 'DMC',
-  dc: 'DC',
-  ffmc: 'FFMC',
-  bui: 'BUI',
-  isi: 'ISI'
-}
-
 export const getSnowPMTilesLayer = (snowDate: DateTime) => {
   const url = `${PMTILES_BUCKET}snow/${snowDate.toISODate()}/snowCoverage${snowDate.toISODate({ format: 'basic' })}.pmtiles`
   const snowPMTilesSource = new PMTilesVectorSource({

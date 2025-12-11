@@ -7,6 +7,11 @@ export interface ColorBreak {
   label: string
 }
 
+export interface RasterConfig {
+  label: string
+  colorBreaks: ColorBreak[]
+}
+
 export const FWI_COLOR_BREAKS: ColorBreak[] = [
   { min: 0, max: 8, color: 'rgb(0, 0, 255)', label: '0-8' },
   { min: 8, max: 17, color: 'rgb(0, 127, 255)', label: '8-17' },
@@ -65,6 +70,16 @@ export const ISI_COLOR_BREAKS: ColorBreak[] = [
   { min: 26, max: null, color: 'rgb(255, 0, 0)', label: '26+' }
 ]
 
+export const RASTER_CONFIG: Record<FireWeatherRasterType, RasterConfig> = {
+  fwi: { label: 'FWI', colorBreaks: FWI_COLOR_BREAKS },
+  dmc: { label: 'DMC', colorBreaks: DMC_COLOR_BREAKS },
+  dc: { label: 'DC', colorBreaks: DC_COLOR_BREAKS },
+  ffmc: { label: 'FFMC', colorBreaks: FFMC_COLOR_BREAKS },
+  bui: { label: 'BUI', colorBreaks: BUI_COLOR_BREAKS },
+  isi: { label: 'ISI', colorBreaks: ISI_COLOR_BREAKS }
+}
+
+// Backward compatibility - export just the color breaks
 export const RASTER_COLOR_BREAKS: Record<FireWeatherRasterType, ColorBreak[]> = {
   fwi: FWI_COLOR_BREAKS,
   dmc: DMC_COLOR_BREAKS,

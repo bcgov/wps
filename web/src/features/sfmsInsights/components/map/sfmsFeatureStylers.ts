@@ -1,5 +1,5 @@
 import { colorByFuelTypeCode, getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
-import { RASTER_COLOR_BREAKS } from './rasterColorBreaks'
+import { RASTER_COLOR_BREAKS } from './rasterConfig'
 import { FireWeatherRasterType } from './layerDefinitions'
 import * as ol from 'ol'
 import Geometry from 'ol/geom/Geometry'

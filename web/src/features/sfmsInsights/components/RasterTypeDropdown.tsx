@@ -1,5 +1,6 @@
 import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from '@mui/material'
-import { FIRE_WEATHER_RASTER_LABELS, FireWeatherRasterType } from './map/layerDefinitions'
+import { FireWeatherRasterType } from './map/layerDefinitions'
+import { RASTER_CONFIG } from './map/rasterConfig'
 
 interface RasterTypeDropdownProps {
   selectedRasterType: FireWeatherRasterType
@@ -25,7 +26,7 @@ const RasterTypeDropdown = ({ selectedRasterType, setSelectedRasterType }: Raste
       >
         {rasterTypes.map(type => (
           <MenuItem key={type} value={type}>
-            {FIRE_WEATHER_RASTER_LABELS[type]}
+            {RASTER_CONFIG[type].label}
           </MenuItem>
         ))}
       </Select>

@@ -5,7 +5,6 @@ import { Box, CircularProgress } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
 import {
   BASEMAP_LAYER_NAME,
-  FIRE_WEATHER_RASTER_LABELS,
   FireWeatherRasterType,
   fuelCOGTiles,
   getFireWeatherRasterLayer,
@@ -15,7 +14,7 @@ import {
 } from 'features/sfmsInsights/components/map/layerDefinitions'
 import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
 import RasterLegend from 'features/sfmsInsights/components/map/RasterLegend'
-import { RASTER_COLOR_BREAKS } from 'features/sfmsInsights/components/map/rasterColorBreaks'
+import { RASTER_CONFIG } from 'features/sfmsInsights/components/map/rasterConfig'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { Map, View } from 'ol'
@@ -108,7 +107,7 @@ const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps)
 
         if (data && data[0] !== undefined) {
           setRasterValue(Math.round(data[0]))
-          setRasterLabel(rasterType ? FIRE_WEATHER_RASTER_LABELS[rasterType] : 'FWI')
+          setRasterLabel(rasterType ? RASTER_CONFIG[rasterType].label : 'FWI')
         } else {
           setRasterValue(null)
         }
@@ -171,9 +170,7 @@ const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps)
             }}
           ></Box>
           <RasterTooltip label={rasterLabel} value={rasterValue} pixelCoords={pixelCoords} />
-          {fwiDate && (
-            <RasterLegend title={FIRE_WEATHER_RASTER_LABELS[rasterType]} colorBreaks={RASTER_COLOR_BREAKS[rasterType]} />
-          )}
+          {fwiDate && <RasterLegend title={RASTER_CONFIG[rasterType].label} colorBreaks={RASTER_CONFIG[rasterType].colorBreaks} />}
           {isLoading && (
             <Box
               sx={{
@@ -193,7 +190,7 @@ const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps)
               }}
             >
               <CircularProgress />
-              <Box sx={{ fontSize: '14px', fontWeight: 'medium' }}>Loading {FIRE_WEATHER_RASTER_LABELS[rasterType]}...</Box>
+              <Box sx={{ fontSize: '14px', fontWeight: 'medium' }}>Loading {RASTER_CONFIG[rasterType].label}...</Box>
             </Box>
           )}
         </Box>
