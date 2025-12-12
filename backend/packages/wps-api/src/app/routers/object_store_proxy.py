@@ -16,36 +16,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/object-store-proxy")
 
 
-async def stream_object(path: str, byte_range: str = None):
-    s3_client = S3Client()
-    await s3_client.__aenter__()
-
-    try:
-        params = {"Bucket": s3_client.bucket, "Key": path}
-        if byte_range:
-            params["Range"] = byte_range
-
-        s3_resp = await s3_client.client.get_object(**params)
-        body = s3_resp["Body"]
-
-        async def gen():
-            try:
-                while True:
-                    chunk = await body.read(65536)
-                    if not chunk:
-                        break
-                    yield chunk
-            finally:
-                body.close()
-                await s3_client.__aexit__(None, None, None)
-
-        return gen(), s3_resp
-
-    except Exception:
-        await s3_client.__aexit__(None, None, None)
-        raise
-
-
 @router.head("/{path:path}")
 async def head_s3_object(
     path: str = Path(..., description="Path to the file in the object store"),
@@ -94,7 +64,7 @@ async def proxy_s3_object(
         StreamingResponse containing the GeoTIFF file
 
     Example:
-        GET /api/geotiff-proxy/sfms/calculated/forecast/2025-11-02/fwi20251102.tif
+        GET /api/object-store-proxy/sfms/calculated/forecast/2025-11-02/fwi20251102.tif
 
         This fetches from:
         s3://{bucket}/sfms/calculated/forecast/2025-11-02/fwi20251102.tif
@@ -105,7 +75,7 @@ async def proxy_s3_object(
     filename = path.rsplit("/", 1)[-1]
 
     try:
-        generator, s3_resp = await stream_object(path, byte_range)
+        generator, s3_resp = await S3Client.stream_object(path, byte_range)
 
         headers = {
             "Accept-Ranges": "bytes",
