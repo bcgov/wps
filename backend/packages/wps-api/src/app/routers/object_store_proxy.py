@@ -5,6 +5,7 @@ object store.
 """
 
 import logging
+from typing import AsyncIterator
 
 from fastapi import APIRouter, HTTPException, Path, Request, Depends
 from fastapi.responses import StreamingResponse, Response
@@ -15,6 +16,62 @@ from wps_shared.auth import authentication_required
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/object-store-proxy", dependencies=[Depends(authentication_required)])
+
+
+class RangeStreamingResponse(StreamingResponse):
+    """
+    StreamingResponse that automatically handles S3 range responses.
+
+    Processes S3 response metadata to set appropriate HTTP status codes
+    and headers for both full (200) and partial (206) content responses.
+    """
+
+    def __init__(
+        self,
+        content: AsyncIterator[bytes],
+        s3_response: dict,
+        filename: str,
+        **kwargs
+    ):
+        """
+        Initialize a range-aware streaming response.
+
+        :param content: Async generator yielding response bytes
+        :param s3_response: S3 get_object response dict containing metadata
+        :param filename: Filename for Content-Disposition header
+        :param kwargs: Additional arguments passed to StreamingResponse
+        """
+        # Determine status code and build headers based on S3 response
+        if "ContentRange" in s3_response:
+            # Partial content response (206)
+            status_code = 206
+            content_range = s3_response["ContentRange"]  # e.g. "bytes 0-999/5000"
+
+            # Calculate content length from range
+            _, range_str = content_range.split(" ", 1)
+            range_part, _ = range_str.split("/")
+            start, end = map(int, range_part.split("-"))
+            content_length = str(end - start + 1)
+
+            range_headers = {"Content-Range": content_range}
+        else:
+            # Full content response (200)
+            status_code = 200
+            content_length = str(s3_response["ContentLength"])
+            range_headers = {}
+
+        # Build complete headers
+        headers = {
+            "Accept-Ranges": "bytes",
+            "Content-Type": s3_response.get("ContentType", "application/octet-stream"),
+            "Content-Disposition": f"inline; filename={filename}",
+            "Content-Length": content_length,
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Expose-Headers": "Content-Length, Content-Range, Accept-Ranges, Content-Type",
+            **range_headers
+        }
+
+        super().__init__(content, status_code=status_code, headers=headers, **kwargs)
 
 
 @router.head("/{path:path}")
@@ -77,32 +134,7 @@ async def proxy_s3_object(
 
     try:
         generator, s3_resp = await S3Client.stream_object(path, byte_range)
-
-        headers = {
-            "Accept-Ranges": "bytes",
-            "Content-Type": s3_resp.get("ContentType", "application/octet-stream"),
-            "Content-Disposition": f"inline; filename={filename}",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Expose-Headers": "Content-Length, Content-Range, Accept-Ranges, Content-Type",
-        }
-
-        # Handle partial
-        if "ContentRange" in s3_resp:
-            status = 206
-            content_range = s3_resp["ContentRange"]  # e.g. "bytes 0-999/5000"
-
-            headers["Content-Range"] = content_range
-
-            _, range = content_range.split(" ", 1)
-            range_part, _ = range.split("/")
-            start, end = map(int, range_part.split("-"))
-
-            headers["Content-Length"] = str(end - start + 1)
-        else:
-            status = 200
-            headers["Content-Length"] = str(s3_resp["ContentLength"])
-
-        return StreamingResponse(generator, status_code=status, headers=headers)
+        return RangeStreamingResponse(generator, s3_resp, filename)
 
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
