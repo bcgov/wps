@@ -14,6 +14,7 @@ import { register } from 'ol/proj/proj4'
 import { boundingExtent } from 'ol/extent'
 import { fromLonLat } from 'ol/proj'
 import { BC_EXTENT } from '@/utils/constants'
+import { FireWeatherRasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 
 // Register BC Lambert Conformal Conic projection
 const bcLccProj = '+proj=lcc +lat_0=49 +lon_0=-125 +lat_1=49 +lat_2=77 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs'
@@ -23,8 +24,6 @@ register(proj4)
 export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
 export const FWI_LAYER_NAME = 'fwiRaster'
-
-export type FireWeatherRasterType = 'fwi' | 'dmc' | 'dc' | 'ffmc' | 'bui' | 'isi'
 
 export const getSnowPMTilesLayer = (snowDate: DateTime) => {
   const url = `${PMTILES_BUCKET}snow/${snowDate.toISODate()}/snowCoverage${snowDate.toISODate({ format: 'basic' })}.pmtiles`

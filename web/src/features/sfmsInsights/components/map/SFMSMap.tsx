@@ -5,7 +5,6 @@ import { Box, CircularProgress } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
 import {
   BASEMAP_LAYER_NAME,
-  FireWeatherRasterType,
   fuelCOGTiles,
   getFireWeatherRasterLayer,
   FWI_LAYER_NAME,
@@ -14,7 +13,7 @@ import {
 } from 'features/sfmsInsights/components/map/layerDefinitions'
 import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
 import RasterLegend from 'features/sfmsInsights/components/map/RasterLegend'
-import { RASTER_CONFIG } from 'features/sfmsInsights/components/map/rasterConfig'
+import { FireWeatherRasterType, RASTER_CONFIG } from 'features/sfmsInsights/components/map/rasterConfig'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { Map, View } from 'ol'

@@ -1,4 +1,4 @@
-import { FireWeatherRasterType } from './layerDefinitions'
+export type FireWeatherRasterType = 'fwi' | 'dmc' | 'dc' | 'ffmc' | 'bui' | 'isi'
 
 export interface ColorBreak {
   min: number
