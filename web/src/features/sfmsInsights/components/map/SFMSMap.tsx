@@ -24,6 +24,8 @@ import WebGLTileLayer from 'ol/layer/WebGLTile'
 import 'ol/ol.css'
 import { fromLonLat } from 'ol/proj'
 import React, { useEffect, useRef, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { selectToken } from 'app/rootReducer'
 
 const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -35,6 +37,7 @@ interface SFMSMapProps {
 }
 
 const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi' }: SFMSMapProps) => {
+  const token = useSelector(selectToken)
   const [map, setMap] = useState<Map | null>(null)
   const [rasterValue, setRasterValue] = useState<number | null>(null)
   const [rasterLabel, setRasterLabel] = useState<string>('FWI')
@@ -74,7 +77,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi' }: SFMSMapProps) => 
     }
 
     const loadRasterLayer = async () => {
-      const rasterLayer = getFireWeatherRasterLayer(rasterDate, rasterType, FWI_LAYER_NAME)
+      const rasterLayer = getFireWeatherRasterLayer(rasterDate, rasterType, token, FWI_LAYER_NAME)
       mapObject.addLayer(rasterLayer)
     }
     loadBaseMap()
@@ -136,7 +139,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi' }: SFMSMapProps) => 
     }
     removeLayerByName(map, FWI_LAYER_NAME)
     setIsLoading(true)
-    const rasterLayer = getFireWeatherRasterLayer(rasterDate, rasterType, FWI_LAYER_NAME)
+    const rasterLayer = getFireWeatherRasterLayer(rasterDate, rasterType, token, FWI_LAYER_NAME)
 
     // Listen for when the source finishes loading
     const source = rasterLayer.getSource()
@@ -150,7 +153,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi' }: SFMSMapProps) => 
     }
 
     map.addLayer(rasterLayer)
-  }, [rasterDate, rasterType, map])
+  }, [rasterDate, rasterType, map, token])
 
   return (
     <ErrorBoundary>

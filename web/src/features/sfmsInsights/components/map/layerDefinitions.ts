@@ -44,6 +44,7 @@ export const getSnowPMTilesLayer = (snowDate: DateTime) => {
 export const getFireWeatherRasterLayer = (
   date: DateTime,
   rasterType: FireWeatherRasterType,
+  token: string | undefined,
   layerName: string = FWI_LAYER_NAME
 ) => {
   const dateString = date.toISODate() ?? '' // Format: YYYY-MM-DD
@@ -51,11 +52,21 @@ export const getFireWeatherRasterLayer = (
   const path = `sfms/calculated/forecast/${dateString}/${rasterType}${dateString.replace(/-/g, '')}.tif`
   const url = `${API_BASE_URL}/object-store-proxy/${path}`
 
+  // Prepare headers for authentication
+  const headers: Record<string, string> = {}
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   const source = new GeoTIFF({
     sources: [{ url, nodata: -3.4028235e38 }],
-    interpolate: false, // Use bilinear interpolation to reduce reprojection artifacts
+    sourceOptions: {
+      // Pass custom headers to geotiff.js
+      headers
+    },
+    interpolate: false,
     normalize: false,
-    projection: 'BC_LCC' // Specify source projection for reprojection
+    projection: 'BC_LCC'
   })
 
   const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -75,8 +86,8 @@ export const getFireWeatherRasterLayer = (
 }
 
 // Backward compatibility
-export const getFWILayer = (fwiDate: DateTime) => {
-  return getFireWeatherRasterLayer(fwiDate, 'fwi', FWI_LAYER_NAME)
+export const getFWILayer = (fwiDate: DateTime, token: string | undefined) => {
+  return getFireWeatherRasterLayer(fwiDate, 'fwi', token, FWI_LAYER_NAME)
 }
 
 export const fuelGridCOG = new GeoTIFF({

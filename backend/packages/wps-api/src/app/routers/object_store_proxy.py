@@ -6,14 +6,15 @@ object store.
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Path, Request
+from fastapi import APIRouter, HTTPException, Path, Request, Depends
 from fastapi.responses import StreamingResponse, Response
 from botocore.exceptions import ClientError
 from wps_shared.utils.s3_client import S3Client
+from wps_shared.auth import authentication_required
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/object-store-proxy")
+router = APIRouter(prefix="/object-store-proxy", dependencies=[Depends(authentication_required)])
 
 
 @router.head("/{path:path}")
@@ -93,7 +94,7 @@ async def proxy_s3_object(
             headers["Content-Range"] = cr
 
             _, rng = cr.split(" ", 1)
-            range_part, total = rng.split("/")
+            range_part, _ = rng.split("/")
             start, end = map(int, range_part.split("-"))
 
             headers["Content-Length"] = str(end - start + 1)
