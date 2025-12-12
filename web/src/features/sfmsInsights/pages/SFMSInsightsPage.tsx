@@ -15,7 +15,7 @@ import { isNull } from 'lodash'
 export const SFMSInsightsPage = () => {
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const [forDate] = useState<DateTime>(DateTime.now())
-  const [fwiDate, setFwiDate] = useState<DateTime>(DateTime.fromISO('2025-11-02'))
+  const [rasterDate, setRasterDate] = useState<DateTime>(DateTime.fromISO('2025-11-02'))
   const [rasterType, setRasterType] = useState<FireWeatherRasterType>('fwi')
 
   // Set date ranges for the date picker
@@ -54,8 +54,8 @@ export const SFMSInsightsPage = () => {
           <Grid item>
             <StyledFormControl>
               <ASADatePicker
-                date={fwiDate}
-                updateDate={setFwiDate}
+                date={rasterDate}
+                updateDate={setRasterDate}
                 historicalMinDate={historicalMinDate}
                 historicalMaxDate={historicalMaxDate}
                 currentYearMinDate={currentYearMinDate}
@@ -71,7 +71,7 @@ export const SFMSInsightsPage = () => {
         </Grid>
       </Box>
       <Box sx={{ flex: 1, position: 'relative' }}>
-        <SFMSMap snowDate={snowDate} fwiDate={fwiDate} rasterType={rasterType} />
+        <SFMSMap snowDate={snowDate} rasterDate={rasterDate} rasterType={rasterType} />
       </Box>
       <Footer />
     </Box>

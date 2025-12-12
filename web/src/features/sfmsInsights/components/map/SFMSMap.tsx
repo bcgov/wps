@@ -30,11 +30,11 @@ const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 interface SFMSMapProps {
   snowDate: DateTime | null
-  fwiDate?: DateTime | null
+  rasterDate: DateTime
   rasterType?: FireWeatherRasterType
 }
 
-const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps) => {
+const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi' }: SFMSMapProps) => {
   const [map, setMap] = useState<Map | null>(null)
   const [rasterValue, setRasterValue] = useState<number | null>(null)
   const [rasterLabel, setRasterLabel] = useState<string>('FWI')
@@ -74,10 +74,8 @@ const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps)
     }
 
     const loadRasterLayer = async () => {
-      const rasterLayer = fwiDate && getFireWeatherRasterLayer(fwiDate, rasterType, FWI_LAYER_NAME)
-      if (rasterLayer) {
-        mapObject.addLayer(rasterLayer)
-      }
+      const rasterLayer = getFireWeatherRasterLayer(rasterDate, rasterType, FWI_LAYER_NAME)
+      mapObject.addLayer(rasterLayer)
     }
     loadBaseMap()
     loadRasterLayer()
@@ -137,26 +135,22 @@ const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps)
       return
     }
     removeLayerByName(map, FWI_LAYER_NAME)
-    if (!isNull(fwiDate)) {
-      setIsLoading(true)
-      const rasterLayer = getFireWeatherRasterLayer(fwiDate, rasterType, FWI_LAYER_NAME)
+    setIsLoading(true)
+    const rasterLayer = getFireWeatherRasterLayer(rasterDate, rasterType, FWI_LAYER_NAME)
 
-      // Listen for when the source finishes loading
-      const source = rasterLayer.getSource()
-      if (source) {
-        source.on('tileloadend', () => {
-          setIsLoading(false)
-        })
-        source.on('tileloaderror', () => {
-          setIsLoading(false)
-        })
-      }
-
-      map.addLayer(rasterLayer)
-    } else {
-      setIsLoading(false)
+    // Listen for when the source finishes loading
+    const source = rasterLayer.getSource()
+    if (source) {
+      source.on('tileloadend', () => {
+        setIsLoading(false)
+      })
+      source.on('tileloaderror', () => {
+        setIsLoading(false)
+      })
     }
-  }, [fwiDate, rasterType, map])
+
+    map.addLayer(rasterLayer)
+  }, [rasterDate, rasterType, map])
 
   return (
     <ErrorBoundary>
@@ -171,7 +165,7 @@ const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps)
             }}
           ></Box>
           <RasterTooltip label={rasterLabel} value={rasterValue} pixelCoords={pixelCoords} />
-          {fwiDate && <RasterLegend title={RASTER_CONFIG[rasterType].label} colorBreaks={RASTER_CONFIG[rasterType].colorBreaks} />}
+          <RasterLegend rasterType={rasterType} />
           {isLoading && (
             <Box
               sx={{
