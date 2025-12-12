@@ -1,4 +1,6 @@
 import { colorByFuelTypeCode, getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
+import { RASTER_COLOR_BREAKS } from './rasterConfig'
+import { FireWeatherRasterType } from './layerDefinitions'
 import * as ol from 'ol'
 import Geometry from 'ol/geom/Geometry'
 import RenderFeature from 'ol/render/Feature'
@@ -69,3 +71,36 @@ export const fuelCOGColourExpression = () => {
 
   return ['case', ...colourCases]
 }
+
+// Generate color expression dynamically from color breaks
+export const getFireWeatherColourExpression = (rasterType: string) => {
+  const colorBreaks = RASTER_COLOR_BREAKS[rasterType as FireWeatherRasterType]
+  const expression: any[] = ['case']
+
+  // Handle nodata values - GeoTIFF nodata is -3.4028235e+38
+  // Use threshold checks for floating-point reliability
+  expression.push(
+    ['>', ['band', 1], 10000000000.0],
+    [0, 0, 0, 0], // Very large positive values (nodata): transparent
+    ['<', ['band', 1], -10000000000.0],
+    [0, 0, 0, 0] // Very large negative values (nodata): transparent
+  )
+
+  // Dynamically build expression from color breaks
+  colorBreaks.forEach(colorBreak => {
+    const [r, g, b] = colorBreak.color.match(/\d+/g)!.map(Number)
+
+    if (colorBreak.max !== null) {
+      expression.push(['<', ['band', 1], colorBreak.max], [r, g, b, 1])
+    } else {
+      // Last break (no max) - use >= min
+      expression.push(['>=', ['band', 1], colorBreak.min], [r, g, b, 1])
+    }
+  })
+
+  expression.push([0, 0, 0, 0]) // Fallback: transparent
+  return expression
+}
+
+// Backward compatibility
+export const fwiColourExpression = () => getFireWeatherColourExpression('fwi')
