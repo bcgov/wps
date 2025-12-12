@@ -89,12 +89,12 @@ async def proxy_s3_object(
         # Handle partial
         if "ContentRange" in s3_resp:
             status = 206
-            cr = s3_resp["ContentRange"]  # e.g. "bytes 0-999/5000"
+            content_range = s3_resp["ContentRange"]  # e.g. "bytes 0-999/5000"
 
-            headers["Content-Range"] = cr
+            headers["Content-Range"] = content_range
 
-            _, rng = cr.split(" ", 1)
-            range_part, _ = rng.split("/")
+            _, range = content_range.split(" ", 1)
+            range_part, _ = range.split("/")
             start, end = map(int, range_part.split("-"))
 
             headers["Content-Length"] = str(end - start + 1)
