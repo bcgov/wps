@@ -20,6 +20,7 @@ import { DateTime } from 'luxon'
 import { Map, View } from 'ol'
 import { defaults as defaultControls } from 'ol/control'
 import { boundingExtent } from 'ol/extent'
+import WebGLTileLayer from 'ol/layer/WebGLTile'
 import 'ol/ol.css'
 import { fromLonLat } from 'ol/proj'
 import React, { useEffect, useRef, useState } from 'react'
@@ -98,14 +99,14 @@ const SFMSMap = ({ snowDate, fwiDate = null, rasterType = 'fwi' }: SFMSMapProps)
       const rasterLayer = map
         .getLayers()
         .getArray()
-        .find(l => l.getProperties()?.rasterType !== undefined)
+        .find(l => l.getProperties()?.rasterType !== undefined) as WebGLTileLayer | undefined
 
       if (rasterLayer) {
-        const data = rasterLayer.getData(pixel)
+        const data = rasterLayer.getData(pixel) as Float32Array | Uint8Array | null
         const properties = rasterLayer.getProperties()
         const rasterType = properties?.rasterType as FireWeatherRasterType | undefined
 
-        if (data && data[0] !== undefined) {
+        if (data && data.length > 0 && data[0] !== undefined) {
           setRasterValue(Math.round(data[0]))
           setRasterLabel(rasterType ? RASTER_CONFIG[rasterType].label : 'FWI')
         } else {
