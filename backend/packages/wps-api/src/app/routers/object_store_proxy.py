@@ -19,7 +19,7 @@ router = APIRouter(prefix="/object-store-proxy", dependencies=[Depends(authentic
 
 @router.head("/{path:path}")
 async def head_s3_object(
-    path: str = Path(..., description="Path to the file in the object store"),
+    path: str = Path(..., description="Path to the object in the object store"),
 ):
     """Get metadata for object without downloading it - required for GeoTIFF sources."""
     logger.info(f"HEAD {path}")
@@ -50,7 +50,7 @@ async def head_s3_object(
 @router.get("/{path:path}")
 async def proxy_s3_object(
     request: Request,
-    path: str = Path(..., description="Path to the GeoTIFF file in the object store"),
+    path: str = Path(..., description="Path to the object file in the object store"),
 ):
     """
     Proxy GeoTIFF files from the object store.

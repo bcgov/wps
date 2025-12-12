@@ -85,11 +85,6 @@ export const getFireWeatherRasterLayer = (
   return layer
 }
 
-// Backward compatibility
-export const getFWILayer = (fwiDate: DateTime, token: string | undefined) => {
-  return getFireWeatherRasterLayer(fwiDate, 'fwi', token, FWI_LAYER_NAME)
-}
-
 export const fuelGridCOG = new GeoTIFF({
   sources: [
     {
