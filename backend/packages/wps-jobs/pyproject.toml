@@ -14,7 +14,7 @@ dependencies = [
     "asyncpg>=0.30.0,<1",
     "affine>=2.4.0,<3",
     "numpy==2.3.*",
-    "fastapi==0.124.0",
+    "fastapi==0.124.4",
     "xarray>=2025.3.1,<2026",
     "herbie-data>=2025.11.1,<2026",
     "gdal==3.9.2",
