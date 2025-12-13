@@ -23,7 +23,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          version: "0.9.16"
+          version: "0.9.17"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
@@ -57,7 +57,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          version: "0.9.16"
+          version: "0.9.17"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
@@ -102,7 +102,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          version: "0.9.16"
+          version: "0.9.17"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
@@ -145,7 +145,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          version: "0.9.16"
+          version: "0.9.17"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v4
