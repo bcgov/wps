@@ -4,7 +4,8 @@
     "openshift/s3-backup/docker/poetry.lock"
   ],
   "ignoreDeps": [
-    "@psu/cffdrs_ts"
+    "@psu/cffdrs_ts",
+    "aiobotocore"
   ],
   "onboardingConfig": {
     "extends": [
