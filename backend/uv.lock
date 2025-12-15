@@ -4206,7 +4206,6 @@ source = { editable = "packages/wps-jobs" }
 dependencies = [
     { name = "affine" },
     { name = "asyncpg" },
-    { name = "fastapi" },
     { name = "gdal" },
     { name = "herbie-data" },
     { name = "numpy" },
@@ -4228,7 +4227,6 @@ dev = [
 requires-dist = [
     { name = "affine", specifier = ">=2.4.0,<3" },
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
-    { name = "fastapi", specifier = "==0.124.0" },
     { name = "gdal", specifier = "==3.9.2" },
     { name = "herbie-data", specifier = ">=2025.11.1,<2026" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29.5,<7" },
