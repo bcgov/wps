@@ -23,13 +23,13 @@ jobs:
       - name: Install Ionic CLI
         working-directory: ./mobile/asa-go
         run: npm install -g @ionic/cli
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: asa-go-cache
         with:
           path: |
             mobile/asa-go/node_modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: asa-go-keycloak-cache
         with:
           path: |
