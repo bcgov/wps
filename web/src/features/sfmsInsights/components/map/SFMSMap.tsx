@@ -33,9 +33,10 @@ interface SFMSMapProps {
   snowDate: DateTime | null
   rasterDate: DateTime
   rasterType?: FireWeatherRasterType
+  showSnow?: boolean
 }
 
-const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi' }: SFMSMapProps) => {
+const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: SFMSMapProps) => {
   const token = useSelector(selectToken)
   const [map, setMap] = useState<Map | null>(null)
   const [rasterValue, setRasterValue] = useState<number | null>(null)
@@ -127,10 +128,10 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi' }: SFMSMapProps) => 
       return
     }
     removeLayerByName(map, SNOW_LAYER_NAME)
-    if (!isNull(snowDate)) {
+    if (!isNull(snowDate) && showSnow) {
       map.addLayer(getSnowPMTilesLayer(snowDate))
     }
-  }, [snowDate])
+  }, [snowDate, showSnow, map])
 
   useEffect(() => {
     if (!map) {

@@ -33,7 +33,7 @@ export const getSnowPMTilesLayer = (snowDate: DateTime) => {
   const snowPMTilesLayer = new VectorTileLayer({
     source: snowPMTilesSource,
     style: snowStyler,
-    zIndex: 52,
+    zIndex: 53,
     minZoom: 4,
     properties: { name: SNOW_LAYER_NAME }
   })

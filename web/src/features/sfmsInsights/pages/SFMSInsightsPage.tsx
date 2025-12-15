@@ -6,7 +6,7 @@ import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDro
 import { StyledFormControl } from '@/components/StyledFormControl'
 import { SFMS_INSIGHTS_NAME } from '@/utils/constants'
 import { getMostRecentProcessedSnowByDate } from '@/api/snow'
-import { Box, Grid } from '@mui/material'
+import { Box, Checkbox, FormControlLabel, Grid } from '@mui/material'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { isNull } from 'lodash'
@@ -17,6 +17,7 @@ export const SFMSInsightsPage = () => {
   const [forDate] = useState<DateTime>(DateTime.now())
   const [rasterDate, setRasterDate] = useState<DateTime>(DateTime.fromISO('2025-11-02'))
   const [rasterType, setRasterType] = useState<FireWeatherRasterType>('fwi')
+  const [showSnow, setShowSnow] = useState<boolean>(true)
 
   // Set date ranges for the date picker
   const historicalMinDate = DateTime.fromISO('2024-01-01')
@@ -68,10 +69,16 @@ export const SFMSInsightsPage = () => {
               <RasterTypeDropdown selectedRasterType={rasterType} setSelectedRasterType={setRasterType} />
             </StyledFormControl>
           </Grid>
+          <Grid item>
+            <FormControlLabel
+              control={<Checkbox checked={showSnow} onChange={e => setShowSnow(e.target.checked)} />}
+              label="Show Snow"
+            />
+          </Grid>
         </Grid>
       </Box>
       <Box sx={{ flex: 1, position: 'relative' }}>
-        <SFMSMap snowDate={snowDate} rasterDate={rasterDate} rasterType={rasterType} />
+        <SFMSMap snowDate={snowDate} rasterDate={rasterDate} rasterType={rasterType} showSnow={showSnow} />
       </Box>
       <Footer />
     </Box>
