@@ -3,7 +3,6 @@ import Footer from '@/features/landingPage/components/Footer'
 import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
 import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
-import { FireWeatherRasterType } from '@/features/sfmsInsights/components/map/layerDefinitions'
 import { StyledFormControl } from '@/components/StyledFormControl'
 import { SFMS_INSIGHTS_NAME } from '@/utils/constants'
 import { getMostRecentProcessedSnowByDate } from '@/api/snow'
@@ -11,6 +10,7 @@ import { Box, Grid } from '@mui/material'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { isNull } from 'lodash'
+import { FireWeatherRasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 
 export const SFMSInsightsPage = () => {
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
