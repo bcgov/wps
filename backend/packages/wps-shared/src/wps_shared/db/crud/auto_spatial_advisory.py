@@ -942,3 +942,23 @@ async def get_fuel_types_id_dict(db_session: AsyncSession):
     for fuel_type in sfms_fuel_types:
         fuel_types_dict[fuel_type.fuel_type_id] = fuel_type.id
     return fuel_types_dict
+
+
+async def gather_zone_status_inputs(
+    session: AsyncSession,
+    run_type: RunType,
+    run_datetime: datetime,
+    for_date: date,
+    fuel_type_raster_id: int,
+):
+    thresholds_lut = await get_hfi_threshold_ids(session)
+
+    hfi_rows = await get_hfi_area(
+        session,
+        RunTypeEnum(run_type.value),
+        run_datetime,
+        for_date,
+        fuel_type_raster_id,
+    )
+
+    return thresholds_lut, hfi_rows

@@ -12,10 +12,10 @@ from app.auto_spatial_advisory.process_zone_status import (
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryZoneStatus,
     HfiClassificationThresholdEnum,
-    RunTypeEnum,
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.run_type import RunType
+from wps_shared.schemas.fba import HfiArea
 
 
 @pytest.mark.anyio
@@ -111,6 +111,16 @@ async def test_process_zone_statuses_success(mocker):
         return_value=fuel_type_raster_mock,
     )
 
+    thresholds_lut = {
+        HfiClassificationThresholdEnum.ADVISORY.value: 1,
+        HfiClassificationThresholdEnum.WARNING.value: 2,
+    }
+    hfi_rows = [MagicMock()]  # Mock hfi rows
+    mock_gather_zone_status_inputs = mocker.patch(
+        "app.auto_spatial_advisory.process_zone_status.gather_zone_status_inputs",
+        return_value=(thresholds_lut, hfi_rows),
+    )
+
     zone_status = AdvisoryZoneStatus(
         run_parameters=1,
         advisory_shape_id=100,
@@ -137,64 +147,160 @@ async def test_process_zone_statuses_success(mocker):
     )
     mock_advisory_status_already_processed.assert_called_once_with(mock_session, 1, 10)
     mock_get_fuel_type_raster_by_year.assert_called_once_with(mock_session, 2023)
-    mock_calculate_zone_statuses.assert_called_once_with(
-        mock_session, 1, run_type, run_datetime, for_date, 10
+    mock_gather_zone_status_inputs.assert_called_once_with(
+        mock_session, run_type, run_datetime, for_date, 10
     )
+    mock_calculate_zone_statuses.assert_called_once_with(thresholds_lut, hfi_rows, 1, 10)
     mock_store_all_advisory_zone_status.assert_called_once_with(mock_session, [zone_status])
 
 
 @pytest.mark.anyio
-async def test_calculate_zone_statuses(mocker):
+async def test_calculate_zone_statuses():
     """Test calculate_zone_statuses computation."""
-    session = AsyncMock()
+    thresholds_lut = {
+        HfiClassificationThresholdEnum.ADVISORY.value: 1,
+        HfiClassificationThresholdEnum.WARNING.value: 2,
+    }
 
-    # Mock get_hfi_threshold_ids
-    mock_get_hfi_threshold_ids = mocker.patch(
-        "app.auto_spatial_advisory.process_zone_status.get_hfi_threshold_ids",
-        return_value={
-            HfiClassificationThresholdEnum.ADVISORY.value: 1,
-            HfiClassificationThresholdEnum.WARNING.value: 2,
-        },
+    hfi_area_row1 = HfiArea(
+        shape_id=1,
+        source_identifier="2",
+        combustible_area=1000.0,
+        high_hfi_area_id=11,
+        threshold=1,
+        hfi_area=200.0,
     )
 
-    mock_hfi_area_row = MagicMock()
-    mock_hfi_area_row.shape_id = 100
-    mock_hfi_area_row.combustible_area = 1000.0
-    mock_hfi_area_row.threshold = 1
-    mock_hfi_area_row.hfi_area = 200.0
-
-    mock_hfi_area_row2 = MagicMock()
-    mock_hfi_area_row2.shape_id = 100
-    mock_hfi_area_row2.combustible_area = 1000.0
-    mock_hfi_area_row2.threshold = 2
-    mock_hfi_area_row2.hfi_area = 100.0
-
-    mock_get_hfi_area = mocker.patch(
-        "app.auto_spatial_advisory.process_zone_status.get_hfi_area",
-        return_value=[mock_hfi_area_row, mock_hfi_area_row2],
+    hfi_area_row2 = HfiArea(
+        shape_id=1,
+        source_identifier="2",
+        combustible_area=1000.0,
+        high_hfi_area_id=12,
+        threshold=2,
+        hfi_area=100.0,
     )
+
+    hfi_rows = [hfi_area_row1, hfi_area_row2]
 
     run_parameters_id = 1
-    run_type = RunType.FORECAST
-    run_datetime = datetime(2023, 1, 1)
-    for_date = date(2023, 1, 1)
     fuel_type_raster_id = 10
 
     result = await calculate_zone_statuses(
-        session, run_parameters_id, run_type, run_datetime, for_date, fuel_type_raster_id
+        thresholds_lut, hfi_rows, run_parameters_id, fuel_type_raster_id
     )
 
     assert len(result) == 1
     status = result[0]
     assert status.run_parameters == 1
-    assert status.advisory_shape_id == approx(100)
+    assert status.advisory_shape_id == 1
     assert status.advisory_percentage == approx(20.0)  # 200 / 1000 * 100
     assert status.warning_percentage == approx(10.0)  # 100 / 1000 * 100
+    assert status.fuel_type_raster_id == 10
 
-    mock_get_hfi_threshold_ids.assert_called_once_with(session)
-    mock_get_hfi_area.assert_called_once_with(
-        session, RunTypeEnum(run_type.value), run_datetime, for_date, fuel_type_raster_id
+
+@pytest.mark.anyio
+async def test_calculate_zone_statuses_multiple_shapes():
+    """Test calculate_zone_statuses with multiple shapes."""
+    thresholds_lut = {
+        HfiClassificationThresholdEnum.ADVISORY.value: 1,
+        HfiClassificationThresholdEnum.WARNING.value: 2,
+    }
+
+    hfi_rows = [
+        HfiArea(
+            shape_id=100,
+            combustible_area=1000.0,
+            threshold=1,
+            hfi_area=200.0,
+            source_identifier="2",
+            high_hfi_area_id=11,
+        ),
+        HfiArea(
+            shape_id=100,
+            combustible_area=1000.0,
+            threshold=2,
+            hfi_area=100.0,
+            source_identifier="2",
+            high_hfi_area_id=12,
+        ),
+        HfiArea(
+            shape_id=200,
+            combustible_area=500.0,
+            threshold=1,
+            hfi_area=50.0,
+            source_identifier="3",
+            high_hfi_area_id=13,
+        ),
+        HfiArea(
+            shape_id=200,
+            combustible_area=500.0,
+            threshold=2,
+            hfi_area=25.0,
+            source_identifier="3",
+            high_hfi_area_id=14,
+        ),
+    ]
+
+    run_parameters_id = 1
+    fuel_type_raster_id = 10
+
+    result = await calculate_zone_statuses(
+        thresholds_lut, hfi_rows, run_parameters_id, fuel_type_raster_id
     )
+
+    assert len(result) == 2
+    # Sort by shape_id for consistent assertion
+    result.sort(key=lambda x: x.advisory_shape_id)
+
+    status1 = result[0]
+    assert status1.advisory_shape_id == 100
+    assert status1.advisory_percentage == approx(20.0)
+    assert status1.warning_percentage == approx(10.0)
+
+    status2 = result[1]
+    assert status2.advisory_shape_id == 200
+    assert status2.advisory_percentage == approx(10.0)  # 50 / 500 * 100
+    assert status2.warning_percentage == approx(5.0)  # 25 / 500 * 100
+
+
+@pytest.mark.anyio
+async def test_calculate_zone_statuses_zero_combustible_area():
+    """Test calculate_zone_statuses with zero combustible area."""
+    thresholds_lut = {
+        HfiClassificationThresholdEnum.ADVISORY.value: 1,
+        HfiClassificationThresholdEnum.WARNING.value: 2,
+    }
+
+    hfi_rows = [
+        HfiArea(
+            shape_id=100,
+            combustible_area=0.0,
+            threshold=1,
+            hfi_area=0.0,
+            source_identifier="2",
+            high_hfi_area_id=11,
+        ),
+        HfiArea(
+            shape_id=100,
+            combustible_area=0.0,
+            threshold=2,
+            hfi_area=0.0,
+            source_identifier="2",
+            high_hfi_area_id=12,
+        ),
+    ]
+
+    run_parameters_id = 1
+    fuel_type_raster_id = 10
+
+    result = await calculate_zone_statuses(
+        thresholds_lut, hfi_rows, run_parameters_id, fuel_type_raster_id
+    )
+
+    assert len(result) == 1
+    status = result[0]
+    assert status.advisory_percentage == 0.0
+    assert status.warning_percentage == 0.0
 
 
 @pytest.mark.anyio

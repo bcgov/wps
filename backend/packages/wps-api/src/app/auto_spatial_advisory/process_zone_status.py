@@ -8,17 +8,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auto_spatial_advisory.fuel_type_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.auto_spatial_advisory import (
-    get_hfi_area,
-    get_hfi_threshold_ids,
+    gather_zone_status_inputs,
     get_run_parameters_id,
 )
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryZoneStatus,
     HfiClassificationThresholdEnum,
-    RunTypeEnum,
 )
 from wps_shared.run_type import RunType
+from wps_shared.schemas.fba import HfiArea
 
 logger = logging.getLogger(__name__)
 
@@ -58,12 +57,18 @@ async def process_zone_statuses(run_type: RunType, run_datetime: datetime, for_d
             logger.info("Advisory zone statuses already processed.")
             return
 
-        zone_statuses = await calculate_zone_statuses(
+        thresholds_lut, hfi_rows = await gather_zone_status_inputs(
             session,
-            run_param_id,
-            RunType(run_type),
+            run_type,
             run_datetime,
             for_date,
+            fuel_type_raster.id,
+        )
+
+        zone_statuses = await calculate_zone_statuses(
+            thresholds_lut,
+            hfi_rows,
+            run_param_id,
             fuel_type_raster.id,
         )
 
@@ -73,28 +78,16 @@ async def process_zone_statuses(run_type: RunType, run_datetime: datetime, for_d
 
 
 async def calculate_zone_statuses(
-    session: AsyncSession,
+    thresholds_lut: dict[str, int],
+    hfi_rows: list[HfiArea],
     run_parameters_id: int,
-    run_type: RunType,
-    run_datetime: datetime,
-    for_date: date,
     fuel_type_raster_id: int,
 ) -> list[AdvisoryZoneStatus]:
-    thresholds_lut = await get_hfi_threshold_ids(session)
     advisory_id = thresholds_lut[HfiClassificationThresholdEnum.ADVISORY.value]
     warning_id = thresholds_lut[HfiClassificationThresholdEnum.WARNING.value]
 
-    rows = await get_hfi_area(
-        session,
-        RunTypeEnum(run_type.value),
-        run_datetime,
-        for_date,
-        fuel_type_raster_id,
-    )
-
-    # Group by shape_id
     shape_data = defaultdict(lambda: {"combustible_area": 0, "hfi_areas": {}})
-    for row in rows:
+    for row in hfi_rows:
         shape_data[row.shape_id]["combustible_area"] = row.combustible_area
         shape_data[row.shape_id]["hfi_areas"][row.threshold] = row.hfi_area
 
