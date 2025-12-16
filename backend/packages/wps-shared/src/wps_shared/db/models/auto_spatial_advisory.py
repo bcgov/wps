@@ -358,7 +358,7 @@ class AdvisoryZoneStatus(Base):
 
     __tablename__ = "advisory_zone_status"
     __table_args__ = (
-        UniqueConstraint("run_parameters", "advisory_shape_id"),
+        UniqueConstraint("run_parameters", "advisory_shape_id", "fuel_type_raster_id"),
         {"comment": "Status of zones (advisory/warning) for a given run parameter."},
     )
 
