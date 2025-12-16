@@ -14,7 +14,7 @@ import {
 import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
 import RasterLegend from 'features/sfmsInsights/components/map/RasterLegend'
 import { FireWeatherRasterType, RASTER_CONFIG } from 'features/sfmsInsights/components/map/rasterConfig'
-import { isNodataValue } from 'features/sfmsInsights/components/map/sfmsFeatureStylers'
+import { findRasterLayer, getDataAtPixel } from 'features/sfmsInsights/components/map/rasterTooltipHandler'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { Map, View } from 'ol'
@@ -97,29 +97,14 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
       const pixel = map.getEventPixel(evt.originalEvent)
       setPixelCoords([pixel[0], pixel[1]])
 
-      // Find any fire weather raster layer (has a rasterType property)
-      const rasterLayer = map
-        .getLayers()
-        .getArray()
-        .find(l => l.getProperties()?.rasterType !== undefined) as WebGLTileLayer | undefined
+      // Find the fire weather raster layer
+      const rasterLayer = findRasterLayer(map.getLayers().getArray())
 
       if (rasterLayer) {
-        const data = rasterLayer.getData(pixel) as Float32Array | Uint8Array | null
-        const properties = rasterLayer.getProperties()
-        const rasterType = properties?.rasterType as FireWeatherRasterType | undefined
-
-        if (data && data.length > 0 && data[0] !== undefined) {
-          const value = data[0]
-
-          if (!isNodataValue(value)) {
-            setRasterValue(Math.round(value))
-            setRasterLabel(rasterType ? RASTER_CONFIG[rasterType].label : 'FWI')
-          } else {
-            setRasterValue(null)
-          }
-        } else {
-          setRasterValue(null)
-        }
+        // Get tooltip data from the raster layer at the pixel location
+        const { value, label } = getDataAtPixel(rasterLayer, pixel as [number, number])
+        setRasterValue(value)
+        setRasterLabel(label)
       }
     }
 
