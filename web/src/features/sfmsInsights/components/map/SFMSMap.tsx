@@ -18,7 +18,7 @@ import {
   RasterTooltipInteraction,
   RasterTooltipData
 } from '@/features/sfmsInsights/components/map/rasterTooltipInteraction'
-import { RasterLayerManager } from '@/features/sfmsInsights/components/map/rasterLayerManager'
+import { LayerManager } from '@/features/sfmsInsights/components/map/layerManager'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { Map, View } from 'ol'
@@ -50,17 +50,8 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   })
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
-  const rasterLayerManagerRef = useRef<RasterLayerManager | null>(null)
-
-  const removeLayerByName = (map: Map, layerName: string) => {
-    const layer = map
-      .getLayers()
-      .getArray()
-      .find(l => l.getProperties()?.name === layerName)
-    if (layer) {
-      map.removeLayer(layer)
-    }
-  }
+  const rasterLayerManagerRef = useRef<LayerManager | null>(null)
+  const snowLayerManagerRef = useRef<LayerManager | null>(null)
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -83,13 +74,23 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     })
     mapObject.addInteraction(tooltipInteraction)
 
-    // Initialize raster layer manager
-    const rasterLayerManager = new RasterLayerManager({
-      onLoadingChange: setIsLoading
+    // Initialize fire weather raster layer manager
+    const rasterLayerManager = new LayerManager({
+      onLoadingChange: setIsLoading,
+      trackLoading: true
     })
     rasterLayerManager.setMap(mapObject)
-    rasterLayerManager.updateLayer(rasterDate, rasterType, token)
+    rasterLayerManager.updateLayer(getFireWeatherRasterLayer(rasterDate, rasterType, token))
     rasterLayerManagerRef.current = rasterLayerManager
+
+    // Initialize snow layer manager
+    const snowLayerManager = new LayerManager({
+      layerName: SNOW_LAYER_NAME,
+      trackLoading: false // Snow layers load quickly, no need to track
+    })
+    snowLayerManager.setMap(mapObject)
+    snowLayerManager.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate) : null)
+    snowLayerManagerRef.current = snowLayerManager
 
     const loadBaseMap = async () => {
       const style = await getStyleJson(BASEMAP_STYLE_URL)
@@ -104,18 +105,16 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   }, [])
 
   useEffect(() => {
-    if (!map) {
-      return
+    if (snowLayerManagerRef.current) {
+      snowLayerManagerRef.current.updateLayer(
+        !isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate) : null
+      )
     }
-    removeLayerByName(map, SNOW_LAYER_NAME)
-    if (!isNull(snowDate) && showSnow) {
-      map.addLayer(getSnowPMTilesLayer(snowDate))
-    }
-  }, [snowDate, showSnow, map])
+  }, [snowDate, showSnow])
 
   useEffect(() => {
     if (rasterLayerManagerRef.current) {
-      rasterLayerManagerRef.current.updateLayer(rasterDate, rasterType, token)
+      rasterLayerManagerRef.current.updateLayer(getFireWeatherRasterLayer(rasterDate, rasterType, token))
     }
   }, [rasterDate, rasterType, token])
 
