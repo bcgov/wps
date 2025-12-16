@@ -14,7 +14,10 @@ import {
 import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
 import RasterLegend from 'features/sfmsInsights/components/map/RasterLegend'
 import { FireWeatherRasterType, RASTER_CONFIG } from 'features/sfmsInsights/components/map/rasterConfig'
-import { findRasterLayer, getDataAtPixel } from 'features/sfmsInsights/components/map/rasterTooltipHandler'
+import {
+  RasterTooltipInteraction,
+  RasterTooltipData
+} from '@/features/sfmsInsights/components/map/rasterTooltipInteraction'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { Map, View } from 'ol'
@@ -40,9 +43,11 @@ interface SFMSMapProps {
 const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: SFMSMapProps) => {
   const token = useSelector(selectToken)
   const [map, setMap] = useState<Map | null>(null)
-  const [rasterValue, setRasterValue] = useState<number | null>(null)
-  const [rasterLabel, setRasterLabel] = useState<string>('FWI')
-  const [pixelCoords, setPixelCoords] = useState<[number, number] | null>(null)
+  const [rasterTooltipData, setRasterTooltipData] = useState<RasterTooltipData>({
+    value: null,
+    label: 'FWI',
+    pixel: null
+  })
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
 
@@ -71,6 +76,12 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
     setMap(mapObject)
 
+    // Add raster tooltip interaction
+    const tooltipInteraction = new RasterTooltipInteraction({
+      onTooltipChange: setRasterTooltipData
+    })
+    mapObject.addInteraction(tooltipInteraction)
+
     const loadBaseMap = async () => {
       const style = await getStyleJson(BASEMAP_STYLE_URL)
       const basemapLayer = await createVectorTileLayer(BASEMAP_TILE_URL, style, 1, BASEMAP_LAYER_NAME)
@@ -88,32 +99,6 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
       mapObject.setTarget('')
     }
   }, [])
-
-  // Add hover listener to get raster pixel values
-  useEffect(() => {
-    if (!map) return
-
-    const handlePointerMove = (evt: any) => {
-      const pixel = map.getEventPixel(evt.originalEvent)
-      setPixelCoords([pixel[0], pixel[1]])
-
-      // Find the fire weather raster layer
-      const rasterLayer = findRasterLayer(map.getLayers().getArray())
-
-      if (rasterLayer) {
-        // Get tooltip data from the raster layer at the pixel location
-        const { value, label } = getDataAtPixel(rasterLayer, pixel as [number, number])
-        setRasterValue(value)
-        setRasterLabel(label)
-      }
-    }
-
-    map.on('pointermove', handlePointerMove)
-
-    return () => {
-      map.un('pointermove', handlePointerMove)
-    }
-  }, [map])
 
   useEffect(() => {
     if (!map) {
@@ -159,7 +144,11 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
               height: '100%'
             }}
           ></Box>
-          <RasterTooltip label={rasterLabel} value={rasterValue} pixelCoords={pixelCoords} />
+          <RasterTooltip
+            label={rasterTooltipData.label}
+            value={rasterTooltipData.value}
+            pixelCoords={rasterTooltipData.pixel}
+          />
           <RasterLegend rasterType={rasterType} />
           {isLoading && (
             <Box
