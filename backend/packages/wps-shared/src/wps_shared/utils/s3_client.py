@@ -95,7 +95,7 @@ class S3Client:
         await self.client.delete_object(Bucket=self.bucket, Key=key)
 
     async def persist_raster_data(
-        self, temp_dir: str, key: str, transform, projection, values, no_data_value
+        self, temp_dir: str, key: str, cog_key: str, transform, projection, values, no_data_value
     ) -> str:
         """
         Persists a geotiff in s3 based on transform, projection, values and no data value.
@@ -109,11 +109,14 @@ class S3Client:
         :return: path to temporary written geotiff file
         """
         temp_geotiff = os.path.join(temp_dir, os.path.basename(key))
+        temp_cog = os.path.join(temp_dir, os.path.basename(cog_key))
         with WPSDataset.from_array(values, transform, projection, no_data_value) as ds:
             ds.export_to_geotiff(temp_geotiff)
+            ds.export_to_cog(temp_cog)
 
         logger.info(f"Writing to s3 -- {key}")
         await self.put_object(key=key, body=open(temp_geotiff, "rb"))
+        await self.put_object(key=cog_key, body=open(temp_cog, "rb"))
         return temp_geotiff
 
     @staticmethod

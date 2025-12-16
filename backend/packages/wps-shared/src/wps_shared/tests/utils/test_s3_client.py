@@ -20,13 +20,27 @@ async def test_put_object_called(mocker: MockerFixture):
         no_data_value = mock_band.GetNoDataValue()
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            with WPSDataset.from_array(values, mock_ds.GetGeoTransform(), mock_ds.GetProjection(), no_data_value) as expected_ds:
+            with WPSDataset.from_array(
+                values, mock_ds.GetGeoTransform(), mock_ds.GetProjection(), no_data_value
+            ) as expected_ds:
                 expected_key = "expected_key"
-                expected_filename = os.path.join(temp_dir, os.path.basename("expected_key"))
+                expected_cog_key = "expected_cog_key"
+                expected_filename = os.path.join(temp_dir, os.path.basename(expected_key))
                 expected_ds.export_to_geotiff(expected_filename)
-                await s3_client.persist_raster_data(temp_dir, expected_key, mock_ds.GetGeoTransform(), mock_ds.GetProjection(), values, no_data_value)
+                await s3_client.persist_raster_data(
+                    temp_dir,
+                    expected_key,
+                    expected_cog_key,
+                    mock_ds.GetGeoTransform(),
+                    mock_ds.GetProjection(),
+                    values,
+                    no_data_value,
+                )
 
-                assert persist_raster_spy.call_args_list == [mocker.call(key=expected_key, body=mocker.ANY)]
+                assert persist_raster_spy.call_args_list == [
+                    mocker.call(key=expected_key, body=mocker.ANY),
+                    mocker.call(key=expected_cog_key, body=mocker.ANY),
+                ]
                 assert isinstance(persist_raster_spy.call_args.kwargs["body"], BufferedReader)
 
 
