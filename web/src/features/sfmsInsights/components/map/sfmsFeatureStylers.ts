@@ -1,6 +1,5 @@
 import { colorByFuelTypeCode, getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
-import { RASTER_COLOR_BREAKS } from './rasterConfig'
-import { FireWeatherRasterType } from './layerDefinitions'
+import { RASTER_COLOR_BREAKS, FireWeatherRasterType, ColorBreak } from './rasterConfig'
 import * as ol from 'ol'
 import Geometry from 'ol/geom/Geometry'
 import RenderFeature from 'ol/render/Feature'
@@ -87,7 +86,7 @@ export const getFireWeatherColourExpression = (rasterType: string) => {
   )
 
   // Dynamically build expression from color breaks
-  colorBreaks.forEach(colorBreak => {
+  colorBreaks.forEach((colorBreak: ColorBreak) => {
     const [r, g, b] = colorBreak.color.match(/\d+/g)!.map(Number)
 
     if (colorBreak.max !== null) {

@@ -1,7 +1,6 @@
 import { Grid, Icon, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { RASTER_CONFIG } from './rasterConfig'
-import { FireWeatherRasterType } from './layerDefinitions'
+import { RASTER_CONFIG, FireWeatherRasterType, ColorBreak } from './rasterConfig'
 
 const LegendGrid = styled(Grid)({
   position: 'absolute',
@@ -40,7 +39,7 @@ const RasterLegend = ({ rasterType }: RasterLegendProps) => {
         {label}
       </LegendTitle>
       <List dense={true} sx={{ padding: 0 }}>
-        {colorBreaks.map((colorBreak, index) => (
+        {colorBreaks.map((colorBreak: ColorBreak, index: number) => (
           <ListItem disablePadding key={index}>
             <ListItemIcon>
               <LegendSymbol sx={{ backgroundColor: colorBreak.color }} />

@@ -1,6 +1,5 @@
 import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from '@mui/material'
-import { FireWeatherRasterType } from './map/layerDefinitions'
-import { RASTER_CONFIG } from './map/rasterConfig'
+import { RASTER_CONFIG, FireWeatherRasterType } from './map/rasterConfig'
 
 interface RasterTypeDropdownProps {
   selectedRasterType: FireWeatherRasterType
