@@ -15,6 +15,11 @@ First, install uv if you don't have it:
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
+**Homebrew:**
+```bash
+HOMEBREW_NO_AUTO_UPDATE=1 brew install uv
+```
+
 **Windows:**
 ```powershell
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
