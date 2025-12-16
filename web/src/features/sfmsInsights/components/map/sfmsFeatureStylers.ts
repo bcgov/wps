@@ -9,6 +9,15 @@ import Style from 'ol/style/Style'
 export const SNOW_FILL = 'rgba(255, 255, 255, 1)'
 export const EMPTY_FILL = 'rgba(0, 0, 0, 0)'
 
+// Nodata threshold for GeoTIFF rasters
+// GeoTIFF nodata is -3.4028235e+38, use threshold for floating-point reliability
+export const NODATA_THRESHOLD = 10000000000.0
+
+// Helper function to check if a raster value is nodata
+export const isNodataValue = (value: number): boolean => {
+  return value > NODATA_THRESHOLD || value < -NODATA_THRESHOLD
+}
+
 export const rasterValueToFuelTypeCode = new Map([
   [1, 'C-1'],
   [2, 'C-2'],
@@ -79,9 +88,9 @@ export const getFireWeatherColourExpression = (rasterType: string) => {
   // Handle nodata values - GeoTIFF nodata is -3.4028235e+38
   // Use threshold checks for floating-point reliability
   expression.push(
-    ['>', ['band', 1], 10000000000.0],
+    ['>', ['band', 1], NODATA_THRESHOLD],
     [0, 0, 0, 0], // Very large positive values (nodata): transparent
-    ['<', ['band', 1], -10000000000.0],
+    ['<', ['band', 1], -NODATA_THRESHOLD],
     [0, 0, 0, 0] // Very large negative values (nodata): transparent
   )
 

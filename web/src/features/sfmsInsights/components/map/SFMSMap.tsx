@@ -14,6 +14,7 @@ import {
 import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
 import RasterLegend from 'features/sfmsInsights/components/map/RasterLegend'
 import { FireWeatherRasterType, RASTER_CONFIG } from 'features/sfmsInsights/components/map/rasterConfig'
+import { isNodataValue } from 'features/sfmsInsights/components/map/sfmsFeatureStylers'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { Map, View } from 'ol'
@@ -108,8 +109,14 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
         const rasterType = properties?.rasterType as FireWeatherRasterType | undefined
 
         if (data && data.length > 0 && data[0] !== undefined) {
-          setRasterValue(Math.round(data[0]))
-          setRasterLabel(rasterType ? RASTER_CONFIG[rasterType].label : 'FWI')
+          const value = data[0]
+
+          if (!isNodataValue(value)) {
+            setRasterValue(Math.round(value))
+            setRasterLabel(rasterType ? RASTER_CONFIG[rasterType].label : 'FWI')
+          } else {
+            setRasterValue(null)
+          }
         } else {
           setRasterValue(null)
         }
