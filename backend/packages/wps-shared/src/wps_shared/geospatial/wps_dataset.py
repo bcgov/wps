@@ -304,14 +304,22 @@ class WPSDataset:
 
         return latitudes
 
-    def export_to_geotiff(self, output_path: str):
+    def export_to(
+        self,
+        output_path: str,
+        driver: gdal.Driver = gdal.GetDriverByName("GTiff"),
+        options: List[str] = ["COMPRESS=LZW"],
+    ):
         """
-        Exports the dataset to a geotiff with the given path
+        Exports the dataset to a format with the given path
 
-        :param output_path: path to export the geotiff to
+        :param output_path: path to export the data to
+        :param driver: gdal driver to use
+        :param options: gdal options for driver to use
         """
-        driver: gdal.Driver = gdal.GetDriverByName("GTiff")
 
+        if not driver:
+            raise RuntimeError("GDAL driver not available. Ensure GDAL >= 3.1 if using COG")
         geotransform = self.ds.GetGeoTransform()
         projection = self.ds.GetProjection()
 
@@ -322,7 +330,7 @@ class WPSDataset:
 
         rows, cols = array.shape
         output_dataset: gdal.Dataset = driver.Create(
-            output_path, cols, rows, 1, datatype, options=["COMPRESS=LZW"]
+            output_path, cols, rows, 1, datatype, options=options
         )
         output_dataset.SetGeoTransform(geotransform)
         output_dataset.SetProjection(projection)
@@ -339,6 +347,14 @@ class WPSDataset:
         output_band = None
         del output_band
 
+    def export_to_geotiff(self, output_path: str):
+        """
+        Exports the dataset to a geotiff with the given path
+
+        :param output_path: path to export the geotiff to
+        """
+        self.export_to(output_path=output_path)
+
     def export_to_cog(
         self,
         output_path: str,
@@ -353,15 +369,11 @@ class WPSDataset:
             f"RESAMPLING={resampling}",
         ]
 
-        cog_driver: gdal.Driver = gdal.GetDriverByName("COG")
-        if not cog_driver:
-            raise RuntimeError("COG driver not available. Ensure GDAL >= 3.1")
         target_srs: str = "EPSG:3857"
         reprojected_ds = self.reproject(
             output_path, target_srs=target_srs, resample_alg=resampling.value
         )
-        cog_driver.CreateCopy(output_path, reprojected_ds, options=cog_options)
-        return output_path
+        reprojected_ds.export_to(output_path, gdal.GetDriverByName("COG"), options=cog_options)
 
     def get_nodata_mask(self) -> Tuple[Optional[np.ndarray], Optional[Union[float, int]]]:
         band = self.ds.GetRasterBand(self.band)

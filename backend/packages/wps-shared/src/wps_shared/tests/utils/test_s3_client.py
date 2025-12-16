@@ -13,6 +13,11 @@ from unittest.mock import AsyncMock, MagicMock
 @pytest.mark.anyio
 async def test_put_object_called(mocker: MockerFixture):
     async with S3Client() as s3_client:
+        mocker.patch.dict(
+            "os.environ",
+            {"CHECK_DISK_FREE_SPACE": "FALSE"},
+            clear=False,
+        )
         persist_raster_spy = mocker.patch.object(s3_client, "put_object")
         mock_ds = create_mock_gdal_dataset()
         mock_band: gdal.Band = mock_ds.GetRasterBand(1)
