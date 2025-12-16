@@ -22,9 +22,6 @@ from wps_shared.db.models.auto_spatial_advisory import (
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.hfi_calc import FireCentre
 from geoalchemy2 import WKTElement
-import os
-
-os.environ["TESTCONTAINERS_RYUK_DISABLED"] = "true"
 
 test_run_datetime = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 test_for_date = test_run_datetime.date()
