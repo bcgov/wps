@@ -1,0 +1,17 @@
+[project]
+name = "wps-weather"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Conor Brady", email = "con.brad@gmail.com" }
+]
+requires-python = ">=3.12.3"
+dependencies = []
+
+[project.scripts]
+wps-weather = "wps_weather:main"
+
+[build-system]
+requires = ["uv_build>=0.9.10,<0.10.0"]
+build-backend = "uv_build"

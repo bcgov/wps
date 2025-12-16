@@ -1,5 +1,8 @@
 [tool.uv.workspace]
-members = ["packages/*"]
+members = [
+    "packages/*",
+    "wps-weather",
+]
 
 [dependency-groups]
 dev = [
