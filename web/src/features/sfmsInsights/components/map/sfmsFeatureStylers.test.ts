@@ -7,7 +7,9 @@ import {
   snowStyler,
   styleFuelGrid,
   fuelCOGColourExpression,
-  rasterValueToFuelTypeCode
+  rasterValueToFuelTypeCode,
+  NODATA_THRESHOLD,
+  isNodataValue
 } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
 import { getColorByFuelTypeCode, colorByFuelTypeCode } from '@/features/fba/components/viz/color'
 
@@ -88,5 +90,47 @@ describe('fuelCOGColourExpression', () => {
     const expr = fuelCOGColourExpression()
     const fallback = expr[expr.length - 1]
     expect(fallback).toEqual([0, 0, 0, 0])
+  })
+})
+
+describe('NODATA_THRESHOLD', () => {
+  it('should be defined as 10 billion', () => {
+    expect(NODATA_THRESHOLD).toBe(10000000000.0)
+  })
+})
+
+describe('isNodataValue', () => {
+  describe('should return true for nodata values', () => {
+    it.each([
+      ['very large positive value just beyond threshold', NODATA_THRESHOLD + 1],
+      ['very large positive value', 10000000001],
+      ['typical GeoTIFF nodata positive', 3.4028235e38],
+      ['maximum positive value', Number.MAX_VALUE],
+      ['positive infinity', Infinity],
+      ['very large negative value just beyond threshold', -NODATA_THRESHOLD - 1],
+      ['very large negative value', -10000000001],
+      ['typical GeoTIFF nodata negative', -3.4028235e38],
+      ['maximum negative value', -Number.MAX_VALUE],
+      ['negative infinity', -Infinity]
+    ])('%s: %f', (_description, value) => {
+      expect(isNodataValue(value)).toBe(true)
+    })
+  })
+
+  describe('should return false for valid values', () => {
+    it.each([
+      ['zero', 0],
+      ['typical FWI minimum', 1],
+      ['typical FWI value', 50],
+      ['typical FWI maximum', 100],
+      ['high FWI value', 150],
+      ['small negative value', -1],
+      ['moderate negative value', -100],
+      ['large negative value', -1000],
+      ['positive threshold boundary', NODATA_THRESHOLD],
+      ['negative threshold boundary', -NODATA_THRESHOLD]
+    ])('%s: %f', (_description, value) => {
+      expect(isNodataValue(value)).toBe(false)
+    })
   })
 })
