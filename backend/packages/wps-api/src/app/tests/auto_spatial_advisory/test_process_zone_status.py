@@ -299,8 +299,8 @@ async def test_calculate_zone_statuses_zero_combustible_area():
 
     assert len(result) == 1
     status = result[0]
-    assert status.advisory_percentage == 0.0
-    assert status.warning_percentage == 0.0
+    assert status.advisory_percentage == approx(0.0)
+    assert status.warning_percentage == approx(0.0)
 
 
 @pytest.mark.anyio
