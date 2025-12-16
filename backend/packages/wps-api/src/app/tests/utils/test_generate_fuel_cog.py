@@ -3,6 +3,7 @@ import numpy as np
 from app.utils import generate_fuel_cog
 from tempfile import TemporaryDirectory
 from osgeo import gdal, osr
+from wps_shared.geospatial.cog import reproject_raster
 
 fuel_tif_500m = os.path.join(os.path.dirname(__file__), "fuel_sample.tif")
 
@@ -52,7 +53,7 @@ def test_reproject_raster_to_3857():
 
     with TemporaryDirectory() as tmpdir:
         output_path = os.path.join(tmpdir, "reprojected_fuel.tif")
-        result = generate_fuel_cog.reproject_raster_to_3857(fuel_tif_500m, output_path)
+        result = reproject_raster(fuel_tif_500m, output_path, target_srs="EPSG:3857")
         assert result == output_path
 
         ds = gdal.Open(output_path)
