@@ -18,12 +18,12 @@ import {
   RasterTooltipInteraction,
   RasterTooltipData
 } from '@/features/sfmsInsights/components/map/rasterTooltipInteraction'
+import { RasterLayerManager } from '@/features/sfmsInsights/components/map/rasterLayerManager'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { Map, View } from 'ol'
 import { defaults as defaultControls } from 'ol/control'
 import { boundingExtent } from 'ol/extent'
-import WebGLTileLayer from 'ol/layer/WebGLTile'
 import 'ol/ol.css'
 import { fromLonLat } from 'ol/proj'
 import React, { useEffect, useRef, useState } from 'react'
@@ -50,6 +50,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   })
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
+  const rasterLayerManagerRef = useRef<RasterLayerManager | null>(null)
 
   const removeLayerByName = (map: Map, layerName: string) => {
     const layer = map
@@ -82,18 +83,20 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     })
     mapObject.addInteraction(tooltipInteraction)
 
+    // Initialize raster layer manager
+    const rasterLayerManager = new RasterLayerManager({
+      onLoadingChange: setIsLoading
+    })
+    rasterLayerManager.setMap(mapObject)
+    rasterLayerManager.updateLayer(rasterDate, rasterType, token)
+    rasterLayerManagerRef.current = rasterLayerManager
+
     const loadBaseMap = async () => {
       const style = await getStyleJson(BASEMAP_STYLE_URL)
       const basemapLayer = await createVectorTileLayer(BASEMAP_TILE_URL, style, 1, BASEMAP_LAYER_NAME)
       mapObject.addLayer(basemapLayer)
     }
-
-    const loadRasterLayer = async () => {
-      const rasterLayer = getFireWeatherRasterLayer(rasterDate, rasterType, token, FWI_LAYER_NAME)
-      mapObject.addLayer(rasterLayer)
-    }
     loadBaseMap()
-    loadRasterLayer()
 
     return () => {
       mapObject.setTarget('')
@@ -111,26 +114,10 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   }, [snowDate, showSnow, map])
 
   useEffect(() => {
-    if (!map) {
-      return
+    if (rasterLayerManagerRef.current) {
+      rasterLayerManagerRef.current.updateLayer(rasterDate, rasterType, token)
     }
-    removeLayerByName(map, FWI_LAYER_NAME)
-    setIsLoading(true)
-    const rasterLayer = getFireWeatherRasterLayer(rasterDate, rasterType, token, FWI_LAYER_NAME)
-
-    // Listen for when the source finishes loading
-    const source = rasterLayer.getSource()
-    if (source) {
-      source.on('tileloadend', () => {
-        setIsLoading(false)
-      })
-      source.on('tileloaderror', () => {
-        setIsLoading(false)
-      })
-    }
-
-    map.addLayer(rasterLayer)
-  }, [rasterDate, rasterType, map, token])
+  }, [rasterDate, rasterType, token])
 
   return (
     <ErrorBoundary>
