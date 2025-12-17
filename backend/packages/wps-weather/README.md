@@ -25,6 +25,11 @@ HOMEBREW_NO_AUTO_UPDATE=1 brew install uv
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
+**Winget:**
+```powershell
+winget install --id=astral-sh.uv -e
+```
+
 **Alternative (using pip):**
 ```bash
 pip install uv
