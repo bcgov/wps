@@ -5,13 +5,11 @@ import { configureStore } from "@reduxjs/toolkit";
 import { DateTime } from "luxon";
 import {
   useFilteredHFIStatsForDate,
-  useFireShapeAreasForDate,
   useProvincialSummaryForDate,
   useTPIStatsForDate,
 } from "@/hooks/dataHooks";
 import {
-  FireShapeArea,
-  FireShapeAreaDetail,
+  FireShapeStatusDetail,
   FireZoneHFIStatsDictionary,
   FireZoneTPIStats,
   RunParameter,
@@ -79,30 +77,16 @@ describe("Custom Hooks", () => {
     expect(result.current).toEqual([]);
   });
 
-  it("useFireShapeAreasForDate returns FireShapeAreas", () => {
-    const mockAreas: FireShapeArea[] = [{ fire_shape_id: 1 } as FireShapeArea];
-    const store = createMockStore({
-      data: {
-        ...initialState,
-        fireShapeAreas: {
-          [todayKey]: { runParameter: mockRunParameter, data: mockAreas },
-        },
-      },
-    });
-
-    const { result } = renderHook(() => useFireShapeAreasForDate(today), {
-      wrapper: ({ children }: { children: ReactNode }) => (
-        <Provider store={store}>{children}</Provider>
-      ),
-    });
-
-    expect(result.current).toEqual(mockAreas);
-  });
-
   it("useProvincialSummaryForDate groups by fire_centre_name", () => {
-    const mockSummary: FireShapeAreaDetail[] = [
-      { fire_shape_id: 1, fire_centre_name: "Centre A" } as FireShapeAreaDetail,
-      { fire_shape_id: 2, fire_centre_name: "Centre A" } as FireShapeAreaDetail,
+    const mockSummary: FireShapeStatusDetail[] = [
+      {
+        fire_shape_id: 1,
+        fire_centre_name: "Centre A",
+      } as FireShapeStatusDetail,
+      {
+        fire_shape_id: 2,
+        fire_centre_name: "Centre A",
+      } as FireShapeStatusDetail,
     ];
     const store = createMockStore({
       data: {
@@ -150,7 +134,6 @@ describe("Custom Hooks", () => {
       data: {
         ...initialState,
         hfiStats: {},
-        fireShapeAreas: {},
         provincialSummaries: {},
         tpiStats: {},
       },
@@ -165,16 +148,6 @@ describe("Custom Hooks", () => {
       }
     );
     expect(hfiResult.current).toEqual([]);
-
-    const { result: fireShapeResult } = renderHook(
-      () => useFireShapeAreasForDate(null as unknown as DateTime),
-      {
-        wrapper: ({ children }: { children: ReactNode }) => (
-          <Provider store={store}>{children}</Provider>
-        ),
-      }
-    );
-    expect(fireShapeResult.current).toEqual([]);
 
     const { result: provincialResult } = renderHook(
       () => useProvincialSummaryForDate(null as unknown as DateTime),

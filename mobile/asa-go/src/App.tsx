@@ -35,8 +35,6 @@ import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-const ADVISORY_THRESHOLD = 20;
-
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
   const isActive = useAppIsActive();
@@ -180,7 +178,6 @@ const App = () => {
             selectedFireShape={selectedFireShape}
             setSelectedFireShape={setSelectedFireShape}
             setSelectedFireCenter={setFireCenter}
-            advisoryThreshold={ADVISORY_THRESHOLD}
             date={dateOfInterest}
             setDate={setDateOfInterest}
             setTab={setTab}
@@ -189,7 +186,6 @@ const App = () => {
         </TabPanel>
         <TabPanel value={tab} panel={NavPanel.PROFILE}>
           <Profile
-            advisoryThreshold={ADVISORY_THRESHOLD}
             date={dateOfInterest}
             setDate={setDateOfInterest}
             selectedFireCenter={fireCenter}
@@ -200,7 +196,6 @@ const App = () => {
         </TabPanel>
         <TabPanel value={tab} panel={NavPanel.ADVISORY}>
           <Advisory
-            advisoryThreshold={ADVISORY_THRESHOLD}
             date={dateOfInterest}
             setDate={setDateOfInterest}
             selectedFireCenter={fireCenter}

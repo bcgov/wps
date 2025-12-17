@@ -1,25 +1,10 @@
-// useFireCentreDetails.test.tsx
-import { renderHook } from '@testing-library/react';
-import { useFireCentreDetails } from './useFireCentreDetails';
-import { FireCenter, FireShapeAreaDetail } from 'api/fbaAPI';
+import { renderHook } from "@testing-library/react";
+import { useFireCentreDetails } from "./useFireCentreDetails";
+import { FireCenter, RunParameter, RunType } from "api/fbaAPI";
 import { Provider } from "react-redux";
-import { configureStore, Store } from "@reduxjs/toolkit";
-import { Mock, vi } from "vitest";
-import React from "react";
-import { useProvincialSummaryForDate } from "@/hooks/dataHooks";
 import { DateTime } from "luxon";
-
-// Mock the useProvincialSummaryForDate hook
-vi.mock("@/hooks/dataHooks", () => ({
-  useProvincialSummaryForDate: vi.fn(),
-}));
-
-// Helper to wrap hook with Redux provider
-const createWrapper = (store: Store) => {
-  return ({ children }: { children: React.ReactNode }) => (
-    <Provider store={store}>{children}</Provider>
-  );
-};
+import { AdvisoryStatus } from "@/utils/constants";
+import { createTestStore } from "@/testUtils";
 
 describe("useFireCentreDetails", () => {
   it("returns grouped and sorted fire shape details for a selected fire center", () => {
@@ -30,46 +15,49 @@ describe("useFireCentreDetails", () => {
       stations: [],
     };
 
-    const mockSummary: Record<string, FireShapeAreaDetail[]> = {
-      "Test Centre": [
-        {
-          fire_shape_id: 2,
-          fire_shape_name: "Zone B",
-          fire_centre_name: "Test Centre",
-          combustible_area: 100,
-          elevated_hfi_percentage: 10,
-        },
-        {
-          fire_shape_id: 1,
-          fire_shape_name: "Zone A",
-          fire_centre_name: "Test Centre",
-          combustible_area: 200,
-          elevated_hfi_percentage: 20,
-        },
-        {
-          fire_shape_id: 1,
-          fire_shape_name: "Zone A",
-          fire_centre_name: "Test Centre",
-          combustible_area: 150,
-          elevated_hfi_percentage: 15,
-        },
-      ],
+    const mockProvincialSummaries = [
+      {
+        fire_shape_id: 2,
+        fire_shape_name: "Zone B",
+        fire_centre_name: "Test Centre",
+        status: AdvisoryStatus.ADVISORY,
+      },
+      {
+        fire_shape_id: 1,
+        fire_shape_name: "Zone A",
+        fire_centre_name: "Test Centre",
+        status: AdvisoryStatus.WARNING,
+      },
+    ];
+
+    const mockRunParameter: RunParameter = {
+      for_date: "2025-08-25",
+      run_datetime: "2025-08-25T12:00:00Z",
+      run_type: RunType.FORECAST,
     };
 
-    // Mock hook return value
-    (useProvincialSummaryForDate as unknown as Mock).mockReturnValue(
-      mockSummary
-    );
-
-    const store = configureStore({
-      reducer: () => ({}), // dummy reducer
-      preloadedState: {},
+    const store = createTestStore({
+      data: {
+        provincialSummaries: {
+          "2025-08-25": {
+            data: mockProvincialSummaries,
+            runParameter: mockRunParameter,
+          },
+        },
+        loading: false,
+        error: null,
+        lastUpdated: null,
+        tpiStats: {},
+        hfiStats: {},
+      },
     });
 
     const { result } = renderHook(
       () => useFireCentreDetails(mockFireCenter, testDate),
       {
-        wrapper: createWrapper(store),
+        wrapper: ({ children }) => (
+          <Provider store={store}>{children}</Provider>
+        ),
       }
     );
 
@@ -78,29 +66,27 @@ describe("useFireCentreDetails", () => {
         fire_shape_id: 1,
         fire_shape_name: "Zone A",
         fire_centre_name: "Test Centre",
-        fireShapeDetails: [
-          mockSummary["Test Centre"][1],
-          mockSummary["Test Centre"][2],
-        ],
+        status: AdvisoryStatus.WARNING,
       },
       {
         fire_shape_id: 2,
         fire_shape_name: "Zone B",
         fire_centre_name: "Test Centre",
-        fireShapeDetails: [mockSummary["Test Centre"][0]],
+        status: AdvisoryStatus.ADVISORY,
       },
     ]);
   });
 
   it("returns an empty array if no fire center is selected", () => {
     const testDate = DateTime.fromISO("2025-08-25");
-    (useProvincialSummaryForDate as unknown as Mock).mockReturnValue({});
-    const store = configureStore({ reducer: () => ({}) });
+    const store = createTestStore();
 
     const { result } = renderHook(
       () => useFireCentreDetails(undefined, testDate),
       {
-        wrapper: createWrapper(store),
+        wrapper: ({ children }) => (
+          <Provider store={store}>{children}</Provider>
+        ),
       }
     );
 

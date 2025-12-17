@@ -2,9 +2,7 @@ import React from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import AboutDataPopover from '@/components/AboutDataPopover'
 import { FBAAboutDataContent } from '@/features/fbaCalculator/components/FbaAboutDataContent'
-import { ASAAboutDataContent } from '@/features/fba/components/ASAAboutDataContent'
-
-const ADVISORY_THRESHOLD = 20
+import { ADVISORY_THRESHOLD, ASAAboutDataContent } from '@/features/fba/components/ASAAboutDataContent'
 
 describe('AboutDataPopover', () => {
   it('should render the About Data Popover with static content', () => {
@@ -30,12 +28,7 @@ describe('AboutDataPopover', () => {
     })
   })
   it('should contain the advisory threshold as a percent if passed as a prop', () => {
-    render(
-      <AboutDataPopover
-        content={ASAAboutDataContent}
-        props={{ advisoryThreshold: ADVISORY_THRESHOLD }}
-      ></AboutDataPopover>
-    )
+    render(<AboutDataPopover content={ASAAboutDataContent}></AboutDataPopover>)
 
     fireEvent.click(screen.getByTestId('about-data-trigger'))
 

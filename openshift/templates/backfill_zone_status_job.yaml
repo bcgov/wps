@@ -1,0 +1,127 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: backfill-zone-statuses-job-template
+  annotations:
+    description: "Template for backfill zone statuses job."
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: CRUNCHYDB_USER
+    required: true
+objects:
+  - kind: Job
+    apiVersion: batch/v1
+    metadata:
+      name: backfill-zone-statuses-${NAME}-${SUFFIX}
+      labels:
+        app: ${NAME}-${SUFFIX}
+    spec:
+      parallelism: 1
+      completions: 1
+      backoffLimit: 6
+      template:
+        spec:
+          containers:
+            - name: backfill-zone-statuses-container
+              image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-${SUFFIX}:${SUFFIX}
+              command:
+                - uv
+                - run
+                - --no-cache
+                - --no-sync
+                - python
+                - "-m"
+                - app.jobs.backfill_zone_statuses
+              env:
+                - name: POSTGRES_DATABASE
+                  value: ${NAME}
+                - name: POSTGRES_WRITE_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: user
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: password
+                - name: POSTGRES_WRITE_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-host
+                - name: POSTGRES_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-port
+                - name: SUFFIX
+                  value: ${SUFFIX}
+                - name: ROCKET_URL_POST_MESSAGE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: rocket.chat-url-post-message
+                - name: ROCKET_CHANNEL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: rocket.chat-channel
+                - name: ROCKET_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: rocket.chat-user-id-secret
+                - name: ROCKET_AUTH_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: rocket.chat-auth-token-secret
+                - name: OBJECT_STORE_SERVER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-server
+                - name: OBJECT_STORE_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-user-id
+                - name: OBJECT_STORE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-secret
+                - name: OBJECT_STORE_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-bucket
+                - name: FUEL_RASTER_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.fuel_raster_name
+              resources:
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+                requests:
+                  cpu: 500m
+                  memory: 512Mi
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              imagePullPolicy: Always
+          restartPolicy: OnFailure
+          terminationGracePeriodSeconds: 30
+          dnsPolicy: ClusterFirst
+          securityContext: {}
+          schedulerName: default-scheduler

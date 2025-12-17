@@ -8,14 +8,13 @@ import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import TabPanel from 'features/fba/components/infoPanel/TabPanel'
 import { useFireCentreDetails } from 'features/fba/hooks/useFireCentreDetails'
 import { isEmpty, isNil, isNull, isUndefined } from 'lodash'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 
 interface FireZoneUnitTabs {
   selectedFireZoneUnit: FireShape | undefined
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
   selectedFireCenter: FireCenter | undefined
-  advisoryThreshold: number
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
 }
 
@@ -23,32 +22,24 @@ const FireZoneUnitTabs = ({
   selectedFireZoneUnit,
   setZoomSource,
   selectedFireCenter,
-  advisoryThreshold,
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
   const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
-  const [tabNumber, setTabNumber] = useState(0)
 
-  const sortedGroupedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
+  const sortedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
   const filteredFireCentreHFIFuelStats = useSelector(selectFilteredFireCentreHFIFuelStats)
 
-  useEffect(() => {
-    if (selectedFireZoneUnit) {
-      const newIndex = sortedGroupedFireZoneUnits.findIndex(
-        zone => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id
-      )
-      if (newIndex !== -1) {
-        setTabNumber(newIndex)
-      }
-    } else {
-      setTabNumber(0)
-      setSelectedFireShape(getTabFireShape(0)) // if no selected FireShape, select the first one in the sorted tabs
-    }
-  }, [selectedFireZoneUnit, sortedGroupedFireZoneUnits])
+  const tabNumber = useMemo(() => {
+    if (!selectedFireZoneUnit) return 0
+
+    const idx = sortedFireZoneUnits.findIndex(zone => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id)
+
+    return Math.max(idx, 0)
+  }, [selectedFireZoneUnit, sortedFireZoneUnits])
 
   const getTabFireShape = (tabNumber: number): FireShape | undefined => {
-    if (sortedGroupedFireZoneUnits.length > 0) {
-      const selectedTabZone = sortedGroupedFireZoneUnits[tabNumber]
+    if (sortedFireZoneUnits.length > 0) {
+      const selectedTabZone = sortedFireZoneUnits[tabNumber]
 
       const fireShape: FireShape = {
         fire_shape_id: selectedTabZone.fire_shape_id,
@@ -61,8 +52,6 @@ const FireZoneUnitTabs = ({
   }
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setTabNumber(newValue)
-
     const fireShape = getTabFireShape(newValue)
     setSelectedFireShape(fireShape)
     setZoomSource('fireShape')
@@ -80,6 +69,12 @@ const FireZoneUnitTabs = ({
     }
   }, [filteredFireCentreHFIFuelStats, selectedFireCenter])
 
+  useEffect(() => {
+    if (!selectedFireZoneUnit) {
+      setSelectedFireShape(getTabFireShape(0))
+    }
+  }, [getTabFireShape, selectedFireZoneUnit, setSelectedFireShape])
+
   if (isUndefined(selectedFireCenter) || isNull(selectedFireCenter)) {
     return <div data-testid="fire-zone-unit-tabs-empty"></div>
   }
@@ -91,7 +86,7 @@ const FireZoneUnitTabs = ({
         title={selectedFireCenter.name}
         accordionDetailBackgroundColour={INFO_PANEL_CONTENT_BACKGROUND}
       >
-        {isEmpty(sortedGroupedFireZoneUnits) && (
+        {isEmpty(sortedFireZoneUnits) && (
           <Typography sx={{ paddingLeft: '1rem', paddingTop: '1rem' }}>
             No advisory data available for the selected date.
           </Typography>
@@ -109,7 +104,7 @@ const FireZoneUnitTabs = ({
                 }}
                 TabIndicatorProps={{ style: { transition: 'none' } }}
               >
-                {sortedGroupedFireZoneUnits.map((zone, index) => {
+                {sortedFireZoneUnits.map((zone, index) => {
                   const isActive = tabNumber === index
                   const key = zone.fire_shape_id
                   return (
@@ -118,7 +113,7 @@ const FireZoneUnitTabs = ({
                         key={key}
                         data-testid={`zone-${key}-tab`}
                         sx={{
-                          backgroundColor: calculateStatusColour(zone.fireShapeDetails, advisoryThreshold, '#FFFFFF'),
+                          backgroundColor: calculateStatusColour(zone, '#FFFFFF'),
                           minWidth: 'auto',
                           marginTop: theme.spacing(2),
                           fontWeight: 'bold',
@@ -133,7 +128,7 @@ const FireZoneUnitTabs = ({
                 })}
               </Tabs>
             </Box>
-            {sortedGroupedFireZoneUnits.map((zone, index) => (
+            {sortedFireZoneUnits.map((zone, index) => (
               <TabPanel key={zone.fire_shape_id} value={tabNumber} index={index}>
                 <Typography
                   data-testid="fire-zone-title-tabs"
