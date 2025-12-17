@@ -38,7 +38,7 @@ const UpdateNotification = () => {
       anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       action={
         <Button color="primary" size="small" onClick={handleUpdate}>
-          REFRESH
+          Ok
         </Button>
       }
     />
