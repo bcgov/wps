@@ -1,55 +1,18 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import * as ReactDOMClient from 'react-dom/client'
 import { Provider } from 'react-redux'
 import App from 'app/App'
 import { SENTRY_DSN, SENTRY_ENV, API_BASE_URL } from 'utils/env'
 import { registerSW } from 'virtual:pwa-register'
-import { Snackbar, Button } from '@mui/material'
 
 import './index.css'
 import store from 'app/store'
 import * as Sentry from '@sentry/react'
 
-// Global state for update notification
-let triggerUpdateUI: (() => void) | null = null
-let updateCallback: ((reloadPage?: boolean) => Promise<void>) | null = null
-
-const UpdateNotification = () => {
-  const [showUpdate, setShowUpdate] = useState(false)
-
-  useEffect(() => {
-    triggerUpdateUI = () => setShowUpdate(true)
-    return () => {
-      triggerUpdateUI = null
-    }
-  }, [])
-
-  const handleUpdate = () => {
-    setShowUpdate(false)
-    if (updateCallback) {
-      updateCallback(true)
-    }
-  }
-
-  return (
-    <Snackbar
-      open={showUpdate}
-      message="New version available!"
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      action={
-        <Button color="primary" size="small" onClick={handleUpdate}>
-          Refresh
-        </Button>
-      }
-    />
-  )
-}
-
 const AppWrapper = () => {
   return (
     <Provider store={store}>
       <App />
-      <UpdateNotification />
     </Provider>
   )
 }
@@ -79,14 +42,8 @@ const render = () => {
 }
 
 // Register service worker to handle chunk loading and caching
-updateCallback = registerSW({
+registerSW({
   immediate: true,
-  onNeedRefresh() {
-    // Show update notification when new version is available
-    if (triggerUpdateUI) {
-      triggerUpdateUI()
-    }
-  },
   onOfflineReady() {
     console.log('App ready to work offline')
   },
