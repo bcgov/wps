@@ -21,7 +21,5 @@ export const selectRunParameters = (state: RootState) =>
   state.runParameters.runParameters;
 export const selectProvincialSummaries = (state: RootState) =>
   state.data.provincialSummaries;
-export const selectFireShapeAreas = (state: RootState) =>
-  state.data.fireShapeAreas;
 export const selectTPIStats = (state: RootState) => state.data.tpiStats;
 export const selectHFIStats = (state: RootState) => state.data.hfiStats;

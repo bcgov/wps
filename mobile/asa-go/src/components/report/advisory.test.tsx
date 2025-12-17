@@ -2,9 +2,11 @@ import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import Advisory from "@/components/report/Advisory";
 import { DateTime } from "luxon";
-import React from "react";
 import { useSelector } from "react-redux";
-import { FireCenter, FireShape } from "@/api/fbaAPI";
+import { FireCenter } from "@/api/fbaAPI";
+import { AdvisoryTextProps } from "@/components/report/AdvisoryText";
+import { FireZoneUnitTabsProps } from "@/components/report/FireZoneUnitTabs";
+import { FireCenterDropdownProps } from "@/components/FireCenterDropdown";
 
 // Mock child components with proper props
 vi.mock("@/components/TodayTomorrowSwitch", () => ({
@@ -14,18 +16,7 @@ vi.mock("@/components/TodayTomorrowSwitch", () => ({
 }));
 
 vi.mock("@/components/FireCenterDropdown", () => ({
-  default: ({
-    fireCenterOptions,
-  }: {
-    fireCenterOptions: FireCenter[];
-    selectedFireCenter: FireCenter | undefined;
-    setSelectedFireCenter: React.Dispatch<
-      React.SetStateAction<FireCenter | undefined>
-    >;
-    setSelectedFireShape: React.Dispatch<
-      React.SetStateAction<FireShape | undefined>
-    >;
-  }) => (
+  default: ({ fireCenterOptions }: FireCenterDropdownProps) => (
     <div data-testid="fire-center-dropdown">
       Options: {fireCenterOptions.length}
     </div>
@@ -33,25 +24,16 @@ vi.mock("@/components/FireCenterDropdown", () => ({
 }));
 
 vi.mock("@/components/report/FireZoneUnitTabs", () => ({
-  default: ({
-    children,
-  }: {
-    advisoryThreshold: number;
-    selectedFireCenter: FireCenter | undefined;
-    selectedFireZoneUnit: FireShape | undefined;
-    setSelectedFireZoneUnit: React.Dispatch<
-      React.SetStateAction<FireShape | undefined>
-    >;
-    children: React.ReactNode;
-  }) => <div data-testid="fire-zone-tabs">{children}</div>,
+  default: ({ children }: FireZoneUnitTabsProps) => (
+    <div data-testid="fire-zone-tabs">{children}</div>
+  ),
 }));
 
 vi.mock("@/components/report/AdvisoryText", () => ({
-  default: ({}: {
-    advisoryThreshold: number;
-    selectedFireCenter: FireCenter | undefined;
-    selectedFireZoneUnit: FireShape | undefined;
-  }) => <div data-testid="advisory-text">Advisory Text Content</div>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  default: (_: AdvisoryTextProps) => (
+    <div data-testid="advisory-text">Advisory Text Content</div>
+  ),
 }));
 
 // Mock Redux selector
@@ -82,7 +64,6 @@ describe("Advisory Component", () => {
   it("renders all key sections and child components", () => {
     render(
       <Advisory
-        advisoryThreshold={5}
         date={mockDate}
         setDate={setDate}
         selectedFireCenter={undefined}

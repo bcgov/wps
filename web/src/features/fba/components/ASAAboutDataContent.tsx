@@ -1,16 +1,14 @@
-interface ASAAboutDataProps {
-  advisoryThreshold: number
-}
+export const ADVISORY_THRESHOLD = 20
 
-export const ASAAboutDataContent = ({ advisoryThreshold }: ASAAboutDataProps) => (
+export const ASAAboutDataContent = () => (
   <ul style={{ margin: 0 }}>
     <li>
-      A Fire Zone is under a Fire Behaviour Advisory if greater than {advisoryThreshold}% of the combustible land
+      A Fire Zone is under a Fire Behaviour Advisory if greater than {ADVISORY_THRESHOLD}% of the combustible land
       (trees, grass, slash) is forecast to have a Head Fire Intensity between 4,000 and 10,000 kW/m.
     </li>
     <br />
     <li>
-      A Fire Zone is under a Fire Behaviour Warning if greater than {advisoryThreshold}% of the combustible land is
+      A Fire Zone is under a Fire Behaviour Warning if greater than {ADVISORY_THRESHOLD}% of the combustible land is
       forecast to have a Head Fire Intensity greater than 10,000 kW/m.
     </li>
     <br />
