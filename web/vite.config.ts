@@ -5,6 +5,7 @@ import { resolve } from 'path'
 import svgr from 'vite-plugin-svgr'
 import istanbul from 'vite-plugin-istanbul'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   build: {
@@ -51,6 +52,20 @@ export default defineConfig({
       exclude: ['node_modules', 'test/'],
       extension: ['.js', '.ts', '.tsx'],
       cypress: true
+    }),
+    VitePWA({
+      registerType: 'prompt',
+      injectRegister: false,
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024 // 3 MB limit
+      },
+      manifest: false,
+      devOptions: {
+        enabled: false
+      }
     })
   ],
   server: {

@@ -101,7 +101,9 @@
     "ts-sinon": "^2.0.2",
     "vite": "^7.0.0",
     "vite-plugin-istanbul": "^7.0.0",
-    "vite-plugin-svgr": "^4.2.0"
+    "vite-plugin-pwa": "^1.2.0",
+    "vite-plugin-svgr": "^4.2.0",
+    "workbox-window": "^7.4.0"
   },
   "nyc": {
     "report-dir": "coverage-cypress",
