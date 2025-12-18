@@ -5,11 +5,7 @@ from wps_shared import config
 from wps_shared.utils.time import convert_to_sfms_timezone, convert_utc_to_pdt
 from wps_shared.utils.time import assert_all_utc
 from wps_shared.weather_models import ModelEnum
-from wps_shared.sfms.rdps_filename_marshaller import (
-    compose_computed_precip_rdps_key,
-    compose_rdps_key,
-    compose_rdps_key_hffmc,
-)
+from wps_shared.sfms.rdps_filename_marshaller import compose_computed_precip_rdps_key, compose_rdps_key, compose_rdps_key_hffmc
 
 
 class WeatherParameter(enum.Enum):
@@ -85,18 +81,7 @@ class RasterKeyAddresser:
         assert_all_utc(datetime_utc)
         return f"{self.sfms_calculated_prefix}/forecast/{datetime_utc.date().isoformat()}/{fwi_param.value}{datetime_utc.date().isoformat().replace('-', '')}.tif"
 
-    def get_cog_key(self, key: str):
-        """
-        Returns a key with a _cog.tif postfix, assumes input key has a .tif postfix
-
-        :param key: input key that has a .tif extension postfix
-        :return: the input key except with a _cog.tif postfix
-        """
-        return f"{key.replace('.tif', '_cog.tif')}"
-
-    def get_model_data_key(
-        self, start_time_utc: datetime, prediction_hour: int, weather_param: WeatherParameter
-    ):
+    def get_model_data_key(self, start_time_utc: datetime, prediction_hour: int, weather_param: WeatherParameter):
         """
         Generates the model data key that points to the associated raster artifact in the object store.
         The model is always assumed to be RDPS.
@@ -105,15 +90,8 @@ class RasterKeyAddresser:
         :param prediction_hour: the prediction hour offset from the start time
         """
         assert_all_utc(start_time_utc)
-        weather_model_date_prefix = (
-            f"{self.weather_model_prefix}/{start_time_utc.date().isoformat()}/"
-        )
-        return os.path.join(
-            weather_model_date_prefix,
-            compose_rdps_key(
-                start_time_utc, start_time_utc.hour, prediction_hour, weather_param.value
-            ),
-        )
+        weather_model_date_prefix = f"{self.weather_model_prefix}/{start_time_utc.date().isoformat()}/"
+        return os.path.join(weather_model_date_prefix, compose_rdps_key(start_time_utc, start_time_utc.hour, prediction_hour, weather_param.value))
 
     def get_calculated_precip_key(self, datetime_to_calculate_utc: datetime):
         """
@@ -124,16 +102,10 @@ class RasterKeyAddresser:
         :return: the calculated precip key to the raster artifact in object storage
         """
         assert_all_utc(datetime_to_calculate_utc)
-        calculated_weather_prefix = (
-            f"{self.weather_model_prefix}/{datetime_to_calculate_utc.date().isoformat()}/"
-        )
-        return os.path.join(
-            calculated_weather_prefix, compose_computed_precip_rdps_key(datetime_to_calculate_utc)
-        )
+        calculated_weather_prefix = f"{self.weather_model_prefix}/{datetime_to_calculate_utc.date().isoformat()}/"
+        return os.path.join(calculated_weather_prefix, compose_computed_precip_rdps_key(datetime_to_calculate_utc))
 
-    def get_weather_data_keys(
-        self, start_time_utc: datetime, datetime_to_calculate_utc: datetime, prediction_hour: int
-    ):
+    def get_weather_data_keys(self, start_time_utc: datetime, datetime_to_calculate_utc: datetime, prediction_hour: int):
         """
         Generates all model data keys that point to their associated raster artifacts in the object store.
 
@@ -143,12 +115,7 @@ class RasterKeyAddresser:
         :return: temp, rh, wind speed and precip model data key
         """
         assert_all_utc(start_time_utc, datetime_to_calculate_utc)
-        non_precip_keys = tuple(
-            [
-                self.get_model_data_key(start_time_utc, prediction_hour, param)
-                for param in WeatherParameter
-            ]
-        )
+        non_precip_keys = tuple([self.get_model_data_key(start_time_utc, prediction_hour, param) for param in WeatherParameter])
         precip_key = self.get_calculated_precip_key(datetime_to_calculate_utc)
         all_weather_data_keys = non_precip_keys + (precip_key,)
 
@@ -188,18 +155,13 @@ class RasterKeyAddresser:
         :return: Keys to rasters in S3 storage for temp, rh, wind speed and calculated precip rasters.
         """
         assert_all_utc(rdps_model_run_start)
-        non_precip_keys = tuple(
-            self.get_model_data_key_hffmc(rdps_model_run_start, offset_hour, param)
-            for param in WeatherParameter
-        )
+        non_precip_keys = tuple(self.get_model_data_key_hffmc(rdps_model_run_start, offset_hour, param) for param in WeatherParameter)
         datetime_to_calculate_utc = rdps_model_run_start + timedelta(hours=offset_hour)
         precip_key = self.get_calculated_precip_key(datetime_to_calculate_utc)
         all_weather_data_keys = non_precip_keys + (precip_key,)
         return all_weather_data_keys
 
-    def get_model_data_key_hffmc(
-        self, rdps_model_run_start: datetime, offset_hour: int, weather_param: WeatherParameter
-    ):
+    def get_model_data_key_hffmc(self, rdps_model_run_start: datetime, offset_hour: int, weather_param: WeatherParameter):
         """
         Gets a S3 key for the weather parameter of interest for the specified RDPS model run start date and time at the provided offset.
 
@@ -209,13 +171,8 @@ class RasterKeyAddresser:
         :return: A key to a raster in S3 storage.
         """
         assert_all_utc(rdps_model_run_start)
-        weather_model_date_prefix = (
-            f"{self.weather_model_prefix}/{rdps_model_run_start.date().isoformat()}/"
-        )
-        return os.path.join(
-            weather_model_date_prefix,
-            compose_rdps_key_hffmc(rdps_model_run_start, offset_hour, weather_param.value),
-        )
+        weather_model_date_prefix = f"{self.weather_model_prefix}/{rdps_model_run_start.date().isoformat()}/"
+        return os.path.join(weather_model_date_prefix, compose_rdps_key_hffmc(rdps_model_run_start, offset_hour, weather_param.value))
 
     def get_calculated_hffmc_index_key(self, datetime_utc: datetime):
         """

@@ -167,42 +167,6 @@ class WPSDataset:
 
         return WPSDataset(ds_path=None, ds=out_ds)
 
-    def reproject(
-        self,
-        output_path: str,
-        target_srs: str = "EPSG:3857",
-        resample_alg: int = gdal.GRA_NearestNeighbour,
-        preserve_resolution: bool = True,
-    ) -> "WPSDataset":
-        """
-        Reproject a raster to a target spatial reference system.
-
-        :param input_path: Path to input raster
-        :param output_path: Path for output raster
-        :param target_srs: Target SRS (default: EPSG:3857 Web Mercator)
-        :param resample_alg: GDAL resampling algorithm (default: nearest neighbor)
-        :param preserve_resolution: Preserve pixel resolution from source (default: True)
-        :return: Path to output raster
-        """
-        # Get source resolution if preserving
-        if preserve_resolution:
-            gt = self.ds.GetGeoTransform()
-            xres = gt[1]  # pixel width
-            yres = abs(gt[5])  # pixel height
-            warp_options = {"xRes": xres, "yRes": yres}
-        else:
-            warp_options = {}
-
-        warped_ds = gdal.Warp(
-            output_path,
-            self.ds,
-            dstSRS=target_srs,
-            resampleAlg=resample_alg,
-            format="GTiff",
-            **warp_options,
-        )
-        return WPSDataset(ds_path=None, ds=warped_ds)
-
     def warp_to_match(
         self,
         other: "WPSDataset",
@@ -304,22 +268,14 @@ class WPSDataset:
 
         return latitudes
 
-    def export_to(
-        self,
-        output_path: str,
-        driver: gdal.Driver = gdal.GetDriverByName("GTiff"),
-        options: List[str] = ["COMPRESS=LZW"],
-    ):
+    def export_to_geotiff(self, output_path: str):
         """
-        Exports the dataset to a format with the given path
+        Exports the dataset to a geotiff with the given path
 
-        :param output_path: path to export the data to
-        :param driver: gdal driver to use
-        :param options: gdal options for driver to use
+        :param output_path: path to export the geotiff to
         """
+        driver: gdal.Driver = gdal.GetDriverByName("GTiff")
 
-        if not driver:
-            raise RuntimeError("GDAL driver not available. Ensure GDAL >= 3.1 if using COG")
         geotransform = self.ds.GetGeoTransform()
         projection = self.ds.GetProjection()
 
@@ -330,7 +286,7 @@ class WPSDataset:
 
         rows, cols = array.shape
         output_dataset: gdal.Dataset = driver.Create(
-            output_path, cols, rows, 1, datatype, options=options
+            output_path, cols, rows, 1, datatype, options=["COMPRESS=LZW"]
         )
         output_dataset.SetGeoTransform(geotransform)
         output_dataset.SetProjection(projection)
@@ -346,34 +302,6 @@ class WPSDataset:
         del output_dataset
         output_band = None
         del output_band
-
-    def export_to_geotiff(self, output_path: str):
-        """
-        Exports the dataset to a geotiff with the given path
-
-        :param output_path: path to export the geotiff to
-        """
-        self.export_to(output_path=output_path)
-
-    def export_to_cog(
-        self,
-        output_path: str,
-        compression: str = "LZW",
-        resampling: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
-        blocksize: int = 512,
-    ):
-        cog_options = [
-            f"COMPRESS={compression}",
-            f"BLOCKSIZE={blocksize}",
-            "OVERVIEWS=IGNORE_EXISTING",  # Always create new overviews
-            f"RESAMPLING={resampling}",
-        ]
-
-        target_srs: str = "EPSG:3857"
-        reprojected_ds = self.reproject(
-            output_path, target_srs=target_srs, resample_alg=resampling.value
-        )
-        reprojected_ds.export_to(output_path, gdal.GetDriverByName("COG"), options=cog_options)
 
     def get_nodata_mask(self) -> Tuple[Optional[np.ndarray], Optional[Union[float, int]]]:
         band = self.ds.GetRasterBand(self.band)
