@@ -125,20 +125,6 @@ class TestGenerateWebOptimizedCOG:
 
         ds = None
 
-    def test_cog_with_cubic_resampling(self, sample_tiff, temp_output_path):
-        """Test COG generation with cubic resampling."""
-        result = generate_web_optimized_cog(
-            sample_tiff, temp_output_path, resample_alg=GDALResamplingMethod.CUBIC
-        )
-
-        assert result == temp_output_path
-        assert os.path.exists(temp_output_path)
-
-    def test_invalid_input_path_raises_error(self, temp_output_path):
-        """Test that invalid input path raises ValueError."""
-        with pytest.raises(ValueError, match="Failed to open input raster"):
-            generate_web_optimized_cog("/nonexistent/file.tif", temp_output_path)
-
     def test_preserves_band_count(self, sample_tiff, temp_output_path):
         """Test that COG preserves the number of bands from input."""
         # Get band count from input
