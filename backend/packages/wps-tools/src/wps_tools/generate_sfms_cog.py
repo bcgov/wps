@@ -25,7 +25,6 @@ import argparse
 import logging
 import os
 import sys
-from tempfile import TemporaryDirectory
 
 from osgeo import gdal
 
@@ -100,11 +99,10 @@ def generate_sfms_cog(input_path: str, output_path: str) -> str:
     """
     logger.info(f"Generating Web Mercator COG for {input_path}")
 
-    with TemporaryDirectory() as temp_dir:
-        # GDAL Python API handles /vsis3/ paths directly - no shell commands needed
-        result = generate_web_optimized_cog(
-            input_path, output_path, target_srs="EPSG:3857", temp_dir=temp_dir, compression="LZW"
-        )
+    # GDAL Python API handles /vsis3/ paths directly - no shell commands needed
+    result = generate_web_optimized_cog(
+        input_path, output_path, target_srs="EPSG:3857", compression="LZW"
+    )
 
     logger.info(f"COG generated successfully: {output_path}")
     return result
@@ -172,9 +170,7 @@ def main():
         default="sfms/calculated/forecast",
         help="S3 prefix/folder for batch input (default: sfms/calculated/forecast)",
     )
-    parser.add_argument(
-        "--batch-output-dir", help="Local output directory for batch processing"
-    )
+    parser.add_argument("--batch-output-dir", help="Local output directory for batch processing")
     parser.add_argument(
         "--batch-s3-output-prefix",
         help="S3 prefix for batch output (e.g., sfms/cog/forecast). Mutually exclusive with --batch-output-dir",
@@ -196,11 +192,15 @@ def main():
     # Batch mode
     if args.batch_date:
         if not args.batch_output_dir and not args.batch_s3_output_prefix:
-            parser.error("Batch mode requires either --batch-output-dir or --batch-s3-output-prefix")
+            parser.error(
+                "Batch mode requires either --batch-output-dir or --batch-s3-output-prefix"
+            )
         if args.batch_output_dir and args.batch_s3_output_prefix:
             parser.error("Cannot specify both --batch-output-dir and --batch-s3-output-prefix")
 
-        output_desc = args.batch_s3_output_prefix if args.batch_s3_output_prefix else args.batch_output_dir
+        output_desc = (
+            args.batch_s3_output_prefix if args.batch_s3_output_prefix else args.batch_output_dir
+        )
         logger.info(
             f"Batch processing rasters for {args.batch_date} from {args.batch_s3_input_prefix} to {output_desc}"
         )

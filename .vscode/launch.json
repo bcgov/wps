@@ -280,7 +280,7 @@
             "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
                 "--batch-date",
-                "20241023",
+                "20250627",
                 "--batch-s3-input-prefix",
                 "sfms/calculated/forecast",
                 "--batch-s3-output-prefix",
