@@ -18,7 +18,8 @@ import {
   RasterTooltipInteraction,
   RasterTooltipData
 } from '@/features/sfmsInsights/components/map/rasterTooltipInteraction'
-import { LayerManager } from '@/features/sfmsInsights/components/map/layerManager'
+import { LayerManager, RasterError } from '@/features/sfmsInsights/components/map/layerManager'
+import RasterErrorNotification from '@/features/sfmsInsights/components/map/RasterErrorNotification'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { Map, View } from 'ol'
@@ -49,9 +50,24 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     pixel: null
   })
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [rasterError, setRasterError] = useState<RasterError | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const rasterLayerManagerRef = useRef<LayerManager | null>(null)
   const snowLayerManagerRef = useRef<LayerManager | null>(null)
+
+  const handleLoadingChange = (isLoading: boolean, error?: RasterError) => {
+    setIsLoading(isLoading)
+    if (error) {
+      setRasterError(error)
+    } else if (!isLoading) {
+      // Clear error on successful load
+      setRasterError(null)
+    }
+  }
+
+  const handleErrorClose = () => {
+    setRasterError(null)
+  }
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -76,7 +92,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
 
     // Initialize fire weather raster layer manager
     const rasterLayerManager = new LayerManager({
-      onLoadingChange: setIsLoading,
+      onLoadingChange: handleLoadingChange,
       trackLoading: true
     })
     rasterLayerManager.setMap(mapObject)
@@ -113,6 +129,9 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   }, [snowDate, showSnow])
 
   useEffect(() => {
+    // Clear any existing errors when changing date/type
+    setRasterError(null)
+
     if (rasterLayerManagerRef.current) {
       rasterLayerManagerRef.current.updateLayer(getFireWeatherRasterLayer(rasterDate, rasterType, token))
     }
@@ -158,6 +177,11 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
               <Box sx={{ fontSize: '14px', fontWeight: 'medium' }}>Loading {RASTER_CONFIG[rasterType].label}...</Box>
             </Box>
           )}
+          <RasterErrorNotification
+            error={rasterError}
+            onClose={handleErrorClose}
+            rasterLabel={RASTER_CONFIG[rasterType].label}
+          />
         </Box>
       </MapContext.Provider>
     </ErrorBoundary>

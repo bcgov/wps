@@ -1,7 +1,7 @@
 import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
 import { createLayerMock, createTestStore } from '@/test/testUtils'
 import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { DateTime } from 'luxon'
 import { Mock } from 'vitest'
 import * as layerDefinitions from '@/features/sfmsInsights/components/map/layerDefinitions'
@@ -98,5 +98,45 @@ describe('SFMSMap', () => {
     const snowDate = DateTime.fromISO('2025-11-02')
     renderWithStore(<SFMSMap snowDate={snowDate} rasterDate={DateTime.fromISO('2025-11-02')} />)
     expect(layerDefinitions.getSnowPMTilesLayer).toHaveBeenCalledWith(snowDate)
+  })
+
+  it('should render the sfms map', () => {
+    renderWithStore(<SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} />)
+
+    // Initially, we can't easily trigger loading state without direct LayerManager access
+    // This test verifies the component structure supports loading state
+    expect(screen.getByTestId('sfms-map')).toBeInTheDocument()
+  })
+
+  it('should request new layer when date changes', () => {
+    const { rerender } = renderWithStore(<SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} />)
+
+    // Change the raster date
+    rerender(
+      <Provider
+        store={createTestStore({
+          authentication: {
+            isAuthenticated: true,
+            error: null,
+            token: 'test-token',
+            authenticating: false,
+            tokenRefreshed: false,
+            idToken: undefined,
+            idir: undefined,
+            email: undefined,
+            roles: []
+          }
+        })}
+      >
+        <SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-03')} />
+      </Provider>
+    )
+
+    // Verify new layer is requested
+    expect(layerDefinitions.getFireWeatherRasterLayer).toHaveBeenCalledWith(
+      DateTime.fromISO('2025-11-03'),
+      'fwi',
+      'test-token'
+    )
   })
 })

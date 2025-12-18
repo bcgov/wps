@@ -5,8 +5,14 @@ import { FWI_LAYER_NAME } from './layerDefinitions'
 
 export type ManagedLayer = WebGLTileLayer | VectorTileLayer
 
+export interface RasterError {
+  type: 'not_found' | 'forbidden' | 'network' | 'unknown'
+  message: string
+  statusCode?: number
+}
+
 export interface LayerManagerOptions {
-  onLoadingChange?: (isLoading: boolean) => void
+  onLoadingChange?: (isLoading: boolean, error?: RasterError) => void
   layerName?: string
   trackLoading?: boolean
 }
@@ -19,9 +25,10 @@ export interface LayerManagerOptions {
 export class LayerManager {
   private map: Map | null = null
   private currentLayer: ManagedLayer | null = null
-  private onLoadingChange?: (isLoading: boolean) => void
+  private onLoadingChange?: (isLoading: boolean, error?: RasterError) => void
   private layerName: string
   private trackLoading: boolean
+  private timeoutId?: number
 
   constructor(options: LayerManagerOptions = {}) {
     this.onLoadingChange = options.onLoadingChange
@@ -62,12 +69,45 @@ export class LayerManager {
     if (this.trackLoading) {
       const source = layer.getSource()
       if (source) {
+        let hasLoaded = false
+
+        // Listen for successful tile loads
         source.on('tileloadend', () => {
+          hasLoaded = true
           this.setLoadingState(false)
         })
-        source.on('tileloaderror', () => {
-          this.setLoadingState(false)
+
+        // Listen for tile loading errors (once to avoid duplicate notifications)
+        source.once('tileloaderror', (event: any) => {
+          const error = this.extractErrorFromEvent(event)
+          this.setLoadingState(false, error)
         })
+
+        // Listen for source-level errors (e.g., GeoTIFF initialization failures)
+        source.once('error', (event: any) => {
+          const error = this.extractErrorFromEvent(event)
+          this.setLoadingState(false, error)
+        })
+
+        // Monitor source state changes to catch initialization errors (check only once)
+        const checkSourceError = () => {
+          const state = source.getState()
+          if (state === 'error' && !hasLoaded) {
+            const error = this.extractErrorFromEvent({})
+            this.setLoadingState(false, error)
+            source.un('change', checkSourceError)
+          }
+        }
+        source.on('change', checkSourceError)
+
+        // Safety timeout: if nothing loads after 10 seconds, show error
+        this.timeoutId = window.setTimeout(() => {
+          const state = source.getState()
+          if (!hasLoaded && state !== 'ready') {
+            const error = this.extractErrorFromEvent({})
+            this.setLoadingState(false, error)
+          }
+        }, 10000)
       }
     }
 
@@ -84,6 +124,21 @@ export class LayerManager {
       return
     }
 
+    // Clear timeout if it exists
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId)
+      this.timeoutId = undefined
+    }
+
+    // Remove event listeners from source
+    const source = this.currentLayer.getSource()
+    if (source) {
+      source.un('tileloadend', () => {})
+      source.un('tileloaderror', () => {})
+      source.un('error', () => {})
+      source.un('change', () => {})
+    }
+
     this.map.removeLayer(this.currentLayer)
     this.currentLayer = null
   }
@@ -91,9 +146,26 @@ export class LayerManager {
   /**
    * Set loading state and notify callback
    */
-  private setLoadingState(isLoading: boolean) {
+  private setLoadingState(isLoading: boolean, error?: RasterError) {
     if (this.onLoadingChange) {
-      this.onLoadingChange(isLoading)
+      this.onLoadingChange(isLoading, error)
+    }
+  }
+
+  /**
+   * Extract error information from tile load error event
+   * Since OpenLayers doesn't expose HTTP status codes, we use 'not_found' as the default
+   * error type since the most common case is that data doesn't exist for the requested date
+   */
+  private extractErrorFromEvent(event: any): RasterError {
+    // Default to 'not_found' which is the most common scenario
+    // This will display as a warning (orange) rather than an error (red)
+    const errorType: RasterError['type'] = 'not_found'
+    const message = 'Raster data not available for this date'
+
+    return {
+      type: errorType,
+      message
     }
   }
 

@@ -31,7 +31,10 @@ describe('LayerManager', () => {
       }
 
       const mockSource = {
-        on: vi.fn()
+        on: vi.fn(),
+        once: vi.fn(),
+        un: vi.fn(),
+        getState: vi.fn(() => 'loading')
       }
 
       const mockLayer = {
@@ -43,7 +46,7 @@ describe('LayerManager', () => {
 
       // Should register loading listeners by default
       expect(mockSource.on).toHaveBeenCalledWith('tileloadend', expect.any(Function))
-      expect(mockSource.on).toHaveBeenCalledWith('tileloaderror', expect.any(Function))
+      expect(mockSource.once).toHaveBeenCalledWith('tileloaderror', expect.any(Function))
     })
   })
 
@@ -101,8 +104,15 @@ describe('LayerManager', () => {
       manager.setMap(mockMap)
     })
 
+    const createMockSource = () => ({
+      on: vi.fn(),
+      once: vi.fn(),
+      un: vi.fn(),
+      getState: vi.fn(() => 'loading')
+    })
+
     it('should add layer to map', () => {
-      const mockSource = { on: vi.fn() }
+      const mockSource = createMockSource()
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
       manager.updateLayer(mockLayer as any)
@@ -111,7 +121,7 @@ describe('LayerManager', () => {
     })
 
     it('should remove existing layer before adding new one', () => {
-      const mockSource = { on: vi.fn() }
+      const mockSource = createMockSource()
       const mockLayer1 = { getSource: vi.fn(() => mockSource) }
       const mockLayer2 = { getSource: vi.fn(() => mockSource) }
 
@@ -123,7 +133,7 @@ describe('LayerManager', () => {
     })
 
     it('should handle null layer', () => {
-      const mockSource = { on: vi.fn() }
+      const mockSource = createMockSource()
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
       manager.updateLayer(mockLayer as any)
@@ -151,19 +161,26 @@ describe('LayerManager', () => {
   })
 
   describe('loading state tracking', () => {
+    const createMockSource = () => ({
+      on: vi.fn(),
+      once: vi.fn(),
+      un: vi.fn(),
+      getState: vi.fn(() => 'loading')
+    })
+
     it('should call onLoadingChange when trackLoading is true', () => {
       const onLoadingChange = vi.fn()
       const manager = new LayerManager({ onLoadingChange, trackLoading: true })
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = createMockSource()
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
       manager.updateLayer(mockLayer as any)
 
       // Should set loading to true
-      expect(onLoadingChange).toHaveBeenCalledWith(true)
+      expect(onLoadingChange).toHaveBeenCalledWith(true, undefined)
     })
 
     it('should not call onLoadingChange when trackLoading is false', () => {
@@ -172,7 +189,7 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = createMockSource()
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
       manager.updateLayer(mockLayer as any)
@@ -186,7 +203,7 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = createMockSource()
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
       manager.updateLayer(mockLayer as any)
@@ -199,12 +216,12 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = createMockSource()
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
       manager.updateLayer(mockLayer as any)
 
-      expect(mockSource.on).toHaveBeenCalledWith('tileloaderror', expect.any(Function))
+      expect(mockSource.once).toHaveBeenCalledWith('tileloaderror', expect.any(Function))
     })
 
     it('should not register tile listeners when trackLoading is false', () => {
@@ -212,7 +229,7 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = createMockSource()
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
       manager.updateLayer(mockLayer as any)
@@ -232,7 +249,10 @@ describe('LayerManager', () => {
           if (event === 'tileloadend') {
             tileloadendHandler = handler
           }
-        })
+        }),
+        once: vi.fn(),
+        un: vi.fn(),
+        getState: vi.fn(() => 'loading')
       }
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
@@ -244,10 +264,10 @@ describe('LayerManager', () => {
       // Simulate tileloadend event
       tileloadendHandler!()
 
-      expect(onLoadingChange).toHaveBeenCalledWith(false)
+      expect(onLoadingChange).toHaveBeenCalledWith(false, undefined)
     })
 
-    it('should call onLoadingChange with false on tileloaderror', () => {
+    it('should call onLoadingChange with error on tileloaderror', () => {
       const onLoadingChange = vi.fn()
       const manager = new LayerManager({ onLoadingChange, trackLoading: true })
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
@@ -255,11 +275,14 @@ describe('LayerManager', () => {
 
       let tileloaderrorHandler: Function | null = null
       const mockSource = {
-        on: vi.fn((event: string, handler: Function) => {
+        on: vi.fn(),
+        once: vi.fn((event: string, handler: Function) => {
           if (event === 'tileloaderror') {
             tileloaderrorHandler = handler
           }
-        })
+        }),
+        un: vi.fn(),
+        getState: vi.fn(() => 'loading')
       }
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
@@ -271,7 +294,9 @@ describe('LayerManager', () => {
       // Simulate tileloaderror event
       tileloaderrorHandler!()
 
-      expect(onLoadingChange).toHaveBeenCalledWith(false)
+      expect(onLoadingChange).toHaveBeenCalledWith(false, expect.objectContaining({
+        type: 'not_found'
+      }))
     })
 
     it('should not throw when onLoadingChange is not provided', () => {
@@ -279,7 +304,7 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = { on: vi.fn(), once: vi.fn(), un: vi.fn(), getState: vi.fn(() => 'loading') }
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
       expect(() => manager.updateLayer(mockLayer as any)).not.toThrow()
@@ -292,7 +317,7 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = { on: vi.fn(), once: vi.fn(), un: vi.fn(), getState: vi.fn(() => 'loading') }
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
       manager.updateLayer(mockLayer as any)
@@ -306,7 +331,7 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = { on: vi.fn(), once: vi.fn(), un: vi.fn(), getState: vi.fn(() => 'loading') }
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
       manager.updateLayer(mockLayer as any)
@@ -337,7 +362,7 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = { on: vi.fn(), once: vi.fn(), un: vi.fn(), getState: vi.fn(() => 'loading') }
       const mockWebGLLayer = {
         getSource: vi.fn(() => mockSource)
       } as unknown as WebGLTileLayer
@@ -354,7 +379,7 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = { on: vi.fn(), once: vi.fn(), un: vi.fn(), getState: vi.fn(() => 'loading') }
       const mockVectorLayer = {
         getSource: vi.fn(() => mockSource)
       } as unknown as VectorTileLayer
@@ -371,7 +396,7 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = { on: vi.fn(), once: vi.fn(), un: vi.fn(), getState: vi.fn(() => 'loading') }
       const mockLayer = { getSource: vi.fn(() => mockSource) }
 
       // Add a layer
@@ -396,6 +421,235 @@ describe('LayerManager', () => {
     })
   })
 
+  describe('error handling', () => {
+    it('should call onLoadingChange with error on tileloaderror', () => {
+      const onLoadingChange = vi.fn()
+      const manager = new LayerManager({ onLoadingChange, trackLoading: true })
+      const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
+      manager.setMap(mockMap as any)
+
+      let tileloaderrorHandler: Function | null = null
+      const mockSource = {
+        on: vi.fn((event: string, handler: Function) => {
+          if (event === 'tileloaderror') {
+            tileloaderrorHandler = handler
+          }
+        }),
+        once: vi.fn((event: string, handler: Function) => {
+          if (event === 'tileloaderror') {
+            tileloaderrorHandler = handler
+          }
+        }),
+        un: vi.fn(),
+        getState: vi.fn(() => 'loading')
+      }
+      const mockLayer = { getSource: vi.fn(() => mockSource) }
+
+      manager.updateLayer(mockLayer as any)
+      onLoadingChange.mockClear()
+
+      // Simulate tileloaderror event
+      tileloaderrorHandler!({ tile: {} })
+
+      expect(onLoadingChange).toHaveBeenCalledWith(false, expect.objectContaining({
+        type: 'not_found',
+        message: expect.any(String)
+      }))
+    })
+
+    it('should call onLoadingChange with error on source error event', () => {
+      const onLoadingChange = vi.fn()
+      const manager = new LayerManager({ onLoadingChange, trackLoading: true })
+      const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
+      manager.setMap(mockMap as any)
+
+      let errorHandler: Function | null = null
+      const mockSource = {
+        on: vi.fn(),
+        once: vi.fn((event: string, handler: Function) => {
+          if (event === 'error') {
+            errorHandler = handler
+          }
+        }),
+        un: vi.fn(),
+        getState: vi.fn(() => 'loading')
+      }
+      const mockLayer = { getSource: vi.fn(() => mockSource) }
+
+      manager.updateLayer(mockLayer as any)
+      onLoadingChange.mockClear()
+
+      // Simulate error event
+      errorHandler!({ error: new Error('Test error') })
+
+      expect(onLoadingChange).toHaveBeenCalledWith(false, expect.objectContaining({
+        type: 'not_found',
+        message: expect.any(String)
+      }))
+    })
+
+    it('should call onLoadingChange with error on source state change to error', () => {
+      const onLoadingChange = vi.fn()
+      const manager = new LayerManager({ onLoadingChange, trackLoading: true })
+      const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
+      manager.setMap(mockMap as any)
+
+      let changeHandler: Function | null = null
+      const mockSource = {
+        on: vi.fn((event: string, handler: Function) => {
+          if (event === 'change') {
+            changeHandler = handler
+          }
+        }),
+        once: vi.fn(),
+        un: vi.fn(),
+        getState: vi.fn(() => 'error')
+      }
+      const mockLayer = { getSource: vi.fn(() => mockSource) }
+
+      manager.updateLayer(mockLayer as any)
+      onLoadingChange.mockClear()
+
+      // Simulate change event with error state
+      changeHandler!()
+
+      expect(onLoadingChange).toHaveBeenCalledWith(false, expect.objectContaining({
+        type: 'not_found',
+        message: expect.any(String)
+      }))
+    })
+
+    it('should trigger timeout error if no tiles load within timeout period', () => {
+      vi.useFakeTimers()
+
+      const onLoadingChange = vi.fn()
+      const manager = new LayerManager({ onLoadingChange, trackLoading: true })
+      const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
+      manager.setMap(mockMap as any)
+
+      const mockSource = {
+        on: vi.fn(),
+        once: vi.fn(),
+        getState: vi.fn(() => 'loading')
+      }
+      const mockLayer = { getSource: vi.fn(() => mockSource) }
+
+      manager.updateLayer(mockLayer as any)
+      onLoadingChange.mockClear()
+
+      // Fast-forward time by 10 seconds
+      vi.advanceTimersByTime(10000)
+
+      expect(onLoadingChange).toHaveBeenCalledWith(false, expect.objectContaining({
+        type: 'not_found',
+        message: expect.any(String)
+      }))
+
+      vi.useRealTimers()
+    })
+
+    it('should not trigger timeout error if tiles load successfully', () => {
+      vi.useFakeTimers()
+
+      const onLoadingChange = vi.fn()
+      const manager = new LayerManager({ onLoadingChange, trackLoading: true })
+      const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
+      manager.setMap(mockMap as any)
+
+      let tileloadendHandler: Function | null = null
+      const mockSource = {
+        on: vi.fn((event: string, handler: Function) => {
+          if (event === 'tileloadend') {
+            tileloadendHandler = handler
+          }
+        }),
+        once: vi.fn(),
+        getState: vi.fn(() => 'ready')
+      }
+      const mockLayer = { getSource: vi.fn(() => mockSource) }
+
+      manager.updateLayer(mockLayer as any)
+
+      // Simulate successful tile load
+      tileloadendHandler!()
+      onLoadingChange.mockClear()
+
+      // Fast-forward time by 10 seconds
+      vi.advanceTimersByTime(10000)
+
+      // Should not call onLoadingChange with error
+      expect(onLoadingChange).not.toHaveBeenCalled()
+
+      vi.useRealTimers()
+    })
+
+    it('should clear timeout when removing layer', () => {
+      vi.useFakeTimers()
+
+      const onLoadingChange = vi.fn()
+      const manager = new LayerManager({ onLoadingChange, trackLoading: true })
+      const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
+      manager.setMap(mockMap as any)
+
+      const mockSource = {
+        on: vi.fn(),
+        once: vi.fn(),
+        un: vi.fn(),
+        getState: vi.fn(() => 'loading')
+      }
+      const mockLayer = { getSource: vi.fn(() => mockSource) }
+
+      manager.updateLayer(mockLayer as any)
+      onLoadingChange.mockClear()
+
+      // Remove layer
+      manager.updateLayer(null)
+
+      // Fast-forward time by 10 seconds
+      vi.advanceTimersByTime(10000)
+
+      // Should not trigger timeout error after layer removal
+      expect(onLoadingChange).not.toHaveBeenCalled()
+
+      vi.useRealTimers()
+    })
+
+    it('should not call onLoadingChange with error on change event if tiles have loaded', () => {
+      const onLoadingChange = vi.fn()
+      const manager = new LayerManager({ onLoadingChange, trackLoading: true })
+      const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
+      manager.setMap(mockMap as any)
+
+      let changeHandler: Function | null = null
+      let tileloadendHandler: Function | null = null
+      const mockSource = {
+        on: vi.fn((event: string, handler: Function) => {
+          if (event === 'change') {
+            changeHandler = handler
+          } else if (event === 'tileloadend') {
+            tileloadendHandler = handler
+          }
+        }),
+        once: vi.fn(),
+        un: vi.fn(),
+        getState: vi.fn(() => 'error')
+      }
+      const mockLayer = { getSource: vi.fn(() => mockSource) }
+
+      manager.updateLayer(mockLayer as any)
+
+      // Simulate successful tile load first
+      tileloadendHandler!()
+      onLoadingChange.mockClear()
+
+      // Now simulate change event with error state
+      changeHandler!()
+
+      // Should not trigger error because tiles have already loaded
+      expect(onLoadingChange).not.toHaveBeenCalledWith(false, expect.any(Object))
+    })
+  })
+
   describe('multiple manager instances', () => {
     it('should support multiple independent managers', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
@@ -406,7 +660,7 @@ describe('LayerManager', () => {
       rasterManager.setMap(mockMap as any)
       snowManager.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = { on: vi.fn(), once: vi.fn(), un: vi.fn(), getState: vi.fn(() => 'loading') }
       const rasterLayer = { getSource: vi.fn(() => mockSource) }
       const snowLayer = { getSource: vi.fn(() => mockSource) }
 
@@ -427,7 +681,7 @@ describe('LayerManager', () => {
       manager1.setMap(mockMap as any)
       manager2.setMap(mockMap as any)
 
-      const mockSource = { on: vi.fn() }
+      const mockSource = { on: vi.fn(), once: vi.fn(), un: vi.fn(), getState: vi.fn(() => 'loading') }
       const layer1 = { getSource: vi.fn(() => mockSource) }
       const layer2 = { getSource: vi.fn(() => mockSource) }
 
