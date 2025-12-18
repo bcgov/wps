@@ -1,9 +1,9 @@
 import WebGLTileLayer from 'ol/layer/WebGLTile'
-import { FireWeatherRasterType, RASTER_CONFIG } from './rasterConfig'
+import { FireWeatherRasterType, RASTER_CONFIG, FUEL_TYPE_COLORS } from './rasterConfig'
 import { isNodataValue } from './sfmsFeatureStylers'
 
 export interface RasterTooltipResult {
-  value: number | null
+  value: number | string | null
   label: string
   pixelCoords: [number, number]
 }
@@ -15,7 +15,7 @@ export interface RasterTooltipResult {
 export const getRasterTooltipData = (
   data: Float32Array | Uint8Array | null,
   rasterType: FireWeatherRasterType | undefined
-): { value: number | null; label: string } => {
+): { value: number | string | null; label: string } => {
   const defaultLabel = rasterType ? RASTER_CONFIG[rasterType].label : 'FWI'
 
   // Check if we have valid data
@@ -35,9 +35,20 @@ export const getRasterTooltipData = (
     return { value: null, label: defaultLabel }
   }
 
-  // Return valid data
+  const roundedValue = Math.round(rawValue)
+
+  // For fuel type, convert numeric value to fuel code
+  if (rasterType === 'fuel') {
+    const fuelType = FUEL_TYPE_COLORS.find(f => f.value === roundedValue)
+    return {
+      value: fuelType ? fuelType.fuelCode : roundedValue.toString(),
+      label: defaultLabel
+    }
+  }
+
+  // Return valid data for numeric rasters
   return {
-    value: Math.round(rawValue),
+    value: roundedValue,
     label: defaultLabel
   }
 }
@@ -73,7 +84,7 @@ export const getRasterData = (
 export const getDataAtPixel = (
   layer: WebGLTileLayer,
   pixel: [number, number]
-): { value: number | null; label: string } => {
+): { value: number | string | null; label: string } => {
   const data = getRasterData(layer, pixel)
   const rasterType = getRasterType(layer)
   return getRasterTooltipData(data, rasterType)

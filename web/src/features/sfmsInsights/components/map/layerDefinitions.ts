@@ -91,7 +91,23 @@ export const fuelCOGTiles = new WebGLTile({
   source: fuelGridCOG,
   zIndex: 51,
   opacity: 0.6,
+  properties: { rasterType: 'fuel' },
   style: {
     color: fuelCOGColourExpression()
   }
 })
+
+/**
+ * Get the appropriate raster layer based on type
+ * Handles both fire weather rasters (date-dependent) and fuel raster (static)
+ */
+export const getRasterLayer = (
+  date: DateTime,
+  rasterType: FireWeatherRasterType,
+  token: string | undefined
+) => {
+  if (rasterType === 'fuel') {
+    return fuelCOGTiles
+  }
+  return getFireWeatherRasterLayer(date, rasterType, token)
+}

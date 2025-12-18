@@ -11,7 +11,7 @@ const RasterTypeDropdown = ({ selectedRasterType, setSelectedRasterType }: Raste
     setSelectedRasterType(event.target.value as FireWeatherRasterType)
   }
 
-  const rasterTypes: FireWeatherRasterType[] = ['fwi', 'dmc', 'dc', 'ffmc', 'bui', 'isi']
+  const rasterTypes: FireWeatherRasterType[] = ['fwi', 'dmc', 'dc', 'ffmc', 'bui', 'isi', 'fuel']
 
   return (
     <FormControl sx={{ minWidth: 200 }}>

@@ -21,7 +21,7 @@ vi.mock('@/features/sfmsInsights/components/map/layerDefinitions', async () => {
   return {
     ...actual,
     getSnowPMTilesLayer: vi.fn(),
-    getFireWeatherRasterLayer: vi.fn()
+    getRasterLayer: vi.fn()
   }
 })
 
@@ -68,7 +68,7 @@ describe('SFMSMap', () => {
     ;(getStyleJson as Mock).mockResolvedValue({})
     ;(createVectorTileLayer as Mock).mockResolvedValue(createLayerMock('base'))
     ;(layerDefinitions.getSnowPMTilesLayer as Mock).mockReturnValue(mockSnowLayer)
-    ;(layerDefinitions.getFireWeatherRasterLayer as Mock).mockReturnValue(mockFireWeatherLayer)
+    ;(layerDefinitions.getRasterLayer as Mock).mockReturnValue(mockFireWeatherLayer)
   })
 
   it('should render the map', () => {
@@ -133,7 +133,7 @@ describe('SFMSMap', () => {
     )
 
     // Verify new layer is requested
-    expect(layerDefinitions.getFireWeatherRasterLayer).toHaveBeenCalledWith(
+    expect(layerDefinitions.getRasterLayer).toHaveBeenCalledWith(
       DateTime.fromISO('2025-11-03'),
       'fwi',
       'test-token'

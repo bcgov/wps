@@ -1,5 +1,5 @@
 import { colorByFuelTypeCode, getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
-import { RASTER_COLOR_BREAKS, FireWeatherRasterType, ColorBreak } from './rasterConfig'
+import { RASTER_COLOR_BREAKS, FireWeatherRasterType, ColorBreak, FUEL_TYPE_COLORS } from './rasterConfig'
 import * as ol from 'ol'
 import Geometry from 'ol/geom/Geometry'
 import RenderFeature from 'ol/render/Feature'
@@ -71,8 +71,8 @@ type ColourCases = Array<ColourCaseCondition | ColourCaseColour>
 export const fuelCOGColourExpression = () => {
   const colourCases: ColourCases = []
 
-  rasterValueToFuelTypeCode.forEach((code, value) => {
-    const [r, g, b] = colorByFuelTypeCode.get(code) ?? [0, 0, 0]
+  FUEL_TYPE_COLORS.forEach(({ value, rgb }) => {
+    const [r, g, b] = rgb
     colourCases.push(['==', ['band', 1], value], [r, g, b, 1])
   })
   colourCases.push([0, 0, 0, 0])

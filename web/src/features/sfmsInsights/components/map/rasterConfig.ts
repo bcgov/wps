@@ -1,10 +1,17 @@
-export type FireWeatherRasterType = 'fwi' | 'dmc' | 'dc' | 'ffmc' | 'bui' | 'isi'
+export type FireWeatherRasterType = 'fwi' | 'dmc' | 'dc' | 'ffmc' | 'bui' | 'isi' | 'fuel'
 
 export interface ColorBreak {
   min: number
   max: number | null
   color: string
   label: string
+}
+
+export interface FuelTypeColorMapping {
+  value: number
+  fuelCode: string
+  color: string
+  rgb: [number, number, number]
 }
 
 export interface RasterConfig {
@@ -70,13 +77,40 @@ export const ISI_COLOR_BREAKS: ColorBreak[] = [
   { min: 26, max: null, color: 'rgb(255, 0, 0)', label: '26+' }
 ]
 
+// Fuel type color mappings based on BCWS standard colors
+export const FUEL_TYPE_COLORS: FuelTypeColorMapping[] = [
+  { value: 1, fuelCode: 'C-1', color: 'rgb(209, 255, 115)', rgb: [209, 255, 115] },
+  { value: 2, fuelCode: 'C-2', color: 'rgb(34, 102, 51)', rgb: [34, 102, 51] },
+  { value: 3, fuelCode: 'C-3', color: 'rgb(131, 199, 149)', rgb: [131, 199, 149] },
+  { value: 4, fuelCode: 'C-4', color: 'rgb(112, 168, 0)', rgb: [112, 168, 0] },
+  { value: 5, fuelCode: 'C-5', color: 'rgb(223, 184, 230)', rgb: [223, 184, 230] },
+  { value: 6, fuelCode: 'C-6', color: 'rgb(172, 102, 237)', rgb: [172, 102, 237] },
+  { value: 7, fuelCode: 'C-7', color: 'rgb(112, 12, 242)', rgb: [112, 12, 242] },
+  { value: 8, fuelCode: 'D-1/D-2', color: 'rgb(137, 112, 68)', rgb: [137, 112, 68] },
+  { value: 9, fuelCode: 'S-1', color: 'rgb(251, 190, 185)', rgb: [251, 190, 185] },
+  { value: 10, fuelCode: 'S-2', color: 'rgb(247, 104, 161)', rgb: [247, 104, 161] },
+  { value: 11, fuelCode: 'S-3', color: 'rgb(174, 1, 126)', rgb: [174, 1, 126] },
+  { value: 12, fuelCode: 'O-1a/O-1b', color: 'rgb(255, 255, 190)', rgb: [255, 255, 190] },
+  { value: 13, fuelCode: 'M-3', color: 'rgb(255, 211, 127)', rgb: [255, 211, 127] },
+  { value: 14, fuelCode: 'M-1/M-2', color: 'rgb(255, 211, 127)', rgb: [255, 211, 127] }
+]
+
+// Convert fuel type colors to color breaks format for consistency with other rasters
+export const FUEL_COLOR_BREAKS: ColorBreak[] = FUEL_TYPE_COLORS.map(({ value, fuelCode, color }) => ({
+  min: value,
+  max: value,
+  color,
+  label: fuelCode
+}))
+
 export const RASTER_CONFIG: Record<FireWeatherRasterType, RasterConfig> = {
   fwi: { label: 'FWI', colorBreaks: FWI_COLOR_BREAKS },
   dmc: { label: 'DMC', colorBreaks: DMC_COLOR_BREAKS },
   dc: { label: 'DC', colorBreaks: DC_COLOR_BREAKS },
   ffmc: { label: 'FFMC', colorBreaks: FFMC_COLOR_BREAKS },
   bui: { label: 'BUI', colorBreaks: BUI_COLOR_BREAKS },
-  isi: { label: 'ISI', colorBreaks: ISI_COLOR_BREAKS }
+  isi: { label: 'ISI', colorBreaks: ISI_COLOR_BREAKS },
+  fuel: { label: 'Fuel Type', colorBreaks: FUEL_COLOR_BREAKS }
 }
 
 // Backward compatibility - export just the color breaks
@@ -86,5 +120,6 @@ export const RASTER_COLOR_BREAKS: Record<FireWeatherRasterType, ColorBreak[]> = 
   dc: DC_COLOR_BREAKS,
   ffmc: FFMC_COLOR_BREAKS,
   bui: BUI_COLOR_BREAKS,
-  isi: ISI_COLOR_BREAKS
+  isi: ISI_COLOR_BREAKS,
+  fuel: FUEL_COLOR_BREAKS
 }

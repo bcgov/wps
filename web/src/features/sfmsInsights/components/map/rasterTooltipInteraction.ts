@@ -6,7 +6,7 @@ import { unByKey } from 'ol/Observable'
 import { findRasterLayer, getDataAtPixel } from './rasterTooltipHandler'
 
 export interface RasterTooltipData {
-  value: number | null
+  value: number | string | null
   label: string
   pixel: [number, number] | null
 }

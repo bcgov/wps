@@ -5,8 +5,7 @@ import { Box, CircularProgress } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
 import {
   BASEMAP_LAYER_NAME,
-  fuelCOGTiles,
-  getFireWeatherRasterLayer,
+  getRasterLayer,
   FWI_LAYER_NAME,
   getSnowPMTilesLayer,
   SNOW_LAYER_NAME
@@ -96,7 +95,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
       trackLoading: true
     })
     rasterLayerManager.setMap(mapObject)
-    rasterLayerManager.updateLayer(getFireWeatherRasterLayer(rasterDate, rasterType, token))
+    rasterLayerManager.updateLayer(getRasterLayer(rasterDate, rasterType, token))
     rasterLayerManagerRef.current = rasterLayerManager
 
     // Initialize snow layer manager
@@ -133,7 +132,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     setRasterError(null)
 
     if (rasterLayerManagerRef.current) {
-      rasterLayerManagerRef.current.updateLayer(getFireWeatherRasterLayer(rasterDate, rasterType, token))
+      rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate, rasterType, token))
     }
   }, [rasterDate, rasterType, token])
 
