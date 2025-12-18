@@ -16,7 +16,6 @@ import {
   getTopFuelsByProportion,
   getZoneMinWindStatsText,
 } from "@/utils/advisoryTextUtils";
-import { calculateStatusText } from "@/utils/calculateZoneStatus";
 import { AdvisoryStatus } from "@/utils/constants";
 import {
   criticalHoursExtendToNextDay,
@@ -33,15 +32,13 @@ export const SerifTypography = styled(Typography)({
   fontFamily: '"Courier", "Monospace"',
 }) as typeof Typography;
 
-interface AdvisoryTextProps {
-  advisoryThreshold: number;
+export interface AdvisoryTextProps {
   selectedFireCenter: FireCenter | undefined;
   selectedFireZoneUnit: FireShape | undefined;
   date: DateTime;
 }
 
 const AdvisoryText = ({
-  advisoryThreshold,
   selectedFireCenter,
   selectedFireZoneUnit,
   date,
@@ -69,7 +66,7 @@ const AdvisoryText = ({
         min_wind_stats: [],
       }
     );
-  }, [filteredFireZoneUnitHFIStats, selectedFireZoneUnit]);
+  }, [filteredFireZoneUnitHFIStats, selectedFireZoneUnit, runParameter]);
 
   const selectedFireZoneUnitTopFuels = useMemo<FireZoneFuelStats[]>(() => {
     if (isNil(runParameter?.for_date)) {
@@ -98,21 +95,12 @@ const AdvisoryText = ({
   const zoneStatus = useMemo(() => {
     if (selectedFireCenter) {
       const fireCenterSummary = provincialSummary?.[selectedFireCenter.name];
-      const fireZoneUnitInfos = fireCenterSummary?.filter(
+      const fireZoneUnitInfo = fireCenterSummary?.find(
         (fc) => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id
       );
-      const zoneStatus = calculateStatusText(
-        fireZoneUnitInfos,
-        advisoryThreshold
-      );
-      return zoneStatus;
+      return fireZoneUnitInfo?.status;
     }
-  }, [
-    advisoryThreshold,
-    selectedFireCenter,
-    selectedFireZoneUnit,
-    provincialSummary,
-  ]);
+  }, [selectedFireCenter, selectedFireZoneUnit, provincialSummary]);
 
   const getCommaSeparatedString = (array: string[]): string => {
     // Slice off the last two items and join then with ' and ' to create a new string. Then take the first n-2 items and
@@ -314,7 +302,11 @@ const AdvisoryText = ({
           </SerifTypography>
         )}
 
-        {!isUndefined(zoneStatus) ? (
+        {isNil(zoneStatus) ? (
+          <SerifTypography data-testid="no-advisory-message">
+            No advisories or warnings issued for the selected fire zone unit.
+          </SerifTypography>
+        ) : (
           <>
             {zoneStatus === AdvisoryStatus.ADVISORY && (
               <SerifTypography
@@ -349,10 +341,6 @@ const AdvisoryText = ({
               </SerifTypography>
             )}
           </>
-        ) : (
-          <SerifTypography data-testid="no-advisory-message">
-            No advisories or warnings issued for the selected fire zone unit.
-          </SerifTypography>
         )}
       </>
     );

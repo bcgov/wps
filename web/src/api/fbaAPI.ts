@@ -1,3 +1,4 @@
+import { AdvisoryStatus } from '@/utils/constants'
 import axios, { raster } from 'api/axios'
 import { DateTime } from 'luxon'
 
@@ -47,14 +48,6 @@ export interface FireZoneFuelStats {
   fuel_area: number
 }
 
-export interface FireShapeArea {
-  fire_shape_id: number
-  threshold?: number
-  combustible_area: number
-  elevated_hfi_area?: number
-  elevated_hfi_percentage: number
-}
-
 export interface ElevationInfo {
   minimum: number
   quartile_25: number
@@ -87,19 +80,20 @@ export interface FireCentreTPIResponse {
   firezone_tpi_stats: FireZoneTPIStats[]
 }
 
-export interface FireShapeAreaListResponse {
-  shapes: FireShapeArea[]
+export interface FireZoneStatus {
+  fire_shape_id: number
+  status: AdvisoryStatus | null
 }
 
 // Fire shape area (aka fire zone unit) data transfer object
-export interface FireShapeAreaDetail extends FireShapeArea {
+export interface FireShapeStatusDetail extends FireZoneStatus {
   fire_shape_name: string
   fire_centre_name: string
 }
 
 // Response object for provincial summary request
 export interface ProvincialSummaryResponse {
-  provincial_summary: FireShapeAreaDetail[]
+  provincial_summary: FireShapeStatusDetail[]
 }
 
 export interface HfiThresholdFuelTypeArea {
@@ -153,16 +147,6 @@ export interface SFMSBoundsResponse {
 export async function getFBAFireCenters(): Promise<FBAResponse> {
   const url = '/fba/fire-centers'
 
-  const { data } = await axios.get(url)
-  return data
-}
-
-export async function getFireShapeAreas(
-  run_type: RunType,
-  run_datetime: string,
-  for_date: string
-): Promise<FireShapeAreaListResponse> {
-  const url = `/fba/fire-shape-areas/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
   const { data } = await axios.get(url)
   return data
 }

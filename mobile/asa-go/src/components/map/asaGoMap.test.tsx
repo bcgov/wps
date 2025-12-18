@@ -62,7 +62,6 @@ describe("ASAGoMap", () => {
     selectedFireShape: undefined,
     setSelectedFireShape: vi.fn(),
     setSelectedFireCenter: vi.fn(),
-    advisoryThreshold: 20,
     date: DateTime.fromISO("2024-12-15"),
     setDate: vi.fn(),
     setTab: vi.fn(),
@@ -188,8 +187,7 @@ describe("ASAGoMap", () => {
     expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalled();
     expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalledWith(
       expect.any(Object), // layer instance
-      expect.any(Array), // fireShapeAreas
-      20, // advisoryThreshold
+      undefined, // no provincialSummary data
       false // visibility
     );
     await waitFor(() => expect(zoneStatusCheckbox).not.toBeChecked());
@@ -197,8 +195,7 @@ describe("ASAGoMap", () => {
     await userEvent.click(zoneStatusToggle);
     expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalledWith(
       expect.any(Object), // layer instance
-      expect.any(Array), // fireShapeAreas
-      20, // advisoryThreshold
+      undefined, // no provincialSummary data
       true // visibility
     );
     await waitFor(() => expect(zoneStatusCheckbox).toBeChecked());

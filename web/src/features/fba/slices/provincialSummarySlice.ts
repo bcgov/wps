@@ -2,19 +2,19 @@ import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { groupBy, isNull, isUndefined } from 'lodash'
-import { FireShapeAreaDetail, getProvincialSummary, ProvincialSummaryResponse, RunType } from 'api/fbaAPI'
+import { FireShapeStatusDetail, getProvincialSummary, ProvincialSummaryResponse, RunType } from 'api/fbaAPI'
 import { RootState } from 'app/rootReducer'
 
 export interface ProvincialSummaryState {
   loading: boolean
   error: string | null
-  fireShapeAreaDetails: FireShapeAreaDetail[]
+  fireShapeStatusDetails: FireShapeStatusDetail[]
 }
 
 export const initialState: ProvincialSummaryState = {
   loading: false,
   error: null,
-  fireShapeAreaDetails: []
+  fireShapeStatusDetails: []
 }
 
 const provincialSummarySlice = createSlice({
@@ -24,7 +24,7 @@ const provincialSummarySlice = createSlice({
     getProvincialSummaryStart(state: ProvincialSummaryState) {
       state.error = null
       state.loading = true
-      state.fireShapeAreaDetails = []
+      state.fireShapeStatusDetails = []
     },
     getProvincialSummaryFailed(state: ProvincialSummaryState, action: PayloadAction<string>) {
       state.error = action.payload
@@ -32,7 +32,7 @@ const provincialSummarySlice = createSlice({
     },
     getProvincialSummarySuccess(state: ProvincialSummaryState, action: PayloadAction<ProvincialSummaryResponse>) {
       state.error = null
-      state.fireShapeAreaDetails = action.payload.provincial_summary
+      state.fireShapeStatusDetails = action.payload.provincial_summary
       state.loading = false
     }
   }
@@ -49,8 +49,8 @@ export const fetchProvincialSummary =
     if (!isUndefined(run_datetime) && !isNull(run_datetime)) {
       try {
         dispatch(getProvincialSummaryStart())
-        const fireShapeAreas = await getProvincialSummary(runType, run_datetime, for_date)
-        dispatch(getProvincialSummarySuccess(fireShapeAreas))
+        const fireShapeStatuses = await getProvincialSummary(runType, run_datetime, for_date)
+        dispatch(getProvincialSummarySuccess(fireShapeStatuses))
       } catch (err) {
         dispatch(getProvincialSummaryFailed((err as Error).toString()))
         logError(err)
@@ -65,9 +65,9 @@ export const fetchProvincialSummary =
     }
   }
 
-const selectFireShapeAreaDetails = (state: RootState) => state.provincialSummary
+const selectFireShapeStatusDetails = (state: RootState) => state.provincialSummary
 
-export const selectProvincialSummary = createSelector([selectFireShapeAreaDetails], fireShapeAreaDetails => {
-  const groupedByFireCenter = groupBy(fireShapeAreaDetails.fireShapeAreaDetails, 'fire_centre_name')
+export const selectProvincialSummary = createSelector([selectFireShapeStatusDetails], fireShapeStatusDetails => {
+  const groupedByFireCenter = groupBy(fireShapeStatusDetails.fireShapeStatusDetails, 'fire_centre_name')
   return groupedByFireCenter
 })

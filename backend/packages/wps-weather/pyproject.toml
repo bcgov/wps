@@ -1,0 +1,27 @@
+[project]
+name = "wps-weather"
+version = "0.1.0"
+description = "Wildfire Predictive Services Unit Weather Maps"
+authors = []
+requires-python = ">=3.12.3,<4.0"
+dependencies = [
+    "numpy==2.3.*",
+    "xarray>=2025.3.1,<2026",
+    "matplotlib>=3.7.0,<4",
+    "cartopy>=0.22.0,<1",
+    "scipy>=1.15.2,<2",
+    "geopandas>=1.0.1,<2",
+    "shapely>=2.0.5,<3",
+    "pyproj>=3.5.0,<4",
+    "fiona>=1.9.0,<2",
+    "jupyter>=1.0.0,<2",
+    "notebook>=7.0.0,<8",
+    "jupyterlab>=4.0.0,<5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wps_weather"]

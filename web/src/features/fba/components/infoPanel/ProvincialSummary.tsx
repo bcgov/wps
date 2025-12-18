@@ -9,14 +9,10 @@ import { useTheme } from '@mui/material/styles'
 import { INFO_PANEL_CONTENT_BACKGROUND } from 'app/theme'
 import { FireCentres } from 'utils/constants'
 
-interface ProvincialSummaryProps {
-  advisoryThreshold: number
-}
-
 export const NO_DATA_MESSAGE = 'Choose a date of interest above.'
 
 // Displays advisory status of all fire zone units in all fire centres across BC.
-const ProvincialSummary = ({ advisoryThreshold }: ProvincialSummaryProps) => {
+const ProvincialSummary = () => {
   const [fireCentreExpanded, setFireCentreExpanded] = useState<Record<string, boolean>>({
     [FireCentres.CARIBOO_FC]: false,
     [FireCentres.COASTAL_FC]: false,
@@ -55,7 +51,6 @@ const ProvincialSummary = ({ advisoryThreshold }: ProvincialSummaryProps) => {
       return (
         <FireCentreInfo
           key={key}
-          advisoryThreshold={advisoryThreshold}
           expanded={fireCentreExpanded[key]}
           fireCentreName={key}
           fireZoneUnitInfos={provincialSummary[key]}
