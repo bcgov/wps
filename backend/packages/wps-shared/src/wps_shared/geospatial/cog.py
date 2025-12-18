@@ -9,6 +9,8 @@ import logging
 
 from osgeo import gdal
 
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,7 +19,7 @@ def generate_web_optimized_cog(
     output_path: str,
     target_srs: str = "EPSG:3857",
     compression: str = "LZW",
-    resample_alg: int = gdal.GRA_NearestNeighbour,
+    resample_alg: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
 ) -> str:
     """
     Generate a web-optimized Cloud-Optimized GeoTIFF (COG).
@@ -48,7 +50,7 @@ def generate_web_optimized_cog(
         src_ds,
         format="MEM",
         dstSRS=target_srs,
-        resampleAlg=resample_alg,
+        resampleAlg=resample_alg.value,
     )
 
     if warped is None:
