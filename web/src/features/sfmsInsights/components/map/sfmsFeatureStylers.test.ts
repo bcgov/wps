@@ -11,7 +11,8 @@ import {
   NODATA_THRESHOLD,
   isNodataValue
 } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
-import { getColorByFuelTypeCode, colorByFuelTypeCode } from '@/features/fba/components/viz/color'
+import { getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
+import { FUEL_TYPE_COLORS } from '@/features/sfmsInsights/components/map/rasterConfig'
 
 describe('getColorForRasterValue', () => {
   it('should get the correct colour for the specified raster value', () => {
@@ -66,10 +67,10 @@ describe('fuelCOGColourExpression', () => {
 
   it('should include all raster values and their corresponding colors', () => {
     const expr = fuelCOGColourExpression()
-    const expectedLength = 1 + rasterValueToFuelTypeCode.size * 2 + 1
+    const expectedLength = 1 + FUEL_TYPE_COLORS.length * 2 + 1
     expect(expr.length).toBe(expectedLength)
 
-    for (const [rasterValue, code] of rasterValueToFuelTypeCode.entries()) {
+    for (const { value: rasterValue, rgb: expectedColor } of FUEL_TYPE_COLORS) {
       const idx = expr.findIndex(
         item =>
           Array.isArray(item) &&
@@ -80,7 +81,6 @@ describe('fuelCOGColourExpression', () => {
       )
       expect(idx).toBeGreaterThan(-1)
       const color = expr[idx + 1]
-      const expectedColor = colorByFuelTypeCode.get(code) ?? [0, 0, 0]
       expect(color.slice(0, 3)).toEqual(expectedColor)
       expect(color[3]).toBe(1)
     }
