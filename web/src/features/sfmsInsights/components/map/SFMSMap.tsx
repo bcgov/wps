@@ -12,7 +12,7 @@ import {
 } from 'features/sfmsInsights/components/map/layerDefinitions'
 import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
 import RasterLegend from 'features/sfmsInsights/components/map/RasterLegend'
-import { FireWeatherRasterType, RASTER_CONFIG } from 'features/sfmsInsights/components/map/rasterConfig'
+import { RasterType, RASTER_CONFIG } from 'features/sfmsInsights/components/map/rasterConfig'
 import {
   RasterTooltipInteraction,
   RasterTooltipData
@@ -36,7 +36,7 @@ const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 interface SFMSMapProps {
   snowDate: DateTime | null
   rasterDate: DateTime
-  rasterType?: FireWeatherRasterType
+  rasterType?: RasterType
   showSnow?: boolean
 }
 
@@ -121,9 +121,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
 
   useEffect(() => {
     if (snowLayerManagerRef.current) {
-      snowLayerManagerRef.current.updateLayer(
-        !isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate) : null
-      )
+      snowLayerManagerRef.current.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate) : null)
     }
   }, [snowDate, showSnow])
 

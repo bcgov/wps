@@ -1,17 +1,17 @@
 import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from '@mui/material'
-import { RASTER_CONFIG, FireWeatherRasterType } from './map/rasterConfig'
+import { RASTER_CONFIG, RasterType } from './map/rasterConfig'
 
 interface RasterTypeDropdownProps {
-  selectedRasterType: FireWeatherRasterType
-  setSelectedRasterType: (rasterType: FireWeatherRasterType) => void
+  selectedRasterType: RasterType
+  setSelectedRasterType: (rasterType: RasterType) => void
 }
 
 const RasterTypeDropdown = ({ selectedRasterType, setSelectedRasterType }: RasterTypeDropdownProps) => {
-  const handleChange = (event: SelectChangeEvent<FireWeatherRasterType>) => {
-    setSelectedRasterType(event.target.value as FireWeatherRasterType)
+  const handleChange = (event: SelectChangeEvent<RasterType>) => {
+    setSelectedRasterType(event.target.value as RasterType)
   }
 
-  const rasterTypes: FireWeatherRasterType[] = ['fwi', 'dmc', 'dc', 'ffmc', 'bui', 'isi', 'fuel']
+  const rasterTypes: RasterType[] = ['fwi', 'dmc', 'dc', 'ffmc', 'bui', 'isi', 'fuel']
 
   return (
     <FormControl sx={{ minWidth: 200 }}>

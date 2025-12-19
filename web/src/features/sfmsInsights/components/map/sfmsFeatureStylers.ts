@@ -1,5 +1,5 @@
 import { colorByFuelTypeCode, getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
-import { RASTER_COLOR_BREAKS, FireWeatherRasterType, ColorBreak, FUEL_TYPE_COLORS } from './rasterConfig'
+import { RASTER_COLOR_BREAKS, RasterType, ColorBreak, FUEL_TYPE_COLORS } from './rasterConfig'
 import * as ol from 'ol'
 import Geometry from 'ol/geom/Geometry'
 import RenderFeature from 'ol/render/Feature'
@@ -82,7 +82,7 @@ export const fuelCOGColourExpression = () => {
 
 // Generate color expression dynamically from color breaks
 export const getFireWeatherColourExpression = (rasterType: string) => {
-  const colorBreaks = RASTER_COLOR_BREAKS[rasterType as FireWeatherRasterType]
+  const colorBreaks = RASTER_COLOR_BREAKS[rasterType as RasterType]
   const expression: any[] = ['case']
 
   // Handle nodata values - GeoTIFF nodata is -3.4028235e+38

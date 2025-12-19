@@ -12,7 +12,7 @@ import GeoTIFF from 'ol/source/GeoTIFF'
 import { boundingExtent } from 'ol/extent'
 import { fromLonLat } from 'ol/proj'
 import { BC_EXTENT } from '@/utils/constants'
-import { FireWeatherRasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
+import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 
 export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
@@ -35,7 +35,7 @@ export const getSnowPMTilesLayer = (snowDate: DateTime) => {
 
 export const getFireWeatherRasterLayer = (
   date: DateTime,
-  rasterType: FireWeatherRasterType,
+  rasterType: RasterType,
   token: string | undefined,
   layerName: string = FWI_LAYER_NAME
 ) => {
@@ -101,11 +101,7 @@ export const fuelCOGTiles = new WebGLTile({
  * Get the appropriate raster layer based on type
  * Handles both fire weather rasters (date-dependent) and fuel raster (static)
  */
-export const getRasterLayer = (
-  date: DateTime,
-  rasterType: FireWeatherRasterType,
-  token: string | undefined
-) => {
+export const getRasterLayer = (date: DateTime, rasterType: RasterType, token: string | undefined) => {
   if (rasterType === 'fuel') {
     return fuelCOGTiles
   }

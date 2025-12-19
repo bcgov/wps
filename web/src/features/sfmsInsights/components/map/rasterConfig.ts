@@ -1,4 +1,4 @@
-export type FireWeatherRasterType = 'fwi' | 'dmc' | 'dc' | 'ffmc' | 'bui' | 'isi' | 'fuel'
+export type RasterType = 'fwi' | 'dmc' | 'dc' | 'ffmc' | 'bui' | 'isi' | 'fuel'
 
 export interface ColorBreak {
   min: number
@@ -103,18 +103,18 @@ export const FUEL_COLOR_BREAKS: ColorBreak[] = FUEL_TYPE_COLORS.map(({ value, fu
   label: fuelCode
 }))
 
-export const RASTER_CONFIG: Record<FireWeatherRasterType, RasterConfig> = {
+export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   fwi: { label: 'FWI', colorBreaks: FWI_COLOR_BREAKS },
   dmc: { label: 'DMC', colorBreaks: DMC_COLOR_BREAKS },
   dc: { label: 'DC', colorBreaks: DC_COLOR_BREAKS },
   ffmc: { label: 'FFMC', colorBreaks: FFMC_COLOR_BREAKS },
   bui: { label: 'BUI', colorBreaks: BUI_COLOR_BREAKS },
   isi: { label: 'ISI', colorBreaks: ISI_COLOR_BREAKS },
-  fuel: { label: 'Fuel Type', colorBreaks: FUEL_COLOR_BREAKS }
+  fuel: { label: 'Fuel', colorBreaks: FUEL_COLOR_BREAKS }
 }
 
 // Backward compatibility - export just the color breaks
-export const RASTER_COLOR_BREAKS: Record<FireWeatherRasterType, ColorBreak[]> = {
+export const RASTER_COLOR_BREAKS: Record<RasterType, ColorBreak[]> = {
   fwi: FWI_COLOR_BREAKS,
   dmc: DMC_COLOR_BREAKS,
   dc: DC_COLOR_BREAKS,

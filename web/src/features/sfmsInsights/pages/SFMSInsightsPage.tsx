@@ -10,13 +10,13 @@ import { Box, Checkbox, FormControlLabel, Grid } from '@mui/material'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { isNull } from 'lodash'
-import { FireWeatherRasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
+import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 
 export const SFMSInsightsPage = () => {
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const [forDate] = useState<DateTime>(DateTime.now())
   const [rasterDate, setRasterDate] = useState<DateTime>(DateTime.fromISO('2025-11-02'))
-  const [rasterType, setRasterType] = useState<FireWeatherRasterType>('fwi')
+  const [rasterType, setRasterType] = useState<RasterType>('fwi')
   const [showSnow, setShowSnow] = useState<boolean>(true)
 
   // Set date ranges for the date picker

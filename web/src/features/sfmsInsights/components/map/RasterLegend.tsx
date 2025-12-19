@@ -1,6 +1,6 @@
 import { Grid, Icon, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { RASTER_CONFIG, FireWeatherRasterType, ColorBreak } from './rasterConfig'
+import { RASTER_CONFIG, RasterType, ColorBreak } from './rasterConfig'
 
 const LegendGrid = styled(Grid)({
   position: 'absolute',
@@ -27,7 +27,7 @@ const LegendSymbol = styled(Icon)({
 })
 
 interface RasterLegendProps {
-  rasterType: FireWeatherRasterType
+  rasterType: RasterType
 }
 
 const RasterLegend = ({ rasterType }: RasterLegendProps) => {
