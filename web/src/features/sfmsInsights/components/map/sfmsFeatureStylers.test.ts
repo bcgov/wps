@@ -67,9 +67,27 @@ describe('fuelCOGColourExpression', () => {
 
   it('should include all raster values and their corresponding colors', () => {
     const expr = fuelCOGColourExpression()
-    const expectedLength = 1 + FUEL_TYPE_COLORS.length * 2 + 1
+    // Expected: 'case' + (3 nodata cases * 2) + (14 fuel types * 2) + fallback = 1 + 6 + 28 + 1 = 36
+    const expectedLength = 1 + 3 * 2 + FUEL_TYPE_COLORS.length * 2 + 1
     expect(expr.length).toBe(expectedLength)
 
+    // Check nodata values are transparent (99, 102, -10000)
+    const nodataValues = [99, 102, -10000]
+    for (const nodataValue of nodataValues) {
+      const idx = expr.findIndex(
+        item =>
+          Array.isArray(item) &&
+          item[0] === '==' &&
+          Array.isArray(item[1]) &&
+          item[1][0] === 'band' &&
+          item[2] === nodataValue
+      )
+      expect(idx).toBeGreaterThan(-1)
+      const color = expr[idx + 1]
+      expect(color).toEqual([0, 0, 0, 0]) // Transparent
+    }
+
+    // Check valid fuel type values
     for (const { value: rasterValue, rgb: expectedColor } of FUEL_TYPE_COLORS) {
       const idx = expr.findIndex(
         item =>

@@ -80,7 +80,8 @@ export const getFireWeatherRasterLayer = (
 export const fuelGridCOG = new GeoTIFF({
   sources: [
     {
-      url: `${PSU_BUCKET}cog/fbp2025_500m_cog.tif`
+      url: `${PSU_BUCKET}cog/fbp2025_500m_cog.tif`,
+      nodata: -10000 // Primary nodata value for fuel raster
     }
   ],
   interpolate: false,

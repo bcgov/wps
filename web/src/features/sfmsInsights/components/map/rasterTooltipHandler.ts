@@ -39,6 +39,11 @@ export const getRasterTooltipData = (
 
   // For fuel type, convert numeric value to fuel code
   if (rasterType === 'fuel') {
+    // Filter out nodata and invalid values (99, 102, -10000)
+    if (roundedValue === 99 || roundedValue === 102 || roundedValue === -10000) {
+      return { value: null, label: defaultLabel }
+    }
+
     const fuelType = FUEL_TYPE_COLORS.find(f => f.value === roundedValue)
     return {
       value: fuelType ? fuelType.fuelCode : roundedValue.toString(),

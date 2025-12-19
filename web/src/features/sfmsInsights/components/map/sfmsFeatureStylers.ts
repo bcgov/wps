@@ -71,10 +71,19 @@ type ColourCases = Array<ColourCaseCondition | ColourCaseColour>
 export const fuelCOGColourExpression = () => {
   const colourCases: ColourCases = []
 
+  // Handle nodata values - make them transparent
+  // 99 = non-fuel areas, 102 = water/non-vegetated, -10000 = primary nodata
+  colourCases.push(['==', ['band', 1], 99], [0, 0, 0, 0])
+  colourCases.push(['==', ['band', 1], 102], [0, 0, 0, 0])
+  colourCases.push(['==', ['band', 1], -10000], [0, 0, 0, 0])
+
+  // Add color cases for valid fuel types (1-14)
   FUEL_TYPE_COLORS.forEach(({ value, rgb }) => {
     const [r, g, b] = rgb
     colourCases.push(['==', ['band', 1], value], [r, g, b, 1])
   })
+
+  // Fallback for any other values - transparent
   colourCases.push([0, 0, 0, 0])
 
   return ['case', ...colourCases]
