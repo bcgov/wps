@@ -239,10 +239,10 @@
     tslib "2.6.2"
     yargs "17.7.2"
 
-"@capacitor/cli@7.1.0":
-  version "7.1.0"
-  resolved "https://registry.npmjs.org/@capacitor/cli/-/cli-7.1.0.tgz"
-  integrity sha512-oCjB9VB6KNTnBAlzt8tVIuBW+ZniIOCbrsp+nLoa2EfUIgoOGfMHldS4tG9KlTG3pTi5AzeHjSHJIMZwfiz6gg==
+"@capacitor/cli@8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/cli/-/cli-8.0.0.tgz#21011ce1dd48d2a48d035ae4c752d45bfe3694ca"
+  integrity sha512-v9hEBi69xGxuuZhg55N031bMEenKaPSv71Il8C22VOOH6surDyv/MPeImN0oVfFc7eiklaW3rDFYVz6cmXfJWQ==
   dependencies:
     "@ionic/cli-framework-output" "^2.2.8"
     "@ionic/utils-subprocess" "^3.0.1"
