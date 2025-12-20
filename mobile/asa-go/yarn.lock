@@ -211,10 +211,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-1.0.2.tgz#bbe12dca5b4ef983a0d0af4b07b9bc90ea0ababa"
   integrity sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==
 
-"@capacitor/android@7.1.0":
-  version "7.1.0"
-  resolved "https://registry.npmjs.org/@capacitor/android/-/android-7.1.0.tgz"
-  integrity sha512-piPgQViWOjh18H7R8wDkh5uaZ5PwRbMxGZFu39ReP8Y0nZwjS8ESUvJuBm38T+HHJnHM6MnDHmCWnW3ixKqeZw==
+"@capacitor/android@8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/android/-/android-8.0.0.tgz#8cd63ed432460c70db0770dccd9234700152f31a"
+  integrity sha512-FrBSvVAC5JuLaYHNyDnwQny0/SYnP+xDQbc/KA4wInmRkMXLDv22fkx9aBJIDrxjuUVd+jsRih4SAt8FgMEzCw==
 
 "@capacitor/app@7.0.0":
   version "7.0.0"
