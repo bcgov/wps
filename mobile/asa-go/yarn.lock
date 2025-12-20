@@ -292,10 +292,12 @@
   dependencies:
     tslib "^2.1.0"
 
-"@capacitor/filesystem@^7.0.0":
-  version "7.0.0"
-  resolved "https://registry.npmjs.org/@capacitor/filesystem/-/filesystem-7.0.0.tgz"
-  integrity sha512-xMzLq+ZaqYBAincYOKF1eNy/3UWwx1XM6TuvWBTVQTHeRsURzqwwbqBKtfkhbRzk5wnXEprWZz5k5iFo2s2BXw==
+"@capacitor/filesystem@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/filesystem/-/filesystem-8.0.0.tgz#752bdff67686940cb73459fd94c58cb114098ff7"
+  integrity sha512-RRGNLW9xEqvVVHGyGlfS4Oy0R3Na+bEefwZElKbex22S9eZr5cg8wc750BPPVwbcv5lf5fJymkY8x8y6UwKPyg==
+  dependencies:
+    "@capacitor/synapse" "^1.0.4"
 
 "@capacitor/geolocation@^7.1.2":
   version "7.1.4"
@@ -339,9 +341,9 @@
   resolved "https://registry.npmjs.org/@capacitor/status-bar/-/status-bar-7.0.0.tgz"
   integrity sha512-wsvPkWkoSOXMIgVHu4c6P1sOuDSZ1ClUo5OpLRwj7u8DYzlV4jlmNzztQn2Lvsiqx1z4kfukSaqe40k1Lo4c9g==
 
-"@capacitor/synapse@^1.0.3":
+"@capacitor/synapse@^1.0.3", "@capacitor/synapse@^1.0.4":
   version "1.0.4"
-  resolved "https://registry.npmjs.org/@capacitor/synapse/-/synapse-1.0.4.tgz"
+  resolved "https://registry.yarnpkg.com/@capacitor/synapse/-/synapse-1.0.4.tgz#c6beb33119d9656b1f04cb7783989fb78933ef6d"
   integrity sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==
 
 "@cspotcode/source-map-support@^0.8.0":
