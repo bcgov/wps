@@ -216,10 +216,10 @@
   resolved "https://registry.npmjs.org/@capacitor/android/-/android-7.1.0.tgz"
   integrity sha512-piPgQViWOjh18H7R8wDkh5uaZ5PwRbMxGZFu39ReP8Y0nZwjS8ESUvJuBm38T+HHJnHM6MnDHmCWnW3ixKqeZw==
 
-"@capacitor/app@7.0.0":
-  version "7.0.0"
-  resolved "https://registry.npmjs.org/@capacitor/app/-/app-7.0.0.tgz"
-  integrity sha512-/UFwfPFsw/Jen6vjrV0lfTBOQWSaDDdmrYXKpYg4Xn8hwj0xrrRPXxC43j7VmPoj9AFMVPA+hx94ygqjChPASQ==
+"@capacitor/app@8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/app/-/app-8.0.0.tgz#47c2a90302919d71cef8a7297fb1d6ee439d1250"
+  integrity sha512-OwzIkUs4w433Bu9WWAEbEYngXEfJXZ9Wmdb8eoaqzYBgB0W9/3Ed/mh6sAYPNBAZlpyarmewgP7Nb+d3Vrh+xA==
 
 "@capacitor/assets@^3.0.5":
   version "3.0.5"
