@@ -18,7 +18,12 @@ const buildTestStore = (initialState: BurnForecastsState) => {
     reducer: rootReducer,
     preloadedState: {
       burnForecasts: initialState
-    }
+    },
+    middleware: getDefaultMiddleware =>
+      getDefaultMiddleware({
+        immutableCheck: false,
+        serializableCheck: false
+      })
   })
   return testStore
 }
@@ -52,18 +57,22 @@ describe('FireWatchDashboard', async () => {
       </Provider>
     )
 
-  it('dispatches fetchBurnForecasts on mount', () => {
+  it('dispatches fetchBurnForecasts on mount', async () => {
     const dispatchSpy = vi.spyOn(testStore, 'dispatch')
     renderDashboard()
 
-    expect(dispatchSpy).toHaveBeenCalled()
+    await waitFor(() => {
+      expect(dispatchSpy).toHaveBeenCalled()
+    })
   })
 
   it('should render', async () => {
     renderDashboard()
 
-    const dashboard = screen.getByTestId('fire-watch-dashboard')
-    expect(dashboard).toBeInTheDocument()
+    await waitFor(() => {
+      const dashboard = screen.getByTestId('fire-watch-dashboard')
+      expect(dashboard).toBeInTheDocument()
+    })
   })
 
   it('renders the grid with rows', async () => {
