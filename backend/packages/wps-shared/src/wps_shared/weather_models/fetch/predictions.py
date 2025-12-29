@@ -7,7 +7,6 @@ import datetime
 from datetime import time
 from time import perf_counter
 from collections import defaultdict
-import pytz
 from sqlalchemy.orm import Session
 import wps_shared.db.database
 from wps_shared.schemas.morecast_v2 import WeatherIndeterminate
@@ -26,7 +25,7 @@ from wps_shared.db.crud.weather_models import (
     get_latest_station_prediction,
 )
 import wps_shared.stations
-from wps_shared.utils.time import get_days_from_range
+from wps_shared.utils.time import get_days_from_range, vancouver_tz
 from wps_shared.weather_models import ModelEnum
 
 logger = logging.getLogger(__name__)
@@ -111,10 +110,9 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
     with wps_shared.db.database.get_read_session_scope() as session:
         for day in days:
             day_results = []
-            vancouver_tz = pytz.timezone("America/Vancouver")
 
-            day_start = vancouver_tz.localize(datetime.datetime.combine(day, time.min))
-            day_end = vancouver_tz.localize(datetime.datetime.combine(day, time.max))
+            day_start = datetime.datetime.combine(day, time.min, tzinfo=vancouver_tz)
+            day_end = datetime.datetime.combine(day, time.max, tzinfo=vancouver_tz)
 
             daily_result = get_latest_station_model_prediction_per_day(
                 session, station_codes, model, day_start, day_end
@@ -176,10 +174,8 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(
     }
     active_station_codes = stations.keys()
     for day in days:
-        vancouver_tz = pytz.timezone("America/Vancouver")
-
-        day_start = vancouver_tz.localize(datetime.datetime.combine(day, time.min))
-        day_end = vancouver_tz.localize(datetime.datetime.combine(day, time.max))
+        day_start = datetime.datetime.combine(day, time.min, tzinfo=vancouver_tz)
+        day_end = datetime.datetime.combine(day, time.max, tzinfo=vancouver_tz)
 
         daily_result = get_latest_station_prediction(
             session, active_station_codes, day_start, day_end

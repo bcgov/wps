@@ -75,8 +75,8 @@ async def construct_wf1_forecasts(session: ClientSession, forecast_records: List
     forecast_dates = [datetime.fromtimestamp(f.for_date / 1000, timezone.utc) for f in forecast_records]
     min_forecast_date = min(forecast_dates)
     max_forecast_date = max(forecast_dates)
-    start_time = vancouver_tz.localize(datetime.combine(min_forecast_date, time.min))
-    end_time = vancouver_tz.localize(datetime.combine(max_forecast_date, time.max))
+    start_time = datetime.combine(min_forecast_date, time.min, tzinfo=vancouver_tz)
+    end_time = datetime.combine(max_forecast_date, time.max, tzinfo=vancouver_tz)
     unique_station_codes = list(set([f.station_code for f in forecast_records]))
     dailies = await get_forecasts_for_stations_by_date_range(
         session=session, header=header, start_time_of_interest=start_time, end_time_of_interest=end_time, unique_station_codes=unique_station_codes, check_cache=False
