@@ -1,10 +1,11 @@
 import FireWatchDashboard from '@/features/fireWatch/components/FireWatchDashboard'
 import { FireWatchDetailsModalProps } from '@/features/fireWatch/components/FireWatchDetailsModal'
 import { BurnStatusEnum, FireWatch, FuelTypeEnum, PrescriptionEnum } from '@/features/fireWatch/interfaces'
-import burnForecastSlice, { BurnForecastsState, initialState } from '@/features/fireWatch/slices/burnForecastSlice'
+import burnForecastSlice, { initialState } from '@/features/fireWatch/slices/burnForecastSlice'
+import { createTestStore } from '@/test/testUtils'
 import { MUI_LICENSE } from '@/utils/env'
 import { LicenseInfo } from '@mui/x-data-grid-pro'
-import { combineReducers, configureStore } from '@reduxjs/toolkit'
+import { combineReducers } from '@reduxjs/toolkit'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
@@ -12,16 +13,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as burnForecastSliceModule from '@/features/fireWatch/slices/burnForecastSlice'
 import userEvent from '@testing-library/user-event'
 
-const buildTestStore = (initialState: BurnForecastsState) => {
-  const rootReducer = combineReducers({ burnForecasts: burnForecastSlice })
-  const testStore = configureStore({
-    reducer: rootReducer,
-    preloadedState: {
-      burnForecasts: initialState
-    }
-  })
-  return testStore
-}
+const burnForecastsReducer = combineReducers({ burnForecasts: burnForecastSlice })
 
 vi.mock('features/fireWatch/fireWatchApi', () => ({
   getBurnForecasts: () => mockFireWatchBurnForecasts
@@ -39,10 +31,10 @@ vi.mock('@/features/fireWatch/components/DetailPanelContent', () => ({
 }))
 
 describe('FireWatchDashboard', async () => {
-  let testStore: ReturnType<typeof buildTestStore>
+  let testStore: ReturnType<typeof createTestStore>
   beforeEach(() => {
     LicenseInfo.setLicenseKey(MUI_LICENSE)
-    testStore = buildTestStore({ ...initialState })
+    testStore = createTestStore({ burnForecasts: { ...initialState } }, burnForecastsReducer)
   })
 
   const renderDashboard = () =>
@@ -52,18 +44,22 @@ describe('FireWatchDashboard', async () => {
       </Provider>
     )
 
-  it('dispatches fetchBurnForecasts on mount', () => {
+  it('dispatches fetchBurnForecasts on mount', async () => {
     const dispatchSpy = vi.spyOn(testStore, 'dispatch')
     renderDashboard()
 
-    expect(dispatchSpy).toHaveBeenCalled()
+    await waitFor(() => {
+      expect(dispatchSpy).toHaveBeenCalled()
+    })
   })
 
   it('should render', async () => {
     renderDashboard()
 
-    const dashboard = screen.getByTestId('fire-watch-dashboard')
-    expect(dashboard).toBeInTheDocument()
+    await waitFor(() => {
+      const dashboard = screen.getByTestId('fire-watch-dashboard')
+      expect(dashboard).toBeInTheDocument()
+    })
   })
 
   it('renders the grid with rows', async () => {

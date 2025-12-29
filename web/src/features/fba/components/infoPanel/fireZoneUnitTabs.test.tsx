@@ -4,17 +4,14 @@ import FireZoneUnitTabs from './FireZoneUnitTabs'
 import { FireCenter, FireCentreHFIStats, FireCentreTPIResponse, FireShape, FireShapeStatusDetail } from 'api/fbaAPI'
 import { vi } from 'vitest'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
-import { combineReducers, configureStore } from '@reduxjs/toolkit'
-import fireCentreTPIStatsSlice, {
-  CentreTPIStatsState,
-  initialState as tpiInitialState
-} from '@/features/fba/slices/fireCentreTPIStatsSlice'
+import { combineReducers } from '@reduxjs/toolkit'
+import fireCentreTPIStatsSlice, { initialState as tpiInitialState } from '@/features/fba/slices/fireCentreTPIStatsSlice'
 import fireCentreHFIFuelStatsSlice, {
-  FireCentreHFIFuelStatsState,
   initialState as hfiInitialState
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
 import { Provider } from 'react-redux'
 import { AdvisoryStatus } from '@/utils/constants'
+import { createTestStore } from '@/test/testUtils'
 
 const getAdvisoryDetails = (
   fireZoneName: string,
@@ -31,20 +28,10 @@ const getAdvisoryDetails = (
   ]
 }
 
-const buildTestStore = (hfiInitialState: FireCentreHFIFuelStatsState, tpiInitialState: CentreTPIStatsState) => {
-  const rootReducer = combineReducers({
-    fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice,
-    fireCentreTPIStats: fireCentreTPIStatsSlice
-  })
-  const testStore = configureStore({
-    reducer: rootReducer,
-    preloadedState: {
-      fireCentreHFIFuelStats: hfiInitialState,
-      fireCentreTPIStats: tpiInitialState
-    }
-  })
-  return testStore
-}
+const fireZoneUnitReducer = combineReducers({
+  fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice,
+  fireCentreTPIStats: fireCentreTPIStatsSlice
+})
 
 const fireCentre1 = 'Centre 1'
 const zoneA = 'A Zone'
@@ -151,9 +138,12 @@ const renderComponent = (testStore: any) =>
   )
 
 describe('FireZoneUnitTabs', () => {
-  const testStore = buildTestStore(
-    { ...hfiInitialState, fireCentreHFIFuelStats: mockFireCentreHFIFuelStats },
-    { ...tpiInitialState, fireCentreTPIStats: mockFireCentreTPIStats }
+  const testStore = createTestStore(
+    {
+      fireCentreHFIFuelStats: { ...hfiInitialState, fireCentreHFIFuelStats: mockFireCentreHFIFuelStats },
+      fireCentreTPIStats: { ...tpiInitialState, fireCentreTPIStats: mockFireCentreTPIStats }
+    },
+    fireZoneUnitReducer
   )
   it('should render', () => {
     const { getByTestId } = renderComponent(testStore)

@@ -1,30 +1,17 @@
 import { Provider } from 'react-redux'
 import { render } from '@testing-library/react'
 import ProvincialSummary, { NO_DATA_MESSAGE } from 'features/fba/components/infoPanel/ProvincialSummary'
-import provincialSummarySlice, {
-  initialState,
-  ProvincialSummaryState
-} from 'features/fba/slices/provincialSummarySlice'
-import { combineReducers, configureStore } from '@reduxjs/toolkit'
+import provincialSummarySlice, { initialState } from 'features/fba/slices/provincialSummarySlice'
+import { combineReducers } from '@reduxjs/toolkit'
 import { FireShapeStatusDetail } from 'api/fbaAPI'
 import { AdvisoryStatus } from '@/utils/constants'
+import { createTestStore } from '@/test/testUtils'
 
-const buildTestStore = (initialState: ProvincialSummaryState) => {
-  const rootReducer = combineReducers({ provincialSummary: provincialSummarySlice })
-  const testStore = configureStore({
-    reducer: rootReducer,
-    preloadedState: {
-      provincialSummary: initialState
-    }
-  })
-  return testStore
-}
+const provincialSummaryReducer = combineReducers({ provincialSummary: provincialSummarySlice })
 
 describe('ProvincialSummary', () => {
   it('should render', () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
+    const testStore = createTestStore({ provincialSummary: { ...initialState } }, provincialSummaryReducer)
     const { getByTestId } = render(
       <Provider store={testStore}>
         <ProvincialSummary />
@@ -34,9 +21,7 @@ describe('ProvincialSummary', () => {
     expect(provincialSummary).toBeInTheDocument()
   })
   it('should have no data message when provincial summary has no data', () => {
-    const testStore = buildTestStore({
-      ...initialState
-    })
+    const testStore = createTestStore({ provincialSummary: { ...initialState } }, provincialSummaryReducer)
     const { getByTestId } = render(
       <Provider store={testStore}>
         <ProvincialSummary />
@@ -55,10 +40,10 @@ describe('ProvincialSummary', () => {
         status: AdvisoryStatus.ADVISORY
       }
     ]
-    const testStore = buildTestStore({
-      ...initialState,
-      fireShapeStatusDetails: fireShapeStatusDetails
-    })
+    const testStore = createTestStore(
+      { provincialSummary: { ...initialState, fireShapeStatusDetails } },
+      provincialSummaryReducer
+    )
     const { getByTestId } = render(
       <Provider store={testStore}>
         <ProvincialSummary />

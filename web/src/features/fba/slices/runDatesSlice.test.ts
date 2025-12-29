@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// ✅ Adjust the path below to where your slice file lives
 import reducer, {
   fetchSFMSBounds,
   fetchSFMSRunDates,
@@ -15,6 +14,8 @@ import reducer, {
 } from '@/features/fba/slices/runDatesSlice'
 
 import { createTestStore } from '@/test/testUtils'
+import { AppDispatch } from '@/app/store'
+import { combineReducers } from '@reduxjs/toolkit'
 import {
   getAllRunDates,
   getMostRecentRunDate,
@@ -24,6 +25,8 @@ import {
   type SFMSBounds
 } from 'api/fbaAPI'
 import { logError } from 'utils/error'
+
+const runDatesReducer = combineReducers({ runDates: reducer })
 
 // We mock the API and error logger while keeping TS types
 vi.mock('@/api/fbaAPI', async () => {
@@ -128,10 +131,9 @@ describe('fetchSFMSRunDates thunk', () => {
     mockedGetAllRunDates.mockResolvedValue(runDates)
     mockedGetMostRecentRunDate.mockResolvedValue(mostRecentRunDate)
 
-    const store = createTestStore({
-      runDates: initialState
-    })
-    await store.dispatch(fetchSFMSRunDates(runType, forDate))
+    const store = createTestStore({ runDates: initialState }, runDatesReducer)
+    const dispatch = store.dispatch as AppDispatch
+    await dispatch(fetchSFMSRunDates(runType, forDate))
 
     const runDatesState = store.getState().runDates
     expect(runDatesState.loading).toBe(false)
@@ -144,10 +146,9 @@ describe('fetchSFMSRunDates thunk', () => {
   it('should log an error', async () => {
     const error = 'Error'
     mockedGetAllRunDates.mockRejectedValue(error)
-    const store = createTestStore({
-      runDates: initialState
-    })
-    await store.dispatch(fetchSFMSRunDates(runType, forDate))
+    const store = createTestStore({ runDates: initialState }, runDatesReducer)
+    const dispatch = store.dispatch as AppDispatch
+    await dispatch(fetchSFMSRunDates(runType, forDate))
     const runDatesState = store.getState().runDates
     expect(runDatesState.error).toBe(error)
     expect(mockedLogError).toHaveBeenCalled()
@@ -171,10 +172,9 @@ describe('fetchSFMSBounds thunk', () => {
       }
     }
     mockedGetSFMSBounds.mockResolvedValue(sfmsBounds)
-    const store = createTestStore({
-      runDates: initialState
-    })
-    await store.dispatch(fetchSFMSBounds())
+    const store = createTestStore({ runDates: initialState }, runDatesReducer)
+    const dispatch = store.dispatch as AppDispatch
+    await dispatch(fetchSFMSBounds())
 
     const runDatesState = store.getState().runDates
     expect(runDatesState.loading).toBe(false)
@@ -185,10 +185,9 @@ describe('fetchSFMSBounds thunk', () => {
   it('should log an error', async () => {
     const error = 'Error'
     mockedGetSFMSBounds.mockRejectedValue(error)
-    const store = createTestStore({
-      runDates: initialState
-    })
-    await store.dispatch(fetchSFMSBounds())
+    const store = createTestStore({ runDates: initialState }, runDatesReducer)
+    const dispatch = store.dispatch as AppDispatch
+    await dispatch(fetchSFMSBounds())
     const runDatesState = store.getState().runDates
     expect(runDatesState.sfmsBoundsError).toBe(error)
     expect(mockedLogError).toHaveBeenCalled()
