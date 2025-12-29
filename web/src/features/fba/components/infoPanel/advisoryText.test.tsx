@@ -6,7 +6,7 @@ import {
 import { initialState as runDatesInitialState } from '@/features/fba/slices/runDatesSlice'
 import { initialState as fireCentreTPIStatsInitialState } from '@/features/fba/slices/fireCentreTPIStatsSlice'
 import { createTestStore } from '@/test/testUtils'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import { FireCenter, FireShape, FireShapeStatusDetail, FireZoneHFIStats } from 'api/fbaAPI'
 import AdvisoryText, {
   getTopFuelsByArea,
@@ -197,18 +197,22 @@ describe('AdvisoryText', () => {
 
   it('should include fuel stats when their fuel area is above the 100 * 2000m * 2000m threshold', async () => {
     const store = getInitialStore()
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          issueDate={issueDate}
-          forDate={forDate}
-          selectedFireCenter={mockFireCenter}
-          selectedFireZoneUnit={mockFireZoneUnit}
-        />
-      </Provider>
-    )
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <AdvisoryText
+            issueDate={issueDate}
+            forDate={forDate}
+            selectedFireCenter={mockFireCenter}
+            selectedFireZoneUnit={mockFireZoneUnit}
+          />
+        </Provider>
+      )
+    })
     assertInitialState()
-    store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
+    await act(async () => {
+      store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
+    })
     await waitFor(() => expect(screen.queryByTestId('advisory-message-warning')).toBeInTheDocument())
     await waitFor(() =>
       expect(screen.queryByTestId('advisory-message-warning')).toHaveTextContent(
@@ -219,21 +223,25 @@ describe('AdvisoryText', () => {
 
   it('should not include fuel stats when their fuel area is below the 100 * 2000m * 2000m threshold', async () => {
     const store = getInitialStore()
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          issueDate={issueDate}
-          forDate={forDate}
-          selectedFireCenter={mockFireCenter}
-          selectedFireZoneUnit={mockFireZoneUnit}
-        />
-      </Provider>
-    )
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <AdvisoryText
+            issueDate={issueDate}
+            forDate={forDate}
+            selectedFireCenter={mockFireCenter}
+            selectedFireZoneUnit={mockFireZoneUnit}
+          />
+        </Provider>
+      )
+    })
     assertInitialState()
     let smallAreaStats = cloneDeep(initialHFIFuelStats)
     smallAreaStats['Cariboo Fire Centre'][20].fuel_area_stats[0].area = 10
     smallAreaStats['Cariboo Fire Centre'][20].fuel_area_stats[0].fuel_area = 100
-    store.dispatch(getFireCentreHFIFuelStatsSuccess(smallAreaStats))
+    await act(async () => {
+      store.dispatch(getFireCentreHFIFuelStatsSuccess(smallAreaStats))
+    })
 
     await waitFor(() => expect(screen.queryByTestId('advisory-message-warning')).toBeInTheDocument())
     await waitFor(() =>
@@ -362,18 +370,22 @@ describe('AdvisoryText', () => {
 
   it('should render wind speed text and early fire behaviour text when fire zone unit is selected, based on wind speed & critical hours data', async () => {
     const store = getInitialStore()
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          issueDate={issueDate}
-          forDate={forDate}
-          selectedFireCenter={mockFireCenter}
-          selectedFireZoneUnit={mockFireZoneUnit}
-        />
-      </Provider>
-    )
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <AdvisoryText
+            issueDate={issueDate}
+            forDate={forDate}
+            selectedFireCenter={mockFireCenter}
+            selectedFireZoneUnit={mockFireZoneUnit}
+          />
+        </Provider>
+      )
+    })
     assertInitialState()
-    store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
+    await act(async () => {
+      store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
+    })
     await waitFor(() => expect(screen.queryByTestId('advisory-message-wind-speed')).toBeInTheDocument())
     await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).toBeInTheDocument())
     await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).not.toBeInTheDocument())
@@ -381,22 +393,26 @@ describe('AdvisoryText', () => {
 
   it('should render early advisory text and overnight burning text when critical hours go into the next day and start before 12', async () => {
     const store = getInitialStore()
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          issueDate={issueDate}
-          forDate={forDate}
-          selectedFireCenter={mockFireCenter}
-          selectedFireZoneUnit={mockFireZoneUnit}
-        />
-      </Provider>
-    )
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <AdvisoryText
+            issueDate={issueDate}
+            forDate={forDate}
+            selectedFireCenter={mockFireCenter}
+            selectedFireZoneUnit={mockFireZoneUnit}
+          />
+        </Provider>
+      )
+    })
     assertInitialState()
 
     let overnightStats = cloneDeep(initialHFIFuelStats)
     overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 5
 
-    store.dispatch(getFireCentreHFIFuelStatsSuccess(overnightStats))
+    await act(async () => {
+      store.dispatch(getFireCentreHFIFuelStatsSuccess(overnightStats))
+    })
     await waitFor(() => expect(screen.queryByTestId('early-advisory-text')).toBeInTheDocument())
     await waitFor(() => expect(screen.queryByTestId('overnight-burning-text')).toBeInTheDocument())
     await waitFor(() =>
@@ -408,23 +424,27 @@ describe('AdvisoryText', () => {
 
   it('should render only overnight burning text when critical hours go into the next day and start after 12', async () => {
     const store = getInitialStore()
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          issueDate={issueDate}
-          forDate={forDate}
-          selectedFireCenter={mockFireCenter}
-          selectedFireZoneUnit={mockFireZoneUnit}
-        />
-      </Provider>
-    )
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <AdvisoryText
+            issueDate={issueDate}
+            forDate={forDate}
+            selectedFireCenter={mockFireCenter}
+            selectedFireZoneUnit={mockFireZoneUnit}
+          />
+        </Provider>
+      )
+    })
     assertInitialState()
 
     let overnightStats = cloneDeep(initialHFIFuelStats)
     overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 5
     overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.start_time = 13
 
-    store.dispatch(getFireCentreHFIFuelStatsSuccess(overnightStats))
+    await act(async () => {
+      store.dispatch(getFireCentreHFIFuelStatsSuccess(overnightStats))
+    })
     await waitFor(async () => expect(screen.queryByTestId('early-advisory-text')).not.toBeInTheDocument())
     await waitFor(async () => expect(screen.queryByTestId('overnight-burning-text')).toBeInTheDocument())
     await waitFor(() =>
@@ -490,39 +510,47 @@ describe('AdvisoryText', () => {
 
   it('should not render slash warning when critical hours duration is less than 12 hours', async () => {
     const store = getInitialStore()
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          issueDate={issueDate}
-          forDate={forDate}
-          selectedFireCenter={mockFireCenter}
-          selectedFireZoneUnit={mockFireZoneUnit}
-        />
-      </Provider>
-    )
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <AdvisoryText
+            issueDate={issueDate}
+            forDate={forDate}
+            selectedFireCenter={mockFireCenter}
+            selectedFireZoneUnit={mockFireZoneUnit}
+          />
+        </Provider>
+      )
+    })
     assertInitialState()
-    store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
+    await act(async () => {
+      store.dispatch(getFireCentreHFIFuelStatsSuccess(initialHFIFuelStats))
+    })
     await waitFor(() => expect(screen.queryByTestId('advisory-message-slash')).not.toBeInTheDocument())
   })
 
   it('should render slash warning when critical hours duration is greater than 12 hours', async () => {
     const store = getInitialStore()
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          issueDate={issueDate}
-          forDate={forDate}
-          selectedFireCenter={mockFireCenter}
-          selectedFireZoneUnit={mockFireZoneUnit}
-        />
-      </Provider>
-    )
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <AdvisoryText
+            issueDate={issueDate}
+            forDate={forDate}
+            selectedFireCenter={mockFireCenter}
+            selectedFireZoneUnit={mockFireZoneUnit}
+          />
+        </Provider>
+      )
+    })
     assertInitialState()
 
     let newHFIFuelStats = cloneDeep(initialHFIFuelStats)
     newHFIFuelStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 22
 
-    store.dispatch(getFireCentreHFIFuelStatsSuccess(newHFIFuelStats))
+    await act(async () => {
+      store.dispatch(getFireCentreHFIFuelStatsSuccess(newHFIFuelStats))
+    })
     await waitFor(() => expect(screen.queryByTestId('advisory-message-slash')).toBeInTheDocument())
   })
 
