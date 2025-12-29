@@ -1,15 +1,13 @@
-import rootReducer from '@/app/rootReducer'
-import { configureStore } from '@reduxjs/toolkit'
+import { createTestStore } from '@/test/testUtils'
 import { render } from '@testing-library/react'
-import store from 'app/store'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
-
 import { Provider } from 'react-redux'
 
 describe('SaveForecastButton', () => {
   it('should render the button as enabled', () => {
+    const testStore = createTestStore()
     const { getByTestId } = render(
-      <Provider store={store}>
+      <Provider store={testStore}>
         <SaveForecastButton enabled={true} label="test" onClick={() => undefined} />
       </Provider>
     )
@@ -19,8 +17,9 @@ describe('SaveForecastButton', () => {
     expect(manageStationsButton).toBeEnabled()
   })
   it('should render the button as disabled', () => {
+    const testStore = createTestStore()
     const { getByTestId } = render(
-      <Provider store={store}>
+      <Provider store={testStore}>
         <SaveForecastButton enabled={false} label="test" onClick={() => undefined} />
       </Provider>
     )
@@ -30,14 +29,11 @@ describe('SaveForecastButton', () => {
     expect(manageStationsButton).toBeDisabled()
   })
   it('should render the button as disabled when input is invalid', () => {
-    const testStore = configureStore({
-      reducer: rootReducer,
-      preloadedState: {
-        morecastInputValid: {
-          isValid: false,
-          isRequiredEmpty: {
-            empty: false
-          }
+    const testStore = createTestStore({
+      morecastInputValid: {
+        isValid: false,
+        isRequiredEmpty: {
+          empty: false
         }
       }
     })
