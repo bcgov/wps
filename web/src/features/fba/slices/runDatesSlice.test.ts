@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// ✅ Adjust the path below to where your slice file lives
 import reducer, {
   fetchSFMSBounds,
   fetchSFMSRunDates,
@@ -15,6 +14,7 @@ import reducer, {
 } from '@/features/fba/slices/runDatesSlice'
 
 import { createTestStore } from '@/test/testUtils'
+import { RootState } from '@/app/rootReducer'
 import {
   getAllRunDates,
   getMostRecentRunDate,
@@ -128,9 +128,7 @@ describe('fetchSFMSRunDates thunk', () => {
     mockedGetAllRunDates.mockResolvedValue(runDates)
     mockedGetMostRecentRunDate.mockResolvedValue(mostRecentRunDate)
 
-    const store = createTestStore({
-      runDates: initialState
-    })
+    const store = createTestStore({ runDates: initialState } as RootState)
     await store.dispatch(fetchSFMSRunDates(runType, forDate))
 
     const runDatesState = store.getState().runDates
@@ -144,9 +142,7 @@ describe('fetchSFMSRunDates thunk', () => {
   it('should log an error', async () => {
     const error = 'Error'
     mockedGetAllRunDates.mockRejectedValue(error)
-    const store = createTestStore({
-      runDates: initialState
-    })
+    const store = createTestStore({ runDates: initialState } as RootState)
     await store.dispatch(fetchSFMSRunDates(runType, forDate))
     const runDatesState = store.getState().runDates
     expect(runDatesState.error).toBe(error)
@@ -171,9 +167,7 @@ describe('fetchSFMSBounds thunk', () => {
       }
     }
     mockedGetSFMSBounds.mockResolvedValue(sfmsBounds)
-    const store = createTestStore({
-      runDates: initialState
-    })
+    const store = createTestStore({ runDates: initialState } as RootState)
     await store.dispatch(fetchSFMSBounds())
 
     const runDatesState = store.getState().runDates
@@ -185,9 +179,7 @@ describe('fetchSFMSBounds thunk', () => {
   it('should log an error', async () => {
     const error = 'Error'
     mockedGetSFMSBounds.mockRejectedValue(error)
-    const store = createTestStore({
-      runDates: initialState
-    })
+    const store = createTestStore({ runDates: initialState } as RootState)
     await store.dispatch(fetchSFMSBounds())
     const runDatesState = store.getState().runDates
     expect(runDatesState.sfmsBoundsError).toBe(error)
