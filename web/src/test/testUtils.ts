@@ -1,12 +1,18 @@
 import rootReducer, { RootState } from '@/app/rootReducer'
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, Reducer } from '@reduxjs/toolkit'
 
-export const createTestStore = (initialState: Partial<RootState> = {}) => {
+export const createTestStore = <S = RootState>(
+  initialState?: S,
+  reducer: Reducer<S> = rootReducer as Reducer<S>
+) => {
   return configureStore({
-    reducer: rootReducer,
-    preloadedState: {
-      ...initialState
-    }
+    reducer,
+    preloadedState: initialState,
+    middleware: getDefaultMiddleware =>
+      getDefaultMiddleware({
+        immutableCheck: false,
+        serializableCheck: false
+      })
   })
 }
 
@@ -22,6 +28,6 @@ export const createLayerMock = (name: string) => {
     un: vi.fn(),
     once: vi.fn(),
     addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  };
-};
+    removeEventListener: vi.fn()
+  }
+}
