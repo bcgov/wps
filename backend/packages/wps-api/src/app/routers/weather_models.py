@@ -4,7 +4,7 @@ import logging
 from typing import List
 from fastapi import APIRouter, Depends
 from datetime import date, datetime, time
-import pytz
+from zoneinfo import ZoneInfo
 from wps_shared.auth import authentication_required, audit
 from wps_shared.weather_models import ModelEnum
 from wps_shared.schemas.weather_models import WeatherStationModelPredictionValues, WeatherModelPredictionSummaryResponse, WeatherStationsModelRunsPredictionsResponse
@@ -57,10 +57,10 @@ async def get_model_values_for_date_range(
     """
     logger.info('/weather_models/%s/predictions/most_recent/%s/%s', model.name, start_date, end_date)
 
-    vancouver_tz = pytz.timezone("America/Vancouver")
+    vancouver_tz = ZoneInfo("America/Vancouver")
 
-    start_time = vancouver_tz.localize(datetime.combine(start_date, time.min))
-    end_time = vancouver_tz.localize(datetime.combine(end_date, time.max))
+    start_time = datetime.combine(start_date, time.min, tzinfo=vancouver_tz)
+    end_time = datetime.combine(end_date, time.max, tzinfo=vancouver_tz)
 
     station_predictions = await fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(model, request.stations, start_time, end_time)
 
