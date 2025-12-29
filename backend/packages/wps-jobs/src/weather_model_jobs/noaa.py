@@ -3,7 +3,7 @@
 import os
 import sys
 import datetime
-import pytz
+from zoneinfo import ZoneInfo
 from typing import Generator
 import logging
 import tempfile
@@ -136,7 +136,7 @@ def get_nam_model_run_download_urls(download_date: datetime.datetime, model_cycl
 
     # download_date has UTC timezone. Need to convert to EDT (-4h) timezone, which is what
     # nomads.ncep.noaa server uses
-    download_date_to_est = download_date.astimezone(pytz.timezone('US/Eastern'))
+    download_date_to_est = download_date.astimezone(ZoneInfo('US/Eastern'))
     year_mo_date = get_year_mo_date_string_from_datetime(download_date_to_est)
 
     for fcst_hour in all_hours:
@@ -176,7 +176,7 @@ def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycl
 
     # download_date has UTC timezone. Need to convert to EDT (-4h) timezone, which is what
     # nomads.ncep.noaa server uses
-    download_date_to_est = download_date.astimezone(pytz.timezone('US/Eastern'))
+    download_date_to_est = download_date.astimezone(ZoneInfo('US/Eastern'))
     year_mo_date = get_year_mo_date_string_from_datetime(download_date_to_est)
 
     for fcst_hour in all_hours:

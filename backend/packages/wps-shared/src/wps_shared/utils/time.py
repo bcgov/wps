@@ -13,13 +13,12 @@ terms of local time. Local time is confusing in BC, and especially so in wildfir
 
 from datetime import datetime, timezone, timedelta, date
 from typing import Final, List
-import pytz
 from zoneinfo import ZoneInfo
 
 
 PST_UTC_OFFSET: Final[int] = -8
 PDT_UTC_OFFSET: Final[int] = -7
-vancouver_tz = pytz.timezone("America/Vancouver")
+vancouver_tz = ZoneInfo("America/Vancouver")
 data_retention_threshold = timedelta(days=365)
 
 
@@ -122,17 +121,16 @@ def get_julian_date(time_of_interest: datetime):
 
 
 def get_utc_datetime(input_datetime: datetime):
-    utc_datetime = vancouver_tz.localize(
-        datetime(
-            year=input_datetime.year,
-            month=input_datetime.month,
-            day=input_datetime.day,
-            hour=input_datetime.hour,
-            minute=input_datetime.minute,
-            second=input_datetime.second,
-            microsecond=input_datetime.microsecond,
-        )
-    ).astimezone(pytz.timezone("UTC"))
+    utc_datetime = datetime(
+        year=input_datetime.year,
+        month=input_datetime.month,
+        day=input_datetime.day,
+        hour=input_datetime.hour,
+        minute=input_datetime.minute,
+        second=input_datetime.second,
+        microsecond=input_datetime.microsecond,
+        tzinfo=vancouver_tz
+    ).astimezone(ZoneInfo("UTC"))
     return utc_datetime
 
 

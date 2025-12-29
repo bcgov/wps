@@ -22,7 +22,7 @@ router = APIRouter(
 async def get_most_recent_by_date(for_date: date, _=Depends(authentication_required)):
     """ Returns the most recent processed snow record before or equal to the provided date. """
     logger.info('/snow/most-recent-by-date/')
-    tz_aware_datetime = vancouver_tz.localize(datetime.combine(for_date, datetime.min.time()))
+    tz_aware_datetime = datetime.combine(for_date, datetime.min.time(), tzinfo=vancouver_tz)
     async with get_async_read_session_scope() as session:
         result = await get_most_recent_processed_snow_by_date(session, tz_aware_datetime)
         if result is not None:
