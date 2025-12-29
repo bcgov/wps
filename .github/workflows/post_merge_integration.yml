@@ -24,7 +24,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          version: "0.9.17"
+          version: "0.9.18"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v5
@@ -58,7 +58,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          version: "0.9.17"
+          version: "0.9.18"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v5
@@ -84,7 +84,7 @@ jobs:
           export SFMS_SECRET=secret
           uv run pytest -n auto --cov=packages/wps-api/src/app --cov-branch --cov-report=xml:packages/wps-api/coverage-reports/api-coverage-report.xml packages/wps-api/src/app/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (api)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: api-coverage-report
           path: ./backend/packages/wps-api/coverage-reports/api-coverage-report.xml
@@ -103,7 +103,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          version: "0.9.17"
+          version: "0.9.18"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v5
@@ -127,7 +127,7 @@ jobs:
           export SFMS_SECRET=secret
           uv run pytest --cov=packages/wps-shared/src/wps_shared --cov-branch --cov-report=xml:packages/wps-shared/coverage-reports/wps-shared-coverage-report.xml packages/wps-shared/src/wps_shared/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_shared)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: wps-shared-coverage-report
           path: ./backend/packages/wps-shared/coverage-reports/wps-shared-coverage-report.xml
@@ -146,7 +146,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          version: "0.9.17"
+          version: "0.9.18"
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v5
@@ -171,7 +171,7 @@ jobs:
           export SFMS_SECRET=secret
           uv run pytest --cov=packages/wps-jobs/src --cov-branch --cov-report=xml:packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml packages/wps-jobs/src/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_jobs)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: wps-jobs-coverage-report
           path: ./backend/packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml
@@ -225,7 +225,7 @@ jobs:
         run: yarn run finalizeCoverage
 
       - name: Archive coverage report (web)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: web-coverage-report
           path: ./web/finalCoverage
