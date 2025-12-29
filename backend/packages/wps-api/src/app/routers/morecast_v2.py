@@ -58,8 +58,8 @@ async def get_forecasts_by_date_range(start_date: date, end_date: date, request:
     logger.info(f"/forecasts/{start_date}/{end_date}")
     response.headers["Cache-Control"] = no_cache
 
-    start_time = vancouver_tz.localize(datetime.combine(start_date, time.min))
-    end_time = vancouver_tz.localize(datetime.combine(end_date, time.max))
+    start_time = datetime.combine(start_date, time.min, tzinfo=vancouver_tz)
+    end_time = datetime.combine(end_date, time.max, tzinfo=vancouver_tz)
 
     with get_read_session_scope() as db_session:
         result = get_forecasts_in_range(db_session, start_time, end_time, request.stations)
@@ -186,8 +186,8 @@ async def get_determinates_for_date_range(start_date: date, end_date: date, requ
 
     unique_station_codes = list(set(request.stations))
 
-    start_time = vancouver_tz.localize(datetime.combine(start_date, time.min))
-    end_time = vancouver_tz.localize(datetime.combine(end_date, time.max))
+    start_time = datetime.combine(start_date, time.min, tzinfo=vancouver_tz)
+    end_time = datetime.combine(end_date, time.max, tzinfo=vancouver_tz)
     start_date_of_interest = get_hour_20_from_date(start_date)
     end_date_of_interest = get_hour_20_from_date(end_date)
     start_date_for_fwi_calc = start_date_of_interest - timedelta(days=1)
