@@ -13,6 +13,7 @@ members = [
     "wps-shared",
     "wps-tools",
     "wps-weather",
+    "wps-wf1",
 ]
 
 [manifest.dependency-groups]
@@ -4400,6 +4401,7 @@ dependencies = [
     { name = "sentry-sdk" },
     { name = "shapely" },
     { name = "sqlalchemy" },
+    { name = "wps-wf1" },
 ]
 
 [package.optional-dependencies]
@@ -4427,6 +4429,7 @@ requires-dist = [
     { name = "shapely", specifier = ">=2.0.5,<3" },
     { name = "sqlalchemy", specifier = ">=2,<3" },
     { name = "testcontainers", extras = ["postgres"], marker = "extra == 'dev'", specifier = ">=4.10.0,<5" },
+    { name = "wps-wf1", editable = "packages/wps-wf1" },
 ]
 provides-extras = ["dev"]
 
@@ -4485,6 +4488,17 @@ requires-dist = [
     { name = "shapely", specifier = ">=2.0.5,<3" },
     { name = "xarray", specifier = ">=2025.3.1,<2026" },
 ]
+
+[[package]]
+name = "wps-wf1"
+version = "0.1.0"
+source = { editable = "packages/wps-wf1" }
+dependencies = [
+    { name = "aiohttp" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "aiohttp", specifier = ">=3.13.2" }]
 
 [[package]]
 name = "wrapt"

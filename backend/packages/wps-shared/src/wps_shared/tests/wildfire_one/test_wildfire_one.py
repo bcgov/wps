@@ -1,13 +1,22 @@
 """Unit testing for WFWX API code"""
 
 import asyncio
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch
+
 import pytest
+import wps_shared.wildfire_one.wfwx_post_api
 from fastapi import HTTPException
 from pytest_mock import MockFixture
-
-from wps_shared.wildfire_one.query_builders import BuildQueryAllForecastsByAfterStart, BuildQueryAllHourliesByRange, BuildQueryDailiesByStationCode, BuildQueryStationGroups
-from wps_shared.wildfire_one.wfwx_api import WFWXWeatherStation, get_wfwx_stations_from_station_codes
+from wps_shared.wildfire_one.query_builders import (
+    BuildQueryAllForecastsByAfterStart,
+    BuildQueryAllHourliesByRange,
+    BuildQueryDailiesByStationCode,
+    BuildQueryStationGroups,
+)
+from wps_shared.wildfire_one.wfwx_api import (
+    WFWXWeatherStation,
+    get_wfwx_stations_from_station_codes,
+)
 from wps_shared.wildfire_one.wfwx_post_api import post_forecasts
 
 
@@ -94,8 +103,15 @@ def test_get_ids_from_station_codes(mock_responses):
 
 @pytest.mark.anyio
 @patch("wps_shared.wildfire_one.wfwx_post_api.ClientSession")
-async def test_wf1_post_failure(mock_client):
+async def test_wf1_post_failure(mock_client, monkeypatch: pytest.MonkeyPatch):
     """Verifies that posting to WF1 raises an exception upon failure"""
+
+    async def mock_get_auth_header(_):
+        return {}
+
+    monkeypatch.setattr(
+        wps_shared.wildfire_one.wfwx_post_api, "get_auth_header", mock_get_auth_header
+    )
     mock_client.post.return_value.__aenter__.return_value = AsyncMock(status=400)
     with pytest.raises(HTTPException):
         await post_forecasts(mock_client, [])
