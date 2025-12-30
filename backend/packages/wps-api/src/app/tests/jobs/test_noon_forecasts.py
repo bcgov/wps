@@ -1,6 +1,7 @@
 """ Unit tests for the fireweather noon forecats job """
 import os
 import logging
+from unittest.mock import MagicMock
 import pytest
 from pytest_mock import MockerFixture
 from app.jobs import noon_forecasts
@@ -15,10 +16,14 @@ def mock_noon_forecasts(mocker: MockerFixture):
     """ Mocks out noon forecasts as async result """
     wfwx_hourlies = mock_wfwx_response()
     future_wfwx_stations = mock_wfwx_stations()
+    mock_wfwx_client = MagicMock()
+    mock_wfwx_client.fetch_paged_response_generator = iter(wfwx_hourlies)
 
     mocker.patch("wps_shared.wildfire_one.wfwx_api.wfwx_station_list_mapper", return_value=future_wfwx_stations)
     mocker.patch("wps_shared.wildfire_one.wfwx_api.get_noon_forecasts_all_stations", return_value=wfwx_hourlies)
-    mocker.patch("wps_shared.wildfire_one.wildfire_fetchers.fetch_paged_response_generator", return_value=iter(wfwx_hourlies))
+    mocker.patch(
+        "wps_shared.wildfire_one.wfwx_api.create_wps_wf1_client", return_value=mock_wfwx_client
+    )
 
 
 def test_noon_forecasts_bot(monkeypatch, mocker: MockerFixture, mock_noon_forecasts):
