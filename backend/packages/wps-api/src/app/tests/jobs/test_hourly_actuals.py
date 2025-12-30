@@ -2,8 +2,10 @@
 import math
 import os
 import logging
+from unittest.mock import MagicMock
 import pytest
 from pytest_mock import MockerFixture
+from wps_wf1.wfwx_client import WfwxClient
 from wps_shared.db.models.observations import HourlyActual
 from app.tests.jobs.job_fixtures import mock_wfwx_stations, mock_wfwx_response
 from wps_shared.utils.time import get_utc_now
@@ -19,9 +21,13 @@ def mock_hourly_actuals(mocker: MockerFixture):
     """ Mocks out hourly actuals as async result """
     wfwx_hourlies = mock_wfwx_response()
     future_wfwx_stations = mock_wfwx_stations()
+    mock_wfwx_client = MagicMock()
+    mock_wfwx_client.fetch_paged_response_generator = iter(wfwx_hourlies)
     mocker.patch("wps_shared.wildfire_one.wfwx_api.wfwx_station_list_mapper", return_value=future_wfwx_stations)
     mocker.patch("wps_shared.wildfire_one.wfwx_api.get_hourly_actuals_all_stations", return_value=wfwx_hourlies)
-    mocker.patch("wps_shared.wildfire_one.wildfire_fetchers.fetch_paged_response_generator", return_value=iter(wfwx_hourlies))
+    mocker.patch(
+        "wps_shared.wildfire_one.wfwx_api.create_wps_wf1_client", return_value=mock_wfwx_client
+    )
 
 
 def test_hourly_actuals_job(monkeypatch, mocker: MockerFixture, mock_hourly_actuals):
