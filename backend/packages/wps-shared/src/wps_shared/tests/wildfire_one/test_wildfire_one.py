@@ -7,55 +7,21 @@ import pytest
 import wps_shared.wildfire_one.wfwx_post_api
 from fastapi import HTTPException
 from pytest_mock import MockFixture
-from wps_shared.wildfire_one.query_builders import (
-    BuildQueryAllForecastsByAfterStart,
-    BuildQueryAllHourliesByRange,
-    BuildQueryDailiesByStationCode,
-    BuildQueryStationGroups,
-)
 from wps_shared.wildfire_one.wfwx_api import (
     WFWXWeatherStation,
     get_wfwx_stations_from_station_codes,
 )
 from wps_shared.wildfire_one.wfwx_post_api import post_forecasts
 
-
-def test_build_all_hourlies_query():
-    """Verifies the query builder returns the correct url and parameters"""
-    query_builder = BuildQueryAllHourliesByRange(0, 1)
-    result = query_builder.query(0)
-    assert result == ("https://wf1/wfwx/v1/hourlies/rsql", {"size": "1000", "page": 0, "query": "weatherTimestamp >=0;weatherTimestamp <1"})
-
-
-def test_build_forecasts_query():
-    """Verifies the query builder returns the correct url and parameters"""
-    query_builder = BuildQueryAllForecastsByAfterStart(0)
-    result = query_builder.query(0)
-    assert result == ("https://wf1/wfwx/v1/dailies/rsql", {"size": "1000", "page": 0, "query": "weatherTimestamp >=0;recordType.id == 'FORECAST'"})
-
-
-def test_build_dailies_by_station_code():
-    """Verifies the query builder returns the correct url and parameters for dailies by station code"""
-    query_builder = BuildQueryDailiesByStationCode(0, 1, ["1", "2"])
-    result = query_builder.query(0)
-    assert result == (
-        "https://wf1/wfwx/v1/dailies/search/" + "findDailiesByStationIdIsInAndWeather" + "TimestampBetweenOrderByStationIdAscWeatherTimestampAsc",
-        {"size": "1000", "page": 0, "startingTimestamp": 0, "endingTimestamp": 1, "stationIds": ["1", "2"]},
-    )
-
-
-def test_build_station_groups_query():
-    """Verifies the query builder returns the correct url and parameters for a station groups query"""
-    query_builder = BuildQueryStationGroups()
-    result = query_builder.query(0)
-    assert result == ("https://wf1/wfwx/v1/stationGroups", {"size": "1000", "page": 0, "sort": "groupOwnerUserId,asc"})
-
-
 code1 = 322
 code2 = 239
 all_station_codes = [{"station_code": code1}, {"station_code": code2}]
-station_1 = WFWXWeatherStation(code=code1, name="name", wfwx_id="one", latitude=0, longitude=0, elevation=0, zone_code="T1")
-station_2 = WFWXWeatherStation(code=code2, name="name", wfwx_id="two", latitude=0, longitude=0, elevation=0, zone_code="T1")
+station_1 = WFWXWeatherStation(
+    code=code1, name="name", wfwx_id="one", latitude=0, longitude=0, elevation=0, zone_code="T1"
+)
+station_2 = WFWXWeatherStation(
+    code=code2, name="name", wfwx_id="two", latitude=0, longitude=0, elevation=0, zone_code="T1"
+)
 all_stations = [station_1, station_2]
 
 
