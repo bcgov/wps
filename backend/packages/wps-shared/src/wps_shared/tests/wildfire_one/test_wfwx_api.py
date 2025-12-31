@@ -14,7 +14,6 @@ from wps_shared.schemas.stations import (
     WeatherStation,
     WeatherVariables,
 )
-from wps_shared.tests.conftest import agen
 from wps_shared.wildfire_one.schema_parsers import (
     WFWXWeatherStation,
 )
@@ -127,7 +126,7 @@ class TestGetStationsByCodes:
 
         mock_client = MagicMock()
         mock_client.fetch_paged_response_generator = MagicMock(
-            return_value=agen(
+            return_value=MockAsyncGenerator(
                 [
                     {"id": 1, "stationCode": 101, "displayLabel": "Station 1"},
                     {"id": 2, "stationCode": 102, "displayLabel": "Station 2"},
@@ -183,7 +182,7 @@ class TestGetStationData:
 
         mock_client = MagicMock()
         mock_client.fetch_paged_response_generator = MagicMock(
-            return_value=agen(
+            return_value=MockAsyncGenerator(
                 [
                     {"id": 1, "stationCode": 101, "displayLabel": "Station 1"},
                     {"id": 2, "stationCode": 102, "displayLabel": "Station 2"},
@@ -225,7 +224,7 @@ class TestGetDetailedGeoJsonStations:
 
         mock_client = MagicMock()
         mock_client.fetch_paged_response_generator = MagicMock(
-            return_value=agen(
+            return_value=MockAsyncGenerator(
                 [
                     {
                         "id": "station1",
@@ -350,7 +349,7 @@ class TestGetNoonForecastsAllStations:
         # Setup mocks
         mock_client = MagicMock()
         mock_client.fetch_paged_response_generator = MagicMock(
-            return_value=agen(
+            return_value=MockAsyncGenerator(
                 [{"stationId": "wfwx1", "temp": 20.0}, {"stationId": "wfwx2", "temp": 22.0}]
             )
         )
@@ -395,7 +394,7 @@ class TestGetHourlyActualsAllStations:
         # Setup mocks
         mock_client = MagicMock()
         mock_client.fetch_paged_response_generator = MagicMock(
-            return_value=agen(
+            return_value=MockAsyncGenerator(
                 [
                     {
                         "stationId": "wfwx1",
