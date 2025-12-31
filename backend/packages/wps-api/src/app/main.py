@@ -120,7 +120,7 @@ api.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PATCH"],
+    allow_methods=["GET", "HEAD", "POST", "PATCH"],
     allow_headers=["*"],
 )
 api.middleware("http")(catch_exception_middleware)
