@@ -8,6 +8,18 @@ from wps_shared.tests.common import DefaultMockAioBaseClient
 
 
 @pytest.fixture()
+def test_origin():
+    """Fixture providing test origin for CORS."""
+    return "http://localhost:3000"
+
+
+@pytest.fixture()
+def auth_headers(test_origin):
+    """Fixture providing authentication and CORS headers."""
+    return {"Authorization": "Bearer test-token", "Origin": test_origin}
+
+
+@pytest.fixture()
 def mock_s3_stream_and_head(monkeypatch):
     """Mock S3Client for HEAD and GET endpoints."""
 
@@ -139,58 +151,48 @@ class TestHeadS3Object:
     """Tests for the HEAD endpoint."""
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_head_success(self):
+    def test_head_success(self, auth_headers, test_origin):
         """Test successful HEAD request."""
         client = TestClient(app.main.app)
-        response = client.head(
-            "/api/object-store-proxy/test/file.tif", headers={"Authorization": "Bearer test-token"}
-        )
+        response = client.head("/api/object-store-proxy/test/file.tif", headers=auth_headers)
 
         assert response.status_code == 200
         assert response.headers["Content-Type"] == "image/tiff"
         assert response.headers["Content-Length"] == "1024"
         assert response.headers["Accept-Ranges"] == "bytes"
-        assert response.headers["Access-Control-Allow-Origin"] == "*"
+        # Verify CORS middleware is handling origin correctly
+        assert response.headers["Access-Control-Allow-Origin"] == test_origin
         assert "Content-Length" in response.headers["Access-Control-Expose-Headers"]
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_head_not_found(self):
+    def test_head_not_found(self, auth_headers):
         """Test HEAD request for nonexistent file."""
         client = TestClient(app.main.app)
-        response = client.head(
-            "/api/object-store-proxy/nonexistent.tif",
-            headers={"Authorization": "Bearer test-token"},
-        )
+        response = client.head("/api/object-store-proxy/nonexistent.tif", headers=auth_headers)
 
         assert response.status_code == 404
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_head_forbidden_access_denied(self):
+    def test_head_forbidden_access_denied(self, auth_headers):
         """Test HEAD request for forbidden file (AccessDenied)."""
         client = TestClient(app.main.app)
-        response = client.head(
-            "/api/object-store-proxy/forbidden.tif", headers={"Authorization": "Bearer test-token"}
-        )
+        response = client.head("/api/object-store-proxy/forbidden.tif", headers=auth_headers)
 
         assert response.status_code == 403
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_head_forbidden_forbidden_code(self):
+    def test_head_forbidden_forbidden_code(self, auth_headers):
         """Test HEAD request for forbidden file (Forbidden code)."""
         client = TestClient(app.main.app)
-        response = client.head(
-            "/api/object-store-proxy/forbidden2.tif", headers={"Authorization": "Bearer test-token"}
-        )
+        response = client.head("/api/object-store-proxy/forbidden2.tif", headers=auth_headers)
 
         assert response.status_code == 403
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_head_s3_error(self):
+    def test_head_s3_error(self, auth_headers):
         """Test HEAD request with S3 error."""
         client = TestClient(app.main.app)
-        response = client.head(
-            "/api/object-store-proxy/s3error.tif", headers={"Authorization": "Bearer test-token"}
-        )
+        response = client.head("/api/object-store-proxy/s3error.tif", headers=auth_headers)
 
         assert response.status_code == 502
 
@@ -199,12 +201,10 @@ class TestProxyS3Object:
     """Tests for the GET endpoint."""
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_get_success_full_content(self):
+    def test_get_success_full_content(self, auth_headers, test_origin):
         """Test successful GET request for full content."""
         client = TestClient(app.main.app)
-        response = client.get(
-            "/api/object-store-proxy/test/file.tif", headers={"Authorization": "Bearer test-token"}
-        )
+        response = client.get("/api/object-store-proxy/test/file.tif", headers=auth_headers)
 
         assert response.status_code == 200
         assert response.content == b"test content"
@@ -212,19 +212,20 @@ class TestProxyS3Object:
         assert response.headers["Content-Length"] == "12"
         assert response.headers["Accept-Ranges"] == "bytes"
         assert response.headers["Content-Disposition"] == "inline; filename=file.tif"
-        assert response.headers["Access-Control-Allow-Origin"] == "*"
+        # Verify CORS middleware is handling origin correctly
+        assert response.headers["Access-Control-Allow-Origin"] == test_origin
         # Verify CORS expose headers
         exposed_headers = response.headers["Access-Control-Expose-Headers"]
         assert "Content-Length" in exposed_headers
         assert "Content-Type" in exposed_headers
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_get_success_range_request(self):
+    def test_get_success_range_request(self, auth_headers):
         """Test successful GET request with range header (partial content)."""
         client = TestClient(app.main.app)
         response = client.get(
             "/api/object-store-proxy/test/file.tif",
-            headers={"Authorization": "Bearer test-token", "Range": "bytes=0-3"},
+            headers={**auth_headers, "Range": "bytes=0-3"},
         )
 
         assert response.status_code == 206
@@ -235,80 +236,65 @@ class TestProxyS3Object:
         assert response.headers["Accept-Ranges"] == "bytes"
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_get_not_found(self):
+    def test_get_not_found(self, auth_headers):
         """Test GET request for nonexistent file."""
         client = TestClient(app.main.app)
-        response = client.get(
-            "/api/object-store-proxy/nonexistent.tif",
-            headers={"Authorization": "Bearer test-token"},
-        )
+        response = client.get("/api/object-store-proxy/nonexistent.tif", headers=auth_headers)
 
         assert response.status_code == 404
         assert "object not found" in response.json()["detail"]
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_get_forbidden_access_denied(self):
+    def test_get_forbidden_access_denied(self, auth_headers):
         """Test GET request for forbidden file (AccessDenied)."""
         client = TestClient(app.main.app)
-        response = client.get(
-            "/api/object-store-proxy/forbidden.tif", headers={"Authorization": "Bearer test-token"}
-        )
+        response = client.get("/api/object-store-proxy/forbidden.tif", headers=auth_headers)
 
         assert response.status_code == 403
         assert "Access denied" in response.json()["detail"]
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_get_forbidden_forbidden_code(self):
+    def test_get_forbidden_forbidden_code(self, auth_headers):
         """Test GET request for forbidden file (Forbidden code)."""
         client = TestClient(app.main.app)
-        response = client.get(
-            "/api/object-store-proxy/forbidden2.tif", headers={"Authorization": "Bearer test-token"}
-        )
+        response = client.get("/api/object-store-proxy/forbidden2.tif", headers=auth_headers)
 
         assert response.status_code == 403
         assert "Access denied" in response.json()["detail"]
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_get_forbidden_403_code(self):
+    def test_get_forbidden_403_code(self, auth_headers):
         """Test GET request for forbidden file (403 Forbidden code)."""
         client = TestClient(app.main.app)
-        response = client.get(
-            "/api/object-store-proxy/forbidden3.tif", headers={"Authorization": "Bearer test-token"}
-        )
+        response = client.get("/api/object-store-proxy/forbidden3.tif", headers=auth_headers)
 
         assert response.status_code == 403
         assert "Access denied" in response.json()["detail"]
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_get_s3_error(self):
+    def test_get_s3_error(self, auth_headers):
         """Test GET request with S3 error."""
         client = TestClient(app.main.app)
-        response = client.get(
-            "/api/object-store-proxy/s3error.tif", headers={"Authorization": "Bearer test-token"}
-        )
+        response = client.get("/api/object-store-proxy/s3error.tif", headers=auth_headers)
 
         assert response.status_code == 502
         assert "Error fetching object from object store" in response.json()["detail"]
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_get_unexpected_error(self):
+    def test_get_unexpected_error(self, auth_headers):
         """Test GET request with unexpected error."""
         client = TestClient(app.main.app)
-        response = client.get(
-            "/api/object-store-proxy/unexpectederror.tif",
-            headers={"Authorization": "Bearer test-token"},
-        )
+        response = client.get("/api/object-store-proxy/unexpectederror.tif", headers=auth_headers)
 
         assert response.status_code == 500
         assert "Unexpected error" in response.json()["detail"]
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
-    def test_get_filename_extraction(self):
+    def test_get_filename_extraction(self, auth_headers):
         """Test that filename is correctly extracted from path."""
         client = TestClient(app.main.app)
         response = client.get(
-            "/api/object-store-proxy/path/to/nested/file.tif",
-            headers={"Authorization": "Bearer test-token"},
+            "/api/object-store-proxy/path/to/nested/file.tif", headers=auth_headers
         )
 
         assert response.status_code == 200
@@ -381,7 +367,8 @@ class TestRangeStreamingResponse:
 
         response = RangeStreamingResponse(content_gen(), s3_response, "test.txt")
 
-        assert response.headers["Access-Control-Allow-Origin"] == "*"
+        # RangeStreamingResponse shouldn't set this header
+        assert "Access-Control-Allow-Origin" not in response.headers
         exposed_headers = response.headers["Access-Control-Expose-Headers"]
         assert "Content-Length" in exposed_headers
         assert "Content-Range" in exposed_headers
