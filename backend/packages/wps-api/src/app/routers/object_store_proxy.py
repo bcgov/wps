@@ -1,6 +1,6 @@
 """Object Store Proxy Router
 
-This module provides and endpoint for proxying object files from the
+This module provides an endpoint for proxying object files from the
 object store.
 """
 
