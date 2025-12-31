@@ -108,3 +108,137 @@ async def test_get_fuel_raster_hash_mismatch(mocker: MockerFixture):
     async with S3Client() as s3:
         with pytest.raises(ValueError):
             await s3.get_fuel_raster("some-key", incorrect_hash)
+
+
+@pytest.mark.anyio
+async def test_stream_object(mocker: MockerFixture):
+    """Test streaming an object without byte range."""
+    sample_data = b"test data chunk 1" + b"test data chunk 2"
+    test_key = "test/path/file.tif"
+
+    # Mock the async stream that yields chunks
+    mock_stream = AsyncMock()
+    mock_stream.read.side_effect = [b"test data chunk 1", b"test data chunk 2", b""]
+    mock_stream.close = MagicMock()
+
+    # Mock the S3 client
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.return_value = {
+        "Body": mock_stream,
+        "ContentLength": len(sample_data),
+        "ContentType": "image/tiff",
+    }
+
+    # Mock the context manager returned by create_client
+    mock_client_context = AsyncMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_client_context.__aexit__ = AsyncMock()
+
+    # Patch get_session() to return our mock session
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    # Call stream_object
+    generator, response = await S3Client.stream_object(test_key)
+
+    # Verify the response metadata
+    assert response["ContentLength"] == len(sample_data)
+    assert response["ContentType"] == "image/tiff"
+
+    # Verify get_object was called correctly
+    mock_s3_client.get_object.assert_called_once_with(Bucket=mocker.ANY, Key=test_key)
+
+    # Consume the generator and verify chunks
+    chunks = []
+    async for chunk in generator:
+        chunks.append(chunk)
+
+    assert chunks == [b"test data chunk 1", b"test data chunk 2"]
+
+    # Verify stream was closed
+    mock_stream.close.assert_called_once()
+
+    # Verify client context manager was properly exited
+    mock_client_context.__aexit__.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_stream_object_with_byte_range(mocker: MockerFixture):
+    """Test streaming an object with byte range."""
+    sample_data = b"partial data"
+    test_key = "test/path/file.tif"
+    byte_range = "bytes=0-1023"
+
+    # Mock the async stream
+    mock_stream = AsyncMock()
+    mock_stream.read.side_effect = [sample_data, b""]
+    mock_stream.close = MagicMock()
+
+    # Mock the S3 client with range response
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.return_value = {
+        "Body": mock_stream,
+        "ContentLength": len(sample_data),
+        "ContentRange": "bytes 0-1023/5000",
+        "ContentType": "image/tiff",
+    }
+
+    # Mock the context manager
+    mock_client_context = AsyncMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_client_context.__aexit__ = AsyncMock()
+
+    # Patch get_session()
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    # Call stream_object with byte range
+    generator, response = await S3Client.stream_object(test_key, byte_range=byte_range)
+
+    # Verify the response metadata includes ContentRange
+    assert response["ContentRange"] == "bytes 0-1023/5000"
+
+    # Verify get_object was called with Range parameter
+    mock_s3_client.get_object.assert_called_once_with(
+        Bucket=mocker.ANY, Key=test_key, Range=byte_range
+    )
+
+    # Consume the generator
+    chunks = []
+    async for chunk in generator:
+        chunks.append(chunk)
+
+    assert chunks == [sample_data]
+
+    # Verify cleanup
+    mock_stream.close.assert_called_once()
+    mock_client_context.__aexit__.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_stream_object_error_handling(mocker: MockerFixture):
+    """Test that stream_object properly cleans up on error."""
+    test_key = "test/path/file.tif"
+
+    # Mock the S3 client to raise an error
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.side_effect = Exception("S3 error")
+
+    # Mock the context manager
+    mock_client_context = AsyncMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_client_context.__aexit__ = AsyncMock()
+
+    # Patch get_session()
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    # Verify that exception is raised and client is cleaned up
+    with pytest.raises(Exception, match="S3 error"):
+        await S3Client.stream_object(test_key)
+
+    # Verify client context manager was properly exited even on error
+    mock_client_context.__aexit__.assert_called_once()

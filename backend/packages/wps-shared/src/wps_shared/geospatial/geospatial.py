@@ -7,15 +7,48 @@ from pyproj import CRS, Transformer
 
 # Some constants that are frequently used when transforming coordinates.
 
-# BCGOV standard is to store everything in NAD83 / BC Albers (EPSG:3005).
-NAD83_BC_ALBERS: Final = 3005
-# NAD 83 alone (EPSG:4269), uses geographic coordinates.
-NAD83: Final = "epsg:4269"
-NAD83_CRS: Final = CRS(NAD83)
-# De facto standard is to expose data in WGS84 (EPSG:4326).
-WGS84: Final = "epsg:4326"
-# Web Mercator
-WEB_MERCATOR: Final = 3857
+
+class SpatialReferenceSystem(Enum):
+    """
+    Spatial Reference System (SRS) definitions with EPSG codes.
+
+    Each member provides:
+    - code: The EPSG code as an integer (via .value)
+    - srs: The SRS string in EPSG format (e.g., "EPSG:3857")
+    - epsg: The SRS string in lowercase epsg format (e.g., "epsg:3857")
+    """
+
+    # BCGOV standard - NAD83 / BC Albers
+    NAD83_BC_ALBERS = 3005
+    # NAD 83 - Geographic coordinates
+    NAD83 = 4269
+    # WGS84 - De facto standard for exposing data
+    WGS84 = 4326
+    # Web Mercator - Standard for web mapping
+    WEB_MERCATOR = 3857
+
+    @property
+    def code(self) -> int:
+        """Return the EPSG code as an integer."""
+        return self.value
+
+    @property
+    def srs(self) -> str:
+        """Return the SRS string in EPSG format (uppercase), e.g., 'EPSG:3857'."""
+        return f"EPSG:{self.value}"
+
+    @property
+    def epsg(self) -> str:
+        """Return the SRS string in epsg format (lowercase), e.g., 'epsg:3857'."""
+        return f"epsg:{self.value}"
+
+
+# Backwards-compatible constants - prefer using SpatialReferenceSystem enum for new code
+NAD83_BC_ALBERS: Final = SpatialReferenceSystem.NAD83_BC_ALBERS.code
+NAD83: Final = SpatialReferenceSystem.NAD83.epsg
+NAD83_CRS: Final = CRS(SpatialReferenceSystem.NAD83.epsg)
+WGS84: Final = SpatialReferenceSystem.WGS84.epsg
+WEB_MERCATOR: Final = SpatialReferenceSystem.WEB_MERCATOR.code
 
 
 class GDALResamplingMethod(Enum):

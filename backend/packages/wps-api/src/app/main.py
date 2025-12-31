@@ -21,6 +21,7 @@ from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from app.routers import (
     fba,
     forecasts,
+    object_store_proxy,
     weather_models,
     c_haines,
     stations,
@@ -95,8 +96,8 @@ app = Starlette()
 
 
 # Mount the /api
-# In production, / routes to the frontend. (api and front end run in seperate containers, with
-# seperate routing)
+# In production, / routes to the frontend. (api and front end run in separate containers, with
+# separate routing)
 app.mount("/api", app=api)
 
 ORIGINS = config.get("ORIGINS")
@@ -119,7 +120,7 @@ api.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PATCH"],
+    allow_methods=["GET", "HEAD", "POST", "PATCH"],
     allow_headers=["*"],
 )
 api.middleware("http")(catch_exception_middleware)
@@ -135,6 +136,7 @@ api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
 api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
+api.include_router(object_store_proxy.router, tags=["Object Store Proxy"])
 
 
 @api.get("/ready")

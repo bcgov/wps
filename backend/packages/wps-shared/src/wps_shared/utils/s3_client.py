@@ -25,20 +25,20 @@ class S3Client:
         self.session = get_session()
 
     async def __aenter__(self):
-        client_context = self.session.create_client(
+        self.client_context = self.session.create_client(
             "s3",
             endpoint_url=f"https://{self.server}",
             aws_secret_access_key=self.secret_key,
             aws_access_key_id=self.user_id,
         )
-        self.client = await client_context.__aenter__()
+        self.client = await self.client_context.__aenter__()
         return self
 
-    async def __aexit__(self, *_):
+    async def __aexit__(self, *args):
+        if hasattr(self, 'client_context') and self.client_context:
+            await self.client_context.__aexit__(*args)
         self.client = None
-        self.session = None
-        del self.client
-        del self.session
+        self.client_context = None
 
     async def object_exists(self, target_path: str):
         """Check if and object exists in the object store"""
@@ -114,3 +114,44 @@ class S3Client:
         logger.info(f"Writing to s3 -- {key}")
         await self.put_object(key=key, body=open(temp_geotiff, "rb"))
         return temp_geotiff
+
+    @staticmethod
+    async def stream_object(key: str, byte_range: str = None, chunk_size: int = 65536):
+        """
+        Stream an object from S3 with automatic client lifecycle management.
+
+        This function manages the S3Client lifecycle internally - the client will be
+        closed when the generator is exhausted or an error occurs.
+
+        :param key: s3 key to stream
+        :param byte_range: Optional byte range string (e.g., "bytes=0-1023")
+        :param chunk_size: size of chunks to yield (default: 64KB)
+        :return: tuple of (async generator, response dict) - generator yields chunks, response contains metadata
+        """
+        s3_client = S3Client()
+        await s3_client.__aenter__()
+
+        try:
+            params = {"Bucket": s3_client.bucket, "Key": key}
+            if byte_range:
+                params["Range"] = byte_range
+
+            response = await s3_client.client.get_object(**params)
+            stream = response["Body"]
+
+            async def gen():
+                try:
+                    while True:
+                        chunk = await stream.read(chunk_size)
+                        if not chunk:
+                            break
+                        yield chunk
+                finally:
+                    stream.close()
+                    await s3_client.__aexit__(None, None, None)
+
+            return gen(), response
+
+        except Exception:
+            await s3_client.__aexit__(None, None, None)
+            raise
