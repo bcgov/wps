@@ -35,7 +35,7 @@ def generate_web_optimized_cog(
     :param output_path: Path for output COG (local or /vsis3/)
     :param target_srs: Target spatial reference system (default: EPSG:3857 - Web Mercator)
     :param compression: Compression algorithm (default: LZW). Options: LZW, DEFLATE, ZSTD, etc.
-    :param resample_alg: Resampling algorithm for reprojection (default: Nearest Neighbour)
+    :param resample_alg: Resampling algorithm for reprojection (default: Bilinear)
     :return: Path to output COG
     """
     logger.info(f"Generating COG: {input_path} -> {output_path} ({target_srs})")
