@@ -9,8 +9,11 @@ from wps_shared.tests.common import DefaultMockAioBaseClient
 
 @pytest.fixture()
 def test_origin():
-    """Fixture providing test origin for CORS."""
-    return "http://localhost:3000"
+    """Fixture providing test origin for CORS - uses first configured ORIGIN from env."""
+    import os
+    origins = os.getenv("ORIGINS", "testorigin")
+    # Return first origin from comma-separated list
+    return origins.split(",")[0].strip() if origins else "testorigin"
 
 
 @pytest.fixture()
@@ -160,6 +163,8 @@ class TestHeadS3Object:
         assert response.headers["Content-Type"] == "image/tiff"
         assert response.headers["Content-Length"] == "1024"
         assert response.headers["Accept-Ranges"] == "bytes"
+        # Verify CORS middleware is handling origin correctly
+        assert response.headers["Access-Control-Allow-Origin"] == test_origin
         assert "Content-Length" in response.headers["Access-Control-Expose-Headers"]
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
