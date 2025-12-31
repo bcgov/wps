@@ -1,0 +1,34 @@
+{
+    "fire_centres": [
+        {
+            "Kamloops Fire Centre": {
+                "zones": [
+                    {
+                        "Kamloops (K2)": {
+                            "order_of_appearance_in_list": 1
+                        }
+                    },
+                    {
+                        "Vernon (K4)": {
+                            "order_of_appearance_in_list": 2
+                        }
+                    },
+                    {
+                        "Penticton (K5)": {
+                            "order_of_appearance_in_list": 3
+                        }
+                    },
+                    {
+                        "Merritt (K6)": {
+                            "order_of_appearance_in_list": 4
+                        }
+                    },
+                    {
+                        "Lillooet (K7)": {
+                            "order_of_appearance_in_list": 5
+                        }
+                    }
+                ]
+            }
+        }
+    ]}
