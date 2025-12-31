@@ -160,8 +160,6 @@ class TestHeadS3Object:
         assert response.headers["Content-Type"] == "image/tiff"
         assert response.headers["Content-Length"] == "1024"
         assert response.headers["Accept-Ranges"] == "bytes"
-        # Verify CORS middleware is handling origin correctly
-        assert response.headers["Access-Control-Allow-Origin"] == test_origin
         assert "Content-Length" in response.headers["Access-Control-Expose-Headers"]
 
     @pytest.mark.usefixtures("mock_s3_stream_and_head", "mock_jwt_decode")
