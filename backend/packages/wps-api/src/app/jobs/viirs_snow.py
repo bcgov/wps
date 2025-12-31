@@ -285,7 +285,7 @@ class ViirsSnowJob():
             while next_date <= end_date:
                 date_string = next_date.strftime('%Y-%m-%d')
                 logger.info(f"Processing snow coverage data for date: {date_string}")
-                tz_aware_datetime = vancouver_tz.localize(datetime.combine(next_date, datetime.min.time()))
+                tz_aware_datetime = datetime.combine(next_date, datetime.min.time(), tzinfo=vancouver_tz)
                 try: 
                     await self._process_viirs_snow(next_date, temp_dir)
                     async with get_async_write_session_scope() as session:
