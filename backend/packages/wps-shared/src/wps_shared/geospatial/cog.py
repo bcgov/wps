@@ -2,14 +2,14 @@
 Cloud-Optimized GeoTIFF (COG) generation utilities.
 
 This module provides functions for creating web-optimized COGs from geospatial rasters,
-including reprojection to web-friendly coordinate systems like EPSG:3857.
+including reprojection to web-friendly coordinate systems like Web Mercator (EPSG:3857).
 """
 
 import logging
 
 from osgeo import gdal
 
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
+from wps_shared.geospatial.geospatial import GDALResamplingMethod, SpatialReferenceSystem
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def generate_web_optimized_cog(
     input_path: str,
     output_path: str,
-    target_srs: str = "EPSG:3857",
+    target_srs: str = SpatialReferenceSystem.WEB_MERCATOR.srs,
     compression: str = "LZW",
     resample_alg: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
 ) -> str:
@@ -33,7 +33,7 @@ def generate_web_optimized_cog(
 
     :param input_path: Path to input raster (local or /vsis3/)
     :param output_path: Path for output COG (local or /vsis3/)
-    :param target_srs: Target spatial reference system (default: EPSG:3857 - Web Mercator)
+    :param target_srs: Target spatial reference system (default: Web Mercator EPSG:3857)
     :param compression: Compression algorithm (default: LZW). Options: LZW, DEFLATE, ZSTD, etc.
     :param resample_alg: Resampling algorithm for reprojection (default: Bilinear)
     :return: Path to output COG

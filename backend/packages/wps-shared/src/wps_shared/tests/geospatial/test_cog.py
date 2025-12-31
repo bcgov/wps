@@ -8,7 +8,7 @@ import pytest
 from osgeo import gdal
 
 from wps_shared.geospatial.cog import generate_web_optimized_cog
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
+from wps_shared.geospatial.geospatial import GDALResamplingMethod, SpatialReferenceSystem
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ class TestGenerateWebOptimizedCOG:
 
     def test_cog_is_in_target_srs(self, sample_tiff, temp_output_path):
         """Test that output COG is in the target SRS."""
-        generate_web_optimized_cog(sample_tiff, temp_output_path, target_srs="EPSG:3857")
+        generate_web_optimized_cog(sample_tiff, temp_output_path, target_srs=SpatialReferenceSystem.WEB_MERCATOR.srs)
 
         ds: gdal.Dataset = gdal.Open(temp_output_path)
         srs = ds.GetProjection()
@@ -65,7 +65,7 @@ class TestGenerateWebOptimizedCOG:
 
     def test_cog_with_custom_srs(self, sample_tiff, temp_output_path):
         """Test COG generation with custom target SRS."""
-        target_srs = "EPSG:4326"
+        target_srs = SpatialReferenceSystem.WGS84.srs
         generate_web_optimized_cog(sample_tiff, temp_output_path, target_srs=target_srs)
 
         ds: gdal.Dataset = gdal.Open(temp_output_path)
@@ -204,7 +204,7 @@ class TestGenerateWebOptimizedCOG:
         result = generate_web_optimized_cog(
             input_path=sample_tiff,
             output_path=temp_output_path,
-            target_srs="EPSG:4326",
+            target_srs=SpatialReferenceSystem.WGS84.srs,
             compression="DEFLATE",
             resample_alg=GDALResamplingMethod.CUBIC,
         )

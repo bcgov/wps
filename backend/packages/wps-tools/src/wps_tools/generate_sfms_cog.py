@@ -30,6 +30,7 @@ from osgeo import gdal
 
 from wps_shared import config
 from wps_shared.geospatial.cog import generate_web_optimized_cog
+from wps_shared.geospatial.geospatial import SpatialReferenceSystem
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.wps_logging import configure_logging
 
@@ -101,7 +102,7 @@ def generate_sfms_cog(input_path: str, output_path: str) -> str:
 
     # GDAL Python API handles /vsis3/ paths directly - no shell commands needed
     result = generate_web_optimized_cog(
-        input_path, output_path, target_srs="EPSG:3857", compression="LZW"
+        input_path, output_path, target_srs=SpatialReferenceSystem.WEB_MERCATOR.srs, compression="LZW"
     )
 
     logger.info(f"COG generated successfully: {output_path}")
