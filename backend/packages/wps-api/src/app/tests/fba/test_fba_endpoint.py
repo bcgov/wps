@@ -1,4 +1,3 @@
-import asyncio
 import json
 import math
 from collections import namedtuple
@@ -10,10 +9,8 @@ import pytest
 from aiohttp import ClientSession
 from app.tests import get_complete_filename
 from fastapi.testclient import TestClient
-
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryHFIWindSpeed,
-    AdvisoryTPIStats,
     RunParameters,
     SFMSFuelType,
     TPIClassEnum,
@@ -24,7 +21,6 @@ from wps_shared.schemas.fba import (
     FireZoneHFIStats,
     HFIStatsResponse,
     HfiThreshold,
-    LatestSFMSRunParameterRangeResponse,
     SFMSRunParameter,
 )
 from wps_shared.tests.common import default_mock_client_get
@@ -281,6 +277,7 @@ def client():
         yield test_client
 
 
+@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @pytest.mark.usefixtures("mock_jwt_decode")
 @pytest.mark.parametrize(
     "status, expected_fire_centers", [(200, "test_fba_endpoint_fire_centers.json")]

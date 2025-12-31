@@ -22,6 +22,7 @@ dependencies = [
     "asyncpg>=0.30.0,<1",
     "redis>=7.0.0,<8",
     "gdal==3.9.2",
+    "wps-wf1",
 ]
 
 [project.optional-dependencies]
@@ -35,3 +36,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/wps_shared"]
+
+[tool.uv.sources]
+wps-wf1 = { workspace = true }

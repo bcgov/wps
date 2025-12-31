@@ -3,6 +3,7 @@ from typing import Optional
 from unittest.mock import Mock, patch
 import pytest
 from math import isclose
+import app
 from wps_shared.db.models.morecast_v2 import MorecastForecastRecord
 from app.morecast_v2.forecasts import (
     actual_exists,
@@ -242,8 +243,13 @@ def test_construct_wf1_forecast_update():
 @pytest.mark.anyio
 @patch("aiohttp.ClientSession.get")
 @patch("app.morecast_v2.forecasts.get_forecasts_for_stations_by_date_range", return_value=[station_1_daily_from_wf1])
-async def test_construct_wf1_forecasts_new(_, mock_get):
+async def test_construct_wf1_forecasts_new(_, mock_get, monkeypatch: pytest.MonkeyPatch):
+    async def mock_get_auth_header(_):
+        return {}
+
+    monkeypatch.setattr(app.morecast_v2.forecasts, "get_no_cache_auth_header", mock_get_auth_header)
     result = await construct_wf1_forecasts(mock_get, [morecast_input_1, morecast_input_2], wfwx_weather_stations, "user")
+
     assert len(result) == 2
     # existing forecast
     assert_wf1_forecast(result[0], morecast_input_1, station_1_daily_from_wf1.forecast_id, station_1_daily_from_wf1.created_by, station_1_url, "1")
