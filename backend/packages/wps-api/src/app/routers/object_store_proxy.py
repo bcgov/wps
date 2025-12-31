@@ -66,7 +66,6 @@ class RangeStreamingResponse(StreamingResponse):
             "Content-Type": s3_response.get("ContentType", "application/octet-stream"),
             "Content-Disposition": f"inline; filename={filename}",
             "Content-Length": content_length,
-            "Access-Control-Allow-Origin": "*",
             "Access-Control-Expose-Headers": "Content-Length, Content-Range, Accept-Ranges, Content-Type",
             **range_headers
         }
@@ -90,7 +89,6 @@ async def head_s3_object(
                     "Content-Type": response.get("ContentType", "application/octet-stream"),
                     "Content-Length": str(response["ContentLength"]),
                     "Accept-Ranges": "bytes",
-                    "Access-Control-Allow-Origin": "*",
                     "Access-Control-Expose-Headers": "Content-Length, Accept-Ranges, Content-Type",
                 }
             )
