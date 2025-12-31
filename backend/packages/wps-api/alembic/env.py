@@ -79,6 +79,39 @@ def run_migrations_offline():
 
 
 def do_run_migrations(connection):
+    """Run migrations with automatic stamping for production databases."""
+    import os
+    from alembic.script import ScriptDirectory
+    from alembic.migration import MigrationContext
+
+    # Check if we should auto-stamp (production only)
+    is_production = os.getenv('ENVIRONMENT', '').lower() in ('production', 'prod')
+
+    if is_production:
+        # Get current database version
+        migration_context = MigrationContext.configure(connection)
+        current_rev = migration_context.get_current_revision()
+
+        # d276ba9eed1f is the last migration before compression
+        # If production database is at this revision, stamp to head instead of running migrations
+        if current_rev == 'd276ba9eed1f':
+            script = ScriptDirectory.from_config(config)
+            head_revision = script.get_current_head()
+
+            # Ensure head is the expected compressed migration (seed data)
+            assert head_revision == '6157a8d08f28', \
+                f"Expected head revision 6157a8d08f28 but got {head_revision}"
+
+            # Stamp the database to the latest version without running migrations
+            connection.execute(
+                sqlalchemy.text(
+                    f"UPDATE alembic_version SET version_num = '{head_revision}'"
+                )
+            )
+            connection.commit()
+            print(f"✓ Production database stamped from {current_rev} to {head_revision}")
+            return  # Exit without running migrations
+
     context.configure(connection=connection, target_metadata=target_metadata)
 
     with context.begin_transaction():
