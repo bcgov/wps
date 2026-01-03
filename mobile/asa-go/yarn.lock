@@ -297,12 +297,12 @@
   resolved "https://registry.npmjs.org/@capacitor/filesystem/-/filesystem-7.0.0.tgz"
   integrity sha512-xMzLq+ZaqYBAincYOKF1eNy/3UWwx1XM6TuvWBTVQTHeRsURzqwwbqBKtfkhbRzk5wnXEprWZz5k5iFo2s2BXw==
 
-"@capacitor/geolocation@^7.1.2":
-  version "7.1.4"
-  resolved "https://registry.npmjs.org/@capacitor/geolocation/-/geolocation-7.1.4.tgz"
-  integrity sha512-8KQfa1RNVmgFoDYYaf13qDuf5rh7ob4mC/zRpzpavPEFhWkuIbFM5dyNpSndc9EFnaIib8BCIjJj9ZQ6+nPrTQ==
+"@capacitor/geolocation@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/geolocation/-/geolocation-8.0.0.tgz#caed8f9b3c696a4b9318c79a8933e2aded178bf5"
+  integrity sha512-ci6gOWd5/uruC3bRTxI3xFd9g82WnnJbdQxOH3oZOATNuedlaAw5c5/zXEIMYfRB7t2x1v8/N9gXkND6/nOmVQ==
   dependencies:
-    "@capacitor/synapse" "^1.0.3"
+    "@capacitor/synapse" "^1.0.4"
 
 "@capacitor/haptics@7.0.0":
   version "7.0.0"
@@ -339,9 +339,9 @@
   resolved "https://registry.npmjs.org/@capacitor/status-bar/-/status-bar-7.0.0.tgz"
   integrity sha512-wsvPkWkoSOXMIgVHu4c6P1sOuDSZ1ClUo5OpLRwj7u8DYzlV4jlmNzztQn2Lvsiqx1z4kfukSaqe40k1Lo4c9g==
 
-"@capacitor/synapse@^1.0.3":
+"@capacitor/synapse@^1.0.4":
   version "1.0.4"
-  resolved "https://registry.npmjs.org/@capacitor/synapse/-/synapse-1.0.4.tgz"
+  resolved "https://registry.yarnpkg.com/@capacitor/synapse/-/synapse-1.0.4.tgz#c6beb33119d9656b1f04cb7783989fb78933ef6d"
   integrity sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==
 
 "@cspotcode/source-map-support@^0.8.0":
