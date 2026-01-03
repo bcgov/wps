@@ -23,7 +23,7 @@
     "@capacitor/geolocation": "^7.1.2",
     "@capacitor/haptics": "7.0.0",
     "@capacitor/ios": "7.1.0",
-    "@capacitor/keyboard": "7.0.0",
+    "@capacitor/keyboard": "8.0.0",
     "@capacitor/network": "^7.0.0",
     "@capacitor/preferences": "^7.0.2",
     "@capacitor/splash-screen": "^7.0.1",
