@@ -5,7 +5,7 @@ description = "Wildfire Predictive Services Unit Weather Maps"
 authors = []
 requires-python = ">=3.12.3,<4.0"
 dependencies = [
-    "numpy==2.3.*",
+    "numpy==2.4.*",
     "xarray>=2025.3.1,<2026",
     "matplotlib>=3.7.0,<4",
     "cartopy>=0.22.0,<1",
