@@ -14,7 +14,6 @@ describe('LayerManager', () => {
       const onLoadingChange = vi.fn()
       const manager = new LayerManager({
         onLoadingChange,
-        layerName: 'test-layer',
         trackLoading: false
       })
       expect(manager).toBeDefined()
@@ -668,8 +667,8 @@ describe('LayerManager', () => {
     it('should support multiple independent managers', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
 
-      const rasterManager = new LayerManager({ layerName: 'raster' })
-      const snowManager = new LayerManager({ layerName: 'snow', trackLoading: false })
+      const rasterManager = new LayerManager()
+      const snowManager = new LayerManager({ trackLoading: false })
 
       rasterManager.setMap(mockMap as any)
       snowManager.setMap(mockMap as any)

@@ -1,7 +1,6 @@
 import { Map } from 'ol'
 import WebGLTileLayer from 'ol/layer/WebGLTile'
 import VectorTileLayer from 'ol/layer/VectorTile'
-import { FWI_LAYER_NAME } from './layerDefinitions'
 
 export type ManagedLayer = WebGLTileLayer | VectorTileLayer
 
@@ -13,7 +12,6 @@ export interface RasterError {
 
 export interface LayerManagerOptions {
   onLoadingChange?: (isLoading: boolean, error?: RasterError) => void
-  layerName?: string
   trackLoading?: boolean
 }
 
@@ -25,14 +23,12 @@ export interface LayerManagerOptions {
 export class LayerManager {
   private map: Map | null = null
   private currentLayer: ManagedLayer | null = null
-  private onLoadingChange?: (isLoading: boolean, error?: RasterError) => void
-  private layerName: string
-  private trackLoading: boolean
+  private readonly onLoadingChange?: (isLoading: boolean, error?: RasterError) => void
+  private readonly trackLoading: boolean
   private timeoutId?: number
 
   constructor(options: LayerManagerOptions = {}) {
     this.onLoadingChange = options.onLoadingChange
-    this.layerName = options.layerName || FWI_LAYER_NAME
     this.trackLoading = options.trackLoading ?? true
   }
 
