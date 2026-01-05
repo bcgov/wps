@@ -1,5 +1,5 @@
 import { PMTilesVectorSource } from 'ol-pmtiles'
-import { FetchSource, type Source } from 'pmtiles'
+import { FetchSource } from 'pmtiles'
 import { API_BASE_URL } from 'utils/env'
 import {
   fuelCOGColourExpression,
