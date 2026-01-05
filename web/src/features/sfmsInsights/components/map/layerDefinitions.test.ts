@@ -1,101 +1,69 @@
 import { getSnowPMTilesLayer, getFireWeatherRasterLayer } from './layerDefinitions'
 import { DateTime } from 'luxon'
 
-// Mock pmtiles to prevent actual network requests
+// Mock pmtiles completely to prevent any parsing
 vi.mock('pmtiles', () => ({
   FetchSource: class MockFetchSource {
     url: string
     constructor(url: string) {
       this.url = url
     }
-    async getBytes() {
-      // Create a minimal valid PMTiles v3 header with proper varint encoding
-      const buffer = new ArrayBuffer(127)
-      const view = new Uint8Array(buffer)
-
-      // Write "PMTiles" magic number (ASCII bytes)
-      view[0] = 0x50 // 'P'
-      view[1] = 0x4d // 'M'
-      view[2] = 0x54 // 'T'
-      view[3] = 0x69 // 'i'
-      view[4] = 0x6c // 'l'
-      view[5] = 0x65 // 'e'
-      view[6] = 0x73 // 's'
-      view[7] = 3 // version 3
-
-      // Write spec_version (varint at offset 8) - value 3 encoded as single byte
-      view[8] = 3
-
-      // Fill rest with zeros (valid single-byte varints representing 0)
-      for (let i = 9; i < 127; i++) {
-        view[i] = 0
-      }
-
-      return {
-        data: buffer,
-        etag: 'test-etag',
-        expires: null,
-        cacheControl: null
-      }
-    }
     getKey() {
       return this.url
     }
   },
   PMTiles: class MockPMTiles {
-    header: any
-    source: any
-    constructor(source: any) {
-      this.source = source
-      // Initialize header synchronously to avoid async issues
-      this.header = {
-        rootDirectoryOffset: 0,
-        rootDirectoryLength: 0,
-        jsonMetadataOffset: 0,
-        jsonMetadataLength: 0,
-        leafDirectoryOffset: 0,
-        leafDirectoryLength: 0,
-        tileDataOffset: 0,
-        tileDataLength: 0,
-        numAddressedTiles: 0,
-        numTileEntries: 0,
-        numTileContents: 0,
-        clustered: false,
-        internalCompression: 0,
-        tileCompression: 0,
-        tileType: 0,
-        minZoom: 0,
-        maxZoom: 14,
-        minLon: -180,
-        minLat: -85,
-        maxLon: 180,
-        maxLat: 85,
-        centerZoom: 0,
-        centerLon: 0,
-        centerLat: 0
+    constructor() {
+      // Do nothing - prevent any initialization
+    }
+  }
+}))
+
+// Mock ol-pmtiles to prevent it from using real PMTiles
+vi.mock('ol-pmtiles', () => ({
+  PMTilesVectorSource: class MockPMTilesVectorSource {
+    private listeners: Map<string, Set<Function>> = new Map()
+
+    constructor() {
+      // Do nothing - prevent PMTiles initialization
+    }
+
+    addEventListener(type: string, listener: Function) {
+      if (!this.listeners.has(type)) {
+        this.listeners.set(type, new Set())
       }
-      // Immediately resolve to prevent real PMTiles initialization
-      Promise.resolve()
+      this.listeners.get(type)!.add(listener)
     }
-    async getHeader() {
-      // Return header immediately without fetching/parsing
-      return Promise.resolve(this.header)
+
+    removeEventListener(type: string, listener: Function) {
+      const typeListeners = this.listeners.get(type)
+      if (typeListeners) {
+        typeListeners.delete(listener)
+      }
     }
-    async getZxy() {
-      return Promise.resolve(null)
+
+    on(type: string, listener: Function) {
+      this.addEventListener(type, listener)
+      return this
     }
-    async getMetadata() {
-      return Promise.resolve({})
+
+    once(type: string, listener: Function) {
+      this.addEventListener(type, listener)
+      return this
+    }
+
+    un(type: string, listener: Function) {
+      this.removeEventListener(type, listener)
+      return this
+    }
+
+    getState() {
+      return 'ready'
     }
   }
 }))
 
 describe('layerDefinitions', () => {
-  // Flush all pending promises after each test to catch async errors
-  afterEach(async () => {
-    await new Promise(resolve => setTimeout(resolve, 10))
-  })
-
   describe('getSnowPMTilesLayer', () => {
     it('should create snow layer with zIndex 53', () => {
       const snowDate = DateTime.fromISO('2025-11-02')
