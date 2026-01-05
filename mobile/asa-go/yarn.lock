@@ -314,10 +314,10 @@
   resolved "https://registry.npmjs.org/@capacitor/ios/-/ios-7.1.0.tgz"
   integrity sha512-ND7GNxtBRnD6Az14D5YRFKFL4VtdLeXE6Zym1SVcKac0NZF18n4DBympBcnfCR61421FCmRlswbpPa9Fr+Czxw==
 
-"@capacitor/keyboard@7.0.0":
-  version "7.0.0"
-  resolved "https://registry.npmjs.org/@capacitor/keyboard/-/keyboard-7.0.0.tgz"
-  integrity sha512-Tqwy8wG+sx4UqiFCX4Q+bFw6uKgG7BiHKAPpeefoIgoEB8H8Jf3xZNZoVPnJIMuPsCdSvuyHXZbJXH9IEEirGA==
+"@capacitor/keyboard@8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/keyboard/-/keyboard-8.0.0.tgz#d8706953dadbe7cac9e274da2fb8acfcd75e5e03"
+  integrity sha512-ycPW6iQyFwzDK95jihesj5EGiyyGSfbBqNek11iNp9tBOB7zDeYkUA2S/vPpOETt3dhP6pWr7a9gNVGuEfj11g==
 
 "@capacitor/network@^7.0.0":
   version "7.0.0"
