@@ -4,6 +4,13 @@ import WebGLTileLayer from 'ol/layer/WebGLTile'
 import VectorTileLayer from 'ol/layer/VectorTile'
 
 describe('LayerManager', () => {
+  const createMockSource = () => ({
+    on: vi.fn(),
+    once: vi.fn(),
+    un: vi.fn(),
+    getState: vi.fn(() => 'loading')
+  })
+
   describe('constructor', () => {
     it('should create manager with default options', () => {
       const manager = new LayerManager()
@@ -102,13 +109,6 @@ describe('LayerManager', () => {
       manager.setMap(mockMap)
     })
 
-    const createMockSource = () => ({
-      on: vi.fn(),
-      once: vi.fn(),
-      un: vi.fn(),
-      getState: vi.fn(() => 'loading')
-    })
-
     it('should add layer to map', () => {
       const mockSource = createMockSource()
       const mockLayer = { getSource: vi.fn(() => mockSource) }
@@ -159,13 +159,6 @@ describe('LayerManager', () => {
   })
 
   describe('loading state tracking', () => {
-    const createMockSource = () => ({
-      on: vi.fn(),
-      once: vi.fn(),
-      un: vi.fn(),
-      getState: vi.fn(() => 'loading')
-    })
-
     it('should call onLoadingChange when trackLoading is true', () => {
       const onLoadingChange = vi.fn()
       const manager = new LayerManager({ onLoadingChange, trackLoading: true })
