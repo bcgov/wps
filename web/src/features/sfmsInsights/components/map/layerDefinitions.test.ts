@@ -1,6 +1,15 @@
 import { getSnowPMTilesLayer, getFireWeatherRasterLayer } from './layerDefinitions'
 import { DateTime } from 'luxon'
 
+// Mock FetchSource to prevent actual network requests
+vi.mock('pmtiles', () => ({
+  FetchSource: vi.fn().mockImplementation((url: string) => ({
+    getBytes: vi.fn(),
+    getKey: () => url
+  })),
+  Source: vi.fn()
+}))
+
 describe('layerDefinitions', () => {
   describe('getSnowPMTilesLayer', () => {
     it('should create snow layer with zIndex 53', () => {
