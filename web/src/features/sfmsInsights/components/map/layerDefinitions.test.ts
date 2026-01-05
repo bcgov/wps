@@ -1,7 +1,7 @@
 import { getSnowPMTilesLayer, getFireWeatherRasterLayer } from './layerDefinitions'
 import { DateTime } from 'luxon'
 
-// Mock FetchSource and PMTiles to prevent actual network requests
+// Mock pmtiles to prevent actual network requests
 vi.mock('pmtiles', () => ({
   FetchSource: class MockFetchSource {
     url: string
@@ -9,8 +9,21 @@ vi.mock('pmtiles', () => ({
       this.url = url
     }
     async getBytes() {
+      // Create a valid PMTiles header with magic number
+      // PMTiles header is 127 bytes
+      const buffer = new ArrayBuffer(127)
+      const view = new Uint8Array(buffer)
+      // Write "PMTiles" magic number (ASCII bytes)
+      view[0] = 0x50 // 'P'
+      view[1] = 0x4d // 'M'
+      view[2] = 0x54 // 'T'
+      view[3] = 0x69 // 'i'
+      view[4] = 0x6c // 'l'
+      view[5] = 0x65 // 'e'
+      view[6] = 0x73 // 's'
+      view[7] = 3 // version 3
       return {
-        data: new ArrayBuffer(0),
+        data: buffer,
         etag: 'test-etag',
         expires: null,
         cacheControl: null
@@ -21,18 +34,41 @@ vi.mock('pmtiles', () => ({
     }
   },
   PMTiles: class MockPMTiles {
-    constructor(source: any) {}
-    async getHeader() {
-      return {
+    header: any
+    constructor(source: any) {
+      // Initialize header synchronously to avoid async issues
+      this.header = {
+        rootDirectoryOffset: 0,
+        rootDirectoryLength: 0,
+        jsonMetadataOffset: 0,
+        jsonMetadataLength: 0,
+        leafDirectoryOffset: 0,
+        leafDirectoryLength: 0,
+        tileDataOffset: 0,
+        tileDataLength: 0,
+        numAddressedTiles: 0,
+        numTileEntries: 0,
+        numTileContents: 0,
+        clustered: false,
+        internalCompression: 0,
+        tileCompression: 0,
+        tileType: 0,
         minZoom: 0,
         maxZoom: 14,
+        minLon: -180,
+        minLat: -85,
+        maxLon: 180,
+        maxLat: 85,
         centerZoom: 0,
         centerLon: 0,
         centerLat: 0
       }
     }
+    async getHeader() {
+      return Promise.resolve(this.header)
+    }
     async getZxy() {
-      return null
+      return Promise.resolve(null)
     }
   }
 }))
