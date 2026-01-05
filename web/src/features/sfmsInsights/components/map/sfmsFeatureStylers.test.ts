@@ -112,7 +112,7 @@ describe('fuelCOGColourExpression', () => {
 
 describe('NODATA_THRESHOLD', () => {
   it('should be defined as 10 billion', () => {
-    expect(NODATA_THRESHOLD).toBe(10000000000.0)
+    expect(NODATA_THRESHOLD).toBe(10000000000)
   })
 })
 

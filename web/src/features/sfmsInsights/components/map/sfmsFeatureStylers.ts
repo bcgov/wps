@@ -11,7 +11,8 @@ export const EMPTY_FILL = 'rgba(0, 0, 0, 0)'
 
 // Nodata threshold for GeoTIFF rasters
 // GeoTIFF nodata is -3.4028235e+38, use threshold for floating-point reliability
-export const NODATA_THRESHOLD = 10000000000.0
+// Note: JavaScript treats number literals like 1, 1.0, and 1 as identical values.
+export const NODATA_THRESHOLD = 10000000000
 
 // Helper function to check if a raster value is nodata
 export const isNodataValue = (value: number): boolean => {
@@ -73,9 +74,14 @@ export const fuelCOGColourExpression = () => {
 
   // Handle nodata values - make them transparent
   // 99 = non-fuel areas, 102 = water/non-vegetated, -10000 = primary nodata
-  colourCases.push(['==', ['band', 1], 99], [0, 0, 0, 0])
-  colourCases.push(['==', ['band', 1], 102], [0, 0, 0, 0])
-  colourCases.push(['==', ['band', 1], -10000], [0, 0, 0, 0])
+  colourCases.push(
+    ['==', ['band', 1], 99],
+    [0, 0, 0, 0],
+    ['==', ['band', 1], 102],
+    [0, 0, 0, 0],
+    ['==', ['band', 1], -10000],
+    [0, 0, 0, 0]
+  )
 
   // Add color cases for valid fuel types (1-14)
   FUEL_TYPE_COLORS.forEach(({ value, rgb }) => {
