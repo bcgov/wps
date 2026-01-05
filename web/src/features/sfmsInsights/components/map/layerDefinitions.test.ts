@@ -8,7 +8,12 @@ vi.mock('pmtiles', () => ({
     constructor(url: string) {
       this.url = url
     }
-    getBytes = vi.fn()
+    getBytes = vi.fn().mockResolvedValue({
+      data: new ArrayBuffer(0),
+      etag: 'test-etag',
+      expires: null,
+      cacheControl: null
+    })
     getKey = () => this.url
   }
 }))

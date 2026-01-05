@@ -23,7 +23,20 @@ describe('LayerManager', () => {
         onLoadingChange,
         trackLoading: false
       })
+
       expect(manager).toBeDefined()
+
+      // Verify trackLoading: false works by checking onLoadingChange is not called
+      const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
+      manager.setMap(mockMap as any)
+
+      const mockSource = createMockSource()
+      const mockLayer = { getSource: vi.fn(() => mockSource) }
+
+      manager.updateLayer(mockLayer as any)
+
+      // onLoadingChange should not be called when trackLoading is false
+      expect(onLoadingChange).not.toHaveBeenCalled()
     })
 
     it('should use default trackLoading value of true', () => {
