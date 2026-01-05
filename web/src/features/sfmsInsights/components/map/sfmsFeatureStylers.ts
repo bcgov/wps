@@ -124,6 +124,3 @@ export const getFireWeatherColourExpression = (rasterType: string) => {
   expression.push([0, 0, 0, 0]) // Fallback: transparent
   return expression
 }
-
-// Backward compatibility
-export const fwiColourExpression = () => getFireWeatherColourExpression('fwi')
