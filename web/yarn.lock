@@ -7520,13 +7520,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mgrs@npm:1.0.0":
-  version: 1.0.0
-  resolution: "mgrs@npm:1.0.0"
-  checksum: 10c0/a360853be5a3b4f4734dbf0a193851c08039ccb6077362ab0f890cccd170ef88b59585129757da9fea4d7a313d7dc3ee88f37f594fc1ae3e4e8efc5353144d77
-  languageName: node
-  linkType: hard
-
 "micromatch@npm:^4.0.4, micromatch@npm:^4.0.8":
   version: 4.0.8
   resolution: "micromatch@npm:4.0.8"
@@ -8454,16 +8447,6 @@ __metadata:
   version: 2.0.3
   resolution: "progress@npm:2.0.3"
   checksum: 10c0/1697e07cb1068055dbe9fe858d242368ff5d2073639e652b75a7eb1f2a1a8d4afd404d719de23c7b48481a6aa0040686310e2dac2f53d776daa2176d3f96369c
-  languageName: node
-  linkType: hard
-
-"proj4@npm:^2.20.2":
-  version: 2.20.2
-  resolution: "proj4@npm:2.20.2"
-  dependencies:
-    mgrs: "npm:1.0.0"
-    wkt-parser: "npm:^1.5.1"
-  checksum: 10c0/7b65fcb12a896a110779f6a0e28e947c4c208ccb4a2e381052f1b7c8bad5306d4315a1dac7b4d6316687a48cfbce63d6ff6017c9946c5ef12f440cbf67d8f0e5
   languageName: node
   linkType: hard
 
@@ -10741,13 +10724,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wkt-parser@npm:^1.5.1":
-  version: 1.5.2
-  resolution: "wkt-parser@npm:1.5.2"
-  checksum: 10c0/0522173da6e4e2dddc735d7899a74847c6e448b5bdc1b7994d86e1d193e81c704d39629ed9be456cd1ded564a1d5ac7c2a5686c1838ff6dc4ef1e58ad768144b
-  languageName: node
-  linkType: hard
-
 "word-wrap@npm:^1.2.5":
   version: 1.2.5
   resolution: "word-wrap@npm:1.2.5"
@@ -10814,7 +10790,6 @@ __metadata:
     ol-mapbox-style: "npm:^13.1.1"
     ol-pmtiles: "npm:^2.0.0"
     prettier: "npm:^3.3.3"
-    proj4: "npm:^2.20.2"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     react-redux: "npm:^9.1.2"
