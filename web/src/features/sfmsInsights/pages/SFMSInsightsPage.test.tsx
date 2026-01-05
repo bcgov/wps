@@ -45,7 +45,7 @@ describe('SFMSInsightsPage', () => {
       // mock no-op
     }
   }
-  window.ResizeObserver = ResizeObserver
+  globalThis.ResizeObserver = ResizeObserver
 
   const renderWithStore = (component: React.ReactElement) => {
     const store = createTestStore({

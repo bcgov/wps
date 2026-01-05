@@ -37,7 +37,7 @@ describe('SFMSMap', () => {
       // mock no-op
     }
   }
-  window.ResizeObserver = ResizeObserver
+  globalThis.ResizeObserver = ResizeObserver
 
   const mockSnowLayer = {
     ...createLayerMock('snowVector'),
@@ -133,10 +133,6 @@ describe('SFMSMap', () => {
     )
 
     // Verify new layer is requested
-    expect(layerDefinitions.getRasterLayer).toHaveBeenCalledWith(
-      DateTime.fromISO('2025-11-03'),
-      'fwi',
-      'test-token'
-    )
+    expect(layerDefinitions.getRasterLayer).toHaveBeenCalledWith(DateTime.fromISO('2025-11-03'), 'fwi', 'test-token')
   })
 })
