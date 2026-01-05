@@ -16,10 +16,7 @@ export interface RasterTooltipResult {
  * Extracts raster value from layer data and determines if it should be displayed
  * This function is pure and can be tested in isolation
  */
-export const getRasterTooltipData = (
-  data: RasterData,
-  rasterType: RasterType | undefined
-): RasterTooltipData => {
+export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | undefined): RasterTooltipData => {
   const defaultLabel = rasterType ? RASTER_CONFIG[rasterType].label : 'FWI'
 
   // Check if we have valid data
@@ -30,7 +27,7 @@ export const getRasterTooltipData = (
   const rawValue = data[0]
 
   // Check for NaN (can occur when undefined is coerced to number)
-  if (isNaN(rawValue)) {
+  if (Number.isNaN(rawValue)) {
     return { value: null, label: defaultLabel }
   }
 
@@ -87,10 +84,7 @@ export const getRasterData = (layer: WebGLTileLayer, pixel: [number, number]): R
  * Gets tooltip data from a raster layer at a specific pixel location
  * This orchestrates the extraction of data and tooltip information
  */
-export const getDataAtPixel = (
-  layer: WebGLTileLayer,
-  pixel: [number, number]
-): RasterTooltipData => {
+export const getDataAtPixel = (layer: WebGLTileLayer, pixel: [number, number]): RasterTooltipData => {
   const data = getRasterData(layer, pixel)
   const rasterType = getRasterType(layer)
   return getRasterTooltipData(data, rasterType)
