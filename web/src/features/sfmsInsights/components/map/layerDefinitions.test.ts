@@ -1,20 +1,39 @@
 import { getSnowPMTilesLayer, getFireWeatherRasterLayer } from './layerDefinitions'
 import { DateTime } from 'luxon'
 
-// Mock FetchSource to prevent actual network requests
+// Mock FetchSource and PMTiles to prevent actual network requests
 vi.mock('pmtiles', () => ({
   FetchSource: class MockFetchSource {
     url: string
     constructor(url: string) {
       this.url = url
     }
-    getBytes = vi.fn().mockResolvedValue({
-      data: new ArrayBuffer(0),
-      etag: 'test-etag',
-      expires: null,
-      cacheControl: null
-    })
-    getKey = () => this.url
+    async getBytes() {
+      return {
+        data: new ArrayBuffer(0),
+        etag: 'test-etag',
+        expires: null,
+        cacheControl: null
+      }
+    }
+    getKey() {
+      return this.url
+    }
+  },
+  PMTiles: class MockPMTiles {
+    constructor(source: any) {}
+    async getHeader() {
+      return {
+        minZoom: 0,
+        maxZoom: 14,
+        centerZoom: 0,
+        centerLon: 0,
+        centerLat: 0
+      }
+    }
+    async getZxy() {
+      return null
+    }
   }
 }))
 
