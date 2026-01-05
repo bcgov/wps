@@ -9,10 +9,10 @@ vi.mock('pmtiles', () => ({
       this.url = url
     }
     async getBytes() {
-      // Create a valid PMTiles header with magic number
-      // PMTiles header is 127 bytes
+      // Create a minimal valid PMTiles v3 header with proper varint encoding
       const buffer = new ArrayBuffer(127)
       const view = new Uint8Array(buffer)
+
       // Write "PMTiles" magic number (ASCII bytes)
       view[0] = 0x50 // 'P'
       view[1] = 0x4d // 'M'
@@ -22,6 +22,15 @@ vi.mock('pmtiles', () => ({
       view[5] = 0x65 // 'e'
       view[6] = 0x73 // 's'
       view[7] = 3 // version 3
+
+      // Write spec_version (varint at offset 8) - value 3 encoded as single byte
+      view[8] = 3
+
+      // Fill rest with zeros (valid single-byte varints representing 0)
+      for (let i = 9; i < 127; i++) {
+        view[i] = 0
+      }
+
       return {
         data: buffer,
         etag: 'test-etag',
@@ -35,7 +44,9 @@ vi.mock('pmtiles', () => ({
   },
   PMTiles: class MockPMTiles {
     header: any
+    source: any
     constructor(source: any) {
+      this.source = source
       // Initialize header synchronously to avoid async issues
       this.header = {
         rootDirectoryOffset: 0,
@@ -63,17 +74,28 @@ vi.mock('pmtiles', () => ({
         centerLon: 0,
         centerLat: 0
       }
+      // Immediately resolve to prevent real PMTiles initialization
+      Promise.resolve()
     }
     async getHeader() {
+      // Return header immediately without fetching/parsing
       return Promise.resolve(this.header)
     }
     async getZxy() {
       return Promise.resolve(null)
     }
+    async getMetadata() {
+      return Promise.resolve({})
+    }
   }
 }))
 
 describe('layerDefinitions', () => {
+  // Flush all pending promises after each test to catch async errors
+  afterEach(async () => {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  })
+
   describe('getSnowPMTilesLayer', () => {
     it('should create snow layer with zIndex 53', () => {
       const snowDate = DateTime.fromISO('2025-11-02')
