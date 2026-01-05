@@ -2,8 +2,12 @@ import WebGLTileLayer from 'ol/layer/WebGLTile'
 import { RasterType, RASTER_CONFIG, FUEL_TYPE_COLORS } from './rasterConfig'
 import { isNodataValue } from './sfmsFeatureStylers'
 
+export type RasterValue = number | string | null
+export type RasterData = Float32Array | Uint8Array | null
+export type RasterTooltipData = { value: RasterValue; label: string }
+
 export interface RasterTooltipResult {
-  value: number | string | null
+  value: RasterValue
   label: string
   pixelCoords: [number, number]
 }
@@ -13,9 +17,9 @@ export interface RasterTooltipResult {
  * This function is pure and can be tested in isolation
  */
 export const getRasterTooltipData = (
-  data: Float32Array | Uint8Array | null,
+  data: RasterData,
   rasterType: RasterType | undefined
-): { value: number | string | null; label: string } => {
+): RasterTooltipData => {
   const defaultLabel = rasterType ? RASTER_CONFIG[rasterType].label : 'FWI'
 
   // Check if we have valid data
@@ -75,8 +79,8 @@ export const getRasterType = (layer: WebGLTileLayer): RasterType | undefined => 
 /**
  * Gets raster data from layer at a specific pixel coordinate
  */
-export const getRasterData = (layer: WebGLTileLayer, pixel: [number, number]): Float32Array | Uint8Array | null => {
-  return layer.getData(pixel) as Float32Array | Uint8Array | null
+export const getRasterData = (layer: WebGLTileLayer, pixel: [number, number]): RasterData => {
+  return layer.getData(pixel) as RasterData
 }
 
 /**
@@ -86,7 +90,7 @@ export const getRasterData = (layer: WebGLTileLayer, pixel: [number, number]): F
 export const getDataAtPixel = (
   layer: WebGLTileLayer,
   pixel: [number, number]
-): { value: number | string | null; label: string } => {
+): RasterTooltipData => {
   const data = getRasterData(layer, pixel)
   const rasterType = getRasterType(layer)
   return getRasterTooltipData(data, rasterType)
