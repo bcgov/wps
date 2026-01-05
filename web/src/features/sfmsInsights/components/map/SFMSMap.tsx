@@ -6,7 +6,6 @@ import { ErrorBoundary } from '@sentry/react'
 import {
   BASEMAP_LAYER_NAME,
   getRasterLayer,
-  FWI_LAYER_NAME,
   getSnowPMTilesLayer,
   SNOW_LAYER_NAME
 } from 'features/sfmsInsights/components/map/layerDefinitions'

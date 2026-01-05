@@ -1,6 +1,5 @@
 import { Interaction } from 'ol/interaction'
 import { MapBrowserEvent } from 'ol'
-import WebGLTileLayer from 'ol/layer/WebGLTile'
 import { EventsKey } from 'ol/events'
 import { unByKey } from 'ol/Observable'
 import { findRasterLayer, getDataAtPixel } from './rasterTooltipHandler'

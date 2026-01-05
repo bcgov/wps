@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { LayerManager, LayerManagerOptions, ManagedLayer } from './layerManager'
-import { Map } from 'ol'
+import { LayerManager } from './layerManager'
 import WebGLTileLayer from 'ol/layer/WebGLTile'
 import VectorTileLayer from 'ol/layer/VectorTile'
 
@@ -294,9 +293,12 @@ describe('LayerManager', () => {
       // Simulate tileloaderror event
       tileloaderrorHandler!()
 
-      expect(onLoadingChange).toHaveBeenCalledWith(false, expect.objectContaining({
-        type: 'not_found'
-      }))
+      expect(onLoadingChange).toHaveBeenCalledWith(
+        false,
+        expect.objectContaining({
+          type: 'not_found'
+        })
+      )
     })
 
     it('should not throw when onLoadingChange is not provided', () => {
@@ -451,10 +453,13 @@ describe('LayerManager', () => {
       // Simulate tileloaderror event
       tileloaderrorHandler!({ tile: {} })
 
-      expect(onLoadingChange).toHaveBeenCalledWith(false, expect.objectContaining({
-        type: 'not_found',
-        message: expect.any(String)
-      }))
+      expect(onLoadingChange).toHaveBeenCalledWith(
+        false,
+        expect.objectContaining({
+          type: 'not_found',
+          message: expect.any(String)
+        })
+      )
     })
 
     it('should call onLoadingChange with error on source error event', () => {
@@ -482,10 +487,13 @@ describe('LayerManager', () => {
       // Simulate error event
       errorHandler!({ error: new Error('Test error') })
 
-      expect(onLoadingChange).toHaveBeenCalledWith(false, expect.objectContaining({
-        type: 'not_found',
-        message: expect.any(String)
-      }))
+      expect(onLoadingChange).toHaveBeenCalledWith(
+        false,
+        expect.objectContaining({
+          type: 'not_found',
+          message: expect.any(String)
+        })
+      )
     })
 
     it('should call onLoadingChange with error on source state change to error', () => {
@@ -513,10 +521,13 @@ describe('LayerManager', () => {
       // Simulate change event with error state
       changeHandler!()
 
-      expect(onLoadingChange).toHaveBeenCalledWith(false, expect.objectContaining({
-        type: 'not_found',
-        message: expect.any(String)
-      }))
+      expect(onLoadingChange).toHaveBeenCalledWith(
+        false,
+        expect.objectContaining({
+          type: 'not_found',
+          message: expect.any(String)
+        })
+      )
     })
 
     it('should trigger timeout error if no tiles load within timeout period', () => {
@@ -540,10 +551,13 @@ describe('LayerManager', () => {
       // Fast-forward time by 10 seconds
       vi.advanceTimersByTime(10000)
 
-      expect(onLoadingChange).toHaveBeenCalledWith(false, expect.objectContaining({
-        type: 'not_found',
-        message: expect.any(String)
-      }))
+      expect(onLoadingChange).toHaveBeenCalledWith(
+        false,
+        expect.objectContaining({
+          type: 'not_found',
+          message: expect.any(String)
+        })
+      )
 
       vi.useRealTimers()
     })

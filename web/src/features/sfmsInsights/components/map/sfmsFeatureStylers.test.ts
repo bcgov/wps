@@ -7,7 +7,6 @@ import {
   snowStyler,
   styleFuelGrid,
   fuelCOGColourExpression,
-  rasterValueToFuelTypeCode,
   NODATA_THRESHOLD,
   isNodataValue
 } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'

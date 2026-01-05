@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { RasterTooltipInteraction, RasterTooltipData } from './rasterTooltipInteraction'
-import { Map, MapBrowserEvent } from 'ol'
+import { MapBrowserEvent } from 'ol'
 import { EventsKey } from 'ol/events'
 
 interface MockMapWithHandler {
