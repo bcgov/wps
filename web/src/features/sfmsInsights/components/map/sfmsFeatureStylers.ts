@@ -113,11 +113,11 @@ export const getFireWeatherColourExpression = (rasterType: string) => {
   colorBreaks.forEach((colorBreak: ColorBreak) => {
     const [r, g, b] = colorBreak.color.match(/\d+/g)!.map(Number)
 
-    if (colorBreak.max !== null) {
-      expression.push(['<', ['band', 1], colorBreak.max], [r, g, b, 1])
-    } else {
+    if (colorBreak.max === null) {
       // Last break (no max) - use >= min
       expression.push(['>=', ['band', 1], colorBreak.min], [r, g, b, 1])
+    } else {
+      expression.push(['<', ['band', 1], colorBreak.max], [r, g, b, 1])
     }
   })
 
