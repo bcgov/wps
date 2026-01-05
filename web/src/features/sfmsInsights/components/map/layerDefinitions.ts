@@ -22,7 +22,7 @@ export const FWI_LAYER_NAME = 'fwiRaster'
 export const getSnowPMTilesLayer = (snowDate: DateTime, token?: string) => {
   const isoDate = snowDate.toISODate() ?? ''
   const isoDateBasic = snowDate.toISODate({ format: 'basic' }) ?? ''
-  const path = `psu/pmtiles/snow/${isoDate}/snowCoverage/snowCoverage${isoDateBasic}.pmtiles`
+  const path = `psu/pmtiles/snow/${isoDate}/snowCoverage${isoDateBasic}.pmtiles`
   const url = `${API_BASE_URL}/object-store-proxy/${path}`
 
   // Create FetchSource with custom headers for authentication

@@ -3,11 +3,14 @@ import { DateTime } from 'luxon'
 
 // Mock FetchSource to prevent actual network requests
 vi.mock('pmtiles', () => ({
-  FetchSource: vi.fn().mockImplementation((url: string) => ({
-    getBytes: vi.fn(),
-    getKey: () => url
-  })),
-  Source: vi.fn()
+  FetchSource: class MockFetchSource {
+    url: string
+    constructor(url: string) {
+      this.url = url
+    }
+    getBytes = vi.fn()
+    getKey = () => this.url
+  }
 }))
 
 describe('layerDefinitions', () => {
