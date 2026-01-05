@@ -25,7 +25,7 @@ export class LayerManager {
   private currentLayer: ManagedLayer | null = null
   private readonly onLoadingChange?: (isLoading: boolean, error?: RasterError) => void
   private readonly trackLoading: boolean
-  private timeoutId?: number
+  private timeoutId?: NodeJS.Timeout
 
   constructor(options: LayerManagerOptions = {}) {
     this.onLoadingChange = options.onLoadingChange
@@ -97,7 +97,7 @@ export class LayerManager {
         source.on('change', checkSourceError)
 
         // Safety timeout: if nothing loads after 10 seconds, show error
-        this.timeoutId = window.setTimeout(() => {
+        this.timeoutId = globalThis.setTimeout(() => {
           const state = source.getState()
           if (!hasLoaded && state !== 'ready') {
             const error = this.extractErrorFromEvent({})
