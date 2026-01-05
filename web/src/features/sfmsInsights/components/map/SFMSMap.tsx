@@ -6,8 +6,7 @@ import { ErrorBoundary } from '@sentry/react'
 import {
   BASEMAP_LAYER_NAME,
   getRasterLayer,
-  getSnowPMTilesLayer,
-  SNOW_LAYER_NAME
+  getSnowPMTilesLayer
 } from 'features/sfmsInsights/components/map/layerDefinitions'
 import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
 import RasterLegend from 'features/sfmsInsights/components/map/RasterLegend'
@@ -99,7 +98,6 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
 
     // Initialize snow layer manager
     const snowLayerManager = new LayerManager({
-      layerName: SNOW_LAYER_NAME,
       trackLoading: false // Snow layers load quickly, no need to track
     })
     snowLayerManager.setMap(mapObject)
