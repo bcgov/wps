@@ -309,10 +309,10 @@
   resolved "https://registry.npmjs.org/@capacitor/haptics/-/haptics-7.0.0.tgz"
   integrity sha512-8uI8rWyAbq8EzkjS+sHZSncyzujHzVbuLKgj8J5H0yUL6+r26F16gVA2iuQuIBvzbSMy7Y0/pUuWlwZr/H8AKg==
 
-"@capacitor/ios@7.1.0":
-  version "7.1.0"
-  resolved "https://registry.npmjs.org/@capacitor/ios/-/ios-7.1.0.tgz"
-  integrity sha512-ND7GNxtBRnD6Az14D5YRFKFL4VtdLeXE6Zym1SVcKac0NZF18n4DBympBcnfCR61421FCmRlswbpPa9Fr+Czxw==
+"@capacitor/ios@8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/ios/-/ios-8.0.0.tgz#4a3d242693a08573742f0eddc1ba967b46f5a62b"
+  integrity sha512-gwSn6X4uHYNHlM8zZmVmM1zjEhexxbHpPSSnH1DZkp8o3zdK/RmH8tmDma+3zPZrhhTSrMC7sT24dKTOvV8www==
 
 "@capacitor/keyboard@7.0.0":
   version "7.0.0"
