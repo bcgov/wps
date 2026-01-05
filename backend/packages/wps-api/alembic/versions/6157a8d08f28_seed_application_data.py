@@ -76,31 +76,6 @@ def upgrade():
                     connection.execute(sa.text(transformed))
                 statement_buffer = []
 
-    # Register application data tables in metadata table
-    connection.execute(
-        sa.text("""
-        INSERT INTO application_data_tables (table_name, description, seed_order, last_seeded) VALUES
-        ('prediction_models', 'Prediction model definitions', 1, NOW()),
-        ('fuel_types', 'Fuel type reference data', 2, NOW()),
-        ('sfms_fuel_types', 'SFMS fuel type mappings', 3, NOW()),
-        ('prescription_status', 'Prescription status types', 4, NOW()),
-        ('fire_centres', 'Fire centre boundaries and definitions', 5, NOW()),
-        ('planning_areas', 'Planning area definitions', 6, NOW()),
-        ('advisory_hfi_classification_threshold', 'HFI classification thresholds', 7, NOW()),
-        ('advisory_shape_types', 'Advisory shape type definitions', 8, NOW()),
-        ('hfi_fire_start_range', 'HFI fire start range definitions', 9, NOW()),
-        ('hfi_fire_start_lookup', 'HFI fire start lookup data', 10, NOW()),
-        ('hfi_fire_centre_fire_start_range', 'HFI fire centre fire start ranges', 11, NOW()),
-        ('fuel_type_raster', 'Fuel type raster metadata', 12, NOW()),
-        ('planning_weather_stations', 'Planning weather station assignments', 13, NOW()),
-        ('advisory_shapes', 'Advisory area shapes (fire zones, centres, units)', 14, NOW()),
-        ('combustible_area', 'Combustible land area calculations', 15, NOW()),
-        ('tpi_fuel_area', 'Topographic position index fuel area data', 16, NOW()),
-        ('advisory_fuel_types', 'Fuel type distributions within advisory areas', 17, NOW()),
-        ('advisory_shape_fuels', 'Advisory shape fuel type relationships', 18, NOW())
-    """)
-    )
-
 
 def downgrade():
     """Remove seeded application data"""
@@ -123,5 +98,3 @@ def downgrade():
     op.execute("DELETE FROM fuel_types;")
     op.execute("DELETE FROM prescription_status;")
     op.execute("DELETE FROM prediction_models;")
-    # Clear application data tables registry
-    op.execute("DELETE FROM application_data_tables;")
