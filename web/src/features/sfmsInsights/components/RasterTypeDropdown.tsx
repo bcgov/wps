@@ -11,8 +11,6 @@ const RasterTypeDropdown = ({ selectedRasterType, setSelectedRasterType }: Raste
     setSelectedRasterType(event.target.value as RasterType)
   }
 
-  const rasterTypes: RasterType[] = ['fwi', 'dmc', 'dc', 'ffmc', 'bui', 'isi', 'fuel']
-
   return (
     <FormControl sx={{ minWidth: 200 }}>
       <InputLabel id="raster-type-label">Raster Type</InputLabel>
@@ -23,7 +21,7 @@ const RasterTypeDropdown = ({ selectedRasterType, setSelectedRasterType }: Raste
         label="Raster Type"
         onChange={handleChange}
       >
-        {rasterTypes.map(type => (
+        {(Object.keys(RASTER_CONFIG) as RasterType[]).map(type => (
           <MenuItem key={type} value={type}>
             {RASTER_CONFIG[type].label}
           </MenuItem>
