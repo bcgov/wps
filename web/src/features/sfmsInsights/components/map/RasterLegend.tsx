@@ -11,6 +11,7 @@ const LegendGrid = styled(Grid)({
   minWidth: '200px',
   backgroundColor: '#fffafa',
   border: '2px solid black',
+  padding: '0 0.5rem',
   zIndex: 1000
 })
 
@@ -34,13 +35,13 @@ const RasterLegend = ({ rasterType }: RasterLegendProps) => {
   const { label, colorBreaks } = RASTER_CONFIG[rasterType]
 
   return (
-    <LegendGrid padding={'0 0.5rem'}>
+    <LegendGrid>
       <LegendTitle align="center" gutterBottom>
         {label}
       </LegendTitle>
       <List dense={true} sx={{ padding: 0 }}>
-        {colorBreaks.map((colorBreak: ColorBreak, index: number) => (
-          <ListItem disablePadding key={index}>
+        {colorBreaks.map((colorBreak: ColorBreak) => (
+          <ListItem disablePadding key={colorBreak.label}>
             <ListItemIcon>
               <LegendSymbol sx={{ backgroundColor: colorBreak.color }} />
             </ListItemIcon>
