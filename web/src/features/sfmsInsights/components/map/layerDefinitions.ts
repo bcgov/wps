@@ -41,7 +41,7 @@ export const getFireWeatherRasterLayer = (
 ) => {
   const dateString = date.toISODate() ?? '' // Format: YYYY-MM-DD
   // Use API proxy to bypass CORS restrictions
-  const path = `sfms/calculated/forecast/${dateString}/${rasterType}${dateString.replace(/-/g, '')}_3857_cog.tif`
+  const path = `sfms/calculated/forecast/${dateString}/${rasterType}${dateString.replaceAll('-', '')}_3857_cog.tif`
   const url = `${API_BASE_URL}/object-store-proxy/${path}`
 
   // Prepare headers for authentication
