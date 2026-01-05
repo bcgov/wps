@@ -101,7 +101,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
       trackLoading: false // Snow layers load quickly, no need to track
     })
     snowLayerManager.setMap(mapObject)
-    snowLayerManager.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate) : null)
+    snowLayerManager.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null)
     snowLayerManagerRef.current = snowLayerManager
 
     const loadBaseMap = async () => {
@@ -118,9 +118,9 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
 
   useEffect(() => {
     if (snowLayerManagerRef.current) {
-      snowLayerManagerRef.current.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate) : null)
+      snowLayerManagerRef.current.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null)
     }
-  }, [snowDate, showSnow])
+  }, [snowDate, showSnow, token])
 
   useEffect(() => {
     // Clear any existing errors when changing date/type

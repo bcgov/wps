@@ -85,7 +85,7 @@ describe('SFMSMap', () => {
   it('should add snow layer when snowDate is provided and showSnow is true', () => {
     const snowDate = DateTime.fromISO('2025-11-02')
     renderWithStore(<SFMSMap snowDate={snowDate} rasterDate={DateTime.fromISO('2025-11-02')} showSnow={true} />)
-    expect(layerDefinitions.getSnowPMTilesLayer).toHaveBeenCalledWith(snowDate)
+    expect(layerDefinitions.getSnowPMTilesLayer).toHaveBeenCalledWith(snowDate, 'test-token')
   })
 
   it('should not add snow layer when showSnow is false even if snowDate is provided', () => {
@@ -97,7 +97,7 @@ describe('SFMSMap', () => {
   it('should add snow layer by default when snowDate is provided and showSnow is not specified', () => {
     const snowDate = DateTime.fromISO('2025-11-02')
     renderWithStore(<SFMSMap snowDate={snowDate} rasterDate={DateTime.fromISO('2025-11-02')} />)
-    expect(layerDefinitions.getSnowPMTilesLayer).toHaveBeenCalledWith(snowDate)
+    expect(layerDefinitions.getSnowPMTilesLayer).toHaveBeenCalledWith(snowDate, 'test-token')
   })
 
   it('should render the sfms map', () => {

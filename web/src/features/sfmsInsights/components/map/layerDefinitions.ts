@@ -1,5 +1,6 @@
 import { PMTilesVectorSource } from 'ol-pmtiles'
-import { API_BASE_URL, PMTILES_BUCKET, PSU_BUCKET } from 'utils/env'
+import { FetchSource, type Source } from 'pmtiles'
+import { API_BASE_URL } from 'utils/env'
 import {
   fuelCOGColourExpression,
   getFireWeatherColourExpression,
@@ -18,11 +19,25 @@ export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
 export const FWI_LAYER_NAME = 'fwiRaster'
 
-export const getSnowPMTilesLayer = (snowDate: DateTime) => {
-  const url = `${PMTILES_BUCKET}snow/${snowDate.toISODate()}/snowCoverage${snowDate.toISODate({ format: 'basic' })}.pmtiles`
+export const getSnowPMTilesLayer = (snowDate: DateTime, token?: string) => {
+  const isoDate = snowDate.toISODate() ?? ''
+  const isoDateBasic = snowDate.toISODate({ format: 'basic' }) ?? ''
+  const path = `psu/pmtiles/snow/${isoDate}/snowCoverage/snowCoverage${isoDateBasic}.pmtiles`
+  const url = `${API_BASE_URL}/object-store-proxy/${path}`
+
+  // Create FetchSource with custom headers for authentication
+  const customHeaders = new Headers()
+  if (token) {
+    customHeaders.set('Authorization', `Bearer ${token}`)
+  }
+  const fetchSource = new FetchSource(url, token ? customHeaders : undefined)
+
   const snowPMTilesSource = new PMTilesVectorSource({
-    url
+    // @ts-expect-error - ol-pmtiles type definition issue: VectorTileSourceOptions already defines url as string,
+    // creating an impossible intersection type (string & Source). Runtime works fine as PMTiles accepts Source.
+    url: fetchSource
   })
+
   const snowPMTilesLayer = new VectorTileLayer({
     source: snowPMTilesSource,
     style: snowStyler,
@@ -53,7 +68,6 @@ export const getFireWeatherRasterLayer = (
   const source = new GeoTIFF({
     sources: [{ url, nodata: -3.4028235e38 }],
     sourceOptions: {
-      // Pass custom headers to geotiff.js
       headers
     },
     interpolate: false,
@@ -77,26 +91,41 @@ export const getFireWeatherRasterLayer = (
   return layer
 }
 
-export const fuelGridCOG = new GeoTIFF({
-  sources: [
-    {
-      url: `${PSU_BUCKET}cog/fbp2025_500m_cog.tif`,
-      nodata: -10000 // Primary nodata value for fuel raster
-    }
-  ],
-  interpolate: false,
-  normalize: false // important, otherwise the values will be scaled to 0-1
-})
+export const getFuelGridCOG = (token?: string) => {
+  const path = 'psu/cog/fbp2025_500m_cog.tif'
+  const url = `${API_BASE_URL}/object-store-proxy/${path}`
 
-export const fuelCOGTiles = new WebGLTile({
-  source: fuelGridCOG,
-  zIndex: 51,
-  opacity: 0.6,
-  properties: { rasterType: 'fuel' },
-  style: {
-    color: fuelCOGColourExpression()
+  const headers: Record<string, string> = {}
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
   }
-})
+
+  return new GeoTIFF({
+    sources: [
+      {
+        url,
+        nodata: -10000 // Primary nodata value for fuel raster
+      }
+    ],
+    sourceOptions: {
+      headers
+    },
+    interpolate: false,
+    normalize: false // important, otherwise the values will be scaled to 0-1
+  })
+}
+
+export const getFuelCOGTiles = (token?: string) => {
+  return new WebGLTile({
+    source: getFuelGridCOG(token),
+    zIndex: 51,
+    opacity: 0.6,
+    properties: { rasterType: 'fuel' },
+    style: {
+      color: fuelCOGColourExpression()
+    }
+  })
+}
 
 /**
  * Get the appropriate raster layer based on type
@@ -104,7 +133,7 @@ export const fuelCOGTiles = new WebGLTile({
  */
 export const getRasterLayer = (date: DateTime, rasterType: RasterType, token: string | undefined) => {
   if (rasterType === 'fuel') {
-    return fuelCOGTiles
+    return getFuelCOGTiles(token)
   }
   return getFireWeatherRasterLayer(date, rasterType, token)
 }
