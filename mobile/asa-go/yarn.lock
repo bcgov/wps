@@ -319,10 +319,10 @@
   resolved "https://registry.npmjs.org/@capacitor/keyboard/-/keyboard-7.0.0.tgz"
   integrity sha512-Tqwy8wG+sx4UqiFCX4Q+bFw6uKgG7BiHKAPpeefoIgoEB8H8Jf3xZNZoVPnJIMuPsCdSvuyHXZbJXH9IEEirGA==
 
-"@capacitor/network@^7.0.0":
-  version "7.0.0"
-  resolved "https://registry.npmjs.org/@capacitor/network/-/network-7.0.0.tgz"
-  integrity sha512-cIr0tElqiAKxbRJ7/OGOPssSyaVpyU8ushjcOItdYaGu/L9RAI+4tKdRCoL9cngCycgcUGWn+SkuN9oJCf8iHw==
+"@capacitor/network@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/network/-/network-8.0.0.tgz#40e749c94a47879f18f514854eae759bbad9bc93"
+  integrity sha512-fgvB7pNKn8pKavuzys218j4YuA5euNfavp7nS3NuwWKWNupZAlbucfnl75lazxCyVF/ZRjzYVTb4vtTEfFrK1A==
 
 "@capacitor/preferences@^7.0.2":
   version "7.0.2"
