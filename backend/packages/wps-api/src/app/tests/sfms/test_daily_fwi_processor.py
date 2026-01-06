@@ -24,6 +24,7 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
     get_weather_data_key_spy = mocker.spy(mock_key_addresser, "get_weather_data_keys")
     gdal_prefix_keys_spy = mocker.spy(mock_key_addresser, "gdal_prefix_keys")
     get_calculated_index_key_spy = mocker.spy(mock_key_addresser, "get_calculated_index_key")
+    get_cog_key_spy = mocker.spy(mock_key_addresser, "get_cog_key")
 
     fwi_processor = DailyFWIProcessor(TEST_DATETIME, 2, mock_key_addresser)
 
@@ -50,6 +51,9 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
     # mock gdal open
     mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
 
+    # mock warp_to_cog - patch where it's used, not where it's defined
+    warp_to_cog_spy = mocker.patch("app.sfms.daily_fwi_processor.warp_to_cog")
+
     # calculation spies
     calculate_dmc_spy = mocker.spy(daily_fwi_processor, "calculate_dmc")
     calculate_dc_spy = mocker.spy(daily_fwi_processor, "calculate_dc")
@@ -64,7 +68,7 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=mock_all_objects_exist)
         persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data", return_value="test_key.tif")
 
-        await fwi_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context, mock_new_ffmc_datasets_context, mock_new_isi_bui_datasets_context)
+        await fwi_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context, mock_new_ffmc_datasets_context, mock_new_isi_bui_datasets_context, mock_new_ffmc_datasets_context)
 
         # Verify weather model keys and actual keys are checked for both days
         assert mock_all_objects_exist.call_count == 4
@@ -175,8 +179,32 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
             mocker.call(mock_new_isi_ds, mock_new_bui_ds),
         ]
 
-        # 5 each day, new dmc, dc, ffmc, bui, and isi rasters
+        # 6 each day, new dmc, dc, ffmc, bui, isi, and fwi rasters
         assert persist_raster_spy.call_count == 12
+
+        # 6 COG conversions per day (dmc, dc, ffmc, bui, isi, fwi)
+        assert warp_to_cog_spy.call_count == 12
+
+        # 6 COG keys generated per day (dmc, dc, ffmc, bui, isi, fwi)
+        assert get_cog_key_spy.call_count == 12
+
+        # Verify get_cog_key is called with the correct keys
+        assert get_cog_key_spy.call_args_list == [
+            # first day
+            mocker.call("sfms/calculated/forecast/2024-10-10/dmc20241010.tif"),
+            mocker.call("sfms/calculated/forecast/2024-10-10/dc20241010.tif"),
+            mocker.call("sfms/calculated/forecast/2024-10-10/ffmc20241010.tif"),
+            mocker.call("sfms/calculated/forecast/2024-10-10/bui20241010.tif"),
+            mocker.call("sfms/calculated/forecast/2024-10-10/isi20241010.tif"),
+            mocker.call("sfms/calculated/forecast/2024-10-10/fwi20241010.tif"),
+            # second day
+            mocker.call("sfms/calculated/forecast/2024-10-11/dmc20241011.tif"),
+            mocker.call("sfms/calculated/forecast/2024-10-11/dc20241011.tif"),
+            mocker.call("sfms/calculated/forecast/2024-10-11/ffmc20241011.tif"),
+            mocker.call("sfms/calculated/forecast/2024-10-11/bui20241011.tif"),
+            mocker.call("sfms/calculated/forecast/2024-10-11/isi20241011.tif"),
+            mocker.call("sfms/calculated/forecast/2024-10-11/fwi20241011.tif"),
+        ]
 
 
 @pytest.mark.parametrize(
@@ -209,7 +237,7 @@ async def test_no_weather_keys_exist(side_effect_1: bool, side_effect_2: bool, m
 
     fwi_processor = DailyFWIProcessor(TEST_DATETIME, 1, RasterKeyAddresser())
 
-    await fwi_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context, mock_new_ffmc_dataset_context, mock_new_isi_bui_datasets_context)
+    await fwi_processor.process(mock_s3_client, mock_input_dataset_context, mock_new_dmc_dc_datasets_context, mock_new_ffmc_dataset_context, mock_new_isi_bui_datasets_context, mock_new_ffmc_dataset_context)
 
     calculate_dmc_spy.assert_not_called()
     calculate_dc_spy.assert_not_called()

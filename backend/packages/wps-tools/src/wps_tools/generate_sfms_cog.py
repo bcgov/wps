@@ -183,8 +183,6 @@ def main():
     args = parser.parse_args()
 
     set_s3_gdal_config()
-    # Enable temp file usage for COG creation to S3 (COG driver requires random write access)
-    gdal.SetConfigOption("CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE", "YES")
     configure_logging()
 
     # Check for production environment and require confirmation
