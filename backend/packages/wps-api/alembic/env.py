@@ -93,7 +93,7 @@ def do_run_migrations(connection):
         current_rev = migration_context.get_current_revision()
 
         # d276ba9eed1f is the last migration before compression
-        # If production database is at this revision, stamp to head instead of running migrations
+        # If production database is at this revision, stamp to last commit of the squashed migrations, then run any further migrations
         if current_rev == "d276ba9eed1f":
             script = ScriptDirectory.from_config(config)
             head_revision = script.get_current_head()
