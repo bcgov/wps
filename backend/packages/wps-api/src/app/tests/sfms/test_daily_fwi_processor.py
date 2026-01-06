@@ -206,6 +206,24 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
             mocker.call("sfms/calculated/forecast/2024-10-11/fwi20241011.tif"),
         ]
 
+        # Verify warp_to_cog is called with correct output paths in the correct order
+        assert warp_to_cog_spy.call_args_list == [
+            # first day
+            mocker.call(src_ds=mocker.ANY, output_path="/vsis3/some bucket/sfms/calculated/forecast/2024-10-10/dmc20241010_cog.tif"),
+            mocker.call(src_ds=mocker.ANY, output_path="/vsis3/some bucket/sfms/calculated/forecast/2024-10-10/dc20241010_cog.tif"),
+            mocker.call(src_ds=mocker.ANY, output_path="/vsis3/some bucket/sfms/calculated/forecast/2024-10-10/ffmc20241010_cog.tif"),
+            mocker.call(src_ds=mocker.ANY, output_path="/vsis3/some bucket/sfms/calculated/forecast/2024-10-10/bui20241010_cog.tif"),
+            mocker.call(src_ds=mocker.ANY, output_path="/vsis3/some bucket/sfms/calculated/forecast/2024-10-10/isi20241010_cog.tif"),
+            mocker.call(src_ds=mocker.ANY, output_path="/vsis3/some bucket/sfms/calculated/forecast/2024-10-10/fwi20241010_cog.tif"),
+            # second day
+            mocker.call(src_ds=mocker.ANY, output_path="/vsis3/some bucket/sfms/calculated/forecast/2024-10-11/dmc20241011_cog.tif"),
+            mocker.call(src_ds=mocker.ANY, output_path="/vsis3/some bucket/sfms/calculated/forecast/2024-10-11/dc20241011_cog.tif"),
+            mocker.call(src_ds=mocker.ANY, output_path="/vsis3/some bucket/sfms/calculated/forecast/2024-10-11/ffmc20241011_cog.tif"),
+            mocker.call(src_ds=mocker.ANY, output_path="/vsis3/some bucket/sfms/calculated/forecast/2024-10-11/bui20241011_cog.tif"),
+            mocker.call(src_ds=mocker.ANY, output_path="/vsis3/some bucket/sfms/calculated/forecast/2024-10-11/isi20241011_cog.tif"),
+            mocker.call(src_ds=mocker.ANY, output_path="/vsis3/some bucket/sfms/calculated/forecast/2024-10-11/fwi20241011_cog.tif"),
+        ]
+
 
 @pytest.mark.parametrize(
     "side_effect_1, side_effect_2",
