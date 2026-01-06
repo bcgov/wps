@@ -30,15 +30,24 @@ def raster_key_addresser():
 
 def test_get_uploaded_index_key(raster_key_addresser):
     result_from_utc = raster_key_addresser.get_uploaded_index_key(TEST_DATETIME_1, FWIParameter.DMC)
-    assert result_from_utc == "sfms/uploads/actual/2024-10-09/dmc20241009.tif"  # should be the datetime in the SFMS timezone (PDT/PST)
+    assert (
+        result_from_utc == "sfms/uploads/actual/2024-10-09/dmc20241009.tif"
+    )  # should be the datetime in the SFMS timezone (PDT/PST)
 
-    result_from_local = raster_key_addresser.get_uploaded_index_key(TEST_DATETIME_1_LOCAL, FWIParameter.DMC)
-    assert result_from_local == "sfms/uploads/actual/2024-10-10/dmc20241010.tif"  # should be the datetime in the SFMS timezone (PDT/PST)
+    result_from_local = raster_key_addresser.get_uploaded_index_key(
+        TEST_DATETIME_1_LOCAL, FWIParameter.DMC
+    )
+    assert (
+        result_from_local == "sfms/uploads/actual/2024-10-10/dmc20241010.tif"
+    )  # should be the datetime in the SFMS timezone (PDT/PST)
 
 
 def test_get_calculated_index_key(raster_key_addresser):
     result = raster_key_addresser.get_calculated_index_key(TEST_DATETIME_1, FWIParameter.DC)
-    assert result == f"sfms/calculated/forecast/{TEST_DATE_1_ISO}/dc{TEST_DATE_1_ISO.replace('-', '')}.tif"
+    assert (
+        result
+        == f"sfms/calculated/forecast/{TEST_DATE_1_ISO}/dc{TEST_DATE_1_ISO.replace('-', '')}.tif"
+    )
 
 
 def test_get_weather_data_keys(raster_key_addresser):
@@ -60,29 +69,64 @@ def test_get_uploaded_hffmc_key_afternoon(raster_key_addresser):
 def test_get_weather_data_keys_hffmc(raster_key_addresser: RasterKeyAddresser):
     result = raster_key_addresser.get_weather_data_keys_hffmc(RDPS_MODEL_RUN_00_START, HOUR_OFFSET)
     assert len(result) == 4
-    assert result[0] == "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P003.grib2"
-    assert result[1] == "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P003.grib2"
-    assert result[2] == "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P003.grib2"
-    assert result[3] == "weather_models/rdps/2024-10-10/00/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_03z.tif"
+    assert (
+        result[0]
+        == "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P003.grib2"
+    )
+    assert (
+        result[1]
+        == "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P003.grib2"
+    )
+    assert (
+        result[2]
+        == "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P003.grib2"
+    )
+    assert (
+        result[3]
+        == "weather_models/rdps/2024-10-10/00/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_03z.tif"
+    )
 
 
 def test_get_model_data_key_hffmc(raster_key_addresser):
     weather_param = WeatherParameter.TEMP
-    result = raster_key_addresser.get_model_data_key_hffmc(RDPS_MODEL_RUN_00_START, HOUR_OFFSET, weather_param)
-    assert result == "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P003.grib2"
+    result = raster_key_addresser.get_model_data_key_hffmc(
+        RDPS_MODEL_RUN_00_START, HOUR_OFFSET, weather_param
+    )
+    assert (
+        result
+        == "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P003.grib2"
+    )
 
 
 def test_get_calculated_hffmc_index_key(raster_key_addresser: RasterKeyAddresser):
     result = raster_key_addresser.get_calculated_hffmc_index_key(HFFMC_DATETIME)
-    assert result == f"sfms/calculated/hourlies/{HFFMC_DATETIME_ISO}/fine_fuel_moisture_code{HFFMC_DATETIME_ISO.replace('-', '')}{HFFMC_DATETIME.hour:02d}.tif"
+    assert (
+        result
+        == f"sfms/calculated/hourlies/{HFFMC_DATETIME_ISO}/fine_fuel_moisture_code{HFFMC_DATETIME_ISO.replace('-', '')}{HFFMC_DATETIME.hour:02d}.tif"
+    )
 
 
 def test_get_fuel_raster_key(raster_key_addresser: RasterKeyAddresser):
     result = raster_key_addresser.get_fuel_raster_key(TEST_DATETIME_1, 1)
-    assert result == f"{raster_key_addresser.sfms_fuel_raster_prefix}/{TEST_DATETIME_1.year}/fbp{TEST_DATETIME_1.year}_v{1}.tif"
+    assert (
+        result
+        == f"{raster_key_addresser.sfms_fuel_raster_prefix}/{TEST_DATETIME_1.year}/fbp{TEST_DATETIME_1.year}_v{1}.tif"
+    )
 
 
 def test_get_unprocessed_raster_key(raster_key_addresser: RasterKeyAddresser):
     tif_object = "test.tif"
     result = raster_key_addresser.get_unprocessed_fuel_raster_key(tif_object)
     assert result == f"sfms/static/{tif_object}"
+
+
+def test_get_cog_key_success(raster_key_addresser: RasterKeyAddresser):
+    tif_object = "test.tif"
+    result = raster_key_addresser.get_cog_key(tif_object)
+    assert result == "test_cog.tif"
+
+
+def test_get_cog_key_failed(raster_key_addresser: RasterKeyAddresser):
+    tif_object = "test.gif"
+    with pytest.raises(Exception):
+        raster_key_addresser.get_cog_key(tif_object)
