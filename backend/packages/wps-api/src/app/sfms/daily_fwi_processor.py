@@ -274,8 +274,8 @@ class DailyFWIProcessor:
                         # warp and store new bui and isi datasets since they're open now
                         warp_to_cog(src_ds=new_bui_ds.as_gdal_ds(), output_path=new_bui_cog_key)
                         warp_to_cog(src_ds=new_isi_ds.as_gdal_ds(), output_path=new_isi_cog_key)
-                        with new_ffmc_context([new_fwi_path]) as new_fwi_context:
-                            new_fwi_ds = cast(List[WPSDataset], new_fwi_context)[
+                        with new_fwi_context([new_fwi_path]) as new_fwi_dataset_context:
+                            new_fwi_ds = cast(List[WPSDataset], new_fwi_dataset_context)[
                                 0
                             ]  # Ensure correct type inference
                             warp_to_cog(src_ds=new_fwi_ds.as_gdal_ds(), output_path=new_fwi_cog_key)

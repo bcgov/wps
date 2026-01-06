@@ -123,7 +123,7 @@ def test_get_unprocessed_raster_key(raster_key_addresser: RasterKeyAddresser):
 def test_get_cog_key_success(raster_key_addresser: RasterKeyAddresser):
     tif_object = "test.tif"
     result = raster_key_addresser.get_cog_key(tif_object)
-    assert result == "test_cog.tif"
+    assert result == "/vsis3/some bucket/test_cog.tif"
 
 
 def test_get_cog_key_failed(raster_key_addresser: RasterKeyAddresser):

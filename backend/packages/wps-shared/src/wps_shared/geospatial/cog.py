@@ -59,7 +59,17 @@ def warp_to_cog(
     target_srs: str = SpatialReferenceSystem.WEB_MERCATOR.srs,
     compression: str = "LZW",
     resample_alg: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
-):
+) -> str:
+    """
+    Warp a GDAL dataset to a Cloud-Optimized GeoTIFF (COG).
+
+    :param src_ds: Source GDAL dataset
+    :param output_path: Path for output COG (local or /vsis3/)
+    :param target_srs: Target spatial reference system (default: Web Mercator EPSG:3857)
+    :param compression: Compression algorithm (default: LZW)
+    :param resample_alg: Resampling algorithm for reprojection (default: Bilinear)
+    :return: Path to output COG
+    """
     # Warp to target SRS in memory (no intermediate file)
     warped = gdal.Warp(
         "",  # Empty string creates in-memory dataset
@@ -87,4 +97,7 @@ def warp_to_cog(
     if result is None:
         raise RuntimeError(f"Failed to create COG: {output_path}")
 
-    return result
+    # Clean up datasets
+    warped = None
+    result = None
+    return output_path
