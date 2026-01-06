@@ -7,9 +7,11 @@ import {
   snowStyler,
   styleFuelGrid,
   fuelCOGColourExpression,
-  rasterValueToFuelTypeCode
+  NODATA_THRESHOLD,
+  isNodataValue
 } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
-import { getColorByFuelTypeCode, colorByFuelTypeCode } from '@/features/fba/components/viz/color'
+import { getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
+import { FUEL_TYPE_COLORS } from '@/features/sfmsInsights/components/map/rasterConfig'
 
 describe('getColorForRasterValue', () => {
   it('should get the correct colour for the specified raster value', () => {
@@ -64,10 +66,28 @@ describe('fuelCOGColourExpression', () => {
 
   it('should include all raster values and their corresponding colors', () => {
     const expr = fuelCOGColourExpression()
-    const expectedLength = 1 + rasterValueToFuelTypeCode.size * 2 + 1
+    // Expected: 'case' + (3 nodata cases * 2) + (14 fuel types * 2) + fallback = 1 + 6 + 28 + 1 = 36
+    const expectedLength = 1 + 3 * 2 + FUEL_TYPE_COLORS.length * 2 + 1
     expect(expr.length).toBe(expectedLength)
 
-    for (const [rasterValue, code] of rasterValueToFuelTypeCode.entries()) {
+    // Check nodata values are transparent (99, 102, -10000)
+    const nodataValues = [99, 102, -10000]
+    for (const nodataValue of nodataValues) {
+      const idx = expr.findIndex(
+        item =>
+          Array.isArray(item) &&
+          item[0] === '==' &&
+          Array.isArray(item[1]) &&
+          item[1][0] === 'band' &&
+          item[2] === nodataValue
+      )
+      expect(idx).toBeGreaterThan(-1)
+      const color = expr[idx + 1]
+      expect(color).toEqual([0, 0, 0, 0]) // Transparent
+    }
+
+    // Check valid fuel type values
+    for (const { value: rasterValue, rgb: expectedColor } of FUEL_TYPE_COLORS) {
       const idx = expr.findIndex(
         item =>
           Array.isArray(item) &&
@@ -78,7 +98,6 @@ describe('fuelCOGColourExpression', () => {
       )
       expect(idx).toBeGreaterThan(-1)
       const color = expr[idx + 1]
-      const expectedColor = colorByFuelTypeCode.get(code) ?? [0, 0, 0]
       expect(color.slice(0, 3)).toEqual(expectedColor)
       expect(color[3]).toBe(1)
     }
@@ -88,5 +107,47 @@ describe('fuelCOGColourExpression', () => {
     const expr = fuelCOGColourExpression()
     const fallback = expr[expr.length - 1]
     expect(fallback).toEqual([0, 0, 0, 0])
+  })
+})
+
+describe('NODATA_THRESHOLD', () => {
+  it('should be defined as 10 billion', () => {
+    expect(NODATA_THRESHOLD).toBe(10000000000)
+  })
+})
+
+describe('isNodataValue', () => {
+  describe('should return true for nodata values', () => {
+    it.each([
+      ['very large positive value just beyond threshold', NODATA_THRESHOLD + 1],
+      ['very large positive value', 10000000001],
+      ['typical GeoTIFF nodata positive', 3.4028235e38],
+      ['maximum positive value', Number.MAX_VALUE],
+      ['positive infinity', Infinity],
+      ['very large negative value just beyond threshold', -NODATA_THRESHOLD - 1],
+      ['very large negative value', -10000000001],
+      ['typical GeoTIFF nodata negative', -3.4028235e38],
+      ['maximum negative value', -Number.MAX_VALUE],
+      ['negative infinity', -Infinity]
+    ])('%s: %f', (_description, value) => {
+      expect(isNodataValue(value)).toBe(true)
+    })
+  })
+
+  describe('should return false for valid values', () => {
+    it.each([
+      ['zero', 0],
+      ['typical FWI minimum', 1],
+      ['typical FWI value', 50],
+      ['typical FWI maximum', 100],
+      ['high FWI value', 150],
+      ['small negative value', -1],
+      ['moderate negative value', -100],
+      ['large negative value', -1000],
+      ['positive threshold boundary', NODATA_THRESHOLD],
+      ['negative threshold boundary', -NODATA_THRESHOLD]
+    ])('%s: %f', (_description, value) => {
+      expect(isNodataValue(value)).toBe(false)
+    })
   })
 })

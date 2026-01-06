@@ -17,6 +17,11 @@ export const createTestStore = <S = RootState>(
 }
 
 export const createLayerMock = (name: string) => {
+  const mockSource = {
+    on: vi.fn(),
+    un: vi.fn(),
+    once: vi.fn()
+  }
   return {
     set: vi.fn(),
     setStyle: vi.fn(),
@@ -24,6 +29,9 @@ export const createLayerMock = (name: string) => {
     getProperties: vi.fn(() => ({ name })),
     setVisible: vi.fn(),
     setSource: vi.fn(),
+    getSource: vi.fn(() => mockSource),
+    getZIndex: vi.fn(() => 52),
+    getMinZoom: vi.fn(() => 0),
     on: vi.fn(),
     un: vi.fn(),
     once: vi.fn(),
