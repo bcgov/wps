@@ -1,4 +1,5 @@
-import { colorByFuelTypeCode, getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
+import { getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
+import { RASTER_COLOR_BREAKS, RasterType, ColorBreak, FUEL_TYPE_COLORS } from './rasterConfig'
 import * as ol from 'ol'
 import Geometry from 'ol/geom/Geometry'
 import RenderFeature from 'ol/render/Feature'
@@ -7,6 +8,16 @@ import Style from 'ol/style/Style'
 
 export const SNOW_FILL = 'rgba(255, 255, 255, 1)'
 export const EMPTY_FILL = 'rgba(0, 0, 0, 0)'
+
+// Nodata threshold for GeoTIFF rasters
+// GeoTIFF nodata is -3.4028235e+38, use threshold for floating-point reliability
+// Note: JavaScript treats number literals like 1, 1.0, and 1 as identical values.
+export const NODATA_THRESHOLD = 10000000000
+
+// Helper function to check if a raster value is nodata
+export const isNodataValue = (value: number): boolean => {
+  return value > NODATA_THRESHOLD || value < -NODATA_THRESHOLD
+}
 
 export const rasterValueToFuelTypeCode = new Map([
   [1, 'C-1'],
@@ -61,11 +72,55 @@ type ColourCases = Array<ColourCaseCondition | ColourCaseColour>
 export const fuelCOGColourExpression = () => {
   const colourCases: ColourCases = []
 
-  rasterValueToFuelTypeCode.forEach((code, value) => {
-    const [r, g, b] = colorByFuelTypeCode.get(code) ?? [0, 0, 0]
+  // Handle nodata values - make them transparent
+  // 99 = non-fuel areas, 102 = water/non-vegetated, -10000 = primary nodata
+  colourCases.push(
+    ['==', ['band', 1], 99],
+    [0, 0, 0, 0],
+    ['==', ['band', 1], 102],
+    [0, 0, 0, 0],
+    ['==', ['band', 1], -10000],
+    [0, 0, 0, 0]
+  )
+
+  // Add color cases for valid fuel types (1-14)
+  FUEL_TYPE_COLORS.forEach(({ value, rgb }) => {
+    const [r, g, b] = rgb
     colourCases.push(['==', ['band', 1], value], [r, g, b, 1])
   })
+
+  // Fallback for any other values - transparent
   colourCases.push([0, 0, 0, 0])
 
   return ['case', ...colourCases]
+}
+
+// Generate color expression dynamically from color breaks
+export const getFireWeatherColourExpression = (rasterType: string) => {
+  const colorBreaks = RASTER_COLOR_BREAKS[rasterType as RasterType]
+  const expression: any[] = ['case']
+
+  // Handle nodata values - GeoTIFF nodata is -3.4028235e+38
+  // Use threshold checks for floating-point reliability
+  expression.push(
+    ['>', ['band', 1], NODATA_THRESHOLD],
+    [0, 0, 0, 0], // Very large positive values (nodata): transparent
+    ['<', ['band', 1], -NODATA_THRESHOLD],
+    [0, 0, 0, 0] // Very large negative values (nodata): transparent
+  )
+
+  // Dynamically build expression from color breaks
+  colorBreaks.forEach((colorBreak: ColorBreak) => {
+    const [r, g, b] = colorBreak.color.match(/\d+/g)!.map(Number)
+
+    if (colorBreak.max === null) {
+      // Last break (no max) - use >= min
+      expression.push(['>=', ['band', 1], colorBreak.min], [r, g, b, 1])
+    } else {
+      expression.push(['<', ['band', 1], colorBreak.max], [r, g, b, 1])
+    }
+  })
+
+  expression.push([0, 0, 0, 0]) // Fallback: transparent
+  return expression
 }
