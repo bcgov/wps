@@ -44,11 +44,10 @@ def generate_web_optimized_cog(
     if src_ds is None:
         raise ValueError(f"Failed to open input raster: {input_path}")
 
-    result = warp_to_cog(src_ds, output_path, target_srs, compression, resample_alg)
+    warp_to_cog(src_ds, output_path, target_srs, compression, resample_alg)
 
     # Clean up
     src_ds = None
-    result = None
     logger.info(f"COG generation complete: {output_path}")
 
     return output_path
