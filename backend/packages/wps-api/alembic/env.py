@@ -105,7 +105,7 @@ def do_run_migrations(connection):
 
             # Stamp the database to the seed application data migration, it should run the migrations after it
             connection.execute(
-                sqlalchemy.text(f"UPDATE alembic_version SET version_num = '{head_revision}'")
+                sqlalchemy.text("UPDATE alembic_version SET version_num = '6157a8d08f28'")
             )
             connection.commit()
             print(f"✓ Production database stamped from {current_rev} to {head_revision}")
