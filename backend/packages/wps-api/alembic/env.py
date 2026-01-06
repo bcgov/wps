@@ -108,7 +108,7 @@ def do_run_migrations(connection):
                 sqlalchemy.text("UPDATE alembic_version SET version_num = '6157a8d08f28'")
             )
             connection.commit()
-            print(f"✓ Production database stamped from {current_rev} to {head_revision}")
+            print(f"✓ Production database stamped from {current_rev} to 6157a8d08f28")
 
     context.configure(connection=connection, target_metadata=target_metadata)
 
