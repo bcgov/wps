@@ -102,7 +102,10 @@ def generate_sfms_cog(input_path: str, output_path: str) -> str:
 
     # GDAL Python API handles /vsis3/ paths directly - no shell commands needed
     result = generate_web_optimized_cog(
-        input_path, output_path, target_srs=SpatialReferenceSystem.WEB_MERCATOR.srs, compression="LZW"
+        input_path,
+        output_path,
+        target_srs=SpatialReferenceSystem.WEB_MERCATOR.srs,
+        compression="LZW",
     )
 
     logger.info(f"COG generated successfully: {output_path}")

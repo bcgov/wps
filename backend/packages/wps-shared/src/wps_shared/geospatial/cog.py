@@ -44,6 +44,23 @@ def generate_web_optimized_cog(
     if src_ds is None:
         raise ValueError(f"Failed to open input raster: {input_path}")
 
+    result = warp_to_cog(src_ds, output_path, target_srs, compression, resample_alg)
+
+    # Clean up
+    src_ds = None
+    result = None
+    logger.info(f"COG generation complete: {output_path}")
+
+    return output_path
+
+
+def warp_to_cog(
+    src_ds: gdal.Dataset,
+    output_path: str,
+    target_srs: str = SpatialReferenceSystem.WEB_MERCATOR.srs,
+    compression: str = "LZW",
+    resample_alg: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
+):
     # Warp to target SRS in memory (no intermediate file)
     warped = gdal.Warp(
         "",  # Empty string creates in-memory dataset
@@ -68,14 +85,7 @@ def generate_web_optimized_cog(
         ],
     )
 
-    # Clean up
-    src_ds = None
-    warped = None
-
     if result is None:
         raise RuntimeError(f"Failed to create COG: {output_path}")
 
-    result = None
-    logger.info(f"COG generation complete: {output_path}")
-
-    return output_path
+    return result

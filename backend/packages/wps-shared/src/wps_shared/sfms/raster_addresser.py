@@ -222,10 +222,10 @@ class RasterKeyAddresser:
 
     def get_cog_key(self, key: str):
         """
-        Given an existing key, replace extension with _cog.tif
+        Given an existing key, replace extension with _cog.tif and prefix with vsis3 for gdal
 
         :param key: a key with a .tif extension
         """
         assert key.endswith(".tif"), f"Expected .tif file path, got {key}"
-        cog_key = key.removesuffix(".tif") + "_cog.tif"
+        cog_key = self.s3_prefix + "/" + key.removesuffix(".tif") + "_cog.tif"
         return cog_key
