@@ -94,10 +94,12 @@ def generate_and_store_cog(
         ],
     )
 
+    # Make sure warped is cleaned up
+    warped = None
+
     if result is None:
         raise RuntimeError(f"Failed to create COG: {output_path}")
 
-    # Clean up datasets
-    warped = None
+    # Clean up result
     result = None
     return output_path
