@@ -12,8 +12,13 @@ vi.mock('@/api/snow', () => ({
 
 vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
   return {
-    default: ({ showSnow }: { showSnow: boolean }) => (
-      <div data-testid="sfms-map" data-show-snow={showSnow}>
+    default: ({ showSnow, snowDate, rasterDate }: { showSnow: boolean; snowDate: DateTime | null; rasterDate: DateTime }) => (
+      <div
+        data-testid="sfms-map"
+        data-show-snow={showSnow}
+        data-snow-date={snowDate?.toISO() ?? 'null'}
+        data-raster-date={rasterDate.toISO()}
+      >
         Mock SFMS Map
       </div>
     )
@@ -31,6 +36,21 @@ vi.mock('@/features/landingPage/components/Footer', () => ({
 
 vi.mock('@/components/GeneralHeader', () => ({
   GeneralHeader: () => <div data-testid="general-header">Mock Header</div>
+}))
+
+vi.mock('@/features/fba/components/ASADatePicker', () => ({
+  default: ({ date, updateDate }: { date: DateTime; updateDate: (date: DateTime) => void }) => (
+    <div data-testid="date-picker">
+      <button data-testid="change-date-button" onClick={() => updateDate(DateTime.fromISO('2025-12-15'))}>
+        Change Date
+      </button>
+      <span data-testid="current-date">{date.toISODate()}</span>
+    </div>
+  )
+}))
+
+vi.mock('@/features/sfmsInsights/components/RasterTypeDropdown', () => ({
+  default: () => <div data-testid="raster-type-dropdown">Mock Raster Dropdown</div>
 }))
 
 describe('SFMSInsightsPage', () => {
@@ -132,11 +152,65 @@ describe('SFMSInsightsPage', () => {
     renderWithStore(<SFMSInsightsPage />)
 
     await waitFor(() => {
-      const rasterDropdown = screen.getByLabelText(/raster type/i)
+      const rasterDropdown = screen.getByTestId('raster-type-dropdown')
       const snowCheckbox = screen.getByRole('checkbox', { name: /show snow/i })
 
       expect(rasterDropdown).toBeInTheDocument()
       expect(snowCheckbox).toBeInTheDocument()
+    })
+  })
+
+  it('should fetch snow data on mount with initial rasterDate', async () => {
+    renderWithStore(<SFMSInsightsPage />)
+
+    await waitFor(() => {
+      expect(getMostRecentProcessedSnowByDate).toHaveBeenCalledWith(DateTime.fromISO('2025-11-02'))
+    })
+  })
+
+  it('should pass fetched snow date to SFMSMap', async () => {
+    renderWithStore(<SFMSInsightsPage />)
+
+    await waitFor(() => {
+      const map = screen.getByTestId('sfms-map')
+      const snowDate = map.getAttribute('data-snow-date')
+      expect(snowDate).toContain('2025-11-02T00:00:00')
+    })
+  })
+
+  it('should refetch snow data when rasterDate changes', async () => {
+    ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValueOnce({
+      forDate: DateTime.fromISO('2025-11-02'),
+      processedDate: DateTime.fromISO('2025-11-02'),
+      snowSource: 'viirs'
+    }).mockResolvedValueOnce({
+      forDate: DateTime.fromISO('2025-12-15'),
+      processedDate: DateTime.fromISO('2025-12-15'),
+      snowSource: 'viirs'
+    })
+
+    renderWithStore(<SFMSInsightsPage />)
+
+    // Wait for initial fetch
+    await waitFor(() => {
+      expect(getMostRecentProcessedSnowByDate).toHaveBeenCalledWith(DateTime.fromISO('2025-11-02'))
+    })
+
+    // Change the date
+    const changeDateButton = screen.getByTestId('change-date-button')
+    fireEvent.click(changeDateButton)
+
+    // Verify snow data is refetched with the new date
+    await waitFor(() => {
+      expect(getMostRecentProcessedSnowByDate).toHaveBeenCalledWith(DateTime.fromISO('2025-12-15'))
+      expect(getMostRecentProcessedSnowByDate).toHaveBeenCalledTimes(2)
+    })
+
+    // Verify the new snow date is passed to the map
+    await waitFor(() => {
+      const map = screen.getByTestId('sfms-map')
+      const snowDate = map.getAttribute('data-snow-date')
+      expect(snowDate).toContain('2025-12-15T00:00:00')
     })
   })
 })
