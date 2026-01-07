@@ -173,7 +173,7 @@ describe('SFMSInsightsPage', () => {
 
     await waitFor(() => {
       const map = screen.getByTestId('sfms-map')
-      const snowDate = map.getAttribute('data-snow-date')
+      const snowDate = map.dataset.snowDate
       expect(snowDate).toContain('2025-11-02T00:00:00')
     })
   })
@@ -209,7 +209,7 @@ describe('SFMSInsightsPage', () => {
     // Verify the new snow date is passed to the map
     await waitFor(() => {
       const map = screen.getByTestId('sfms-map')
-      const snowDate = map.getAttribute('data-snow-date')
+      const snowDate = map.dataset.snowDate
       expect(snowDate).toContain('2025-12-15T00:00:00')
     })
   })
