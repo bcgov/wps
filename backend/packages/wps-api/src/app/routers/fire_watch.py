@@ -9,6 +9,7 @@ from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
 from shapely import from_wkt
 from sqlalchemy import Row
+from wps_wf1.models import FireCentre
 
 from app.fire_watch.calculate_weather import (
     MissingWeatherDataError,
@@ -44,7 +45,6 @@ from wps_shared.schemas.fire_watch import (
     FireWatchResponse,
     FireWatchStation,
 )
-from wps_shared.schemas.hfi_calc import FireCentre
 from wps_shared.schemas.stations import GeoJsonWeatherStation
 from wps_shared.stations import get_stations_as_geojson
 from wps_shared.utils.time import get_utc_now

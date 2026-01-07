@@ -196,3 +196,14 @@ def mock_client_session(monkeypatch):
 def spy_access_logging(mocker: MockerFixture):
     """Spies on access audting logging for tests"""
     return mocker.spy(auth, "create_api_access_audit_log")
+
+
+@pytest.fixture
+def mock_wfwx_api(mocker: MockerFixture):
+    """A mocked WfwxApi with async methods."""
+    mock = mocker.AsyncMock(name="WfwxApiMock")
+    # Async method
+    mock._get_auth_header = mocker.AsyncMock(return_value={})
+    mock._get_no_cache_auth_header = mocker.AsyncMock(return_value={"Cache-Control": "no-cache"})
+    mock.get_stations_by_group_id = mocker.AsyncMock(return_value=[])
+    return mock

@@ -47,6 +47,7 @@ dependencies = [
     "geopandas>=1.0.1,<2",
     "shapely>=2.0.5,<3",
     "gdal==3.9.2",
+    "wps-wf1"
 ]
 
 [project.optional-dependencies]
@@ -62,6 +63,7 @@ dev = [
 
 [tool.uv.sources]
 wps-shared = { workspace = true }
+wps-wf1 = { workspace = true }
 cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307" }
 
 [tool.hatch.metadata]

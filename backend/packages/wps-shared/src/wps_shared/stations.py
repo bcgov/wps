@@ -7,19 +7,21 @@ import asyncio
 import logging
 from typing import List, Final
 import json
+from aiohttp import TCPConnector
 from aiohttp.client import ClientSession
 from sqlalchemy.engine.row import Row
+from wps_wf1.models import (
+    DetailedWeatherStationProperties,
+    GeoJsonDetailedWeatherStation,
+    WeatherStation,
+    WeatherStationGeometry,
+    WeatherStationProperties,
+    WeatherVariables,
+)
 import wps_shared.db.database
-from wps_shared.schemas.stations import (WeatherStation,
-                                  GeoJsonWeatherStation,
-                                  GeoJsonDetailedWeatherStation,
-                                  WeatherStationProperties,
-                                  WeatherVariables,
-                                  DetailedWeatherStationProperties,
-                                  WeatherStationGeometry)
-from wps_shared.db.crud.stations import get_noon_forecast_observation_union
-from wps_shared.wildfire_one import wfwx_api
-from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_detailed_stations, get_station_data
+from wps_shared.schemas.stations import GeoJsonWeatherStation
+from wps_shared.db.crud.stations import _get_noon_date, get_noon_forecast_observation_union
+from wps_shared.wildfire_one.wfwx_api import create_wfwx_api
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +91,11 @@ async def _get_detailed_stations(time_of_interest: datetime):
 
 async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """Get a list of stations by code, from WFWX Fireweather API."""
-    return await wfwx_api.get_stations_by_codes(station_codes)
+    # Limit the number of concurrent connections.
+    conn = TCPConnector(limit=10)
+    async with ClientSession(connector=conn) as session:
+        wfwx_api = create_wfwx_api(session)
+        return await wfwx_api.get_stations_by_codes(station_codes)
 
 
 async def get_stations_from_source() -> List[WeatherStation]:
@@ -101,7 +107,10 @@ async def fetch_detailed_stations_as_geojson(time_of_interest: datetime) -> List
     """Fetch a detailed list of stations. i.e. more than just the fire station name and code,
     throw some observations and forecast in the mix."""
     logger.info("requesting detailed stations...")
-    result = await get_detailed_stations(time_of_interest)
+    noon_time_of_interest = _get_noon_date(time_of_interest)
+    async with ClientSession() as session:
+        wfwx_api = create_wfwx_api(session)
+        result = await wfwx_api.get_detailed_stations(noon_time_of_interest)
     logger.info("detailed stations loaded.")
     return result
 
@@ -124,8 +133,8 @@ async def get_stations_as_geojson() -> List[GeoJsonWeatherStation]:
 async def get_stations_asynchronously():
     """ Get list of stations asynchronously """
     async with ClientSession() as session:
-        header = await get_auth_header(session)
-        return await get_station_data(session, header)
+        wfwx_api = create_wfwx_api(session)
+        return await wfwx_api.get_station_data()
 
 
 def get_stations_synchronously() -> List[WeatherStation]:

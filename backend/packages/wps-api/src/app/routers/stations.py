@@ -1,6 +1,7 @@
 """ Routers for stations """
 import logging
 from datetime import datetime
+from aiohttp import ClientSession
 from fastapi import APIRouter, Response, Depends
 from wps_shared.auth import authentication_required, audit
 from wps_shared.utils.time import get_utc_now, get_hour_20
@@ -12,7 +13,7 @@ from wps_shared.schemas.stations import (
     WeatherStationGroupMembersResponse,
 )
 from wps_shared.stations import get_stations_as_geojson, fetch_detailed_stations_as_geojson
-from wps_shared.wildfire_one import wfwx_api
+from wps_shared.wildfire_one.wfwx_api import create_wfwx_api
 
 
 logger = logging.getLogger(__name__)
@@ -75,8 +76,10 @@ async def get_station_groups(response: Response, _=Depends(authentication_requir
         Groups are retrieved from an undocumented stationGroups endpoint.
     """
     logger.info('/stations/groups')
-    groups = await wfwx_api.get_station_groups()
-    response.headers["Cache-Control"] = no_cache
+    async with ClientSession() as session:
+        wfwx_api = create_wfwx_api(session)
+        groups = await wfwx_api.get_station_groups()
+        response.headers["Cache-Control"] = no_cache
     return WeatherStationGroupsResponse(groups=groups)
 
 
@@ -84,6 +87,8 @@ async def get_station_groups(response: Response, _=Depends(authentication_requir
 async def get_stations_by_group_ids(groups_request: WeatherStationGroupsMemberRequest, response: Response, _=Depends(authentication_required)):
     """ Return a list of stations that are part of the specified group(s) """
     logger.info('/stations/groups/members')
-    stations = await wfwx_api.get_stations_by_group_ids([id for id in groups_request.group_ids])
-    response.headers["Cache-Control"] = no_cache
+    async with ClientSession() as session:
+        wfwx_api = create_wfwx_api(session)
+        stations = await wfwx_api.get_stations_by_group_ids([id for id in groups_request.group_ids])
+        response.headers["Cache-Control"] = no_cache
     return WeatherStationGroupMembersResponse(stations=stations)

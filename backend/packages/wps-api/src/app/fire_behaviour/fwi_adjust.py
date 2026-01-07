@@ -1,6 +1,7 @@
 from datetime import datetime
+
+from wps_wf1.models import WFWXWeatherStation
 from app.fire_behaviour import cffdrs
-from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 from wps_shared.schemas.fba_calc import StationRequest, AdjustedFWIResult
 
 """
