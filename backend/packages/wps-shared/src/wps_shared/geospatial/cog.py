@@ -44,7 +44,7 @@ def generate_web_optimized_cog(
     if src_ds is None:
         raise ValueError(f"Failed to open input raster: {input_path}")
 
-    warp_to_cog(src_ds, output_path, target_srs, compression, resample_alg)
+    generate_and_store_cog(src_ds, output_path, target_srs, compression, resample_alg)
 
     # Clean up
     src_ds = None
@@ -53,7 +53,7 @@ def generate_web_optimized_cog(
     return output_path
 
 
-def warp_to_cog(
+def generate_and_store_cog(
     src_ds: gdal.Dataset,
     output_path: str,
     target_srs: str = SpatialReferenceSystem.WEB_MERCATOR.srs,

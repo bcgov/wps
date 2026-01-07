@@ -15,7 +15,7 @@ from app.sfms.fwi_processor import (
     calculate_fwi,
     calculate_isi,
 )
-from wps_shared.geospatial.cog import warp_to_cog
+from wps_shared.geospatial.cog import generate_and_store_cog
 from wps_shared.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
 from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.utils.s3 import set_s3_gdal_config
@@ -155,7 +155,7 @@ class DailyFWIProcessor:
                         dmc_nodata_value,
                     )
                     # new_dmc_cog_key has vsis3 prefix so gdal stores it for us
-                    warp_to_cog(src_ds=dmc_ds.as_gdal_ds(), output_path=new_dmc_cog_key)
+                    generate_and_store_cog(src_ds=dmc_ds.as_gdal_ds(), output_path=new_dmc_cog_key)
 
                     # Create and store DC dataset
                     dc_values, dc_nodata_value = calculate_dc(
@@ -179,7 +179,7 @@ class DailyFWIProcessor:
                         dc_nodata_value,
                     )
                     # new_dc_cog_key has vsis3 prefix so gdal stores it for us
-                    warp_to_cog(src_ds=dc_ds.as_gdal_ds(), output_path=new_dc_cog_key)
+                    generate_and_store_cog(src_ds=dc_ds.as_gdal_ds(), output_path=new_dc_cog_key)
 
                     # Create and store FFMC dataset
                     ffmc_values, ffmc_no_data_value = calculate_ffmc(
@@ -203,7 +203,9 @@ class DailyFWIProcessor:
                     )
 
                     # new_ffmc_cog_key has vsis3 prefix so gdal stores it for us
-                    warp_to_cog(src_ds=ffmc_ds.as_gdal_ds(), output_path=new_ffmc_cog_key)
+                    generate_and_store_cog(
+                        src_ds=ffmc_ds.as_gdal_ds(), output_path=new_ffmc_cog_key
+                    )
 
                     # Open new DMC and DC datasets and calculate BUI
                     new_bui_key = self.addresser.get_calculated_index_key(
@@ -272,13 +274,19 @@ class DailyFWIProcessor:
                         )
 
                         # warp and store new bui and isi datasets since they're open now
-                        warp_to_cog(src_ds=new_bui_ds.as_gdal_ds(), output_path=new_bui_cog_key)
-                        warp_to_cog(src_ds=new_isi_ds.as_gdal_ds(), output_path=new_isi_cog_key)
+                        generate_and_store_cog(
+                            src_ds=new_bui_ds.as_gdal_ds(), output_path=new_bui_cog_key
+                        )
+                        generate_and_store_cog(
+                            src_ds=new_isi_ds.as_gdal_ds(), output_path=new_isi_cog_key
+                        )
                         with new_fwi_context([new_fwi_path]) as new_fwi_dataset_context:
                             new_fwi_ds = cast(List[WPSDataset], new_fwi_dataset_context)[
                                 0
                             ]  # Ensure correct type inference
-                            warp_to_cog(src_ds=new_fwi_ds.as_gdal_ds(), output_path=new_fwi_cog_key)
+                            generate_and_store_cog(
+                                src_ds=new_fwi_ds.as_gdal_ds(), output_path=new_fwi_cog_key
+                            )
 
     def _get_calculate_dates(self, day: int):
         """
