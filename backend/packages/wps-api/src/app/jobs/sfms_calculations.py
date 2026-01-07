@@ -29,7 +29,7 @@ class SFMSCalcJob:
         """
 
         await self.calculate_daily_fwi(start_time)
-        # await self.calculate_hffmc(start_time)
+        await self.calculate_hffmc(start_time)
 
     async def calculate_hffmc(self, start_time: datetime) -> None:
         """
