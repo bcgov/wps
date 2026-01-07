@@ -51,27 +51,40 @@ class SFMSCalcJob:
         hours, remainder = divmod(execution_time.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
 
-        logger.info(f"hFFMC raster processing finished -- time elapsed {hours} hours, {minutes} minutes, {seconds:.2f} seconds")
+        logger.info(
+            f"hFFMC raster processing finished -- time elapsed {hours} hours, {minutes} minutes, {seconds:.2f} seconds"
+        )
 
     async def calculate_daily_fwi(self, start_time: datetime):
         """
         Entry point for processing SFMS daily FWI rasters.
         """
-        logger.info(f"Begin FWI raster calculations -- calculating {DAYS_TO_CALCULATE} days forward")
+        logger.info(
+            f"Begin FWI raster calculations -- calculating {DAYS_TO_CALCULATE} days forward"
+        )
 
         start_exec = get_utc_now()
 
         daily_processor = DailyFWIProcessor(start_time, DAYS_TO_CALCULATE, RasterKeyAddresser())
 
         async with S3Client() as s3_client:
-            await daily_processor.process(s3_client, multi_wps_dataset_context, multi_wps_dataset_context, multi_wps_dataset_context, multi_wps_dataset_context)
+            await daily_processor.process(
+                s3_client,
+                multi_wps_dataset_context,
+                multi_wps_dataset_context,
+                multi_wps_dataset_context,
+                multi_wps_dataset_context,
+                multi_wps_dataset_context,
+            )
 
         # calculate the execution time.
         execution_time = get_utc_now() - start_exec
         hours, remainder = divmod(execution_time.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
 
-        logger.info(f"Daily FWI processing finished -- time elapsed {hours} hours, {minutes} minutes, {seconds:.2f} seconds")
+        logger.info(
+            f"Daily FWI processing finished -- time elapsed {hours} hours, {minutes} minutes, {seconds:.2f} seconds"
+        )
 
 
 def main():
@@ -80,7 +93,9 @@ def main():
             # command-line arg as 'YYYY-MM-DD HH'
             start_time = datetime.strptime(sys.argv[1], "%Y-%m-%d %H").replace(tzinfo=timezone.utc)
         except ValueError:
-            logger.error("Error: Please provide the date and hour in 'YYYY-MM-DD HH' format (as a single string)")
+            logger.error(
+                "Error: Please provide the date and hour in 'YYYY-MM-DD HH' format (as a single string)"
+            )
             sys.exit(1)
     else:
         # default to the current datetime

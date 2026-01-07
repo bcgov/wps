@@ -44,6 +44,32 @@ def generate_web_optimized_cog(
     if src_ds is None:
         raise ValueError(f"Failed to open input raster: {input_path}")
 
+    generate_and_store_cog(src_ds, output_path, target_srs, compression, resample_alg)
+
+    # Clean up
+    src_ds = None
+    logger.info(f"COG generation complete: {output_path}")
+
+    return output_path
+
+
+def generate_and_store_cog(
+    src_ds: gdal.Dataset,
+    output_path: str,
+    target_srs: str = SpatialReferenceSystem.WEB_MERCATOR.srs,
+    compression: str = "LZW",
+    resample_alg: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
+) -> str:
+    """
+    Warp a GDAL dataset to a Cloud-Optimized GeoTIFF (COG).
+
+    :param src_ds: Source GDAL dataset
+    :param output_path: Path for output COG (local or /vsis3/)
+    :param target_srs: Target spatial reference system (default: Web Mercator EPSG:3857)
+    :param compression: Compression algorithm (default: LZW)
+    :param resample_alg: Resampling algorithm for reprojection (default: Bilinear)
+    :return: Path to output COG
+    """
     # Warp to target SRS in memory (no intermediate file)
     warped = gdal.Warp(
         "",  # Empty string creates in-memory dataset
@@ -68,14 +94,12 @@ def generate_web_optimized_cog(
         ],
     )
 
-    # Clean up
-    src_ds = None
+    # Make sure warped is cleaned up
     warped = None
 
     if result is None:
         raise RuntimeError(f"Failed to create COG: {output_path}")
 
+    # Clean up result
     result = None
-    logger.info(f"COG generation complete: {output_path}")
-
     return output_path

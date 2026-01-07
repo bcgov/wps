@@ -82,6 +82,10 @@ def set_s3_gdal_config():
     gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
     gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
     gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
+    # Enable temp file usage for COG creation to S3 (COG driver requires random write access)
+    gdal.SetConfigOption("CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE", "YES")
+    # Set temp directory to /tmp for GDAL temp files (e.g., .ovr.tmp during COG creation)
+    gdal.SetConfigOption("CPL_TMPDIR", "/tmp")
 
 
 def extract_date_from_prefix(folder_prefix: str, base_prefix: str) -> Optional[date]:
