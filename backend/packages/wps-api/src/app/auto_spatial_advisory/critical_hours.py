@@ -16,12 +16,6 @@ from pydantic import BaseModel
 from pydantic_core import to_jsonable_python
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
-from app.auto_spatial_advisory.fuel_type_layer import get_fuel_type_raster_by_year
-from app.fire_behaviour import cffdrs
-from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
-from app.hourlies import get_hourly_readings_in_time_interval
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_containing_zone,
     get_fuel_type_stats_in_advisory_area,
@@ -30,6 +24,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_run_parameters_id,
     save_all_critical_hours,
 )
+from wps_shared.db.crud.hfi_calc import get_fire_centre_station_codes
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryFuelStats,
@@ -41,13 +36,19 @@ from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from wps_shared.geospatial.geospatial import PointTransformer
 from wps_shared.run_type import RunType
 from wps_shared.schemas.fba_calc import AdjustedFWIResult, CriticalHoursHFI
-from wps_shared.schemas.observations import WeatherStationHourlyReadings
 from wps_shared.stations import get_stations_asynchronously
-from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, get_client
+from wps_shared.utils.s3 import get_client
 from wps_shared.utils.time import get_hour_20_from_date, get_julian_date
-from wps_shared.wildfire_one import wfwx_api
-from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
+from wps_shared.wildfire_one.wfwx_api import create_wfwx_api
 from wps_shared.wps_logging import configure_logging
+from wps_wf1.models import WFWXWeatherStation, WeatherStationHourlyReadings
+from wps_wf1.wfwx_api import WfwxApi
+
+from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
+from app.auto_spatial_advisory.fuel_type_layer import get_fuel_type_raster_by_year
+from app.fire_behaviour import cffdrs
+from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
+from app.hourlies import get_hourly_readings_in_time_interval
 
 logger = logging.getLogger(__name__)
 
@@ -371,8 +372,7 @@ async def get_hourly_observations(
 
 
 async def get_dailies_by_station_id(
-    client_session: ClientSession,
-    header: dict,
+    wfwx_api: WfwxApi,
     wfwx_stations: List[WFWXWeatherStation],
     time_of_interest: datetime,
 ):
@@ -386,7 +386,7 @@ async def get_dailies_by_station_id(
     :return: Daily observations or forecasts from WF1.
     """
     dailies = await wfwx_api.get_dailies_generator(
-        client_session, header, wfwx_stations, time_of_interest, time_of_interest
+        wfwx_stations, time_of_interest, time_of_interest
     )
     # turn it into a dictionary so we can easily get at data using a station id
     dailies_by_station_id = {raw_daily.get("stationId"): raw_daily async for raw_daily in dailies}
@@ -417,7 +417,7 @@ def get_fuel_types_by_area(
 
 
 async def get_inputs_for_critical_hours(
-    for_date: date, header: dict, wfwx_stations: List[WFWXWeatherStation]
+    for_date: date, wfwx_api: WfwxApi, wfwx_stations: List[WFWXWeatherStation]
 ) -> CriticalHoursInputs:
     """
     Retrieves the inputs required for computing critical hours based on the station list and for date
@@ -431,31 +431,30 @@ async def get_inputs_for_critical_hours(
     time_of_interest = get_hour_20_from_date(for_date)
 
     # get the dailies for all the stations
-    async with ClientSession() as client_session:
-        dailies_by_station_id = await get_dailies_by_station_id(
-            client_session, header, wfwx_stations, time_of_interest
-        )
-        # must retrieve the previous day's observed/forecasted FFMC value from WFWX
-        prev_day = time_of_interest - timedelta(days=1)
-        # get the "daily" data for the station for the previous day
-        yesterday_dailies_by_station_id = await get_dailies_by_station_id(
-            client_session, header, wfwx_stations, prev_day
-        )
-        # get hourly observation history from our API (used for calculating morning diurnal FFMC)
-        hourly_observations_by_station_code = await get_hourly_observations(
-            unique_station_codes, time_of_interest - timedelta(days=4), time_of_interest
-        )
+    dailies_by_station_id = await get_dailies_by_station_id(
+        wfwx_api, wfwx_stations, time_of_interest
+    )
+    # must retrieve the previous day's observed/forecasted FFMC value from WFWX
+    prev_day = time_of_interest - timedelta(days=1)
+    # get the "daily" data for the station for the previous day
+    yesterday_dailies_by_station_id = await get_dailies_by_station_id(
+        wfwx_api, wfwx_stations, prev_day
+    )
+    # get hourly observation history from our API (used for calculating morning diurnal FFMC)
+    hourly_observations_by_station_code = await get_hourly_observations(
+        unique_station_codes, time_of_interest - timedelta(days=4), time_of_interest
+    )
 
-        return CriticalHoursInputs(
-            dailies_by_station_id=dailies_by_station_id,
-            yesterday_dailies_by_station_id=yesterday_dailies_by_station_id,
-            hourly_observations_by_station_code=hourly_observations_by_station_code,
-        )
+    return CriticalHoursInputs(
+        dailies_by_station_id=dailies_by_station_id,
+        yesterday_dailies_by_station_id=yesterday_dailies_by_station_id,
+        hourly_observations_by_station_code=hourly_observations_by_station_code,
+    )
 
 
 async def calculate_critical_hours_by_zone(
     db_session: AsyncSession,
-    header: dict,
+    wfwx_api: WfwxApi,
     stations_by_zone: Dict[int, List[WFWXWeatherStation]],
     run_parameters_id: int,
     for_date: date,
@@ -479,7 +478,9 @@ async def calculate_critical_hours_by_zone(
         fuel_types_by_area = get_fuel_types_by_area(advisory_fuel_stats)
         wfwx_stations = stations_by_zone[zone_key]
 
-        critical_hours_inputs = await get_inputs_for_critical_hours(for_date, header, wfwx_stations)
+        critical_hours_inputs = await get_inputs_for_critical_hours(
+            for_date, wfwx_api, wfwx_stations
+        )
         critical_hours_by_fuel_type = calculate_critical_hours_by_fuel_type(
             wfwx_stations,
             critical_hours_inputs,
@@ -562,11 +563,12 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
 
             fuel_type_raster = await get_fuel_type_raster_by_year(db_session, for_date.year)
             async with ClientSession() as client_session:
-                header = await wfwx_api.get_auth_header(client_session)
                 all_stations = await get_stations_asynchronously()
                 station_codes = list(station.code for station in all_stations)
+                fire_centre_station_codes = get_fire_centre_station_codes()
+                wfwx_api = create_wfwx_api(client_session)
                 stations = await wfwx_api.get_wfwx_stations_from_station_codes(
-                    client_session, header, station_codes
+                    station_codes, fire_centre_station_codes
                 )
                 stations_by_zone: Dict[int, List[WFWXWeatherStation]] = defaultdict(list)
                 transformer = PointTransformer(4326, 3005)
@@ -578,7 +580,7 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
 
                 await calculate_critical_hours_by_zone(
                     db_session,
-                    header,
+                    wfwx_api,
                     stations_by_zone,
                     run_parameters_id,
                     for_date,

@@ -1,9 +1,10 @@
 import math
 from datetime import datetime
-from wps_shared.fuel_types import FuelTypeEnum
-from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
+
 from app.fire_behaviour.fwi_adjust import calculate_adjusted_fwi_result
+from wps_shared.fuel_types import FuelTypeEnum
 from wps_shared.schemas.fba_calc import StationRequest
+from wps_wf1.models import WFWXWeatherStation
 
 station_1 = WFWXWeatherStation(
     code=1,

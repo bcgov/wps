@@ -1,41 +1,27 @@
-""" Unit tests for the fireweather noon forecats job """
-import os
+"""Unit tests for the fireweather noon forecats job"""
+
 import logging
-from unittest.mock import MagicMock
+import os
+
 import pytest
 from pytest_mock import MockerFixture
+
 from app.jobs import noon_forecasts
-from app.tests.jobs.job_fixtures import mock_wfwx_stations, mock_wfwx_response
-from wps_shared.wildfire_one import wfwx_api
+from app.tests.jobs.job_fixtures import mock_wfwx_response
 
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture()
-def mock_noon_forecasts(mocker: MockerFixture):
-    """ Mocks out noon forecasts as async result """
-    wfwx_hourlies = mock_wfwx_response()
-    future_wfwx_stations = mock_wfwx_stations()
-    mock_wfwx_client = MagicMock()
-    mock_wfwx_client.fetch_paged_response_generator = iter(wfwx_hourlies)
-
-    mocker.patch("wps_shared.wildfire_one.wfwx_api.wfwx_station_list_mapper", return_value=future_wfwx_stations)
-    mocker.patch("wps_shared.wildfire_one.wfwx_api.get_noon_forecasts_all_stations", return_value=wfwx_hourlies)
-    mocker.patch(
-        "wps_shared.wildfire_one.wfwx_api.create_wps_wf1_client", return_value=mock_wfwx_client
-    )
-
-
-def test_noon_forecasts_bot(monkeypatch, mocker: MockerFixture, mock_noon_forecasts):
-    """ Very simple test that checks that:
+def test_noon_forecasts_bot(monkeypatch, mocker: MockerFixture, mock_wfwx_api):
+    """Very simple test that checks that:
     - the bot exits with a success code
     - the expected number of records are saved.
     """
-    async def mock_get_auth_header(_):
-        return dict()
 
-    monkeypatch.setattr(wfwx_api, 'get_auth_header', mock_get_auth_header)
-    save_noon_forecast_spy = mocker.spy(noon_forecasts, 'save_noon_forecast')
+    wfwx_hourlies = mock_wfwx_response()
+    mock_wfwx_api.get_noon_forecasts_all_stations.return_value = wfwx_hourlies
+    mocker.patch("app.jobs.noon_forecasts.create_wfwx_api", return_value=mock_wfwx_api)
+    save_noon_forecast_spy = mocker.spy(noon_forecasts, "save_noon_forecast")
     with pytest.raises(SystemExit) as excinfo:
         noon_forecasts.main()
     # Assert that we exited without errors.
@@ -45,18 +31,14 @@ def test_noon_forecasts_bot(monkeypatch, mocker: MockerFixture, mock_noon_foreca
     assert save_noon_forecast_spy.call_count == 2
 
 
-def test_noon_forecasts_bot_fail(mocker: MockerFixture,
-                                 monkeypatch):
+def test_noon_forecasts_bot_fail(mocker: MockerFixture, monkeypatch, mock_wfwx_api):
     """
     Test that when the bot fails a message is sent to
     rocket-chat, and our exit code is 1.
     """
 
-    def mock_get_noon_forecasts():
-        raise Exception()
-
-    monkeypatch.setattr(wfwx_api, 'get_noon_forecasts_all_stations', mock_get_noon_forecasts)
-    rocket_chat_spy = mocker.spy(noon_forecasts, 'send_rocketchat_notification')
+    mock_wfwx_api.get_noon_forecasts_all_stations = mocker.AsyncMock(side_effect=Exception())
+    rocket_chat_spy = mocker.spy(noon_forecasts, "send_rocketchat_notification")
 
     with pytest.raises(SystemExit) as excinfo:
         noon_forecasts.main()
