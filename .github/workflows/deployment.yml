@@ -394,7 +394,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi CPU_REQUEST="250m" bash openshift/scripts/oc_provision_nats.sh ${SUFFIX} apply
+          PROJ_DEV="e1e498-dev" MEMORY_REQUEST=250Mi MEMORY_LIMIT=500Mi CPU_REQUEST="250m" bash openshift/scripts/oc_provision_nats.sh ${SUFFIX} apply
 
   scan-dev:
     name: ZAP Baseline Scan Dev
