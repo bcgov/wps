@@ -28,7 +28,8 @@ jobs:
       - name: Build and Publish Base Image
         run: |
           cd openshift/wps-api-base/docker
-          docker build . --tag ghcr.io/bcgov/wps/wps-api-base:$(date +%m-%d-%Y)
-          docker tag ghcr.io/bcgov/wps/wps-api-base:$(date +%m-%d-%Y) ghcr.io/bcgov/wps/wps-api-base:latest
-          docker push ghcr.io/bcgov/wps/wps-api-base:$(date +%m-%d-%Y)
+          DATE_TAG=$(date +%m-%d-%Y)
+          docker build . --tag ghcr.io/bcgov/wps/wps-api-base:${DATE_TAG}
+          docker tag ghcr.io/bcgov/wps/wps-api-base:${DATE_TAG} ghcr.io/bcgov/wps/wps-api-base:latest
+          docker push ghcr.io/bcgov/wps/wps-api-base:${DATE_TAG}
           docker push ghcr.io/bcgov/wps/wps-api-base:latest
