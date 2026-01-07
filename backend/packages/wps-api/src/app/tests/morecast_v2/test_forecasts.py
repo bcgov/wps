@@ -1,8 +1,17 @@
 from datetime import datetime, timezone
 from typing import Optional
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 import pytest
 from math import isclose
+
+from wps_wf1.models import (
+    StationDailyFromWF1,
+    WF1ForecastRecordType,
+    WF1PostForecast,
+    WFWXWeatherStation,
+    WeatherDeterminate,
+    WeatherIndeterminate,
+)
 import app
 from wps_shared.db.models.morecast_v2 import MorecastForecastRecord
 from app.morecast_v2.forecasts import (
@@ -14,8 +23,7 @@ from app.morecast_v2.forecasts import (
     get_forecasts,
     get_fwi_values,
 )
-from wps_shared.schemas.morecast_v2 import StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate, WF1ForecastRecordType, WF1PostForecast, MoreCastForecastInput
-from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
+from wps_shared.schemas.morecast_v2 import MoreCastForecastInput
 
 start_time = datetime(2022, 1, 1, tzinfo=timezone.utc)
 end_time = datetime(2022, 1, 2, tzinfo=timezone.utc)
@@ -241,14 +249,13 @@ def test_construct_wf1_forecast_update():
 
 
 @pytest.mark.anyio
-@patch("aiohttp.ClientSession.get")
-@patch("app.morecast_v2.forecasts.get_forecasts_for_stations_by_date_range", return_value=[station_1_daily_from_wf1])
-async def test_construct_wf1_forecasts_new(_, mock_get, monkeypatch: pytest.MonkeyPatch):
-    async def mock_get_auth_header(_):
-        return {}
-
-    monkeypatch.setattr(app.morecast_v2.forecasts, "get_no_cache_auth_header", mock_get_auth_header)
-    result = await construct_wf1_forecasts(mock_get, [morecast_input_1, morecast_input_2], wfwx_weather_stations, "user")
+async def test_construct_wf1_forecasts_new(mock_wfwx_api):
+    mock_wfwx_api.get_forecasts_for_stations_by_date_range = AsyncMock(
+        return_value=[station_1_daily_from_wf1]
+    )
+    result = await construct_wf1_forecasts(
+        mock_wfwx_api, [morecast_input_1, morecast_input_2], wfwx_weather_stations, "user"
+    )
 
     assert len(result) == 2
     # existing forecast

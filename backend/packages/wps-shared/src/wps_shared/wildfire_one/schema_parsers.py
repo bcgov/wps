@@ -1,45 +1,66 @@
 """Parsers that extract fields from WFWX API responses and build ours"""
 
-import math
 import enum
 import logging
+import math
 from datetime import datetime, timezone
-from typing import Generator, List, Optional
+from typing import Generator, List
 
-from pydantic import BaseModel, ConfigDict, Field
-from wps_shared.db.models.observations import HourlyActual
-from wps_shared.schemas.morecast_v2 import MoreCastForecastOutput, StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate
-from wps_shared.schemas.stations import WeatherStationGroup, WeatherStation, WeatherStationGroupMember, FireZone, StationFireCentre
-from wps_shared.utils.dewpoint import compute_dewpoint
+from wps_wf1.models import (
+    FireCenterStation,
+    FireCentre,
+    FireZone,
+    HourlyActual,
+    StationDailyFromWF1,
+    StationFireCentre,
+    WeatherDeterminate,
+    WeatherIndeterminate,
+    WeatherReading,
+    WeatherStation,
+    WeatherStationGroup,
+    WeatherStationGroupMember,
+    WFWXWeatherStation,
+)
+
 from wps_shared.data.ecodivision_seasons import EcodivisionSeasons
-from wps_shared.schemas.observations import WeatherReading
 from wps_shared.db.models.forecasts import NoonForecast
+from wps_shared.schemas.morecast_v2 import MoreCastForecastOutput
+from wps_shared.utils.dewpoint import compute_dewpoint
 from wps_shared.utils.time import get_utc_now
-from wps_shared.wildfire_one.util import is_station_valid, is_station_fire_zone_valid, get_zone_code_prefix
-from wps_shared.wildfire_one.validation import get_valid_flags
-from wps_shared.schemas.fba import FireCentre, FireCenterStation
+from wps_shared.wildfire_one.util import (
+    get_zone_code_prefix,
+    is_station_fire_zone_valid,
+    is_station_valid,
+)
 
 logger = logging.getLogger(__name__)
+
+
+def validate_metric(value, low, high):
+    """Validate metric with it's range of accepted values"""
+    return low <= value <= high
+
+
+def get_valid_flags(record: WeatherReading | NoonForecast):
+    """Validate fields and return flags indiciating their validity"""
+    temp_valid = record.temperature is not None
+    rh_valid = record.relative_humidity is not None and validate_metric(
+        record.relative_humidity, 0, 100
+    )
+    wspeed_valid = record.wind_speed is not None and validate_metric(record.wind_speed, 0, math.inf)
+    wdir_valid = record.wind_direction is not None and validate_metric(
+        record.wind_direction, 0, 360
+    )
+    precip_valid = record.precipitation is not None and validate_metric(
+        record.precipitation, 0, math.inf
+    )
+    return temp_valid, rh_valid, wspeed_valid, wdir_valid, precip_valid
 
 
 class WF1RecordTypeEnum(enum.Enum):
     ACTUAL = "ACTUAL"
     FORECAST = "FORECAST"
     MANUAL = "MANUAL"
-
-
-class WFWXWeatherStation(BaseModel):
-    """A WFWX station includes a code and WFWX API-specific ID"""
-
-    model_config = ConfigDict(populate_by_name=True, frozen=True)  # allows populating by alias name, and frozen makes it hashable for collections
-
-    wfwx_id: str
-    code: int
-    name: str
-    lat: float = Field(alias="latitude")
-    long: float = Field(alias="longitude")
-    elevation: int
-    zone_code: Optional[str]
 
 
 async def station_list_mapper(raw_stations: Generator[dict, None, None]):

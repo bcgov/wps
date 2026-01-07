@@ -2,7 +2,7 @@
 """
 from typing import List, Dict, Optional
 from pydantic import BaseModel
-from wps_shared.schemas.stations import WeatherStation
+from wps_wf1.models import WeatherStation
 
 
 class YearRange(BaseModel):

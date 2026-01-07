@@ -2,28 +2,29 @@
 Unit tests for hfi endpoints.
 """
 
+import json
 import os
 from datetime import date
+
 import pytest
-import json
-from fastapi.testclient import TestClient
+import wps_shared.db.crud.hfi_calc
 from aiohttp import ClientSession
+from fastapi.testclient import TestClient
 from pytest_mock import MockerFixture
+from wps_shared.db.models.hfi_calc import (
+    FireCentre,
+    FireStartLookup,
+    FireStartRange,
+    FuelType,
+    HFIRequest,
+    PlanningArea,
+    PlanningWeatherStation,
+)
+from wps_shared.tests.common import default_mock_client_get
+
 import app.main
 import app.routers.hfi_calc
-from wps_shared.tests.common import default_mock_client_get
 from app.tests import load_json_file
-from wps_shared.db.models.hfi_calc import (
-    PlanningWeatherStation,
-    FuelType,
-    FireCentre,
-    PlanningArea,
-    HFIRequest,
-    FireStartRange,
-    FireStartLookup,
-)
-import wps_shared.db.crud.hfi_calc
-
 from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
 

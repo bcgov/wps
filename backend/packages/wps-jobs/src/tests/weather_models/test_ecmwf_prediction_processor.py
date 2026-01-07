@@ -1,19 +1,18 @@
-import pytest
-from unittest.mock import MagicMock
 from datetime import datetime, timedelta, timezone
-from unittest.mock import call
+from unittest.mock import MagicMock, call
 
-from pytest_mock import MockerFixture
+import pytest
 import weather_model_jobs.ecmwf_prediction_processor
+from pytest_mock import MockerFixture
 from weather_model_jobs import ModelEnum
 from weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
-from wps_shared.schemas.stations import WeatherStation
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.models.weather_models import (
     ModelRunPrediction,
     PredictionModelRunTimestamp,
     WeatherStationModelPrediction,
 )
+from wps_wf1.models import WeatherStation
 
 
 @pytest.fixture

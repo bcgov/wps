@@ -13,4 +13,5 @@ from wps_shared.tests.conftest import (
     mock_requests_session,
     mock_client_session,
     spy_access_logging,
+    mock_wfwx_api,
 )

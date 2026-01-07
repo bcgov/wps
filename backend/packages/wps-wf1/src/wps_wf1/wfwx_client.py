@@ -153,3 +153,8 @@ class WfwxClient:
         async with self.session.get(url, headers=headers) as resp:
             resp.raise_for_status()
             return await resp.json()
+        
+    async def post_forecasts(self, headers, forecasts_json):
+        url = f"{self.settings.base_url}/v1/dailies/daily-bulk"
+        async with self.session.post(url, json=forecasts_json, headers=headers) as response:
+            response.raise_for_status()
