@@ -14,7 +14,6 @@ import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 
 export const SFMSInsightsPage = () => {
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
-  const [forDate] = useState<DateTime>(DateTime.now())
   const [rasterDate, setRasterDate] = useState<DateTime>(DateTime.fromISO('2025-11-02'))
   const [rasterType, setRasterType] = useState<RasterType>('fwi')
   const [showSnow, setShowSnow] = useState<boolean>(true)
@@ -37,8 +36,8 @@ export const SFMSInsightsPage = () => {
       }
     }
 
-    fetchLastProcessedSnow(forDate)
-  }, [])
+    fetchLastProcessedSnow(rasterDate)
+  }, [rasterDate])
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
