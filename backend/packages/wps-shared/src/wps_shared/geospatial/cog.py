@@ -6,8 +6,6 @@ including reprojection to web-friendly coordinate systems like Web Mercator (EPS
 """
 
 import logging
-import tempfile
-import os
 
 from osgeo import gdal
 
@@ -65,9 +63,6 @@ def generate_and_store_cog(
     """
     Warp a GDAL dataset to a Cloud-Optimized GeoTIFF (COG).
 
-    When output_path is a vsis3:// path, creates the COG in a local temp file first
-    then copies to S3 to avoid permission issues with GDAL's overview temp files.
-
     :param src_ds: Source GDAL dataset
     :param output_path: Path for output COG (local or /vsis3/)
     :param target_srs: Target spatial reference system (default: Web Mercator EPSG:3857)
@@ -87,56 +82,22 @@ def generate_and_store_cog(
     if warped is None:
         raise RuntimeError(f"Failed to warp raster to {target_srs}")
 
-    # For vsis3:// paths, create COG in temp file first to avoid permission issues
-    # with GDAL's overview temporary files (.ovr.tmp)
-    is_s3_path = output_path.startswith("/vsis3/")
-    temp_file = None
+    # Translate to COG format with auto-generated overviews
+    result = gdal.Translate(
+        output_path,
+        warped,
+        format="COG",
+        creationOptions=[
+            f"COMPRESS={compression}",
+            "BIGTIFF=IF_SAFER",
+            "OVERVIEWS=IGNORE_EXISTING",  # Always create new overviews
+        ],
+    )
 
-    try:
-        if is_s3_path:
-            # Create temp file in system temp directory
-            fd, temp_file = tempfile.mkstemp(suffix=".tif")
-            os.close(fd)
-            cog_output_path = temp_file
-            logger.info(f"Creating COG in temp file: {temp_file} before uploading to {output_path}")
-        else:
-            cog_output_path = output_path
+    if result is None:
+        raise RuntimeError(f"Failed to create COG: {output_path}")
 
-        # Translate to COG format with auto-generated overviews
-        result = gdal.Translate(
-            cog_output_path,
-            warped,
-            format="COG",
-            creationOptions=[
-                f"COMPRESS={compression}",
-                "BIGTIFF=IF_SAFER",
-                "OVERVIEWS=IGNORE_EXISTING",  # Always create new overviews
-            ],
-        )
-
-        if result is None:
-            raise RuntimeError(f"Failed to create COG: {output_path}")
-
-        # Clean up the translate result
-        result = None
-
-        # If S3 path, copy temp file to S3
-        if is_s3_path:
-            logger.info(f"Copying COG from {temp_file} to {output_path}")
-            # Use GDAL's CopyFiles to copy to S3
-            if not gdal.GetDriverByName("GTiff").CopyFiles(output_path, temp_file):
-                raise RuntimeError(f"Failed to copy COG to S3: {output_path}")
-
-        return output_path
-
-    finally:
-        # Clean up datasets
-        warped = None
-
-        # Clean up temp file if it was created
-        if temp_file and os.path.exists(temp_file):
-            try:
-                os.remove(temp_file)
-                logger.debug(f"Removed temp file: {temp_file}")
-            except Exception as e:
-                logger.warning(f"Failed to remove temp file {temp_file}: {e}")
+    # Clean up datasets
+    warped = None
+    result = None
+    return output_path
