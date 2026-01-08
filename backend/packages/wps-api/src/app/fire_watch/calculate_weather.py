@@ -478,7 +478,7 @@ async def process_all_fire_watch_weather():
             )
             return
 
-        station_ids = set(fire_watch.station_code for fire_watch in fire_watches_to_process)
+        station_ids = {fire_watch.station_code for fire_watch in fire_watches_to_process}
         wfwx_station_map = await get_station_metadata(list(station_ids))
         status_id_dict = await get_all_prescription_status(session)
 
