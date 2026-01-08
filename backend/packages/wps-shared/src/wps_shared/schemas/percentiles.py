@@ -39,6 +39,6 @@ class MeanValues(BaseModel):
 class CalculatedResponse(BaseModel):
     """ The combined response for a set of stations. """
     stations: Dict[int, StationSummary] = {}
-    mean_values: MeanValues = None
+    mean_values: Optional[MeanValues] = None
     year_range: YearRange
     percentile: int
