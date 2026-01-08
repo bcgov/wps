@@ -192,7 +192,7 @@ async def hydrate_fire_centres():
 
         for _, records in stations_by_area:
             stations_with_planning_areas = [
-                (station, planning_area) for (station, _, planning_area, ___) in list(records)
+                (station, planning_area) for (station, _, planning_area, ___) in records
             ]
             stations, planning_areas = zip(*stations_with_planning_areas)
             planning_area = planning_areas[0]
