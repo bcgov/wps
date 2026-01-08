@@ -121,7 +121,9 @@ ENV VIRTUAL_ENV="/app/.venv"
 # root user please
 USER 0
 # Remove write permissions from copied configuration and source files for security
-RUN chmod -R a-w /app/pyproject.toml /app/packages/wps-api/pyproject.toml /app/advisory /app/libs /app/alembic /app/alembic.ini /app/prestart.sh /app/start.sh /app/packages/wps-shared/src /app/packages/wps-wf1/src
+RUN chmod -R a-w /app/pyproject.toml /app/packages/wps-api/pyproject.toml /app/advisory /app/libs \
+    /app/alembic /app/alembic.ini /app/prestart.sh /app/start.sh /app/packages/wps-shared/src \
+    /app/packages/wps-wf1/src
 # We don't know what user uv is going to run as, so we give everyone write access directories
 # in the app folder. We need write access for .pyc files to be created. .pyc files are good,
 # they speed up python.

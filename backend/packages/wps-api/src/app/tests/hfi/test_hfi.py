@@ -11,6 +11,7 @@ from starlette.testclient import TestClient
 from wps_shared.schemas.hfi_calc import (
     DailyResult,
     DateRange,
+    FireCentre,
     FireStartRange,
     InvalidDateRangeError,
     PlanningArea,
@@ -23,7 +24,7 @@ from wps_shared.schemas.hfi_calc import (
 )
 from wps_shared.schemas.shared import FuelType
 from wps_shared.utils.time import get_pst_now, get_utc_now
-from wps_wf1.models import FireCentre, WFWXWeatherStation
+from wps_wf1.models import WFWXWeatherStation
 
 import app.routers.hfi_calc
 from app.hfi.hfi_calc import (
