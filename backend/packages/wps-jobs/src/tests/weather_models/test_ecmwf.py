@@ -1,13 +1,13 @@
+import math
 import os
 from datetime import datetime
 from unittest.mock import MagicMock, PropertyMock
 
 import numpy as np
 import pytest
+import weather_model_jobs.ecmwf
 from aiohttp import ClientSession
 from pytest_mock import MockerFixture
-
-import weather_model_jobs.ecmwf
 from weather_model_jobs import ModelEnum
 from weather_model_jobs.ecmwf import (
     ECMWF,
@@ -19,8 +19,8 @@ from weather_model_jobs.ecmwf_model_processor import ECMWFModelProcessor
 from weather_model_jobs.utils.process_grib import PredictionModelNotFound
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.models.weather_models import PredictionModelRunTimestamp
-from wps_shared.schemas.stations import WeatherStation
 from wps_shared.tests.common import default_mock_client_get
+from wps_wf1.models import WeatherStation
 
 num_forecast_hours = len(list(get_ecmwf_forecast_hours()))
 
@@ -93,8 +93,8 @@ def test_get_stations_dataframe():
     ]
     df = get_stations_dataframe(transformer, stations)
     assert len(df) == 2
-    assert df.iloc[0]["latitude"] == 11.0
-    assert df.iloc[0]["longitude"] == 21.0
+    assert math.isclose(df.iloc[0]["latitude"], 11.0)
+    assert math.isclose(df.iloc[0]["longitude"], 21.0)
 
 
 def test_ecmwf_process_model_run_no_url(mock_herbie_instance):
@@ -269,6 +269,7 @@ def test_main_success(mocker: MockerFixture, monkeypatch):
     """Test the main function when it runs successfully."""
 
     async def mock_process_models():
+        """No implementation required."""
         pass
 
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)

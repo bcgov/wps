@@ -5,6 +5,7 @@ from typing import Dict
 import logging
 import geopandas
 from shapely.geometry import Point
+from wps_wf1.cache_protocol import CacheProtocol
 from wps_shared.utils.redis import create_redis
 
 
@@ -26,7 +27,7 @@ class EcodivisionSeasons:
     stations.
     """
 
-    def __init__(self, cache_key: str):
+    def __init__(self, cache_key: str, cache: CacheProtocol):
         """ The cache key would typically be a list of stations.
         """
         with open(core_season_file_path, encoding="utf-8") as file_handle:
@@ -35,13 +36,12 @@ class EcodivisionSeasons:
         self.ecodivisions = geopandas.read_file(ecodiv_shape_file_path)
         self.name_lookup: Dict[str, str] = {}
         self.cache_key = cache_key
-        self.cache = None
+        self.cache = cache
         self.update_cache_on_exit = False
 
     def __enter__(self):
         if self.cache_key:
             self.cache_key = f'ecodivision_names:{self.cache_key}'
-            self.cache = create_redis()
             try:
                 self.name_lookup = self.cache.get(self.cache_key)
                 if self.name_lookup is None:

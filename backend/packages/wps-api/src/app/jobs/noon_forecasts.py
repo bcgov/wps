@@ -11,7 +11,7 @@ from aiohttp.client import ClientSession
 from wps_shared.wps_logging import configure_logging
 import wps_shared.db.database
 from wps_shared.db.crud.forecasts import save_noon_forecast
-from wps_shared.wildfire_one import wfwx_api
+from wps_shared.wildfire_one.wfwx_api import create_wfwx_api
 import wps_shared.utils.time
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 
@@ -27,10 +27,8 @@ class NoonForecastJob():
     async def run_wfwx(self):
         """ Entry point for running the bot """
         async with ClientSession() as session:
-            header = await wfwx_api.get_auth_header(session)
-
-            noon_forecasts = await wfwx_api.get_noon_forecasts_all_stations(
-                session, header, self.now)
+            wfwx_api = create_wfwx_api(session)
+            noon_forecasts = await wfwx_api.get_noon_forecasts_all_stations(self.now)
             logger.info('Retrieved %s noon forecasts', len(noon_forecasts))
 
         with wps_shared.db.database.get_write_session_scope() as session:

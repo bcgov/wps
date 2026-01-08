@@ -1,30 +1,32 @@
 """Code for fetching data for API."""
 
-from itertools import groupby
-import logging
-from typing import List
 import datetime
-from datetime import time
-from time import perf_counter
+import logging
 from collections import defaultdict
+from datetime import time
+from itertools import groupby
+from time import perf_counter
+from typing import List
+
 from sqlalchemy.orm import Session
+from wps_wf1.models import WeatherIndeterminate
+
 import wps_shared.db.database
-from wps_shared.schemas.morecast_v2 import WeatherIndeterminate
-from wps_shared.schemas.weather_models import (
-    WeatherStationModelPredictionValues,
-    WeatherModelPredictionValues,
-    WeatherModelRun,
-    ModelRunPredictions,
-    WeatherStationModelRunsPredictions,
-)
-from wps_shared.db.models.weather_models import WeatherStationModelPrediction
+import wps_shared.stations
 from wps_shared.db.crud.weather_models import (
     get_latest_station_model_prediction_per_day,
-    get_station_model_predictions,
-    get_station_model_prediction_from_previous_model_run,
     get_latest_station_prediction,
+    get_station_model_prediction_from_previous_model_run,
+    get_station_model_predictions,
 )
-import wps_shared.stations
+from wps_shared.db.models.weather_models import WeatherStationModelPrediction
+from wps_shared.schemas.weather_models import (
+    ModelRunPredictions,
+    WeatherModelPredictionValues,
+    WeatherModelRun,
+    WeatherStationModelPredictionValues,
+    WeatherStationModelRunsPredictions,
+)
 from wps_shared.utils.time import get_days_from_range, vancouver_tz
 from wps_shared.weather_models import ModelEnum
 
