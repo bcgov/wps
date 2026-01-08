@@ -427,7 +427,7 @@ async def get_inputs_for_critical_hours(
     :param wfwx_stations: list of stations to compute critical hours for
     :return: critical hours inputs
     """
-    unique_station_codes = list(set(station.code for station in wfwx_stations))
+    unique_station_codes = list({station.code for station in wfwx_stations})
     time_of_interest = get_hour_20_from_date(for_date)
 
     # get the dailies for all the stations
@@ -564,7 +564,7 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
             fuel_type_raster = await get_fuel_type_raster_by_year(db_session, for_date.year)
             async with ClientSession() as client_session:
                 all_stations = await get_stations_asynchronously()
-                station_codes = list(station.code for station in all_stations)
+                station_codes = [station.code for station in all_stations]
                 fire_centre_station_codes = get_fire_centre_station_codes()
                 wfwx_api = create_wfwx_api(client_session)
                 stations = await wfwx_api.get_wfwx_stations_from_station_codes(
