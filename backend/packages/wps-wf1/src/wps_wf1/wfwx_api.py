@@ -109,7 +109,7 @@ class WfwxApi:
         if use_no_cache_header:
             header = await self._get_no_cache_auth_header()
         else:
-            header = self._get_auth_header()
+            header = await self._get_auth_header()
         # Iterate through "raw" station data.
         raw_stations = self.wfwx_client.fetch_paged_response_generator(
             header,
