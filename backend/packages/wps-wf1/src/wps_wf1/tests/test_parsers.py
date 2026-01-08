@@ -77,4 +77,4 @@ class TestParseHourlyActual:
         assert hourly_actual.precip_valid is False
         assert hourly_actual.wspeed_valid is False
         assert hourly_actual.wdir_valid is False
-        assert hourly_actual.precipitation is math.nan
+        assert hourly_actual.precipitation == math.nan
