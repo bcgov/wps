@@ -8,7 +8,7 @@ interface Window {
     API_BASE_URL: string | undefined
     RASTER_SERVER_BASE_URL: string | undefined
     REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL: string
-    REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL: string
+    REACT_APP_SPRINT_REVIEW_BOARD_URL: string
     REACT_APP_PMTILES_BUCKET: string
     REACT_APP_MUI_LICENSE_KEY: string
     REACT_APP_SENTRY_DSN: string
