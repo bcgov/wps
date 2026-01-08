@@ -271,11 +271,29 @@
             "module": "weather_model_jobs.ecmwf",
         },
         {
+            "name": "SFMS COG: Batch S3 → S3",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "wps_tools.generate_sfms_cog",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "args": [
+                "--batch-date",
+                "20250627",
+                "--batch-s3-input-prefix",
+                "sfms/calculated/forecast",
+                "--batch-s3-output-prefix",
+                "sfms/calculated/forecast"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Chrome",
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}/web"
-        },
+        }
     ]
 }

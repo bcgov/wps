@@ -30,13 +30,16 @@ objects:
             - name: sfms-fwi-calc-container
               image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-${IMAGE_NAME}:${IMAGE_NAME}
               command:
-                - poetry
+                - uv
                 - run
+                - --no-sync
                 - python
                 - "-m"
                 - app.jobs.sfms_calculations
                 - "${DATE} ${HOUR}"
               env:
+                - name: UV_NO_CACHE
+                  value: "1"
                 - name: ROCKET_URL_POST_MESSAGE
                   valueFrom:
                     configMapKeyRef:

@@ -1,3 +1,5 @@
+import os
+
 from wps_shared.tests.conftest import (
     anyio_backend,
     mock_env,
@@ -15,3 +17,14 @@ from wps_shared.tests.conftest import (
     spy_access_logging,
     mock_wfwx_api,
 )
+
+
+def pytest_configure(config):
+    """Set environment variables and configure ORIGINS before any imports happen."""
+    os.environ.setdefault("ORIGINS", "testorigin")
+
+    # Import main after setting env and patch ORIGINS to be a list for CORS middleware
+    import app.main
+
+    if isinstance(app.main.ORIGINS, str):
+        app.main.ORIGINS = [app.main.ORIGINS]
