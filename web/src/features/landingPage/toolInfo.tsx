@@ -50,10 +50,15 @@ export const fireBehaviourAdvisoryInfo: ToolInfo = {
       A spatial analysis tool that automates the continuous monitoring, updating, and communication of anticipated fire
       behaviour that will challenge direct suppression efforts and put the safety of responders at risk.
       <br />
-      Download the ASA Go mobile app from the&nbsp;
+      Available for download from the&nbsp;
       <Link href="https://apps.apple.com/us/app/asa-go/id6741596129" rel="noreferrer" target="_blank">
-        App Store.
+        Apple
       </Link>
+      &nbsp;and&nbsp;
+      <Link href="https://play.google.com/store/apps/details?id=ca.bc.gov.asago" rel="noreferrer" target="_blank">
+        Google Play
+      </Link>
+      &nbsp;stores.
     </Typography>
   ),
   icon: <LocalFireDepartmentIcon color="primary" fontSize={ICON_FONT_SIZE} />,
