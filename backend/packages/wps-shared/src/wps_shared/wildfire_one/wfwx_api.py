@@ -4,7 +4,6 @@ import logging
 
 from aiohttp import ClientSession
 from wps_wf1.wfwx_api import WfwxApi
-from wps_wf1.wfwx_client import WfwxClient
 from wps_wf1.wfwx_settings import WfwxSettings
 
 from wps_shared import config

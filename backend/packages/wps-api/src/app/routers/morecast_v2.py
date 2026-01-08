@@ -31,9 +31,7 @@ from wps_shared.utils.time import get_hour_20_from_date, get_utc_now, vancouver_
 from wps_shared.weather_models.fetch.predictions import (
     fetch_latest_model_run_predictions_by_station_code_and_date_range,
 )
-from wps_shared.wildfire_one.schema_parsers import (
-    transform_morecastforecastoutput_to_weatherindeterminate,
-)
+
 from wps_shared.wildfire_one.wfwx_api import create_wfwx_api
 from wps_wf1.models import WeatherDeterminate, WeatherIndeterminate
 
@@ -42,6 +40,7 @@ from app.morecast_v2.forecasts import (
     format_as_wf1_post_forecasts,
     get_forecasts,
     get_fwi_values,
+    transform_morecastforecastoutput_to_weatherindeterminate,
 )
 
 logger = logging.getLogger(__name__)
