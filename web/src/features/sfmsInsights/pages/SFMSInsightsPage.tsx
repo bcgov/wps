@@ -7,7 +7,7 @@ import { StyledFormControl } from '@/components/StyledFormControl'
 import { SFMS_INSIGHTS_NAME } from '@/utils/constants'
 import { getMostRecentProcessedSnowByDate } from '@/api/snow'
 import { fetchSFMSBounds } from '@/features/fba/slices/runDatesSlice'
-import { Box, Checkbox, FormControlLabel, Grid } from '@mui/material'
+import { Box, Checkbox, CircularProgress, FormControlLabel, Grid } from '@mui/material'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -45,15 +45,15 @@ export const SFMSInsightsPage = () => {
 
   useEffect(() => {
     // Set rasterDate once SFMS bounds are loaded
-    if (sfmsBounds) {
-      if (forecastBounds?.maximum) {
-        setRasterDate(maxDate)
-      } else {
-        // Fallback to current date if no bounds for current year
-        setRasterDate(getDateTimeNowPST())
-      }
+    if (!sfmsBounds) return
+
+    const currentYear = getDateTimeNowPST().year.toString()
+    const forecastBounds = sfmsBounds[currentYear]?.forecast
+
+    if (forecastBounds?.maximum) {
+      setRasterDate(DateTime.fromISO(forecastBounds.maximum))
     }
-  }, [sfmsBounds, forecastBounds, maxDate])
+  }, [sfmsBounds])
 
   useEffect(() => {
     // Only fetch snow data once rasterDate is set
@@ -75,16 +75,6 @@ export const SFMSInsightsPage = () => {
     fetchLastProcessedSnow(rasterDate)
   }, [rasterDate])
 
-  if (!rasterDate) {
-    return (
-      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <GeneralHeader isBeta={true} spacing={1} title={SFMS_INSIGHTS_NAME} />
-        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</Box>
-        <Footer />
-      </Box>
-    )
-  }
-
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader isBeta={true} spacing={1} title={SFMS_INSIGHTS_NAME} />
@@ -97,33 +87,45 @@ export const SFMSInsightsPage = () => {
         }}
       >
         <Grid container spacing={1} alignItems={'center'}>
-          <Grid item>
-            <StyledFormControl>
-              <ASADatePicker
-                date={rasterDate}
-                updateDate={setRasterDate}
-                historicalMinDate={historicalMinDate}
-                historicalMaxDate={historicalMaxDate}
-                currentYearMinDate={currentYearMinDate}
-                currentYearMaxDate={currentYearMaxDate}
-              />
-            </StyledFormControl>
-          </Grid>
-          <Grid item>
-            <StyledFormControl>
-              <RasterTypeDropdown selectedRasterType={rasterType} setSelectedRasterType={setRasterType} />
-            </StyledFormControl>
-          </Grid>
-          <Grid item>
-            <FormControlLabel
-              control={<Checkbox checked={showSnow} onChange={e => setShowSnow(e.target.checked)} />}
-              label={snowDate ? `Show Latest Snow: ${snowDate.toLocaleString(DateTime.DATE_MED)}` : 'Show Latest Snow'}
-            />
-          </Grid>
+          {!rasterDate ? (
+            <Grid item>
+              <StyledFormControl>
+                <Box sx={{ display: 'flex', alignItems: 'center', padding: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              </StyledFormControl>
+            </Grid>
+          ) : (
+            <>
+              <Grid item>
+                <StyledFormControl>
+                  <ASADatePicker
+                    date={rasterDate}
+                    updateDate={setRasterDate}
+                    historicalMinDate={historicalMinDate}
+                    historicalMaxDate={historicalMaxDate}
+                    currentYearMinDate={currentYearMinDate}
+                    currentYearMaxDate={currentYearMaxDate}
+                  />
+                </StyledFormControl>
+              </Grid>
+              <Grid item>
+                <StyledFormControl>
+                  <RasterTypeDropdown selectedRasterType={rasterType} setSelectedRasterType={setRasterType} />
+                </StyledFormControl>
+              </Grid>
+              <Grid item>
+                <FormControlLabel
+                  control={<Checkbox checked={showSnow} onChange={e => setShowSnow(e.target.checked)} />}
+                  label={snowDate ? `Show Latest Snow: ${snowDate.toLocaleString(DateTime.DATE_MED)}` : 'Show Latest Snow'}
+                />
+              </Grid>
+            </>
+          )}
         </Grid>
       </Box>
       <Box sx={{ flex: 1, position: 'relative' }}>
-        <SFMSMap snowDate={snowDate} rasterDate={rasterDate} rasterType={rasterType} showSnow={showSnow} />
+        {rasterDate && <SFMSMap snowDate={snowDate} rasterDate={rasterDate} rasterType={rasterType} showSnow={showSnow} />}
       </Box>
       <Footer />
     </Box>
