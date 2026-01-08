@@ -87,7 +87,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     })
     mapObject.addInteraction(tooltipInteraction)
 
-    // Initialize fire weather raster layer manager
+    // Initialize raster layer manager
     const rasterLayerManager = new LayerManager({
       onLoadingChange: handleLoadingChange,
       trackLoading: true

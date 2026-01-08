@@ -73,7 +73,11 @@ vi.mock('@/features/fba/components/ASADatePicker', () => ({
 }))
 
 vi.mock('@/features/sfmsInsights/components/RasterTypeDropdown', () => ({
-  default: () => <div data-testid="raster-type-dropdown">Mock Raster Dropdown</div>
+  default: ({ rasterDataAvailable }: { rasterDataAvailable?: boolean }) => (
+    <div data-testid="raster-type-dropdown" data-raster-data-available={rasterDataAvailable}>
+      Mock Raster Dropdown
+    </div>
+  )
 }))
 
 describe('SFMSInsightsPage', () => {
@@ -433,5 +437,20 @@ describe('SFMSInsightsPage', () => {
     // minDate should be set from 2024 bounds
     const minDate = screen.getByTestId('historical-min-date')
     expect(minDate.textContent).toBe('2024-01-01')
+  })
+
+  it('should disable raster dropdown options when rasterDate is null', async () => {
+    renderWithStore(null)
+
+    const dropdown = screen.getByTestId('raster-type-dropdown')
+    expect(dropdown).toHaveAttribute('data-raster-data-available', 'false')
+  })
+
+  it('should enable raster dropdown options when rasterDate is set', async () => {
+    renderWithStore()
+    await waitForPageLoad()
+
+    const dropdown = screen.getByTestId('raster-type-dropdown')
+    expect(dropdown).toHaveAttribute('data-raster-data-available', 'true')
   })
 })
