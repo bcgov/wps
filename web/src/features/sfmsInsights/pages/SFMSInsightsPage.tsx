@@ -71,7 +71,7 @@ export const SFMSInsightsPage = () => {
           <Grid item>
             <FormControlLabel
               control={<Checkbox checked={showSnow} onChange={e => setShowSnow(e.target.checked)} />}
-              label="Show Snow"
+              label={snowDate ? `Show Snow (${snowDate.toLocaleString(DateTime.DATE_MED)})` : 'Show Snow'}
             />
           </Grid>
         </Grid>

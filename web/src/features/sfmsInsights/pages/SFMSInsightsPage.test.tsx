@@ -178,6 +178,26 @@ describe('SFMSInsightsPage', () => {
     })
   })
 
+  it('should display snow date in checkbox label when available', async () => {
+    renderWithStore(<SFMSInsightsPage />)
+
+    await waitFor(() => {
+      const checkbox = screen.getByRole('checkbox', { name: /show snow \(nov 2, 2025\)/i })
+      expect(checkbox).toBeInTheDocument()
+    })
+  })
+
+  it('should display "Show Snow" without date when no snow data available', async () => {
+    ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValue(null)
+
+    renderWithStore(<SFMSInsightsPage />)
+
+    await waitFor(() => {
+      const checkbox = screen.getByRole('checkbox', { name: 'Show Snow' })
+      expect(checkbox).toBeInTheDocument()
+    })
+  })
+
   it('should refetch snow data when rasterDate changes', async () => {
     ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValueOnce({
       forDate: DateTime.fromISO('2025-11-02'),
