@@ -359,6 +359,9 @@ def upgrade():
     op.create_index(
         op.f("ix_processed_model_run_urls_url"), "processed_model_run_urls", ["url"], unique=True
     )
+    op.execute(
+        "ALTER SEQUENCE processed_model_run_urls_id_seq RENAME TO processed_model_run_url_id_seq"
+    )
     op.create_table(
         "processed_snow",
         sa.Column("id", sa.Integer(), nullable=False),

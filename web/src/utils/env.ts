@@ -8,7 +8,7 @@ let ENV = {
   KC_CLIENT: import.meta.env.VITE_KEYCLOAK_CLIENT as string,
   TEST_AUTH: import.meta.env.VITE_TEST_AUTH,
   MS_TEAMS_SPRINT_REVIEW_URL: import.meta.env.VITE_MS_TEAMS_SPRINT_REVIEW_URL as string,
-  MIRO_SPRINT_REVIEW_BOARD_URL: import.meta.env.VITE_MIRO_SPRINT_REVIEW_BOARD_URL as string,
+  SPRINT_REVIEW_BOARD_URL: import.meta.env.VITE_SPRINT_REVIEW_BOARD_URL as string,
   PMTILES_BUCKET: import.meta.env.VITE_PMTILES_BUCKET as string,
   MUI_LICENSE: import.meta.env.VITE_MUI_LICENSE_KEY as string,
   SENTRY_DSN: import.meta.env.VITE_SENTRY_DSN as string,
@@ -17,7 +17,7 @@ let ENV = {
   BASEMAP_TILE_URL: import.meta.env.VITE_BASEMAP_TILE_URL as string,
   BASEMAP_STYLE_URL: import.meta.env.VITE_BASEMAP_STYLE_URL as string,
   HILLSHADE_TILE_URL: import.meta.env.VITE_HILLSHADE_TILE_URL as string,
-  HILLSHADE_STYLE_URL: import.meta.env.VITE_HILLSHADE_STYLE_URL as string,
+  HILLSHADE_STYLE_URL: import.meta.env.VITE_HILLSHADE_STYLE_URL as string
 }
 // If the app is built using 'npm run build'
 if (import.meta.env.MODE === 'production') {
@@ -33,7 +33,7 @@ if (import.meta.env.MODE === 'production') {
     KC_CLIENT: window.env.REACT_APP_KEYCLOAK_CLIENT,
     TEST_AUTH: undefined,
     MS_TEAMS_SPRINT_REVIEW_URL: window.env.REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL,
-    MIRO_SPRINT_REVIEW_BOARD_URL: window.env.REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL,
+    SPRINT_REVIEW_BOARD_URL: window.env.REACT_APP_SPRINT_REVIEW_BOARD_URL,
     PMTILES_BUCKET: window.env.REACT_APP_PMTILES_BUCKET,
     MUI_LICENSE: window.env.REACT_APP_MUI_LICENSE_KEY,
     SENTRY_DSN: window.env.REACT_APP_SENTRY_DSN,
@@ -56,7 +56,7 @@ export const {
   TEST_AUTH,
   SM_LOGOUT_URL,
   MS_TEAMS_SPRINT_REVIEW_URL,
-  MIRO_SPRINT_REVIEW_BOARD_URL,
+  SPRINT_REVIEW_BOARD_URL,
   PMTILES_BUCKET,
   MUI_LICENSE,
   SENTRY_DSN,

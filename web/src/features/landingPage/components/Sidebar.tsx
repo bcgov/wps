@@ -17,8 +17,8 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import SidebarToolList from 'features/landingPage/components/SidebarToolList'
 import Subheading from 'features/landingPage/components/Subheading'
 import MsTeamsIcon from 'features/landingPage/images/msTeams.svg?react'
-import MiroIcon from 'features/landingPage/images/miro.svg?react'
-import { MIRO_SPRINT_REVIEW_BOARD_URL, MS_TEAMS_SPRINT_REVIEW_URL } from 'utils/env'
+import CollaboardIcon from 'features/landingPage/images/collaboardIcon.svg?react'
+import { SPRINT_REVIEW_BOARD_URL, MS_TEAMS_SPRINT_REVIEW_URL } from 'utils/env'
 
 const PREFIX = 'Sidebar'
 
@@ -160,12 +160,12 @@ export const Sidebar: React.FunctionComponent = () => {
           </Tooltip>
           <Button
             sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}
-            href={MIRO_SPRINT_REVIEW_BOARD_URL}
+            href={SPRINT_REVIEW_BOARD_URL}
             target="_blank"
           >
-            <SvgIcon component={MiroIcon} fontSize="large" viewBox="0 0 48 48" />
-            <CollabItemTitle>Miro Board</CollabItemTitle>
-            <CollabItemContent>Checkout our Miro board to see the latest from our sprint reviews</CollabItemContent>
+            <SvgIcon component={CollaboardIcon} fontSize="large" viewBox="0 0 1000 1000" />
+            <CollabItemTitle>Collaboard</CollabItemTitle>
+            <CollabItemContent>Checkout our Collaboard to see the latest from our sprint reviews</CollabItemContent>
           </Button>
         </Collab>
       </SidebarBox>
@@ -186,11 +186,11 @@ export const Sidebar: React.FunctionComponent = () => {
           </Tooltip>
         </ListItem>
         <ListItem disablePadding>
-          <ListItemButton sx={{ minWidth: '36px' }} component={'a'} href={MIRO_SPRINT_REVIEW_BOARD_URL} target="_blank">
+          <ListItemButton sx={{ minWidth: '36px' }} component={'a'} href={SPRINT_REVIEW_BOARD_URL} target="_blank">
             <SidebarListItemIcon>
-              <SvgIcon component={MiroIcon} viewBox="0 0 48 48" />
+              <SvgIcon component={CollaboardIcon} viewBox="0 0 1000 1000" />
             </SidebarListItemIcon>
-            <ListItemText primary="Miro Board" />
+            <ListItemText primary="Collaboard" />
           </ListItemButton>
         </ListItem>
       </List>
