@@ -10,7 +10,9 @@ import reducer, {
   getSFMSBoundsFailed,
   getSFMSBoundsStart,
   getSFMSBoundsSuccess,
-  initialState
+  initialState,
+  selectLatestSFMSBounds,
+  selectEarliestSFMSBounds
 } from '@/features/fba/slices/runDatesSlice'
 
 import { createTestStore } from '@/test/testUtils'
@@ -191,5 +193,143 @@ describe('fetchSFMSBounds thunk', () => {
     const runDatesState = store.getState().runDates
     expect(runDatesState.sfmsBoundsError).toBe(error)
     expect(mockedLogError).toHaveBeenCalled()
+  })
+})
+
+describe('SFMS bounds selectors', () => {
+  it('selectLatestSFMSBounds returns bounds from most recent year', () => {
+    const state = {
+      runDates: {
+        ...initialState,
+        sfmsBounds: {
+          '2024': {
+            forecast: {
+              minimum: '2024-01-01',
+              maximum: '2024-12-31'
+            }
+          },
+          '2025': {
+            forecast: {
+              minimum: '2025-01-01',
+              maximum: '2025-11-02'
+            }
+          }
+        }
+      }
+    }
+
+    const result = selectLatestSFMSBounds(state)
+    expect(result).toEqual({
+      minimum: '2025-01-01',
+      maximum: '2025-11-02'
+    })
+  })
+
+  it('selectLatestSFMSBounds returns null when sfmsBounds is null', () => {
+    const state = {
+      runDates: {
+        ...initialState,
+        sfmsBounds: null
+      }
+    }
+
+    const result = selectLatestSFMSBounds(state)
+    expect(result).toBeNull()
+  })
+
+  it('selectLatestSFMSBounds skips years without maximum', () => {
+    const state = {
+      runDates: {
+        ...initialState,
+        sfmsBounds: {
+          '2024': {
+            forecast: {
+              minimum: '2024-01-01',
+              maximum: ''
+            }
+          },
+          '2023': {
+            forecast: {
+              minimum: '2023-01-01',
+              maximum: '2023-12-31'
+            }
+          }
+        }
+      }
+    }
+
+    const result = selectLatestSFMSBounds(state)
+    expect(result).toEqual({
+      minimum: '2023-01-01',
+      maximum: '2023-12-31'
+    })
+  })
+
+  it('selectEarliestSFMSBounds returns bounds from earliest year', () => {
+    const state = {
+      runDates: {
+        ...initialState,
+        sfmsBounds: {
+          '2024': {
+            forecast: {
+              minimum: '2024-01-01',
+              maximum: '2024-12-31'
+            }
+          },
+          '2025': {
+            forecast: {
+              minimum: '2025-01-01',
+              maximum: '2025-11-02'
+            }
+          }
+        }
+      }
+    }
+
+    const result = selectEarliestSFMSBounds(state)
+    expect(result).toEqual({
+      minimum: '2024-01-01',
+      maximum: '2024-12-31'
+    })
+  })
+
+  it('selectEarliestSFMSBounds returns null when sfmsBounds is null', () => {
+    const state = {
+      runDates: {
+        ...initialState,
+        sfmsBounds: null
+      }
+    }
+
+    const result = selectEarliestSFMSBounds(state)
+    expect(result).toBeNull()
+  })
+
+  it('selectEarliestSFMSBounds skips years without minimum', () => {
+    const state = {
+      runDates: {
+        ...initialState,
+        sfmsBounds: {
+          '2023': {
+            forecast: {
+              minimum: '',
+              maximum: '2023-12-31'
+            }
+          },
+          '2024': {
+            forecast: {
+              minimum: '2024-01-01',
+              maximum: '2024-12-31'
+            }
+          }
+        }
+      }
+    }
+
+    const result = selectEarliestSFMSBounds(state)
+    expect(result).toEqual({
+      minimum: '2024-01-01',
+      maximum: '2024-12-31'
+    })
   })
 })

@@ -44,12 +44,12 @@ vi.mock('@/components/GeneralHeader', () => ({
 }))
 
 vi.mock('@/features/fba/components/ASADatePicker', () => ({
-  default: ({ date, updateDate }: { date: DateTime; updateDate: (date: DateTime) => void }) => (
+  default: ({ date, updateDate }: { date: DateTime | null; updateDate: (date: DateTime) => void }) => (
     <div data-testid="date-picker">
       <button data-testid="change-date-button" onClick={() => updateDate(DateTime.fromISO('2025-12-15'))}>
         Change Date
       </button>
-      <span data-testid="current-date">{date.toISODate()}</span>
+      <span data-testid="current-date">{date?.toISODate() ?? 'null'}</span>
     </div>
   )
 }))

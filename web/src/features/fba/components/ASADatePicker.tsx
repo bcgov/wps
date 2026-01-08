@@ -1,5 +1,5 @@
 import { PlayArrow } from '@mui/icons-material'
-import { IconButton, TextField } from '@mui/material'
+import { CircularProgress, IconButton, TextField } from '@mui/material'
 import {
   BaseSingleInputFieldProps,
   CalendarIcon,
@@ -20,7 +20,7 @@ import React from 'react'
 interface CustomDateTextFieldProps
   extends UseDateFieldProps<DateTime, false>,
     BaseSingleInputFieldProps<DateTime | null, DateTime, FieldSection, false, DateValidationError> {
-  date: DateTime
+  date: DateTime | null
   updateDate: React.Dispatch<React.SetStateAction<DateTime>>
   minimumDate: DateTime
   maximumDate: DateTime
@@ -40,21 +40,27 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
   }
 
   const handleArrowButton = (value: number) => {
-    const newDate = date.plus({ days: value })
-    updateDate(newDate)
+    if (!isNil(date)) {
+      const newDate = date.plus({ days: value })
+      updateDate(newDate)
+    }
   }
 
   const renderStartAdornments = () => {
     return (
       <>
         <IconButton
-          disabled={minimumDate >= date.minus({ days: 1 })}
+          disabled={isNil(date) || minimumDate >= date.minus({ days: 1 })}
           onClick={() => handleArrowButton(-1)}
           sx={{ paddingLeft: 0, transform: 'rotate(180deg)' }}
         >
           <PlayArrow />
         </IconButton>
-        <IconButton disabled={date >= maximumDate} onClick={() => handleArrowButton(1)} sx={{ paddingLeft: 0 }}>
+        <IconButton
+          disabled={isNil(date) || date >= maximumDate}
+          onClick={() => handleArrowButton(1)}
+          sx={{ paddingLeft: 0 }}
+        >
           <PlayArrow />
         </IconButton>
       </>
@@ -73,7 +79,9 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
     <TextField
       {...other}
       value={
-        isNil(value) ? '' : value.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+        isNil(value)
+          ? 'No data available'
+          : value.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
       }
       InputProps={{
         ...InputProps,
@@ -87,7 +95,7 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
 }
 
 interface ASADatePickerProps extends DatePickerProps<DateTime> {
-  date: DateTime
+  date: DateTime | null
   updateDate: (d: DateTime) => void
   currentYearMinDate?: DateTime
   currentYearMaxDate?: DateTime
@@ -107,6 +115,8 @@ const ASADatePicker = ({
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <DatePicker
+        loading={isNil(date)}
+        renderLoading={() => <CircularProgress />}
         label="Date of Interest"
         format="yyyy/MM/dd"
         maxDate={historicalMaxDate}

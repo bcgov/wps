@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { getAllRunDates, getMostRecentRunDate, getSFMSBounds, RunType, SFMSBounds } from 'api/fbaAPI'
 import { AppThunk } from 'app/store'
 import { DateTime } from 'luxon'
@@ -94,3 +94,32 @@ export const fetchSFMSBounds = (): AppThunk => async dispatch => {
     logError(err)
   }
 }
+
+// Selectors
+const selectSFMSBounds = (state: { runDates: RunDateState }) => state.runDates.sfmsBounds
+
+const findBoundsInOrder = (
+  sfmsBounds: SFMSBounds | null,
+  sortFn: (a: string, b: string) => number,
+  hasValue: (bounds: { minimum: string; maximum: string }) => boolean
+) => {
+  if (!sfmsBounds) return null
+
+  const years = Object.keys(sfmsBounds).sort(sortFn)
+
+  for (const year of years) {
+    const bounds = sfmsBounds[year]?.forecast
+    if (bounds && hasValue(bounds)) {
+      return bounds
+    }
+  }
+  return null
+}
+
+export const selectLatestSFMSBounds = createSelector([selectSFMSBounds], sfmsBounds =>
+  findBoundsInOrder(sfmsBounds, (a, b) => b.localeCompare(a), bounds => !!bounds.maximum)
+)
+
+export const selectEarliestSFMSBounds = createSelector([selectSFMSBounds], sfmsBounds =>
+  findBoundsInOrder(sfmsBounds, (a, b) => a.localeCompare(b), bounds => !!bounds.minimum)
+)

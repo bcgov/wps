@@ -6,7 +6,7 @@ import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDro
 import { StyledFormControl } from '@/components/StyledFormControl'
 import { SFMS_INSIGHTS_NAME } from '@/utils/constants'
 import { getMostRecentProcessedSnowByDate } from '@/api/snow'
-import { fetchSFMSBounds } from '@/features/fba/slices/runDatesSlice'
+import { fetchSFMSBounds, selectLatestSFMSBounds, selectEarliestSFMSBounds } from '@/features/fba/slices/runDatesSlice'
 import { Box, Checkbox, CircularProgress, FormControlLabel, Grid } from '@mui/material'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
@@ -15,28 +15,20 @@ import { isNull } from 'lodash'
 import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 import { getDateTimeNowPST } from '@/utils/date'
 import { AppDispatch } from '@/app/store'
-import { RootState } from '@/app/rootReducer'
 
 export const SFMSInsightsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const sfmsBounds = useSelector((state: RootState) => state.runDates.sfmsBounds)
+  const latestBounds = useSelector(selectLatestSFMSBounds)
+  const earliestBounds = useSelector(selectEarliestSFMSBounds)
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const [rasterDate, setRasterDate] = useState<DateTime | null>(null)
+  const [maxDate, setMaxDate] = useState<DateTime>(getDateTimeNowPST().plus({ days: 10 }))
+  const [minDate, setMinDate] = useState<DateTime>(
+    DateTime.fromObject({ day: 1, month: 1, year: getDateTimeNowPST().year })
+  )
+
   const [rasterType, setRasterType] = useState<RasterType>('fwi')
   const [showSnow, setShowSnow] = useState<boolean>(true)
-
-  // Calculate max date from SFMS bounds
-  const currentYear = getDateTimeNowPST().year.toString()
-  const forecastBounds = sfmsBounds?.[currentYear]?.forecast
-  const maxDate = forecastBounds?.maximum
-    ? DateTime.fromISO(forecastBounds.maximum)
-    : getDateTimeNowPST().plus({ days: 10 })
-
-  // Set date ranges for the date picker - disable dates after maxDate
-  const historicalMinDate = DateTime.fromISO('2024-01-01')
-  const historicalMaxDate = maxDate
-  const currentYearMinDate = DateTime.fromISO('2025-01-01')
-  const currentYearMaxDate = maxDate
 
   useEffect(() => {
     // Fetch SFMS bounds on mount
@@ -45,15 +37,15 @@ export const SFMSInsightsPage = () => {
 
   useEffect(() => {
     // Set rasterDate once SFMS bounds are loaded
-    if (!sfmsBounds) return
-
-    const currentYear = getDateTimeNowPST().year.toString()
-    const forecastBounds = sfmsBounds[currentYear]?.forecast
-
-    if (forecastBounds?.maximum) {
-      setRasterDate(DateTime.fromISO(forecastBounds.maximum))
+    if (latestBounds?.maximum) {
+      const latestBoundsDateTime = DateTime.fromISO(latestBounds.maximum)
+      setRasterDate(latestBoundsDateTime)
+      setMaxDate(latestBoundsDateTime)
     }
-  }, [sfmsBounds])
+    if (earliestBounds?.minimum) {
+      setMinDate(DateTime.fromISO(earliestBounds.minimum))
+    }
+  }, [latestBounds, earliestBounds])
 
   useEffect(() => {
     // Only fetch snow data once rasterDate is set
@@ -87,45 +79,35 @@ export const SFMSInsightsPage = () => {
         }}
       >
         <Grid container spacing={1} alignItems={'center'}>
-          {!rasterDate ? (
-            <Grid item>
-              <StyledFormControl>
-                <Box sx={{ display: 'flex', alignItems: 'center', padding: 2 }}>
-                  <CircularProgress size={24} />
-                </Box>
-              </StyledFormControl>
-            </Grid>
-          ) : (
-            <>
-              <Grid item>
-                <StyledFormControl>
-                  <ASADatePicker
-                    date={rasterDate}
-                    updateDate={setRasterDate}
-                    historicalMinDate={historicalMinDate}
-                    historicalMaxDate={historicalMaxDate}
-                    currentYearMinDate={currentYearMinDate}
-                    currentYearMaxDate={currentYearMaxDate}
-                  />
-                </StyledFormControl>
-              </Grid>
-              <Grid item>
-                <StyledFormControl>
-                  <RasterTypeDropdown selectedRasterType={rasterType} setSelectedRasterType={setRasterType} />
-                </StyledFormControl>
-              </Grid>
-              <Grid item>
-                <FormControlLabel
-                  control={<Checkbox checked={showSnow} onChange={e => setShowSnow(e.target.checked)} />}
-                  label={snowDate ? `Show Latest Snow: ${snowDate.toLocaleString(DateTime.DATE_MED)}` : 'Show Latest Snow'}
-                />
-              </Grid>
-            </>
-          )}
+          <Grid item>
+            <StyledFormControl>
+              <ASADatePicker
+                date={rasterDate}
+                updateDate={setRasterDate}
+                historicalMinDate={minDate}
+                historicalMaxDate={maxDate}
+                currentYearMinDate={minDate}
+                currentYearMaxDate={maxDate}
+              />
+            </StyledFormControl>
+          </Grid>
+          <Grid item>
+            <StyledFormControl>
+              <RasterTypeDropdown selectedRasterType={rasterType} setSelectedRasterType={setRasterType} />
+            </StyledFormControl>
+          </Grid>
+          <Grid item>
+            <FormControlLabel
+              control={<Checkbox checked={showSnow} onChange={e => setShowSnow(e.target.checked)} />}
+              label={snowDate ? `Show Latest Snow: ${snowDate.toLocaleString(DateTime.DATE_MED)}` : 'Show Latest Snow'}
+            />
+          </Grid>
         </Grid>
       </Box>
       <Box sx={{ flex: 1, position: 'relative' }}>
-        {rasterDate && <SFMSMap snowDate={snowDate} rasterDate={rasterDate} rasterType={rasterType} showSnow={showSnow} />}
+        {rasterDate && (
+          <SFMSMap snowDate={snowDate} rasterDate={rasterDate} rasterType={rasterType} showSnow={showSnow} />
+        )}
       </Box>
       <Footer />
     </Box>
