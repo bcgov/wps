@@ -64,4 +64,25 @@ describe('ASADatePicker', () => {
     // Picker behavior is internal, so just ensure the button is clickable
     // Actual popover logic would be tested in integration or MUI tests
   })
+
+  it('shows "No data available" when date is null', () => {
+    setup({ date: null })
+    const input = screen.getByDisplayValue('No data available')
+    expect(input).toBeInTheDocument()
+  })
+
+  it('disables both arrow buttons when date is null', () => {
+    setup({ date: null })
+    const arrows = screen.getAllByRole('button', { name: '' })
+    expect(arrows[0]).toBeDisabled() // left arrow
+    expect(arrows[1]).toBeDisabled() // right arrow
+  })
+
+  it('does not call updateDate when arrows are clicked and date is null', () => {
+    const { updateDate } = setup({ date: null })
+    const arrows = screen.getAllByRole('button', { name: '' })
+    fireEvent.click(arrows[0]) // left arrow
+    fireEvent.click(arrows[1]) // right arrow
+    expect(updateDate).not.toHaveBeenCalled()
+  })
 })
