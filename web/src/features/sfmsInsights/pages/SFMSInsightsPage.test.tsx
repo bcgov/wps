@@ -96,7 +96,7 @@ describe('SFMSInsightsPage', () => {
   it('should render the snow checkbox', async () => {
     renderWithStore(<SFMSInsightsPage />)
     await waitFor(() => {
-      const checkbox = screen.getByRole('checkbox', { name: /show snow/i })
+      const checkbox = screen.getByRole('checkbox', { name: /show latest snow/i })
       expect(checkbox).toBeInTheDocument()
     })
   })
@@ -104,7 +104,7 @@ describe('SFMSInsightsPage', () => {
   it('should have the snow checkbox checked by default', async () => {
     renderWithStore(<SFMSInsightsPage />)
     await waitFor(() => {
-      const checkbox = screen.getByRole('checkbox', { name: /show snow/i }) as HTMLInputElement
+      const checkbox = screen.getByRole('checkbox', { name: /show latest snow/i }) as HTMLInputElement
       expect(checkbox.checked).toBe(true)
     })
   })
@@ -113,11 +113,11 @@ describe('SFMSInsightsPage', () => {
     renderWithStore(<SFMSInsightsPage />)
 
     await waitFor(() => {
-      const checkbox = screen.getByRole('checkbox', { name: /show snow/i })
+      const checkbox = screen.getByRole('checkbox', { name: /show latest snow/i })
       expect(checkbox).toBeInTheDocument()
     })
 
-    const checkbox = screen.getByRole('checkbox', { name: /show snow/i }) as HTMLInputElement
+    const checkbox = screen.getByRole('checkbox', { name: /show latest snow/i }) as HTMLInputElement
     expect(checkbox.checked).toBe(true)
 
     fireEvent.click(checkbox)
@@ -138,7 +138,7 @@ describe('SFMSInsightsPage', () => {
 
   it('should pass showSnow=false to SFMSMap when checkbox is unchecked', async () => {
     renderWithStore(<SFMSInsightsPage />)
-    const checkbox = screen.getByRole('checkbox', { name: /show snow/i })
+    const checkbox = screen.getByRole('checkbox', { name: /show latest snow/i })
 
     fireEvent.click(checkbox)
 
@@ -153,7 +153,7 @@ describe('SFMSInsightsPage', () => {
 
     await waitFor(() => {
       const rasterDropdown = screen.getByTestId('raster-type-dropdown')
-      const snowCheckbox = screen.getByRole('checkbox', { name: /show snow/i })
+      const snowCheckbox = screen.getByRole('checkbox', { name: /show latest snow/i })
 
       expect(rasterDropdown).toBeInTheDocument()
       expect(snowCheckbox).toBeInTheDocument()
@@ -175,6 +175,26 @@ describe('SFMSInsightsPage', () => {
       const map = screen.getByTestId('sfms-map')
       const snowDate = map.dataset.snowDate
       expect(snowDate).toContain('2025-11-02T00:00:00')
+    })
+  })
+
+  it('should display snow date in checkbox label when available', async () => {
+    renderWithStore(<SFMSInsightsPage />)
+
+    await waitFor(() => {
+      const checkbox = screen.getByRole('checkbox', { name: /show latest snow: nov 2, 2025/i })
+      expect(checkbox).toBeInTheDocument()
+    })
+  })
+
+  it('should display "Show Latest Snow" without date when no snow data available', async () => {
+    ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValue(null)
+
+    renderWithStore(<SFMSInsightsPage />)
+
+    await waitFor(() => {
+      const checkbox = screen.getByRole('checkbox', { name: 'Show Latest Snow' })
+      expect(checkbox).toBeInTheDocument()
     })
   })
 
