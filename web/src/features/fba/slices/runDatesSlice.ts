@@ -10,7 +10,8 @@ export interface RunDateState {
   runDates: DateTime[]
   mostRecentRunDate: string | null
   sfmsBoundsError: string | null
-  sfmsBounds: SFMSBounds | null
+  sfmsBounds: SFMSBounds | null | undefined
+  sfmsBoundsLoading: boolean
 }
 
 export const initialState: RunDateState = {
@@ -19,7 +20,8 @@ export const initialState: RunDateState = {
   runDates: [],
   mostRecentRunDate: null,
   sfmsBoundsError: null,
-  sfmsBounds: null
+  sfmsBounds: undefined,
+  sfmsBoundsLoading: false
 }
 
 const runDatesSlice = createSlice({
@@ -47,14 +49,17 @@ const runDatesSlice = createSlice({
     },
     getSFMSBoundsStart(state: RunDateState) {
       state.sfmsBounds = null
+      state.sfmsBoundsLoading = true
     },
     getSFMSBoundsFailed(state: RunDateState, action: PayloadAction<string>) {
       state.sfmsBounds = null
       state.sfmsBoundsError = action.payload
+      state.sfmsBoundsLoading = false
     },
     getSFMSBoundsSuccess(state: RunDateState, action: PayloadAction<{ sfms_bounds: SFMSBounds }>) {
       state.sfmsBoundsError = null
       state.sfmsBounds = action.payload.sfms_bounds
+      state.sfmsBoundsLoading = false
     }
   }
 })
@@ -99,11 +104,11 @@ export const fetchSFMSBounds = (): AppThunk => async dispatch => {
 const selectSFMSBounds = (state: { runDates: RunDateState }) => state.runDates.sfmsBounds
 
 const findBoundsInOrder = (
-  sfmsBounds: SFMSBounds | null,
+  sfmsBounds: SFMSBounds | null | undefined,
   sortFn: (a: string, b: string) => number,
   hasValue: (bounds: { minimum: string; maximum: string }) => boolean
 ) => {
-  if (!sfmsBounds) return null
+  if (!sfmsBounds || sfmsBounds === null) return null
 
   const years = Object.keys(sfmsBounds).sort(sortFn)
 

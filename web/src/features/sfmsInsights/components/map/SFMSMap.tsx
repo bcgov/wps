@@ -33,7 +33,7 @@ const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 interface SFMSMapProps {
   snowDate: DateTime | null
-  rasterDate: DateTime
+  rasterDate: DateTime | null
   rasterType?: RasterType
   showSnow?: boolean
 }
@@ -93,7 +93,10 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
       trackLoading: true
     })
     rasterLayerManager.setMap(mapObject)
-    rasterLayerManager.updateLayer(getRasterLayer(rasterDate, rasterType, token))
+    // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
+    if (rasterDate || rasterType === 'fuel') {
+      rasterLayerManager.updateLayer(getRasterLayer(rasterDate!, rasterType, token))
+    }
     rasterLayerManagerRef.current = rasterLayerManager
 
     // Initialize snow layer manager
@@ -127,7 +130,12 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     setRasterError(null)
 
     if (rasterLayerManagerRef.current) {
-      rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate, rasterType, token))
+      // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
+      if (rasterDate || rasterType === 'fuel') {
+        rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate!, rasterType, token))
+      } else {
+        rasterLayerManagerRef.current.updateLayer(null)
+      }
     }
   }, [rasterDate, rasterType, token])
 

@@ -3,6 +3,7 @@ import { SFMSInsightsPage } from './SFMSInsightsPage'
 import { Provider } from 'react-redux'
 import { createTestStore } from '@/test/testUtils'
 import { getMostRecentProcessedSnowByDate } from '@/api/snow'
+import { getSFMSBounds } from '@/api/fbaAPI'
 import { getDateTimeNowPST } from '@/utils/date'
 import { DateTime } from 'luxon'
 import { Mock } from 'vitest'
@@ -15,14 +16,18 @@ vi.mock('@/utils/date', () => ({
   getDateTimeNowPST: vi.fn()
 }))
 
+vi.mock('@/api/fbaAPI', () => ({
+  getSFMSBounds: vi.fn()
+}))
+
 vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
   return {
-    default: ({ showSnow, snowDate, rasterDate }: { showSnow: boolean; snowDate: DateTime | null; rasterDate: DateTime }) => (
+    default: ({ showSnow, snowDate, rasterDate }: { showSnow: boolean; snowDate: DateTime | null; rasterDate: DateTime | null }) => (
       <div
         data-testid="sfms-map"
         data-show-snow={showSnow}
         data-snow-date={snowDate?.toISO() ?? 'null'}
-        data-raster-date={rasterDate.toISO()}
+        data-raster-date={rasterDate?.toISO() ?? 'null'}
       >
         Mock SFMS Map
       </div>
@@ -112,6 +117,7 @@ describe('SFMSInsightsPage', () => {
     runDates: [],
     mostRecentRunDate: null,
     sfmsBoundsError: null,
+    sfmsBoundsLoading: false,
     sfmsBounds: {
       '2024': {
         forecast: {
@@ -133,17 +139,20 @@ describe('SFMSInsightsPage', () => {
       authentication: defaultAuthentication,
       runDates: {
         ...defaultRunDates,
-        ...(sfmsBounds !== undefined && { sfmsBounds })
+        ...(sfmsBounds !== undefined && { sfmsBounds, sfmsBoundsLoading: false })
       }
     })
     return render(<Provider store={store}>{<SFMSInsightsPage />}</Provider>)
   }
 
   const waitForPageLoad = async () => {
-    // Wait for SFMS bounds to be fetched and page to finish loading
+    // Wait for SFMS bounds loading to complete
+    // Either the loading spinner disappears, or the date picker appears
     await waitFor(
       () => {
-        expect(screen.queryByText('Loading...')).not.toBeInTheDocument()
+        const hasDatePicker = screen.queryByTestId('date-picker') !== null
+        const hasNoSpinner = screen.queryByRole('progressbar') === null
+        expect(hasDatePicker || hasNoSpinner).toBe(true)
       },
       { timeout: 3000 }
     )
@@ -158,6 +167,23 @@ describe('SFMSInsightsPage', () => {
     })
     // Mock getDateTimeNowPST to return a date in 2025
     ;(getDateTimeNowPST as Mock).mockReturnValue(DateTime.fromISO('2025-11-02T00:00:00.000-08:00'))
+    // Mock getSFMSBounds API call
+    ;(getSFMSBounds as Mock).mockResolvedValue({
+      sfms_bounds: {
+        '2024': {
+          forecast: {
+            minimum: '2024-01-01',
+            maximum: '2024-12-31'
+          }
+        },
+        '2025': {
+          forecast: {
+            minimum: '2025-01-01',
+            maximum: '2025-11-02'
+          }
+        }
+      }
+    })
   })
 
   it('should load rasterDate from SFMS bounds in store', async () => {
@@ -356,10 +382,15 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should not set rasterDate when latestBounds is null', async () => {
+    // Mock getSFMSBounds to return null
+    ;(getSFMSBounds as Mock).mockResolvedValueOnce({ sfms_bounds: null })
+
     renderWithStore(null)
 
-    const datePicker = screen.getByTestId('date-picker')
-    expect(datePicker).toBeInTheDocument()
+    // Wait for fetch to complete
+    await waitFor(() => {
+      expect(screen.getByTestId('date-picker')).toBeInTheDocument()
+    })
 
     const currentDate = screen.getByTestId('current-date')
     expect(currentDate.textContent).toBe('null')

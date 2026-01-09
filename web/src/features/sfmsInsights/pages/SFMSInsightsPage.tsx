@@ -7,7 +7,7 @@ import { StyledFormControl } from '@/components/StyledFormControl'
 import { SFMS_INSIGHTS_NAME } from '@/utils/constants'
 import { getMostRecentProcessedSnowByDate } from '@/api/snow'
 import { fetchSFMSBounds, selectLatestSFMSBounds, selectEarliestSFMSBounds } from '@/features/fba/slices/runDatesSlice'
-import { Box, Checkbox, FormControlLabel, Grid } from '@mui/material'
+import { Box, Checkbox, FormControlLabel, Grid, CircularProgress } from '@mui/material'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -20,6 +20,8 @@ export const SFMSInsightsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const latestBounds = useSelector(selectLatestSFMSBounds)
   const earliestBounds = useSelector(selectEarliestSFMSBounds)
+  const sfmsBounds = useSelector((state: any) => state.runDates.sfmsBounds)
+  const sfmsBoundsLoading = useSelector((state: any) => state.runDates.sfmsBoundsLoading)
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const [rasterDate, setRasterDate] = useState<DateTime | null>(null)
   const [maxDate, setMaxDate] = useState<DateTime>(getDateTimeNowPST().plus({ days: 10 }))
@@ -31,9 +33,12 @@ export const SFMSInsightsPage = () => {
   const [showSnow, setShowSnow] = useState<boolean>(true)
 
   useEffect(() => {
-    // Fetch SFMS bounds on mount
-    dispatch(fetchSFMSBounds())
-  }, [dispatch])
+    // Only fetch SFMS bounds if we haven't fetched yet (undefined) and aren't already loading
+    if (sfmsBounds === undefined && !sfmsBoundsLoading) {
+      dispatch(fetchSFMSBounds())
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     // Set rasterDate once SFMS bounds are loaded
@@ -82,18 +87,28 @@ export const SFMSInsightsPage = () => {
         }}
       >
         <Grid container spacing={1} alignItems={'center'}>
-          <Grid item>
-            <StyledFormControl>
-              <ASADatePicker
-                date={rasterDate}
-                updateDate={setRasterDate}
-                historicalMinDate={minDate}
-                historicalMaxDate={maxDate}
-                currentYearMinDate={minDate}
-                currentYearMaxDate={maxDate}
-              />
-            </StyledFormControl>
-          </Grid>
+          {sfmsBoundsLoading ? (
+            <Grid item>
+              <StyledFormControl>
+                <Box sx={{ display: 'flex', alignItems: 'center', padding: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              </StyledFormControl>
+            </Grid>
+          ) : (
+            <Grid item>
+              <StyledFormControl>
+                <ASADatePicker
+                  date={rasterDate}
+                  updateDate={setRasterDate}
+                  historicalMinDate={minDate}
+                  historicalMaxDate={maxDate}
+                  currentYearMinDate={minDate}
+                  currentYearMaxDate={maxDate}
+                />
+              </StyledFormControl>
+            </Grid>
+          )}
           <Grid item>
             <StyledFormControl>
               <RasterTypeDropdown
@@ -112,9 +127,7 @@ export const SFMSInsightsPage = () => {
         </Grid>
       </Box>
       <Box sx={{ flex: 1, position: 'relative' }}>
-        {rasterDate && (
-          <SFMSMap snowDate={snowDate} rasterDate={rasterDate} rasterType={rasterType} showSnow={showSnow} />
-        )}
+        <SFMSMap snowDate={snowDate} rasterDate={rasterDate} rasterType={rasterType} showSnow={showSnow} />
       </Box>
       <Footer />
     </Box>
