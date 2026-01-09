@@ -10,7 +10,9 @@ import reducer, {
   getSFMSBoundsFailed,
   getSFMSBoundsStart,
   getSFMSBoundsSuccess,
-  initialState
+  initialState,
+  selectLatestSFMSBounds,
+  selectEarliestSFMSBounds
 } from '@/features/fba/slices/runDatesSlice'
 
 import { createTestStore } from '@/test/testUtils'
@@ -89,21 +91,23 @@ describe('runDatesSlice reducer', () => {
     expect(next.mostRecentRunDate).toBe('2025-01-02')
   })
 
-  it('getSFMSBoundsStart clears sfmsBounds', () => {
-    const prev = { ...initialState, sfmsBounds: {} as SFMSBounds }
+  it('getSFMSBoundsStart clears sfmsBounds and sets loading', () => {
+    const prev = { ...initialState, sfmsBounds: {} as SFMSBounds, sfmsBoundsLoading: false }
     const next = reducer(prev, getSFMSBoundsStart())
     expect(next.sfmsBounds).toBeNull()
+    expect(next.sfmsBoundsLoading).toBe(true)
   })
 
-  it('getSFMSBoundsFailed sets sfmsBoundsError and clears sfmsBounds', () => {
-    const prev = { ...initialState, sfmsBounds: {} as SFMSBounds }
+  it('getSFMSBoundsFailed sets sfmsBoundsError, clears sfmsBounds and stops loading', () => {
+    const prev = { ...initialState, sfmsBounds: {} as SFMSBounds, sfmsBoundsLoading: true }
     const next = reducer(prev, getSFMSBoundsFailed('bad bounds'))
     expect(next.sfmsBounds).toBeNull()
     expect(next.sfmsBoundsError).toBe('bad bounds')
+    expect(next.sfmsBoundsLoading).toBe(false)
   })
 
-  it('getSFMSBoundsSuccess sets bounds and clears error', () => {
-    const prev = { ...initialState, sfmsBoundsError: 'oops' }
+  it('getSFMSBoundsSuccess sets bounds, clears error and stops loading', () => {
+    const prev = { ...initialState, sfmsBoundsError: 'oops', sfmsBoundsLoading: true }
     const bounds: SFMSBounds = {
       2025: {
         forecast: {
@@ -115,6 +119,7 @@ describe('runDatesSlice reducer', () => {
     const next = reducer(prev, getSFMSBoundsSuccess({ sfms_bounds: bounds }))
     expect(next.sfmsBoundsError).toBeNull()
     expect(next.sfmsBounds).toEqual(bounds)
+    expect(next.sfmsBoundsLoading).toBe(false)
   })
 })
 
@@ -160,7 +165,7 @@ describe('fetchSFMSBounds thunk', () => {
     vi.clearAllMocks()
   })
 
-  it('should update state with runDates and mostRecentRunDate', async () => {
+  it('should update state with sfmsBounds and stop loading', async () => {
     const sfmsBounds: SFMSBoundsResponse = {
       sfms_bounds: {
         2025: {
@@ -180,9 +185,10 @@ describe('fetchSFMSBounds thunk', () => {
     expect(runDatesState.loading).toBe(false)
     expect(runDatesState.sfmsBoundsError).toBeNull()
     expect(runDatesState.sfmsBounds).toBe(sfmsBounds.sfms_bounds)
+    expect(runDatesState.sfmsBoundsLoading).toBe(false)
   })
 
-  it('should log an error', async () => {
+  it('should log an error and stop loading', async () => {
     const error = 'Error'
     mockedGetSFMSBounds.mockRejectedValue(error)
     const store = createTestStore({ runDates: initialState }, runDatesReducer)
@@ -190,6 +196,145 @@ describe('fetchSFMSBounds thunk', () => {
     await dispatch(fetchSFMSBounds())
     const runDatesState = store.getState().runDates
     expect(runDatesState.sfmsBoundsError).toBe(error)
+    expect(runDatesState.sfmsBoundsLoading).toBe(false)
     expect(mockedLogError).toHaveBeenCalled()
+  })
+})
+
+describe('SFMS bounds selectors', () => {
+  it('selectLatestSFMSBounds returns bounds from most recent year', () => {
+    const state = {
+      runDates: {
+        ...initialState,
+        sfmsBounds: {
+          '2024': {
+            forecast: {
+              minimum: '2024-01-01',
+              maximum: '2024-12-31'
+            }
+          },
+          '2025': {
+            forecast: {
+              minimum: '2025-01-01',
+              maximum: '2025-11-02'
+            }
+          }
+        }
+      }
+    }
+
+    const result = selectLatestSFMSBounds(state)
+    expect(result).toEqual({
+      minimum: '2025-01-01',
+      maximum: '2025-11-02'
+    })
+  })
+
+  it('selectLatestSFMSBounds returns null when sfmsBounds is null', () => {
+    const state = {
+      runDates: {
+        ...initialState,
+        sfmsBounds: null
+      }
+    }
+
+    const result = selectLatestSFMSBounds(state)
+    expect(result).toBeNull()
+  })
+
+  it('selectLatestSFMSBounds skips years without maximum', () => {
+    const state = {
+      runDates: {
+        ...initialState,
+        sfmsBounds: {
+          '2024': {
+            forecast: {
+              minimum: '2024-01-01',
+              maximum: ''
+            }
+          },
+          '2023': {
+            forecast: {
+              minimum: '2023-01-01',
+              maximum: '2023-12-31'
+            }
+          }
+        }
+      }
+    }
+
+    const result = selectLatestSFMSBounds(state)
+    expect(result).toEqual({
+      minimum: '2023-01-01',
+      maximum: '2023-12-31'
+    })
+  })
+
+  it('selectEarliestSFMSBounds returns bounds from earliest year', () => {
+    const state = {
+      runDates: {
+        ...initialState,
+        sfmsBounds: {
+          '2024': {
+            forecast: {
+              minimum: '2024-01-01',
+              maximum: '2024-12-31'
+            }
+          },
+          '2025': {
+            forecast: {
+              minimum: '2025-01-01',
+              maximum: '2025-11-02'
+            }
+          }
+        }
+      }
+    }
+
+    const result = selectEarliestSFMSBounds(state)
+    expect(result).toEqual({
+      minimum: '2024-01-01',
+      maximum: '2024-12-31'
+    })
+  })
+
+  it('selectEarliestSFMSBounds returns null when sfmsBounds is null', () => {
+    const state = {
+      runDates: {
+        ...initialState,
+        sfmsBounds: null
+      }
+    }
+
+    const result = selectEarliestSFMSBounds(state)
+    expect(result).toBeNull()
+  })
+
+  it('selectEarliestSFMSBounds skips years without minimum', () => {
+    const state = {
+      runDates: {
+        ...initialState,
+        sfmsBounds: {
+          '2023': {
+            forecast: {
+              minimum: '',
+              maximum: '2023-12-31'
+            }
+          },
+          '2024': {
+            forecast: {
+              minimum: '2024-01-01',
+              maximum: '2024-12-31'
+            }
+          }
+        }
+      }
+    }
+
+    const result = selectEarliestSFMSBounds(state)
+    expect(result).toEqual({
+      minimum: '2024-01-01',
+      maximum: '2024-12-31'
+    })
   })
 })
