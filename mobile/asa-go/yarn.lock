@@ -334,10 +334,10 @@
   resolved "https://registry.npmjs.org/@capacitor/splash-screen/-/splash-screen-7.0.2.tgz"
   integrity sha512-bchh4F73CnVONm6XFEgXKEhbSEDQh2CQ0rNSoasIeJ5pf9JqHkkPS3t0Fnm33qHkLVFcaPoKPW69Y9zMpT5Vxg==
 
-"@capacitor/status-bar@7.0.0":
-  version "7.0.0"
-  resolved "https://registry.npmjs.org/@capacitor/status-bar/-/status-bar-7.0.0.tgz"
-  integrity sha512-wsvPkWkoSOXMIgVHu4c6P1sOuDSZ1ClUo5OpLRwj7u8DYzlV4jlmNzztQn2Lvsiqx1z4kfukSaqe40k1Lo4c9g==
+"@capacitor/status-bar@8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/status-bar/-/status-bar-8.0.0.tgz#07ad5a765d2aa9a201a7472f6fd5cb44b25d25a5"
+  integrity sha512-aIj3bc7z8lfPgOen8HlrBrkfnxpFnh21OCx6jCUx4Mvv+B6eEkUQ49b32DOddgVfr+igRHLX2SYi7duqIsNDXg==
 
 "@capacitor/synapse@^1.0.3":
   version "1.0.4"
