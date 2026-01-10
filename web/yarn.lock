@@ -6066,10 +6066,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:^16.0.0":
-  version: 16.0.0
-  resolution: "globals@npm:16.0.0"
-  checksum: 10c0/8906d5f01838df64a81d6c2a7b7214312e2216cf65c5ed1546dc9a7d0febddf55ffa906cf04efd5b01eec2534d6f14859a89535d1a68241832810e41ef3fd5bb
+"globals@npm:^17.0.0":
+  version: 17.0.0
+  resolution: "globals@npm:17.0.0"
+  checksum: 10c0/e3c169fdcb0fc6755707b697afb367bea483eb29992cfc0de1637382eb893146e17f8f96db6d7453e3696b478a7863ae2000e6c71cd2f4061410285106d3847a
   languageName: node
   linkType: hard
 
@@ -10777,7 +10777,7 @@ __metadata:
     eslint-plugin-react-refresh: "npm:^0.4.7"
     esri-leaflet: "npm:3.0.12"
     filefy: "npm:^0.1.11"
-    globals: "npm:^16.0.0"
+    globals: "npm:^17.0.0"
     jsdom: "npm:^26.0.0"
     jwt-decode: "npm:^4.0.0"
     keycloak-js: "npm:^25.0.0"
