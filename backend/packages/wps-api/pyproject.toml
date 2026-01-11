@@ -8,7 +8,7 @@ dependencies = [
     "wps-shared",
     "fastapi>=0,<1",
     "requests>=2,<3",
-    "aiodns>=3,<4",
+    "aiodns>=4,<5",
     "aiohttp>=3,<4",
     "pandas>=2,<3",
     "pyjwt>=2,<3",
