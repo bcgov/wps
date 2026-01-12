@@ -95,7 +95,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     rasterLayerManager.setMap(mapObject)
     // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
     if (rasterDate || rasterType === 'fuel') {
-      rasterLayerManager.updateLayer(getRasterLayer(rasterDate!, rasterType, token))
+      rasterLayerManager.updateLayer(getRasterLayer(rasterDate, rasterType, token))
     }
     rasterLayerManagerRef.current = rasterLayerManager
 
@@ -132,7 +132,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     if (rasterLayerManagerRef.current) {
       // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
       if (rasterDate || rasterType === 'fuel') {
-        rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate!, rasterType, token))
+        rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate, rasterType, token))
       } else {
         rasterLayerManagerRef.current.updateLayer(null)
       }

@@ -131,9 +131,13 @@ export const getFuelCOGTiles = (token?: string) => {
  * Get the appropriate raster layer based on type
  * Handles both fire weather rasters (date-dependent) and fuel raster (static)
  */
-export const getRasterLayer = (date: DateTime, rasterType: RasterType, token: string | undefined) => {
+export const getRasterLayer = (date: DateTime | null, rasterType: RasterType, token: string | undefined) => {
   if (rasterType === 'fuel') {
     return getFuelCOGTiles(token)
   }
-  return getFireWeatherRasterLayer(date, rasterType, token)
+  if (!date) {
+    console.error('date is required for fire weather rasters')
+    return null
+  }
+  return getFireWeatherRasterLayer(date as DateTime, rasterType, token)
 }
