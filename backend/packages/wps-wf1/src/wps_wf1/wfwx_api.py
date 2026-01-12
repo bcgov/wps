@@ -14,8 +14,10 @@ from wps_shared.schemas.observations import WeatherStationHourlyReadings
 from wps_shared.schemas.stations import (
     DetailedWeatherStationProperties,
     GeoJsonDetailedWeatherStation,
+    GeoJsonWeatherStation,
     WeatherStation,
     WeatherStationGeometry,
+    WeatherStationProperties,
     WeatherVariables,
     WFWXWeatherStation,
 )
@@ -531,6 +533,24 @@ class WfwxApi:
             stations_in_group = mapper(stations)
             stations_in_groups.extend(stations_in_group)
         return stations_in_groups
+
+    async def get_stations_as_geojson(self) -> List[GeoJsonWeatherStation]:
+        """Format stations to conform to GeoJson spec"""
+        geojson_stations = []
+        stations = await self.get_station_data()()
+        for station in stations:
+            geojson_stations.append(
+                GeoJsonWeatherStation(
+                    properties=WeatherStationProperties(
+                        code=station.code,
+                        name=station.name,
+                        ecodivision_name=station.ecodivision_name,
+                        core_season=station.core_season,
+                    ),
+                    geometry=WeatherStationGeometry(coordinates=[station.long, station.lat]),
+                )
+            )
+        return geojson_stations
 
     async def post_forecasts(self, forecasts: List[WF1PostForecast]):
         logger.info("Using WFWX to post/put forecasts")

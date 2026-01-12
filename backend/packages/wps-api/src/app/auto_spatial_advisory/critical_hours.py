@@ -38,7 +38,6 @@ from wps_shared.run_type import RunType
 from wps_shared.schemas.fba_calc import AdjustedFWIResult, CriticalHoursHFI
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
 from wps_shared.schemas.stations import WFWXWeatherStation
-from wps_shared.stations import get_stations_asynchronously
 from wps_shared.utils.s3 import get_client
 from wps_shared.utils.time import get_hour_20_from_date, get_julian_date
 from wps_shared.wps_logging import configure_logging
@@ -563,7 +562,8 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
 
             fuel_type_raster = await get_fuel_type_raster_by_year(db_session, for_date.year)
             async with ClientSession() as client_session:
-                all_stations = await get_stations_asynchronously()
+                wfwx_api = WfwxApi(client_session)
+                all_stations = await wfwx_api.get_station_data()
                 station_codes = [station.code for station in all_stations]
                 fire_centre_station_codes = get_fire_centre_station_codes()
                 wfwx_api = WfwxApi(client_session)
