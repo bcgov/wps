@@ -139,5 +139,5 @@ export const getRasterLayer = (date: DateTime | null, rasterType: RasterType, to
     console.error('date is required for fire weather rasters')
     return null
   }
-  return getFireWeatherRasterLayer(date as DateTime, rasterType, token)
+  return getFireWeatherRasterLayer(date, rasterType, token)
 }
