@@ -24,12 +24,14 @@ interface CustomDateTextFieldProps
   updateDate: React.Dispatch<React.SetStateAction<DateTime>>
   minimumDate: DateTime
   maximumDate: DateTime
+  disabled?: boolean
 }
 
 function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
   const { internalProps, forwardedProps } = useSplitFieldProps(props, 'date')
   const { value } = internalProps
   const { date, updateDate, minimumDate, maximumDate, slotProps, InputProps, ...other } = forwardedProps
+  const disabled = props.disabled
   const pickersContext = usePickersContext()
   const handleTogglePicker = (event: React.UIEvent) => {
     if (pickersContext.open) {
@@ -50,14 +52,14 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
     return (
       <>
         <IconButton
-          disabled={isNil(date) || minimumDate >= date.minus({ days: 1 })}
+          disabled={disabled || isNil(date) || minimumDate >= date.minus({ days: 1 })}
           onClick={() => handleArrowButton(-1)}
           sx={{ paddingLeft: 0, transform: 'rotate(180deg)' }}
         >
           <PlayArrow />
         </IconButton>
         <IconButton
-          disabled={isNil(date) || date >= maximumDate}
+          disabled={disabled || isNil(date) || date >= maximumDate}
           onClick={() => handleArrowButton(1)}
           sx={{ paddingLeft: 0 }}
         >
@@ -69,7 +71,7 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
 
   const renderEndAdornments = () => {
     return (
-      <IconButton aria-label="calendar" onClick={handleTogglePicker}>
+      <IconButton aria-label="calendar" onClick={handleTogglePicker} disabled={disabled}>
         <CalendarIcon color="action" />
       </IconButton>
     )
@@ -78,6 +80,7 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
   return (
     <TextField
       {...other}
+      disabled={disabled}
       value={
         isNil(value)
           ? 'No data available'
@@ -88,7 +91,7 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
         readOnly: true,
         startAdornment: renderStartAdornments(),
         endAdornment: renderEndAdornments(),
-        sx: { cursor: 'pointer', '& *': { cursor: 'inherit' } }
+        sx: { cursor: disabled ? 'default' : 'pointer', '& *': { cursor: 'inherit' } }
       }}
     />
   )
@@ -110,6 +113,7 @@ const ASADatePicker = ({
   historicalMinDate,
   historicalMaxDate,
   updateDate,
+  disabled,
   ...other
 }: ASADatePickerProps) => {
   return (
@@ -121,6 +125,7 @@ const ASADatePicker = ({
         format="yyyy/MM/dd"
         maxDate={historicalMaxDate}
         minDate={historicalMinDate}
+        disabled={disabled}
         onAccept={(newValue: DateTime | null) => {
           if (!isNull(newValue) && newValue.isValid) {
             updateDate(newValue)
@@ -130,7 +135,13 @@ const ASADatePicker = ({
         slotProps={{
           ...other.slotProps,
           actionBar: { actions: ['today'] },
-          field: { date, updateDate, minimumDate: currentYearMinDate, maximumDate: currentYearMaxDate } as any
+          field: {
+            date,
+            updateDate,
+            minimumDate: currentYearMinDate,
+            maximumDate: currentYearMaxDate,
+            disabled: disabled ?? false
+          } as any
         }}
         value={date}
       />

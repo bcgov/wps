@@ -55,7 +55,8 @@ vi.mock('@/features/fba/components/ASADatePicker', () => ({
     historicalMinDate,
     historicalMaxDate,
     currentYearMinDate,
-    currentYearMaxDate
+    currentYearMaxDate,
+    disabled
   }: {
     date: DateTime | null
     updateDate: (date: DateTime) => void
@@ -63,8 +64,9 @@ vi.mock('@/features/fba/components/ASADatePicker', () => ({
     historicalMaxDate?: DateTime
     currentYearMinDate?: DateTime
     currentYearMaxDate?: DateTime
+    disabled?: boolean
   }) => (
-    <div data-testid="date-picker">
+    <div data-testid="date-picker" data-disabled={disabled}>
       <button data-testid="change-date-button" onClick={() => updateDate(DateTime.fromISO('2025-12-15'))}>
         Change Date
       </button>
@@ -381,7 +383,7 @@ describe('SFMSInsightsPage', () => {
     expect(minDate.textContent).toBe('2025-05-01')
   })
 
-  it('should not set rasterDate when latestBounds is null', async () => {
+  it('should set rasterDate to today when latestBounds is null', async () => {
     // Mock getSFMSBounds to return null
     ;(getSFMSBounds as Mock).mockResolvedValueOnce({ sfms_bounds: null })
 
@@ -393,7 +395,8 @@ describe('SFMSInsightsPage', () => {
     })
 
     const currentDate = screen.getByTestId('current-date')
-    expect(currentDate.textContent).toBe('null')
+    // Should default to today's date (mocked as 2025-11-02)
+    expect(currentDate.textContent).toBe('2025-11-02')
 
     // Min/max dates should use default values
     const minDate = screen.getByTestId('historical-min-date')
@@ -402,7 +405,7 @@ describe('SFMSInsightsPage', () => {
     expect(maxDate.textContent).toBe('2025-11-12')
   })
 
-  it('should not set rasterDate when latestBounds.maximum is empty', async () => {
+  it('should set rasterDate to today when latestBounds.maximum is empty', async () => {
     renderWithStore({
       '2025': {
         forecast: {
@@ -416,7 +419,8 @@ describe('SFMSInsightsPage', () => {
     expect(datePicker).toBeInTheDocument()
 
     const currentDate = screen.getByTestId('current-date')
-    expect(currentDate.textContent).toBe('null')
+    // Should default to today's date (mocked as 2025-11-02)
+    expect(currentDate.textContent).toBe('2025-11-02')
 
     // minDate should be set from bounds
     const minDate = screen.getByTestId('historical-min-date')
@@ -443,7 +447,7 @@ describe('SFMSInsightsPage', () => {
     expect(maxDate.textContent).toBe('2025-10-15')
   })
 
-  it('should keep rasterDate null when all years have empty maximum', async () => {
+  it('should set rasterDate to today when all years have empty maximum', async () => {
     renderWithStore({
       '2024': {
         forecast: {
@@ -463,25 +467,41 @@ describe('SFMSInsightsPage', () => {
     expect(datePicker).toBeInTheDocument()
 
     const currentDate = screen.getByTestId('current-date')
-    expect(currentDate.textContent).toBe('null')
+    // Should default to today's date (mocked as 2025-11-02)
+    expect(currentDate.textContent).toBe('2025-11-02')
 
     // minDate should be set from 2024 bounds
     const minDate = screen.getByTestId('historical-min-date')
     expect(minDate.textContent).toBe('2024-01-01')
   })
 
-  it('should disable raster dropdown options when rasterDate is null', async () => {
+  it('should disable raster dropdown options when no SFMS bounds data available', async () => {
     renderWithStore(null)
 
     const dropdown = screen.getByTestId('raster-type-dropdown')
     expect(dropdown).toHaveAttribute('data-raster-data-available', 'false')
   })
 
-  it('should enable raster dropdown options when rasterDate is set', async () => {
+  it('should enable raster dropdown options when SFMS bounds data available', async () => {
     renderWithStore()
     await waitForPageLoad()
 
     const dropdown = screen.getByTestId('raster-type-dropdown')
     expect(dropdown).toHaveAttribute('data-raster-data-available', 'true')
+  })
+
+  it('should disable date picker when no SFMS bounds data available', async () => {
+    renderWithStore(null)
+
+    const datePicker = screen.getByTestId('date-picker')
+    expect(datePicker).toHaveAttribute('data-disabled', 'true')
+  })
+
+  it('should enable date picker when SFMS bounds data available', async () => {
+    renderWithStore()
+    await waitForPageLoad()
+
+    const datePicker = screen.getByTestId('date-picker')
+    expect(datePicker).toHaveAttribute('data-disabled', 'false')
   })
 })

@@ -47,8 +47,9 @@ export const SFMSInsightsPage = () => {
       setRasterDate(latestBoundsDateTime)
       setMaxDate(latestBoundsDateTime)
     } else {
-      // No raster data available, ensure fuel is selected
+      // No raster data available, ensure fuel is selected and use today's date
       setRasterType('fuel')
+      setRasterDate(getDateTimeNowPST())
     }
     if (earliestBounds?.minimum) {
       setMinDate(DateTime.fromISO(earliestBounds.minimum))
@@ -105,6 +106,7 @@ export const SFMSInsightsPage = () => {
                   historicalMaxDate={maxDate}
                   currentYearMinDate={minDate}
                   currentYearMaxDate={maxDate}
+                  disabled={!latestBounds?.maximum}
                 />
               </StyledFormControl>
             </Grid>
@@ -114,7 +116,7 @@ export const SFMSInsightsPage = () => {
               <RasterTypeDropdown
                 selectedRasterType={rasterType}
                 setSelectedRasterType={setRasterType}
-                rasterDataAvailable={!!rasterDate}
+                rasterDataAvailable={!!latestBounds?.maximum}
               />
             </StyledFormControl>
           </Grid>
