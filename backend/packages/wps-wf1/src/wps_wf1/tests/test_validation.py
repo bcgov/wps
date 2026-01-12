@@ -3,8 +3,9 @@
 import math
 from datetime import datetime
 
-from wps_wf1.models import WeatherReading
 from wps_wf1.validation import get_valid_flags, validate_metric
+
+from wps_shared.schemas.observations import WeatherReading
 
 
 def test_validate_metric_below():
