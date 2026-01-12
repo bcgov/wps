@@ -9,7 +9,6 @@ from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
 from shapely import from_wkt
 from sqlalchemy import Row
-from wps_wf1.models import FireCentre
 
 from app.fire_watch.calculate_weather import (
     MissingWeatherDataError,
@@ -32,6 +31,7 @@ from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch, FireWatch
 from wps_shared.db.models.fire_watch import FireWatch as DBFireWatch
 from wps_shared.fuel_types import FuelTypeEnum
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS, WEB_MERCATOR, PointTransformer
+from wps_shared.schemas.fba import FireCentre
 from wps_shared.schemas.fire_watch import (
     BurnForecastOutput,
     FireWatchBurnForecastsResponse,

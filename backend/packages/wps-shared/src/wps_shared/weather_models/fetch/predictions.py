@@ -9,7 +9,6 @@ from time import perf_counter
 from typing import List
 
 from sqlalchemy.orm import Session
-from wps_wf1.models import WeatherIndeterminate
 
 import wps_shared.db.database
 import wps_shared.stations
@@ -20,6 +19,7 @@ from wps_shared.db.crud.weather_models import (
     get_station_model_predictions,
 )
 from wps_shared.db.models.weather_models import WeatherStationModelPrediction
+from wps_shared.schemas.morecast_v2 import WeatherIndeterminate
 from wps_shared.schemas.weather_models import (
     ModelRunPredictions,
     WeatherModelPredictionValues,

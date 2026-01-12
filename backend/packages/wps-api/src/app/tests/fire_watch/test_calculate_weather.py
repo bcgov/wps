@@ -3,8 +3,6 @@ import pytest
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch, create_autospec
 
-from wps_wf1.models import WFWXWeatherStation, WeatherDeterminate, WeatherIndeterminate
-
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather
 from wps_shared.fuel_types import FuelTypeEnum
 from app.fire_behaviour.prediction import FireBehaviourPrediction
@@ -25,6 +23,7 @@ from app.fire_watch.calculate_weather import (
     validate_fire_watch_inputs,
     validate_prediction_dates,
 )
+from wps_shared.schemas.stations import WFWXWeatherStation
 from wps_shared.schemas.weather_models import ModelPredictionDetails
 from app.fire_watch.calculate_weather import MissingWeatherDataError
 
@@ -215,7 +214,7 @@ async def test_fetch_station_metadata(mocker, mock_wfwx_api):
             )
         ]
     )
-    mocker.patch("app.fire_watch.calculate_weather.create_wfwx_api", return_value=mock_wfwx_api)
+    mocker.patch("app.fire_watch.calculate_weather.WfwxApi", return_value=mock_wfwx_api)
 
     result = await get_station_metadata([1])
     assert result[1].name == "Station 1"

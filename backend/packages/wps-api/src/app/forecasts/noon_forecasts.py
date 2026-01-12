@@ -12,7 +12,7 @@ import wps_shared.db.database
 import wps_shared.db.models
 from wps_shared.db.crud.forecasts import query_noon_forecast_records
 from wps_shared.schemas.forecasts import NoonForecast, NoonForecastResponse, NoonForecastValue
-from wps_wf1.models import StationCodeList
+from wps_shared.schemas.stations import StationCodeList
 
 logger = logging.getLogger(__name__)
 

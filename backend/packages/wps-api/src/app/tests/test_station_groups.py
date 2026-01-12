@@ -30,7 +30,7 @@ async def test_get_station_groups_authorized(
     anyio_backend, async_client: AsyncClient, mock_wfwx_api, mocker
 ):
     """authenticated client can access"""
-    mocker.patch("app.routers.stations.create_wfwx_api", return_value=mock_wfwx_api)
+    mocker.patch("app.routers.stations.WfwxApi", return_value=mock_wfwx_api)
     response = await async_client.get(station_groups_get_url)
     assert response.status_code == 200
 
@@ -48,6 +48,6 @@ async def test_get_station_groups_members_authorized(
     anyio_backend, async_client: AsyncClient, mock_wfwx_api, mocker
 ):
     """authenticated clients can access"""
-    mocker.patch("app.routers.stations.create_wfwx_api", return_value=mock_wfwx_api)
+    mocker.patch("app.routers.stations.WfwxApi", return_value=mock_wfwx_api)
     response = await async_client.post(station_groups_members_post_url, json={"group_ids": ["1"]})
     assert response.status_code == 200

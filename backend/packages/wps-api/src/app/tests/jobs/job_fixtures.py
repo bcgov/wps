@@ -1,7 +1,7 @@
 """ Fixtures for job tests """
 import asyncio
 
-from wps_wf1.models import WFWXWeatherStation
+from wps_shared.schemas.stations import WFWXWeatherStation
 
 
 class MockWFWXHourlyResponse(object):

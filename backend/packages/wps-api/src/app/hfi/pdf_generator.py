@@ -7,8 +7,8 @@ from typing import Dict, List, Tuple
 import pdfkit
 from jinja2 import Environment
 from wps_shared.db.models.hfi_calc import FuelType
+from wps_shared.schemas.fba import FireCentre
 from wps_shared.schemas.hfi_calc import HFIResultResponse, PlanningArea, WeatherStation
-from wps_wf1.models import FireCentre
 
 from app.hfi.pdf_data_formatter import (
     response_2_daily_jinja_format,

@@ -1,7 +1,7 @@
 from datetime import datetime
 
+from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
 from wps_shared.weather_models.fetch.predictions import post_process_fetched_predictions
-from wps_wf1.models import WeatherDeterminate, WeatherIndeterminate
 
 
 def build_weather_indeterminate(

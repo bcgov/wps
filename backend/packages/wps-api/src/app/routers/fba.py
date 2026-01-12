@@ -9,6 +9,7 @@ from typing import List
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from wps_wf1.wfwx_api import WfwxApi
 from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_hfi_thresholds_by_id,
@@ -46,7 +47,6 @@ from wps_shared.schemas.fba import (
     SFMSRunParameter,
     TPIResponse,
 )
-from wps_shared.wildfire_one.wfwx_api import create_wfwx_api
 
 from app.auto_spatial_advisory.fuel_type_layer import (
     get_fuel_type_raster_by_year,
@@ -148,7 +148,7 @@ async def get_all_fire_centers(_=Depends(asa_authentication_required)):
     """Returns fire centers for all active stations."""
     logger.info("/fba/fire-centers/")
     async with ClientSession() as session:
-        wfwx_api = create_wfwx_api(session)
+        wfwx_api = WfwxApi(session)
         fire_centers = await wfwx_api.get_fire_centers()
     return FireCenterListResponse(fire_centers=fire_centers)
 

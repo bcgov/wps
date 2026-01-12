@@ -6,8 +6,9 @@ from typing import List
 
 from aiohttp.client import ClientSession
 from aiohttp.connector import TCPConnector
-from wps_shared.wildfire_one.wfwx_api import create_wfwx_api
-from wps_wf1.models import WeatherStationHourlyReadings
+from wps_wf1.wfwx_api import WfwxApi
+
+from wps_shared.schemas.observations import WeatherStationHourlyReadings
 
 
 def get(value: object, condition: bool = True):
@@ -40,7 +41,7 @@ async def get_hourly_readings(
 
     # Limit the number of concurrent connections.
     async with ClientSession(connector=TCPConnector(limit=10)) as session:
-        wfwx_api = create_wfwx_api(session)
+        wfwx_api = WfwxApi(session)
         return await wfwx_api.get_hourly_readings(station_codes, start_time_stamp, end_time_stamp)
 
 
@@ -54,7 +55,7 @@ async def get_hourly_readings_in_time_interval(
     between the start_time_stamp and end_time_stamp specified.
     """
     async with ClientSession(connector=TCPConnector(limit=10)) as session:
-        wfwx_api = create_wfwx_api(session)
+        wfwx_api = WfwxApi(session)
         return await wfwx_api.get_hourly_readings(
             station_codes, start_time_stamp, end_time_stamp, use_cache
         )

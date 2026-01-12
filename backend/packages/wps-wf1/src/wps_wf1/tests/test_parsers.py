@@ -2,8 +2,9 @@
 
 from datetime import datetime, timezone
 import math
-from wps_wf1.models import HourlyActual
 from wps_wf1.parsers import parse_hourly_actual
+
+from wps_shared.schemas.observations import HourlyActual
 
 
 class TestParseHourlyActual:
@@ -77,4 +78,4 @@ class TestParseHourlyActual:
         assert hourly_actual.precip_valid is False
         assert hourly_actual.wspeed_valid is False
         assert hourly_actual.wdir_valid is False
-        assert hourly_actual.precipitation == math.nan
+        assert hourly_actual.precipitation is math.nan

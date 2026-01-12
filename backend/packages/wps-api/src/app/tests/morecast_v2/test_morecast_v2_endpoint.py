@@ -8,10 +8,13 @@ from aiohttp import ClientSession
 from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
-from wps_shared.schemas.morecast_v2 import MoreCastForecastInput, MoreCastForecastRequest
+from wps_shared.schemas.morecast_v2 import (
+    MoreCastForecastInput,
+    MoreCastForecastRequest,
+    StationDailyFromWF1,
+)
 from wps_shared.schemas.shared import StationsRequest
 from wps_shared.tests.common import default_mock_client_get
-from wps_wf1.models import StationDailyFromWF1
 
 morecast_v2_post_url = "/api/morecast-v2/forecast"
 morecast_v2_get_url = "/api/morecast-v2/forecasts/2023-03-15"
@@ -106,7 +109,7 @@ def test_post_forecast_authorized(
         status = 201
 
     mock_wfwx_api.post_forecasts = AsyncMock(return_value=MockResponse())
-    mocker.patch("app.routers.morecast_v2.create_wfwx_api", return_value=mock_wfwx_api)
+    mocker.patch("app.routers.morecast_v2.WfwxApi", return_value=mock_wfwx_api)
 
     response = client.post(morecast_v2_post_url, json=forecast.model_dump())
     assert response.status_code == 201
@@ -137,7 +140,7 @@ def test_post_forecast_authorized_error(
             return "Bad Request"
 
     mock_wfwx_api.post_forecasts = AsyncMock(return_value=MockResponse())
-    mocker.patch("app.routers.morecast_v2.create_wfwx_api", mock_wfwx_api)
+    mocker.patch("app.routers.morecast_v2.WfwxApi", mock_wfwx_api)
 
     response = client.post(morecast_v2_post_url, json=forecast.model_dump())
     assert response.status_code == 500

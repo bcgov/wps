@@ -21,7 +21,7 @@ def test_hourly_actuals_job(mocker: MockerFixture, mock_wfwx_api):
 
     wfwx_hourlies = mock_wfwx_response()
     mock_wfwx_api.get_hourly_actuals_all_stations.return_value = wfwx_hourlies
-    mocker.patch("app.jobs.hourly_actuals.create_wfwx_api", return_value=mock_wfwx_api)
+    mocker.patch("app.jobs.hourly_actuals.WfwxApi", return_value=mock_wfwx_api)
 
     save_hourly_actuals_spy = mocker.spy(hourly_actuals, "save_hourly_actual")
     with pytest.raises(SystemExit) as excinfo:
@@ -39,7 +39,7 @@ def test_hourly_actuals_job_fail(mocker: MockerFixture, mock_wfwx_api):
     """
 
     mock_wfwx_api.get_hourly_actuals_all_stations = mocker.AsyncMock(side_effect=Exception())
-    mocker.patch("app.jobs.hourly_actuals.create_wfwx_api", return_value=mock_wfwx_api)
+    mocker.patch("app.jobs.hourly_actuals.WfwxApi", return_value=mock_wfwx_api)
     rocket_chat_spy = mocker.spy(hourly_actuals, "send_rocketchat_notification")
 
     with pytest.raises(SystemExit) as excinfo:

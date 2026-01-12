@@ -2,7 +2,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 from starlette.testclient import TestClient
-from wps_wf1.models import WeatherStation, WeatherStationHourlyReadings
+
+from wps_shared.schemas.observations import WeatherStationHourlyReadings
+from wps_shared.schemas.stations import WeatherStation
 
 
 @pytest.fixture()
@@ -31,7 +33,7 @@ def test_multiple_stations(client: TestClient, mocker, mock_wfwx_api):
     ]
 
     mock_wfwx_api.get_hourly_readings = AsyncMock(return_value=mock_hourly_readings)
-    mocker.patch("app.hourlies.create_wfwx_api", return_value=mock_wfwx_api)
+    mocker.patch("app.hourlies.WfwxApi", return_value=mock_wfwx_api)
 
     response = client.post("/api/observations/", json={"stations": codes})
     assert len(response.json()["hourlies"]) == 2
@@ -52,7 +54,7 @@ def test_single_station_single_value(client: TestClient, mocker, mock_wfwx_api):
     ]
 
     mock_wfwx_api.get_hourly_readings = AsyncMock(return_value=mock_hourly_readings)
-    mocker.patch("app.hourlies.create_wfwx_api", return_value=mock_wfwx_api)
+    mocker.patch("app.hourlies.WfwxApi", return_value=mock_wfwx_api)
 
     response = client.post("/api/observations/", json={"stations": codes})
     assert len(response.json()["hourlies"]) == 1

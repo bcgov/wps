@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel
-from wps_wf1.models import WeatherStation
+from wps_shared.schemas.stations import WeatherStation
 
 
 class NoonForecastValue(BaseModel):
@@ -58,4 +58,5 @@ class NoonForecastSummary(BaseModel):
 
 class NoonForecastSummariesResponse(BaseModel):
     """ Response containing noon forecast summaries """
+
     summaries: List[NoonForecastSummary] = []

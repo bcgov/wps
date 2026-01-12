@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, time, timedelta, timezone
 
 from aiohttp import ClientSession
+from wps_wf1.wfwx_api import WfwxApi
 from app.fire_behaviour.prediction import (
     FireBehaviourPrediction,
     calculate_fire_behaviour_prediction,
@@ -21,11 +22,11 @@ from wps_shared.db.crud.weather_models import (
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather
 from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS
+from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
+from wps_shared.schemas.stations import WFWXWeatherStation
 from wps_shared.schemas.weather_models import ModelPredictionDetails
 from wps_shared.utils.time import assert_all_utc, get_utc_now
 from wps_shared.weather_models import ModelEnum
-from wps_shared.wildfire_one.wfwx_api import create_wfwx_api
-from wps_wf1.models import WFWXWeatherStation, WeatherDeterminate, WeatherIndeterminate
 
 logger = logging.getLogger(__name__)
 
@@ -316,7 +317,7 @@ async def get_station_metadata(station_ids: list[int]) -> dict[int, WFWXWeatherS
     """Fetch station metadata from the WFWX API."""
     async with ClientSession() as session:
         fire_centre_station_codes = get_fire_centre_station_codes()
-        wfwx_api = create_wfwx_api(session)
+        wfwx_api = WfwxApi(session)
         wfwx_stations = await wfwx_api.get_wfwx_stations_from_station_codes(
             station_ids, fire_centre_station_codes
         )
@@ -329,7 +330,7 @@ async def get_actuals_and_forecasts(
     """Fetch actuals and forecasts from the WFWX API."""
     async with ClientSession() as session:
         fire_centre_station_codes = get_fire_centre_station_codes()
-        wfwx_api = create_wfwx_api(session)
+        wfwx_api = WfwxApi(session)
         wf1_actuals, wf1_forecasts = await wfwx_api.get_daily_determinates_for_stations_and_date(
             start_date, end_date, station_ids, fire_centre_station_codes
         )

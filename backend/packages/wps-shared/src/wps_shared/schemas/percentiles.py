@@ -2,7 +2,7 @@
 """
 from typing import List, Dict, Optional
 from pydantic import BaseModel
-from wps_wf1.models import WeatherStation
+from wps_shared.schemas.stations import WeatherStation
 
 
 class YearRange(BaseModel):
@@ -39,6 +39,6 @@ class MeanValues(BaseModel):
 class CalculatedResponse(BaseModel):
     """ The combined response for a set of stations. """
     stations: Dict[int, StationSummary] = {}
-    mean_values: Optional[MeanValues] = None
+    mean_values: MeanValues = None
     year_range: YearRange
     percentile: int

@@ -4,14 +4,6 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 from math import isclose
 
-from wps_wf1.models import (
-    StationDailyFromWF1,
-    WF1ForecastRecordType,
-    WF1PostForecast,
-    WFWXWeatherStation,
-    WeatherDeterminate,
-    WeatherIndeterminate,
-)
 import app
 from wps_shared.db.models.morecast_v2 import MorecastForecastRecord
 from app.morecast_v2.forecasts import (
@@ -23,7 +15,15 @@ from app.morecast_v2.forecasts import (
     get_forecasts,
     get_fwi_values,
 )
-from wps_shared.schemas.morecast_v2 import MoreCastForecastInput
+from wps_shared.schemas.morecast_v2 import (
+    MoreCastForecastInput,
+    StationDailyFromWF1,
+    WF1ForecastRecordType,
+    WF1PostForecast,
+    WeatherDeterminate,
+    WeatherIndeterminate,
+)
+from wps_shared.schemas.stations import WFWXWeatherStation
 
 start_time = datetime(2022, 1, 1, tzinfo=timezone.utc)
 end_time = datetime(2022, 1, 2, tzinfo=timezone.utc)

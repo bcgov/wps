@@ -320,7 +320,7 @@ def test_get_endpoints_unauthorized(client: TestClient, endpoint: str):
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_centres_authorized(client: TestClient, mocker, mock_wfwx_api):
     """Allowed to get fire centres when authorized"""
-    mocker.patch("app.routers.fba.create_wfwx_api", return_value=mock_wfwx_api)
+    mocker.patch("app.routers.fba.WfwxApi", return_value=mock_wfwx_api)
     response = client.get(get_fire_centres_url)
     assert response.status_code == 200
 
@@ -590,7 +590,7 @@ FBA_ENDPOINTS = [
 @patch("app.routers.fba.get_tpi_fuel_areas", mock_get_tpi_fuel_areas)
 @patch("app.routers.fba.get_tpi_stats", mock_get_tpi_stats)
 def test_fba_endpoints_allowed_for_test_idir(client, endpoint, mocker, mock_wfwx_api):
-    mocker.patch("app.routers.fba.create_wfwx_api", return_value=mock_wfwx_api)
+    mocker.patch("app.routers.fba.WfwxApi", return_value=mock_wfwx_api)
     headers = {"Authorization": "Bearer token"}
     response = client.get(endpoint, headers=headers)
     assert response.status_code == 200

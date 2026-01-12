@@ -6,13 +6,14 @@ import os
 import sys
 from datetime import datetime, timedelta
 
+from wps_wf1.wfwx_api import WfwxApi
+
 import wps_shared.db.database
 import wps_shared.utils.time
 from aiohttp.client import ClientSession
 from sqlalchemy.exc import IntegrityError
 from wps_shared.db.crud.observations import save_hourly_actual
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from wps_shared.wildfire_one.wfwx_api import create_wfwx_api
 from wps_shared.wps_logging import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ class HourlyActualsJob:
         start_date = self._get_start_date()
         end_date = self._get_end_date()
         async with ClientSession() as session:
-            wfwx_api = create_wfwx_api(session)
+            wfwx_api = WfwxApi(session)
             hourly_actuals = await wfwx_api.get_hourly_actuals_all_stations(start_date, end_date)
 
             logger.info("Retrieved %s hourly actuals", len(hourly_actuals))
