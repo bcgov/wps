@@ -18,6 +18,7 @@ from wps_shared import config
 from wps_shared.wildfire_one.wildfire_fetchers import fetch_raw_dailies_for_all_stations
 from wps_shared.wildfire_one.util import is_station_valid
 from wps_shared.schemas.stations import WeatherStation
+from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.utils.s3 import get_client
 
 logger = logging.getLogger(__name__)
@@ -28,18 +29,6 @@ DRY_ADIABATIC_LAPSE_RATE = 0.0098
 # IDW parameters
 IDW_POWER = 2.0  # Standard IDW power parameter
 SEARCH_RADIUS = 200000  # 200km search radius in meters
-
-
-class StationTemperature:
-    """Represents a weather station with temperature and location data."""
-
-    def __init__(self, code: int, lat: float, lon: float, elevation: float, temperature: float):
-        self.code = code
-        self.lat = lat
-        self.lon = lon
-        self.elevation = elevation
-        self.temperature = temperature
-        self.sea_level_temp: Optional[float] = None
 
 
 async def fetch_station_temperatures(

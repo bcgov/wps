@@ -3,8 +3,9 @@ Unit tests for temperature interpolation module.
 """
 
 import pytest
+from datetime import datetime, timezone
+from wps_shared.schemas.sfms import StationTemperature
 from app.sfms.temperature_interpolation import (
-    StationTemperature,
     adjust_temperature_to_sea_level,
     adjust_temperature_to_elevation,
     haversine_distance,
@@ -12,7 +13,6 @@ from app.sfms.temperature_interpolation import (
     get_interpolated_temp_key,
     DRY_ADIABATIC_LAPSE_RATE,
 )
-from datetime import datetime, timezone
 
 
 class TestStationTemperature:
