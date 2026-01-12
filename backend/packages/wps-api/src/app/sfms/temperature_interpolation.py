@@ -19,7 +19,7 @@ from wps_shared.wildfire_one.wildfire_fetchers import fetch_raw_dailies_for_all_
 from wps_shared.wildfire_one.util import is_station_valid
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.sfms import StationTemperature
-from wps_shared.utils.s3 import get_client
+from wps_shared.utils.s3_client import S3Client
 
 logger = logging.getLogger(__name__)
 
@@ -380,19 +380,17 @@ def get_interpolated_temp_key(datetime_utc: datetime) -> str:
     )
 
 
-async def upload_raster_to_s3(local_path: str, s3_key: str) -> None:
+async def upload_raster_to_s3(s3_client: S3Client, local_path: str, s3_key: str) -> None:
     """
     Upload a raster file to S3 object storage.
 
+    :param s3_client: S3Client instance
     :param local_path: Local file path to upload
     :param s3_key: S3 key (path) to upload to
     """
     logger.info("Uploading raster to S3: %s", s3_key)
 
-    async with get_client() as (client, bucket):
-        with open(local_path, "rb") as f:
-            await client.put_object(
-                Bucket=bucket, Key=s3_key, Body=f.read(), ContentType="image/tiff"
-            )
+    with open(local_path, "rb") as f:
+        await s3_client.put_object(key=s3_key, body=f.read())
 
     logger.info("Upload complete: %s", s3_key)

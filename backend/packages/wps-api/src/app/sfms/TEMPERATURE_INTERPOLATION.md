@@ -61,6 +61,17 @@ This produces the final temperature at the actual surface elevation.
 
 ### Core Modules
 
+#### 0. `wps_shared.schemas.sfms.StationTemperature`
+Pydantic data model for station temperature data.
+
+**Fields:**
+- `code: int` - Station code
+- `lat: float` - Latitude in degrees
+- `lon: float` - Longitude in degrees
+- `elevation: float` - Elevation in meters
+- `temperature: float` - Temperature in Celsius
+- `sea_level_temp: Optional[float]` - Temperature adjusted to sea level (populated during processing)
+
 #### 1. `temperature_interpolation.py`
 Core interpolation functions and utilities.
 
@@ -73,8 +84,8 @@ Core interpolation functions and utilities.
 - `interpolate_temperature_to_raster()`: Main orchestration function
 - `get_interpolated_temp_key()`: Generates S3 storage path
 
-**Classes:**
-- `StationTemperature`: Data class for station with temperature and location
+**Data Models:**
+- Uses `StationTemperature` from `wps_shared.schemas.sfms`: Pydantic model for station data with temperature and location
 
 #### 2. `temperature_interpolation_processor.py`
 High-level processor for orchestrating the workflow.
@@ -84,7 +95,7 @@ High-level processor for orchestrating the workflow.
   - Fetches station metadata
   - Coordinates data retrieval from WF1
   - Executes interpolation
-  - Uploads results to S3
+  - Uploads results to S3 using `S3Client`
 
 #### 3. `jobs/temperature_interpolation.py`
 Job runner for executing interpolation as a batch process.
@@ -97,6 +108,10 @@ python -m app.jobs.temperature_interpolation
 # Run for specific date
 python -m app.jobs.temperature_interpolation "2024-01-15"
 ```
+
+**S3 Integration:**
+- Uses `S3Client` async context manager for efficient connection handling
+- Follows the same pattern as other SFMS jobs (e.g., `sfms_calculations.py`)
 
 ### Storage Structure
 
@@ -153,7 +168,8 @@ This structure:
 - `numpy`: Array operations
 - `gdal/osr`: Raster I/O and coordinate transformations
 - `aiohttp`: Async HTTP requests to WF1 API
-- `scipy`: Not used (this implementation avoids scipy.spatial for simplicity)
+- `aiobotocore`: S3 object storage operations via `S3Client`
+- `pydantic`: Data validation with `StationTemperature` model
 
 ## Testing
 

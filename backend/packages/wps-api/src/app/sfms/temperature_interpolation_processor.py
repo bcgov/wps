@@ -16,6 +16,7 @@ from wps_shared.wildfire_one.wildfire_fetchers import fetch_access_token
 from wps_shared.stations import get_stations_from_source
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.utils.s3 import set_s3_gdal_config
+from wps_shared.utils.s3_client import S3Client
 from app.sfms.temperature_interpolation import (
     fetch_station_temperatures,
     interpolate_temperature_to_raster,
@@ -38,10 +39,11 @@ class TemperatureInterpolationProcessor:
         """
         self.datetime_to_process = datetime_to_process
 
-    async def process(self, reference_raster_path: str) -> str:
+    async def process(self, s3_client: S3Client, reference_raster_path: str) -> str:
         """
         Process temperature interpolation for the specified datetime.
 
+        :param s3_client: S3Client instance for uploading results
         :param reference_raster_path: Path to reference raster (defines grid properties)
         :return: S3 key of uploaded temperature raster
         """
@@ -87,7 +89,7 @@ class TemperatureInterpolationProcessor:
 
             # Upload to S3
             s3_key = get_interpolated_temp_key(self.datetime_to_process)
-            await upload_raster_to_s3(temp_raster_path, s3_key)
+            await upload_raster_to_s3(s3_client, temp_raster_path, s3_key)
 
             logger.info("Temperature interpolation complete: %s", s3_key)
             return s3_key

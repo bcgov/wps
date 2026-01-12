@@ -17,7 +17,8 @@ from datetime import datetime, timezone
 from wps_shared.wps_logging import configure_logging
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.time import get_utc_now
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser, FWIParameter
+from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.utils.s3_client import S3Client
 from app.sfms.temperature_interpolation_processor import TemperatureInterpolationProcessor
 
 logger = logging.getLogger(__name__)
@@ -49,7 +50,9 @@ class TemperatureInterpolationJob:
 
             # Process temperature interpolation
             processor = TemperatureInterpolationProcessor(datetime_to_process)
-            s3_key = await processor.process(fuel_raster_path)
+
+            async with S3Client() as s3_client:
+                s3_key = await processor.process(s3_client, fuel_raster_path)
 
             # Calculate execution time
             execution_time = get_utc_now() - start_exec
