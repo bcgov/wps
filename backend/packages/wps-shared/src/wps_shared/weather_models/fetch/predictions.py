@@ -8,10 +8,11 @@ from itertools import groupby
 from time import perf_counter
 from typing import List
 
+from aiohttp import ClientSession, TCPConnector
 from sqlalchemy.orm import Session
+from wps_wf1.wfwx_api import WfwxApi
 
 import wps_shared.db.database
-import wps_shared.stations
 from wps_shared.db.crud.weather_models import (
     get_latest_station_model_prediction_per_day,
     get_latest_station_prediction,
@@ -104,10 +105,12 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
 ) -> List[WeatherStationModelRunsPredictions]:
     results = []
     days = get_days_from_range(start_time, end_time)
-    stations = {
-        station.code: station
-        for station in await wps_shared.stations.get_stations_by_codes(station_codes)
-    }
+    conn = TCPConnector(limit=10)
+    async with ClientSession(connector=conn) as client_session:
+        wfwx_api = WfwxApi(client_session)
+        stations = {
+            station.code: station for station in await wfwx_api.get_stations_by_codes(station_codes)
+        }
 
     with wps_shared.db.database.get_read_session_scope() as session:
         for day in days:
@@ -170,10 +173,12 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(
     cffdrs_start = perf_counter()
     results: List[WeatherIndeterminate] = []
     days = get_days_from_range(start_time, end_time)
-    stations = {
-        station.code: station
-        for station in await wps_shared.stations.get_stations_by_codes(station_codes)
-    }
+    conn = TCPConnector(limit=10)
+    async with ClientSession(connector=conn) as client_session:
+        wfwx_api = WfwxApi(client_session)
+        stations = {
+            station.code: station for station in await wfwx_api.get_stations_by_codes(station_codes)
+        }
     active_station_codes = stations.keys()
     for day in days:
         day_start = datetime.datetime.combine(day, time.min, tzinfo=vancouver_tz)
@@ -298,10 +303,12 @@ async def marshall_predictions(session: Session, model: ModelEnum, station_codes
 
     # Re-structure the data, grouping data by station and model run.
     # NOTE: It means looping through twice, but the code reads easier this way.
-    stations = {
-        station.code: station
-        for station in await wps_shared.stations.get_stations_by_codes(station_codes)
-    }
+    conn = TCPConnector(limit=10)
+    async with ClientSession(connector=conn) as client_session:
+        wfwx_api = WfwxApi(client_session)
+        stations = {
+            station.code: station for station in await wfwx_api.get_stations_by_codes(station_codes)
+        }
     response = []
     for station_code, predictions in station_predictions.items():
         model_run_dict = {}

@@ -9,6 +9,7 @@ from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
 from shapely import from_wkt
 from sqlalchemy import Row
+from wps_wf1.wfwx_api import WfwxApi
 
 from app.fire_watch.calculate_weather import (
     MissingWeatherDataError,
@@ -46,7 +47,6 @@ from wps_shared.schemas.fire_watch import (
     FireWatchStation,
 )
 from wps_shared.schemas.stations import GeoJsonWeatherStation
-from wps_shared.stations import get_stations_as_geojson
 from wps_shared.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
@@ -254,7 +254,9 @@ def create_fire_watch_burn_forecasts_response(
 async def get_fire_watches(_=Depends(authentication_required)):
     """Returns all FireWatch records"""
     logger.info("/fire-watch/")
-    stations = await get_stations_as_geojson()
+    async with ClientSession() as client_session:
+        wfwx_api = WfwxApi(client_session)
+        stations = await wfwx_api.get_stations_as_geojson()
     async with get_async_read_session_scope() as session:
         results = await get_all_fire_watches(session)
         api_watch_list = []
@@ -272,7 +274,9 @@ async def save_new_fire_watch(
 ):
     idir = token.get("idir_username", None)
     db_fire_watch = marshall_fire_watch_input_to_db(fire_watch_input_request.fire_watch, idir)
-    stations = await get_stations_as_geojson()
+    async with ClientSession() as client_session:
+        wfwx_api = WfwxApi(client_session)
+        stations = await wfwx_api.get_stations_as_geojson()
 
     async with get_async_write_session_scope() as session:
         new_fire_watch_id = await save_fire_watch(session, db_fire_watch)
@@ -289,7 +293,9 @@ async def update_existing_fire_watch(
 ):
     idir = token.get("idir_username", None)
     fire_watch_input = marshall_fire_watch_input_to_db(fire_watch_input_request.fire_watch, idir)
-    stations = await get_stations_as_geojson()
+    async with ClientSession() as client_session:
+        wfwx_api = WfwxApi(client_session)
+        stations = await wfwx_api.get_stations_as_geojson()
 
     async with get_async_write_session_scope() as session:
         # Check if FireWatch exists
@@ -344,7 +350,9 @@ async def get_all_fire_centres(token=Depends(authentication_required)):
 @router.get("/burn-forecasts", response_model=FireWatchBurnForecastsResponse)
 async def get_burn_forecasts(_=Depends(authentication_required)):
     logger.info("/fire-watch/burn-locations")
-    stations = await get_stations_as_geojson()
+    async with ClientSession() as client_session:
+        wfwx_api = WfwxApi(client_session)
+        stations = await wfwx_api.get_stations_as_geojson()
     async with get_async_read_session_scope() as session:
         fire_watches = await get_all_fire_watches(session)
         latest_model_run_parameters_id = (
