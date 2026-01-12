@@ -4,6 +4,7 @@ from typing import List
 
 import numpy
 import numpy as np
+from wps_wf1.wfwx_api import get_stations_synchronously
 import wps_shared.db.database
 from wps_shared.schemas.stations import WeatherStation
 import wps_shared.utils.time as time_utils
@@ -30,7 +31,6 @@ from wps_shared.db.models.weather_models import (
     ProcessedModelRunUrl,
     WeatherStationModelPrediction,
 )
-from wps_shared.stations import get_stations_synchronously
 from wps_shared.weather_models import ModelEnum
 from wps_shared.wps_logging import configure_logging
 

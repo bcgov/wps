@@ -14,7 +14,6 @@ from wps_shared.schemas.stations import (
     WeatherStationGroupsResponse,
     WeatherStationGroupMembersResponse,
 )
-from wps_shared.stations import get_stations_as_geojson
 
 
 logger = logging.getLogger(__name__)
@@ -65,8 +64,10 @@ async def get_stations(response: Response):
     try:
         logger.info('/stations/')
 
-        weather_stations = await get_stations_as_geojson()
-        response.headers["Cache-Control"] = no_cache
+        async with ClientSession() as client_session:
+            wfwx_api = WfwxApi(client_session)
+            weather_stations = await wfwx_api.get_stations_as_geojson()
+            response.headers["Cache-Control"] = no_cache
 
         return WeatherStationsResponse(features=weather_stations)
     except Exception as exception:

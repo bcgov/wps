@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from typing import List
 
 import pandas as pd
+from wps_wf1.wfwx_api import get_stations_asynchronously
 from wps_shared.schemas.stations import WeatherStation
 import wps_shared.utils.time as time_utils
 from herbie import Herbie
@@ -26,7 +27,6 @@ from wps_shared.db.database import get_write_session_scope
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
 from wps_shared.geospatial.geospatial import NAD83_CRS, get_transformer
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from wps_shared.stations import get_stations_asynchronously
 from wps_shared.wps_logging import configure_logging
 
 gdal.UseExceptions()

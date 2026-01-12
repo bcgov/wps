@@ -5,9 +5,11 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 
+from aiohttp import ClientSession
+from wps_wf1.wfwx_api import WfwxApi
+
 import wps_shared.db.database
 from wps_shared.schemas.stations import StationCodeList, WeatherStation
-import wps_shared.stations
 from wps_shared.db.crud.forecasts import query_noon_forecast_records
 from wps_shared.schemas.forecasts import (
     NoonForecastSummariesResponse,
@@ -64,7 +66,9 @@ async def fetch_noon_forecasts_summaries(
             records_by_station[code].append(record)
 
     response = NoonForecastSummariesResponse()
-    stations = await wps_shared.stations.get_stations_by_codes(station_codes)
+    async with ClientSession() as session:
+        wfwx_api = WfwxApi(session)
+        stations = await wfwx_api.get_stations_by_codes(station_codes)
     for station in stations:
         summary = create_noon_forecast_summary(station, records_by_station)
         response.summaries.append(summary)

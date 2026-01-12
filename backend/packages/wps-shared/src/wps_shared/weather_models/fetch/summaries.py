@@ -3,8 +3,9 @@
 import datetime
 import logging
 from typing import List, Optional, Union
+from aiohttp import ClientSession, TCPConnector
 from numpy import percentile
-import wps_shared.stations
+from wps_wf1.wfwx_api import WfwxApi
 from wps_shared.weather_models import ModelEnum
 from wps_shared.schemas.weather_models import WeatherModelPredictionSummary, WeatherModelPredictionSummaryValues, WeatherPredictionModel
 import wps_shared.db.database
@@ -105,7 +106,13 @@ class ModelPredictionSummaryBuilder():
             time_of_interest: datetime) -> List[WeatherModelPredictionSummary]:
         """ Given a model and station codes, return list of weather summaries. """
         # Get list of stations.
-        self.stations = {station.code: station for station in await wps_shared.stations.get_stations_by_codes(station_codes)}
+        conn = TCPConnector(limit=10)
+        async with ClientSession(connector=conn) as client_session:
+            wfwx_api = WfwxApi(client_session)
+            self.stations = {
+                station.code: station
+                for station in await wfwx_api.get_stations_by_codes(station_codes)
+            }
 
         # Build database query
         new_query = _build_query_to_get_predictions(station_codes, model, time_of_interest)
