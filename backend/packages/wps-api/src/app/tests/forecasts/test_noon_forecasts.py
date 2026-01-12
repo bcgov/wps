@@ -8,8 +8,8 @@ from aiohttp import ClientSession
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
 from wps_shared.db.models.forecasts import NoonForecast
+from wps_shared.schemas.stations import StationCodeList
 from wps_shared.tests.common import default_mock_client_get
-from wps_wf1.models import StationCodeList
 
 
 def mock_query_noon_forecast_records(

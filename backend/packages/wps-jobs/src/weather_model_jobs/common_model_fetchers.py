@@ -5,6 +5,7 @@ from typing import List
 import numpy
 import numpy as np
 import wps_shared.db.database
+from wps_shared.schemas.stations import WeatherStation
 import wps_shared.utils.time as time_utils
 from pyproj import Geod
 from sqlalchemy.orm import Session
@@ -32,7 +33,6 @@ from wps_shared.db.models.weather_models import (
 from wps_shared.stations import get_stations_synchronously
 from wps_shared.weather_models import ModelEnum
 from wps_shared.wps_logging import configure_logging
-from wps_wf1.models import WeatherStation
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":

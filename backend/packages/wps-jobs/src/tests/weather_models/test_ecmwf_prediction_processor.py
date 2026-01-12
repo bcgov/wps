@@ -13,7 +13,7 @@ from wps_shared.db.models.weather_models import (
     PredictionModelRunTimestamp,
     WeatherStationModelPrediction,
 )
-from wps_wf1.models import WeatherStation
+from wps_shared.schemas.stations import WeatherStation
 
 
 @pytest.fixture

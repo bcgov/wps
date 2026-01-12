@@ -4,9 +4,25 @@ from datetime import date, datetime
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel
-from wps_wf1.models import FireCentre
 
 from wps_shared.schemas.auto_spatial_advisory import SFMSRunType
+
+
+class FireCenterStation(BaseModel):
+    """A fire weather station has a code, name and geographical coordinate."""
+
+    code: int
+    name: str
+    zone: Optional[str] = None
+
+
+class FireCentre(BaseModel):
+    """The highest-level organizational unit for wildfire planning. Each fire centre
+    has 1 or more planning areas within it."""
+
+    id: str
+    name: str
+    stations: List[FireCenterStation]
 
 
 class FireCenterListResponse(BaseModel):

@@ -4,9 +4,9 @@ import datetime
 
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
-from wps_wf1.models import StationCodeList
 
 from wps_shared.db.models.forecasts import NoonForecast
+from wps_shared.schemas.stations import StationCodeList
 
 
 def query_noon_forecast_records(

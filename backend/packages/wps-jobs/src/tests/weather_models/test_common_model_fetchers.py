@@ -8,7 +8,7 @@ from weather_model_jobs.common_model_fetchers import (
     accumulate_nam_precipitation,
 )
 from wps_shared.db.models.weather_models import ModelRunGridSubsetPrediction
-from wps_wf1.models import WeatherStation
+from wps_shared.schemas.stations import WeatherStation
 
 ZERO_HOUR_TIMESTAMP = datetime(2023, 9, 7, 0, 0, 0)
 TWELVE_HOUR_TIMESTAMP = datetime(2023, 9, 7, 12, 0, 0)

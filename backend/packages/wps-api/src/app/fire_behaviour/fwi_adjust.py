@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from wps_wf1.models import WFWXWeatherStation
 from app.fire_behaviour import cffdrs
 from wps_shared.schemas.fba_calc import StationRequest, AdjustedFWIResult
+from wps_shared.schemas.stations import WFWXWeatherStation
 
 """
 If user has not specified wind speed and/or precipitation, use the values retrieved from WFWX, always re-calculate FFMC & ISI

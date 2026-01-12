@@ -36,12 +36,12 @@ from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from wps_shared.geospatial.geospatial import PointTransformer
 from wps_shared.run_type import RunType
 from wps_shared.schemas.fba_calc import AdjustedFWIResult, CriticalHoursHFI
+from wps_shared.schemas.observations import WeatherStationHourlyReadings
+from wps_shared.schemas.stations import WFWXWeatherStation
 from wps_shared.stations import get_stations_asynchronously
 from wps_shared.utils.s3 import get_client
 from wps_shared.utils.time import get_hour_20_from_date, get_julian_date
-from wps_shared.wildfire_one.wfwx_api import create_wfwx_api
 from wps_shared.wps_logging import configure_logging
-from wps_wf1.models import WFWXWeatherStation, WeatherStationHourlyReadings
 from wps_wf1.wfwx_api import WfwxApi
 
 from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
@@ -566,7 +566,7 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
                 all_stations = await get_stations_asynchronously()
                 station_codes = [station.code for station in all_stations]
                 fire_centre_station_codes = get_fire_centre_station_codes()
-                wfwx_api = create_wfwx_api(client_session)
+                wfwx_api = WfwxApi(client_session)
                 stations = await wfwx_api.get_wfwx_stations_from_station_codes(
                     station_codes, fire_centre_station_codes
                 )

@@ -7,6 +7,7 @@ from typing import List
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.responses import ORJSONResponse
+from wps_wf1.wfwx_api import WfwxApi
 from wps_shared.auth import audit, auth_with_forecaster_role_required, authentication_required
 from wps_shared.db.crud.grass_curing import get_percent_grass_curing_by_station_for_date_range
 from wps_shared.db.crud.hfi_calc import get_fire_centre_station_codes
@@ -24,6 +25,7 @@ from wps_shared.schemas.morecast_v2 import (
     MorecastForecastResponse,
     ObservedDailiesForStations,
     StationDailiesResponse,
+    WeatherIndeterminate,
 )
 from wps_shared.schemas.shared import StationsRequest
 from wps_shared.utils.redis import clear_cache_matching
@@ -32,8 +34,6 @@ from wps_shared.weather_models.fetch.predictions import (
     fetch_latest_model_run_predictions_by_station_code_and_date_range,
 )
 
-from wps_shared.wildfire_one.wfwx_api import create_wfwx_api
-from wps_wf1.models import WeatherDeterminate, WeatherIndeterminate
 
 from app.morecast_v2.forecasts import (
     filter_for_api_forecasts,
@@ -140,7 +140,7 @@ async def save_forecasts(
 
     async with ClientSession() as client_session:
         try:
-            wfwx_api = create_wfwx_api(client_session)
+            wfwx_api = WfwxApi(client_session)
             wf1_forecast_records = await format_as_wf1_post_forecasts(
                 wfwx_api, forecasts_list, username
             )
@@ -183,7 +183,7 @@ async def get_yesterdays_actual_dailies(today: date, request: ObservedDailiesFor
     fire_centre_station_codes = get_fire_centre_station_codes()
 
     async with ClientSession() as session:
-        wfwx_api = create_wfwx_api(session)
+        wfwx_api = WfwxApi(session)
 
         yesterday_dailies = await wfwx_api.get_dailies_for_stations_and_date(
             time_of_interest, time_of_interest, unique_station_codes, fire_centre_station_codes
@@ -208,7 +208,7 @@ async def get_observed_dailies(
     fire_centre_station_codes = get_fire_centre_station_codes()
 
     async with ClientSession() as session:
-        wfwx_api = create_wfwx_api(session)
+        wfwx_api = WfwxApi(session)
         observed_dailies = await wfwx_api.get_dailies_for_stations_and_date(
             start_date_of_interest,
             end_date_of_interest,
@@ -243,7 +243,7 @@ async def get_determinates_for_date_range(
     async with ClientSession() as session:
         fire_centre_station_codes = get_fire_centre_station_codes()
         # get station information from the wfwx api
-        wfwx_api = create_wfwx_api(session)
+        wfwx_api = WfwxApi(session)
         wfwx_stations = await wfwx_api.get_wfwx_stations_from_station_codes(
             unique_station_codes, fire_centre_station_codes
         )

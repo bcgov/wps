@@ -19,8 +19,8 @@ from weather_model_jobs.ecmwf_model_processor import ECMWFModelProcessor
 from weather_model_jobs.utils.process_grib import PredictionModelNotFound
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.models.weather_models import PredictionModelRunTimestamp
+from wps_shared.schemas.stations import WeatherStation
 from wps_shared.tests.common import default_mock_client_get
-from wps_wf1.models import WeatherStation
 
 num_forecast_hours = len(list(get_ecmwf_forecast_hours()))
 

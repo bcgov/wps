@@ -11,16 +11,14 @@ from wps_shared.db.crud.morecast_v2 import get_forecasts_in_range
 from wps_shared.schemas.morecast_v2 import (
     MoreCastForecastInput,
     MoreCastForecastOutput,
-)
-from wps_shared.utils.time import vancouver_tz
-from wps_wf1.models import (
     StationDailyFromWF1,
     WF1ForecastRecordType,
     WF1PostForecast,
-    WFWXWeatherStation,
     WeatherDeterminate,
     WeatherIndeterminate,
 )
+from wps_shared.schemas.stations import WFWXWeatherStation
+from wps_shared.utils.time import vancouver_tz
 from wps_wf1.wfwx_api import WfwxApi
 
 

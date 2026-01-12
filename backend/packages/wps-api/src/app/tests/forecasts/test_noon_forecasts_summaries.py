@@ -2,13 +2,13 @@ from datetime import datetime, timedelta
 
 import app.main
 import pytest
+from wps_shared.schemas.stations import StationCodeList
 import wps_shared.utils.time as time_utils
 from aiohttp import ClientSession
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
 from wps_shared.db.models.forecasts import NoonForecast
 from wps_shared.tests.common import default_mock_client_get
-from wps_wf1.models import StationCodeList
 
 noon = time_utils.get_utc_now().replace(hour=20, minute=0, second=0, microsecond=0)
 weather_date = noon - timedelta(days=2)

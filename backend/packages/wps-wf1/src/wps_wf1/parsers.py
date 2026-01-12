@@ -5,22 +5,7 @@ from datetime import datetime, timezone
 from typing import Generator, List
 
 from wps_wf1.ecodivisions.ecodivision_seasons import EcodivisionSeasons
-from wps_wf1.models import (
-    FireCenterStation,
-    FireCentre,
-    FireZone,
-    HourlyActual,
-    NoonForecast,
-    StationDailyFromWF1,
-    StationFireCentre,
-    WeatherDeterminate,
-    WeatherIndeterminate,
-    WeatherReading,
-    WeatherStation,
-    WeatherStationGroup,
-    WeatherStationGroupMember,
-    WFWXWeatherStation,
-)
+
 from wps_wf1.util import (
     compute_dewpoint,
     get_zone_code_prefix,
@@ -28,6 +13,23 @@ from wps_wf1.util import (
     is_station_valid,
 )
 from wps_wf1.validation import get_valid_flags
+
+from wps_shared.schemas.fba import FireCenterStation, FireCentre
+from wps_shared.schemas.forecasts import NoonForecast
+from wps_shared.schemas.morecast_v2 import (
+    StationDailyFromWF1,
+    WeatherDeterminate,
+    WeatherIndeterminate,
+)
+from wps_shared.schemas.observations import HourlyActual, WeatherReading
+from wps_shared.schemas.stations import (
+    FireZone,
+    StationFireCentre,
+    WFWXWeatherStation,
+    WeatherStation,
+    WeatherStationGroup,
+    WeatherStationGroupMember,
+)
 
 logger = logging.getLogger(__name__)
 

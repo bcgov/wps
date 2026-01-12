@@ -2,8 +2,7 @@ from datetime import datetime
 
 from shapely import wkt
 from wps_shared.db.models.weather_models import ModelRunGridSubsetPrediction, ProcessedModelRunUrl
-from wps_wf1.models import Season, WeatherStation
-
+from wps_shared.schemas.stations import Season, WeatherStation
 
 class MockResponse:
     """Mocked out request.Response object"""

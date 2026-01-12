@@ -6,6 +6,7 @@ from collections import defaultdict
 from datetime import datetime
 
 import wps_shared.db.database
+from wps_shared.schemas.stations import StationCodeList, WeatherStation
 import wps_shared.stations
 from wps_shared.db.crud.forecasts import query_noon_forecast_records
 from wps_shared.schemas.forecasts import (
@@ -13,7 +14,6 @@ from wps_shared.schemas.forecasts import (
     NoonForecastSummary,
     NoonForecastSummaryValues,
 )
-from wps_wf1.models import StationCodeList, WeatherStation
 
 logger = logging.getLogger(__name__)
 

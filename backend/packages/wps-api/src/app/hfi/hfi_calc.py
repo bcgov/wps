@@ -8,6 +8,9 @@ from itertools import groupby
 from statistics import mean
 from typing import Dict, List, Optional, Set, Tuple
 
+from wps_wf1.wfwx_api import WfwxApi
+
+from wps_shared.schemas.stations import WFWXWeatherStation
 import wps_shared.utils.time
 from aiohttp.client import ClientSession
 from sqlalchemy.orm import Session
@@ -38,8 +41,6 @@ from wps_shared.schemas.hfi_calc import (
     required_daily_fields,
 )
 from wps_shared.utils.time import get_hour_20_from_date, get_pst_now
-from wps_shared.wildfire_one.wfwx_api import create_wfwx_api
-from wps_wf1.models import WFWXWeatherStation, WeatherStation as WFWXWeatherStationDetails
 
 from app.fire_behaviour.cffdrs import CFFDRSException
 from app.fire_behaviour.prediction import (
@@ -181,7 +182,7 @@ async def hydrate_fire_centres():
         station_codes = [station.station_code for (station, _, __, ___) in rows]
         # TODO: Could this use wps_shared.stations.get_stations_by_codes
         async with ClientSession() as session:
-            wfwx_api = create_wfwx_api(session)
+            wfwx_api = WfwxApi(session)
             wfwx_stations_data = await wfwx_api.get_stations_by_codes(list(set(station_codes)))
         stations_by_code: Dict[int, WFWXWeatherStationDetails] = {
             station.code: station for station in wfwx_stations_data
@@ -253,7 +254,7 @@ async def calculate_latest_hfi_results(
         fire_start_lookup = build_fire_start_prep_level_lookup(orm_session)
 
         fire_centre_station_codes = get_fire_centre_station_codes()
-        wfwx_api = create_wfwx_api(session)
+        wfwx_api = WfwxApi(session)
         wfwx_stations = await wfwx_api.get_wfwx_stations_from_station_codes(
             list(fire_centre_station_code_ids), fire_centre_station_codes
         )

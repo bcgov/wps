@@ -20,7 +20,7 @@ def test_noon_forecasts_bot(monkeypatch, mocker: MockerFixture, mock_wfwx_api):
 
     wfwx_hourlies = mock_wfwx_response()
     mock_wfwx_api.get_noon_forecasts_all_stations.return_value = wfwx_hourlies
-    mocker.patch("app.jobs.noon_forecasts.create_wfwx_api", return_value=mock_wfwx_api)
+    mocker.patch("app.jobs.noon_forecasts.WfwxApi", return_value=mock_wfwx_api)
     save_noon_forecast_spy = mocker.spy(noon_forecasts, "save_noon_forecast")
     with pytest.raises(SystemExit) as excinfo:
         noon_forecasts.main()
