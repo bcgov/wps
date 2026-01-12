@@ -25,6 +25,7 @@ from wps_shared.schemas.morecast_v2 import (
     MorecastForecastResponse,
     ObservedDailiesForStations,
     StationDailiesResponse,
+    WeatherDeterminate,
     WeatherIndeterminate,
 )
 from wps_shared.schemas.shared import StationsRequest

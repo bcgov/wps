@@ -8,9 +8,6 @@ from itertools import groupby
 from statistics import mean
 from typing import Dict, List, Optional, Set, Tuple
 
-from wps_wf1.wfwx_api import WfwxApi
-
-from wps_shared.schemas.stations import WFWXWeatherStation
 import wps_shared.utils.time
 from aiohttp.client import ClientSession
 from sqlalchemy.orm import Session
@@ -40,7 +37,10 @@ from wps_shared.schemas.hfi_calc import (
     WeatherStationProperties,
     required_daily_fields,
 )
+from wps_shared.schemas.stations import WeatherStation as WFWXWeatherStationDetails
+from wps_shared.schemas.stations import WFWXWeatherStation
 from wps_shared.utils.time import get_hour_20_from_date, get_pst_now
+from wps_wf1.wfwx_api import WfwxApi
 
 from app.fire_behaviour.cffdrs import CFFDRSException
 from app.fire_behaviour.prediction import (
