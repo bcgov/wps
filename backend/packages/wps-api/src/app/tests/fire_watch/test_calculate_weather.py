@@ -23,6 +23,7 @@ from app.fire_watch.calculate_weather import (
     validate_fire_watch_inputs,
     validate_prediction_dates,
 )
+from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
 from wps_shared.schemas.stations import WFWXWeatherStation
 from wps_shared.schemas.weather_models import ModelPredictionDetails
 from app.fire_watch.calculate_weather import MissingWeatherDataError
