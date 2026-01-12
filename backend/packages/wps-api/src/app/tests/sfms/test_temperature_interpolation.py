@@ -127,8 +127,8 @@ class TestIDWInterpolation:
     def test_idw_exact_match(self):
         """Test that IDW returns station value when point is at station."""
         stations = [
-            StationTemperature(1, 49.0, -123.0, 100, 15.0),
-            StationTemperature(2, 50.0, -124.0, 200, 20.0),
+            StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=100, temperature=15.0),
+            StationTemperature(code=2, lat=50.0, lon=-124.0, elevation=200, temperature=20.0),
         ]
 
         # Adjust to sea level
@@ -144,8 +144,8 @@ class TestIDWInterpolation:
     def test_idw_between_two_stations(self):
         """Test IDW interpolation between two stations."""
         stations = [
-            StationTemperature(1, 49.0, -123.0, 0, 10.0),
-            StationTemperature(2, 50.0, -123.0, 0, 20.0),
+            StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=10.0),
+            StationTemperature(code=2, lat=50.0, lon=-123.0, elevation=0, temperature=20.0),
         ]
 
         # Adjust to sea level (no change since elevation is 0)
@@ -167,7 +167,7 @@ class TestIDWInterpolation:
     def test_idw_outside_search_radius(self):
         """Test that IDW returns None when all stations outside search radius."""
         stations = [
-            StationTemperature(1, 49.0, -123.0, 0, 15.0),
+            StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
         ]
 
         for station in stations:
@@ -180,8 +180,8 @@ class TestIDWInterpolation:
     def test_idw_with_none_sea_level_temp(self):
         """Test that IDW handles stations with None sea_level_temp."""
         stations = [
-            StationTemperature(1, 49.0, -123.0, 0, 15.0),
-            StationTemperature(2, 50.0, -124.0, 0, 20.0),
+            StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
+            StationTemperature(code=2, lat=50.0, lon=-124.0, elevation=0, temperature=20.0),
         ]
 
         # Only adjust first station
@@ -226,9 +226,15 @@ class TestIntegrationScenario:
         """Test the full workflow with simple data."""
         # Create stations at different elevations
         stations = [
-            StationTemperature(1, 49.0, -123.0, 0, 15.0),  # Sea level, 15°C
-            StationTemperature(2, 49.1, -123.1, 500, 10.0),  # 500m, 10°C
-            StationTemperature(3, 49.2, -123.2, 1000, 5.0),  # 1000m, 5°C
+            StationTemperature(
+                code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0
+            ),  # Sea level, 15°C
+            StationTemperature(
+                code=2, lat=49.1, lon=-123.1, elevation=500, temperature=10.0
+            ),  # 500m, 10°C
+            StationTemperature(
+                code=3, lat=49.2, lon=-123.2, elevation=1000, temperature=5.0
+            ),  # 1000m, 5°C
         ]
 
         # Adjust all to sea level
