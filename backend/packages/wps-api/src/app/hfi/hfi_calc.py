@@ -180,7 +180,6 @@ async def hydrate_fire_centres():
         stations_by_area = groupby(sorted_rows, key=lambda row: row[0].planning_area_id)
 
         station_codes = [station.station_code for (station, _, __, ___) in rows]
-        # TODO: Could this use wps_shared.stations.get_stations_by_codes
         async with ClientSession() as session:
             wfwx_api = WfwxApi(session)
             wfwx_stations_data = await wfwx_api.get_stations_by_codes(list(set(station_codes)))

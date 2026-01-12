@@ -5,6 +5,7 @@ from aiohttp import ClientSession
 from fastapi import APIRouter, Response, Depends
 from wps_wf1.wfwx_api import WfwxApi
 from wps_shared.auth import authentication_required, audit
+from wps_shared.db.crud.stations import _get_noon_date
 from wps_shared.utils.time import get_utc_now, get_hour_20
 from wps_shared.schemas.stations import (
     WeatherStationGroupsMemberRequest,
@@ -13,7 +14,7 @@ from wps_shared.schemas.stations import (
     WeatherStationGroupsResponse,
     WeatherStationGroupMembersResponse,
 )
-from wps_shared.stations import get_stations_as_geojson, fetch_detailed_stations_as_geojson
+from wps_shared.stations import get_stations_as_geojson
 
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,10 @@ async def get_detailed_stations(response: Response, toi: datetime = None, __=Dep
             toi = get_utc_now()
         else:
             toi = get_hour_20(toi)
-        weather_stations = await fetch_detailed_stations_as_geojson(toi)
+        noon_time_of_interest = _get_noon_date(toi)
+        async with ClientSession() as session:
+            wfwx_api = WfwxApi(session)
+            weather_stations = await wfwx_api.get_detailed_stations(noon_time_of_interest)
         return DetailedWeatherStationsResponse(features=weather_stations)
 
     except Exception as exception:
