@@ -4,11 +4,17 @@ import { RASTER_CONFIG, RasterType } from './map/rasterConfig'
 interface RasterTypeDropdownProps {
   selectedRasterType: RasterType
   setSelectedRasterType: (rasterType: RasterType) => void
+  rasterDataAvailable?: boolean
 }
 
-const RasterTypeDropdown = ({ selectedRasterType, setSelectedRasterType }: RasterTypeDropdownProps) => {
+const RasterTypeDropdown = ({ selectedRasterType, setSelectedRasterType, rasterDataAvailable = true }: RasterTypeDropdownProps) => {
   const handleChange = (event: SelectChangeEvent<RasterType>) => {
-    setSelectedRasterType(event.target.value as RasterType)
+    const newValue = event.target.value as RasterType
+    // Prevent selecting fire weather types when data is unavailable
+    if (!rasterDataAvailable && newValue !== 'fuel') {
+      return
+    }
+    setSelectedRasterType(newValue)
   }
 
   return (
@@ -22,7 +28,7 @@ const RasterTypeDropdown = ({ selectedRasterType, setSelectedRasterType }: Raste
         onChange={handleChange}
       >
         {(Object.keys(RASTER_CONFIG) as RasterType[]).map(type => (
-          <MenuItem key={type} value={type}>
+          <MenuItem key={type} value={type} disabled={!rasterDataAvailable && type !== 'fuel'}>
             {RASTER_CONFIG[type].label}
           </MenuItem>
         ))}
