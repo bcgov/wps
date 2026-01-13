@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from fastapi import HTTPException
+import app
 from wps_shared.schemas.fire_watch import FireWatchFireCentre, FireWatchOutput
 from wps_shared.schemas.stations import GeoJsonWeatherStation
 from app.routers.fire_watch import (
@@ -40,7 +41,6 @@ def mock_fire_centre():
 
 
 @pytest.mark.anyio
-@patch("app.routers.fire_watch.get_stations_as_geojson", new_callable=AsyncMock)
 @patch("app.routers.fire_watch.get_async_write_session_scope")
 @patch("app.routers.fire_watch.marshall_fire_watch_input_to_db")
 @patch("app.routers.fire_watch.get_fire_watch_by_id", new_callable=AsyncMock)
@@ -64,11 +64,14 @@ async def test_update_existing_fire_watch_success(
     mock_get_by_id,
     mock_marshall,
     mock_session_scope,
-    mock_get_stations,
     fire_watch_input_request,
     token,
+    mocker,
+    mock_wfwx_api,
 ):
     # Setup mocks
+    mock_wfwx_api.get_stations_as_geojson.return_value = ["station"]
+    mocker.patch("app.routers.fire_watch.WfwxApi", return_value=mock_wfwx_api)
     mock_session = AsyncMock()
     mock_session_scope.return_value.__aenter__.return_value = mock_session
     fire_watch = MagicMock(id=1)
@@ -81,7 +84,6 @@ async def test_update_existing_fire_watch_success(
     fire_watch_weather = [("weather", "prescription")]
     mock_get_weather.return_value = fire_watch_weather
     mock_create_burn_forecast.return_value = "burn_forecast"
-    mock_get_stations.return_value = ["station"]
     mock_marshall.return_value = MagicMock()
 
     result = await update_existing_fire_watch(1, fire_watch_input_request, token)
@@ -96,7 +98,6 @@ async def test_update_existing_fire_watch_success(
 
 
 @pytest.mark.anyio
-@patch("app.routers.fire_watch.get_stations_as_geojson", new_callable=AsyncMock)
 @patch("app.routers.fire_watch.get_async_write_session_scope")
 @patch("app.routers.fire_watch.marshall_fire_watch_input_to_db")
 @patch("app.routers.fire_watch.get_fire_watch_by_id", new_callable=AsyncMock)
@@ -104,14 +105,16 @@ async def test_update_existing_fire_watch_not_found(
     mock_get_by_id,
     mock_marshall,
     mock_session_scope,
-    mock_get_stations,
     fire_watch_input_request,
     token,
+    mocker,
+    mock_wfwx_api,
 ):
+    mock_wfwx_api.get_stations_as_geojson.return_value = ["station"]
+    mocker.patch("app.routers.fire_watch.WfwxApi", return_value=mock_wfwx_api)
     mock_session = AsyncMock()
     mock_session_scope.return_value.__aenter__.return_value = mock_session
     mock_get_by_id.return_value = None
-    mock_get_stations.return_value = ["station"]
     mock_marshall.return_value = MagicMock()
 
     with pytest.raises(HTTPException) as exc:
@@ -121,7 +124,6 @@ async def test_update_existing_fire_watch_not_found(
 
 
 @pytest.mark.anyio
-@patch("app.routers.fire_watch.get_stations_as_geojson", new_callable=AsyncMock)
 @patch("app.routers.fire_watch.get_async_write_session_scope")
 @patch("app.routers.fire_watch.marshall_fire_watch_input_to_db")
 @patch("app.routers.fire_watch.get_fire_watch_by_id", new_callable=AsyncMock)
@@ -138,10 +140,13 @@ async def test_update_existing_fire_watch_missing_weather_data(
     mock_get_by_id,
     mock_marshall,
     mock_session_scope,
-    mock_get_stations,
     fire_watch_input_request,
     token,
+    mocker,
+    mock_wfwx_api,
 ):
+    mock_wfwx_api.get_stations_as_geojson.return_value = ["station"]
+    mocker.patch("app.routers.fire_watch.WfwxApi", return_value=mock_wfwx_api)
     mock_session = AsyncMock()
     mock_session_scope.return_value.__aenter__.return_value = mock_session
     fire_watch = MagicMock(id=1)
@@ -151,7 +156,6 @@ async def test_update_existing_fire_watch_missing_weather_data(
     mock_update.return_value = updated_fire_watch
     mock_get_latest_id.return_value = 123
     mock_reprocess.side_effect = MissingWeatherDataError("missing weather")
-    mock_get_stations.return_value = ["station"]
     mock_marshall.return_value = MagicMock()
 
     with pytest.raises(HTTPException) as exc:
@@ -161,7 +165,6 @@ async def test_update_existing_fire_watch_missing_weather_data(
 
 
 @pytest.mark.anyio
-@patch("app.routers.fire_watch.get_stations_as_geojson", new_callable=AsyncMock)
 @patch("app.routers.fire_watch.get_async_write_session_scope")
 @patch("app.routers.fire_watch.marshall_fire_watch_input_to_db")
 @patch("app.routers.fire_watch.get_fire_watch_by_id", new_callable=AsyncMock)
@@ -178,10 +181,13 @@ async def test_update_existing_fire_watch_other_exception(
     mock_get_by_id,
     mock_marshall,
     mock_session_scope,
-    mock_get_stations,
     fire_watch_input_request,
     token,
+    mocker,
+    mock_wfwx_api,
 ):
+    mock_wfwx_api.get_stations_as_geojson.return_value = ["station"]
+    mocker.patch("app.routers.fire_watch.WfwxApi", return_value=mock_wfwx_api)
     mock_session = AsyncMock()
     mock_session_scope.return_value.__aenter__.return_value = mock_session
     fire_watch = MagicMock(id=1)
@@ -191,7 +197,6 @@ async def test_update_existing_fire_watch_other_exception(
     mock_update.return_value = updated_fire_watch
     mock_get_latest_id.return_value = 123
     mock_reprocess.side_effect = Exception("unexpected error")
-    mock_get_stations.return_value = ["station"]
     mock_marshall.return_value = MagicMock()
 
     with pytest.raises(HTTPException) as exc:
