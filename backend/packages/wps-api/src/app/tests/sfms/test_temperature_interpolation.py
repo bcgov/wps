@@ -4,7 +4,9 @@ Unit tests for temperature interpolation module.
 
 import pytest
 import numpy as np
+from osgeo import gdal
 from datetime import datetime, timezone
+from typing import Optional, cast
 from unittest.mock import AsyncMock, Mock, patch, MagicMock
 from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.schemas.stations import WeatherStation
@@ -21,6 +23,61 @@ from app.sfms.temperature_interpolation import (
     interpolate_temperature_to_raster,
     get_dem_path,
 )
+
+
+def create_mock_raster_datasets(
+    raster_size=(10, 10),
+    dem_data=None,
+    dem_nodata: Optional[float] = -9999.0,
+    geotransform=(0, 1, 0, 50, 0, -1),
+):
+    """
+    Create mock GDAL datasets for raster interpolation tests.
+
+    :param raster_size: Tuple of (x_size, y_size) for raster dimensions
+    :param dem_data: Optional numpy array for DEM data, defaults to uniform 100.0
+    :param dem_nodata: NoData value for DEM, or None
+    :param geotransform: GDAL geotransform tuple
+    :return: Tuple of (mock_ref_ds, mock_dem_ds, mock_output_ds, mock_ref_ctx, mock_dem_ctx)
+    """
+    x_size, y_size = raster_size
+
+    # Create reference dataset
+    mock_ref_ds = cast(gdal.Dataset, Mock())
+    mock_ref_ds.GetGeoTransform.return_value = geotransform
+    mock_ref_ds.GetProjection.return_value = (
+        'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]]]'
+    )
+    mock_ref_ds.RasterXSize = x_size
+    mock_ref_ds.RasterYSize = y_size
+
+    # Create DEM dataset
+    if dem_data is None:
+        dem_data = np.full((y_size, x_size), 100.0)
+
+    mock_dem_band = cast(gdal.Band, Mock())
+    mock_dem_band.ReadAsArray.return_value = dem_data
+    mock_dem_band.GetNoDataValue.return_value = dem_nodata
+
+    mock_dem_ds = cast(gdal.Dataset, Mock())
+    mock_dem_ds.GetRasterBand.return_value = mock_dem_band
+
+    # Create output dataset
+    mock_output_ds = Mock()
+    mock_output_ds.export_to_geotiff = Mock()
+    mock_output_ds.__enter__ = Mock(return_value=mock_output_ds)
+    mock_output_ds.__exit__ = Mock(return_value=False)
+
+    # Create context managers for WPSDataset
+    mock_ref_ctx = MagicMock()
+    mock_ref_ctx.__enter__ = Mock(return_value=Mock(ds=mock_ref_ds))
+    mock_ref_ctx.__exit__ = Mock(return_value=False)
+
+    mock_dem_ctx = MagicMock()
+    mock_dem_ctx.__enter__ = Mock(return_value=Mock(ds=mock_dem_ds))
+    mock_dem_ctx.__exit__ = Mock(return_value=False)
+
+    return mock_ref_ds, mock_dem_ds, mock_output_ds, mock_ref_ctx, mock_dem_ctx
 
 
 class TestStationTemperature:
@@ -347,9 +404,7 @@ class TestFetchStationTemperatures:
         time_of_interest = datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc)
 
         stations = [
-            WeatherStation(
-                code=123, name="Test Station", lat=49.0, long=-123.0, elevation=500.0
-            ),
+            WeatherStation(code=123, name="Test Station", lat=49.0, long=-123.0, elevation=500.0),
         ]
 
         # Mock data with FORECAST record type (should be filtered)
@@ -388,9 +443,7 @@ class TestFetchStationTemperatures:
         time_of_interest = datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc)
 
         stations = [
-            WeatherStation(
-                code=123, name="Test Station", lat=49.0, long=-123.0, elevation=500.0
-            ),
+            WeatherStation(code=123, name="Test Station", lat=49.0, long=-123.0, elevation=500.0),
         ]
 
         # Mock data with None temperature (should be skipped)
@@ -429,9 +482,7 @@ class TestFetchStationTemperatures:
         time_of_interest = datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc)
 
         stations = [
-            WeatherStation(
-                code=123, name="Test Station", lat=49.0, long=-123.0, elevation=None
-            ),
+            WeatherStation(code=123, name="Test Station", lat=49.0, long=-123.0, elevation=None),
         ]
 
         raw_dailies = [
@@ -469,9 +520,7 @@ class TestFetchStationTemperatures:
         time_of_interest = datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc)
 
         stations = [
-            WeatherStation(
-                code=123, name="Test Station", lat=49.0, long=-123.0, elevation=500.0
-            ),
+            WeatherStation(code=123, name="Test Station", lat=49.0, long=-123.0, elevation=500.0),
         ]
 
         # Raw daily for station 999 which is not in our station list
@@ -510,9 +559,7 @@ class TestFetchStationTemperatures:
         time_of_interest = datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc)
 
         stations = [
-            WeatherStation(
-                code=123, name="Test Station", lat=49.0, long=-123.0, elevation=500.0
-            ),
+            WeatherStation(code=123, name="Test Station", lat=49.0, long=-123.0, elevation=500.0),
         ]
 
         # Raw daily with None station data (should be filtered by is_station_valid)
@@ -544,9 +591,7 @@ class TestFetchStationTemperatures:
         time_of_interest = datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc)
 
         stations = [
-            WeatherStation(
-                code=123, name="Test Station 1", lat=49.0, long=-123.0, elevation=500.0
-            ),
+            WeatherStation(code=123, name="Test Station 1", lat=49.0, long=-123.0, elevation=500.0),
             WeatherStation(
                 code=456, name="Test Station 2", lat=50.0, long=-124.0, elevation=1000.0
             ),
@@ -604,36 +649,9 @@ class TestInterpolateTemperatureToRaster:
             StationTemperature(code=2, lat=49.1, lon=-123.1, elevation=500, temperature=12.0),
         ]
 
-        # Create mock GDAL datasets
-        mock_ref_ds = Mock()
-        mock_ref_ds.GetGeoTransform.return_value = (0, 1, 0, 50, 0, -1)
-        mock_ref_ds.GetProjection.return_value = 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]]]'
-        mock_ref_ds.RasterXSize = 10
-        mock_ref_ds.RasterYSize = 10
+        _, _, mock_output_ds, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets()
 
-        mock_dem_band = Mock()
-        mock_dem_band.ReadAsArray.return_value = np.full((10, 10), 100.0)
-        mock_dem_band.GetNoDataValue.return_value = -9999.0
-
-        mock_dem_ds = Mock()
-        mock_dem_ds.GetRasterBand.return_value = mock_dem_band
-
-        mock_output_ds = Mock()
-        mock_output_ds.export_to_geotiff = Mock()
-        mock_output_ds.__enter__ = Mock(return_value=mock_output_ds)
-        mock_output_ds.__exit__ = Mock(return_value=False)
-
-        # Mock WPSDataset
         with patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset:
-            # Setup context managers
-            mock_ref_ctx = MagicMock()
-            mock_ref_ctx.__enter__ = Mock(return_value=Mock(ds=mock_ref_ds))
-            mock_ref_ctx.__exit__ = Mock(return_value=False)
-
-            mock_dem_ctx = MagicMock()
-            mock_dem_ctx.__enter__ = Mock(return_value=Mock(ds=mock_dem_ds))
-            mock_dem_ctx.__exit__ = Mock(return_value=False)
-
             mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
             mock_wps_dataset.from_array.return_value = mock_output_ds
 
@@ -655,33 +673,11 @@ class TestInterpolateTemperatureToRaster:
         dem_data = np.full((5, 5), 100.0)
         dem_data[2, 2] = -9999.0  # NoData cell
 
-        mock_ref_ds = Mock()
-        mock_ref_ds.GetGeoTransform.return_value = (0, 1, 0, 50, 0, -1)
-        mock_ref_ds.GetProjection.return_value = 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]]]'
-        mock_ref_ds.RasterXSize = 5
-        mock_ref_ds.RasterYSize = 5
-
-        mock_dem_band = Mock()
-        mock_dem_band.ReadAsArray.return_value = dem_data
-        mock_dem_band.GetNoDataValue.return_value = -9999.0
-
-        mock_dem_ds = Mock()
-        mock_dem_ds.GetRasterBand.return_value = mock_dem_band
-
-        mock_output_ds = Mock()
-        mock_output_ds.export_to_geotiff = Mock()
-        mock_output_ds.__enter__ = Mock(return_value=mock_output_ds)
-        mock_output_ds.__exit__ = Mock(return_value=False)
+        _, _, mock_output_ds, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
+            raster_size=(5, 5), dem_data=dem_data, dem_nodata=-9999.0
+        )
 
         with patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset:
-            mock_ref_ctx = MagicMock()
-            mock_ref_ctx.__enter__ = Mock(return_value=Mock(ds=mock_ref_ds))
-            mock_ref_ctx.__exit__ = Mock(return_value=False)
-
-            mock_dem_ctx = MagicMock()
-            mock_dem_ctx.__enter__ = Mock(return_value=Mock(ds=mock_dem_ds))
-            mock_dem_ctx.__exit__ = Mock(return_value=False)
-
             mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
             mock_wps_dataset.from_array.return_value = mock_output_ds
 
@@ -703,33 +699,11 @@ class TestInterpolateTemperatureToRaster:
         adjust_temperature_to_sea_level(stations[0])
         # stations[1] will have None sea_level_temp
 
-        mock_ref_ds = Mock()
-        mock_ref_ds.GetGeoTransform.return_value = (0, 1, 0, 50, 0, -1)
-        mock_ref_ds.GetProjection.return_value = 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]]]'
-        mock_ref_ds.RasterXSize = 5
-        mock_ref_ds.RasterYSize = 5
-
-        mock_dem_band = Mock()
-        mock_dem_band.ReadAsArray.return_value = np.full((5, 5), 100.0)
-        mock_dem_band.GetNoDataValue.return_value = None
-
-        mock_dem_ds = Mock()
-        mock_dem_ds.GetRasterBand.return_value = mock_dem_band
-
-        mock_output_ds = Mock()
-        mock_output_ds.export_to_geotiff = Mock()
-        mock_output_ds.__enter__ = Mock(return_value=mock_output_ds)
-        mock_output_ds.__exit__ = Mock(return_value=False)
+        _, _, mock_output_ds, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
+            raster_size=(5, 5), dem_nodata=None
+        )
 
         with patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset:
-            mock_ref_ctx = MagicMock()
-            mock_ref_ctx.__enter__ = Mock(return_value=Mock(ds=mock_ref_ds))
-            mock_ref_ctx.__exit__ = Mock(return_value=False)
-
-            mock_dem_ctx = MagicMock()
-            mock_dem_ctx.__enter__ = Mock(return_value=Mock(ds=mock_dem_ds))
-            mock_dem_ctx.__exit__ = Mock(return_value=False)
-
             mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
             mock_wps_dataset.from_array.return_value = mock_output_ds
 
@@ -738,7 +712,6 @@ class TestInterpolateTemperatureToRaster:
             )
 
             assert result == "/path/to/output.tif"
-
 
     @pytest.mark.anyio
     async def test_interpolate_with_actual_loop_execution(self):
@@ -755,27 +728,6 @@ class TestInterpolateTemperatureToRaster:
         # Create very small test arrays (2x2) to allow actual loop execution
         dem_data = np.array([[100.0, 200.0], [150.0, 250.0]], dtype=np.float32)
 
-        mock_ref_ds = Mock()
-        # Geotransform: (x_origin, pixel_width, 0, y_origin, 0, pixel_height)
-        # Place raster cells very close to station location (49.0, -123.0)
-        # Cell centers will be at approximately: (49.05, -123.05), (49.05, -123.01), (49.01, -123.05), (49.01, -123.01)
-        mock_ref_ds.GetGeoTransform.return_value = (-123.1, 0.05, 0, 49.1, 0, -0.05)
-        mock_ref_ds.GetProjection.return_value = 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]]]'
-        mock_ref_ds.RasterXSize = 2
-        mock_ref_ds.RasterYSize = 2
-
-        mock_dem_band = Mock()
-        mock_dem_band.ReadAsArray.return_value = dem_data
-        mock_dem_band.GetNoDataValue.return_value = None
-
-        mock_dem_ds = Mock()
-        mock_dem_ds.GetRasterBand.return_value = mock_dem_band
-
-        mock_output_ds = Mock()
-        mock_output_ds.export_to_geotiff = Mock()
-        mock_output_ds.__enter__ = Mock(return_value=mock_output_ds)
-        mock_output_ds.__exit__ = Mock(return_value=False)
-
         # Track the array that gets passed to from_array
         captured_array = None
 
@@ -784,26 +736,25 @@ class TestInterpolateTemperatureToRaster:
             captured_array = array
             return mock_output_ds
 
+        _, _, mock_output_ds, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
+            raster_size=(2, 2),
+            dem_data=dem_data,
+            dem_nodata=None,
+            geotransform=(-123.1, 0.05, 0, 49.1, 0, -0.05),
+        )
+
         # Mock coordinate transformation to return points near station (49.0, -123.0)
         mock_transform = Mock()
-        # Return coordinates very close to the station for all pixels
         mock_transform.TransformPoint.return_value = (-123.0, 49.0, 0)
 
-        with patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset, \
-             patch("app.sfms.temperature_interpolation.osr") as mock_osr:
-
+        with (
+            patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset,
+            patch("app.sfms.temperature_interpolation.osr") as mock_osr,
+        ):
             # Mock osr module
             mock_source_srs = Mock()
             mock_osr.SpatialReference.return_value = mock_source_srs
             mock_osr.CoordinateTransformation.return_value = mock_transform
-
-            mock_ref_ctx = MagicMock()
-            mock_ref_ctx.__enter__ = Mock(return_value=Mock(ds=mock_ref_ds))
-            mock_ref_ctx.__exit__ = Mock(return_value=False)
-
-            mock_dem_ctx = MagicMock()
-            mock_dem_ctx.__enter__ = Mock(return_value=Mock(ds=mock_dem_ds))
-            mock_dem_ctx.__exit__ = Mock(return_value=False)
 
             mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
             mock_wps_dataset.from_array = Mock(side_effect=capture_from_array)
