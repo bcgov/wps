@@ -20,6 +20,7 @@ from wps_shared.wildfire_one.util import is_station_valid
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.utils.s3_client import S3Client
+from wps_shared.geospatial.wps_dataset import WPSDataset
 
 logger = logging.getLogger(__name__)
 
@@ -244,106 +245,88 @@ async def interpolate_temperature_to_raster(
     for station in stations:
         adjust_temperature_to_sea_level(station)
 
-    # Open reference raster to get grid properties
-    ref_ds: gdal.Dataset = gdal.Open(reference_raster_path, gdal.GA_ReadOnly)
-    if ref_ds is None:
-        raise RuntimeError(f"Failed to open reference raster: {reference_raster_path}")
+    # Open reference raster and DEM using WPSDataset
+    with WPSDataset(reference_raster_path) as ref_ds:
+        with WPSDataset(dem_path) as dem_ds:
+            # Get raster properties from reference
+            geo_transform = ref_ds.ds.GetGeoTransform()
+            projection = ref_ds.ds.GetProjection()
+            x_size = ref_ds.ds.RasterXSize
+            y_size = ref_ds.ds.RasterYSize
 
-    # Get raster properties
-    geo_transform = ref_ds.GetGeoTransform()
-    projection = ref_ds.GetProjection()
-    x_size = ref_ds.RasterXSize
-    y_size = ref_ds.RasterYSize
+            # Read DEM data
+            dem_band: gdal.Band = dem_ds.ds.GetRasterBand(1)
+            dem_data = dem_band.ReadAsArray()
+            dem_nodata = dem_band.GetNoDataValue()
 
-    # Open DEM raster
-    dem_ds: gdal.Dataset = gdal.Open(dem_path, gdal.GA_ReadOnly)
-    if dem_ds is None:
-        raise RuntimeError(f"Failed to open DEM raster: {dem_path}")
+            # Initialize output array with NoData
+            temp_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
 
-    # Read DEM data
-    dem_band: gdal.Band = dem_ds.GetRasterBand(1)
-    dem_data = dem_band.ReadAsArray()
-    dem_nodata = dem_band.GetNoDataValue()
+            # Setup coordinate transformation from raster projection to WGS84 (lat/lon)
+            source_srs = osr.SpatialReference()
+            source_srs.ImportFromWkt(projection)
+            target_srs = osr.SpatialReference()
+            target_srs.ImportFromEPSG(4326)  # WGS84
+            coord_transform = osr.CoordinateTransformation(source_srs, target_srs)
 
-    # Create output raster
-    driver: gdal.Driver = gdal.GetDriverByName("GTiff")
-    out_ds: gdal.Dataset = driver.Create(
-        output_path,
-        x_size,
-        y_size,
-        1,  # Single band
-        gdal.GDT_Float32,
-        options=["COMPRESS=LZW", "TILED=YES"],
+            logger.info("Interpolating temperature for raster grid (%d x %d)", x_size, y_size)
+
+            # Process raster in chunks to show progress
+            chunk_size = 100
+            total_pixels = x_size * y_size
+            processed_pixels = 0
+
+            for y in range(0, y_size, chunk_size):
+                y_end = min(y + chunk_size, y_size)
+
+                for x in range(0, x_size, chunk_size):
+                    x_end = min(x + chunk_size, x_size)
+
+                    # Process chunk
+                    for yi in range(y, y_end):
+                        for xi in range(x, x_end):
+                            # Get elevation from DEM
+                            elevation = dem_data[yi, xi]
+
+                            # Skip NoData cells
+                            if dem_nodata is not None and elevation == dem_nodata:
+                                continue
+
+                            # Convert pixel coordinates to lat/lon
+                            # Pixel center coordinates in raster projection
+                            x_coord = geo_transform[0] + (xi + 0.5) * geo_transform[1]
+                            y_coord = geo_transform[3] + (yi + 0.5) * geo_transform[5]
+
+                            # Transform to lat/lon
+                            lon, lat, _ = coord_transform.TransformPoint(x_coord, y_coord)
+
+                            # Interpolate sea level temperature
+                            sea_level_temp = idw_interpolation(lat, lon, stations)
+
+                            if sea_level_temp is not None:
+                                # Adjust to actual elevation
+                                actual_temp = adjust_temperature_to_elevation(sea_level_temp, elevation)
+                                temp_array[yi, xi] = actual_temp
+
+                    processed_pixels += (y_end - y) * (x_end - x)
+
+                # Log progress every 10%
+                progress = (processed_pixels / total_pixels) * 100
+                if progress % 10 < 1:
+                    logger.info("Interpolation progress: %.1f%%", progress)
+
+    # Create output dataset from array using WPSDataset
+    output_ds = WPSDataset.from_array(
+        array=temp_array,
+        geotransform=geo_transform,
+        projection=projection,
+        nodata_value=-9999.0,
+        datatype=gdal.GDT_Float32
     )
-    out_ds.SetGeoTransform(geo_transform)
-    out_ds.SetProjection(projection)
-    out_band: gdal.Band = out_ds.GetRasterBand(1)
-    out_band.SetNoDataValue(-9999.0)
 
-    # Initialize output array with NoData
-    temp_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
-
-    # Setup coordinate transformation from raster projection to WGS84 (lat/lon)
-    source_srs = osr.SpatialReference()
-    source_srs.ImportFromWkt(projection)
-    target_srs = osr.SpatialReference()
-    target_srs.ImportFromEPSG(4326)  # WGS84
-    coord_transform = osr.CoordinateTransformation(source_srs, target_srs)
-
-    logger.info("Interpolating temperature for raster grid (%d x %d)", x_size, y_size)
-
-    # Process raster in chunks to show progress
-    chunk_size = 100
-    total_pixels = x_size * y_size
-    processed_pixels = 0
-
-    for y in range(0, y_size, chunk_size):
-        y_end = min(y + chunk_size, y_size)
-
-        for x in range(0, x_size, chunk_size):
-            x_end = min(x + chunk_size, x_size)
-
-            # Process chunk
-            for yi in range(y, y_end):
-                for xi in range(x, x_end):
-                    # Get elevation from DEM
-                    elevation = dem_data[yi, xi]
-
-                    # Skip NoData cells
-                    if dem_nodata is not None and elevation == dem_nodata:
-                        continue
-
-                    # Convert pixel coordinates to lat/lon
-                    # Pixel center coordinates in raster projection
-                    x_coord = geo_transform[0] + (xi + 0.5) * geo_transform[1]
-                    y_coord = geo_transform[3] + (yi + 0.5) * geo_transform[5]
-
-                    # Transform to lat/lon
-                    lon, lat, _ = coord_transform.TransformPoint(x_coord, y_coord)
-
-                    # Interpolate sea level temperature
-                    sea_level_temp = idw_interpolation(lat, lon, stations)
-
-                    if sea_level_temp is not None:
-                        # Adjust to actual elevation
-                        actual_temp = adjust_temperature_to_elevation(sea_level_temp, elevation)
-                        temp_array[yi, xi] = actual_temp
-
-            processed_pixels += (y_end - y) * (x_end - x)
-
-        # Log progress every 10%
-        progress = (processed_pixels / total_pixels) * 100
-        if progress % 10 < 1:
-            logger.info("Interpolation progress: %.1f%%", progress)
-
-    # Write array to raster
-    out_band.WriteArray(temp_array)
-    out_band.FlushCache()
-
-    # Cleanup
-    ref_ds = None
-    dem_ds = None
-    out_ds = None
+    # Export to GeoTIFF with compression
+    with output_ds:
+        output_ds.export_to_geotiff(output_path)
 
     logger.info("Temperature interpolation complete: %s", output_path)
     return output_path

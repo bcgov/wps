@@ -81,11 +81,16 @@ Core interpolation functions and utilities.
 - `adjust_temperature_to_elevation()`: Adjusts temps to terrain elevation
 - `haversine_distance()`: Calculates great circle distance between points
 - `idw_interpolation()`: Performs IDW interpolation for a single point
-- `interpolate_temperature_to_raster()`: Main orchestration function
+- `interpolate_temperature_to_raster()`: Main orchestration function using `WPSDataset`
 - `get_interpolated_temp_key()`: Generates S3 storage path
 
 **Data Models:**
 - Uses `StationTemperature` from `wps_shared.schemas.sfms`: Pydantic model for station data with temperature and location
+
+**Raster Handling:**
+- Uses `WPSDataset` for resource management and GDAL operations
+- `WPSDataset.from_array()`: Creates output raster from NumPy array
+- `export_to_geotiff()`: Exports with LZW compression
 
 #### 2. `temperature_interpolation_processor.py`
 High-level processor for orchestrating the workflow.
@@ -165,8 +170,9 @@ This structure:
 
 ### Python Libraries
 
-- `numpy`: Array operations
-- `gdal/osr`: Raster I/O and coordinate transformations
+- `numpy`: Array operations and interpolation calculations
+- `gdal/osr`: Low-level raster I/O and coordinate transformations
+- `WPSDataset`: High-level GDAL wrapper for resource management
 - `aiohttp`: Async HTTP requests to WF1 API
 - `aiobotocore`: S3 object storage operations via `S3Client`
 - `pydantic`: Data validation with `StationTemperature` model
