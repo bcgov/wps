@@ -14,6 +14,7 @@ import logging
 import os
 import sys
 from datetime import datetime, timezone
+from wps_shared.fuel_raster import find_latest_version
 from wps_shared.wps_logging import configure_logging
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.time import get_utc_now
@@ -40,18 +41,21 @@ class TemperatureInterpolationJob:
             # Create processor for target date (noon UTC hour 20)
             datetime_to_process = target_date.replace(hour=20, minute=0, second=0, microsecond=0)
 
-            # Use a reference raster for grid properties
-            # We'll use the fuel raster which defines the SFMS grid
-            raster_addresser = RasterKeyAddresser()
-            fuel_raster_key = raster_addresser.get_fuel_raster_key(target_date, version=2025)
-            fuel_raster_path = raster_addresser.s3_prefix + "/" + fuel_raster_key
-
-            logger.info("Using reference raster: %s", fuel_raster_path)
-
             # Process temperature interpolation
             processor = TemperatureInterpolationProcessor(datetime_to_process)
 
             async with S3Client() as s3_client:
+                # Use a reference raster for grid properties
+                # We'll use the fuel raster which defines the SFMS grid
+                raster_addresser = RasterKeyAddresser()
+                latest_version = await find_latest_version(
+                    s3_client, RasterKeyAddresser(), datetime_to_process, 1
+                )
+                fuel_raster_key = raster_addresser.get_fuel_raster_key(
+                    target_date, version=latest_version
+                )
+                fuel_raster_path = raster_addresser.s3_prefix + "/" + fuel_raster_key
+                logger.info("Using reference raster: %s", fuel_raster_path)
                 s3_key = await processor.process(s3_client, fuel_raster_path)
 
             # Calculate execution time
@@ -62,7 +66,9 @@ class TemperatureInterpolationJob:
             logger.info(
                 "Temperature interpolation completed successfully -- "
                 "time elapsed %d hours, %d minutes, %.2f seconds",
-                hours, minutes, seconds
+                hours,
+                minutes,
+                seconds,
             )
             logger.info("Output: %s", s3_key)
 
@@ -92,7 +98,9 @@ def main():
         asyncio.set_event_loop(loop)
         loop.run_until_complete(job.run(target_date))
     except Exception as e:
-        logger.error("An exception occurred while running temperature interpolation job", exc_info=e)
+        logger.error(
+            "An exception occurred while running temperature interpolation job", exc_info=e
+        )
         sys.exit(os.EX_SOFTWARE)
 
 
