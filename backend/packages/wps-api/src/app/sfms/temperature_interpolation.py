@@ -167,7 +167,9 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
 def idw_interpolation(
     target_lat: float,
     target_lon: float,
-    stations: List[StationTemperature],
+    point_lats: List[float],
+    point_lons: List[float],
+    point_values: List[float],
     power: float = IDW_POWER,
     search_radius: float = SEARCH_RADIUS,
 ) -> Optional[float]:
@@ -179,38 +181,40 @@ def idw_interpolation(
 
     :param target_lat: Latitude of point to interpolate
     :param target_lon: Longitude of point to interpolate
-    :param stations: List of StationTemperature objects with sea_level_temp set
+    :param point_lats: List of latitudes for data points
+    :param point_lons: List of longitudes for data points
+    :param point_values: List of values at each data point
     :param power: IDW power parameter (default 2.0)
-    :param search_radius: Maximum distance to consider stations (meters)
-    :return: Interpolated temperature value or None if no stations in range
+    :param search_radius: Maximum distance to consider points (meters)
+    :return: Interpolated value or None if no points in range
     """
-    if not stations:
+    if not point_lats or len(point_lats) != len(point_lons) or len(point_lats) != len(point_values):
         return None
 
     weights = []
     values = []
 
-    for station in stations:
-        if station.sea_level_temp is None:
+    for lat, lon, value in zip(point_lats, point_lons, point_values):
+        if value is None:
             continue
 
-        # Calculate distance from target point to station
-        distance = haversine_distance(target_lat, target_lon, station.lat, station.lon)
+        # Calculate distance from target point to data point
+        distance = haversine_distance(target_lat, target_lon, lat, lon)
 
-        # Skip stations outside search radius
+        # Skip points outside search radius
         if distance > search_radius:
             continue
 
-        # Handle case where point is exactly at station location
+        # Handle case where point is exactly at data point location
         if distance < 1.0:  # Within 1 meter
-            return station.sea_level_temp
+            return value
 
         # Calculate IDW weight
         weight = 1.0 / (distance**power)
         weights.append(weight)
-        values.append(station.sea_level_temp)
+        values.append(value)
 
-    # Check if we found any stations in range
+    # Check if we found any points in range
     if not weights:
         return None
 
@@ -244,6 +248,13 @@ async def interpolate_temperature_to_raster(
     # Adjust all station temperatures to sea level
     for station in stations:
         adjust_temperature_to_sea_level(station)
+
+    # Prepare lists for IDW interpolation
+    station_lats = [s.lat for s in stations if s.sea_level_temp is not None]
+    station_lons = [s.lon for s in stations if s.sea_level_temp is not None]
+    station_values = [s.sea_level_temp for s in stations if s.sea_level_temp is not None]
+
+    logger.info("Using %d stations with valid sea level temperatures", len(station_lats))
 
     # Open reference raster and DEM using WPSDataset
     with WPSDataset(reference_raster_path) as ref_ds:
@@ -301,7 +312,9 @@ async def interpolate_temperature_to_raster(
                             lon, lat, _ = coord_transform.TransformPoint(x_coord, y_coord)
 
                             # Interpolate sea level temperature
-                            sea_level_temp = idw_interpolation(lat, lon, stations)
+                            sea_level_temp = idw_interpolation(
+                                lat, lon, station_lats, station_lons, station_values
+                            )
 
                             if sea_level_temp is not None:
                                 # Adjust to actual elevation

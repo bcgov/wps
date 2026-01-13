@@ -80,7 +80,9 @@ Core interpolation functions and utilities.
 - `adjust_temperature_to_sea_level()`: Normalizes station temps to sea level
 - `adjust_temperature_to_elevation()`: Adjusts temps to terrain elevation
 - `haversine_distance()`: Calculates great circle distance between points
-- `idw_interpolation()`: Performs IDW interpolation for a single point
+- `idw_interpolation()`: **Generic** IDW interpolation for any point data (decoupled from domain models)
+  - Takes separate lists of latitudes, longitudes, and values
+  - Reusable for any spatial interpolation task
 - `interpolate_temperature_to_raster()`: Main orchestration function using `WPSDataset`
 - `get_interpolated_temp_key()`: Generates S3 storage path
 
@@ -91,6 +93,12 @@ Core interpolation functions and utilities.
 - Uses `WPSDataset` for resource management and GDAL operations
 - `WPSDataset.from_array()`: Creates output raster from NumPy array
 - `export_to_geotiff()`: Exports with LZW compression
+
+**Design Principles:**
+- **Decoupled IDW**: The `idw_interpolation()` function is intentionally decoupled from domain models
+  - Accepts generic lists of coordinates and values instead of domain-specific objects
+  - Can be reused for interpolating any spatial data (dew point, wind speed, etc.)
+  - Follows functional programming principles for better testability and reusability
 
 #### 2. `temperature_interpolation_processor.py`
 High-level processor for orchestrating the workflow.

@@ -135,8 +135,13 @@ class TestIDWInterpolation:
         for station in stations:
             adjust_temperature_to_sea_level(station)
 
+        # Prepare lists for IDW
+        lats = [s.lat for s in stations]
+        lons = [s.lon for s in stations]
+        values = [s.sea_level_temp for s in stations]
+
         # Query at exact station location
-        result = idw_interpolation(49.0, -123.0, stations)
+        result = idw_interpolation(49.0, -123.0, lats, lons, values)
 
         # Should return the sea level temp of the first station
         assert result == pytest.approx(stations[0].sea_level_temp, rel=1e-6)
@@ -152,8 +157,13 @@ class TestIDWInterpolation:
         for station in stations:
             adjust_temperature_to_sea_level(station)
 
+        # Prepare lists for IDW
+        lats = [s.lat for s in stations]
+        lons = [s.lon for s in stations]
+        values = [s.sea_level_temp for s in stations]
+
         # Query at midpoint
-        result = idw_interpolation(49.5, -123.0, stations)
+        result = idw_interpolation(49.5, -123.0, lats, lons, values)
 
         # Should be weighted average, closer to midpoint
         assert result is not None
@@ -161,7 +171,7 @@ class TestIDWInterpolation:
 
     def test_idw_no_stations(self):
         """Test that IDW returns None when no stations provided."""
-        result = idw_interpolation(49.0, -123.0, [])
+        result = idw_interpolation(49.0, -123.0, [], [], [])
         assert result is None
 
     def test_idw_outside_search_radius(self):
@@ -173,12 +183,17 @@ class TestIDWInterpolation:
         for station in stations:
             adjust_temperature_to_sea_level(station)
 
+        # Prepare lists for IDW
+        lats = [s.lat for s in stations]
+        lons = [s.lon for s in stations]
+        values = [s.sea_level_temp for s in stations]
+
         # Query far away (at least 200km away)
-        result = idw_interpolation(52.0, -128.0, stations, search_radius=100000)
+        result = idw_interpolation(52.0, -128.0, lats, lons, values, search_radius=100000)
         assert result is None
 
     def test_idw_with_none_sea_level_temp(self):
-        """Test that IDW handles stations with None sea_level_temp."""
+        """Test that IDW handles points with None values."""
         stations = [
             StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
             StationTemperature(code=2, lat=50.0, lon=-124.0, elevation=0, temperature=20.0),
@@ -188,7 +203,12 @@ class TestIDWInterpolation:
         adjust_temperature_to_sea_level(stations[0])
         # Leave second station's sea_level_temp as None
 
-        result = idw_interpolation(49.5, -123.5, stations)
+        # Prepare lists for IDW (including None value)
+        lats = [s.lat for s in stations]
+        lons = [s.lon for s in stations]
+        values = [stations[0].sea_level_temp, None]
+
+        result = idw_interpolation(49.5, -123.5, lats, lons, values)
 
         # Should still work with only one valid station
         assert result is not None
@@ -251,8 +271,13 @@ class TestIntegrationScenario:
         # Station 3: 5 + (1000 * 0.0098) = 5 + 9.8 = 14.8°C
         assert stations[2].sea_level_temp == pytest.approx(14.8, rel=1e-6)
 
+        # Prepare lists for IDW
+        lats = [s.lat for s in stations]
+        lons = [s.lon for s in stations]
+        values = [s.sea_level_temp for s in stations]
+
         # Interpolate at a point
-        interpolated = idw_interpolation(49.1, -123.1, stations)
+        interpolated = idw_interpolation(49.1, -123.1, lats, lons, values)
         assert interpolated is not None
 
         # Adjust back to elevation (e.g., 250m)
