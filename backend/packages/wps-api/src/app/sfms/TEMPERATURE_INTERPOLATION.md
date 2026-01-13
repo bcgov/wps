@@ -61,7 +61,30 @@ This produces the final temperature at the actual surface elevation.
 
 ### Core Modules
 
-#### 0. `wps_shared.schemas.sfms.StationTemperature`
+#### 0. `wps_shared.geospatial.spatial_interpolation`
+**Shared spatial interpolation utilities** - reusable across all weather parameter interpolation.
+
+**Functions:**
+- `haversine_distance()`: Great circle distance calculation between lat/lon points
+- `idw_interpolation()`: Generic IDW interpolation for any spatial data
+  - Fully decoupled from domain models
+  - Works with simple lists of coordinates and values
+  - Configurable power parameter and search radius
+
+**Constants:**
+- `IDW_POWER = 2.0`: Standard IDW power parameter
+- `SEARCH_RADIUS = 200000`: Default 200km search radius in meters
+
+**Location:** `packages/wps-shared/src/wps_shared/geospatial/spatial_interpolation.py`
+
+**Reusability:** This module can be used for interpolating:
+- Temperature (current implementation)
+- Dew point temperature
+- Wind speed
+- Precipitation
+- Any other spatially distributed point data
+
+#### 1. `wps_shared.schemas.sfms.StationTemperature`
 Pydantic data model for station temperature data.
 
 **Fields:**
@@ -72,35 +95,32 @@ Pydantic data model for station temperature data.
 - `temperature: float` - Temperature in Celsius
 - `sea_level_temp: Optional[float]` - Temperature adjusted to sea level (populated during processing)
 
-#### 1. `temperature_interpolation.py`
-Core interpolation functions and utilities.
+#### 2. `temperature_interpolation.py`
+Core temperature-specific interpolation functions and orchestration.
 
 **Key Functions:**
 - `fetch_station_temperatures()`: Retrieves temperature data from WF1
-- `adjust_temperature_to_sea_level()`: Normalizes station temps to sea level
-- `adjust_temperature_to_elevation()`: Adjusts temps to terrain elevation
-- `haversine_distance()`: Calculates great circle distance between points
-- `idw_interpolation()`: **Generic** IDW interpolation for any point data (decoupled from domain models)
-  - Takes separate lists of latitudes, longitudes, and values
-  - Reusable for any spatial interpolation task
-- `interpolate_temperature_to_raster()`: Main orchestration function using `WPSDataset`
-- `get_interpolated_temp_key()`: Generates S3 storage path
+- `adjust_temperature_to_sea_level()`: Normalizes station temps to sea level using lapse rate
+- `adjust_temperature_to_elevation()`: Adjusts temps to terrain elevation using lapse rate
+- `interpolate_temperature_to_raster()`: Main orchestration function
+  - Uses `idw_interpolation()` from shared module
+  - Employs `WPSDataset` for raster I/O
+  - Combines elevation adjustment with spatial interpolation
+- `get_interpolated_temp_key()`: Generates S3 storage path with hierarchical structure
+- `upload_raster_to_s3()`: Uploads processed raster to object storage
+
+**Domain-Specific Constants:**
+- `DRY_ADIABATIC_LAPSE_RATE = 0.0098`: Temperature change per meter (9.8°C/km)
 
 **Data Models:**
-- Uses `StationTemperature` from `wps_shared.schemas.sfms`: Pydantic model for station data with temperature and location
+- Uses `StationTemperature` from `wps_shared.schemas.sfms`: Pydantic model for station data
 
 **Raster Handling:**
 - Uses `WPSDataset` for resource management and GDAL operations
 - `WPSDataset.from_array()`: Creates output raster from NumPy array
 - `export_to_geotiff()`: Exports with LZW compression
 
-**Design Principles:**
-- **Decoupled IDW**: The `idw_interpolation()` function is intentionally decoupled from domain models
-  - Accepts generic lists of coordinates and values instead of domain-specific objects
-  - Can be reused for interpolating any spatial data (dew point, wind speed, etc.)
-  - Follows functional programming principles for better testability and reusability
-
-#### 2. `temperature_interpolation_processor.py`
+#### 3. `temperature_interpolation_processor.py`
 High-level processor for orchestrating the workflow.
 
 **Key Class:**
@@ -110,7 +130,7 @@ High-level processor for orchestrating the workflow.
   - Executes interpolation
   - Uploads results to S3 using `S3Client`
 
-#### 3. `jobs/temperature_interpolation.py`
+#### 4. `jobs/temperature_interpolation.py`
 Job runner for executing interpolation as a batch process.
 
 **Usage:**
@@ -189,22 +209,40 @@ This structure:
 
 ### Unit Tests
 
-Comprehensive test suite in `app/tests/sfms/test_temperature_interpolation.py`:
+#### Spatial Interpolation Tests
+Comprehensive test suite for the shared module in `wps_shared/tests/geospatial/test_spatial_interpolation.py`:
 
-**Test Coverage:**
-- StationTemperature initialization
-- Elevation adjustment (to/from sea level)
-- Round-trip elevation adjustment
-- Haversine distance calculation
-- IDW interpolation edge cases
-- S3 key generation
-- Full workflow integration
+**Coverage (20 tests):**
+- Module constants (IDW_POWER, SEARCH_RADIUS)
+- Haversine distance calculation (same point, known distances, equator tests)
+- IDW interpolation (exact matches, weighted averages, edge cases)
+- None value filtering
+- Search radius limits
+- Custom power parameters
+- Edge cases (negative values, large values, zero distance threshold)
 
 **Run Tests:**
 ```bash
-cd /Users/cbrady/projects/wps/backend
+python -m pytest packages/wps-shared/src/wps_shared/tests/geospatial/test_spatial_interpolation.py -v
+```
+
+#### Temperature Interpolation Tests
+Domain-specific test suite in `app/tests/sfms/test_temperature_interpolation.py`:
+
+**Coverage (17 tests):**
+- StationTemperature Pydantic model initialization
+- Elevation adjustment (to/from sea level)
+- Round-trip elevation adjustment validation
+- Dry adiabatic lapse rate constant
+- S3 key generation with hierarchical paths
+- Full workflow integration with multiple stations
+
+**Run Tests:**
+```bash
 python -m pytest packages/wps-api/src/app/tests/sfms/test_temperature_interpolation.py -v
 ```
+
+**Total Test Coverage:** 37 tests (20 shared + 17 domain-specific)
 
 ### Integration Testing
 
@@ -277,6 +315,56 @@ SEARCH_RADIUS = 200000  # 200 km
 ```
 
 ## Future Enhancements
+
+### Using the Shared Spatial Interpolation Module
+
+The `wps_shared.geospatial.spatial_interpolation` module is designed for reuse. Here's how to use it for other weather parameters:
+
+#### Example: Dew Point Temperature Interpolation
+```python
+from wps_shared.geospatial.spatial_interpolation import idw_interpolation
+
+# Fetch dew point observations
+dew_point_lats = [s.lat for s in stations]
+dew_point_lons = [s.lon for s in stations]
+dew_point_values = [s.dew_point for s in stations if s.dew_point is not None]
+
+# Interpolate (dew point also requires elevation adjustment like temperature)
+interpolated_dew_point = idw_interpolation(
+    target_lat, target_lon,
+    dew_point_lats, dew_point_lons, dew_point_values
+)
+```
+
+#### Example: Wind Speed Interpolation
+```python
+# Wind speed doesn't need elevation adjustment
+wind_speed_lats = [s.lat for s in stations]
+wind_speed_lons = [s.lon for s in stations]
+wind_speed_values = [s.wind_speed for s in stations if s.wind_speed is not None]
+
+# Interpolate with custom parameters
+interpolated_wind = idw_interpolation(
+    target_lat, target_lon,
+    wind_speed_lats, wind_speed_lons, wind_speed_values,
+    power=2.0,
+    search_radius=150000  # 150km for wind
+)
+```
+
+#### Example: Precipitation Interpolation
+```python
+# Precipitation may benefit from different power parameter
+precip_lats = [s.lat for s in stations]
+precip_lons = [s.lon for s in stations]
+precip_values = [s.precipitation for s in stations if s.precipitation is not None]
+
+interpolated_precip = idw_interpolation(
+    target_lat, target_lon,
+    precip_lats, precip_lons, precip_values,
+    power=3.0  # Higher power for more localized influence
+)
+```
 
 ### Potential Improvements
 

@@ -10,7 +10,7 @@ This module implements the SFMS temperature interpolation workflow:
 
 import logging
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 import numpy as np
 from osgeo import gdal, osr
 from aiohttp import ClientSession
@@ -21,15 +21,12 @@ from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 
 logger = logging.getLogger(__name__)
 
 # Dry adiabatic lapse rate: 9.8°C per 1000m elevation (or 0.0098°C per meter)
 DRY_ADIABATIC_LAPSE_RATE = 0.0098
-
-# IDW parameters
-IDW_POWER = 2.0  # Standard IDW power parameter
-SEARCH_RADIUS = 200000  # 200km search radius in meters
 
 
 async def fetch_station_temperatures(
@@ -137,94 +134,6 @@ def adjust_temperature_to_elevation(sea_level_temp: float, elevation: float) -> 
     return sea_level_temp - adjustment
 
 
-def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """
-    Calculate the great circle distance between two points on Earth.
-
-    :param lat1: Latitude of first point in degrees
-    :param lon1: Longitude of first point in degrees
-    :param lat2: Latitude of second point in degrees
-    :param lon2: Longitude of second point in degrees
-    :return: Distance in meters
-    """
-    # Convert to radians
-    lat1_rad = np.radians(lat1)
-    lon1_rad = np.radians(lon1)
-    lat2_rad = np.radians(lat2)
-    lon2_rad = np.radians(lon2)
-
-    # Haversine formula
-    dlat = lat2_rad - lat1_rad
-    dlon = lon2_rad - lon1_rad
-    a = np.sin(dlat / 2) ** 2 + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin(dlon / 2) ** 2
-    c = 2 * np.arcsin(np.sqrt(a))
-
-    # Earth radius in meters
-    radius = 6371000
-    return radius * c
-
-
-def idw_interpolation(
-    target_lat: float,
-    target_lon: float,
-    point_lats: List[float],
-    point_lons: List[float],
-    point_values: List[float],
-    power: float = IDW_POWER,
-    search_radius: float = SEARCH_RADIUS,
-) -> Optional[float]:
-    """
-    Perform Inverse Distance Weighting interpolation for a single point.
-
-    IDW formula: value = Σ(w_i * v_i) / Σ(w_i)
-    where w_i = 1 / (distance_i ^ power)
-
-    :param target_lat: Latitude of point to interpolate
-    :param target_lon: Longitude of point to interpolate
-    :param point_lats: List of latitudes for data points
-    :param point_lons: List of longitudes for data points
-    :param point_values: List of values at each data point
-    :param power: IDW power parameter (default 2.0)
-    :param search_radius: Maximum distance to consider points (meters)
-    :return: Interpolated value or None if no points in range
-    """
-    if not point_lats or len(point_lats) != len(point_lons) or len(point_lats) != len(point_values):
-        return None
-
-    weights = []
-    values = []
-
-    for lat, lon, value in zip(point_lats, point_lons, point_values):
-        if value is None:
-            continue
-
-        # Calculate distance from target point to data point
-        distance = haversine_distance(target_lat, target_lon, lat, lon)
-
-        # Skip points outside search radius
-        if distance > search_radius:
-            continue
-
-        # Handle case where point is exactly at data point location
-        if distance < 1.0:  # Within 1 meter
-            return value
-
-        # Calculate IDW weight
-        weight = 1.0 / (distance**power)
-        weights.append(weight)
-        values.append(value)
-
-    # Check if we found any points in range
-    if not weights:
-        return None
-
-    # Calculate weighted average
-    total_weight = sum(weights)
-    interpolated_value = sum(w * v for w, v in zip(weights, values)) / total_weight
-
-    return interpolated_value
-
-
 async def interpolate_temperature_to_raster(
     stations: List[StationTemperature], reference_raster_path: str, dem_path: str, output_path: str
 ) -> str:
@@ -318,7 +227,9 @@ async def interpolate_temperature_to_raster(
 
                             if sea_level_temp is not None:
                                 # Adjust to actual elevation
-                                actual_temp = adjust_temperature_to_elevation(sea_level_temp, elevation)
+                                actual_temp = adjust_temperature_to_elevation(
+                                    sea_level_temp, elevation
+                                )
                                 temp_array[yi, xi] = actual_temp
 
                     processed_pixels += (y_end - y) * (x_end - x)
@@ -334,7 +245,7 @@ async def interpolate_temperature_to_raster(
         geotransform=geo_transform,
         projection=projection,
         nodata_value=-9999.0,
-        datatype=gdal.GDT_Float32
+        datatype=gdal.GDT_Float32,
     )
 
     # Export to GeoTIFF with compression

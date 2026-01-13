@@ -5,11 +5,13 @@ Unit tests for temperature interpolation module.
 import pytest
 from datetime import datetime, timezone
 from wps_shared.schemas.sfms import StationTemperature
+from wps_shared.geospatial.spatial_interpolation import (
+    haversine_distance,
+    idw_interpolation,
+)
 from app.sfms.temperature_interpolation import (
     adjust_temperature_to_sea_level,
     adjust_temperature_to_elevation,
-    haversine_distance,
-    idw_interpolation,
     get_interpolated_temp_key,
     DRY_ADIABATIC_LAPSE_RATE,
 )
