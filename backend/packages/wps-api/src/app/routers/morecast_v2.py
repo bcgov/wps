@@ -280,10 +280,10 @@ async def get_determinates_for_date_range(
         forecasts_from_db: List[MoreCastForecastOutput] = get_forecasts(
             db_session, min_wf1_actuals_date, max_wf1_actuals_date, request.stations
         )
-        predictions: List[
-            WeatherIndeterminate
-        ] = await fetch_latest_model_run_predictions_by_station_code_and_date_range(
-            db_session, all_stations, start_time, end_time
+        predictions: List[WeatherIndeterminate] = (
+            fetch_latest_model_run_predictions_by_station_code_and_date_range(
+                db_session, all_stations, start_time, end_time
+            )
         )
         station_codes = [station.code for station in wfwx_stations]
         grass_curing_rows = get_percent_grass_curing_by_station_for_date_range(

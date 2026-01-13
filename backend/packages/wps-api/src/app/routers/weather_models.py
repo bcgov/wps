@@ -51,7 +51,7 @@ async def get_most_recent_model_values(
     async with ClientSession() as client_session:
         wfwx_api = WfwxApi(client_session)
         all_stations = wfwx_api.get_stations_by_codes(request.stations)
-    station_predictions = await fetch_model_run_predictions_by_station_code(
+    station_predictions = fetch_model_run_predictions_by_station_code(
         model, request.stations, request.time_of_interest, all_stations
     )
 
@@ -75,10 +75,8 @@ async def get_model_values_for_date_range(
         wfwx_api = WfwxApi(client_session)
         all_stations = wfwx_api.get_stations_by_codes(request.stations)
 
-    station_predictions = (
-        await fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(
-            model, request.stations, start_time, end_time, all_stations
-        )
+    station_predictions = fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(
+        model, request.stations, start_time, end_time, all_stations
     )
 
     return station_predictions

@@ -65,7 +65,7 @@ def _fetch_delta_precip_for_prev_model_run(
     return None
 
 
-async def fetch_model_run_predictions_by_station_code(
+def fetch_model_run_predictions_by_station_code(
     model: ModelEnum,
     station_codes: List[int],
     time_of_interest: datetime,
@@ -77,12 +77,12 @@ async def fetch_model_run_predictions_by_station_code(
     # We're interested in the 5 days prior to and 10 days following the time_of_interest.
     start_date = time_of_interest - datetime.timedelta(days=5)
     end_date = time_of_interest + datetime.timedelta(days=10)
-    return await fetch_model_run_predictions_by_station_code_and_date_range(
+    return fetch_model_run_predictions_by_station_code_and_date_range(
         model, station_codes, start_date, end_date, all_stations
     )
 
 
-async def fetch_model_run_predictions_by_station_code_and_date_range(
+def fetch_model_run_predictions_by_station_code_and_date_range(
     model: ModelEnum,
     station_codes: List[int],
     start_time: datetime.datetime,
@@ -98,12 +98,10 @@ async def fetch_model_run_predictions_by_station_code_and_date_range(
             session, station_codes, model, start_time, end_time
         )
 
-        return await marshall_predictions(
-            session, model, station_codes, historic_predictions, all_stations
-        )
+        return marshall_predictions(session, model, historic_predictions, all_stations)
 
 
-async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(
+def fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(
     model: ModelEnum,
     station_codes: List[int],
     start_time: datetime.datetime,
@@ -166,7 +164,7 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
         return results
 
 
-async def fetch_latest_model_run_predictions_by_station_code_and_date_range(
+def fetch_latest_model_run_predictions_by_station_code_and_date_range(
     session: Session,
     all_stations: List[WeatherStation],
     start_time: datetime.datetime,
@@ -255,9 +253,7 @@ def post_process_fetched_predictions(weather_indeterminates: List[WeatherIndeter
     return results
 
 
-async def marshall_predictions(
-    session: Session, model: ModelEnum, station_codes: List[int], query, all_stations
-):
+def marshall_predictions(session: Session, model: ModelEnum, query, all_stations):
     station_predictions = defaultdict(dict)
 
     for prediction, prediction_model_run_timestamp, prediction_model in query:
