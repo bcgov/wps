@@ -96,7 +96,7 @@
     "eslint": "^9.7.0",
     "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-react-refresh": "^0.4.7",
-    "globals": "^16.0.0",
+    "globals": "^17.0.0",
     "start-server-and-test": "^2.0.0",
     "ts-sinon": "^2.0.2",
     "vite": "^7.0.0",
