@@ -10,7 +10,6 @@ from typing import List
 
 from aiohttp import ClientSession, TCPConnector
 from sqlalchemy.orm import Session
-from wps_wf1.wfwx_api import WfwxApi
 
 import wps_shared.db.database
 from wps_shared.db.crud.weather_models import (
@@ -21,6 +20,7 @@ from wps_shared.db.crud.weather_models import (
 )
 from wps_shared.db.models.weather_models import WeatherStationModelPrediction
 from wps_shared.schemas.morecast_v2 import WeatherIndeterminate
+from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.weather_models import (
     ModelRunPredictions,
     WeatherModelPredictionValues,
@@ -66,7 +66,10 @@ def _fetch_delta_precip_for_prev_model_run(
 
 
 async def fetch_model_run_predictions_by_station_code(
-    model: ModelEnum, station_codes: List[int], time_of_interest: datetime
+    model: ModelEnum,
+    station_codes: List[int],
+    time_of_interest: datetime,
+    all_stations: List[WeatherStation],
 ) -> List[WeatherStationModelRunsPredictions]:
     """Fetch model predictions from database based on list of station codes, for a specified datetime.
     Predictions are grouped by station and model run.
@@ -75,7 +78,7 @@ async def fetch_model_run_predictions_by_station_code(
     start_date = time_of_interest - datetime.timedelta(days=5)
     end_date = time_of_interest + datetime.timedelta(days=10)
     return await fetch_model_run_predictions_by_station_code_and_date_range(
-        model, station_codes, start_date, end_date
+        model, station_codes, start_date, end_date, all_stations
     )
 
 
@@ -84,6 +87,7 @@ async def fetch_model_run_predictions_by_station_code_and_date_range(
     station_codes: List[int],
     start_time: datetime.datetime,
     end_time: datetime.datetime,
+    all_stations: List[WeatherStation],
 ) -> List[WeatherStationModelRunsPredictions]:
     """Fetch model predictions from database based on list of station codes and date range.
     Predictions are grouped by station and model run.
@@ -94,7 +98,9 @@ async def fetch_model_run_predictions_by_station_code_and_date_range(
             session, station_codes, model, start_time, end_time
         )
 
-        return await marshall_predictions(session, model, station_codes, historic_predictions)
+        return await marshall_predictions(
+            session, model, station_codes, historic_predictions, all_stations
+        )
 
 
 async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(
@@ -102,15 +108,11 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
     station_codes: List[int],
     start_time: datetime.datetime,
     end_time: datetime.datetime,
+    all_stations: List[WeatherStation],
 ) -> List[WeatherStationModelRunsPredictions]:
     results = []
     days = get_days_from_range(start_time, end_time)
-    conn = TCPConnector(limit=10)
-    async with ClientSession(connector=conn) as client_session:
-        wfwx_api = WfwxApi(client_session)
-        stations = {
-            station.code: station for station in await wfwx_api.get_stations_by_codes(station_codes)
-        }
+    stations = {station.code: station for station in all_stations}
 
     with wps_shared.db.database.get_read_session_scope() as session:
         for day in days:
@@ -166,19 +168,14 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
 
 async def fetch_latest_model_run_predictions_by_station_code_and_date_range(
     session: Session,
-    station_codes: List[int],
+    all_stations: List[WeatherStation],
     start_time: datetime.datetime,
     end_time: datetime.datetime,
 ) -> List[WeatherIndeterminate]:
     cffdrs_start = perf_counter()
     results: List[WeatherIndeterminate] = []
     days = get_days_from_range(start_time, end_time)
-    conn = TCPConnector(limit=10)
-    async with ClientSession(connector=conn) as client_session:
-        wfwx_api = WfwxApi(client_session)
-        stations = {
-            station.code: station for station in await wfwx_api.get_stations_by_codes(station_codes)
-        }
+    stations = {station.code: station for station in all_stations}
     active_station_codes = stations.keys()
     for day in days:
         day_start = datetime.datetime.combine(day, time.min, tzinfo=vancouver_tz)
@@ -258,7 +255,9 @@ def post_process_fetched_predictions(weather_indeterminates: List[WeatherIndeter
     return results
 
 
-async def marshall_predictions(session: Session, model: ModelEnum, station_codes: List[int], query):
+async def marshall_predictions(
+    session: Session, model: ModelEnum, station_codes: List[int], query, all_stations
+):
     station_predictions = defaultdict(dict)
 
     for prediction, prediction_model_run_timestamp, prediction_model in query:
@@ -303,12 +302,7 @@ async def marshall_predictions(session: Session, model: ModelEnum, station_codes
 
     # Re-structure the data, grouping data by station and model run.
     # NOTE: It means looping through twice, but the code reads easier this way.
-    conn = TCPConnector(limit=10)
-    async with ClientSession(connector=conn) as client_session:
-        wfwx_api = WfwxApi(client_session)
-        stations = {
-            station.code: station for station in await wfwx_api.get_stations_by_codes(station_codes)
-        }
+    stations = {station.code: station for station in all_stations}
     response = []
     for station_code, predictions in station_predictions.items():
         model_run_dict = {}
