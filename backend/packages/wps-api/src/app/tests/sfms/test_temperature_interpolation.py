@@ -9,10 +9,10 @@ from wps_shared.geospatial.spatial_interpolation import (
     haversine_distance,
     idw_interpolation,
 )
+from wps_shared.sfms.raster_addresser import RasterKeyAddresser, WeatherParameter
 from app.sfms.temperature_interpolation import (
     adjust_temperature_to_sea_level,
     adjust_temperature_to_elevation,
-    get_interpolated_temp_key,
     DRY_ADIABATIC_LAPSE_RATE,
 )
 
@@ -220,25 +220,41 @@ class TestIDWInterpolation:
 class TestS3KeyGeneration:
     """Tests for S3 key generation."""
 
-    def test_interpolated_temp_key_format(self):
+    def test_interpolated_key_temp_format(self):
         """Test that interpolated temperature key has correct format."""
+        addresser = RasterKeyAddresser()
         dt = datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc)
-        key = get_interpolated_temp_key(dt)
+        key = addresser.get_interpolated_key(dt, WeatherParameter.TEMP)
 
-        expected = "sfms/interpolated/temperature/2024/01/15/temperature_20240115.tif"
+        expected = "sfms/interpolated/temp/2024/01/15/temp_20240115.tif"
         assert key == expected
 
-    def test_interpolated_temp_key_different_dates(self):
+    def test_interpolated_key_different_dates(self):
         """Test key generation for different dates."""
+        addresser = RasterKeyAddresser()
+
         # Test December (month 12)
         dt = datetime(2024, 12, 31, 20, 0, 0, tzinfo=timezone.utc)
-        key = get_interpolated_temp_key(dt)
-        assert key == "sfms/interpolated/temperature/2024/12/31/temperature_20241231.tif"
+        key = addresser.get_interpolated_key(dt, WeatherParameter.TEMP)
+        assert key == "sfms/interpolated/temp/2024/12/31/temp_20241231.tif"
 
         # Test single digit month
         dt = datetime(2024, 3, 5, 20, 0, 0, tzinfo=timezone.utc)
-        key = get_interpolated_temp_key(dt)
-        assert key == "sfms/interpolated/temperature/2024/03/05/temperature_20240305.tif"
+        key = addresser.get_interpolated_key(dt, WeatherParameter.TEMP)
+        assert key == "sfms/interpolated/temp/2024/03/05/temp_20240305.tif"
+
+    def test_interpolated_key_different_params(self):
+        """Test key generation for different weather parameters."""
+        addresser = RasterKeyAddresser()
+        dt = datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc)
+
+        # Test RH
+        rh_key = addresser.get_interpolated_key(dt, WeatherParameter.RH)
+        assert rh_key == "sfms/interpolated/rh/2024/01/15/rh_20240115.tif"
+
+        # Test Wind Speed
+        wind_key = addresser.get_interpolated_key(dt, WeatherParameter.WIND_SPEED)
+        assert wind_key == "sfms/interpolated/wind_speed/2024/01/15/wind_speed_20240115.tif"
 
 
 class TestIntegrationScenario:

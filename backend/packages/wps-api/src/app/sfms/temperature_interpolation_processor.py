@@ -17,10 +17,10 @@ from wps_shared.stations import get_stations_from_source
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
+from wps_shared.sfms.raster_addresser import RasterKeyAddresser, WeatherParameter
 from app.sfms.temperature_interpolation import (
     fetch_station_temperatures,
     interpolate_temperature_to_raster,
-    get_interpolated_temp_key,
     upload_raster_to_s3,
     get_dem_path
 )
@@ -38,6 +38,7 @@ class TemperatureInterpolationProcessor:
         :param datetime_to_process: The datetime to process (typically noon observation time)
         """
         self.datetime_to_process = datetime_to_process
+        self.raster_addresser = RasterKeyAddresser()
 
     async def process(self, s3_client: S3Client, reference_raster_path: str) -> str:
         """
@@ -88,7 +89,9 @@ class TemperatureInterpolationProcessor:
             )
 
             # Upload to S3
-            s3_key = get_interpolated_temp_key(self.datetime_to_process)
+            s3_key = self.raster_addresser.get_interpolated_key(
+                self.datetime_to_process, WeatherParameter.TEMP
+            )
             await upload_raster_to_s3(s3_client, temp_raster_path, s3_key)
 
             logger.info("Temperature interpolation complete: %s", s3_key)

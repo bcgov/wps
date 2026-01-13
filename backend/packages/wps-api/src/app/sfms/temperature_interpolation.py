@@ -267,26 +267,6 @@ async def get_dem_path() -> str:
     return f"/vsis3/{bucket}/dem/mosaics/{dem_name}"
 
 
-def get_interpolated_temp_key(datetime_utc: datetime) -> str:
-    """
-    Generate S3 key for interpolated temperature raster with hierarchical date structure.
-
-    Format: sfms/interpolated/temperature/YYYY/MM/DD/temperature_YYYYMMDD.tif
-
-    :param datetime_utc: UTC datetime for the raster
-    :return: S3 key path
-    """
-    date = datetime_utc.date()
-    year = date.year
-    month = date.month
-    day = date.day
-    date_str = date.isoformat().replace("-", "")
-
-    return (
-        f"sfms/interpolated/temperature/{year:04d}/{month:02d}/{day:02d}/temperature_{date_str}.tif"
-    )
-
-
 async def upload_raster_to_s3(s3_client: S3Client, local_path: str, s3_key: str) -> None:
     """
     Upload a raster file to S3 object storage.

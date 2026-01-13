@@ -84,7 +84,26 @@ This produces the final temperature at the actual surface elevation.
 - Precipitation
 - Any other spatially distributed point data
 
-#### 1. `wps_shared.schemas.sfms.StationTemperature`
+#### 1. `wps_shared.sfms.raster_addresser.RasterKeyAddresser`
+**Central S3 key management** - provides consistent path generation for all SFMS rasters.
+
+**Methods:**
+- `get_interpolated_key(datetime_utc, weather_param)`: Generates S3 keys for interpolated weather parameter rasters
+  - Format: `sfms/interpolated/{param}/YYYY/MM/DD/{param}_YYYYMMDD.tif`
+  - Parameters:
+    - `datetime_utc`: UTC datetime for the raster (validated with `assert_all_utc()`)
+    - `weather_param`: `WeatherParameter` enum (TEMP, RH, or WIND_SPEED)
+  - Examples:
+    - Temperature: `sfms/interpolated/temp/2024/01/15/temp_20240115.tif`
+    - Relative Humidity: `sfms/interpolated/rh/2024/01/15/rh_20240115.tif`
+    - Wind Speed: `sfms/interpolated/wind_speed/2024/01/15/wind_speed_20240115.tif`
+  - Follows the same pattern as other SFMS raster keys (fuel, indices, etc.)
+
+**Location:** `packages/wps-shared/src/wps_shared/sfms/raster_addresser.py`
+
+**Reusability:** This method is fully generic and can be used for any weather parameter in the `WeatherParameter` enum without modification.
+
+#### 2. `wps_shared.schemas.sfms.StationTemperature`
 Pydantic data model for station temperature data.
 
 **Fields:**
@@ -95,7 +114,7 @@ Pydantic data model for station temperature data.
 - `temperature: float` - Temperature in Celsius
 - `sea_level_temp: Optional[float]` - Temperature adjusted to sea level (populated during processing)
 
-#### 2. `temperature_interpolation.py`
+#### 3. `temperature_interpolation.py`
 Core temperature-specific interpolation functions and orchestration.
 
 **Key Functions:**
@@ -106,7 +125,6 @@ Core temperature-specific interpolation functions and orchestration.
   - Uses `idw_interpolation()` from shared module
   - Employs `WPSDataset` for raster I/O
   - Combines elevation adjustment with spatial interpolation
-- `get_interpolated_temp_key()`: Generates S3 storage path with hierarchical structure
 - `upload_raster_to_s3()`: Uploads processed raster to object storage
 
 **Domain-Specific Constants:**
@@ -120,7 +138,7 @@ Core temperature-specific interpolation functions and orchestration.
 - `WPSDataset.from_array()`: Creates output raster from NumPy array
 - `export_to_geotiff()`: Exports with LZW compression
 
-#### 3. `temperature_interpolation_processor.py`
+#### 4. `temperature_interpolation_processor.py`
 High-level processor for orchestrating the workflow.
 
 **Key Class:**
@@ -129,9 +147,10 @@ High-level processor for orchestrating the workflow.
   - Uses `get_auth_header` from `wfwx_api` for WF1 authentication
   - Coordinates data retrieval from WF1
   - Executes interpolation
+  - Uses `RasterKeyAddresser.get_interpolated_key(datetime, WeatherParameter.TEMP)` for S3 path generation
   - Uploads results to S3 using `S3Client`
 
-#### 4. `jobs/temperature_interpolation.py`
+#### 5. `jobs/temperature_interpolation.py`
 Job runner for executing interpolation as a batch process.
 
 **Usage:**
@@ -149,21 +168,25 @@ python -m app.jobs.temperature_interpolation "2024-01-15"
 
 ### Storage Structure
 
-Temperature rasters are stored in S3 with hierarchical date-based paths:
+Interpolated weather parameter rasters are stored in S3 with hierarchical date-based paths:
 
 ```
-sfms/interpolated/temperature/YYYY/MM/DD/temperature_YYYYMMDD.tif
+sfms/interpolated/{param}/YYYY/MM/DD/{param}_YYYYMMDD.tif
 ```
 
-**Example:**
+**Examples:**
 ```
-sfms/interpolated/temperature/2024/01/15/temperature_20240115.tif
+sfms/interpolated/temp/2024/01/15/temp_20240115.tif
+sfms/interpolated/rh/2024/01/15/rh_20240115.tif
+sfms/interpolated/wind_speed/2024/01/15/wind_speed_20240115.tif
 ```
 
 This structure:
 - Allows efficient date-based browsing
+- Supports multiple weather parameters using the same pattern
 - Follows the pattern specified in the acceptance criteria
 - Includes ISO date in filename for downloaded files
+- Uses short parameter names matching `WeatherParameter` enum values (temp, rh, wind_speed)
 
 ### Raster Properties
 
@@ -264,7 +287,7 @@ To test with actual data:
    ```
 
 3. **Verify output:**
-   - Check S3 for raster: `sfms/interpolated/temperature/2024/01/15/temperature_20240115.tif`
+   - Check S3 for raster: `sfms/interpolated/temp/2024/01/15/temp_20240115.tif`
    - Validate with QGIS or GDAL tools
    - Compare against existing SFMS temperature products
 
