@@ -8,9 +8,12 @@ This processor orchestrates the daily temperature interpolation workflow:
 """
 
 import logging
+import os
 import tempfile
 from datetime import datetime
 from typing import List
+import aiofiles
+import aiofiles.os
 from aiohttp import ClientSession
 from wps_shared.wildfire_one.wfwx_api import get_auth_header
 from wps_shared.stations import get_stations_from_source
@@ -75,9 +78,9 @@ class TemperatureInterpolationProcessor:
 
         logger.info("Processing %d stations with temperature data", len(station_temps))
 
-        # Interpolate to temporary file then upload
-        with tempfile.NamedTemporaryFile(suffix='.tif', delete=False) as tmp_file:
-            temp_raster_path = tmp_file.name
+        # Generate temporary file path
+        temp_dir = tempfile.gettempdir()
+        temp_raster_path = os.path.join(temp_dir, f"temp_interpolation_{self.datetime_to_process.strftime('%Y%m%d')}.tif")
 
         try:
             await interpolate_temperature_to_raster(
@@ -93,17 +96,19 @@ class TemperatureInterpolationProcessor:
             )
 
             logger.info("Uploading raster to S3: %s", s3_key)
-            with open(temp_raster_path, "rb") as f:
-                await s3_client.put_object(key=s3_key, body=f.read())
+            async with aiofiles.open(temp_raster_path, "rb") as f:
+                contents = await f.read()
+                await s3_client.put_object(key=s3_key, body=contents)
 
             logger.info("Temperature interpolation complete: %s", s3_key)
             return s3_key
 
         finally:
-            # Clean up temporary file
-            import os
-            if os.path.exists(temp_raster_path):
-                os.unlink(temp_raster_path)
+            # Clean up temporary file asynchronously
+            try:
+                await aiofiles.os.remove(temp_raster_path)
+            except FileNotFoundError:
+                pass  # File doesn't exist, nothing to clean up
 
     async def _fetch_stations(self) -> List[WeatherStation]:
         """
