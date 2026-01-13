@@ -32,7 +32,7 @@ async def get_model_prediction_summaries(
     conn = TCPConnector(limit=10)
     async with ClientSession(connector=conn) as client_session:
         wfwx_api = WfwxApi(client_session)
-        stations = wfwx_api.get_stations_by_codes(request.stations)
+        stations = await wfwx_api.get_stations_by_codes(request.stations)
     summaries = fetch_model_prediction_summaries(
         model, request.stations, request.time_of_interest, stations
     )

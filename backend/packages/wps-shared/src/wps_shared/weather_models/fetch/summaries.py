@@ -11,6 +11,7 @@ from wps_shared.db.crud.weather_models import (
     get_station_model_predictions_order_by_prediction_timestamp,
 )
 from wps_shared.db.models.weather_models import PredictionModel, WeatherStationModelPrediction
+from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.weather_models import (
     WeatherModelPredictionSummary,
     WeatherModelPredictionSummaryValues,
@@ -137,7 +138,10 @@ class ModelPredictionSummaryBuilder:
 
 
 def fetch_model_prediction_summaries(
-    model: ModelEnum, station_codes: List[int], time_of_interest: datetime, stations
+    model: ModelEnum,
+    station_codes: List[int],
+    time_of_interest: datetime,
+    stations: List[WeatherStation],
 ) -> List[WeatherModelPredictionSummary]:
     """Given a model type (e.g. GDPS) and a  list of station codes, return a corresponding list of model
     prediction summaries containing various percentiles."""
