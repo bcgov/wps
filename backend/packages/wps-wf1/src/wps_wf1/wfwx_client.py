@@ -158,3 +158,4 @@ class WfwxClient:
         url = f"{self.settings.base_url}/v1/dailies/daily-bulk"
         async with self.session.post(url, json=forecasts_json, headers=headers) as response:
             response.raise_for_status()
+        logger.info("submitted forecasts to wf1..")

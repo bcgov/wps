@@ -406,17 +406,17 @@ async def test_get_hourly_for_station_filters_actual(monkeypatch, wfwx_api):
             "hourlies": [
                 {
                     "hourlyMeasurementTypeCode": {"id": "ACTUAL"},
-                    "value": 1,
+                    "temperature": 1,
                     "weatherTimestamp": 1_730_000_000_000,  # example ms timestamp
                 },
                 {
                     "hourlyMeasurementTypeCode": {"id": "FORECAST"},
-                    "value": 2,
+                    "temperature": 2,
                     "weatherTimestamp": 1_730_000_000_000,
                 },
                 {
                     "hourlyMeasurementTypeCode": {"id": "ACTUAL"},
-                    "value": 3,
+                    "temperature": 3,
                     "weatherTimestamp": 1_730_000_360_000,
                 },
             ]
@@ -438,7 +438,7 @@ async def test_get_hourly_for_station_filters_actual(monkeypatch, wfwx_api):
         dt = datetime.fromtimestamp(ts_ms / 1000.0) if ts_ms is not None else None
         return {
             "datetime": dt,
-            "parsed_val": h["value"],  # extra field for test assertions
+            "temperature": h["temperature"],  # extra field for test assertions
         }
 
     def fake_parse_station(rs, eco):
@@ -466,6 +466,8 @@ async def test_get_hourly_for_station_filters_actual(monkeypatch, wfwx_api):
     # Filtered to ACTUAL hourlies only
     assert len(res.values) == 2
     assert res.station.code == 123
+    assert res.values[0].temperature == 1
+    assert res.values[1].temperature == 3
 
 
 @pytest.mark.anyio
@@ -531,11 +533,11 @@ async def test_get_noon_forecasts_all_stations(monkeypatch, wfwx_api):
     monkeypatch.setattr(
         api_mod,
         "parse_noon_forecast",
-        lambda code, nf: {"code": code, "value": nf["value"]} if code == 111 else None,
+        lambda code, nf: {"code": code, "value": nf["value"]},
     )
 
     res = await wfwx_api.get_noon_forecasts_all_stations(datetime(2025, 1, 1))
-    assert res == [{"code": 111, "value": "A"}]
+    assert res == [{"code": 111, "value": "A"}, {"code": 222, "value": "B"}]
 
 
 @pytest.mark.anyio
