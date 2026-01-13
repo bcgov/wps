@@ -12,7 +12,7 @@ import tempfile
 from datetime import datetime
 from typing import List
 from aiohttp import ClientSession
-from wps_shared.wildfire_one.wildfire_fetchers import fetch_access_token
+from wps_shared.wildfire_one.wfwx_api import get_auth_header
 from wps_shared.stations import get_stations_from_source
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.utils.s3 import set_s3_gdal_config
@@ -62,7 +62,7 @@ class TemperatureInterpolationProcessor:
 
         # Fetch temperature observations from WF1
         async with ClientSession() as session:
-            auth_headers = await self._get_auth_headers(session)
+            auth_headers = await get_auth_header(session)
             station_temps = await fetch_station_temperatures(
                 session,
                 auth_headers,
@@ -122,18 +122,3 @@ class TemperatureInterpolationProcessor:
         )
 
         return stations_with_elevation
-
-    async def _get_auth_headers(self, session: ClientSession) -> dict:
-        """
-        Get authentication headers for WF1 API.
-
-        :param session: aiohttp ClientSession
-        :return: Dictionary of headers
-        """
-        token_response = await fetch_access_token(session)
-        access_token = token_response.get("access_token")
-
-        return {
-            "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json"
-        }

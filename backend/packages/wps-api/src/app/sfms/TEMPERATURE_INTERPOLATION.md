@@ -126,6 +126,7 @@ High-level processor for orchestrating the workflow.
 **Key Class:**
 - `TemperatureInterpolationProcessor`: Manages the full interpolation pipeline
   - Fetches station metadata
+  - Uses `get_auth_header` from `wfwx_api` for WF1 authentication
   - Coordinates data retrieval from WF1
   - Executes interpolation
   - Uploads results to S3 using `S3Client`
