@@ -19,7 +19,6 @@ from wps_shared.wildfire_one.wildfire_fetchers import fetch_raw_dailies_for_all_
 from wps_shared.wildfire_one.util import is_station_valid
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.sfms import StationTemperature
-from wps_shared.utils.s3_client import S3Client
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 
@@ -265,19 +264,3 @@ async def get_dem_path() -> str:
     bucket = config.get("OBJECT_STORE_BUCKET")
     dem_name = config.get("DEM_NAME")
     return f"/vsis3/{bucket}/dem/mosaics/{dem_name}"
-
-
-async def upload_raster_to_s3(s3_client: S3Client, local_path: str, s3_key: str) -> None:
-    """
-    Upload a raster file to S3 object storage.
-
-    :param s3_client: S3Client instance
-    :param local_path: Local file path to upload
-    :param s3_key: S3 key (path) to upload to
-    """
-    logger.info("Uploading raster to S3: %s", s3_key)
-
-    with open(local_path, "rb") as f:
-        await s3_client.put_object(key=s3_key, body=f.read())
-
-    logger.info("Upload complete: %s", s3_key)

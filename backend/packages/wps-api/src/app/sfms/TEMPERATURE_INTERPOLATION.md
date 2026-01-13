@@ -125,7 +125,7 @@ Core temperature-specific interpolation functions and orchestration.
   - Uses `idw_interpolation()` from shared module
   - Employs `WPSDataset` for raster I/O
   - Combines elevation adjustment with spatial interpolation
-- `upload_raster_to_s3()`: Uploads processed raster to object storage
+  - Writes to local file (temp file handled by processor)
 
 **Domain-Specific Constants:**
 - `DRY_ADIABATIC_LAPSE_RATE = 0.0098`: Temperature change per meter (9.8°C/km)
@@ -146,9 +146,16 @@ High-level processor for orchestrating the workflow.
   - Fetches station metadata
   - Uses `get_auth_header` from `wfwx_api` for WF1 authentication
   - Coordinates data retrieval from WF1
-  - Executes interpolation
+  - Executes interpolation to temporary file
   - Uses `RasterKeyAddresser.get_interpolated_key(datetime, WeatherParameter.TEMP)` for S3 path generation
-  - Uploads results to S3 using `S3Client`
+  - Uploads result to S3 using `S3Client.put_object()`
+  - Cleans up temporary file after upload
+  - Configures GDAL for S3 access with `set_s3_gdal_config()`
+
+**Why Temporary Files?**
+- `WPSDataset.export_to_geotiff()` uses `driver.Create()` which doesn't reliably support `/vsis3/` paths
+- `gdal.Warp()` does support S3 writes, but we're using `WPSDataset` for consistency
+- Follows the same pattern as other SFMS processors (`persist_raster_data()`)
 
 #### 5. `jobs/temperature_interpolation.py`
 Job runner for executing interpolation as a batch process.
@@ -164,7 +171,8 @@ python -m app.jobs.temperature_interpolation "2024-01-15"
 
 **S3 Integration:**
 - Uses `S3Client` async context manager for efficient connection handling
-- Follows the same pattern as other SFMS jobs (e.g., `sfms_calculations.py`)
+- Follows the same write-then-upload pattern as other SFMS jobs
+- Temporary files cleaned up automatically after upload
 
 ### Storage Structure
 

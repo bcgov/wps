@@ -21,7 +21,6 @@ from wps_shared.sfms.raster_addresser import RasterKeyAddresser, WeatherParamete
 from app.sfms.temperature_interpolation import (
     fetch_station_temperatures,
     interpolate_temperature_to_raster,
-    upload_raster_to_s3,
     get_dem_path
 )
 
@@ -76,7 +75,7 @@ class TemperatureInterpolationProcessor:
 
         logger.info("Processing %d stations with temperature data", len(station_temps))
 
-        # Interpolate to raster
+        # Interpolate to temporary file then upload
         with tempfile.NamedTemporaryFile(suffix='.tif', delete=False) as tmp_file:
             temp_raster_path = tmp_file.name
 
@@ -92,7 +91,10 @@ class TemperatureInterpolationProcessor:
             s3_key = self.raster_addresser.get_interpolated_key(
                 self.datetime_to_process, WeatherParameter.TEMP
             )
-            await upload_raster_to_s3(s3_client, temp_raster_path, s3_key)
+
+            logger.info("Uploading raster to S3: %s", s3_key)
+            with open(temp_raster_path, "rb") as f:
+                await s3_client.put_object(key=s3_key, body=f.read())
 
             logger.info("Temperature interpolation complete: %s", s3_key)
             return s3_key
