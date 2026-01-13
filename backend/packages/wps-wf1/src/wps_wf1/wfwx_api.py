@@ -554,16 +554,10 @@ class WfwxApi:
 
     async def post_forecasts(self, forecasts: List[WF1PostForecast]):
         logger.info("Using WFWX to post/put forecasts")
-        wfwx_forecast_post_url = f"{self.wfwx_settings.base_url}/v1/dailies/daily-bulk"
         forecasts_json = [forecast.model_dump() for forecast in forecasts]
         headers = await self._get_auth_header()
         await self.wfwx_client.post_forecasts(headers, forecasts_json)
-
-        async with self.wfwx_client.session.post(
-            wfwx_forecast_post_url, json=forecasts_json, headers=headers
-        ) as response:
-            response.raise_for_status()
-            logger.info("submitted forecasts to wf1..")
+            
 
 
 async def get_stations_asynchronously():

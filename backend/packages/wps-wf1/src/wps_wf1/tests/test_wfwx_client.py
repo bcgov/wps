@@ -131,6 +131,7 @@ class TestWfwxClientGetJson:
         mock_cache.get.assert_called_once()
         # Verify the data was cached
         mock_cache.set.assert_called_once()
+        wfwx_client.session.get.assert_called_once()
 
     @pytest.mark.anyio
     async def test_get_json_without_cache(self, mock_session, mock_settings):

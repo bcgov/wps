@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 from math import isclose
 
-import app
 from wps_shared.db.models.morecast_v2 import MorecastForecastRecord
 from app.morecast_v2.forecasts import (
     actual_exists,
