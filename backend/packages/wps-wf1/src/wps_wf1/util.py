@@ -48,8 +48,7 @@ def get_zone_code_prefix(fire_centre_id: int):
 
 
 def compute_dewpoint(temp, relative_humidity):
-    """ Computes dewpoint based on code from the legacy system.
-        See: https://chat.developer.gov.bc.ca/channel/wildfire-wfwx?msg=vzjt28hWCP9J5pZtK
+    """ Computes dewpoint based on temperature and relative humidity.
     """
     if temp is None or relative_humidity is None:
         return None
