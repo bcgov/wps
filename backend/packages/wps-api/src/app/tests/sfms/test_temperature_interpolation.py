@@ -605,7 +605,6 @@ class TestInterpolateTemperatureToRaster:
         ]
 
         # Create mock GDAL datasets
-        mock_ref_band = Mock()
         mock_ref_ds = Mock()
         mock_ref_ds.GetGeoTransform.return_value = (0, 1, 0, 50, 0, -1)
         mock_ref_ds.GetProjection.return_value = 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]]]'
@@ -795,7 +794,6 @@ class TestInterpolateTemperatureToRaster:
 
             # Mock osr module
             mock_source_srs = Mock()
-            mock_target_srs = Mock()
             mock_osr.SpatialReference.return_value = mock_source_srs
             mock_osr.CoordinateTransformation.return_value = mock_transform
 
