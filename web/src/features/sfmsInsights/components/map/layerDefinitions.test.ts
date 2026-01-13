@@ -1,4 +1,4 @@
-import { getSnowPMTilesLayer, getFireWeatherRasterLayer } from './layerDefinitions'
+import { getSnowPMTilesLayer, getFireWeatherRasterLayer, getRasterLayer } from './layerDefinitions'
 import { DateTime } from 'luxon'
 
 // Mock pmtiles completely to prevent any parsing
@@ -130,6 +130,50 @@ describe('layerDefinitions', () => {
       expect(snowZIndex).toBeGreaterThan(fwiZIndex)
       expect(snowZIndex).toBeGreaterThan(dmcZIndex)
       expect(snowZIndex).toBeGreaterThan(dcZIndex)
+    })
+  })
+
+  describe('getRasterLayer', () => {
+    it('should return fuel layer when rasterType is fuel with null date', () => {
+      const layer = getRasterLayer(null, 'fuel', 'test-token')
+      expect(layer).toBeDefined()
+      expect(layer).not.toBeNull()
+      expect(layer!.getProperties().rasterType).toBe('fuel')
+    })
+
+    it('should return fuel layer when rasterType is fuel with date', () => {
+      const date = DateTime.fromISO('2025-11-02')
+      const layer = getRasterLayer(date, 'fuel', 'test-token')
+      expect(layer).toBeDefined()
+      expect(layer).not.toBeNull()
+      expect(layer!.getProperties().rasterType).toBe('fuel')
+    })
+
+    it('should return fire weather layer when date is provided', () => {
+      const date = DateTime.fromISO('2025-11-02')
+      const layer = getRasterLayer(date, 'fwi', 'test-token')
+      expect(layer).toBeDefined()
+      expect(layer).not.toBeNull()
+      expect(layer!.getProperties().rasterType).toBe('fwi')
+    })
+
+    it('should return null and log error when date is null for fire weather raster', () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const layer = getRasterLayer(null, 'fwi', 'test-token')
+      expect(layer).toBeNull()
+      expect(consoleErrorSpy).toHaveBeenCalledWith('date is required for fire weather rasters')
+      consoleErrorSpy.mockRestore()
+    })
+
+    it('should return null and log error when date is null for other fire weather types', () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      expect(getRasterLayer(null, 'dmc', 'test-token')).toBeNull()
+      expect(getRasterLayer(null, 'dc', 'test-token')).toBeNull()
+      expect(getRasterLayer(null, 'bui', 'test-token')).toBeNull()
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(3)
+
+      consoleErrorSpy.mockRestore()
     })
   })
 })

@@ -1,5 +1,5 @@
 import { PlayArrow } from '@mui/icons-material'
-import { IconButton, TextField } from '@mui/material'
+import { CircularProgress, IconButton, TextField } from '@mui/material'
 import {
   BaseSingleInputFieldProps,
   CalendarIcon,
@@ -20,16 +20,18 @@ import React from 'react'
 interface CustomDateTextFieldProps
   extends UseDateFieldProps<DateTime, false>,
     BaseSingleInputFieldProps<DateTime | null, DateTime, FieldSection, false, DateValidationError> {
-  date: DateTime
+  date: DateTime | null
   updateDate: React.Dispatch<React.SetStateAction<DateTime>>
   minimumDate: DateTime
   maximumDate: DateTime
+  disabled?: boolean
 }
 
 function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
   const { internalProps, forwardedProps } = useSplitFieldProps(props, 'date')
   const { value } = internalProps
   const { date, updateDate, minimumDate, maximumDate, slotProps, InputProps, ...other } = forwardedProps
+  const disabled = props.disabled
   const pickersContext = usePickersContext()
   const handleTogglePicker = (event: React.UIEvent) => {
     if (pickersContext.open) {
@@ -40,21 +42,27 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
   }
 
   const handleArrowButton = (value: number) => {
-    const newDate = date.plus({ days: value })
-    updateDate(newDate)
+    if (!isNil(date)) {
+      const newDate = date.plus({ days: value })
+      updateDate(newDate)
+    }
   }
 
   const renderStartAdornments = () => {
     return (
       <>
         <IconButton
-          disabled={minimumDate >= date.minus({ days: 1 })}
+          disabled={disabled || isNil(date) || minimumDate >= date.minus({ days: 1 })}
           onClick={() => handleArrowButton(-1)}
           sx={{ paddingLeft: 0, transform: 'rotate(180deg)' }}
         >
           <PlayArrow />
         </IconButton>
-        <IconButton disabled={date >= maximumDate} onClick={() => handleArrowButton(1)} sx={{ paddingLeft: 0 }}>
+        <IconButton
+          disabled={disabled || isNil(date) || date >= maximumDate}
+          onClick={() => handleArrowButton(1)}
+          sx={{ paddingLeft: 0 }}
+        >
           <PlayArrow />
         </IconButton>
       </>
@@ -63,7 +71,7 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
 
   const renderEndAdornments = () => {
     return (
-      <IconButton aria-label="calendar" onClick={handleTogglePicker}>
+      <IconButton aria-label="calendar" onClick={handleTogglePicker} disabled={disabled}>
         <CalendarIcon color="action" />
       </IconButton>
     )
@@ -72,22 +80,25 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
   return (
     <TextField
       {...other}
+      disabled={disabled}
       value={
-        isNil(value) ? '' : value.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+        isNil(value)
+          ? 'No data available'
+          : value.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
       }
       InputProps={{
         ...InputProps,
         readOnly: true,
         startAdornment: renderStartAdornments(),
         endAdornment: renderEndAdornments(),
-        sx: { cursor: 'pointer', '& *': { cursor: 'inherit' } }
+        sx: { cursor: disabled ? 'default' : 'pointer', '& *': { cursor: 'inherit' } }
       }}
     />
   )
 }
 
 interface ASADatePickerProps extends DatePickerProps<DateTime> {
-  date: DateTime
+  date: DateTime | null
   updateDate: (d: DateTime) => void
   currentYearMinDate?: DateTime
   currentYearMaxDate?: DateTime
@@ -102,15 +113,19 @@ const ASADatePicker = ({
   historicalMinDate,
   historicalMaxDate,
   updateDate,
+  disabled,
   ...other
 }: ASADatePickerProps) => {
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <DatePicker
+        loading={isNil(date)}
+        renderLoading={() => <CircularProgress />}
         label="Date of Interest"
         format="yyyy/MM/dd"
         maxDate={historicalMaxDate}
         minDate={historicalMinDate}
+        disabled={disabled}
         onAccept={(newValue: DateTime | null) => {
           if (!isNull(newValue) && newValue.isValid) {
             updateDate(newValue)
@@ -120,7 +135,13 @@ const ASADatePicker = ({
         slotProps={{
           ...other.slotProps,
           actionBar: { actions: ['today'] },
-          field: { date, updateDate, minimumDate: currentYearMinDate, maximumDate: currentYearMaxDate } as any
+          field: {
+            date,
+            updateDate,
+            minimumDate: currentYearMinDate,
+            maximumDate: currentYearMaxDate,
+            disabled: disabled ?? false
+          } as any
         }}
         value={date}
       />
