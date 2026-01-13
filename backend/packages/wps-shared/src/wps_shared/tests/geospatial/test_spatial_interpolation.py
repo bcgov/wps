@@ -16,7 +16,7 @@ class TestConstants:
 
     def test_idw_power_default(self):
         """Test that IDW power is standard value."""
-        assert IDW_POWER == 2.0
+        assert IDW_POWER == pytest.approx(2.0)
 
     def test_search_radius_default(self):
         """Test that search radius is 200km."""

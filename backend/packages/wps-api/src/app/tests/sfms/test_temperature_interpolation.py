@@ -88,10 +88,10 @@ class TestStationTemperature:
             code=123, lat=49.0, lon=-123.0, elevation=500.0, temperature=20.0
         )
         assert station.code == 123
-        assert station.lat == 49.0
-        assert station.lon == -123.0
-        assert station.elevation == 500.0
-        assert station.temperature == 20.0
+        assert station.lat == pytest.approx(49.0)
+        assert station.lon == pytest.approx(-123.0)
+        assert station.elevation == pytest.approx(500.0)
+        assert station.temperature == pytest.approx(20.0)
         assert station.sea_level_temp is None
 
 
@@ -122,7 +122,7 @@ class TestElevationAdjustment:
         )
 
         sea_level_temp = adjust_temperature_to_sea_level(station)
-        assert sea_level_temp == 15.0
+        assert sea_level_temp == pytest.approx(15.0)
 
     def test_adjust_from_sea_level_to_elevation(self):
         """Test adjusting from sea level to elevation."""
@@ -349,11 +349,11 @@ class TestFetchStationTemperatures:
             # Verify results
             assert len(result) == 2
             assert result[0].code == 123
-            assert result[0].temperature == 15.0
-            assert result[0].elevation == 500.0
+            assert result[0].temperature == pytest.approx(15.0)
+            assert result[0].elevation == pytest.approx(500.0)
             assert result[1].code == 456
-            assert result[1].temperature == 10.0
-            assert result[1].elevation == 1000.0
+            assert result[1].temperature == pytest.approx(10.0)
+            assert result[1].elevation == pytest.approx(1000.0)
 
     @pytest.mark.anyio
     async def test_fetch_filters_non_actual_records(self):
