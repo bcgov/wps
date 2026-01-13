@@ -105,7 +105,7 @@ class ModelPredictionSummaryBuilder:
                     self.init_values()
                 self.values[key].append(key_value)
 
-    async def get_summaries(
+    def get_summaries(
         self, model: ModelEnum, station_codes: List[int], time_of_interest: datetime
     ) -> List[WeatherModelPredictionSummary]:
         """Given a model and station codes, return list of weather summaries."""
@@ -136,10 +136,10 @@ class ModelPredictionSummaryBuilder:
         return self.prediction_summaries
 
 
-async def fetch_model_prediction_summaries(
+def fetch_model_prediction_summaries(
     model: ModelEnum, station_codes: List[int], time_of_interest: datetime, stations
 ) -> List[WeatherModelPredictionSummary]:
     """Given a model type (e.g. GDPS) and a  list of station codes, return a corresponding list of model
     prediction summaries containing various percentiles."""
     builder = ModelPredictionSummaryBuilder(stations)
-    return await builder.get_summaries(model, station_codes, time_of_interest)
+    return builder.get_summaries(model, station_codes, time_of_interest)
