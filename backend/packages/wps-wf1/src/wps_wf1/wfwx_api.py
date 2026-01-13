@@ -564,3 +564,17 @@ class WfwxApi:
         ) as response:
             response.raise_for_status()
             logger.info("submitted forecasts to wf1..")
+
+
+async def get_stations_asynchronously():
+    """Get list of stations asynchronously"""
+    async with ClientSession() as session:
+        wfwx_api = WfwxApi(session)
+        return await wfwx_api.get_station_data()
+
+
+def get_stations_synchronously() -> List[WeatherStation]:
+    """Get list of stations - in a synchronous/blocking call."""
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    return loop.run_until_complete(get_stations_asynchronously())
