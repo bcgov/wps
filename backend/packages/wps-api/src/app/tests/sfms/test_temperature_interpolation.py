@@ -55,11 +55,26 @@ def create_mock_raster_datasets(
         dem_data = np.full((y_size, x_size), 100.0)
 
     mock_dem_band = cast(gdal.Band, Mock())
+    # ReadAsArray with no args returns full array (for old code compatibility)
     mock_dem_band.ReadAsArray.return_value = dem_data
+    # ReadAsArray with args (xoff, yoff, xsize, ysize) returns a subset
+    def read_array_subset(xoff=None, yoff=None, xsize=None, ysize=None):
+        if xoff is None:
+            return dem_data
+        # Return 1x1 array for single pixel reads
+        if xsize == 1 and ysize == 1:
+            if 0 <= yoff < dem_data.shape[0] and 0 <= xoff < dem_data.shape[1]:
+                return np.array([[dem_data[yoff, xoff]]])
+            return None
+        return dem_data[yoff:yoff+ysize, xoff:xoff+xsize]
+    mock_dem_band.ReadAsArray.side_effect = read_array_subset
     mock_dem_band.GetNoDataValue.return_value = dem_nodata
 
     mock_dem_ds = cast(gdal.Dataset, Mock())
     mock_dem_ds.GetRasterBand.return_value = mock_dem_band
+    mock_dem_ds.RasterXSize = x_size
+    mock_dem_ds.RasterYSize = y_size
+    mock_dem_ds.GetGeoTransform.return_value = geotransform
 
     # Create output dataset
     mock_output_ds = Mock()
@@ -699,8 +714,9 @@ class TestInterpolateTemperatureToRaster:
         )
 
         # Mock coordinate transformation to return points near station (49.0, -123.0)
+        # TransformPoint returns (lat, lon, z) for this projection
         mock_transform = Mock()
-        mock_transform.TransformPoint.return_value = (-123.0, 49.0, 0)
+        mock_transform.TransformPoint.return_value = (49.0, -123.0, 0)
 
         with (
             patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset,
