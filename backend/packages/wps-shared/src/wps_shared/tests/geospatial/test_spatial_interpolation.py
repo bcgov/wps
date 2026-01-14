@@ -8,6 +8,7 @@ from wps_shared.geospatial.spatial_interpolation import (
     idw_interpolation,
     IDW_POWER,
     SEARCH_RADIUS,
+    MAX_STATIONS,
 )
 
 
@@ -19,8 +20,12 @@ class TestConstants:
         assert IDW_POWER == pytest.approx(2.0)
 
     def test_search_radius_default(self):
-        """Test that search radius is 200km."""
-        assert SEARCH_RADIUS == 200000  # 200km in meters
+        """Test that search radius is 500km."""
+        assert SEARCH_RADIUS == 500000  # 500km in meters
+
+    def test_max_stations_default(self):
+        """Test that max stations is 12."""
+        assert MAX_STATIONS == 12
 
 
 class TestHaversineDistance:
@@ -170,6 +175,29 @@ class TestIDWInterpolation:
         assert result is not None
         # Should be weighted average, somewhere in the middle
         assert 10.0 < result < 20.0
+
+    def test_max_stations_limit(self):
+        """Test that max_stations limits the number of stations used."""
+        # Create 20 stations in a line
+        lats = [49.0 + i * 0.1 for i in range(20)]
+        lons = [-123.0] * 20
+        values = [float(i) for i in range(20)]
+
+        # Query at first station location with max_stations=5
+        # Should only use the 5 nearest stations (stations 0-4)
+        result = idw_interpolation(49.0, -123.0, lats, lons, values, max_stations=5)
+
+        # Result should be very close to 0.0 (the first station's value)
+        # Since we're at the exact location, it should return that value
+        assert result == pytest.approx(0.0, rel=1e-6)
+
+        # Query at a point between stations with max_stations=3
+        result = idw_interpolation(49.25, -123.0, lats, lons, values, max_stations=3)
+
+        # Should use only stations 2, 3, 4 (the 3 nearest to 49.25)
+        # Result should be weighted average of those, close to 2.5
+        assert result is not None
+        assert 2.0 < result < 3.0
 
 
 class TestIDWEdgeCases:

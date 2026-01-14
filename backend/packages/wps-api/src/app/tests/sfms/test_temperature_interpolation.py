@@ -8,6 +8,7 @@ from osgeo import gdal
 from datetime import datetime, timezone
 from typing import Optional, cast
 from unittest.mock import AsyncMock, Mock, patch, MagicMock
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.geospatial.spatial_interpolation import (
@@ -57,6 +58,7 @@ def create_mock_raster_datasets(
     mock_dem_band = cast(gdal.Band, Mock())
     # ReadAsArray with no args returns full array (for old code compatibility)
     mock_dem_band.ReadAsArray.return_value = dem_data
+
     # ReadAsArray with args (xoff, yoff, xsize, ysize) returns a subset
     def read_array_subset(xoff=None, yoff=None, xsize=None, ysize=None):
         if xoff is None:
@@ -66,7 +68,8 @@ def create_mock_raster_datasets(
             if 0 <= yoff < dem_data.shape[0] and 0 <= xoff < dem_data.shape[1]:
                 return np.array([[dem_data[yoff, xoff]]])
             return None
-        return dem_data[yoff:yoff+ysize, xoff:xoff+xsize]
+        return dem_data[yoff : yoff + ysize, xoff : xoff + xsize]
+
     mock_dem_band.ReadAsArray.side_effect = read_array_subset
     mock_dem_band.GetNoDataValue.return_value = dem_nodata
 
@@ -75,6 +78,11 @@ def create_mock_raster_datasets(
     mock_dem_ds.RasterXSize = x_size
     mock_dem_ds.RasterYSize = y_size
     mock_dem_ds.GetGeoTransform.return_value = geotransform
+
+    # Mock warp_to_match to return a resampled DEM
+    mock_resampled_dem = cast(WPSDataset, Mock())
+    mock_resampled_dem.ds = mock_dem_ds
+    mock_resampled_dem.ds.GetRasterBand.return_value = mock_dem_band
 
     # Create output dataset
     mock_output_ds = Mock()
@@ -88,7 +96,10 @@ def create_mock_raster_datasets(
     mock_ref_ctx.__exit__ = Mock(return_value=False)
 
     mock_dem_ctx = MagicMock()
-    mock_dem_ctx.__enter__ = Mock(return_value=Mock(ds=mock_dem_ds))
+    mock_dem_wrapper = Mock(ds=mock_dem_ds)
+    # Add warp_to_match method that returns the resampled DEM
+    mock_dem_wrapper.warp_to_match = Mock(return_value=mock_resampled_dem)
+    mock_dem_ctx.__enter__ = Mock(return_value=mock_dem_wrapper)
     mock_dem_ctx.__exit__ = Mock(return_value=False)
 
     return mock_ref_ds, mock_dem_ds, mock_output_ds, mock_ref_ctx, mock_dem_ctx

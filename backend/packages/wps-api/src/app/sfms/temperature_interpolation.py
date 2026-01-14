@@ -157,8 +157,14 @@ def interpolate_temperature_to_raster(
     if stations:
         logger.info("Station locations:")
         for station in stations[:5]:  # Log first 5 stations
-            logger.info("  Station %d: lat=%.4f, lon=%.4f, elev=%.1fm, temp=%.1f°C",
-                       station.code, station.lat, station.lon, station.elevation, station.temperature)
+            logger.info(
+                "  Station %d: lat=%.4f, lon=%.4f, elev=%.1fm, temp=%.1f°C",
+                station.code,
+                station.lat,
+                station.lon,
+                station.elevation,
+                station.temperature,
+            )
 
     # Adjust all station temperatures to sea level
     for station in stations:
@@ -173,146 +179,181 @@ def interpolate_temperature_to_raster(
 
     # Open reference raster and DEM using WPSDataset
     with WPSDataset(reference_raster_path) as ref_ds:
+        # Get raster properties from reference
+        geo_transform = ref_ds.ds.GetGeoTransform()
+        if geo_transform is None:
+            raise ValueError(
+                f"Failed to get geotransform from reference raster: {reference_raster_path}"
+            )
+        projection = ref_ds.ds.GetProjection()
+        x_size = ref_ds.ds.RasterXSize
+        y_size = ref_ds.ds.RasterYSize
+
+        # Resample DEM to match reference raster (much faster than per-pixel sampling)
         with WPSDataset(dem_path) as dem_ds:
-            # Get raster properties from reference
-            geo_transform = ref_ds.ds.GetGeoTransform()
-            if geo_transform is None:
-                raise ValueError(f"Failed to get geotransform from reference raster: {reference_raster_path}")
-            projection = ref_ds.ds.GetProjection()
-            x_size = ref_ds.ds.RasterXSize
-            y_size = ref_ds.ds.RasterYSize
+            logger.info(
+                "Resampling DEM from (%d x %d) to match reference (%d x %d)",
+                dem_ds.ds.RasterXSize,
+                dem_ds.ds.RasterYSize,
+                x_size,
+                y_size,
+            )
 
-            # Get DEM properties for coordinate-based sampling
-            dem_band: gdal.Band = dem_ds.ds.GetRasterBand(1)
-            dem_nodata = dem_band.GetNoDataValue()
-            dem_gt = dem_ds.ds.GetGeoTransform()
-            if dem_gt is None:
-                raise ValueError(f"Failed to get geotransform from DEM: {dem_path}")
+            # Warp DEM to match reference raster's extent and resolution
+            # Use bilinear resampling for smooth elevation interpolation
+            from wps_shared.geospatial.geospatial import GDALResamplingMethod
+            import tempfile
 
-            logger.info("DEM info: size=(%d x %d), pixel_size=(%.1f, %.1f)",
-                       dem_ds.ds.RasterXSize, dem_ds.ds.RasterYSize, dem_gt[1], dem_gt[5])
+            with tempfile.NamedTemporaryFile(suffix=".tif", delete=True) as tmp_dem:
+                resampled_dem = dem_ds.warp_to_match(
+                    ref_ds, tmp_dem.name, resample_method=GDALResamplingMethod.BILINEAR
+                )
 
-            # Initialize output array with NoData
-            temp_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
+                # Read resampled DEM data
+                dem_band: gdal.Band = resampled_dem.ds.GetRasterBand(1)
+                dem_data = dem_band.ReadAsArray()
+                if dem_data is None:
+                    raise ValueError("Failed to read resampled DEM data")
+                dem_nodata = dem_band.GetNoDataValue()
 
-            # Setup coordinate transformation from raster projection to WGS84 (lat/lon)
-            source_srs = osr.SpatialReference()
-            source_srs.ImportFromWkt(projection)
-            target_srs = osr.SpatialReference()
-            target_srs.ImportFromEPSG(4326)  # WGS84
-            coord_transform = osr.CoordinateTransformation(source_srs, target_srs)
+                logger.info("DEM resampled successfully, nodata value: %s", dem_nodata)
 
-            logger.info("Interpolating temperature for raster grid (%d x %d)", x_size, y_size)
-            logger.info("Geotransform: origin=(%.4f, %.4f), pixel_size=(%.4f, %.4f)",
-                       geo_transform[0], geo_transform[3], geo_transform[1], geo_transform[5])
-            logger.info("Projection: %s", projection[:100] + "..." if len(projection) > 100 else projection)
+                # Initialize output array with NoData
+                temp_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
 
-            # Process raster in chunks to show progress
-            chunk_size = 100
-            total_pixels = x_size * y_size
-            processed_pixels = 0
-            interpolated_count = 0
-            skipped_nodata_count = 0
-            failed_interpolation_count = 0
+                # Setup coordinate transformation from raster projection to WGS84 (lat/lon)
+                source_srs = osr.SpatialReference()
+                source_srs.ImportFromWkt(projection)
+                target_srs = osr.SpatialReference()
+                target_srs.ImportFromEPSG(4326)  # WGS84
+                coord_transform = osr.CoordinateTransformation(source_srs, target_srs)
 
-            # Sample first pixel for debugging
-            first_pixel_logged = False
+                logger.info("Interpolating temperature for raster grid (%d x %d)", x_size, y_size)
+                logger.info(
+                    "Geotransform: origin=(%.4f, %.4f), pixel_size=(%.4f, %.4f)",
+                    geo_transform[0],
+                    geo_transform[3],
+                    geo_transform[1],
+                    geo_transform[5],
+                )
+                logger.info(
+                    "Projection: %s",
+                    projection[:100] + "..." if len(projection) > 100 else projection,
+                )
 
-            for y in range(0, y_size, chunk_size):
-                y_end = min(y + chunk_size, y_size)
+                # Process raster in chunks to show progress
+                chunk_size = 100
+                total_pixels = x_size * y_size
+                processed_pixels = 0
+                interpolated_count = 0
+                skipped_nodata_count = 0
+                failed_interpolation_count = 0
 
-                for x in range(0, x_size, chunk_size):
-                    x_end = min(x + chunk_size, x_size)
+                # Sample first pixel for debugging
+                first_pixel_logged = False
 
-                    # Process chunk
-                    for yi in range(y, y_end):
-                        for xi in range(x, x_end):
-                            # Convert pixel coordinates to projection coordinates
-                            # Pixel center coordinates in raster projection
-                            x_coord = geo_transform[0] + (xi + 0.5) * geo_transform[1]
-                            y_coord = geo_transform[3] + (yi + 0.5) * geo_transform[5]
+                for y in range(0, y_size, chunk_size):
+                    y_end = min(y + chunk_size, y_size)
 
-                            # Sample elevation from DEM at this coordinate
-                            # Convert projection coords to DEM pixel coords
-                            dem_xi = int((x_coord - dem_gt[0]) / dem_gt[1])
-                            dem_yi = int((y_coord - dem_gt[3]) / dem_gt[5])
+                    for x in range(0, x_size, chunk_size):
+                        x_end = min(x + chunk_size, x_size)
 
-                            # Check if DEM coords are within bounds
-                            if (dem_xi < 0 or dem_xi >= dem_ds.ds.RasterXSize or
-                                dem_yi < 0 or dem_yi >= dem_ds.ds.RasterYSize):
-                                skipped_nodata_count += 1
-                                continue
+                        # Process chunk
+                        for yi in range(y, y_end):
+                            for xi in range(x, x_end):
+                                # Get elevation from resampled DEM (simple array indexing)
+                                elevation = dem_data[yi, xi]
 
-                            # Read elevation value from DEM at the correct location
-                            elevation_array = dem_band.ReadAsArray(dem_xi, dem_yi, 1, 1)
-                            if elevation_array is None:
-                                skipped_nodata_count += 1
-                                continue
-                            elevation = float(elevation_array[0, 0])
+                                # Skip NoData cells
+                                if dem_nodata is not None and elevation == dem_nodata:
+                                    skipped_nodata_count += 1
+                                    continue
 
-                            # Skip NoData cells
-                            if dem_nodata is not None and elevation == dem_nodata:
-                                skipped_nodata_count += 1
-                                continue
+                                # Convert pixel coordinates to lat/lon
+                                # Pixel center coordinates in raster projection
+                                x_coord = geo_transform[0] + (xi + 0.5) * geo_transform[1]
+                                y_coord = geo_transform[3] + (yi + 0.5) * geo_transform[5]
 
-                            # Transform to lat/lon
-                            # TransformPoint returns values based on target SRS axis order
-                            # For this projection/EPSG:4326 combination, it returns (lat, lon, z)
-                            lat, lon, _ = coord_transform.TransformPoint(x_coord, y_coord)
+                                # Transform to lat/lon
+                                # TransformPoint returns values based on target SRS axis order
+                                # For this projection/EPSG:4326 combination, it returns (lat, lon, z)
+                                lat, lon, _ = coord_transform.TransformPoint(x_coord, y_coord)
 
-                            # Log first pixel for debugging
-                            if not first_pixel_logged:
-                                logger.info("First pixel [%d,%d]: x_coord=%.4f, y_coord=%.4f -> lat=%.4f, lon=%.4f, elev=%.1f",
-                                           xi, yi, x_coord, y_coord, lat, lon, elevation)
-                                first_pixel_logged = True
+                                # Log first pixel for debugging
+                                if not first_pixel_logged:
+                                    logger.info(
+                                        "First pixel [%d,%d]: x_coord=%.4f, y_coord=%.4f -> lat=%.4f, lon=%.4f, elev=%.1f",
+                                        xi,
+                                        yi,
+                                        x_coord,
+                                        y_coord,
+                                        lat,
+                                        lon,
+                                        elevation,
+                                    )
+                                    first_pixel_logged = True
 
-                            # Interpolate sea level temperature
-                            sea_level_temp = idw_interpolation(
-                                lat, lon, station_lats, station_lons, station_values
-                            )
-
-                            if sea_level_temp is not None:
-                                # Adjust to actual elevation
-                                actual_temp = adjust_temperature_to_elevation(
-                                    sea_level_temp, elevation
+                                # Interpolate sea level temperature
+                                sea_level_temp = idw_interpolation(
+                                    lat, lon, station_lats, station_lons, station_values
                                 )
-                                temp_array[yi, xi] = actual_temp
-                                interpolated_count += 1
-                            else:
-                                failed_interpolation_count += 1
 
-                    processed_pixels += (y_end - y) * (x_end - x)
+                                if sea_level_temp is not None:
+                                    # Adjust to actual elevation
+                                    actual_temp = adjust_temperature_to_elevation(
+                                        sea_level_temp, elevation
+                                    )
+                                    temp_array[yi, xi] = actual_temp
+                                    interpolated_count += 1
+                                else:
+                                    failed_interpolation_count += 1
 
-                # Log progress every 10%
-                progress = (processed_pixels / total_pixels) * 100
-                if progress % 10 < 1:
-                    logger.info("Interpolation progress: %.1f%%", progress)
+                        processed_pixels += (y_end - y) * (x_end - x)
 
-    # Log summary statistics
-    logger.info("Interpolation complete:")
-    logger.info("  Total pixels: %d", total_pixels)
-    logger.info("  Successfully interpolated: %d (%.1f%%)", interpolated_count, 100.0 * interpolated_count / total_pixels if total_pixels > 0 else 0)
-    logger.info("  Failed interpolation (no stations in range): %d (%.1f%%)", failed_interpolation_count, 100.0 * failed_interpolation_count / total_pixels if total_pixels > 0 else 0)
-    logger.info("  Skipped (NoData elevation): %d (%.1f%%)", skipped_nodata_count, 100.0 * skipped_nodata_count / total_pixels if total_pixels > 0 else 0)
+                    # Log progress every 10%
+                    progress = (processed_pixels / total_pixels) * 100
+                    if progress % 10 < 1:
+                        logger.info("Interpolation progress: %.1f%%", progress)
 
-    if interpolated_count == 0:
-        logger.warning("WARNING: No pixels were successfully interpolated! Check station locations and coordinate system.")
+        # Log summary statistics (outside DEM context, inside ref context)
+        logger.info("Interpolation complete:")
+        logger.info("  Total pixels: %d", total_pixels)
+        logger.info(
+            "  Successfully interpolated: %d (%.1f%%)",
+            interpolated_count,
+            100.0 * interpolated_count / total_pixels if total_pixels > 0 else 0,
+        )
+        logger.info(
+            "  Failed interpolation (no stations in range): %d (%.1f%%)",
+            failed_interpolation_count,
+            100.0 * failed_interpolation_count / total_pixels if total_pixels > 0 else 0,
+        )
+        logger.info(
+            "  Skipped (NoData elevation): %d (%.1f%%)",
+            skipped_nodata_count,
+            100.0 * skipped_nodata_count / total_pixels if total_pixels > 0 else 0,
+        )
 
-    # Create output dataset from array using WPSDataset
-    output_ds = WPSDataset.from_array(
-        array=temp_array,
-        geotransform=geo_transform,
-        projection=projection,
-        nodata_value=-9999.0,
-        datatype=gdal.GDT_Float32,
-    )
+        if interpolated_count == 0:
+            logger.warning(
+                "WARNING: No pixels were successfully interpolated! Check station locations and coordinate system."
+            )
 
-    # Export to GeoTIFF with compression
-    with output_ds:
-        output_ds.export_to_geotiff(output_path)
+        # Create output dataset from array using WPSDataset
+        output_ds = WPSDataset.from_array(
+            array=temp_array,
+            geotransform=geo_transform,
+            projection=projection,
+            nodata_value=-9999.0,
+            datatype=gdal.GDT_Float32,
+        )
 
-    logger.info("Temperature interpolation complete: %s", output_path)
-    return output_path
+        # Export to GeoTIFF with compression
+        with output_ds:
+            output_ds.export_to_geotiff(output_path)
+
+        logger.info("Temperature interpolation complete: %s", output_path)
+        return output_path
 
 
 def get_dem_path() -> str:

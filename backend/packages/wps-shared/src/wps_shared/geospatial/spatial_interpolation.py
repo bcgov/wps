@@ -6,14 +6,24 @@ particularly useful for weather station observations (temperature, dew point, wi
 """
 
 import logging
+from dataclasses import dataclass
 from typing import List, Optional
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
+
+@dataclass
+class NearbyStation:
+    """A station within the search radius with its distance and value."""
+
+    distance: float  # Distance from target point in meters
+    value: float  # Measured value at the station
+
 # IDW parameters
 IDW_POWER = 2.0  # Standard IDW power parameter
-SEARCH_RADIUS = 200000  # 200km search radius in meters
+SEARCH_RADIUS = 500000  # 500km search radius in meters
+MAX_STATIONS = 12  # Maximum number of nearest stations to use
 
 
 def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -46,6 +56,44 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     return radius * c
 
 
+def collect_nearby_stations(
+    target_lat: float,
+    target_lon: float,
+    point_lats: List[float],
+    point_lons: List[float],
+    point_values: List[float],
+    search_radius: float,
+) -> List[NearbyStation]:
+    """
+    Collect stations within search radius with their distances and values.
+
+    :param target_lat: Latitude of target point (degrees)
+    :param target_lon: Longitude of target point (degrees)
+    :param point_lats: List of latitudes for data points (degrees)
+    :param point_lons: List of longitudes for data points (degrees)
+    :param point_values: List of values at each data point
+    :param search_radius: Maximum distance to consider points (meters)
+    :return: List of NearbyStation objects for stations within radius
+    """
+    stations_in_range = []
+
+    for lat, lon, value in zip(point_lats, point_lons, point_values):
+        # Skip None values
+        if value is None:
+            continue
+
+        # Calculate distance from target point to data point
+        distance = haversine_distance(target_lat, target_lon, lat, lon)
+
+        # Skip points outside search radius
+        if distance > search_radius:
+            continue
+
+        stations_in_range.append(NearbyStation(distance=distance, value=value))
+
+    return stations_in_range
+
+
 def idw_interpolation(
     target_lat: float,
     target_lon: float,
@@ -54,6 +102,7 @@ def idw_interpolation(
     point_values: List[float],
     power: float = IDW_POWER,
     search_radius: float = SEARCH_RADIUS,
+    max_stations: Optional[int] = MAX_STATIONS,
 ) -> Optional[float]:
     """
     Perform Inverse Distance Weighting (IDW) interpolation for a single point.
@@ -72,6 +121,7 @@ def idw_interpolation(
     :param point_values: List of values at each data point
     :param power: IDW power parameter (default 2.0, higher = more local influence)
     :param search_radius: Maximum distance to consider points (meters)
+    :param max_stations: Maximum number of nearest stations to use (default 12)
     :return: Interpolated value or None if no valid points in range
 
     Examples:
@@ -85,6 +135,10 @@ def idw_interpolation(
         >>> # Handle points outside search radius
         >>> result = idw_interpolation(60.0, -130.0, lats, lons, temps, search_radius=10000)
         >>> # result will be None (no points within 10km)
+
+        >>> # Limit to nearest N stations
+        >>> result = idw_interpolation(49.5, -123.0, lats, lons, temps, max_stations=5)
+        >>> # result will use only the 5 nearest stations
     """
     # Validate inputs
     if not point_lats or len(point_lats) != len(point_lons) or len(point_lats) != len(point_values):
@@ -96,34 +150,13 @@ def idw_interpolation(
         )
         return None
 
-    weights = []
-    values = []
-
-    for lat, lon, value in zip(point_lats, point_lons, point_values):
-        # Skip None values
-        if value is None:
-            continue
-
-        # Calculate distance from target point to data point
-        distance = haversine_distance(target_lat, target_lon, lat, lon)
-
-        # Skip points outside search radius
-        if distance > search_radius:
-            continue
-
-        # Handle case where point is exactly at data point location
-        # Use 1 meter as threshold to avoid division by zero
-        if distance < 1.0:
-            logger.debug("Target point within 1m of data point, returning exact value")
-            return value
-
-        # Calculate IDW weight: inverse of distance to the power
-        weight = 1.0 / (distance**power)
-        weights.append(weight)
-        values.append(value)
+    # Collect stations within search radius with their distances
+    stations_in_range = collect_nearby_stations(
+        target_lat, target_lon, point_lats, point_lons, point_values, search_radius
+    )
 
     # Check if we found any points in range
-    if not weights:
+    if not stations_in_range:
         logger.debug(
             "No valid points found within search radius %.0fm of target (%.4f, %.4f)",
             search_radius,
@@ -131,6 +164,25 @@ def idw_interpolation(
             target_lon,
         )
         return None
+
+    # Sort by distance and take only the nearest N stations
+    stations_in_range.sort(key=lambda station: station.distance)
+
+    # Handle exact match case (distance < 1m) to avoid division by zero
+    if stations_in_range[0].distance < 1.0:
+        logger.debug("Target point within 1m of data point, returning exact value")
+        return stations_in_range[0].value
+
+    if max_stations is not None and len(stations_in_range) > max_stations:
+        stations_in_range = stations_in_range[:max_stations]
+
+    # Calculate IDW weights and values
+    weights = []
+    values = []
+    for station in stations_in_range:
+        weight = 1.0 / (station.distance**power)
+        weights.append(weight)
+        values.append(station.value)
 
     # Calculate weighted average
     total_weight = sum(weights)
