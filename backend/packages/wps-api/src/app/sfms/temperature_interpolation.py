@@ -12,7 +12,7 @@ import logging
 from datetime import datetime
 from typing import List
 import numpy as np
-from osgeo import gdal, osr
+from osgeo import gdal
 from aiohttp import ClientSession
 from wps_shared import config
 from wps_shared.wildfire_one.wildfire_fetchers import fetch_raw_dailies_for_all_stations
@@ -223,81 +223,32 @@ def interpolate_temperature_to_raster(
                 # Initialize output array with NoData
                 temp_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
 
-                # Setup coordinate transformation from raster projection to WGS84 (lat/lon)
-                source_srs = osr.SpatialReference()
-                source_srs.ImportFromWkt(projection)
-                target_srs = osr.SpatialReference()
-                target_srs.ImportFromEPSG(4326)  # WGS84
-                coord_transform = osr.CoordinateTransformation(source_srs, target_srs)
-
-                logger.info("Interpolating temperature for raster grid (%d x %d)", x_size, y_size)
-                logger.info(
-                    "Geotransform: origin=(%.4f, %.4f), pixel_size=(%.4f, %.4f)",
-                    geo_transform[0],
-                    geo_transform[3],
-                    geo_transform[1],
-                    geo_transform[5],
-                )
-                logger.info(
-                    "Projection: %s",
-                    projection[:100] + "..." if len(projection) > 100 else projection,
-                )
-
-                # Create coordinate grids for all pixels at once (vectorized)
-                xi_grid, yi_grid = np.meshgrid(np.arange(x_size), np.arange(y_size))
-
-                # Calculate pixel center coordinates in raster projection (vectorized)
-                x_coords = geo_transform[0] + (xi_grid + 0.5) * geo_transform[1]
-                y_coords = geo_transform[3] + (yi_grid + 0.5) * geo_transform[5]
-
-                # Filter out NoData pixels using boolean mask
+                # Build valid mask from DEM nodata
                 if dem_nodata is not None:
                     valid_mask = dem_data != dem_nodata
                 else:
                     valid_mask = np.ones((y_size, x_size), dtype=bool)
 
-                # Get indices and values for valid pixels only
-                valid_yi, valid_xi = np.where(valid_mask)
-                valid_x_coords = x_coords[valid_mask]
-                valid_y_coords = y_coords[valid_mask]
+                # Get lat/lon coordinates for valid pixels using WPSDataset
+                lats, lons, valid_yi, valid_xi = resampled_dem.get_lat_lon_coords(valid_mask)
                 valid_elevations = dem_data[valid_mask]
 
                 total_pixels = x_size * y_size
                 skipped_nodata_count = total_pixels - len(valid_yi)
 
+                logger.info("Interpolating temperature for raster grid (%d x %d)", x_size, y_size)
                 logger.info(
                     "Processing %d valid pixels (skipping %d NoData pixels)",
                     len(valid_yi),
                     skipped_nodata_count,
                 )
 
-                # Transform all valid coordinates to lat/lon at once (vectorized)
-                # Create list of (x, y) tuples for transformation
-                coords_to_transform = [(float(x), float(y)) for x, y in zip(valid_x_coords, valid_y_coords)]
-
-                # TransformPoints expects list of (x, y) or (x, y, z) tuples
-                # Returns [(lat, lon, z), ...]
-                transformed = coord_transform.TransformPoints(coords_to_transform)
-
-                # Extract lat/lon from transformed coordinates
-                lats = np.array([t[0] for t in transformed])
-                lons = np.array([t[1] for t in transformed])
-
-                # Log first pixel for debugging
-                if len(valid_yi) > 0:
-                    logger.info(
-                        "First pixel [%d,%d]: x_coord=%.4f, y_coord=%.4f -> lat=%.4f, lon=%.4f, elev=%.1f",
-                        valid_xi[0],
-                        valid_yi[0],
-                        valid_x_coords[0],
-                        valid_y_coords[0],
-                        lats[0],
-                        lons[0],
-                        valid_elevations[0],
-                    )
-
                 # Batch interpolate all pixels at once
-                logger.info("Running batch IDW interpolation for %d pixels and %d stations", len(lats), len(station_lats))
+                logger.info(
+                    "Running batch IDW interpolation for %d pixels and %d stations",
+                    len(lats),
+                    len(station_lats),
+                )
                 station_lats_array = np.array(station_lats)
                 station_lons_array = np.array(station_lons)
                 station_values_array = np.array(station_values)

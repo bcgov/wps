@@ -269,3 +269,125 @@ def test_multi_wps_dataset_context(mocker):
     # ensure each dataset was closed after the context exited
     for ds in mock_datasets:
         ds.close.assert_called_once()
+
+
+class TestGetLatLonCoords:
+    """Tests for get_lat_lon_coords method."""
+
+    def test_wgs84_coords_returned_correctly(self):
+        """Test that WGS84 dataset returns correct lat/lon coordinates."""
+        # Create a simple 2x2 WGS84 dataset centered at (0, 0)
+        # Extent: lon -1 to 1, lat -1 to 1
+        extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+        ds = create_test_dataset("test_wgs84.tif", 2, 2, extent, 4326)
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            lats, lons, yi, xi = wps_ds.get_lat_lon_coords()
+
+            # Should have 4 pixels (2x2)
+            assert len(lats) == 4
+            assert len(lons) == 4
+            assert len(yi) == 4
+            assert len(xi) == 4
+
+            # Pixel centers should be at -0.5 and 0.5 for both dimensions
+            assert np.allclose(np.sort(np.unique(lons)), [-0.5, 0.5], atol=0.01)
+            assert np.allclose(np.sort(np.unique(lats)), [-0.5, 0.5], atol=0.01)
+
+    def test_with_valid_mask(self):
+        """Test that valid_mask filters pixels correctly."""
+        extent = (-1, 1, -1, 1)
+        ds = create_test_dataset("test_mask.tif", 2, 2, extent, 4326)
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            # Only include top-left pixel
+            valid_mask = np.array([[True, False], [False, False]])
+            lats, lons, yi, xi = wps_ds.get_lat_lon_coords(valid_mask)
+
+            assert len(lats) == 1
+            assert len(lons) == 1
+            assert yi[0] == 0
+            assert xi[0] == 0
+
+    def test_with_nodata_mask(self):
+        """Test that nodata values are automatically masked."""
+        driver = gdal.GetDriverByName("MEM")
+        ds = driver.Create("test_nodata.tif", 2, 2, 1, gdal.GDT_Float32)
+
+        # Set geotransform and projection for WGS84
+        ds.SetGeoTransform((-1, 1, 0, 1, 0, -1))
+        from osgeo import osr
+        srs = osr.SpatialReference()
+        srs.ImportFromEPSG(4326)
+        ds.SetProjection(srs.ExportToWkt())
+
+        # Set nodata and write data with one nodata pixel
+        band = ds.GetRasterBand(1)
+        band.SetNoDataValue(-9999)
+        data = np.array([[1.0, 2.0], [-9999, 4.0]], dtype=np.float32)
+        band.WriteArray(data)
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            lats, lons, yi, xi = wps_ds.get_lat_lon_coords()
+
+            # Should only have 3 valid pixels (one is nodata)
+            assert len(lats) == 3
+            assert len(lons) == 3
+
+            # The nodata pixel (1, 0) should not be included
+            indices = list(zip(yi, xi))
+            assert (1, 0) not in indices
+
+    def test_projected_coords_transformed(self):
+        """Test that non-WGS84 coordinates are transformed to WGS84."""
+        # Create dataset in Web Mercator (EPSG:3857) near Vancouver
+        # Vancouver in 3857: approximately x=-13700000, y=6300000
+        extent = (-13750000, -13650000, 6250000, 6350000)
+        ds = create_test_dataset("test_3857.tif", 2, 2, extent, 3857)
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            lats, lons, yi, xi = wps_ds.get_lat_lon_coords()
+
+            # Should have 4 pixels
+            assert len(lats) == 4
+
+            # Coordinates should be transformed to WGS84
+            # Vancouver is roughly lat 49, lon -123
+            assert all(48 < lat < 52 for lat in lats)
+            assert all(-125 < lon < -120 for lon in lons)
+
+    def test_indices_match_mask(self):
+        """Test that returned indices correctly correspond to mask positions."""
+        extent = (-1, 1, -1, 1)
+        ds = create_test_dataset("test_indices.tif", 3, 3, extent, 4326)
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            # Create checkerboard mask
+            valid_mask = np.array([
+                [True, False, True],
+                [False, True, False],
+                [True, False, True],
+            ])
+            lats, lons, yi, xi = wps_ds.get_lat_lon_coords(valid_mask)
+
+            # Should have 5 valid pixels
+            assert len(lats) == 5
+
+            # Verify indices match the True positions in mask
+            indices = set(zip(yi, xi))
+            expected = {(0, 0), (0, 2), (1, 1), (2, 0), (2, 2)}
+            assert indices == expected
+
+    def test_empty_mask_returns_empty_arrays(self):
+        """Test that all-False mask returns empty arrays."""
+        extent = (-1, 1, -1, 1)
+        ds = create_test_dataset("test_empty.tif", 2, 2, extent, 4326)
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            valid_mask = np.zeros((2, 2), dtype=bool)
+            lats, lons, yi, xi = wps_ds.get_lat_lon_coords(valid_mask)
+
+            assert len(lats) == 0
+            assert len(lons) == 0
+            assert len(yi) == 0
+            assert len(xi) == 0
