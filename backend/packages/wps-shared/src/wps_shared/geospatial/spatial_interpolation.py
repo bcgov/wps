@@ -8,8 +8,12 @@ particularly useful for weather station observations (temperature, dew point, wi
 import logging
 from typing import List, Optional
 import numpy as np
+from sklearn.neighbors import RadiusNeighborsRegressor
 
 logger = logging.getLogger(__name__)
+
+# Earth radius in meters
+EARTH_RADIUS = 6371000
 
 # IDW parameters
 IDW_POWER = 2.0  # Standard IDW power parameter
@@ -17,64 +21,64 @@ SEARCH_RADIUS = 500000  # 500km search radius in meters
 MAX_STATIONS = 12  # Maximum number of nearest stations to use
 
 
-def haversine_distance(
-    lat1: float | np.ndarray,
-    lon1: float | np.ndarray,
-    lat2: float | np.ndarray,
-    lon2: float | np.ndarray,
-) -> float | np.ndarray:
+def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
-    Calculate great circle distance(s) between points on Earth using the Haversine formula.
+    Calculate great circle distance between two points using the Haversine formula.
 
-    This unified function handles three cases:
-    - Scalar to scalar: returns a single distance (float)
-    - Scalar to array: returns distances from one point to many (1D array)
-    - Array to array: returns distance matrix (2D array) where result[i,j] is
-      distance from point i in (lat1, lon1) to point j in (lat2, lon2)
-
-    :param lat1: Latitude(s) of first point(s) in degrees (scalar or array)
-    :param lon1: Longitude(s) of first point(s) in degrees (scalar or array)
-    :param lat2: Latitude(s) of second point(s) in degrees (scalar or array)
-    :param lon2: Longitude(s) of second point(s) in degrees (scalar or array)
-    :return: Distance(s) in meters (scalar, 1D array, or 2D array)
+    :param lat1: Latitude of first point (degrees)
+    :param lon1: Longitude of first point (degrees)
+    :param lat2: Latitude of second point (degrees)
+    :param lon2: Longitude of second point (degrees)
+    :return: Distance in meters
     """
-    lat1_is_array = isinstance(lat1, np.ndarray)
-    lat2_is_array = isinstance(lat2, np.ndarray)
+    lat1_rad, lon1_rad = np.radians(lat1), np.radians(lon1)
+    lat2_rad, lon2_rad = np.radians(lat2), np.radians(lon2)
 
-    # Case 1: Both arrays -> distance matrix (N x M)
-    if lat1_is_array and lat2_is_array:
-        lat1_rad = np.radians(lat1)[:, np.newaxis]
-        lon1_rad = np.radians(lon1)[:, np.newaxis]
-        lat2_rad = np.radians(lat2)[np.newaxis, :]
-        lon2_rad = np.radians(lon2)[np.newaxis, :]
-    # Case 2: First is scalar, second is array -> 1D array of distances
-    elif lat2_is_array:
-        lat1_rad = np.radians(lat1)
-        lon1_rad = np.radians(lon1)
-        lat2_rad = np.radians(lat2)
-        lon2_rad = np.radians(lon2)
-    # Case 3: Both scalars (or first is array, second is scalar - treated same way)
-    else:
-        lat1_rad = np.radians(lat1)
-        lon1_rad = np.radians(lon1)
-        lat2_rad = np.radians(lat2)
-        lon2_rad = np.radians(lon2)
-
-    # Haversine formula
     dlat = lat2_rad - lat1_rad
     dlon = lon2_rad - lon1_rad
     a = np.sin(dlat / 2) ** 2 + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin(dlon / 2) ** 2
     c = 2 * np.arcsin(np.sqrt(a))
 
-    # Earth radius in meters
-    radius = 6371000
-    result = radius * c
+    return float(EARTH_RADIUS * c)
 
-    # Return scalar for scalar-to-scalar case
-    if not lat1_is_array and not lat2_is_array:
-        return float(result)
-    return result
 
+def _make_idw_weights(power: float, max_stations: Optional[int]):
+    """Create IDW weight function with power and max_stations parameters."""
+    # Threshold for exact match: 1m in radians ≈ 1.57e-7
+    exact_match_threshold = 1.0 / EARTH_RADIUS
+
+    def weights(distances):
+        # sklearn passes a list of arrays (one per query point)
+        result = []
+        for dist in distances:
+            dist = np.asarray(dist, dtype=np.float64)
+            if len(dist) == 0:
+                result.append(np.array([]))
+                continue
+
+            # Check for exact match first (< 1m) - return only that weight
+            min_idx = np.argmin(dist)
+            if dist[min_idx] < exact_match_threshold:
+                w = np.zeros(len(dist))
+                w[min_idx] = 1.0
+                result.append(w)
+                continue
+
+            # Limit to max_stations nearest (set others to zero weight)
+            if max_stations is not None and len(dist) > max_stations:
+                sorted_idx = np.argsort(dist)
+                mask = np.zeros(len(dist), dtype=bool)
+                mask[sorted_idx[:max_stations]] = True
+            else:
+                mask = np.ones(len(dist), dtype=bool)
+
+            # IDW weights
+            w = np.where(mask, 1.0 / (dist ** power), 0.0)
+            result.append(w)
+
+        return result
+
+    return weights
 
 
 def idw_interpolation(
@@ -88,18 +92,11 @@ def idw_interpolation(
     max_stations: Optional[int] = MAX_STATIONS,
 ) -> Optional[float] | np.ndarray:
     """
-    Perform Inverse Distance Weighting (IDW) interpolation.
+    Perform Inverse Distance Weighting (IDW) interpolation using RadiusNeighborsRegressor.
 
     Handles both single point and batch interpolation:
     - Scalar target_lat/lon: returns Optional[float]
     - Array target_lat/lon: returns np.ndarray of interpolated values
-
-    IDW is a deterministic spatial interpolation method that estimates values at
-    unsampled locations based on a weighted average of nearby observations. Weights
-    are inversely proportional to distance raised to a power.
-
-    Formula: value = Σ(w_i * v_i) / Σ(w_i)
-    where w_i = 1 / (distance_i ^ power)
 
     :param target_lat: Latitude(s) of point(s) to interpolate (degrees)
     :param target_lon: Longitude(s) of point(s) to interpolate (degrees)
@@ -117,7 +114,7 @@ def idw_interpolation(
     if len(point_lats) != len(point_lons) or len(point_lats) != len(point_values):
         return np.full(len(target_lat), np.nan) if is_batch else None
 
-    # Filter out None values before converting to numpy
+    # Filter out None/NaN values
     if isinstance(point_values, list):
         valid_data = [
             (lat, lon, val)
@@ -133,7 +130,6 @@ def idw_interpolation(
         point_lats_arr = np.asarray(point_lats, dtype=np.float64)
         point_lons_arr = np.asarray(point_lons, dtype=np.float64)
         point_values_arr = np.asarray(point_values, dtype=np.float64)
-        # Filter NaN values for numpy arrays
         valid_mask = ~np.isnan(point_values_arr)
         if not np.any(valid_mask):
             return np.full(len(target_lat), np.nan) if is_batch else None
@@ -144,47 +140,28 @@ def idw_interpolation(
     if len(point_lats_arr) == 0:
         return np.full(len(target_lat), np.nan) if is_batch else None
 
-    # For single point, wrap in array and unwrap result
-    if not is_batch:
+    # Prepare coordinates (radians for haversine)
+    station_coords = np.column_stack([np.radians(point_lats_arr), np.radians(point_lons_arr)])
+
+    # Prepare target coordinates
+    if is_batch:
+        target_lats, target_lons = target_lat, target_lon
+    else:
         target_lats = np.array([target_lat])
         target_lons = np.array([target_lon])
-    else:
-        target_lats = target_lat
-        target_lons = target_lon
+    target_coords = np.column_stack([np.radians(target_lats), np.radians(target_lons)])
 
-    # Compute distance matrix
-    distances_matrix = haversine_distance(target_lats, target_lons, point_lats_arr, point_lons_arr)
-    assert isinstance(distances_matrix, np.ndarray)
+    # Build and fit regressor
+    regressor = RadiusNeighborsRegressor(
+        radius=search_radius / EARTH_RADIUS,
+        weights=_make_idw_weights(power, max_stations),
+        algorithm="ball_tree",
+        metric="haversine",
+    )
+    regressor.fit(station_coords, point_values_arr)
 
-    n_targets = len(target_lats)
-    results = np.full(n_targets, np.nan, dtype=np.float64)
-
-    for i in range(n_targets):
-        distances = distances_matrix[i]
-
-        # Filter by search radius
-        within_radius = distances <= search_radius
-        valid_distances = distances[within_radius]
-        valid_values = point_values_arr[within_radius]
-
-        if len(valid_distances) == 0:
-            continue
-
-        # Check for exact match (< 1m)
-        min_dist_idx = np.argmin(valid_distances)
-        if valid_distances[min_dist_idx] < 1.0:
-            results[i] = valid_values[min_dist_idx]
-            continue
-
-        # Sort and limit to max_stations
-        if max_stations is not None and len(valid_distances) > max_stations:
-            sorted_indices = np.argsort(valid_distances)[:max_stations]
-            valid_distances = valid_distances[sorted_indices]
-            valid_values = valid_values[sorted_indices]
-
-        # Calculate IDW weights and weighted average
-        weights = 1.0 / (valid_distances ** power)
-        results[i] = np.sum(weights * valid_values) / np.sum(weights)
+    # Predict
+    results = regressor.predict(target_coords)
 
     # Return scalar for single point, array for batch
     if not is_batch:

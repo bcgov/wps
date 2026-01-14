@@ -2,13 +2,16 @@
 Unit tests for spatial interpolation utilities.
 """
 
+import numpy as np
 import pytest
 from wps_shared.geospatial.spatial_interpolation import (
     haversine_distance,
     idw_interpolation,
+    _make_idw_weights,
     IDW_POWER,
     SEARCH_RADIUS,
     MAX_STATIONS,
+    EARTH_RADIUS,
 )
 
 
@@ -236,3 +239,113 @@ class TestIDWEdgeCases:
 
         assert result is not None
         assert 1000.0 < result < 2000.0
+
+
+class TestMakeIdwWeights:
+    """Tests for _make_idw_weights helper function."""
+
+    def test_basic_idw_weights(self):
+        """Test basic IDW weight calculation with power=2."""
+        weights_fn = _make_idw_weights(power=2.0, max_stations=None)
+        distances = [np.array([1.0, 2.0, 4.0])]
+
+        result = weights_fn(distances)
+
+        # Weights should be 1/d^2: [1.0, 0.25, 0.0625]
+        assert len(result) == 1
+        assert result[0] == pytest.approx([1.0, 0.25, 0.0625])
+
+    def test_power_parameter(self):
+        """Test that power parameter affects weights correctly."""
+        weights_fn_p1 = _make_idw_weights(power=1.0, max_stations=None)
+        weights_fn_p3 = _make_idw_weights(power=3.0, max_stations=None)
+        distances = [np.array([2.0, 4.0])]
+
+        result_p1 = weights_fn_p1(distances)
+        result_p3 = weights_fn_p3(distances)
+
+        # power=1: [1/2, 1/4] = [0.5, 0.25]
+        assert result_p1[0] == pytest.approx([0.5, 0.25])
+        # power=3: [1/8, 1/64] = [0.125, 0.015625]
+        assert result_p3[0] == pytest.approx([0.125, 0.015625])
+
+    def test_max_stations_limit(self):
+        """Test that max_stations limits which stations get non-zero weights."""
+        weights_fn = _make_idw_weights(power=2.0, max_stations=2)
+        # Distances: 1.0, 3.0, 2.0 - sorted: 1.0, 2.0, 3.0
+        distances = [np.array([1.0, 3.0, 2.0])]
+
+        result = weights_fn(distances)
+
+        # Only 2 nearest (indices 0 and 2) should have non-zero weights
+        assert result[0][0] > 0  # distance 1.0 - nearest
+        assert result[0][1] == 0  # distance 3.0 - excluded
+        assert result[0][2] > 0  # distance 2.0 - second nearest
+
+    def test_max_stations_none(self):
+        """Test that max_stations=None uses all stations."""
+        weights_fn = _make_idw_weights(power=2.0, max_stations=None)
+        distances = [np.array([1.0, 2.0, 3.0, 4.0, 5.0])]
+
+        result = weights_fn(distances)
+
+        # All should have non-zero weights
+        assert all(w > 0 for w in result[0])
+
+    def test_exact_match_threshold(self):
+        """Test that exact matches (< 1m) get exclusive weight."""
+        weights_fn = _make_idw_weights(power=2.0, max_stations=None)
+        # First distance is < 1m in radians (1m / EARTH_RADIUS ≈ 1.57e-7)
+        exact_match_dist = 0.5 / EARTH_RADIUS
+        distances = [np.array([exact_match_dist, 1.0, 2.0])]
+
+        result = weights_fn(distances)
+
+        # Only the exact match should have weight
+        assert result[0][0] == 1.0
+        assert result[0][1] == 0.0
+        assert result[0][2] == 0.0
+
+    def test_multiple_query_points(self):
+        """Test weight calculation for multiple query points."""
+        weights_fn = _make_idw_weights(power=2.0, max_stations=None)
+        distances = [
+            np.array([1.0, 2.0]),
+            np.array([2.0, 4.0]),
+        ]
+
+        result = weights_fn(distances)
+
+        assert len(result) == 2
+        assert result[0] == pytest.approx([1.0, 0.25])
+        assert result[1] == pytest.approx([0.25, 0.0625])
+
+    def test_empty_distances(self):
+        """Test handling of empty distance array."""
+        weights_fn = _make_idw_weights(power=2.0, max_stations=None)
+        distances = [np.array([])]
+
+        result = weights_fn(distances)
+
+        assert len(result) == 1
+        assert len(result[0]) == 0
+
+    def test_single_station(self):
+        """Test with only one station."""
+        weights_fn = _make_idw_weights(power=2.0, max_stations=None)
+        distances = [np.array([5.0])]
+
+        result = weights_fn(distances)
+
+        assert len(result[0]) == 1
+        assert result[0][0] == pytest.approx(1.0 / 25.0)
+
+    def test_max_stations_greater_than_available(self):
+        """Test max_stations when fewer stations available than limit."""
+        weights_fn = _make_idw_weights(power=2.0, max_stations=10)
+        distances = [np.array([1.0, 2.0, 3.0])]  # Only 3 stations
+
+        result = weights_fn(distances)
+
+        # All 3 should have non-zero weights
+        assert all(w > 0 for w in result[0])
