@@ -18,7 +18,7 @@ from wps_shared.geospatial.spatial_interpolation import (
 from app.sfms.temperature_interpolation import (
     adjust_temperature_to_sea_level,
     adjust_temperature_to_elevation,
-    DRY_ADIABATIC_LAPSE_RATE,
+    LAPSE_RATE,
     fetch_station_temperatures,
     interpolate_temperature_to_raster,
     get_dem_path,
@@ -84,6 +84,17 @@ def create_mock_raster_datasets(
     mock_resampled_dem.ds = mock_dem_ds
     mock_resampled_dem.ds.GetRasterBand.return_value = mock_dem_band
 
+    # Mock get_lat_lon_coords to return valid coordinates
+    def mock_get_lat_lon_coords(valid_mask):
+        # Get indices where mask is True
+        valid_yi, valid_xi = np.where(valid_mask)
+        # Generate mock lat/lon coords based on indices - place them near typical BC stations
+        lats = 49.0 + valid_yi * 0.01
+        lons = -123.0 - valid_xi * 0.01
+        return lats, lons, valid_yi, valid_xi
+
+    mock_resampled_dem.get_lat_lon_coords = Mock(side_effect=mock_get_lat_lon_coords)
+
     # Create output dataset
     mock_output_ds = Mock()
     mock_output_ds.export_to_geotiff = Mock()
@@ -134,12 +145,12 @@ class TestElevationAdjustment:
             temperature=10.0,  # 10°C at 1000m
         )
 
-        # At 1000m elevation with lapse rate 0.0098°C/m
-        # Sea level temp = 10 + (1000 * 0.0098) = 10 + 9.8 = 19.8°C
+        # At 1000m elevation with lapse rate 0.0065°C/m
+        # Sea level temp = 10 + (1000 * 0.0065) = 10 + 6.5 = 16.5°C
         sea_level_temp = adjust_temperature_to_sea_level(station)
 
-        assert sea_level_temp == pytest.approx(19.8, rel=1e-6)
-        assert station.sea_level_temp == pytest.approx(19.8, rel=1e-6)
+        assert sea_level_temp == pytest.approx(16.5, rel=1e-6)
+        assert station.sea_level_temp == pytest.approx(16.5, rel=1e-6)
 
     def test_adjust_to_sea_level_zero_elevation(self):
         """Test that zero elevation doesn't change temperature."""
@@ -155,10 +166,10 @@ class TestElevationAdjustment:
         sea_level_temp = 20.0
         elevation = 1000.0
 
-        # At 1000m: temp = 20 - (1000 * 0.0098) = 20 - 9.8 = 10.2°C
+        # At 1000m: temp = 20 - (1000 * 0.0065) = 20 - 6.5 = 13.5°C
         adjusted_temp = adjust_temperature_to_elevation(sea_level_temp, elevation)
 
-        assert adjusted_temp == pytest.approx(10.2, rel=1e-6)
+        assert adjusted_temp == pytest.approx(13.5, rel=1e-6)
 
     def test_round_trip_elevation_adjustment(self):
         """Test that adjusting to sea level and back gives original temp."""
@@ -175,9 +186,9 @@ class TestElevationAdjustment:
         assert back_to_elevation == pytest.approx(original_temp, rel=1e-6)
 
     def test_lapse_rate_constant(self):
-        """Verify the dry adiabatic lapse rate value."""
-        # Standard dry adiabatic lapse rate is 9.8°C per 1000m
-        assert DRY_ADIABATIC_LAPSE_RATE == pytest.approx(0.0098, rel=1e-6)
+        """Verify the environmental lapse rate value."""
+        # Environmental lapse rate is 6.5°C per 1000m (matches CWFIS)
+        assert LAPSE_RATE == pytest.approx(0.0065, rel=1e-6)
 
 
 class TestHaversineDistance:
@@ -696,15 +707,11 @@ class TestInterpolateTemperatureToRaster:
             assert result == "/path/to/output.tif"
 
     def test_interpolate_with_actual_loop_execution(self):
-        """Test interpolation with actual loop execution to cover lines 229-232."""
+        """Test interpolation verifying output array is properly populated."""
         # Station at exactly (49.0, -123.0)
         stations = [
             StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=100, temperature=15.0),
         ]
-
-        # Adjust to sea level
-        for station in stations:
-            adjust_temperature_to_sea_level(station)
 
         # Create very small test arrays (2x2) to allow actual loop execution
         dem_data = np.array([[100.0, 200.0], [150.0, 250.0]], dtype=np.float32)
@@ -724,29 +731,11 @@ class TestInterpolateTemperatureToRaster:
             geotransform=(-123.1, 0.05, 0, 49.1, 0, -0.05),
         )
 
-        # Mock coordinate transformation to return points near station (49.0, -123.0)
-        # TransformPoints returns [(lat, lon, z), ...] for this projection
-        mock_transform = Mock()
-
-        def mock_transform_points(coords):
-            # Return same lat/lon for all points (near station)
-            return [(49.0, -123.0, 0.0) for _ in coords]
-
-        mock_transform.TransformPoints.side_effect = mock_transform_points
-
-        with (
-            patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset,
-            patch("app.sfms.temperature_interpolation.osr") as mock_osr,
-        ):
-            # Mock osr module
-            mock_source_srs = Mock()
-            mock_osr.SpatialReference.return_value = mock_source_srs
-            mock_osr.CoordinateTransformation.return_value = mock_transform
-
+        with patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset:
             mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
             mock_wps_dataset.from_array = Mock(side_effect=capture_from_array)
 
-            # Run interpolation - this will execute the nested loops and lines 229-232
+            # Run interpolation
             result = interpolate_temperature_to_raster(
                 stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
             )
@@ -815,11 +804,11 @@ class TestIntegrationScenario:
         # Station 1: 15 + 0 = 15°C
         assert stations[0].sea_level_temp == pytest.approx(15.0, rel=1e-6)
 
-        # Station 2: 10 + (500 * 0.0098) = 10 + 4.9 = 14.9°C
-        assert stations[1].sea_level_temp == pytest.approx(14.9, rel=1e-6)
+        # Station 2: 10 + (500 * 0.0065) = 10 + 3.25 = 13.25°C
+        assert stations[1].sea_level_temp == pytest.approx(13.25, rel=1e-6)
 
-        # Station 3: 5 + (1000 * 0.0098) = 5 + 9.8 = 14.8°C
-        assert stations[2].sea_level_temp == pytest.approx(14.8, rel=1e-6)
+        # Station 3: 5 + (1000 * 0.0065) = 5 + 6.5 = 11.5°C
+        assert stations[2].sea_level_temp == pytest.approx(11.5, rel=1e-6)
 
         # Prepare lists for IDW
         lats = [s.lat for s in stations]

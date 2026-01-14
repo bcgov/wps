@@ -24,8 +24,9 @@ from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 
 logger = logging.getLogger(__name__)
 
-# Dry adiabatic lapse rate: 9.8°C per 1000m elevation (or 0.0098°C per meter)
-DRY_ADIABATIC_LAPSE_RATE = 0.0098
+# Environmental lapse rate: 6.5°C per 1000m elevation (average observed rate)
+# This matches the CWFIS implementation
+LAPSE_RATE = 0.0065
 
 
 async def fetch_station_temperatures(
@@ -112,7 +113,7 @@ def adjust_temperature_to_sea_level(station: StationTemperature) -> float:
     :param station: StationTemperature object with elevation and temperature
     :return: Temperature adjusted to sea level in Celsius
     """
-    adjustment = station.elevation * DRY_ADIABATIC_LAPSE_RATE
+    adjustment = station.elevation * LAPSE_RATE
     sea_level_temp = station.temperature + adjustment
     station.sea_level_temp = sea_level_temp
     return sea_level_temp
@@ -129,7 +130,7 @@ def adjust_temperature_to_elevation(sea_level_temp: float, elevation: float) -> 
     :param elevation: Elevation in meters
     :return: Temperature adjusted to elevation in Celsius
     """
-    adjustment = elevation * DRY_ADIABATIC_LAPSE_RATE
+    adjustment = elevation * LAPSE_RATE
     return sea_level_temp - adjustment
 
 
