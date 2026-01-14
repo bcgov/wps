@@ -56,6 +56,37 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     return radius * c
 
 
+def haversine_distance_vectorized(
+    target_lat: float, target_lon: float, point_lats: np.ndarray, point_lons: np.ndarray
+) -> np.ndarray:
+    """
+    Calculate great circle distances from one point to multiple points (vectorized).
+
+    Uses the Haversine formula with NumPy array operations for fast computation.
+
+    :param target_lat: Latitude of target point in degrees
+    :param target_lon: Longitude of target point in degrees
+    :param point_lats: NumPy array of latitudes for data points (degrees)
+    :param point_lons: NumPy array of longitudes for data points (degrees)
+    :return: NumPy array of distances in meters
+    """
+    # Convert to radians
+    target_lat_rad = np.radians(target_lat)
+    target_lon_rad = np.radians(target_lon)
+    point_lats_rad = np.radians(point_lats)
+    point_lons_rad = np.radians(point_lons)
+
+    # Haversine formula (vectorized)
+    dlat = point_lats_rad - target_lat_rad
+    dlon = point_lons_rad - target_lon_rad
+    a = np.sin(dlat / 2) ** 2 + np.cos(target_lat_rad) * np.cos(point_lats_rad) * np.sin(dlon / 2) ** 2
+    c = 2 * np.arcsin(np.sqrt(a))
+
+    # Earth radius in meters
+    radius = 6371000
+    return radius * c
+
+
 def collect_nearby_stations(
     target_lat: float,
     target_lon: float,
@@ -67,6 +98,8 @@ def collect_nearby_stations(
     """
     Collect stations within search radius with their distances and values.
 
+    Uses vectorized NumPy operations for fast computation.
+
     :param target_lat: Latitude of target point (degrees)
     :param target_lon: Longitude of target point (degrees)
     :param point_lats: List of latitudes for data points (degrees)
@@ -75,21 +108,35 @@ def collect_nearby_stations(
     :param search_radius: Maximum distance to consider points (meters)
     :return: List of NearbyStation objects for stations within radius
     """
-    stations_in_range = []
+    # Filter out None values first (before converting to NumPy)
+    valid_stations = [
+        (lat, lon, val)
+        for lat, lon, val in zip(point_lats, point_lons, point_values)
+        if val is not None
+    ]
 
-    for lat, lon, value in zip(point_lats, point_lons, point_values):
-        # Skip None values
-        if value is None:
-            continue
+    # If no valid stations, return empty list
+    if not valid_stations:
+        return []
 
-        # Calculate distance from target point to data point
-        distance = haversine_distance(target_lat, target_lon, lat, lon)
+    # Convert to NumPy arrays
+    lats_array = np.array([s[0] for s in valid_stations])
+    lons_array = np.array([s[1] for s in valid_stations])
+    values_array = np.array([s[2] for s in valid_stations])
 
-        # Skip points outside search radius
-        if distance > search_radius:
-            continue
+    # Calculate distances to all stations at once (vectorized)
+    distances = haversine_distance_vectorized(target_lat, target_lon, lats_array, lons_array)
 
-        stations_in_range.append(NearbyStation(distance=distance, value=value))
+    # Filter stations within search radius using boolean indexing
+    within_radius = distances <= search_radius
+    distances_filtered = distances[within_radius]
+    values_filtered = values_array[within_radius]
+
+    # Convert to list of NearbyStation objects
+    stations_in_range = [
+        NearbyStation(distance=float(dist), value=float(val))
+        for dist, val in zip(distances_filtered, values_filtered)
+    ]
 
     return stations_in_range
 
@@ -176,24 +223,22 @@ def idw_interpolation(
     if max_stations is not None and len(stations_in_range) > max_stations:
         stations_in_range = stations_in_range[:max_stations]
 
-    # Calculate IDW weights and values
-    weights = []
-    values = []
-    for station in stations_in_range:
-        weight = 1.0 / (station.distance**power)
-        weights.append(weight)
-        values.append(station.value)
+    # Extract distances and values as NumPy arrays for vectorized computation
+    distances = np.array([station.distance for station in stations_in_range])
+    values = np.array([station.value for station in stations_in_range])
 
-    # Calculate weighted average
-    total_weight = sum(weights)
-    interpolated_value = sum(w * v for w, v in zip(weights, values)) / total_weight
+    # Calculate IDW weights (vectorized)
+    weights = 1.0 / (distances**power)
+
+    # Calculate weighted average (vectorized)
+    interpolated_value = np.sum(weights * values) / np.sum(weights)
 
     logger.debug(
         "IDW interpolated value %.2f from %d points at (%.4f, %.4f)",
-        interpolated_value,
-        len(weights),
+        float(interpolated_value),
+        len(stations_in_range),
         target_lat,
         target_lon,
     )
 
-    return interpolated_value
+    return float(interpolated_value)
