@@ -26,24 +26,48 @@ SEARCH_RADIUS = 500000  # 500km search radius in meters
 MAX_STATIONS = 12  # Maximum number of nearest stations to use
 
 
-def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+def haversine_distance(
+    lat1: float | np.ndarray,
+    lon1: float | np.ndarray,
+    lat2: float | np.ndarray,
+    lon2: float | np.ndarray,
+) -> float | np.ndarray:
     """
-    Calculate the great circle distance between two points on Earth.
+    Calculate great circle distance(s) between points on Earth using the Haversine formula.
 
-    Uses the Haversine formula to compute distance accounting for the spherical
-    shape of the Earth.
+    This unified function handles three cases:
+    - Scalar to scalar: returns a single distance (float)
+    - Scalar to array: returns distances from one point to many (1D array)
+    - Array to array: returns distance matrix (2D array) where result[i,j] is
+      distance from point i in (lat1, lon1) to point j in (lat2, lon2)
 
-    :param lat1: Latitude of first point in degrees
-    :param lon1: Longitude of first point in degrees
-    :param lat2: Latitude of second point in degrees
-    :param lon2: Longitude of second point in degrees
-    :return: Distance in meters
+    :param lat1: Latitude(s) of first point(s) in degrees (scalar or array)
+    :param lon1: Longitude(s) of first point(s) in degrees (scalar or array)
+    :param lat2: Latitude(s) of second point(s) in degrees (scalar or array)
+    :param lon2: Longitude(s) of second point(s) in degrees (scalar or array)
+    :return: Distance(s) in meters (scalar, 1D array, or 2D array)
     """
-    # Convert to radians
-    lat1_rad = np.radians(lat1)
-    lon1_rad = np.radians(lon1)
-    lat2_rad = np.radians(lat2)
-    lon2_rad = np.radians(lon2)
+    lat1_is_array = isinstance(lat1, np.ndarray)
+    lat2_is_array = isinstance(lat2, np.ndarray)
+
+    # Case 1: Both arrays -> distance matrix (N x M)
+    if lat1_is_array and lat2_is_array:
+        lat1_rad = np.radians(lat1)[:, np.newaxis]
+        lon1_rad = np.radians(lon1)[:, np.newaxis]
+        lat2_rad = np.radians(lat2)[np.newaxis, :]
+        lon2_rad = np.radians(lon2)[np.newaxis, :]
+    # Case 2: First is scalar, second is array -> 1D array of distances
+    elif lat2_is_array:
+        lat1_rad = np.radians(lat1)
+        lon1_rad = np.radians(lon1)
+        lat2_rad = np.radians(lat2)
+        lon2_rad = np.radians(lon2)
+    # Case 3: Both scalars (or first is array, second is scalar - treated same way)
+    else:
+        lat1_rad = np.radians(lat1)
+        lon1_rad = np.radians(lon1)
+        lat2_rad = np.radians(lat2)
+        lon2_rad = np.radians(lon2)
 
     # Haversine formula
     dlat = lat2_rad - lat1_rad
@@ -53,69 +77,14 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
 
     # Earth radius in meters
     radius = 6371000
-    return radius * c
+    result = radius * c
+
+    # Return scalar for scalar-to-scalar case
+    if not lat1_is_array and not lat2_is_array:
+        return float(result)
+    return result
 
 
-def haversine_distance_vectorized(
-    target_lat: float, target_lon: float, point_lats: np.ndarray, point_lons: np.ndarray
-) -> np.ndarray:
-    """
-    Calculate great circle distances from one point to multiple points (vectorized).
-
-    Uses the Haversine formula with NumPy array operations for fast computation.
-
-    :param target_lat: Latitude of target point in degrees
-    :param target_lon: Longitude of target point in degrees
-    :param point_lats: NumPy array of latitudes for data points (degrees)
-    :param point_lons: NumPy array of longitudes for data points (degrees)
-    :return: NumPy array of distances in meters
-    """
-    # Convert to radians
-    target_lat_rad = np.radians(target_lat)
-    target_lon_rad = np.radians(target_lon)
-    point_lats_rad = np.radians(point_lats)
-    point_lons_rad = np.radians(point_lons)
-
-    # Haversine formula (vectorized)
-    dlat = point_lats_rad - target_lat_rad
-    dlon = point_lons_rad - target_lon_rad
-    a = np.sin(dlat / 2) ** 2 + np.cos(target_lat_rad) * np.cos(point_lats_rad) * np.sin(dlon / 2) ** 2
-    c = 2 * np.arcsin(np.sqrt(a))
-
-    # Earth radius in meters
-    radius = 6371000
-    return radius * c
-
-
-def haversine_distance_matrix(
-    target_lats: np.ndarray, target_lons: np.ndarray, point_lats: np.ndarray, point_lons: np.ndarray
-) -> np.ndarray:
-    """
-    Calculate great circle distances from multiple target points to multiple data points.
-
-    Computes a distance matrix where result[i, j] is the distance from target i to point j.
-
-    :param target_lats: NumPy array of target latitudes (N targets)
-    :param target_lons: NumPy array of target longitudes (N targets)
-    :param point_lats: NumPy array of data point latitudes (M points)
-    :param point_lons: NumPy array of data point longitudes (M points)
-    :return: NumPy array of shape (N, M) with distances in meters
-    """
-    # Convert to radians
-    target_lats_rad = np.radians(target_lats)[:, np.newaxis]  # Shape (N, 1)
-    target_lons_rad = np.radians(target_lons)[:, np.newaxis]  # Shape (N, 1)
-    point_lats_rad = np.radians(point_lats)[np.newaxis, :]  # Shape (1, M)
-    point_lons_rad = np.radians(point_lons)[np.newaxis, :]  # Shape (1, M)
-
-    # Haversine formula (fully vectorized with broadcasting)
-    dlat = point_lats_rad - target_lats_rad  # Shape (N, M)
-    dlon = point_lons_rad - target_lons_rad  # Shape (N, M)
-    a = np.sin(dlat / 2) ** 2 + np.cos(target_lats_rad) * np.cos(point_lats_rad) * np.sin(dlon / 2) ** 2
-    c = 2 * np.arcsin(np.sqrt(a))
-
-    # Earth radius in meters
-    radius = 6371000
-    return radius * c
 
 
 def collect_nearby_stations(
@@ -156,7 +125,8 @@ def collect_nearby_stations(
     values_array = np.array([s[2] for s in valid_stations])
 
     # Calculate distances to all stations at once (vectorized)
-    distances = haversine_distance_vectorized(target_lat, target_lon, lats_array, lons_array)
+    distances = haversine_distance(target_lat, target_lon, lats_array, lons_array)
+    assert isinstance(distances, np.ndarray)
 
     # Filter stations within search radius using boolean indexing
     within_radius = distances <= search_radius

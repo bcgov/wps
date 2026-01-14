@@ -22,7 +22,7 @@ from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import (
     idw_interpolation_batch,
-    haversine_distance_matrix,
+    haversine_distance,
 )
 
 logger = logging.getLogger(__name__)
@@ -306,7 +306,8 @@ def interpolate_temperature_to_raster(
                 station_lons_array = np.array(station_lons)
                 station_values_array = np.array(station_values)
 
-                distances_matrix = haversine_distance_matrix(lats, lons, station_lats_array, station_lons_array)
+                distances_matrix = haversine_distance(lats, lons, station_lats_array, station_lons_array)
+                assert isinstance(distances_matrix, np.ndarray)
 
                 # Batch interpolate all pixels at once
                 logger.info("Running batch IDW interpolation")
