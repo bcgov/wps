@@ -20,10 +20,7 @@ from wps_shared.wildfire_one.util import is_station_valid
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.geospatial.spatial_interpolation import (
-    idw_interpolation_batch,
-    haversine_distance,
-)
+from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 
 logger = logging.getLogger(__name__)
 
@@ -299,19 +296,16 @@ def interpolate_temperature_to_raster(
                         valid_elevations[0],
                     )
 
-                # Pre-compute distance matrix: all pixels to all stations at once
-                # This is much faster than computing distances in a loop
-                logger.info("Computing distance matrix for %d pixels and %d stations", len(lats), len(station_lats))
+                # Batch interpolate all pixels at once
+                logger.info("Running batch IDW interpolation for %d pixels and %d stations", len(lats), len(station_lats))
                 station_lats_array = np.array(station_lats)
                 station_lons_array = np.array(station_lons)
                 station_values_array = np.array(station_values)
 
-                distances_matrix = haversine_distance(lats, lons, station_lats_array, station_lons_array)
-                assert isinstance(distances_matrix, np.ndarray)
-
-                # Batch interpolate all pixels at once
-                logger.info("Running batch IDW interpolation")
-                sea_level_temps = idw_interpolation_batch(distances_matrix, station_values_array)
+                sea_level_temps = idw_interpolation(
+                    lats, lons, station_lats_array, station_lons_array, station_values_array
+                )
+                assert isinstance(sea_level_temps, np.ndarray)
 
                 # Count successes/failures
                 # All arrays (sea_level_temps, valid_elevations, valid_yi, valid_xi) have same length
