@@ -20,7 +20,10 @@ from wps_shared.wildfire_one.util import is_station_valid
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.geospatial.spatial_interpolation import idw_interpolation
+from wps_shared.geospatial.spatial_interpolation import (
+    idw_interpolation_batch,
+    haversine_distance_matrix,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -296,35 +299,30 @@ def interpolate_temperature_to_raster(
                         valid_elevations[0],
                     )
 
-                # Interpolate for each valid pixel
-                interpolated_count = 0
-                failed_interpolation_count = 0
-                total_valid = len(valid_yi)
+                # Pre-compute distance matrix: all pixels to all stations at once
+                # This is much faster than computing distances in a loop
+                logger.info("Computing distance matrix for %d pixels and %d stations", len(lats), len(station_lats))
+                station_lats_array = np.array(station_lats)
+                station_lons_array = np.array(station_lons)
+                station_values_array = np.array(station_values)
 
-                for idx in range(total_valid):
-                    # Interpolate sea level temperature
-                    sea_level_temp = idw_interpolation(
-                        lats[idx], lons[idx], station_lats, station_lons, station_values
+                distances_matrix = haversine_distance_matrix(lats, lons, station_lats_array, station_lons_array)
+
+                # Batch interpolate all pixels at once
+                logger.info("Running batch IDW interpolation")
+                sea_level_temps = idw_interpolation_batch(distances_matrix, station_values_array)
+
+                # Adjust temperatures to actual elevations (vectorized)
+                valid_mask = ~np.isnan(sea_level_temps)
+                interpolated_count = np.sum(valid_mask)
+                failed_interpolation_count = len(sea_level_temps) - interpolated_count
+
+                # Apply elevation adjustment and write to output array
+                for idx in np.where(valid_mask)[0]:
+                    actual_temp = adjust_temperature_to_elevation(
+                        float(sea_level_temps[idx]), float(valid_elevations[idx])
                     )
-
-                    if sea_level_temp is not None:
-                        # Adjust to actual elevation
-                        actual_temp = adjust_temperature_to_elevation(
-                            sea_level_temp, valid_elevations[idx]
-                        )
-                        temp_array[valid_yi[idx], valid_xi[idx]] = actual_temp
-                        interpolated_count += 1
-                    else:
-                        failed_interpolation_count += 1
-
-                    # Log progress every 10%
-                    if total_valid >= 10:
-                        if idx > 0 and (idx % (total_valid // 10) == 0 or idx == total_valid - 1):
-                            progress = (idx + 1) / total_valid * 100
-                            logger.info("Interpolation progress: %.1f%%", progress)
-                    elif idx == total_valid - 1:
-                        # For small datasets, just log at the end
-                        logger.info("Interpolation progress: 100.0%%")
+                    temp_array[valid_yi[idx], valid_xi[idx]] = actual_temp
             finally:
                 # Clean up in-memory file (ignore errors if file doesn't exist)
                 try:

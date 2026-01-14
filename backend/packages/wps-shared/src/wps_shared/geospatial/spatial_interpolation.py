@@ -87,6 +87,37 @@ def haversine_distance_vectorized(
     return radius * c
 
 
+def haversine_distance_matrix(
+    target_lats: np.ndarray, target_lons: np.ndarray, point_lats: np.ndarray, point_lons: np.ndarray
+) -> np.ndarray:
+    """
+    Calculate great circle distances from multiple target points to multiple data points.
+
+    Computes a distance matrix where result[i, j] is the distance from target i to point j.
+
+    :param target_lats: NumPy array of target latitudes (N targets)
+    :param target_lons: NumPy array of target longitudes (N targets)
+    :param point_lats: NumPy array of data point latitudes (M points)
+    :param point_lons: NumPy array of data point longitudes (M points)
+    :return: NumPy array of shape (N, M) with distances in meters
+    """
+    # Convert to radians
+    target_lats_rad = np.radians(target_lats)[:, np.newaxis]  # Shape (N, 1)
+    target_lons_rad = np.radians(target_lons)[:, np.newaxis]  # Shape (N, 1)
+    point_lats_rad = np.radians(point_lats)[np.newaxis, :]  # Shape (1, M)
+    point_lons_rad = np.radians(point_lons)[np.newaxis, :]  # Shape (1, M)
+
+    # Haversine formula (fully vectorized with broadcasting)
+    dlat = point_lats_rad - target_lats_rad  # Shape (N, M)
+    dlon = point_lons_rad - target_lons_rad  # Shape (N, M)
+    a = np.sin(dlat / 2) ** 2 + np.cos(target_lats_rad) * np.cos(point_lats_rad) * np.sin(dlon / 2) ** 2
+    c = 2 * np.arcsin(np.sqrt(a))
+
+    # Earth radius in meters
+    radius = 6371000
+    return radius * c
+
+
 def collect_nearby_stations(
     target_lat: float,
     target_lon: float,
@@ -242,3 +273,60 @@ def idw_interpolation(
     )
 
     return float(interpolated_value)
+
+
+def idw_interpolation_batch(
+    distances_matrix: np.ndarray,
+    point_values: np.ndarray,
+    power: float = IDW_POWER,
+    search_radius: float = SEARCH_RADIUS,
+    max_stations: Optional[int] = MAX_STATIONS,
+) -> np.ndarray:
+    """
+    Perform IDW interpolation for multiple points using pre-computed distance matrix.
+
+    This is much faster than calling idw_interpolation() in a loop because distances
+    are pre-computed.
+
+    :param distances_matrix: Array of shape (N, M) where N is number of target points
+                           and M is number of data points. distances_matrix[i, j] is
+                           distance from target i to data point j.
+    :param point_values: Array of M values at each data point
+    :param power: IDW power parameter (default 2.0)
+    :param search_radius: Maximum distance to consider points (meters)
+    :param max_stations: Maximum number of nearest stations to use (default 12)
+    :return: Array of N interpolated values (or np.nan where interpolation failed)
+    """
+    n_targets = distances_matrix.shape[0]
+    results = np.full(n_targets, np.nan, dtype=np.float64)
+
+    for i in range(n_targets):
+        distances = distances_matrix[i]
+
+        # Filter stations within search radius
+        within_radius = distances <= search_radius
+        valid_distances = distances[within_radius]
+        valid_values = point_values[within_radius]
+
+        if len(valid_distances) == 0:
+            continue
+
+        # Check for exact match (< 1m)
+        min_dist_idx = np.argmin(valid_distances)
+        if valid_distances[min_dist_idx] < 1.0:
+            results[i] = valid_values[min_dist_idx]
+            continue
+
+        # Sort by distance and take top N
+        if max_stations is not None and len(valid_distances) > max_stations:
+            sorted_indices = np.argsort(valid_distances)[:max_stations]
+            valid_distances = valid_distances[sorted_indices]
+            valid_values = valid_values[sorted_indices]
+
+        # Calculate IDW weights
+        weights = 1.0 / (valid_distances**power)
+
+        # Calculate weighted average
+        results[i] = np.sum(weights * valid_values) / np.sum(weights)
+
+    return results
