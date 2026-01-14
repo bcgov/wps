@@ -243,79 +243,88 @@ def interpolate_temperature_to_raster(
                     projection[:100] + "..." if len(projection) > 100 else projection,
                 )
 
-                # Process raster in chunks to show progress
-                chunk_size = 100
+                # Create coordinate grids for all pixels at once (vectorized)
+                xi_grid, yi_grid = np.meshgrid(np.arange(x_size), np.arange(y_size))
+
+                # Calculate pixel center coordinates in raster projection (vectorized)
+                x_coords = geo_transform[0] + (xi_grid + 0.5) * geo_transform[1]
+                y_coords = geo_transform[3] + (yi_grid + 0.5) * geo_transform[5]
+
+                # Filter out NoData pixels using boolean mask
+                if dem_nodata is not None:
+                    valid_mask = dem_data != dem_nodata
+                else:
+                    valid_mask = np.ones((y_size, x_size), dtype=bool)
+
+                # Get indices and values for valid pixels only
+                valid_yi, valid_xi = np.where(valid_mask)
+                valid_x_coords = x_coords[valid_mask]
+                valid_y_coords = y_coords[valid_mask]
+                valid_elevations = dem_data[valid_mask]
+
                 total_pixels = x_size * y_size
-                processed_pixels = 0
+                skipped_nodata_count = total_pixels - len(valid_yi)
+
+                logger.info(
+                    "Processing %d valid pixels (skipping %d NoData pixels)",
+                    len(valid_yi),
+                    skipped_nodata_count,
+                )
+
+                # Transform all valid coordinates to lat/lon at once (vectorized)
+                # Create list of (x, y) tuples for transformation
+                coords_to_transform = [(float(x), float(y)) for x, y in zip(valid_x_coords, valid_y_coords)]
+
+                # TransformPoints expects list of (x, y) or (x, y, z) tuples
+                # Returns [(lat, lon, z), ...]
+                transformed = coord_transform.TransformPoints(coords_to_transform)
+
+                # Extract lat/lon from transformed coordinates
+                lats = np.array([t[0] for t in transformed])
+                lons = np.array([t[1] for t in transformed])
+
+                # Log first pixel for debugging
+                if len(valid_yi) > 0:
+                    logger.info(
+                        "First pixel [%d,%d]: x_coord=%.4f, y_coord=%.4f -> lat=%.4f, lon=%.4f, elev=%.1f",
+                        valid_xi[0],
+                        valid_yi[0],
+                        valid_x_coords[0],
+                        valid_y_coords[0],
+                        lats[0],
+                        lons[0],
+                        valid_elevations[0],
+                    )
+
+                # Interpolate for each valid pixel
                 interpolated_count = 0
-                skipped_nodata_count = 0
                 failed_interpolation_count = 0
+                total_valid = len(valid_yi)
 
-                # Sample first pixel for debugging
-                first_pixel_logged = False
+                for idx in range(total_valid):
+                    # Interpolate sea level temperature
+                    sea_level_temp = idw_interpolation(
+                        lats[idx], lons[idx], station_lats, station_lons, station_values
+                    )
 
-                for y in range(0, y_size, chunk_size):
-                    y_end = min(y + chunk_size, y_size)
-
-                    for x in range(0, x_size, chunk_size):
-                        x_end = min(x + chunk_size, x_size)
-
-                        # Process chunk
-                        for yi in range(y, y_end):
-                            for xi in range(x, x_end):
-                                # Get elevation from resampled DEM (simple array indexing)
-                                elevation = dem_data[yi, xi]
-
-                                # Skip NoData cells
-                                if dem_nodata is not None and elevation == dem_nodata:
-                                    skipped_nodata_count += 1
-                                    continue
-
-                                # Convert pixel coordinates to lat/lon
-                                # Pixel center coordinates in raster projection
-                                x_coord = geo_transform[0] + (xi + 0.5) * geo_transform[1]
-                                y_coord = geo_transform[3] + (yi + 0.5) * geo_transform[5]
-
-                                # Transform to lat/lon
-                                # TransformPoint returns values based on target SRS axis order
-                                # For this projection/EPSG:4326 combination, it returns (lat, lon, z)
-                                lat, lon, _ = coord_transform.TransformPoint(x_coord, y_coord)
-
-                                # Log first pixel for debugging
-                                if not first_pixel_logged:
-                                    logger.info(
-                                        "First pixel [%d,%d]: x_coord=%.4f, y_coord=%.4f -> lat=%.4f, lon=%.4f, elev=%.1f",
-                                        xi,
-                                        yi,
-                                        x_coord,
-                                        y_coord,
-                                        lat,
-                                        lon,
-                                        elevation,
-                                    )
-                                    first_pixel_logged = True
-
-                                # Interpolate sea level temperature
-                                sea_level_temp = idw_interpolation(
-                                    lat, lon, station_lats, station_lons, station_values
-                                )
-
-                                if sea_level_temp is not None:
-                                    # Adjust to actual elevation
-                                    actual_temp = adjust_temperature_to_elevation(
-                                        sea_level_temp, elevation
-                                    )
-                                    temp_array[yi, xi] = actual_temp
-                                    interpolated_count += 1
-                                else:
-                                    failed_interpolation_count += 1
-
-                        processed_pixels += (y_end - y) * (x_end - x)
+                    if sea_level_temp is not None:
+                        # Adjust to actual elevation
+                        actual_temp = adjust_temperature_to_elevation(
+                            sea_level_temp, valid_elevations[idx]
+                        )
+                        temp_array[valid_yi[idx], valid_xi[idx]] = actual_temp
+                        interpolated_count += 1
+                    else:
+                        failed_interpolation_count += 1
 
                     # Log progress every 10%
-                    progress = (processed_pixels / total_pixels) * 100
-                    if progress % 10 < 1:
-                        logger.info("Interpolation progress: %.1f%%", progress)
+                    if total_valid >= 10:
+                        if idx > 0 and (idx % (total_valid // 10) == 0 or idx == total_valid - 1):
+                            progress = (idx + 1) / total_valid * 100
+                            logger.info("Interpolation progress: %.1f%%", progress)
+                    elif idx == total_valid - 1:
+                        # For small datasets, just log at the end
+                        logger.info("Interpolation progress: 100.0%%")
             finally:
                 # Clean up in-memory file (ignore errors if file doesn't exist)
                 try:

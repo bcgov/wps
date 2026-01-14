@@ -725,9 +725,14 @@ class TestInterpolateTemperatureToRaster:
         )
 
         # Mock coordinate transformation to return points near station (49.0, -123.0)
-        # TransformPoint returns (lat, lon, z) for this projection
+        # TransformPoints returns [(lat, lon, z), ...] for this projection
         mock_transform = Mock()
-        mock_transform.TransformPoint.return_value = (49.0, -123.0, 0)
+
+        def mock_transform_points(coords):
+            # Return same lat/lon for all points (near station)
+            return [(49.0, -123.0, 0.0) for _ in coords]
+
+        mock_transform.TransformPoints.side_effect = mock_transform_points
 
         with (
             patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset,
