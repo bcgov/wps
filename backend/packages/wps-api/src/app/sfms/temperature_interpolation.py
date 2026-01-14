@@ -133,7 +133,7 @@ def adjust_temperature_to_elevation(sea_level_temp: float, elevation: float) -> 
     return sea_level_temp - adjustment
 
 
-async def interpolate_temperature_to_raster(
+def interpolate_temperature_to_raster(
     stations: List[StationTemperature], reference_raster_path: str, dem_path: str, output_path: str
 ) -> str:
     """
@@ -255,7 +255,7 @@ async def interpolate_temperature_to_raster(
     return output_path
 
 
-async def get_dem_path() -> str:
+def get_dem_path() -> str:
     """
     Get the path to the DEM raster from S3.
 

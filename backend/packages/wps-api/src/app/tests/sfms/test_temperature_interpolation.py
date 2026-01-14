@@ -600,8 +600,7 @@ class TestFetchStationTemperatures:
 class TestInterpolateTemperatureToRaster:
     """Tests for interpolate_temperature_to_raster function."""
 
-    @pytest.mark.anyio
-    async def test_interpolate_basic_success(self):
+    def test_interpolate_basic_success(self):
         """Test successful raster interpolation."""
         stations = [
             StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
@@ -614,15 +613,14 @@ class TestInterpolateTemperatureToRaster:
             mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
             mock_wps_dataset.from_array.return_value = mock_output_ds
 
-            result = await interpolate_temperature_to_raster(
+            result = interpolate_temperature_to_raster(
                 stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
             )
 
             assert result == "/path/to/output.tif"
             mock_output_ds.export_to_geotiff.assert_called_once_with("/path/to/output.tif")
 
-    @pytest.mark.anyio
-    async def test_interpolate_skips_nodata_cells(self):
+    def test_interpolate_skips_nodata_cells(self):
         """Test that cells with NoData elevation are skipped."""
         stations = [
             StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
@@ -640,14 +638,13 @@ class TestInterpolateTemperatureToRaster:
             mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
             mock_wps_dataset.from_array.return_value = mock_output_ds
 
-            result = await interpolate_temperature_to_raster(
+            result = interpolate_temperature_to_raster(
                 stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
             )
 
             assert result == "/path/to/output.tif"
 
-    @pytest.mark.anyio
-    async def test_interpolate_filters_stations_without_sea_level_temp(self):
+    def test_interpolate_filters_stations_without_sea_level_temp(self):
         """Test that stations without sea_level_temp are filtered."""
         stations = [
             StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
@@ -666,14 +663,13 @@ class TestInterpolateTemperatureToRaster:
             mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
             mock_wps_dataset.from_array.return_value = mock_output_ds
 
-            result = await interpolate_temperature_to_raster(
+            result = interpolate_temperature_to_raster(
                 stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
             )
 
             assert result == "/path/to/output.tif"
 
-    @pytest.mark.anyio
-    async def test_interpolate_with_actual_loop_execution(self):
+    def test_interpolate_with_actual_loop_execution(self):
         """Test interpolation with actual loop execution to cover lines 229-232."""
         # Station at exactly (49.0, -123.0)
         stations = [
@@ -719,7 +715,7 @@ class TestInterpolateTemperatureToRaster:
             mock_wps_dataset.from_array = Mock(side_effect=capture_from_array)
 
             # Run interpolation - this will execute the nested loops and lines 229-232
-            result = await interpolate_temperature_to_raster(
+            result = interpolate_temperature_to_raster(
                 stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
             )
 
@@ -736,8 +732,7 @@ class TestInterpolateTemperatureToRaster:
 class TestGetDemPath:
     """Tests for get_dem_path function."""
 
-    @pytest.mark.anyio
-    async def test_get_dem_path_returns_correct_format(self):
+    def test_get_dem_path_returns_correct_format(self):
         """Test that get_dem_path returns correct S3 path format."""
         with patch("app.sfms.temperature_interpolation.config") as mock_config:
             mock_config.get.side_effect = lambda key: {
@@ -745,12 +740,11 @@ class TestGetDemPath:
                 "DEM_NAME": "test-dem.tif",
             }.get(key)
 
-            result = await get_dem_path()
+            result = get_dem_path()
 
             assert result == "/vsis3/test-bucket/dem/mosaics/test-dem.tif"
 
-    @pytest.mark.anyio
-    async def test_get_dem_path_with_different_config(self):
+    def test_get_dem_path_with_different_config(self):
         """Test get_dem_path with different config values."""
         with patch("app.sfms.temperature_interpolation.config") as mock_config:
             mock_config.get.side_effect = lambda key: {
@@ -758,7 +752,7 @@ class TestGetDemPath:
                 "DEM_NAME": "bc_dem_25m.tif",
             }.get(key)
 
-            result = await get_dem_path()
+            result = get_dem_path()
 
             assert result == "/vsis3/production-bucket/dem/mosaics/bc_dem_25m.tif"
 

@@ -24,7 +24,7 @@ from wps_shared.sfms.raster_addresser import RasterKeyAddresser, WeatherParamete
 from app.sfms.temperature_interpolation import (
     fetch_station_temperatures,
     interpolate_temperature_to_raster,
-    get_dem_path
+    get_dem_path,
 )
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ class TemperatureInterpolationProcessor:
         set_s3_gdal_config()
 
         # Get DEM path
-        dem_path = await get_dem_path()
+        dem_path = get_dem_path()
         logger.info("Using DEM: %s", dem_path)
 
         # Fetch station metadata (including elevation)
@@ -67,10 +67,7 @@ class TemperatureInterpolationProcessor:
         async with ClientSession() as session:
             auth_headers = await get_auth_header(session)
             station_temps = await fetch_station_temperatures(
-                session,
-                auth_headers,
-                self.datetime_to_process,
-                stations
+                session, auth_headers, self.datetime_to_process, stations
             )
 
         if not station_temps:
@@ -80,14 +77,13 @@ class TemperatureInterpolationProcessor:
 
         # Generate temporary file path
         temp_dir = tempfile.gettempdir()
-        temp_raster_path = os.path.join(temp_dir, f"temp_interpolation_{self.datetime_to_process.strftime('%Y%m%d')}.tif")
+        temp_raster_path = os.path.join(
+            temp_dir, f"temp_interpolation_{self.datetime_to_process.strftime('%Y%m%d')}.tif"
+        )
 
         try:
-            await interpolate_temperature_to_raster(
-                station_temps,
-                reference_raster_path,
-                dem_path,
-                temp_raster_path
+            interpolate_temperature_to_raster(
+                station_temps, reference_raster_path, dem_path, temp_raster_path
             )
 
             # Upload to S3
@@ -121,14 +117,13 @@ class TemperatureInterpolationProcessor:
 
         # Filter to only stations with elevation data
         stations_with_elevation = [
-            station for station in all_stations
-            if station.elevation is not None
+            station for station in all_stations if station.elevation is not None
         ]
 
         logger.info(
             "Filtered %d stations with elevation data from %d total stations",
             len(stations_with_elevation),
-            len(all_stations)
+            len(all_stations),
         )
 
         return stations_with_elevation
