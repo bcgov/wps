@@ -202,11 +202,13 @@ def interpolate_temperature_to_raster(
             # Warp DEM to match reference raster's extent and resolution
             # Use bilinear resampling for smooth elevation interpolation
             from wps_shared.geospatial.geospatial import GDALResamplingMethod
-            import tempfile
+            import uuid
 
-            with tempfile.NamedTemporaryFile(suffix=".tif", delete=True) as tmp_dem:
+            # Use GDAL's in-memory virtual file system (faster than temp file on disk)
+            vsimem_path = f"/vsimem/temp_dem_resample_{uuid.uuid4().hex}.tif"
+            try:
                 resampled_dem = dem_ds.warp_to_match(
-                    ref_ds, tmp_dem.name, resample_method=GDALResamplingMethod.BILINEAR
+                    ref_ds, vsimem_path, resample_method=GDALResamplingMethod.BILINEAR
                 )
 
                 # Read resampled DEM data
@@ -314,6 +316,12 @@ def interpolate_temperature_to_raster(
                     progress = (processed_pixels / total_pixels) * 100
                     if progress % 10 < 1:
                         logger.info("Interpolation progress: %.1f%%", progress)
+            finally:
+                # Clean up in-memory file (ignore errors if file doesn't exist)
+                try:
+                    gdal.Unlink(vsimem_path)
+                except RuntimeError:
+                    logger.debug("File doesn't exist or already cleaned up")
 
         # Log summary statistics (outside DEM context, inside ref context)
         logger.info("Interpolation complete:")
