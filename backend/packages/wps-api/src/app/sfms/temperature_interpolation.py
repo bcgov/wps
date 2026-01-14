@@ -312,13 +312,16 @@ def interpolate_temperature_to_raster(
                 logger.info("Running batch IDW interpolation")
                 sea_level_temps = idw_interpolation_batch(distances_matrix, station_values_array)
 
-                # Adjust temperatures to actual elevations (vectorized)
-                valid_mask = ~np.isnan(sea_level_temps)
-                interpolated_count = np.sum(valid_mask)
+                # Count successes/failures
+                # All arrays (sea_level_temps, valid_elevations, valid_yi, valid_xi) have same length
+                # and are aligned - they all correspond to the same N valid pixels
+                interpolation_succeeded = ~np.isnan(sea_level_temps)
+                interpolated_count = np.sum(interpolation_succeeded)
                 failed_interpolation_count = len(sea_level_temps) - interpolated_count
 
                 # Apply elevation adjustment and write to output array
-                for idx in np.where(valid_mask)[0]:
+                # Loop only over pixels where interpolation succeeded
+                for idx in np.where(interpolation_succeeded)[0]:
                     actual_temp = adjust_temperature_to_elevation(
                         float(sea_level_temps[idx]), float(valid_elevations[idx])
                     )
