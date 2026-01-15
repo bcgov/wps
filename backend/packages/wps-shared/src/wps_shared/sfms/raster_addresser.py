@@ -16,6 +16,7 @@ class WeatherParameter(enum.Enum):
     TEMP = "temp"
     RH = "rh"
     WIND_SPEED = "wind_speed"
+    PRECIP = "precip"
 
 
 class FWIParameter(enum.Enum):
