@@ -23,6 +23,7 @@ from app.sfms.temperature_interpolation import (
     interpolate_temperature_to_raster,
     get_dem_path,
 )
+from app.sfms.sfms_common import get_mask_path
 
 logger = logging.getLogger(__name__)
 
@@ -58,9 +59,11 @@ class TemperatureInterpolationProcessor:
         # Configure GDAL for S3 access
         set_s3_gdal_config()
 
-        # Get DEM path
+        # Get DEM and mask paths
         dem_path = get_dem_path()
+        mask_path = get_mask_path()
         logger.info("Using DEM: %s", dem_path)
+        logger.info("Using mask: %s", mask_path)
 
         if not sfms_actuals:
             raise RuntimeError(f"No station temperatures found for {self.datetime_to_process}")
@@ -85,6 +88,7 @@ class TemperatureInterpolationProcessor:
                 reference_raster_path,
                 dem_path,
                 temp_raster_path,
+                mask_path=mask_path,
             )
 
             # Upload to S3

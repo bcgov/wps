@@ -11,7 +11,7 @@ This module implements the SFMS temperature interpolation workflow:
 import logging
 import uuid
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 import numpy as np
 from osgeo import gdal
 from aiohttp import ClientSession
@@ -111,6 +111,7 @@ def interpolate_temperature_to_raster(
     reference_raster_path: str,
     dem_path: str,
     output_path: str,
+    mask_path: Optional[str] = None,
 ) -> str:
     """
     Interpolate station temperatures to a raster using IDW and elevation adjustment.
@@ -121,6 +122,7 @@ def interpolate_temperature_to_raster(
     :param reference_raster_path: Path to reference raster (defines grid)
     :param dem_path: Path to DEM raster for elevation adjustment
     :param output_path: Path to write output temperature raster
+    :param mask_path: Optional path to mask raster (0 = masked, non-zero = valid)
     :return: Path to output raster
     """
     logger.info("Starting temperature interpolation for %d stations", len(station_lats))
@@ -162,6 +164,12 @@ def interpolate_temperature_to_raster(
                     valid_mask = dem_data != dem_nodata
                 else:
                     valid_mask = np.ones((y_size, x_size), dtype=bool)
+
+                # Apply BC mask if provided
+                if mask_path is not None:
+                    with WPSDataset(mask_path) as mask_ds:
+                        bc_mask = ref_ds.apply_mask(mask_ds)
+                        valid_mask = valid_mask & bc_mask
 
                 lats, lons, valid_yi, valid_xi = resampled_dem.get_lat_lon_coords(valid_mask)
                 valid_elevations = dem_data[valid_mask]

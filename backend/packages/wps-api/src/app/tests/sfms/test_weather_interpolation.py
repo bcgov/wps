@@ -49,9 +49,17 @@ def create_mock_raster_dataset(
         lons = -123.0 - valid_xi * 0.01
         return lats, lons, valid_yi, valid_xi
 
+    # Mock get_nodata_mask to return nodata mask
+    def mock_get_nodata_mask():
+        if nodata is not None:
+            # Return mask where all pixels are valid (no nodata)
+            return np.zeros((y_size, x_size), dtype=bool), nodata
+        return None, None
+
     mock_wrapper = Mock()
     mock_wrapper.ds = mock_ds
     mock_wrapper.get_lat_lon_coords = Mock(side_effect=mock_get_lat_lon_coords)
+    mock_wrapper.get_nodata_mask = Mock(side_effect=mock_get_nodata_mask)
 
     mock_ctx = MagicMock()
     mock_ctx.__enter__ = Mock(return_value=mock_wrapper)
@@ -182,3 +190,29 @@ class TestInterpolateToRaster:
                 interpolated_values = captured_array[captured_array != -9999.0]
                 assert len(interpolated_values) > 0
                 assert np.allclose(interpolated_values, 0.0)
+
+
+class TestGetMaskPath:
+    """Tests for get_mask_path function."""
+
+    def test_get_mask_path_returns_correct_format(self):
+        """Test that get_mask_path returns correct S3 path format."""
+        from app.sfms.sfms_common import get_mask_path
+
+        with patch("app.sfms.sfms_common.config") as mock_config:
+            mock_config.get.return_value = "test-bucket"
+
+            result = get_mask_path()
+
+            assert result == "/vsis3/test-bucket/sfms/static/bc_mask.tif"
+
+    def test_get_mask_path_with_different_config(self):
+        """Test get_mask_path with different config values."""
+        from app.sfms.sfms_common import get_mask_path
+
+        with patch("app.sfms.sfms_common.config") as mock_config:
+            mock_config.get.return_value = "production-bucket"
+
+            result = get_mask_path()
+
+            assert result == "/vsis3/production-bucket/sfms/static/bc_mask.tif"

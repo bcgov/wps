@@ -1,13 +1,13 @@
 """
-Precipitation interpolation using Inverse Distance Weighting (IDW).
+Weather interpolation using Inverse Distance Weighting (IDW).
 
-This module implements the SFMS precipitation interpolation workflow:
-1. Fetch station data from WF1
-2. Interpolate precipitation to raster using IDW
+This module implements the SFMS weather interpolation workflow:
+1. Create raster grid matching reference raster
+2. Interpolate weather values to raster using IDW
 """
 
 import logging
-from typing import List
+from typing import List, Optional
 import numpy as np
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
@@ -25,6 +25,7 @@ def interpolate_to_raster(
     station_values: List[float],
     reference_raster_path: str,
     output_path: str,
+    mask_path: Optional[str] = None,
 ) -> str:
     """
     Interpolate station weather data to a raster using IDW.
@@ -34,6 +35,7 @@ def interpolate_to_raster(
     :param station_values: List of weather values
     :param reference_raster_path: Path to reference raster (defines grid)
     :param output_path: Path to write output weather raster
+    :param mask_path: Optional path to mask raster (0 = masked, non-zero = valid)
     :return: Path to output raster
     """
     logger.info("Starting interpolation for %d stations", len(station_lats))
@@ -48,7 +50,20 @@ def interpolate_to_raster(
         x_size = ref_ds.ds.RasterXSize
         y_size = ref_ds.ds.RasterYSize
 
-        lats, lons, valid_yi, valid_xi = ref_ds.get_lat_lon_coords()
+        # Build valid mask from reference raster's nodata
+        nodata_mask, _ = ref_ds.get_nodata_mask()
+        if nodata_mask is not None:
+            valid_mask = ~nodata_mask
+        else:
+            valid_mask = np.ones((y_size, x_size), dtype=bool)
+
+        # Apply BC mask if provided
+        if mask_path is not None:
+            with WPSDataset(mask_path) as mask_ds:
+                bc_mask = ref_ds.apply_mask(mask_ds)
+                valid_mask = valid_mask & bc_mask
+
+        lats, lons, valid_yi, valid_xi = ref_ds.get_lat_lon_coords(valid_mask)
 
         total_pixels = x_size * y_size
         skipped_nodata_count = total_pixels - len(valid_yi)

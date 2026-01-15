@@ -19,6 +19,7 @@ from wps_shared.schemas.sfms import SFMSDailyActual
 from app.sfms.weather_interpolation import (
     interpolate_to_raster,
 )
+from app.sfms.sfms_common import get_mask_path
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.sfms.raster_addresser import (
@@ -66,6 +67,10 @@ class InterpolationProcessor:
         # Configure GDAL for S3 access
         set_s3_gdal_config()
 
+        # Get mask path for BC boundary
+        mask_path = get_mask_path()
+        logger.info("Using mask: %s", mask_path)
+
         if not sfms_actuals:
             raise RuntimeError(f"No station actuals found for {self.datetime_to_process}")
 
@@ -85,7 +90,12 @@ class InterpolationProcessor:
 
         try:
             interpolate_to_raster(
-                station_lats, station_lons, station_values, reference_raster_path, temp_raster_path
+                station_lats,
+                station_lons,
+                station_values,
+                reference_raster_path,
+                temp_raster_path,
+                mask_path=mask_path,
             )
 
             # Upload to S3
