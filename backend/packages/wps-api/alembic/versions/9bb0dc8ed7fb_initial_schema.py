@@ -11,6 +11,7 @@ import sqlalchemy as sa
 import wps_shared.db.models.common
 from alembic import op
 from sqlalchemy.dialects import postgresql
+from datetime import datetime, timedelta, timezone
 
 # revision identifiers, used by Alembic.
 revision = "9bb0dc8ed7fb"
@@ -1629,35 +1630,16 @@ def upgrade():
     # Note: Specific partitions are not created here - they should be managed
     # by the application or created in separate migrations as needed
 
-    # Create partitions
-    op.execute("""
-        CREATE TABLE weather_station_model_predictions_202405
-        PARTITION OF weather_station_model_predictions
-        FOR VALUES FROM ('2024-04-30 17:00:00-07') TO ('2024-05-31 17:00:00-07');
-    """)
+    # Create a partition for the current month
+    now = datetime.now(tz=timezone.utc)
+    year_month = now.strftime("%Y%m")
+    first_of_month = datetime(year=now.year, month=now.month, day=1, tzinfo=timezone.utc)
+    first_of_next_month = (first_of_month.replace(day=28) + timedelta(days=4)).replace(day=1)
 
-    op.execute("""
-        CREATE TABLE weather_station_model_predictions_202510
+    op.execute(f"""
+        CREATE TABLE weather_station_model_predictions_{year_month}
         PARTITION OF weather_station_model_predictions
-        FOR VALUES FROM ('2025-09-30 17:00:00-07') TO ('2025-10-31 17:00:00-07');
-    """)
-
-    op.execute("""
-        CREATE TABLE weather_station_model_predictions_202511
-        PARTITION OF weather_station_model_predictions
-        FOR VALUES FROM ('2025-10-31 17:00:00-07') TO ('2025-11-30 16:00:00-08');
-    """)
-
-    op.execute("""
-        CREATE TABLE weather_station_model_predictions_202512
-        PARTITION OF weather_station_model_predictions
-        FOR VALUES FROM ('2025-11-30 16:00:00-08') TO ('2025-12-31 16:00:00-08');
-    """)
-
-    op.execute("""
-        CREATE TABLE weather_station_model_predictions_202601
-        PARTITION OF weather_station_model_predictions
-        FOR VALUES FROM ('2025-12-31 16:00:00-08') TO ('2026-01-31 16:00:00-08');
+        FOR VALUES FROM ('{first_of_month}') TO ('{first_of_next_month}');
     """)
 
     # Create indexes (these apply to all partitions automatically)
