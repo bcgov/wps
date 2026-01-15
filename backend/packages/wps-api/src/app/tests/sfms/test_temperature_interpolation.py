@@ -639,10 +639,9 @@ class TestInterpolateTemperatureToRaster:
 
     def test_interpolate_basic_success(self):
         """Test successful raster interpolation."""
-        stations = [
-            StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
-            StationTemperature(code=2, lat=49.1, lon=-123.1, elevation=500, temperature=12.0),
-        ]
+        station_lats = [49.0, 49.1]
+        station_lons = [-123.0, -123.1]
+        station_values = [15.0, 12.0]  # sea-level adjusted temps
 
         _, _, _, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets()
 
@@ -651,7 +650,12 @@ class TestInterpolateTemperatureToRaster:
                 mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
 
                 result = interpolate_temperature_to_raster(
-                    stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
+                    station_lats,
+                    station_lons,
+                    station_values,
+                    "/path/to/ref.tif",
+                    "/path/to/dem.tif",
+                    "/path/to/output.tif",
                 )
 
                 assert result == "/path/to/output.tif"
@@ -659,9 +663,9 @@ class TestInterpolateTemperatureToRaster:
 
     def test_interpolate_skips_nodata_cells(self):
         """Test that cells with NoData elevation are skipped."""
-        stations = [
-            StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
-        ]
+        station_lats = [49.0]
+        station_lons = [-123.0]
+        station_values = [15.0]
 
         # Create DEM with NoData values
         dem_data = np.full((5, 5), 100.0)
@@ -676,42 +680,21 @@ class TestInterpolateTemperatureToRaster:
                 mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
 
                 result = interpolate_temperature_to_raster(
-                    stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
-                )
-
-                assert result == "/path/to/output.tif"
-
-    def test_interpolate_filters_stations_without_sea_level_temp(self):
-        """Test that stations without sea_level_temp are filtered."""
-        stations = [
-            StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
-            StationTemperature(code=2, lat=49.1, lon=-123.1, elevation=500, temperature=12.0),
-        ]
-
-        # Only adjust first station
-        adjust_temperature_to_sea_level(stations[0])
-        # stations[1] will have None sea_level_temp
-
-        _, _, _, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
-            raster_size=(5, 5), dem_nodata=None
-        )
-
-        with patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset:
-            with patch("app.sfms.temperature_interpolation.save_raster_to_geotiff"):
-                mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
-
-                result = interpolate_temperature_to_raster(
-                    stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
+                    station_lats,
+                    station_lons,
+                    station_values,
+                    "/path/to/ref.tif",
+                    "/path/to/dem.tif",
+                    "/path/to/output.tif",
                 )
 
                 assert result == "/path/to/output.tif"
 
     def test_interpolate_with_actual_loop_execution(self):
         """Test interpolation verifying output array is properly populated."""
-        # Station at exactly (49.0, -123.0)
-        stations = [
-            StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=100, temperature=15.0),
-        ]
+        station_lats = [49.0]
+        station_lons = [-123.0]
+        station_values = [15.65]  # sea-level adjusted temp (15 + 100m * 0.0065)
 
         # Create very small test arrays (2x2) to allow actual loop execution
         dem_data = np.array([[100.0, 200.0], [150.0, 250.0]], dtype=np.float32)
@@ -731,12 +714,19 @@ class TestInterpolateTemperatureToRaster:
         )
 
         with patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset:
-            with patch("app.sfms.temperature_interpolation.save_raster_to_geotiff", side_effect=capture_save):
+            with patch(
+                "app.sfms.temperature_interpolation.save_raster_to_geotiff",
+                side_effect=capture_save,
+            ):
                 mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
 
-                # Run interpolation
                 result = interpolate_temperature_to_raster(
-                    stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
+                    station_lats,
+                    station_lons,
+                    station_values,
+                    "/path/to/ref.tif",
+                    "/path/to/dem.tif",
+                    "/path/to/output.tif",
                 )
 
                 assert result == "/path/to/output.tif"

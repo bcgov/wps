@@ -62,36 +62,23 @@ async def fetch_station_precipitation(
 
 
 def interpolate_precipitation_to_raster(
-    stations: List[StationPrecipitation],
+    station_lats: List[float],
+    station_lons: List[float],
+    station_values: List[float],
     reference_raster_path: str,
     output_path: str,
 ) -> str:
     """
     Interpolate station precipitation to a raster using IDW.
 
-    :param stations: List of StationPrecipitation objects
+    :param station_lats: List of station latitudes
+    :param station_lons: List of station longitudes
+    :param station_values: List of precipitation values
     :param reference_raster_path: Path to reference raster (defines grid)
     :param output_path: Path to write output precipitation raster
     :return: Path to output raster
     """
-    logger.info("Starting precipitation interpolation for %d stations", len(stations))
-
-    if stations:
-        logger.info("Station locations:")
-        for station in stations[:5]:
-            logger.info(
-                "  Station %d: lat=%.4f, lon=%.4f, precip=%.1fmm",
-                station.code,
-                station.lat,
-                station.lon,
-                station.precipitation,
-            )
-
-    station_lats = [s.lat for s in stations if s.precipitation is not None]
-    station_lons = [s.lon for s in stations if s.precipitation is not None]
-    station_values = [s.precipitation for s in stations if s.precipitation is not None]
-
-    logger.info("Using %d stations with valid precipitation", len(station_lats))
+    logger.info("Starting precipitation interpolation for %d stations", len(station_lats))
 
     with WPSDataset(reference_raster_path) as ref_ds:
         geo_transform = ref_ds.ds.GetGeoTransform()

@@ -22,7 +22,9 @@ from wps_shared.schemas.stations import WeatherStation
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser, WeatherParameter
+from wps_shared.schemas.sfms import StationTemperature
 from app.sfms.temperature_interpolation import (
+    adjust_temperature_to_sea_level,
     fetch_station_temperatures,
     interpolate_temperature_to_raster,
     get_dem_path,
@@ -76,6 +78,11 @@ class TemperatureInterpolationProcessor:
 
         logger.info("Processing %d stations with temperature data", len(station_temps))
 
+        # Adjust temperatures to sea level and extract interpolation data
+        for station in station_temps:
+            adjust_temperature_to_sea_level(station)
+        station_lats, station_lons, station_values = StationTemperature.get_interpolation_data(station_temps)
+
         # Generate temporary file path
         temp_dir = tempfile.gettempdir()
         temp_raster_path = os.path.join(
@@ -84,7 +91,7 @@ class TemperatureInterpolationProcessor:
 
         try:
             interpolate_temperature_to_raster(
-                station_temps, reference_raster_path, dem_path, temp_raster_path
+                station_lats, station_lons, station_values, reference_raster_path, dem_path, temp_raster_path
             )
 
             # Upload to S3

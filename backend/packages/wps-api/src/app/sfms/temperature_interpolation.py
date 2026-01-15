@@ -105,40 +105,25 @@ def adjust_temperature_to_elevation(sea_level_temp: float, elevation: float) -> 
 
 
 def interpolate_temperature_to_raster(
-    stations: List[StationTemperature], reference_raster_path: str, dem_path: str, output_path: str
+    station_lats: List[float],
+    station_lons: List[float],
+    station_values: List[float],
+    reference_raster_path: str,
+    dem_path: str,
+    output_path: str,
 ) -> str:
     """
     Interpolate station temperatures to a raster using IDW and elevation adjustment.
 
-    :param stations: List of StationTemperature objects
+    :param station_lats: List of station latitudes
+    :param station_lons: List of station longitudes
+    :param station_values: List of sea-level adjusted temperatures
     :param reference_raster_path: Path to reference raster (defines grid)
     :param dem_path: Path to DEM raster for elevation adjustment
     :param output_path: Path to write output temperature raster
     :return: Path to output raster
     """
-    logger.info("Starting temperature interpolation for %d stations", len(stations))
-
-    if stations:
-        logger.info("Station locations:")
-        for station in stations[:5]:
-            logger.info(
-                "  Station %d: lat=%.4f, lon=%.4f, elev=%.1fm, temp=%.1f°C",
-                station.code,
-                station.lat,
-                station.lon,
-                station.elevation,
-                station.temperature,
-            )
-
-    # Adjust all station temperatures to sea level
-    for station in stations:
-        adjust_temperature_to_sea_level(station)
-
-    station_lats = [s.lat for s in stations if s.sea_level_temp is not None]
-    station_lons = [s.lon for s in stations if s.sea_level_temp is not None]
-    station_values = [s.sea_level_temp for s in stations if s.sea_level_temp is not None]
-
-    logger.info("Using %d stations with valid sea level temperatures", len(station_lats))
+    logger.info("Starting temperature interpolation for %d stations", len(station_lats))
 
     with WPSDataset(reference_raster_path) as ref_ds:
         geo_transform = ref_ds.ds.GetGeoTransform()

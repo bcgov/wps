@@ -70,9 +70,7 @@ class TestStationPrecipitation:
 
     def test_station_precipitation_initialization(self):
         """Test that StationPrecipitation initializes correctly."""
-        station = StationPrecipitation(
-            code=123, lat=49.0, lon=-123.0, precipitation=5.5
-        )
+        station = StationPrecipitation(code=123, lat=49.0, lon=-123.0, precipitation=5.5)
         assert station.code == 123
         assert station.lat == pytest.approx(49.0)
         assert station.lon == pytest.approx(-123.0)
@@ -300,10 +298,9 @@ class TestInterpolatePrecipitationToRaster:
 
     def test_interpolate_basic_success(self):
         """Test successful raster interpolation."""
-        stations = [
-            StationPrecipitation(code=1, lat=49.0, lon=-123.0, precipitation=5.0),
-            StationPrecipitation(code=2, lat=49.1, lon=-123.1, precipitation=10.0),
-        ]
+        station_lats = [49.0, 49.1]
+        station_lons = [-123.0, -123.1]
+        station_values = [5.0, 10.0]
 
         mock_ref_ctx = create_mock_raster_dataset()
 
@@ -312,7 +309,11 @@ class TestInterpolatePrecipitationToRaster:
                 mock_wps_dataset.return_value = mock_ref_ctx
 
                 result = interpolate_precipitation_to_raster(
-                    stations, "/path/to/ref.tif", "/path/to/output.tif"
+                    station_lats,
+                    station_lons,
+                    station_values,
+                    "/path/to/ref.tif",
+                    "/path/to/output.tif",
                 )
 
                 assert result == "/path/to/output.tif"
@@ -320,9 +321,9 @@ class TestInterpolatePrecipitationToRaster:
 
     def test_interpolate_with_single_station(self):
         """Test interpolation with a single station."""
-        stations = [
-            StationPrecipitation(code=1, lat=49.0, lon=-123.0, precipitation=7.5),
-        ]
+        station_lats = [49.0]
+        station_lons = [-123.0]
+        station_values = [7.5]
 
         mock_ref_ctx = create_mock_raster_dataset(raster_size=(5, 5))
 
@@ -331,16 +332,20 @@ class TestInterpolatePrecipitationToRaster:
                 mock_wps_dataset.return_value = mock_ref_ctx
 
                 result = interpolate_precipitation_to_raster(
-                    stations, "/path/to/ref.tif", "/path/to/output.tif"
+                    station_lats,
+                    station_lons,
+                    station_values,
+                    "/path/to/ref.tif",
+                    "/path/to/output.tif",
                 )
 
                 assert result == "/path/to/output.tif"
 
     def test_interpolate_captures_output_array(self):
         """Test interpolation verifying output array is properly populated."""
-        stations = [
-            StationPrecipitation(code=1, lat=49.0, lon=-123.0, precipitation=5.0),
-        ]
+        station_lats = [49.0]
+        station_lons = [-123.0]
+        station_values = [5.0]
 
         captured_array = None
 
@@ -361,7 +366,11 @@ class TestInterpolatePrecipitationToRaster:
                 mock_wps_dataset.return_value = mock_ref_ctx
 
                 result = interpolate_precipitation_to_raster(
-                    stations, "/path/to/ref.tif", "/path/to/output.tif"
+                    station_lats,
+                    station_lons,
+                    station_values,
+                    "/path/to/ref.tif",
+                    "/path/to/output.tif",
                 )
 
                 assert result == "/path/to/output.tif"
@@ -373,10 +382,9 @@ class TestInterpolatePrecipitationToRaster:
 
     def test_interpolate_with_zero_precipitation(self):
         """Test that zero precipitation values are correctly interpolated."""
-        stations = [
-            StationPrecipitation(code=1, lat=49.0, lon=-123.0, precipitation=0.0),
-            StationPrecipitation(code=2, lat=49.1, lon=-123.1, precipitation=0.0),
-        ]
+        station_lats = [49.0, 49.1]
+        station_lons = [-123.0, -123.1]
+        station_values = [0.0, 0.0]
 
         captured_array = None
 
@@ -394,7 +402,11 @@ class TestInterpolatePrecipitationToRaster:
                 mock_wps_dataset.return_value = mock_ref_ctx
 
                 result = interpolate_precipitation_to_raster(
-                    stations, "/path/to/ref.tif", "/path/to/output.tif"
+                    station_lats,
+                    station_lons,
+                    station_values,
+                    "/path/to/ref.tif",
+                    "/path/to/output.tif",
                 )
 
                 assert result == "/path/to/output.tif"

@@ -15,6 +15,7 @@ from typing import List
 import aiofiles
 import aiofiles.os
 from aiohttp import ClientSession
+from wps_shared.schemas.sfms import StationPrecipitation
 from app.sfms.precipitation_interpolation import (
     fetch_station_precipitation,
     interpolate_precipitation_to_raster,
@@ -73,6 +74,9 @@ class PrecipitationInterpolationProcessor:
 
         logger.info("Processing %d stations with precipitation data", len(station_precips))
 
+        # Extract interpolation data
+        station_lats, station_lons, station_values = StationPrecipitation.get_interpolation_data(station_precips)
+
         # Generate temporary file path
         temp_dir = tempfile.gettempdir()
         temp_raster_path = os.path.join(
@@ -81,7 +85,7 @@ class PrecipitationInterpolationProcessor:
 
         try:
             interpolate_precipitation_to_raster(
-                station_precips, reference_raster_path, temp_raster_path
+                station_lats, station_lons, station_values, reference_raster_path, temp_raster_path
             )
 
             # Upload to S3
