@@ -14,7 +14,6 @@ from typing import List
 import numpy as np
 from osgeo import gdal
 from aiohttp import ClientSession
-from wps_shared import config
 from wps_shared.wildfire_one.wildfire_fetchers import fetch_raw_dailies_for_all_stations
 from wps_shared.wildfire_one.util import is_station_valid
 from wps_shared.schemas.stations import WeatherStation
@@ -118,7 +117,7 @@ def interpolate_precipitation_to_raster(
         logger.info("Station locations:")
         for station in stations[:5]:  # Log first 5 stations
             logger.info(
-                "  Station %d: lat=%.4f, lon=%.4f, elev=%.1fm, temp=%.1f°C",
+                "  Station %d: lat=%.4f, lon=%.4f, precip=%.1fmm",
                 station.code,
                 station.lat,
                 station.lon,
@@ -167,19 +166,26 @@ def interpolate_precipitation_to_raster(
         station_lons_array = np.array(station_lons)
         station_values_array = np.array(station_values)
 
-        precipitations = idw_interpolation(
+        interpolated_values = idw_interpolation(
             lats, lons, station_lats_array, station_lons_array, station_values_array
         )
-        assert isinstance(precipitations, np.ndarray)
+        assert isinstance(interpolated_values, np.ndarray)
+
+        # Initialize output array with NoData
+        precip_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
 
         # Count successes/failures
-        # All arrays (sea_level_temps, valid_elevations, valid_yi, valid_xi) have same length
+        # All arrays (interpolated_values, valid_yi, valid_xi) have same length
         # and are aligned - they all correspond to the same N valid pixels
-        interpolation_succeeded = ~np.isnan(precipitations)
+        interpolation_succeeded = ~np.isnan(interpolated_values)
         interpolated_count = np.sum(interpolation_succeeded)
-        failed_interpolation_count = len(precipitations) - interpolated_count
+        failed_interpolation_count = len(interpolated_values) - interpolated_count
 
-        # Log summary statistics (outside DEM context, inside ref context)
+        # Place interpolated values into output array at valid pixel locations
+        for idx in np.where(interpolation_succeeded)[0]:
+            precip_array[valid_yi[idx], valid_xi[idx]] = interpolated_values[idx]
+
+        # Log summary statistics
         logger.info("Interpolation complete:")
         logger.info("  Total pixels: %d", total_pixels)
         logger.info(
@@ -205,7 +211,7 @@ def interpolate_precipitation_to_raster(
 
         # Create output dataset from array using WPSDataset
         output_ds = WPSDataset.from_array(
-            array=precipitations,
+            array=precip_array,
             geotransform=geo_transform,
             projection=projection,
             nodata_value=-9999.0,
