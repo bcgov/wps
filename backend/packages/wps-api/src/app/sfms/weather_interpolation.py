@@ -19,7 +19,7 @@ from app.sfms.sfms_common import (
 logger = logging.getLogger(__name__)
 
 
-def interpolate_precipitation_to_raster(
+def interpolate_to_raster(
     station_lats: List[float],
     station_lons: List[float],
     station_values: List[float],
@@ -27,16 +27,16 @@ def interpolate_precipitation_to_raster(
     output_path: str,
 ) -> str:
     """
-    Interpolate station precipitation to a raster using IDW.
+    Interpolate station weather data to a raster using IDW.
 
     :param station_lats: List of station latitudes
     :param station_lons: List of station longitudes
-    :param station_values: List of precipitation values
+    :param station_values: List of weather values
     :param reference_raster_path: Path to reference raster (defines grid)
-    :param output_path: Path to write output precipitation raster
+    :param output_path: Path to write output weather raster
     :return: Path to output raster
     """
-    logger.info("Starting precipitation interpolation for %d stations", len(station_lats))
+    logger.info("Starting interpolation for %d stations", len(station_lats))
 
     with WPSDataset(reference_raster_path) as ref_ds:
         geo_transform = ref_ds.ds.GetGeoTransform()
@@ -53,7 +53,7 @@ def interpolate_precipitation_to_raster(
         total_pixels = x_size * y_size
         skipped_nodata_count = total_pixels - len(valid_yi)
 
-        logger.info("Interpolating precipitation for raster grid (%d x %d)", x_size, y_size)
+        logger.info("Interpolating for raster grid (%d x %d)", x_size, y_size)
         logger.info(
             "Processing %d valid pixels (skipping %d NoData pixels)",
             len(valid_yi),
@@ -89,5 +89,5 @@ def interpolate_precipitation_to_raster(
 
         save_raster_to_geotiff(precip_array, geo_transform, projection, output_path)
 
-        logger.info("Precipitation interpolation complete: %s", output_path)
+        logger.info("Interpolation complete: %s", output_path)
         return output_path

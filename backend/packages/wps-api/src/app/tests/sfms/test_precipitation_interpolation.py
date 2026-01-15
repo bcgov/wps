@@ -10,9 +10,9 @@ from unittest.mock import AsyncMock, Mock, patch, MagicMock
 from osgeo import gdal
 from wps_shared.schemas.sfms import StationPrecipitation
 from wps_shared.schemas.stations import WeatherStation
-from app.sfms.precipitation_interpolation import (
+from app.sfms.weather_interpolation import (
     fetch_station_precipitation,
-    interpolate_precipitation_to_raster,
+    interpolate_to_raster,
 )
 
 
@@ -308,7 +308,7 @@ class TestInterpolatePrecipitationToRaster:
             with patch("app.sfms.precipitation_interpolation.save_raster_to_geotiff") as mock_save:
                 mock_wps_dataset.return_value = mock_ref_ctx
 
-                result = interpolate_precipitation_to_raster(
+                result = interpolate_to_raster(
                     station_lats,
                     station_lons,
                     station_values,
@@ -331,7 +331,7 @@ class TestInterpolatePrecipitationToRaster:
             with patch("app.sfms.precipitation_interpolation.save_raster_to_geotiff"):
                 mock_wps_dataset.return_value = mock_ref_ctx
 
-                result = interpolate_precipitation_to_raster(
+                result = interpolate_to_raster(
                     station_lats,
                     station_lons,
                     station_values,
@@ -365,7 +365,7 @@ class TestInterpolatePrecipitationToRaster:
             ):
                 mock_wps_dataset.return_value = mock_ref_ctx
 
-                result = interpolate_precipitation_to_raster(
+                result = interpolate_to_raster(
                     station_lats,
                     station_lons,
                     station_values,
@@ -401,7 +401,7 @@ class TestInterpolatePrecipitationToRaster:
             ):
                 mock_wps_dataset.return_value = mock_ref_ctx
 
-                result = interpolate_precipitation_to_raster(
+                result = interpolate_to_raster(
                     station_lats,
                     station_lons,
                     station_values,

@@ -16,8 +16,8 @@ import aiofiles
 import aiofiles.os
 from app.sfms.interpolation_source import StationInterpolationSource
 from wps_shared.schemas.sfms import SFMSDailyActual
-from app.sfms.precipitation_interpolation import (
-    interpolate_precipitation_to_raster,
+from app.sfms.weather_interpolation import (
+    interpolate_to_raster,
 )
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
@@ -86,7 +86,7 @@ class InterpolationProcessor:
         )
 
         try:
-            interpolate_precipitation_to_raster(
+            interpolate_to_raster(
                 station_lats, station_lons, station_values, reference_raster_path, temp_raster_path
             )
 
