@@ -24,7 +24,10 @@ from wps_shared.stations import get_stations_from_source
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser, WeatherParameter
+from wps_shared.sfms.raster_addresser import (
+    RasterKeyAddresser,
+    SFMSInterpolatedWeatherParameter,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +86,7 @@ class PrecipitationInterpolationProcessor:
 
             # Upload to S3
             s3_key = self.raster_addresser.get_interpolated_key(
-                self.datetime_to_process, WeatherParameter.PRECIP
+                self.datetime_to_process, SFMSInterpolatedWeatherParameter.PRECIP
             )
 
             logger.info("Uploading raster to S3: %s", s3_key)

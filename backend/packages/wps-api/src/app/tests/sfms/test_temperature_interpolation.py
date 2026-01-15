@@ -373,7 +373,7 @@ class TestFetchStationTemperatures:
 
         # Mock the fetch_raw_dailies_for_all_stations function
         with patch(
-            "app.sfms.temperature_interpolation.fetch_raw_dailies_for_all_stations",
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations",
             new_callable=AsyncMock,
         ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
@@ -419,7 +419,7 @@ class TestFetchStationTemperatures:
         ]
 
         with patch(
-            "app.sfms.temperature_interpolation.fetch_raw_dailies_for_all_stations",
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations",
             new_callable=AsyncMock,
         ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
@@ -458,7 +458,7 @@ class TestFetchStationTemperatures:
         ]
 
         with patch(
-            "app.sfms.temperature_interpolation.fetch_raw_dailies_for_all_stations",
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations",
             new_callable=AsyncMock,
         ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
@@ -496,7 +496,7 @@ class TestFetchStationTemperatures:
         ]
 
         with patch(
-            "app.sfms.temperature_interpolation.fetch_raw_dailies_for_all_stations",
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations",
             new_callable=AsyncMock,
         ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
@@ -535,7 +535,7 @@ class TestFetchStationTemperatures:
         ]
 
         with patch(
-            "app.sfms.temperature_interpolation.fetch_raw_dailies_for_all_stations",
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations",
             new_callable=AsyncMock,
         ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
@@ -568,7 +568,7 @@ class TestFetchStationTemperatures:
         ]
 
         with patch(
-            "app.sfms.temperature_interpolation.fetch_raw_dailies_for_all_stations",
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations",
             new_callable=AsyncMock,
         ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
@@ -620,7 +620,7 @@ class TestFetchStationTemperatures:
         ]
 
         with patch(
-            "app.sfms.temperature_interpolation.fetch_raw_dailies_for_all_stations",
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations",
             new_callable=AsyncMock,
         ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
@@ -647,15 +647,15 @@ class TestInterpolateTemperatureToRaster:
         _, _, mock_output_ds, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets()
 
         with patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset:
-            mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
-            mock_wps_dataset.from_array.return_value = mock_output_ds
+            with patch("app.sfms.temperature_interpolation.save_raster_to_geotiff") as mock_save:
+                mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
 
-            result = interpolate_temperature_to_raster(
-                stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
-            )
+                result = interpolate_temperature_to_raster(
+                    stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
+                )
 
-            assert result == "/path/to/output.tif"
-            mock_output_ds.export_to_geotiff.assert_called_once_with("/path/to/output.tif")
+                assert result == "/path/to/output.tif"
+                mock_save.assert_called_once()
 
     def test_interpolate_skips_nodata_cells(self):
         """Test that cells with NoData elevation are skipped."""
@@ -672,14 +672,14 @@ class TestInterpolateTemperatureToRaster:
         )
 
         with patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset:
-            mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
-            mock_wps_dataset.from_array.return_value = mock_output_ds
+            with patch("app.sfms.temperature_interpolation.save_raster_to_geotiff"):
+                mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
 
-            result = interpolate_temperature_to_raster(
-                stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
-            )
+                result = interpolate_temperature_to_raster(
+                    stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
+                )
 
-            assert result == "/path/to/output.tif"
+                assert result == "/path/to/output.tif"
 
     def test_interpolate_filters_stations_without_sea_level_temp(self):
         """Test that stations without sea_level_temp are filtered."""
@@ -697,14 +697,14 @@ class TestInterpolateTemperatureToRaster:
         )
 
         with patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset:
-            mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
-            mock_wps_dataset.from_array.return_value = mock_output_ds
+            with patch("app.sfms.temperature_interpolation.save_raster_to_geotiff"):
+                mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
 
-            result = interpolate_temperature_to_raster(
-                stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
-            )
+                result = interpolate_temperature_to_raster(
+                    stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
+                )
 
-            assert result == "/path/to/output.tif"
+                assert result == "/path/to/output.tif"
 
     def test_interpolate_with_actual_loop_execution(self):
         """Test interpolation verifying output array is properly populated."""
@@ -716,13 +716,12 @@ class TestInterpolateTemperatureToRaster:
         # Create very small test arrays (2x2) to allow actual loop execution
         dem_data = np.array([[100.0, 200.0], [150.0, 250.0]], dtype=np.float32)
 
-        # Track the array that gets passed to from_array
+        # Track the array that gets passed to save_raster_to_geotiff
         captured_array = None
 
-        def capture_from_array(array, **kwargs):
+        def capture_save(array, *args, **kwargs):
             nonlocal captured_array
             captured_array = array
-            return mock_output_ds
 
         _, _, mock_output_ds, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
             raster_size=(2, 2),
@@ -732,22 +731,22 @@ class TestInterpolateTemperatureToRaster:
         )
 
         with patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset:
-            mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
-            mock_wps_dataset.from_array = Mock(side_effect=capture_from_array)
+            with patch("app.sfms.temperature_interpolation.save_raster_to_geotiff", side_effect=capture_save):
+                mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
 
-            # Run interpolation
-            result = interpolate_temperature_to_raster(
-                stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
-            )
+                # Run interpolation
+                result = interpolate_temperature_to_raster(
+                    stations, "/path/to/ref.tif", "/path/to/dem.tif", "/path/to/output.tif"
+                )
 
-            assert result == "/path/to/output.tif"
+                assert result == "/path/to/output.tif"
 
-            # Verify that the output array was created and has non-NoData values
-            assert captured_array is not None
-            assert captured_array.shape == (2, 2)
-            # At least some cells should have been interpolated (not all -9999)
-            non_nodata_count = np.sum(captured_array != -9999.0)
-            assert non_nodata_count > 0, "Expected some cells to be interpolated"
+                # Verify that the output array was created and has non-NoData values
+                assert captured_array is not None
+                assert captured_array.shape == (2, 2)
+                # At least some cells should have been interpolated (not all -9999)
+                non_nodata_count = np.sum(captured_array != -9999.0)
+                assert non_nodata_count > 0, "Expected some cells to be interpolated"
 
 
 class TestGetDemPath:
@@ -756,26 +755,20 @@ class TestGetDemPath:
     def test_get_dem_path_returns_correct_format(self):
         """Test that get_dem_path returns correct S3 path format."""
         with patch("app.sfms.temperature_interpolation.config") as mock_config:
-            mock_config.get.side_effect = lambda key: {
-                "OBJECT_STORE_BUCKET": "test-bucket",
-                "DEM_NAME": "test-dem.tif",
-            }.get(key)
+            mock_config.get.return_value = "test-bucket"
 
             result = get_dem_path()
 
-            assert result == "/vsis3/test-bucket/dem/mosaics/test-dem.tif"
+            assert result == "/vsis3/test-bucket/sfms/static/bc_elevation.tif"
 
     def test_get_dem_path_with_different_config(self):
         """Test get_dem_path with different config values."""
         with patch("app.sfms.temperature_interpolation.config") as mock_config:
-            mock_config.get.side_effect = lambda key: {
-                "OBJECT_STORE_BUCKET": "production-bucket",
-                "DEM_NAME": "bc_dem_25m.tif",
-            }.get(key)
+            mock_config.get.return_value = "production-bucket"
 
             result = get_dem_path()
 
-            assert result == "/vsis3/production-bucket/dem/mosaics/bc_dem_25m.tif"
+            assert result == "/vsis3/production-bucket/sfms/static/bc_elevation.tif"
 
 
 class TestIntegrationScenario:

@@ -1,7 +1,12 @@
 from datetime import datetime, timezone
 import pytest
 from zoneinfo import ZoneInfo
-from wps_shared.sfms.raster_addresser import FWIParameter, RasterKeyAddresser, WeatherParameter
+from wps_shared.sfms.raster_addresser import (
+    FWIParameter,
+    RasterKeyAddresser,
+    SFMSInterpolatedWeatherParameter,
+    WeatherParameter,
+)
 
 sfms_timezone = ZoneInfo("America/Vancouver")
 
@@ -135,16 +140,25 @@ def test_get_cog_key_failed(raster_key_addresser: RasterKeyAddresser):
 @pytest.mark.parametrize(
     "weather_param,expected_key",
     [
-        (WeatherParameter.TEMP, "sfms/interpolated/temp/2024/01/15/temp_20240115.tif"),
-        (WeatherParameter.RH, "sfms/interpolated/rh/2024/01/15/rh_20240115.tif"),
         (
-            WeatherParameter.WIND_SPEED,
+            SFMSInterpolatedWeatherParameter.TEMP,
+            "sfms/interpolated/temp/2024/01/15/temp_20240115.tif",
+        ),
+        (SFMSInterpolatedWeatherParameter.RH, "sfms/interpolated/rh/2024/01/15/rh_20240115.tif"),
+        (
+            SFMSInterpolatedWeatherParameter.WIND_SPEED,
             "sfms/interpolated/wind_speed/2024/01/15/wind_speed_20240115.tif",
+        ),
+        (
+            SFMSInterpolatedWeatherParameter.PRECIP,
+            "sfms/interpolated/precip/2024/01/15/precip_20240115.tif",
         ),
     ],
 )
 def test_get_interpolated_key_weather_params(
-    raster_key_addresser: RasterKeyAddresser, weather_param: WeatherParameter, expected_key: str
+    raster_key_addresser: RasterKeyAddresser,
+    weather_param: SFMSInterpolatedWeatherParameter,
+    expected_key: str,
 ):
     """Test interpolated key generation for different weather parameters."""
     dt = datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc)
@@ -173,5 +187,5 @@ def test_get_interpolated_key_different_dates(
     raster_key_addresser: RasterKeyAddresser, dt: datetime, expected_key: str
 ):
     """Test interpolated key generation for different dates."""
-    result = raster_key_addresser.get_interpolated_key(dt, WeatherParameter.TEMP)
+    result = raster_key_addresser.get_interpolated_key(dt, SFMSInterpolatedWeatherParameter.TEMP)
     assert result == expected_key

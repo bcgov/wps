@@ -1,25 +1,25 @@
 """
-Temperature interpolation using Inverse Distance Weighting (IDW) with elevation adjustment.
+Precipitation interpolation using Inverse Distance Weighting (IDW).
 
-This module implements the SFMS temperature interpolation workflow:
+This module implements the SFMS precipitation interpolation workflow:
 1. Fetch station data from WF1
-2. Adjust station temperatures to sea level using dry adiabatic lapse rate
-3. Interpolate adjusted temperatures to raster using IDW
-4. Adjust raster cell temperatures back to actual elevation using DEM
+2. Interpolate precipitation to raster using IDW
 """
 
 import logging
 from datetime import datetime
 from typing import List
 import numpy as np
-from osgeo import gdal
 from aiohttp import ClientSession
-from wps_shared.wildfire_one.wildfire_fetchers import fetch_raw_dailies_for_all_stations
-from wps_shared.wildfire_one.util import is_station_valid
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.sfms import StationPrecipitation
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
+from app.sfms.sfms_common import (
+    fetch_station_observations,
+    log_interpolation_stats,
+    save_raster_to_geotiff,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,57 +39,26 @@ async def fetch_station_precipitation(
     :param stations: List of WeatherStation objects
     :return: List of StationPrecipitation objects with valid precipitation readings
     """
-    logger.info("Fetching station temperatures for %s", time_of_interest)
 
-    # Create a lookup dict for station metadata
-    station_lookup = {station.code: station for station in stations}
+    def create_precipitation_record(
+        station_code: int, station: WeatherStation, value: float
+    ) -> StationPrecipitation:
+        return StationPrecipitation(
+            code=station_code,
+            lat=station.lat,
+            lon=station.long,
+            precipitation=value,
+        )
 
-    # Fetch raw daily observations from WF1
-    raw_dailies = await fetch_raw_dailies_for_all_stations(session, headers, time_of_interest)
-
-    station_precips = []
-    for raw_daily in raw_dailies:
-        try:
-            # Parse raw daily data
-            station_data = raw_daily.get("stationData")
-            if not is_station_valid(station_data):
-                continue
-
-            station_code = station_data.get("stationCode")
-            precipitation = raw_daily.get("precipitation")
-            record_type = raw_daily.get("recordType", {}).get("id")
-
-            # Only use ACTUAL observations
-            if record_type != "ACTUAL":
-                continue
-
-            # Get station metadata
-            if station_code not in station_lookup:
-                logger.debug("Station %s not found in station lookup", station_code)
-                continue
-
-            station = station_lookup[station_code]
-
-            # Check if we have temperature and elevation data
-            if precipitation is None:
-                logger.debug("No precipitation data for station %s", station_code)
-                continue
-
-            # Create StationTemperature object
-            station_temp = StationPrecipitation(
-                code=station_code,
-                lat=station.lat,
-                lon=station.long,
-                precipitation=float(precipitation),
-            )
-            station_precips.append(station_temp)
-
-        except Exception as e:
-            logger.error("Error processing daily for station: %s", e, exc_info=True)
-            continue
-
-    logger.info("Found %d stations with valid precipitation data", len(station_precips))
-    return station_precips
+    return await fetch_station_observations(
+        session=session,
+        headers=headers,
+        time_of_interest=time_of_interest,
+        stations=stations,
+        field_name="precipitation",
+        create_record=create_precipitation_record,
+        require_elevation=False,
+    )
 
 
 def interpolate_precipitation_to_raster(
@@ -100,22 +69,16 @@ def interpolate_precipitation_to_raster(
     """
     Interpolate station precipitation to a raster using IDW.
 
-    Workflow:
-    1. Create raster grid matching reference raster
-    2. For each cell, interpolate precipitation using IDW
-
     :param stations: List of StationPrecipitation objects
     :param reference_raster_path: Path to reference raster (defines grid)
-    :param dem_path: Path to DEM raster for elevation adjustment
     :param output_path: Path to write output precipitation raster
     :return: Path to output raster
     """
     logger.info("Starting precipitation interpolation for %d stations", len(stations))
 
-    # Log station locations for debugging
     if stations:
         logger.info("Station locations:")
-        for station in stations[:5]:  # Log first 5 stations
+        for station in stations[:5]:
             logger.info(
                 "  Station %d: lat=%.4f, lon=%.4f, precip=%.1fmm",
                 station.code,
@@ -124,16 +87,13 @@ def interpolate_precipitation_to_raster(
                 station.precipitation,
             )
 
-    # Prepare lists for IDW interpolation
     station_lats = [s.lat for s in stations if s.precipitation is not None]
     station_lons = [s.lon for s in stations if s.precipitation is not None]
     station_values = [s.precipitation for s in stations if s.precipitation is not None]
 
-    logger.info("Using %d stations with valid sea level temperatures", len(station_lats))
+    logger.info("Using %d stations with valid precipitation", len(station_lats))
 
-    # Open reference raster using WPSDataset
     with WPSDataset(reference_raster_path) as ref_ds:
-        # Get raster properties from reference
         geo_transform = ref_ds.ds.GetGeoTransform()
         if geo_transform is None:
             raise ValueError(
@@ -143,20 +103,18 @@ def interpolate_precipitation_to_raster(
         x_size = ref_ds.ds.RasterXSize
         y_size = ref_ds.ds.RasterYSize
 
-        # Get lat/lon coordinates for valid pixels using WPSDataset
         lats, lons, valid_yi, valid_xi = ref_ds.get_lat_lon_coords()
 
         total_pixels = x_size * y_size
         skipped_nodata_count = total_pixels - len(valid_yi)
 
-        logger.info("Interpolating temperature for raster grid (%d x %d)", x_size, y_size)
+        logger.info("Interpolating precipitation for raster grid (%d x %d)", x_size, y_size)
         logger.info(
             "Processing %d valid pixels (skipping %d NoData pixels)",
             len(valid_yi),
             skipped_nodata_count,
         )
 
-        # Batch interpolate all pixels at once
         logger.info(
             "Running batch IDW interpolation for %d pixels and %d stations",
             len(lats),
@@ -171,56 +129,20 @@ def interpolate_precipitation_to_raster(
         )
         assert isinstance(interpolated_values, np.ndarray)
 
-        # Initialize output array with NoData
         precip_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
 
-        # Count successes/failures
-        # All arrays (interpolated_values, valid_yi, valid_xi) have same length
-        # and are aligned - they all correspond to the same N valid pixels
         interpolation_succeeded = ~np.isnan(interpolated_values)
-        interpolated_count = np.sum(interpolation_succeeded)
+        interpolated_count = int(np.sum(interpolation_succeeded))
         failed_interpolation_count = len(interpolated_values) - interpolated_count
 
-        # Place interpolated values into output array at valid pixel locations
         for idx in np.where(interpolation_succeeded)[0]:
             precip_array[valid_yi[idx], valid_xi[idx]] = interpolated_values[idx]
 
-        # Log summary statistics
-        logger.info("Interpolation complete:")
-        logger.info("  Total pixels: %d", total_pixels)
-        logger.info(
-            "  Successfully interpolated: %d (%.1f%%)",
-            interpolated_count,
-            100.0 * interpolated_count / total_pixels if total_pixels > 0 else 0,
-        )
-        logger.info(
-            "  Failed interpolation (no stations in range): %d (%.1f%%)",
-            failed_interpolation_count,
-            100.0 * failed_interpolation_count / total_pixels if total_pixels > 0 else 0,
-        )
-        logger.info(
-            "  Skipped (NoData elevation): %d (%.1f%%)",
-            skipped_nodata_count,
-            100.0 * skipped_nodata_count / total_pixels if total_pixels > 0 else 0,
+        log_interpolation_stats(
+            total_pixels, interpolated_count, failed_interpolation_count, skipped_nodata_count
         )
 
-        if interpolated_count == 0:
-            logger.warning(
-                "WARNING: No pixels were successfully interpolated! Check station locations and coordinate system."
-            )
-
-        # Create output dataset from array using WPSDataset
-        output_ds = WPSDataset.from_array(
-            array=precip_array,
-            geotransform=geo_transform,
-            projection=projection,
-            nodata_value=-9999.0,
-            datatype=gdal.GDT_Float32,
-        )
-
-        # Export to GeoTIFF with compression
-        with output_ds:
-            output_ds.export_to_geotiff(output_path)
+        save_raster_to_geotiff(precip_array, geo_transform, projection, output_path)
 
         logger.info("Precipitation interpolation complete: %s", output_path)
         return output_path

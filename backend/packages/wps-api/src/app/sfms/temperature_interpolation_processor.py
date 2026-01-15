@@ -15,6 +15,7 @@ from typing import List
 import aiofiles
 import aiofiles.os
 from aiohttp import ClientSession
+from app.sfms.sfms_common import SFMSInterpolatedWeatherParameter
 from wps_shared.wildfire_one.wfwx_api import get_auth_header
 from wps_shared.stations import get_stations_from_source
 from wps_shared.schemas.stations import WeatherStation
@@ -88,7 +89,7 @@ class TemperatureInterpolationProcessor:
 
             # Upload to S3
             s3_key = self.raster_addresser.get_interpolated_key(
-                self.datetime_to_process, WeatherParameter.TEMP
+                self.datetime_to_process, SFMSInterpolatedWeatherParameter.TEMP
             )
 
             logger.info("Uploading raster to S3: %s", s3_key)
