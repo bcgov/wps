@@ -1629,6 +1629,37 @@ def upgrade():
     # Note: Specific partitions are not created here - they should be managed
     # by the application or created in separate migrations as needed
 
+    # Create partitions
+    op.execute("""
+        CREATE TABLE weather_station_model_predictions_202405
+        PARTITION OF weather_station_model_predictions
+        FOR VALUES FROM ('2024-04-30 17:00:00-07') TO ('2024-05-31 17:00:00-07');
+    """)
+
+    op.execute("""
+        CREATE TABLE weather_station_model_predictions_202510
+        PARTITION OF weather_station_model_predictions
+        FOR VALUES FROM ('2025-09-30 17:00:00-07') TO ('2025-10-31 17:00:00-07');
+    """)
+
+    op.execute("""
+        CREATE TABLE weather_station_model_predictions_202511
+        PARTITION OF weather_station_model_predictions
+        FOR VALUES FROM ('2025-10-31 17:00:00-07') TO ('2025-11-30 16:00:00-08');
+    """)
+
+    op.execute("""
+        CREATE TABLE weather_station_model_predictions_202512
+        PARTITION OF weather_station_model_predictions
+        FOR VALUES FROM ('2025-11-30 16:00:00-08') TO ('2025-12-31 16:00:00-08');
+    """)
+
+    op.execute("""
+        CREATE TABLE weather_station_model_predictions_202601
+        PARTITION OF weather_station_model_predictions
+        FOR VALUES FROM ('2025-12-31 16:00:00-08') TO ('2026-01-31 16:00:00-08');
+    """)
+
     # Create indexes (these apply to all partitions automatically)
     op.create_index(
         op.f("ix_weather_station_model_predictions_id"),
