@@ -10,11 +10,11 @@ Usage:
 """
 
 import asyncio
-from dataclasses import dataclass
 import logging
 import os
 import sys
 from datetime import datetime, timezone
+from typing import List
 
 from aiohttp import ClientSession
 from app.sfms.interpolation_processor import InterpolationProcessor
@@ -30,16 +30,10 @@ from wps_shared.wildfire_one.wfwx_api import get_auth_header
 from wps_shared.wps_logging import configure_logging
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.time import get_utc_now
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser, SFMSInterpolatedWeatherParameter
+from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class JobParams:
-    weather_param: SFMSInterpolatedWeatherParameter
-    weather_data_source: StationInterpolationSource
 
 
 class InterpolationJob:
@@ -54,9 +48,9 @@ class InterpolationJob:
         logger.info("Starting interpolation job for %s", target_date.date())
         start_exec = get_utc_now()
         raster_addresser = RasterKeyAddresser()
-        params = [
-            JobParams(SFMSInterpolatedWeatherParameter.PRECIP, StationPrecipitationSource()),
-            JobParams(SFMSInterpolatedWeatherParameter.WIND_SPEED, StationWindSpeedSource()),
+        data_sources: List[StationInterpolationSource] = [
+            StationPrecipitationSource(),
+            StationWindSpeedSource(),
         ]
 
         try:
@@ -86,13 +80,12 @@ class InterpolationJob:
                         session, auth_headers, datetime_to_process, stations
                     )
 
-                for param in params:
+                for data_source in data_sources:
                     s3_key = await processor.process(
                         s3_client,
                         fuel_raster_path,
                         sfms_actuals,
-                        param.weather_param,
-                        param.weather_data_source,
+                        data_source,
                     )
 
                     # Calculate execution time
@@ -101,7 +94,7 @@ class InterpolationJob:
                     minutes, seconds = divmod(remainder, 60)
 
                     logger.info(
-                        f"Interpolation completed successfully for ${param.weather_param.value}  -- "
+                        f"Interpolation completed successfully for ${data_source.weather_param.value}  -- "
                         "time elapsed %d hours, %d minutes, %.2f seconds",
                         hours,
                         minutes,

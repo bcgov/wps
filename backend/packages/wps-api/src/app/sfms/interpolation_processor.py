@@ -23,7 +23,6 @@ from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.sfms.raster_addresser import (
     RasterKeyAddresser,
-    SFMSInterpolatedWeatherParameter,
 )
 
 logger = logging.getLogger(__name__)
@@ -48,7 +47,6 @@ class InterpolationProcessor:
         s3_client: S3Client,
         reference_raster_path: str,
         sfms_actuals: List[SFMSDailyActual],
-        weather_param: SFMSInterpolatedWeatherParameter,
         weather_data_source: StationInterpolationSource,
     ) -> str:
         """
@@ -62,7 +60,7 @@ class InterpolationProcessor:
         logger.info(
             "Starting interpolation for date: %s and weather parameter: %s ",
             self.datetime_to_process,
-            weather_param.value,
+            weather_data_source.weather_param.value,
         )
 
         # Configure GDAL for S3 access
@@ -82,7 +80,7 @@ class InterpolationProcessor:
         temp_dir = tempfile.gettempdir()
         temp_raster_path = os.path.join(
             temp_dir,
-            f"{weather_param.value}_interpolation_{self.datetime_to_process.strftime('%Y%m%d')}.tif",
+            f"{weather_data_source.weather_param.value}_interpolation_{self.datetime_to_process.strftime('%Y%m%d')}.tif",
         )
 
         try:
@@ -92,7 +90,7 @@ class InterpolationProcessor:
 
             # Upload to S3
             s3_key = self.raster_addresser.get_interpolated_key(
-                self.datetime_to_process, weather_param
+                self.datetime_to_process, weather_data_source.weather_param
             )
 
             logger.info("Uploading raster to S3: %s", s3_key)

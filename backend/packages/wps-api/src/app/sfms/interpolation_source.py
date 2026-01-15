@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import List, Protocol, Tuple
 
 from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_shared.sfms.raster_addresser import SFMSInterpolatedWeatherParameter
 
 # Environmental lapse rate: 6.5°C per 1000m elevation (average observed rate)
 # This matches the CWFIS implementation
@@ -9,7 +10,7 @@ LAPSE_RATE = 0.0065
 
 
 class StationInterpolationSource(Protocol):
-    _sfms_actuals: List[SFMSDailyActual]
+    weather_param: SFMSInterpolatedWeatherParameter
 
     @abstractmethod
     def get_interpolation_data(
@@ -20,6 +21,10 @@ class StationInterpolationSource(Protocol):
 
 class StationTemperatureSource(StationInterpolationSource):
     """Represents a weather station with temperature and location data for interpolation."""
+
+    def __init__(self):
+        super().__init__()
+        self.weather_param = SFMSInterpolatedWeatherParameter.TEMP
 
     def adjust_temperature_to_sea_level(self, station_daily: SFMSDailyActual) -> float:
         """
@@ -61,6 +66,10 @@ class StationTemperatureSource(StationInterpolationSource):
 class StationPrecipitationSource(StationInterpolationSource):
     """Represents a weather station with precipitation and location data for interpolation."""
 
+    def __init__(self):
+        super().__init__()
+        self.weather_param = SFMSInterpolatedWeatherParameter.PRECIP
+
     def get_interpolation_data(
         self, sfms_actuals: List[SFMSDailyActual]
     ) -> Tuple[List[float], List[float], List[float]]:
@@ -80,6 +89,10 @@ class StationPrecipitationSource(StationInterpolationSource):
 
 class StationWindSpeedSource(StationInterpolationSource):
     """Represents a weather station with wind speed and location data for interpolation."""
+
+    def __init__(self):
+        super().__init__()
+        self.weather_param = SFMSInterpolatedWeatherParameter.WIND_SPEED
 
     def get_interpolation_data(
         self, sfms_actuals: List[SFMSDailyActual]
