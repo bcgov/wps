@@ -14,13 +14,11 @@ from datetime import datetime
 from typing import List
 import aiofiles
 import aiofiles.os
-from aiohttp import ClientSession
-from wps_shared.schemas.sfms import StationPrecipitation
+from app.sfms.interpolation_source import StationPrecipitationSource
+from wps_shared.schemas.sfms import SFMSDailyActual
 from app.sfms.precipitation_interpolation import (
-    fetch_station_precipitation,
     interpolate_precipitation_to_raster,
 )
-from wps_shared.wildfire_one.wfwx_api import get_auth_header
 from wps_shared.stations import get_stations_from_source
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.utils.s3 import set_s3_gdal_config
@@ -45,7 +43,9 @@ class PrecipitationInterpolationProcessor:
         self.datetime_to_process = datetime_to_process
         self.raster_addresser = raster_addresser
 
-    async def process(self, s3_client: S3Client, reference_raster_path: str) -> str:
+    async def process(
+        self, s3_client: S3Client, reference_raster_path: str, sfms_actuals: List[SFMSDailyActual]
+    ) -> str:
         """
         Process precipitation interpolation for the specified datetime.
 
@@ -62,20 +62,15 @@ class PrecipitationInterpolationProcessor:
         stations = await self._fetch_stations()
         logger.info("Retrieved %d stations", len(stations))
 
-        # Fetch temperature observations from WF1
-        async with ClientSession() as session:
-            auth_headers = await get_auth_header(session)
-            station_precips = await fetch_station_precipitation(
-                session, auth_headers, self.datetime_to_process, stations
-            )
-
-        if not station_precips:
+        if not sfms_actuals:
             raise RuntimeError(f"No station precipitations found for {self.datetime_to_process}")
 
-        logger.info("Processing %d stations with precipitation data", len(station_precips))
+        logger.info("Processing %d stations with precipitation data", len(sfms_actuals))
 
         # Extract interpolation data
-        station_lats, station_lons, station_values = StationPrecipitation.get_interpolation_data(station_precips)
+        station_lats, station_lons, station_values = StationPrecipitationSource(
+            sfms_actuals
+        ).get_interpolation_data()
 
         # Generate temporary file path
         temp_dir = tempfile.gettempdir()

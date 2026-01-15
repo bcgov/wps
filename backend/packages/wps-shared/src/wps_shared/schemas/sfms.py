@@ -16,6 +16,20 @@ class HourlyTIFs(BaseModel):
     hourlies: List[HourlyTIF]
 
 
+class SFMSDailyActual(BaseModel):
+    """Daily Actual"""
+
+    code: int
+    lat: float
+    lon: float
+    elevation: Optional[float] = None
+    temperature: Optional[float] = None
+    relative_humidity: Optional[float] = None
+    precipitation: Optional[float] = None
+    wind_speed: Optional[float] = None
+    wind_direction: Optional[float] = None
+
+
 class StationTemperature(BaseModel):
     """Represents a weather station with temperature and location data for interpolation."""
 

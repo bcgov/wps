@@ -14,7 +14,12 @@ import logging
 import os
 import sys
 from datetime import datetime, timezone
+
+from aiohttp import ClientSession
+from app.sfms.sfms_common import fetch_station_actuals
 from wps_shared.fuel_raster import find_latest_version
+from wps_shared.stations import get_stations_from_source
+from wps_shared.wildfire_one.wfwx_api import get_auth_header
 from wps_shared.wps_logging import configure_logging
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.time import get_utc_now
@@ -56,7 +61,16 @@ class PrecipitationInterpolationJob:
                 )
                 fuel_raster_path = raster_addresser.s3_prefix + "/" + fuel_raster_key
                 logger.info("Using reference raster: %s", fuel_raster_path)
-                s3_key = await processor.process(s3_client, fuel_raster_path)
+
+                # Fetch temperature observations from WF1
+                async with ClientSession() as session:
+                    auth_headers = await get_auth_header(session)
+                    stations = await get_stations_from_source()
+                    sfms_actuals = await fetch_station_actuals(
+                        session, auth_headers, datetime_to_process, stations
+                    )
+
+                s3_key = await processor.process(s3_client, fuel_raster_path, sfms_actuals)
 
             # Calculate execution time
             execution_time = get_utc_now() - start_exec

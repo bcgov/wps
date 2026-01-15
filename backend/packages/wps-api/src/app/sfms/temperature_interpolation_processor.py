@@ -14,18 +14,12 @@ from datetime import datetime
 from typing import List
 import aiofiles
 import aiofiles.os
-from aiohttp import ClientSession
-from app.sfms.sfms_common import SFMSInterpolatedWeatherParameter
-from wps_shared.wildfire_one.wfwx_api import get_auth_header
-from wps_shared.stations import get_stations_from_source
-from wps_shared.schemas.stations import WeatherStation
+from app.sfms.interpolation_source import StationTemperatureSource
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser, WeatherParameter
-from wps_shared.schemas.sfms import StationTemperature
+from wps_shared.sfms.raster_addresser import RasterKeyAddresser, SFMSInterpolatedWeatherParameter
+from wps_shared.schemas.sfms import SFMSDailyActual
 from app.sfms.temperature_interpolation import (
-    adjust_temperature_to_sea_level,
-    fetch_station_temperatures,
     interpolate_temperature_to_raster,
     get_dem_path,
 )
@@ -45,7 +39,9 @@ class TemperatureInterpolationProcessor:
         self.datetime_to_process = datetime_to_process
         self.raster_addresser = raster_addresser
 
-    async def process(self, s3_client: S3Client, reference_raster_path: str) -> str:
+    async def process(
+        self, s3_client: S3Client, reference_raster_path: str, sfms_actuals: List[SFMSDailyActual]
+    ) -> str:
         """
         Process temperature interpolation for the specified datetime.
 
@@ -62,26 +58,14 @@ class TemperatureInterpolationProcessor:
         dem_path = get_dem_path()
         logger.info("Using DEM: %s", dem_path)
 
-        # Fetch station metadata (including elevation)
-        stations = await self._fetch_stations()
-        logger.info("Retrieved %d stations", len(stations))
-
-        # Fetch temperature observations from WF1
-        async with ClientSession() as session:
-            auth_headers = await get_auth_header(session)
-            station_temps = await fetch_station_temperatures(
-                session, auth_headers, self.datetime_to_process, stations
-            )
-
-        if not station_temps:
+        if not sfms_actuals:
             raise RuntimeError(f"No station temperatures found for {self.datetime_to_process}")
 
-        logger.info("Processing %d stations with temperature data", len(station_temps))
+        logger.info("Processing %d stations with temperature data", len(sfms_actuals))
 
-        # Adjust temperatures to sea level and extract interpolation data
-        for station in station_temps:
-            adjust_temperature_to_sea_level(station)
-        station_lats, station_lons, station_values = StationTemperature.get_interpolation_data(station_temps)
+        station_lats, station_lons, station_values = StationTemperatureSource(
+            sfms_actuals
+        ).get_interpolation_data()
 
         # Generate temporary file path
         temp_dir = tempfile.gettempdir()
@@ -91,7 +75,12 @@ class TemperatureInterpolationProcessor:
 
         try:
             interpolate_temperature_to_raster(
-                station_lats, station_lons, station_values, reference_raster_path, dem_path, temp_raster_path
+                station_lats,
+                station_lons,
+                station_values,
+                reference_raster_path,
+                dem_path,
+                temp_raster_path,
             )
 
             # Upload to S3
@@ -113,25 +102,3 @@ class TemperatureInterpolationProcessor:
                 await aiofiles.os.remove(temp_raster_path)
             except FileNotFoundError:
                 pass  # File doesn't exist, nothing to clean up
-
-    async def _fetch_stations(self) -> List[WeatherStation]:
-        """
-        Fetch all weather stations with metadata (including elevation).
-
-        :return: List of WeatherStation objects with elevation data
-        """
-        # Fetch from WFWX source (includes elevation data)
-        all_stations = await get_stations_from_source()
-
-        # Filter to only stations with elevation data
-        stations_with_elevation = [
-            station for station in all_stations if station.elevation is not None
-        ]
-
-        logger.info(
-            "Filtered %d stations with elevation data from %d total stations",
-            len(stations_with_elevation),
-            len(all_stations),
-        )
-
-        return stations_with_elevation
