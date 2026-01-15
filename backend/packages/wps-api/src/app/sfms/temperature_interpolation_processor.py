@@ -17,7 +17,7 @@ import aiofiles.os
 from app.sfms.interpolation_source import StationTemperatureSource
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser, SFMSInterpolatedWeatherParameter
+from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.schemas.sfms import SFMSDailyActual
 from app.sfms.temperature_interpolation import (
     interpolate_temperature_to_raster,
@@ -40,7 +40,11 @@ class TemperatureInterpolationProcessor:
         self.raster_addresser = raster_addresser
 
     async def process(
-        self, s3_client: S3Client, reference_raster_path: str, sfms_actuals: List[SFMSDailyActual]
+        self,
+        s3_client: S3Client,
+        reference_raster_path: str,
+        sfms_actuals: List[SFMSDailyActual],
+        temperature_source: StationTemperatureSource,
     ) -> str:
         """
         Process temperature interpolation for the specified datetime.
@@ -63,9 +67,9 @@ class TemperatureInterpolationProcessor:
 
         logger.info("Processing %d stations with temperature data", len(sfms_actuals))
 
-        station_lats, station_lons, station_values = StationTemperatureSource(
+        station_lats, station_lons, station_values = temperature_source.get_interpolation_data(
             sfms_actuals
-        ).get_interpolation_data()
+        )
 
         # Generate temporary file path
         temp_dir = tempfile.gettempdir()
@@ -85,7 +89,7 @@ class TemperatureInterpolationProcessor:
 
             # Upload to S3
             s3_key = self.raster_addresser.get_interpolated_key(
-                self.datetime_to_process, SFMSInterpolatedWeatherParameter.TEMP
+                self.datetime_to_process, temperature_source.weather_param
             )
 
             logger.info("Uploading raster to S3: %s", s3_key)

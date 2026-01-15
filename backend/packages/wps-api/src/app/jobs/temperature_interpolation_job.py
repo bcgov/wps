@@ -16,6 +16,7 @@ import sys
 from datetime import datetime, timezone
 
 from aiohttp import ClientSession
+from app.sfms.interpolation_source import StationTemperatureSource
 from app.sfms.sfms_common import fetch_station_actuals
 from wps_shared.fuel_raster import find_latest_version
 from wps_shared.stations import get_stations_from_source
@@ -71,7 +72,9 @@ class TemperatureInterpolationJob:
                         session, auth_headers, datetime_to_process, stations
                     )
 
-                s3_key = await processor.process(s3_client, fuel_raster_path, sfms_actuals)
+                s3_key = await processor.process(
+                    s3_client, fuel_raster_path, sfms_actuals, StationTemperatureSource()
+                )
 
             # Calculate execution time
             execution_time = get_utc_now() - start_exec
