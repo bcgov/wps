@@ -36,20 +36,20 @@ class PrecipitationInterpolationJob:
         """
         logger.info("Starting precipitation interpolation job for %s", target_date.date())
         start_exec = get_utc_now()
+        raster_addresser = RasterKeyAddresser()
 
         try:
             # Create processor for target date (noon UTC hour 20)
             datetime_to_process = target_date.replace(hour=20, minute=0, second=0, microsecond=0)
 
             # Process precipitation interpolation
-            processor = PrecipitationInterpolationProcessor(datetime_to_process)
+            processor = PrecipitationInterpolationProcessor(datetime_to_process, raster_addresser)
 
             async with S3Client() as s3_client:
                 # Use a reference raster for grid properties
                 # We'll use the fuel raster which defines the SFMS grid
-                raster_addresser = RasterKeyAddresser()
                 latest_version = await find_latest_version(
-                    s3_client, RasterKeyAddresser(), datetime_to_process, 1
+                    s3_client, raster_addresser, datetime_to_process, 1
                 )
                 fuel_raster_key = raster_addresser.get_fuel_raster_key(
                     target_date, version=latest_version

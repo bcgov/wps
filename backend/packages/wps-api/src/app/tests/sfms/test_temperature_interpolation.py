@@ -644,7 +644,7 @@ class TestInterpolateTemperatureToRaster:
             StationTemperature(code=2, lat=49.1, lon=-123.1, elevation=500, temperature=12.0),
         ]
 
-        _, _, mock_output_ds, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets()
+        _, _, _, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets()
 
         with patch("app.sfms.temperature_interpolation.WPSDataset") as mock_wps_dataset:
             with patch("app.sfms.temperature_interpolation.save_raster_to_geotiff") as mock_save:
@@ -667,7 +667,7 @@ class TestInterpolateTemperatureToRaster:
         dem_data = np.full((5, 5), 100.0)
         dem_data[2, 2] = -9999.0  # NoData cell
 
-        _, _, mock_output_ds, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
+        _, _, _, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
             raster_size=(5, 5), dem_data=dem_data, dem_nodata=-9999.0
         )
 
@@ -692,7 +692,7 @@ class TestInterpolateTemperatureToRaster:
         adjust_temperature_to_sea_level(stations[0])
         # stations[1] will have None sea_level_temp
 
-        _, _, mock_output_ds, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
+        _, _, _, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
             raster_size=(5, 5), dem_nodata=None
         )
 
@@ -723,7 +723,7 @@ class TestInterpolateTemperatureToRaster:
             nonlocal captured_array
             captured_array = array
 
-        _, _, mock_output_ds, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
+        _, _, _, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
             raster_size=(2, 2),
             dem_data=dem_data,
             dem_nodata=None,

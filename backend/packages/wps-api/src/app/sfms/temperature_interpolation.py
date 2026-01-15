@@ -210,7 +210,7 @@ def interpolate_temperature_to_raster(
                 failed_interpolation_count = len(sea_level_temps) - interpolated_count
 
                 # Apply elevation adjustment and write to output array
-                for idx in np.where(interpolation_succeeded)[0]:
+                for idx in np.nonzero(interpolation_succeeded)[0]:
                     actual_temp = adjust_temperature_to_elevation(
                         float(sea_level_temps[idx]), float(valid_elevations[idx])
                     )

@@ -35,14 +35,14 @@ logger = logging.getLogger(__name__)
 class PrecipitationInterpolationProcessor:
     """Processor for interpolating station precipitations to raster format."""
 
-    def __init__(self, datetime_to_process: datetime):
+    def __init__(self, datetime_to_process: datetime, raster_addresser: RasterKeyAddresser):
         """
         Initialize the precipitation interpolation processor.
 
         :param datetime_to_process: The datetime to process (typically noon observation time)
         """
         self.datetime_to_process = datetime_to_process
-        self.raster_addresser = RasterKeyAddresser()
+        self.raster_addresser = raster_addresser
 
     async def process(self, s3_client: S3Client, reference_raster_path: str) -> str:
         """

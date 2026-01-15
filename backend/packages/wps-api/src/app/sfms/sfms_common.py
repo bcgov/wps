@@ -2,7 +2,6 @@
 Common utilities for SFMS interpolation modules.
 """
 
-import enum
 import logging
 from datetime import datetime
 from typing import Callable, List, TypeVar

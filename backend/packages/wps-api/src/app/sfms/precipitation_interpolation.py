@@ -135,7 +135,7 @@ def interpolate_precipitation_to_raster(
         interpolated_count = int(np.sum(interpolation_succeeded))
         failed_interpolation_count = len(interpolated_values) - interpolated_count
 
-        for idx in np.where(interpolation_succeeded)[0]:
+        for idx in np.nonzero(interpolation_succeeded)[0]:
             precip_array[valid_yi[idx], valid_xi[idx]] = interpolated_values[idx]
 
         log_interpolation_stats(
