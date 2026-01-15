@@ -402,6 +402,23 @@ class WPSDataset:
             except RuntimeError:
                 pass  # File doesn't exist or already cleaned up
 
+    def get_valid_mask(self) -> np.ndarray:
+        """
+        Get a boolean mask indicating valid (non-nodata) pixels.
+
+        :return: Boolean array where True = valid, False = nodata
+        """
+        band = self.ds.GetRasterBand(self.band)
+        nodata = band.GetNoDataValue()
+        y_size = self.ds.RasterYSize
+        x_size = self.ds.RasterXSize
+
+        if nodata is not None:
+            data = band.ReadAsArray()
+            return data != nodata
+        else:
+            return np.ones((y_size, x_size), dtype=bool)
+
     def get_nodata_mask(self) -> Tuple[Optional[np.ndarray], Optional[Union[float, int]]]:
         band = self.ds.GetRasterBand(self.band)
         nodata_value = band.GetNoDataValue()

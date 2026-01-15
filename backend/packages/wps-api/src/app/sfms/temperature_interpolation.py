@@ -154,16 +154,12 @@ def interpolate_temperature_to_raster(
                 dem_data = dem_band.ReadAsArray()
                 if dem_data is None:
                     raise ValueError("Failed to read resampled DEM data")
-                dem_nodata = dem_band.GetNoDataValue()
 
-                logger.info("DEM resampled successfully, nodata value: %s", dem_nodata)
+                logger.info("DEM resampled successfully")
 
                 temp_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
 
-                if dem_nodata is not None:
-                    valid_mask = dem_data != dem_nodata
-                else:
-                    valid_mask = np.ones((y_size, x_size), dtype=bool)
+                valid_mask = resampled_dem.get_valid_mask()
 
                 # Apply BC mask if provided
                 if mask_path is not None:

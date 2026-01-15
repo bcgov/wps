@@ -51,11 +51,7 @@ def interpolate_to_raster(
         y_size = ref_ds.ds.RasterYSize
 
         # Build valid mask from reference raster's nodata
-        nodata_mask, _ = ref_ds.get_nodata_mask()
-        if nodata_mask is not None:
-            valid_mask = ~nodata_mask
-        else:
-            valid_mask = np.ones((y_size, x_size), dtype=bool)
+        valid_mask = ref_ds.get_valid_mask()
 
         # Apply BC mask if provided
         if mask_path is not None:

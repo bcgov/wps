@@ -95,6 +95,14 @@ def create_mock_raster_datasets(
 
     mock_resampled_dem.get_lat_lon_coords = Mock(side_effect=mock_get_lat_lon_coords)
 
+    # Mock get_valid_mask to return valid mask based on nodata
+    def mock_get_valid_mask():
+        if dem_nodata is not None:
+            return dem_data != dem_nodata
+        return np.ones((y_size, x_size), dtype=bool)
+
+    mock_resampled_dem.get_valid_mask = Mock(side_effect=mock_get_valid_mask)
+
     # Create output dataset
     mock_output_ds = Mock()
     mock_output_ds.export_to_geotiff = Mock()

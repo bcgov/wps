@@ -49,17 +49,14 @@ def create_mock_raster_dataset(
         lons = -123.0 - valid_xi * 0.01
         return lats, lons, valid_yi, valid_xi
 
-    # Mock get_nodata_mask to return nodata mask
-    def mock_get_nodata_mask():
-        if nodata is not None:
-            # Return mask where all pixels are valid (no nodata)
-            return np.zeros((y_size, x_size), dtype=bool), nodata
-        return None, None
+    # Mock get_valid_mask to return valid mask (all pixels valid)
+    def mock_get_valid_mask():
+        return np.ones((y_size, x_size), dtype=bool)
 
     mock_wrapper = Mock()
     mock_wrapper.ds = mock_ds
     mock_wrapper.get_lat_lon_coords = Mock(side_effect=mock_get_lat_lon_coords)
-    mock_wrapper.get_nodata_mask = Mock(side_effect=mock_get_nodata_mask)
+    mock_wrapper.get_valid_mask = Mock(side_effect=mock_get_valid_mask)
 
     mock_ctx = MagicMock()
     mock_ctx.__enter__ = Mock(return_value=mock_wrapper)
