@@ -328,5 +328,4 @@ def get_dem_path() -> str:
     :return: GDAL virtual file system path to DEM
     """
     bucket = config.get("OBJECT_STORE_BUCKET")
-    dem_name = config.get("DEM_NAME")
-    return f"/vsis3/{bucket}/dem/mosaics/{dem_name}"
+    return f"/vsis3/{bucket}/sfms/static/bc_elevation.tif"
