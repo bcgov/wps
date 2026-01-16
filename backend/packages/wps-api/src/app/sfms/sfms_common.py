@@ -8,7 +8,6 @@ from typing import Callable, List, TypeVar
 import numpy as np
 from osgeo import gdal
 from aiohttp import ClientSession
-from wps_shared import config
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_shared.wildfire_one.wildfire_fetchers import fetch_raw_dailies_for_all_stations
 from wps_shared.wildfire_one.util import is_station_valid
@@ -204,13 +203,3 @@ def save_raster_to_geotiff(
 
     with output_ds:
         output_ds.export_to_geotiff(output_path)
-
-
-def get_mask_path() -> str:
-    """
-    Get the path to the BC mask raster from S3.
-
-    :return: GDAL virtual file system path to BC mask
-    """
-    bucket = config.get("OBJECT_STORE_BUCKET")
-    return f"/vsis3/{bucket}/sfms/static/bc_mask.tif"

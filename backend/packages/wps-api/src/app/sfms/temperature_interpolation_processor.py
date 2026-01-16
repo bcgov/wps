@@ -19,11 +19,7 @@ from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.schemas.sfms import SFMSDailyActual
-from app.sfms.temperature_interpolation import (
-    interpolate_temperature_to_raster,
-    get_dem_path,
-)
-from app.sfms.sfms_common import get_mask_path
+from app.sfms.temperature_interpolation import interpolate_temperature_to_raster
 
 logger = logging.getLogger(__name__)
 
@@ -60,8 +56,8 @@ class TemperatureInterpolationProcessor:
         set_s3_gdal_config()
 
         # Get DEM and mask paths
-        dem_path = get_dem_path()
-        mask_path = get_mask_path()
+        dem_path = self.raster_addresser.get_dem_key()
+        mask_path = self.raster_addresser.get_mask_key()
         logger.info("Using DEM: %s", dem_path)
         logger.info("Using mask: %s", mask_path)
 

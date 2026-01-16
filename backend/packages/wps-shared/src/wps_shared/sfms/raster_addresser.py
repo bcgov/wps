@@ -263,3 +263,19 @@ class RasterKeyAddresser:
         param_value = weather_param.value
 
         return f"sfms/interpolated/{param_value}/{year:04d}/{month:02d}/{day:02d}/{param_value}_{date_str}.tif"
+
+    def get_dem_key(self) -> str:
+        """
+        Get the GDAL virtual file system path to the DEM raster.
+
+        :return: GDAL virtual file system path to DEM
+        """
+        return f"{self.s3_prefix}/sfms/static/bc_elevation.tif"
+
+    def get_mask_key(self) -> str:
+        """
+        Get the GDAL virtual file system path to the BC mask raster.
+
+        :return: GDAL virtual file system path to BC mask
+        """
+        return f"{self.s3_prefix}/sfms/static/bc_mask.tif"

@@ -15,7 +15,6 @@ from typing import List, Optional
 import numpy as np
 from osgeo import gdal
 from aiohttp import ClientSession
-from wps_shared import config
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.geospatial.wps_dataset import WPSDataset
@@ -130,7 +129,9 @@ def interpolate_temperature_to_raster(
     with WPSDataset(reference_raster_path) as ref_ds:
         geo_transform = ref_ds.ds.GetGeoTransform()
         if geo_transform is None:
-            raise ValueError(f"Failed to get geotransform from reference raster: {reference_raster_path}")
+            raise ValueError(
+                f"Failed to get geotransform from reference raster: {reference_raster_path}"
+            )
         projection = ref_ds.ds.GetProjection()
         x_size = ref_ds.ds.RasterXSize
         y_size = ref_ds.ds.RasterYSize
@@ -218,13 +219,3 @@ def interpolate_temperature_to_raster(
 
         logger.info("Temperature interpolation complete: %s", output_path)
         return output_path
-
-
-def get_dem_path() -> str:
-    """
-    Get the path to the DEM raster from S3.
-
-    :return: GDAL virtual file system path to DEM
-    """
-    bucket = config.get("OBJECT_STORE_BUCKET")
-    return f"/vsis3/{bucket}/sfms/static/bc_elevation.tif"
