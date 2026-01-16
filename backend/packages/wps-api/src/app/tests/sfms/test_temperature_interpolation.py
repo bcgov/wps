@@ -4,18 +4,14 @@ Unit tests for temperature interpolation module.
 
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose
 from osgeo import gdal
 from typing import Optional, cast
 from unittest.mock import Mock, patch, MagicMock
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.geospatial.spatial_interpolation import (
     idw_interpolation,
 )
 from app.sfms.temperature_interpolation import (
-    compute_actual_temperatures,
-    LAPSE_RATE,
     interpolate_temperature_to_raster,
 )
 
@@ -119,54 +115,28 @@ def create_mock_raster_datasets(
     return mock_ref_ds, mock_dem_ds, mock_output_ds, mock_ref_ctx, mock_dem_ctx
 
 
-class TestStationTemperature:
-    """Tests for StationTemperature class."""
-
-    def test_station_temperature_initialization(self):
-        """Test that StationTemperature initializes correctly."""
-        station = StationTemperature(
-            code=123, lat=49.0, lon=-123.0, elevation=500.0, temperature=20.0
-        )
-        assert station.code == 123
-        assert station.lat == pytest.approx(49.0)
-        assert station.lon == pytest.approx(-123.0)
-        assert station.elevation == pytest.approx(500.0)
-        assert station.temperature == pytest.approx(20.0)
-        assert station.sea_level_temp is None
-
-
 class TestIDWInterpolation:
     """Tests for Inverse Distance Weighting interpolation."""
 
     def test_idw_exact_match(self):
         """Test that IDW returns station value when point is at station."""
-        stations = [
-            StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=100, temperature=15.0),
-            StationTemperature(code=2, lat=50.0, lon=-124.0, elevation=200, temperature=20.0),
-        ]
-
         # Prepare lists for IDW
-        lats = [s.lat for s in stations]
-        lons = [s.lon for s in stations]
-        values = [s.sea_level_temp for s in stations]
+        lats = [49.0, 50.0]
+        lons = [-123.0, -124.0]
+        values = [15.0, 12.0]
 
         # Query at exact station location
         result = idw_interpolation(49.0, -123.0, lats, lons, values)
 
         # Should return the sea level temp of the first station
-        assert result == pytest.approx(stations[0].sea_level_temp, rel=1e-6)
+        assert result == pytest.approx(values[0], rel=1e-6)
 
     def test_idw_between_two_stations(self):
         """Test IDW interpolation between two stations."""
-        stations = [
-            StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=10.0),
-            StationTemperature(code=2, lat=50.0, lon=-123.0, elevation=0, temperature=20.0),
-        ]
-
         # Prepare lists for IDW
-        lats = [s.lat for s in stations]
-        lons = [s.lon for s in stations]
-        values = [s.sea_level_temp for s in stations]
+        lats = [49.0, 50.0]
+        lons = [-123.0, -123.0]
+        values = [10.0, 20.0]
 
         # Query at midpoint
         result = idw_interpolation(49.5, -123.0, lats, lons, values)
@@ -182,14 +152,10 @@ class TestIDWInterpolation:
 
     def test_idw_outside_search_radius(self):
         """Test that IDW returns None when all stations outside search radius."""
-        stations = [
-            StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
-        ]
-
         # Prepare lists for IDW
-        lats = [s.lat for s in stations]
-        lons = [s.lon for s in stations]
-        values = [s.sea_level_temp for s in stations]
+        lats = [49.0]
+        lons = [-123.0]
+        values = [15.0]
 
         # Query far away (at least 200km away)
         result = idw_interpolation(52.0, -128.0, lats, lons, values, search_radius=100000)
@@ -197,21 +163,17 @@ class TestIDWInterpolation:
 
     def test_idw_with_none_sea_level_temp(self):
         """Test that IDW handles points with None values."""
-        stations = [
-            StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
-            StationTemperature(code=2, lat=50.0, lon=-124.0, elevation=0, temperature=20.0),
-        ]
 
         # Prepare lists for IDW (including None value)
-        lats = [s.lat for s in stations]
-        lons = [s.lon for s in stations]
-        values = [stations[0].sea_level_temp, None]
+        lats = [49.0, 50.0]
+        lons = [-123.0, -124.0]
+        values = [15.0, None]
 
         result = idw_interpolation(49.5, -123.5, lats, lons, values)
 
         # Should still work with only one valid station
         assert result is not None
-        assert result == pytest.approx(stations[0].sea_level_temp, abs=1.0)
+        assert result == pytest.approx(values[0], abs=1.0)
 
 
 class TestInterpolateTemperatureToRaster:
@@ -221,7 +183,7 @@ class TestInterpolateTemperatureToRaster:
         """Test successful raster interpolation."""
         station_lats = [49.0, 49.1]
         station_lons = [-123.0, -123.1]
-        station_values = [15.0, 12.0]  # sea-level adjusted temps
+        station_values = [15.0, 12.0]
 
         _, _, _, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets()
 
@@ -317,47 +279,3 @@ class TestInterpolateTemperatureToRaster:
                 # At least some cells should have been interpolated (not all -9999)
                 non_nodata_count = np.sum(captured_array != -9999.0)
                 assert non_nodata_count > 0, "Expected some cells to be interpolated"
-
-
-class TestIntegrationScenario:
-    """Integration tests simulating real-world scenarios."""
-
-    def test_full_workflow_simple(self):
-        """Test the full workflow with simple data."""
-        # Create stations at different elevations
-        stations = [
-            StationTemperature(
-                code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0
-            ),  # Sea level, 15°C
-            StationTemperature(
-                code=2, lat=49.1, lon=-123.1, elevation=500, temperature=10.0
-            ),  # 500m, 10°C
-            StationTemperature(
-                code=3, lat=49.2, lon=-123.2, elevation=1000, temperature=5.0
-            ),  # 1000m, 5°C
-        ]
-
-        # Verify sea level adjustments
-        # Station 1: 15 + 0 = 15°C
-        assert stations[0].sea_level_temp == pytest.approx(15.0, rel=1e-6)
-
-        # Station 2: 10 + (500 * 0.0065) = 10 + 3.25 = 13.25°C
-        assert stations[1].sea_level_temp == pytest.approx(13.25, rel=1e-6)
-
-        # Station 3: 5 + (1000 * 0.0065) = 5 + 6.5 = 11.5°C
-        assert stations[2].sea_level_temp == pytest.approx(11.5, rel=1e-6)
-
-        # Prepare lists for IDW
-        lats = [s.lat for s in stations]
-        lons = [s.lon for s in stations]
-        values = [s.sea_level_temp for s in stations]
-
-        # Interpolate at a point
-        interpolated = idw_interpolation(49.1, -123.1, lats, lons, values)
-        assert interpolated is not None
-
-        # Adjust back to elevation (e.g., 250m)
-        final_temp = compute_actual_temperatures(interpolated, 250)
-
-        # Should be reasonable (between 5-15°C range)
-        assert 5.0 <= final_temp <= 15.0
