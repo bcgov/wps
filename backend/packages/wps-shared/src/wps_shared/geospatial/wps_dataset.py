@@ -310,7 +310,7 @@ class WPSDataset:
 
         # Build valid mask if not provided
         if valid_mask is None:
-            band = self.ds.GetRasterBand(self.band)
+            band: gdal.Band = self.ds.GetRasterBand(self.band)
             nodata = band.GetNoDataValue()
             if nodata is not None:
                 data = band.ReadAsArray()
