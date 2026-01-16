@@ -44,9 +44,6 @@ def interpolate_temperature_to_raster(
     :param mask_path: Optional path to mask raster (0 = masked, non-zero = valid)
     :return: Path to output raster
     """
-    station_lats, station_lons, sea_level_temps = temperature_source.get_interpolation_data()
-
-    logger.info("Starting temperature interpolation for %d stations", len(station_lats))
 
     with WPSDataset(reference_raster_path) as ref_ds:
         geo_transform = ref_ds.ds.GetGeoTransform()
@@ -87,8 +84,11 @@ def interpolate_temperature_to_raster(
                 skipped_nodata_count,
             )
 
+            station_lats, station_lons, sea_level_temps = (
+                temperature_source.get_interpolation_data()
+            )
             logger.info(
-                "Running batch IDW interpolation for %d pixels and %d stations",
+                "Running batch temperature IDW interpolation for %d pixels and %d stations",
                 len(lats),
                 len(station_lats),
             )
