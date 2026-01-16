@@ -141,12 +141,19 @@ def interpolate_temperature_to_raster(
             interpolated_count = int(np.sum(interpolation_succeeded))
             failed_interpolation_count = len(sea_level_temps) - interpolated_count
 
-            # Apply elevation adjustment and write to output array
-            for idx in np.nonzero(interpolation_succeeded)[0]:
-                actual_temp = adjust_temperature_to_elevation(
-                    float(sea_level_temps[idx]), float(valid_elevations[idx])
-                )
-                temp_array[valid_yi[idx], valid_xi[idx]] = actual_temp
+            # Apply elevation adjustment and write to output array (vectorized)
+            rows = valid_yi[interpolation_succeeded]
+            cols = valid_xi[interpolation_succeeded]
+
+            # Keep dtype consistent with temp_array (float32) to avoid up/down casts
+            sea = sea_level_temps[interpolation_succeeded].astype(np.float32, copy=False)
+            elev = valid_elevations[interpolation_succeeded].astype(np.float32, copy=False)
+
+            # Environmental lapse rate is positive (°C per meter); cooling with elevation is subtraction
+            actual_temps = sea - elev * np.float32(LAPSE_RATE)
+
+            # Write the results directly into the output raster
+            temp_array[rows, cols] = actual_temps
 
         log_interpolation_stats(
             total_pixels, interpolated_count, failed_interpolation_count, skipped_nodata_count
