@@ -74,7 +74,7 @@ def create_mock_raster_datasets(
     # Mock get_lat_lon_coords to return valid coordinates
     def mock_get_lat_lon_coords(valid_mask):
         # Get indices where mask is True
-        valid_yi, valid_xi = np.where(valid_mask)
+        valid_yi, valid_xi = np.nonzero(valid_mask)
         # Generate mock lat/lon coords based on indices - place them near typical BC stations
         lats = 49.0 + valid_yi * 0.01
         lons = -123.0 - valid_xi * 0.01

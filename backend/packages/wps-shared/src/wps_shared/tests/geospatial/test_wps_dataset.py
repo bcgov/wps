@@ -388,7 +388,7 @@ class TestGetLatLonCoords:
         ds = create_test_dataset("test_3857.tif", 2, 2, extent, 3857)
 
         with WPSDataset(ds_path=None, ds=ds) as wps_ds:
-            lats, lons, yi, xi = wps_ds.get_lat_lon_coords()
+            lats, lons, _, _ = wps_ds.get_lat_lon_coords()
 
             # Should have 4 pixels
             assert len(lats) == 4
@@ -412,7 +412,7 @@ class TestGetLatLonCoords:
                     [True, False, True],
                 ]
             )
-            lats, lons, yi, xi = wps_ds.get_lat_lon_coords(valid_mask)
+            lats, _, yi, xi = wps_ds.get_lat_lon_coords(valid_mask)
 
             # Should have 5 valid pixels
             assert len(lats) == 5

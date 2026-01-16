@@ -319,7 +319,7 @@ class WPSDataset:
                 valid_mask = np.ones((y_size, x_size), dtype=bool)
 
         # Get indices and coordinates for valid pixels only
-        valid_yi, valid_xi = np.where(valid_mask)
+        valid_yi, valid_xi = np.nonzero(valid_mask)
         valid_x_coords = x_coords[valid_mask]
         valid_y_coords = y_coords[valid_mask]
 

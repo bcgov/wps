@@ -45,7 +45,7 @@ def main():
     diff_abs_max = np.nanmax(np.abs(valid_diff)) if len(valid_diff) > 0 else 1
 
     # Create figure showing difference
-    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+    _, axes = plt.subplots(1, 3, figsize=(18, 6))
 
     # Generated
     ax1 = axes[0]
