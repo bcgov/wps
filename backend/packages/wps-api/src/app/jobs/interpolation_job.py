@@ -50,7 +50,6 @@ class InterpolationJob:
         raster_addresser = RasterKeyAddresser()
         data_sources: List[StationInterpolationSource] = [
             StationPrecipitationSource(),
-            StationWindSpeedSource(),
         ]
 
         try:
