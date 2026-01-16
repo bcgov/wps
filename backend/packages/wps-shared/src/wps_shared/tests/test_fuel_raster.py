@@ -25,7 +25,7 @@ async def test_find_latest_version_non_existing(monkeypatch, keys):
     # Patch all_objects_exist to simulate
     async def mock_all_objects_exist(key):
         call_log.append(key)
-        return key != keys[-1]
+        return key in keys
 
     def mock_get_fuel_raster_key(_, version):
         return f"raster_v{version}"
@@ -40,7 +40,7 @@ async def test_find_latest_version_non_existing(monkeypatch, keys):
     result = await find_latest_version(s3_client, raster_addresser, now, 1)
 
     assert result == len(keys)
-    assert call_log == keys
+    assert call_log == keys + [f"raster_v{result + 1}"]
 
 
 # --- Mocked S3Client with async methods ---

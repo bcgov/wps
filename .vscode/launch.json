@@ -289,6 +289,32 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "SFMS Temperature Interpolation",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.temperature_interpolation_job",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "args": [
+                "2024-07-04"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "SFMS Precipitation Interpolation",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.precipitation_interpolation_job",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "args": [
+                "2024-07-04"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Chrome",
             "type": "chrome",
             "request": "launch",

@@ -1,0 +1,21 @@
+meta {
+  name: GET Dailies RSQL
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{WFWX_BASE_URL}}/v1/dailies/rsql?query=weatherTimestamp==1720123200000&page=0&size=1000
+  body: none
+  auth: bearer
+}
+
+params:query {
+  query: weatherTimestamp==1720123200000
+  page: 0
+  size: 1000
+}
+
+auth:bearer {
+  token: {{WFWX_TOKEN}}
+}
