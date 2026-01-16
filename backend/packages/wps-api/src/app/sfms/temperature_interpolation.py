@@ -12,6 +12,7 @@ import logging
 from typing import List, Optional
 import numpy as np
 from osgeo import gdal
+from app.sfms.interpolation_source import StationTemperatureSource
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from app.sfms.sfms_common import (
@@ -56,9 +57,7 @@ def compute_actual_temperatures(
 
 
 def interpolate_temperature_to_raster(
-    station_lats: List[float],
-    station_lons: List[float],
-    station_values: List[float],
+    temperature_source: StationTemperatureSource,
     reference_raster_path: str,
     dem_path: str,
     output_path: str,
@@ -67,15 +66,15 @@ def interpolate_temperature_to_raster(
     """
     Interpolate station temperatures to a raster using IDW and elevation adjustment.
 
-    :param station_lats: List of station latitudes
-    :param station_lons: List of station longitudes
-    :param station_values: List of sea-level adjusted temperatures
+    :param temperature_source: StationTemperatureSource,
     :param reference_raster_path: Path to reference raster (defines grid)
     :param dem_path: Path to DEM raster for elevation adjustment
     :param output_path: Path to write output temperature raster
     :param mask_path: Optional path to mask raster (0 = masked, non-zero = valid)
     :return: Path to output raster
     """
+    station_lats, station_lons, sea_level_temps = temperature_source.get_interpolation_data()
+
     logger.info("Starting temperature interpolation for %d stations", len(station_lats))
 
     with WPSDataset(reference_raster_path) as ref_ds:
@@ -122,29 +121,26 @@ def interpolate_temperature_to_raster(
                 len(lats),
                 len(station_lats),
             )
-            station_lats_array = np.array(station_lats)
-            station_lons_array = np.array(station_lons)
-            station_values_array = np.array(station_values)
 
-            sea_level_temps = idw_interpolation(
-                lats, lons, station_lats_array, station_lons_array, station_values_array
+            interpolated_sea_level_temps = idw_interpolation(
+                lats, lons, station_lats, station_lons, sea_level_temps
             )
-            assert isinstance(sea_level_temps, np.ndarray)
+            assert isinstance(interpolated_sea_level_temps, np.ndarray)
 
-            interpolation_succeeded = ~np.isnan(sea_level_temps)
+            interpolation_succeeded = ~np.isnan(interpolated_sea_level_temps)
             interpolated_count = int(np.sum(interpolation_succeeded))
-            failed_interpolation_count = len(sea_level_temps) - interpolated_count
+            failed_interpolation_count = len(interpolated_sea_level_temps) - interpolated_count
 
-            # Apply elevation adjustment and write to output array (vectorized)
             rows = valid_yi[interpolation_succeeded]
             cols = valid_xi[interpolation_succeeded]
 
             # Keep dtype consistent with temp_array (float32) to avoid up/down casts
-            sea = sea_level_temps[interpolation_succeeded].astype(np.float32, copy=False)
+            sea = interpolated_sea_level_temps[interpolation_succeeded].astype(
+                np.float32, copy=False
+            )
             elev = valid_elevations[interpolation_succeeded].astype(np.float32, copy=False)
 
-            # Environmental lapse rate is positive (°C per meter); cooling with elevation is subtraction
-            actual_temps = compute_actual_temperatures(sea, elev, LAPSE_RATE, out_dtype=np.float32)
+            actual_temps = temperature_source.compute_actual_temps(sea, elev, LAPSE_RATE)
 
             # Write the results directly into the output raster
             temp_array[rows, cols] = actual_temps

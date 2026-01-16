@@ -40,7 +40,6 @@ class TemperatureInterpolationProcessor:
         self,
         s3_client: S3Client,
         reference_raster_path: str,
-        sfms_actuals: List[SFMSDailyActual],
         temperature_source: StationTemperatureSource,
     ) -> str:
         """
@@ -61,15 +60,6 @@ class TemperatureInterpolationProcessor:
         logger.info("Using DEM: %s", dem_path)
         logger.info("Using mask: %s", mask_path)
 
-        if not sfms_actuals:
-            raise RuntimeError(f"No station temperatures found for {self.datetime_to_process}")
-
-        logger.info("Processing %d stations with temperature data", len(sfms_actuals))
-
-        station_lats, station_lons, station_values = temperature_source.get_interpolation_data(
-            sfms_actuals
-        )
-
         # Generate temporary file path
         temp_dir = tempfile.gettempdir()
         temp_raster_path = os.path.join(
@@ -78,9 +68,7 @@ class TemperatureInterpolationProcessor:
 
         try:
             interpolate_temperature_to_raster(
-                station_lats,
-                station_lons,
-                station_values,
+                temperature_source,
                 reference_raster_path,
                 dem_path,
                 temp_raster_path,

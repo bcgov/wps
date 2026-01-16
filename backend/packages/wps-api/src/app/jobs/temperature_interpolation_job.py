@@ -72,8 +72,13 @@ class TemperatureInterpolationJob:
                         session, auth_headers, datetime_to_process, stations
                     )
 
+                if not sfms_actuals:
+                    raise RuntimeError(f"No station temperatures found for {datetime_to_process}")
+
                 s3_key = await processor.process(
-                    s3_client, fuel_raster_path, sfms_actuals, StationTemperatureSource()
+                    s3_client,
+                    fuel_raster_path,
+                    StationTemperatureSource(sfms_actuals),
                 )
 
             # Calculate execution time
