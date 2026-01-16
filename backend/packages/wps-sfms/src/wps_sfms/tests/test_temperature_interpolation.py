@@ -3,114 +3,59 @@ Unit tests for temperature interpolation module.
 """
 
 import numpy as np
-from osgeo import gdal
-from typing import Optional, cast
-from unittest.mock import Mock, patch, MagicMock
-from wps_shared.geospatial.wps_dataset import WPSDataset
+import uuid
+from typing import Optional
+from osgeo import gdal, osr
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_sfms.interpolation.source import StationTemperatureSource
 from wps_sfms.interpolation.temperature import interpolate_temperature_to_raster
 
 
-def create_mock_raster_datasets(
-    raster_size=(10, 10),
-    dem_data=None,
-    dem_nodata: Optional[float] = -9999.0,
-    geotransform=(0, 1, 0, 50, 0, -1),
+def create_test_raster(
+    path: str,
+    width: int,
+    height: int,
+    extent: tuple,
+    data: Optional[np.ndarray] = None,
+    epsg: int = 4326,
+    fill_value: float = 1.0,
+    nodata: float = -9999.0,
 ):
     """
-    Create mock GDAL datasets for raster interpolation tests.
+    Create a test GeoTIFF raster in memory using GDAL's /vsimem/ filesystem.
 
-    :param raster_size: Tuple of (x_size, y_size) for raster dimensions
-    :param dem_data: Optional numpy array for DEM data, defaults to uniform 100.0
-    :param dem_nodata: NoData value for DEM, or None
-    :param geotransform: GDAL geotransform tuple
-    :return: Tuple of (mock_ref_ds, mock_dem_ds, mock_output_ds, mock_ref_ctx, mock_dem_ctx)
+    :param path: Output path (should use /vsimem/ prefix)
+    :param width: Raster width in pixels
+    :param height: Raster height in pixels
+    :param extent: (xmin, xmax, ymin, ymax)
+    :param data: Optional numpy array for raster data, defaults to fill_value
+    :param epsg: EPSG code for projection
+    :param fill_value: Value to fill raster with if data not provided
+    :param nodata: NoData value
+    :return: None
     """
-    x_size, y_size = raster_size
+    driver = gdal.GetDriverByName("GTiff")
+    ds = driver.Create(path, width, height, 1, gdal.GDT_Float32)
 
-    # Create reference dataset
-    mock_ref_ds = cast(gdal.Dataset, Mock())
-    mock_ref_ds.GetGeoTransform.return_value = geotransform
-    mock_ref_ds.GetProjection.return_value = (
-        'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]]]'
-    )
-    mock_ref_ds.RasterXSize = x_size
-    mock_ref_ds.RasterYSize = y_size
+    xmin, xmax, ymin, ymax = extent
+    xres = (xmax - xmin) / width
+    yres = (ymax - ymin) / height
+    ds.SetGeoTransform((xmin, xres, 0, ymax, 0, -yres))
 
-    # Create DEM dataset
-    if dem_data is None:
-        dem_data = np.full((y_size, x_size), 100.0)
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(epsg)
+    ds.SetProjection(srs.ExportToWkt())
 
-    mock_dem_band = cast(gdal.Band, Mock())
-    # ReadAsArray with no args returns full array (for old code compatibility)
-    mock_dem_band.ReadAsArray.return_value = dem_data
+    band = ds.GetRasterBand(1)
+    band.SetNoDataValue(nodata)
 
-    # ReadAsArray with args (xoff, yoff, xsize, ysize) returns a subset
-    def read_array_subset(xoff=None, yoff=None, xsize=None, ysize=None):
-        if xoff is None:
-            return dem_data
-        # Return 1x1 array for single pixel reads
-        if xsize == 1 and ysize == 1:
-            if 0 <= yoff < dem_data.shape[0] and 0 <= xoff < dem_data.shape[1]:
-                return np.array([[dem_data[yoff, xoff]]])
-            return None
-        return dem_data[yoff : yoff + ysize, xoff : xoff + xsize]
+    if data is not None:
+        band.WriteArray(data.astype(np.float32))
+    else:
+        band.WriteArray(np.full((height, width), fill_value, dtype=np.float32))
+    band.FlushCache()
 
-    mock_dem_band.ReadAsArray.side_effect = read_array_subset
-    mock_dem_band.GetNoDataValue.return_value = dem_nodata
-
-    mock_dem_ds = cast(gdal.Dataset, Mock())
-    mock_dem_ds.GetRasterBand.return_value = mock_dem_band
-    mock_dem_ds.RasterXSize = x_size
-    mock_dem_ds.RasterYSize = y_size
-    mock_dem_ds.GetGeoTransform.return_value = geotransform
-
-    # Mock warp_to_match to return a resampled DEM
-    mock_resampled_dem = cast(WPSDataset, Mock())
-    mock_resampled_dem.ds = mock_dem_ds
-    mock_resampled_dem.ds.GetRasterBand.return_value = mock_dem_band
-
-    # Mock get_lat_lon_coords to return valid coordinates
-    def mock_get_lat_lon_coords(valid_mask):
-        # Get indices where mask is True
-        valid_yi, valid_xi = np.nonzero(valid_mask)
-        # Generate mock lat/lon coords based on indices - place them near typical BC stations
-        lats = 49.0 + valid_yi * 0.01
-        lons = -123.0 - valid_xi * 0.01
-        return lats, lons, valid_yi, valid_xi
-
-    mock_resampled_dem.get_lat_lon_coords = Mock(side_effect=mock_get_lat_lon_coords)
-
-    # Mock get_valid_mask to return valid mask based on nodata
-    def mock_get_valid_mask():
-        if dem_nodata is not None:
-            return dem_data != dem_nodata
-        return np.ones((y_size, x_size), dtype=bool)
-
-    mock_resampled_dem.get_valid_mask = Mock(side_effect=mock_get_valid_mask)
-
-    # Create output dataset
-    mock_output_ds = Mock()
-    mock_output_ds.export_to_geotiff = Mock()
-    mock_output_ds.__enter__ = Mock(return_value=mock_output_ds)
-    mock_output_ds.__exit__ = Mock(return_value=False)
-
-    # Create context managers for WPSDataset
-    mock_ref_ctx = MagicMock()
-    mock_ref_ctx.__enter__ = Mock(return_value=Mock(ds=mock_ref_ds))
-    mock_ref_ctx.__exit__ = Mock(return_value=False)
-
-    mock_dem_ctx = MagicMock()
-    mock_dem_wrapper = Mock(ds=mock_dem_ds)
-    # Add warp_to_match method that returns the resampled DEM
-    mock_dem_wrapper.warp_to_match = Mock(return_value=mock_resampled_dem)
-    mock_dem_wrapper.get_valid_mask = Mock(side_effect=mock_get_valid_mask)
-    mock_dem_wrapper.get_lat_lon_coords = Mock(side_effect=mock_get_lat_lon_coords)
-    mock_dem_ctx.__enter__ = Mock(return_value=mock_dem_wrapper)
-    mock_dem_ctx.__exit__ = Mock(return_value=False)
-
-    return mock_ref_ds, mock_dem_ds, mock_output_ds, mock_ref_ctx, mock_dem_ctx
+    ds = None  # Close dataset
 
 
 def create_test_actuals(lats, lons, temps, elevations):
@@ -136,109 +81,203 @@ class TestInterpolateTemperatureToRaster:
 
     def test_interpolate_basic_success(self):
         """Test successful raster interpolation."""
-        actuals = create_test_actuals(
-            lats=[49.0, 49.1],
-            lons=[-123.0, -123.1],
-            temps=[15.0, 12.0],
-            elevations=[100.0, 200.0],
-        )
-        temperature_source = StationTemperatureSource(actuals)
+        test_id = uuid.uuid4().hex
+        ref_path = f"/vsimem/reference_{test_id}.tif"
+        dem_path = f"/vsimem/dem_{test_id}.tif"
+        output_path = f"/vsimem/output_{test_id}.tif"
 
-        _, _, _, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets()
+        try:
+            extent = (-123.1, -123.0, 49.0, 49.1)
+            # Create reference and DEM rasters
+            create_test_raster(ref_path, 10, 10, extent, fill_value=1.0)
+            # DEM with uniform 100m elevation
+            create_test_raster(dem_path, 10, 10, extent, fill_value=100.0)
 
-        with patch("wps_sfms.interpolation.temperature.WPSDataset") as mock_wps_dataset:
-            with patch("wps_sfms.interpolation.temperature.save_raster_to_geotiff") as mock_save:
-                mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
+            # Create stations within extent
+            actuals = create_test_actuals(
+                lats=[49.05, 49.08],
+                lons=[-123.05, -123.02],
+                temps=[15.0, 12.0],
+                elevations=[100.0, 200.0],
+            )
+            temperature_source = StationTemperatureSource(actuals)
 
-                result = interpolate_temperature_to_raster(
-                    temperature_source,
-                    "/path/to/ref.tif",
-                    "/path/to/dem.tif",
-                    "/path/to/output.tif",
-                )
+            result = interpolate_temperature_to_raster(
+                temperature_source,
+                ref_path,
+                dem_path,
+                output_path,
+            )
 
-                assert result == "/path/to/output.tif"
-                mock_save.assert_called_once()
+            assert result == output_path
+
+            # Verify output raster
+            ds = gdal.Open(output_path)
+            assert ds is not None
+            data = ds.GetRasterBand(1).ReadAsArray()
+            nodata = ds.GetRasterBand(1).GetNoDataValue()
+
+            assert data.shape == (10, 10)
+            valid_count = np.sum(data != nodata)
+            assert valid_count > 0, "Expected some interpolated values"
+
+            ds = None
+        finally:
+            gdal.Unlink(ref_path)
+            gdal.Unlink(dem_path)
+            gdal.Unlink(output_path)
 
     def test_interpolate_skips_nodata_cells(self):
         """Test that cells with NoData elevation are skipped."""
-        actuals = create_test_actuals(
-            lats=[49.0],
-            lons=[-123.0],
-            temps=[15.0],
-            elevations=[100.0],
-        )
-        temperature_source = StationTemperatureSource(actuals)
+        test_id = uuid.uuid4().hex
+        ref_path = f"/vsimem/reference_{test_id}.tif"
+        dem_path = f"/vsimem/dem_{test_id}.tif"
+        output_path = f"/vsimem/output_{test_id}.tif"
 
-        # Create DEM with NoData values
-        dem_data = np.full((5, 5), 100.0)
-        dem_data[2, 2] = -9999.0  # NoData cell
+        try:
+            extent = (-123.1, -123.0, 49.0, 49.1)
+            create_test_raster(ref_path, 5, 5, extent, fill_value=1.0)
 
-        _, _, _, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
-            raster_size=(5, 5), dem_data=dem_data, dem_nodata=-9999.0
-        )
+            # DEM with one NoData cell
+            dem_data = np.full((5, 5), 100.0)
+            dem_data[2, 2] = -9999.0  # NoData cell
+            create_test_raster(dem_path, 5, 5, extent, data=dem_data)
 
-        with patch("wps_sfms.interpolation.temperature.WPSDataset") as mock_wps_dataset:
-            with patch("wps_sfms.interpolation.temperature.save_raster_to_geotiff"):
-                mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
+            actuals = create_test_actuals(
+                lats=[49.05],
+                lons=[-123.05],
+                temps=[15.0],
+                elevations=[100.0],
+            )
+            temperature_source = StationTemperatureSource(actuals)
 
-                result = interpolate_temperature_to_raster(
-                    temperature_source,
-                    "/path/to/ref.tif",
-                    "/path/to/dem.tif",
-                    "/path/to/output.tif",
-                )
+            result = interpolate_temperature_to_raster(
+                temperature_source,
+                ref_path,
+                dem_path,
+                output_path,
+            )
 
-                assert result == "/path/to/output.tif"
+            assert result == output_path
 
-    def test_interpolate_with_actual_loop_execution(self):
-        """Test interpolation verifying output array is properly populated."""
-        # Station at elevation 100m with temperature 15C
-        # Sea-level adjusted temp would be 15 + 100 * 0.0065 = 15.65C
-        actuals = create_test_actuals(
-            lats=[49.0],
-            lons=[-123.0],
-            temps=[15.0],
-            elevations=[100.0],
-        )
-        temperature_source = StationTemperatureSource(actuals)
+            # Verify the NoData cell in DEM results in NoData in output
+            ds = gdal.Open(output_path)
+            data = ds.GetRasterBand(1).ReadAsArray()
+            nodata = ds.GetRasterBand(1).GetNoDataValue()
 
-        # Create very small test arrays (2x2) to allow actual loop execution
-        dem_data = np.array([[100.0, 200.0], [150.0, 250.0]], dtype=np.float32)
+            # The cell at (2,2) should be nodata in output
+            assert data[2, 2] == nodata
+            # Other cells should have values
+            valid_count = np.sum(data != nodata)
+            assert valid_count == 24, "Expected 24 valid cells (25 - 1 nodata)"
 
-        # Track the array that gets passed to save_raster_to_geotiff
-        captured_array = None
+            ds = None
+        finally:
+            gdal.Unlink(ref_path)
+            gdal.Unlink(dem_path)
+            gdal.Unlink(output_path)
 
-        def capture_save(array, *args, **kwargs):
-            nonlocal captured_array
-            captured_array = array
+    def test_interpolate_with_elevation_adjustment(self):
+        """Test that temperature is adjusted based on elevation."""
+        test_id = uuid.uuid4().hex
+        ref_path = f"/vsimem/reference_{test_id}.tif"
+        dem_path = f"/vsimem/dem_{test_id}.tif"
+        output_path = f"/vsimem/output_{test_id}.tif"
 
-        _, _, _, mock_ref_ctx, mock_dem_ctx = create_mock_raster_datasets(
-            raster_size=(2, 2),
-            dem_data=dem_data,
-            dem_nodata=None,
-            geotransform=(-123.1, 0.05, 0, 49.1, 0, -0.05),
-        )
+        try:
+            extent = (-123.1, -123.0, 49.0, 49.1)
+            create_test_raster(ref_path, 5, 5, extent, fill_value=1.0)
 
-        with patch("wps_sfms.interpolation.temperature.WPSDataset") as mock_wps_dataset:
-            with patch(
-                "wps_sfms.interpolation.temperature.save_raster_to_geotiff",
-                side_effect=capture_save,
-            ):
-                mock_wps_dataset.side_effect = [mock_ref_ctx, mock_dem_ctx]
+            # DEM with varying elevation
+            dem_data = np.full((5, 5), 100.0)
+            dem_data[0, 0] = 0.0  # Sea level
+            dem_data[4, 4] = 1000.0  # 1000m elevation
+            create_test_raster(dem_path, 5, 5, extent, data=dem_data)
 
-                result = interpolate_temperature_to_raster(
-                    temperature_source,
-                    "/path/to/ref.tif",
-                    "/path/to/dem.tif",
-                    "/path/to/output.tif",
-                )
+            # Single station at 100m with 15C
+            # Sea-level adjusted temp = 15 + 100 * 0.0065 = 15.65C
+            actuals = create_test_actuals(
+                lats=[49.05],
+                lons=[-123.05],
+                temps=[15.0],
+                elevations=[100.0],
+            )
+            temperature_source = StationTemperatureSource(actuals)
 
-                assert result == "/path/to/output.tif"
+            result = interpolate_temperature_to_raster(
+                temperature_source,
+                ref_path,
+                dem_path,
+                output_path,
+            )
 
-                # Verify that the output array was created and has non-NoData values
-                assert captured_array is not None
-                assert captured_array.shape == (2, 2)
-                # At least some cells should have been interpolated (not all -9999)
-                non_nodata_count = np.sum(captured_array != -9999.0)
-                assert non_nodata_count > 0, "Expected some cells to be interpolated"
+            assert result == output_path
+
+            ds = gdal.Open(output_path)
+            data = ds.GetRasterBand(1).ReadAsArray()
+
+            # At sea level (0m): temp = 15.65 - 0 * 0.0065 = 15.65C
+            # At 100m: temp = 15.65 - 100 * 0.0065 = 15.0C
+            # At 1000m: temp = 15.65 - 1000 * 0.0065 = 9.15C
+            sea_level_temp = data[0, 0]
+            mid_elevation_temp = data[2, 2]  # 100m
+            high_elevation_temp = data[4, 4]  # 1000m
+
+            # Higher elevation should have lower temperature
+            assert high_elevation_temp < mid_elevation_temp < sea_level_temp
+            # Check approximate values (lapse rate = 6.5C per 1000m)
+            assert np.isclose(sea_level_temp, 15.65, atol=0.5)
+            assert np.isclose(high_elevation_temp, 9.15, atol=0.5)
+
+            ds = None
+        finally:
+            gdal.Unlink(ref_path)
+            gdal.Unlink(dem_path)
+            gdal.Unlink(output_path)
+
+    def test_output_preserves_reference_properties(self):
+        """Test that output raster preserves reference raster properties."""
+        test_id = uuid.uuid4().hex
+        ref_path = f"/vsimem/reference_{test_id}.tif"
+        dem_path = f"/vsimem/dem_{test_id}.tif"
+        output_path = f"/vsimem/output_{test_id}.tif"
+
+        try:
+            extent = (-123.1, -123.0, 49.0, 49.1)
+            create_test_raster(ref_path, 8, 6, extent, fill_value=1.0)
+            create_test_raster(dem_path, 8, 6, extent, fill_value=100.0)
+
+            actuals = create_test_actuals(
+                lats=[49.05],
+                lons=[-123.05],
+                temps=[15.0],
+                elevations=[100.0],
+            )
+            temperature_source = StationTemperatureSource(actuals)
+
+            interpolate_temperature_to_raster(
+                temperature_source,
+                ref_path,
+                dem_path,
+                output_path,
+            )
+
+            ref_ds = gdal.Open(ref_path)
+            out_ds = gdal.Open(output_path)
+
+            # Same dimensions
+            assert out_ds.RasterXSize == ref_ds.RasterXSize
+            assert out_ds.RasterYSize == ref_ds.RasterYSize
+
+            # Same geotransform
+            assert out_ds.GetGeoTransform() == ref_ds.GetGeoTransform()
+
+            # Same projection
+            assert out_ds.GetProjection() == ref_ds.GetProjection()
+
+            ref_ds = None
+            out_ds = None
+        finally:
+            gdal.Unlink(ref_path)
+            gdal.Unlink(dem_path)
+            gdal.Unlink(output_path)
