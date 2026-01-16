@@ -47,6 +47,7 @@ dependencies = [
     "geopandas>=1.0.1,<2",
     "shapely>=2.0.5,<3",
     "gdal==3.9.2",
+    "hypothesis>=6.150.2",
 ]
 
 [project.optional-dependencies]
