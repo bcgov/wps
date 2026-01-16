@@ -149,3 +149,27 @@ class StationPrecipitationSource(StationInterpolationSource):
             [s.lon for s in valid],
             [s.precipitation for s in valid],
         )
+
+
+class StationWindSpeedSource(StationInterpolationSource):
+    """Represents a weather station with wind speed and location data for interpolation."""
+
+    def __init__(self):
+        super().__init__()
+        self.weather_param = SFMSInterpolatedWeatherParameter.WIND_SPEED
+
+    def get_interpolation_data(
+        self, sfms_actuals: List[SFMSDailyActual]
+    ) -> Tuple[List[float], List[float], List[float]]:
+        """
+        Extract lat, lon, and wind speed for stations with valid data.
+
+        :param stations: List of StationWindSpeedSource objects
+        :return: Tuple of (lats, lons, values) for stations with valid wind speed
+        """
+        valid = [s for s in sfms_actuals if s.wind_speed is not None]
+        return (
+            [s.lat for s in valid],
+            [s.lon for s in valid],
+            [s.wind_speed for s in valid],
+        )

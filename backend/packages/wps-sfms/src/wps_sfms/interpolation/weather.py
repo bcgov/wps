@@ -11,7 +11,7 @@ from typing import List, Optional
 import numpy as np
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
-from app.sfms.sfms_common import (
+from wps_sfms.interpolation.common import (
     log_interpolation_stats,
     save_raster_to_geotiff,
 )

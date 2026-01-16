@@ -1,7 +1,7 @@
 """
-Precipitation interpolation processor for SFMS.
+Weather interpolation processor for SFMS.
 
-This processor orchestrates the daily precipitation interpolation workflow:
+This processor orchestrates the daily weather parameter interpolation workflow:
 1. Fetch station observations from WF1
 2. Interpolate to raster using IDW
 3. Upload to S3 storage
@@ -14,14 +14,12 @@ from datetime import datetime
 from typing import List
 import aiofiles
 import aiofiles.os
-from app.sfms.interpolation_source import StationInterpolationSource
+from wps_sfms.interpolation.source import StationInterpolationSource
 from wps_shared.schemas.sfms import SFMSDailyActual
-from app.sfms.weather_interpolation import interpolate_to_raster
+from wps_sfms.interpolation.weather import interpolate_to_raster
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
-from wps_shared.sfms.raster_addresser import (
-    RasterKeyAddresser,
-)
+from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 
 logger = logging.getLogger(__name__)
 

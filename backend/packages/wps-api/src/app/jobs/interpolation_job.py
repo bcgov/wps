@@ -17,13 +17,12 @@ from datetime import datetime, timezone
 from typing import List
 
 from aiohttp import ClientSession
-from app.sfms.interpolation_processor import InterpolationProcessor
-from app.sfms.interpolation_source import (
+from app.sfms.sfms_common import fetch_station_actuals
+from wps_sfms.interpolation import (
     StationInterpolationSource,
     StationPrecipitationSource,
-    StationWindSpeedSource,
 )
-from app.sfms.sfms_common import fetch_station_actuals
+from wps_sfms.processors import InterpolationProcessor
 from wps_shared.fuel_raster import find_latest_version
 from wps_shared.stations import get_stations_from_source
 from wps_shared.wildfire_one.wfwx_api import get_auth_header

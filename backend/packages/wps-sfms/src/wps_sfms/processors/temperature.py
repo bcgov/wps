@@ -11,15 +11,13 @@ import logging
 import os
 import tempfile
 from datetime import datetime
-from typing import List
 import aiofiles
 import aiofiles.os
-from app.sfms.interpolation_source import StationTemperatureSource
+from wps_sfms.interpolation.source import StationTemperatureSource
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
-from wps_shared.schemas.sfms import SFMSDailyActual
-from app.sfms.temperature_interpolation import interpolate_temperature_to_raster
+from wps_sfms.interpolation.temperature import interpolate_temperature_to_raster
 
 logger = logging.getLogger(__name__)
 

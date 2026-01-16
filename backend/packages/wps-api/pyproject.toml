@@ -6,6 +6,7 @@ authors = [{ name = "Sybrand Strauss", email = "sybrand.strauss@gov.bc.ca" }]
 requires-python = ">=3.12.3,<4.0"
 dependencies = [
     "wps-shared",
+    "wps-sfms",
     "fastapi>=0,<1",
     "requests>=2,<3",
     "aiodns>=4,<5",
@@ -63,6 +64,7 @@ dev = [
 
 [tool.uv.sources]
 wps-shared = { workspace = true }
+wps-sfms = { workspace = true }
 cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307" }
 
 [tool.hatch.metadata]

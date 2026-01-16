@@ -16,8 +16,8 @@ import sys
 from datetime import datetime, timezone
 
 from aiohttp import ClientSession
-from app.sfms.interpolation_source import StationTemperatureSource
 from app.sfms.sfms_common import fetch_station_actuals
+from wps_sfms.interpolation import StationTemperatureSource
 from wps_shared.fuel_raster import find_latest_version
 from wps_shared.stations import get_stations_from_source
 from wps_shared.wildfire_one.wfwx_api import get_auth_header
@@ -26,7 +26,7 @@ from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.time import get_utc_now
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
-from app.sfms.temperature_interpolation_processor import TemperatureInterpolationProcessor
+from wps_sfms.processors import TemperatureInterpolationProcessor
 
 logger = logging.getLogger(__name__)
 
