@@ -246,7 +246,7 @@ class TestMakeIdwWeights:
 
         # Only 2 nearest (indices 0 and 2) should have non-zero weights
         assert result[0][0] > 0  # distance 1.0 - nearest
-        assert result[0][1] == 0  # distance 3.0 - excluded
+        assert result[0][1] == pytest.approx(0)  # distance 3.0 - excluded
         assert result[0][2] > 0  # distance 2.0 - second nearest
 
     def test_max_stations_none(self):
@@ -269,9 +269,9 @@ class TestMakeIdwWeights:
         result = weights_fn(distances)
 
         # Only the exact match should have weight
-        assert result[0][0] == 1.0
-        assert result[0][1] == 0.0
-        assert result[0][2] == 0.0
+        assert result[0][0] == pytest.approx(1.0)
+        assert result[0][1] == pytest.approx(0.0)
+        assert result[0][2] == pytest.approx(0.0)
 
     def test_multiple_query_points(self):
         """Test weight calculation for multiple query points."""
