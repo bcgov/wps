@@ -4,6 +4,7 @@ Unit tests for temperature interpolation module.
 
 import pytest
 import numpy as np
+from numpy.testing import assert_allclose
 from osgeo import gdal
 from typing import Optional, cast
 from unittest.mock import Mock, patch, MagicMock
@@ -14,11 +15,9 @@ from wps_shared.geospatial.spatial_interpolation import (
     idw_interpolation,
 )
 from app.sfms.temperature_interpolation import (
-    adjust_temperature_to_sea_level,
-    adjust_temperature_to_elevation,
+    compute_actual_temperatures,
     LAPSE_RATE,
     interpolate_temperature_to_raster,
-    get_dem_path,
 )
 
 
@@ -140,60 +139,52 @@ class TestStationTemperature:
 class TestElevationAdjustment:
     """Tests for temperature elevation adjustment functions."""
 
-    def test_adjust_to_sea_level(self):
-        """Test adjusting temperature to sea level."""
-        station = StationTemperature(
-            code=123,
-            lat=49.0,
-            lon=-123.0,
-            elevation=1000.0,  # 1000m elevation
-            temperature=10.0,  # 10°C at 1000m
-        )
+    def test_scalar_inputs(self):
+        sea = 20.0
+        elev = 1000.0
+        out = compute_actual_temperatures(sea, elev, LAPSE_RATE)
+        expected = 20.0 - 1000.0 * LAPSE_RATE
+        assert_allclose(out, expected, rtol=0, atol=1e-6)
+        assert out.dtype == np.float32
 
-        # At 1000m elevation with lapse rate 0.0065°C/m
-        # Sea level temp = 10 + (1000 * 0.0065) = 10 + 6.5 = 16.5°C
-        sea_level_temp = adjust_temperature_to_sea_level(station)
+    def test_vector_inputs(self):
+        sea = np.array([20.0, 10.0, 0.0], dtype=np.float32)
+        elev = np.array([0.0, 500.0, 2000.0], dtype=np.float32)
+        out = compute_actual_temperatures(sea, elev, LAPSE_RATE)
+        expected = sea - elev * np.float32(LAPSE_RATE)
+        assert_allclose(out, expected, rtol=0, atol=1e-6)
+        assert out.dtype == np.float32
+        assert out.shape == (3,)
 
-        assert sea_level_temp == pytest.approx(16.5, rel=1e-6)
-        assert station.sea_level_temp == pytest.approx(16.5, rel=1e-6)
+    def test_zero_elevation_no_change(self):
+        sea = np.array([-5.0, 0.0, 12.3], dtype=np.float32)
+        elev = np.zeros_like(sea)
+        out = compute_actual_temperatures(sea, elev, LAPSE_RATE)
+        assert_allclose(out, sea, rtol=0, atol=0)
 
-    def test_adjust_to_sea_level_zero_elevation(self):
-        """Test that zero elevation doesn't change temperature."""
-        station = StationTemperature(
-            code=123, lat=49.0, lon=-123.0, elevation=0.0, temperature=15.0
-        )
+    def test_negative_elevation_increases_temp(self):
+        sea = np.array([10.0], dtype=np.float32)
+        elev = np.array([-100.0], dtype=np.float32)  # below sea level
+        out = compute_actual_temperatures(sea, elev, LAPSE_RATE)
+        expected = 10.0 - (-100.0) * np.float32(LAPSE_RATE)  # temperature increases
+        assert_allclose(out, expected, atol=1e-6)
 
-        sea_level_temp = adjust_temperature_to_sea_level(station)
-        assert sea_level_temp == pytest.approx(15.0)
+    def test_large_values_no_overflow(self):
+        sea = np.array([50.0], dtype=np.float32)
+        elev = np.array([9000.0], dtype=np.float32)  # 9 km
+        out = compute_actual_temperatures(sea, elev, LAPSE_RATE)
+        expected = 50.0 - 9000.0 * np.float32(LAPSE_RATE)
+        assert_allclose(out, expected, atol=1e-5)
 
-    def test_adjust_from_sea_level_to_elevation(self):
-        """Test adjusting from sea level to elevation."""
-        sea_level_temp = 20.0
-        elevation = 1000.0
-
-        # At 1000m: temp = 20 - (1000 * 0.0065) = 20 - 6.5 = 13.5°C
-        adjusted_temp = adjust_temperature_to_elevation(sea_level_temp, elevation)
-
-        assert adjusted_temp == pytest.approx(13.5, rel=1e-6)
-
-    def test_round_trip_elevation_adjustment(self):
-        """Test that adjusting to sea level and back gives original temp."""
-        original_temp = 15.0
-        elevation = 500.0
-
-        station = StationTemperature(
-            code=123, lat=49.0, lon=-123.0, elevation=elevation, temperature=original_temp
-        )
-
-        sea_level_temp = adjust_temperature_to_sea_level(station)
-        back_to_elevation = adjust_temperature_to_elevation(sea_level_temp, elevation)
-
-        assert back_to_elevation == pytest.approx(original_temp, rel=1e-6)
-
-    def test_lapse_rate_constant(self):
-        """Verify the environmental lapse rate value."""
-        # Environmental lapse rate is 6.5°C per 1000m (matches CWFIS)
-        assert LAPSE_RATE == pytest.approx(0.0065, rel=1e-6)
+    def test_lapse_rate_sign_contract(self):
+        sea = np.array([20.0], dtype=np.float32)
+        elev = np.array([1000.0], dtype=np.float32)
+        # Positive lapse rate → cooling with altitude
+        out_pos = compute_actual_temperatures(sea, elev, lapse_rate=0.0065)
+        # Negative lapse rate would imply warming with altitude (physically wrong here)
+        out_neg = compute_actual_temperatures(sea, elev, lapse_rate=-0.0065)
+        assert out_pos < sea[0]
+        assert out_neg > sea[0]
 
 
 class TestHaversineDistance:
@@ -237,10 +228,6 @@ class TestIDWInterpolation:
             StationTemperature(code=2, lat=50.0, lon=-124.0, elevation=200, temperature=20.0),
         ]
 
-        # Adjust to sea level
-        for station in stations:
-            adjust_temperature_to_sea_level(station)
-
         # Prepare lists for IDW
         lats = [s.lat for s in stations]
         lons = [s.lon for s in stations]
@@ -258,10 +245,6 @@ class TestIDWInterpolation:
             StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=10.0),
             StationTemperature(code=2, lat=50.0, lon=-123.0, elevation=0, temperature=20.0),
         ]
-
-        # Adjust to sea level (no change since elevation is 0)
-        for station in stations:
-            adjust_temperature_to_sea_level(station)
 
         # Prepare lists for IDW
         lats = [s.lat for s in stations]
@@ -286,9 +269,6 @@ class TestIDWInterpolation:
             StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
         ]
 
-        for station in stations:
-            adjust_temperature_to_sea_level(station)
-
         # Prepare lists for IDW
         lats = [s.lat for s in stations]
         lons = [s.lon for s in stations]
@@ -304,10 +284,6 @@ class TestIDWInterpolation:
             StationTemperature(code=1, lat=49.0, lon=-123.0, elevation=0, temperature=15.0),
             StationTemperature(code=2, lat=50.0, lon=-124.0, elevation=0, temperature=20.0),
         ]
-
-        # Only adjust first station
-        adjust_temperature_to_sea_level(stations[0])
-        # Leave second station's sea_level_temp as None
 
         # Prepare lists for IDW (including None value)
         lats = [s.lat for s in stations]
@@ -426,28 +402,6 @@ class TestInterpolateTemperatureToRaster:
                 assert non_nodata_count > 0, "Expected some cells to be interpolated"
 
 
-class TestGetDemPath:
-    """Tests for get_dem_path function."""
-
-    def test_get_dem_path_returns_correct_format(self):
-        """Test that get_dem_path returns correct S3 path format."""
-        with patch("app.sfms.temperature_interpolation.config") as mock_config:
-            mock_config.get.return_value = "test-bucket"
-
-            result = get_dem_path()
-
-            assert result == "/vsis3/test-bucket/sfms/static/bc_elevation.tif"
-
-    def test_get_dem_path_with_different_config(self):
-        """Test get_dem_path with different config values."""
-        with patch("app.sfms.temperature_interpolation.config") as mock_config:
-            mock_config.get.return_value = "production-bucket"
-
-            result = get_dem_path()
-
-            assert result == "/vsis3/production-bucket/sfms/static/bc_elevation.tif"
-
-
 class TestIntegrationScenario:
     """Integration tests simulating real-world scenarios."""
 
@@ -465,10 +419,6 @@ class TestIntegrationScenario:
                 code=3, lat=49.2, lon=-123.2, elevation=1000, temperature=5.0
             ),  # 1000m, 5°C
         ]
-
-        # Adjust all to sea level
-        for station in stations:
-            adjust_temperature_to_sea_level(station)
 
         # Verify sea level adjustments
         # Station 1: 15 + 0 = 15°C
@@ -490,7 +440,7 @@ class TestIntegrationScenario:
         assert interpolated is not None
 
         # Adjust back to elevation (e.g., 250m)
-        final_temp = adjust_temperature_to_elevation(interpolated, 250)
+        final_temp = compute_actual_temperatures(interpolated, 250)
 
         # Should be reasonable (between 5-15°C range)
         assert 5.0 <= final_temp <= 15.0

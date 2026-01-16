@@ -9,12 +9,9 @@ This module implements the SFMS temperature interpolation workflow:
 """
 
 import logging
-from datetime import datetime
 from typing import List, Optional
 import numpy as np
 from osgeo import gdal
-from wps_shared.schemas.stations import WeatherStation
-from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from app.sfms.sfms_common import (
@@ -29,36 +26,33 @@ logger = logging.getLogger(__name__)
 LAPSE_RATE = 0.0065
 
 
-def adjust_temperature_to_sea_level(station: StationTemperature) -> float:
+def compute_actual_temperatures(
+    sea: np.ndarray, elev: np.ndarray, lapse_rate: float, out_dtype=np.float32
+) -> np.ndarray:
     """
-    Adjust station temperature to sea level (0m elevation) using dry adiabatic lapse rate.
+    Compute actual temperatures from sea-level temps and elevations:
+      T(z) = T0 - z * lapse_rate
 
-    Temperature decreases by 6.5°C per 1000m of elevation gain.
-    To adjust to sea level, we ADD temperature based on elevation:
-    T_sea_level = T_station + (elevation * lapse_rate)
+    Parameters
+    ----------
+    sea : array-like
+        Sea-level temperatures (C). Broadcastable against `elev`.
+    elev : array-like
+        Elevations (m). Broadcastable against `sea`.
+    lapse_rate : float
+        Environmental lapse rate in C per meter (positive = cooling with elevation).
+    out_dtype : np.dtype
+        Output dtype, default float32 to match raster array.
 
-    :param station: StationTemperature object with elevation and temperature
-    :return: Temperature adjusted to sea level in Celsius
+    Returns
+    -------
+    np.ndarray
+        Actual temperatures with dtype `out_dtype`.
     """
-    adjustment = station.elevation * LAPSE_RATE
-    sea_level_temp = station.temperature + adjustment
-    station.sea_level_temp = sea_level_temp
-    return sea_level_temp
-
-
-def adjust_temperature_to_elevation(sea_level_temp: float, elevation: float) -> float:
-    """
-    Adjust sea level temperature to actual elevation using dry adiabatic lapse rate.
-
-    Temperature decreases by 6.5°C per 1000m of elevation gain.
-    T_elevation = T_sea_level - (elevation * lapse_rate)
-
-    :param sea_level_temp: Temperature at sea level in Celsius
-    :param elevation: Elevation in meters
-    :return: Temperature adjusted to elevation in Celsius
-    """
-    adjustment = elevation * LAPSE_RATE
-    return sea_level_temp - adjustment
+    sea = np.asarray(sea, dtype=out_dtype)
+    elev = np.asarray(elev, dtype=out_dtype)
+    # Use fused/matched dtype ops to avoid accidental upcasting
+    return sea - elev * np.asarray(lapse_rate, dtype=out_dtype)
 
 
 def interpolate_temperature_to_raster(
@@ -150,7 +144,7 @@ def interpolate_temperature_to_raster(
             elev = valid_elevations[interpolation_succeeded].astype(np.float32, copy=False)
 
             # Environmental lapse rate is positive (°C per meter); cooling with elevation is subtraction
-            actual_temps = sea - elev * np.float32(LAPSE_RATE)
+            actual_temps = compute_actual_temperatures(sea, elev, LAPSE_RATE, out_dtype=np.float32)
 
             # Write the results directly into the output raster
             temp_array[rows, cols] = actual_temps
