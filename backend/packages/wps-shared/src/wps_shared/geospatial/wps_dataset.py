@@ -372,35 +372,47 @@ class WPSDataset:
         """
         Apply a mask from another dataset to get a valid mask array.
 
-        The mask dataset is resampled to match this dataset's grid using
-        nearest neighbor interpolation. Pixels are valid where the mask
-        value is non-zero and not nodata.
+        If the mask dataset's grid matches this dataset, it is used directly.
+        Otherwise, it is resampled using nearest neighbor interpolation.
+        Pixels are valid where the mask value is non-zero and not nodata.
 
         :param mask_ds: WPSDataset containing mask (0 = masked, non-zero = valid)
         :return: Boolean array where True = valid, False = masked
         """
-        import uuid
+        grids_match = (
+            self.ds.RasterXSize == mask_ds.ds.RasterXSize
+            and self.ds.RasterYSize == mask_ds.ds.RasterYSize
+            and self.ds.GetGeoTransform() == mask_ds.ds.GetGeoTransform()
+            and self.ds.GetProjection() == mask_ds.ds.GetProjection()
+        )
 
-        vsimem_path = f"/vsimem/temp_mask_resample_{uuid.uuid4().hex}.tif"
-        try:
-            resampled_mask = mask_ds.warp_to_match(
-                self, vsimem_path, resample_method=GDALResamplingMethod.NEAREST_NEIGHBOUR
-            )
-            mask_band: gdal.Band = resampled_mask.ds.GetRasterBand(1)
+        if grids_match:
+            mask_band: gdal.Band = mask_ds.ds.GetRasterBand(1)
             mask_data = mask_band.ReadAsArray()
             mask_nodata = mask_band.GetNoDataValue()
+        else:
+            import uuid
 
-            # Mask is valid where value is non-zero and not nodata
-            valid_mask = mask_data != 0
-            if mask_nodata is not None:
-                valid_mask = valid_mask & (mask_data != mask_nodata)
-
-            return valid_mask
-        finally:
+            vsimem_path = f"/vsimem/temp_mask_resample_{uuid.uuid4().hex}.tif"
             try:
-                gdal.Unlink(vsimem_path)
-            except RuntimeError:
-                pass  # File doesn't exist or already cleaned up
+                resampled_mask = mask_ds.warp_to_match(
+                    self, vsimem_path, resample_method=GDALResamplingMethod.NEAREST_NEIGHBOUR
+                )
+                mask_band: gdal.Band = resampled_mask.ds.GetRasterBand(1)
+                mask_data = mask_band.ReadAsArray()
+                mask_nodata = mask_band.GetNoDataValue()
+            finally:
+                try:
+                    gdal.Unlink(vsimem_path)
+                except RuntimeError:
+                    pass  # File doesn't exist or already cleaned up
+
+        # Mask is valid where value is non-zero and not nodata
+        valid_mask = mask_data != 0
+        if mask_nodata is not None:
+            valid_mask = valid_mask & (mask_data != mask_nodata)
+
+        return valid_mask
 
     def get_valid_mask(self) -> np.ndarray:
         """
@@ -408,7 +420,7 @@ class WPSDataset:
 
         :return: Boolean array where True = valid, False = nodata
         """
-        band = self.ds.GetRasterBand(self.band)
+        band: gdal.Band = self.ds.GetRasterBand(self.band)
         nodata = band.GetNoDataValue()
         y_size = self.ds.RasterYSize
         x_size = self.ds.RasterXSize
