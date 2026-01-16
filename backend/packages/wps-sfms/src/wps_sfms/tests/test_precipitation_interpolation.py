@@ -6,7 +6,7 @@ import numpy as np
 from typing import Optional, cast
 from unittest.mock import Mock, patch, MagicMock
 from osgeo import gdal
-from wps_sfms.interpolation.weather import interpolate_to_raster
+from wps_sfms.interpolation.precipitation import interpolate_to_raster
 
 
 def create_mock_raster_dataset(
@@ -74,8 +74,8 @@ class TestInterpolateToRaster:
 
         mock_ref_ctx = create_mock_raster_dataset()
 
-        with patch("wps_sfms.interpolation.weather.WPSDataset") as mock_wps_dataset:
-            with patch("wps_sfms.interpolation.weather.save_raster_to_geotiff") as mock_save:
+        with patch("wps_sfms.interpolation.precipitation.WPSDataset") as mock_wps_dataset:
+            with patch("wps_sfms.interpolation.precipitation.save_raster_to_geotiff") as mock_save:
                 mock_wps_dataset.return_value = mock_ref_ctx
 
                 result = interpolate_to_raster(
@@ -97,8 +97,8 @@ class TestInterpolateToRaster:
 
         mock_ref_ctx = create_mock_raster_dataset(raster_size=(5, 5))
 
-        with patch("wps_sfms.interpolation.weather.WPSDataset") as mock_wps_dataset:
-            with patch("wps_sfms.interpolation.weather.save_raster_to_geotiff"):
+        with patch("wps_sfms.interpolation.precipitation.WPSDataset") as mock_wps_dataset:
+            with patch("wps_sfms.interpolation.precipitation.save_raster_to_geotiff"):
                 mock_wps_dataset.return_value = mock_ref_ctx
 
                 result = interpolate_to_raster(
@@ -128,9 +128,9 @@ class TestInterpolateToRaster:
             geotransform=(-123.1, 0.05, 0, 49.1, 0, -0.05),
         )
 
-        with patch("wps_sfms.interpolation.weather.WPSDataset") as mock_wps_dataset:
+        with patch("wps_sfms.interpolation.precipitation.WPSDataset") as mock_wps_dataset:
             with patch(
-                "wps_sfms.interpolation.weather.save_raster_to_geotiff",
+                "wps_sfms.interpolation.precipitation.save_raster_to_geotiff",
                 side_effect=capture_save,
             ):
                 mock_wps_dataset.return_value = mock_ref_ctx
@@ -164,9 +164,9 @@ class TestInterpolateToRaster:
 
         mock_ref_ctx = create_mock_raster_dataset(raster_size=(3, 3))
 
-        with patch("wps_sfms.interpolation.weather.WPSDataset") as mock_wps_dataset:
+        with patch("wps_sfms.interpolation.precipitation.WPSDataset") as mock_wps_dataset:
             with patch(
-                "wps_sfms.interpolation.weather.save_raster_to_geotiff",
+                "wps_sfms.interpolation.precipitation.save_raster_to_geotiff",
                 side_effect=capture_save,
             ):
                 mock_wps_dataset.return_value = mock_ref_ctx

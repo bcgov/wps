@@ -24,7 +24,7 @@ from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 logger = logging.getLogger(__name__)
 
 
-class InterpolationProcessor:
+class PrecipitationInterpolationProcessor:
     """Processor for interpolating station weather values to raster format."""
 
     def __init__(self, datetime_to_process: datetime, raster_addresser: RasterKeyAddresser):

@@ -22,7 +22,7 @@ from wps_sfms.interpolation import (
     StationInterpolationSource,
     StationPrecipitationSource,
 )
-from wps_sfms.processors import InterpolationProcessor
+from wps_sfms.processors import PrecipitationInterpolationProcessor
 from wps_shared.fuel_raster import find_latest_version
 from wps_shared.stations import get_stations_from_source
 from wps_shared.wildfire_one.wfwx_api import get_auth_header
@@ -35,7 +35,7 @@ from wps_shared.utils.s3_client import S3Client
 logger = logging.getLogger(__name__)
 
 
-class InterpolationJob:
+class PrecipitationInterpolationJob:
     """Job for processing weather parameter interpolation."""
 
     async def run(self, target_date: datetime) -> None:
@@ -56,7 +56,7 @@ class InterpolationJob:
             datetime_to_process = target_date.replace(hour=20, minute=0, second=0, microsecond=0)
 
             # Process precipitation interpolation
-            processor = InterpolationProcessor(datetime_to_process, raster_addresser)
+            processor = PrecipitationInterpolationProcessor(datetime_to_process, raster_addresser)
 
             async with S3Client() as s3_client:
                 # Use a reference raster for grid properties
@@ -121,7 +121,7 @@ def main():
         target_date = get_utc_now()
 
     try:
-        job = InterpolationJob()
+        job = PrecipitationInterpolationJob()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(job.run(target_date))

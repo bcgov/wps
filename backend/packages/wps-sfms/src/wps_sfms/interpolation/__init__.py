@@ -10,7 +10,7 @@ from wps_sfms.interpolation.source import (
     StationWindSpeedSource,
 )
 from wps_sfms.interpolation.temperature import interpolate_temperature_to_raster
-from wps_sfms.interpolation.weather import interpolate_to_raster
+from wps_sfms.interpolation.precipitation import interpolate_to_raster
 from wps_sfms.interpolation.common import log_interpolation_stats, save_raster_to_geotiff
 
 __all__ = [
