@@ -13,13 +13,11 @@ from datetime import datetime
 from typing import List, Optional
 import numpy as np
 from osgeo import gdal
-from aiohttp import ClientSession
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from app.sfms.sfms_common import (
-    fetch_station_observations,
     log_interpolation_stats,
     save_raster_to_geotiff,
 )
@@ -29,44 +27,6 @@ logger = logging.getLogger(__name__)
 # Environmental lapse rate: 6.5°C per 1000m elevation (average observed rate)
 # This matches the CWFIS implementation
 LAPSE_RATE = 0.0065
-
-
-async def fetch_station_temperatures(
-    session: ClientSession,
-    headers: dict,
-    time_of_interest: datetime,
-    stations: List[WeatherStation],
-) -> List[StationTemperature]:
-    """
-    Fetch temperature data from WF1 for all stations with values.
-
-    :param session: aiohttp ClientSession for making requests
-    :param headers: Authentication headers for WF1 API
-    :param time_of_interest: The datetime to fetch observations for
-    :param stations: List of WeatherStation objects with elevation data
-    :return: List of StationTemperature objects with valid temperature readings
-    """
-
-    def create_temperature_record(
-        station_code: int, station: WeatherStation, value: float
-    ) -> StationTemperature:
-        return StationTemperature(
-            code=station_code,
-            lat=station.lat,
-            lon=station.long,
-            elevation=float(station.elevation),  # type: ignore[arg-type]
-            temperature=value,
-        )
-
-    return await fetch_station_observations(
-        session=session,
-        headers=headers,
-        time_of_interest=time_of_interest,
-        stations=stations,
-        field_name="temperature",
-        create_record=create_temperature_record,
-        require_elevation=True,
-    )
 
 
 def adjust_temperature_to_sea_level(station: StationTemperature) -> float:
