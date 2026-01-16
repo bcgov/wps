@@ -7,7 +7,6 @@ from wps_sfms.interpolation.source import (
     StationInterpolationSource,
     StationTemperatureSource,
     StationPrecipitationSource,
-    StationWindSpeedSource,
 )
 from wps_sfms.interpolation.temperature import interpolate_temperature_to_raster
 from wps_sfms.interpolation.precipitation import interpolate_to_raster
@@ -18,7 +17,6 @@ __all__ = [
     "StationInterpolationSource",
     "StationTemperatureSource",
     "StationPrecipitationSource",
-    "StationWindSpeedSource",
     "interpolate_temperature_to_raster",
     "interpolate_to_raster",
     "log_interpolation_stats",
