@@ -2,15 +2,11 @@
 Unit tests for temperature interpolation module.
 """
 
-import pytest
 import numpy as np
 from osgeo import gdal
 from typing import Optional, cast
 from unittest.mock import Mock, patch, MagicMock
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.geospatial.spatial_interpolation import (
-    idw_interpolation,
-)
 from app.sfms.temperature_interpolation import (
     interpolate_temperature_to_raster,
 )
@@ -113,67 +109,6 @@ def create_mock_raster_datasets(
     mock_dem_ctx.__exit__ = Mock(return_value=False)
 
     return mock_ref_ds, mock_dem_ds, mock_output_ds, mock_ref_ctx, mock_dem_ctx
-
-
-class TestIDWInterpolation:
-    """Tests for Inverse Distance Weighting interpolation."""
-
-    def test_idw_exact_match(self):
-        """Test that IDW returns station value when point is at station."""
-        # Prepare lists for IDW
-        lats = [49.0, 50.0]
-        lons = [-123.0, -124.0]
-        values = [15.0, 12.0]
-
-        # Query at exact station location
-        result = idw_interpolation(49.0, -123.0, lats, lons, values)
-
-        # Should return the sea level temp of the first station
-        assert result == pytest.approx(values[0], rel=1e-6)
-
-    def test_idw_between_two_stations(self):
-        """Test IDW interpolation between two stations."""
-        # Prepare lists for IDW
-        lats = [49.0, 50.0]
-        lons = [-123.0, -123.0]
-        values = [10.0, 20.0]
-
-        # Query at midpoint
-        result = idw_interpolation(49.5, -123.0, lats, lons, values)
-
-        # Should be weighted average, closer to midpoint
-        assert result is not None
-        assert 10.0 < result < 20.0
-
-    def test_idw_no_stations(self):
-        """Test that IDW returns None when no stations provided."""
-        result = idw_interpolation(49.0, -123.0, [], [], [])
-        assert result is None
-
-    def test_idw_outside_search_radius(self):
-        """Test that IDW returns None when all stations outside search radius."""
-        # Prepare lists for IDW
-        lats = [49.0]
-        lons = [-123.0]
-        values = [15.0]
-
-        # Query far away (at least 200km away)
-        result = idw_interpolation(52.0, -128.0, lats, lons, values, search_radius=100000)
-        assert result is None
-
-    def test_idw_with_none_sea_level_temp(self):
-        """Test that IDW handles points with None values."""
-
-        # Prepare lists for IDW (including None value)
-        lats = [49.0, 50.0]
-        lons = [-123.0, -124.0]
-        values = [15.0, None]
-
-        result = idw_interpolation(49.5, -123.5, lats, lons, values)
-
-        # Should still work with only one valid station
-        assert result is not None
-        assert result == pytest.approx(values[0], abs=1.0)
 
 
 class TestInterpolateTemperatureToRaster:
