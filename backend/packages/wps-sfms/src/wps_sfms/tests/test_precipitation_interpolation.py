@@ -1,187 +1,212 @@
 """
-Unit tests for weather interpolation module.
+Unit tests for precipitation interpolation module.
 """
 
 import numpy as np
-from typing import Optional, cast
-from unittest.mock import Mock, patch, MagicMock
-from osgeo import gdal
+import uuid
+from osgeo import gdal, osr
 from wps_sfms.interpolation.precipitation import interpolate_to_raster
 
 
-def create_mock_raster_dataset(
-    raster_size=(10, 10),
-    nodata: Optional[float] = -9999.0,
-    geotransform=(0, 1, 0, 50, 0, -1),
-):
+def create_test_raster(path: str, width: int, height: int, extent: tuple, epsg: int = 4326, fill_value: float = 1.0, nodata: float = -9999.0):
     """
-    Create a mock WPSDataset for raster interpolation tests.
+    Create a test GeoTIFF raster in memory using GDAL's /vsimem/ filesystem.
 
-    :param raster_size: Tuple of (x_size, y_size) for raster dimensions
-    :param nodata: NoData value for the raster
-    :param geotransform: GDAL geotransform tuple
-    :return: Mock context manager for WPSDataset
+    :param path: Output path (should use /vsimem/ prefix)
+    :param width: Raster width in pixels
+    :param height: Raster height in pixels
+    :param extent: (xmin, xmax, ymin, ymax)
+    :param epsg: EPSG code for projection
+    :param fill_value: Value to fill raster with
+    :param nodata: NoData value
+    :return: None
     """
-    x_size, y_size = raster_size
+    driver = gdal.GetDriverByName("GTiff")
+    ds = driver.Create(path, width, height, 1, gdal.GDT_Float32)
 
-    mock_ds = cast(gdal.Dataset, Mock())
-    mock_ds.GetGeoTransform.return_value = geotransform
-    mock_ds.GetProjection.return_value = (
-        'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]]]'
-    )
-    mock_ds.RasterXSize = x_size
-    mock_ds.RasterYSize = y_size
+    xmin, xmax, ymin, ymax = extent
+    xres = (xmax - xmin) / width
+    yres = (ymax - ymin) / height
+    ds.SetGeoTransform((xmin, xres, 0, ymax, 0, -yres))
 
-    # Mock band for nodata
-    mock_band = cast(gdal.Band, Mock())
-    mock_band.GetNoDataValue.return_value = nodata
-    mock_ds.GetRasterBand.return_value = mock_band
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(epsg)
+    ds.SetProjection(srs.ExportToWkt())
 
-    # Mock get_lat_lon_coords to return valid coordinates
-    def mock_get_lat_lon_coords(valid_mask=None):
-        if valid_mask is None:
-            valid_mask = np.ones((y_size, x_size), dtype=bool)
-        valid_yi, valid_xi = np.where(valid_mask)
-        # Generate mock lat/lon coords based on indices
-        lats = 49.0 + valid_yi * 0.01
-        lons = -123.0 - valid_xi * 0.01
-        return lats, lons, valid_yi, valid_xi
+    band = ds.GetRasterBand(1)
+    band.SetNoDataValue(nodata)
+    band.WriteArray(np.full((height, width), fill_value, dtype=np.float32))
+    band.FlushCache()
 
-    # Mock get_valid_mask to return valid mask (all pixels valid)
-    def mock_get_valid_mask():
-        return np.ones((y_size, x_size), dtype=bool)
-
-    mock_wrapper = Mock()
-    mock_wrapper.ds = mock_ds
-    mock_wrapper.get_lat_lon_coords = Mock(side_effect=mock_get_lat_lon_coords)
-    mock_wrapper.get_valid_mask = Mock(side_effect=mock_get_valid_mask)
-
-    mock_ctx = MagicMock()
-    mock_ctx.__enter__ = Mock(return_value=mock_wrapper)
-    mock_ctx.__exit__ = Mock(return_value=False)
-
-    return mock_ctx
+    ds = None  # Close dataset
 
 
 class TestInterpolateToRaster:
     """Tests for interpolate_to_raster function."""
 
-    def test_interpolate_basic_success(self):
-        """Test successful raster interpolation."""
-        station_lats = [49.0, 49.1]
-        station_lons = [-123.0, -123.1]
-        station_values = [5.0, 10.0]
+    def test_interpolation_produces_valid_output(self):
+        """Test that interpolation creates an output raster with interpolated values."""
+        test_id = uuid.uuid4().hex
+        ref_path = f"/vsimem/reference_{test_id}.tif"
+        output_path = f"/vsimem/output_{test_id}.tif"
 
-        mock_ref_ctx = create_mock_raster_dataset()
+        try:
+            # Create a small reference raster centered near Vancouver
+            # Extent covers roughly 49.0-49.1 lat, -123.1 to -123.0 lon
+            create_test_raster(ref_path, 10, 10, (-123.1, -123.0, 49.0, 49.1), epsg=4326)
 
-        with patch("wps_sfms.interpolation.precipitation.WPSDataset") as mock_wps_dataset:
-            with patch("wps_sfms.interpolation.precipitation.save_raster_to_geotiff") as mock_save:
-                mock_wps_dataset.return_value = mock_ref_ctx
+            # Station data within the raster extent
+            station_lats = [49.05, 49.08]
+            station_lons = [-123.05, -123.02]
+            station_values = [10.0, 20.0]
 
-                result = interpolate_to_raster(
-                    station_lats,
-                    station_lons,
-                    station_values,
-                    "/path/to/ref.tif",
-                    "/path/to/output.tif",
-                )
+            result = interpolate_to_raster(
+                station_lats,
+                station_lons,
+                station_values,
+                ref_path,
+                output_path,
+            )
 
-                assert result == "/path/to/output.tif"
-                mock_save.assert_called_once()
+            assert result == output_path
 
-    def test_interpolate_with_single_station(self):
+            # Read output and verify
+            ds = gdal.Open(output_path)
+            assert ds is not None
+
+            data = ds.GetRasterBand(1).ReadAsArray()
+            nodata = ds.GetRasterBand(1).GetNoDataValue()
+
+            # Should have same dimensions as reference
+            assert data.shape == (10, 10)
+
+            # Should have some interpolated values (not all nodata)
+            valid_count = np.sum(data != nodata)
+            assert valid_count > 0, "Expected some interpolated values"
+
+            # Interpolated values should be in range of station values
+            valid_values = data[data != nodata]
+            assert np.all(valid_values >= 10.0 - 0.1)
+            assert np.all(valid_values <= 20.0 + 0.1)
+
+            ds = None
+        finally:
+            gdal.Unlink(ref_path)
+            gdal.Unlink(output_path)
+
+    def test_zero_values_interpolated_correctly(self):
+        """Test that zero precipitation values are interpolated as 0.0, not nodata."""
+        test_id = uuid.uuid4().hex
+        ref_path = f"/vsimem/reference_{test_id}.tif"
+        output_path = f"/vsimem/output_{test_id}.tif"
+
+        try:
+            create_test_raster(ref_path, 5, 5, (-123.1, -123.0, 49.0, 49.1), epsg=4326)
+
+            # All stations have zero precipitation
+            station_lats = [49.05, 49.08]
+            station_lons = [-123.05, -123.02]
+            station_values = [0.0, 0.0]
+
+            result = interpolate_to_raster(
+                station_lats,
+                station_lons,
+                station_values,
+                ref_path,
+                output_path,
+            )
+
+            assert result == output_path
+
+            ds = gdal.Open(output_path)
+            data = ds.GetRasterBand(1).ReadAsArray()
+            nodata = ds.GetRasterBand(1).GetNoDataValue()
+
+            # Interpolated values should be 0.0, not nodata
+            valid_values = data[data != nodata]
+            assert len(valid_values) > 0, "Expected some interpolated values"
+            assert np.allclose(valid_values, 0.0), "Zero values should interpolate to 0.0"
+
+            ds = None
+        finally:
+            gdal.Unlink(ref_path)
+            gdal.Unlink(output_path)
+
+    def test_single_station_interpolation(self):
         """Test interpolation with a single station."""
-        station_lats = [49.0]
-        station_lons = [-123.0]
-        station_values = [7.5]
+        test_id = uuid.uuid4().hex
+        ref_path = f"/vsimem/reference_{test_id}.tif"
+        output_path = f"/vsimem/output_{test_id}.tif"
 
-        mock_ref_ctx = create_mock_raster_dataset(raster_size=(5, 5))
+        try:
+            create_test_raster(ref_path, 5, 5, (-123.1, -123.0, 49.0, 49.1), epsg=4326)
 
-        with patch("wps_sfms.interpolation.precipitation.WPSDataset") as mock_wps_dataset:
-            with patch("wps_sfms.interpolation.precipitation.save_raster_to_geotiff"):
-                mock_wps_dataset.return_value = mock_ref_ctx
+            # Single station
+            station_lats = [49.05]
+            station_lons = [-123.05]
+            station_values = [15.0]
 
-                result = interpolate_to_raster(
-                    station_lats,
-                    station_lons,
-                    station_values,
-                    "/path/to/ref.tif",
-                    "/path/to/output.tif",
-                )
+            result = interpolate_to_raster(
+                station_lats,
+                station_lons,
+                station_values,
+                ref_path,
+                output_path,
+            )
 
-                assert result == "/path/to/output.tif"
+            assert result == output_path
 
-    def test_interpolate_captures_output_array(self):
-        """Test interpolation verifying output array is properly populated."""
-        station_lats = [49.0]
-        station_lons = [-123.0]
-        station_values = [5.0]
+            ds = gdal.Open(output_path)
+            data = ds.GetRasterBand(1).ReadAsArray()
+            nodata = ds.GetRasterBand(1).GetNoDataValue()
 
-        captured_array = None
+            # With single station, all interpolated values should equal station value
+            valid_values = data[data != nodata]
+            assert len(valid_values) > 0
+            assert np.allclose(valid_values, 15.0)
 
-        def capture_save(array, *args, **kwargs):
-            nonlocal captured_array
-            captured_array = array
+            ds = None
+        finally:
+            gdal.Unlink(ref_path)
+            gdal.Unlink(output_path)
 
-        mock_ref_ctx = create_mock_raster_dataset(
-            raster_size=(3, 3),
-            geotransform=(-123.1, 0.05, 0, 49.1, 0, -0.05),
-        )
+    def test_output_preserves_reference_properties(self):
+        """Test that output raster preserves reference raster properties."""
+        test_id = uuid.uuid4().hex
+        ref_path = f"/vsimem/reference_{test_id}.tif"
+        output_path = f"/vsimem/output_{test_id}.tif"
 
-        with patch("wps_sfms.interpolation.precipitation.WPSDataset") as mock_wps_dataset:
-            with patch(
-                "wps_sfms.interpolation.precipitation.save_raster_to_geotiff",
-                side_effect=capture_save,
-            ):
-                mock_wps_dataset.return_value = mock_ref_ctx
+        try:
+            extent = (-123.1, -123.0, 49.0, 49.1)
+            create_test_raster(ref_path, 8, 6, extent, epsg=4326)
 
-                result = interpolate_to_raster(
-                    station_lats,
-                    station_lons,
-                    station_values,
-                    "/path/to/ref.tif",
-                    "/path/to/output.tif",
-                )
+            station_lats = [49.05]
+            station_lons = [-123.05]
+            station_values = [10.0]
 
-                assert result == "/path/to/output.tif"
-                assert captured_array is not None
-                assert captured_array.shape == (3, 3)
-                # At least some cells should have been interpolated
-                non_nodata_count = np.sum(captured_array != -9999.0)
-                assert non_nodata_count > 0, "Expected some cells to be interpolated"
+            interpolate_to_raster(
+                station_lats,
+                station_lons,
+                station_values,
+                ref_path,
+                output_path,
+            )
 
-    def test_interpolate_with_zero_precipitation(self):
-        """Test that zero precipitation values are correctly interpolated."""
-        station_lats = [49.0, 49.1]
-        station_lons = [-123.0, -123.1]
-        station_values = [0.0, 0.0]
+            ref_ds = gdal.Open(ref_path)
+            out_ds = gdal.Open(output_path)
 
-        captured_array = None
+            # Same dimensions
+            assert out_ds.RasterXSize == ref_ds.RasterXSize
+            assert out_ds.RasterYSize == ref_ds.RasterYSize
 
-        def capture_save(array, *args, **kwargs):
-            nonlocal captured_array
-            captured_array = array
+            # Same geotransform
+            assert out_ds.GetGeoTransform() == ref_ds.GetGeoTransform()
 
-        mock_ref_ctx = create_mock_raster_dataset(raster_size=(3, 3))
+            # Same projection
+            assert out_ds.GetProjection() == ref_ds.GetProjection()
 
-        with patch("wps_sfms.interpolation.precipitation.WPSDataset") as mock_wps_dataset:
-            with patch(
-                "wps_sfms.interpolation.precipitation.save_raster_to_geotiff",
-                side_effect=capture_save,
-            ):
-                mock_wps_dataset.return_value = mock_ref_ctx
-
-                result = interpolate_to_raster(
-                    station_lats,
-                    station_lons,
-                    station_values,
-                    "/path/to/ref.tif",
-                    "/path/to/output.tif",
-                )
-
-                assert result == "/path/to/output.tif"
-                # Interpolated values should be 0.0, not nodata
-                assert captured_array is not None
-                interpolated_values = captured_array[captured_array != -9999.0]
-                assert len(interpolated_values) > 0
-                assert np.allclose(interpolated_values, 0.0)
+            ref_ds = None
+            out_ds = None
+        finally:
+            gdal.Unlink(ref_path)
+            gdal.Unlink(output_path)

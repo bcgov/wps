@@ -295,9 +295,10 @@ class WPSDataset:
         # Setup coordinate transformation
         src_srs = osr.SpatialReference()
         src_srs.ImportFromWkt(projection)
+        # Use traditional GIS order (lon, lat) for consistent axis ordering
+        src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
         tgt_srs = osr.SpatialReference()
         tgt_srs.ImportFromEPSG(4326)
-        # Use traditional GIS order (lon, lat) for consistent axis ordering
         tgt_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
         transform = osr.CoordinateTransformation(src_srs, tgt_srs)
 
