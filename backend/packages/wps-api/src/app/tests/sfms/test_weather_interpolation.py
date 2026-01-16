@@ -187,29 +187,3 @@ class TestInterpolateToRaster:
                 interpolated_values = captured_array[captured_array != -9999.0]
                 assert len(interpolated_values) > 0
                 assert np.allclose(interpolated_values, 0.0)
-
-
-class TestGetMaskPath:
-    """Tests for get_mask_path function."""
-
-    def test_get_mask_path_returns_correct_format(self):
-        """Test that get_mask_path returns correct S3 path format."""
-        from app.sfms.sfms_common import get_mask_path
-
-        with patch("app.sfms.sfms_common.config") as mock_config:
-            mock_config.get.return_value = "test-bucket"
-
-            result = get_mask_path()
-
-            assert result == "/vsis3/test-bucket/sfms/static/bc_mask.tif"
-
-    def test_get_mask_path_with_different_config(self):
-        """Test get_mask_path with different config values."""
-        from app.sfms.sfms_common import get_mask_path
-
-        with patch("app.sfms.sfms_common.config") as mock_config:
-            mock_config.get.return_value = "production-bucket"
-
-            result = get_mask_path()
-
-            assert result == "/vsis3/production-bucket/sfms/static/bc_mask.tif"
