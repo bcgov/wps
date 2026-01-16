@@ -5,7 +5,7 @@ from hypothesis import given, strategies as st, settings
 import hypothesis.extra.numpy as hnp
 
 
-from app.sfms.interpolation_source import LAPSE_RATE, StationTemperatureSource
+from wps_sfms.interpolation.source import LAPSE_RATE, StationTemperatureSource
 
 
 def test_zero_elevation_identity():

@@ -10,7 +10,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = []
+dev = [
+    "hypothesis>=6.150.2",
+]
 
 [tool.uv.sources]
 wps-shared = { workspace = true }
