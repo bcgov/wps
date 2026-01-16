@@ -11,7 +11,6 @@ from unittest.mock import Mock, patch, MagicMock
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.geospatial.spatial_interpolation import (
-    haversine_distance,
     idw_interpolation,
 )
 from app.sfms.temperature_interpolation import (
@@ -134,37 +133,6 @@ class TestStationTemperature:
         assert station.elevation == pytest.approx(500.0)
         assert station.temperature == pytest.approx(20.0)
         assert station.sea_level_temp is None
-
-
-class TestHaversineDistance:
-    """Tests for haversine distance calculation."""
-
-    def test_same_point(self):
-        """Test that distance between same point is zero."""
-        lat, lon = 49.0, -123.0
-        distance = haversine_distance(lat, lon, lat, lon)
-        assert distance == pytest.approx(0.0, abs=1.0)  # Within 1 meter
-
-    def test_known_distance(self):
-        """Test haversine with known distance."""
-        # Vancouver: 49.2827° N, 123.1207° W
-        # Seattle: 47.6062° N, 122.3321° W
-        # Approximate distance: ~195 km
-
-        vancouver_lat, vancouver_lon = 49.2827, -123.1207
-        seattle_lat, seattle_lon = 47.6062, -122.3321
-
-        distance = haversine_distance(vancouver_lat, vancouver_lon, seattle_lat, seattle_lon)
-
-        # Should be approximately 195 km (195000 meters)
-        # Allow 5% tolerance
-        assert distance == pytest.approx(195000, rel=0.05)
-
-    def test_equator_distance(self):
-        """Test distance along equator."""
-        # 1 degree of longitude at equator ≈ 111.32 km
-        distance = haversine_distance(0.0, 0.0, 0.0, 1.0)
-        assert distance == pytest.approx(111320, rel=0.01)
 
 
 class TestIDWInterpolation:

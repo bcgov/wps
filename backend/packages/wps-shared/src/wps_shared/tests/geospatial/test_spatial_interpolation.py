@@ -5,7 +5,6 @@ Unit tests for spatial interpolation utilities.
 import numpy as np
 import pytest
 from wps_shared.geospatial.spatial_interpolation import (
-    haversine_distance,
     idw_interpolation,
     _make_idw_weights,
     IDW_POWER,
@@ -29,38 +28,6 @@ class TestConstants:
     def test_max_stations_default(self):
         """Test that max stations is 12."""
         assert MAX_STATIONS == 12
-
-
-class TestHaversineDistance:
-    """Tests for Haversine distance calculation."""
-
-    def test_same_point(self):
-        """Test that distance between same point is zero."""
-        lat, lon = 49.0, -123.0
-        distance = haversine_distance(lat, lon, lat, lon)
-        assert distance == pytest.approx(0.0, abs=1.0)
-
-    def test_known_distance_vancouver_seattle(self):
-        """Test with known distance between Vancouver and Seattle."""
-        vancouver_lat, vancouver_lon = 49.2827, -123.1207
-        seattle_lat, seattle_lon = 47.6062, -122.3321
-
-        distance = haversine_distance(vancouver_lat, vancouver_lon, seattle_lat, seattle_lon)
-
-        # Should be approximately 195 km (allow 5% tolerance)
-        assert distance == pytest.approx(195000, rel=0.05)
-
-    def test_equator_degree(self):
-        """Test distance of 1 degree longitude at equator."""
-        distance = haversine_distance(0.0, 0.0, 0.0, 1.0)
-        # 1 degree at equator ≈ 111.32 km
-        assert distance == pytest.approx(111320, rel=0.01)
-
-    def test_north_south_distance(self):
-        """Test north-south distance (latitude change only)."""
-        # 1 degree latitude ≈ 111 km everywhere
-        distance = haversine_distance(49.0, -123.0, 50.0, -123.0)
-        assert distance == pytest.approx(111000, rel=0.01)
 
 
 class TestIDWInterpolation:

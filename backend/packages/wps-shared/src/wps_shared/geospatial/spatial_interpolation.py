@@ -21,27 +21,6 @@ SEARCH_RADIUS = 500000  # 500km search radius in meters
 MAX_STATIONS = 12  # Maximum number of nearest stations to use
 
 
-def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """
-    Calculate great circle distance between two points using the Haversine formula.
-
-    :param lat1: Latitude of first point (degrees)
-    :param lon1: Longitude of first point (degrees)
-    :param lat2: Latitude of second point (degrees)
-    :param lon2: Longitude of second point (degrees)
-    :return: Distance in meters
-    """
-    lat1_rad, lon1_rad = np.radians(lat1), np.radians(lon1)
-    lat2_rad, lon2_rad = np.radians(lat2), np.radians(lon2)
-
-    dlat = lat2_rad - lat1_rad
-    dlon = lon2_rad - lon1_rad
-    a = np.sin(dlat / 2) ** 2 + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin(dlon / 2) ** 2
-    c = 2 * np.arcsin(np.sqrt(a))
-
-    return float(EARTH_RADIUS * c)
-
-
 def _make_idw_weights(power: float, max_stations: Optional[int]):
     """Create IDW weight function with power and max_stations parameters."""
     # Threshold for exact match: 1m in radians ≈ 1.57e-7
@@ -73,7 +52,7 @@ def _make_idw_weights(power: float, max_stations: Optional[int]):
                 mask = np.ones(len(dist), dtype=bool)
 
             # IDW weights
-            w = np.where(mask, 1.0 / (dist ** power), 0.0)
+            w = np.where(mask, 1.0 / (dist**power), 0.0)
             result.append(w)
 
         return result
